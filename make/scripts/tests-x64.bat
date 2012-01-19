@@ -34,8 +34,8 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestWindows01NE
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot %*
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot %*
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.nativewindow.TestRecursiveToolkitLockCORE
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT %*

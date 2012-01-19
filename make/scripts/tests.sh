@@ -87,7 +87,8 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug=all"
-    D_ARGS="-Dnewt.debug.Window"
+    D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug.JAWT -Djogl.debug.Animator"
+    #D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Xprof"
     #D_ARGS="-Djogl.debug.Animator"
     #D_ARGS="-Dnativewindow.debug=all"
@@ -168,6 +169,10 @@ function testswt() {
     jrun 0 1 $* 2>&1 | tee -a java-run.log
 }
 
+function testawtswt() {
+    jrun 1 1 $* 2>&1 | tee -a java-run.log
+}
+
 #
 # newt (testnoawt and testawt)
 #
@@ -236,7 +241,6 @@ function testswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestTexture01AWT
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461OffscreenSupersamplingSwingAWT
 #testawt com.jogamp.opengl.test.junit.jogl.texture.TestGrayTextureFromFileAWTBug417
-#testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.glu.TestBug463ScaleImageMemoryAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWTCardLayoutAnimatorStartStopBug532 $*
 
@@ -249,13 +253,19 @@ function testswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWTGLCanvas01GLn $*
 
 #
+# awtswt (testawtswt)
+#
+#testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
+#testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLnAWT $*
+
+#
 # newt.awt (testawt)
 #
 #testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper
 #testawt com.jogamp.opengl.test.junit.newt.TestEventSourceNotAWTBug
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
-testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
+#testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT $*
@@ -309,6 +319,18 @@ testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
 #
 # regressions
 #
+#Windows
+#testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
+#testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
+
+#linux:
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cSwingAWT $*
+
+# osx:
+#testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLnAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
+testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer01GLCanvasAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer02NewtCanvasAWT $*
 
 $spath/count-edt-start.sh java-run.log
 
