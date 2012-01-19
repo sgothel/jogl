@@ -130,19 +130,22 @@ public class AWTRobotUtil {
         robot.mouseMove( (int) p0.getX(), (int) p0.getY() );
         robot.delay(ROBOT_DELAY);
 
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-            public void run() {
-                window.setVisible(true);
-                window.toFront();
-                window.requestFocus();
-            }});
-        robot.delay(ROBOT_DELAY);
-
-        int wait;
-        for (wait=0; wait<POLL_DIVIDER && !window.hasFocus(); wait++) {
+        int wait=0;
+        do {
+            final int _wait = wait;
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    if(0==_wait) {
+                        window.setVisible(true);
+                        window.toFront();
+                    }
+                    window.requestFocus();
+                }});
             Thread.sleep(TIME_SLICE);
-        }
+            wait++;
+        } while (wait<POLL_DIVIDER && !window.hasFocus());
         final boolean success = wait<POLL_DIVIDER;
+        
         window.removeWindowFocusListener(winFA);
         if(!success) {
             System.err.println("*** AWTRobotUtil.toFrontAndRequestFocus() UI failure");
