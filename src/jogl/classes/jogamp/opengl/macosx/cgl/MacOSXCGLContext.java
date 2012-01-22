@@ -537,10 +537,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
     public boolean release(long ctx) {
       try {
-          gl.glFinish(); // w/o glFinish() OSX < 10.7 (NVidia driver) may freeze
+          gl.glFlush(); // w/o glFlush()/glFinish() OSX < 10.7 (NVidia driver) may freeze
       } catch (GLException gle) {
           if(DEBUG) {
-            System.err.println("MacOSXCGLContext.NSOpenGLImpl.release: INFO: glFinish() catched exception:");
+            System.err.println("MacOSXCGLContext.NSOpenGLImpl.release: INFO: glFlush() catched exception:");
             gle.printStackTrace();              
           }
       }
@@ -648,10 +648,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
     public boolean release(long ctx) {
       try {
-          gl.glFinish(); // w/o glFinish() OSX < 10.7 (NVidia driver) may freeze
+          gl.glFlush(); // w/o glFlush()/glFinish() OSX < 10.7 (NVidia driver) may freeze
       } catch (GLException gle) {
           if(DEBUG) {
-            System.err.println("MacOSXCGLContext.CGLImpl.release: INFO: glFinish() catched exception:");
+            System.err.println("MacOSXCGLContext.CGLImpl.release: INFO: glFlush() catched exception:");
             gle.printStackTrace();              
           }
       }
