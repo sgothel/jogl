@@ -315,10 +315,12 @@
         <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
                excludes="${java.excludes.all}"
-               source="${target.sourcelevel}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="swt_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -453,10 +455,12 @@
       
       <linker id="linker.cfg.macosx.nativewindow" extends="linker.cfg.macosx">
         <linkerarg value="-weak_framework" />
+        <linkerarg value="AppKit" />
+        <linkerarg value="-weak_framework" />
         <linkerarg value="QuartzCore" />
         <linkerarg value="-weak_framework" />
         <linkerarg value="Cocoa" />
-        <linkerarg value="-framework" />
+        <linkerarg value="-weak_framework" />
         <linkerarg value="JavaNativeFoundation" />
         <linkerarg value="-F${java.osx.frameworks.dir}" />
       </linker>
@@ -886,6 +890,7 @@
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="${target.sourcelevel}"
+                 maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
         </javadoc>
@@ -900,6 +905,7 @@
                  destdir="${javadoc.spec}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}"
                  source="${target.sourcelevel}"
+                 maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
                  bottom="${javadoc.bottom}" >
         </javadoc>
@@ -914,6 +920,7 @@
                  destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="${target.sourcelevel}"
+                 maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
         </javadoc>

@@ -646,9 +646,13 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
     [myView lockFocus];
     [myView unlockFocus];
 
+NS_DURING
     // concurrent view rendering
+    // Available >= 10.6 - Makes the menubar disapear
     [myWindow setAllowsConcurrentViewDrawing: YES];
     [myView setCanDrawConcurrently: YES];
+NS_HANDLER
+NS_ENDHANDLER
 
     // visible on front
     [myWindow orderFront: myWindow];

@@ -192,18 +192,9 @@
         </condition>
         <echo message="isSWTRuntimeAvailable=${isSWTRuntimeAvailable}" />
 
-        <property name="target.sourcelevel" value="1.5" />
-        <property name="host.sourcelevel"   value="1.5" />
-
         <!-- property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" /-->
-        <property name="javadoc.link" value="http://download.oracle.com/javase/1.5.0/docs/api/" />
-
-        <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
-        <property name="javacdebug"       value="true" /> 
-        <property name="javacdebuglevel"  value="source,lines" /> 
-        <!--property name="javacdebuglevel"  value="source,lines,vars" /--> 
-        <!-- property name="javac.memorymax"  value="128m" /-->  <!-- I ran out of memory with these .. linux x86_64 6u14 -->
-        <property name="javac.memorymax"  value="512m" /> 
+        <!-- property name="javadoc.link" value="http://download.oracle.com/javase/1.5.0/docs/api/" /-->
+        <property name="javadoc.link" value="http://docs.oracle.com/javase/6/docs/api/" />
 
         <!-- Names of directories relative to the project root.
              Some of these are used in FileMappers later for dependence information

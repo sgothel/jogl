@@ -206,10 +206,12 @@
         <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
                excludes="${java.excludes.all}"
-               source="${target.sourcelevel}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <src path="${src.java}" />
             <classpath refid="jogl_nativewindow_gluegen.classpath"/>
@@ -311,6 +313,8 @@
       </linker>
 
       <linker id="linker.cfg.macosx.newt" extends="linker.cfg.macosx">
+        <linkerarg value="-weak_framework" />
+        <linkerarg value="AppKit" />
         <linkerarg value="-weak_framework" />
         <linkerarg value="Cocoa" />
       </linker>
@@ -763,6 +767,7 @@
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}"
                  source="${target.sourcelevel}"
+                 maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
          <classpath refid="jogl_nativewindow_gluegen.classpath"/>
@@ -777,6 +782,7 @@
                  destdir="${javadoc.spec}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}"
                  source="${target.sourcelevel}"
+                 maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
                  bottom="${javadoc.bottom}" >
          <classpath refid="jogl_nativewindow_gluegen.classpath"/>
@@ -791,6 +797,7 @@
                  destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}"
                  source="${target.sourcelevel}"
+                 maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
          <classpath refid="jogl_nativewindow_gluegen.classpath"/>

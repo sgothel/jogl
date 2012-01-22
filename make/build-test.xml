@@ -72,10 +72,12 @@
     <target name="test.compile" depends="test.compile.check" unless="test.compile.skip">
         <!-- Perform the junit pass Java compile -->
         <javac destdir="${classes}"
-               source="${host.sourcelevel}"
                fork="yes"
-               memoryMaximumSize="${javac.memorymax}"
                includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="junit_jogl_newt_android.compile.classpath"/>
             <src path="${src.test}" />

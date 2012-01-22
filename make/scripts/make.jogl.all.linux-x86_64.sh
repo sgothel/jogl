@@ -24,6 +24,11 @@ fi
 #    -DisLinux=true \
 #    -DisLinuxAMD64=true \
 #    -DisX11=true \
+#
+#    -Dtarget.sourcelevel=1.6 \
+#    -Dtarget.targetlevel=1.6 \
+#    -Dtarget.rt.jar=/opt-share/jre1.6.0_30/lib/rt.jar \
+
 
 #LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64
 #export LD_LIBRARY_PATH
@@ -44,6 +49,9 @@ echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a $LOGF
 # BUILD_ARCHIVE=true \
 ant  \
     $CUSTOMLIBDIR \
+    -Dtarget.sourcelevel=1.6 \
+    -Dtarget.targetlevel=1.6 \
+    -Dtarget.rt.jar=/opt-share/jre1.6.0_30/lib/rt.jar \
     -Djavacdebuglevel="source,lines,vars" \
     -Drootrel.build=build-x86_64 \
     -Dsetup.addNativeOpenMAX=true \

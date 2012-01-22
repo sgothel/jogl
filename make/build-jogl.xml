@@ -83,10 +83,13 @@
         <echo message="setup.addNativeNVidiaCG: ${setup.addNativeNVidiaCG}" />
 
         <property name="java.part.gluegen-gl" 
-                  value="com/jogamp/gluegen/opengl/** com/jogamp/gluegen/runtime/opengl/*"/>
+                  value="com/jogamp/gluegen/opengl/**"/>
+
+        <property name="java.part.gluegen-gl-rt" 
+                  value="com/jogamp/gluegen/runtime/opengl/*"/>
 
         <property name="java.part.core" 
-                  value="javax/media/opengl/* javax/media/opengl/fixedfunc/* javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* com/jogamp/gluegen/runtime/opengl/* com/jogamp/opengl/* jogamp/opengl/* jogamp/opengl/glu/* jogamp/opengl/glu/error/*"/>
+                  value="${java.part.gluegen-gl-rt} javax/media/opengl/* javax/media/opengl/fixedfunc/* javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* com/jogamp/opengl/* jogamp/opengl/* jogamp/opengl/glu/* jogamp/opengl/glu/error/*"/>
         <property name="java.part.core.exclude" value="javax/media/opengl/Debug* javax/media/opengl/Trace*"/>
 
         <property name="java.part.nv-cg"
@@ -688,18 +691,34 @@
       -->
     <target name="build.gluegen-gl.jar" depends="init, common.gluegen.build, setup-manifestfile">
         <javac destdir="${classes}"
+               includes="${java.part.gluegen-gl-rt}"
+               fork="yes"
+               includeAntRuntime="true"
+               memoryMaximumSize="${javac.memorymax}"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="gluegen-gl.classpath"/>
+            <src path="${src.java}" />
+        </javac>
+
+        <javac destdir="${classes}"
                includes="${java.part.gluegen-gl}"
                fork="yes"
-               memoryMaximumSize="${javac.memorymax}"
                includeAntRuntime="true"
-               source="${target.sourcelevel}" debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+               memoryMaximumSize="${javac.memorymax}"
+               source="${host.sourcelevel}" 
+               target="${host.targetlevel}" 
+               bootclasspath="${host.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="gluegen-gl.classpath"/>
             <src path="${src.java}" />
         </javac>
 
         <jar manifest="${build.jogl}/manifest.mf" destfile="${gluegen-gl.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.gluegen-gl}"/>
+                     includes="${java.part.gluegen-gl-rt} ${java.part.gluegen-gl}"/>
         </jar>
     </target>
 
@@ -996,9 +1015,12 @@
         <javac destdir="${classes}"
                includes="javax/media/opengl/fixedfunc/** javax/media/opengl/GLDrawableFactory.java javax/media/opengl/GLDrawable.java javax/media/opengl/GLContext.java javax/media/opengl/GL.java javax/media/opengl/GL2ES1.java javax/media/opengl/GL2ES2.java javax/media/opengl/GL2GL3.java javax/media/opengl/GL2.java javax/media/opengl/GLES1.java javax/media/opengl/GLES2.java javax/media/opengl/GL3.java javax/media/opengl/GL3bc.java javax/media/opengl/GL4.java javax/media/opengl/GL4bc.java"
                fork="yes"
-               memoryMaximumSize="${javac.memorymax}"
                includeAntRuntime="false"
-               source="${target.sourcelevel}" debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+               memoryMaximumSize="${javac.memorymax}"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
@@ -1009,10 +1031,12 @@
         <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
         <javac destdir="${classes}"
                excludes="com/jogamp/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all}"
-               source="${target.sourcelevel}"
                fork="yes"
-               memoryMaximumSize="${javac.memorymax}"
                includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -1026,10 +1050,12 @@
         <!-- Perform the third pass Java compile; everything including fixed function emulation. -->
         <javac destdir="${classes}"
                excludes="${java.excludes.all}"
-               source="${target.sourcelevel}"
                fork="yes"
-               memoryMaximumSize="${javac.memorymax}"
                includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="nativewindow_gluegen.classpath"/>
             <src path="${src.java}" />
@@ -1130,6 +1156,8 @@
 
       <linker id="linker.cfg.macosx.jogl" extends="linker.cfg.macosx">
         <linkerarg value="-weak_framework" />
+        <linkerarg value="AppKit" />
+        <linkerarg value="-weak_framework" />
         <linkerarg value="QuartzCore" />
         <linkerarg value="-weak_framework" />
         <linkerarg value="Cocoa" />
@@ -1138,7 +1166,7 @@
       </linker>
 
       <!--linker id="linker.cfg.macosx.jogl.cg" extends="linker.cfg.macosx.jogl">
-        <linkerarg value="-framework"/>
+        <linkerarg value="-weak_framework"/>
         <linkerarg value="Cg"/>
       </linker-->
 
@@ -1638,9 +1666,9 @@
                  destdir="${javadoc}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="${target.sourcelevel}"
-                 maxmemory="512m"
+                 maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
-         bottom="${javadoc.bottom}" >
+                 bottom="${javadoc.bottom}" >
           <classpath refid="nativewindow_gluegen.classpath"/>
           <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
@@ -1653,7 +1681,7 @@
                  destdir="${javadoc.spec}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}"
                  source="${target.sourcelevel}"
-                 maxmemory="512m"
+                 maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
                  bottom="${javadoc.bottom}" >
           <classpath refid="nativewindow_gluegen.classpath"/>
@@ -1668,7 +1696,7 @@
                  destdir="${javadoc.dev}" windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  source="${target.sourcelevel}"
-                 maxmemory="512m"
+                 maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
           <classpath refid="nativewindow_gluegen.classpath"/>
