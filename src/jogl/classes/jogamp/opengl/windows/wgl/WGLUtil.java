@@ -54,7 +54,9 @@ public class WGLUtil {
     
     static {
         USE_WGLVersion_Of_5WGLGDIFuncSet = Debug.isPropertyDefined("jogl.windows.useWGLVersionOf5WGLGDIFuncSet", true, AccessController.getContext());
-        System.err.println("USE_WGLVersion_Of_5WGLGDIFuncSet: "+USE_WGLVersion_Of_5WGLGDIFuncSet);
+        if(USE_WGLVersion_Of_5WGLGDIFuncSet) {
+            System.err.println("Use WGL version of 5 WGL/GDI functions.");
+        }
     }
 
     public static int ChoosePixelFormat(long hdc, PIXELFORMATDESCRIPTOR pfd)  {
