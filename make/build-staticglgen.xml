@@ -32,6 +32,7 @@
         <javac srcdir="${src.java}" destdir="${classes}" includes="**/BuildStaticGLInfo.java" source="${target.sourcelevel}" debug="true" debuglevel="${javacdebuglevel}"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}" 
                bootclasspath="${target.rt.jar}">
@@ -57,7 +58,8 @@
         <javac destdir="${classes}" includes="**/StaticGLGenTask.java" source="${target.sourcelevel}" debug="true" debuglevel="${javacdebuglevel}"
                includeAntRuntime="true"
                memoryMaximumSize="${javac.memorymax}"
-               source="1.6">
+               encoding="UTF-8"
+               source="${host.sourcelevel}">
             <src path="${src.java}" />
             <classpath refid="classpath" />
         </javac>

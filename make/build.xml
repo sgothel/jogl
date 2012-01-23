@@ -198,6 +198,7 @@
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
                source="${target.sourcelevel}" 
                target="${target.targetlevel}" 
                bootclasspath="${target.rt.jar}"
@@ -419,6 +420,7 @@
                  windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  access="public"
+                 encoding="UTF-8"
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
                  bottom="${javadoc.bottom}" >
@@ -440,6 +442,7 @@
                  windowtitle="${javadoc.spec.windowtitle}"
                  overview="${javadoc.overview}"
                  access="public"
+                 encoding="UTF-8"
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
                  bottom="${javadoc.bottom}" >
@@ -462,6 +465,7 @@
                  windowtitle="${javadoc.windowtitle}"
                  overview="${javadoc.overview}" 
                  access="protected"
+                 encoding="UTF-8"
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
                  bottom="${javadoc.bottom}" >
@@ -483,6 +487,7 @@
                  windowtitle="${javadoc.nw.spec.windowtitle}"
                  overview="${javadoc.nw.overview}"
                  access="public"
+                 encoding="UTF-8"
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
                  bottom="${javadoc.bottom}" >

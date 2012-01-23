@@ -571,9 +571,9 @@ public class PMVMatrix implements GLMatrixFunc {
         x = vec3f[0]; y = vec3f[1]; z = vec3f[2];
 
         // Rotation matrix:
-        //      xx(1−c)+c  xy(1−c)+zs xz(1−c)-ys 0
-        //      xy(1−c)-zs yy(1−c)+c  yz(1−c)+xs 0
-        //      xz(1−c)+ys yz(1−c)-xs zz(1−c)+c  0
+        //      xx(1-c)+c  xy(1-c)+zs xz(1-c)-ys 0
+        //      xy(1-c)-zs yy(1-c)+c  yz(1-c)+xs 0
+        //      xz(1-c)+ys yz(1-c)-xs zz(1-c)+c  0
         //      0          0          0          1
         final float xy = x*y;
         final float xz = x*z;
@@ -643,7 +643,7 @@ public class PMVMatrix implements GLMatrixFunc {
         //  2*zNear/dx   0          A  0
         //  0            2*zNear/dy B  0
         //  0            0          C  D
-        //  0            0         −1  0
+        //  0            0         -1  0
         final float zNear2 = 2.0f*zNear;
         final float dx=right-left;
         final float dy=top-bottom;

@@ -478,7 +478,7 @@ public class T2Interpreter {
     }
     
     /**
-     * Causes two B�zier curves, as described by the arguments (as
+     * Causes two Bezier curves, as described by the arguments (as
      * shown in Figure 2 below), to be rendered as a straight line when
      * the flex depth is less than fd /100 device pixels, and as curved lines
      * when the flex depth is greater than or equal to fd/100 device
@@ -524,7 +524,7 @@ public class T2Interpreter {
     
     /**
      * Finishes a charstring outline definition, and must be the
-     * last operator in a character�s outline.
+     * last operator in a character's outline.
      */
     private void _endchar() {
         endContour();
@@ -668,7 +668,7 @@ public class T2Interpreter {
     }
     
     /**
-     * Performs a circular shift of the elements num(N�1) ... num0 on
+     * Performs a circular shift of the elements num(Nx1) ... num0 on
      * the argument stack by the amount J. Positive J indicates upward
      * motion of the stack; negative J indicates downward motion.
      * The value N must be a non-negative integer, otherwise the
