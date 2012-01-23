@@ -29,15 +29,8 @@
 package jogamp.opengl;
 
 import com.jogamp.common.os.DynamicLibraryBundleInfo;
-import java.util.*;
 
 public abstract class GLDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
-    static List<String> glueLibNamesPreload;
-    static {
-        glueLibNamesPreload = new ArrayList<String>();
-        glueLibNamesPreload.add("nativewindow_x11");
-    }
-
     protected GLDynamicLibraryBundleInfo() {
     }
 
@@ -47,8 +40,5 @@ public abstract class GLDynamicLibraryBundleInfo implements DynamicLibraryBundle
     /** default **/
     public boolean shallLookupGlobal() { return false; }
 
-    public static List<String> getGlueLibNamesPreload() {
-        return glueLibNamesPreload;
-    }
 }
 

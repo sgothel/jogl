@@ -44,7 +44,6 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
     static List<String> glueLibNames;
     static {
         glueLibNames = new ArrayList<String>();
-        glueLibNames.addAll(GLDynamicLibraryBundleInfo.getGlueLibNamesPreload());
         glueLibNames.add("jogl_mobile");
     }
 

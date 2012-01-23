@@ -36,7 +36,6 @@ public abstract class DesktopGLDynamicLibraryBundleInfo extends GLDynamicLibrary
     static {
         glueLibNames = new ArrayList<String>();
 
-        glueLibNames.addAll(getGlueLibNamesPreload());
         glueLibNames.add("jogl_desktop");
     }
 
