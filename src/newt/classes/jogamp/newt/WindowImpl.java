@@ -285,6 +285,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if( null != parentWindow && ( autoPosition || 0>getX() || 0>getY() ) ) {                
             definePosition(0, 0);
         }
+        boolean postParentlockFocus = false;
         try {
             if(validateParentWindowHandle()) {
                 if(screenReferenceAdded) {
@@ -306,9 +307,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                 fullScreenAction.run();
                             }
                         }
-                        // harmonize focus behavior for all platforms: focus on creation
-                        requestFocusInt(isFullscreen() /* skipFocusAction */, true/* force */);
-                        ((DisplayImpl) screen.getDisplay()).dispatchMessagesNative(); // status up2date
+                        postParentlockFocus = true;
                     }
                 }
             }
@@ -316,6 +315,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(null!=parentWindow) {
                 parentWindow.unlockSurface();
             }
+        }
+        if(postParentlockFocus) {
+            // harmonize focus behavior for all platforms: focus on creation
+            requestFocusInt(isFullscreen() /* skipFocusAction */, true/* force */);
+            ((DisplayImpl) screen.getDisplay()).dispatchMessagesNative(); // status up2date
         }
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window.createNative() END ("+getThreadName()+", "+this+")");
