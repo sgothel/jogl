@@ -465,8 +465,8 @@ public abstract class X11GLXContext extends GLContextImpl {
     }
   }
 
-  protected final StringBuffer getPlatformExtensionsStringImpl() {
-    StringBuffer sb = new StringBuffer();
+  protected final StringBuilder getPlatformExtensionsStringImpl() {
+    StringBuilder sb = new StringBuilder();
     if (DEBUG) {
       System.err.println("!!! GLX Version client version "+ GLXUtil.getClientVersionNumber()+
                          ", server: "+         

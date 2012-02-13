@@ -996,7 +996,7 @@ public abstract class GLContextImpl extends GLContext {
     if(null !=  eCache) {
         extensionAvailability = eCache;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": !!! GLContext GL ExtensionAvailabilityCache reusing key("+contextFQN+") -> "+toHexString(eCache.hashCode()) + " - entries: "+eCache.getSize());
+            System.err.println(getThreadName() + ": !!! GLContext GL ExtensionAvailabilityCache reusing key("+contextFQN+") -> "+toHexString(eCache.hashCode()) + " - entries: "+eCache.getTotalExtensionCount());
         }
     } else {
         extensionAvailability = new ExtensionAvailabilityCache(this);
@@ -1004,7 +1004,7 @@ public abstract class GLContextImpl extends GLContext {
         synchronized(mappedContextTypeObjectLock) {
             mappedExtensionAvailabilityCache.put(contextFQN, extensionAvailability);
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext GL ExtensionAvailabilityCache mapping key("+contextFQN+") -> "+toHexString(extensionAvailability.hashCode()) + " - entries: "+extensionAvailability.getSize());
+                System.err.println(getThreadName() + ": !!! GLContext GL ExtensionAvailabilityCache mapping key("+contextFQN+") -> "+toHexString(extensionAvailability.hashCode()) + " - entries: "+extensionAvailability.getTotalExtensionCount());
             }
         }
     }    
@@ -1047,19 +1047,8 @@ public abstract class GLContextImpl extends GLContext {
    */
   protected abstract void updateGLXProcAddressTable();
 
-  protected abstract StringBuffer getPlatformExtensionsStringImpl();
+  protected abstract StringBuilder getPlatformExtensionsStringImpl();
   
-  /**
-   * Returns true if the specified OpenGL core- or extension-function can be
-   * successfully called using this GL context given the current host (OpenGL
-   * <i>client</i>) and display (OpenGL <i>server</i>) configuration.
-   *
-   * See {@link GL#isFunctionAvailable(String)} for more details.
-   *
-   * @param glFunctionName the name of the OpenGL function (e.g., use
-   * "glPolygonOffsetEXT" or "glPolygonOffset" to check if the {@link
-   * javax.media.opengl.GL#glPolygonOffset(float,float)} is available).
-   */
   public final boolean isFunctionAvailable(String glFunctionName) {
     // Check GL 1st (cached)
     ProcAddressTable pTable = getGLProcAddressTable(); // null if ctx not created once
@@ -1098,16 +1087,6 @@ public abstract class GLContextImpl extends GLContext {
     return false;
   }
 
-  /**
-   * Returns true if the specified OpenGL extension can be
-   * successfully called using this GL context given the current host (OpenGL
-   * <i>client</i>) and display (OpenGL <i>server</i>) configuration.
-   *
-   * See {@link GL#isExtensionAvailable(String)} for more details.
-   *
-   * @param glExtensionName the name of the OpenGL extension (e.g.,
-   * "GL_VERTEX_PROGRAM_ARB").
-   */
   public boolean isExtensionAvailable(String glExtensionName) {
       if(null!=extensionAvailability) {
         return extensionAvailability.isExtensionAvailable(mapToRealGLExtensionName(glExtensionName));
@@ -1115,6 +1094,10 @@ public abstract class GLContextImpl extends GLContext {
       return false;
   }
 
+  public final int getPlatformExtensionCount() {
+      return null != extensionAvailability ? extensionAvailability.getPlatformExtensionCount() : 0;
+  }
+  
   public final String getPlatformExtensionsString() {
       if(null!=extensionAvailability) {
         return extensionAvailability.getPlatformExtensionsString();
@@ -1122,6 +1105,10 @@ public abstract class GLContextImpl extends GLContext {
       return null;
   }
 
+  public final int getGLExtensionCount() {
+      return null != extensionAvailability ? extensionAvailability.getGLExtensionCount() : 0;
+  }
+  
   public final String getGLExtensionsString() {
       if(null!=extensionAvailability) {
         return extensionAvailability.getGLExtensionsString();
@@ -1135,7 +1122,7 @@ public abstract class GLContextImpl extends GLContext {
       }
       return false;
   }
-
+  
   protected static String getContextFQN(AbstractGraphicsDevice device, int major, int minor, int ctxProfileBits) {
       ctxProfileBits &= ~GLContext.CTX_IMPL_ES2_COMPAT ; // remove non-key value
       return device.getUniqueID() + "-" + toHexString(composeBits(major, minor, ctxProfileBits));

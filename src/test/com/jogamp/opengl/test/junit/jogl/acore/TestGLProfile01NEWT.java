@@ -47,7 +47,7 @@ import com.jogamp.newt.*;
 public class TestGLProfile01NEWT extends UITestCase {
 
     @Test
-    public void test00Version() throws InterruptedException {
+    public void testVersion() throws InterruptedException {
         System.err.println(VersionUtil.getPlatformInfo());
         System.err.println(GlueGenVersion.getInstance());
         System.err.println(NativeWindowVersion.getInstance());
@@ -58,7 +58,7 @@ public class TestGLProfile01NEWT extends UITestCase {
     }
 
     @Test
-    public void test01GLProfileDefault() throws InterruptedException {
+    public void testGLProfileDefault() throws InterruptedException {
         System.out.println("GLProfile "+GLProfile.glAvailabilityToString());
         System.out.println("GLProfile.getDefaultDevice(): "+GLProfile.getDefaultDevice());        
         GLProfile glp = GLProfile.getDefault();
@@ -85,13 +85,7 @@ public class TestGLProfile01NEWT extends UITestCase {
     }
 
     @Test
-    public void test02GL2() throws InterruptedException {
-        GLProfile glp = GLProfile.get(GLProfile.GL2);
-        dumpVersion(glp);
-    }
-
-    @Test
-    public void test03GLProfileMaxProgrammable() throws InterruptedException {
+    public void testGLProfileMaxProgrammable() throws InterruptedException {
         // Assuming at least one programmable profile is available
         GLProfile glp = GLProfile.getMaxProgrammable();
         System.out.println("GLProfile.getMaxProgrammable(): "+glp);
@@ -109,7 +103,7 @@ public class TestGLProfile01NEWT extends UITestCase {
     }
 
     @Test
-    public void test04GLProfileGL2ES1() throws InterruptedException {
+    public void testGLProfileGL2ES1() throws InterruptedException {
         if(!GLProfile.isAvailable(GLProfile.GL2ES1)) {
             System.out.println("GLProfile GL2ES1 n/a");
             return;
@@ -120,7 +114,7 @@ public class TestGLProfile01NEWT extends UITestCase {
     }
 
     @Test
-    public void test05GLProfileGL2ES2() throws InterruptedException {
+    public void testGLProfileGL2ES2() throws InterruptedException {
         if(!GLProfile.isAvailable(GLProfile.GL2ES2)) {
             System.out.println("GLProfile GL2ES2 n/a");
             return;
@@ -128,6 +122,50 @@ public class TestGLProfile01NEWT extends UITestCase {
         GLProfile glp = GLProfile.getGL2ES2();
         System.out.println("GLProfile GL2ES2: "+glp);
         dumpVersion(glp);
+    }
+    
+    void testSpecificProfile(String glps) throws InterruptedException {
+        if(GLProfile.isAvailable(glps)) {
+            GLProfile glp = GLProfile.get(glps);
+            dumpVersion(glp);
+        } else {
+            System.err.println("Profile "+glps+" n/a");
+        }
+    }
+    
+    @Test
+    public void testGL4bc() throws InterruptedException {
+        testSpecificProfile(GLProfile.GL4bc);
+    }
+
+    @Test
+    public void testGL3bc() throws InterruptedException {
+        testSpecificProfile(GLProfile.GL3bc);
+    }
+
+    @Test
+    public void testGL2() throws InterruptedException {
+        testSpecificProfile(GLProfile.GL2);
+    }
+    
+    @Test
+    public void testGL4() throws InterruptedException {
+        testSpecificProfile(GLProfile.GL4);
+    }
+
+    @Test
+    public void testGL3() throws InterruptedException {
+        testSpecificProfile(GLProfile.GL3);
+    }
+
+    @Test
+    public void testGLES1() throws InterruptedException {
+        testSpecificProfile(GLProfile.GLES1);
+    }
+
+    @Test
+    public void testGLES2() throws InterruptedException {
+        testSpecificProfile(GLProfile.GLES2);
     }
     
     protected void dumpVersion(GLProfile glp) throws InterruptedException {

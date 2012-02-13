@@ -322,8 +322,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
   }
     
-  protected final StringBuffer getPlatformExtensionsStringImpl() {
-    return new StringBuffer();
+  protected final StringBuilder getPlatformExtensionsStringImpl() {
+    return new StringBuilder();
   }
     
   public boolean isExtensionAvailable(String glExtensionName) {

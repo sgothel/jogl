@@ -426,12 +426,43 @@ public abstract class GLContext {
     return sb;
   }
 
+  /**
+   * Returns true if the specified OpenGL core- or extension-function can be
+   * successfully called using this GL context given the current host (OpenGL
+   * <i>client</i>) and display (OpenGL <i>server</i>) configuration.
+   *
+   * See {@link GL#isFunctionAvailable(String)} for more details.
+   *
+   * @param glFunctionName the name of the OpenGL function (e.g., use
+   * "glPolygonOffsetEXT" or "glPolygonOffset" to check if the {@link
+   * javax.media.opengl.GL#glPolygonOffset(float,float)} is available).
+   */
+  public abstract boolean isFunctionAvailable(String glFunctionName);
+  
+  /**
+   * Returns true if the specified OpenGL extension can be
+   * successfully called using this GL context given the current host (OpenGL
+   * <i>client</i>) and display (OpenGL <i>server</i>) configuration.
+   *
+   * See {@link GL#isExtensionAvailable(String)} for more details.
+   *
+   * @param glExtensionName the name of the OpenGL extension (e.g.,
+   * "GL_VERTEX_PROGRAM_ARB").
+   */
+  public abstract boolean isExtensionAvailable(String glExtensionName);
+  
+  /** Returns the number of platform extensions */
+  public abstract int getPlatformExtensionCount();
+  
   /** Returns a non-null (but possibly empty) string containing the
       space-separated list of available platform-dependent (e.g., WGL,
       GLX) extensions. Can only be called while this context is
       current. */
   public abstract String getPlatformExtensionsString();
 
+  /** Returns the number of OpenGL extensions */
+  public abstract int getGLExtensionCount();
+  
   /** Returns a non-null (but possibly empty) string containing the
       space-separated list of available extensions.
       Can only be called while this context is current.
@@ -439,14 +470,6 @@ public abstract class GLContext {
       {@link javax.media.opengl.GL#glGetString(int) glGetString}({@link javax.media.opengl.GL#GL_EXTENSIONS GL_EXTENSIONS})
    */
   public abstract String getGLExtensionsString();
-
-  public final int getGLVersionMajor() { return ctxMajorVersion; }
-  public final int getGLVersionMinor() { return ctxMinorVersion; }
-  public final boolean isGLCompatibilityProfile() { return ( 0 != ( CTX_PROFILE_COMPAT & ctxOptions ) ); }
-  public final boolean isGLCoreProfile()          { return ( 0 != ( CTX_PROFILE_CORE   & ctxOptions ) ); }
-  public final boolean isGLForwardCompatible()    { return ( 0 != ( CTX_OPTION_FORWARD & ctxOptions ) ); }
-  public final boolean isGLDebugEnabled()         { return ( 0 != ( CTX_OPTION_DEBUG & ctxOptions ) ); }
-  public final boolean isCreatedWithARBMethod()   { return ( 0 != ( CTX_IS_ARB_CREATED & ctxOptions ) ); }
 
   /**
    * @return Additional context creation flags, supported: {@link GLContext#CTX_OPTION_DEBUG}.
@@ -510,6 +533,27 @@ public abstract class GLContext {
     return ctxVersionString;
   }
 
+  public final int getGLVersionMajor() { return ctxMajorVersion; }
+  public final int getGLVersionMinor() { return ctxMinorVersion; }
+  public final boolean isGLCompatibilityProfile() { return ( 0 != ( CTX_PROFILE_COMPAT & ctxOptions ) ); }
+  public final boolean isGLCoreProfile()          { return ( 0 != ( CTX_PROFILE_CORE   & ctxOptions ) ); }
+  public final boolean isGLForwardCompatible()    { return ( 0 != ( CTX_OPTION_FORWARD & ctxOptions ) ); }
+  public final boolean isGLDebugEnabled()         { return ( 0 != ( CTX_OPTION_DEBUG & ctxOptions ) ); }
+  public final boolean isCreatedWithARBMethod()   { return ( 0 != ( CTX_IS_ARB_CREATED & ctxOptions ) ); }
+  
+  /**
+   * @return true if this context is an ES2 context or implements 
+   *         the extension <code>GL_ARB_ES2_compatibility</code>, otherwise false 
+   */
+  public final boolean isGLES2Compatible() {
+      return 0 != ( ctxOptions & CTX_IMPL_ES2_COMPAT ) ;
+  }
+  
+  public final boolean hasGLSL() {
+      return isGL2ES2() ;
+  }
+
+
   public final boolean isGL4bc() {
       return ctxMajorVersion>=4 && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
                                 && 0 != (ctxOptions & CTX_PROFILE_COMPAT);
@@ -558,18 +602,6 @@ public abstract class GLContext {
 
   public final boolean isGL2ES2() {
       return isGL2GL3() || isGLES2() ;
-  }
-
-  /**
-   * @return true if this context is an ES2 context or implements 
-   *         the extension <code>GL_ARB_ES2_compatibility</code>, otherwise false 
-   */
-  public final boolean isGLES2Compatible() {
-      return 0 != ( ctxOptions & CTX_IMPL_ES2_COMPAT ) ;
-  }
-  
-  public final boolean hasGLSL() {
-      return isGL2ES2() ;
   }
 
   public final void setSwapInterval(int interval) {

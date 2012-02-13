@@ -421,8 +421,8 @@ public class WindowsWGLContext extends GLContextImpl {
     }
   }
   
-  protected final StringBuffer getPlatformExtensionsStringImpl() {
-    StringBuffer sb = new StringBuffer();
+  protected final StringBuilder getPlatformExtensionsStringImpl() {
+    StringBuilder sb = new StringBuilder();
     
     if (!wglGetExtensionsStringEXTInitialized) {
       wglGetExtensionsStringEXTAvailable = (WGL.wglGetProcAddress("wglGetExtensionsStringEXT") != 0);

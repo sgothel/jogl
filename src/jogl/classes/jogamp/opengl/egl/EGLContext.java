@@ -248,8 +248,8 @@ public abstract class EGLContext extends GLContextImpl {
         }
     }
   
-    protected final StringBuffer getPlatformExtensionsStringImpl() {
-        StringBuffer sb = new StringBuffer();        
+    protected final StringBuilder getPlatformExtensionsStringImpl() {
+        StringBuilder sb = new StringBuilder();        
         if (!eglQueryStringInitialized) {
           eglQueryStringAvailable =
             getDrawableImpl().getGLDynamicLookupHelper().dynamicLookupFunction("eglQueryString") != 0;
