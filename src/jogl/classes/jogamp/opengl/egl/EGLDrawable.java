@@ -89,7 +89,23 @@ public abstract class EGLDrawable extends GLDrawableImpl {
 
         eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig(), surface.getSurfaceHandle());
         if (EGL.EGL_NO_SURFACE==eglSurface) {
-            throw new GLException("Creation of window surface failed: "+eglConfig+", error "+toHexString(EGL.eglGetError()));
+            final int eglError0 = EGL.eglGetError();
+            if(EGL.EGL_BAD_NATIVE_WINDOW == eglError0) {
+                // Try window handle if available and differs (Windows HDC / HWND). 
+                // ANGLE impl. required HWND on Windows.
+                if(surface instanceof NativeWindow) {
+                    final NativeWindow nw = (NativeWindow) surface;
+                    if(nw.getWindowHandle() != nw.getSurfaceHandle()) {
+                        if(DEBUG) {
+                            System.err.println("Info: Creation of window surface w/ surface handle failed: "+eglConfig+", error "+toHexString(eglError0)+", retry w/ windowHandle");
+                        }
+                        eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig(), nw.getWindowHandle());
+                    }
+                }
+            }
+        }
+        if (EGL.EGL_NO_SURFACE==eglSurface) {
+            throw new GLException("Creation of window surface failed: "+eglConfig+", "+surface+", error "+toHexString(EGL.eglGetError()));
         }
 
         if(DEBUG) {

@@ -88,11 +88,12 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
                     gle.printStackTrace();
                 }
             }
-            macOSXCGLDynamicLookupHelper = tmp;
-            /** FIXME ?? 
-            if(null!=macOSXCGLDynamicLookupHelper) {
+            if(null!=tmp && tmp.isLibComplete()) {
+                macOSXCGLDynamicLookupHelper = tmp;
+                /** FIXME ?? 
                 CGL.getCGLProcAddressTable().reset(macOSXCGLDynamicLookupHelper);
-            } */
+                */
+            }
         }
     }
     

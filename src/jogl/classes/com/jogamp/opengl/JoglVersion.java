@@ -34,6 +34,8 @@ import javax.media.opengl.*;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.JogampVersion;
+
+import java.util.List;
 import java.util.jar.Manifest;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 
@@ -68,6 +70,46 @@ public class JoglVersion extends JogampVersion {
         return toString(gl, null).toString();
     }
 
+    public static StringBuilder getAvailableCapabilitiesInfo(GLDrawableFactory factory, AbstractGraphicsDevice device, StringBuilder sb) {
+        if(null==sb) {
+            sb = new StringBuilder();
+        }
+        boolean done = false;
+        if(null!=factory) {
+            try {
+                final List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(device);
+                for(int i=0; i<availCaps.size(); i++) {
+                    sb.append("\t").append(availCaps.get(i)).append(Platform.getNewline());
+                }
+                done = true;
+            } catch (GLException gle) { /* n/a */ }
+        }
+        if(!done) {
+            sb.append("\tnone").append(Platform.getNewline());
+        }
+        sb.append(Platform.getNewline());
+        return sb;        
+    }
+    
+    public static StringBuilder getDefaultOpenGLInfo(StringBuilder sb) {
+        if(null==sb) {
+            sb = new StringBuilder();
+        }
+        final AbstractGraphicsDevice device = GLProfile.getDefaultDevice();
+        sb.append("Default Profiles     ").append(Platform.getNewline());
+        if(null!=device) {
+            GLProfile.glAvailabilityToString(device, sb, "\t", 1);
+        } else {
+            sb.append("none");
+        }
+        sb.append(Platform.getNewline()).append(Platform.getNewline());
+        sb.append("Desktop Capabilities: ").append(Platform.getNewline());
+        getAvailableCapabilitiesInfo(GLDrawableFactory.getDesktopFactory(), device, sb);
+        sb.append("EGL Capabilities: ").append(Platform.getNewline());
+        getAvailableCapabilitiesInfo(GLDrawableFactory.getEGLFactory(), device, sb);
+        return sb;
+    }
+    
     public static StringBuilder getGLInfo(GL gl, StringBuilder sb) {
         AbstractGraphicsDevice device = gl.getContext().getGLDrawable().getNativeSurface()
                                             .getGraphicsConfiguration().getScreen().getDevice();
@@ -78,8 +120,8 @@ public class JoglVersion extends JogampVersion {
 
         sb.append(VersionUtil.SEPERATOR).append(Platform.getNewline());
         sb.append(device.getClass().getSimpleName()).append("[type ")
-                .append(device.getType()).append(", connection ").append(device.getConnection()).append("]: ")
-                .append(GLProfile.glAvailabilityToString(device));
+                .append(device.getType()).append(", connection ").append(device.getConnection()).append("]: ").append(Platform.getNewline());
+        GLProfile.glAvailabilityToString(device, sb, "\t", 1);        
         sb.append(Platform.getNewline());
         sb.append("Swap Interval ").append(gl.getSwapInterval());
         sb.append(Platform.getNewline());
@@ -91,7 +133,7 @@ public class JoglVersion extends JogampVersion {
         sb.append(Platform.getNewline());
         sb.append("GL_VENDOR     ").append(gl.glGetString(GL.GL_VENDOR));
         sb.append(Platform.getNewline());
-        sb.append("GL_RENDERER    ").append(gl.glGetString(GL.GL_RENDERER));
+        sb.append("GL_RENDERER   ").append(gl.glGetString(GL.GL_RENDERER));
         sb.append(Platform.getNewline());
         sb.append("GL_VERSION    ").append(gl.glGetString(GL.GL_VERSION));
         sb.append(Platform.getNewline());        
@@ -99,7 +141,7 @@ public class JoglVersion extends JogampVersion {
         sb.append(Platform.getNewline());
         sb.append("              ").append(ctx.getGLExtensionsString());
         sb.append(Platform.getNewline());
-        sb.append("GLX_EXTENSIONS ");
+        sb.append("GLX_EXTENSIONS");
         sb.append(Platform.getNewline());
         sb.append("              ").append(ctx.getPlatformExtensionsString());
         sb.append(Platform.getNewline());

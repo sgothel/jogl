@@ -567,7 +567,7 @@ public class Java2D {
       }
       invokeWithOGLSharedContextCurrent(device.getDefaultConfiguration(), new Runnable() {
           public void run() {
-            j2dFBOShareContext = GLDrawableFactory.getFactory(GLProfile.getDefault(GLProfile.getDefaultDesktopDevice())).createExternalGLContext();
+            j2dFBOShareContext = GLDrawableFactory.getFactory(GLProfile.getDefault(GLProfile.getDefaultDevice())).createExternalGLContext();
           }
         });
       if (DEBUG) {

@@ -35,7 +35,6 @@
 package com.jogamp.newt.opengl;
 
 import java.io.PrintStream;
-import java.util.List;
 
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.VersionUtil;
@@ -901,12 +900,9 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         System.err.println(GlueGenVersion.getInstance());
         System.err.println(JoglVersion.getInstance());
 
+        System.err.println(JoglVersion.getDefaultOpenGLInfo(null).toString());
+
         final GLProfile glp = GLProfile.getDefault();
-        final GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
-        final List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(null);
-        for(int i=0; i<availCaps.size(); i++) {
-            System.err.println(availCaps.get(i));
-        }
         final GLCapabilitiesImmutable caps = new GLCapabilities( glp );
 
         GLWindow glWindow = GLWindow.create(caps);

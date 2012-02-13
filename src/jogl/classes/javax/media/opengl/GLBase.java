@@ -81,86 +81,80 @@ package javax.media.opengl;
 public interface GLBase {
     
   /**
-   * Indicates whether this GL object conforms to any of the common GL profiles.
-   * @return whether this GL object conforms to any of the common GL profiles
+   * Indicates whether this GL object conforms to any of the OpenGL profiles.
    */
   public boolean isGL();
 
   /**
-   * Indicates whether this GL object conforms to the GL4 compatibility profile.
-   * The GL4 compatibility profile merges the GL2 profile and GL4 core profile.
-   * @return whether this GL object conforms to the GL4 compatibility profile
+   * Indicates whether this GL object conforms to the OpenGL &ge; 4.0 compatibility profile.
+   * The GL4 compatibility profile includes the GL2, GL2ES1, GL2ES2, GL3, GL3bc and GL4 profile.
    */
   public boolean isGL4bc();
 
   /**
-   * Indicates whether this GL object conforms to the GL4 core profile.
-   * The GL4 core profile reflects OpenGL versions greater or equal 3.1
-   * @return whether this GL object conforms to the GL4 core profile
+   * Indicates whether this GL object conforms to the OpenGL &ge; 4.0 core profile.
+   * The GL4 core profile includes the GL2ES2, and GL3 profile.
    */
   public boolean isGL4();
 
   /**
-   * Indicates whether this GL object conforms to the GL3 compatibility profile.
-   * The GL3 compatibility profile merges the GL2 profile and GL3 core profile.
-   * @return whether this GL object conforms to the GL3 compatibility profile
+   * Indicates whether this GL object conforms to the OpenGL &ge; 3.1 compatibility profile.
+   * The GL3 compatibility profile includes the GL2, GL2ES1, GL2ES2 and GL3 profile.
    */
   public boolean isGL3bc();
 
   /**
-   * Indicates whether this GL object conforms to the GL3 core profile.
-   * The GL3 core profile reflects OpenGL versions greater or equal 3.1
-   * @return whether this GL object conforms to the GL3 core profile
+   * Indicates whether this GL object conforms to the OpenGL &ge; 3.1 core profile.
+   * The GL3 core profile includes the GL2ES2 profile.
    */
   public boolean isGL3();
 
   /**
-   * Indicates whether this GL object conforms to the GL2 profile.
-   * The GL2 profile reflects OpenGL versions greater or equal 1.5
-   * @return whether this GL object conforms to the GL2 profile
+   * Indicates whether this GL object conforms to the OpenGL &le; 3.0 profile.
+   * The GL2 profile includes the GL2ES1 and GL2ES2 profile.
    */
   public boolean isGL2();
 
   /**
-   * Indicates whether this GL object conforms to the GLES1 profile.
-   * @return whether this GL object conforms to the GLES1 profile
+   * Indicates whether this GL object conforms to the OpenGL ES1 &ge; 1.0 profile.
    */
   public boolean isGLES1();
 
   /**
-   * Indicates whether this GL object conforms to the GLES2 profile.
-   * @return whether this GL object conforms to the GLES2 profile
+   * Indicates whether this GL object conforms to the OpenGL ES2 &ge; 2.0 profile.
+   * <p>
+   * Remark: ES2 compatible desktop profiles are not included.
+   * To query whether core ES2 functionality is provided, use {@link #isGLES2Compatible()}.
+   * </p> 
+   * @see #isGLES2Compatible()
    */
   public boolean isGLES2();
 
   /**
-   * Indicates whether this GL object conforms to one of the OpenGL ES compatible profiles.
-   * @return whether this GL object conforms to one of the OpenGL ES profiles
+   * Indicates whether this GL object conforms to one of the OpenGL ES profiles,
+   * see {@link #isGLES1()} and {@link #isGLES2()}.
    */
   public boolean isGLES();
 
   /**
-   * Indicates whether this GL object conforms to the GL2ES1 compatible profile.
-   * @return whether this GL object conforms to the GL2ES1 profile
+   * Indicates whether this GL object conforms to a GL2ES1 compatible profile.
    */
   public boolean isGL2ES1();
 
   /**
-   * Indicates whether this GL object conforms to the GL2ES2 compatible profile.
-   * @return whether this GL object conforms to the GL2ES2 profile
+   * Indicates whether this GL object conforms to a GL2ES2 compatible profile.
    */
   public boolean isGL2ES2();
 
   /**
-   * Indicates whether this GL object is compatible with OpenGL ES2.
+   * Indicates whether this GL object is compatible with the core OpenGL ES2 functionality.
    * @return true if this context is an ES2 context or implements 
    *         the extension <code>GL_ARB_ES2_compatibility</code>, otherwise false 
    */
   public boolean isGLES2Compatible();
 
   /**
-   * Indicates whether this GL object conforms to the GL2GL3 compatible profile.
-   * @return whether this GL object conforms to the GL2GL3 profile
+   * Indicates whether this GL object conforms to a GL2GL3 compatible profile.
    */
   public boolean isGL2GL3();
 
@@ -169,90 +163,77 @@ public interface GLBase {
 
   /**
    * Casts this object to the GL interface.
-   * @return this object cast to the GL interface
    * @throws GLException if this GLObject is not a GL implementation
    */
   public GL getGL() throws GLException;
 
   /**
    * Casts this object to the GL4bc interface.
-   * @return this object cast to the GL4bc interface
    * @throws GLException if this GLObject is not a GL4bc implementation
    */
   public GL4bc getGL4bc() throws GLException;
 
   /**
    * Casts this object to the GL4 interface.
-   * @return this object cast to the GL4 interface
    * @throws GLException if this GLObject is not a GL4 implementation
    */
   public GL4 getGL4() throws GLException;
 
   /**
    * Casts this object to the GL3bc interface.
-   * @return this object cast to the GL3bc interface
    * @throws GLException if this GLObject is not a GL3bc implementation
    */
   public GL3bc getGL3bc() throws GLException;
 
   /**
    * Casts this object to the GL3 interface.
-   * @return this object cast to the GL3 interface
    * @throws GLException if this GLObject is not a GL3 implementation
    */
   public GL3 getGL3() throws GLException;
 
   /**
    * Casts this object to the GL2 interface.
-   * @return this object cast to the GL2 interface
    * @throws GLException if this GLObject is not a GL2 implementation
    */
   public GL2 getGL2() throws GLException;
 
   /**
    * Casts this object to the GLES1 interface.
-   * @return this object cast to the GLES1 interface
    * @throws GLException if this GLObject is not a GLES1 implementation
    */
   public GLES1 getGLES1() throws GLException;
 
   /**
    * Casts this object to the GLES2 interface.
-   * @return this object cast to the GLES2 interface
    * @throws GLException if this GLObject is not a GLES2 implementation
    */
   public GLES2 getGLES2() throws GLException;
 
   /**
    * Casts this object to the GL2ES1 interface.
-   * @return this object cast to the GL2ES1 interface
    * @throws GLException if this GLObject is not a GL2ES1 implementation
    */
   public GL2ES1 getGL2ES1() throws GLException;
 
   /**
    * Casts this object to the GL2ES2 interface.
-   * @return this object cast to the GL2ES2 interface
    * @throws GLException if this GLObject is not a GL2ES2 implementation
    */
   public GL2ES2 getGL2ES2() throws GLException;
 
   /**
    * Casts this object to the GL2GL3 interface.
-   * @return this object cast to the GL2GL3 interface
    * @throws GLException if this GLObject is not a GL2GL3 implementation
    */
   public GL2GL3 getGL2GL3() throws GLException;
 
   /**
-   * Returns the GLProfile with which this GL object is associated.
-   * @return the GLProfile with which this GL object is associated
+   * Returns the GLProfile associated with this GL object.
    */
   public GLProfile getGLProfile();
 
   /**
-   * Returns the GLContext with which this GL object is associated.
-   * @return the GLContext with which this GL object is associated
+   * Returns the GLContext associated which this GL object.
    */
   public GLContext getContext();
 

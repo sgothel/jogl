@@ -93,9 +93,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 if(DEBUG) {
                     gle.printStackTrace();
                 }
-            }
-            x11GLXDynamicLookupHelper = tmp;
-            if(null!=x11GLXDynamicLookupHelper) {
+            }            
+            if(null!=tmp && tmp.isLibComplete()) {
+                x11GLXDynamicLookupHelper = tmp;
                 GLX.getGLXProcAddressTable().reset(x11GLXDynamicLookupHelper);
             }
         }

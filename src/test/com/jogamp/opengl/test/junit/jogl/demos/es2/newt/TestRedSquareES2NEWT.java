@@ -47,19 +47,10 @@ import org.junit.AfterClass;
 import org.junit.Test;
 
 public class TestRedSquareES2NEWT extends UITestCase {
-    static GLProfile glp;
     static int width, height;
 
     @BeforeClass
     public static void initClass() {
-        /* if(GLProfile.isAvailable(GLProfile.getDefaultEGLDevice(), GLProfile.GLES1)) {
-            // exact match
-            glp = GLProfile.get(GLProfile.getDefaultEGLDevice(), GLProfile.GLES1);
-        } else */ {
-            // default device, somehow ES1 compatible
-            glp = GLProfile.getGL2ES2(); 
-        }
-        Assert.assertNotNull(glp);
         width  = 512;
         height = 512;
     }
@@ -114,11 +105,21 @@ public class TestRedSquareES2NEWT extends UITestCase {
     }
 
     @Test
-    public void test01() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(glp);
+    public void test01GL2ES2() throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2()); 
         runTestGL(caps);
     }
 
+    @Test
+    public void test02GLES2() throws InterruptedException {
+        if(!GLProfile.isAvailable(GLProfile.GLES2)) {
+            System.out.println("GLProfile GLES2 n/a");
+            return;
+        }
+        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
+        runTestGL(caps);
+    }
+    
     static long duration = 500; // ms
 
     public static void main(String args[]) {

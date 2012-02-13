@@ -40,11 +40,12 @@ public class EGLES2DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo 
         {
             final List<String> libsGL = new ArrayList<String>();
             
-            // GLESv2
-            libsGL.add("GLESv2");
-            libsGL.add("libGLESv2.so");
             // this is the default lib name, according to the spec 
             libsGL.add("libGLESv2.so.2");
+            
+            // try these as well, if spec fails
+            libsGL.add("libGLESv2.so");            
+            libsGL.add("GLESv2");
 
             // alternative names
             libsGL.add("GLES20");

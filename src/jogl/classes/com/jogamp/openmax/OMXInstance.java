@@ -472,7 +472,7 @@ public class OMXInstance {
     private void errorCheckEGL(String s) {
         int e;
         if( (e=EGL.eglGetError()) != EGL.EGL_SUCCESS ) {
-            System.out.println("EGL Error: ("+s+"): "+e);
+            System.out.println("EGL Error: ("+s+"): 0x"+Integer.toHexString(e));
         }
     }
 

@@ -1,0 +1,23 @@
+
+Applets
+=========
+
+[1] Windows 7 x64 Native/NV, VirtualBox 4.1.6/Chromium(NV):
+[2] Linux x64 [ubuntu 10/11]
+[3] MacOSX 10.7
+
+  Tested:
+    - AWT Applet w/ GLCanvas (VersionApplet)
+    - NEWT Applet w/ GLWindow (JOGLNewtApplet1Run)
+    - NApplet OK
+    - LApplet OK
+    - JApplet/Dual OK
+    - back/fwd (reload) works
+
+  Browser:
+    - Internet Explorer [8 and 9] 32bit [1]
+    - Safari 5.1.1 32bit [1], [3]
+    - Firefox [6.0, 8.0.1] 32bit, [11.0a1] 64bit [1], [2], [3]
+    - Chrome [15.0.874.121m, 16.0.912.41] 32bit [1], [2]
+
+

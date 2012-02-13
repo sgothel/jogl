@@ -36,7 +36,7 @@
     }
 
     public boolean isNPOTTextureAvailable() {
-      return isGL3() || isGLES2() || isExtensionAvailable(GL_ARB_texture_non_power_of_two);
+      return isGL3() || isGLES2Compatible() || isExtensionAvailable(GL_ARB_texture_non_power_of_two);
     }
     private static final String GL_ARB_texture_non_power_of_two = "GL_ARB_texture_non_power_of_two";
 

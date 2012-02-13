@@ -91,26 +91,26 @@ public abstract class GLContext {
   public static final int CONTEXT_CURRENT_NEW = 2;
 
   /** <code>ARB_create_context</code> related: created via ARB_create_context */
-  protected static final int CTX_IS_ARB_CREATED = 1 << 0;
+  protected static final int CTX_IS_ARB_CREATED  = 1 <<  0;
   /** <code>ARB_create_context</code> related: compatibility profile */
-  protected static final int CTX_PROFILE_COMPAT = 1 << 1;
+  protected static final int CTX_PROFILE_COMPAT  = 1 <<  1;
   /** <code>ARB_create_context</code> related: core profile */
-  protected static final int CTX_PROFILE_CORE   = 1 << 2;
+  protected static final int CTX_PROFILE_CORE    = 1 <<  2;
   /** <code>ARB_create_context</code> related: ES profile */
-  protected static final int CTX_PROFILE_ES     = 1 << 3;
+  protected static final int CTX_PROFILE_ES      = 1 <<  3;
   /** <code>ARB_create_context</code> related: flag forward compatible */
-  protected static final int CTX_OPTION_FORWARD = 1 << 4;
+  protected static final int CTX_OPTION_FORWARD  = 1 <<  4;
   /** <code>ARB_create_context</code> related: flag not forward compatible */
-  protected static final int CTX_OPTION_ANY     = 1 << 5;
+  protected static final int CTX_OPTION_ANY      = 1 <<  5;
   /** <code>ARB_create_context</code> related: flag debug */
-  public static final int CTX_OPTION_DEBUG   = 1 << 6;  
-  /** <code>GL_ARB_ES2_compatibility</code> related: Context is compatible w/ ES2 */
-  protected static final int CTX_PROFILE_ES2_COMPAT = 1 << 8;
+  public static final int CTX_OPTION_DEBUG       = 1 <<  6;  
+  /** <code>GL_ARB_ES2_compatibility</code> implementation related: Context is compatible w/ ES2 */
+  protected static final int CTX_IMPL_ES2_COMPAT = 1 <<  8;
 
-  /** GLContext {@link com.jogamp.gluegen.runtime.ProcAddressTable} caching related: GL software implementation */
-  protected static final int CTX_IMPL_ACCEL_SOFT = 1 << 0;
-  /** GLContext {@link com.jogamp.gluegen.runtime.ProcAddressTable} caching related: GL hardware implementation */
-  protected static final int CTX_IMPL_ACCEL_HARD = 1 << 1;
+  /** Implementation / GLContext {@link com.jogamp.gluegen.runtime.ProcAddressTable} caching related: GL software implementation */
+  protected static final int CTX_IMPL_ACCEL_SOFT = 1 << 14;
+  /** Implementation / GLContext {@link com.jogamp.gluegen.runtime.ProcAddressTable} caching related: GL hardware implementation */
+  protected static final int CTX_IMPL_ACCEL_HARD = 1 << 15;
   
   private static ThreadLocal<GLContext> currentContext = new ThreadLocal<GLContext>();
 
@@ -471,13 +471,17 @@ public abstract class GLContext {
    * <ul>
    *   <li> options
    *   <ul>
+   *     <li> <code>ES profile</code> ES profile</li>
+   *     <li> <code>Compatibility profile</code>Compatibility profile including fixed function pipeline and deprecated functionality</li>
+   *     <li> <code>Core profile</code>Core profile</li>
+   *     <li> <code>forward</code>Forward profile excluding deprecated functionality</li>
+   *     <li> <code>any</code> refers to the non forward compatible context</li>
    *     <li> <code>old</code> refers to the non ARB_create_context created context</li>
    *     <li> <code>new</code> refers to the ARB_create_context created context</li>
-   *     <li> <code>compatible profile</code></li>
-   *     <li> <code>core profile</code></li>
-   *     <li> <code>forward compatible</code></li>
-   *     <li> <code>any</code> refers to the non forward compatible context</li>
-   *     <li> <code>ES</code>  refers to the GLES context variant</li>
+   *     <li> <code>debug</code> refers to a debug context</li>
+   *     <li> <code>ES2 compatible</code> refers to an ES2 compatible implementation</li>
+   *     <li> <code>software</code> refers to a software implementation of the rasterizer</li>
+   *     <li> <code>hardware</code> refers to a hardware implementation of the rasterizer</li>
    *   </ul></li>
    *   <li> <i>gl-version</i> the GL_VERSION string</li>
    * </ul>
@@ -492,13 +496,14 @@ public abstract class GLContext {
    * </table> 
    *
    * <table border="0">
-   *     <tr><td></td>   <td>ES2</td>  <td><code>2.0 (ES, any, new) - 2.0 ES Profile</code></td></tr>
-   *     <tr><td>ATI</td><td>GL2</td>  <td><code>3.0 (compatibility profile, any, new) - 3.2.9704 Compatibility Profile Context</code></td></tr>
-   *     <tr><td>ATI</td><td>GL3</td>  <td><code>3.3 (core profile, any, new) - 1.4 (3.2.9704 Compatibility Profile Context)</code></td></tr>
-   *     <tr><td>ATI</td><td>GL3bc</td><td><code>3.3 (compatibility profile, any, new) - 1.4 (3.2.9704 Compatibility Profile Context)</code></td></tr>
-   *     <tr><td>NV</td><td>GL2</td>   <td><code>3.0 (compatibility profile, any, new) - 3.0.0 NVIDIA 195.36.07.03</code></td></tr>
-   *     <tr><td>NV</td><td>GL3</td>   <td><code>3.3 (core profile, any, new) - 3.3.0 NVIDIA 195.36.07.03</code></td></tr>
-   *     <tr><td>NV</td><td>GL3bc</td> <td><code>3.3 (compatibility profile, any, new) - 3.3.0 NVIDIA 195.36.07.03</code></td></tr>
+   *     <tr><td></td>   <td>ES2</td>  <td><code>2.0 (ES profile, any, new, ES2 compatible, hardware) - 2.0 ES Profile</code></td></tr>
+   *     <tr><td>ATI</td><td>GL2</td>  <td><code>3.0 (Compatibility profile, any, new, hardware) - 3.2.9704 Compatibility Profile Context</code></td></tr>
+   *     <tr><td>ATI</td><td>GL3</td>  <td><code>3.3 (Core profile, any, new, hardware) - 1.4 (3.2.9704 Compatibility Profile Context)</code></td></tr>
+   *     <tr><td>ATI</td><td>GL3bc</td><td><code>3.3 (Compatibility profile, any, new, hardware) - 1.4 (3.2.9704 Compatibility Profile Context)</code></td></tr>
+   *     <tr><td>NV</td><td>GL2</td>   <td><code>3.0 (Compatibility profile, any, new, hardware) - 3.0.0 NVIDIA 195.36.07.03</code></td></tr>
+   *     <tr><td>NV</td><td>GL3</td>   <td><code>3.3 (Core profile, any, new, hardware) - 3.3.0 NVIDIA 195.36.07.03</code></td></tr>
+   *     <tr><td>NV</td><td>GL3bc</td> <td><code>3.3 (Compatibility profile, any, new, hardware) - 3.3.0 NVIDIA 195.36.07.03</code></td></tr>
+   *     <tr><td>NV</td><td>GL2</td>   <td><code>3.0 (Compatibility profile, any, new, ES2 compatible, hardware) - 3.0.0 NVIDIA 290.10</code></td></tr>
    * </table> 
    */
   public final String getGLVersion() {
@@ -560,7 +565,7 @@ public abstract class GLContext {
    *         the extension <code>GL_ARB_ES2_compatibility</code>, otherwise false 
    */
   public final boolean isGLES2Compatible() {
-      return 0 != ( ctxOptions & CTX_PROFILE_ES2_COMPAT ) ;
+      return 0 != ( ctxOptions & CTX_IMPL_ES2_COMPAT ) ;
   }
   
   public final boolean hasGLSL() {
@@ -742,29 +747,10 @@ public abstract class GLContext {
       return true;
   }
 
-  protected static int compose8bit(int one, int two, int three, int four) {
-    return  ( ( one   & 0x000000FF ) << 24 ) |
-            ( ( two   & 0x000000FF ) << 16 ) |
-            ( ( three & 0x000000FF ) <<  8 ) |
-            ( ( four  & 0x000000FF )       ) ;
-  }
-
-  protected static int getComposed8bit(int bits32, int which ) {
-    switch (which) {
-        case 1: return ( bits32 & 0xFF000000 ) >> 24 ;
-        case 2: return ( bits32 & 0x00FF0000 ) >> 16 ;
-        case 3: return ( bits32 & 0x0000FF00 ) >>  8 ;
-        case 4: return ( bits32 & 0xFF0000FF )       ;
-    }
-    throw new GLException("argument which out of range: "+which);
-  }
-
-  protected static String composed8BitToString(int bits32, boolean hex1, boolean hex2, boolean hex3, boolean hex4) {
-    int a = getComposed8bit(bits32, 1);
-    int b = getComposed8bit(bits32, 2);
-    int c = getComposed8bit(bits32, 3);
-    int d = getComposed8bit(bits32, 4);
-    return "["+toString(a, hex1)+", "+toString(b, hex2)+", "+toString(c, hex3)+", "+toString(d, hex4)+"]";
+  protected static int composeBits(int a8, int b8, int c16) {
+    return  ( ( a8    & 0x000000FF ) << 24 ) |
+            ( ( b8    & 0x000000FF ) << 16 ) |
+            ( ( c16   & 0x0000FFFF )       ) ;
   }
 
   private static void validateProfileBits(int bits, String argName) {
@@ -792,7 +778,7 @@ public abstract class GLContext {
   private static /*final*/ HashSet<String> deviceVersionsAvailableSet = new HashSet<String>();
 
   protected static String getDeviceVersionAvailableKey(AbstractGraphicsDevice device, int major, int profile) {
-      return device.getUniqueID() + "-" + toHexString(compose8bit(major, profile, 0, 0));
+      return device.getUniqueID() + "-" + toHexString(composeBits(major, profile, 0));
   }
 
   protected static boolean getAvailableGLVersionsSet(AbstractGraphicsDevice device) {
@@ -841,7 +827,7 @@ public abstract class GLContext {
     validateProfileBits(resCtp, "resCtp");
 
     String key = getDeviceVersionAvailableKey(device, reqMajor, profile);
-    Integer val = new Integer(compose8bit(resMajor, resMinor, resCtp, 0));
+    Integer val = new Integer(composeBits(resMajor, resMinor, resCtp));
     synchronized(deviceVersionAvailable) {
         val = deviceVersionAvailable.put( key, val );
     }
@@ -872,18 +858,55 @@ public abstract class GLContext {
         return false;
     }
 
-    int val = valI.intValue();
+    int bits32 = valI.intValue();
 
     if(null!=major) {
-        major[0] = getComposed8bit(val, 1);
+        major[0] = ( bits32 & 0xFF000000 ) >> 24 ;
     }
     if(null!=minor) {
-        minor[0] = getComposed8bit(val, 2);
+        minor[0] = ( bits32 & 0x00FF0000 ) >> 16 ;
     }
     if(null!=ctp) {
-        ctp[0]   = getComposed8bit(val, 3);
+        ctp[0]   = ( bits32 & 0x0000FFFF )       ;
     }
     return true;
+  }
+
+  /** 
+   * returns the highest GLProfile string regarding the implementation version and context profile bits.
+   * @throws GLException if version and context profile bits could not be mapped to a GLProfile
+   */
+  protected static String getGLProfile(int major, int minor, int ctp) 
+          throws GLException {
+    if(0 != ( CTX_PROFILE_COMPAT & ctp )) {        
+        if(major >= 4)                            { return GLProfile.GL4bc; }
+        else if(major == 3 && minor >= 1)         { return GLProfile.GL3bc; }
+        else                                      { return GLProfile.GL2; }        
+    } else if(0 != ( CTX_PROFILE_CORE & ctp )) {
+        if(major >= 4)                            { return GLProfile.GL4; }
+        else if(major == 3 && minor >= 1)         { return GLProfile.GL3; }        
+    } else if(0 != ( CTX_PROFILE_ES & ctp )) {
+        if(major == 2)                            { return GLProfile.GLES2; }
+        else if(major == 1)                       { return GLProfile.GLES1; }                
+    }
+    throw new GLException("Unhandled OpenGL version/profile: "+GLContext.getGLVersion(major, minor, ctp, null));
+  }
+  
+  /** 
+   * @param major Key Value either 1, 2, 3 or 4
+   * @param profile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
+   * @return the highest GLProfile string regarding the version and profile bits.
+   * @throws GLException if version and context profile bits could not be mapped to a GLProfile
+   */  
+  public static String getAvailableGLProfile(AbstractGraphicsDevice device, int reqMajor, int reqProfile) 
+          throws GLException {
+    int major[] = { 0 };
+    int minor[] = { 0 };
+    int ctp[] = { 0 };
+    if(GLContext.getAvailableGLVersion(device, reqMajor, reqProfile, major, minor, ctp)) {
+        return GLContext.getGLProfile(major[0], minor[0], ctp[0]);
+    }
+    return null;
   }
 
   /**
@@ -943,15 +966,17 @@ public abstract class GLContext {
     sb.append(".");
     sb.append(minor);
     sb.append(" (");
-    needColon = appendString(sb, "ES",                    needColon, 0 != ( CTX_PROFILE_ES & ctp ));
-    needColon = appendString(sb, "ES2 compatible",        needColon, 0 != ( CTX_PROFILE_ES2_COMPAT & ctp ));
-    needColon = appendString(sb, "compatibility profile", needColon, 0 != ( CTX_PROFILE_COMPAT & ctp ));
-    needColon = appendString(sb, "core profile",          needColon, 0 != ( CTX_PROFILE_CORE & ctp ));
-    needColon = appendString(sb, "forward compatible",    needColon, 0 != ( CTX_OPTION_FORWARD & ctp ));
-    needColon = appendString(sb, "debug",                 needColon, 0 != ( CTX_OPTION_DEBUG & ctp ));    
+    needColon = appendString(sb, "ES profile",            needColon, 0 != ( CTX_PROFILE_ES & ctp ));
+    needColon = appendString(sb, "Compatibility profile", needColon, 0 != ( CTX_PROFILE_COMPAT & ctp ));
+    needColon = appendString(sb, "Core profile",          needColon, 0 != ( CTX_PROFILE_CORE & ctp ));
+    needColon = appendString(sb, "forward",               needColon, 0 != ( CTX_OPTION_FORWARD & ctp ));
     needColon = appendString(sb, "any",                   needColon, 0 != ( CTX_OPTION_ANY & ctp ));
     needColon = appendString(sb, "new",                   needColon, 0 != ( CTX_IS_ARB_CREATED & ctp ));
     needColon = appendString(sb, "old",                   needColon, 0 == ( CTX_IS_ARB_CREATED & ctp ));
+    needColon = appendString(sb, "debug",                 needColon, 0 != ( CTX_OPTION_DEBUG & ctp ));    
+    needColon = appendString(sb, "ES2 compatible",        needColon, 0 != ( CTX_IMPL_ES2_COMPAT & ctp ));
+    needColon = appendString(sb, "software",              needColon, 0 != ( CTX_IMPL_ACCEL_SOFT & ctp ));
+    needColon = appendString(sb, "hardware",              needColon, 0 != ( CTX_IMPL_ACCEL_HARD & ctp ));
     sb.append(")");
     if(null!=gl_version) {
         sb.append(" - ");
@@ -964,13 +989,6 @@ public abstract class GLContext {
   // internal string utils 
   //
   
-  protected static String toString(int val, boolean hex) {
-    if(hex) {
-        return "0x" + Integer.toHexString(val);
-    }
-    return String.valueOf(val);
-  }
-
   protected static String toHexString(int hex) {
     return "0x" + Integer.toHexString(hex);
   }

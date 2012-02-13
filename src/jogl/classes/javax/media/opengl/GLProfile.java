@@ -39,7 +39,6 @@ package javax.media.opengl;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLDrawableFactoryImpl;
-import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
 
 import com.jogamp.common.GlueGenVersion;
@@ -246,8 +245,25 @@ public class GLProfile {
     }
     
     public static String glAvailabilityToString(AbstractGraphicsDevice device) {
+        return glAvailabilityToString(device, null).toString();
+    }
+    
+    public static StringBuilder glAvailabilityToString(AbstractGraphicsDevice device, StringBuilder sb) {
+        return glAvailabilityToString(device, sb, null, 0);
+    }
+    private static StringBuilder doIndent(StringBuilder sb, String indent, int indentCount) {
+        while(indentCount>0) {
+            sb.append(indent);
+            indentCount--;
+        }
+        return sb;
+    }
+    public static StringBuilder glAvailabilityToString(AbstractGraphicsDevice device, StringBuilder sb, String indent, int indentCount) {
         boolean avail;
-        StringBuffer sb = new StringBuffer();
+        if(null == sb) {
+            sb = new StringBuilder();
+        }
+        final boolean useIndent = null != indent;
 
         initSingleton();
         
@@ -256,77 +272,135 @@ public class GLProfile {
         }
         final HashMap<String /*GLProfile_name*/, GLProfile> map = getProfileMap(device, false);
         
-        sb.append("GLAvailability[Native[GL4bc ");
+        if(useIndent) {
+            doIndent(sb, indent, indentCount).append("Native");
+            indentCount++;
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL4bc").append(indent);
+        } else {
+            sb.append("Native[GL4bc ");
+        }        
         avail=isAvailableImpl(map, GL4bc);
         sb.append(avail);
         if(avail) {
-            glAvailabilityToString(device, sb, 4, GLContext.CTX_PROFILE_COMPAT);
+            glAvailabilityToString(device, sb.append(" "), 4, GLContext.CTX_PROFILE_COMPAT);
         }
 
-        sb.append(", GL4 ");
+        if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL4").append(indent);
+        } else {
+            sb.append(", GL4 ");
+        }
         avail=isAvailableImpl(map, GL4);
         sb.append(avail);
         if(avail) {
-            glAvailabilityToString(device, sb, 4, GLContext.CTX_PROFILE_CORE);
+            glAvailabilityToString(device, sb.append(" "), 4, GLContext.CTX_PROFILE_CORE);
         }
 
-        sb.append(", GL3bc ");
+        if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL3bc").append(indent);
+        } else {
+            sb.append(", GL3bc ");
+        }
         avail=isAvailableImpl(map, GL3bc);
         sb.append(avail);
         if(avail) {
-            glAvailabilityToString(device, sb, 3, GLContext.CTX_PROFILE_COMPAT);
+            glAvailabilityToString(device, sb.append(" "), 3, GLContext.CTX_PROFILE_COMPAT);
         }
 
-        sb.append(", GL3 ");
+        if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL3").append(indent);
+        } else {
+            sb.append(", GL3 ");
+        }
         avail=isAvailableImpl(map, GL3);
         sb.append(avail);
         if(avail) {
-            glAvailabilityToString(device, sb, 3, GLContext.CTX_PROFILE_CORE);
+            glAvailabilityToString(device, sb.append(" "), 3, GLContext.CTX_PROFILE_CORE);
         }
 
-        sb.append(", GL2 ");
+        if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL2").append(indent);
+        } else {
+            sb.append(", GL2 ");
+        }
         avail=isAvailableImpl(map, GL2);
         sb.append(avail);
         if(avail) {
-            glAvailabilityToString(device, sb, 2, GLContext.CTX_PROFILE_COMPAT);
+            glAvailabilityToString(device, sb.append(" "), 2, GLContext.CTX_PROFILE_COMPAT);
         }
 
-        sb.append(", GL2ES1 ");
+        if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL2ES1").append(indent);
+        } else {
+            sb.append(", GL2ES1 ");
+        }
         sb.append(isAvailableImpl(map, GL2ES1));
 
-        sb.append(", GLES1 ");
+        if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GLES1").append(indent);
+        } else {
+            sb.append(", GLES1 ");
+        }
         avail=isAvailableImpl(map, GLES1);
         sb.append(avail);
         if(avail) {
-            glAvailabilityToString(device, sb, 1, GLContext.CTX_PROFILE_ES);
+            glAvailabilityToString(device, sb.append(" "), 1, GLContext.CTX_PROFILE_ES);
         }
 
-        sb.append(", GL2ES2 ");
+        if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL2ES2").append(indent);
+        } else {
+            sb.append(", GL2ES2 ");
+        }
         sb.append(isAvailableImpl(map, GL2ES2));
 
-        sb.append(", GLES2 ");
+        if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GLES2").append(indent);
+        } else {
+            sb.append(", GLES2 ");
+        }
         avail=isAvailableImpl(map, GLES2);
         sb.append(avail);
         if(avail) {
-            glAvailabilityToString(device, sb, 2, GLContext.CTX_PROFILE_ES);
+            glAvailabilityToString(device, sb.append(" "), 2, GLContext.CTX_PROFILE_ES);
         }
 
-        sb.append("], Profiles[");
+        if(useIndent) {
+            indentCount--;
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("Profiles");
+            indentCount++;
+        } else {
+            sb.append("], Profiles[");
+        }
+        
         if(null != map) {
             for(Iterator<GLProfile> i=map.values().iterator(); i.hasNext(); ) {
+                if(useIndent) {
+                    doIndent(sb.append(Platform.getNewline()), indent, indentCount);
+                }
                 sb.append(i.next().toString());
-                sb.append(", ");
+                if(!useIndent) {
+                    sb.append(", ");
+                }
             }
-            sb.append(", default ");
+            if(useIndent) {
+                doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("default ");
+            } else {
+                sb.append(", default ");
+            }
             try {
                 sb.append(getDefault(device));
             } catch (GLException gle) {
                 sb.append("n/a");
             }
         }
-        sb.append("]]");
+        if(useIndent) {
+            sb.append(Platform.getNewline());
+        } else {
+            sb.append("]");
+        }
 
-        return sb.toString();
+        return sb;
     }
     
     /** Uses the default device */
@@ -1198,11 +1272,9 @@ public class GLProfile {
     private static /*final*/ boolean hasGLES2Impl;
     private static /*final*/ boolean hasGLES1Impl;
 
-    private static /*final*/ GLDrawableFactoryImpl eglFactory;
-    private static /*final*/ GLDrawableFactoryImpl desktopFactory;
-    private static /*final*/ AbstractGraphicsDevice defaultDevice;
-    private static /*final*/ AbstractGraphicsDevice defaultDesktopDevice;
-    private static /*final*/ AbstractGraphicsDevice defaultEGLDevice;
+    private static /*final*/ GLDrawableFactoryImpl eglFactory = null;
+    private static /*final*/ GLDrawableFactoryImpl desktopFactory = null;
+    private static /*final*/ AbstractGraphicsDevice defaultDevice = null;
 
     private static volatile boolean initialized = false;
     private static RecursiveThreadGroupLock initLock = LockFactory.createRecursiveThreadGroupLock();
@@ -1270,11 +1342,10 @@ public class GLProfile {
         }
 
         if(null == desktopFactory) {
-            hasDesktopGLFactory   = false;
-            hasGL234Impl   = false;
+            hasDesktopGLFactory  = false;
+            hasGL234Impl         = false;
         } else {
-            defaultDesktopDevice = desktopFactory.getDefaultDevice();
-            defaultDevice = defaultDesktopDevice;
+            defaultDevice        = desktopFactory.getDefaultDevice();
         }
 
         if ( ReflectionUtil.isClassAvailable("jogamp.opengl.egl.EGLDrawableFactory", classloader) ) {
@@ -1283,15 +1354,9 @@ public class GLProfile {
                 eglFactory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactoryImpl(GLES2);
                 if(null != eglFactory) {
                     hasEGLFactory = true;
-                    GLDynamicLookupHelper eglLookupHelper = eglFactory.getGLDynamicLookupHelper(2);
                     // update hasGLES1Impl, hasGLES2Impl based on EGL
-                    if(null!=eglLookupHelper) {
-                        hasGLES2Impl = eglLookupHelper.isLibComplete() && hasGLES2Impl;
-                    }
-                    eglLookupHelper = eglFactory.getGLDynamicLookupHelper(1);
-                    if(null!=eglLookupHelper) {
-                        hasGLES1Impl = eglLookupHelper.isLibComplete() && hasGLES1Impl;
-                    }
+                    hasGLES2Impl = null!=eglFactory.getGLDynamicLookupHelper(2) && hasGLES2Impl;
+                    hasGLES1Impl = null!=eglFactory.getGLDynamicLookupHelper(1) && hasGLES1Impl;
                 }
             } catch (LinkageError le) {
                 t=le;
@@ -1313,31 +1378,25 @@ public class GLProfile {
         }
 
         if(null == eglFactory) {
-            hasGLES2Impl   = false;
-            hasGLES1Impl   = false;
-        } else {
-            defaultEGLDevice = eglFactory.getDefaultDevice();
-            if (null==defaultDevice) {
-                defaultDevice = defaultEGLDevice;
-            }
+            hasGLES2Impl     = false;
+            hasGLES1Impl     = false;
+        } else if(null == defaultDevice) {
+            defaultDevice = eglFactory.getDefaultDevice();
         }
 
-        final boolean addedDesktopProfile = initProfilesForDevice(defaultDesktopDevice);
-        final boolean addedEGLProfile = initProfilesForDevice(defaultEGLDevice);
-        final boolean addedAnyProfile = addedDesktopProfile || addedEGLProfile ;
+        final boolean addedAnyProfile = initProfilesForDevice(defaultDevice);
 
         if(DEBUG) {
-            System.err.println("GLProfile.init addedAnyProfile(d/e) "+addedAnyProfile+" ("+addedDesktopProfile+"/"+addedEGLProfile+")");
+            System.err.println("GLProfile.init addedAnyProfile      "+addedAnyProfile);
             System.err.println("GLProfile.init isAWTAvailable       "+isAWTAvailable);
             System.err.println("GLProfile.init hasDesktopGLFactory  "+hasDesktopGLFactory);
             System.err.println("GLProfile.init hasGL234Impl         "+hasGL234Impl);
             System.err.println("GLProfile.init hasEGLFactory        "+hasEGLFactory);
             System.err.println("GLProfile.init hasGLES1Impl         "+hasGLES1Impl);
             System.err.println("GLProfile.init hasGLES2Impl         "+hasGLES2Impl);
-            System.err.println("GLProfile.init defaultDesktopDevice "+defaultDesktopDevice);
-            System.err.println("GLProfile.init defaultEGLDevice     "+defaultEGLDevice);
             System.err.println("GLProfile.init defaultDevice        "+defaultDevice);
-            System.err.println("GLProfile.init: "+array2String(GL_PROFILE_LIST_ALL)+", "+ glAvailabilityToString());
+            System.err.println("GLProfile.init profile order        "+array2String(GL_PROFILE_LIST_ALL));            
+            System.err.println(JoglVersion.getDefaultOpenGLInfo(null));            
         }
     }
 
@@ -1408,8 +1467,12 @@ public class GLProfile {
                                                 1, 5, GLContext.CTX_PROFILE_COMPAT|GLContext.CTX_OPTION_ANY);
             }
             addedDesktopProfile = computeProfileMap(device, false /* desktopCtxUndef*/, false /* esCtxUndef */);
-        } else if( hasEGLFactory && ( hasGLES2Impl || hasGLES1Impl ) && 
-                   ( deviceIsEGLCompatible = eglFactory.getIsDeviceCompatible(device)) ) {
+        }
+        
+        // also test GLES1 and GLES2 on desktop, since we have implementations / emulations available
+        if( hasEGLFactory && ( hasGLES2Impl || hasGLES1Impl ) && 
+            ( deviceIsEGLCompatible = eglFactory.getIsDeviceCompatible(device)) ) {
+            
             // 1st pretend we have all EGL profiles ..
             computeProfileMap(device, false /* desktopCtxUndef*/, true /* esCtxUndef */);
 
@@ -1434,22 +1497,22 @@ public class GLProfile {
             if (DEBUG) {
                 System.err.println("GLProfile.initProfilesForDevice: "+device+": egl Shared Ctx "+eglSharedCtxAvail);
             }
-            if(hasGLES2Impl && null == GLContext.getAvailableGLVersion(device, 2, GLContext.CTX_PROFILE_ES) ) {
-                // nobody yet set the available desktop versions, see {@link GLContextImpl#makeCurrent},
-                // so we have to add the usual suspect
+            if( hasGLES2Impl ) {
+                // The native ES2 impl. overwrites a previous mapping using 'ES2 compatibility' by a desktop profile 
                 GLContext.mapAvailableGLVersion(device,
                                                 2, GLContext.CTX_PROFILE_ES,
-                                                2, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_OPTION_ANY);
+                                                2, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_OPTION_ANY|GLContext.CTX_IMPL_ES2_COMPAT);
             }
-            if(hasGLES1Impl && null == GLContext.getAvailableGLVersion(device, 1, GLContext.CTX_PROFILE_ES)) {
-                // nobody yet set the available desktop versions, see {@link GLContextImpl#makeCurrent},
-                // so we have to add the usual suspect
+            if( hasGLES1Impl ) {
+                // Always favor the native ES1 impl.
                 GLContext.mapAvailableGLVersion(device,
                                                 1, GLContext.CTX_PROFILE_ES,
                                                 1, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_OPTION_ANY);
             }
             addedEGLProfile = computeProfileMap(device, false /* desktopCtxUndef*/, false /* esCtxUndef */);
-        } else {
+        } 
+        
+        if( !addedDesktopProfile && !addedEGLProfile ) {
             setProfileMap(device, new HashMap<String /*GLProfile_name*/, GLProfile>()); // empty
             if(DEBUG) {
                 System.err.println("GLProfile: device could not be initialized: "+device);
@@ -1507,16 +1570,6 @@ public class GLProfile {
         return defaultDevice;
     }
 
-    public static AbstractGraphicsDevice getDefaultDesktopDevice() {
-        initSingleton();
-        return defaultDesktopDevice;
-    }
-
-    public static AbstractGraphicsDevice getDefaultEGLDevice() {
-        initSingleton();
-        return defaultEGLDevice;
-    }
-
     private static String array2String(String[] list) {
         StringBuffer msg = new StringBuffer();
         msg.append("[");
@@ -1529,7 +1582,7 @@ public class GLProfile {
         return msg.toString();
     }
 
-    private static void glAvailabilityToString(AbstractGraphicsDevice device, StringBuffer sb, int major, int profile) {
+    private static void glAvailabilityToString(AbstractGraphicsDevice device, StringBuilder sb, int major, int profile) {
         String str = GLContext.getAvailableGLVersionAsString(device, major, profile);
         if(null==str) {
             throw new GLException("Internal Error");
@@ -1646,6 +1699,20 @@ public class GLProfile {
             return GL2;
         } else if(GLES2.equals(profile) && hasGLES2Impl && ( esCtxUndef || GLContext.isGLES2Available(device))) {
             return GLES2;
+        /**
+         * TODO: GLES2_TRUE_DESKTOP (see: GLContextImpl, GLProfile)
+         * Hack to enable GLES2 for desktop profiles w/ ES2 compatibility,
+         * however .. a consequent implementation would need to have all GL2ES2
+         * implementing profile to also implement GLES2!
+         * Let's rely on GL2ES2 and let the user/impl. query isGLES2Compatible()
+        } else if(GLES2.equals(profile)) {
+            if(hasGL234Impl || hasGLES2Impl) {
+                if(esCtxUndef) {
+                    return GLES2;
+                }
+                return GLContext.getAvailableGLProfile(device, 2, GLContext.CTX_PROFILE_ES);
+            }
+          */
         } else if(GLES1.equals(profile) && hasGLES1Impl && ( esCtxUndef || GLContext.isGLES1Available(device))) {
             return GLES1;
         }

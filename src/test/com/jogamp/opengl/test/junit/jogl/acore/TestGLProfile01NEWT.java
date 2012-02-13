@@ -29,7 +29,6 @@
 package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -55,18 +54,12 @@ public class TestGLProfile01NEWT extends UITestCase {
         System.err.println(JoglVersion.getInstance());
         System.err.println(NewtVersion.getInstance());
 
-        GLDrawableFactory factory = GLDrawableFactory.getFactory(GLProfile.getDefault());
-        List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(null);
-        for(int i=0; i<availCaps.size(); i++) {
-            System.err.println(availCaps.get(i));
-        }
+        System.err.println(JoglVersion.getDefaultOpenGLInfo(null).toString());        
     }
 
     @Test
     public void test01GLProfileDefault() throws InterruptedException {
         System.out.println("GLProfile "+GLProfile.glAvailabilityToString());
-        System.out.println("GLProfile.getDefaultDesktopDevice(): "+GLProfile.getDefaultDesktopDevice());
-        System.out.println("GLProfile.getDefaultEGLDevice(): "+GLProfile.getDefaultEGLDevice());
         System.out.println("GLProfile.getDefaultDevice(): "+GLProfile.getDefaultDevice());        
         GLProfile glp = GLProfile.getDefault();
         System.out.println("GLProfile.getDefault(): "+glp);
@@ -138,7 +131,7 @@ public class TestGLProfile01NEWT extends UITestCase {
     }
     
     protected void dumpVersion(GLProfile glp) throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        GLCapabilities caps = new GLCapabilities(glp);        
         GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("TestGLProfile01NEWT");

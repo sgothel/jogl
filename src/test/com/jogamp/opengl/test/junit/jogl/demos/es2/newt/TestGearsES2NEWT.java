@@ -63,9 +63,7 @@ import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
 
-public class TestGearsES2NEWT extends UITestCase {
-    static GLProfile glp;
-    
+public class TestGearsES2NEWT extends UITestCase {    
     static int screenIdx = 0;
     static PointImmutable wpos;
     static DimensionImmutable wsize;
@@ -84,14 +82,6 @@ public class TestGearsES2NEWT extends UITestCase {
     
     @BeforeClass
     public static void initClass() {
-        /*if(GLProfile.isAvailable(GLProfile.getDefaultEGLDevice(), GLProfile.GLES2)) {
-            // exact match
-            glp = GLProfile.get(GLProfile.getDefaultEGLDevice(), GLProfile.GLES2);
-        } else */ {
-            // default device, somehow ES2 compatible
-            glp = GLProfile.getGL2ES2(); 
-        }
-        Assert.assertNotNull(glp);
         if(null == wsize) {
             wsize = new Dimension(200, 200);
         }
@@ -243,8 +233,19 @@ public class TestGearsES2NEWT extends UITestCase {
     }
 
     @Test
-    public void test01() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(glp);
+    public void test01GL2ES2() throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
+        caps.setBackgroundOpaque(opaque);
+        runTestGL(caps, undecorated);
+    }
+
+    @Test
+    public void test02GLES2() throws InterruptedException {
+        if(!GLProfile.isAvailable(GLProfile.GLES2)) {
+            System.out.println("GLProfile GLES2 n/a");
+            return;
+        }
+        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
         caps.setBackgroundOpaque(opaque);
         runTestGL(caps, undecorated);
     }

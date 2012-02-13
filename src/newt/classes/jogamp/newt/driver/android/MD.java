@@ -27,11 +27,6 @@
  */
 package jogamp.newt.driver.android;
 
-import java.util.List;
-
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLProfile;
-
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
@@ -40,22 +35,17 @@ import com.jogamp.opengl.JoglVersion;
 public class MD {
    public static final String TAG = "JogAmp.NEWT";
    
-   public static String getInfo() { 
-       
-        StringBuffer sb = new StringBuffer();
+   public static String getInfo() {        
+        StringBuilder sb = new StringBuilder();
         
         sb.append(VersionUtil.getPlatformInfo()).append(Platform.NEWLINE)
               .append(GlueGenVersion.getInstance()).append(Platform.NEWLINE)
               .append(JoglVersion.getInstance()).append(Platform.NEWLINE)
               .append(Platform.NEWLINE);
               
-        final GLDrawableFactory factory = GLDrawableFactory.getEGLFactory();
-        final List/*<GLCapabilitiesImmutable>*/ availCaps = factory.getAvailableCapabilities(null);
-        for(int i=0; i<availCaps.size(); i++) {
-            sb.append(availCaps.get(i)).append(Platform.NEWLINE);
-        }
-       
-       return sb.toString();       
+        JoglVersion.getDefaultOpenGLInfo(sb);
+
+        return sb.toString();       
    }
    
     public static void main(String args[]) {

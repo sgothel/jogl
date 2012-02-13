@@ -653,11 +653,12 @@ public abstract class GLContextImpl extends GLContext {
 
   private final void mapGLVersions(AbstractGraphicsDevice device) {    
     synchronized (GLContext.deviceVersionAvailable) {
+        // Following GLProfile.GL_PROFILE_LIST_ALL order of profile detection { GL4bc, GL3bc, GL2, GL4, GL3, GL2GL3, GLES2, GL2ES2, GLES1, GL2ES1 }
         createContextARBMapVersionsAvailable(4, true  /* compat */);  // GL4bc
-        createContextARBMapVersionsAvailable(4, false /* core   */);  // GL4
         createContextARBMapVersionsAvailable(3, true  /* compat */);  // GL3bc
+        createContextARBMapVersionsAvailable(2, true  /* compat */);  // GL2        
+        createContextARBMapVersionsAvailable(4, false /* core   */);  // GL4
         createContextARBMapVersionsAvailable(3, false /* core   */);  // GL3
-        createContextARBMapVersionsAvailable(2, true  /* compat */);  // GL2
         GLContext.setAvailableGLVersionsSet(device);
         resetStates();
     }
@@ -717,14 +718,21 @@ public abstract class GLContextImpl extends GLContext {
     }
     if(0!=_context) {
         AbstractGraphicsDevice device = drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
-        if( isExtensionAvailable("GL_ARB_ES2_compatibility") ) {
-            ctp |= CTX_PROFILE_ES2_COMPAT;
-        }
-        GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile, major[0], minor[0], ctp);
+        // ctxMajorVersion, ctxMinorVersion, ctxOptions is being set by 
+        //   createContextARBVersions(..) -> setGLFunctionAvailbility(..) -> setContextVersion(..)
+        GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile, ctxMajorVersion, ctxMinorVersion, ctxOptions);
+        /**
+         * TODO: GLES2_TRUE_DESKTOP (see: GLContextImpl, GLProfile)
+         * Hack to enable GLES2 for desktop profiles w/ ES2 compatibility,
+         * however .. a consequent implementation would need to have all GL2ES2
+         * implementing profile to also implement GLES2!
+         * Let's rely on GL2ES2 and let the user/impl. query isGLES2Compatible()
+        if( isGLES2Compatible() && null == GLContext.getAvailableGLVersion(device, 2, GLContext.CTX_PROFILE_ES) ) {
+            GLContext.mapAvailableGLVersion(device, 2, GLContext.CTX_PROFILE_ES, ctxMajorVersion, ctxMinorVersion, ctxOptions);
+        }*/
         destroyContextARBImpl(_context);
         if (DEBUG) {
-          System.err.println(getThreadName() + ": !!! createContextARBMapVersionsAvailable HAVE: "+
-                  GLContext.getAvailableGLVersionAsString(device, reqMajor, reqProfile));
+          System.err.println(getThreadName() + ": !!! createContextARBMapVersionsAvailable HAVE: " + getGLVersion());
         }
     } else if (DEBUG) {
         System.err.println(getThreadName() + ": !!! createContextARBMapVersionsAvailable NOPE: "+reqMajor+"."+reqProfile);
@@ -929,24 +937,24 @@ public abstract class GLContextImpl extends GLContext {
    * @see #setContextVersion
    * @see javax.media.opengl.GLContext#CTX_OPTION_ANY
    * @see javax.media.opengl.GLContext#CTX_PROFILE_COMPAT
+   * @see javax.media.opengl.GLContext#CTX_IMPL_ES2_COMPAT
    */
   protected final void setGLFunctionAvailability(boolean force, int major, int minor, int ctxProfileBits) {
     if(null!=this.gl && null!=glProcAddressTable && !force) {
         return; // already done and not forced
     }
-    
+
     if(null==this.gl || !verifyInstance(gl.getGLProfile(), "Impl", this.gl)) {
         setGL(createGL(getGLDrawable().getGLProfile()));
     }
-
     updateGLXProcAddressTable();
 
     AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
-    final int ctxImplBits = drawable.getChosenGLCapabilities().getHardwareAccelerated() ? GLContext.CTX_IMPL_ACCEL_HARD : GLContext.CTX_IMPL_ACCEL_SOFT;
-    contextFQN = getContextFQN(adevice, major, minor, ctxProfileBits, ctxImplBits);
+    ctxProfileBits |= drawable.getChosenGLCapabilities().getHardwareAccelerated() ? GLContext.CTX_IMPL_ACCEL_HARD : GLContext.CTX_IMPL_ACCEL_SOFT;
+    contextFQN = getContextFQN(adevice, major, minor, ctxProfileBits);
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! Context FQN: "+contextFQN);
+      System.err.println(getThreadName() + ": !!! Context FQN: "+contextFQN+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, null));
     }
 
     //
@@ -956,8 +964,8 @@ public abstract class GLContextImpl extends GLContext {
     synchronized(mappedContextTypeObjectLock) {
         table = mappedGLProcAddress.get( contextFQN );
         if(null != table && !verifyInstance(gl.getGLProfile(), "ProcAddressTable", table)) {
-            throw new InternalError("GLContext GL ProcAddressTable mapped key("+contextFQN+") -> "+
-                  table.getClass().getName()+" not matching "+gl.getGLProfile().getGLImplBaseClassName());
+            throw new InternalError("GLContext GL ProcAddressTable mapped key("+contextFQN+" - " + GLContext.getGLVersion(major, minor, ctxProfileBits, null)+ 
+                  ") -> "+ table.getClass().getName()+" not matching "+gl.getGLProfile().getGLImplBaseClassName());
         }
     }
     if(null != table) {
@@ -979,11 +987,6 @@ public abstract class GLContextImpl extends GLContext {
             }
         }
     }
-
-    //
-    // Set GL Version
-    //
-    setContextVersion(major, minor, ctxProfileBits);
 
     //
     // Update ExtensionAvailabilityCache
@@ -1008,16 +1011,24 @@ public abstract class GLContextImpl extends GLContext {
                 System.err.println(getThreadName() + ": !!! GLContext GL ExtensionAvailabilityCache mapping key("+contextFQN+") -> "+extensionAvailability.hashCode());
             }
         }
+    }    
+    if( isExtensionAvailable("GL_ARB_ES2_compatibility") ) {
+        ctxProfileBits |= CTX_IMPL_ES2_COMPAT;
     }
+    
+    //
+    // Set GL Version
+    //
+    setContextVersion(major, minor, ctxProfileBits);
   }
 
   protected final void removeCachedVersion(int major, int minor, int ctxProfileBits) {
     AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
-    final int ctxImplBits = drawable.getChosenGLCapabilities().getHardwareAccelerated() ? GLContext.CTX_IMPL_ACCEL_HARD : GLContext.CTX_IMPL_ACCEL_SOFT;
-    contextFQN = getContextFQN(adevice, major, minor, ctxProfileBits, ctxImplBits);
+    ctxProfileBits |= drawable.getChosenGLCapabilities().getHardwareAccelerated() ? GLContext.CTX_IMPL_ACCEL_HARD : GLContext.CTX_IMPL_ACCEL_SOFT;
+    contextFQN = getContextFQN(adevice, major, minor, ctxProfileBits);
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! RM Context FQN: "+contextFQN);
+      System.err.println(getThreadName() + ": !!! RM Context FQN: "+contextFQN+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, null));
     }
 
     synchronized(mappedContextTypeObjectLock) {
@@ -1129,8 +1140,9 @@ public abstract class GLContextImpl extends GLContext {
       return false;
   }
 
-  protected static String getContextFQN(AbstractGraphicsDevice device, int major, int minor, int ctxProfileBits, int ctxImplBits) {
-      return device.getUniqueID() + "-" + toHexString(compose8bit(major, minor, ctxProfileBits, ctxImplBits));
+  protected static String getContextFQN(AbstractGraphicsDevice device, int major, int minor, int ctxProfileBits) {
+      ctxProfileBits &= ~GLContext.CTX_IMPL_ES2_COMPAT ; // remove non-key value
+      return device.getUniqueID() + "-" + toHexString(composeBits(major, minor, ctxProfileBits));
   }
 
   protected String getContextFQN() {

@@ -245,7 +245,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         if (userCapsRequest != null) {
             caps = (GLCapabilities) userCapsRequest.cloneMutable();
         } else {
-            caps = new GLCapabilities(GLProfile.getDefault(GLProfile.getDefaultDesktopDevice()));
+            caps = new GLCapabilities(GLProfile.getDefault(GLProfile.getDefaultDevice()));
         }
         caps.setDoubleBuffered(false);
         offscreenCaps = caps;
@@ -1336,7 +1336,7 @@ public void reshape(int x, int y, int width, int height) {
 
     public GLProfile getGLProfile() {
       // FIXME: should do better than this; is it possible to using only platform-independent code?
-      return GLProfile.getDefault(GLProfile.getDefaultDesktopDevice());
+      return GLProfile.getDefault(GLProfile.getDefaultDevice());
     }
 
     public void handleReshape() {

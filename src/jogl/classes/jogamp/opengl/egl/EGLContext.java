@@ -108,7 +108,7 @@ public abstract class EGLContext extends GLContextImpl {
                                     drawableRead.getHandle(),
                                     contextHandle)) {
                 throw new GLException("Error making context 0x" +
-                                      Long.toHexString(contextHandle) + " current: error code " + EGL.eglGetError());
+                                      Long.toHexString(contextHandle) + " current: error code 0x" + Integer.toHexString(EGL.eglGetError()));
             }
         }
     }
@@ -119,14 +119,17 @@ public abstract class EGLContext extends GLContextImpl {
                               EGL.EGL_NO_SURFACE,
                               EGL.EGL_NO_CONTEXT)) {
             throw new GLException("Error freeing OpenGL context 0x" +
-                                  Long.toHexString(contextHandle) + ": error code " + EGL.eglGetError());
+                                  Long.toHexString(contextHandle) + ": error code 0x" + Integer.toHexString(EGL.eglGetError()));
       }
     }
 
     protected void destroyImpl() throws GLException {
       if (!EGL.eglDestroyContext(((EGLDrawable)drawable).getDisplay(), contextHandle)) {
-          throw new GLException("Error destroying OpenGL context 0x" +
-                                Long.toHexString(contextHandle) + ": error code " + EGL.eglGetError());
+          final int eglError = EGL.eglGetError();
+          if(EGL.EGL_SUCCESS != eglError) { /* oops, Mesa EGL impl. may return false, but has no EGL error */
+              throw new GLException("Error destroying OpenGL context 0x" +
+                                    Long.toHexString(contextHandle) + ": error code 0x" + Integer.toHexString(eglError));
+          }
       }
     }
 
@@ -204,7 +207,7 @@ public abstract class EGLContext extends GLContextImpl {
         int ctp = CTX_PROFILE_ES|CTX_OPTION_ANY;
         int major;
         if(glProfile.usesNativeGLES2()) {
-            ctp |= CTX_PROFILE_ES2_COMPAT;
+            ctp |= CTX_IMPL_ES2_COMPAT;
             major = 2;
         } else {            
             major = 1;

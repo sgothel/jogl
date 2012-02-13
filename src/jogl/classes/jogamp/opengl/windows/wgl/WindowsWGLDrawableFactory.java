@@ -95,9 +95,9 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                 if(DEBUG) {
                     gle.printStackTrace();
                 }
-            }
-            windowsWGLDynamicLookupHelper = tmp;
-            if(null!=windowsWGLDynamicLookupHelper) {
+            }            
+            if(null!=tmp && tmp.isLibComplete()) {
+                windowsWGLDynamicLookupHelper = tmp;
                 WGL.getWGLProcAddressTable().reset(windowsWGLDynamicLookupHelper);
             }               
         }

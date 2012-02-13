@@ -57,7 +57,6 @@ import java.awt.geom.Rectangle2D;
 import java.awt.EventQueue;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.OffscreenLayerOption;
@@ -234,7 +233,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     super();
 
     if(null==capsReqUser) {
-        capsReqUser = new GLCapabilities(GLProfile.getDefault(GLProfile.getDefaultDesktopDevice()));
+        capsReqUser = new GLCapabilities(GLProfile.getDefault(GLProfile.getDefaultDevice()));
     } else {
         // don't allow the user to change data
         capsReqUser = (GLCapabilitiesImmutable) capsReqUser.cloneMutable();
@@ -1079,13 +1078,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     // System.err.println(NativeWindowVersion.getInstance());
     System.err.println(JoglVersion.getInstance());
 
-    final GLDrawableFactory factory = GLDrawableFactory.getDesktopFactory();
-    final List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(null);
-    for(int i=0; i<availCaps.size(); i++) {
-        System.err.println(availCaps.get(i));
-    }
+    System.err.println(JoglVersion.getDefaultOpenGLInfo(null).toString());
 
-    final GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault(GLProfile.getDefaultDesktopDevice()) );
+    final GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault(GLProfile.getDefaultDevice()) );
     final Frame frame = new Frame("JOGL AWT Test");
 
     final GLCanvas glCanvas = new GLCanvas(caps);

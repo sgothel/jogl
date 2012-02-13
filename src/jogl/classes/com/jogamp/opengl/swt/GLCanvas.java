@@ -27,8 +27,6 @@
  */
 package com.jogamp.opengl.swt;
 
-import java.util.List;
-
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.ProxySurface;
@@ -538,13 +536,9 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
        // System.err.println(NativeWindowVersion.getInstance());
        System.err.println(JoglVersion.getInstance());
 
-       final GLDrawableFactory factory = GLDrawableFactory.getDesktopFactory();
-       final List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(null);
-       for(int i=0; i<availCaps.size(); i++) {
-           System.err.println(availCaps.get(i));
-       }
-
-       final GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault(GLProfile.getDefaultDesktopDevice()) );
+       System.err.println(JoglVersion.getDefaultOpenGLInfo(null).toString());
+       
+       final GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault(GLProfile.getDefaultDevice()) );
        final Display display = new Display();
        final Shell shell = new Shell(display);
        shell.setSize(128,128);

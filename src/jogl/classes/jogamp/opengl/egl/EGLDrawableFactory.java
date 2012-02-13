@@ -47,7 +47,9 @@ import com.jogamp.common.util.*;
 import jogamp.opengl.*;
 import jogamp.nativewindow.WrappedSurface;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
@@ -73,7 +75,32 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         // for each ES profile with their own ProcAddressTable.
 
         synchronized(EGLDrawableFactory.class) {
-            if(null==eglES1DynamicLookupHelper) {
+            /**
+             * Currently AMD's EGL impl. crashes at eglGetDisplay(EGL_DEFAULT_DISPLAY)
+             *  
+            // Check Desktop ES2 Availability first (AMD, ..)
+            if(null==eglES2DynamicLookupHelper) {
+                GLDynamicLookupHelper tmp=null;
+                try {
+                    tmp = new GLDynamicLookupHelper(new DesktopES2DynamicLibraryBundleInfo());
+                } catch (GLException gle) {
+                    if(DEBUG) {
+                        gle.printStackTrace();
+                    }
+                }                
+                if(null!=tmp && tmp.isLibComplete()) {
+                    eglES2DynamicLookupHelper = tmp;
+                    EGL.resetProcAddressTable(eglES2DynamicLookupHelper);
+                    if (GLProfile.DEBUG) {
+                        System.err.println("Info: EGLDrawableFactory: Desktop ES2 - OK");
+                    }                    
+                } else if (GLProfile.DEBUG) {
+                    System.err.println("Info: EGLDrawableFactory: Desktop ES2 - NOPE");
+                }                    
+            } */
+            final boolean hasDesktopES2 = null != eglES2DynamicLookupHelper;
+            
+            if(!hasDesktopES2 && null==eglES1DynamicLookupHelper) {
                 GLDynamicLookupHelper tmp=null;
                 try {
                     tmp = new GLDynamicLookupHelper(new EGLES1DynamicLibraryBundleInfo());
@@ -81,16 +108,18 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     if(DEBUG) {
                         gle.printStackTrace();
                     }
-                }
-                eglES1DynamicLookupHelper = tmp;
-                if(null!=eglES1DynamicLookupHelper && eglES1DynamicLookupHelper.isLibComplete()) {
+                }                
+                if(null!=tmp && tmp.isLibComplete()) {
+                    eglES1DynamicLookupHelper = tmp;
                     EGL.resetProcAddressTable(eglES1DynamicLookupHelper);
-                }
+                    if (GLProfile.DEBUG) {
+                        System.err.println("Info: EGLDrawableFactory: EGL ES1 - OK");
+                    }                    
+                } else if (GLProfile.DEBUG) {
+                    System.err.println("Info: EGLDrawableFactory: EGL ES1 - NOPE");
+                }                    
             }
-        }
-
-        synchronized(EGLDrawableFactory.class) {
-            if(null==eglES2DynamicLookupHelper) {
+            if(!hasDesktopES2 && null==eglES2DynamicLookupHelper) {
                 GLDynamicLookupHelper tmp=null;
                 try {
                     tmp = new GLDynamicLookupHelper(new EGLES2DynamicLibraryBundleInfo());
@@ -98,21 +127,33 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     if(DEBUG) {
                         gle.printStackTrace();
                     }
-                }
-                eglES2DynamicLookupHelper = tmp;
-                if(null!=eglES2DynamicLookupHelper && eglES2DynamicLookupHelper.isLibComplete()) {
+                }                
+                if(null!=tmp && tmp.isLibComplete()) {
+                    eglES2DynamicLookupHelper = tmp;
                     EGL.resetProcAddressTable(eglES2DynamicLookupHelper);
-                }
+                    if (GLProfile.DEBUG) {
+                        System.err.println("Info: EGLDrawableFactory: EGL ES2 - OK");
+                    }                    
+                } else if (GLProfile.DEBUG) {
+                    System.err.println("Info: EGLDrawableFactory: EGL ES2 - NOPE");
+                }                    
             }
         }
         if(null != eglES1DynamicLookupHelper || null != eglES2DynamicLookupHelper) {
             defaultDevice = new EGLGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
-            sharedMap = new HashMap();
         }
     }
 
     protected final void destroy(ShutdownType shutdownType) {
         if(null != sharedMap) {
+            Collection<SharedResource> srl = sharedMap.values();
+            for(Iterator<SharedResource> sri = srl.iterator(); sri.hasNext(); ) {
+                SharedResource sr = sri.next();
+                if(DEBUG) {
+                    System.err.println("EGLDrawableFactory.destroy("+shutdownType+"): "+sr.device.toString());
+                }
+                EGL.eglTerminate(sr.device.getHandle());
+            }
             sharedMap.clear();
             sharedMap = null;
         }
@@ -132,7 +173,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         } */
     }
 
-    private HashMap/*<connection, SharedResource>*/ sharedMap;
+    private HashMap<String /*connection*/, SharedResource> sharedMap = new HashMap<String /*connection*/, SharedResource>();
     private EGLGraphicsDevice defaultDevice;
 
     static class SharedResource {
@@ -199,12 +240,15 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     } */
     
     /* package */ SharedResource getOrCreateEGLSharedResource(AbstractGraphicsDevice adevice) {
+        if(null == eglES1DynamicLookupHelper && null == eglES2DynamicLookupHelper) {
+            return null;
+        }
         String connection = adevice.getConnection();
         SharedResource sr;
         synchronized(sharedMap) {
             sr = (SharedResource) sharedMap.get(connection);
         }
-        if(null==sr) {   
+        if(null==sr) {
             long eglDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
             if (eglDisplay == EGL.EGL_NO_DISPLAY) {
                 throw new GLException("Failed to created EGL default display: error 0x"+Integer.toHexString(EGL.eglGetError()));
@@ -265,14 +309,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     public GLDynamicLookupHelper getGLDynamicLookupHelper(int esProfile) {
         if (2==esProfile) {
-            if(null==eglES2DynamicLookupHelper) {
-                throw new GLException("GLDynamicLookupHelper for ES2 not available");
-            }
             return eglES2DynamicLookupHelper;
         } else if (1==esProfile) {
-            if(null==eglES1DynamicLookupHelper) {
-                throw new GLException("GLDynamicLookupHelper for ES1 not available");
-            }
             return eglES1DynamicLookupHelper;
         } else {
             throw new GLException("Unsupported: ES"+esProfile);

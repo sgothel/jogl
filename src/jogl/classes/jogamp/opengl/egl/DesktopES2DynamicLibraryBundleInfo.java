@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2012 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -28,26 +28,22 @@
  
 package jogamp.opengl.egl;
 
-import com.jogamp.common.os.AndroidVersion;
-
 import java.util.*;
 
 import jogamp.opengl.*;
 
 /**
- * Abstract implementation of the DynamicLookupHelper for EGL,
- * which decouples it's dependencies to EGLDrawable.
- *
- * Currently two implementations exist, one for ES1 and one for ES2.
+ * Implementation of the DynamicLookupHelper for Desktop ES2 (AMD, ..)
+ * where EGL and ES2 functions reside within the desktop OpenGL library.
  */
-public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundleInfo {
+public class DesktopES2DynamicLibraryBundleInfo extends GLDynamicLibraryBundleInfo {
     static List<String> glueLibNames;
     static {
         glueLibNames = new ArrayList<String>();
         glueLibNames.add("jogl_mobile");
     }
 
-    protected EGLDynamicLibraryBundleInfo() {
+    protected DesktopES2DynamicLibraryBundleInfo() {
         super();
     }
 
@@ -61,15 +57,6 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
      */
     public boolean shallLinkGlobal() { return true; }
     
-    public boolean shallLookupGlobal() {
-        if ( AndroidVersion.isAvailable ) {
-            // Android requires global symbol lookup
-            return true;
-        }
-        // default behavior for other platforms
-        return false;
-    }
-    
     public final List<String> getToolGetProcAddressFuncNameList() {
         List<String> res = new ArrayList<String>();
         res.add("eglGetProcAddress");
@@ -81,31 +68,38 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
     }
 
     public final boolean useToolGetProcAdressFirst(String funcName) {
-        if ( AndroidVersion.isAvailable ) {
-            // Android requires global dlsym lookup
-            return false;
-        } else {
-            return true;
-        }
+        return true;
     }
     
-    protected List<String> getEGLLibNamesList() {
-        List<String> eglLibNames = new ArrayList<String>();
+    public List<List<String>> getToolLibNames() {
+        final List<List<String>> libsList = new ArrayList<List<String>>();
+        final List<String> libsGL = new ArrayList<String>();
         
-        // this is the default EGL lib name, according to the spec 
-        eglLibNames.add("libEGL.so.1");
+        // Be aware that on DRI systems, eg ATI fglrx, etc, 
+        // you have to set LIBGL_DRIVERS_PATH env variable.
+        // Eg on Ubuntu 64bit systems this is:
+        //    export LIBGL_DRIVERS_PATH=/usr/lib/fglrx/dri:/usr/lib32/fglrx/dri
+        //
+
+        // X11: this is the default lib name, according to the spec
+        libsGL.add("libGL.so.1");
+
+        // X11: try this one as well, if spec fails
+        libsGL.add("libGL.so");
+
+        // Windows default
+        libsGL.add("OpenGL32");
+
+        // OSX (guess ES2 on OSX will never happen)
+        libsGL.add("/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib");
         
-        // try these as well, if spec fails
-        eglLibNames.add("libEGL.so");
-        eglLibNames.add("EGL");
+        // last but not least .. the generic one
+        libsGL.add("GL");
         
-        // for windows distributions using the 'unlike' lib prefix, 
-        // where our tool does not add it.
-        eglLibNames.add("libEGL");
+        libsList.add(libsGL);
+        return libsList;
+    }    
         
-        return eglLibNames;
-    }
-    
     public final List<String> getGlueLibNames() {
         return glueLibNames;
     }    

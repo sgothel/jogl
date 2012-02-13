@@ -188,7 +188,7 @@ public class ShaderUtil {
                 int[] param = new int[1];
                 shaderBinaryFormats = new HashSet<Integer>();
 
-                if (gl.isGLES2()) {
+                if (gl.isGLES2Compatible()) {
                     gl.glGetIntegerv(GL2ES2.GL_NUM_SHADER_BINARY_FORMATS, param, 0);
                     int numFormats = param[0];
                     if(numFormats>0) {
@@ -328,7 +328,6 @@ public class ShaderUtil {
             if(err!=GL.GL_NO_ERROR) {
                 throw new GLException("createAndLoadShader: CreateShader failed, GL Error: 0x"+Integer.toHexString(err));
             }
-
 
             shaderBinary(gl, shader, binFormat, bin);
 

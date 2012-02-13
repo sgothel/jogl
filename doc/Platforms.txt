@@ -1,0 +1,62 @@
+
+- OS / Arch
+    - Linux i586 (x86_32) and amd64 (x86_64)
+        - Distribution
+            - Debian Wheezy / testing (*)
+            - Ubuntu 10.04, 11.10 (*)
+            - CentOS / RedHat 6.2
+
+        - OpenGL
+            - AMD Proprietary (*)
+            - NVidia Proprietary (*)
+            - Mesa3D (sw, dri, ..)
+            - PowerVR (ES2) 32bit only
+
+    - Linux armv7
+        - Distribution
+            - Ubuntu 10.04
+        - OpenGL
+            - Mesa3D (sw, dri, ..)
+            - PowerVR SGX 530
+
+    - Android armv7
+        - Version
+            - Version 2.3 Gingerbread (SDK API Level 9)
+
+        - OpenGL
+            - ARM Mali
+            - PowerVR SGX 540
+            - NVidia Tegra2
+
+    - Solaris x86_64
+        - Distribution
+            - Solaris 10
+            - OpenIndiana 151a (*)
+            - Illumian 1.0
+
+        - OpenGL
+            - NVidia Proprietary (*)
+
+    - Mac OS X x86_64
+        - Version
+            - 10.5
+            - 10.6.8 (*)
+            - 10.7.2 (*)
+        - OpenGL
+            - AMD Proprietary
+            - NVidia Proprietary (*)
+        
+    - Windows i586 (x86_32) and amd64 (x86_64)
+        - Version
+            - Windows XP (maybe buggy)
+            - Windows Vista
+            - Windows7 (*)
+
+        - OpenGL
+            - AMD Proprietary (*)
+            - NVidia Proprietary (*)
+            - Intel Sandy Bridge
+            - ANGLE (ES2) 32bit only
+            - PowerVR (ES2) 32bit only
+
+(*) Regular tested component / platform
