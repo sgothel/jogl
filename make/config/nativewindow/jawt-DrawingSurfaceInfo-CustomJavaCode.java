@@ -13,7 +13,7 @@ private static JAWT_PlatformInfo newPlatformInfo(JAWT jawt, ByteBuffer buf) {
         if (Platform.OS_TYPE == Platform.OSType.WINDOWS) {
           factoryClass = Class.forName("jogamp.nativewindow.jawt.windows.JAWT_Win32DrawingSurfaceInfo");
         } else if (Platform.OS_TYPE == Platform.OSType.MACOS) {
-          if( 0 != ( jawt.getCachedVersion() & JAWT.JAWT_MACOSX_USE_CALAYER ) ) {
+          if( 0 != ( jawt.getCachedVersion() & JAWTUtil.JAWT_MACOSX_USE_CALAYER ) ) {
               factoryClass = Class.forName("jogamp.nativewindow.jawt.macosx.JAWT_SurfaceLayers");
           } else {
               factoryClass = Class.forName("jogamp.nativewindow.jawt.macosx.JAWT_MacOSXDrawingSurfaceInfo");

@@ -52,10 +52,20 @@ import javax.media.nativewindow.NativeWindowException;
 import jogamp.nativewindow.Debug;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.VersionNumber;
 
 public class JAWTUtil {
   protected static final boolean DEBUG = Debug.debug("JAWT");
 
+  /** OSX JAWT version option to use CALayer */
+  public static final int JAWT_MACOSX_USE_CALAYER = 0x80000000;
+  
+  /** OSX JAWT CALayer availability on Mac OS X >= 10.6 Update 4 (recommended) */
+  public static final VersionNumber JAWT_MacOSXCALayerMinVersion = new VersionNumber(10,6,4);
+  
+  /** OSX JAWT CALayer required with Java >= 1.7.0 (implies OS X >= 10.7  */
+  public static final VersionNumber JAWT_MacOSXCALayerRequiredForJavaVersion = new VersionNumber(1,7,0);
+  
   // See whether we're running in headless mode
   private static final boolean headlessMode;
   private static final JAWT jawtLockObject;
@@ -80,12 +90,19 @@ public class JAWTUtil {
   }
   
   /**
-   * Returns true if this platform's JAWT implementation supports 
-   * or uses offscreen layer.
+   * Returns true if this platform's JAWT implementation supports offscreen layer.
    */
   public static boolean isOffscreenLayerSupported() {
        return Platform.OS_TYPE == Platform.OSType.MACOS &&
-              Platform.OS_VERSION_NUMBER.compareTo(JAWT.JAWT_MacOSXCALayerMinVersion) >= 0;      
+              Platform.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0;      
+  }
+ 
+  /**
+   * Returns true if this platform's JAWT implementation requires using offscreen layer.
+   */
+  public static boolean isOffscreenLayerRequired() {
+       return Platform.OS_TYPE == Platform.OSType.MACOS &&
+              Platform.JAVA_VERSION_NUMBER.compareTo(JAWT_MacOSXCALayerRequiredForJavaVersion)>=0;
   }
  
   /**
@@ -93,20 +110,56 @@ public class JAWTUtil {
    * @return
    */
   public static JAWT getJAWT(boolean useOffscreenLayerIfAvailable) {
-    int jawt_version_flags = JAWTFactory.JAWT_VERSION_1_4;
-    if(useOffscreenLayerIfAvailable) {
-        switch(Platform.OS_TYPE) {
-            case MACOS:
-                if(Platform.OS_VERSION_NUMBER.compareTo(JAWT.JAWT_MacOSXCALayerMinVersion) >= 0) {
-                    jawt_version_flags |= JAWT.JAWT_MACOSX_USE_CALAYER;
-                }
+    final int jawt_version_flags = JAWTFactory.JAWT_VERSION_1_4;    
+    JAWT jawt = JAWT.create();
+    
+    // default queries
+    boolean tryOffscreenLayer = false;
+    boolean tryOnscreenLayer = true;
+    int jawt_version_flags_offscreen = jawt_version_flags;
+    
+    if(isOffscreenLayerRequired()) {
+        if(Platform.OS_TYPE == Platform.OSType.MACOS) {
+            if(Platform.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0) {
+                jawt_version_flags_offscreen |= JAWTUtil.JAWT_MACOSX_USE_CALAYER;
+                tryOffscreenLayer = true;
+                tryOnscreenLayer = false;            
+            } else {
+                throw new RuntimeException("OSX: Invalid version of Java ("+Platform.JAVA_VERSION_NUMBER+") / OS X ("+Platform.OS_VERSION_NUMBER+")");
+            }
+        } else {
+            throw new InternalError("offscreen required, but n/a for: "+Platform.OS_TYPE);
+        }
+    } else if(useOffscreenLayerIfAvailable && isOffscreenLayerSupported()) {
+        if(Platform.OS_TYPE == Platform.OSType.MACOS) {
+            jawt_version_flags_offscreen |= JAWTUtil.JAWT_MACOSX_USE_CALAYER;
+            tryOffscreenLayer = true;
+        } else {
+            throw new InternalError("offscreen requested and supported, but n/a for: "+Platform.OS_TYPE);
         }
     }
-    return JAWT.getJAWT(jawt_version_flags);
+    
+    StringBuilder errsb = new StringBuilder();
+    if(tryOffscreenLayer) {
+        errsb.append("Offscreen 0x").append(Integer.toHexString(jawt_version_flags_offscreen));
+        if( JAWT.getJAWT(jawt, jawt_version_flags_offscreen) ) {
+            return jawt;
+        }
+    }
+    if(tryOnscreenLayer) {
+        if(tryOffscreenLayer) {
+            errsb.append(", ");
+        }
+        errsb.append("Onscreen 0x").append(Integer.toHexString(jawt_version_flags));
+        if( JAWT.getJAWT(jawt, jawt_version_flags) ) {
+            return jawt;
+        }        
+    }
+    throw new RuntimeException("Unable to initialize JAWT, trials: "+errsb.toString());
   }
   
   public static boolean isJAWTUsingOffscreenLayer(JAWT jawt) {
-      return 0 != ( jawt.getCachedVersion() & JAWT.JAWT_MACOSX_USE_CALAYER );
+      return 0 != ( jawt.getCachedVersion() & JAWTUtil.JAWT_MACOSX_USE_CALAYER );
   }
   
   static {
