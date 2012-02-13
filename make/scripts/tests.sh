@@ -184,7 +184,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile02NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT $*
@@ -332,7 +332,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile02NEWT $*
 # osx:
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLnAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer01GLCanvasAWT $*
+testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer01GLCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer02NewtCanvasAWT $*
 
 $spath/count-edt-start.sh java-run.log

@@ -47,6 +47,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -103,10 +104,22 @@ public class TestParentingOffscreenLayer01GLCanvasAWT extends UITestCase {
             w.destroy();
         }
     }
+
+    @Test
+    public void testInfo00() throws InterruptedException, InvocationTargetException {
+        System.err.println("Java Version: "+Platform.getJavaVersionNumber());
+        System.err.println("OS Version: "+Platform.getOSVersionNumber());        
+        System.err.println("JAWTUtil.isOffscreenLayerRequired(): "+JAWTUtil.isOffscreenLayerRequired());
+        System.err.println("JAWTUtil.isOffscreenLayerSupported(): "+JAWTUtil.isOffscreenLayerSupported());
+    }
     
     @Test
     public void testOnscreenLayerGLCanvas_Onscreen() throws InterruptedException, InvocationTargetException {
-        testOffscreenLayerGLCanvas_Impl(false, false);
+        if(!JAWTUtil.isOffscreenLayerRequired()) {
+            testOffscreenLayerGLCanvas_Impl(false, false);
+        } else {
+            System.err.println("onscreen layer n/a");
+        }
     }
     
     /** We have no GLCanvas OffscreenWindow as we have for NEWT .. test disabled.
@@ -116,8 +129,12 @@ public class TestParentingOffscreenLayer01GLCanvasAWT extends UITestCase {
     } */
     
     @Test
-    public void testOffscreenLayerGLCanvas_OffscreenLayerWithOnscreenClass() throws InterruptedException, InvocationTargetException {
-        testOffscreenLayerGLCanvas_Impl(true, false);
+    public void testOffscreenLayerGLCanvas_OffscreenLayerWithOnscreenClass() throws InterruptedException, InvocationTargetException {        
+        if(JAWTUtil.isOffscreenLayerSupported()) {
+            testOffscreenLayerGLCanvas_Impl(true, false);
+        } else {
+            System.err.println("offscreen layer n/a");
+        }
     }
     
     private void testOffscreenLayerGLCanvas_Impl(boolean offscreenLayer, boolean offscreenClass) throws InterruptedException, InvocationTargetException {

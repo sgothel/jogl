@@ -242,6 +242,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
     lRect.size.width = 32;
     lRect.size.height = 32;
     [layer setFrame: lRect];
+    // no animations for add/remove/swap sublayers etc 
+    // doesn't work: [layer removeAnimationForKey: kCAOnOrderIn, kCAOnOrderOut, kCATransition]
+    [layer removeAllAnimations];
     DBG_PRINT("CALayer::CreateCALayer.1: %p %lf/%lf %lfx%lf\n", layer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
     DBG_PRINT("CALayer::CreateCALayer.X: %p (refcnt %d)\n", layer, (int)[layer retainCount]);
 
@@ -265,7 +268,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
     CGRect lRectRoot = [rootLayer frame];
     DBG_PRINT("CALayer::AddCASublayer0.0: Origin %p frame0: %lf/%lf %lfx%lf\n", 
         rootLayer, lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height);
-    if(lRectRoot.origin.x<0 || lRectRoot.origin.y<0) {
+    if(lRectRoot.origin.x!=0 || lRectRoot.origin.y!=0) {
         lRectRoot.origin.x = 0;
         lRectRoot.origin.y = 0;
         [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){

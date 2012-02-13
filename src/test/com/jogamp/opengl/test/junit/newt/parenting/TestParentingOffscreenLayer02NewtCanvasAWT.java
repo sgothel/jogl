@@ -106,17 +106,29 @@ public class TestParentingOffscreenLayer02NewtCanvasAWT extends UITestCase {
     
     @Test
     public void testOnscreenLayerNewtCanvas_Onscreen() throws InterruptedException, InvocationTargetException {
-        testOffscreenLayerNewtCanvas_Impl(false, false);
+        if(!JAWTUtil.isOffscreenLayerRequired()) {
+            testOffscreenLayerNewtCanvas_Impl(false, false);
+        } else {
+            System.err.println("onscreen layer n/a");
+        }
+    }
+    
+    // @Test
+    public void testOffscreenLayerNewtCanvas_OffscreenLayerWithOffscreenClass() throws InterruptedException, InvocationTargetException {                
+        if(JAWTUtil.isOffscreenLayerSupported()) {
+            testOffscreenLayerNewtCanvas_Impl(true, true);
+        } else {
+            System.err.println("offscreen layer n/a");
+        }        
     }
     
     @Test
-    public void testOffscreenLayerNewtCanvas_OffscreenLayerWithOffscreenClass() throws InterruptedException, InvocationTargetException {
-        testOffscreenLayerNewtCanvas_Impl(true, true);
-    }
-    
-    @Test
-    public void testOffscreenLayerNewtCanvas_OffscreenLayerWithOnscreenClass() throws InterruptedException, InvocationTargetException {
-        testOffscreenLayerNewtCanvas_Impl(true, false);
+    public void testOffscreenLayerNewtCanvas_OffscreenLayerWithOnscreenClass() throws InterruptedException, InvocationTargetException {        
+        if(JAWTUtil.isOffscreenLayerSupported()) {
+            testOffscreenLayerNewtCanvas_Impl(true, false);
+        } else {
+            System.err.println("offscreen layer n/a");
+        }        
     }
     
     private void testOffscreenLayerNewtCanvas_Impl(boolean offscreenLayer, boolean offscreenClass) throws InterruptedException, InvocationTargetException {

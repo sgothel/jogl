@@ -102,8 +102,22 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
     pthread_mutex_init(&renderLock, &renderLockAttr); // recursive
     pthread_cond_init(&renderSignal, NULL); // no attribute
 
+    textureID = 0;
+    swapInterval = -1;
+    shallDraw = NO;
+    texWidth = _texWidth;
+    texHeight = _texHeight;
     pbuffer = p;
     [pbuffer retain];
+
+    {
+        CGRect lRect = CGRectMake(0, 0, texWidth, texHeight);
+        [self setFrame:lRect];
+
+        // no animations for add/remove/swap sublayers etc 
+        // doesn't work: [self removeAnimationForKey: kCAOnOrderIn, kCAOnOrderOut, kCATransition]
+        [self removeAllAnimations];
+    }
 
     // instantiate a deactivated displayLink
 #ifdef HAS_CADisplayLink
@@ -148,12 +162,8 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
     [self setAsynchronous: YES];
 
     [self setNeedsDisplayOnBoundsChange: YES]; // FIXME: learn how to recreate on size change!
+
     [self setOpaque: opaque ? YES : NO];
-    texWidth = _texWidth;
-    texHeight = _texHeight;
-    textureID = 0;
-    swapInterval = -1;
-    shallDraw = NO;
 
     CGRect lRect = [self frame];
     DBG_PRINT("MyNSOpenGLLayer::init %p, ctx %p, pfmt %p, pbuffer %p, opaque %d, pbuffer %dx%d -> tex %dx%d, frame: %lf/%lf %lfx%lf (refcnt %d)\n", 
