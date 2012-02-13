@@ -57,6 +57,8 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.common.os.Platform;
+
 import jogamp.opengl.Debug;
 
 
@@ -117,6 +119,7 @@ public class Java2D {
           if (DEBUG) {
             System.err.println("Checking for Java2D/OpenGL support");
           }
+          Throwable catched = null;
           try {
             isHeadless = true;
             // Figure out whether the default graphics configuration is an
@@ -131,7 +134,8 @@ public class Java2D {
             if (DEBUG) {
               System.err.println("Java2D support: default GraphicsConfiguration = " + name);
             }
-            isOGLPipelineActive = (name.startsWith("sun.java2d.opengl"));
+            isOGLPipelineActive = Platform.OS_TYPE != Platform.OSType.MACOS &&
+                                  (name.startsWith("sun.java2d.opengl"));
 
             if (isOGLPipelineActive) {
               try {
@@ -243,8 +247,8 @@ public class Java2D {
                   destroyOGLContextMethod.setAccessible(true);
                 }
               } catch (Exception e) {
+                catched = e;
                 if (DEBUG) {
-                  e.printStackTrace();
                   System.err.println("Info: Disabling Java2D/JOGL integration");
                 }
                 isOGLPipelineActive = false;
@@ -252,9 +256,15 @@ public class Java2D {
             }
           } catch (HeadlessException e) {
             // The AWT is running in headless mode, so the Java 2D / JOGL bridge is clearly disabled
+          } catch (Error e) {
+            // issued on OSX Java7: java.lang.Error: Could not find class: sun.awt.HeadlessGraphicsEnvironment
+            catched = e;
           }
 
           if (DEBUG) {
+            if(null != catched) {
+                catched.printStackTrace();
+            }
             System.err.println("JOGL/Java2D integration " + (isOGLPipelineActive ? "enabled" : "disabled"));
           }
           return null;
