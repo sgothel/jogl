@@ -129,6 +129,12 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     
     if (DEBUG) {
         System.out.println("Pbuffer config: " + config);
+        if(null != sr) {
+            System.out.println("Pbuffer NPOT Texure  avail: "+sr.isNPOTTextureAvailable());
+            System.out.println("Pbuffer RECT Texture avail: "+sr.isRECTTextureAvailable());
+        } else {
+            System.out.println("Pbuffer no sr, no RECT/NPOT Texture avail");
+        }
     }
 
     if ( capabilities.getPbufferRenderToTextureRectangle() && null!=sr && sr.isRECTTextureAvailable() ) {
@@ -146,7 +152,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
 
     int internalFormat = GL.GL_RGBA;
     if (capabilities.getPbufferFloatingPointBuffers()) {
-      if(!glProfile.isGL2GL3() || null==sr || sr.isAppletFloatPixelsAvailable()) {
+      if(!glProfile.isGL2GL3() || null==sr || sr.isAppleFloatPixelsAvailable()) {
           throw new GLException("Floating-point support (GL_APPLE_float_pixels) not available");
       }
       switch (capabilities.getRedBits()) {

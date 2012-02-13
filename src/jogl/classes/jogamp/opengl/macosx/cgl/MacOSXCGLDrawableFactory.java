@@ -142,7 +142,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
       boolean wasContextCreated;
       boolean hasNPOTTextures;
       boolean hasRECTTextures;
-      boolean hasAppletFloatPixels;
+      boolean hasAppleFloatPixels;
 
       SharedResource(MacOSXGraphicsDevice device, boolean wasContextCreated, 
                      boolean hasNPOTTextures, boolean hasRECTTextures, boolean hasAppletFloatPixels
@@ -153,13 +153,13 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
           this.wasContextCreated = wasContextCreated;
           this.hasNPOTTextures = hasNPOTTextures;
           this.hasRECTTextures = hasRECTTextures;
-          this.hasAppletFloatPixels = hasAppletFloatPixels;
+          this.hasAppleFloatPixels = hasAppletFloatPixels;
       }
       final MacOSXGraphicsDevice getDevice() { return device; }
       final boolean wasContextAvailable() { return wasContextCreated; }
       final boolean isNPOTTextureAvailable() { return hasNPOTTextures; }
       final boolean isRECTTextureAvailable() { return hasRECTTextures; }
-      final boolean isAppletFloatPixelsAvailable() { return hasAppletFloatPixels; }
+      final boolean isAppleFloatPixelsAvailable() { return hasAppleFloatPixels; }
   }
 
   public final AbstractGraphicsDevice getDefaultDevice() {
@@ -203,7 +203,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
         boolean madeCurrent = false;
         boolean hasNPOTTextures = false;
         boolean hasRECTTextures = false;
-        boolean hasAppletFloatPixels = false;
+        boolean hasAppleFloatPixels = false;
         {
             GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP);
             if (null == glp) {
@@ -228,7 +228,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
                             GL gl = context.getGL();
                             hasNPOTTextures = gl.isNPOTTextureAvailable();
                             hasRECTTextures = gl.isExtensionAvailable("GL_EXT_texture_rectangle");
-                            hasAppletFloatPixels = gl.isExtensionAvailable("GL_APPLE_float_pixels");
+                            hasAppleFloatPixels = gl.isExtensionAvailable("GL_APPLE_float_pixels");
                         }
                     } catch (GLException gle) {
                         if (DEBUG) {
@@ -249,14 +249,15 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
                 drawable.destroy();
             }
         }
-        sr = new SharedResource(sharedDevice, madeCurrent, hasNPOTTextures, hasRECTTextures, hasAppletFloatPixels);
+        sr = new SharedResource(sharedDevice, madeCurrent, hasNPOTTextures, hasRECTTextures, hasAppleFloatPixels);
         synchronized(sharedMap) {
             sharedMap.put(connection, sr);
         }
         removeDeviceTried(connection);
         if (DEBUG) {
             System.err.println("MacOSXCGLDrawableFactory.createShared: device:  " + sharedDevice);
-            System.err.println("MacOSXCGLDrawableFactory.createShared: context: " + madeCurrent);
+            System.err.println("MacOSXCGLDrawableFactory.createShared: context: madeCurrent " + madeCurrent + ", NPOT "+hasNPOTTextures+
+                               ", RECT "+hasRECTTextures+", FloatPixels "+hasAppleFloatPixels);
         }                        
     }
     return sr;
