@@ -83,6 +83,10 @@ final class ExtensionAvailabilityCache {
     return initialized && !availableExtensionCache.isEmpty() ;
   }
 
+  final int getSize() {
+    return initialized ? availableExtensionCache.size() : 0 ;
+  }
+  
   final boolean isExtensionAvailable(String glExtensionName) {
     initAvailableExtensions();
     return availableExtensionCache.contains(mapGLExtensionName(glExtensionName));

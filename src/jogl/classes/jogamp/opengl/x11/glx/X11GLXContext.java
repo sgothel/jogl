@@ -450,17 +450,15 @@ public abstract class X11GLXContext extends GLContextImpl {
     if(null != table) {
         glXExtProcAddressTable = (GLXExtProcAddressTable) table;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": !!! GLContext GLX ProcAddressTable reusing key("+key+") -> "+table.hashCode());
+            System.err.println(getThreadName() + ": !!! GLContext GLX ProcAddressTable reusing key("+key+") -> "+toHexString(table.hashCode()));
         }
     } else {
-        if (glXExtProcAddressTable == null) {
-          glXExtProcAddressTable = new GLXExtProcAddressTable(new GLProcAddressResolver());
-        }
+        glXExtProcAddressTable = new GLXExtProcAddressTable(new GLProcAddressResolver());
         resetProcAddressTable(getGLXExtProcAddressTable());
         synchronized(mappedContextTypeObjectLock) {
             mappedGLXProcAddress.put(key, getGLXExtProcAddressTable());
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext GLX ProcAddressTable mapping key("+key+") -> "+getGLXExtProcAddressTable().hashCode());
+                System.err.println(getThreadName() + ": !!! GLContext GLX ProcAddressTable mapping key("+key+") -> "+toHexString(getGLXExtProcAddressTable().hashCode()));
                 Thread.dumpStack();
             }
         }

@@ -142,6 +142,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   @Override
   protected void resetStates() {
     // no inner state _cglExt = null;
+    cglExtProcAddressTable = null;
     super.resetStates();
   }
 
@@ -307,17 +308,15 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     if(null != table) {
         cglExtProcAddressTable = (CGLExtProcAddressTable) table;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": !!! GLContext CGL ProcAddressTable reusing key("+key+") -> "+table.hashCode());
+            System.err.println(getThreadName() + ": !!! GLContext CGL ProcAddressTable reusing key("+key+") -> "+toHexString(table.hashCode()));
         }
     } else {
-        if (cglExtProcAddressTable == null) {
-          cglExtProcAddressTable = new CGLExtProcAddressTable(new GLProcAddressResolver());
-        }
+        cglExtProcAddressTable = new CGLExtProcAddressTable(new GLProcAddressResolver());
         resetProcAddressTable(getCGLExtProcAddressTable());
         synchronized(mappedContextTypeObjectLock) {
             mappedGLXProcAddress.put(key, getCGLExtProcAddressTable());
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext CGL ProcAddressTable mapping key("+key+") -> "+getCGLExtProcAddressTable().hashCode());
+                System.err.println(getThreadName() + ": !!! GLContext CGL ProcAddressTable mapping key("+key+") -> "+toHexString(getCGLExtProcAddressTable().hashCode()));
             }
         }
     }

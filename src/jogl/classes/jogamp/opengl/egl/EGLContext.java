@@ -67,6 +67,7 @@ public abstract class EGLContext extends GLContextImpl {
     protected void resetStates() {
         eglQueryStringInitialized = false;
         eglQueryStringAvailable = false;
+        eglExtProcAddressTable = null;
         // no inner state _eglExt = null;
         super.resetStates();
     }
@@ -233,19 +234,15 @@ public abstract class EGLContext extends GLContextImpl {
         if(null != table) {
             eglExtProcAddressTable = (EGLExtProcAddressTable) table;
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext EGL ProcAddressTable reusing key("+key+") -> "+table.hashCode());
+                System.err.println(getThreadName() + ": !!! GLContext EGL ProcAddressTable reusing key("+key+") -> "+toHexString(table.hashCode()));
             }
         } else {
-            if (eglExtProcAddressTable == null) {
-              // FIXME: cache ProcAddressTables by capability bits so we can
-              // share them among contexts with the same capabilities
-              eglExtProcAddressTable = new EGLExtProcAddressTable(new GLProcAddressResolver());
-            }
+            eglExtProcAddressTable = new EGLExtProcAddressTable(new GLProcAddressResolver());
             resetProcAddressTable(getEGLExtProcAddressTable());
             synchronized(mappedContextTypeObjectLock) {
                 mappedGLXProcAddress.put(key, getEGLExtProcAddressTable());
                 if(DEBUG) {
-                    System.err.println(getThreadName() + ": !!! GLContext EGL ProcAddressTable mapping key("+key+") -> "+getEGLExtProcAddressTable().hashCode());
+                    System.err.println(getThreadName() + ": !!! GLContext EGL ProcAddressTable mapping key("+key+") -> "+toHexString(getEGLExtProcAddressTable().hashCode()));
                 }
             }
         }

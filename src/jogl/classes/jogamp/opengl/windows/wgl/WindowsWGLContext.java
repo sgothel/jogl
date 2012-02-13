@@ -407,19 +407,15 @@ public class WindowsWGLContext extends GLContextImpl {
     if(null != table) {
         wglExtProcAddressTable = (WGLExtProcAddressTable) table;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": !!! GLContext WGL ProcAddressTable reusing key("+key+") -> "+table.hashCode());
+            System.err.println(getThreadName() + ": !!! GLContext WGL ProcAddressTable reusing key("+key+") -> "+toHexString(table.hashCode()));
         }
     } else {
-        if (wglExtProcAddressTable == null) {
-          // FIXME: cache ProcAddressTables by OpenGL context type bits so we can
-          // share them among contexts classes (GL4, GL4bc, GL3, GL3bc, ..)
-          wglExtProcAddressTable = new WGLExtProcAddressTable(new GLProcAddressResolver());
-        }
+        wglExtProcAddressTable = new WGLExtProcAddressTable(new GLProcAddressResolver());
         resetProcAddressTable(wglExtProcAddressTable);
         synchronized(mappedContextTypeObjectLock) {
             mappedGLXProcAddress.put(key, getWGLExtProcAddressTable());
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext WGL ProcAddressTable mapping key("+key+") -> "+getWGLExtProcAddressTable().hashCode());
+                System.err.println(getThreadName() + ": !!! GLContext WGL ProcAddressTable mapping key("+key+") -> "+toHexString(getWGLExtProcAddressTable().hashCode()));
             }
         }
     }
