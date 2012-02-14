@@ -205,7 +205,7 @@ public abstract class EGLContext extends GLContextImpl {
             throw new GLException("Error making context 0x" +
                                   Long.toHexString(contextHandle) + " current: error code " + EGL.eglGetError());
         }
-        int ctp = CTX_PROFILE_ES|CTX_OPTION_ANY;
+        int ctp = CTX_PROFILE_ES;
         int major;
         if(glProfile.usesNativeGLES2()) {
             ctp |= CTX_IMPL_ES2_COMPAT;

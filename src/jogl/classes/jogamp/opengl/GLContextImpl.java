@@ -666,7 +666,7 @@ public abstract class GLContextImpl extends GLContext {
   private final void createContextARBMapVersionsAvailable(int reqMajor, boolean compat) {
     long _context;
     int reqProfile = compat ? CTX_PROFILE_COMPAT : CTX_PROFILE_CORE ;
-    int ctp = CTX_IS_ARB_CREATED | CTX_PROFILE_CORE | CTX_OPTION_ANY; // default
+    int ctp = CTX_IS_ARB_CREATED | CTX_PROFILE_CORE; // default
     if(compat) {
         ctp &= ~CTX_PROFILE_CORE ;
         ctp |=  CTX_PROFILE_COMPAT ;
@@ -697,7 +697,6 @@ public abstract class GLContextImpl extends GLContext {
     if(0==_context && !compat) {
         ctp &= ~CTX_PROFILE_COMPAT ;
         ctp |=  CTX_PROFILE_CORE ;
-        ctp &= ~CTX_OPTION_ANY ;
         ctp |=  CTX_OPTION_FORWARD ;
         _context = createContextARBVersions(0, true, ctp, 
                                             /* max */ majorMax, minorMax,
@@ -708,7 +707,6 @@ public abstract class GLContextImpl extends GLContext {
             ctp &= ~CTX_PROFILE_CORE ;
             ctp |=  CTX_PROFILE_COMPAT ;
             ctp &= ~CTX_OPTION_FORWARD ;
-            ctp |=  CTX_OPTION_ANY ;
             _context = createContextARBVersions(0, true, ctp, 
                                        /* max */ majorMax, minorMax,
                                        /* min */ majorMin, minorMin,
@@ -796,7 +794,7 @@ public abstract class GLContextImpl extends GLContext {
    * If major==0 && minor == 0 : Use GL_VERSION
    * Otherwise .. don't touch ..
    */
-  private final void setContextVersion(int major, int minor, int ctp) {
+  private final void setContextVersion(int major, int minor, int ctp, boolean setVersionString) {
       if (0==ctp) {
         throw new GLException("Invalid GL Version "+major+"."+minor+", ctp "+toHexString(ctp));
       }
@@ -808,7 +806,9 @@ public abstract class GLContextImpl extends GLContext {
           ctxMajorVersion = major;
           ctxMinorVersion = minor;
           ctxOptions = ctp;
-          ctxVersionString = getGLVersion(ctxMajorVersion, ctxMinorVersion, ctxOptions, getGL().glGetString(GL.GL_VERSION));
+          if(setVersionString) {
+              ctxVersionString = getGLVersion(ctxMajorVersion, ctxMinorVersion, ctxOptions, getGL().glGetString(GL.GL_VERSION));
+          }
           return;
       }
 
@@ -831,7 +831,9 @@ public abstract class GLContextImpl extends GLContext {
                 ctxMajorVersion = 3;
                 ctxMinorVersion = 0;
             }
-            ctxVersionString = getGLVersion(ctxMajorVersion, ctxMinorVersion, ctxOptions, versionStr);
+            if(setVersionString) {
+                ctxVersionString = getGLVersion(ctxMajorVersion, ctxMinorVersion, ctxOptions, versionStr);
+            }
             return;
           }
       }
@@ -951,7 +953,9 @@ public abstract class GLContextImpl extends GLContext {
 
     AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
-    ctxProfileBits |= drawable.getChosenGLCapabilities().getHardwareAccelerated() ? GLContext.CTX_IMPL_ACCEL_HARD : GLContext.CTX_IMPL_ACCEL_SOFT;
+    if(!drawable.getChosenGLCapabilities().getHardwareAccelerated()) {
+        ctxProfileBits |= GLContext.CTX_IMPL_ACCEL_SOFT;
+    }
     contextFQN = getContextFQN(adevice, major, minor, ctxProfileBits);
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Context FQN: "+contextFQN+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, null));
@@ -985,7 +989,7 @@ public abstract class GLContextImpl extends GLContext {
             }
         }
     }
-
+    
     //
     // Update ExtensionAvailabilityCache
     //
@@ -999,8 +1003,9 @@ public abstract class GLContextImpl extends GLContext {
             System.err.println(getThreadName() + ": !!! GLContext GL ExtensionAvailabilityCache reusing key("+contextFQN+") -> "+toHexString(eCache.hashCode()) + " - entries: "+eCache.getTotalExtensionCount());
         }
     } else {
-        extensionAvailability = new ExtensionAvailabilityCache(this);
-        extensionAvailability.reset();
+        extensionAvailability = new ExtensionAvailabilityCache();
+        setContextVersion(major, minor, ctxProfileBits, false); // pre-set of GL version, required for extension cache usage
+        extensionAvailability.reset(this);
         synchronized(mappedContextTypeObjectLock) {
             mappedExtensionAvailabilityCache.put(contextFQN, extensionAvailability);
             if(DEBUG) {
@@ -1013,15 +1018,17 @@ public abstract class GLContextImpl extends GLContext {
     }
     
     //
-    // Set GL Version
+    // Set GL Version (complete w/ version string)
     //
-    setContextVersion(major, minor, ctxProfileBits);
+    setContextVersion(major, minor, ctxProfileBits, true);
   }
 
   protected final void removeCachedVersion(int major, int minor, int ctxProfileBits) {
     AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
-    ctxProfileBits |= drawable.getChosenGLCapabilities().getHardwareAccelerated() ? GLContext.CTX_IMPL_ACCEL_HARD : GLContext.CTX_IMPL_ACCEL_SOFT;
+    if(!drawable.getChosenGLCapabilities().getHardwareAccelerated()) {
+        ctxProfileBits |= GLContext.CTX_IMPL_ACCEL_SOFT;
+    }
     contextFQN = getContextFQN(adevice, major, minor, ctxProfileBits);
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! RM Context FQN: "+contextFQN+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, null));
@@ -1041,7 +1048,7 @@ public abstract class GLContextImpl extends GLContext {
         }
     }
   }
-  
+
   /**
    * Updates the platform's 'GLX' function cache
    */
@@ -1124,7 +1131,9 @@ public abstract class GLContextImpl extends GLContext {
   }
   
   protected static String getContextFQN(AbstractGraphicsDevice device, int major, int minor, int ctxProfileBits) {
-      ctxProfileBits &= ~GLContext.CTX_IMPL_ES2_COMPAT ; // remove non-key value
+      // remove non-key values
+      ctxProfileBits &= ~( GLContext.CTX_OPTION_DEBUG | GLContext.CTX_IMPL_ES2_COMPAT ) ; 
+            
       return device.getUniqueID() + "-" + toHexString(composeBits(major, minor, ctxProfileBits));
   }
 

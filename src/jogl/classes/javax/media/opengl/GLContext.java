@@ -90,27 +90,24 @@ public abstract class GLContext {
   /** Indicates that a newly-created context was made current during the last call to {@link #makeCurrent makeCurrent}. */
   public static final int CONTEXT_CURRENT_NEW = 2;
 
-  /** <code>ARB_create_context</code> related: created via ARB_create_context */
+  /** <code>ARB_create_context</code> related: created via ARB_create_context. Cache key value. */
   protected static final int CTX_IS_ARB_CREATED  = 1 <<  0;
-  /** <code>ARB_create_context</code> related: compatibility profile */
+  /** <code>ARB_create_context</code> related: compatibility profile. Cache key value. */
   protected static final int CTX_PROFILE_COMPAT  = 1 <<  1;
-  /** <code>ARB_create_context</code> related: core profile */
+  /** <code>ARB_create_context</code> related: core profile. Cache key value. */
   protected static final int CTX_PROFILE_CORE    = 1 <<  2;
-  /** <code>ARB_create_context</code> related: ES profile */
+  /** <code>ARB_create_context</code> related: ES profile. Cache key value. */
   protected static final int CTX_PROFILE_ES      = 1 <<  3;
-  /** <code>ARB_create_context</code> related: flag forward compatible */
+  /** <code>ARB_create_context</code> related: flag forward compatible. Cache key value. */
   protected static final int CTX_OPTION_FORWARD  = 1 <<  4;
-  /** <code>ARB_create_context</code> related: flag not forward compatible */
-  protected static final int CTX_OPTION_ANY      = 1 <<  5;
-  /** <code>ARB_create_context</code> related: flag debug */
-  public static final int CTX_OPTION_DEBUG       = 1 <<  6;  
-  /** <code>GL_ARB_ES2_compatibility</code> implementation related: Context is compatible w/ ES2 */
+  /** <code>ARB_create_context</code> related: flag debug. Not a cache key. */
+  public static final int CTX_OPTION_DEBUG       = 1 <<  5;
+  
+  /** <code>GL_ARB_ES2_compatibility</code> implementation related: Context is compatible w/ ES2. Not a cache key. */
   protected static final int CTX_IMPL_ES2_COMPAT = 1 <<  8;
 
-  /** Implementation / GLContext {@link com.jogamp.gluegen.runtime.ProcAddressTable} caching related: GL software implementation */
-  protected static final int CTX_IMPL_ACCEL_SOFT = 1 << 14;
-  /** Implementation / GLContext {@link com.jogamp.gluegen.runtime.ProcAddressTable} caching related: GL hardware implementation */
-  protected static final int CTX_IMPL_ACCEL_HARD = 1 << 15;
+  /** Context uses software rasterizer, otherwise hardware rasterizer. Cache key value. */
+  protected static final int CTX_IMPL_ACCEL_SOFT = 1 << 15;
   
   private static ThreadLocal<GLContext> currentContext = new ThreadLocal<GLContext>();
 
@@ -495,12 +492,10 @@ public abstract class GLContext {
    *   <li> options
    *   <ul>
    *     <li> <code>ES profile</code> ES profile</li>
-   *     <li> <code>Compatibility profile</code>Compatibility profile including fixed function pipeline and deprecated functionality</li>
-   *     <li> <code>Core profile</code>Core profile</li>
-   *     <li> <code>forward</code>Forward profile excluding deprecated functionality</li>
-   *     <li> <code>any</code> refers to the non forward compatible context</li>
-   *     <li> <code>old</code> refers to the non ARB_create_context created context</li>
-   *     <li> <code>new</code> refers to the ARB_create_context created context</li>
+   *     <li> <code>Compatibility profile</code> Compatibility profile including fixed function pipeline and deprecated functionality</li>
+   *     <li> <code>Core profile</code> Core profile</li>
+   *     <li> <code>forward</code> Forward profile excluding deprecated functionality</li>
+   *     <li> <code>arb</code> refers to an ARB_create_context created context</li>
    *     <li> <code>debug</code> refers to a debug context</li>
    *     <li> <code>ES2 compatible</code> refers to an ES2 compatible implementation</li>
    *     <li> <code>software</code> refers to a software implementation of the rasterizer</li>
@@ -519,14 +514,14 @@ public abstract class GLContext {
    * </table> 
    *
    * <table border="0">
-   *     <tr><td></td>   <td>ES2</td>  <td><code>2.0 (ES profile, any, new, ES2 compatible, hardware) - 2.0 ES Profile</code></td></tr>
-   *     <tr><td>ATI</td><td>GL2</td>  <td><code>3.0 (Compatibility profile, any, new, hardware) - 3.2.9704 Compatibility Profile Context</code></td></tr>
+   *     <tr><td></td>   <td>ES2</td>  <td><code>2.0 (ES profile, ES2 compatible, hardware) - 2.0 ES Profile</code></td></tr>
+   *     <tr><td>ATI</td><td>GL2</td>  <td><code>3.0 (Compatibility profile, arb, hardware) - 3.2.9704 Compatibility Profile Context</code></td></tr>
    *     <tr><td>ATI</td><td>GL3</td>  <td><code>3.3 (Core profile, any, new, hardware) - 1.4 (3.2.9704 Compatibility Profile Context)</code></td></tr>
-   *     <tr><td>ATI</td><td>GL3bc</td><td><code>3.3 (Compatibility profile, any, new, hardware) - 1.4 (3.2.9704 Compatibility Profile Context)</code></td></tr>
-   *     <tr><td>NV</td><td>GL2</td>   <td><code>3.0 (Compatibility profile, any, new, hardware) - 3.0.0 NVIDIA 195.36.07.03</code></td></tr>
-   *     <tr><td>NV</td><td>GL3</td>   <td><code>3.3 (Core profile, any, new, hardware) - 3.3.0 NVIDIA 195.36.07.03</code></td></tr>
-   *     <tr><td>NV</td><td>GL3bc</td> <td><code>3.3 (Compatibility profile, any, new, hardware) - 3.3.0 NVIDIA 195.36.07.03</code></td></tr>
-   *     <tr><td>NV</td><td>GL2</td>   <td><code>3.0 (Compatibility profile, any, new, ES2 compatible, hardware) - 3.0.0 NVIDIA 290.10</code></td></tr>
+   *     <tr><td>ATI</td><td>GL3bc</td><td><code>3.3 (Compatibility profile, arb, hardware) - 1.4 (3.2.9704 Compatibility Profile Context)</code></td></tr>
+   *     <tr><td>NV</td><td>GL2</td>   <td><code>3.0 (Compatibility profile, arb, hardware) - 3.0.0 NVIDIA 195.36.07.03</code></td></tr>
+   *     <tr><td>NV</td><td>GL3</td>   <td><code>3.3 (Core profile, arb, hardware) - 3.3.0 NVIDIA 195.36.07.03</code></td></tr>
+   *     <tr><td>NV</td><td>GL3bc</td> <td><code>3.3 (Compatibility profile, arb, hardware) - 3.3.0 NVIDIA 195.36.07.03</code></td></tr>
+   *     <tr><td>NV</td><td>GL2</td>   <td><code>3.0 (Compatibility profile, arb, ES2 compatible, hardware) - 3.0.0 NVIDIA 290.10</code></td></tr>
    * </table> 
    */
   public final String getGLVersion() {
@@ -538,7 +533,7 @@ public abstract class GLContext {
   public final boolean isGLCompatibilityProfile() { return ( 0 != ( CTX_PROFILE_COMPAT & ctxOptions ) ); }
   public final boolean isGLCoreProfile()          { return ( 0 != ( CTX_PROFILE_CORE   & ctxOptions ) ); }
   public final boolean isGLForwardCompatible()    { return ( 0 != ( CTX_OPTION_FORWARD & ctxOptions ) ); }
-  public final boolean isGLDebugEnabled()         { return ( 0 != ( CTX_OPTION_DEBUG & ctxOptions ) ); }
+  public final boolean isGLDebugEnabled()         { return ( 0 != ( CTX_OPTION_DEBUG   & ctxOptions ) ); }
   public final boolean isCreatedWithARBMethod()   { return ( 0 != ( CTX_IS_ARB_CREATED & ctxOptions ) ); }
   
   /**
@@ -1001,14 +996,15 @@ public abstract class GLContext {
     needColon = appendString(sb, "ES profile",            needColon, 0 != ( CTX_PROFILE_ES & ctp ));
     needColon = appendString(sb, "Compatibility profile", needColon, 0 != ( CTX_PROFILE_COMPAT & ctp ));
     needColon = appendString(sb, "Core profile",          needColon, 0 != ( CTX_PROFILE_CORE & ctp ));
-    needColon = appendString(sb, "forward",               needColon, 0 != ( CTX_OPTION_FORWARD & ctp ));
-    needColon = appendString(sb, "any",                   needColon, 0 != ( CTX_OPTION_ANY & ctp ));
-    needColon = appendString(sb, "new",                   needColon, 0 != ( CTX_IS_ARB_CREATED & ctp ));
-    needColon = appendString(sb, "old",                   needColon, 0 == ( CTX_IS_ARB_CREATED & ctp ));
+    needColon = appendString(sb, "forward",               needColon, 0 != ( CTX_OPTION_FORWARD & ctp )); 
+    needColon = appendString(sb, "arb",                   needColon, 0 != ( CTX_IS_ARB_CREATED & ctp ));
     needColon = appendString(sb, "debug",                 needColon, 0 != ( CTX_OPTION_DEBUG & ctp ));    
     needColon = appendString(sb, "ES2 compatible",        needColon, 0 != ( CTX_IMPL_ES2_COMPAT & ctp ));
-    needColon = appendString(sb, "software",              needColon, 0 != ( CTX_IMPL_ACCEL_SOFT & ctp ));
-    needColon = appendString(sb, "hardware",              needColon, 0 != ( CTX_IMPL_ACCEL_HARD & ctp ));
+    if( 0 != ( CTX_IMPL_ACCEL_SOFT & ctp ) ) {
+        needColon = appendString(sb, "software",          needColon, true);
+    } else {
+        needColon = appendString(sb, "hardware",          needColon, true);
+    }
     sb.append(")");
     if(null!=gl_version) {
         sb.append(" - ");

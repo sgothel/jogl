@@ -1464,7 +1464,7 @@ public class GLProfile {
                 // so we have to add the usual suspect
                 GLContext.mapAvailableGLVersion(device,
                                                 2, GLContext.CTX_PROFILE_COMPAT,
-                                                1, 5, GLContext.CTX_PROFILE_COMPAT|GLContext.CTX_OPTION_ANY);
+                                                1, 5, GLContext.CTX_PROFILE_COMPAT);
             }
             addedDesktopProfile = computeProfileMap(device, false /* desktopCtxUndef*/, false /* esCtxUndef */);
         }
@@ -1501,13 +1501,13 @@ public class GLProfile {
                 // The native ES2 impl. overwrites a previous mapping using 'ES2 compatibility' by a desktop profile 
                 GLContext.mapAvailableGLVersion(device,
                                                 2, GLContext.CTX_PROFILE_ES,
-                                                2, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_OPTION_ANY|GLContext.CTX_IMPL_ES2_COMPAT);
+                                                2, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_IMPL_ES2_COMPAT);
             }
             if( hasGLES1Impl ) {
                 // Always favor the native ES1 impl.
                 GLContext.mapAvailableGLVersion(device,
                                                 1, GLContext.CTX_PROFILE_ES,
-                                                1, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_OPTION_ANY);
+                                                1, 0, GLContext.CTX_PROFILE_ES);
             }
             addedEGLProfile = computeProfileMap(device, false /* desktopCtxUndef*/, false /* esCtxUndef */);
         } 

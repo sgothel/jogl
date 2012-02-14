@@ -220,7 +220,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         if( !ctBwdCompat && ctFwdCompat ) {
             flags |= GLX.GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB;
         }
-        if( ctDebug) {
+        if( ctDebug ) {
             flags |= GLX.GLX_CONTEXT_DEBUG_BIT_ARB;
         }
         attribs.put(ctx_arb_attribs_idx_flags + 1, flags);
@@ -305,7 +305,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         if (!glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
           throw new GLException("Error making temp context(0) current: display "+toHexString(display)+", context "+toHexString(contextHandle)+", drawable "+drawable);
         }
-        setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY); // use GL_VERSION
+        setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT); // use GL_VERSION
         isDirect = GLX.glXIsDirect(display, contextHandle);
         if (DEBUG) {
             System.err.println(getThreadName() + ": createContextImpl: OK (old-1) share "+share+", direct "+isDirect+"/"+direct);
@@ -335,7 +335,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         if (!glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), temp_ctx)) {
           throw new GLException("Error making temp context(1) current: display "+toHexString(display)+", context "+toHexString(temp_ctx)+", drawable "+drawable);
         }
-        setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT|CTX_OPTION_ANY); // use GL_VERSION
+        setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT); // use GL_VERSION
         boolean isCreateContextAttribsARBAvailable = isFunctionAvailable("glXCreateContextAttribsARB");
         glXMakeContextCurrent(display, 0, 0, 0); // release temp context
 
