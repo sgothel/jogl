@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 /*
-** Copyright (c) 2007-2010 The Khronos Group Inc.
+** Copyright (c) 2007-2012 The Khronos Group Inc.
 ** 
 ** Permission is hereby granted, free of charge, to any person obtaining a
 ** copy of this software and/or associated documentation files (the
@@ -36,15 +36,15 @@ extern "C" {
  * will probably change slightly as we make sure exactly the right set
  * of interfaces is included.
  *
- * gl3.h last updated on $Date: 2010-08-03 01:30:25 -0700 (Tue, 03 Aug 2010) $
+ * gl3.h last updated on $Date: 2012-01-26 02:57:23 -0800 (Thu, 26 Jan 2012) $
  *
- * RELEASE NOTES - 2010/03/11
+ * RELEASE NOTES - 2012/01/26
  *
  * gl3.h should be placed under a directory 'GL3' and included as
  * '<GL3/gl3.h>'.
  *
- * gl3.h only includes interfaces supported in a OpenGL 3.1 (without
- * GL_ARB_compatibility) or OpenGL 3.2, 3.3, 4.0, or 4.1 core profile
+ * gl3.h is supposed to only include APIs in a OpenGL 3.1 (without
+ * GL_ARB_compatibility) or OpenGL 3.2-4.2 (inclusive) core profile
  * implementation, as well as interfaces for newer ARB extensions which
  * can be supported by the core profile. It does not, and never will
  * include functionality removed from the core profile, such as
@@ -90,6 +90,7 @@ typedef int GLsizei;
 typedef unsigned char GLubyte;
 typedef unsigned short GLushort;
 typedef unsigned int GLuint;
+typedef unsigned short GLhalf;
 typedef float GLfloat;
 typedef float GLclampf;
 typedef double GLdouble;
@@ -607,8 +608,8 @@ typedef void GLvoid;
 #define GL_MINOR_VERSION                  0x821C
 #define GL_NUM_EXTENSIONS                 0x821D
 #define GL_CONTEXT_FLAGS                  0x821E
-#define GL_DEPTH_BUFFER                   0x8223
-#define GL_STENCIL_BUFFER                 0x8224
+#define GL_DEPTH_BUFFER                   0x8223  // n/a in spec, but other header files
+#define GL_STENCIL_BUFFER                 0x8224  // n/a in spec, but other header files
 #define GL_COMPRESSED_RED                 0x8225
 #define GL_COMPRESSED_RG                  0x8226
 #define GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT 0x0001
@@ -822,6 +823,8 @@ typedef void GLvoid;
 #endif
 
 #ifndef GL_VERSION_3_1
+/* #define GL_SAMPLER_2D_RECT             0x8B63 - we use subsumed GL_ARB_texture_rectangle */
+/* #define GL_SAMPLER_2D_RECT_SHADOW      0x8B64 - we use subsumed GL_ARB_texture_rectangle */
 #define GL_SAMPLER_BUFFER                 0x8DC2
 #define GL_INT_SAMPLER_2D_RECT            0x8DCD
 #define GL_INT_SAMPLER_BUFFER             0x8DD0
@@ -1112,6 +1115,124 @@ typedef void GLvoid;
 /* reuse GL_UNDEFINED_VERTEX */
 #endif
 
+#ifndef GL_VERSION_4_2
+/* Reuse tokens from ARB_base_instance (none) */
+/* Reuse tokens from ARB_shading_language_420pack (none) */
+/* Reuse tokens from ARB_transform_feedback_instanced (none) */
+/* Reuse tokens from ARB_compressed_texture_pixel_storage */
+/* reuse GL_UNPACK_COMPRESSED_BLOCK_WIDTH */
+/* reuse GL_UNPACK_COMPRESSED_BLOCK_HEIGHT */
+/* reuse GL_UNPACK_COMPRESSED_BLOCK_DEPTH */
+/* reuse GL_UNPACK_COMPRESSED_BLOCK_SIZE */
+/* reuse GL_PACK_COMPRESSED_BLOCK_WIDTH */
+/* reuse GL_PACK_COMPRESSED_BLOCK_HEIGHT */
+/* reuse GL_PACK_COMPRESSED_BLOCK_DEPTH */
+/* reuse GL_PACK_COMPRESSED_BLOCK_SIZE */
+/* Reuse tokens from ARB_conservative_depth (none) */
+/* Reuse tokens from ARB_internalformat_query */
+/* reuse GL_NUM_SAMPLE_COUNTS */
+/* Reuse tokens from ARB_map_buffer_alignment */
+/* reuse GL_MIN_MAP_BUFFER_ALIGNMENT */
+/* Reuse tokens from ARB_shader_atomic_counters */
+/* reuse GL_ATOMIC_COUNTER_BUFFER */
+/* reuse GL_ATOMIC_COUNTER_BUFFER_BINDING */
+/* reuse GL_ATOMIC_COUNTER_BUFFER_START */
+/* reuse GL_ATOMIC_COUNTER_BUFFER_SIZE */
+/* reuse GL_ATOMIC_COUNTER_BUFFER_DATA_SIZE */
+/* reuse GL_ATOMIC_COUNTER_BUFFER_ACTIVE_ATOMIC_COUNTERS */
+/* reuse GL_ATOMIC_COUNTER_BUFFER_ACTIVE_ATOMIC_COUNTER_INDICES */
+/* reuse GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_VERTEX_SHADER */
+/* reuse GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_TESS_CONTROL_SHADER */
+/* reuse GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_TESS_EVALUATION_SHADER */
+/* reuse GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_GEOMETRY_SHADER */
+/* reuse GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_FRAGMENT_SHADER */
+/* reuse GL_MAX_VERTEX_ATOMIC_COUNTER_BUFFERS */
+/* reuse GL_MAX_TESS_CONTROL_ATOMIC_COUNTER_BUFFERS */
+/* reuse GL_MAX_TESS_EVALUATION_ATOMIC_COUNTER_BUFFERS */
+/* reuse GL_MAX_GEOMETRY_ATOMIC_COUNTER_BUFFERS */
+/* reuse GL_MAX_FRAGMENT_ATOMIC_COUNTER_BUFFERS */
+/* reuse GL_MAX_COMBINED_ATOMIC_COUNTER_BUFFERS */
+/* reuse GL_MAX_VERTEX_ATOMIC_COUNTERS */
+/* reuse GL_MAX_TESS_CONTROL_ATOMIC_COUNTERS */
+/* reuse GL_MAX_TESS_EVALUATION_ATOMIC_COUNTERS */
+/* reuse GL_MAX_GEOMETRY_ATOMIC_COUNTERS */
+/* reuse GL_MAX_FRAGMENT_ATOMIC_COUNTERS */
+/* reuse GL_MAX_COMBINED_ATOMIC_COUNTERS */
+/* reuse GL_MAX_ATOMIC_COUNTER_BUFFER_SIZE */
+/* reuse GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS */
+/* reuse GL_ACTIVE_ATOMIC_COUNTER_BUFFERS */
+/* reuse GL_UNIFORM_ATOMIC_COUNTER_BUFFER_INDEX */
+/* reuse GL_UNSIGNED_INT_ATOMIC_COUNTER */
+/* Reuse tokens from ARB_shader_image_load_store */
+/* reuse GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT */
+/* reuse GL_ELEMENT_ARRAY_BARRIER_BIT */
+/* reuse GL_UNIFORM_BARRIER_BIT */
+/* reuse GL_TEXTURE_FETCH_BARRIER_BIT */
+/* reuse GL_SHADER_IMAGE_ACCESS_BARRIER_BIT */
+/* reuse GL_COMMAND_BARRIER_BIT */
+/* reuse GL_PIXEL_BUFFER_BARRIER_BIT */
+/* reuse GL_TEXTURE_UPDATE_BARRIER_BIT */
+/* reuse GL_BUFFER_UPDATE_BARRIER_BIT */
+/* reuse GL_FRAMEBUFFER_BARRIER_BIT */
+/* reuse GL_TRANSFORM_FEEDBACK_BARRIER_BIT */
+/* reuse GL_ATOMIC_COUNTER_BARRIER_BIT */
+/* reuse GL_ALL_BARRIER_BITS */
+/* reuse GL_MAX_IMAGE_UNITS */
+/* reuse GL_MAX_COMBINED_IMAGE_UNITS_AND_FRAGMENT_OUTPUTS */
+/* reuse GL_IMAGE_BINDING_NAME */
+/* reuse GL_IMAGE_BINDING_LEVEL */
+/* reuse GL_IMAGE_BINDING_LAYERED */
+/* reuse GL_IMAGE_BINDING_LAYER */
+/* reuse GL_IMAGE_BINDING_ACCESS */
+/* reuse GL_IMAGE_1D */
+/* reuse GL_IMAGE_2D */
+/* reuse GL_IMAGE_3D */
+/* reuse GL_IMAGE_2D_RECT */
+/* reuse GL_IMAGE_CUBE */
+/* reuse GL_IMAGE_BUFFER */
+/* reuse GL_IMAGE_1D_ARRAY */
+/* reuse GL_IMAGE_2D_ARRAY */
+/* reuse GL_IMAGE_CUBE_MAP_ARRAY */
+/* reuse GL_IMAGE_2D_MULTISAMPLE */
+/* reuse GL_IMAGE_2D_MULTISAMPLE_ARRAY */
+/* reuse GL_INT_IMAGE_1D */
+/* reuse GL_INT_IMAGE_2D */
+/* reuse GL_INT_IMAGE_3D */
+/* reuse GL_INT_IMAGE_2D_RECT */
+/* reuse GL_INT_IMAGE_CUBE */
+/* reuse GL_INT_IMAGE_BUFFER */
+/* reuse GL_INT_IMAGE_1D_ARRAY */
+/* reuse GL_INT_IMAGE_2D_ARRAY */
+/* reuse GL_INT_IMAGE_CUBE_MAP_ARRAY */
+/* reuse GL_INT_IMAGE_2D_MULTISAMPLE */
+/* reuse GL_INT_IMAGE_2D_MULTISAMPLE_ARRAY */
+/* reuse GL_UNSIGNED_INT_IMAGE_1D */
+/* reuse GL_UNSIGNED_INT_IMAGE_2D */
+/* reuse GL_UNSIGNED_INT_IMAGE_3D */
+/* reuse GL_UNSIGNED_INT_IMAGE_2D_RECT */
+/* reuse GL_UNSIGNED_INT_IMAGE_CUBE */
+/* reuse GL_UNSIGNED_INT_IMAGE_BUFFER */
+/* reuse GL_UNSIGNED_INT_IMAGE_1D_ARRAY */
+/* reuse GL_UNSIGNED_INT_IMAGE_2D_ARRAY */
+/* reuse GL_UNSIGNED_INT_IMAGE_CUBE_MAP_ARRAY */
+/* reuse GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE */
+/* reuse GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY */
+/* reuse GL_MAX_IMAGE_SAMPLES */
+/* reuse GL_IMAGE_BINDING_FORMAT */
+/* reuse GL_IMAGE_FORMAT_COMPATIBILITY_TYPE */
+/* reuse GL_IMAGE_FORMAT_COMPATIBILITY_BY_SIZE */
+/* reuse GL_IMAGE_FORMAT_COMPATIBILITY_BY_CLASS */
+/* reuse GL_MAX_VERTEX_IMAGE_UNIFORMS */
+/* reuse GL_MAX_TESS_CONTROL_IMAGE_UNIFORMS */
+/* reuse GL_MAX_TESS_EVALUATION_IMAGE_UNIFORMS */
+/* reuse GL_MAX_GEOMETRY_IMAGE_UNIFORMS */
+/* reuse GL_MAX_FRAGMENT_IMAGE_UNIFORMS */
+/* reuse GL_MAX_COMBINED_IMAGE_UNIFORMS */
+/* Reuse tokens from ARB_shading_language_packing (none) */
+/* Reuse tokens from ARB_texture_storage */
+/* reuse GL_TEXTURE_IMMUTABLE_FORMAT */
+#endif
+
 #ifndef GL_ARB_depth_buffer_float
 #define GL_DEPTH_COMPONENT32F             0x8CAC
 #define GL_DEPTH32F_STENCIL8              0x8CAD
@@ -1284,7 +1405,7 @@ typedef void GLvoid;
 #define GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER 0x8A44
 #define GL_UNIFORM_BLOCK_REFERENCED_BY_GEOMETRY_SHADER 0x8A45
 #define GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER 0x8A46
-/* #define GL_INVALID_INDEX                  0xFFFFFFFFu - manual, due to fixed uint32_t size. GlueGen would create int64_t */
+/* #define GL_INVALID_INDEX               0xFFFFFFFFu - manual, due to fixed uint32_t size. GlueGen would create int64_t */
 #endif
 
 #ifndef GL_ARB_copy_buffer
@@ -1380,7 +1501,6 @@ typedef void GLvoid;
 #ifndef GL_ARB_texture_gather
 #define GL_MIN_PROGRAM_TEXTURE_GATHER_OFFSET_ARB 0x8E5E
 #define GL_MAX_PROGRAM_TEXTURE_GATHER_OFFSET_ARB 0x8E5F
-#define GL_MAX_PROGRAM_TEXTURE_GATHER_COMPONENTS_ARB 0x8F9F
 #endif
 
 #ifndef GL_ARB_texture_query_lod
@@ -1575,7 +1695,7 @@ typedef void GLvoid;
 #define GL_GEOMETRY_SHADER_BIT            0x00000004
 #define GL_TESS_CONTROL_SHADER_BIT        0x00000008
 #define GL_TESS_EVALUATION_SHADER_BIT     0x00000010
-#define GL_ALL_SHADER_BITS                0xFFFFFFFF
+/* #define GL_ALL_SHADER_BITS             0xFFFFFFFF  - manual, due to fixed uint32_t size. GlueGen would create int64_t */
 #define GL_PROGRAM_SEPARABLE              0x8258
 #define GL_ACTIVE_PROGRAM                 0x8259
 #define GL_PROGRAM_PIPELINE_BINDING       0x825A
@@ -1660,6 +1780,143 @@ typedef void GLvoid;
 #ifndef GL_ARB_shader_stencil_export
 #endif
 
+#ifndef GL_ARB_base_instance
+#endif
+
+#ifndef GL_ARB_shading_language_420pack
+#endif
+
+#ifndef GL_ARB_transform_feedback_instanced
+#endif
+
+#ifndef GL_ARB_compressed_texture_pixel_storage
+#define GL_UNPACK_COMPRESSED_BLOCK_WIDTH  0x9127
+#define GL_UNPACK_COMPRESSED_BLOCK_HEIGHT 0x9128
+#define GL_UNPACK_COMPRESSED_BLOCK_DEPTH  0x9129
+#define GL_UNPACK_COMPRESSED_BLOCK_SIZE   0x912A
+#define GL_PACK_COMPRESSED_BLOCK_WIDTH    0x912B
+#define GL_PACK_COMPRESSED_BLOCK_HEIGHT   0x912C
+#define GL_PACK_COMPRESSED_BLOCK_DEPTH    0x912D
+#define GL_PACK_COMPRESSED_BLOCK_SIZE     0x912E
+#endif
+
+#ifndef GL_ARB_conservative_depth
+#endif
+
+#ifndef GL_ARB_internalformat_query
+#define GL_NUM_SAMPLE_COUNTS              0x9380
+#endif
+
+#ifndef GL_ARB_map_buffer_alignment
+#define GL_MIN_MAP_BUFFER_ALIGNMENT       0x90BC
+#endif
+
+#ifndef GL_ARB_shader_atomic_counters
+#define GL_ATOMIC_COUNTER_BUFFER          0x92C0
+#define GL_ATOMIC_COUNTER_BUFFER_BINDING  0x92C1
+#define GL_ATOMIC_COUNTER_BUFFER_START    0x92C2
+#define GL_ATOMIC_COUNTER_BUFFER_SIZE     0x92C3
+#define GL_ATOMIC_COUNTER_BUFFER_DATA_SIZE 0x92C4
+#define GL_ATOMIC_COUNTER_BUFFER_ACTIVE_ATOMIC_COUNTERS 0x92C5
+#define GL_ATOMIC_COUNTER_BUFFER_ACTIVE_ATOMIC_COUNTER_INDICES 0x92C6
+#define GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_VERTEX_SHADER 0x92C7
+#define GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_TESS_CONTROL_SHADER 0x92C8
+#define GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_TESS_EVALUATION_SHADER 0x92C9
+#define GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_GEOMETRY_SHADER 0x92CA
+#define GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_FRAGMENT_SHADER 0x92CB
+#define GL_MAX_VERTEX_ATOMIC_COUNTER_BUFFERS 0x92CC
+#define GL_MAX_TESS_CONTROL_ATOMIC_COUNTER_BUFFERS 0x92CD
+#define GL_MAX_TESS_EVALUATION_ATOMIC_COUNTER_BUFFERS 0x92CE
+#define GL_MAX_GEOMETRY_ATOMIC_COUNTER_BUFFERS 0x92CF
+#define GL_MAX_FRAGMENT_ATOMIC_COUNTER_BUFFERS 0x92D0
+#define GL_MAX_COMBINED_ATOMIC_COUNTER_BUFFERS 0x92D1
+#define GL_MAX_VERTEX_ATOMIC_COUNTERS     0x92D2
+#define GL_MAX_TESS_CONTROL_ATOMIC_COUNTERS 0x92D3
+#define GL_MAX_TESS_EVALUATION_ATOMIC_COUNTERS 0x92D4
+#define GL_MAX_GEOMETRY_ATOMIC_COUNTERS   0x92D5
+#define GL_MAX_FRAGMENT_ATOMIC_COUNTERS   0x92D6
+#define GL_MAX_COMBINED_ATOMIC_COUNTERS   0x92D7
+#define GL_MAX_ATOMIC_COUNTER_BUFFER_SIZE 0x92D8
+#define GL_MAX_ATOMIC_COUNTER_BUFFER_BINDINGS 0x92DC
+#define GL_ACTIVE_ATOMIC_COUNTER_BUFFERS  0x92D9
+#define GL_UNIFORM_ATOMIC_COUNTER_BUFFER_INDEX 0x92DA
+#define GL_UNSIGNED_INT_ATOMIC_COUNTER    0x92DB
+#endif
+
+#ifndef GL_ARB_shader_image_load_store
+#define GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT 0x00000001
+#define GL_ELEMENT_ARRAY_BARRIER_BIT      0x00000002
+#define GL_UNIFORM_BARRIER_BIT            0x00000004
+#define GL_TEXTURE_FETCH_BARRIER_BIT      0x00000008
+#define GL_SHADER_IMAGE_ACCESS_BARRIER_BIT 0x00000020
+#define GL_COMMAND_BARRIER_BIT            0x00000040
+#define GL_PIXEL_BUFFER_BARRIER_BIT       0x00000080
+#define GL_TEXTURE_UPDATE_BARRIER_BIT     0x00000100
+#define GL_BUFFER_UPDATE_BARRIER_BIT      0x00000200
+#define GL_FRAMEBUFFER_BARRIER_BIT        0x00000400
+#define GL_TRANSFORM_FEEDBACK_BARRIER_BIT 0x00000800
+#define GL_ATOMIC_COUNTER_BARRIER_BIT     0x00001000
+/* #define GL_ALL_BARRIER_BITS            0xFFFFFFFF  - manual, due to fixed uint32_t size. GlueGen would create int64_t */
+#define GL_MAX_IMAGE_UNITS                0x8F38
+#define GL_MAX_COMBINED_IMAGE_UNITS_AND_FRAGMENT_OUTPUTS 0x8F39
+#define GL_IMAGE_BINDING_NAME             0x8F3A
+#define GL_IMAGE_BINDING_LEVEL            0x8F3B
+#define GL_IMAGE_BINDING_LAYERED          0x8F3C
+#define GL_IMAGE_BINDING_LAYER            0x8F3D
+#define GL_IMAGE_BINDING_ACCESS           0x8F3E
+#define GL_IMAGE_1D                       0x904C
+#define GL_IMAGE_2D                       0x904D
+#define GL_IMAGE_3D                       0x904E
+#define GL_IMAGE_2D_RECT                  0x904F
+#define GL_IMAGE_CUBE                     0x9050
+#define GL_IMAGE_BUFFER                   0x9051
+#define GL_IMAGE_1D_ARRAY                 0x9052
+#define GL_IMAGE_2D_ARRAY                 0x9053
+#define GL_IMAGE_CUBE_MAP_ARRAY           0x9054
+#define GL_IMAGE_2D_MULTISAMPLE           0x9055
+#define GL_IMAGE_2D_MULTISAMPLE_ARRAY     0x9056
+#define GL_INT_IMAGE_1D                   0x9057
+#define GL_INT_IMAGE_2D                   0x9058
+#define GL_INT_IMAGE_3D                   0x9059
+#define GL_INT_IMAGE_2D_RECT              0x905A
+#define GL_INT_IMAGE_CUBE                 0x905B
+#define GL_INT_IMAGE_BUFFER               0x905C
+#define GL_INT_IMAGE_1D_ARRAY             0x905D
+#define GL_INT_IMAGE_2D_ARRAY             0x905E
+#define GL_INT_IMAGE_CUBE_MAP_ARRAY       0x905F
+#define GL_INT_IMAGE_2D_MULTISAMPLE       0x9060
+#define GL_INT_IMAGE_2D_MULTISAMPLE_ARRAY 0x9061
+#define GL_UNSIGNED_INT_IMAGE_1D          0x9062
+#define GL_UNSIGNED_INT_IMAGE_2D          0x9063
+#define GL_UNSIGNED_INT_IMAGE_3D          0x9064
+#define GL_UNSIGNED_INT_IMAGE_2D_RECT     0x9065
+#define GL_UNSIGNED_INT_IMAGE_CUBE        0x9066
+#define GL_UNSIGNED_INT_IMAGE_BUFFER      0x9067
+#define GL_UNSIGNED_INT_IMAGE_1D_ARRAY    0x9068
+#define GL_UNSIGNED_INT_IMAGE_2D_ARRAY    0x9069
+#define GL_UNSIGNED_INT_IMAGE_CUBE_MAP_ARRAY 0x906A
+#define GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE 0x906B
+#define GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY 0x906C
+#define GL_MAX_IMAGE_SAMPLES              0x906D
+#define GL_IMAGE_BINDING_FORMAT           0x906E
+#define GL_IMAGE_FORMAT_COMPATIBILITY_TYPE 0x90C7
+#define GL_IMAGE_FORMAT_COMPATIBILITY_BY_SIZE 0x90C8
+#define GL_IMAGE_FORMAT_COMPATIBILITY_BY_CLASS 0x90C9
+#define GL_MAX_VERTEX_IMAGE_UNIFORMS      0x90CA
+#define GL_MAX_TESS_CONTROL_IMAGE_UNIFORMS 0x90CB
+#define GL_MAX_TESS_EVALUATION_IMAGE_UNIFORMS 0x90CC
+#define GL_MAX_GEOMETRY_IMAGE_UNIFORMS    0x90CD
+#define GL_MAX_FRAGMENT_IMAGE_UNIFORMS    0x90CE
+#define GL_MAX_COMBINED_IMAGE_UNIFORMS    0x90CF
+#endif
+
+#ifndef GL_ARB_shading_language_packing
+#endif
+
+#ifndef GL_ARB_texture_storage
+#define GL_TEXTURE_IMMUTABLE_FORMAT       0x912F
+#endif
+
 
 /*************************************************************/
 
@@ -1699,7 +1956,7 @@ typedef unsigned short GLhalfNV;
 #include "gl-64bit-types.h"
 
 #ifndef GL_ARB_cl_event
-/* These incomplete types let us declare types compatible with OpenCL's cl_context and cl_event 
+/* These incomplete types let us declare types compatible with OpenCL's cl_context and cl_event
 struct _cl_context;
 struct _cl_event;
  */
@@ -2368,6 +2625,22 @@ typedef void (APIENTRYP PFNGLVERTEXATTRIBDIVISORPROC) (GLuint index, GLuint divi
 /* ARB_viewport_array */
 #endif
 
+#ifndef GL_VERSION_4_2
+#define GL_VERSION_4_2 1
+/* OpenGL 4.2 reuses entry points from these extensions: */
+/* ARB_base_instance */
+/* ARB_shading_language_420pack (no entry points) */
+/* ARB_transform_feedback_instanced */
+/* ARB_compressed_texture_pixel_storage (no entry points) */
+/* ARB_conservative_depth (no entry points) */
+/* ARB_internalformat_query */
+/* ARB_map_buffer_alignment (no entry points) */
+/* ARB_shader_atomic_counters */
+/* ARB_shader_image_load_store */
+/* ARB_shading_language_packing (no entry points) */
+/* ARB_texture_storage */
+#endif
+
 #ifndef GL_ARB_depth_buffer_float
 #define GL_ARB_depth_buffer_float 1
 #endif
@@ -2664,6 +2937,10 @@ typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERIVPROC) (GLuint sampler, GLenum 
 typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERIIVPROC) (GLuint sampler, GLenum pname, GLint *params);
 typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERFVPROC) (GLuint sampler, GLenum pname, GLfloat *params);
 typedef void (APIENTRYP PFNGLGETSAMPLERPARAMETERIUIVPROC) (GLuint sampler, GLenum pname, GLuint *params);
+#endif
+
+#ifndef GL_ARB_shader_bit_encoding
+#define GL_ARB_shader_bit_encoding 1
 #endif
 
 #ifndef GL_ARB_texture_rgb10_a2ui
@@ -3172,6 +3449,92 @@ typedef void (APIENTRYP PFNGLGETNUNIFORMDVARBPROC) (GLuint program, GLint locati
 
 #ifndef GL_ARB_shader_stencil_export
 #define GL_ARB_shader_stencil_export 1
+#endif
+
+#ifndef GL_ARB_base_instance
+#define GL_ARB_base_instance 1
+#ifdef GL3_PROTOTYPES
+GLAPI void APIENTRY glDrawArraysInstancedBaseInstance (GLenum mode, GLint first, GLsizei count, GLsizei primcount, GLuint baseinstance);
+GLAPI void APIENTRY glDrawElementsInstancedBaseInstance (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei primcount, GLuint baseinstance);
+GLAPI void APIENTRY glDrawElementsInstancedBaseVertexBaseInstance (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei primcount, GLint basevertex, GLuint baseinstance);
+#endif /* GL3_PROTOTYPES */
+typedef void (APIENTRYP PFNGLDRAWARRAYSINSTANCEDBASEINSTANCEPROC) (GLenum mode, GLint first, GLsizei count, GLsizei primcount, GLuint baseinstance);
+typedef void (APIENTRYP PFNGLDRAWELEMENTSINSTANCEDBASEINSTANCEPROC) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei primcount, GLuint baseinstance);
+typedef void (APIENTRYP PFNGLDRAWELEMENTSINSTANCEDBASEVERTEXBASEINSTANCEPROC) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei primcount, GLint basevertex, GLuint baseinstance);
+#endif
+
+#ifndef GL_ARB_shading_language_420pack
+#define GL_ARB_shading_language_420pack 1
+#endif
+
+#ifndef GL_ARB_transform_feedback_instanced
+#define GL_ARB_transform_feedback_instanced 1
+#ifdef GL3_PROTOTYPES
+GLAPI void APIENTRY glDrawTransformFeedbackInstanced (GLenum mode, GLuint id, GLsizei primcount);
+GLAPI void APIENTRY glDrawTransformFeedbackStreamInstanced (GLenum mode, GLuint id, GLuint stream, GLsizei primcount);
+#endif /* GL3_PROTOTYPES */
+typedef void (APIENTRYP PFNGLDRAWTRANSFORMFEEDBACKINSTANCEDPROC) (GLenum mode, GLuint id, GLsizei primcount);
+typedef void (APIENTRYP PFNGLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC) (GLenum mode, GLuint id, GLuint stream, GLsizei primcount);
+#endif
+
+#ifndef GL_ARB_compressed_texture_pixel_storage
+#define GL_ARB_compressed_texture_pixel_storage 1
+#endif
+
+#ifndef GL_ARB_conservative_depth
+#define GL_ARB_conservative_depth 1
+#endif
+
+#ifndef GL_ARB_internalformat_query
+#define GL_ARB_internalformat_query 1
+#ifdef GL3_PROTOTYPES
+GLAPI void APIENTRY glGetInternalformativ (GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint *params);
+#endif /* GL3_PROTOTYPES */
+typedef void (APIENTRYP PFNGLGETINTERNALFORMATIVPROC) (GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint *params);
+#endif
+
+#ifndef GL_ARB_map_buffer_alignment
+#define GL_ARB_map_buffer_alignment 1
+#endif
+
+#ifndef GL_ARB_shader_atomic_counters
+#define GL_ARB_shader_atomic_counters 1
+#ifdef GL3_PROTOTYPES
+GLAPI void APIENTRY glGetActiveAtomicCounterBufferiv (GLuint program, GLuint bufferIndex, GLenum pname, GLint *params);
+#endif /* GL3_PROTOTYPES */
+typedef void (APIENTRYP PFNGLGETACTIVEATOMICCOUNTERBUFFERIVPROC) (GLuint program, GLuint bufferIndex, GLenum pname, GLint *params);
+#endif
+
+#ifndef GL_ARB_shader_image_load_store
+#define GL_ARB_shader_image_load_store 1
+#ifdef GL3_PROTOTYPES
+GLAPI void APIENTRY glBindImageTexture (GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
+GLAPI void APIENTRY glMemoryBarrier (GLbitfield barriers);
+#endif /* GL3_PROTOTYPES */
+typedef void (APIENTRYP PFNGLBINDIMAGETEXTUREPROC) (GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
+typedef void (APIENTRYP PFNGLMEMORYBARRIERPROC) (GLbitfield barriers);
+#endif
+
+#ifndef GL_ARB_shading_language_packing
+#define GL_ARB_shading_language_packing 1
+#endif
+
+#ifndef GL_ARB_texture_storage
+#define GL_ARB_texture_storage 1
+#ifdef GL3_PROTOTYPES
+GLAPI void APIENTRY glTexStorage1D (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
+GLAPI void APIENTRY glTexStorage2D (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+GLAPI void APIENTRY glTexStorage3D (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+GLAPI void APIENTRY glTextureStorage1DEXT (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
+GLAPI void APIENTRY glTextureStorage2DEXT (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+GLAPI void APIENTRY glTextureStorage3DEXT (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+#endif /* GL3_PROTOTYPES */
+typedef void (APIENTRYP PFNGLTEXSTORAGE1DPROC) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
+typedef void (APIENTRYP PFNGLTEXSTORAGE2DPROC) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+typedef void (APIENTRYP PFNGLTEXSTORAGE3DPROC) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+typedef void (APIENTRYP PFNGLTEXTURESTORAGE1DEXTPROC) (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
+typedef void (APIENTRYP PFNGLTEXTURESTORAGE2DEXTPROC) (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+typedef void (APIENTRYP PFNGLTEXTURESTORAGE3DEXTPROC) (GLuint texture, GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
 #endif
 
 #ifndef GL_ARB_texture_buffer_object

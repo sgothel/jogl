@@ -54,7 +54,7 @@
   
 
 /**
- * http://www.opengl.org/registry/specs/ARB/geometry_shader4.txt
+ * 47. http://www.opengl.org/registry/specs/ARB/geometry_shader4.txt
  */
 #ifndef GL_ARB_geometry_shader4
 #define GL_LINES_ADJACENCY_ARB            0x000A
@@ -97,7 +97,7 @@ typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTUREFACEARBPROC) (GLenum target, GLen
 #endif
 
 /**
- * http://www.opengl.org/registry/specs/AMD/vertex_shader_tessellator.txt
+ * 363. http://www.opengl.org/registry/specs/AMD/vertex_shader_tessellator.txt
  */
 #ifndef GL_AMD_vertex_shader_tessellator
 #define GL_SAMPLER_BUFFER_AMD                0x9001
@@ -287,6 +287,7 @@ typedef void (APIENTRYP PFNGLGETINTEGERUI64I_VNVPROC) (GLenum value, GLuint inde
 #define GL_NV_float_buffer 1
 #endif
 
+// #395
 #ifndef GL_AMD_debug_output
 #define GL_MAX_DEBUG_LOGGED_MESSAGES_AMD  0x9144
 #define GL_DEBUG_LOGGED_MESSAGES_AMD      0x9145
@@ -319,7 +320,127 @@ typedef void (APIENTRYP PFNGLDEBUGMESSAGECALLBACKAMDPROC) (GLDEBUGPROCAMD callba
 typedef GLuint (APIENTRYP PFNGLGETDEBUGMESSAGELOGAMDPROC) (GLuint count, GLsizei bufsize, GLenum *categories, GLuint *severities, GLuint *ids, GLsizei *lengths, GLchar *message);
 #endif
 
+// #401
+#ifndef GL_AMD_depth_clamp_separate
+#define GL_DEPTH_CLAMP_NEAR_AMD           0x901E
+#define GL_DEPTH_CLAMP_FAR_AMD            0x901F
+#endif
+#ifndef GL_AMD_depth_clamp_separate
+#define GL_AMD_depth_clamp_separate 1
+#endif
 
+// #402
+#ifndef GL_EXT_texture_sRGB_decode
+#define GL_TEXTURE_SRGB_DECODE_EXT        0x8A48
+#define GL_DECODE_EXT                     0x8A49
+#define GL_SKIP_DECODE_EXT                0x8A4A
+#endif
+#ifndef GL_EXT_texture_sRGB_decode
+#define GL_EXT_texture_sRGB_decode 1
+#endif
+
+// #403
+#ifndef GL_NV_texture_multisample
+#define GL_TEXTURE_COVERAGE_SAMPLES_NV    0x9045
+#define GL_TEXTURE_COLOR_SAMPLES_NV       0x9046
+#endif
+#ifndef GL_NV_texture_multisample
+#define GL_NV_texture_multisample 1
+#ifdef GL_GL3EXT_PROTOTYPES
+GLAPI void APIENTRY glTexImage2DMultisampleCoverageNV (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
+GLAPI void APIENTRY glTexImage3DMultisampleCoverageNV (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
+GLAPI void APIENTRY glTextureImage2DMultisampleNV (GLuint texture, GLenum target, GLsizei samples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
+GLAPI void APIENTRY glTextureImage3DMultisampleNV (GLuint texture, GLenum target, GLsizei samples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
+GLAPI void APIENTRY glTextureImage2DMultisampleCoverageNV (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
+GLAPI void APIENTRY glTextureImage3DMultisampleCoverageNV (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
+#endif /* GL_GL3EXT_PROTOTYPES */
+typedef void (APIENTRYP PFNGLTEXIMAGE2DMULTISAMPLECOVERAGENVPROC) (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
+typedef void (APIENTRYP PFNGLTEXIMAGE3DMULTISAMPLECOVERAGENVPROC) (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
+typedef void (APIENTRYP PFNGLTEXTUREIMAGE2DMULTISAMPLENVPROC) (GLuint texture, GLenum target, GLsizei samples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
+typedef void (APIENTRYP PFNGLTEXTUREIMAGE3DMULTISAMPLENVPROC) (GLuint texture, GLenum target, GLsizei samples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
+typedef void (APIENTRYP PFNGLTEXTUREIMAGE2DMULTISAMPLECOVERAGENVPROC) (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
+typedef void (APIENTRYP PFNGLTEXTUREIMAGE3DMULTISAMPLECOVERAGENVPROC) (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
+#endif
+
+// #404
+#ifndef GL_AMD_blend_minmax_factor
+#define GL_FACTOR_MIN_AMD                 0x901C
+#define GL_FACTOR_MAX_AMD                 0x901D
+#endif
+#ifndef GL_AMD_blend_minmax_factor
+#define GL_AMD_blend_minmax_factor 1
+#endif
+
+// #405
+#ifndef GL_AMD_sample_positions
+#define GL_SUBSAMPLE_DISTANCE_AMD         0x883F
+#endif
+#ifndef GL_AMD_sample_positions
+#define GL_AMD_sample_positions 1
+#ifdef GL_GL3EXT_PROTOTYPES
+GLAPI void APIENTRY glSetMultisamplefvAMD (GLenum pname, GLuint index, const GLfloat *val);
+#endif /* GL_GL3EXT_PROTOTYPES */
+typedef void (APIENTRYP PFNGLSETMULTISAMPLEFVAMDPROC) (GLenum pname, GLuint index, const GLfloat *val);
+#endif
+
+// #406
+#ifndef GL_EXT_x11_sync_object
+#define GL_SYNC_X11_FENCE_EXT             0x90E1
+#endif
+#ifndef GL_EXT_x11_sync_object
+#define GL_EXT_x11_sync_object 1
+#ifdef GL_GL3EXT_PROTOTYPES
+GLAPI GLsync APIENTRY glImportSyncEXT (GLenum external_sync_type, GLintptr external_sync, GLbitfield flags);
+#endif /* GL_GL3EXT_PROTOTYPES */
+typedef GLsync (APIENTRYP PFNGLIMPORTSYNCEXTPROC) (GLenum external_sync_type, GLintptr external_sync, GLbitfield flags);
+#endif
+
+// #408
+#ifndef GL_AMD_multi_draw_indirect
+#endif
+#ifndef GL_AMD_multi_draw_indirect
+#define GL_AMD_multi_draw_indirect 1
+#ifdef GL_GL3EXT_PROTOTYPES
+GLAPI void APIENTRY glMultiDrawArraysIndirectAMD (GLenum mode, const GLvoid *indirect, GLsizei primcount, GLsizei stride);
+GLAPI void APIENTRY glMultiDrawElementsIndirectAMD (GLenum mode, GLenum type, const GLvoid *indirect, GLsizei primcount, GLsizei stride);
+#endif /* GL_GL3EXT_PROTOTYPES */
+typedef void (APIENTRYP PFNGLMULTIDRAWARRAYSINDIRECTAMDPROC) (GLenum mode, const GLvoid *indirect, GLsizei primcount, GLsizei stride);
+typedef void (APIENTRYP PFNGLMULTIDRAWELEMENTSINDIRECTAMDPROC) (GLenum mode, GLenum type, const GLvoid *indirect, GLsizei primcount, GLsizei stride);
+#endif
+
+// #409
+#ifndef GL_EXT_framebuffer_multisample_blit_scaled
+#define GL_SCALED_RESOLVE_FASTEST_EXT     0x90BA
+#define GL_SCALED_RESOLVE_NICEST_EXT      0x90BB
+#endif
+#ifndef GL_EXT_framebuffer_multisample_blit_scaled
+#define GL_EXT_framebuffer_multisample_blit_scaled 1
+#endif
+
+// #410 GL_NV_path_rendering ?
+
+// #411
+#ifndef GL_AMD_pinned_memory
+#define GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD 0x9160
+#endif
+#ifndef GL_AMD_pinned_memory
+#define GL_AMD_pinned_memory 1
+#endif
+
+// #413
+#ifndef GL_AMD_stencil_operation_extended
+#define GL_SET_AMD                        0x874A
+#define GL_REPLACE_VALUE_AMD              0x874B
+#define GL_STENCIL_OP_VALUE_AMD           0x874C
+#define GL_STENCIL_BACK_OP_VALUE_AMD      0x874D
+#endif
+#ifndef GL_AMD_stencil_operation_extended
+#define GL_AMD_stencil_operation_extended 1
+#ifdef GL_GL3EXT_PROTOTYPES
+GLAPI void APIENTRY glStencilOpValueAMD (GLenum face, GLuint value);
+#endif /* GL_GL3EXT_PROTOTYPES */
+typedef void (APIENTRYP PFNGLSTENCILOPVALUEAMDPROC) (GLenum face, GLuint value);
+#endif
 
 #endif /* __gl3ext_h_ */
 
