@@ -1,25 +1,23 @@
 package com.jogamp.opengl.test.junit.jogl.glsl;
 
+import com.jogamp.opengl.test.junit.util.NEWTGLContext;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL3;
-import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLContext;
+import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.glsl.ShaderUtil;
 
 import java.io.IOException;
-import org.junit.AfterClass;
 
 /**
  * Bug 'Function glTransformFeedbackVaryings incorrectly passes argument'
@@ -27,7 +25,16 @@ import org.junit.AfterClass;
  */
 public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
 
-    private String VERTEX_SHADER_TEXT;
+    private static final boolean debugGL = true;
+    
+    private static final String VERTEX_SHADER_TEXT =
+                  "#version 150                           \n"
+                + "                                       \n"
+                + "out vec4 Position;                     \n"
+                + "                                       \n"
+                + "void main() {                          \n"
+                + "  Position = vec4(1.0, 1.0, 1.0, 1.0); \n"
+                + "}                                      \n";
 
     class MyShader {
         int shaderProgram;
@@ -39,7 +46,7 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
         }
     }
 
-    private MyShader getShader(GL3 gl, String text, int type) {
+    private MyShader attachShader(GL3 gl, String text, int type) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream pbaos = new PrintStream(baos);
 
@@ -52,13 +59,14 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
         gl.glShaderSource(vertShader, lines.length, lines, lengths, 0);
         gl.glCompileShader(vertShader);
 
-        if(!ShaderUtil.isShaderStatusValid(gl, vertShader, gl.GL_COMPILE_STATUS, pbaos)) {
+        if(!ShaderUtil.isShaderStatusValid(gl, vertShader, GL2ES2.GL_COMPILE_STATUS, pbaos)) {
             System.out.println("getShader:postCompile: "+baos.toString());
             Assert.assertTrue(false);
         }
         pbaos.flush(); baos.reset();
 
         gl.glAttachShader(shaderProgram, vertShader);
+        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
         return new MyShader(shaderProgram, vertShader);
     }
@@ -69,84 +77,52 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
             gl.glDeleteShader(myShader.vertShader);
             gl.glDeleteProgram(myShader.shaderProgram);
         }
+        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
     }
 
-
-    private GLWindow prepareTest() {
-        if(!GLProfile.isAvailable(GLProfile.GL3)) {
+    final static String glps = GLProfile.GL3;
+    
+    private NEWTGLContext.WindowContext prepareTest() throws GLException, InterruptedException {
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(GLProfile.get(GLProfile.GL4), 480, 480, debugGL);
+        // final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(GLProfile.getDefault(), 480, 480, debugGL);
+        if(!winctx.context.getGL().isGL3()) {
             System.err.println("GL3 not available");
-            System.err.println(GLProfile.glAvailabilityToString());
+            cleanupTest(winctx);
             return null;
         }
-        VERTEX_SHADER_TEXT =
-                  "#version 150                           \n"
-                + "                                       \n"
-                + "out vec4 Position;                     \n"
-                + "                                       \n"
-                + "void main() {                          \n"
-                + "  Position = vec4(1.0, 1.0, 1.0, 1.0); \n"
-                + "}                                      \n";
-
-        GLCapabilities caps;        
-
-        GLProfile glp = null;
-        try {
-            glp = GLProfile.get(GLProfile.GL3);
-        } catch (Throwable t) {
-            t.printStackTrace();
-            Assume.assumeNoException(t);
-        }
-        caps = new GLCapabilities(glp);
-
-        caps.setOnscreen(true);
-        caps.setDoubleBuffered(true);
-
-        GLWindow window = GLWindow.create(caps);
-        Assert.assertNotNull(window);
-        window.setUndecorated(true);
-        window.setSize(800, 600);
-        window.setVisible(true);
-        Assert.assertTrue(window.isNativeValid());
-
-        window.getContext().setSynchronized(true);
-
-        // trigger native creation of drawable/context
-        window.display();
-        Assert.assertTrue(window.isRealized());
-        Assert.assertTrue(window.getContext().isCreated());
-
-        return window;
+        Assert.assertEquals(GL.GL_NO_ERROR, winctx.context.getGL().glGetError());        
+        return winctx;
     }
 
-    private void cleanupTest(GLWindow window) {
-        if(null!=window) {
-            window.destroy();
+    private void cleanupTest(NEWTGLContext.WindowContext winctx) {
+        if(null!=winctx) {
+            NEWTGLContext.destroyWindow(winctx);
         }
     }
 
     @Test(timeout=60000)
-    public void testGlTransformFeedbackVaryings_WhenVarNameOK() {
-        if(!GLProfile.isAvailable(GLProfile.GL3)) {
+    public void testGlTransformFeedbackVaryings_WhenVarNameOK() throws GLException, InterruptedException {
+        NEWTGLContext.WindowContext winctx = prepareTest();
+        if(null == winctx) {
             return;
         }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream pbaos = new PrintStream(baos);
 
-        GLWindow window = prepareTest();
-        GLContext context = window.getContext();
-        context.makeCurrent();
-
         // given
 
-        GL3 gl = context.getGL().getGL3();
-        MyShader myShader = getShader(gl, VERTEX_SHADER_TEXT, GL3.GL_VERTEX_SHADER);
+        final GL3 gl = winctx.context.getGL().getGL3();
+        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
+        
+        MyShader myShader = attachShader(gl, VERTEX_SHADER_TEXT, GL3.GL_VERTEX_SHADER);
         String[] vars = new String[]{"Position"};
 
         // when
 
         gl.glTransformFeedbackVaryings(myShader.shaderProgram, 1, vars, GL3.GL_SEPARATE_ATTRIBS);
         gl.glLinkProgram(myShader.shaderProgram);
-
+        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
+        
         // then
 
         boolean error = false;
@@ -156,32 +132,28 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
             error = true;
         }
         pbaos.flush(); baos.reset();
-
         Assert.assertEquals(GL3.GL_NO_ERROR, gl.glGetError());
 
-        releaseShader(gl, myShader);
-        context.release();
-        cleanupTest(window);
-
+        releaseShader(gl, myShader);        
+        cleanupTest(winctx);
         Assert.assertFalse(error);
     }
 
     @Test(timeout=60000)
-    public void testGlTransformFeedbackVaryings_WhenVarNameWrong() {
-        if(!GLProfile.isAvailable(GLProfile.GL3)) {
+    public void testGlTransformFeedbackVaryings_WhenVarNameWrong() throws GLException, InterruptedException {
+        NEWTGLContext.WindowContext winctx = prepareTest();
+        if(null == winctx) {
             return;
         }
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PrintStream pbaos = new PrintStream(baos);
 
-        GLWindow window = prepareTest();
-        GLContext context = window.getContext();
-        context.makeCurrent();
-
         // given
 
-        GL3 gl = context.getGL().getGL3();
-        MyShader myShader = getShader(gl, VERTEX_SHADER_TEXT, GL3.GL_VERTEX_SHADER);
+        final GL3 gl = winctx.context.getGL().getGL3();
+        Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
+
+        MyShader myShader = attachShader(gl, VERTEX_SHADER_TEXT, GL3.GL_VERTEX_SHADER);
         String[] vars = new String[]{"PPPosition"};
 
         // when
@@ -202,13 +174,10 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
             error = true;
         }
         pbaos.flush(); baos.reset();
-
         Assert.assertEquals(GL3.GL_NO_ERROR, gl.glGetError());
-        // You cannot assume this error message - Assert.assertTrue(baos.toString().contains("(named PPPosition)"));
-
+        
         releaseShader(gl, myShader);
-        context.release();
-        cleanupTest(window);
+        cleanupTest(winctx);
 
         Assert.assertFalse(error);
     }
