@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 /*
-** Copyright (c) 2007-2010 The Khronos Group Inc.
+** Copyright (c) 2007-2012 The Khronos Group Inc.
 **
 ** Permission is hereby granted, free of charge, to any person obtaining a
 ** copy of this software and/or associated documentation files (the
@@ -34,8 +34,8 @@ extern "C" {
 
 /* Header file version number */
 /* Current version at http://www.khronos.org/registry/egl/ */
-/* $Revision: 12814 $ on $Date: 2010-11-03 17:47:28 -0700 (Wed, 03 Nov 2010) $ */
-#define EGL_EGLEXT_VERSION 8
+/* $Revision: 16473 $ on $Date: 2012-01-04 02:20:48 -0800 (Wed, 04 Jan 2012) $ */
+#define EGL_EGLEXT_VERSION 11
 
 #ifndef EGL_KHR_config_attribs
 #define EGL_KHR_config_attribs 1
@@ -178,15 +178,15 @@ typedef EGLBoolean (EGLAPIENTRYP PFNEGLGETSYNCATTRIBKHRPROC) (EGLDisplay dpy, EG
 
 #ifndef EGL_NV_coverage_sample
 #define EGL_NV_coverage_sample 1
-#define EGL_COVERAGE_BUFFERS_NV 0x30E0
-#define EGL_COVERAGE_SAMPLES_NV 0x30E1
+#define EGL_COVERAGE_BUFFERS_NV			0x30E0
+#define EGL_COVERAGE_SAMPLES_NV			0x30E1
 #endif
 
 #ifndef EGL_NV_depth_nonlinear
 #define EGL_NV_depth_nonlinear 1
-#define EGL_DEPTH_ENCODING_NV 0x30E2
+#define EGL_DEPTH_ENCODING_NV			0x30E2
 #define EGL_DEPTH_ENCODING_NONE_NV 0
-#define EGL_DEPTH_ENCODING_NONLINEAR_NV 0x30E3
+#define EGL_DEPTH_ENCODING_NONLINEAR_NV		0x30E3
 #endif
 
 #if KHRONOS_SUPPORT_INT64   /* EGLTimeNV requires 64-bit uint support */
@@ -284,20 +284,37 @@ typedef EGLImageKHR (EGLAPIENTRYP PFNEGLCREATEDRMIMAGEMESAPROC) (EGLDisplay dpy,
 typedef EGLBoolean (EGLAPIENTRYP PFNEGLEXPORTDRMIMAGEMESAPROC) (EGLDisplay dpy, EGLImageKHR image, EGLint *name, EGLint *handle, EGLint *stride);
 #endif
 
-/**
- * Added a few NVidia extensions here.
- * FIXME: Double check if they are still 'active'
- */
-
-/* EGL_NV_texture_rectangle (reuse analagous WGL enum) */
-#ifndef EGL_NV_texture_rectangle
-#define EGL_NV_texture_rectangle 1
-#define EGL_GL_TEXTURE_RECTANGLE_NV_KHR           0x30BB
-#define EGL_TEXTURE_RECTANGLE_NV       0x20A2
+#ifndef EGL_NV_post_sub_buffer
+#define EGL_NV_post_sub_buffer 1
+#define EGL_POST_SUB_BUFFER_SUPPORTED_NV	0x30BE
+#ifdef EGL_EGLEXT_PROTOTYPES
+EGLAPI EGLBoolean EGLAPIENTRY eglPostSubBufferNV (EGLDisplay dpy, EGLSurface surface, EGLint x, EGLint y, EGLint width, EGLint height);
+#endif /* EGL_EGLEXT_PROTOTYPES */
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLPOSTSUBBUFFERNVPROC) (EGLDisplay dpy, EGLSurface surface, EGLint x, EGLint y, EGLint width, EGLint height);
 #endif
 
-#include "egl-64bit-types.h"
+#ifndef EGL_ANGLE_query_surface_pointer
+#define EGL_ANGLE_query_surface_pointer 1
+#ifdef EGL_EGLEXT_PROTOTYPES
+EGLAPI EGLBoolean eglQuerySurfacePointerANGLE(EGLDisplay dpy, EGLSurface surface, EGLint attribute, void **value);
+#endif
+typedef EGLBoolean (EGLAPIENTRYP PFNEGLQUERYSURFACEPOINTERANGLEPROC) (EGLDisplay dpy, EGLSurface surface, EGLint attribute, void **value);
+#endif
 
+#ifndef EGL_ANGLE_surface_d3d_texture_2d_share_handle
+#define EGL_ANGLE_surface_d3d_texture_2d_share_handle 1
+#define EGL_D3D_TEXTURE_2D_SHARE_HANDLE_ANGLE	0x3200
+#endif
+
+#ifndef EGL_NV_coverage_sample_resolve
+#define EGL_NV_coverage_sample_resolve 1
+#define EGL_COVERAGE_SAMPLE_RESOLVE_NV		0x3131
+#define EGL_COVERAGE_SAMPLE_RESOLVE_DEFAULT_NV	0x3132
+#define EGL_COVERAGE_SAMPLE_RESOLVE_NONE_NV	0x3133
+#endif
+
+
+#include "egl-64bit-types.h"
 #ifndef EGL_NV_system_time
 #define EGL_NV_system_time 1
 #ifdef EGL_EGLEXT_PROTOTYPES
@@ -306,6 +323,14 @@ EGLAPI EGLuint64 EGLAPIENTRY eglGetSystemTimeNV(void);
 #endif
 typedef EGLuint64 (EGLAPIENTRYP PFNEGLGETSYSTEMTIMEFREQUENCYNVPROC)(void);
 typedef EGLuint64 (EGLAPIENTRYP PFNEGLGETSYSTEMTIMENVPROC)(void);
+#endif
+
+#ifndef EGL_EXT_create_context_robustness
+#define EGL_EXT_create_context_robustness 1
+#define EGL_CONTEXT_OPENGL_ROBUST_ACCESS_EXT	0x30BF
+#define EGL_CONTEXT_OPENGL_RESET_NOTIFICATION_STRATEGY_EXT 0x3138
+#define EGL_NO_RESET_NOTIFICATION_EXT		0x31BE
+#define EGL_LOSE_CONTEXT_ON_RESET_EXT		0x31BF
 #endif
 
 /* EGL_NV_omx_il_sink
@@ -320,6 +345,19 @@ typedef EGLuint64 (EGLAPIENTRYP PFNEGLGETSYSTEMTIMENVPROC)(void);
 #endif
 
 #define EGL_RMSURFACE_NV 0x30EF /* eglCreateImageKHR target */
+
+/**
+ * Added a few NVidia extensions here.
+ * FIXME: Double check if they are still 'active'
+ */
+
+/* EGL_NV_texture_rectangle (reuse analagous WGL enum) */
+#ifndef EGL_NV_texture_rectangle
+#define EGL_NV_texture_rectangle 1
+#define EGL_GL_TEXTURE_RECTANGLE_NV_KHR           0x30BB
+#define EGL_TEXTURE_RECTANGLE_NV       0x20A2
+#endif
+
 
 #ifdef __cplusplus
 }

@@ -1,3 +1,5 @@
+  /** Part of <code>GL_ARB_separate_shader_objects</code>, <code>GL_EXT_separate_shader_objects</code> */
+  public static final int GL_ALL_SHADER_BITS = 0xFFFFFFFF ;
 
   /** Start: GL_ARB_ES2_compatibility functions, which are part of ES2 core as well */
 

@@ -52,7 +52,6 @@
  *    #endif
  */
   
-
 /**
  * 47. http://www.opengl.org/registry/specs/ARB/geometry_shader4.txt
  */
@@ -90,15 +89,19 @@ GLAPI void APIENTRY glFramebufferTextureARB (GLenum target, GLenum attachment, G
 GLAPI void APIENTRY glFramebufferTextureLayerARB (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
 GLAPI void APIENTRY glFramebufferTextureFaceARB (GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face);
 #endif /* GL_GL3EXT_PROTOTYPES */
-typedef void (APIENTRYP PFNGLPROGRAMPARAMETERIARBPROC) (GLuint program, GLenum pname, GLint value);
-typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTUREARBPROC) (GLenum target, GLenum attachment, GLuint texture, GLint level);
-typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTURELAYERARBPROC) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
-typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTUREFACEARBPROC) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face);
+/* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
-/**
- * 363. http://www.opengl.org/registry/specs/AMD/vertex_shader_tessellator.txt
- */
+// #187
+#ifndef GL_EXT_texture_filter_anisotropic
+#define GL_TEXTURE_MAX_ANISOTROPY_EXT     0x84FE
+#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
+#endif
+#ifndef GL_EXT_texture_filter_anisotropic
+#define GL_EXT_texture_filter_anisotropic 1
+#endif
+
+// #363 http://www.opengl.org/registry/specs/AMD/vertex_shader_tessellator.txt
 #ifndef GL_AMD_vertex_shader_tessellator
 #define GL_SAMPLER_BUFFER_AMD                0x9001
 #define GL_INT_SAMPLER_BUFFER_AMD            0x9002
@@ -117,9 +120,7 @@ GLAPI void APIENTRY glTessellationModeAMD(GLenum mode);
 /* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
-/**
- * http://www.opengl.org/registry/specs/NV/shader_buffer_load.txt
- */
+// #379 http://www.opengl.org/registry/specs/NV/shader_buffer_load.txt
 #ifndef GL_NV_shader_buffer_load
 #define GL_BUFFER_GPU_ADDRESS_NV          0x8F1D
 #define GL_GPU_ADDRESS_NV                 0x8F34
@@ -143,25 +144,10 @@ GLAPI void APIENTRY glGetUniformui64vNV (GLuint program, GLint location, GLuint6
 GLAPI void APIENTRY glProgramUniformui64NV (GLuint program, GLint location, GLuint64EXT value);
 GLAPI void APIENTRY glProgramUniformui64vNV (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
 #endif /* GL_GL3EXT_PROTOTYPES */
-typedef void (APIENTRYP PFNGLMAKEBUFFERRESIDENTNVPROC) (GLenum target, GLenum access);
-typedef void (APIENTRYP PFNGLMAKEBUFFERNONRESIDENTNVPROC) (GLenum target);
-typedef GLboolean (APIENTRYP PFNGLISBUFFERRESIDENTNVPROC) (GLenum target);
-typedef void (APIENTRYP PFNGLMAKENAMEDBUFFERRESIDENTNVPROC) (GLuint buffer, GLenum access);
-typedef void (APIENTRYP PFNGLMAKENAMEDBUFFERNONRESIDENTNVPROC) (GLuint buffer);
-typedef GLboolean (APIENTRYP PFNGLISNAMEDBUFFERRESIDENTNVPROC) (GLuint buffer);
-typedef void (APIENTRYP PFNGLGETBUFFERPARAMETERUI64VNVPROC) (GLenum target, GLenum pname, GLuint64EXT *params);
-typedef void (APIENTRYP PFNGLGETNAMEDBUFFERPARAMETERUI64VNVPROC) (GLuint buffer, GLenum pname, GLuint64EXT *params);
-typedef void (APIENTRYP PFNGLGETINTEGERUI64VNVPROC) (GLenum value, GLuint64EXT *result);
-typedef void (APIENTRYP PFNGLUNIFORMUI64NVPROC) (GLint location, GLuint64EXT value);
-typedef void (APIENTRYP PFNGLUNIFORMUI64VNVPROC) (GLint location, GLsizei count, const GLuint64EXT *value);
-typedef void (APIENTRYP PFNGLGETUNIFORMUI64VNVPROC) (GLuint program, GLint location, GLuint64EXT *params);
-typedef void (APIENTRYP PFNGLPROGRAMUNIFORMUI64NVPROC) (GLuint program, GLint location, GLuint64EXT value);
-typedef void (APIENTRYP PFNGLPROGRAMUNIFORMUI64VNVPROC) (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
+/* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
-/**
- * http://www.opengl.org/registry/specs/NV/vertex_buffer_unified_memory.txt
- */
+// #380 http://www.opengl.org/registry/specs/NV/vertex_buffer_unified_memory.txt
 #ifndef GL_NV_vertex_buffer_unified_memory
 #define GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV 0x8F1E
 #define GL_ELEMENT_ARRAY_UNIFIED_NV       0x8F1F
@@ -209,82 +195,7 @@ GLAPI void APIENTRY glVertexAttribFormatNV (GLuint index, GLint size, GLenum typ
 GLAPI void APIENTRY glVertexAttribIFormatNV (GLuint index, GLint size, GLenum type, GLsizei stride);
 GLAPI void APIENTRY glGetIntegerui64i_vNV (GLenum value, GLuint index, GLuint64EXT *result);
 #endif /* GL_GL3EXT_PROTOTYPES */
-typedef void (APIENTRYP PFNGLBUFFERADDRESSRANGENVPROC) (GLenum pname, GLuint index, GLuint64EXT address, GLsizeiptr length);
-typedef void (APIENTRYP PFNGLVERTEXFORMATNVPROC) (GLint size, GLenum type, GLsizei stride);
-typedef void (APIENTRYP PFNGLNORMALFORMATNVPROC) (GLenum type, GLsizei stride);
-typedef void (APIENTRYP PFNGLCOLORFORMATNVPROC) (GLint size, GLenum type, GLsizei stride);
-typedef void (APIENTRYP PFNGLINDEXFORMATNVPROC) (GLenum type, GLsizei stride);
-typedef void (APIENTRYP PFNGLTEXCOORDFORMATNVPROC) (GLint size, GLenum type, GLsizei stride);
-typedef void (APIENTRYP PFNGLEDGEFLAGFORMATNVPROC) (GLsizei stride);
-typedef void (APIENTRYP PFNGLSECONDARYCOLORFORMATNVPROC) (GLint size, GLenum type, GLsizei stride);
-typedef void (APIENTRYP PFNGLFOGCOORDFORMATNVPROC) (GLenum type, GLsizei stride);
-typedef void (APIENTRYP PFNGLVERTEXATTRIBFORMATNVPROC) (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride);
-typedef void (APIENTRYP PFNGLVERTEXATTRIBIFORMATNVPROC) (GLuint index, GLint size, GLenum type, GLsizei stride);
-typedef void (APIENTRYP PFNGLGETINTEGERUI64I_VNVPROC) (GLenum value, GLuint index, GLuint64EXT *result);
-#endif
-
-
-
-#ifndef GL_APPLE_float_pixels
-#define GL_HALF_APPLE                      0x140B
-#define GL_COLOR_FLOAT_APPLE               0x8A0F
-#define GL_RGBA_FLOAT32_APPLE              0x8814
-#define GL_RGB_FLOAT32_APPLE               0x8815
-#define GL_ALPHA_FLOAT32_APPLE             0x8816
-#define GL_INTENSITY_FLOAT32_APPLE         0x8817
-#define GL_LUMINANCE_FLOAT32_APPLE         0x8818
-#define GL_LUMINANCE_ALPHA_FLOAT32_APPLE   0x8819
-#define GL_RGBA_FLOAT16_APPLE              0x881A
-#define GL_RGB_FLOAT16_APPLE               0x881B
-#define GL_ALPHA_FLOAT16_APPLE             0x881C
-#define GL_INTENSITY_FLOAT16_APPLE         0x881D
-#define GL_LUMINANCE_FLOAT16_APPLE         0x881E
-#define GL_LUMINANCE_ALPHA_FLOAT16_APPLE   0x881F
-#endif
-
-#ifndef GL_APPLE_float_pixels
-#define GL_APPLE_float_pixels 1
-#endif
-
-#ifndef GL_ATI_texture_float
-#define GL_RGBA_FLOAT32_ATI               0x8814
-#define GL_RGB_FLOAT32_ATI                0x8815
-#define GL_ALPHA_FLOAT32_ATI              0x8816
-#define GL_INTENSITY_FLOAT32_ATI          0x8817
-#define GL_LUMINANCE_FLOAT32_ATI          0x8818
-#define GL_LUMINANCE_ALPHA_FLOAT32_ATI    0x8819
-#define GL_RGBA_FLOAT16_ATI               0x881A
-#define GL_RGB_FLOAT16_ATI                0x881B
-#define GL_ALPHA_FLOAT16_ATI              0x881C
-#define GL_INTENSITY_FLOAT16_ATI          0x881D
-#define GL_LUMINANCE_FLOAT16_ATI          0x881E
-#define GL_LUMINANCE_ALPHA_FLOAT16_ATI    0x881F
-#endif
-
-#ifndef GL_ATI_texture_float
-#define GL_ATI_texture_float 1
-#endif
-
-#ifndef GL_NV_float_buffer
-#define GL_FLOAT_R_NV                     0x8880
-#define GL_FLOAT_RG_NV                    0x8881
-#define GL_FLOAT_RGB_NV                   0x8882
-#define GL_FLOAT_RGBA_NV                  0x8883
-#define GL_FLOAT_R16_NV                   0x8884
-#define GL_FLOAT_R32_NV                   0x8885
-#define GL_FLOAT_RG16_NV                  0x8886
-#define GL_FLOAT_RG32_NV                  0x8887
-#define GL_FLOAT_RGB16_NV                 0x8888
-#define GL_FLOAT_RGB32_NV                 0x8889
-#define GL_FLOAT_RGBA16_NV                0x888A
-#define GL_FLOAT_RGBA32_NV                0x888B
-#define GL_TEXTURE_FLOAT_COMPONENTS_NV    0x888C
-#define GL_FLOAT_CLEAR_COLOR_VALUE_NV     0x888D
-#define GL_FLOAT_RGBA_MODE_NV             0x888E
-#endif
-
-#ifndef GL_NV_float_buffer
-#define GL_NV_float_buffer 1
+/* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
 // #395
@@ -354,12 +265,7 @@ GLAPI void APIENTRY glTextureImage3DMultisampleNV (GLuint texture, GLenum target
 GLAPI void APIENTRY glTextureImage2DMultisampleCoverageNV (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
 GLAPI void APIENTRY glTextureImage3DMultisampleCoverageNV (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
 #endif /* GL_GL3EXT_PROTOTYPES */
-typedef void (APIENTRYP PFNGLTEXIMAGE2DMULTISAMPLECOVERAGENVPROC) (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
-typedef void (APIENTRYP PFNGLTEXIMAGE3DMULTISAMPLECOVERAGENVPROC) (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
-typedef void (APIENTRYP PFNGLTEXTUREIMAGE2DMULTISAMPLENVPROC) (GLuint texture, GLenum target, GLsizei samples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
-typedef void (APIENTRYP PFNGLTEXTUREIMAGE3DMULTISAMPLENVPROC) (GLuint texture, GLenum target, GLsizei samples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
-typedef void (APIENTRYP PFNGLTEXTUREIMAGE2DMULTISAMPLECOVERAGENVPROC) (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
-typedef void (APIENTRYP PFNGLTEXTUREIMAGE3DMULTISAMPLECOVERAGENVPROC) (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
+/* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
 // #404
@@ -392,7 +298,7 @@ typedef void (APIENTRYP PFNGLSETMULTISAMPLEFVAMDPROC) (GLenum pname, GLuint inde
 #ifdef GL_GL3EXT_PROTOTYPES
 GLAPI GLsync APIENTRY glImportSyncEXT (GLenum external_sync_type, GLintptr external_sync, GLbitfield flags);
 #endif /* GL_GL3EXT_PROTOTYPES */
-typedef GLsync (APIENTRYP PFNGLIMPORTSYNCEXTPROC) (GLenum external_sync_type, GLintptr external_sync, GLbitfield flags);
+/* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
 // #408
@@ -404,8 +310,7 @@ typedef GLsync (APIENTRYP PFNGLIMPORTSYNCEXTPROC) (GLenum external_sync_type, GL
 GLAPI void APIENTRY glMultiDrawArraysIndirectAMD (GLenum mode, const GLvoid *indirect, GLsizei primcount, GLsizei stride);
 GLAPI void APIENTRY glMultiDrawElementsIndirectAMD (GLenum mode, GLenum type, const GLvoid *indirect, GLsizei primcount, GLsizei stride);
 #endif /* GL_GL3EXT_PROTOTYPES */
-typedef void (APIENTRYP PFNGLMULTIDRAWARRAYSINDIRECTAMDPROC) (GLenum mode, const GLvoid *indirect, GLsizei primcount, GLsizei stride);
-typedef void (APIENTRYP PFNGLMULTIDRAWELEMENTSINDIRECTAMDPROC) (GLenum mode, GLenum type, const GLvoid *indirect, GLsizei primcount, GLsizei stride);
+/* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
 // #409
@@ -439,7 +344,7 @@ typedef void (APIENTRYP PFNGLMULTIDRAWELEMENTSINDIRECTAMDPROC) (GLenum mode, GLe
 #ifdef GL_GL3EXT_PROTOTYPES
 GLAPI void APIENTRY glStencilOpValueAMD (GLenum face, GLuint value);
 #endif /* GL_GL3EXT_PROTOTYPES */
-typedef void (APIENTRYP PFNGLSTENCILOPVALUEAMDPROC) (GLenum face, GLuint value);
+/* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
 #endif /* __gl3ext_h_ */
