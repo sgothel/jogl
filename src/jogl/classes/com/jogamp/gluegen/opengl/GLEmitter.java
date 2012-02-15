@@ -103,6 +103,9 @@ public class GLEmitter extends ProcAddressEmitter {
             return;
         }
         for (String extension : extensionsRenamedIntoCore) {
+            if(JavaConfiguration.DEBUG_RENAMES) {
+                System.err.println("<RenameExtensionIntoCore: "+extension+" BEGIN");
+            }
             Set<String> declarations = glInfo.getDeclarations(extension);
             if (declarations != null) {
                 for (Iterator<String> iterator = declarations.iterator(); iterator.hasNext();) {
@@ -120,6 +123,9 @@ public class GLEmitter extends ProcAddressEmitter {
                     }
                 }
             }
+            if(JavaConfiguration.DEBUG_RENAMES) {
+                System.err.println("RenameExtensionIntoCore: "+extension+" END>");
+            }            
         }
     }
 
@@ -321,8 +327,8 @@ public class GLEmitter extends ProcAddressEmitter {
         }
         String symbolRenamed = def.getName();
         StringBuilder newComment = new StringBuilder();
-        newComment.append("Part of <code>");
-        if (0 == addExtensionsOfSymbols2Buffer(newComment, ", ", symbolRenamed, def.getAliasedNames())) {
+        newComment.append("Part of ");
+        if (0 == addExtensionsOfSymbols2Buffer(newComment, ", ", "; ", symbolRenamed, def.getAliasedNames())) {
             if (def.isEnum()) {
                 String enumName = def.getEnumName();
                 if (null != enumName) {
@@ -348,7 +354,6 @@ public class GLEmitter extends ProcAddressEmitter {
                 }
             }
         }
-        newComment.append("</code>");
 
         if (null != optionalComment) {
             newComment.append("<br>");
@@ -358,7 +363,48 @@ public class GLEmitter extends ProcAddressEmitter {
         super.emitDefine(def, newComment.toString());
     }
 
-    public int addExtensionsOfSymbols2Buffer(StringBuilder buf, String sep, String first, Collection<String> col) {
+    private int addExtensionListOfSymbol2Buffer(BuildStaticGLInfo glInfo, StringBuilder buf, String sep1, String name) {
+        int num = 0;
+        Set<String> extensionNames = glInfo.getExtension(name);
+        if(null!=extensionNames) {
+            for(Iterator<String> i=extensionNames.iterator(); i.hasNext(); ) {
+                String extensionName = i.next();
+                if (null != extensionName) {
+                    buf.append("<code>");
+                    buf.append(extensionName);
+                    buf.append("</code>");
+                    if (i.hasNext()) {
+                        buf.append(sep1); // same-name seperator
+                    }
+                    num++;
+                }
+            }
+        }
+        return num;
+    }
+    private int addExtensionListOfAliasedSymbols2Buffer(BuildStaticGLInfo glInfo, StringBuilder buf, String sep1, String sep2, String name, Collection<String> exclude) {
+        int num = 0;
+        if(null != name) { 
+            num += addExtensionListOfSymbol2Buffer(glInfo, buf, sep1, name); // extensions of given name
+            boolean needsSep2 = 0<num;
+            Set<String> origNames = cfg.getRenamedJavaSymbols(name);
+            if(null != origNames) {
+                for(String origName : origNames) {
+                    if(!exclude.contains(origName)) {
+                        if (needsSep2) {
+                            buf.append(sep2); // diff-name seperator
+                        }            
+                        int num2 = addExtensionListOfSymbol2Buffer(glInfo, buf, sep1, origName); // extensions of orig-name
+                        needsSep2 = num<num2;
+                        num += num2;
+                    }
+                }
+            }
+        }
+        return num;
+    }
+    
+    public int addExtensionsOfSymbols2Buffer(StringBuilder buf, String sep1, String sep2, String first, Collection<String> col) {
         BuildStaticGLInfo glInfo = getGLConfig().getGLInfo();
         if (null == glInfo) {
             throw new RuntimeException("No GLInfo for: " + first);
@@ -367,28 +413,16 @@ public class GLEmitter extends ProcAddressEmitter {
         if (null == buf) {
             buf = new StringBuilder();
         }
-        String extensionName;
 
-        Iterator<String> iter = col.iterator();
-        if (null != first) {
-            extensionName = glInfo.getExtension(first);
-            if (null != extensionName) {
-                buf.append(extensionName);
-                if (iter.hasNext()) {
-                    buf.append(sep);
-                }
-                num++;
+        num += addExtensionListOfAliasedSymbols2Buffer(glInfo, buf, sep1, sep2, first, col);
+        boolean needsSep2 = 0<num;
+        for(Iterator<String> iter = col.iterator(); iter.hasNext(); ) {
+            if(needsSep2) {
+                buf.append(sep2); // diff-name seperator
             }
-        }
-        while (iter.hasNext()) {
-            extensionName = glInfo.getExtension(iter.next());
-            if (null != extensionName) {
-                buf.append(extensionName);
-                if (iter.hasNext()) {
-                    buf.append(sep);
-                }
-                num++;
-            }
+            int num2 = addExtensionListOfAliasedSymbols2Buffer(glInfo, buf, sep1, sep2, iter.next(), col);
+            needsSep2 = num<num2;
+            num += num2;
         }
         return num;
     }

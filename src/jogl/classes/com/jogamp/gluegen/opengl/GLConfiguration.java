@@ -40,6 +40,7 @@
 package com.jogamp.gluegen.opengl;
 
 import com.jogamp.gluegen.GlueEmitterControls;
+import com.jogamp.gluegen.GlueGen;
 import com.jogamp.gluegen.MethodBinding;
 import com.jogamp.gluegen.procaddress.ProcAddressConfiguration;
 import com.jogamp.gluegen.runtime.opengl.GLExtensionNames;
@@ -206,10 +207,22 @@ public class GLConfiguration extends ProcAddressConfiguration {
 
     protected boolean shouldIgnoreExtension(String symbol, boolean criteria) {
         if (criteria && glInfo != null) {
-            String extension = glInfo.getExtension(symbol);
-            if (extension != null
-                    && ignoredExtensions.contains(extension)) {
-                return true;
+            Set<String> extensionNames = glInfo.getExtension(symbol);
+            if(null!=extensionNames) {
+                for(Iterator<String> i=extensionNames.iterator(); i.hasNext(); ) {
+                    String extensionName = i.next();
+                    if (extensionName != null && ignoredExtensions.contains(extensionName)) {
+                        if (DEBUG_IGNORES) {
+                            System.err.print("Ignore symbol <" + symbol + "> of extension <" + extensionName + ">");
+                            if(extensionNames.size()==1) {
+                                System.err.println(", single .");
+                            } else {
+                                System.err.println(", WARNING MULTIPLE OCCURENCE: "+extensionNames);
+                            }
+                        }
+                        return true;
+                    }
+                }
             }
             boolean isGLEnum = GLExtensionNames.isGLEnumeration(symbol);
             boolean isGLFunc = GLExtensionNames.isGLFunction(symbol);
@@ -279,6 +292,7 @@ public class GLConfiguration extends ProcAddressConfiguration {
     public void parseGLHeaders(GlueEmitterControls controls) throws IOException {
         if (!glHeaders.isEmpty()) {
             glInfo = new BuildStaticGLInfo();
+            glInfo.setDebug(GlueGen.debug());
             for (String file : glHeaders) {
                 String fullPath = controls.findHeaderFile(file);
                 if (fullPath == null) {

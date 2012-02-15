@@ -117,13 +117,13 @@ public class BuildStaticGLInfo {
   protected static Pattern definePattern =
     Pattern.compile("\\#define ([CEW]?GL[XU]?_[A-Za-z0-9_]+)\\s*([A-Za-z0-9_]+)(.*)");
 
-  // Maps function / #define names to the names of the extensions they're declared in
-  protected Map<String, String> declarationToExtensionMap = new HashMap<String, String>();
+  // Maps function / #define names to Set of names of the extensions they're declared in
+  protected Map<String, Set<String>> declarationToExtensionMap = new HashMap<String, Set<String>>();
 
   // Maps extension names to Set of identifiers (both #defines and
   // function names) this extension declares
   protected Map<String, Set<String>> extensionToDeclarationMap = new HashMap<String, Set<String>>();
-  protected boolean debug = false;
+  protected boolean DEBUG = false;
 
     /**
      * The first argument is the package to which the StaticGLInfo class
@@ -177,7 +177,7 @@ public class BuildStaticGLInfo {
     }
 
     public void setDebug(boolean v) {
-        debug = v;
+        DEBUG = v;
     }
 
     /** Parses the supplied C header files and adds the function
@@ -206,7 +206,7 @@ public class BuildStaticGLInfo {
                     identifier = m.group(defineIdentifierGroup).trim();
                     type = 1;
                 } else if (line.startsWith("#endif")) {
-                    if (debug) {
+                    if (DEBUG) {
                         System.err.println("END ASSOCIATION BLOCK: <" + activeAssociation + ">");
                     }
                     activeAssociation = null;
@@ -216,7 +216,7 @@ public class BuildStaticGLInfo {
                         && // Handles #ifndef GL_... #define GL_...
                         !identifier.equals(activeAssociation)) {
                     addAssociation(identifier, activeAssociation);
-                    if (debug) {
+                    if (DEBUG) {
                         System.err.println("  ADDING ASSOCIATION: <" + identifier + "> <" + activeAssociation + "> ; type " + type);
                     }
                 }
@@ -224,7 +224,7 @@ public class BuildStaticGLInfo {
                 // found a new #ifndef GL_XXX block
                 activeAssociation = m.group(1).trim();
 
-                if (debug) {
+                if (DEBUG) {
                     System.err.println("BEGIN ASSOCIATION BLOCK: <" + activeAssociation + ">");
                 }
             }
@@ -245,7 +245,7 @@ public class BuildStaticGLInfo {
         }
     }
 
-    public String getExtension(String identifier) {
+    public Set<String> getExtension(String identifier) {
         return declarationToExtensionMap.get(identifier);
     }
 
@@ -350,7 +350,13 @@ public class BuildStaticGLInfo {
     // Internals only below this point
     //
     protected void addAssociation(String identifier, String association) {
-        declarationToExtensionMap.put(identifier, association);
+        Set<String> extensions = declarationToExtensionMap.get(identifier);
+        if(null == extensions) {
+            extensions = new HashSet<String>();
+            declarationToExtensionMap.put(identifier, extensions);
+        }
+        extensions.add(association);
+        
         Set<String> identifiers = extensionToDeclarationMap.get(association);
         if (identifiers == null) {
             identifiers = new HashSet<String>();
