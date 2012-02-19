@@ -1,5 +1,11 @@
 #! /bin/sh
 
+SDIR=`dirname $0` 
+
+if [ -e $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh ] ; then
+    . $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh
+fi
+
 PATH=`pwd`/../../gluegen/make/lib/linux/arm-linux-gnueabi/bin:$PATH
 export PATH
 
@@ -10,8 +16,8 @@ export PATH
 #    -DisLinuxARMv7=true \
 #    -DisX11=false \
 
-export HOST_UID=sven
-export HOST_IP=192.168.0.52
+export HOST_UID=jogamp
+export HOST_IP=jogamp02
 export HOST_RSYNC_ROOT=PROJECTS/JOGL
 
 export TARGET_UID=jogamp
