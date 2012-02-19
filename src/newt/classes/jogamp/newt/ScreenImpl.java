@@ -282,7 +282,9 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
      */
     protected void updateVirtualScreenOriginAndSize() {
         getVirtualScreenOriginAndSize(vOrigin, vSize);
-        System.err.println("Detected screen origin "+vOrigin+", size "+vSize);
+        if(DEBUG) {
+            System.err.println("Detected screen origin "+vOrigin+", size "+vSize);
+        }
     }
 
     public final Display getDisplay() {
