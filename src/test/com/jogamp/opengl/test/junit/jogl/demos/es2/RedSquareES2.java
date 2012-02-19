@@ -85,8 +85,7 @@ public class RedSquareES2 implements GLEventListener {
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);
         sp0.add(gl, fp0, System.err);
-        st.attachShaderProgram(gl, sp0);
-        st.useProgram(gl, true);        
+        st.attachShaderProgram(gl, sp0, true);
         
         // setup mgl_PMVMatrix
         pmvMatrix = new PMVMatrix();

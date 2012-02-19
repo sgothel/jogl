@@ -94,7 +94,7 @@ public class ShaderCode {
         String[][] shaderSources = null;
         if(null!=sourceFiles) {
             shaderSources = new String[sourceFiles.length][1];
-            for(int i=0; null!=shaderSources && i<sourceFiles.length; i++) {
+            for(int i=0; i<sourceFiles.length; i++) {
                 shaderSources[i][0] = readShaderSource(context, sourceFiles[i]);
                 if(null == shaderSources[i][0]) {
                     shaderSources = null;
@@ -143,34 +143,46 @@ public class ShaderCode {
 
     public static ShaderCode create(GL2ES2 gl, int type, int number, Class<?> context, 
                                     String srcRoot, String binRoot, String basename) {
+        return create(gl, type, number, context, srcRoot, new String[] { basename }, binRoot, basename );        
+    }
+    
+    public static ShaderCode create(GL2ES2 gl, int type, int number, Class<?> context, 
+                                    String srcRoot, String[] srcBasenames, String binRoot, String binBasename) {
         ShaderCode res = null;
-        String srcFileName = null;
+        final String srcPath[];
+        String srcPathString = null;
         String binFileName = null;
 
-        if(ShaderUtil.isShaderCompilerAvailable(gl)) {
-            String srcPath[] = new String[1];
-            srcFileName = srcRoot + '/' + basename + "." + getFileSuffix(false, type);
-            srcPath[0] = srcFileName;
+        if(null!=srcRoot && null!=srcBasenames && ShaderUtil.isShaderCompilerAvailable(gl)) {
+            srcPath = new String[srcBasenames.length];
+            final String srcSuffix = getFileSuffix(false, type);
+            for(int i=0; i<srcPath.length; i++) {
+                srcPath[i] = srcRoot + '/' + srcBasenames[i] + "." + srcSuffix;
+            }
             res = create(gl, type, number, context, srcPath);
             if(null!=res) {
                 return res;
             }
+            srcPathString = Arrays.toString(srcPath);
+        } else {
+            srcPath = null;
         }
-        Set<Integer> binFmts = ShaderUtil.getShaderBinaryFormats(gl);
-        for(Iterator<Integer> iter=binFmts.iterator(); null==res && iter.hasNext(); ) {
-            int bFmt = iter.next().intValue();
-            String bFmtPath = getBinarySubPath(bFmt);
-            if(null==bFmtPath) continue;
-            binFileName = binRoot + '/' + bFmtPath + '/' + basename + "." + getFileSuffix(true, type);
-            res = create(type, number, context, bFmt, binFileName);
+        if(null!=binRoot && null!=binBasename) {
+            Set<Integer> binFmts = ShaderUtil.getShaderBinaryFormats(gl);
+            final String binSuffix = getFileSuffix(true, type);
+            for(Iterator<Integer> iter=binFmts.iterator(); iter.hasNext(); ) {
+                int bFmt = iter.next().intValue();
+                String bFmtPath = getBinarySubPath(bFmt);
+                if(null==bFmtPath) continue;
+                binFileName = binRoot + '/' + bFmtPath + '/' + binBasename + "." + binSuffix;
+                res = create(type, number, context, bFmt, binFileName);
+                if(null!=res) {
+                    return res;
+                }
+            }
         }
-
-        if(null==res) {
-            throw new GLException("No shader code found (source nor binary) for src: "+srcFileName+
-                                  ", bin: "+binFileName);
-        }
-
-        return res;
+        throw new GLException("No shader code found (source nor binary) for src: "+srcPathString+
+                              ", bin: "+binFileName);
     }
 
     /**

@@ -69,7 +69,8 @@ public class ShaderProgram {
     }
 
     /**
-     * Detaches all shader codes and deletes the program.
+     * Detaches all shader codes and deletes the program,
+     * but leaves the shader code intact.
      * Calls release(gl, false)
      *
      * @see #release(GL2ES2, boolean)
@@ -80,16 +81,16 @@ public class ShaderProgram {
 
     /**
      * Detaches all shader codes and deletes the program.
-     * If releaseShaderToo is true, destroys the shader codes as well.
+     * If <code>destroyShaderCode</code> is true it destroys the shader codes as well.
      */
-    public synchronized void release(GL2ES2 gl, boolean releaseShaderToo) {
+    public synchronized void release(GL2ES2 gl, boolean destroyShaderCode) {
         useProgram(gl, false);
         for(Iterator<ShaderCode> iter=allShaderCode.iterator(); iter.hasNext(); ) {
             ShaderCode shaderCode = iter.next();
             if(attachedShaderCode.remove(shaderCode)) {
                 ShaderUtil.detachShader(gl, shaderProgram, shaderCode.shader());
             }
-            if(releaseShaderToo) {
+            if(destroyShaderCode) {
                 shaderCode.destroy(gl);
             }
         }

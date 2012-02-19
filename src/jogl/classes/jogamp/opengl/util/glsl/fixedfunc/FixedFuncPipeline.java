@@ -449,8 +449,7 @@ public class FixedFuncPipeline {
             throw new GLException("Couldn't link VertexColorLight program: "+shaderProgramColorTextureLight);
         }
 
-        shaderState.attachShaderProgram(gl, shaderProgramColor);
-        shaderState.useProgram(gl, true);
+        shaderState.attachShaderProgram(gl, shaderProgramColor, true);
 
         // mandatory ..
         if(!shaderState.uniform(gl, new GLUniformData(mgl_PMVMatrix, 4, 4, pmvMatrix.glGetPMvMvitMatrixf()))) {

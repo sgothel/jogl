@@ -197,12 +197,31 @@ public class ShaderState {
      * as well as switching to another program on the fly,
      * while managing all attribute and uniform data.</p>
      * 
-     * <p>[Re]sets all data and use program in case of a program switch.<br> 
-     * Use program if linked in case of a 1st time attachment.</p>
+     * <p>[Re]sets all data and use program in case of a program switch.<br>
+     *  
+     * Use program if linked and if previous program was in use.</p>
      * 
      * @throws GLException if program was not linked and linking fails
      */
     public synchronized void attachShaderProgram(GL2ES2 gl, ShaderProgram prog) throws GLException {
+        attachShaderProgram(gl, prog, false);
+    }
+    
+    /**
+     * Attach or switch a shader program
+     *
+     * <p>Attaching a shader program the first time, 
+     * as well as switching to another program on the fly,
+     * while managing all attribute and uniform data.</p>
+     * 
+     * <p>[Re]sets all data and use program in case of a program switch.<br>
+     *  
+     * Use program if linked and if previous program was in use,
+     * or if <code>enable</code> is true.</p>
+     * 
+     * @throws GLException if program was not linked and linking fails
+     */
+    public synchronized void attachShaderProgram(GL2ES2 gl, ShaderProgram prog, boolean enable) throws GLException {
         boolean prgInUse = false; // earmarked state
 
         if(DEBUG) {
@@ -245,7 +264,7 @@ public class ShaderState {
             // or  use program if program is linked
             if(shaderProgram.linked() || resetAllShaderData) {
                 useProgram(gl, true); // may reset all data
-                if(!prgInUse) {
+                if(!prgInUse && !enable) {
                     useProgram(gl, false);
                 }
             }
@@ -286,7 +305,7 @@ public class ShaderState {
      * @see #glReleaseAllUniforms
      * @see ShaderProgram#release(GL2ES2, boolean)
      */
-    public synchronized void release(GL2ES2 gl, boolean destroyBoundAttributes, boolean releaseProgramToo, boolean releaseShaderToo) {
+    public synchronized void release(GL2ES2 gl, boolean destroyBoundAttributes, boolean destroyShaderProgram, boolean destroyShaderCode) {
         if(null!=shaderProgram) {            
             shaderProgram.useProgram(gl, false);
         }
@@ -297,10 +316,8 @@ public class ShaderState {
         }
         releaseAllAttributes(gl);
         releaseAllUniforms(gl);
-        if(null!=shaderProgram) {
-            if(releaseProgramToo) {
-                shaderProgram.release(gl, releaseShaderToo);
-            } 
+        if(null!=shaderProgram && destroyShaderProgram) {
+            shaderProgram.release(gl, destroyShaderCode);
         }
     }
 

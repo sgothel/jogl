@@ -239,8 +239,7 @@ public class ElektronenMultiplizierer implements GLEventListener {
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);
         sp0.add(gl, fp0, System.err);       
-        st.attachShaderProgram(gl, sp0);
-        st.useProgram(gl, true);
+        st.attachShaderProgram(gl, sp0, true);
                 
         final float XRESf = (float) drawable.getWidth();
         final float YRESf = (float) drawable.getHeight();
