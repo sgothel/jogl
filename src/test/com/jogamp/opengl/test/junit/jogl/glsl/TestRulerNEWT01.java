@@ -85,8 +85,7 @@ public class TestRulerNEWT01 extends UITestCase {
         Assert.assertTrue(!sp0.linked());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
-        st.attachShaderProgram(gl, sp0);
-        st.useProgram(gl, true);
+        st.attachShaderProgram(gl, sp0, true);
         
         final PMVMatrix pmvMatrix = new PMVMatrix();
         final GLUniformData pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());

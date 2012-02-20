@@ -365,15 +365,15 @@ public class FixedFuncPipeline {
 
         if(textureEnabled) {
             if(lightingEnabled) {
-                shaderState.attachShaderProgram(gl, shaderProgramColorTextureLight);
+                shaderState.attachShaderProgram(gl, shaderProgramColorTextureLight, true);
             } else {
-                shaderState.attachShaderProgram(gl, shaderProgramColorTexture);
+                shaderState.attachShaderProgram(gl, shaderProgramColorTexture, true);
             }
         } else {
             if(lightingEnabled) {
-                shaderState.attachShaderProgram(gl, shaderProgramColorLight);
+                shaderState.attachShaderProgram(gl, shaderProgramColorLight, true);
             } else {
-                shaderState.attachShaderProgram(gl, shaderProgramColor);
+                shaderState.attachShaderProgram(gl, shaderProgramColor, true);
             }
         }
         if(DEBUG) {

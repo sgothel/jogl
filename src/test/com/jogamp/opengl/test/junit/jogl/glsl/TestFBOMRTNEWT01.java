@@ -84,7 +84,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         Assert.assertTrue(!sp0.inUse());
         Assert.assertTrue(!sp0.linked());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());        
-        st.attachShaderProgram(gl, sp0);
+        st.attachShaderProgram(gl, sp0, false);
         
         final ShaderCode vp1 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, RedSquareES2.class,
                 "shader", "shader/bin", "fbo-mrt-2");
@@ -97,8 +97,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         Assert.assertTrue(!sp1.inUse());
         Assert.assertTrue(!sp1.linked());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());        
-        st.attachShaderProgram(gl, sp1);
-        st.useProgram(gl, true);
+        st.attachShaderProgram(gl, sp1, true);
                         
         final PMVMatrix pmvMatrix = new PMVMatrix();
         final GLUniformData pmvMatrixUniform = new GLUniformData("gcu_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
@@ -175,7 +174,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         
         for(int i=0; i<durationPerTest; i+=50) {
             // pass 1 - MRT: Red -> buffer0, Green -> buffer1
-            st.attachShaderProgram(gl, sp0);           
+            st.attachShaderProgram(gl, sp0, true);           
             vertices0.enableBuffer(gl, true);
             colors0.enableBuffer(gl, true);
             
@@ -191,7 +190,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
             
             // pass 2 - mix buffer0, buffer1 and blue
             // rg = buffer0.rg + buffer1.rg, b = Blue - length(rg);
-            st.attachShaderProgram(gl, sp1);
+            st.attachShaderProgram(gl, sp1, true);
             vertices0.enableBuffer(gl, true);
             colors0.enableBuffer(gl, true);
             texCoords0.enableBuffer(gl, true);

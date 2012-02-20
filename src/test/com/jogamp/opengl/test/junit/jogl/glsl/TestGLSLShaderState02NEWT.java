@@ -114,7 +114,9 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         Assert.assertTrue(!sp0.linked());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());        
                 
-        st.attachShaderProgram(gl, sp0);
+        st.attachShaderProgram(gl, sp0, false);
+        Assert.assertTrue(!sp0.inUse());
+        Assert.assertTrue(!sp0.linked());
         Assert.assertEquals(null, ShaderState.getShaderState(gl));
         st.setShaderState(gl); // pre-use attach
         Assert.assertEquals(st, ShaderState.getShaderState(gl));
@@ -200,7 +202,9 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         GLSLMiscHelper.displayVCArrays(drawable, gl, true, vertices1, colors1, true, 4, durationPerTest);
         
         // SP1
-        st.attachShaderProgram(gl, sp1);
+        st.attachShaderProgram(gl, sp1, true);        
+        Assert.assertTrue(sp1.inUse());
+        Assert.assertTrue(sp1.linked());
         
         if(!linkSP1) {
             // all attribute locations shall be same now, due to impl. glBindAttributeLocation
@@ -267,8 +271,7 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         sp0.init(gl);
         Assert.assertTrue(sp0.link(gl, System.err));
         
-        st.attachShaderProgram(gl, sp0);        
-        st.useProgram(gl, true);
+        st.attachShaderProgram(gl, sp0, true);        
         
         // setup mgl_PMVMatrix
         final PMVMatrix pmvMatrix = new PMVMatrix();
@@ -313,20 +316,20 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         gl.setSwapInterval(0);
         
         // validation ..
-        st.attachShaderProgram(gl, sp0);
+        st.attachShaderProgram(gl, sp0, true);
         GLSLMiscHelper.displayVCArrays(drawable, gl, true, vertices0, colors0, true, 1, 0);
         GLSLMiscHelper.displayVCArrays(drawable, gl, true, vertices1, colors1, true, 2, 0);
-        st.attachShaderProgram(gl, sp1);
+        st.attachShaderProgram(gl, sp1, true);
         GLSLMiscHelper.displayVCArrays(drawable, gl, true, vertices0, colors0, true, 1, 0);
         GLSLMiscHelper.displayVCArrays(drawable, gl, true, vertices1, colors1, true, 2, 0);
         
         // warmup ..        
         for(int frames=0; frames<GLSLMiscHelper.frames_warmup; frames+=2) {
             // SP0
-            st.attachShaderProgram(gl, sp0);
+            st.attachShaderProgram(gl, sp0, true);
             GLSLMiscHelper.displayVCArraysNoChecks(drawable, gl, true, vertices0, colors0, true);
             // SP1
-            st.attachShaderProgram(gl, sp1);
+            st.attachShaderProgram(gl, sp1, true);
             GLSLMiscHelper.displayVCArraysNoChecks(drawable, gl, true, vertices1, colors1, true);
         }
         
@@ -336,11 +339,11 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         
         for(frames=0; frames<GLSLMiscHelper.frames_perftest; frames+=4) {
             // SP0
-            st.attachShaderProgram(gl, sp0);
+            st.attachShaderProgram(gl, sp0, true);
             GLSLMiscHelper.displayVCArraysNoChecks(drawable, gl, true, vertices0, colors0, true);
             GLSLMiscHelper.displayVCArraysNoChecks(drawable, gl, true, vertices1, colors1, true);
             // SP1
-            st.attachShaderProgram(gl, sp1);
+            st.attachShaderProgram(gl, sp1, true);
             GLSLMiscHelper.displayVCArraysNoChecks(drawable, gl, true, vertices0, colors0, true);
             GLSLMiscHelper.displayVCArraysNoChecks(drawable, gl, true, vertices1, colors1, true);
         }

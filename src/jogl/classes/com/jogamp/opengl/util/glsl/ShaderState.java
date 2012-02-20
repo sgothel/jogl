@@ -197,27 +197,10 @@ public class ShaderState {
      * as well as switching to another program on the fly,
      * while managing all attribute and uniform data.</p>
      * 
-     * <p>[Re]sets all data and use program in case of a program switch.<br>
+     * <p>[Re]sets all data and use program in case of a program switch.</p>
      *  
-     * Use program if linked and if previous program was in use.</p>
-     * 
-     * @throws GLException if program was not linked and linking fails
-     */
-    public synchronized void attachShaderProgram(GL2ES2 gl, ShaderProgram prog) throws GLException {
-        attachShaderProgram(gl, prog, false);
-    }
-    
-    /**
-     * Attach or switch a shader program
-     *
-     * <p>Attaching a shader program the first time, 
-     * as well as switching to another program on the fly,
-     * while managing all attribute and uniform data.</p>
-     * 
-     * <p>[Re]sets all data and use program in case of a program switch.<br>
-     *  
-     * Use program if linked and if previous program was in use,
-     * or if <code>enable</code> is true.</p>
+     * <p>Use program, {@link #useProgram(GL2ES2, boolean)},
+     * if <code>enable</code> is <code>true</code>.</p>
      * 
      * @throws GLException if program was not linked and linking fails
      */
@@ -227,7 +210,7 @@ public class ShaderState {
         if(DEBUG) {
             int curId = (null!=shaderProgram)?shaderProgram.id():-1;
             int newId = (null!=prog)?prog.id():-1;
-            System.err.println("Info: attachShaderProgram: "+curId+" -> "+newId+"\n\t"+shaderProgram+"\n\t"+prog);
+            System.err.println("Info: attachShaderProgram: "+curId+" -> "+newId+" (enable: "+enable+")\n\t"+shaderProgram+"\n\t"+prog);
             if(verbose) {
                 Throwable tX = new Throwable("Info: attachShaderProgram: Trace");
                 tX.printStackTrace();
@@ -241,15 +224,12 @@ public class ShaderState {
                 }
                 return;
             }
-            prgInUse = shaderProgram.inUse();
-            
-            if(prgInUse) {
-                // only disable if in use
-                if(null != prog) {
+            if(shaderProgram.inUse()) {
+                if(null != prog && enable) {
                     // new program will issue glUseProgram(..)
                     shaderProgram.programInUse = false;
                 } else {
-                    // no new program - disable
+                    // no new 'enabled' program - disable
                     useProgram(gl, false);
                 }
             }
@@ -262,9 +242,9 @@ public class ShaderState {
         if(null!=shaderProgram) {
             // [re]set all data and use program if switching program, 
             // or  use program if program is linked
-            if(shaderProgram.linked() || resetAllShaderData) {
+            if(resetAllShaderData || enable) {
                 useProgram(gl, true); // may reset all data
-                if(!prgInUse && !enable) {
+                if(!enable) {
                     useProgram(gl, false);
                 }
             }

@@ -88,7 +88,9 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         Assert.assertTrue(!sp.linked());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
-        st.attachShaderProgram(gl, sp);
+        st.attachShaderProgram(gl, sp, false);
+        Assert.assertTrue(!sp.inUse());
+        Assert.assertTrue(!sp.linked());
         
         Assert.assertEquals(null, ShaderState.getShaderState(gl));
         st.setShaderState(gl); // pre-use attach
@@ -211,8 +213,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         sp.init(gl);
         Assert.assertTrue(sp.link(gl, System.err));
         
-        st.attachShaderProgram(gl, sp);        
-        st.useProgram(gl, true);
+        st.attachShaderProgram(gl, sp, true);        
         
         // setup mgl_PMVMatrix
         final PMVMatrix pmvMatrix = new PMVMatrix();
@@ -300,8 +301,7 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         sp.init(gl);
         Assert.assertTrue(sp.link(gl, System.err));
         
-        st.attachShaderProgram(gl, sp);        
-        st.useProgram(gl, true);
+        st.attachShaderProgram(gl, sp, true);        
         
         // setup mgl_PMVMatrix
         final PMVMatrix pmvMatrix = new PMVMatrix();

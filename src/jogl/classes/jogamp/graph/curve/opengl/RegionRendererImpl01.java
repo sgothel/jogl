@@ -66,7 +66,7 @@ public class RegionRendererImpl01 extends RegionRenderer {
         sp.add(rsFp);
 
         sp.init(gl);
-        st.attachShaderProgram(gl, sp);        
+        st.attachShaderProgram(gl, sp, false);        
         st.bindAttribLocation(gl, AttributeNames.VERTEX_ATTR_IDX, AttributeNames.VERTEX_ATTR_NAME);
         st.bindAttribLocation(gl, AttributeNames.TEXCOORD_ATTR_IDX, AttributeNames.TEXCOORD_ATTR_NAME);        
         
