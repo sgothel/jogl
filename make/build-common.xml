@@ -450,6 +450,7 @@
         </path>
         <property name="junit_jogl_awt.run.jars"
                   value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${jogl.all.jar}${path.separator}${jogl.test.jar}"/>
+        <property name="junit_jogl_awt.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${gluegen-rt.jar}${path.separator}${jogl.all.jar}${path.separator}${jogl.test.jar}"/>
 
         <!-- Test Run w/o AWT .. -->
         <path id="junit_jogl_noawt.run.classpath">
@@ -462,6 +463,9 @@
         </path>
         <property name="junit_jogl_noawt.run.jars"
                   value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${jogl.all-noawt.jar}${path.separator}${jogl.test.jar}"/>
+        <property name="junit_jogl_noawt.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${gluegen-rt.jar}${path.separator}${jogl.all-noawt.jar}${path.separator}${jogl.test.jar}"/>
+        <!--property name="junit.run.remote.apks" value="${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen.apk${path.separator}${build_t}/gluegen-test.apk"/-->
+
 
         <!-- Test Run w/ SWT .. -->
         <path id="junit_jogl_swt.run.classpath">
