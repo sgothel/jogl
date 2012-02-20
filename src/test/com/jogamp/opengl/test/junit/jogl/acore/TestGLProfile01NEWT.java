@@ -87,7 +87,7 @@ public class TestGLProfile01NEWT extends UITestCase {
     @Test
     public void testGLProfileMaxProgrammable() throws InterruptedException {
         // Assuming at least one programmable profile is available
-        GLProfile glp = GLProfile.getMaxProgrammable();
+        GLProfile glp = GLProfile.getMaxProgrammable(true);
         System.out.println("GLProfile.getMaxProgrammable(): "+glp);
         if(glp.getName().equals(GLProfile.GL4)) {
             Assert.assertTrue(GLProfile.isAvailable(GLProfile.GL4));

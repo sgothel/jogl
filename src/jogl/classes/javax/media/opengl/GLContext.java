@@ -861,8 +861,14 @@ public abstract class GLContext {
     return val;
   }
 
-  protected static Integer getAvailableGLVersion(AbstractGraphicsDevice device, int reqMajor, int profile)  {
-    String key = getDeviceVersionAvailableKey(device, reqMajor, profile);
+  /**
+   * @param device the device to request whether the profile is available for
+   * @param reqMajor Key Value either 1, 2, 3 or 4
+   * @param reqProfile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
+   * @return the available GL version as encoded with {@link #composeBits(int, int, int), otherwise <code>null</code>
+   */
+  protected static Integer getAvailableGLVersion(AbstractGraphicsDevice device, int reqMajor, int reqProfile)  {
+    String key = getDeviceVersionAvailableKey(device, reqMajor, reqProfile);
     Integer val;
     synchronized(deviceVersionAvailable) {
         val = deviceVersionAvailable.get( key );
@@ -877,8 +883,8 @@ public abstract class GLContext {
    * @param minor if not null, returns the used minor version
    * @param ctp if not null, returns the used context profile
    */
-  protected static boolean getAvailableGLVersion(AbstractGraphicsDevice device,
-                                                 int reqMajor, int reqProfile, int[] major, int minor[], int ctp[]) {
+  protected static boolean getAvailableGLVersion(AbstractGraphicsDevice device, int reqMajor, int reqProfile, 
+                                                 int[] major, int minor[], int ctp[]) {
 
     Integer valI = getAvailableGLVersion(device, reqMajor, reqProfile);
     if(null==valI) {
@@ -898,7 +904,7 @@ public abstract class GLContext {
     }
     return true;
   }
-
+  
   /** 
    * returns the highest GLProfile string regarding the implementation version and context profile bits.
    * @throws GLException if version and context profile bits could not be mapped to a GLProfile
@@ -937,39 +943,47 @@ public abstract class GLContext {
   }
 
   /**
-   * @param major Key Value either 1, 2, 3 or 4
-   * @param profile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
+   * @param device the device to request whether the profile is available for
+   * @param reqMajor Key Value either 1, 2, 3 or 4
+   * @param reqProfile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
+   * @param isHardware return value of one boolean, whether the profile is a hardware rasterizer or not
+   * @return true if the requested GL version is available regardless of a software or hardware rasterizer, otherwise false.
    */
-  public static boolean isGLVersionAvailable(AbstractGraphicsDevice device, int major, int profile) {
-      return null != getAvailableGLVersion(device, major, profile);
+  public static boolean isGLVersionAvailable(AbstractGraphicsDevice device, int reqMajor, int reqProfile, boolean isHardware[]) {
+      Integer valI = getAvailableGLVersion(device, reqMajor, reqProfile);
+      if(null==valI) {
+          return false;
+      }
+      isHardware[0] = 0 == ( valI.intValue() & GLContext.CTX_IMPL_ACCEL_SOFT ) ;
+      return true;
   }
 
-  public static boolean isGLES1Available(AbstractGraphicsDevice device) {
-      return isGLVersionAvailable(device, 1, GLContext.CTX_PROFILE_ES);
+  public static boolean isGLES1Available(AbstractGraphicsDevice device, boolean isHardware[]) {
+      return isGLVersionAvailable(device, 1, GLContext.CTX_PROFILE_ES, isHardware);
   }
 
-  public static boolean isGLES2Available(AbstractGraphicsDevice device) {
-      return isGLVersionAvailable(device, 2, GLContext.CTX_PROFILE_ES);
+  public static boolean isGLES2Available(AbstractGraphicsDevice device, boolean isHardware[]) {
+      return isGLVersionAvailable(device, 2, GLContext.CTX_PROFILE_ES, isHardware);
   }
 
-  public static boolean isGL4bcAvailable(AbstractGraphicsDevice device) {
-      return isGLVersionAvailable(device, 4, CTX_PROFILE_COMPAT);
+  public static boolean isGL4bcAvailable(AbstractGraphicsDevice device, boolean isHardware[]) {
+      return isGLVersionAvailable(device, 4, CTX_PROFILE_COMPAT, isHardware);
   }
 
-  public static boolean isGL4Available(AbstractGraphicsDevice device) {
-      return isGLVersionAvailable(device, 4, CTX_PROFILE_CORE);
+  public static boolean isGL4Available(AbstractGraphicsDevice device, boolean isHardware[]) {
+      return isGLVersionAvailable(device, 4, CTX_PROFILE_CORE, isHardware);
   }
 
-  public static boolean isGL3bcAvailable(AbstractGraphicsDevice device) {
-      return isGLVersionAvailable(device, 3, CTX_PROFILE_COMPAT);
+  public static boolean isGL3bcAvailable(AbstractGraphicsDevice device, boolean isHardware[]) {
+      return isGLVersionAvailable(device, 3, CTX_PROFILE_COMPAT, isHardware);
   }
 
-  public static boolean isGL3Available(AbstractGraphicsDevice device) {
-      return isGLVersionAvailable(device, 3, CTX_PROFILE_CORE);
+  public static boolean isGL3Available(AbstractGraphicsDevice device, boolean isHardware[]) {
+      return isGLVersionAvailable(device, 3, CTX_PROFILE_CORE, isHardware);
   }
 
-  public static boolean isGL2Available(AbstractGraphicsDevice device) {
-    return isGLVersionAvailable(device, 2, CTX_PROFILE_COMPAT);
+  public static boolean isGL2Available(AbstractGraphicsDevice device, boolean isHardware[]) {
+    return isGLVersionAvailable(device, 2, CTX_PROFILE_COMPAT, isHardware);
   }
 
   /**

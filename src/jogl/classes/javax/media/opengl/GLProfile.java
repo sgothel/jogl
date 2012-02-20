@@ -545,6 +545,7 @@ public class GLProfile {
 
     /** Returns a default GLProfile object, reflecting the best for the running platform.
      * It selects the first of the set {@link GLProfile#GL_PROFILE_LIST_ALL}
+     * and favors hardware acceleration.
      * @throws GLException if no profile is available for the device.
      * @see #GL_PROFILE_LIST_ALL
      */
@@ -553,7 +554,10 @@ public class GLProfile {
         return glp;
     }
 
-    /** Uses the default device 
+    /** Returns a default GLProfile object, reflecting the best for the running platform.
+     * It selects the first of the set {@link GLProfile#GL_PROFILE_LIST_ALL}
+     * and favors hardware acceleration.
+     * <p>Uses the default device.</p> 
      * @throws GLException if no profile is available for the default device.
      */
     public static GLProfile getDefault() {
@@ -567,20 +571,20 @@ public class GLProfile {
      * @throws GLException if no profile is available for the device.
      * @see #GL_PROFILE_LIST_MAX
      */
-    public static GLProfile getMaximum(AbstractGraphicsDevice device)
+    public static GLProfile getMaximum(AbstractGraphicsDevice device, boolean favorHardwareRasterizer)
         throws GLException
     {
-        return get(device, GL_PROFILE_LIST_MAX);
+        return get(device, GL_PROFILE_LIST_MAX, favorHardwareRasterizer);
     }
 
     /** Uses the default device 
      * @throws GLException if no profile is available for the default device.
      * @see #GL_PROFILE_LIST_MAX
      */
-    public static GLProfile getMaximum()
+    public static GLProfile getMaximum(boolean favorHardwareRasterizer)
         throws GLException
     {
-        return get(GL_PROFILE_LIST_MAX);
+        return get(GL_PROFILE_LIST_MAX, favorHardwareRasterizer);
     }
 
     /**
@@ -590,20 +594,20 @@ public class GLProfile {
      * @throws GLException if no desktop profile is available for the device.
      * @see #GL_PROFILE_LIST_MIN
      */
-    public static GLProfile getMinimum(AbstractGraphicsDevice device)
+    public static GLProfile getMinimum(AbstractGraphicsDevice device, boolean favorHardwareRasterizer)
         throws GLException
     {
-        return get(device, GL_PROFILE_LIST_MIN);
+        return get(device, GL_PROFILE_LIST_MIN, favorHardwareRasterizer);
     }
 
     /** Uses the default device 
      * @throws GLException if no desktop profile is available for the default device.
      * @see #GL_PROFILE_LIST_MIN
      */
-    public static GLProfile getMinimum()
+    public static GLProfile getMinimum(boolean favorHardwareRasterizer)
         throws GLException
     {
-        return get(GL_PROFILE_LIST_MIN);
+        return get(GL_PROFILE_LIST_MIN, favorHardwareRasterizer);
     }
 
 
@@ -614,20 +618,20 @@ public class GLProfile {
      * @throws GLException if no fixed function profile is available for the device.
      * @see #GL_PROFILE_LIST_MAX_FIXEDFUNC
      */
-    public static GLProfile getMaxFixedFunc(AbstractGraphicsDevice device)
+    public static GLProfile getMaxFixedFunc(AbstractGraphicsDevice device, boolean favorHardwareRasterizer)
         throws GLException
     {
-        return get(device, GL_PROFILE_LIST_MAX_FIXEDFUNC);
+        return get(device, GL_PROFILE_LIST_MAX_FIXEDFUNC, favorHardwareRasterizer);
     }
 
     /** Uses the default device 
      * @throws GLException if no fixed function profile is available for the default device.
      * @see #GL_PROFILE_LIST_MAX_FIXEDFUNC
      */
-    public static GLProfile getMaxFixedFunc()
+    public static GLProfile getMaxFixedFunc(boolean favorHardwareRasterizer)
         throws GLException
     {
-        return get(GL_PROFILE_LIST_MAX_FIXEDFUNC);
+        return get(GL_PROFILE_LIST_MAX_FIXEDFUNC, favorHardwareRasterizer);
     }
 
     /**
@@ -637,20 +641,20 @@ public class GLProfile {
      * @throws GLException if no programmable profile is available for the device.
      * @see #GL_PROFILE_LIST_MAX_PROGSHADER
      */
-    public static GLProfile getMaxProgrammable(AbstractGraphicsDevice device)
+    public static GLProfile getMaxProgrammable(AbstractGraphicsDevice device, boolean favorHardwareRasterizer)
         throws GLException
     {
-        return get(device, GL_PROFILE_LIST_MAX_PROGSHADER);
+        return get(device, GL_PROFILE_LIST_MAX_PROGSHADER, favorHardwareRasterizer);
     }
 
     /** Uses the default device 
      * @throws GLException if no programmable profile is available for the default device.
      * @see #GL_PROFILE_LIST_MAX_PROGSHADER
      */
-    public static GLProfile getMaxProgrammable()
+    public static GLProfile getMaxProgrammable(boolean favorHardwareRasterizer)
         throws GLException
     {
-        return get(GL_PROFILE_LIST_MAX_PROGSHADER);
+        return get(GL_PROFILE_LIST_MAX_PROGSHADER, favorHardwareRasterizer);
     }
 
     /** 
@@ -659,6 +663,7 @@ public class GLProfile {
      * <pre>
      *   GLProfile.get(device, GLProfile.GL2ES1).getImpl());
      * </pre>
+     * <p>Selection favors hardware rasterizer.</p>
      *
      * @throws GLException if no GL2ES1 compatible profile is available for the default device.
      * @see #get(AbstractGraphicsDevice, String)
@@ -672,6 +677,7 @@ public class GLProfile {
 
     /** 
      * Calls {@link #getGL2ES1(AbstractGraphicsDevice)} using the default device. 
+     * <p>Selection favors hardware rasterizer.</p>
      * @see #getGL2ES1(AbstractGraphicsDevice)
      */
     public static GLProfile getGL2ES1()
@@ -686,6 +692,7 @@ public class GLProfile {
      * <pre>
      *   GLProfile.get(device, GLProfile.GL2ES2).getImpl());
      * </pre>
+     * <p>Selection favors hardware rasterizer.</p>
      *
      * @throws GLException if no GL2ES2 compatible profile is available for the default device.
      * @see #get(AbstractGraphicsDevice, String)
@@ -699,6 +706,7 @@ public class GLProfile {
 
     /** 
      * Calls {@link #getGL2ES2(AbstractGraphicsDevice)} using the default device. 
+     * <p>Selection favors hardware rasterizer.</p>
      * @see #getGL2ES2(AbstractGraphicsDevice)
      */
     public static GLProfile getGL2ES2()
@@ -747,31 +755,45 @@ public class GLProfile {
      * where an implementation is available.
      *
      * @param device a valid AbstractGraphicsDevice, or <code>null</null> for the default device.
-     * @param profiles array of valid GLProfile name ({@link #GL4bc}, {@link #GL4}, {@link #GL2}, ..) 
+     * @param profiles array of valid GLProfile name ({@link #GL4bc}, {@link #GL4}, {@link #GL2}, ..)
+     * @param favorHardwareRasterizer set to true, if hardware rasterizer shall be favored, otherwise false. 
      * @throws GLException if the non of the requested profiles is available for the device.
      */
-    public static GLProfile get(AbstractGraphicsDevice device, String[] profiles)
+    public static GLProfile get(AbstractGraphicsDevice device, String[] profiles, boolean favorHardwareRasterizer)
         throws GLException
     {
+        GLProfile glProfileAny = null;
+        
         HashMap<String /*GLProfile_name*/, GLProfile> map = getProfileMap(device, true);
         for(int i=0; i<profiles.length; i++) {
-            String profile = profiles[i];
-            GLProfile glProfile = map.get(profile);
+            final GLProfile glProfile = map.get(profiles[i]);
             if(null!=glProfile) {
-                return glProfile;
+                if(!favorHardwareRasterizer) {
+                    return glProfile;
+                }
+                if(glProfile.isHardwareRasterizer()) {
+                    return glProfile;
+                }
+                if(null==glProfileAny) {
+                    glProfileAny = glProfile;
+                }                
             }
         }
+        if(null!=glProfileAny) {
+            return glProfileAny;
+        }                
         throw new GLException("Profiles "+array2String(profiles)+" not available on device "+device);
     }
 
     /** Uses the default device 
      * @param profiles array of valid GLProfile name ({@link #GL4bc}, {@link #GL4}, {@link #GL2}, ..) 
+     * @param favorHardwareRasterizer set to true, if hardware rasterizer shall be favored, otherwise false. 
      * @throws GLException if the non of the requested profiles is available for the default device.
      */
-    public static GLProfile get(String[] profiles)
+    public static GLProfile get(String[] profiles, boolean favorHardwareRasterizer)
         throws GLException
     {
-        return get(defaultDevice, profiles);
+        return get(defaultDevice, profiles, favorHardwareRasterizer);
     }
     
     /** Indicates whether the native OpenGL ES1 profile is in use. 
@@ -884,6 +906,11 @@ public class GLProfile {
     /** return this profiles implementation, eg. GL2ES2 -> GL2, or GL3 -> GL3 */
     public final GLProfile getImpl() {
         return null != profileImpl ? profileImpl : this;
+    }
+    
+    /** return true if impl. is a hardware rasterizer, otherwise false. */
+    public final boolean isHardwareRasterizer() {
+        return isHardwareRasterizer;
     }
     
     /** 
@@ -1261,7 +1288,7 @@ public class GLProfile {
     }
 
     public String toString() {
-        return "GLProfile[" + getName() + "/" + getImplName() + "]";
+        return "GLProfile[" + getName() + "/" + getImplName() + "."+(this.isHardwareRasterizer?"hw":"sw")+"]";
     }
 
     private static /*final*/ boolean isAWTAvailable;
@@ -1459,12 +1486,8 @@ public class GLProfile {
             if (DEBUG) {
                 System.err.println("GLProfile.initProfilesForDevice: "+device+": desktop Shared Ctx "+desktopSharedCtxAvail);
             }
-            if( hasDesktopGLFactory && null == GLContext.getAvailableGLVersion(device, 2, GLContext.CTX_PROFILE_COMPAT) ) {
-                // nobody yet set the available desktop versions, see {@link GLContextImpl#makeCurrent},
-                // so we have to add the usual suspect
-                GLContext.mapAvailableGLVersion(device,
-                                                2, GLContext.CTX_PROFILE_COMPAT,
-                                                1, 5, GLContext.CTX_PROFILE_COMPAT);
+            if( hasDesktopGLFactory && !GLContext.getAvailableGLVersionsSet(device) ) {
+                throw new InternalError("Available GLVersions not set");
             }
             addedDesktopProfile = computeProfileMap(device, false /* desktopCtxUndef*/, false /* esCtxUndef */);
         }
@@ -1502,12 +1525,18 @@ public class GLProfile {
                 GLContext.mapAvailableGLVersion(device,
                                                 2, GLContext.CTX_PROFILE_ES,
                                                 2, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_IMPL_ES2_COMPAT);
+                if (DEBUG) {
+                  System.err.println(GLContext.getThreadName() + ": !!! initProfilesForDeviceCritical-MapVersionsAvailable HAVE: ES2 -> ES 2.0");
+                }
             }
             if( hasGLES1Impl ) {
                 // Always favor the native ES1 impl.
                 GLContext.mapAvailableGLVersion(device,
                                                 1, GLContext.CTX_PROFILE_ES,
                                                 1, 0, GLContext.CTX_PROFILE_ES);
+                if (DEBUG) {
+                  System.err.println(GLContext.getThreadName() + ": !!! initProfilesForDeviceCritical-MapVersionsAvailable HAVE: ES1 -> ES 1.0");
+                }
             }
             addedEGLProfile = computeProfileMap(device, false /* desktopCtxUndef*/, false /* esCtxUndef */);
         } 
@@ -1596,30 +1625,37 @@ public class GLProfile {
         if (DEBUG) {
             System.err.println("GLProfile.init map "+device.getConnection()+", desktopCtxUndef "+desktopCtxUndef+", esCtxUndef "+esCtxUndef);
         }
-        GLProfile defaultGLProfile = null;
+        final boolean isHardwareRasterizer[] = new boolean[1];
+        GLProfile defaultGLProfileAny = null;
+        GLProfile defaultGLProfileHW = null;
         HashMap<String, GLProfile> _mappedProfiles = new HashMap<String, GLProfile>(GL_PROFILE_LIST_ALL.length + 1 /* default */);
         for(int i=0; i<GL_PROFILE_LIST_ALL.length; i++) {
             String profile = GL_PROFILE_LIST_ALL[i];
-            String profileImpl = computeProfileImpl(device, profile, desktopCtxUndef, esCtxUndef);
+            String profileImpl = computeProfileImpl(device, profile, desktopCtxUndef, esCtxUndef, isHardwareRasterizer);
             if(null!=profileImpl) {
                 final GLProfile glProfile;
                 if(profile.equals(profileImpl)) {
-                    glProfile = new GLProfile(profile, null);
+                    glProfile = new GLProfile(profile, null, isHardwareRasterizer[0]);
                 } else {
                     final GLProfile _mglp = _mappedProfiles.get(profileImpl);
                     if(null == _mglp) {
                         throw new InternalError("XXX0");
                     }
-                    glProfile = new GLProfile(profile, _mglp);
+                    glProfile = new GLProfile(profile, _mglp, isHardwareRasterizer[0]);
                 }
                 _mappedProfiles.put(profile, glProfile);
                 if (DEBUG) {
                     System.err.println("GLProfile.init map "+glProfile+" on devide "+device.getConnection());
                 }
-                if(null==defaultGLProfile) {
-                    defaultGLProfile=glProfile;
+                if(null==defaultGLProfileHW && isHardwareRasterizer[0]) {
+                    defaultGLProfileHW=glProfile;
                     if (DEBUG) {
-                        System.err.println("GLProfile.init map default "+glProfile+" on device "+device.getConnection());
+                        System.err.println("GLProfile.init map defaultHW "+glProfile+" on device "+device.getConnection());
+                    }
+                } else if(null==defaultGLProfileAny) {
+                    defaultGLProfileAny=glProfile;
+                    if (DEBUG) {
+                        System.err.println("GLProfile.init map defaultAny "+glProfile+" on device "+device.getConnection());
                     }
                 }
             } else {
@@ -1628,8 +1664,10 @@ public class GLProfile {
                 }
             }
         }
-        if(null!=defaultGLProfile) {
-            _mappedProfiles.put(GL_DEFAULT, defaultGLProfile);
+        if(null!=defaultGLProfileHW) {
+            _mappedProfiles.put(GL_DEFAULT, defaultGLProfileHW);
+        } else if(null!=defaultGLProfileAny) {
+            _mappedProfiles.put(GL_DEFAULT, defaultGLProfileAny);
         }
         setProfileMap(device, _mappedProfiles);
         return _mappedProfiles.size() > 0;
@@ -1638,66 +1676,98 @@ public class GLProfile {
     /**
      * Returns the profile implementation
      */
-    private static String computeProfileImpl(AbstractGraphicsDevice device, String profile, boolean desktopCtxUndef, boolean esCtxUndef) {
+    private static String computeProfileImpl(AbstractGraphicsDevice device, String profile, boolean desktopCtxUndef, boolean esCtxUndef, boolean isHardwareRasterizer[]) {
         // OSX GL3.. doesn't support GLSL<150, 
         // hence GL2ES2 and GL2GL3 need to be mapped on GL2 on OSX for GLSL compatibility.
         final boolean isOSX = Platform.OS_TYPE == Platform.OSType.MACOS;
         
         if (GL2ES1.equals(profile)) {
+            final boolean es1HardwareRasterizer[] = new boolean[1];
+            final boolean gles1Available = hasGLES1Impl && ( esCtxUndef || GLContext.isGLES1Available(device, es1HardwareRasterizer) );
+            final boolean gles1HWAvailable = gles1Available && es1HardwareRasterizer[0] ;
             if(hasGL234Impl) {
-                if(GLContext.isGL4bcAvailable(device)) {
-                    return GL4bc;
-                } else if(GLContext.isGL3bcAvailable(device)) {
-                    return GL3bc;
-                } else if(desktopCtxUndef || GLContext.isGL2Available(device)) {
-                    return GL2;
+                if(GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
+                    if(!gles1HWAvailable || isHardwareRasterizer[0]) {
+                        return GL4bc;
+                    }
+                }
+                if(GLContext.isGL3bcAvailable(device, isHardwareRasterizer)) {
+                    if(!gles1HWAvailable || isHardwareRasterizer[0]) {
+                        return GL3bc;
+                    }
+                }
+                if(desktopCtxUndef || GLContext.isGL2Available(device, isHardwareRasterizer)) {
+                    if(!gles1HWAvailable || isHardwareRasterizer[0]) {
+                        return GL2;
+                    }
                 }
             }
-            if(hasGLES1Impl && ( esCtxUndef || GLContext.isGLES1Available(device))) {
+            if(gles1Available) {
+                isHardwareRasterizer[0] = es1HardwareRasterizer[0];
                 return GLES1;
             }
         } else if (GL2ES2.equals(profile)) {
+            final boolean es2HardwareRasterizer[] = new boolean[1];
+            final boolean gles2Available = hasGLES2Impl && ( esCtxUndef || GLContext.isGLES2Available(device, es2HardwareRasterizer) );
+            final boolean gles2HWAvailable = gles2Available && es2HardwareRasterizer[0] ;
             if(hasGL234Impl) {
-                if(!isOSX && GLContext.isGL4bcAvailable(device)) {
-                    return GL4bc;
-                } else if(!isOSX && GLContext.isGL4Available(device)) {
-                    return GL4;
-                } else if(!isOSX && GLContext.isGL3bcAvailable(device)) {
-                    return GL3bc;
-                } else if(!isOSX && GLContext.isGL3Available(device)) {
-                    return GL3;
-                } else if(desktopCtxUndef || GLContext.isGL2Available(device)) {
-                    return GL2;
+                if(!isOSX) {
+                    if(GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
+                        if(!gles2HWAvailable || isHardwareRasterizer[0]) {
+                            return GL4bc;
+                        }
+                    }
+                    if(GLContext.isGL4Available(device, isHardwareRasterizer)) {
+                        if(!gles2HWAvailable || isHardwareRasterizer[0]) {
+                            return GL4;
+                        }
+                    }
+                    if(GLContext.isGL3bcAvailable(device, isHardwareRasterizer)) {
+                        if(!gles2HWAvailable || isHardwareRasterizer[0]) {
+                            return GL3bc;
+                        }
+                    }
+                    if(GLContext.isGL3Available(device, isHardwareRasterizer)) {
+                        if(!gles2HWAvailable || isHardwareRasterizer[0]) {
+                            return GL3;
+                        }
+                    }
+                }
+                if(desktopCtxUndef || GLContext.isGL2Available(device, isHardwareRasterizer)) {
+                    if(!gles2HWAvailable || isHardwareRasterizer[0]) {
+                        return GL2;
+                    }
                 }
             }
-            if(hasGLES2Impl && ( esCtxUndef || GLContext.isGLES2Available(device))) {
+            if(gles2Available) {
+                isHardwareRasterizer[0] = es2HardwareRasterizer[0];
                 return GLES2;
             }
         } else if(GL2GL3.equals(profile)) {
             if(hasGL234Impl) {
-                if(!isOSX && GLContext.isGL4bcAvailable(device)) {
+                if(!isOSX && GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
                     return GL4bc;
-                } else if(!isOSX && GLContext.isGL4Available(device)) {
+                } else if(!isOSX && GLContext.isGL4Available(device, isHardwareRasterizer)) {
                     return GL4;
-                } else if(!isOSX && GLContext.isGL3bcAvailable(device)) {
+                } else if(!isOSX && GLContext.isGL3bcAvailable(device, isHardwareRasterizer)) {
                     return GL3bc;
-                } else if(!isOSX && GLContext.isGL3Available(device)) {
+                } else if(!isOSX && GLContext.isGL3Available(device, isHardwareRasterizer)) {
                     return GL3;
-                } else if(desktopCtxUndef || GLContext.isGL2Available(device)) {
+                } else if(desktopCtxUndef || GLContext.isGL2Available(device, isHardwareRasterizer)) {
                     return GL2;
                 }
             }
-        } else if(GL4bc.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL4bcAvailable(device))) {
+        } else if(GL4bc.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL4bcAvailable(device, isHardwareRasterizer))) {
             return GL4bc;
-        } else if(GL4.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL4Available(device))) {
+        } else if(GL4.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL4Available(device, isHardwareRasterizer))) {
             return GL4;
-        } else if(GL3bc.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL3bcAvailable(device))) {
+        } else if(GL3bc.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL3bcAvailable(device, isHardwareRasterizer))) {
             return GL3bc;
-        } else if(GL3.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL3Available(device))) {
+        } else if(GL3.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL3Available(device, isHardwareRasterizer))) {
             return GL3;
-        } else if(GL2.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL2Available(device))) {
+        } else if(GL2.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL2Available(device, isHardwareRasterizer))) {
             return GL2;
-        } else if(GLES2.equals(profile) && hasGLES2Impl && ( esCtxUndef || GLContext.isGLES2Available(device))) {
+        } else if(GLES2.equals(profile) && hasGLES2Impl && ( esCtxUndef || GLContext.isGLES2Available(device, isHardwareRasterizer))) {
             return GLES2;
         /**
          * TODO: GLES2_TRUE_DESKTOP (see: GLContextImpl, GLProfile)
@@ -1713,7 +1783,7 @@ public class GLProfile {
                 return GLContext.getAvailableGLProfile(device, 2, GLContext.CTX_PROFILE_ES);
             }
           */
-        } else if(GLES1.equals(profile) && hasGLES1Impl && ( esCtxUndef || GLContext.isGLES1Available(device))) {
+        } else if(GLES1.equals(profile) && hasGLES1Impl && ( esCtxUndef || GLContext.isGLES1Available(device, isHardwareRasterizer))) {
             return GLES1;
         }
         return null;
@@ -1782,11 +1852,13 @@ public class GLProfile {
         }
     }
 
-    private GLProfile(String profile, GLProfile profileImpl) {
+    private GLProfile(String profile, GLProfile profileImpl, boolean isHardwareRasterizer) {
         this.profile = profile;
         this.profileImpl = profileImpl;
+        this.isHardwareRasterizer = isHardwareRasterizer;
     }
 
-    private GLProfile profileImpl = null;
-    private String profile = null;
+    private GLProfile profileImpl;
+    private String profile;
+    private boolean isHardwareRasterizer;
 }

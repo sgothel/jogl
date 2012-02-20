@@ -514,13 +514,42 @@ public abstract class GLContextImpl extends GLContext {
         }
         if (DEBUG) {
             if(created) {
-                System.err.println(getThreadName() + ": !!! Create GL context OK: " + toHexString(contextHandle) + " for " + getClass().getName());
+                System.err.println(getThreadName() + ": !!! Create GL context OK: " + toHexString(contextHandle) + " for " + getClass().getName()+" - "+getGLVersion());
             } else {
                 System.err.println(getThreadName() + ": !!! Create GL context FAILED for " + getClass().getName());
             }
-        }
+        }        
         if(!created) {
             return CONTEXT_NOT_CURRENT;
+        }
+        
+        // finalize mapping the available GLVersions, in case it's not done yet
+        {             
+            final AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
+            final AbstractGraphicsDevice device = config.getScreen().getDevice();
+            
+            if( !GLContext.getAvailableGLVersionsSet(device) ) {
+                final int reqMajor;
+                final int reqProfile;
+                if( 0 != ( ctxOptions & GLContext.CTX_PROFILE_ES) ) {
+                    // ES1 or ES2
+                    reqMajor = ctxMajorVersion;
+                    reqProfile = GLContext.CTX_PROFILE_ES;
+                } else {
+                    // Only GL2 actually
+                    if(ctxMajorVersion>2 || 0 != ( ctxOptions & GLContext.CTX_PROFILE_CORE)) {
+                        throw new InternalError("XXX: "+getGLVersion());
+                    }
+                    reqMajor = 2;
+                    reqProfile = GLContext.CTX_PROFILE_COMPAT;          
+                }
+                GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile,
+                                                ctxMajorVersion, ctxMinorVersion, ctxOptions);
+                GLContext.setAvailableGLVersionsSet(device);
+                if (DEBUG) {
+                  System.err.println(getThreadName() + ": !!! createContextOLD-MapVersionsAvailable HAVE: " +reqMajor+"."+reqProfile+ " -> "+getGLVersion());
+                }
+            }
         }
         GLContextShareSet.contextCreated(this);
         return CONTEXT_CURRENT_NEW;
@@ -714,7 +743,7 @@ public abstract class GLContextImpl extends GLContext {
        }
     }
     if(0!=_context) {
-        AbstractGraphicsDevice device = drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
+        AbstractGraphicsDevice device = drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();        
         // ctxMajorVersion, ctxMinorVersion, ctxOptions is being set by 
         //   createContextARBVersions(..) -> setGLFunctionAvailbility(..) -> setContextVersion(..)
         GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile, ctxMajorVersion, ctxMinorVersion, ctxOptions);
@@ -729,10 +758,10 @@ public abstract class GLContextImpl extends GLContext {
         }*/
         destroyContextARBImpl(_context);
         if (DEBUG) {
-          System.err.println(getThreadName() + ": !!! createContextARBMapVersionsAvailable HAVE: " + getGLVersion());
+          System.err.println(getThreadName() + ": !!! createContextARB-MapVersionsAvailable HAVE: " +reqMajor+"."+reqProfile+ " -> "+getGLVersion());
         }
     } else if (DEBUG) {
-        System.err.println(getThreadName() + ": !!! createContextARBMapVersionsAvailable NOPE: "+reqMajor+"."+reqProfile);
+        System.err.println(getThreadName() + ": !!! createContextARB-MapVersionsAvailable NOPE: "+reqMajor+"."+reqProfile);
     }
     resetStates();
   }
@@ -951,11 +980,12 @@ public abstract class GLContextImpl extends GLContext {
     }
     updateGLXProcAddressTable();
 
-    AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
-    AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
-    if(!drawable.getChosenGLCapabilities().getHardwareAccelerated()) {
+    if(!isCurrentContextHardwareRasterizer()) {
         ctxProfileBits |= GLContext.CTX_IMPL_ACCEL_SOFT;
-    }
+    }    
+    final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
+    final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
+    
     contextFQN = getContextFQN(adevice, major, minor, ctxProfileBits);
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! Context FQN: "+contextFQN+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, null));
@@ -1024,11 +1054,12 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   protected final void removeCachedVersion(int major, int minor, int ctxProfileBits) {
-    AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
-    AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
-    if(!drawable.getChosenGLCapabilities().getHardwareAccelerated()) {
+    if(!isCurrentContextHardwareRasterizer()) {
         ctxProfileBits |= GLContext.CTX_IMPL_ACCEL_SOFT;
     }
+    final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
+    final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
+    
     contextFQN = getContextFQN(adevice, major, minor, ctxProfileBits);
     if (DEBUG) {
       System.err.println(getThreadName() + ": !!! RM Context FQN: "+contextFQN+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, null));
@@ -1049,6 +1080,21 @@ public abstract class GLContextImpl extends GLContext {
     }
   }
 
+  private final boolean isCurrentContextHardwareRasterizer()  {
+    boolean isHardwareRasterizer = true;
+    
+    if(!drawable.getChosenGLCapabilities().getHardwareAccelerated()) {
+        isHardwareRasterizer = false;
+    } else {
+        // On some platforms (eg. X11), a software GL impl. does not properly declare itself properly.
+        final GLDynamicLookupHelper glDynLookupHelper = getDrawableImpl().getGLDynamicLookupHelper();
+        final long _glGetString = glDynLookupHelper.dynamicLookupFunction("glGetString");        
+        final String glRenderer = glGetStringInt(GL.GL_RENDERER, _glGetString).toLowerCase();
+        isHardwareRasterizer = !glRenderer.contains("software");
+    }
+    return isHardwareRasterizer;
+  }
+  
   /**
    * Updates the platform's 'GLX' function cache
    */
@@ -1259,4 +1305,7 @@ public abstract class GLContextImpl extends GLContext {
           gl.getGL2GL3().glDebugMessageInsertAMD(GLDebugMessage.translateARB2AMDCategory(source, type), severity, id, len, buf);
       }      
   }
+  
+  /** Internal bootstraping glGetString(GL_RENDERER) */
+  protected static native String glGetStringInt(int name, long procAddress);
 }

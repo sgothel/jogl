@@ -1471,6 +1471,7 @@
 
     <target name="c.build.jogl.prepare" depends="c.build.jogl.prepare.openMAX">
       <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLDebugMessageHandler" />
+      <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLContextImpl" />
       <!-- Generate the waveout Mixer header -->
       <!-- FIXME: this is temporary until we move this to another workspace -->
       <!--javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="com.jogamp.audio.windows.waveout.Mixer" /-->

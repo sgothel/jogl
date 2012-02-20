@@ -205,7 +205,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
         boolean hasRECTTextures = false;
         boolean hasAppleFloatPixels = false;
         {
-            GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP);
+            GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP, false);
             if (null == glp) {
                 throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
             }    
