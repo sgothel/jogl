@@ -63,12 +63,12 @@ public abstract class UITestCase {
         return _unitTestName.getMethodName();
     }
     
-    public final String getSimpleTestName() {
-        return getClass().getSimpleName()+" - "+getTestMethodName();
+    public final String getSimpleTestName(String separator) {
+        return getClass().getSimpleName()+separator+getTestMethodName();
     }
 
-    public final String getFullTestName() {
-        return getClass().getName()+" - "+getTestMethodName();
+    public final String getFullTestName(String separator) {
+        return getClass().getName()+separator+getTestMethodName();
     }
     
     @BeforeClass
@@ -86,12 +86,12 @@ public abstract class UITestCase {
 
     @Before
     public void setUp() {
-        System.err.println("++++ UITestCase.setUp: "+getFullTestName());
+        System.err.println("++++ UITestCase.setUp: "+getFullTestName(" - "));
     }
 
     @After
     public void tearDown() {
-        System.err.println("++++ UITestCase.tearDown: "+getFullTestName());
+        System.err.println("++++ UITestCase.tearDown: "+getFullTestName(" - "));
     }
 
 }

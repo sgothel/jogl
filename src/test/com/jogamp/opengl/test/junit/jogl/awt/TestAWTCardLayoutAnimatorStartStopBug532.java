@@ -113,7 +113,7 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
       } */
 
       final JFrame frame = new JFrame();
-      frame.setTitle(getSimpleTestName());
+      frame.setTitle(getSimpleTestName(" - "));
       frame.addWindowListener(new WindowAdapter() { 
          public void windowClosing(WindowEvent e) {
             animatorCtrl.stop();

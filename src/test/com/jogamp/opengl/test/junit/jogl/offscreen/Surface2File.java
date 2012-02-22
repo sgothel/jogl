@@ -31,7 +31,6 @@ package com.jogamp.opengl.test.junit.jogl.offscreen;
 import javax.media.opengl.*;
 
 import com.jogamp.opengl.util.GLReadBufferUtil;
-import com.jogamp.opengl.util.texture.TextureIO;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,12 +54,13 @@ public class Surface2File implements SurfaceUpdatedListener {
                 GL gl = ctx.getGL();
                 // FIXME glFinish() is an expensive paranoia sync, should not be necessary due to spec
                 gl.glFinish();
-                readBufferUtil.readPixels(gl, drawable, false);
-                gl.glFinish();
-                try {
-                    surface2File("shot");
-                } catch (IOException ex) {
-                    throw new RuntimeException("can not write survace to file", ex);
+                if(readBufferUtil.readPixels(gl, drawable, false)) {
+                    gl.glFinish();
+                    try {
+                        surface2File("shot");
+                    } catch (IOException ex) {
+                        throw new RuntimeException("can not write survace to file", ex);
+                    }
                 }
             }
         }

@@ -83,7 +83,7 @@ public class TestBug551AWT extends UITestCase {
     }
     
     protected void runTestGL() throws InterruptedException, InvocationTargetException {
-        final Window window = new JFrame(this.getSimpleTestName());
+        final Window window = new JFrame(this.getSimpleTestName(" - "));
         final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         
         // final array as mutable container hack
