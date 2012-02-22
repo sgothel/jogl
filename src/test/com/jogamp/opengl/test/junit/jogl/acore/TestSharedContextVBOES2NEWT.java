@@ -54,12 +54,16 @@ public class TestSharedContextVBOES2NEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        glp = GLProfile.getDefault();
-        Assert.assertNotNull(glp);
-        caps = new GLCapabilities(glp);
-        Assert.assertNotNull(caps);
-        width  = 256;
-        height = 256;
+        if(GLProfile.isAvailable(GLProfile.GL2ES2)) {
+            glp = GLProfile.get(GLProfile.GL2ES2);
+            Assert.assertNotNull(glp);
+            caps = new GLCapabilities(glp);
+            Assert.assertNotNull(caps);
+            width  = 256;
+            height = 256;
+        } else {
+            setTestSupported(false);
+        }
     }
 
     private void initShared() {

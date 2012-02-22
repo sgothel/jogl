@@ -2,9 +2,10 @@
 
 THISDIR=`pwd`
 
-XTRA_FLAGS=""
+#XTRA_FLAGS=""
+#XTRA_FLAGS="-Djogl.debug.EGL"
 #XTRA_FLAGS="-Djogl.debug.GraphicsConfiguration"
-#XTRA_FLAGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable -Djogl.debug.GraphicsConfiguration"
+#XTRA_FLAGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable"
 #XTRA_FLAGS="-Djogl.debug.TraceGL"
 #XTRA_FLAGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
 
@@ -18,16 +19,16 @@ XTRA_FLAGS=""
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT
-TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT
 
 # Some Regressions (Panda, Omap4)
 #
+TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2
 
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestNVSwapGroupNEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT
-#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES1NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT2

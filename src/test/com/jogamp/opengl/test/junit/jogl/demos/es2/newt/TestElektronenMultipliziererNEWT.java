@@ -28,6 +28,7 @@
  
 package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.TraceWindowAdapter;
@@ -65,10 +66,16 @@ public class TestElektronenMultipliziererNEWT extends UITestCase {
     static int startFrame = 1700;
     static long duration = 5000; // ms
     
-    @AfterClass
-    public static void releaseClass() {
+    @BeforeClass
+    public static void initClass() {
+        GLProfile glp = GLProfile.getDefault();
+        if( ! ( glp.isHardwareRasterizer() && glp.isGL2GL3() ) ) {
+            // Sorry .. mobile is too slow for this one.
+            setTestSupported(false);
+            return;
+        }
     }
-
+    
     protected void run() throws InterruptedException {
         final ElektronenMultiplizierer demo = new ElektronenMultiplizierer(
                 tRoutineClassName,

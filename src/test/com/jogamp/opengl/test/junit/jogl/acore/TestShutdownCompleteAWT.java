@@ -39,7 +39,7 @@ import javax.media.opengl.awt.GLCanvas;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
@@ -56,7 +56,7 @@ public class TestShutdownCompleteAWT extends UITestCase {
         frame.add(glCanvas);
         frame.setSize(256, 256);
 
-        glCanvas.addGLEventListener(new Gears(1));
+        glCanvas.addGLEventListener(new GearsES2(1));
 
         Animator animator = new Animator(glCanvas);
 

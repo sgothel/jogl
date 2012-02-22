@@ -60,9 +60,11 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.os.Platform;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
@@ -114,6 +116,19 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
     private static FloatBuffer sharedVertexBuffer;
     private static IntBuffer sharedIndexBuffer;
 
+    @BeforeClass
+    public static void initClass() {
+        if(Platform.CPUFamily.X86 != Platform.CPU_ARCH.family) { // FIXME
+            // Turns out on some platforms (Linux ARM), 
+            // Mesa3D software impl. freezes when shared context is used.
+            setTestSupported(false);
+            return;
+        }
+        if(!GLProfile.isAvailable(GLProfile.GL2)) {
+            setTestSupported(false);
+        }
+    }
+    
     static private GLPbuffer initShared(GLCapabilities caps) {
         GLPbuffer sharedDrawable = GLDrawableFactory.getFactory(caps.getGLProfile()).createGLPbuffer(null, caps, null, 64, 64, null);
         Assert.assertNotNull(sharedDrawable);

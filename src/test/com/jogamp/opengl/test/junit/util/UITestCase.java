@@ -28,6 +28,7 @@
  
 package com.jogamp.opengl.test.junit.util;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.locks.SingletonInstance;
 
 import org.junit.Before;
@@ -36,6 +37,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.rules.TestName;
+import org.junit.runner.manipulation.NoTestsRemainException;
 
 
 public abstract class UITestCase {
@@ -48,6 +50,8 @@ public abstract class UITestCase {
     public static final long SINGLE_INSTANCE_LOCK_POLL =      1000; // poll every 1s
 
     static volatile SingletonInstance singletonInstance;
+    
+    static volatile boolean testSupported = true;
 
     private static final synchronized void initSingletonInstance() {
         if( null == singletonInstance )  {
@@ -57,6 +61,11 @@ public abstract class UITestCase {
                 throw new RuntimeException("Fatal: Could lock single instance: "+singletonInstance.getName());
             }
         }
+    }
+    
+    public static void setTestSupported(boolean v) {
+        System.err.println("setTestSupported: "+v);
+        testSupported = v;
     }
 
     public final String getTestMethodName() {
@@ -86,13 +95,20 @@ public abstract class UITestCase {
 
     @Before
     public void setUp() {
-        System.err.println("++++ UITestCase.setUp: "+getFullTestName(" - "));
+        System.err.print("++++ UITestCase.setUp: "+getFullTestName(" - "));
+        if(!testSupported) {
+            System.err.println(" - "+unsupportedTestMsg);
+            throw new UnsupportedOperationException(unsupportedTestMsg);
+        }
+        System.err.println();      
     }
 
     @After
     public void tearDown() {
         System.err.println("++++ UITestCase.tearDown: "+getFullTestName(" - "));
     }
+    
+    static final String unsupportedTestMsg = "Test not supported on this platform.";
 
 }
 

@@ -28,6 +28,7 @@
  
 package com.jogamp.opengl.test.junit.jogl.acore;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.newt.opengl.GLWindow;
 
 import javax.media.nativewindow.util.InsetsImmutable;
@@ -54,12 +55,16 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        glp = GLProfile.getDefault();
-        Assert.assertNotNull(glp);
-        caps = new GLCapabilities(glp);
-        Assert.assertNotNull(caps);
-        width  = 256;
-        height = 256;
+        if(GLProfile.isAvailable(GLProfile.GL2ES1)) {
+            glp = GLProfile.get(GLProfile.GL2ES1);
+            Assert.assertNotNull(glp);
+            caps = new GLCapabilities(glp);
+            Assert.assertNotNull(caps);
+            width  = 256;
+            height = 256;
+        } else {
+            setTestSupported(false);
+        }
     }
 
     private void initShared() {

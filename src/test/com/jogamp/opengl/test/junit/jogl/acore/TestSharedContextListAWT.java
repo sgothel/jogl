@@ -33,6 +33,8 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
+
+import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -56,12 +58,22 @@ public class TestSharedContextListAWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        glp = GLProfile.getDefault();
-        Assert.assertNotNull(glp);
-        caps = new GLCapabilities(glp);
-        Assert.assertNotNull(caps);
-        width  = 256;
-        height = 256;
+        if(Platform.CPUFamily.X86 != Platform.CPU_ARCH.family) { // FIXME
+            // Turns out on some platforms (Linux ARM), 
+            // Mesa3D software impl. freezes when shared context is used.
+            setTestSupported(false);
+            return;
+        }
+        if(GLProfile.isAvailable(GLProfile.GL2)) {
+            glp = GLProfile.get(GLProfile.GL2);
+            Assert.assertNotNull(glp);
+            caps = new GLCapabilities(glp);
+            Assert.assertNotNull(caps);
+            width  = 256;
+            height = 256;
+        } else {
+            setTestSupported(false);
+        }
     }
 
     private void initShared() {

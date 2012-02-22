@@ -39,7 +39,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
@@ -52,7 +52,7 @@ public class TestShutdownCompleteNEWT extends UITestCase {
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test");
 
-        glWindow.addGLEventListener(new Gears());
+        glWindow.addGLEventListener(new GearsES2());
 
         Animator animator = new Animator(glWindow);
 
