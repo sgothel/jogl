@@ -55,8 +55,8 @@ public class TestGPUMemSec01NEWT extends UITestCase {
              ", rowlenA1 "+rl1+", rowlenA4 "+rl4+", rowlenA8 "+rl8;        
     }
     
-    static NEWTGLContext.WindowContext createCurrentGLOffscreenWindow(int width, int height) throws GLException, InterruptedException {
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOffscreenWindow(GLProfile.getGL2ES2(), width, height, true);
+    static NEWTGLContext.WindowContext createCurrentGLOffscreenWindow(GLProfile glp, int width, int height) throws GLException, InterruptedException {
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOffscreenWindow(glp, width, height, true);
         final GL gl = winctx.context.getGL();
 
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
@@ -229,12 +229,59 @@ public class TestGPUMemSec01NEWT extends UITestCase {
     }
     
     @Test
-    public void testReadPixels_640x480xRGBxUB() throws InterruptedException {
+    public void testReadPixelsGL_640x480xRGBAxUB() throws InterruptedException {
+        GLProfile glp = GLProfile.getDefault();
         final int width = 640;
         final int height= 480;
         
         // preset ..
-        final NEWTGLContext.WindowContext winctx = createCurrentGLOffscreenWindow(width, height);
+        final NEWTGLContext.WindowContext winctx = createCurrentGLOffscreenWindow(glp, width, height);
+        final GLDrawable drawable = winctx.context.getGLDrawable();
+        final GL gl = winctx.context.getGL();
+        
+        // 2 x too small - 0 x alignment
+        Assert.assertEquals(2, readPixelsCheck(gl, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, 4, width, height));
+                        
+        drawable.swapBuffers();
+        Thread.sleep(50);
+        
+        NEWTGLContext.destroyWindow(winctx);
+    }
+    
+    @Test
+    public void testReadPixelsGL_99x100xRGBxUB() throws InterruptedException {
+        GLProfile glp = GLProfile.getGL2ES2();
+        final int wwidth = 640;
+        final int wheight= 480;
+        final int rwidth =  99;
+        final int rheight= 100;
+        
+        // preset ..
+        final NEWTGLContext.WindowContext winctx = createCurrentGLOffscreenWindow(glp, wwidth, wheight);
+        final GLDrawable drawable = winctx.context.getGLDrawable();
+        final GL gl = winctx.context.getGL();
+        
+        // 2 x too small - 1 x alignment
+        Assert.assertEquals(3, readPixelsCheck(gl, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, 4, rwidth, rheight));
+                        
+        drawable.swapBuffers();
+        Thread.sleep(50);
+        
+        NEWTGLContext.destroyWindow(winctx);
+    }
+    
+    @Test
+    public void testReadPixelsGL2GL3_640x480xRGBxUB() throws InterruptedException {
+        GLProfile glp = GLProfile.getGL2ES2();
+        if(!glp.isGL2GL3()) {
+            System.err.println("GL2GL3 n/a skip test");
+            return;
+        }
+        final int width = 640;
+        final int height= 480;
+        
+        // preset ..
+        final NEWTGLContext.WindowContext winctx = createCurrentGLOffscreenWindow(glp, width, height);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL gl = winctx.context.getGL();
         
@@ -248,14 +295,19 @@ public class TestGPUMemSec01NEWT extends UITestCase {
     }
     
     @Test
-    public void testReadPixels_102x100xRGBxUB() throws InterruptedException {
+    public void testReadPixelsGL2GL3_99x100xRGBxUB() throws InterruptedException {
+        GLProfile glp = GLProfile.getGL2ES2();
+        if(!glp.isGL2GL3()) {
+            System.err.println("GL2GL3 n/a skip test");
+            return;
+        }
         final int wwidth = 640;
         final int wheight= 480;
-        final int rwidth = 102;
+        final int rwidth =  99;
         final int rheight= 100;
         
         // preset ..
-        final NEWTGLContext.WindowContext winctx = createCurrentGLOffscreenWindow(wwidth, wheight);
+        final NEWTGLContext.WindowContext winctx = createCurrentGLOffscreenWindow(glp, wwidth, wheight);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL gl = winctx.context.getGL();
         
@@ -270,7 +322,8 @@ public class TestGPUMemSec01NEWT extends UITestCase {
     
     @Test
     public void testReadPixelsGL2GL3_640x480xREDxUB() throws InterruptedException {
-        if(!GLProfile.isAvailable(GLProfile.GL2GL3)) {
+        GLProfile glp = GLProfile.getGL2ES2();
+        if(!glp.isGL2GL3()) {
             System.err.println("GL2GL3 n/a skip test");
             return;
         }
@@ -278,7 +331,7 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         final int height= 480;
 
         // preset ..
-        final NEWTGLContext.WindowContext winctx = createCurrentGLOffscreenWindow(width, height);
+        final NEWTGLContext.WindowContext winctx = createCurrentGLOffscreenWindow(glp, width, height);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2GL3 gl = winctx.context.getGL().getGL2GL3();
         
@@ -293,7 +346,8 @@ public class TestGPUMemSec01NEWT extends UITestCase {
 
     @Test
     public void testReadPixelsGL2GL3_102x100xREDxUB() throws InterruptedException {
-        if(!GLProfile.isAvailable(GLProfile.GL2GL3)) {
+        GLProfile glp = GLProfile.getGL2ES2();
+        if(!glp.isGL2GL3()) {
             System.err.println("GL2GL3 n/a skip test");
             return;
         }
@@ -303,7 +357,7 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         int rheight= 100;
 
         // preset ..
-        final NEWTGLContext.WindowContext winctx = createCurrentGLOffscreenWindow(wwidth, wheight);
+        final NEWTGLContext.WindowContext winctx = createCurrentGLOffscreenWindow(glp, wwidth, wheight);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2GL3 gl = winctx.context.getGL().getGL2GL3();
         
