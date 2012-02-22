@@ -181,11 +181,10 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                 }
                 EGLGraphicsDevice e = new EGLGraphicsDevice(eglDisplay, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
                 DefaultGraphicsScreen s = new DefaultGraphicsScreen(e, aConfig.getScreen().getIndex());
-                // yes, use the already chosen/requested Capabilities (x11,win32,..)
+                // use the original requested Capabilities, ignore previously chosen ones (x11,win32,..) - they are not fit
                 final GLCapabilitiesImmutable capsRequested = (GLCapabilitiesImmutable) aConfig.getRequestedCapabilities();
-                final GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable) aConfig.getChosenCapabilities();
                 eglConfig = (EGLGraphicsConfiguration) GraphicsConfigurationFactory.getFactory(e).chooseGraphicsConfiguration(
-                        capsChosen, capsRequested, null, s);
+                                capsRequested, capsRequested, null, s);
                 if (null == eglConfig) {
                     throw new GLException("Couldn't create EGLGraphicsConfiguration from "+s);
                 } else if(DEBUG) {
