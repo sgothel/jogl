@@ -74,7 +74,7 @@ static Bool NewtScreen_getRANDRVersion(Display *dpy, int *major, int *minor) {
         return False;
     }
     if(0 == showedRandRVersion) {
-        fprintf(stderr, "X11 RandR Version %d.%d\n", *major, *minor);
+        DBG_PRINT("X11 RandR Version %d.%d\n", *major, *minor);
         showedRandRVersion = 1;
     }
     return True;
