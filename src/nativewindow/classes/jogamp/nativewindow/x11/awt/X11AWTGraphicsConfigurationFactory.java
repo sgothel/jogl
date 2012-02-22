@@ -176,7 +176,7 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
         // X11GraphicsConfig or something went wrong in the steps above;
         // Let's take the default configuration as used on Windows and MacOSX then ..
         if(DEBUG) {
-            System.err.println("!!! Using default configuration");
+            System.err.println("Using default configuration");
         }
 
         gc = device.getDefaultConfiguration();

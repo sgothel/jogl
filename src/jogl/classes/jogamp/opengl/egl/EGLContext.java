@@ -191,7 +191,7 @@ public abstract class EGLContext extends GLContextImpl {
                                   ", eglConfig "+config+", "+glProfile+", shareWith "+toHexString(shareWithHandle)+", error "+toHexString(EGL.eglGetError()));
         }
         if (DEBUG) {
-            System.err.println(getThreadName() + ": !!! Created OpenGL context 0x" +
+            System.err.println(getThreadName() + ": Created OpenGL context 0x" +
                                Long.toHexString(contextHandle) + 
                                ",\n\twrite surface 0x" + Long.toHexString(drawable.getHandle()) +
                                ",\n\tread  surface 0x" + Long.toHexString(drawableRead.getHandle())+
@@ -222,7 +222,7 @@ public abstract class EGLContext extends GLContextImpl {
         final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
         final String key = "EGL-"+adevice.getUniqueID();
         if (DEBUG) {
-          System.err.println(getThreadName() + ": !!! Initializing EGLextension address table: "+key);
+          System.err.println(getThreadName() + ": Initializing EGLextension address table: "+key);
         }
         eglQueryStringInitialized = false;
         eglQueryStringAvailable = false;
@@ -234,7 +234,7 @@ public abstract class EGLContext extends GLContextImpl {
         if(null != table) {
             eglExtProcAddressTable = (EGLExtProcAddressTable) table;
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext EGL ProcAddressTable reusing key("+key+") -> "+toHexString(table.hashCode()));
+                System.err.println(getThreadName() + ": GLContext EGL ProcAddressTable reusing key("+key+") -> "+toHexString(table.hashCode()));
             }
         } else {
             eglExtProcAddressTable = new EGLExtProcAddressTable(new GLProcAddressResolver());
@@ -242,7 +242,7 @@ public abstract class EGLContext extends GLContextImpl {
             synchronized(mappedContextTypeObjectLock) {
                 mappedGLXProcAddress.put(key, getEGLExtProcAddressTable());
                 if(DEBUG) {
-                    System.err.println(getThreadName() + ": !!! GLContext EGL ProcAddressTable mapping key("+key+") -> "+toHexString(getEGLExtProcAddressTable().hashCode()));
+                    System.err.println(getThreadName() + ": GLContext EGL ProcAddressTable mapping key("+key+") -> "+toHexString(getEGLExtProcAddressTable().hashCode()));
                 }
             }
         }
@@ -259,7 +259,7 @@ public abstract class EGLContext extends GLContextImpl {
             final String ret = EGL.eglQueryString(((EGLDrawable)drawable).getDisplay(), 
                                                   EGL.EGL_EXTENSIONS);
             if (DEBUG) {
-              System.err.println("!!! EGL extensions: " + ret);
+              System.err.println("EGL extensions: " + ret);
             }
             sb.append(ret);
         }

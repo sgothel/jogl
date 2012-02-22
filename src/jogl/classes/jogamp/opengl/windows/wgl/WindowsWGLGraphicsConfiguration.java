@@ -181,11 +181,11 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
                 ok = GDI.DwmExtendFrameIntoClientArea(hwnd, m);
             }
             if(DEBUG) {
-                System.err.println("!!! translucency enabled on wnd: 0x"+Long.toHexString(hwnd)+" - ok: "+ok);
+                System.err.println("translucency enabled on wnd: 0x"+Long.toHexString(hwnd)+" - ok: "+ok);
             }
         }
         if (DEBUG) {
-            System.err.println("!!! setPixelFormat (ARB): hdc "+toHexString(hdc) +", "+caps);
+            System.err.println("setPixelFormat (ARB): hdc "+toHexString(hdc) +", "+caps);
         }
         setCapsPFD(caps);
     }

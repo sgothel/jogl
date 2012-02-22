@@ -393,7 +393,7 @@ public class WindowsWGLContext extends GLContextImpl {
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
     final String key = "WGL-"+adevice.getUniqueID();
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! Initializing WGL extension address table: "+key);
+      System.err.println(getThreadName() + ": Initializing WGL extension address table: "+key);
     }
     wglGetExtensionsStringEXTInitialized=false;
     wglGetExtensionsStringEXTAvailable=false;
@@ -407,7 +407,7 @@ public class WindowsWGLContext extends GLContextImpl {
     if(null != table) {
         wglExtProcAddressTable = (WGLExtProcAddressTable) table;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": !!! GLContext WGL ProcAddressTable reusing key("+key+") -> "+toHexString(table.hashCode()));
+            System.err.println(getThreadName() + ": GLContext WGL ProcAddressTable reusing key("+key+") -> "+toHexString(table.hashCode()));
         }
     } else {
         wglExtProcAddressTable = new WGLExtProcAddressTable(new GLProcAddressResolver());
@@ -415,7 +415,7 @@ public class WindowsWGLContext extends GLContextImpl {
         synchronized(mappedContextTypeObjectLock) {
             mappedGLXProcAddress.put(key, getWGLExtProcAddressTable());
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext WGL ProcAddressTable mapping key("+key+") -> "+toHexString(getWGLExtProcAddressTable().hashCode()));
+                System.err.println(getThreadName() + ": GLContext WGL ProcAddressTable mapping key("+key+") -> "+toHexString(getWGLExtProcAddressTable().hashCode()));
             }
         }
     }

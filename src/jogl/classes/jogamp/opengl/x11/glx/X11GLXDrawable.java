@@ -60,7 +60,7 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
         config.updateGraphicsConfiguration();
 
         if (DEBUG) {
-          System.err.println("!!! X11GLXDrawable.setRealized(true): "+config);
+          System.err.println("X11GLXDrawable.setRealized(true): "+config);
         }
     }
   }

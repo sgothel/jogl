@@ -237,7 +237,7 @@ public class TestParenting01aAWT extends UITestCase {
             Thread.sleep(100);
         }
 
-        Assert.assertEquals(true, animator1.isAnimating()); // !!!
+        Assert.assertEquals(true, animator1.isAnimating());
 
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {

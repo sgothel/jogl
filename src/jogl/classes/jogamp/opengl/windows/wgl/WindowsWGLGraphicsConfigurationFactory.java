@@ -209,7 +209,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                         set = true;                        
                     }
                     if (DEBUG) {
-                        System.err.println("!!! setPixelFormat (post): hdc "+toHexString(hdc) +", "+pfdID+" -> "+config.getPixelFormatID()+", set: "+set);
+                        System.err.println("setPixelFormat (post): hdc "+toHexString(hdc) +", "+pfdID+" -> "+config.getPixelFormatID()+", set: "+set);
                         Thread.dumpStack();
                     }
                 }
@@ -259,7 +259,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             } else {
                 System.err.println("updateGraphicsConfiguration(using target): hdc "+toHexString(hdc));
             }
-            System.err.println("!!! user chosen caps " + config.getChosenCapabilities());
+            System.err.println("user chosen caps " + config.getChosenCapabilities());
         }
         AbstractGraphicsDevice device = config.getScreen().getDevice();
         WindowsWGLDrawableFactory.SharedResource sharedResource = ((WindowsWGLDrawableFactory)factory).getOrCreateSharedResource(device);
@@ -306,7 +306,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         GLProfile glProfile = capsChosen.getGLProfile();
         
         if(DEBUG) {
-            System.err.println("!!! translucency requested: "+(!capsChosen.isBackgroundOpaque())+", compositioning enabled: "+GDI.DwmIsCompositionEnabled()+" -> translucency "+(!isOpaque));
+            System.err.println("translucency requested: "+(!capsChosen.isBackgroundOpaque())+", compositioning enabled: "+GDI.DwmIsCompositionEnabled()+" -> translucency "+(!isOpaque));
         }
 
         WGLGLCapabilities pixelFormatCaps = null; // chosen or preset PFD ID's caps
@@ -403,7 +403,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             }
             pixelFormatCaps = (WGLGLCapabilities) GLGraphicsConfigurationUtil.fixOpaqueGLCapabilities(pixelFormatCaps, isOpaque);
             if (DEBUG) {
-                System.err.println("!!! chosen pfdID (ARB): native recommended "+ (recommendedIndex+1) +
+                System.err.println("chosen pfdID (ARB): native recommended "+ (recommendedIndex+1) +
                                    " chosen "+pixelFormatCaps);
             }
         }
@@ -479,7 +479,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             }
             pixelFormatCaps = availableCaps.get(chosenIndex);
             if (DEBUG) {
-                System.err.println("!!! chosen pfdID (GDI): native recommended "+ (recommendedIndex+1) +
+                System.err.println("chosen pfdID (GDI): native recommended "+ (recommendedIndex+1) +
                                    ", caps " + pixelFormatCaps);
             }
         }

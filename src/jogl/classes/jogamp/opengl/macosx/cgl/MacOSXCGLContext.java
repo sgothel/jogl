@@ -231,7 +231,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
     
     if (DEBUG) {
-      System.err.println("!!! Share context is " + toHexString(share) + " for " + this);
+      System.err.println("Share context is " + toHexString(share) + " for " + this);
     }
     return share;      
   }
@@ -299,7 +299,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
     final String key = "MacOSX-"+adevice.getUniqueID();
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! Initializing CGL extension address table: "+key);
+      System.err.println(getThreadName() + ": Initializing CGL extension address table: "+key);
     }
     ProcAddressTable table = null;
     synchronized(mappedContextTypeObjectLock) {
@@ -308,7 +308,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     if(null != table) {
         cglExtProcAddressTable = (CGLExtProcAddressTable) table;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": !!! GLContext CGL ProcAddressTable reusing key("+key+") -> "+toHexString(table.hashCode()));
+            System.err.println(getThreadName() + ": GLContext CGL ProcAddressTable reusing key("+key+") -> "+toHexString(table.hashCode()));
         }
     } else {
         cglExtProcAddressTable = new CGLExtProcAddressTable(new GLProcAddressResolver());
@@ -316,7 +316,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         synchronized(mappedContextTypeObjectLock) {
             mappedGLXProcAddress.put(key, getCGLExtProcAddressTable());
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext CGL ProcAddressTable mapping key("+key+") -> "+toHexString(getCGLExtProcAddressTable().hashCode()));
+                System.err.println(getThreadName() + ": GLContext CGL ProcAddressTable mapping key("+key+") -> "+toHexString(getCGLExtProcAddressTable().hashCode()));
             }
         }
     }

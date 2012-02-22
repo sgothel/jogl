@@ -62,7 +62,7 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
     super(drawable, null);
     this.contextHandle = ctx;
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! Created external OpenGL context " + toHexString(ctx) + " for " + this);
+      System.err.println(getThreadName() + ": Created external OpenGL context " + toHexString(ctx) + " for " + this);
     }
     GLContextShareSet.contextCreated(this);
     setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_COMPAT);  // use GL_VERSION

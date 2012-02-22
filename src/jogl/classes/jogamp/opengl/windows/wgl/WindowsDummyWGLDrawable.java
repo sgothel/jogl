@@ -68,7 +68,7 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
         WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration();
         config.updateGraphicsConfiguration(factory, ns, null);
         if (DEBUG) {
-          System.err.println("!!! WindowsDummyWGLDrawable: "+config);
+          System.err.println("WindowsDummyWGLDrawable: "+config);
         }
     } catch (Throwable t) {
         destroyImpl();

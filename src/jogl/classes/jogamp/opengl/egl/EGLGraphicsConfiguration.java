@@ -102,7 +102,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             // FIXME: setScreen( ... );
             setChosenCapabilities(newConfig.getChosenCapabilities());
             if(DEBUG) {
-                System.err.println("!!! updateGraphicsConfiguration(1): "+this);
+                System.err.println("updateGraphicsConfiguration(1): "+this);
             }
         }
     }
@@ -131,7 +131,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
 
         int[] stype = new int[1];
         if(! EGL.eglGetConfigAttrib(display, config, EGL.EGL_SURFACE_TYPE, stype, 0)) {
-            throw new GLException("Could not determine EGL_SURFACE_TYPE !!!");
+            throw new GLException("Could not determine EGL_SURFACE_TYPE");
         }
 
         if ( 0 != ( stype[0] & EGL.EGL_WINDOW_BIT ) ) {

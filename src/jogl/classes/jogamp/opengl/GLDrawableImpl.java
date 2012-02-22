@@ -148,7 +148,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   public final synchronized void setRealized(boolean realizedArg) {
     if ( realized != realizedArg ) {
         if(DEBUG) {
-            System.err.println("setRealized: "+getClass().getName()+" "+realized+" -> "+realizedArg);
+            System.err.println(getThreadName() + ": setRealized: "+getClass().getName()+" "+realized+" -> "+realizedArg);
         }
         realized = realizedArg;
         AbstractGraphicsDevice aDevice = surface.getGraphicsConfiguration().getScreen().getDevice();
@@ -174,7 +174,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
             }
         }
     } else if(DEBUG) {
-        System.err.println("setRealized: "+getClass().getName()+" "+this.realized+" == "+realizedArg);
+        System.err.println(getThreadName() + ": setRealized: "+getClass().getName()+" "+this.realized+" == "+realizedArg);
     }
   }
   protected abstract void setRealizedImpl();
@@ -210,6 +210,10 @@ public abstract class GLDrawableImpl implements GLDrawable {
                 ",\n\tWindow    "+getNativeSurface()+"]";
   }
 
+  protected static String getThreadName() {
+    return Thread.currentThread().getName();
+  }
+  
   protected GLDrawableFactory factory;
   protected NativeSurface surface;
   protected GLCapabilitiesImmutable requestedCapabilities;

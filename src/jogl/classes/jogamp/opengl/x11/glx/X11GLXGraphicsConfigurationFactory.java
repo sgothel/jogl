@@ -267,13 +267,13 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
             if(availableCaps.size() > 0) {
                 recommendedIndex = capsChosen.isBackgroundOpaque() ? 0 : -1; // only use recommended idx if not translucent
                 if (DEBUG) {
-                    System.err.println("!!! glXChooseFBConfig recommended fbcfg " + toHexString(fbcfgsL.get(0)) + ", idx " + recommendedIndex);
-                    System.err.println("!!! user  caps " + capsChosen);
-                    System.err.println("!!! fbcfg caps " + availableCaps.get(0));
+                    System.err.println("glXChooseFBConfig recommended fbcfg " + toHexString(fbcfgsL.get(0)) + ", idx " + recommendedIndex);
+                    System.err.println("user  caps " + capsChosen);
+                    System.err.println("fbcfg caps " + availableCaps.get(0));
                 }
             } else if (DEBUG) {
-                System.err.println("!!! glXChooseFBConfig no caps for recommended fbcfg " + toHexString(fbcfgsL.get(0)));
-                System.err.println("!!! user  caps " + capsChosen);
+                System.err.println("glXChooseFBConfig no caps for recommended fbcfg " + toHexString(fbcfgsL.get(0)));
+                System.err.println("user  caps " + capsChosen);
             }
         }
 
@@ -334,7 +334,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         // 1st choice: get GLCapabilities based on users GLCapabilities setting recommendedIndex as preferred choice
         XVisualInfo recommendedVis = GLX.glXChooseVisual(display, screen, attribs, 0);
         if (DEBUG) {
-            System.err.print("!!! glXChooseVisual recommended ");
+            System.err.print("glXChooseVisual recommended ");
             if (recommendedVis == null) {
                 System.err.println("null visual");
             } else {

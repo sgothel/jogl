@@ -109,7 +109,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
             setXVisualInfo(newConfig.getXVisualInfo());
             setChosenCapabilities(newConfig.getChosenCapabilities());
             if(DEBUG) {
-                System.err.println("!!! updateGraphicsConfiguration: "+this);
+                System.err.println("updateGraphicsConfiguration: "+this);
             }
         }
     }
@@ -383,8 +383,8 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       }  
       XVisualInfo res = XVisualInfo.create(infos[0]);
       if (DEBUG) {
-        System.err.println("!!! Fetched XVisualInfo for visual ID " + toHexString(visualID));
-        System.err.println("!!! Resulting XVisualInfo: visualid = " + toHexString(res.getVisualid()));
+        System.err.println("Fetched XVisualInfo for visual ID " + toHexString(visualID));
+        System.err.println("Resulting XVisualInfo: visualid = " + toHexString(res.getVisualid()));
       }
       return res;
   }

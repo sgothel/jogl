@@ -857,8 +857,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             windowLock.lock();
             try {
                 if(DEBUG_IMPLEMENTATION) {
-                    String msg = "!!! Window DestroyAction() "+getThreadName();
-                    System.err.println(msg);
+                    System.err.println("Window DestroyAction() "+getThreadName());
                 }
                 // Childs first ..
                 synchronized(childWindowsLock) {

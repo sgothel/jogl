@@ -1526,7 +1526,7 @@ public class GLProfile {
                                                 2, GLContext.CTX_PROFILE_ES,
                                                 2, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_IMPL_ES2_COMPAT);
                 if (DEBUG) {
-                  System.err.println(GLContext.getThreadName() + ": !!! initProfilesForDeviceCritical-MapVersionsAvailable HAVE: ES2 -> ES 2.0");
+                  System.err.println(GLContext.getThreadName() + ": initProfilesForDeviceCritical-MapVersionsAvailable HAVE: ES2 -> ES 2.0");
                 }
             }
             if( hasGLES1Impl ) {
@@ -1535,7 +1535,7 @@ public class GLProfile {
                                                 1, GLContext.CTX_PROFILE_ES,
                                                 1, 0, GLContext.CTX_PROFILE_ES);
                 if (DEBUG) {
-                  System.err.println(GLContext.getThreadName() + ": !!! initProfilesForDeviceCritical-MapVersionsAvailable HAVE: ES1 -> ES 1.0");
+                  System.err.println(GLContext.getThreadName() + ": initProfilesForDeviceCritical-MapVersionsAvailable HAVE: ES1 -> ES 1.0");
                 }
             }
             addedEGLProfile = computeProfileMap(device, false /* desktopCtxUndef*/, false /* esCtxUndef */);

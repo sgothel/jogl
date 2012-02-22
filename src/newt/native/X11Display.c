@@ -563,7 +563,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
                 break;
             case ClientMessage:
                 if (evt.xclient.send_event==True && evt.xclient.data.l[0]==wm_delete_atom) { // windowDeleteAtom
-                    DBG_PRINT( "X11: event . ClientMessage call %p type 0x%X !!!\n", 
+                    DBG_PRINT( "X11: event . ClientMessage call %p type 0x%X\n", 
                         (void*)evt.xclient.window, (unsigned int)evt.xclient.message_type);
                     (*env)->CallVoidMethod(env, jwindow, windowDestroyNotifyID);
                     // Called by Window.java: CloseWindow(); 

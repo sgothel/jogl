@@ -250,15 +250,15 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                     sharedContext.release();
                 }
                 if (DEBUG) {
-                    System.err.println("!!! SharedDevice:  " + sharedDevice);
-                    System.err.println("!!! SharedScreen:  " + sharedScreen);
-                    System.err.println("!!! SharedContext: " + sharedContext + ", madeCurrent " + madeCurrent);
-                    System.err.println("!!! GLX Server Vendor:      " + glXServerVendorName);
-                    System.err.println("!!! GLX Server Version:     " + glXServerVersion);
-                    System.err.println("!!! GLX Server Multisample: " + glXServerMultisampleAvailable);
-                    System.err.println("!!! GLX Client Vendor:      " + GLXUtil.getClientVendorName());
-                    System.err.println("!!! GLX Client Version:     " + GLXUtil.getClientVersionNumber());
-                    System.err.println("!!! GLX Client Multisample: " + GLXUtil.isClientMultisampleAvailable());
+                    System.err.println("SharedDevice:  " + sharedDevice);
+                    System.err.println("SharedScreen:  " + sharedScreen);
+                    System.err.println("SharedContext: " + sharedContext + ", madeCurrent " + madeCurrent);
+                    System.err.println("GLX Server Vendor:      " + glXServerVendorName);
+                    System.err.println("GLX Server Version:     " + glXServerVersion);
+                    System.err.println("GLX Server Multisample: " + glXServerMultisampleAvailable);
+                    System.err.println("GLX Client Vendor:      " + GLXUtil.getClientVendorName());
+                    System.err.println("GLX Client Version:     " + GLXUtil.getClientVersionNumber());
+                    System.err.println("GLX Client Multisample: " + GLXUtil.isClientMultisampleAvailable());
                 }
                 return new SharedResource(sharedDevice, sharedScreen, sharedDrawable, sharedContext, 
                                           glXServerVersion, glXServerVendorName, 
@@ -273,11 +273,11 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         public void releaseSharedResource(SharedResourceRunner.Resource shared) {
             SharedResource sr = (SharedResource) shared;
             if (DEBUG) {
-                System.err.println("!!! Shutdown Shared:");
-                System.err.println("!!!   Device  : " + sr.device);
-                System.err.println("!!!   Screen  : " + sr.screen);
-                System.err.println("!!!   Drawable: " + sr.drawable);
-                System.err.println("!!!   CTX     : " + sr.context);
+                System.err.println("Shutdown Shared:");
+                System.err.println("Device  : " + sr.device);
+                System.err.println("Screen  : " + sr.screen);
+                System.err.println("Drawable: " + sr.drawable);
+                System.err.println("CTX     : " + sr.context);
                 Thread.dumpStack();
             }
 

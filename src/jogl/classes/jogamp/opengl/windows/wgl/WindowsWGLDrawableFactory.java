@@ -324,14 +324,14 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                     sharedContext.release();
                 }
                 if (DEBUG) {
-                    System.err.println("!!! SharedDevice:  " + sharedDevice);
-                    System.err.println("!!! SharedScreen:  " + absScreen);
-                    System.err.println("!!! SharedContext: " + sharedContext);
-                    System.err.println("!!! pixelformat:   " + hasARBPixelFormat);
-                    System.err.println("!!! multisample:   " + hasARBMultisample);
-                    System.err.println("!!! pbuffer:       " + hasARBPBuffer);
-                    System.err.println("!!! readDrawable:  " + hasARBReadDrawableAvailable);
-                    System.err.println("!!! vendor:        " + vendor);
+                    System.err.println("SharedDevice:  " + sharedDevice);
+                    System.err.println("SharedScreen:  " + absScreen);
+                    System.err.println("SharedContext: " + sharedContext);
+                    System.err.println("pixelformat:   " + hasARBPixelFormat);
+                    System.err.println("multisample:   " + hasARBMultisample);
+                    System.err.println("pbuffer:       " + hasARBPBuffer);
+                    System.err.println("readDrawable:  " + hasARBReadDrawableAvailable);
+                    System.err.println("vendor:        " + vendor);
                 }
                 return new SharedResource(sharedDevice, absScreen, sharedDrawable, sharedContext, 
                                           hasARBPixelFormat, hasARBMultisample,
@@ -346,11 +346,11 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         public void releaseSharedResource(SharedResourceRunner.Resource shared) {
             SharedResource sr = (SharedResource) shared;
             if (DEBUG) {
-              System.err.println("!!! Shutdown Shared:");
-              System.err.println("!!!   Device  : " + sr.device);
-              System.err.println("!!!   Screen  : " + sr.screen);
-              System.err.println("!!!   Drawable: " + sr.drawable);
-              System.err.println("!!!   CTX     : " + sr.context);
+              System.err.println("Shutdown Shared:");
+              System.err.println("Device  : " + sr.device);
+              System.err.println("Screen  : " + sr.screen);
+              System.err.println("Drawable: " + sr.drawable);
+              System.err.println("CTX     : " + sr.context);
             }
 
             if (null != sr.context) {

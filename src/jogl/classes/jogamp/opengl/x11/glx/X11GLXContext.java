@@ -441,7 +441,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
     final String key = "GLX-"+adevice.getUniqueID();
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! Initializing GLX extension address table: "+key);
+      System.err.println(getThreadName() + ": Initializing GLX extension address table: "+key);
     }
     ProcAddressTable table = null;
     synchronized(mappedContextTypeObjectLock) {
@@ -450,7 +450,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     if(null != table) {
         glXExtProcAddressTable = (GLXExtProcAddressTable) table;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": !!! GLContext GLX ProcAddressTable reusing key("+key+") -> "+toHexString(table.hashCode()));
+            System.err.println(getThreadName() + ": GLContext GLX ProcAddressTable reusing key("+key+") -> "+toHexString(table.hashCode()));
         }
     } else {
         glXExtProcAddressTable = new GLXExtProcAddressTable(new GLProcAddressResolver());
@@ -458,7 +458,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         synchronized(mappedContextTypeObjectLock) {
             mappedGLXProcAddress.put(key, getGLXExtProcAddressTable());
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext GLX ProcAddressTable mapping key("+key+") -> "+toHexString(getGLXExtProcAddressTable().hashCode()));
+                System.err.println(getThreadName() + ": GLContext GLX ProcAddressTable mapping key("+key+") -> "+toHexString(getGLXExtProcAddressTable().hashCode()));
                 Thread.dumpStack();
             }
         }
@@ -468,7 +468,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   protected final StringBuilder getPlatformExtensionsStringImpl() {
     StringBuilder sb = new StringBuilder();
     if (DEBUG) {
-      System.err.println("!!! GLX Version client version "+ GLXUtil.getClientVersionNumber()+
+      System.err.println("GLX Version client version "+ GLXUtil.getClientVersionNumber()+
                          ", server: "+         
         ((X11GLXDrawableFactory)drawable.getFactoryImpl()).getGLXVersionNumber(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice()));
     }
@@ -477,21 +477,21 @@ public abstract class X11GLXContext extends GLContextImpl {
         {
             final String ret = GLX.glXGetClientString(ns.getDisplayHandle(), GLX.GLX_EXTENSIONS);
             if (DEBUG) {
-              System.err.println("!!! GLX extensions (glXGetClientString): " + ret);
+              System.err.println("GLX extensions (glXGetClientString): " + ret);
             }
             sb.append(ret).append(" ");
         }
         {
             final String ret = GLX.glXQueryExtensionsString(ns.getDisplayHandle(), ns.getScreenIndex());
             if (DEBUG) {
-              System.err.println("!!! GLX extensions (glXQueryExtensionsString): " + ret);
+              System.err.println("GLX extensions (glXQueryExtensionsString): " + ret);
             }
             sb.append(ret).append(" ");
         }
         {
             final String ret = GLX.glXQueryServerString(ns.getDisplayHandle(), ns.getScreenIndex(), GLX.GLX_EXTENSIONS);
             if (DEBUG) {
-              System.err.println("!!! GLX extensions (glXQueryServerString): " + ret);
+              System.err.println("GLX extensions (glXQueryServerString): " + ret);
             }
             sb.append(ret).append(" ");
         }

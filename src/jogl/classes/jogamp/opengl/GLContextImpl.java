@@ -279,8 +279,8 @@ public abstract class GLContextImpl extends GLContext {
       if(lock.getHoldCount() > 2) {
           throw new GLException("XXX: "+lock);
       }
-      if (DEBUG || TRACE_SWITCH) {
-          System.err.println("GLContextImpl.destroy.0 - "+Thread.currentThread().getName()+": " + toHexString(contextHandle) +
+      if (DEBUG || TRACE_SWITCH) {          
+          System.err.println(getThreadName() + ": GLContextImpl.destroy.0 - "+Thread.currentThread().getName()+": " + toHexString(contextHandle) +
                   ", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
       }
       if (contextHandle != 0) {
@@ -316,7 +316,7 @@ public abstract class GLContextImpl extends GLContext {
     } finally {
       lock.unlock();
       if (DEBUG || TRACE_SWITCH) {
-          System.err.println("GLContextImpl.destroy.X: " + toHexString(contextHandle) +
+          System.err.println(getThreadName() + ": GLContextImpl.destroy.X: " + toHexString(contextHandle) +
                   ", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
       }
     }
@@ -514,9 +514,9 @@ public abstract class GLContextImpl extends GLContext {
         }
         if (DEBUG) {
             if(created) {
-                System.err.println(getThreadName() + ": !!! Create GL context OK: " + toHexString(contextHandle) + " for " + getClass().getName()+" - "+getGLVersion());
+                System.err.println(getThreadName() + ": Create GL context OK: " + toHexString(contextHandle) + " for " + getClass().getName()+" - "+getGLVersion());
             } else {
-                System.err.println(getThreadName() + ": !!! Create GL context FAILED for " + getClass().getName());
+                System.err.println(getThreadName() + ": Create GL context FAILED for " + getClass().getName());
             }
         }        
         if(!created) {
@@ -547,7 +547,7 @@ public abstract class GLContextImpl extends GLContext {
                                                 ctxMajorVersion, ctxMinorVersion, ctxOptions);
                 GLContext.setAvailableGLVersionsSet(device);
                 if (DEBUG) {
-                  System.err.println(getThreadName() + ": !!! createContextOLD-MapVersionsAvailable HAVE: " +reqMajor+"."+reqProfile+ " -> "+getGLVersion());
+                  System.err.println(getThreadName() + ": createContextOLD-MapVersionsAvailable HAVE: " +reqMajor+"."+reqProfile+ " -> "+getGLVersion());
                 }
             }
         }
@@ -646,7 +646,7 @@ public abstract class GLContextImpl extends GLContext {
     GLProfile glpImpl = glp.getImpl();
 
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! createContextARB: mappedVersionsAvailableSet("+device.getConnection()+"): "+
+      System.err.println(getThreadName() + ": createContextARB: mappedVersionsAvailableSet("+device.getConnection()+"): "+
                GLContext.getAvailableGLVersionsSet(device));
     }
 
@@ -758,10 +758,10 @@ public abstract class GLContextImpl extends GLContext {
         }*/
         destroyContextARBImpl(_context);
         if (DEBUG) {
-          System.err.println(getThreadName() + ": !!! createContextARB-MapVersionsAvailable HAVE: " +reqMajor+"."+reqProfile+ " -> "+getGLVersion());
+          System.err.println(getThreadName() + ": createContextARB-MapVersionsAvailable HAVE: " +reqMajor+"."+reqProfile+ " -> "+getGLVersion());
         }
     } else if (DEBUG) {
-        System.err.println(getThreadName() + ": !!! createContextARB-MapVersionsAvailable NOPE: "+reqMajor+"."+reqProfile);
+        System.err.println(getThreadName() + ": createContextARB-MapVersionsAvailable NOPE: "+reqMajor+"."+reqProfile);
     }
     resetStates();
   }
@@ -988,7 +988,7 @@ public abstract class GLContextImpl extends GLContext {
     
     contextFQN = getContextFQN(adevice, major, minor, ctxProfileBits);
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! Context FQN: "+contextFQN+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, null));
+      System.err.println(getThreadName() + ": Context FQN: "+contextFQN+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, null));
     }
 
     //
@@ -1005,7 +1005,7 @@ public abstract class GLContextImpl extends GLContext {
     if(null != table) {
         glProcAddressTable = table;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": !!! GLContext GL ProcAddressTable reusing key("+contextFQN+") -> "+toHexString(table.hashCode()));
+            System.err.println(getThreadName() + ": GLContext GL ProcAddressTable reusing key("+contextFQN+") -> "+toHexString(table.hashCode()));
         }
     } else {
         glProcAddressTable = (ProcAddressTable) createInstance(gl.getGLProfile(), "ProcAddressTable",
@@ -1015,7 +1015,7 @@ public abstract class GLContextImpl extends GLContext {
         synchronized(mappedContextTypeObjectLock) {
             mappedGLProcAddress.put(contextFQN, getGLProcAddressTable());
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext GL ProcAddressTable mapping key("+contextFQN+") -> "+toHexString(getGLProcAddressTable().hashCode()));
+                System.err.println(getThreadName() + ": GLContext GL ProcAddressTable mapping key("+contextFQN+") -> "+toHexString(getGLProcAddressTable().hashCode()));
             }
         }
     }
@@ -1030,7 +1030,7 @@ public abstract class GLContextImpl extends GLContext {
     if(null !=  eCache) {
         extensionAvailability = eCache;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": !!! GLContext GL ExtensionAvailabilityCache reusing key("+contextFQN+") -> "+toHexString(eCache.hashCode()) + " - entries: "+eCache.getTotalExtensionCount());
+            System.err.println(getThreadName() + ": GLContext GL ExtensionAvailabilityCache reusing key("+contextFQN+") -> "+toHexString(eCache.hashCode()) + " - entries: "+eCache.getTotalExtensionCount());
         }
     } else {
         extensionAvailability = new ExtensionAvailabilityCache();
@@ -1039,7 +1039,7 @@ public abstract class GLContextImpl extends GLContext {
         synchronized(mappedContextTypeObjectLock) {
             mappedExtensionAvailabilityCache.put(contextFQN, extensionAvailability);
             if(DEBUG) {
-                System.err.println(getThreadName() + ": !!! GLContext GL ExtensionAvailabilityCache mapping key("+contextFQN+") -> "+toHexString(extensionAvailability.hashCode()) + " - entries: "+extensionAvailability.getTotalExtensionCount());
+                System.err.println(getThreadName() + ": GLContext GL ExtensionAvailabilityCache mapping key("+contextFQN+") -> "+toHexString(extensionAvailability.hashCode()) + " - entries: "+extensionAvailability.getTotalExtensionCount());
             }
         }
     }    
@@ -1062,20 +1062,20 @@ public abstract class GLContextImpl extends GLContext {
     
     contextFQN = getContextFQN(adevice, major, minor, ctxProfileBits);
     if (DEBUG) {
-      System.err.println(getThreadName() + ": !!! RM Context FQN: "+contextFQN+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, null));
+      System.err.println(getThreadName() + ": RM Context FQN: "+contextFQN+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, null));
     }
 
     synchronized(mappedContextTypeObjectLock) {
         ProcAddressTable table = mappedGLProcAddress.remove( contextFQN );
         if(DEBUG) {
-            System.err.println(getThreadName() + ": !!! RM GLContext GL ProcAddressTable mapping key("+contextFQN+") -> "+table.hashCode());
+            System.err.println(getThreadName() + ": RM GLContext GL ProcAddressTable mapping key("+contextFQN+") -> "+table.hashCode());
         }
     }
 
     synchronized(mappedContextTypeObjectLock) {
         ExtensionAvailabilityCache  eCache = mappedExtensionAvailabilityCache.remove( contextFQN );
         if(DEBUG) {
-            System.err.println(getThreadName() + ": !!! RM GLContext GL ExtensionAvailabilityCache mapping key("+contextFQN+") -> "+eCache.hashCode());
+            System.err.println(getThreadName() + ": RM GLContext GL ExtensionAvailabilityCache mapping key("+contextFQN+") -> "+eCache.hashCode());
         }
     }
   }

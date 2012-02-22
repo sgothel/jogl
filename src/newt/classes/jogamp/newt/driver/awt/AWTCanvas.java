@@ -196,12 +196,12 @@ public class AWTCanvas extends Canvas {
         if(Window.DEBUG_IMPLEMENTATION) {
             Exception e = new Exception("Info: Call Stack: "+Thread.currentThread().getName());
             e.printStackTrace();
-            System.err.println("!!! Created Config (n): HAVE    GC "+chosen);
-            System.err.println("!!! Created Config (n): THIS    GC "+gc);
-            System.err.println("!!! Created Config (n): Choosen GC "+compatible);
-            System.err.println("!!! Created Config (n): HAVE    CF "+awtConfig);
-            System.err.println("!!! Created Config (n): Choosen CF "+config);
-            System.err.println("!!! Created Config (n): EQUALS CAPS "+config.getChosenCapabilities().equals(awtConfig.getChosenCapabilities()));
+            System.err.println("Created Config (n): HAVE    GC "+chosen);
+            System.err.println("Created Config (n): THIS    GC "+gc);
+            System.err.println("Created Config (n): Choosen GC "+compatible);
+            System.err.println("Created Config (n): HAVE    CF "+awtConfig);
+            System.err.println("Created Config (n): Choosen CF "+config);
+            System.err.println("Created Config (n): EQUALS CAPS "+config.getChosenCapabilities().equals(awtConfig.getChosenCapabilities()));
         }
 
         if (compatible != null) {

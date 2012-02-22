@@ -833,7 +833,7 @@ public abstract class GLContext {
           }
           deviceVersionsAvailableSet.add(devKey);
           if (DEBUG) {
-            System.err.println(getThreadName() + ": !!! createContextARB: SET mappedVersionsAvailableSet "+devKey);
+            System.err.println(getThreadName() + ": createContextARB: SET mappedVersionsAvailableSet "+devKey);
             // Thread.dumpStack();
           }
       }
