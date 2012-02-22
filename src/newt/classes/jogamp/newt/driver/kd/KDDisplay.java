@@ -59,11 +59,11 @@ public class KDDisplay extends DisplayImpl {
 
     protected void createNativeImpl() {
         // FIXME: map name to EGL_*_DISPLAY
-        long handle = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
+        long handle = EGLDisplayUtil.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
         if (handle == EGL.EGL_NO_DISPLAY) {
             throw new NativeWindowException("eglGetDisplay failed");
         }
-        if (!EGL.eglInitialize(handle, null, null)) {
+        if (!EGLDisplayUtil.eglInitialize(handle, null, null)) {
             throw new NativeWindowException("eglInitialize failed");
         }
         aDevice = new EGLGraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
@@ -71,7 +71,7 @@ public class KDDisplay extends DisplayImpl {
 
     protected void closeNativeImpl() {
         if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
-            EGL.eglTerminate(aDevice.getHandle());
+            EGLDisplayUtil.eglTerminate(aDevice.getHandle());
         }
     }
 

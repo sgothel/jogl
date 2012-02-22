@@ -152,7 +152,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 if(DEBUG) {
                     System.err.println("EGLDrawableFactory.destroy("+shutdownType+"): "+sr.device.toString());
                 }
-                EGL.eglTerminate(sr.device.getHandle());
+                EGLDisplayUtil.eglTerminate(sr.device.getHandle());
             }
             sharedMap.clear();
             sharedMap = null;
@@ -249,13 +249,13 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             sr = (SharedResource) sharedMap.get(connection);
         }
         if(null==sr) {
-            long eglDisplay = EGL.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
+            long eglDisplay = EGLDisplayUtil.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
             if (eglDisplay == EGL.EGL_NO_DISPLAY) {
                 throw new GLException("Failed to created EGL default display: error 0x"+Integer.toHexString(EGL.eglGetError()));
             } else if(DEBUG) {
                 System.err.println("EGLDrawableFactory.createShared: eglDisplay(EGL_DEFAULT_DISPLAY): 0x"+Long.toHexString(eglDisplay));
             }
-            if (!EGL.eglInitialize(eglDisplay, null, null)) {
+            if (!EGLDisplayUtil.eglInitialize(eglDisplay, null, null)) {
                 throw new GLException("eglInitialize failed"+", error 0x"+Integer.toHexString(EGL.eglGetError()));
             }
             final EGLGraphicsDevice sharedDevice = new EGLGraphicsDevice(eglDisplay, connection, adevice.getUnitID());            

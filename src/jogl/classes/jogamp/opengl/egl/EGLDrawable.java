@@ -163,20 +163,20 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                 } else {
                     nDisplay = aDevice.getHandle(); // 0 == EGL.EGL_DEFAULT_DISPLAY
                 }
-                eglDisplay = EGL.eglGetDisplay(nDisplay);
+                eglDisplay = EGLDisplayUtil.eglGetDisplay(nDisplay);
                 if (eglDisplay == EGL.EGL_NO_DISPLAY) {
                     if(DEBUG) {
                         System.err.println(getThreadName() + ": eglDisplay("+toHexString(nDisplay)+" <surfaceHandle>): failed, using EGL_DEFAULT_DISPLAY");
                     }
                     nDisplay = EGL.EGL_DEFAULT_DISPLAY;
-                    eglDisplay = EGL.eglGetDisplay(nDisplay);
+                    eglDisplay = EGLDisplayUtil.eglGetDisplay(nDisplay);
                 }
                 if (eglDisplay == EGL.EGL_NO_DISPLAY) {
                     throw new GLException("Failed to created EGL display: nhandle "+toHexString(nDisplay)+", "+aDevice+", error "+toHexString(EGL.eglGetError()));
                 } else if(DEBUG) {
                     System.err.println(getThreadName() + ": eglDisplay("+toHexString(nDisplay)+"): "+toHexString(eglDisplay));
                 }
-                if (!EGL.eglInitialize(eglDisplay, null, null)) {
+                if (!EGLDisplayUtil.eglInitialize(eglDisplay, null, null)) {
                     throw new GLException("eglInitialize failed"+", error "+Integer.toHexString(EGL.eglGetError()));
                 }
                 EGLGraphicsDevice e = new EGLGraphicsDevice(eglDisplay, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
@@ -208,7 +208,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                 if(DEBUG) {
                     System.err.println(getThreadName() + ": EGLDrawable.setRealized(false): eglTerminate: "+toHexString(eglDisplay));
                 }
-                EGL.eglTerminate(eglDisplay);
+                EGLDisplayUtil.eglTerminate(eglDisplay);
             }
             eglDisplay=EGL.EGL_NO_DISPLAY;
             eglConfig=null;

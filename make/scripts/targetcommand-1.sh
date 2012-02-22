@@ -11,18 +11,18 @@ XTRA_FLAGS=""
 # OK (Panda, Omap4)
 #
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT
-TSTCLASS=com.jogamp.opengl.test.junit.jogl.util.TestGLReadBufferUtilTextureIOWrite01NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.util.TestGLReadBufferUtilTextureIOWrite01NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.util.TestGLReadBufferUtilTextureIOWrite02NEWT
-
-# Some Regressions (Panda, Omap4)
-#
-#TSTCLASS=com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01
-
-#TSTCLASS=com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01
+#TSTCLASS=com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 # (Tegra regressions)
+#TSTCLASS=com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01  # (Tegra regressions)
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT
-#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT
+TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT
+
+# Some Regressions (Panda, Omap4)
+#
+
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestNVSwapGroupNEWT
