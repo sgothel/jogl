@@ -53,7 +53,7 @@ public class GLReadBufferUtil {
     protected TextureData readTextureData = null;
 
     /**
-     * @param alpha true for RGBA readPixels, otherwise RGB readPixels 
+     * @param alpha true for RGBA readPixels, otherwise RGB readPixels. Disclaimer: Alpha maybe forced on ES platforms! 
      * @param write2Texture true if readPixel's TextureData shall be written to a 2d Texture
      */
     public GLReadBufferUtil(boolean alpha, boolean write2Texture) {
@@ -110,17 +110,31 @@ public class GLReadBufferUtil {
      * 
      * @see #GLReadBufferUtil(boolean, boolean)
      */
-    public void readPixels(GL gl, GLDrawable drawable, boolean flip) {
-        final int textureInternalFormat, textureDataFormat;
-        final int textureDataType = GL.GL_UNSIGNED_BYTE;
-        if(4 == components) {
-            textureInternalFormat=GL.GL_RGBA;
-            textureDataFormat=GL.GL_RGBA;
-        } else {
+    public boolean readPixels(GL gl, GLDrawable drawable, boolean flip) {
+        final int textureInternalFormat, textureDataFormat, textureDataType;
+        final int[] glImplColorReadVals = new int[] { 0, 0 };
+        
+        if(gl.isGL2GL3() && 3 == components) {
             textureInternalFormat=GL.GL_RGB;
             textureDataFormat=GL.GL_RGB;
+            textureDataType = GL.GL_UNSIGNED_BYTE;            
+        } else if(gl.isGLES2Compatible() || gl.isExtensionAvailable("GL_OES_read_format")) {
+            gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_FORMAT, glImplColorReadVals, 0);
+            gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_TYPE, glImplColorReadVals, 1);            
+            textureInternalFormat = (4 == components) ? GL.GL_RGBA : GL.GL_RGB;
+            textureDataFormat = glImplColorReadVals[0];
+            textureDataType = glImplColorReadVals[1];
+        } else {
+            // RGBA read is safe for all GL profiles 
+            textureInternalFormat = (4 == components) ? GL.GL_RGBA : GL.GL_RGB;
+            textureDataFormat=GL.GL_RGBA;
+            textureDataType = GL.GL_UNSIGNED_BYTE;
         }
-        final int readPixelSize = drawable.getWidth() * drawable.getHeight() * components ;
+        
+        final int tmp[] = new int[1];
+        final int readPixelSize = GLBuffers.sizeof(gl, tmp, textureDataFormat, textureDataType, 
+                                                   drawable.getWidth(), drawable.getHeight(), 1, true);
+        
         boolean newData = false;
         if(readPixelSize>readPixelSizeLast) {
             readPixelBuffer = Buffers.newDirectByteBuffer(readPixelSize);
@@ -144,13 +158,30 @@ public class GLReadBufferUtil {
                 readPixelSizeLast = 0;
                 throw new RuntimeException("can not fetch offscreen texture", e);
             }
+        } else {
+            readTextureData.setInternalFormat(textureInternalFormat);
+            readTextureData.setWidth(drawable.getWidth());
+            readTextureData.setHeight(drawable.getHeight());
+            readTextureData.setPixelFormat(textureDataFormat);
+            readTextureData.setPixelType(textureDataType);
         }
-        if(null!=readPixelBuffer) {
+        boolean res = null!=readPixelBuffer;
+        if(res) {
             psm.setAlignment(gl, alignment, alignment);
             readPixelBuffer.clear();
             gl.glReadPixels(0, 0, drawable.getWidth(), drawable.getHeight(), textureDataFormat, textureDataType, readPixelBuffer);
-            readPixelBuffer.rewind();
-            if(null != readTexture) {
+            readPixelBuffer.position(readPixelSize);
+            readPixelBuffer.flip();
+            final int glerr1 = gl.glGetError();
+            if(GL.GL_NO_ERROR != glerr1) {
+                System.err.println("GLReadBufferUtil.readPixels: readPixels error 0x"+Integer.toHexString(glerr1)+
+                                   " "+drawable.getWidth()+"x"+drawable.getHeight()+
+                                   ", fmt 0x"+Integer.toHexString(textureDataFormat)+", type 0x"+Integer.toHexString(textureDataType)+
+                                   ", impl-fmt 0x"+Integer.toHexString(glImplColorReadVals[0])+", impl-type 0x"+Integer.toHexString(glImplColorReadVals[1])+
+                                   ", "+readPixelBuffer+", sz "+readPixelSize);
+                res = false;                
+            }
+            if(res && null != readTexture) {
                 if(newData) {
                     readTexture.updateImage(gl, readTextureData);
                 } else {
@@ -163,6 +194,7 @@ public class GLReadBufferUtil {
             }
             psm.restore(gl);
         }
+        return res;
     }
 
     public void dispose(GL gl) {  
@@ -178,4 +210,3 @@ public class GLReadBufferUtil {
     }
 
 }
-
