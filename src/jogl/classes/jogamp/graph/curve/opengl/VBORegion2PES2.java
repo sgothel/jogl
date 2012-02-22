@@ -190,10 +190,18 @@ public class VBORegion2PES2  extends GLRegion {
         // the buffers were disabled, since due to real/fbo switching and other vbo usage
     }
     
+    int[] maxTexSize = new int[] { -1 } ;
+    
     protected void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int width) {
         if(vp_width <=0 || vp_height <= 0 || width <= 0){
             renderRegion(gl);
         } else {
+            if(0 > maxTexSize[0]) {
+                gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, maxTexSize, 0);
+            }
+            if(width > maxTexSize[0]) {
+                width = maxTexSize[0];
+            }
             if(width != tex_width_c) {
                 renderRegion2FBO(gl, rs, width);                
             }
