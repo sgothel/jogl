@@ -100,7 +100,6 @@ public class GPURegionGLListener02 extends GPURegionRendererListenerBase01 {
         gl.glEnable(GL2ES2.GL_BLEND);
         regionRenderer.setAlpha(gl, 1.0f);
         regionRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
-        MSAATool.dump(drawable);
         
         createTestOutline();
     }

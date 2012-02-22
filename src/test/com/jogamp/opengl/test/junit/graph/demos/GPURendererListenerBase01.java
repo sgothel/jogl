@@ -121,6 +121,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         }
         System.err.println("*** "+gl.getContext().getGLVersion());
         System.err.println("*** GLDebugMessage "+gl.getContext().isGLDebugMessageEnabled());
+        MSAATool.dump(drawable);
         gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         getRenderer().init(gl);
     }
@@ -193,8 +194,9 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getWidth(), drawable.getHeight(), (int)Math.abs(zoom), texSize, objName);
         
         final String filename = dir + tech + sw +".tga";
-        screenshot.readPixels(drawable.getGL(), drawable, false);
-        screenshot.write(new File(filename));
+        if(screenshot.readPixels(drawable.getGL(), drawable, false)) {
+            screenshot.write(new File(filename));
+        }
     }
     
     int screenshot_num = 0;

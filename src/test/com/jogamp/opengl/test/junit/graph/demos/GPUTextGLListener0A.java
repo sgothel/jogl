@@ -64,7 +64,6 @@ public class GPUTextGLListener0A extends GPUTextRendererListenerBase01 {
         gl.glEnable(GL2ES2.GL_BLEND);
         textRenderer.setAlpha(gl, 1.0f);
         textRenderer.setColorStatic(gl, 0.0f, 0.0f, 0.0f);
-        MSAATool.dump(drawable);
     }
     
     public void dispose(GLAutoDrawable drawable) {

@@ -2,7 +2,6 @@ package com.jogamp.opengl.test.junit.graph;
 
 import java.io.IOException;
 
-import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
@@ -12,7 +11,6 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.graph.curve.Region;
@@ -29,12 +27,32 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 public class TestTextRendererNEWT01 extends UITestCase {
     static final boolean DEBUG = false;
     static final boolean TRACE = false;
+    static long duration = 100; // ms
 
+    static int atoi(String a) {
+        try {
+            return Integer.parseInt(a);
+        } catch (Exception ex) { throw new RuntimeException(ex); }
+    }
+    
     public static void main(String args[]) throws IOException {
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-time")) {
+                i++;
+                duration = atoi(args[i]);
+            }
+        }
         String tstname = TestTextRendererNEWT01.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }    
         
+    static void sleep() {
+        try {
+            System.err.println("** new frame ** (sleep: "+duration+"ms)");
+            Thread.sleep(duration);
+        } catch (InterruptedException ie) {}
+    }
+    
     static void destroyWindow(GLWindow window) {
         if(null!=window) {
             window.destroy();
@@ -60,32 +78,44 @@ public class TestTextRendererNEWT01 extends UITestCase {
         
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setAlphaBits(4);    
+        System.err.println("Requested: "+caps);
 
         GLWindow window = createWindow("text-vbaa1-msaa0", caps, 800,400);
+        window.display();
+        System.err.println("Chosen: "+window.getChosenGLCapabilities());
+        
         RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
         TextGLListener textGLListener = new TextGLListener(rs, Region.VBAA_RENDERING_BIT, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         
-        textGLListener.setFontSet(FontFactory.UBUNTU, 0, 0);
-        textGLListener.setTech(-400, -30, 0f, -1000, window.getWidth()*2);
-        window.display();
-        
-        textGLListener.setTech(-400, -30, 0, -380, window.getWidth()*3);
-        window.display();
-        
-        textGLListener.setTech(-400, -20, 0, -80, window.getWidth()*4);
-        window.display();
+        if(textGLListener.setFontSet(FontFactory.UBUNTU, 0, 0)) {
+            textGLListener.setTech(-400, -30, 0f, -1000, window.getWidth()*2);
+            window.display();
+            sleep();
+            
+            textGLListener.setTech(-400, -30, 0, -380, window.getWidth()*3);
+            window.display();
+            sleep();
+            
+            textGLListener.setTech(-400, -20, 0, -80, window.getWidth()*4);
+            window.display();
+            sleep();
+        }
 
-        textGLListener.setFontSet(FontFactory.JAVA, 0, 0);
-        textGLListener.setTech(-400, -30, 0f, -1000, window.getWidth()*2);
-        window.display();
-        
-        textGLListener.setTech(-400, -30, 0, -380, window.getWidth()*3);
-        window.display();
-        
-        textGLListener.setTech(-400, -20, 0, -80, window.getWidth()*4);
-        window.display();
+        if(textGLListener.setFontSet(FontFactory.JAVA, 0, 0)) {
+            textGLListener.setTech(-400, -30, 0f, -1000, window.getWidth()*2);
+            window.display();
+            sleep();
+            
+            textGLListener.setTech(-400, -30, 0, -380, window.getWidth()*3);
+            window.display();
+            sleep();
+            
+            textGLListener.setTech(-400, -20, 0, -80, window.getWidth()*4);
+            window.display();
+            sleep();
+        }
         
         destroyWindow(window); 
     }
@@ -97,32 +127,44 @@ public class TestTextRendererNEWT01 extends UITestCase {
         caps.setAlphaBits(4);    
         caps.setSampleBuffers(true);
         caps.setNumSamples(4);
+        System.err.println("Requested: "+caps);
 
         GLWindow window = createWindow("text-vbaa0-msaa1", caps, 800, 400);
+        window.display();
+        System.err.println("Chosen: "+window.getChosenGLCapabilities());
+        
         RenderState rs = RenderState.createRenderState(new ShaderState(), SVertex.factory());
         TextGLListener textGLListener = new TextGLListener(rs, 0, DEBUG, TRACE);
         textGLListener.attachInputListenerTo(window);
         window.addGLEventListener(textGLListener);
         
-        textGLListener.setFontSet(FontFactory.UBUNTU, 0, 0);
-        textGLListener.setTech(-400, -30, 0f, -1000, 0);
-        window.display();
-        
-        textGLListener.setTech(-400, -30, 0, -380, 0);
-        window.display();
-        
-        textGLListener.setTech(-400, -20, 0, -80, 0);
-        window.display();
-        
-        textGLListener.setFontSet(FontFactory.JAVA, 0, 0);
-        textGLListener.setTech(-400, -30, 0f, -1000, 0);
-        window.display();
-        
-        textGLListener.setTech(-400, -30, 0, -380, 0);
-        window.display();
-        
-        textGLListener.setTech(-400, -20, 0, -80, 0);
-        window.display();
+        if(textGLListener.setFontSet(FontFactory.UBUNTU, 0, 0)) {
+            textGLListener.setTech(-400, -30, 0f, -1000, 0);
+            window.display();
+            sleep();
+            
+            textGLListener.setTech(-400, -30, 0, -380, 0);
+            window.display();
+            sleep();
+            
+            textGLListener.setTech(-400, -20, 0, -80, 0);
+            window.display();
+            sleep();
+        }
+
+        if(textGLListener.setFontSet(FontFactory.JAVA, 0, 0)) {
+            textGLListener.setTech(-400, -30, 0f, -1000, 0);
+            window.display();
+            sleep();
+            
+            textGLListener.setTech(-400, -30, 0, -380, 0);
+            window.display();
+            sleep();
+            
+            textGLListener.setTech(-400, -20, 0, -80, 0);
+            window.display();
+            sleep();
+        }
         
         destroyWindow(window); 
     }

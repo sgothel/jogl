@@ -180,8 +180,9 @@ public abstract class UIListenerBase01 implements GLEventListener {
         pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getWidth(), drawable.getHeight(), (int)Math.abs(zoom), 0, objName);
         
         final String filename = dir + tech + sw +".tga";
-        screenshot.readPixels(drawable.getGL(), drawable, false);
-        screenshot.write(new File(filename));
+        if(screenshot.readPixels(drawable.getGL(), drawable, false)) {
+            screenshot.write(new File(filename));
+        }
     }
     
     int screenshot_num = 0;
