@@ -210,18 +210,14 @@ public class FBObject {
      */
     public int attachTexture2D(GL gl, int texUnit, int magFilter, int minFilter, int wrapS, int wrapT) throws GLException {
         final int textureInternalFormat, textureDataFormat, textureDataType;
-        if(gl.isGL2()) { 
-            textureInternalFormat=GL.GL_RGBA8;
-            textureDataFormat=GL2.GL_BGRA;
-            textureDataType=GL2.GL_UNSIGNED_INT_8_8_8_8_REV;
-        } else if(gl.isGLES()) { 
+        if(gl.isGLES()) { 
             textureInternalFormat=GL.GL_RGBA;
             textureDataFormat=GL.GL_RGBA;
             textureDataType=GL.GL_UNSIGNED_BYTE;
-        } else {
-            textureInternalFormat=GL.GL_RGB;
-            textureDataFormat=GL.GL_RGB;
-            textureDataType=GL.GL_UNSIGNED_BYTE;
+        } else { 
+            textureInternalFormat=GL.GL_RGBA8;
+            textureDataFormat=GL.GL_BGRA;
+            textureDataType=GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV;
         }
         return attachTexture2D(gl, texUnit, textureInternalFormat, textureDataFormat, textureDataType, magFilter, minFilter, wrapS, wrapT);
     }
@@ -265,7 +261,18 @@ public class FBObject {
         checkNoError(gl, gl.glGetError(), "FBObject Init.bindTex");  // throws GLException if error        
         gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, textureInternalFormat, width, height, 0,
                         textureDataFormat, textureDataType, null);
-        checkNoError(gl, gl.glGetError(), "FBObject Init.texImage2D");  // throws GLException if error        
+        int glerr = gl.glGetError();
+        if(GL.GL_NO_ERROR != glerr) {
+            int[] sz = new int[1];
+            gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, sz, 0);
+            // throws GLException if error
+            checkNoError(gl, glerr, "FBObject Init.texImage2D: "+
+                                    " int-fmt 0x"+Integer.toHexString(textureInternalFormat)+
+                                    ", "+width+"x"+height+
+                                    ", data-fmt 0x"+Integer.toHexString(textureDataFormat)+
+                                    ", data-type 0x"+Integer.toHexString(textureDataType)+
+                                    ", max tex-sz "+sz[0]);
+        }
         if( 0 < magFilter ) {
             gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, magFilter);
         }
