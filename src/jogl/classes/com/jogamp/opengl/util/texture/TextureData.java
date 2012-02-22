@@ -355,7 +355,7 @@ public class TextureData {
     }
 
     public String toString() {
-        return "TextureData["+width+"x"+height+", internFormat "+internalFormat+", pixelFormat "+pixelFormat+", pixelType "+pixelType+", border "+border+", estSize "+estimatedMemorySize+", alignment "+alignment+", rowlen "+rowLength;
+        return "TextureData["+width+"x"+height+", internFormat 0x"+Integer.toHexString(internalFormat)+", pixelFormat 0x"+Integer.toHexString(pixelFormat)+", pixelType 0x"+Integer.toHexString(pixelType)+", border "+border+", estSize "+estimatedMemorySize+", alignment "+alignment+", rowlen "+rowLength;
     }
 
     //----------------------------------------------------------------------

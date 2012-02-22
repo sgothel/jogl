@@ -54,6 +54,7 @@ import java.util.List;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
@@ -639,7 +640,7 @@ public class TextureIO {
                 fetchedFormat = GL.GL_RGB;
                 break;
             case GL.GL_RGBA:
-            case GL2.GL_BGRA:
+            case GL.GL_BGRA:
             case GL2.GL_ABGR_EXT:
             case GL.GL_RGBA8:
                 bytesPerPixel = 4;
@@ -1229,33 +1230,38 @@ public class TextureIO {
                 int pixelFormat = data.getPixelFormat();
                 int pixelType   = data.getPixelType();
                 if ((pixelFormat == GL.GL_RGB ||
-                     pixelFormat == GL.GL_RGBA) &&
+                     pixelFormat == GL.GL_RGBA || 
+                     pixelFormat == GL2.GL_BGR ||
+                     pixelFormat == GL.GL_BGRA ) &&
                     (pixelType == GL.GL_BYTE ||
                      pixelType == GL.GL_UNSIGNED_BYTE)) {
-                    ByteBuffer buf = ((data.getBuffer() != null) ?
-                                      (ByteBuffer) data.getBuffer() :
-                                      (ByteBuffer) data.getMipmapData()[0]);
-                    // Must reverse order of red and blue channels to get correct results
-                    int skip = ((pixelFormat == GL.GL_RGB) ? 3 : 4);
-                    for (int i = 0; i < buf.remaining(); i += skip) {
-                        byte red  = buf.get(i + 0);
-                        byte blue = buf.get(i + 2);
-                        buf.put(i + 0, blue);
-                        buf.put(i + 2, red);
+                    
+                    ByteBuffer buf = (ByteBuffer) data.getBuffer();
+                    if (null == buf) {
+                        buf = (ByteBuffer) data.getMipmapData()[0];
+                    }
+                    buf.rewind();
+                    
+                    if( pixelFormat == GL.GL_RGB || pixelFormat == GL.GL_RGBA ) { 
+                        // Must reverse order of red and blue channels to get correct results
+                        int skip = ((pixelFormat == GL.GL_RGB) ? 3 : 4);
+                        for (int i = 0; i < buf.remaining(); i += skip) {
+                            byte red  = buf.get(i + 0);
+                            byte blue = buf.get(i + 2);
+                            buf.put(i + 0, blue);
+                            buf.put(i + 2, red);
+                        }
                     }
 
                     TGAImage image = TGAImage.createFromData(data.getWidth(),
                                                              data.getHeight(),
-                                                             (pixelFormat == GL.GL_RGBA),
-                                                             false,
-                                                             ((data.getBuffer() != null) ?
-                                                              (ByteBuffer) data.getBuffer() :
-                                                              (ByteBuffer) data.getMipmapData()[0]));
+                                                             (pixelFormat == GL.GL_RGBA || pixelFormat == GL.GL_BGRA),
+                                                             false, buf);
                     image.write(file);
                     return true;
                 }
-
-                throw new IOException("TGA writer doesn't support this pixel format / type (only GL_RGB/A + bytes)");
+                throw new IOException("TGA writer doesn't support this pixel format 0x"+Integer.toHexString(pixelFormat)+
+                                      " / type 0x"+Integer.toHexString(pixelFormat)+" (only GL_RGB/A, GL_BGR/A + bytes)");
             }
 
             return false;

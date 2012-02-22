@@ -43,9 +43,6 @@ import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 import javax.media.opengl.*;
-import com.jogamp.opengl.util.*;
-import com.jogamp.opengl.util.texture.spi.*;
-import com.jogamp.opengl.util.texture.*;
 
 /**
  * Targa image reader and writer adapted from sources of the <a href =
@@ -144,8 +141,6 @@ public class TGAImage {
         }
 
         Header(LEDataInputStream in) throws IOException {
-            int ret;
-
             tgaType = TYPE_OLD; // dont try and get footer.
 
             // initial header fields
@@ -289,9 +284,7 @@ public class TGAImage {
      */
     private void decodeRGBImageU24_32(LEDataInputStream dIn) throws IOException {
         int i;    // row index
-        int j;    // column index
         int y;    // output row index
-        int raw;  // index through the raw input buffer
         int rawWidth = header.width() * (header.pixelDepth() / 8);
         byte[] rawBuf = new byte[rawWidth];
         byte[] tmpData = new byte[rawWidth * header.height()];
@@ -320,8 +313,8 @@ public class TGAImage {
             assert header.pixelDepth() == 32;
             bpp=4;
 
-            if(gl.isGL2GL3()) {
-                format = GL2GL3.GL_BGRA;
+            if( gl.getContext().isTextureFormatBGRA8888Available() ) {
+                format = GL.GL_BGRA;
             } else {
                 format = GL.GL_RGBA;
                 swapBGR(tmpData, rawWidth, header.height(), bpp);
@@ -391,10 +384,10 @@ public class TGAImage {
         buf.rewind();
         chan.write(buf);
         chan.write(data);
-        data.rewind();
         chan.force(true);
         chan.close();
         stream.close();
+        data.rewind();
     }
 
     /** Creates a TGAImage from data supplied by the end user. Shares

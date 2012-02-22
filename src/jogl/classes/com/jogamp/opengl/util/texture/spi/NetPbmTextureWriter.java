@@ -41,6 +41,7 @@ package com.jogamp.opengl.util.texture.spi;
 
 import java.io.*;
 import java.nio.*;
+import java.nio.channels.FileChannel;
 
 import javax.media.opengl.*;
 
@@ -81,10 +82,11 @@ public class NetPbmTextureWriter implements TextureWriter {
 
     public String getSuffix() { return (magic==6)?PPM:PAM; }
 
-    public boolean write(File file,
-                         TextureData data) throws IOException {
-
-        // file suffix selection 
+    public boolean write(File file, TextureData data) throws IOException {
+        boolean res;
+        final int magic_old = magic;
+        
+        // file suffix selection        
         if (0==magic) {
             if (PPM.equals(IOUtil.getFileSuffix(file))) {
                 magic = 6;
@@ -93,24 +95,52 @@ public class NetPbmTextureWriter implements TextureWriter {
             } else {
                 return false;
             }
+        }        
+        try {
+            res = writeImpl(file, data);
+        } finally {
+            magic = magic_old;
         }
-
-        final int pixelFormat = data.getPixelFormat();
+        return res;
+    }
+    
+    private boolean writeImpl(File file, TextureData data) throws IOException {
+        int pixelFormat = data.getPixelFormat();
         final int pixelType   = data.getPixelType();
         if ((pixelFormat == GL.GL_RGB ||
-             pixelFormat == GL.GL_RGBA) &&
+             pixelFormat == GL.GL_RGBA ||
+             pixelFormat == GL2.GL_BGR ||
+             pixelFormat == GL.GL_BGRA ) &&
             (pixelType == GL.GL_BYTE ||
              pixelType == GL.GL_UNSIGNED_BYTE)) {
     
-            int comps = ( pixelFormat == GL.GL_RGBA ) ? 4 : 3 ;
+            ByteBuffer buf = (ByteBuffer) data.getBuffer();
+            if (null == buf ) {
+                buf = (ByteBuffer) data.getMipmapData()[0];
+            }
+            buf.rewind();
+            
+            int comps = ( pixelFormat == GL.GL_RGBA || pixelFormat == GL.GL_BGRA ) ? 4 : 3 ;
+            
+            if( pixelFormat == GL2.GL_BGR || pixelFormat == GL.GL_BGRA ) { 
+                // Must reverse order of red and blue channels to get correct results
+                for (int i = 0; i < buf.remaining(); i += comps) {
+                    byte red  = buf.get(i + 0);
+                    byte blue = buf.get(i + 2);
+                    buf.put(i + 0, blue);
+                    buf.put(i + 2, red);
+                }
+                pixelFormat = ( 4 == comps ) ? GL.GL_RGBA : GL.GL_RGB;
+                data.setPixelFormat(pixelFormat);
+            }
 
             if(magic==6 && comps==4) {
                 throw new IOException("NetPbmTextureWriter magic 6 (PPM) doesn't RGBA pixel format, use magic 7 (PAM)");
             }
 
             FileOutputStream fos = new FileOutputStream(file);
-
-            StringBuffer header = new StringBuffer();
+            
+            StringBuilder header = new StringBuilder();
             header.append("P");
             header.append(magic);
             header.append("\n");
@@ -139,30 +169,16 @@ public class NetPbmTextureWriter implements TextureWriter {
             }
 
             fos.write(header.toString().getBytes());
-                
-            ByteBuffer buf = (ByteBuffer) data.getBuffer();
-            if (buf == null) {
-                buf = (ByteBuffer) data.getMipmapData()[0];
-            }
+            
+            FileChannel fosc = fos.getChannel();
+            fosc.write(buf);
+            fosc.force(true);
+            fosc.close();
+            fos.close();
             buf.rewind();
 
-            byte[] bufArray = null;
-
-            try {
-                bufArray = buf.array();
-            } catch (Throwable t) {}
-            if(null==bufArray) {
-                bufArray = new byte[data.getWidth()*data.getHeight()*comps];
-                buf.get(bufArray);
-                buf.rewind();
-            }
-
-            fos.write(bufArray);
-            fos.close();
-
             return true;
-        }
-      
+        }      
         throw new IOException("NetPbmTextureWriter writer doesn't support this pixel format / type (only GL_RGB/A + bytes)");
     }
 }
