@@ -102,8 +102,4 @@ public abstract class WindowsWGLDrawable extends GLDrawableImpl {
   public GLDynamicLookupHelper getGLDynamicLookupHelper() {
     return getFactoryImpl().getGLDynamicLookupHelper(0);
   }
-
-  static String getThreadName() {
-    return Thread.currentThread().getName();
-  }
 }
