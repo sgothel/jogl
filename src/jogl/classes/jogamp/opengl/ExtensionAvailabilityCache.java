@@ -88,7 +88,7 @@ final class ExtensionAvailabilityCache {
   
   final boolean isExtensionAvailable(String glExtensionName) {
     validateInitialization();
-    return availableExtensionCache.contains(mapGLExtensionName(glExtensionName));
+    return availableExtensionCache.contains(glExtensionName);
   }
 
   final int getPlatformExtensionCount() {
@@ -234,16 +234,6 @@ final class ExtensionAvailabilityCache {
       availableExtensionCache.add("<INTERNAL_DUMMY_PLACEHOLDER>");
 
       initialized = true;
-  }
-
-  // FIXME: hack to re-enable GL_NV_vertex_array_range extension after
-  // recent upgrade to new wglext.h and glxext.h headers
-  private static String mapGLExtensionName(String extensionName) {
-    if (extensionName != null &&
-        (extensionName.equals("WGL_NV_vertex_array_range") ||
-         extensionName.equals("GLX_NV_vertex_array_range"))) 
-      return "GL_NV_vertex_array_range";
-    return extensionName;
   }
 
   //----------------------------------------------------------------------
