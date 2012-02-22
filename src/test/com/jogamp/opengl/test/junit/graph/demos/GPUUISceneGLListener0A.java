@@ -1,5 +1,7 @@
 package com.jogamp.opengl.test.junit.graph.demos;
 
+import java.io.IOException;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAnimatorControl;
@@ -81,7 +83,12 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         
         this.debug = debug;
         this.trace = trace;
-        font = FontFactory.get(FontFactory.UBUNTU).getDefault();
+        try {
+            font = FontFactory.get(FontFactory.UBUNTU).getDefault();
+        } catch (IOException ioe) {
+            System.err.println("Catched: "+ioe.getMessage());
+            ioe.printStackTrace();
+        }
         labelRegions = new UIRegion[3];
         sceneUIController = new SceneUIController();
     }
@@ -211,7 +218,13 @@ public class GPUUISceneGLListener0A implements GLEventListener {
             gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) ).getGL2ES2();
         }
         
-        this.font = FontFactory.get(fontSet).getDefault();
+        try {
+            font = FontFactory.get(fontSet).getDefault();
+        } catch (IOException ioe) {
+            System.err.println("Catched: "+ioe.getMessage());
+            ioe.printStackTrace();
+        }
+        
         regionRenderer = RegionRenderer.create(rs, renderModes); 
         
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);

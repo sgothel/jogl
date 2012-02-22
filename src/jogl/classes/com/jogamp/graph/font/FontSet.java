@@ -27,6 +27,8 @@
  */
 package com.jogamp.graph.font;
 
+import java.io.IOException;
+
 
 public interface FontSet {
 
@@ -54,7 +56,7 @@ public interface FontSet {
     /** ITALIC style bit flag */
     public static final int STYLE_ITALIC      = 1 << 3;
 
-    Font getDefault();
+    Font getDefault() throws IOException ;
     
-    Font get(int family, int stylebits);
+    Font get(int family, int stylebits) throws IOException ;
 }

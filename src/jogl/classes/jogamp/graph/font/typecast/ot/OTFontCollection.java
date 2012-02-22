@@ -107,7 +107,7 @@ public class OTFontCollection {
         _fileName = file.getName();
 
         if (!file.exists()) {
-            throw new IOException();
+            throw new IOException("File <"+file.getName()+"> doesn't exist.");
         }
 
         // Do we need to modify the path name to deal with font resources

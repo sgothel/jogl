@@ -29,7 +29,6 @@ package com.jogamp.opengl.test.junit.graph.demos;
 
 import java.io.IOException;
 
-import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAnimatorControl;
@@ -41,7 +40,6 @@ import com.jogamp.graph.curve.opengl.TextRenderer;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
 import com.jogamp.graph.geom.AABBox;
-import com.jogamp.graph.geom.Vertex;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.opengl.GLWindow;
@@ -103,13 +101,18 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     boolean userInput = false;
     
     public GPUTextRendererListenerBase01(RenderState rs, int modes, boolean debug, boolean trace) {
-        super(TextRenderer.create(rs, modes), modes, debug, trace);        
-        this.font = FontFactory.get(fontSet).getDefault();
-        dumpFontNames();
-        
-        this.fontName = font.toString();
-        this.fontNameBox = font.getStringBounds(fontName, fontSizeFixed*2);
-        switchHeadBox();        
+        super(TextRenderer.create(rs, modes), modes, debug, trace);
+        try {
+            this.font = FontFactory.get(fontSet).getDefault();
+            dumpFontNames();
+            
+            this.fontName = font.toString();
+            this.fontNameBox = font.getStringBounds(fontName, fontSizeFixed*2);
+            switchHeadBox();        
+        } catch (IOException ioe) {
+            System.err.println("Catched: "+ioe.getMessage());
+            ioe.printStackTrace();
+        }
     }
 
     void dumpFontNames() {
@@ -198,18 +201,39 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         dumpMatrix(true);
     }
 
-    public void nextFontSet() {
-        fontSet = ( fontSet == FontFactory.UBUNTU ) ? FontFactory.JAVA : FontFactory.UBUNTU ;
-        font = FontFactory.get(fontSet).getDefault();   
-        this.fontName = font.getFullFamilyName(null).toString();
-        this.fontNameBox = font.getStringBounds(fontName, fontSizeFixed*3);
-        dumpFontNames();
+    public boolean nextFontSet() {        
+        try {
+            int set = ( fontSet == FontFactory.UBUNTU ) ? FontFactory.JAVA : FontFactory.UBUNTU ;
+            Font _font = FontFactory.get(set).getDefault();
+            if(null != _font) {
+                fontSet = set;
+                font = _font;
+                fontName = font.getFullFamilyName(null).toString();
+                fontNameBox = font.getStringBounds(fontName, fontSizeFixed*3);       
+                dumpFontNames();
+                return true;
+            }
+        } catch (IOException ex) {
+            System.err.println("Catched: "+ex.getMessage());
+        }
+        return false;
     }
     
-    public void setFontSet(int set, int family, int stylebits) {
-        fontSet = set;
-        font = FontFactory.get(fontSet).get(family, stylebits);       
-        dumpFontNames();
+    public boolean setFontSet(int set, int family, int stylebits) {
+        try {
+            Font _font = FontFactory.get(set).get(family, stylebits);
+            if(null != _font) {
+                fontSet = set;
+                font = _font;
+                fontName = font.getFullFamilyName(null).toString();
+                fontNameBox = font.getStringBounds(fontName, fontSizeFixed*3);       
+                dumpFontNames();
+                return true;
+            }
+        } catch (IOException ex) {
+            System.err.println("Catched: "+ex.getMessage());
+        }
+        return false;
     }
     
     public boolean isUserInputMode() { return userInput; }

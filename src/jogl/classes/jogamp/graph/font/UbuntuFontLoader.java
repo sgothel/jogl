@@ -71,12 +71,11 @@ public class UbuntuFontLoader implements FontSet {
         return 0 != ( bits & bit ) ;
     }
     
-    public Font getDefault() {
+    public Font getDefault() throws IOException {
         return get(FAMILY_REGULAR, 0) ; // Sans Serif Regular 
     }
     
-    public Font get(int family, int style)
-    {
+    public Font get(int family, int style) throws IOException {
         Font font = (Font)fontMap.get( ( family << 8 ) | style );
         if (font != null) {
             return font;
@@ -119,7 +118,7 @@ public class UbuntuFontLoader implements FontSet {
         return font;
     }
         
-    Font abspath(String fname, int family, int style) {
+    Font abspath(String fname, int family, int style) throws IOException {
         final String err = "Problem loading font "+fname+", stream "+relPath+fname;
         try {
             URL url = IOUtil.getResource(UbuntuFontLoader.class, relPath+fname);
@@ -131,9 +130,9 @@ public class UbuntuFontLoader implements FontSet {
                 fontMap.put( ( family << 8 ) | style, f );
                 return f;
             }        
-            throw new GLException(err);
+            throw new IOException(err);
         } catch(IOException ioe) {
-            throw new GLException(err, ioe);            
+            throw new IOException(err, ioe);            
         }
     }           
 }

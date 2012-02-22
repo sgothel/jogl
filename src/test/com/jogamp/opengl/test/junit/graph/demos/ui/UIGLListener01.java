@@ -28,6 +28,8 @@
 
 package com.jogamp.opengl.test.junit.graph.demos.ui;
 
+import java.io.IOException;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
@@ -45,24 +47,29 @@ public class UIGLListener01 extends UIListenerBase01 {
     public UIGLListener01 (RenderState rs, boolean debug, boolean trace) {
         super(RegionRenderer.create(rs, 0), debug, trace);
         setMatrix(-20, 00, 0f, -50);
-        final Font font = FontFactory.get(FontFactory.UBUNTU).getDefault();
-        button = new RIButton(SVertex.factory(), font, "Click me!", 4f, 3f){
-            public void onClick() {
-            }
-            public void onPressed() {
-            }
-            public void onRelease() {
-            }
-            
-        };
-        button.setPosition(2,1,0);
-        /** Button defaults !
-            button.setLabelColor(1.0f,1.0f,1.0f);
-            button.setButtonColor(0.6f,0.6f,0.6f);
-            button.setCorner(1.0f);
-            button.setSpacing(2.0f);
-         */
-        System.err.println(button);
+        try {
+            final Font font = FontFactory.get(FontFactory.UBUNTU).getDefault();
+            button = new RIButton(SVertex.factory(), font, "Click me!", 4f, 3f){
+                public void onClick() {
+                }
+                public void onPressed() {
+                }
+                public void onRelease() {
+                }
+                
+            };
+            button.setPosition(2,1,0);
+            /** Button defaults !
+                button.setLabelColor(1.0f,1.0f,1.0f);
+                button.setButtonColor(0.6f,0.6f,0.6f);
+                button.setCorner(1.0f);
+                button.setSpacing(2.0f);
+             */
+            System.err.println(button);
+        } catch (IOException ex) {
+            System.err.println("Catched: "+ex.getMessage());
+            ex.printStackTrace();
+        }            
     }
     
     public void init(GLAutoDrawable drawable) {

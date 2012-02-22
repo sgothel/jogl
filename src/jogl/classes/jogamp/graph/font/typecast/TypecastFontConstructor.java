@@ -44,18 +44,24 @@ import com.jogamp.graph.font.Font;
 public class TypecastFontConstructor implements FontConstructor  {
 
     public Font create(final File ffile) throws IOException {
-        return AccessController.doPrivileged(new PrivilegedAction<Font>() {
-            public Font run() {
+        Object o = AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            public Object run() {
                 OTFontCollection fontset;        
                 try {
                     fontset = OTFontCollection.create(ffile);
                     return new TypecastFont(fontset);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    return e;
                 }
-                return null;
             }
-        });        
+        });
+        if(o instanceof Font) {
+            return (Font)o;
+        }
+        if(o instanceof IOException) {
+            throw (IOException)o;
+        }
+        throw new InternalError("Unexpected Object: "+o);
     }
     
     public Font create(final URL furl) throws IOException {
