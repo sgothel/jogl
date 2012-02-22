@@ -1,0 +1,111 @@
+#! /bin/sh
+
+THISDIR=`pwd`
+
+XTRA_FLAGS=""
+#XTRA_FLAGS="-Djogl.debug.GraphicsConfiguration"
+#XTRA_FLAGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable -Djogl.debug.GraphicsConfiguration"
+#XTRA_FLAGS="-Djogl.debug.TraceGL"
+#XTRA_FLAGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
+
+# OK (Panda, Omap4)
+#
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT
+TSTCLASS=com.jogamp.opengl.test.junit.jogl.util.TestGLReadBufferUtilTextureIOWrite01NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.util.TestGLReadBufferUtilTextureIOWrite02NEWT
+
+# Some Regressions (Panda, Omap4)
+#
+#TSTCLASS=com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01
+
+#TSTCLASS=com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestNVSwapGroupNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES1NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT2
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestRedSquareES1NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestRedSquareES2NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.drawable.TestDrawable01NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState01NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLSimple01NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.newt.TestGLWindows00NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated
+#TSTCLASS=com.jogamp.opengl.test.junit.newt.TestRemoteGLWindows01NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.newt.TestRemoteWindow01NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.newt.TestScreenMode00bNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.newt.TestScreenMode01bNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.newt.TestWindows01NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT
+ 
+ mkdir -p $THISDIR/projects-cross 
+
+ rsync -av --delete --delete-after --delete-excluded \
+       --exclude 'build-x86*/' --exclude 'build-linux-x*/' --exclude 'build-android*/' --exclude 'build-win*/' --exclude 'build-mac*/' \
+       --exclude 'classes/' --exclude 'src/' --exclude '.git/' --exclude '*-java-src.zip' \
+       jogamp@jogamp02::PROJECTS/JOGL/gluegen jogamp@jogamp02::PROJECTS/JOGL/jogl $THISDIR/projects-cross 
+
+ cd $THISDIR/projects-cross/jogl/make 
+ 
+function junit_run() {
+     java \
+     -cp ../../gluegen/make/lib/junit.jar:/usr/share/ant/lib/ant.jar:/usr/share/ant/lib/ant-junit.jar:../../gluegen/build-linux-armv7/gluegen-rt.jar:../build-linux-armv7/jar/jogl.all-noawt.jar:../build-linux-armv7/jar/jogl.test.jar\
+     -Djava.awt.headless=true\
+     $XTRA_FLAGS \
+     com.jogamp.newt.util.MainThread\
+     org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner \
+     $TSTCLASS \
+     filtertrace=true \
+     haltOnError=false \
+     haltOnFailure=false \
+     showoutput=true \
+     outputtoformatters=true \
+     logfailedtests=true \
+     logtestlistenerevents=true \
+     formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter \
+     formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,$THISDIR/targetcommand.xml
+}
+ 
+function main_run() {
+     java \
+     -cp ../../gluegen/make/lib/junit.jar:/usr/share/ant/lib/ant.jar:/usr/share/ant/lib/ant-junit.jar:../../gluegen/build-linux-armv7/gluegen-rt.jar:../build-linux-armv7/jar/jogl.all-noawt.jar:../build-linux-armv7/jar/jogl.test.jar\
+     -Djava.awt.headless=true\
+     $XTRA_FLAGS \
+     com.jogamp.newt.util.MainThread\
+     $TSTCLASS \
+     $*
+}
+ 
+# junit_run 2>&1 | tee $THISDIR/targetcommand.log
+
+main_run $* 2>&1 | tee $THISDIR/targetcommand.log
+ 

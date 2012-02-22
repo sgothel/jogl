@@ -185,7 +185,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT $*
@@ -220,6 +220,8 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.ManualScreenMode03NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT $*
 #testnoawt -Djava.awt.headless=true com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
+testnoawt com.jogamp.opengl.test.junit.jogl.util.TestGLReadBufferUtilTextureIOWrite01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.TestGLReadBufferUtilTextureIOWrite02NEWT $*
 
 #
 # awt (testawt)

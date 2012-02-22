@@ -21,7 +21,7 @@ export HOST_IP=jogamp02
 export HOST_RSYNC_ROOT=PROJECTS/JOGL
 
 export TARGET_UID=jogamp
-export TARGET_IP=beagle01
+export TARGET_IP=panda01
 export TARGET_ROOT=/home/jogamp/projects-cross
 export TARGET_ANT_HOME=/usr/share/ant
 
