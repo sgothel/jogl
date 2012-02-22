@@ -56,7 +56,12 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         if(!(screen instanceof X11GraphicsScreen)) {
             throw new NativeWindowException("Only valid X11GraphicsScreen are allowed");
         }
-        return new X11GraphicsConfiguration((X11GraphicsScreen)screen,  capsChosen, capsRequested, getXVisualInfo(screen, capsChosen));
+        AbstractGraphicsConfiguration res = new X11GraphicsConfiguration((X11GraphicsScreen)screen,  capsChosen, capsRequested, getXVisualInfo(screen, capsChosen));
+        if(DEBUG) {
+            System.err.println("X11GraphicsConfigurationFactory.chooseGraphicsConfigurationImpl("+screen+","+capsChosen+"): "+res);
+            Thread.dumpStack();
+        }
+        return res;
     }
 
     public static XVisualInfo getXVisualInfo(AbstractGraphicsScreen screen, long visualID)

@@ -208,6 +208,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         }
         if(DEBUG) {
             System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationStatic("+x11Screen+","+capsChosen+"): "+res);
+            Thread.dumpStack();
         }
         return res;
     }

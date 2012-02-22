@@ -125,6 +125,7 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
         }
         if(DEBUG) {
             System.err.println("X11AWTGraphicsConfigurationFactory: chosen x11Config: "+x11Config);
+            Thread.dumpStack();
         }
         
         //
