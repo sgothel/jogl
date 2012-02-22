@@ -58,6 +58,10 @@ public final boolean hasGLSL() {
     return false;
 }
 
+public boolean isNPOTTextureAvailable() {
+  return false;
+}
+
 public final GL4bc getGL4bc() throws GLException {
     throw new GLException("Not a GL4bc implementation");
 }

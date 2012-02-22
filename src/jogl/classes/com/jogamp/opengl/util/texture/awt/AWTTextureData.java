@@ -180,7 +180,7 @@ public class AWTTextureData extends TextureData {
         if (glp.isGL2GL3()) {
             switch (image.getType()) {
                 case BufferedImage.TYPE_INT_RGB:
-                    pixelFormat = GL2GL3.GL_BGRA;
+                    pixelFormat = GL.GL_BGRA;
                     pixelType = GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV;
                     rowLength = scanlineStride;
                     alignment = 4;
@@ -188,7 +188,7 @@ public class AWTTextureData extends TextureData {
                     setupLazyCustomConversion(image);
                     break;
                 case BufferedImage.TYPE_INT_ARGB_PRE:
-                    pixelFormat = GL2GL3.GL_BGRA;
+                    pixelFormat = GL.GL_BGRA;
                     pixelType = GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV;
                     rowLength = scanlineStride;
                     alignment = 4;
@@ -254,7 +254,7 @@ public class AWTTextureData extends TextureData {
                     setupLazyCustomConversion(image);
                     break;
                 case BufferedImage.TYPE_USHORT_555_RGB:
-                    pixelFormat = GL2GL3.GL_BGRA;
+                    pixelFormat = GL.GL_BGRA;
                     pixelType = GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV;
                     rowLength = scanlineStride;
                     alignment = 2;

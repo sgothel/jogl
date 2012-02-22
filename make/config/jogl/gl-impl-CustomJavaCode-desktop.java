@@ -120,3 +120,6 @@
         throw new GLException("Not a GLES2 implementation");
     }
 
+    public boolean isNPOTTextureAvailable() {
+      return _context.isNPOTTextureAvailable();
+    }

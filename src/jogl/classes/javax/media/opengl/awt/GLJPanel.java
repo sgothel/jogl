@@ -864,13 +864,13 @@ public void reshape(int x, int y, int width, int height) {
             switch (awtFormat) {
             case BufferedImage.TYPE_3BYTE_BGR:
               glFormat = GL2.GL_BGR;
-              glType   = GL2.GL_UNSIGNED_BYTE;
+              glType   = GL.GL_UNSIGNED_BYTE;
               readBackBytes = ByteBuffer.allocate(readBackWidthInPixels * readBackHeightInPixels * 3);
               break;
 
             case BufferedImage.TYPE_INT_RGB:
             case BufferedImage.TYPE_INT_ARGB:
-              glFormat = GL2.GL_BGRA;
+              glFormat = GL.GL_BGRA;
               glType   = getGLPixelType();
               readBackInts = IntBuffer.allocate(readBackWidthInPixels * readBackHeightInPixels);
               break;

@@ -149,7 +149,7 @@ public class Mipmap {
       case( GL2GL3.GL_LUMINANCE ):
       case( GL2GL3.GL_LUMINANCE_ALPHA ):
       case( GL2GL3.GL_BGR ):
-      case( GL2GL3.GL_BGRA ):
+      case( GL.GL_BGRA ):
         return( true );
       default:
         return( false );
@@ -227,7 +227,7 @@ public class Mipmap {
           type == GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV ||
           type == GL2GL3.GL_UNSIGNED_INT_10_10_10_2 ||
           type == GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV ) &&
-          (format != GL2GL3.GL_RGBA && format != GL2GL3.GL_BGRA) ) {
+          (format != GL.GL_RGBA && format != GL.GL_BGRA) ) {
             return( false );
     }
     return( true );
@@ -411,8 +411,8 @@ public class Mipmap {
         return( 3 );
       case( GL2GL3.GL_LUMINANCE_ALPHA ):
         return( 2 );
-      case( GL2GL3.GL_RGBA ):
-      case( GL2GL3.GL_BGRA ):
+      case( GL.GL_RGBA ):
+      case( GL.GL_BGRA ):
         return( 4 );
       default:
         return( 1 );

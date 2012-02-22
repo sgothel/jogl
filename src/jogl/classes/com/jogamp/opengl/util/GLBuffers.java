@@ -431,7 +431,7 @@ public class GLBuffers extends Buffers {
               break;
             case GL.GL_RGBA:
             case GL2GL3.GL_RGBA_INTEGER:
-            case GL2GL3.GL_BGRA:
+            case GL.GL_BGRA:
             case GL2GL3.GL_BGRA_INTEGER:
             case GL2.GL_ABGR_EXT:
               elements = 4;

@@ -547,7 +547,18 @@ public abstract class GLContext {
   public final boolean hasGLSL() {
       return isGL2ES2() ;
   }
-
+  
+  /** Note: The GL impl. may return a const value, ie {@link GLES2#isNPOTTextureAvailable()} always returns <code>true</code>. */
+  public boolean isNPOTTextureAvailable() {
+      return isGL3() || isGLES2Compatible() || isExtensionAvailable(GL_ARB_texture_non_power_of_two);
+  }
+  private static final String GL_ARB_texture_non_power_of_two = "GL_ARB_texture_non_power_of_two";
+  
+  public boolean isTextureFormatBGRA8888Available() {
+      return isGL2GL3() || 
+             isExtensionAvailable("GL_EXT_texture_format_BGRA8888") || 
+             isExtensionAvailable("GL_IMG_texture_format_BGRA8888") ;
+  }
 
   public final boolean isGL4bc() {
       return ctxMajorVersion>=4 && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
