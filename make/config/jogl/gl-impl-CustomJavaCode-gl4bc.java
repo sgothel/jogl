@@ -182,7 +182,7 @@ public boolean glIsPBOUnpackEnabled() {
     return checkUnpackPBOEnabled(false);
 }
 
-private HashMap/*<MemoryObject>*/ arbMemCache = new HashMap();
+private HashMap<MemoryObject, MemoryObject> arbMemCache = new HashMap<MemoryObject, MemoryObject>();
 
 /** Entry point to C language function: <br> <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
 public java.nio.ByteBuffer glMapBuffer(int target, int access) {

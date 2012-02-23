@@ -110,8 +110,8 @@ public class MemoryObject {
      * @param obj0 the MemoryObject
      * @return either the already mapped MemoryObject - not changing the map, or the newly mapped one.
      */
-    public static MemoryObject getOrAddSafe(HashMap/*<MemoryObject,MemoryObject>*/ map, MemoryObject obj0) {
-        MemoryObject obj1 = (MemoryObject) map.get(obj0); // get identity (fast)
+    public static MemoryObject getOrAddSafe(HashMap<MemoryObject,MemoryObject> map, MemoryObject obj0) {
+        MemoryObject obj1 = map.get(obj0); // get identity (fast)
         if(null == obj1) {
             map.put(obj0, obj0);
             obj1 = obj0;
