@@ -127,6 +127,8 @@
                  output="${test.class.result.file}">
                 <env key="${system.env.library.path}" path="${obj.all.paths}"/>
                 <env key="CLASSPATH" value="${junit_jogl_awt.run.jars}"/>
+                <arg line="${junit.run.arg0}"/>
+                <arg line="${junit.run.arg1}"/>
                 <arg line="${jvmDataModel.arg}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <!--
@@ -147,6 +149,8 @@
         <!-- Test*NOUI* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="${junit.run.arg0}"/>
+            <jvmarg value="${junit.run.arg1}"/>
             <jvmarg value="${jvmDataModel.arg}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
 
@@ -211,6 +215,8 @@
                  failonerror="false">
                 <env key="${system.env.library.path}" path="${obj.all.paths}"/>
                 <env key="CLASSPATH" value="${junit_jogl_noawt.run.jars}"/>
+                <arg line="${junit.run.arg0}"/>
+                <arg line="${junit.run.arg1}"/>
                 <arg line="${jvmDataModel.arg}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <arg line="${jvmarg.headless}"/>
@@ -246,6 +252,8 @@
         <!-- Test*NEWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="${junit.run.arg0}"/>
+            <jvmarg value="${junit.run.arg1}"/>
             <jvmarg value="${jvmDataModel.arg}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
 
@@ -281,6 +289,8 @@
         <!-- Test*AWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="${junit.run.arg0}"/>
+            <jvmarg value="${junit.run.arg1}"/>
             <jvmarg value="${jvmDataModel.arg}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
 
@@ -316,6 +326,8 @@
         <!-- Test*AWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="${junit.run.arg0}"/>
+            <jvmarg value="${junit.run.arg1}"/>
             <jvmarg value="${jvmDataModel.arg}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
 
@@ -374,6 +386,8 @@
                  failonerror="false">
                 <env key="${system.env.library.path}" path="${obj.all.paths}"/>
                 <env key="CLASSPATH" value="${junit_extra_classpath}${junit_jogl_swt.run.jars}"/>
+                <arg line="${junit.run.arg0}"/>
+                <arg line="${junit.run.arg1}"/>
                 <arg line="${jvmDataModel.arg}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <arg line="${jvmarg.headless}"/>
@@ -405,6 +419,8 @@
       <!-- Test*SWT*AWT* -->
       <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
           <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+          <jvmarg value="${junit.run.arg0}"/>
+          <jvmarg value="${junit.run.arg1}"/>
           <jvmarg value="${jvmDataModel.arg}"/>
           <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
 
@@ -438,6 +454,8 @@
     <target name="junit.run.newt.awt" depends="test.compile">
         <!-- Test*AWT* -->
         <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+            <jvmarg value="${junit.run.arg0}"/>
+            <jvmarg value="${junit.run.arg1}"/>
             <jvmarg value="${jvmDataModel.arg}"/>
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
@@ -534,6 +552,9 @@ cd ${env.TARGET_ROOT}/jogl/make ${line.separator}
             <echo message="${line.separator}
 export DISPLAY=:0.0${line.separator}
 java \${line.separator}
+${junit.run.arg0}\${line.separator}
+${junit.run.arg1}\${line.separator}
+${jvmDataModel.arg}\${line.separator}
 -cp ${junit_jogl_noawt.run.remote.jars}\${line.separator}
 ${jvmarg.headless}\${line.separator}
 com.jogamp.newt.util.MainThread\${line.separator}
@@ -556,7 +577,7 @@ ${line.separator}
             <arg line='-x -c "
             chmod 0755 ${build.test}/targetcommand.sh ;
             scp ${build.test}/targetcommand.sh ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}/targetcommand.sh ;
-            ssh ${env.TARGET_UID}@${env.TARGET_IP} ${env.TARGET_ROOT}/targetcommand.sh ;
+            ssh -x ${env.TARGET_UID}@${env.TARGET_IP} ${env.TARGET_ROOT}/targetcommand.sh ;
             scp -pr ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}/jogl/make/${results.test}/* ${results.test}/ "'/>
         </exec>
     </target>
