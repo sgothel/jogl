@@ -27,7 +27,6 @@
  */
 package com.jogamp.opengl.test.junit.jogl.glsl;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.util.FBObject;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -51,7 +50,6 @@ import javax.media.opengl.GLUniformData;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.BeforeClass;
 
 public class TestFBOMRTNEWT01 extends UITestCase {
     static long durationPerTest = 10; // ms
@@ -59,13 +57,14 @@ public class TestFBOMRTNEWT01 extends UITestCase {
     @Test
     public void test01() throws InterruptedException {
         // preset ..
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(GLProfile.getGL2ES2(), 640, 480, true);        
+        if(!GLProfile.isAvailable(GLProfile.GL2GL3)) {
+            System.err.println("Test requires GL2/GL3 profile.");
+            return;
+        }
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(GLProfile.get(GLProfile.GL2GL3), 640, 480, true);        
         final GLDrawable drawable = winctx.context.getGLDrawable();
-        GL _gl = winctx.context.getGL();
-        Assert.assertTrue(_gl.isGL2GL3());
-        _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, _gl, null) );
-        Assert.assertTrue(_gl.isGL2GL3());
-        final GL2GL3 gl = _gl.getGL2GL3();
+        GL2GL3 gl = winctx.context.getGL().getGL2GL3();
+        gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, gl, null) ).getGL2GL3();
         System.err.println(winctx.context);
 
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
