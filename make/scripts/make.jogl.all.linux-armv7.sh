@@ -15,14 +15,9 @@ export TARGET_JAVA_LIBS=/usr/lib/jvm/default-java/jre/lib/arm
 
 ant \
     -Drootrel.build=build-linux-armv7 \
-    -Dgluegen.cpptasks.detected.os=true \
-    -DisUnix=true \
-    -DisLinux=true \
-    -DisLinuxARMv7=true \
-    -DisX11=true \
-    \
     -Dsetup.addNativeKD=true \
     -Dsetup.addNativeOpenMAX=true \
     -Dsetup.addNativeBroadcomEGL=true \
+    -Djunit.run.arg0="-Dnewt.test.Screen.disableScreenMode" \
     $* 2>&1 | tee make.jogl.all.linux-armv7.log
 

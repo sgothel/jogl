@@ -22,6 +22,7 @@ export HOST_RSYNC_ROOT=PROJECTS/JOGL
 
 export TARGET_UID=jogamp
 export TARGET_IP=panda01
+#export TARGET_IP=jautab02
 export TARGET_ROOT=/home/jogamp/projects-cross
 export TARGET_ANT_HOME=/usr/share/ant
 
@@ -35,6 +36,8 @@ ant \
     -DisLinux=true \
     -DisLinuxARMv7=true \
     -DisX11=true \
+    -DjvmDataModel.arg="-Djnlp.no.jvm.data.model.set=true" \
+    -Djunit.run.arg0="-Dnewt.test.Screen.disableScreenMode" \
     -DisCrosscompilation=true \
     \
     -Dsetup.addNativeKD=true \

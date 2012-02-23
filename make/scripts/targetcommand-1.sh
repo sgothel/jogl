@@ -2,7 +2,8 @@
 
 THISDIR=`pwd`
 
-XTRA_FLAGS="-Dnewt.debug.Screen"
+XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode"
+#XTRA_FLAGS="-Dnewt.debug.Screen"
 #XTRA_FLAGS="-Dnewt.debug.Window -Djogl.debug.EGL -Djogl.debug.GLContext -Djogl.debug.GLDrawable"
 #XTRA_FLAGS="-Djogl.debug.EGL"
 #XTRA_FLAGS="-Djogl.debug.GraphicsConfiguration"

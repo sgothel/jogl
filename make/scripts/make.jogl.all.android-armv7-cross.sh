@@ -105,6 +105,7 @@ ant \
     -DisUnix=true \
     -DisAndroid=true \
     -DisAndroidARMv7=true \
+    -DjvmDataModel.arg="-Djnlp.no.jvm.data.model.set=true" \
     -DisCrosscompilation=true \
     \
     $* 2>&1 | tee -a make.jogl.all.android-armv7-cross.log
