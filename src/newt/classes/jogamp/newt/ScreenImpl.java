@@ -486,7 +486,12 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
      * the current screen size and dummy values.
      */
     protected ScreenMode getCurrentScreenModeIntern() {
-        ScreenMode res = getCurrentScreenModeImpl();
+        ScreenMode res;
+        if(DEBUG_TEST_SCREENMODE_DISABLED) {
+            res = null;
+        } else {
+            res = getCurrentScreenModeImpl();
+        }
         if(null == res) {
             int[] props = new int[ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL];
             int i = 0;
