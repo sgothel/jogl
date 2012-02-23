@@ -920,57 +920,57 @@ public class GLProfile {
         return null != profileImpl ? profileImpl.getName() : getName();
     }
 
-    /** Indicates whether this profile is capable of GL4bc. */
+    /** Indicates whether this profile is capable of GL4bc.  <p>Includes [ GL4bc ].</p> */
     public final boolean isGL4bc() {
         return GL4bc.equals(profile);
     }
 
-    /** Indicates whether this profile is capable of GL4. */
+    /** Indicates whether this profile is capable of GL4.    <p>Includes [ GL4bc, GL4 ].</p> */
     public final boolean isGL4() {
         return isGL4bc() || GL4.equals(profile);
     }
 
-    /** Indicates whether this profile is capable of GL3bc. */
+    /** Indicates whether this profile is capable of GL3bc.  <p>Includes [ GL4bc, GL3bc ].</p> */
     public final boolean isGL3bc() {
         return isGL4bc() || GL3bc.equals(profile);
     }
 
-    /** Indicates whether this profile is capable of GL3. */
+    /** Indicates whether this profile is capable of GL3.    <p>Includes [ GL4bc, GL4, GL3bc, GL3 ].</p> */
     public final boolean isGL3() {
         return isGL4() || isGL3bc() || GL3.equals(profile);
     }
 
-    /** Indicates whether this context is a GL2 context */
+    /** Indicates whether this context is a GL2 context      <p>Includes [ GL4bc, GL3bc, GL2 ].</p> */
     public final boolean isGL2() {
         return isGL3bc() || GL2.equals(profile);
     }
 
-    /** Indicates whether this profile is capable of GLES1. */
+    /** Indicates whether this profile is capable of GLES1.  <p>Includes [ GLES1 ].</p> */
     public final boolean isGLES1() {
         return GLES1.equals(profile);
     }
 
-    /** Indicates whether this profile is capable of GLES2. */
+    /** Indicates whether this profile is capable of GLES2.  <p>Includes [ GLES2 ].</p> */
     public final boolean isGLES2() {
         return GLES2.equals(profile);
     }
 
-    /** Indicates whether this profile is capable of GL2ES1. */
+    /** Indicates whether this profile is capable of GL2ES1. <p>Includes [ GL4bc, GL3bc, GL2, GLES1, GL2ES1 ].</p> */
     public final boolean isGL2ES1() {
-        return GL2ES1.equals(profile) || isGL2() || isGLES1() ;
+        return GL2ES1.equals(profile) || isGLES1() || isGL2();
     }
 
-    /** Indicates whether this profile is capable os GL2ES2. */
+    /** Indicates whether this profile is capable os GL2ES2. <p>Includes [ GL4bc, GL4, GL3bc, GL3, GL2, GL2GL3, GL2ES2, GLES2 ].</p> */
     public final boolean isGL2ES2() {
-        return GL2ES2.equals(profile) || isGL2() || isGL3() || isGLES2() ;
+        return GL2ES2.equals(profile) || isGLES2() || isGL2GL3();
     }
 
-    /** Indicates whether this profile is capable os GL2GL3. */
+    /** Indicates whether this profile is capable os GL2GL3. <p>Includes [ GL4bc, GL4, GL3bc, GL3, GL2, GL2GL3 ].</p> */
     public final boolean isGL2GL3() {
-        return GL2GL3.equals(profile) || isGL2() || isGL3() ;
+        return GL2GL3.equals(profile) || isGL3() || isGL2();
     }
 
-    /** Indicates whether this profile supports GLSL. */
+    /** Indicates whether this profile supports GLSL, ie. {@link #isGL2ES2()}. */
     public final boolean hasGLSL() {
         return isGL2ES2() ;
     }
