@@ -72,7 +72,7 @@ function jrun() {
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock -Dnativewindow.debug.ToolkitLock.TraceLock"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Dnativewindow.debug.X11Util"
     #D_ARGS="-Dnewt.debug.EDT -Djogamp.common.utils.locks.Lock.timeout=600000 -Djogl.debug.Animator -Dnewt.debug.Display -Dnewt.debug.Screen"
-    #D_ARGS="-Dnewt.debug.Screen"
+    D_ARGS="-Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.debug.Window -Djogamp.common.utils.locks.Lock.timeout=600000 -Djogl.debug.Animator"
     #D_ARGS="-Djogl.debug.Animator -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.EDT -Dnewt.debug.Display -Dnativewindow.debug.X11Util -Djogl.debug.GLDrawable -Djogl.debug.GLCanvas"
@@ -186,13 +186,13 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2 $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT2 $*

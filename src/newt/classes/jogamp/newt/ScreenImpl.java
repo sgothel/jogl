@@ -74,7 +74,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     protected static volatile boolean usrSizeQueried = false;
     private static AccessControlContext localACC = AccessController.getContext();
     private ArrayList<ScreenModeListener> referencedScreenModeListener = new ArrayList<ScreenModeListener>();
-    long t0; // creationTime
+    private long tCreated; // creationTime
 
     static {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
@@ -177,21 +177,26 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
 
     public synchronized final void createNative()
             throws NativeWindowException
-    {
+    {        
         if(null == aScreen) {
             if(DEBUG) {
+                tCreated = System.nanoTime();
                 System.err.println("Screen.createNative() START ("+DisplayImpl.getThreadName()+", "+this+")");
+            } else {
+                tCreated = 0;
             }
-            t0 = System.currentTimeMillis();
+            
             display.addReference();
+            
             createNativeImpl();
             if(null == aScreen) {
                 throw new NativeWindowException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
             }
+            
             initScreenModeStatus();
             updateVirtualScreenOriginAndSize();            
             if(DEBUG) {
-                System.err.println("Screen.createNative() END ("+DisplayImpl.getThreadName()+", "+this+")");
+                System.err.println("Screen.createNative() END ("+DisplayImpl.getThreadName()+", "+this+"), total "+ (System.nanoTime()-tCreated)/1e6 +"ms");
             }
             synchronized(screenList) {
                 screensActive++;
@@ -361,7 +366,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         ScreenMode smU = getScreenModesOrig().get(screenMode); // unify via value hash
         if(smU.equals(smC)) {
             if(DEBUG) {
-                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): 0.0 is-current (skip) "+smU+" == "+smC);
+                System.err.println("Screen.setCurrentScreenMode ("+(System.nanoTime()-tCreated)+"): 0.0 is-current (skip) "+smU+" == "+smC);
             }            
             return true;
         }
@@ -372,32 +377,26 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         boolean success;
         sms.lock();
         try {
-            long t0=0, t1=0;
+            final long tStart;
             if(DEBUG) {
-                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): 0.0 "+smU);
-                t0 = System.currentTimeMillis();
-            }                
-
-            sms.fireScreenModeChangeNotify(smU);
-
-            if(DEBUG) {
-                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): 0.1 "+smU);
-                t1 = System.currentTimeMillis();
+                tStart = System.nanoTime();                
+            } else {
+                tStart = 0;
             }
-
-            success = setCurrentScreenModeImpl(smU);                    
             
+            sms.fireScreenModeChangeNotify(smU);
             if(DEBUG) {
-                t1 = System.currentTimeMillis() - t1;
-                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): X.0 "+smU+", success: "+success);
+                System.err.println("Screen.setCurrentScreenMode ("+(System.nanoTime()-tStart)/1e6+"ms): fireScreenModeChangeNotify() "+smU);
             }
 
-            sms.fireScreenModeChanged(smU, success);
-                            
+            success = setCurrentScreenModeImpl(smU);                                
             if(DEBUG) {
-                t0 = System.currentTimeMillis() - t0;
-                System.err.println("Screen.setCurrentScreenMode ("+(System.currentTimeMillis()-t0)+"): X.X "+smU+", success: "+success+
-                                   " - dt0 "+t0+"ms, dt1 "+t1+"ms");
+                System.err.println("Screen.setCurrentScreenMode ("+(System.nanoTime()-tStart)/1e6+"ms): setCurrentScreenModeImpl() "+smU+", success: "+success);
+            }
+
+            sms.fireScreenModeChanged(smU, success);                            
+            if(DEBUG) {
+                System.err.println("Screen.setCurrentScreenMode ("+(System.nanoTime()-tStart)/1e6+"ms): X.X "+smU+", success: "+success);
             }
         } finally {
             sms.unlock();
@@ -514,6 +513,14 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     }
 
     private ScreenModeStatus initScreenModeStatus() {
+        long t0;
+        if(DEBUG) {
+            t0 = System.nanoTime();
+            System.err.println("Screen.initScreenModeStatus() START ("+DisplayImpl.getThreadName()+", "+this+")");
+        } else {
+            t0 = 0;
+        }
+
         ScreenModeStatus sms;
         ScreenModeStatus.lockScreenModeStatus();
         try {
@@ -544,6 +551,9 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
             }
         } finally {
             ScreenModeStatus.unlockScreenModeStatus();
+        }
+        if(DEBUG) {
+            System.err.println("Screen.initScreenModeStatus() END dt "+ (System.nanoTime()-t0)/1e6 +"ms");
         }
         return sms;
     }

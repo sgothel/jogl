@@ -394,11 +394,12 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         }
 
         public synchronized void setVisibleActionPost(boolean visible, boolean nativeWindowCreated) {
+            long t0;
             if(Window.DEBUG_IMPLEMENTATION) {
-                String msg = "GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", start";
-                System.err.println(msg);
-                // Exception e1 = new Exception(msg);
-                // e1.printStackTrace();
+                t0 = System.nanoTime();
+                System.err.println("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", start");
+            } else {
+                t0 = 0;
             }
 
             /* if (nativeWindowCreated && null != context) {
@@ -423,10 +424,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
                 context.setContextCreationFlags(additionalCtxCreationFlags);                
             }
             if(Window.DEBUG_IMPLEMENTATION) {
-                String msg = "GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", fin";
-                System.err.println(msg);
-                //Exception e1 = new Exception(msg);
-                //e1.printStackTrace();
+                System.err.println("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", fin: dt "+ (System.nanoTime()-t0)/1e6 +"ms");
             }
         }
         

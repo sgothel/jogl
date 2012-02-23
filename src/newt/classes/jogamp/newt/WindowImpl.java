@@ -273,9 +273,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     private boolean createNative() {
+        long tStart;
         if(DEBUG_IMPLEMENTATION) {
+            tStart = System.nanoTime();
             System.err.println("Window.createNative() START ("+getThreadName()+", "+this+")");
-        }        
+        } else {
+            tStart = 0;
+        }
+        
         if( null != parentWindow && 
             NativeSurface.LOCK_SURFACE_NOT_READY >= parentWindow.lockSurface() ) {
             throw new NativeWindowException("Parent surface lock: not ready: "+parentWindow);
@@ -322,7 +327,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             ((DisplayImpl) screen.getDisplay()).dispatchMessagesNative(); // status up2date
         }
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.createNative() END ("+getThreadName()+", "+this+")");
+            System.err.println("Window.createNative() END ("+getThreadName()+", "+this+") total "+ (System.nanoTime()-tStart)/1e6 +"ms");
         }
         return isNativeValid() ;
     }

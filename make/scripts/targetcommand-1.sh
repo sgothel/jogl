@@ -2,7 +2,8 @@
 
 THISDIR=`pwd`
 
-#XTRA_FLAGS=""
+XTRA_FLAGS="-Dnewt.debug.Screen"
+#XTRA_FLAGS="-Dnewt.debug.Window -Djogl.debug.EGL -Djogl.debug.GLContext -Djogl.debug.GLDrawable"
 #XTRA_FLAGS="-Djogl.debug.EGL"
 #XTRA_FLAGS="-Djogl.debug.GraphicsConfiguration"
 #XTRA_FLAGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable"
@@ -23,7 +24,7 @@ THISDIR=`pwd`
 
 # Some Regressions (Panda, Omap4)
 #
-TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2
 
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01NEWT
@@ -32,7 +33,7 @@ TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES1NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT2
-#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT
+TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedNEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleNEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT
@@ -79,6 +80,7 @@ TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2
  
 function junit_run() {
      java \
+     -Xprof \
      -cp ../../gluegen/make/lib/junit.jar:/usr/share/ant/lib/ant.jar:/usr/share/ant/lib/ant-junit.jar:../../gluegen/build-linux-armv7/gluegen-rt.jar:../build-linux-armv7/jar/jogl.all-noawt.jar:../build-linux-armv7/jar/jogl.test.jar\
      -Djava.awt.headless=true\
      $XTRA_FLAGS \

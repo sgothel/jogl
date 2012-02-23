@@ -175,31 +175,42 @@ public class X11Screen extends ScreenImpl {
     protected ScreenMode getCurrentScreenModeImpl() {
         return runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<ScreenMode>() {
             public ScreenMode run(long dpy) {
-                int resNumber = getNumScreenModeResolutions0(dpy, screen_idx);
-                if(0==resNumber) {
+                long screenConfigHandle = getScreenConfiguration0(dpy, screen_idx);
+                if(0 == screenConfigHandle) {
                     return null;
                 }
-                int resIdx = getCurrentScreenResolutionIndex0(dpy, screen_idx);
-                if(0>resIdx) {
-                    return null;
-                }
-                if(resIdx>=resNumber) {
-                    throw new RuntimeException("Invalid resolution index: ! "+resIdx+" < "+resNumber);
-                }
-                int[] res = getScreenModeResolution0(dpy, screen_idx, resIdx);
-                if(null==res || 0==res.length) {
-                    return null;
-                }
-                if(0>=res[0] || 0>=res[1]) {
-                    throw new InternalError("invalid resolution: "+res[0]+"x"+res[1]+" for res idx "+resIdx+"/"+resNumber);
-                }
-                int rate = getCurrentScreenRate0(dpy, screen_idx);
-                if(0>rate) {
-                    return null;
-                }
-                int rot = getCurrentScreenRotation0(dpy, screen_idx);
-                if(0>rot) {
-                    return null;
+                int[] res;
+                int rate, rot;
+                try {                
+                    int resNumber = getNumScreenModeResolutions0(dpy, screen_idx);
+                    if(0==resNumber) {
+                        return null;
+                    }
+    
+                    int resIdx = getCurrentScreenResolutionIndex0(screenConfigHandle);
+                    if(0>resIdx) {
+                        return null;
+                    }
+                    if(resIdx>=resNumber) {
+                        throw new RuntimeException("Invalid resolution index: ! "+resIdx+" < "+resNumber);
+                    }
+                    res = getScreenModeResolution0(dpy, screen_idx, resIdx);
+                    if(null==res || 0==res.length) {
+                        return null;
+                    }
+                    if(0>=res[0] || 0>=res[1]) {
+                        throw new InternalError("invalid resolution: "+res[0]+"x"+res[1]+" for res idx "+resIdx+"/"+resNumber);
+                    }
+                    rate = getCurrentScreenRate0(screenConfigHandle);
+                    if(0>rate) {
+                        return null;
+                    }
+                    rot = getCurrentScreenRotation0(screenConfigHandle);
+                    if(0>rot) {
+                        return null;
+                    }
+                } finally {
+                     freeScreenConfiguration0(screenConfigHandle);
                 }
                 int[] props = new int[ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL];
                 int i = 0;
@@ -226,21 +237,30 @@ public class X11Screen extends ScreenImpl {
         boolean done = runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
             public Boolean run(long dpy) {
                 boolean done = false;
-                int resNumber = getNumScreenModeResolutions0(dpy, screen_idx);
-                int resIdx = getScreenModesIdx2NativeIdx().get(screenModeIdx);
-                if(0>resIdx || resIdx>=resNumber) {
-                    throw new RuntimeException("Invalid resolution index: ! 0 < "+resIdx+" < "+resNumber+", screenMode["+screenModeIdx+"] "+screenMode);
+                long screenConfigHandle = getScreenConfiguration0(dpy, screen_idx);
+                if(0 == screenConfigHandle) {
+                    return Boolean.valueOf(done);
                 }
-        
-                final int f = screenMode.getMonitorMode().getRefreshRate();
-                final int r = screenMode.getRotation();
-                if( setCurrentScreenModeStart0(dpy, screen_idx, resIdx, f, r) ) {
-                    while(!done && System.currentTimeMillis()-t0 < SCREEN_MODE_CHANGE_TIMEOUT) {
-                        done = setCurrentScreenModePollEnd0(dpy, screen_idx, resIdx, f, r);
-                        if(!done) {
-                            try { Thread.sleep(10); } catch (InterruptedException e) { }
+                try {
+                    int resNumber = getNumScreenModeResolutions0(dpy, screen_idx);
+                    int resIdx = getScreenModesIdx2NativeIdx().get(screenModeIdx);
+                    if(0>resIdx || resIdx>=resNumber) {
+                        throw new RuntimeException("Invalid resolution index: ! 0 < "+resIdx+" < "+resNumber+", screenMode["+screenModeIdx+"] "+screenMode);
+                    }
+            
+                    final int f = screenMode.getMonitorMode().getRefreshRate();
+                    final int r = screenMode.getRotation();
+    
+                    if( setCurrentScreenModeStart0(dpy, screen_idx, screenConfigHandle, resIdx, f, r) ) {
+                        while(!done && System.currentTimeMillis()-t0 < SCREEN_MODE_CHANGE_TIMEOUT) {
+                            done = setCurrentScreenModePollEnd0(dpy, screen_idx, resIdx, f, r);
+                            if(!done) {
+                                try { Thread.sleep(10); } catch (InterruptedException e) { }
+                            }
                         }
                     }
+                } finally {
+                     freeScreenConfiguration0(screenConfigHandle);
                 }
                 return Boolean.valueOf(done);
             }            
@@ -321,11 +341,14 @@ public class X11Screen extends ScreenImpl {
 
     private static native int[] getScreenModeRates0(long display, int screen_index, int mode_index);
 
-    private static native int getCurrentScreenResolutionIndex0(long display, int screen_index);
-    private static native int getCurrentScreenRate0(long display, int screen_index);
-    private static native int getCurrentScreenRotation0(long display, int screen_index);
+    private static native long getScreenConfiguration0(long display, int screen_index);
+    private static native void freeScreenConfiguration0(long screenConfiguration);
+    
+    private static native int getCurrentScreenResolutionIndex0(long screenConfiguration);
+    private static native int getCurrentScreenRate0(long screenConfiguration);
+    private static native int getCurrentScreenRotation0(long screenConfiguration);
 
     /** needs own Display connection for XRANDR event handling */
-    private static native boolean setCurrentScreenModeStart0(long display, int screen_index, int mode_index, int freq, int rot);
+    private static native boolean setCurrentScreenModeStart0(long display, int screen_index, long screenConfiguration, int mode_index, int freq, int rot);
     private static native boolean setCurrentScreenModePollEnd0(long display, int screen_index, int mode_index, int freq, int rot);
 }

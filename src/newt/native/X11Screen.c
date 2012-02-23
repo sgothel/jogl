@@ -26,7 +26,14 @@
  * or implied, of JogAmp Community.
  */
 
+// #define VERBOSE_ON 1
+// #define DBG_PERF 1
+
 #include "X11Common.h"
+
+#ifdef DBG_PERF
+    #include "timespec.h"
+#endif
 
 /*
  * Class:     jogamp_newt_driver_x11_X11Screen
@@ -163,16 +170,31 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getNumScreenModeRes
   (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx)
 {
     Display *dpy = (Display *) (intptr_t) display;
+#ifdef DBG_PERF
+    struct timespec t0, t1, td;
+    long td_ms;
+    timespec_now(&t0);
+#endif
     
     if(False == NewtScreen_hasRANDR(dpy)) {
         DBG_PRINT("Java_jogamp_newt_driver_x11_X11Screen_getNumScreenModeResolutions0: RANDR not available\n");
         return 0;
     }
 
+#ifdef DBG_PERF
+    timespec_now(&t1); timespec_subtract(&td, &t1, &t0); td_ms = timespec_milliseconds(&td);
+    fprintf(stderr, "X11Screen_getNumScreenModeResolution0.1: %ld ms\n", td_ms); fflush(NULL);
+#endif
+
     int num_sizes;   
     XRRScreenSize *xrrs = XRRSizes(dpy, (int)scrn_idx, &num_sizes); //get possible screen resolutions
     
-    DBG_PRINT("getNumScreenModeResolutions0: %d\n", num_sizes);
+#ifdef DBG_PERF
+    timespec_now(&t1); timespec_subtract(&td, &t1, &t0); td_ms = timespec_milliseconds(&td);
+    fprintf(stderr, "X11Screen_getNumScreenModeResolution0.2 (XRRSizes): %ld ms\n", td_ms); fflush(NULL);
+#endif
+
+    DBG_PRINT("getNumScreenModeResolutions0: %p:%d -> %d\n", dpy, (int)scrn_idx, num_sizes);
 
     return num_sizes;
 }
@@ -264,27 +286,61 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_X11Screen_getScreenModeR
 
 /*
  * Class:     jogamp_newt_driver_x11_X11Screen
- * Method:    getCurrentScreenRate0
- * Signature: (JI)I
+ * Method:    getScreenConfiguration0
+ * Signature: (JI)J
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenRate0
-  (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx) 
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Screen_getScreenConfiguration0
+  (JNIEnv *env, jclass clazz, jlong display, jint screen_idx) 
 {
     Display *dpy = (Display *) (intptr_t) display;
-    Window root = RootWindow(dpy, (int)scrn_idx);
-    
+    Window root = RootWindow(dpy, (int)screen_idx);
+#ifdef DBG_PERF
+    struct timespec t0, t1, td;
+    long td_ms;
+    timespec_now(&t0);
+#endif
+
     if(False == NewtScreen_hasRANDR(dpy)) {
-        DBG_PRINT("Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenRate0: RANDR not available\n");
-        return -1;
+        DBG_PRINT("Java_jogamp_newt_driver_x11_X11Screen_getScreenConfiguration0: RANDR not available\n");
+        return 0;
     }
+#ifdef DBG_PERF
+    timespec_now(&t1); timespec_subtract(&td, &t1, &t0); td_ms = timespec_milliseconds(&td);
+    fprintf(stderr, "X11Screen_getScreenConfiguration0.1: %ld ms\n", td_ms); fflush(NULL);
+#endif
 
     // get current resolutions and frequencies
     XRRScreenConfiguration  *conf = XRRGetScreenInfo(dpy, root);
-    short original_rate = XRRConfigCurrentRate(conf);
+#ifdef DBG_PERF
+    timespec_now(&t1); timespec_subtract(&td, &t1, &t0); td_ms = timespec_milliseconds(&td);
+    fprintf(stderr, "X11Screen_getScreenConfiguration0.2 (XRRGetScreenInfo): %ld ms\n", td_ms); fflush(NULL);
+#endif
 
-    //free
-    XRRFreeScreenConfigInfo(conf);
+    return (jlong) (intptr_t) conf;
+}
+
+/*
+ * Class:     jogamp_newt_driver_x11_X11Screen
+ * Method:    freeScreenConfiguration0
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Screen_freeScreenConfiguration0
+  (JNIEnv *env, jclass clazz, jlong screenConfiguration) 
+{
+    XRRFreeScreenConfigInfo( (XRRScreenConfiguration *) (intptr_t) screenConfiguration );
+}
+
+/*
+ * Class:     jogamp_newt_driver_x11_X11Screen
+ * Method:    getCurrentScreenRate0
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenRate0
+  (JNIEnv *env, jclass clazz, jlong screenConfiguration) 
+{
+    XRRScreenConfiguration *conf = (XRRScreenConfiguration *) (intptr_t) screenConfiguration;
     
+    short original_rate = XRRConfigCurrentRate(conf);
     DBG_PRINT("getCurrentScreenRate0: %d\n", (int)original_rate);
 
     return (jint) original_rate;
@@ -293,28 +349,16 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenRat
 /*
  * Class:     jogamp_newt_driver_x11_X11Screen
  * Method:    getCurrentScreenRotation0
- * Signature: (JI)I
+ * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenRotation0
-  (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx)
+  (JNIEnv *env, jclass clazz, jlong screenConfiguration)
 {
-    Display *dpy = (Display *) (intptr_t) display;
-    Window root = RootWindow(dpy, (int)scrn_idx);
-    
-    if(False == NewtScreen_hasRANDR(dpy)) {
-        DBG_PRINT("Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenRotation0: RANDR not available\n");
-        return -1;
-    }
-
-    //get current resolutions and frequencies
-    XRRScreenConfiguration  *conf = XRRGetScreenInfo(dpy, root);
-    
+    XRRScreenConfiguration *conf = (XRRScreenConfiguration *) (intptr_t) screenConfiguration;
     Rotation rotation;
+
     XRRConfigCurrentConfiguration(conf, &rotation);
 
-    //free
-    XRRFreeScreenConfigInfo(conf);
-    
     return NewtScreen_XRotation2Degree(env, rotation);
 }
 
@@ -322,60 +366,42 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenRot
 /*
  * Class:     jogamp_newt_driver_x11_X11Screen
  * Method:    getCurrentScreenResolutionIndex0
- * Signature: (JI)I
+ * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenResolutionIndex0
-  (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx)
+  (JNIEnv *env, jclass clazz, jlong screenConfiguration)
 {
-   Display *dpy = (Display *) (intptr_t) display;
-   Window root = RootWindow(dpy, (int)scrn_idx);
+   XRRScreenConfiguration *conf = (XRRScreenConfiguration *) (intptr_t) screenConfiguration;
   
-   if(False == NewtScreen_hasRANDR(dpy)) {
-       DBG_PRINT("Java_jogamp_newt_driver_x11_X11Screen_getCurrentScreenResolutionIndex0: RANDR not available\n");
-       return -1;
-   }
-
-   // get current resolutions and frequency configuration
-   XRRScreenConfiguration  *conf = XRRGetScreenInfo(dpy, root);
    short original_rate = XRRConfigCurrentRate(conf);
    
    Rotation original_rotation;
    SizeID original_size_id = XRRConfigCurrentConfiguration(conf, &original_rotation);
    
-   //free
-   XRRFreeScreenConfigInfo(conf);
-   
    DBG_PRINT("getCurrentScreenResolutionIndex0: %d\n", (int)original_size_id);
-   return (jint)original_size_id;   
+   return (jint)original_size_id; 
 }
 
 /*
  * Class:     jogamp_newt_driver_x11_X11Screen
  * Method:    setCurrentScreenModeStart0
- * Signature: (JIIII)Z
+ * Signature: (JIJIII)Z
  */
 JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Screen_setCurrentScreenModeStart0
-  (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jint resMode_idx, jint freq, jint rotation)
+  (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jlong screenConfiguration, jint resMode_idx, jint freq, jint rotation)
 {
     Display *dpy = (Display *) (intptr_t) display;
+    XRRScreenConfiguration *conf = (XRRScreenConfiguration *) (intptr_t) screenConfiguration;
     Window root = RootWindow(dpy, (int)screen_idx);
-
-    if(False == NewtScreen_hasRANDR(dpy)) {
-        DBG_PRINT("Java_jogamp_newt_driver_x11_X11Screen_setCurrentScreenModeStart0: RANDR not available\n");
-        return JNI_FALSE;
-    }
 
     int num_sizes;   
     XRRScreenSize *xrrs = XRRSizes(dpy, (int)screen_idx, &num_sizes); //get possible screen resolutions
-    XRRScreenConfiguration *conf;
     int rot;
     
     if( 0 > resMode_idx || resMode_idx >= num_sizes ) {
         NewtCommon_throwNewRuntimeException(env, "Invalid resolution index: ! 0 < %d < %d", resMode_idx, num_sizes);
     }
 
-    conf = XRRGetScreenInfo(dpy, root);
-   
     switch(rotation) {
         case   0:
             rot = RR_Rotate_0; 
@@ -400,10 +426,6 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Screen_setCurrentScree
 
     XSync(dpy, False);
     XRRSetScreenConfigAndRate(dpy, conf, root, (int)resMode_idx, rot, (short)freq, CurrentTime);   
-    XSync(dpy, False);
-
-    //free
-    XRRFreeScreenConfigInfo(conf);
     XSync(dpy, False);
 
     return JNI_TRUE;
