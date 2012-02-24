@@ -661,8 +661,11 @@ ${line.separator}
         <mkdir dir="${results.test}" />
     </target>
 
-    <target name="junit.run" depends="junit.run.settings" unless="junit.is.disabled">
+    <target name="junit.run.if.enabled" unless="junit.is.disabled">
         <antcall target="junit.run.tests"      inheritRefs="true" inheritAll="true"/>
+    </target>
+
+    <target name="junit.run" depends="junit.run.settings, junit.run.if.enabled">
         <mkdir dir="${results.test}" />
         <move todir="${results.test}">
             <fileset dir="." includes="*.tga" />
