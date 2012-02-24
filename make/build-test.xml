@@ -651,7 +651,7 @@ ${line.separator}
 
     <!-- target name="junit.run.tests" depends="junit.run.local.d32, junit.run.local, junit.run.remote.ssh, junit.run.remote.adb"/ -->
 
-    <target name="junit.run.settings">
+    <target name="junit.run.settings" depends="declare.common">
         <delete quiet="true">
             <fileset dir="${results.test}" includes="**"/>
             <fileset dir="${build}/test/results-x32" includes="**"/>
@@ -661,7 +661,8 @@ ${line.separator}
         <mkdir dir="${results.test}" />
     </target>
 
-    <target name="junit.run" depends="declare.common, junit.run.settings, junit.run.tests">
+    <target name="junit.run" depends="junit.run.settings" unless="junit.is.disabled">
+        <antcall target="junit.run.tests"      inheritRefs="true" inheritAll="true"/>
         <mkdir dir="${results.test}" />
         <move todir="${results.test}">
             <fileset dir="." includes="*.tga" />
