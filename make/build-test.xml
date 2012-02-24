@@ -664,8 +664,11 @@ ${line.separator}
     <target name="junit.run.if.enabled" unless="junit.is.disabled">
         <antcall target="junit.run.tests"      inheritRefs="true" inheritAll="true"/>
     </target>
+    <target name="junit.run.if.disabled" if="junit.is.disabled">
+        <copy todir="${results.test}" file="${gluegen.root}/make/lib/TEST-com.jogamp.junit.DisabledTest.xml"/>
+    </target>
 
-    <target name="junit.run" depends="junit.run.settings, junit.run.if.enabled">
+    <target name="junit.run" depends="junit.run.settings, junit.run.if.enabled, junit.run.if.disabled">
         <mkdir dir="${results.test}" />
         <move todir="${results.test}">
             <fileset dir="." includes="*.tga" />
