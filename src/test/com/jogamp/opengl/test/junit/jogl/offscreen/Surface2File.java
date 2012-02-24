@@ -71,7 +71,7 @@ public class Surface2File implements SurfaceUpdatedListener {
             return;
         }
 
-        File file = File.createTempFile(basename + shotNum + "-", ".ppm");
+        File file = File.createTempFile(basename + shotNum + "-", ".tga");
         readBufferUtil.write(file);
         System.err.println("Wrote: " + file.getAbsolutePath() + ", ...");
         shotNum++;
