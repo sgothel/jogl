@@ -39,6 +39,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.opengl.GLWindow;
@@ -90,7 +91,7 @@ public class TestInitConcurrentNEWT extends UITestCase {
             glWindow.setTitle("Task "+id);
             glWindow.setPosition(x + insets.getLeftWidth(), y + insets.getTopHeight() );
     
-            glWindow.addGLEventListener(new GearsES2(0));
+            glWindow.addGLEventListener(new GearsES2(1));
     
             Animator animator = new Animator(glWindow);
     
@@ -211,7 +212,11 @@ public class TestInitConcurrentNEWT extends UITestCase {
     
     @Test
     public void test16SixteenThreads() throws InterruptedException {
-        runJOGLTasks(16);
+        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
+            runJOGLTasks(8);
+        } else {
+            runJOGLTasks(16);
+        }
     }
     
     public static void main(String args[]) throws IOException {
