@@ -40,14 +40,24 @@
 
 package com.jogamp.opengl.test.junit.jogl.caps;
 
-import com.jogamp.newt.opengl.GLWindow;
+import java.lang.reflect.InvocationTargetException;
+import java.awt.BorderLayout;
+import java.awt.Frame;
+
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.awt.GLCanvas;
+
 import com.jogamp.opengl.test.junit.util.MiscUtils;
-import javax.media.opengl.*;
+import com.jogamp.opengl.test.junit.util.UITestCase;
+
 import org.junit.Test;
 
-public class TestMultisampleNEWT {
-  static long durationPerTest = 500; // ms
-  private GLWindow window;
+
+public class TestMultisampleES1AWT extends UITestCase {
+  static long durationPerTest = 250; // ms
+  private GLCanvas canvas;
 
   public static void main(String[] args) {
      for(int i=0; i<args.length; i++) {
@@ -56,46 +66,58 @@ public class TestMultisampleNEWT {
         }
      }
      System.out.println("durationPerTest: "+durationPerTest);
-     String tstname = TestMultisampleNEWT.class.getName();
+     String tstname = TestMultisampleES1AWT.class.getName();
      org.junit.runner.JUnitCore.main(tstname);
   }
 
   @Test
-  public void testMultiSampleAA4() throws InterruptedException {
+  public void testMultiSampleAA4() throws InterruptedException, InvocationTargetException {
     testMultiSampleAAImpl(4);
   }
 
-  // @Test
-  public void testMultiSampleNone() throws InterruptedException {
+  @Test
+  public void testMultiSampleNone() throws InterruptedException, InvocationTargetException {
     testMultiSampleAAImpl(0);
   }
 
-  private void testMultiSampleAAImpl(int samples) throws InterruptedException {
-    GLCapabilities caps = new GLCapabilities(null);
+  private void testMultiSampleAAImpl(int samples) throws InterruptedException, InvocationTargetException {
+    GLProfile glp = GLProfile.getMaxFixedFunc(true);
+    GLCapabilities caps = new GLCapabilities(glp);
     GLCapabilitiesChooser chooser = new MultisampleChooser01();
 
     if(samples>0) {
         caps.setSampleBuffers(true);
-        caps.setNumSamples(4);
+        caps.setNumSamples(samples);
+        // turns out we need to have alpha, 
+        // otherwise no AA will be visible.
+        caps.setAlphaBits(1); 
     }
-    // turns out we need to have alpha, 
-    // otherwise no AA will be visible.
-    // This is done implicit now ..
-    // caps.setAlphaBits(1); 
 
-    window = GLWindow.create(caps);
-    window.setCapabilitiesChooser(chooser);
-    window.addGLEventListener(new MultisampleDemo01(samples>0?true:false));
-    window.setSize(512, 512);
-    window.setVisible(true);
-    window.setPosition(0, 0);
-    window.requestFocus();
+    canvas = new GLCanvas(caps, chooser, null, null);
+    canvas.addGLEventListener(new MultisampleDemoES1(samples>0?true:false));
+    
+    final Frame frame = new Frame("Multi Samples "+samples);
+    frame.setLayout(new BorderLayout());
+    canvas.setSize(512, 512);
+    frame.add(canvas, BorderLayout.CENTER);
+    frame.pack();
 
-    GLCapabilitiesImmutable capsChosen0 = window.getChosenGLCapabilities();
+    javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+        public void run() {
+            frame.setVisible(true);
+            frame.setLocation(0, 0);
+            canvas.requestFocus();
+            canvas.display();
+        }});
 
     Thread.sleep(durationPerTest);
 
-    window.destroy();
-  }
+    javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+        public void run() {
+            frame.setVisible(false);
+            frame.remove(canvas);
+            frame.dispose();
+        }});
 
+  }
 }

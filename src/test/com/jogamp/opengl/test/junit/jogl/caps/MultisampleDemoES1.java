@@ -45,29 +45,33 @@ import jogamp.opengl.x11.glx.X11GLXGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLPipelineFactory;
 
-class MultisampleDemo01 implements GLEventListener {
+import com.jogamp.opengl.util.ImmModeSink;
+
+class MultisampleDemoES1 implements GLEventListener {
 
     static boolean glDebug = false;
     static boolean glTrace = false;
 
     boolean multisample;
+    ImmModeSink immModeSink;
 
-    public MultisampleDemo01(boolean multisample) {
+    public MultisampleDemoES1(boolean multisample) {
         this.multisample = multisample;
     }
 
     public void init(GLAutoDrawable drawable) {
-        AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
         System.err.println();
-        System.err.println("Info: " + config);
+        System.err.println("Requested: " + drawable.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities());
         System.err.println();
-        if (NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(false))) {
+        System.err.println("Chosen   : " + drawable.getChosenGLCapabilities());
+        System.err.println();
+        if (!drawable.getGL().isGLES() && NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(false))) {
+            AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
             X11GLXGraphicsConfiguration x11config = (X11GLXGraphicsConfiguration) config;
             long display = drawable.getNativeSurface().getDisplayHandle();
             int[] foo = new int[1];
@@ -80,16 +84,16 @@ class MultisampleDemo01 implements GLEventListener {
         if (glDebug) {
             try {
                 // Debug ..
-                _gl = _gl.getContext().setGL(GLPipelineFactory.create("javax.media.opengl.Debug", GL2.class, _gl, null));
+                _gl = _gl.getContext().setGL(GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES1.class, _gl, null));
                 if (glTrace) {
                     // Trace ..
-                    _gl = _gl.getContext().setGL(GLPipelineFactory.create("javax.media.opengl.Trace", GL2.class, _gl, new Object[]{System.err}));
+                    _gl = _gl.getContext().setGL(GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES1.class, _gl, new Object[]{System.err}));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        GL2 gl = _gl.getGL2();
+        GL2ES1 gl = _gl.getGL2ES1();
         if (multisample) {
             gl.glEnable(GL.GL_MULTISAMPLE);
         }
@@ -104,26 +108,38 @@ class MultisampleDemo01 implements GLEventListener {
         if (multisample) {
             gl.glDisable(GL.GL_MULTISAMPLE);
         }
+        immModeSink = ImmModeSink.createFixed(gl, GL.GL_STATIC_DRAW, 40, 
+                                              3, GL.GL_FLOAT,  // vertex
+                                              0, GL.GL_FLOAT,  // color
+                                              0, GL.GL_FLOAT,// normal
+                                              0, GL.GL_FLOAT); // texture
+        final int numSteps = 20;
+        final double increment = Math.PI / numSteps;
+        final double radius = 1;
+        immModeSink.glBegin(GL.GL_LINES);
+        for (int i = numSteps - 1; i >= 0; i--) {
+            immModeSink.glVertex3f((float) (radius * Math.cos(i * increment)), 
+                                   (float) (radius * Math.sin(i * increment)), 
+                                   0f);
+            immModeSink.glVertex3f((float) (-1.0 * radius * Math.cos(i * increment)), 
+                                   (float) (-1.0 * radius * Math.sin(i * increment)), 
+                                   0f);
+        }
+        immModeSink.glEnd(gl, false);
     }
 
     public void dispose(GLAutoDrawable drawable) {
+        immModeSink.destroy(drawable.getGL());
+        immModeSink = null;
     }
 
     public void display(GLAutoDrawable drawable) {
-        GL2 gl = drawable.getGL().getGL2();
+        GL2ES1 gl = drawable.getGL().getGL2ES1();
         if (multisample) {
             gl.glEnable(GL.GL_MULTISAMPLE);
         }
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        int numSteps = 20;
-        double increment = Math.PI / numSteps;
-        double radius = 1;
-        gl.glBegin(GL.GL_LINES);
-        for (int i = numSteps - 1; i >= 0; i--) {
-            gl.glVertex3d(radius * Math.cos(i * increment), radius * Math.sin(i * increment), 0);
-            gl.glVertex3d(-1.0 * radius * Math.cos(i * increment), -1.0 * radius * Math.sin(i * increment), 0);
-        }
-        gl.glEnd();
+        immModeSink.draw(gl, true);
         if (multisample) {
             gl.glDisable(GL.GL_MULTISAMPLE);
         }
