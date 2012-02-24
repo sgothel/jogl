@@ -666,6 +666,7 @@ public class GLProfile {
      * <p>Selection favors hardware rasterizer.</p>
      *
      * @throws GLException if no GL2ES1 compatible profile is available for the default device.
+     * @see #isGL2ES1()
      * @see #get(AbstractGraphicsDevice, String)
      * @see #getImpl()
      */
@@ -695,6 +696,7 @@ public class GLProfile {
      * <p>Selection favors hardware rasterizer.</p>
      *
      * @throws GLException if no GL2ES2 compatible profile is available for the default device.
+     * @see #isGL2ES2()
      * @see #get(AbstractGraphicsDevice, String)
      * @see #getImpl()
      */
@@ -713,6 +715,36 @@ public class GLProfile {
         throws GLException
     {
         return get(defaultDevice, GL2ES2).getImpl();
+    }
+
+    /** 
+     * Returns the GL2GL3 profile implementation, hence compatible w/ GL2GL3.<br/>
+     * It returns:
+     * <pre>
+     *   GLProfile.get(device, GLProfile.GL2GL3).getImpl());
+     * </pre>
+     * <p>Selection favors hardware rasterizer.</p>
+     *
+     * @throws GLException if no GL2GL3 compatible profile is available for the default device.
+     * @see #isGL2GL3()
+     * @see #get(AbstractGraphicsDevice, String)
+     * @see #getImpl()
+     */
+    public static GLProfile getGL2GL3(AbstractGraphicsDevice device)
+        throws GLException
+    {
+        return get(device, GL2GL3).getImpl();
+    }
+
+    /** 
+     * Calls {@link #getGL2GL3(AbstractGraphicsDevice)} using the default device. 
+     * <p>Selection favors hardware rasterizer.</p>
+     * @see #getGL2GL3(AbstractGraphicsDevice)
+     */
+    public static GLProfile getGL2GL3()
+        throws GLException
+    {
+        return get(defaultDevice, GL2GL3).getImpl();
     }
 
     /** Returns a GLProfile object.

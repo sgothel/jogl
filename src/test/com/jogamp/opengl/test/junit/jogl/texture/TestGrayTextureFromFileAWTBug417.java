@@ -65,7 +65,11 @@ public class TestGrayTextureFromFileAWTBug417 extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        glp = GLProfile.get(GLProfile.GL2GL3);
+        if(!GLProfile.isAvailable(GLProfile.GL2GL3)) {
+            UITestCase.setTestSupported(false);
+            return;
+        }
+        glp = GLProfile.getGL2GL3();
         Assert.assertNotNull(glp);
         caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);

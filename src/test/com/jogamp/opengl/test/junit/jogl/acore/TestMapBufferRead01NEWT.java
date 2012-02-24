@@ -46,23 +46,31 @@ import org.junit.Test;
  *
  * @author Luz, et.al.
  */
-public class TestMapBuffer01NEWT extends UITestCase {
+public class TestMapBufferRead01NEWT extends UITestCase {
     static final boolean DEBUG = false;
     
     @Test
     public void testWriteRead01a() throws InterruptedException {
+        if(!GLProfile.isAvailable(GLProfile.GL2GL3)) {
+            System.err.println("Test requires GL2/GL3 profile.");
+            return;
+        }
         ByteBuffer verticiesBB = ByteBuffer.allocate(4*9);
         verticiesBB.order(ByteOrder.nativeOrder());
         testWriteRead01(verticiesBB);
     }
     @Test
     public void testWriteRead01b() throws InterruptedException {
+        if(!GLProfile.isAvailable(GLProfile.GL2GL3)) {
+            System.err.println("Test requires GL2/GL3 profile.");
+            return;
+        }
         ByteBuffer verticiesBB = Buffers.newDirectByteBuffer(4*9);
         testWriteRead01(verticiesBB);
     }
 
     private void testWriteRead01(ByteBuffer verticiesBB) throws InterruptedException {
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOffscreenWindow(GLProfile.getDefault(), 800, 600, true);
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOffscreenWindow(GLProfile.getGL2GL3(), 800, 600, true);
         final GL gl = winctx.context.getGL();
 
         int[] vertexBuffer = new int[1];
@@ -89,11 +97,12 @@ public class TestMapBuffer01NEWT extends UITestCase {
 
         gl.glBindBuffer(GL.GL_ARRAY_BUFFER, vertexBuffer[0]);
 
-        // gl.glBufferData(GL3.GL_ARRAY_BUFFER, verticiesBB.capacity(), verticiesBB, GL3.GL_STATIC_READ);
+        // gl.glBufferData(GL.GL_ARRAY_BUFFER, verticiesBB.capacity(), verticiesBB, GL.GL_STATIC_READ);
         gl.glBufferData(GL.GL_ARRAY_BUFFER, verticiesBB.capacity(), verticiesBB, GL.GL_STATIC_DRAW);
         
         ByteBuffer bb = gl.glMapBuffer(GL.GL_ARRAY_BUFFER, GL2GL3.GL_READ_ONLY);
-        // gl.glUnmapBuffer(GL3.GL_ARRAY_BUFFER);
+        Assert.assertNotNull(bb);
+        
         if(DEBUG) {
             for(int i=0; i < bb.capacity(); i+=4) {
                 System.out.println("gpu "+i+": "+bb.getFloat(i));
@@ -102,10 +111,11 @@ public class TestMapBuffer01NEWT extends UITestCase {
         for(int i=0; i < bb.capacity(); i+=4) {
             Assert.assertEquals(verticiesBB.getFloat(i), bb.getFloat(i), 0.0);
         }
+        gl.glUnmapBuffer(GL.GL_ARRAY_BUFFER);
         NEWTGLContext.destroyWindow(winctx);
     }
     public static void main(String args[]) throws IOException {
-        String tstname = TestMapBuffer01NEWT.class.getName();
+        String tstname = TestMapBufferRead01NEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }    
 }
