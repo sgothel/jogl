@@ -16,6 +16,8 @@ export PATH
 #    -DisLinuxARMv7=true \
 #    -DisX11=false \
 
+export NODE_LABEL=.
+
 export HOST_UID=jogamp
 export HOST_IP=jogamp02
 export HOST_RSYNC_ROOT=PROJECTS/JOGL
