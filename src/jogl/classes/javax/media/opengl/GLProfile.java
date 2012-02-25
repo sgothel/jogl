@@ -1519,10 +1519,10 @@ public class GLProfile {
 
         boolean addedDesktopProfile = false;
         boolean addedEGLProfile = false;
-        boolean deviceIsDesktopCompatible = false;
-        boolean deviceIsEGLCompatible = false;
         
-        if( hasDesktopGLFactory && ( deviceIsDesktopCompatible = desktopFactory.getIsDeviceCompatible(device)) ) {
+        final boolean deviceIsDesktopCompatible = hasDesktopGLFactory && desktopFactory.getIsDeviceCompatible(device);
+        
+        if( deviceIsDesktopCompatible ) {
             // 1st pretend we have all Desktop and EGL profiles ..
             computeProfileMap(device, true /* desktopCtxUndef*/, true  /* esCtxUndef */);
 
@@ -1536,22 +1536,21 @@ public class GLProfile {
             if(null != sharedResourceThread) {
                 initLock.removeOwner(sharedResourceThread);
             }
-            if(!desktopSharedCtxAvail) {
-                hasDesktopGLFactory = false;
-            }
             if (DEBUG) {
                 System.err.println("GLProfile.initProfilesForDevice: "+device+": desktop Shared Ctx "+desktopSharedCtxAvail);
             }
-            if( hasDesktopGLFactory && !GLContext.getAvailableGLVersionsSet(device) ) {
+            if(!desktopSharedCtxAvail) {
+                hasDesktopGLFactory = false;
+            } else if( !GLContext.getAvailableGLVersionsSet(device) ) {
                 throw new InternalError("Available GLVersions not set");
             }
             addedDesktopProfile = computeProfileMap(device, false /* desktopCtxUndef*/, false /* esCtxUndef */);
         }
         
+        final boolean deviceIsEGLCompatible = hasEGLFactory && eglFactory.getIsDeviceCompatible(device);
+        
         // also test GLES1 and GLES2 on desktop, since we have implementations / emulations available
-        if( hasEGLFactory && ( hasGLES2Impl || hasGLES1Impl ) && 
-            ( deviceIsEGLCompatible = eglFactory.getIsDeviceCompatible(device)) ) {
-            
+        if( deviceIsEGLCompatible && ( hasGLES2Impl || hasGLES1Impl ) ) {             
             // 1st pretend we have all EGL profiles ..
             computeProfileMap(device, false /* desktopCtxUndef*/, true /* esCtxUndef */);
 

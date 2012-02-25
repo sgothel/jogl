@@ -260,7 +260,9 @@ public class SharedResourceRunner implements Runnable {
                         try {
                             sr = impl.createSharedResource(initConnection);
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            if(DEBUG) {
+                                e.printStackTrace();
+                            }
                         }
                         if (null != sr) {
                             impl.mapPut(initConnection, sr);

@@ -266,7 +266,7 @@ public abstract class GLDrawableFactory {
               throw new InternalError("no default device");
           }
           if (GLProfile.DEBUG) {
-              System.err.println("Info: GLDrawableFactory.validateDevice: using default device : "+device);
+              System.err.println("Info: "+getClass().getSimpleName()+".validateDevice: using default device : "+device);
           }
       }
       
@@ -274,7 +274,7 @@ public abstract class GLDrawableFactory {
       // since even the default device may not be used by this factory.
       if( !getIsDeviceCompatible(device) ) {
           if (GLProfile.DEBUG) {
-              System.err.println("Info: GLDrawableFactory.validateDevice: device not compatible : "+device);
+              System.err.println("Info: "+getClass().getSimpleName()+".validateDevice: device not compatible : "+device);
           }
           return null;
       }

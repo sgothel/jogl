@@ -103,7 +103,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     
     defaultDevice = new X11GraphicsDevice(X11Util.getNullDisplayName(), AbstractGraphicsDevice.DEFAULT_UNIT);
     
-    if(null!=x11GLXDynamicLookupHelper) {        
+    if(null!=x11GLXDynamicLookupHelper) {
         // Register our GraphicsConfigurationFactory implementations
         // The act of constructing them causes them to be registered
         X11GLXGraphicsConfigurationFactory.registerFactory();
@@ -220,6 +220,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                     //                       NativeWindowFactory.getNullToolkitLock(), true); // own non-shared display connection, no locking
             sharedDevice.lock();
             try {
+                if(!GLXUtil.isGLXAvailable(sharedDevice.getHandle())) {
+                    throw new GLException("GLX not available on device: "+sharedDevice);
+                }
                 GLXUtil.initGLXClientDataSingleton(sharedDevice);                
                 final String glXServerVendorName = GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_VENDOR);
                 final VersionNumber glXServerVersion = GLXUtil.getGLXServerVersionNumber(sharedDevice.getHandle());

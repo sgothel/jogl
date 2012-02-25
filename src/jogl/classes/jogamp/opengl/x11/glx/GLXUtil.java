@@ -90,22 +90,29 @@ public class GLXUtil {
     }
     public static VersionNumber getClientVersionNumber() {
         return clientVersionNumber;
-    }    
-    public static synchronized boolean initGLXClientDataSingleton(X11GraphicsDevice x11Device) { 
+    }
+    
+    public static synchronized boolean isGLXAvailable(long handle) {
+        if(0 == handle) {
+            throw new IllegalArgumentException("null X11 display handle");
+        }        
+        boolean glXAvailable = false;
+        try {
+            glXAvailable = GLX.glXQueryExtension(handle, null, 0, null, 0);
+        } catch (Throwable t) { /* n/a */ }
+        return glXAvailable;        
+    }
+    
+    public static synchronized void initGLXClientDataSingleton(X11GraphicsDevice x11Device) { 
         if(null != clientVendorName) {
-            return false;
-        }
-        if(DEBUG) {
-            System.err.println("initGLXClientDataSingleton: "+x11Device);
-            Thread.dumpStack();
+            return; // already initialized
         }
         if(null == x11Device) {
-            throw new GLException("null X11GraphicsDevice");
+            throw new IllegalArgumentException("null X11GraphicsDevice");
         }
         if(0 == x11Device.getHandle()) {
-            throw new GLException("null X11GraphicsDevice display handle");
-        }
-        
+            throw new IllegalArgumentException("null X11GraphicsDevice display handle");
+        }        
         clientMultisampleAvailable = isMultisampleAvailable(GLX.glXGetClientString(x11Device.getHandle(), GLX.GLX_EXTENSIONS));
         clientVendorName = GLX.glXGetClientString(x11Device.getHandle(), GLX.GLX_VENDOR);
         
@@ -121,7 +128,6 @@ public class GLXUtil {
               minor[0] = 2;
         }
         clientVersionNumber = new VersionNumber(major[0], minor[0], 0);
-        return true;
     }
     private static boolean clientMultisampleAvailable = false;
     private static String clientVendorName = null;
