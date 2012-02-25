@@ -57,38 +57,65 @@ import java.util.Map;
  */
 
 public abstract class GraphicsConfigurationFactory {
-    protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
+    protected static final boolean DEBUG;
 
-    private static Map<Class<?>, GraphicsConfigurationFactory> registeredFactories =
-        Collections.synchronizedMap(new HashMap<Class<?>, GraphicsConfigurationFactory>());
+    private static Map<Class<?>, GraphicsConfigurationFactory> registeredFactories;
     private static Class<?> abstractGraphicsDeviceClass;
-
+    static boolean initialized = false;
+    
     static {
-        abstractGraphicsDeviceClass = javax.media.nativewindow.AbstractGraphicsDevice.class;
+        DEBUG = Debug.debug("GraphicsConfiguration");
+        if(DEBUG) {
+            System.err.println(Thread.currentThread().getName()+" - Info: GraphicsConfigurationFactory.<init>");
+            // Thread.dumpStack();
+        }
+        abstractGraphicsDeviceClass = javax.media.nativewindow.AbstractGraphicsDevice.class;        
+    }
         
-        // Register the default no-op factory for arbitrary
-        // AbstractGraphicsDevice implementations, including
-        // AWTGraphicsDevice instances -- the OpenGL binding will take
-        // care of handling AWTGraphicsDevices on X11 platforms (as
-        // well as X11GraphicsDevices in non-AWT situations)
-        registerFactory(abstractGraphicsDeviceClass, new DefaultGraphicsConfigurationFactoryImpl());
-        
-        if (NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(true))) {
-            try {
-                ReflectionUtil.callStaticMethod("jogamp.nativewindow.x11.X11GraphicsConfigurationFactory", 
-                                                "registerFactory", null, null, GraphicsConfigurationFactory.class.getClassLoader());                
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+    public static synchronized void initSingleton() {
+        if(!initialized) {
+            initialized = true;
+
+            if(DEBUG) {
+                System.err.println(Thread.currentThread().getName()+" - GraphicsConfigurationFactory.initSingleton()");
             }
-            if(NativeWindowFactory.isAWTAvailable()) {
+            registeredFactories = Collections.synchronizedMap(new HashMap<Class<?>, GraphicsConfigurationFactory>());
+            
+            // Register the default no-op factory for arbitrary
+            // AbstractGraphicsDevice implementations, including
+            // AWTGraphicsDevice instances -- the OpenGL binding will take
+            // care of handling AWTGraphicsDevices on X11 platforms (as
+            // well as X11GraphicsDevices in non-AWT situations)
+            registerFactory(abstractGraphicsDeviceClass, new DefaultGraphicsConfigurationFactoryImpl());
+            
+            if (NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(true))) {
                 try {
-                    ReflectionUtil.callStaticMethod("jogamp.nativewindow.x11.awt.X11AWTGraphicsConfigurationFactory", 
+                    ReflectionUtil.callStaticMethod("jogamp.nativewindow.x11.X11GraphicsConfigurationFactory", 
                                                     "registerFactory", null, null, GraphicsConfigurationFactory.class.getClassLoader());                
-                } catch (Exception e) { /* n/a */ }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                if(NativeWindowFactory.isAWTAvailable()) {
+                    try {
+                        ReflectionUtil.callStaticMethod("jogamp.nativewindow.x11.awt.X11AWTGraphicsConfigurationFactory", 
+                                                        "registerFactory", null, null, GraphicsConfigurationFactory.class.getClassLoader());                
+                    } catch (Exception e) { /* n/a */ }
+                }
             }
         }
     }
-
+    
+    public static synchronized void shutdown() {
+        if(initialized) {
+            initialized = false;
+            if(DEBUG) {
+                System.err.println(Thread.currentThread().getName()+" - GraphicsConfigurationFactory.shutdown()");
+            }
+            registeredFactories.clear();
+            registeredFactories = null;
+        }
+    }
+    
     protected static String getThreadName() {
         return Thread.currentThread().getName();
     }

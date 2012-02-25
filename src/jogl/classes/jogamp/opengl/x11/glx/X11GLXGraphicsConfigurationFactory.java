@@ -69,7 +69,15 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
     static X11GLCapabilities.XVisualIDComparator XVisualIDComparator = new X11GLCapabilities.XVisualIDComparator();
     static GraphicsConfigurationFactory fallbackX11GraphicsConfigurationFactory = null;
     static void registerFactory() {
-        fallbackX11GraphicsConfigurationFactory = GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class, new X11GLXGraphicsConfigurationFactory());
+        final GraphicsConfigurationFactory newFactory = new X11GLXGraphicsConfigurationFactory();
+        final GraphicsConfigurationFactory oldFactory = GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class, newFactory);
+        if(oldFactory == newFactory) {
+            throw new InternalError("GraphicsConfigurationFactory lifecycle impl. error");
+        }
+        if(null == oldFactory) {
+            throw new InternalError("Missing fallback GraphicsConfigurationFactory");
+        }
+        fallbackX11GraphicsConfigurationFactory = oldFactory;
     }
     private X11GLXGraphicsConfigurationFactory() {
     }

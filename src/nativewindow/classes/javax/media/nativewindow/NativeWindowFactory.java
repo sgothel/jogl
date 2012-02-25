@@ -135,8 +135,8 @@ public abstract class NativeWindowFactory {
         Platform.initSingleton();
         DEBUG = Debug.debug("NativeWindow");
         if(DEBUG) {
-            Throwable td = new Throwable(Thread.currentThread().getName()+" - Info: NativeWindowFactory.<init>");
-            td.printStackTrace();
+            System.err.println(Thread.currentThread().getName()+" - Info: NativeWindowFactory.<init>");
+            // Thread.dumpStack();
         }
     }
 
@@ -263,12 +263,14 @@ public abstract class NativeWindowFactory {
                     x11JAWTToolkitLockConstructor = ReflectionUtil.getConstructor(x11JAWTToolkitLockClass, new Class[] { long.class } );
                 }
             }
- 
+            
             if(DEBUG) {
                 System.err.println("NativeWindowFactory firstUIActionOnProcess "+firstUIActionOnProcess);
                 System.err.println("NativeWindowFactory requiresToolkitLock "+requiresToolkitLock);
                 System.err.println("NativeWindowFactory isAWTAvailable "+isAWTAvailable+", defaultFactory "+factory);
             }
+            
+            GraphicsConfigurationFactory.initSingleton();
         }
     }
 
@@ -280,6 +282,7 @@ public abstract class NativeWindowFactory {
             }
             registeredFactories.clear();
             registeredFactories = null;
+            GraphicsConfigurationFactory.shutdown();
             // X11Util.shutdown(..) already called via GLDrawableFactory.shutdown() ..
             if(DEBUG) {
                 System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.shutdown() END");                
