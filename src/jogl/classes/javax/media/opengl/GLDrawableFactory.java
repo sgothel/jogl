@@ -240,13 +240,22 @@ public abstract class GLDrawableFactory {
    * Retrieve the default <code>device</code> {@link AbstractGraphicsDevice#getConnection() connection},
    * {@link AbstractGraphicsDevice#getUnitID() unit ID} and {@link AbstractGraphicsDevice#getUniqueID() unique ID name}. for this factory<br>
    * The implementation must return a non <code>null</code> default device, which must not be opened, ie. it's native handle is <code>null</code>.
+   * <p>
+   * This method shall return the default device if available
+   * even if the GLDrawableFactory is not functional and hence not compatible. 
+   * The latter situation may happen because no native OpenGL implementation is available for the specific implementation.
+   * </p>
    * @return the default shared device for this factory, eg. :0.0 on X11 desktop.
+   * @see #getIsDeviceCompatible(AbstractGraphicsDevice)
    */
   public abstract AbstractGraphicsDevice getDefaultDevice();
 
   /**
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
-   * @return true if the device is compatible with this factory, ie. if it can be used for creation. Otherwise false.
+   * @return true if the device is compatible with this factory, ie. if it can be used for GLDrawable creation. Otherwise false.
+   *         This implies validation whether the implementation is functional.
+   *         
+   * @see #getDefaultDevice()
    */
   public abstract boolean getIsDeviceCompatible(AbstractGraphicsDevice device);
 
@@ -259,7 +268,11 @@ public abstract class GLDrawableFactory {
           if (GLProfile.DEBUG) {
               System.err.println("Info: GLDrawableFactory.validateDevice: using default device : "+device);
           }
-      } else if( !getIsDeviceCompatible(device) ) {
+      }
+      
+      // Always validate the device, 
+      // since even the default device may not be used by this factory.
+      if( !getIsDeviceCompatible(device) ) {
           if (GLProfile.DEBUG) {
               System.err.println("Info: GLDrawableFactory.validateDevice: device not compatible : "+device);
           }

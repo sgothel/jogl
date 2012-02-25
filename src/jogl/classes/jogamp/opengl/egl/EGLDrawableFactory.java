@@ -70,6 +70,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             } catch (JogampRuntimeException jre) { /* n/a .. */ }
         }
 
+        defaultDevice = new EGLGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+        
         // FIXME: Probably need to move EGL from a static model 
         // to a dynamic one, where there can be 2 instances 
         // for each ES profile with their own ProcAddressTable.
@@ -139,9 +141,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 }                    
             }
         }
-        if(null != eglES1DynamicLookupHelper || null != eglES2DynamicLookupHelper) {
-            defaultDevice = new EGLGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
-        }
     }
 
     protected final void destroy(ShutdownType shutdownType) {
@@ -206,7 +205,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     public final boolean getIsDeviceCompatible(AbstractGraphicsDevice device) {
-      return true; // via mappings (X11/WGL/.. -> EGL) we shall be able to handle all types.
+      // via mappings (X11/WGL/.. -> EGL) we shall be able to handle all types.
+      return null==eglES2DynamicLookupHelper || null==eglES1DynamicLookupHelper;
     }
 
     /**

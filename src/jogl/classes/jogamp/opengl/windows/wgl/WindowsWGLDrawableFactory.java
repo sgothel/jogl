@@ -103,6 +103,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
     
+    defaultDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
+    
     if(null!=windowsWGLDynamicLookupHelper) {
         // Register our GraphicsConfigurationFactory implementations
         // The act of constructing them causes them to be registered
@@ -114,7 +116,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
             } catch (JogampRuntimeException jre) { /* n/a .. */ }
         }
     
-        defaultDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         sharedMap = new HashMap<String, SharedResourceRunner.Resource>();
     
         // Init shared resources off thread
@@ -379,7 +380,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public final boolean getIsDeviceCompatible(AbstractGraphicsDevice device) {
-      if(device instanceof WindowsGraphicsDevice) {
+      if(null!=windowsWGLDynamicLookupHelper && device instanceof WindowsGraphicsDevice) {
           return true;
       }
       return false;

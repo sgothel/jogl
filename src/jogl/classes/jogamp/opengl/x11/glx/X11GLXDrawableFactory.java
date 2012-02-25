@@ -101,12 +101,13 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
     
+    defaultDevice = new X11GraphicsDevice(X11Util.getNullDisplayName(), AbstractGraphicsDevice.DEFAULT_UNIT);
+    
     if(null!=x11GLXDynamicLookupHelper) {        
         // Register our GraphicsConfigurationFactory implementations
         // The act of constructing them causes them to be registered
         X11GLXGraphicsConfigurationFactory.registerFactory();
         
-        defaultDevice = new X11GraphicsDevice(X11Util.getNullDisplayName(), AbstractGraphicsDevice.DEFAULT_UNIT);
         sharedMap = new HashMap<String, SharedResourceRunner.Resource>();
         
         // Init shared resources off thread
@@ -139,7 +140,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     X11Util.shutdown( false, DEBUG );
   }
 
-  public GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
+  public final GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
       return x11GLXDynamicLookupHelper;
   }
 
@@ -219,7 +220,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                     //                       NativeWindowFactory.getNullToolkitLock(), true); // own non-shared display connection, no locking
             sharedDevice.lock();
             try {
-                GLXUtil.initGLXClientDataSingleton(sharedDevice);
+                GLXUtil.initGLXClientDataSingleton(sharedDevice);                
                 final String glXServerVendorName = GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_VENDOR);
                 final VersionNumber glXServerVersion = GLXUtil.getGLXServerVersionNumber(sharedDevice.getHandle());
                 final boolean glXServerMultisampleAvailable = GLXUtil.isMultisampleAvailable(GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_EXTENSIONS));                
@@ -310,7 +311,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public final boolean getIsDeviceCompatible(AbstractGraphicsDevice device) {
-      if(device instanceof X11GraphicsDevice) {
+      if(null != x11GLXDynamicLookupHelper && device instanceof X11GraphicsDevice) {
           return true;
       }
       return false;

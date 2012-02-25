@@ -547,7 +547,7 @@ public abstract class GLContextImpl extends GLContext {
                                                 ctxMajorVersion, ctxMinorVersion, ctxOptions);
                 GLContext.setAvailableGLVersionsSet(device);
                 if (DEBUG) {
-                  System.err.println(getThreadName() + ": createContextOLD-MapVersionsAvailable HAVE: " +reqMajor+"."+reqProfile+ " -> "+getGLVersion());
+                  System.err.println(getThreadName() + ": createContextOLD-MapVersionsAvailable HAVE: " + device+" -> "+reqMajor+"."+reqProfile+ " -> "+getGLVersion());
                 }
             }
         }

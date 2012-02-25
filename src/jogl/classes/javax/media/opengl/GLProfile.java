@@ -1395,16 +1395,22 @@ public class GLProfile {
             if(null!=t) {
                 t.printStackTrace();
             }
-            if(null == desktopFactory) {
-                System.err.println("Info: GLProfile.init - Desktop GLDrawable factory not available");
-            }
         }
 
+        final AbstractGraphicsDevice defaultDesktopDevice;
         if(null == desktopFactory) {
             hasDesktopGLFactory  = false;
             hasGL234Impl         = false;
+            defaultDesktopDevice = null;
+            if(DEBUG) {
+                System.err.println("Info: GLProfile.init - Desktop GLDrawable factory not available");
+            }
         } else {
-            defaultDevice        = desktopFactory.getDefaultDevice();
+            defaultDesktopDevice = desktopFactory.getDefaultDevice();
+            defaultDevice        = defaultDesktopDevice; 
+            if(DEBUG) {
+                System.err.println("Info: GLProfile.init - Default device is desktop derived: "+defaultDevice);
+            }
         }
 
         if ( ReflectionUtil.isClassAvailable("jogamp.opengl.egl.EGLDrawableFactory", classloader) ) {
@@ -1430,22 +1436,36 @@ public class GLProfile {
                 if(null!=t) {
                     t.printStackTrace();
                 }
-                if(null == eglFactory) {
-                    System.err.println("Info: GLProfile.init - EGL GLDrawable factory not available");
+            }
+        }
+
+        final AbstractGraphicsDevice defaultEGLDevice;        
+        if(null == eglFactory) {
+            hasGLES2Impl     = false;
+            hasGLES1Impl     = false;
+            defaultEGLDevice = null;
+            if(DEBUG) {
+                System.err.println("Info: GLProfile.init - EGL GLDrawable factory not available");
+            }
+        } else {
+            defaultEGLDevice = eglFactory.getDefaultDevice();
+            if(null == defaultDevice) {
+                defaultDevice = defaultEGLDevice;
+                if(DEBUG) {
+                    System.err.println("Info: GLProfile.init - Default device is EGL derived: "+defaultDevice);
                 }
             }
         }
 
-        if(null == eglFactory) {
-            hasGLES2Impl     = false;
-            hasGLES1Impl     = false;
-        } else if(null == defaultDevice) {
-            defaultDevice = eglFactory.getDefaultDevice();
-        }
-
-        final boolean addedAnyProfile = initProfilesForDevice(defaultDevice);
+        /** Should not be required .. but keep it here if simple probe on defaultDevice ain't enough. 
+        final boolean addedDesktopProfile = initProfilesForDevice(defaultDesktopDevice); 
+        final boolean addedEGLProfile     = initProfilesForDevice(defaultEGLDevice); 
+        final boolean addedAnyProfile =  addedDesktopProfile || addedEGLProfile ;
+         */
+        final boolean addedAnyProfile =  initProfilesForDevice(defaultDevice);
 
         if(DEBUG) {
+            // System.err.println("GLProfile.init addedAnyProfile      "+addedAnyProfile+" (desktop: "+addedDesktopProfile+", egl "+addedEGLProfile+")");
             System.err.println("GLProfile.init addedAnyProfile      "+addedAnyProfile);
             System.err.println("GLProfile.init isAWTAvailable       "+isAWTAvailable);
             System.err.println("GLProfile.init hasDesktopGLFactory  "+hasDesktopGLFactory);
@@ -1484,13 +1504,17 @@ public class GLProfile {
         boolean isSet = GLContext.getAvailableGLVersionsSet(device);
 
         if(DEBUG) {
-            String msg = "Info: GLProfile.initProfilesForDevice: "+device+", isSet "+isSet;
-            Throwable t = new Throwable(msg);
-            t.printStackTrace();
-            // System.err.println(msg);
+            System.err.println("Info: GLProfile.initProfilesForDevice: "+device+", isSet "+isSet);
+            Thread.dumpStack();
         }
         if(isSet) {
-            return GLProfile.isAvailable(device, GL_DEFAULT);
+            // Avoid recursion and check whether impl. is sane!
+            final String deviceKey = device.getUniqueID();
+            HashMap<String /*GLProfile_name*/, GLProfile> map = deviceConn2ProfileMap.get(deviceKey);
+            if( null == map ) {
+                throw new InternalError("GLContext Avail. GLVersion is set - but no profile map for device: "+device);
+            }
+            return null != map.get(GL_DEFAULT);
         }
 
         boolean addedDesktopProfile = false;
@@ -1859,7 +1883,7 @@ public class GLProfile {
         if(null==device) {
             device = defaultDevice;
         }
-        String deviceKey = device.getUniqueID();
+        final String deviceKey = device.getUniqueID();
         HashMap<String /*GLProfile_name*/, GLProfile> map = deviceConn2ProfileMap.get(deviceKey);
         if( null != map ) {
             return map;

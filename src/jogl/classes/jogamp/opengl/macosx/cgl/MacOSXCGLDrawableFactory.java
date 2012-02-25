@@ -97,6 +97,8 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
     
+    defaultDevice = new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
+    
     if(null!=macOSXCGLDynamicLookupHelper) {
         // Register our GraphicsConfigurationFactory implementations
         // The act of constructing them causes them to be registered
@@ -108,7 +110,6 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
             } catch (JogampRuntimeException jre) { /* n/a .. */ }
         }
     
-        defaultDevice = new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         sharedMap = new HashMap<String, SharedResource>();
     }     
   }
@@ -167,7 +168,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public final boolean getIsDeviceCompatible(AbstractGraphicsDevice device) {
-      if(device instanceof MacOSXGraphicsDevice) {
+      if(null!=macOSXCGLDynamicLookupHelper && device instanceof MacOSXGraphicsDevice) {
           return true;
       }
       return false;
