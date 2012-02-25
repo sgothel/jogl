@@ -39,7 +39,9 @@ public class OSXUtil {
     
     public static synchronized void initSingleton(boolean firstX11ActionOnProcess) {
       if(!isInit) {
-          NWJNILibLoader.loadNativeWindow("macosx");
+          if(!NWJNILibLoader.loadNativeWindow("macosx")) {
+              throw new NativeWindowException("NativeWindow MacOSX native library load error.");
+          }
           
           if( !initIDs0() ) {
               throw new NativeWindowException("MacOSX: Could not initialized native stub");

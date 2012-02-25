@@ -38,18 +38,17 @@ import com.jogamp.common.util.cache.TempJarCache;
 
 public class NWJNILibLoader extends JNILibLoaderBase {
   
-  public static void loadNativeWindow(final String ossuffix) {
-    AccessController.doPrivileged(new PrivilegedAction<Object>() {
-      public Object run() {
+  public static boolean loadNativeWindow(final String ossuffix) {
+    return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+      public Boolean run() {
         Platform.initSingleton();
         final String libName = "nativewindow_"+ossuffix ;
         if(TempJarCache.isInitialized() && null == TempJarCache.findLibrary(libName)) {
             addNativeJarLibs(NWJNILibLoader.class, "jogl-all", new String[] { "nativewindow" } );
         }
-        loadLibrary(libName, false);
-        return null;
+        return new Boolean(loadLibrary(libName, false));
       }
-    });
+    }).booleanValue();
   }
 
 }

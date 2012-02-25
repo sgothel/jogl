@@ -168,7 +168,9 @@ public class JAWTUtil {
         // Thread.dumpStack();
     }
     JAWTJNILibLoader.initSingleton();
-    JAWTJNILibLoader.loadNativeWindow("awt");
+    if(!JAWTJNILibLoader.loadNativeWindow("awt")) {
+        throw new NativeWindowException("NativeWindow AWT native library load error.");
+    }
 
     headlessMode = GraphicsEnvironment.isHeadless();
     boolean ok = false;

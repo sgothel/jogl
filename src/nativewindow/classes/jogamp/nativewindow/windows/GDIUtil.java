@@ -46,7 +46,9 @@ public class GDIUtil {
             synchronized(X11Util.class) {
                 if(!isInit) {
                     isInit = true;
-                    NWJNILibLoader.loadNativeWindow("win32");
+                    if(!NWJNILibLoader.loadNativeWindow("win32")) {
+                        throw new NativeWindowException("NativeWindow Windows native library load error.");
+                    }
 
                     if( !initIDs0() ) {
                         throw new NativeWindowException("GDI: Could not initialized native stub");

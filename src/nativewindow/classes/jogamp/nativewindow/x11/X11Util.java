@@ -101,7 +101,9 @@ public class X11Util {
             synchronized(X11Util.class) {
                 if(!isInit) {
                     isInit = true;
-                    NWJNILibLoader.loadNativeWindow("x11");
+                    if(!NWJNILibLoader.loadNativeWindow("x11")) {
+                        throw new NativeWindowException("NativeWindow X11 native library load error.");
+                    }
         
                     final boolean callXInitThreads = XINITTHREADS_ALWAYS_ENABLED || firstX11ActionOnProcess;
                     final boolean isXInitThreadsOK = initialize0( XINITTHREADS_ALWAYS_ENABLED || firstX11ActionOnProcess );
