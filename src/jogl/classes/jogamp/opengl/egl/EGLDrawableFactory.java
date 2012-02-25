@@ -206,7 +206,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     public final boolean getIsDeviceCompatible(AbstractGraphicsDevice device) {
       // via mappings (X11/WGL/.. -> EGL) we shall be able to handle all types.
-      return null==eglES2DynamicLookupHelper || null==eglES1DynamicLookupHelper;
+      return null!=eglES2DynamicLookupHelper || null!=eglES1DynamicLookupHelper;
     }
 
     /**
