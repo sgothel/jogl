@@ -64,7 +64,6 @@ import java.util.List;
     GraphicsDevice and GraphicsConfiguration abstractions. */
 
 public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
-    protected static final boolean DEBUG = jogamp.opengl.Debug.debug("GraphicsConfiguration");
     static WGLGLCapabilities.PfdIDComparator PfdIDComparator = new WGLGLCapabilities.PfdIDComparator();
 
     static void registerFactory() {

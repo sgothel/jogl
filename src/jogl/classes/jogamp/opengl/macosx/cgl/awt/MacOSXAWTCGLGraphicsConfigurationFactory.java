@@ -56,8 +56,6 @@ import javax.media.opengl.GLException;
 import jogamp.opengl.macosx.cgl.MacOSXCGLGraphicsConfiguration;
 
 public class MacOSXAWTCGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
-    protected static final boolean DEBUG = jogamp.opengl.Debug.debug("GraphicsConfiguration");
-
     public static void registerFactory() {
         GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.awt.AWTGraphicsDevice.class, new MacOSXAWTCGLGraphicsConfigurationFactory());
     }    
