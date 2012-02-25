@@ -58,8 +58,8 @@ public class TestSharedContextListNEWT extends UITestCase {
     @BeforeClass
     public static void initClass() {
         if(Platform.CPUFamily.X86 != Platform.CPU_ARCH.family) { // FIXME
-            // Turns out on some platforms (Linux ARM), 
-            // Mesa3D software impl. freezes when shared context is used.
+            // FIXME: Turns out on some mobile GL drivers and platforms 
+            // using shared context is instable, Linux ARM (Omap4, Tegra2, Mesa3d, ..)
             setTestSupported(false);
             return;
         }

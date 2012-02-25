@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.demos.gl2.awt;
+package com.jogamp.opengl.test.junit.jogl.demos.es2.awt;
 
 import javax.media.opengl.*;
 
@@ -37,7 +37,7 @@ import com.jogamp.newt.event.awt.AWTWindowAdapter;
 import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import java.awt.Frame;
@@ -48,21 +48,17 @@ import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
 
-public class TestGearsAWT extends UITestCase {
+public class TestGearsES2AWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
     static boolean firstUIActionOnProcess = false;
 
     @BeforeClass
     public static void initClass() {
-        if(GLProfile.isAvailable(GLProfile.GL2)) {
-            glp = GLProfile.get(GLProfile.GL2);
-            Assert.assertNotNull(glp);
-            width  = 512;
-            height = 512;
-        } else {
-            setTestSupported(false);
-        }
+        glp = GLProfile.getGL2ES2();
+        Assert.assertNotNull(glp);
+        width  = 512;
+        height = 512;
     }
 
     @AfterClass
@@ -70,7 +66,7 @@ public class TestGearsAWT extends UITestCase {
     }
 
     protected void runTestGL(GLCapabilities caps) throws InterruptedException, InvocationTargetException {
-        final Frame frame = new Frame("Gears AWT Test");
+        final Frame frame = new Frame("GearsES2 AWT Test");
         Assert.assertNotNull(frame);
 
         final GLCanvas glCanvas = new GLCanvas(caps);
@@ -78,7 +74,7 @@ public class TestGearsAWT extends UITestCase {
         frame.add(glCanvas);
         frame.setSize(512, 512);
 
-        glCanvas.addGLEventListener(new Gears(1));
+        glCanvas.addGLEventListener(new GearsES2(1));
 
         Animator animator = new Animator(glCanvas);
         QuitAdapter quitAdapter = new QuitAdapter();
@@ -131,6 +127,6 @@ public class TestGearsAWT extends UITestCase {
                 firstUIActionOnProcess = true;
             }
         }
-        org.junit.runner.JUnitCore.main(TestGearsAWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGearsES2AWT.class.getName());
     }
 }

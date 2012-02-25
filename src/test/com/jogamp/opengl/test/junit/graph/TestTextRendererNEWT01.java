@@ -13,6 +13,7 @@ import javax.media.opengl.GLProfile;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.RenderState;
 import com.jogamp.graph.curve.opengl.TextRenderer;
@@ -74,6 +75,11 @@ public class TestTextRendererNEWT01 extends UITestCase {
 
     @Test
     public void testTextRendererR2T01() throws InterruptedException {
+        if(Platform.CPUFamily.X86 != Platform.CPU_ARCH.family) { // FIXME
+            // FIXME: Disabled for now - since it doesn't seem fit for mobile (performance wise). 
+            setTestSupported(false);
+            return;
+        }
         GLProfile glp = GLProfile.getGL2ES2();
         
         GLCapabilities caps = new GLCapabilities(glp);

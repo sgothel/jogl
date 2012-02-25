@@ -2,9 +2,11 @@
 
 THISDIR=`pwd`
 
-#XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode -Djogl.debug.GLBufferSizeTracker"
+XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode"
 #XTRA_FLAGS="-Dnewt.debug.Screen"
+#XTRA_FLAGS="-Dnativewindow.debug.GraphicsConfiguration -Dnativewindow.debug.NativeWindow"
 #XTRA_FLAGS="-Dnewt.debug.Window -Djogl.debug.EGL -Djogl.debug.GLContext -Djogl.debug.GLDrawable"
+#XTRA_FLAGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile -Djogl.debug.GLDrawable"
 #XTRA_FLAGS="-Djogl.debug.EGL"
 #XTRA_FLAGS="-Djogl.debug.GraphicsConfiguration"
 #XTRA_FLAGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable"
@@ -34,9 +36,9 @@ THISDIR=`pwd`
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES1NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT2
-#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT
+TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedNEWT
-TSTCLASS=com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestRedSquareES1NEWT
@@ -81,7 +83,6 @@ TSTCLASS=com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT
  
 function junit_run() {
      java \
-     -Xprof \
      -cp ../../gluegen/make/lib/junit.jar:/usr/share/ant/lib/ant.jar:/usr/share/ant/lib/ant-junit.jar:../../gluegen/build-linux-armv7/gluegen-rt.jar:../build-linux-armv7/jar/jogl.all-noawt.jar:../build-linux-armv7/jar/jogl.test.jar\
      -Djava.awt.headless=true\
      $XTRA_FLAGS \

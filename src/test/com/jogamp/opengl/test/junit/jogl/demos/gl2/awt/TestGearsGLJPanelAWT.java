@@ -53,10 +53,14 @@ public class TestGearsGLJPanelAWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        glp = GLProfile.getDefault();
-        Assert.assertNotNull(glp);
-        width  = 512;
-        height = 512;
+        if(GLProfile.isAvailable(GLProfile.GL2)) {
+            glp = GLProfile.get(GLProfile.GL2);
+            Assert.assertNotNull(glp);
+            width  = 512;
+            height = 512;
+        } else {
+            setTestSupported(false);
+        }
     }
 
     @AfterClass

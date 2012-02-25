@@ -31,6 +31,7 @@ package com.jogamp.opengl.test.junit.util;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.locks.SingletonInstance;
 
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.After;
@@ -98,7 +99,7 @@ public abstract class UITestCase {
         System.err.print("++++ UITestCase.setUp: "+getFullTestName(" - "));
         if(!testSupported) {
             System.err.println(" - "+unsupportedTestMsg);
-            throw new UnsupportedOperationException(unsupportedTestMsg);
+            Assume.assumeTrue(testSupported);
         }
         System.err.println();      
     }

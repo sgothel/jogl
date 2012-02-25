@@ -55,6 +55,12 @@ public class TestSharedContextVBOES1NEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
+        if(Platform.CPUFamily.X86 != Platform.CPU_ARCH.family) { // FIXME
+            // FIXME: Turns out on some mobile GL drivers and platforms 
+            // using shared context is instable, Linux ARM (Omap4, Tegra2, Mesa3d, ..)
+            setTestSupported(false);
+            return;
+        }
         if(GLProfile.isAvailable(GLProfile.GL2ES1)) {
             glp = GLProfile.get(GLProfile.GL2ES1);
             Assert.assertNotNull(glp);

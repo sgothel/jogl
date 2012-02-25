@@ -38,11 +38,8 @@ import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 
-import javax.media.opengl.FPSCounter;
-import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLRunnable;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -55,10 +52,14 @@ public class TestGearsNEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        glp = GLProfile.getDefault();
-        Assert.assertNotNull(glp);
-        width  = 512;
-        height = 512;
+        if(GLProfile.isAvailable(GLProfile.GL2)) {
+            glp = GLProfile.get(GLProfile.GL2);
+            Assert.assertNotNull(glp);
+            width  = 512;
+            height = 512;
+        } else {
+            setTestSupported(false);
+        }
     }
 
     @AfterClass

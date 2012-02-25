@@ -81,8 +81,7 @@ public class TestOffscreen02BitmapNEWT extends UITestCase {
 
     @Test
     public void test11OffscreenWindowPixmap() {
-        // Offscreen doesn't work on >= GL3 (ATI)
-        GLProfile glp = GLProfile.get(GLProfile.GL2);
+        GLProfile glp = GLProfile.getGL2ES1();
         Assert.assertNotNull(glp);
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
@@ -124,8 +123,7 @@ public class TestOffscreen02BitmapNEWT extends UITestCase {
 
     @Test
     public void test14OffscreenSnapshotWithDemoPixmap() {
-        // Offscreen doesn't work on >= GL3 (ATI)
-        GLProfile glp = GLProfile.get(GLProfile.GL2);
+        GLProfile glp = GLProfile.getGL2ES1();
         Assert.assertNotNull(glp);
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
