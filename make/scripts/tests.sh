@@ -285,7 +285,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentParentingAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1AWT $*
-testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.glsl.TestShaderCompilationBug459AWT
@@ -311,7 +311,7 @@ testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPURegionNewtDemo02 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo01 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo02 $*
+testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUUISceneNewtDemo02 $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBufferRead01NEWT $*

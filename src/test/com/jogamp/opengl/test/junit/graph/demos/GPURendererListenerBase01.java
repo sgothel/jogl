@@ -80,7 +80,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     private float yTran =  10;    
     private float ang = 0f;
     private float zoom = -70f;
-    private int texSize = 400; 
+    private int[] texSize = new int[] { 400 }; 
 
     protected volatile float weight = 1.0f;
     boolean ignoreInput = false;
@@ -99,7 +99,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     public final float getXTran() { return xTran; }
     public final float getYTran() { return yTran; }
     public final float getAngle() { return ang; }
-    public final int getTexSize() { return texSize; }
+    public final int[] getTexSize() { return texSize; }
     public final float[] getPosition() { return position; }
 
     public void setMatrix(float xtrans, float ytrans, float angle, int zoom, int fbosize) {
@@ -107,7 +107,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
         this.yTran = ytrans; 
         this.ang = angle;  
         this.zoom = zoom;
-        this.texSize = fbosize;     
+        this.texSize[0] = fbosize;     
     }
     
     public void init(GLAutoDrawable drawable) {
@@ -191,7 +191,7 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
     public void printScreen(GLAutoDrawable drawable, String dir, String tech, String objName, boolean exportAlpha) throws GLException, IOException {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
-        pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getWidth(), drawable.getHeight(), (int)Math.abs(zoom), texSize, objName);
+        pw.printf("-%03dx%03d-Z%04d-T%04d-%s", drawable.getWidth(), drawable.getHeight(), (int)Math.abs(zoom), texSize[0], objName);
         
         final String filename = dir + tech + sw +".tga";
         if(screenshot.readPixels(drawable.getGL(), drawable, false)) {
@@ -233,12 +233,12 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                 move(-1, 0);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_6){
-                texSize -= 10;
-                System.err.println("Tex Size: " + texSize);
+                texSize[0] -= 10;
+                System.err.println("Tex Size: " + texSize[0]);
             }
             else if(arg0.getKeyCode() == KeyEvent.VK_7){
-                texSize += 10;
-                System.err.println("Tex Size: " + texSize);
+                texSize[0] += 10;
+                System.err.println("Tex Size: " + texSize[0]);
             }            
             else if(arg0.getKeyCode() == KeyEvent.VK_0){
                 rotate(1);

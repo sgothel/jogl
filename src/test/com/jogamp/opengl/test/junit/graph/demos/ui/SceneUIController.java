@@ -23,7 +23,7 @@ public class SceneUIController implements GLEventListener{
 
     private int count = 0;
     private int renderModes; 
-    private int texSize; 
+    private int[] texSize; 
     private RegionRenderer renderer = null;
     private RenderState rs = null;
 
@@ -42,14 +42,14 @@ public class SceneUIController implements GLEventListener{
     public SceneUIController() {
     }
     
-    public void setRenderer(RegionRenderer renderer, RenderState rs, int renderModes, int texSize) {
+    public void setRenderer(RegionRenderer renderer, RenderState rs, int renderModes, int[] texSize) {
         this.renderer = renderer;
         this.rs = rs;
         this.renderModes = renderModes;
         this.texSize = texSize;
     }
     
-    public SceneUIController(RegionRenderer renderer, RenderState rs, int renderModes, int texSize) {
+    public SceneUIController(RegionRenderer renderer, RenderState rs, int renderModes, int[] texSize) {
         this.renderer = renderer;
         this.rs = rs;
         this.renderModes = renderModes;
@@ -136,7 +136,7 @@ public class SceneUIController implements GLEventListener{
         gl.glClearColor(sceneClearColor[0], sceneClearColor[1], sceneClearColor[2], sceneClearColor[3]);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
-        render(gl, width, height, 0, 0, true);
+        render(gl, width, height, 0, null, true);
         ByteBuffer pixel = Buffers.newDirectByteBuffer(4);
         pixel.order(ByteOrder.nativeOrder());
         IntBuffer viewport = IntBuffer.allocate(4);
@@ -151,7 +151,7 @@ public class SceneUIController implements GLEventListener{
         return index;
     }
 
-    private void render(GL2ES2 gl, int width, int height, int renderModes, int texSize, boolean select) {
+    private void render(GL2ES2 gl, int width, int height, int renderModes, int[/*1*/] texSize, boolean select) {
         renderer.reshapePerspective(null, 45.0f, width, height, 0.1f, 7000.0f);
         
         for(int index=0; index < count;index++){

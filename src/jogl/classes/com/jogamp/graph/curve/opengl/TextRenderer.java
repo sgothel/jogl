@@ -59,11 +59,12 @@ public abstract class TextRenderer extends Renderer {
      * @param str text to be rendered 
      * @param position the lower left corner of the string 
      * @param fontSize font size
-     * @param texSize texture size for multipass render
+     * @param texWidth desired texture width for multipass-rendering. 
+     *        The actual used texture-width is written back when mp rendering is enabled, otherwise the store is untouched.
      * @throws Exception if TextRenderer not initialized
      */
     public abstract void drawString3D(GL2ES2 gl, Font font,
-                                      String str, float[] position, int fontSize, int texSize);
+                                      String str, float[] position, int fontSize, int[/*1*/] texSize);
 
     /**Create the resulting {@link GlyphString} that represents
      * the String wrt to the font.

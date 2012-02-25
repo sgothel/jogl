@@ -54,10 +54,11 @@ public abstract class RegionRenderer extends Renderer {
      *  the triangles of the shapes will be generated, if not yet generated
      * @param region the OutlineShape to Render.
      * @param position the initial translation of the outlineShape. 
-     * @param texSize texture size for multipass render
+     * @param texWidth desired texture width for multipass-rendering. 
+     *        The actual used texture-width is written back when mp rendering is enabled, otherwise the store is untouched.
      * @throws Exception if HwRegionRenderer not initialized
      */
-    public final void draw(GL2ES2 gl, Region region, float[] position, int texSize) {
+    public final void draw(GL2ES2 gl, Region region, float[] position, int[/*1*/] texWidth) {
         if(!isInitialized()) {
             throw new GLException("RegionRenderer: not initialized!");
         }
@@ -65,14 +66,14 @@ public abstract class RegionRenderer extends Renderer {
             throw new GLException("Incompatible render modes, : region modes "+region.getRenderModes()+
                                   " doesn't contain renderer modes "+this.getRenderModes());
         }        
-        drawImpl(gl, region, position, texSize);
+        drawImpl(gl, region, position, texWidth);
     }
     
     /**
      * Usually just dispatched the draw call to the Region's draw implementation,
-     * e.g. {@link com.jogamp.graph.curve.opengl.GLRegion#draw(GL2ES2, RenderState, int, int, int) GLRegion#draw(GL2ES2, RenderState, int, int, int)}.
+     * e.g. {@link com.jogamp.graph.curve.opengl.GLRegion#draw(GL2ES2, RenderState, int, int, int[]) GLRegion#draw(GL2ES2, RenderState, int, int, int[])}.
      */
-    protected abstract void drawImpl(GL2ES2 gl, Region region, float[] position, int texSize);
+    protected abstract void drawImpl(GL2ES2 gl, Region region, float[] position, int[] texWidth);
 
     @Override
     protected void destroyImpl(GL2ES2 gl) {

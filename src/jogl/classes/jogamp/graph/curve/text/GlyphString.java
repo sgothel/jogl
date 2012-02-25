@@ -45,6 +45,7 @@ import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.curve.Region;
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
+import com.jogamp.opengl.util.PMVMatrix;
 
 public class GlyphString {
     /** Static font size for all default font OutlineShape generations via {@link #createString(OutlineShape, Factory, Font, String)}.
@@ -171,13 +172,19 @@ public class GlyphString {
      *  previously generated.
      */
     public void renderString3D(GL2ES2 gl) {
-        region.draw(gl, null, 0, 0, 0);
+        region.draw(gl, null, 0, 0, null);
     }
     /** Render the Object based using the associated Region
      *  previously generated.
+     * @param matrix current {@link PMVMatrix}.
+     * @param rs the RenderState to be used
+     * @param vp_width current screen width
+     * @param vp_height current screen height
+     * @param texWidth desired texture width for multipass-rendering. 
+     *        The actual used texture-width is written back when mp rendering is enabled, otherwise the store is untouched.
      */
-    public void renderString3D(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int size) {
-        region.draw(gl, rs, vp_width, vp_height, size);
+    public void renderString3D(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth) {
+        region.draw(gl, rs, vp_width, vp_height, texWidth);
     }
     
     /** Get the Origin of this GlyphString

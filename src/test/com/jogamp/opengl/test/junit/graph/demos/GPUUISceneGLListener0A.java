@@ -31,9 +31,9 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     private boolean trace = false; 
     
     private final int renderModes;
-    private final int texSize; 
+    private final int[] texSize = new int[1]; 
     private final int renderModes2;
-    private final int texSize2; 
+    private final int[] texSize2 = new int[1]; 
     private RegionRenderer regionRenderer;
     private RenderState rs;
     
@@ -77,9 +77,9 @@ public class GPUUISceneGLListener0A implements GLEventListener {
     public GPUUISceneGLListener0A(RenderState rs, int renderModes, boolean debug, boolean trace) {
         this.rs = rs;
         this.renderModes = renderModes;
-        this.texSize = Region.isVBAA(renderModes) ? 400 : 0;
+        this.texSize[0] = Region.isVBAA(renderModes) ? 400 : 0;
         this.renderModes2 = 0;
-        this.texSize2 = 0;
+        this.texSize2[0] = 0;
         
         this.debug = debug;
         this.trace = trace;
@@ -301,7 +301,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         regionRenderer.scale(gl, 1.5f, 1.5f, 1.0f);
         regionRenderer.rotate(gl, angText , 0, 1, 0);
         regionRenderer.setColorStatic(gl, 0.0f, 1.0f, 0.0f);
-        regionRenderer.draw(gl, jogampRegion.getRegion(gl, rs, 0), new float[]{0,0,0}, 0);
+        regionRenderer.draw(gl, jogampRegion.getRegion(gl, rs, 0), new float[]{0,0,0}, null);
         
         if(null == labelRegions[currentText]) {
             if( null == labels[currentText]) {
@@ -345,7 +345,7 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         if(showFPS && null != fpsRegion) {
             regionRenderer.translate(gl, 0, -60, 0);
             regionRenderer.scale(null, zoomText, zoomText, 1);
-            regionRenderer.draw(gl, fpsRegion.getRegion(gl, rs, 0), new float[]{0,0,0}, 0);
+            regionRenderer.draw(gl, fpsRegion.getRegion(gl, rs, 0), new float[]{0,0,0}, null);
         }
     }
     

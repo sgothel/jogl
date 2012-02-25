@@ -2,7 +2,6 @@ package com.jogamp.opengl.test.junit.graph;
 
 import java.io.IOException;
 
-import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -11,7 +10,6 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.graph.curve.Region;

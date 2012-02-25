@@ -125,7 +125,7 @@ public class VBORegionSPES2 extends GLRegion {
         setDirty(false);
     }
 
-    protected void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int width) {
+    protected void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth) {
         verticeAttr.enableBuffer(gl, true);       
         texCoordAttr.enableBuffer(gl, true);
         indices.enableBuffer(gl, true);

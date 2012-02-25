@@ -100,7 +100,6 @@ public abstract class Label extends UIShape implements UITextShape {
 
     @Override
     public void render(GL2ES2 gl, RenderState rs, RegionRenderer renderer,
-            int renderModes, int texSize, boolean selection) {
-        
+            int renderModes, int[/*1*/] texSize, boolean selection) {        
     }
 }

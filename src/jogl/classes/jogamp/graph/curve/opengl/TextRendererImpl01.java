@@ -80,7 +80,7 @@ public class TextRendererImpl01 extends TextRenderer {
     }
     
     @Override
-    public void drawString3D(GL2ES2 gl, Font font, String str, float[] position, int fontSize, int texSize) {
+    public void drawString3D(GL2ES2 gl, Font font, String str, float[] position, int fontSize, int[/*1*/] texSize) {
         if(!isInitialized()){
             throw new GLException("TextRendererImpl01: not initialized!");
         }
@@ -92,5 +92,4 @@ public class TextRendererImpl01 extends TextRenderer {
         
         glyphString.renderString3D(gl, rs, vp_width, vp_height, texSize);
     }
-    
 }

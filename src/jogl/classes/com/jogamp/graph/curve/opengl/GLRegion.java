@@ -114,14 +114,16 @@ public abstract class GLRegion extends Region {
      * current width/hight of window for multi pass rendering
      * of the region.
      * @param matrix current {@link PMVMatrix}.
+     * @param rs the RenderState to be used
      * @param vp_width current screen width
      * @param vp_height current screen height
-     * @param width texture width for mp rendering
+     * @param texWidth desired texture width for multipass-rendering. 
+     *        The actual used texture-width is written back when mp rendering is enabled, otherwise the store is untouched.
      */
-    public final void draw(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int width) {
+    public final void draw(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth) {
         update(gl, rs);
-        drawImpl(gl, rs, vp_width, vp_height, width);
+        drawImpl(gl, rs, vp_width, vp_height, texWidth);
     }
     
-    protected abstract void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int width);
+    protected abstract void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth);
 }

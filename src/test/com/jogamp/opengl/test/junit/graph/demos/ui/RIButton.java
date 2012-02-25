@@ -199,7 +199,7 @@ public abstract class RIButton extends UIShape {
     private boolean toggle =false;
     private boolean toggleable = false;
 
-    public void render(GL2ES2 gl, RenderState rs, RegionRenderer renderer, int renderModes, int texSize, boolean selection) {
+    public void render(GL2ES2 gl, RenderState rs, RegionRenderer renderer, int renderModes, int[/*1*/] texSize, boolean selection) {
         if(null == buttonRegion) {
             buttonRegion = new UIRegion(this);
             labelRegion = new UIRegion(getLabel());

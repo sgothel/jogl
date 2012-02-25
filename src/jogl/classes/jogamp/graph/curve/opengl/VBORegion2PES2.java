@@ -192,18 +192,18 @@ public class VBORegion2PES2  extends GLRegion {
     
     int[] maxTexSize = new int[] { -1 } ;
     
-    protected void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int width) {
-        if(vp_width <=0 || vp_height <= 0 || width <= 0){
+    protected void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth) {
+        if(vp_width <=0 || vp_height <= 0 || null==texWidth || texWidth[0] <= 0){
             renderRegion(gl);
         } else {
             if(0 > maxTexSize[0]) {
                 gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, maxTexSize, 0);
             }
-            if(width > maxTexSize[0]) {
-                width = maxTexSize[0];
-            }
-            if(width != tex_width_c) {
-                renderRegion2FBO(gl, rs, width);                
+            if(texWidth[0] != tex_width_c) {
+                if(texWidth[0] > maxTexSize[0]) {
+                    texWidth[0] = maxTexSize[0]; // clip to max - write-back user value!
+                }
+                renderRegion2FBO(gl, rs, texWidth); 
             }
             // System.out.println("Scale: " + matrix.glGetMatrixf().get(1+4*3) +" " + matrix.glGetMatrixf().get(2+4*3));
             renderFBO(gl, rs, vp_width, vp_height);
@@ -230,15 +230,19 @@ public class VBORegion2PES2  extends GLRegion {
         // setback: gl.glActiveTexture(currentActiveTextureEngine[0]);
     }
     
-    private void renderRegion2FBO(GL2ES2 gl, RenderState rs, int tex_width) {
+    private void renderRegion2FBO(GL2ES2 gl, RenderState rs, int[/*1*/] texWidth) {
         final ShaderState st = rs.getShaderState();
         
-        tex_width_c = tex_width;        
+        if(0>=texWidth[0]) {
+            throw new IllegalArgumentException("texWidth must be greater than 0: "+texWidth[0]);
+        }
+        
+        tex_width_c  = texWidth[0];
         tex_height_c = (int) ( ( ( tex_width_c * box.getHeight() ) / box.getWidth() ) + 0.5f );
         
-        // System.out.println("FBO Size: "+tex_width+" -> "+tex_height_c+"x"+tex_width_c);
+        // System.out.println("FBO Size: "+texWidth[0]+" -> "+tex_width_c+"x"+tex_height_c);
         // System.out.println("FBO Scale: " + m.glGetMatrixf().get(0) +" " + m.glGetMatrixf().get(5));
-
+        
         if(null != fbo && fbo.getWidth() != tex_width_c && fbo.getHeight() != tex_height_c ) {
             fbo.destroy(gl);
             fbo = null;
