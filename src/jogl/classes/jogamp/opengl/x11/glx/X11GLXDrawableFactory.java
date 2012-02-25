@@ -220,8 +220,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                     //                       NativeWindowFactory.getNullToolkitLock(), true); // own non-shared display connection, no locking
             sharedDevice.lock();
             try {
-                if(!GLXUtil.isGLXAvailable(sharedDevice.getHandle())) {
-                    throw new GLException("GLX not available on device: "+sharedDevice);
+                if(!GLXUtil.isGLXAvailableOnServer(sharedDevice)) {
+                    throw new GLException("GLX not available on device/server: "+sharedDevice);
                 }
                 GLXUtil.initGLXClientDataSingleton(sharedDevice);                
                 final String glXServerVendorName = GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_VENDOR);

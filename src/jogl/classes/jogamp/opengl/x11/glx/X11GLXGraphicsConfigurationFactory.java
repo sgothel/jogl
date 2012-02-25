@@ -52,7 +52,6 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.common.nio.PointerBuffer;
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.XVisualInfo;
-import jogamp.opengl.Debug;
 import jogamp.opengl.GLGraphicsConfigurationFactory;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
@@ -67,11 +66,10 @@ import java.util.List;
     GraphicsDevice and GraphicsConfiguration abstractions. */
 
 public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
-    protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
     static X11GLCapabilities.XVisualIDComparator XVisualIDComparator = new X11GLCapabilities.XVisualIDComparator();
-
+    static GraphicsConfigurationFactory fallbackX11GraphicsConfigurationFactory = null;
     static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class, new X11GLXGraphicsConfigurationFactory());
+        fallbackX11GraphicsConfigurationFactory = GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class, new X11GLXGraphicsConfigurationFactory());
     }
     private X11GLXGraphicsConfigurationFactory() {
     }
@@ -93,6 +91,16 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         if (chooser != null && !(chooser instanceof GLCapabilitiesChooser)) {
             throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilitiesChooser objects");
         }
+        
+        if(!GLXUtil.isGLXAvailableOnServer((X11GraphicsDevice)absScreen.getDevice())) {
+            if(null != fallbackX11GraphicsConfigurationFactory) {
+                if(DEBUG) {
+                    System.err.println("No GLX available, fallback to "+fallbackX11GraphicsConfigurationFactory.getClass().getSimpleName()+" for: "+absScreen);
+                }
+                return fallbackX11GraphicsConfigurationFactory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, absScreen);
+            }
+            throw new InternalError("No GLX and no fallback GraphicsConfigurationFactory available for: "+absScreen);
+        }        
         return chooseGraphicsConfigurationStatic((GLCapabilitiesImmutable)capsChosen, (GLCapabilitiesImmutable)capsRequested,
                                                  (GLCapabilitiesChooser)chooser, (X11GraphicsScreen)absScreen);
     }
@@ -187,7 +195,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         if (capsChosen == null) {
             capsChosen = new GLCapabilities(null);
         }
-        X11GraphicsDevice x11Device = (X11GraphicsDevice) x11Screen.getDevice();
+        X11GraphicsDevice x11Device = (X11GraphicsDevice) x11Screen.getDevice();        
         X11GLXDrawableFactory factory = (X11GLXDrawableFactory) GLDrawableFactory.getDesktopFactory();
 
         capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities( capsChosen, factory.canCreateGLPbuffer(x11Device) );

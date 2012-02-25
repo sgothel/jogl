@@ -154,18 +154,21 @@ public abstract class GraphicsConfigurationFactory {
      * called by end users, only implementors of new
      * GraphicsConfigurationFactory subclasses.
      *
+     * @return the previous registered factory, or null if none
      * @throws IllegalArgumentException if the given class does not implement AbstractGraphicsDevice
      */
-    protected static void registerFactory(Class<?> abstractGraphicsDeviceImplementor, GraphicsConfigurationFactory factory)
+    protected static GraphicsConfigurationFactory registerFactory(Class<?> abstractGraphicsDeviceImplementor, GraphicsConfigurationFactory factory)
         throws IllegalArgumentException
     {
         if (!(abstractGraphicsDeviceClass.isAssignableFrom(abstractGraphicsDeviceImplementor))) {
             throw new IllegalArgumentException("Given class must implement AbstractGraphicsDevice");
         }
+        GraphicsConfigurationFactory prevFactory = registeredFactories.put(abstractGraphicsDeviceImplementor, factory);
         if(DEBUG) {
-            System.err.println("GraphicsConfigurationFactory.registerFactory() "+abstractGraphicsDeviceImplementor+" -> "+factory);
+            System.err.println("GraphicsConfigurationFactory.registerFactory() "+abstractGraphicsDeviceImplementor+" -> "+factory+
+                               ", overridding: "+prevFactory);
         }
-        registeredFactories.put(abstractGraphicsDeviceImplementor, factory);
+        return prevFactory;
     }
 
     /**

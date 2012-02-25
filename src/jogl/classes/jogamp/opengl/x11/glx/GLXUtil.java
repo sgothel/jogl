@@ -43,6 +43,20 @@ import com.jogamp.common.util.VersionNumber;
 public class GLXUtil {
     public static final boolean DEBUG = Debug.debug("GLXUtil");
     
+    public static synchronized boolean isGLXAvailableOnServer(X11GraphicsDevice x11Device) {
+        if(null == x11Device) {
+            throw new IllegalArgumentException("null X11GraphicsDevice");
+        }
+        if(0 == x11Device.getHandle()) {
+            throw new IllegalArgumentException("null X11GraphicsDevice display handle");
+        }        
+        boolean glXAvailable = false;
+        try {
+            glXAvailable = GLX.glXQueryExtension(x11Device.getHandle(), null, 0, null, 0);
+        } catch (Throwable t) { /* n/a */ }
+        return glXAvailable;        
+    }
+    
     public static VersionNumber getGLXServerVersionNumber(long display) {
         int[] major = new int[1];
         int[] minor = new int[1];
@@ -90,17 +104,6 @@ public class GLXUtil {
     }
     public static VersionNumber getClientVersionNumber() {
         return clientVersionNumber;
-    }
-    
-    public static synchronized boolean isGLXAvailable(long handle) {
-        if(0 == handle) {
-            throw new IllegalArgumentException("null X11 display handle");
-        }        
-        boolean glXAvailable = false;
-        try {
-            glXAvailable = GLX.glXQueryExtension(handle, null, 0, null, 0);
-        } catch (Throwable t) { /* n/a */ }
-        return glXAvailable;        
     }
     
     public static synchronized void initGLXClientDataSingleton(X11GraphicsDevice x11Device) { 
