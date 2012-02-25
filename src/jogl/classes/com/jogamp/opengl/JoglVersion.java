@@ -78,10 +78,12 @@ public class JoglVersion extends JogampVersion {
         if(null!=factory) {
             try {
                 final List<GLCapabilitiesImmutable> availCaps = factory.getAvailableCapabilities(device);
-                for(int i=0; i<availCaps.size(); i++) {
-                    sb.append("\t").append(availCaps.get(i)).append(Platform.getNewline());
+                if(null != availCaps && availCaps.size()>0) {
+                    for(int i=0; i<availCaps.size(); i++) {
+                        sb.append("\t").append(availCaps.get(i)).append(Platform.getNewline());
+                    }
+                    done = true;
                 }
-                done = true;
             } catch (GLException gle) { /* n/a */ }
         }
         if(!done) {
