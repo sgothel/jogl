@@ -493,6 +493,9 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
             res = getCurrentScreenModeImpl();
         }
         if(null == res) {
+            if( 0==getWidth()*getHeight() ) {
+                updateVirtualScreenOriginAndSize();
+            }
             int[] props = new int[ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL];
             int i = 0;
             props[i++] = 0; // set later for verification of iterator
