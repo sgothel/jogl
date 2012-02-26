@@ -72,7 +72,7 @@ public class TestGearsGLJPanelAWTBug450 extends UITestCase {
             glp = GLProfile.get(GLProfile.GL2);
             Assert.assertNotNull(glp);
             width  = 512;
-            height = 512;
+            height = 256;
         } else {
             setTestSupported(false);
         }
