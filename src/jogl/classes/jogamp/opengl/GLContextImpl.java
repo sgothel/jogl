@@ -1087,10 +1087,25 @@ public abstract class GLContextImpl extends GLContext {
         isHardwareRasterizer = false;
     } else {
         // On some platforms (eg. X11), a software GL impl. does not properly declare itself properly.
+        // FIXME: We have to evaluate whether this heuristic approach is acceptable.
         final GLDynamicLookupHelper glDynLookupHelper = getDrawableImpl().getGLDynamicLookupHelper();
-        final long _glGetString = glDynLookupHelper.dynamicLookupFunction("glGetString");        
-        final String glRenderer = glGetStringInt(GL.GL_RENDERER, _glGetString).toLowerCase();
-        isHardwareRasterizer = !glRenderer.contains("software");
+        final long _glGetString = glDynLookupHelper.dynamicLookupFunction("glGetString");
+        if(0 == _glGetString) {
+            // FIXME
+            System.err.println("Warning: Entry point to 'glGetString' is NULL.");
+            Thread.dumpStack();
+        } else {
+            String glRenderer = glGetStringInt(GL.GL_RENDERER, _glGetString);
+            if(null == glRenderer) {
+                // FIXME
+                System.err.println("Warning: GL_RENDERER is NULL.");
+                Thread.dumpStack();                
+            } else {
+                glRenderer = glRenderer.toLowerCase();
+                isHardwareRasterizer = ! ( glRenderer.contains("software") /* Mesa3D */ || 
+                                           glRenderer.contains("softpipe") /* Gallium */ );
+            }
+        }
     }
     return isHardwareRasterizer;
   }
