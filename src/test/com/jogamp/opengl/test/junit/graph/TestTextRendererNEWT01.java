@@ -76,8 +76,8 @@ public class TestTextRendererNEWT01 extends UITestCase {
     @Test
     public void testTextRendererR2T01() throws InterruptedException {
         if(Platform.CPUFamily.X86 != Platform.CPU_ARCH.family) { // FIXME
-            // FIXME: Disabled for now - since it doesn't seem fit for mobile (performance wise). 
-            setTestSupported(false);
+            // FIXME: Disabled for now - since it doesn't seem fit for mobile (performance wise).
+            System.err.println("disabled on non desktop (x86) arch for now ..");
             return;
         }
         GLProfile glp = GLProfile.getGL2ES2();

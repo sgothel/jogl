@@ -36,10 +36,7 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.opengl.GLWindow;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.media.opengl.*;
@@ -54,34 +51,13 @@ import java.io.IOException;
  * hence it is possible to not have GLSL. 
  */
 public class TestOffscreen02BitmapNEWT extends UITestCase {
-    static GLProfile glpDefault;
-    static GLDrawableFactory glDrawableFactory;
-    static int width, height;
-    GLCapabilities capsDefault;
-
-    @BeforeClass
-    public static void initClass() {
-        glpDefault = GLProfile.getDefault();
-        Assert.assertNotNull(glpDefault);
-        glDrawableFactory = GLDrawableFactory.getFactory(glpDefault);
-        System.out.println("INFO: PBuffer supported: "+ glDrawableFactory.canCreateGLPbuffer(null));
-        width  = 640;
-        height = 480;
-    }
-
-    @AfterClass
-    public static void releaseClass() {
-    }
-
-    @Before
-    public void init() {
-        capsDefault = new GLCapabilities(glpDefault);
-        Assert.assertNotNull(capsDefault);
-    }
+    static final int width = 640, height = 480;
 
     @Test
     public void test11OffscreenWindowPixmap() {
-        GLProfile glp = GLProfile.getGL2ES1();
+        // we need to stay w/ generic profile GL2ES1 
+        // since software rasterizer might be required (pixmap/bitmap) 
+        GLProfile glp = GLProfile.get(GLProfile.GL2ES1);
         Assert.assertNotNull(glp);
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
@@ -123,7 +99,9 @@ public class TestOffscreen02BitmapNEWT extends UITestCase {
 
     @Test
     public void test14OffscreenSnapshotWithDemoPixmap() {
-        GLProfile glp = GLProfile.getGL2ES1();
+        // we need to stay w/ generic profile GL2ES1 
+        // since software rasterizer might be required (pixmap/bitmap) 
+        GLProfile glp = GLProfile.get(GLProfile.GL2ES1);
         Assert.assertNotNull(glp);
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);

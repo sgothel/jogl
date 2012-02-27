@@ -54,7 +54,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
     public void testRegionRendererR2T01() throws InterruptedException {
         if(Platform.CPUFamily.X86 != Platform.CPU_ARCH.family) { // FIXME
             // FIXME: Disabled for now - since it doesn't seem fit for mobile (performance wise). 
-            setTestSupported(false);
+            System.err.println("disabled on non desktop (x86) arch for now ..");
             return;
         }
         GLProfile glp = GLProfile.getGL2ES2();
@@ -120,7 +120,7 @@ public class TestRegionRendererNEWT01 extends UITestCase {
         if(Platform.CPUFamily.X86 != Platform.CPU_ARCH.family) { // FIXME
             // FIXME: Disabled for now - since it doesn't seem fit for mobile (performance wise).
             // FIXME: Also the GLSL code for VARIABLE_CURVE is not fit for mobile yet!
-            setTestSupported(false);
+            System.err.println("disabled on non desktop (x86) arch for now ..");
             return;
         }
         GLProfile glp = GLProfile.get(GLProfile.GL2ES2);
