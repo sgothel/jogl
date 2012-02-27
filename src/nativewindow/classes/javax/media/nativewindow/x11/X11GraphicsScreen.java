@@ -65,8 +65,7 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
 
     private static int fetchScreen(X11GraphicsDevice device, int screen) {
         // It still could be an AWT hold handle ..
-        long display = device.getHandle();
-        if(X11Lib.XineramaEnabled(display)) {
+        if(X11Util.XineramaIsEnabled(device.getHandle())) {
             screen = 0; // Xinerama -> 1 screen
         }
         return screen;

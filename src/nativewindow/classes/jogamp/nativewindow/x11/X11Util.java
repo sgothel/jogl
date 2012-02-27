@@ -485,6 +485,38 @@ public class X11Util {
         }
     }
 
+    static volatile boolean XineramaFetched = false;
+    static long XineramaLibHandle = 0;
+    static long XineramaQueryFunc = 0;
+    
+    public static boolean XineramaIsEnabled(long display) {
+        if(0==display) {
+            throw new IllegalArgumentException("Display NULL");
+        }
+        if(!XineramaFetched) { // volatile: ok
+            synchronized(X11Util.class) {
+                if( !XineramaFetched ) {
+                    XineramaLibHandle = X11Lib.XineramaGetLibHandle();
+                    if(0 != XineramaLibHandle) {
+                        XineramaQueryFunc = X11Lib.XineramaGetQueryFunc(XineramaLibHandle);
+                    }
+                    XineramaFetched = true;
+                }
+            }
+        }
+        if(0!=XineramaQueryFunc) {
+            final boolean res = X11Lib.XineramaIsEnabled(XineramaQueryFunc, display);
+            if(DEBUG) {
+                System.err.println("XineramaIsEnabled: "+res);
+            }
+            return res;
+        } else if(DEBUG) {
+            System.err.println("XineramaIsEnabled: Couldn't bind to Xinerama - lib 0x"+Long.toHexString(XineramaLibHandle)+
+                               "query 0x"+Long.toHexString(XineramaQueryFunc));
+        }
+        return false;
+    }
+    
     private static native boolean initialize0(boolean firstUIActionOnProcess);
     private static native void shutdown0();
     private static native void setX11ErrorHandler0(boolean onoff, boolean quiet);

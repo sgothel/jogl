@@ -8,6 +8,8 @@
 #define _Xconst const
 #endif /* _Xconst */
 
+#include <XineramaHelper.h>
+
 extern intptr_t XSynchronize(Display *display, Bool onoff);
 
 extern int XFlush(Display *display);
@@ -51,9 +53,6 @@ extern int XFreePixmap(
 extern int XFree(
     void*		/* data */
 );
-
-// Helper routine for querying whether Xinerama is enabled.
-Bool XineramaEnabled(Display* display);
 
 // Routines for changing gamma settings.
 // Note that these are not currently supported on Solaris.

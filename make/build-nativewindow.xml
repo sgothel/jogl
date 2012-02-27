@@ -227,7 +227,7 @@
                  outputRootDir="${build.nativewindow}"
                  config="${windowlib.os.cfg}"
                  includeRefid="stub.includes.fileset.platform"
-                 literalInclude="${stub.includes.gluegen.gg}"
+                 literalInclude="${stub.includes.gluegen.gg}, ${src.c}/${window.os.system}"
                  emitter="com.jogamp.gluegen.JavaEmitter"
                  debug="false"
                  dumpCPP="false">
@@ -372,42 +372,36 @@
       <linker id="linker.cfg.freebsd.nativewindow.x11" extends="linker.cfg.freebsd">
         <syslibset dir="/usr/local/lib" libs="X11"/>
         <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
-        <syslibset dir="/usr/local/lib" libs="Xinerama"/>
         <syslibset dir="/usr/local/lib" libs="Xrender"/>
       </linker>
 
       <linker id="linker.cfg.freebsd.amd64.nativewindow.x11" extends="linker.cfg.freebsd.amd64">
         <syslibset dir="/usr/local/lib" libs="X11" />
         <syslibset dir="/usr/local/lib" libs="Xxf86vm" />
-        <syslibset dir="/usr/local/lib" libs="Xinerama"/>
         <syslibset dir="/usr/local/lib" libs="Xrender"/>
       </linker>
 
       <linker id="linker.cfg.linux.nativewindow.x11" extends="linker.cfg.linux">
         <syslibset libs="X11"/>
         <syslibset libs="Xxf86vm" />
-        <syslibset libs="Xinerama"/>
         <syslibset libs="Xrender"/>
       </linker>
 
       <linker id="linker.cfg.linux.x86.nativewindow.x11" extends="linker.cfg.linux.x86">
         <syslibset libs="X11"/>
         <syslibset libs="Xxf86vm" />
-        <syslibset libs="Xinerama"/>
         <syslibset libs="Xrender"/>
       </linker>
 
       <linker id="linker.cfg.linux.amd64.nativewindow.x11" extends="linker.cfg.linux.amd64">
         <syslibset libs="X11"/>
         <syslibset libs="Xxf86vm" />
-        <syslibset libs="Xinerama"/>
         <syslibset libs="Xrender"/>
       </linker>
 
       <linker id="linker.cfg.linux.armv7.nativewindow.x11" extends="linker.cfg.linux.armv7">
         <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="X11" />
         <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xxf86vm" />
-        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xinerama" />
         <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xrender" />
       </linker>
 
@@ -415,9 +409,7 @@
         <linkerarg value="-L/usr/sfw/lib"/>
         <syslibset libs="X11"/>
         <syslibset libs="Xxf86vm" />
-        <syslibset libs="Xinerama"/>
         <syslibset libs="Xrender"/>
-        <syslibset libs="X11"/>
       </linker>
 
       <linker id="linker.cfg.solaris.sparcv9.nativewindow.x11" extends="linker.cfg.solaris.sparcv9">
@@ -425,9 +417,7 @@
         <linkerarg value="-L/usr/sfw/lib/sparcv9"/>
         <syslibset libs="X11"/>
         <syslibset libs="Xxf86vm" />
-        <syslibset libs="Xinerama"/>
         <syslibset libs="Xrender"/>
-        <syslibset libs="X11"/>
       </linker>
 
       <linker id="linker.cfg.solaris.amd64.nativewindow.x11" extends="linker.cfg.solaris.amd64">
@@ -435,9 +425,7 @@
         <linkerarg value="-L/usr/sfw/lib/amd64"/>
         <syslibset libs="X11"/>
         <syslibset libs="Xxf86vm" />
-        <syslibset libs="Xinerama"/>
         <syslibset libs="Xrender"/>
-        <syslibset libs="X11"/>
       </linker>
 
       <linker id="linker.cfg.win32.mingw.nativewindow" extends="linker.cfg.win32.mingw">
@@ -468,7 +456,7 @@
 
       <linker id="linker.cfg.hpux.nativewindow" extends="linker.cfg.hpux">
         <syslibset dir="/usr/lib" libs="X11"/>
-        <syslibset dir="/usr/lib" libs="Xinerama"/>
+        <syslibset dir="/usr/lib" libs="Xrender"/>
       </linker>
     </target>
 
@@ -665,8 +653,8 @@
 
         <patternset id="c.src.files.windows">
           <include name="${rootrel.generated.c}/Windows/GDI*.c"/>
-          <include name="${rootrel.src.c}/windows/GDImisc.c"/>
-          <include name="${rootrel.src.c}/windows/WindowsDWM.c"/>
+          <include name="${rootrel.src.c}/win32/GDImisc.c"/>
+          <include name="${rootrel.src.c}/win32/WindowsDWM.c"/>
           <include name="${rootrel.src.c}/NativewindowCommon.c"/>
         </patternset>
 
@@ -710,7 +698,8 @@
                 <includepath path="${src.generated.c}/X11"     if="isX11"/>
                 <includepath path="${src.generated.c}/MacOSX"  if="isOSX"/>
                 <includepath path="${src.generated.c}/Windows" if="isWindows"/>
-                <includepath path="${src.c}/windows"           if="isWindows"/>
+                <includepath path="${src.c}/win32"             if="isWindows"/>
+                <includepath path="${src.c}/x11"               if="isX11"/>
                 <includepath path="${src.c}"/>
       
                 <!-- This must come last to not override real include paths -->

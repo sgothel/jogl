@@ -1,122 +1,152 @@
-/*
- * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
+/**
+ * Copyright 2011 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
  * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
  * 
- * - Redistribution of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
  * 
- * - Redistribution in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * 
- * Neither the name of Sun Microsystems, Inc. or the names of
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
- * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
- * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
- * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MIDROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
- * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
- * DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE
- * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
- * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
- * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
  */
 
-/* This file contains a helper routine to be called by Java code to
-   determine whether the Xinerama extension is in use and therefore to
-   treat the multiple AWT screens as one large screen. */
+#include <XineramaHelper.h>
 
-#include <gluegen_stdint.h>
-#include <X11/Xlib.h>
 #include <stdio.h>
-
-#ifdef __sun_obsolete
-
-typedef Status XineramaGetInfoFunc(Display* display, int screen_number,
-         XRectangle* framebuffer_rects, unsigned char* framebuffer_hints,
-         int* num_framebuffers);
-typedef Status XineramaGetCenterHintFunc(Display* display, int screen_number,
-                                         int* x, int* y);
-
-XineramaGetCenterHintFunc* XineramaSolarisCenterFunc = NULL;
 #include <dlfcn.h>
 
-#else
+// #define DEBUG 1
 
-#include <X11/extensions/Xinerama.h>
+static const char* XinExtName = "XINERAMA";
 
-#endif
-
-Bool XineramaEnabled(Display* display) {
 #ifdef __sun_obsolete
 
-#define MAXFRAMEBUFFERS 16
-  char* XinExtName = "XINERAMA";
-  int32_t major_opcode, first_event, first_error;
-  Bool gotXinExt = False;
-  void* libHandle = 0;
-  unsigned char fbhints[MAXFRAMEBUFFERS];
-  XRectangle fbrects[MAXFRAMEBUFFERS];
-  int locNumScr = 0;
-  Bool usingXinerama = False;
+static const char* XineramaLibNames[] = { "libXext.so", NULL } ;
+static const char* XineramaGetInfoName = "XineramaGetInfo";
 
-  char* XineramaLibName= "libXext.so";
-  char* XineramaGetInfoName = "XineramaGetInfo";
-  char* XineramaGetCenterHintName = "XineramaGetCenterHint";
-  XineramaGetInfoFunc* XineramaSolarisFunc = NULL;
+typedef Status (* PFNXineramaGetInfoPROC) (Display* display, int screen_number,
+         XRectangle* framebuffer_rects, unsigned char* framebuffer_hints,
+         int* num_framebuffers);
 
-  gotXinExt = XQueryExtension(display, XinExtName, &major_opcode,
-                              &first_event, &first_error);
-
-  if (gotXinExt) {
-    /* load library, load and run XineramaGetInfo */
-    libHandle = dlopen(XineramaLibName, RTLD_LAZY | RTLD_GLOBAL);
-    if (libHandle != 0) {
-      XineramaSolarisFunc = (XineramaGetInfoFunc*)dlsym(libHandle, XineramaGetInfoName);
-      XineramaSolarisCenterFunc =
-        (XineramaGetCenterHintFunc*)dlsym(libHandle,
-                                          XineramaGetCenterHintName);
-      if (XineramaSolarisFunc != NULL) {
-        if ((*XineramaSolarisFunc)(display, 0, &fbrects[0],
-                                   &fbhints[0], &locNumScr) != 0) {
-
-          usingXinerama = True;
-        }
-      }
-      dlclose(libHandle);
-    }
-  }
-  return usingXinerama;
-  
 #else
 
-  static const char* XinExtName = "XINERAMA";
+static const char* XineramaLibNames[]= { "libXinerama.so.1", "libXinerama.so", NULL };
+static const char* XineramaIsActiveName = "XineramaIsActive";
+
+typedef Bool (* PFNXineramaIsActivePROC) (Display *display);
+
+#endif
+
+static Bool XineramaIsEnabledPlatform(void *xineramaQueryFunc, Display* display) {
+    Bool res = False;
+    #ifdef __sun_obsolete
+      #define MAXFRAMEBUFFERS 16
+      unsigned char fbhints[MAXFRAMEBUFFERS];
+      XRectangle fbrects[MAXFRAMEBUFFERS];
+      int locNumScr = 0;
+
+      if(NULL!=xineramaQueryFunc && NULL!=display) {
+          PFNXineramaGetInfoPROC XineramaSolarisPROC = (PFNXineramaGetInfoPROC)xineramaQueryFunc;
+          res = XineramaSolarisPROC(display, 0, &fbrects[0], &fbhints[0], &locNumScr) != 0;
+      }
+    #else
+      if(NULL!=xineramaQueryFunc && NULL!=display) {
+          PFNXineramaIsActivePROC XineramaIsActivePROC = (PFNXineramaIsActivePROC) xineramaQueryFunc;
+          res = XineramaIsActivePROC(display);
+      }
+    #endif
+    return res;
+}
+
+void* XineramaGetLibHandle() {
+  void* xineramaLibHandle = NULL;
+  int i;
+
+  for(i=0; NULL==xineramaLibHandle && NULL!=XineramaLibNames[i]; i++) {
+    xineramaLibHandle = dlopen(XineramaLibNames[i], RTLD_LAZY | RTLD_GLOBAL);
+  }
+
+  #ifdef DEBUG
+    if(NULL!=xineramaLibHandle) {
+      fprintf(stderr, "XineramaGetLibHandle: using lib %s -> %p\n", XineramaLibNames[i-1], xineramaLibHandle);
+    } else {
+      fprintf(stderr, "XineramaGetLibHandle: no native lib available\n");
+    }
+  #endif
+
+  return xineramaLibHandle;
+}
+
+Bool XineramaReleaseLibHandle(void* xineramaLibHandle) {
+  #ifdef DEBUG
+    fprintf(stderr, "XineramaReleaseLibHandle: release lib %p\n", xineramaLibHandle);
+  #endif
+  if(NULL==xineramaLibHandle) {
+    return False;
+  }
+  return 0 == dlclose(xineramaLibHandle) ? True : False;
+}
+
+void* XineramaGetQueryFunc(void *xineramaLibHandle) {
+    void * funcptr = NULL;
+
+    if(NULL==xineramaLibHandle) {
+      return NULL;
+    }
+
+    #ifdef __sun_obsolete
+      #ifdef DEBUG
+        fprintf(stderr, "XineramaGetQueryFunc: trying func %p -> %s\n", xineramaLibHandle, XineramaGetInfoName);
+      #endif
+      funcptr = dlsym(xineramaLibHandle, XineramaGetInfoName);
+    #else
+      #ifdef DEBUG
+        fprintf(stderr, "XineramaGetQueryFunc: trying func %p -> %s\n", xineramaLibHandle, XineramaIsActiveName);
+      #endif
+      funcptr = dlsym(xineramaLibHandle, XineramaIsActiveName);
+    #endif
+    #ifdef DEBUG
+      fprintf(stderr, "XineramaGetQueryFunc: got func %p\n", funcptr);
+    #endif
+    return funcptr;
+}
+
+Bool XineramaIsEnabled(void *xineramaQueryFunc, Display* display) {
   int32_t major_opcode, first_event, first_error;
   Bool gotXinExt = False;
-  Bool isXinActive = False;
+  Bool res = False;
 
-  // fprintf(stderr, "XineramaEnabled: p0\n"); fflush(stderr);
+  if(NULL==xineramaQueryFunc || NULL==display) {
+    return False;
+  }
 
   gotXinExt = XQueryExtension(display, XinExtName, &major_opcode,
                               &first_event, &first_error);
-  // fprintf(stderr, "XineramaEnabled: p1 gotXinExt %d\n",gotXinExt); fflush(stderr);
 
-  if (gotXinExt) {
-    isXinActive = XineramaIsActive(display);
+  #ifdef DEBUG
+    fprintf(stderr, "XineramaIsEnabled: has Xinerama Ext: ext %d, query-func %p\n", gotXinExt, xineramaQueryFunc);
+  #endif
+
+  if(gotXinExt) {
+    res = XineramaIsEnabledPlatform(xineramaQueryFunc, display);
   }
-  // fprintf(stderr, "XineramaEnabled: p2 XineramaIsActive %d\n", isXinActive); fflush(stderr);
 
-  return isXinActive;
-
-#endif
+  return res;
 }
 

@@ -91,9 +91,6 @@ Bool XF86VidModeSetGammaRamp(
     #define DBG_PRINT(args...)
 #endif
 
-/* Need to pull this in as we don't have a stub header for it */
-extern Bool XineramaEnabled(Display* display);
-
 static const char * const ClazzNameBuffers = "com/jogamp/common/nio/Buffers";
 static const char * const ClazzNameBuffersStaticCstrName = "copyByteBuffer";
 static const char * const ClazzNameBuffersStaticCstrSignature = "(Ljava/nio/ByteBuffer;)Ljava/nio/ByteBuffer;";

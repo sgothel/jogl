@@ -277,7 +277,7 @@ public class X11Screen extends ScreenImpl {
 
     private class XineramaEnabledQuery implements DisplayImpl.DisplayRunnable<Boolean> {
         public Boolean run(long dpy) {        
-            return new Boolean(X11Lib.XineramaEnabled(dpy)); 
+            return new Boolean(X11Util.XineramaIsEnabled(dpy)); 
         }        
     }
     private XineramaEnabledQuery xineramaEnabledQuery = new XineramaEnabledQuery();
