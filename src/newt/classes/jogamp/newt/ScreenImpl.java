@@ -62,6 +62,12 @@ import com.jogamp.newt.util.ScreenModeUtil;
 public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     protected static final boolean DEBUG_TEST_SCREENMODE_DISABLED = Debug.isPropertyDefined("newt.test.Screen.disableScreenMode", true);
 
+    protected static final int default_sm_bpp = 32;
+    protected static final int default_sm_widthmm = 519;
+    protected static final int default_sm_heightmm = 324;
+    protected static final int default_sm_rate = 60;
+    protected static final int default_sm_rotation = 0;
+    
     protected DisplayImpl display;
     protected int screen_idx;
     protected String fqname;
@@ -501,11 +507,11 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
             props[i++] = 0; // set later for verification of iterator
             props[i++] = getWidth();  // width
             props[i++] = getHeight(); // height
-            props[i++] = 32;   // bpp
-            props[i++] = 519;  // widthmm
-            props[i++] = 324;  // heightmm
-            props[i++] = 60;   // rate
-            props[i++] = 0;    // rot
+            props[i++] = default_sm_bpp;
+            props[i++] = default_sm_widthmm;
+            props[i++] = default_sm_heightmm;
+            props[i++] = default_sm_rate;
+            props[i++] = default_sm_rotation;
             props[i - ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL] = i; // count
             res = ScreenModeUtil.streamIn(props, 0);
         }

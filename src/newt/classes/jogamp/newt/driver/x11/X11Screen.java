@@ -124,10 +124,12 @@ public class X11Screen extends ScreenImpl {
                 if(0>=res[0] || 0>=res[1]) {
                     throw new InternalError("invalid resolution: "+res[0]+"x"+res[1]+" for res idx "+nres_index+"/"+nres_number);
                 }
-                int bpp = 32; // FIXME
                 int rate = nrates[nrate_index];
                 if(0>=rate) {
-                    throw new InternalError("invalid rate: "+rate+" at index "+nrate_index+"/"+nrates.length);
+                    rate = default_sm_rate;
+                    if(DEBUG) {
+                        System.err.println("Invalid rate: "+rate+" at index "+nrate_index+"/"+nrates.length+", using default: "+default_sm_rate);
+                    }
                 }
                 int rotation = nrotations[nrotation_index];
         
@@ -137,7 +139,7 @@ public class X11Screen extends ScreenImpl {
                 props[i++] = 0; // set later for verification of iterator
                 props[i++] = res[0]; // width
                 props[i++] = res[1]; // height
-                props[i++] = bpp;    // bpp
+                props[i++] = default_sm_bpp; // FIXME
                 props[i++] = res[2]; // widthmm
                 props[i++] = res[3]; // heightmm
                 props[i++] = rate;   // rate
@@ -217,7 +219,7 @@ public class X11Screen extends ScreenImpl {
                 props[i++] = 0; // set later for verification of iterator
                 props[i++] = res[0]; // width
                 props[i++] = res[1]; // height
-                props[i++] = 32;     // FIXME: bpp
+                props[i++] = default_sm_bpp; // FIXME
                 props[i++] = res[2]; // widthmm
                 props[i++] = res[3]; // heightmm
                 props[i++] = rate;   // rate
