@@ -4,7 +4,9 @@
 
     <description>JUNIT Tests JOGL</description>
 
+    <property name="gluegen.basename" value="gluegen" /> <!-- if differs, ie jenkins jobname, must be set properly first -->
     <property name="jogl.basename" value="jogl" /> <!-- if differs, ie jenkins jobname, must be set properly first -->
+    <echo message="gluegen.basename: ${gluegen.basename}"/>
     <echo message="jogl.basename: ${jogl.basename}"/>
 
     <import file="build-common.xml"/>
@@ -593,7 +595,7 @@ rsync -av --delete --delete-after --delete-excluded \${line.separator}
       --exclude 'classes/' --exclude 'src/' --exclude '.git/' --exclude '*-java-src.zip' \${line.separator}
       ${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/${jogl.basename} ${env.TARGET_ROOT} ${line.separator}
 cd ${env.TARGET_ROOT}/${jogl.basename}/${env.NODE_LABEL}/make ${line.separator}
-export ${system.env.library.path}=/system/lib:${env.TARGET_ROOT}/gluegen/${rootrel.build}/obj:${env.TARGET_ROOT}/gluegen/${rootrel.build}/test/build/natives ${line.separator}
+export ${system.env.library.path}=/system/lib:${env.TARGET_ROOT}/${gluegen.basename}/${rootrel.build}/obj:${env.TARGET_ROOT}/${gluegen.basename}/${rootrel.build}/test/build/natives ${line.separator}
 export BOOTCLASSPATH=/system/framework/core.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar ${line.separator}
 " append="true" file="${build.test}/targetcommand.sh" />
 
