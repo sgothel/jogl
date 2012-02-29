@@ -218,17 +218,17 @@ public abstract class EGLDrawable extends GLDrawableImpl {
     protected final void swapBuffersImpl() {
         // single-buffer is already filtered out @ GLDrawableImpl#swapBuffers()
         if(!EGL.eglSwapBuffers(eglDisplay, eglSurface)) {
-            if(DEBUG) {
-                System.err.println("eglSwapBuffers failed:");
-                Thread.dumpStack();
-            }
+            throw new GLException("Error swapping buffers, eglError "+toHexString(EGL.eglGetError())+", "+this);
         }
     }
 
+    /** 
+     * Surface not realizes yet (onscreen) .. Quering EGL surface size only makes sense for external drawable.
+     * Leave it here for later impl. of an EGLExternalDrawable.  
     public int getWidth() {
         int[] tmp = new int[1];
         if (!EGL.eglQuerySurface(eglDisplay, eglSurface, EGL.EGL_WIDTH, tmp, 0)) {
-            throw new GLException("Error querying surface width");
+            throw new GLException("Error querying surface width, eglError "+toHexString(EGL.eglGetError()));
         }
         return tmp[0];
     }
@@ -236,10 +236,10 @@ public abstract class EGLDrawable extends GLDrawableImpl {
     public int getHeight() {
         int[] tmp = new int[1];
         if (!EGL.eglQuerySurface(eglDisplay, eglSurface, EGL.EGL_HEIGHT, tmp, 0)) {
-            throw new GLException("Error querying surface height");
+            throw new GLException("Error querying surface height, eglError "+toHexString(EGL.eglGetError()));
         }
         return tmp[0];
-    }
+    } */
 
     public GLDynamicLookupHelper getGLDynamicLookupHelper() {
         if (getGLProfile().usesNativeGLES2()) {

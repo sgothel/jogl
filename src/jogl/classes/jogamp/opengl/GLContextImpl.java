@@ -1102,8 +1102,10 @@ public abstract class GLContextImpl extends GLContext {
                 Thread.dumpStack();                
             } else {
                 glRenderer = glRenderer.toLowerCase();
-                isHardwareRasterizer = ! ( glRenderer.contains("software") /* Mesa3D */ || 
-                                           glRenderer.contains("softpipe") /* Gallium */ );
+                isHardwareRasterizer = ! ( glRenderer.contains("software") /* Mesa3D */  ||
+                                           glRenderer.contains("mesa x11") /* Mesa3D*/   ||
+                                           glRenderer.contains("softpipe") /* Gallium */                                            
+                                         );
             }
         }
     }
