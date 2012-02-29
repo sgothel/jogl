@@ -15,12 +15,12 @@ echo ANDROID_SDK_HOME $ANDROID_SDK_HOME
 echo NDK_ROOT $NDK_ROOT
 
 if [ -z "$NDK_ROOT" ] ; then
-    if [ -e /usr/local/android-ndk-r6 ] ; then
-        NDK_ROOT=/usr/local/android-ndk-r6
-    elif [ -e /opt-linux-x86/android-ndk-r6 ] ; then
-        NDK_ROOT=/opt-linux-x86/android-ndk-r6
-    elif [ -e /opt/android-ndk-r6 ] ; then
-        NDK_ROOT=/opt/android-ndk-r6
+    if [ -e /usr/local/android-ndk-r7 ] ; then
+        NDK_ROOT=/usr/local/android-ndk-r7
+    elif [ -e /opt-linux-x86/android-ndk-r7 ] ; then
+        NDK_ROOT=/opt-linux-x86/android-ndk-r7
+    elif [ -e /opt/android-ndk-r7 ] ; then
+        NDK_ROOT=/opt/android-ndk-r7
     else 
         echo NDK_ROOT is not specified and does not exist in default locations
         exit 1
@@ -30,7 +30,6 @@ elif [ ! -e $NDK_ROOT ] ; then
     exit 1
 fi
 export NDK_ROOT
-NDK_TOOLCHAIN=$NDK_ROOT/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/arm-linux-androideabi
 
 if [ -z "$ANDROID_SDK_HOME" ] ; then
     if [ -e /usr/local/android-sdk-linux_x86 ] ; then
@@ -49,52 +48,16 @@ elif [ ! -e $ANDROID_SDK_HOME ] ; then
 fi
 export ANDROID_SDK_HOME
 
-export PATH="$NDK_TOOLCHAIN/bin:$ANDROID_SDK_HOME/platform-tools:$PATH"
-
 export GCC_VERSION=4.4.3
 HOST_ARCH=linux-x86
 export TARGET_ARCH=arm-linux-androideabi
-# mcpu: cortex-a8', `cortex-a9', `cortex-r4', `cortex-r4f', `cortex-m3', `cortex-m1', `xscale', `iwmmxt', `iwmmxt2', `ep9312'. 
-export TARGET_CPU_NAME=armv7-a
-TARGET_CPU_TUNE=armv7-a
-# mfpu: `vfp', `vfpv3', `vfpv3-d16' and `neon'
-TARGET_FPU_NAME=vfpv3
-TARGET_FPU_ABI=softfp
+export TARGET_TRIPLE=arm-linux-androideabi
 
-export TARGET_TOOL_PATH=${NDK_ROOT}/toolchains/${TARGET_ARCH}-${GCC_VERSION}/prebuilt/${HOST_ARCH}
+export NDK_TOOLCHAIN_ROOT=$NDK_ROOT/toolchains/${TARGET_ARCH}-${GCC_VERSION}/prebuilt/${HOST_ARCH}
+export TARGET_PLATFORM_ROOT=${NDK_ROOT}/platforms/android-${ANDROID_VERSION}/arch-arm
 
-export TARGET_OS_PATH=${NDK_ROOT}/platforms/android-${ANDROID_VERSION}/arch-arm/usr
-export TARGET_PLATFORM_LIBS=${TARGET_OS_PATH}/lib
-export HOST_OS_PATH=${NDK_ROOT}/platforms/android-${ANDROID_VERSION}/arch-x86/usr
-
-export NDK_XBIN_PATH=${TARGET_TOOL_PATH}/bin
-export NDK_BIN_PATH=${TARGET_TOOL_PATH}/${TARGET_ARCH}/bin
-
-export NDK_GCC=${NDK_XBIN_PATH}/${TARGET_ARCH}-gcc
-export NDK_AR=${NDK_XBIN_PATH}/${TARGET_ARCH}-ar
-export NDK_STRIP=${NDK_XBIN_PATH}/${TARGET_ARCH}-strip
-export NDK_READELF=${NDK_XBIN_PATH}/${TARGET_ARCH}-readelf
-
-export PATH=${NDK_XBIN_PATH}:$PATH
-
-export NDK_CFLAGS="\
--march=${TARGET_CPU_NAME} \
--fpic \
--DANDROID \
-"
-
-export NDK_LDFLAGS="\
--Wl,--demangle \
--nostdlib -Bdynamic -Wl,-dynamic-linker,/system/bin/linker -Wl,--gc-sections -Wl,-z,nocopyreloc \
-${TARGET_OS_PATH}/lib/libc.so \
-${TARGET_OS_PATH}/lib/libstdc++.so \
-${TARGET_OS_PATH}/lib/libm.so \
-${TARGET_OS_PATH}/lib/crtbegin_dynamic.o \
--Wl,--no-undefined -Wl,-rpath-link=${TARGET_OS_PATH}/lib \
-${TARGET_TOOL_PATH}/lib/gcc/${TARGET_ARCH}/${GCC_VERSION}/${TARGET_CPU_NAME}/libgcc.a \
-${TARGET_OS_PATH}/lib/crtend_android.o \
-"
-
+# Need to add toolchain bins to the PATH. 
+export PATH="$NDK_TOOLCHAIN_ROOT/$TARGET_ARCH/bin:$ANDROID_SDK_HOME/platform-tools:$PATH"
 
 which gcc 2>&1 | tee make.jogl.all.android-armv7-cross.log
 
@@ -107,6 +70,7 @@ ant \
     -DisAndroidARMv7=true \
     -DjvmDataModel.arg="-Djnlp.no.jvm.data.model.set=true" \
     -DisCrosscompilation=true \
+    -Dandroid.abi=armeabi-v7a \
     \
     $* 2>&1 | tee -a make.jogl.all.android-armv7-cross.log
 

@@ -1123,7 +1123,7 @@
       </linker>
 
       <linker id="linker.cfg.linux.armv7.jogl.x11" extends="linker.cfg.linux.armv7">
-        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="X11"/>
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11"/>
       </linker>
 
       <linker id="linker.cfg.android.jogl" extends="linker.cfg.android">
