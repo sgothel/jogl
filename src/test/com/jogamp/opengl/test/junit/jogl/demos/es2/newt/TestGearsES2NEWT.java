@@ -239,17 +239,6 @@ public class TestGearsES2NEWT extends UITestCase {
         runTestGL(caps, undecorated);
     }
 
-    @Test
-    public void test02GLES2() throws InterruptedException {
-        if(!GLProfile.isAvailable(GLProfile.GLES2)) {
-            System.out.println("GLProfile GLES2 n/a");
-            return;
-        }
-        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
-        caps.setBackgroundOpaque(opaque);
-        runTestGL(caps, undecorated);
-    }
-
     static int atoi(String a) {
         try {
             return Integer.parseInt(a);
