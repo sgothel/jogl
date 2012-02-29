@@ -245,7 +245,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
     public void test01NewtCanvasAWT() throws AWTException, InterruptedException, InvocationTargetException {
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test01NewtCanvasAWT(): Start");
 
-        GLProfile glp = GLProfile.getDefault();
+        GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
 
         GLWindow win0 = GLWindow.create(caps);
@@ -280,7 +280,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
     @Test
     public void test02GLCanvas() throws AWTException, InterruptedException, InvocationTargetException {
         System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.test02GLCanvas(): Start");
-        GLProfile glp = GLProfile.getDefault();
+        GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
 
         Animator anim = new Animator();

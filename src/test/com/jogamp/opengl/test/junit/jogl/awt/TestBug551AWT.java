@@ -38,7 +38,6 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 
-import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -46,8 +45,6 @@ import java.awt.Rectangle;
 import java.awt.Window;
 import javax.swing.JFrame;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assume.*;
@@ -84,7 +81,7 @@ public class TestBug551AWT extends UITestCase {
     
     protected void runTestGL() throws InterruptedException, InvocationTargetException {
         final Window window = new JFrame(this.getSimpleTestName(" - "));
-        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
         
         // final array as mutable container hack
         final GLCanvas[] glCanvas = new GLCanvas[1];

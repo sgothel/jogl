@@ -31,7 +31,7 @@ package com.jogamp.opengl.test.junit.jogl.swt;
 import java.awt.Frame;
 import java.lang.reflect.InvocationTargetException;
 
-import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
@@ -55,7 +55,7 @@ import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
 
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.OneTriangle;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.OneTriangle;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
@@ -75,7 +75,10 @@ public class TestSWTAWT01GLn extends UITestCase {
 
     @BeforeClass
     public static void startup() {
-        System.out.println( "GLProfile " + GLProfile.glAvailabilityToString() );
+        System.out.println( "GLProfile " + GLProfile.glAvailabilityToString() );        
+        if(!GLProfile.isAvailable(GLProfile.GL2)) {
+            setTestSupported(false);
+        }
     }
 
     @Before
@@ -140,14 +143,14 @@ public class TestSWTAWT01GLn extends UITestCase {
             /* @Override */
             public void display( GLAutoDrawable glautodrawable ) {
                 Rectangle rectangle = new Rectangle( 0, 0, glautodrawable.getWidth(), glautodrawable.getHeight() );
-                GL2 gl = glautodrawable.getGL().getGL2();
+                GL2ES1 gl = glautodrawable.getGL().getGL2ES1();
                 OneTriangle.render( gl, rectangle.width, rectangle.height );
             }
 
             /* @Override */
             public void reshape( GLAutoDrawable glautodrawable, int x, int y, int width, int height ) {
                 Rectangle rectangle = new Rectangle( 0, 0, glautodrawable.getWidth(), glautodrawable.getHeight() );
-                GL2 gl = glautodrawable.getGL().getGL2();
+                GL2ES1 gl = glautodrawable.getGL().getGL2ES1();
                 OneTriangle.setup( gl, rectangle.width, rectangle.height );
             }
         });
@@ -181,16 +184,8 @@ public class TestSWTAWT01GLn extends UITestCase {
     }
 
     @Test
-    public void test01GLDefault() throws InterruptedException {
-        GLProfile glprofile = GLProfile.getDefault();
-        System.out.println( "GLProfile Default: " + glprofile );
-        runTestGL( glprofile );
-    }
-
-    @Test
-    public void test02GL2() throws InterruptedException {
-        GLProfile glprofile = GLProfile.get(GLProfile.GL2);
-        System.out.println( "GLProfile GL2: " + glprofile );
+    public void test() throws InterruptedException {
+        GLProfile glprofile = GLProfile.getGL2ES1();
         runTestGL( glprofile );
     }
 

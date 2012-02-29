@@ -92,7 +92,7 @@ public class TestBug463ScaleImageMemoryAWT extends UITestCase implements GLEvent
 
     @Test
     public void test01() throws InterruptedException {
-        GLProfile glprofile = GLProfile.getDefault();
+        GLProfile glprofile = GLProfile.getGL2ES1();
         GLCapabilities glCapabilities = new GLCapabilities(glprofile);
         final GLCanvas canvas = new GLCanvas(glCapabilities);
         canvas.addGLEventListener( this );

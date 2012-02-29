@@ -48,7 +48,7 @@ public class TestShutdownSharedNEWT extends UITestCase {
     static long duration = 300; // ms
     
     protected void runTestGL() throws InterruptedException {
-        GLWindow glWindow = GLWindow.create(new GLCapabilities(GLProfile.getDefault()));
+        GLWindow glWindow = GLWindow.create(new GLCapabilities(GLProfile.getGL2ES2()));
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test");
 

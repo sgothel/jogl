@@ -35,7 +35,7 @@ import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.newt.*;
 import com.jogamp.newt.event.*;
 import com.jogamp.newt.opengl.*;
@@ -51,14 +51,10 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        if(GLProfile.isAvailable(GLProfile.GL2)) {
-            glp = GLProfile.get(GLProfile.GL2);
-            Assert.assertNotNull(glp);
-            width  = 512;
-            height = 512;
-        } else {
-            setTestSupported(false);
-        }
+        glp = GLProfile.getGL2ES2();
+        Assert.assertNotNull(glp);
+        width  = 512;
+        height = 512;
     }
 
     @AfterClass
@@ -74,7 +70,7 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NewtAWTWrapper Test");
 
-        glWindow.addGLEventListener(new Gears());
+        glWindow.addGLEventListener(new GearsES2(1));
 
         Animator animator = new Animator(glWindow);
         QuitAdapter quitAdapter = new QuitAdapter();
@@ -97,7 +93,7 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
 
     @Test
     public void test01() throws InterruptedException {
-        GLCapabilitiesImmutable caps = new GLCapabilities(GLProfile.getDefault());
+        GLCapabilitiesImmutable caps = new GLCapabilities(glp);
         runTestGL(caps);
     }
 

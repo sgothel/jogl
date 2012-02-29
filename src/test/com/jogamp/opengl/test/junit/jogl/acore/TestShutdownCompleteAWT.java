@@ -51,7 +51,7 @@ public class TestShutdownCompleteAWT extends UITestCase {
         final Frame frame = new Frame("Gears AWT Test");
         Assert.assertNotNull(frame);
 
-        final GLCanvas glCanvas = new GLCanvas(new GLCapabilities(GLProfile.getDefault()));
+        final GLCanvas glCanvas = new GLCanvas(new GLCapabilities(GLProfile.getGL2ES2()));
         Assert.assertNotNull(glCanvas);
         frame.add(glCanvas);
         frame.setSize(256, 256);

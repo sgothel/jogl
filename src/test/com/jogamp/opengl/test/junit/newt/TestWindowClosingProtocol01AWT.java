@@ -53,7 +53,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
     public void testCloseFrameGLCanvas() throws InterruptedException, InvocationTargetException {
         final Frame frame = new Frame("testCloseFrameGLCanvas AWT");
 
-        GLProfile glp = GLProfile.getDefault();
+        GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
         final GLCanvas glCanvas = new GLCanvas(caps);
         glCanvas.addGLEventListener(new GearsES2());
@@ -104,7 +104,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
     public void testCloseJFrameGLCanvas() throws InterruptedException, InvocationTargetException {
         final JFrame frame = new JFrame("testCloseJFrameGLCanvas AWT");
 
-        GLProfile glp = GLProfile.getDefault();
+        GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
         GLCanvas glCanvas = new GLCanvas(caps);
         glCanvas.addGLEventListener(new GearsES2());

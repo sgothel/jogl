@@ -116,16 +116,24 @@ public class TestAWT01GLn extends UITestCase {
     public void test01GLDefault() throws InterruptedException {
         GLProfile glp = GLProfile.getDefault();
         System.out.println("GLProfile Default: "+glp);
-        GLCapabilities caps = new GLCapabilities(glp);
-        runTestGL(caps);
+        if(glp.isGL2ES2()) {
+            GLCapabilities caps = new GLCapabilities(glp);
+            runTestGL(caps);
+        } else {
+            System.out.println("not a GL2ES2 profile");
+        }
     }
 
     @Test
     public void test02GL2() throws InterruptedException {
-        GLProfile glprofile = GLProfile.get(GLProfile.GL2);
-        System.out.println( "GLProfile GL2: " + glprofile );
-        GLCapabilities caps = new GLCapabilities(glprofile);
-        runTestGL(caps);
+        if(GLProfile.isAvailable(GLProfile.GL2)) {
+            GLProfile glprofile = GLProfile.get(GLProfile.GL2);
+            System.out.println( "GLProfile GL2: " + glprofile );
+            GLCapabilities caps = new GLCapabilities(glprofile);
+            runTestGL(caps);
+        } else {
+            System.out.println("GL2 n/a");
+        }
     }
 
     public static void main(String args[]) {

@@ -26,11 +26,14 @@
  * or implied, of JogAmp Community.
  */
 
-package com.jogamp.opengl.test.junit.jogl.demos.gl2;
+package com.jogamp.opengl.test.junit.jogl.demos.es1;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES1;
 import javax.media.opengl.glu.GLU;
+import javax.media.opengl.glu.gl2es1.GLUgl2es1;
+
+import com.jogamp.opengl.util.ImmModeSink;
 
 /**
  * A utility class to encapsulate drawing a single triangle for unit tests.
@@ -38,32 +41,38 @@ import javax.media.opengl.glu.GLU;
  */
 public class OneTriangle {
 
-    public static void setup( GL2 gl, int width, int height ) {
-        gl.glMatrixMode( GL2.GL_PROJECTION );
+    public static void setup( GL2ES1 gl, int width, int height ) {
+        gl.glMatrixMode( GL2ES1.GL_PROJECTION );
         gl.glLoadIdentity();
 
         // coordinate system origin at lower left with width and height same as the window
-        GLU glu = new GLU();
+        GLU glu = new GLUgl2es1();
         glu.gluOrtho2D( 0.0f, width, 0.0f, height );
 
-        gl.glMatrixMode( GL2.GL_MODELVIEW );
+        gl.glMatrixMode( GL2ES1.GL_MODELVIEW );
         gl.glLoadIdentity();
 
-        gl.glViewport( 0, 0, width, height );
+        gl.glViewport( 0, 0, width, height );        
     }
 
-    public static void render( GL2 gl, int width, int height) {
+    public static void render( GL2ES1 gl, int width, int height) {
         gl.glClear( GL.GL_COLOR_BUFFER_BIT );
 
         // draw a triangle filling the window
         gl.glLoadIdentity();
-        gl.glBegin( GL.GL_TRIANGLES );
-        gl.glColor3f( 1, 0, 0 );
-        gl.glVertex2f( 0, 0 );
-        gl.glColor3f( 0, 1, 0 );
-        gl.glVertex2f( width, 0 );
-        gl.glColor3f( 0, 0, 1 );
-        gl.glVertex2f( width / 2, height );
-        gl.glEnd();
+        
+        ImmModeSink immModeSink = ImmModeSink.createFixed(gl, GL.GL_STATIC_DRAW, 3, 
+                                              3, GL.GL_FLOAT,  // vertex
+                                              3, GL.GL_FLOAT,  // color
+                                              0, GL.GL_FLOAT,// normal
+                                              0, GL.GL_FLOAT); // texture
+        immModeSink.glBegin(GL.GL_TRIANGLES);
+        immModeSink.glColor3f( 1, 0, 0 );
+        immModeSink.glVertex2f( 0, 0 );
+        immModeSink.glColor3f( 0, 1, 0 );
+        immModeSink.glVertex2f( width, 0 );
+        immModeSink.glColor3f( 0, 0, 1 );
+        immModeSink.glVertex2f( width / 2, height );
+        immModeSink.glEnd(gl, true);
     }
 }

@@ -60,7 +60,7 @@ public class TestEventSourceNotAWTBug extends UITestCase {
 
         jf.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
-        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
         final GLWindow glWindow = GLWindow.create(caps);
         final NewtCanvasAWT canvas = new NewtCanvasAWT(glWindow);
         jf.getContentPane().add(canvas);

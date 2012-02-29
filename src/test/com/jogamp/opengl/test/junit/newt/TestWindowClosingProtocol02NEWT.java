@@ -49,7 +49,7 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
 
     @Test
     public void testCloseGLWindow() throws InterruptedException, InvocationTargetException {
-        GLProfile glp = GLProfile.getDefault();
+        GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
         final GLWindow glWindow = GLWindow.create(caps);
         final AWTRobotUtil.WindowClosingListener windowClosingListener = AWTRobotUtil.addClosingListener(glWindow);

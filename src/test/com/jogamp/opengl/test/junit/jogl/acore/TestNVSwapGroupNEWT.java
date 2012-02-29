@@ -52,7 +52,7 @@ public class TestNVSwapGroupNEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        glp = GLProfile.getDefault();
+        glp = GLProfile.getGL2ES2();
         Assert.assertNotNull(glp);
         caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);

@@ -28,7 +28,7 @@
  
 package com.jogamp.opengl.test.junit.jogl.swt;
 
-import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLProfile;
@@ -53,7 +53,7 @@ import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
 
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.OneTriangle;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.OneTriangle;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
@@ -127,7 +127,7 @@ public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
                 Rectangle rectangle = glcanvas.getClientArea();
                 glcanvas.setCurrent();
                 glcontext.makeCurrent();
-                GL2 gl = glcontext.getGL().getGL2();
+                GL2ES1 gl = glcontext.getGL().getGL2ES1();
                 OneTriangle.setup( gl, rectangle.width, rectangle.height );
                 glcontext.release();
                 System.err.println("resize");
@@ -140,7 +140,7 @@ public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
                 Rectangle rectangle = glcanvas.getClientArea();
                 glcanvas.setCurrent();
                 glcontext.makeCurrent();
-                GL2 gl = glcontext.getGL().getGL2();
+                GL2ES1 gl = glcontext.getGL().getGL2ES1();
                 OneTriangle.render( gl, rectangle.width, rectangle.height );
                 glcanvas.swapBuffers();
                 glcontext.release();
@@ -169,16 +169,8 @@ public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
     }
 
     @Test
-    public void testA01GLDefault() throws InterruptedException {
-        GLProfile glprofile = GLProfile.getDefault();
-        System.out.println( "GLProfile Default: " + glprofile );
-        runTestAGL( glprofile );
-    }
-
-    @Test
-    public void test02GL2() throws InterruptedException {
-        GLProfile glprofile = GLProfile.get(GLProfile.GL2);
-        System.out.println( "GLProfile GL2: " + glprofile );
+    public void test() throws InterruptedException {
+        GLProfile glprofile = GLProfile.getGL2ES1();
         runTestAGL( glprofile );
     }
 

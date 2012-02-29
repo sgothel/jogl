@@ -53,7 +53,7 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
     public void testCloseJFrameNewtCanvasAWT() throws InterruptedException, InvocationTargetException {
         final JFrame frame = new JFrame("testCloseJFrameNewtCanvasAWT");
 
-        GLProfile glp = GLProfile.getDefault();
+        GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
         final GLWindow glWindow = GLWindow.create(caps);
         final AWTRobotUtil.WindowClosingListener windowClosingListener = AWTRobotUtil.addClosingListener(glWindow);

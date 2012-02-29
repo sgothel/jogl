@@ -48,7 +48,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import com.jogamp.opengl.swt.GLCanvas;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.OneTriangle;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.OneTriangle;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
@@ -149,16 +149,8 @@ public class TestSWTJOGLGLCanvas01GLnAWT extends UITestCase {
     }
 
     @Test
-    public void testA01GLDefault() throws InterruptedException {
-        GLProfile glprofile = GLProfile.getDefault();
-        System.out.println( "GLProfile Default: " + glprofile );
-        runTestAGL( glprofile );
-    }
-
-    @Test
-    public void test02GL2() throws InterruptedException {
-        GLProfile glprofile = GLProfile.get(GLProfile.GL2);
-        System.out.println( "GLProfile GL2: " + glprofile );
+    public void test() throws InterruptedException {
+        GLProfile glprofile = GLProfile.getGL2ES1();
         runTestAGL( glprofile );
     }
 

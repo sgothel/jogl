@@ -578,6 +578,50 @@ ${line.separator}
 " append="true" file="${build.test}/targetcommand.sh" />
           </sequential>
         </for>
+
+        <for param="test.class.path.m" keepgoing="true">
+            <!-- results in absolute path -->
+            <fileset dir="${classes}">
+                <include name="${java.dir.junit}/**/Test*AWT*"/>
+                <exclude name="**/*$$*"/>
+                <exclude name="**/*SWT*"/>
+                <exclude name="${java.dir.junit}/**/Test*NEWT*"/>
+            </fileset>
+          <sequential>
+            <var name="test.class.path" unset="true"/>
+            <property name="test.class.path" basedir="${classes}" relative="true" location="@{test.class.path.m}"/>
+            <var name="test.class.fqn" unset="true"/>
+            <pathconvert property="test.class.fqn">
+              <fileset file="${classes}${file.separator}${test.class.path}"/>
+              <chainedmapper>
+                  <globmapper    from="${classes.path}${file.separator}*" to="*"/> <!-- rel. -->
+                  <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
+              </chainedmapper>
+            </pathconvert>
+            <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
+            <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
+            <echo message="${line.separator}
+export DISPLAY=:0.0${line.separator}
+java \${line.separator}
+${junit.run.arg0}\${line.separator}
+${junit.run.arg1}\${line.separator}
+${jvmDataModel.arg}\${line.separator}
+-cp ${junit_jogl_awt.run.remote.jars}\${line.separator}
+org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner \${line.separator}
+${test.class.fqn} \${line.separator}
+filtertrace=true \${line.separator}
+haltOnError=false \${line.separator}
+haltOnFailure=false \${line.separator}
+showoutput=true \${line.separator}
+outputtoformatters=true \${line.separator}
+logfailedtests=true \${line.separator}
+logtestlistenerevents=true \${line.separator}
+formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter \${line.separator}
+formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,${test.class.result.file} ${line.separator}
+${line.separator}
+" append="true" file="${build.test}/targetcommand.sh" />
+          </sequential>
+        </for>
         <exec dir="." executable="sh" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line='-x -c "
             chmod 0755 ${build.test}/targetcommand.sh ;

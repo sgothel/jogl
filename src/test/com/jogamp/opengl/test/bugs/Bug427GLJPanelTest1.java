@@ -17,7 +17,7 @@ public class Bug427GLJPanelTest1 extends JFrame implements GLEventListener {
         setLocation(40, 40);
         setVisible(true);
 
-        GLProfile glp = GLProfile.getDefault();
+        GLProfile glp = GLProfile.get(GLProfile.GL2);
         GLCapabilities caps = new GLCapabilities(glp);
         caps.setDoubleBuffered(true);
         caps.setHardwareAccelerated(true);
