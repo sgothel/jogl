@@ -158,17 +158,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     {
         Class<?> windowClass = NewtFactory.getCustomClass(type, "Window");
         if(null==windowClass) {
-            if (NativeWindowFactory.TYPE_ANDROID.equals(type)) {
+            if (NativeWindowFactory.TYPE_ANDROID == type) {
                 windowClass = Class.forName("jogamp.newt.driver.android.AndroidWindow");
-            } else if (NativeWindowFactory.TYPE_EGL.equals(type)) {
+            } else if (NativeWindowFactory.TYPE_EGL == type) {
                 windowClass = Class.forName("jogamp.newt.driver.kd.KDWindow");
-            } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
+            } else if (NativeWindowFactory.TYPE_WINDOWS == type) {
                 windowClass = Class.forName("jogamp.newt.driver.windows.WindowsWindow");
-            } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
+            } else if (NativeWindowFactory.TYPE_MACOSX == type) {
                 windowClass = Class.forName("jogamp.newt.driver.macosx.MacWindow");
-            } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
+            } else if (NativeWindowFactory.TYPE_X11 == type) {
                 windowClass = Class.forName("jogamp.newt.driver.x11.X11Window");
-            } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
+            } else if (NativeWindowFactory.TYPE_AWT == type) {
                 windowClass = Class.forName("jogamp.newt.driver.awt.AWTWindow");
             } else {
                 throw new NativeWindowException("Unknown window type \"" + type + "\"");

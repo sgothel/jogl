@@ -54,17 +54,17 @@ public abstract class DisplayImpl extends Display {
     {
         Class<?> displayClass = NewtFactory.getCustomClass(type, "Display");
         if(null==displayClass) {
-            if (NativeWindowFactory.TYPE_ANDROID.equals(type)) {
+            if (NativeWindowFactory.TYPE_ANDROID == type) {
                 displayClass = Class.forName("jogamp.newt.driver.android.AndroidDisplay");
-            } else if (NativeWindowFactory.TYPE_EGL.equals(type)) {
+            } else if (NativeWindowFactory.TYPE_EGL == type) {
                 displayClass = Class.forName("jogamp.newt.driver.kd.KDDisplay");
-            } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
+            } else if (NativeWindowFactory.TYPE_WINDOWS == type) {
                 displayClass = Class.forName("jogamp.newt.driver.windows.WindowsDisplay");
-            } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
+            } else if (NativeWindowFactory.TYPE_MACOSX == type) {
                 displayClass = Class.forName("jogamp.newt.driver.macosx.MacDisplay");
-            } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
+            } else if (NativeWindowFactory.TYPE_X11 == type) {
                 displayClass = Class.forName("jogamp.newt.driver.x11.X11Display");
-            } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
+            } else if (NativeWindowFactory.TYPE_AWT == type) {
                 displayClass = Class.forName("jogamp.newt.driver.awt.AWTDisplay");
             } else {
                 throw new RuntimeException("Unknown display type \"" + type + "\"");

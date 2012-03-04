@@ -96,17 +96,17 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     {
         Class<?> screenClass = NewtFactory.getCustomClass(type, "Screen");
         if(null==screenClass) {
-            if (NativeWindowFactory.TYPE_ANDROID.equals(type)) {
+            if (NativeWindowFactory.TYPE_ANDROID == type) {
                 screenClass = Class.forName("jogamp.newt.driver.android.AndroidScreen");
-            } else if (NativeWindowFactory.TYPE_EGL.equals(type)) {
+            } else if (NativeWindowFactory.TYPE_EGL == type) {
                 screenClass = Class.forName("jogamp.newt.driver.kd.KDScreen");
-            } else if (NativeWindowFactory.TYPE_WINDOWS.equals(type)) {
+            } else if (NativeWindowFactory.TYPE_WINDOWS == type) {
                 screenClass = Class.forName("jogamp.newt.driver.windows.WindowsScreen");
-            } else if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
+            } else if (NativeWindowFactory.TYPE_MACOSX == type) {
                 screenClass = Class.forName("jogamp.newt.driver.macosx.MacScreen");
-            } else if (NativeWindowFactory.TYPE_X11.equals(type)) {
+            } else if (NativeWindowFactory.TYPE_X11 == type) {
                 screenClass = Class.forName("jogamp.newt.driver.x11.X11Screen");
-            } else if (NativeWindowFactory.TYPE_AWT.equals(type)) {
+            } else if (NativeWindowFactory.TYPE_AWT == type) {
                 screenClass = Class.forName("jogamp.newt.driver.awt.AWTScreen");
             } else {
                 throw new RuntimeException("Unknown window type \"" + type + "\"");

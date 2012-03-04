@@ -46,8 +46,6 @@ import jogamp.newt.DisplayImpl;
 import jogamp.newt.ScreenImpl;
 import jogamp.newt.WindowImpl;
 
-import com.jogamp.common.os.Platform;
-
 public class NewtFactory {
     public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
 
