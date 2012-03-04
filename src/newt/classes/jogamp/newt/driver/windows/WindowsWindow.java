@@ -53,6 +53,7 @@ public class WindowsWindow extends WindowImpl {
 
     private long hmon;
     private long hdc;
+    private long hdc_old;
     private long windowHandleClose;
 
     static {
@@ -69,7 +70,19 @@ public class WindowsWindow extends WindowImpl {
         }
         hdc = GDI.GetDC(getWindowHandle());
         hmon = MonitorFromWindow0(getWindowHandle());
-        return ( 0 != hdc ) ? LOCK_SUCCESS : LOCK_SURFACE_NOT_READY;
+        
+        // return ( 0 == hdc ) ? LOCK_SURFACE_NOT_READY : ( hdc_old != hdc ) ? LOCK_SURFACE_CHANGED : LOCK_SUCCESS ;
+        if( 0 == hdc ) { 
+            return LOCK_SURFACE_NOT_READY;
+        }
+        if( hdc_old == hdc ) {
+            return LOCK_SUCCESS;
+        }
+        if(DEBUG_IMPLEMENTATION) {            
+            System.err.println("********** HDC change "+toHexString(hdc_old)+" -> "+toHexString(hdc));
+            // Thread.dumpStack();
+        }
+        return LOCK_SURFACE_CHANGED;        
     }
 
     @Override
@@ -78,6 +91,7 @@ public class WindowsWindow extends WindowImpl {
             throw new InternalError("surface not acquired");
         }
         GDI.ReleaseDC(getWindowHandle(), hdc);
+        hdc_old = hdc;
         hdc=0;
     }
 
@@ -92,9 +106,9 @@ public class WindowsWindow extends WindowImpl {
             long _hmon = MonitorFromWindow0(getWindowHandle());
             if (hmon != _hmon) {
                 if(DEBUG_IMPLEMENTATION) {
-                    Exception e = new Exception("Info: Window Device Changed "+Thread.currentThread().getName()+
-                                                ", HMON "+toHexString(hmon)+" -> "+toHexString(_hmon));
-                    e.printStackTrace();
+                    System.err.println("Info: Window Device Changed "+Thread.currentThread().getName()+
+                                        ", HMON "+toHexString(hmon)+" -> "+toHexString(_hmon));
+                    // Thread.dumpStack();
                 }
                 hmon = _hmon;
                 return true;
@@ -149,6 +163,7 @@ public class WindowsWindow extends WindowImpl {
                 }
             }
             hdc = 0;
+            hdc_old = 0;
         }
         if(windowHandleClose != 0) {
             try {
