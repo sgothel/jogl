@@ -76,6 +76,7 @@ int eglutGet(int state);
 
 void eglutIdleFunc(EGLUTidleCB func);
 void eglutPostRedisplay(void);
+void eglutSwapInterval(EGLint interval);
 
 void eglutMainLoop(void);
 void eglutStopMainLoop(void);

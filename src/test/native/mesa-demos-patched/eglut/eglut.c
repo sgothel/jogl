@@ -91,6 +91,7 @@ _eglutChooseConfig(void)
    EGLConfig config;
    EGLint config_attribs[32];
    EGLint renderable_type, num_configs, i;
+   EGLint cfgid, vid;
 
    i = 0;
    config_attribs[i++] = EGL_RED_SIZE;
@@ -122,6 +123,15 @@ _eglutChooseConfig(void)
    if (!eglChooseConfig(_eglut->dpy,
             config_attribs, &config, 1, &num_configs) || !num_configs)
       _eglutFatal("failed to choose a config");
+
+   if (!eglGetConfigAttrib(_eglut->dpy,
+            config, EGL_CONFIG_ID, &cfgid))
+      _eglutFatal("failed to get visual id");
+   if (!eglGetConfigAttrib(_eglut->dpy,
+            config, EGL_NATIVE_VISUAL_ID, &vid))
+      _eglutFatal("failed to get visual id");
+
+   fprintf(stderr, "eglChooseConfig egl-cfg-id 0x%X, vid 0x%X\n", cfgid, vid);
 
    return config;
 }
@@ -340,6 +350,10 @@ eglutCreateWindow(const char *title)
    _eglut->current = win;
 
    return win->index;
+}
+
+void eglutSwapInterval(EGLint interval) {
+   eglSwapInterval(_eglut->dpy, interval);
 }
 
 int
