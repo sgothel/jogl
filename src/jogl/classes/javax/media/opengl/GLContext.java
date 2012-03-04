@@ -175,7 +175,7 @@ public abstract class GLContext {
 
   /**
    * Makes this GLContext current on the calling thread.
-   *
+   * <p>
    * There are two return values that indicate success and one that
    * indicates failure. A return value of CONTEXT_CURRENT_NEW
    * indicates that that context has been made current, and that
@@ -185,15 +185,22 @@ public abstract class GLContext {
    * this case, the application may wish to initialize the state.  A
    * return value of CONTEXT_CURRENT indicates that the context has
    * been made currrent, with its previous state restored.
-   * 
+   * </p>
+   * <p>
    * If the context could not be made current (for example, because
    * the underlying drawable has not ben realized on the display) ,
    * a value of CONTEXT_NOT_CURRENT is returned.
-   *
+   * </p>
+   * <p> 
    * If the context is in use by another thread at the time of the
    * call, then if isSynchronized() is true the call will
    * block. If isSynchronized() is false, an exception will be
    * thrown and the context will remain current on the other thread.
+   * </p>
+   * <p>
+   * The drawable's surface is being locked at entry
+   * and unlocked at {@link #release()} 
+   * </p>
    *
    * @return CONTEXT_CURRENT if the context was successfully made current
    * @return CONTEXT_CURRENT_NEW if the context was successfully made
@@ -210,6 +217,10 @@ public abstract class GLContext {
 
   /**
    * Releases control of this GLContext from the current thread.
+   * <p>
+   * The drawable's surface is being unlocked at exit,
+   * assumed to be locked by {@link #makeCurrent()}. 
+   * </p>
    *
    * @throws GLException if the context had not previously been made
    * current on the current thread

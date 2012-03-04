@@ -335,8 +335,11 @@ public class GLDrawableHelper {
       desired goal is to be able to implement GLAutoDrawable's in terms of
       the GLContext's public APIs, and putting it into a separate
       class helps ensure that we don't inadvertently use private
-      methods of the GLContext or its implementing classes.<br>
-   * <br>
+      methods of the GLContext or its implementing classes.
+      <p>
+      Note: Locking of the surface is implicit done by {@link GLContext#makeCurrent()},
+      where unlocking is performed by the latter {@link GLContext#release()}.
+      </p>
    *
    * @param drawable
    * @param context

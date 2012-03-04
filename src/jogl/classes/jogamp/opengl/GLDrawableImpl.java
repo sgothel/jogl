@@ -135,7 +135,12 @@ public abstract class GLDrawableImpl implements GLDrawable {
   protected void destroyHandle() {}
   
   /** called with locked surface @ setRealized(true) or @ lockSurface(..) when surface changed */ 
-  protected void updateHandle() {}
+  protected void updateHandle() {
+        if(DEBUG) {
+            System.err.println(getThreadName() + ": updateHandle: "+getClass().getSimpleName()+": "+this);
+            Thread.dumpStack();
+        }      
+  }
 
   public long getHandle() {
     return surface.getSurfaceHandle();
@@ -148,7 +153,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   public final synchronized void setRealized(boolean realizedArg) {
     if ( realized != realizedArg ) {
         if(DEBUG) {
-            System.err.println(getThreadName() + ": setRealized: "+getClass().getName()+" "+realized+" -> "+realizedArg);
+            System.err.println(getThreadName() + ": setRealized: "+getClass().getSimpleName()+" "+realized+" -> "+realizedArg);
         }
         realized = realizedArg;
         AbstractGraphicsDevice aDevice = surface.getGraphicsConfiguration().getScreen().getDevice();

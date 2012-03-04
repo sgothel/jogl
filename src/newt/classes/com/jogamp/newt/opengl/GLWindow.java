@@ -555,13 +555,8 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         }
 
         if( null != context ) { // TODO: Check memory sync
-            if( NativeSurface.LOCK_SURFACE_NOT_READY < lockSurface() ) {
-                try {
-                    helper.invokeGL(drawable, context, displayAction, initAction);
-                } finally {
-                    unlockSurface();
-                }
-            }
+            // surface is locked/unlocked implicit by context's makeCurrent/release 
+            helper.invokeGL(drawable, context, displayAction, initAction);
         }
     }
     
