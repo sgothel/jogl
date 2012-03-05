@@ -48,10 +48,12 @@ import java.util.*;
     backing store, when necessary. */
 
 public class RectanglePacker {
+  private static final float DEFAULT_EXPANSION_FACTOR = 0.5f;
+
   private BackingStoreManager manager;
   private Object backingStore;
   private LevelSet levels;
-  private float EXPANSION_FACTOR = 0.5f;
+  private float EXPANSION_FACTOR;
   private float SHRINK_FACTOR = 0.3f;
 
   private int initialWidth;
@@ -76,10 +78,18 @@ public class RectanglePacker {
   public RectanglePacker(BackingStoreManager manager,
                          int initialWidth,
                          int initialHeight) {
+    this(manager, initialWidth, initialHeight, DEFAULT_EXPANSION_FACTOR);
+  }
+
+  public RectanglePacker(BackingStoreManager manager,
+                         int initialWidth,
+                         int initialHeight,
+                         float expansionFactor) {
     this.manager = manager;
     levels = new LevelSet(initialWidth, initialHeight);
     this.initialWidth = initialWidth;
     this.initialHeight = initialHeight;
+    EXPANSION_FACTOR = expansionFactor;
   }
 
   public Object getBackingStore() {
