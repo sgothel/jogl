@@ -301,10 +301,13 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
   //
 
   public void destroy(GL gl) {
+    // super.destroy(gl):
+    // - GLArrayDataClient.destroy(gl): disables & clears client-side buffer
+    //   - GLArrayDataWrapper.destroy(gl) (clears all values 'vboName' ..)
+    int _vboName = vboName;
     super.destroy(gl);
-    if(vboName!=0) {
-        int[] tmp = new int[1];
-        tmp[0] = vboName;
+    if(_vboName!=0) {
+        final int[] tmp = new int[] { _vboName } ;
         gl.glDeleteBuffers(1, tmp, 0);
         vboName = 0;
     }
