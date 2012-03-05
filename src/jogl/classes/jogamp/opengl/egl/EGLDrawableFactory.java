@@ -151,7 +151,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 if(DEBUG) {
                     System.err.println("EGLDrawableFactory.destroy("+shutdownType+"): "+sr.device.toString());
                 }
-                EGLDisplayUtil.eglTerminate(sr.device.getHandle());
+                final long eglDisplay = sr.device.getHandle();
+                if(EGL.EGL_NO_DISPLAY != eglDisplay) {
+                    EGLDisplayUtil.eglTerminate(eglDisplay);
+                }
             }
             sharedMap.clear();
             sharedMap = null;

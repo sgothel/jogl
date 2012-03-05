@@ -239,7 +239,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       drawable.setRealized(true);
 
       context = drawable.createContext(shareWith);
-
+      context.setSynchronized(true);
+      
       /* Register SWT listeners (e.g. PaintListener) to render/resize GL surface. */
       /* TODO: verify that these do not need to be manually de-registered when destroying the SWT component */
       addPaintListener(new PaintListener() {

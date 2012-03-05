@@ -58,7 +58,7 @@ public class TestPBufferDeadlockAWT extends UITestCase {
   }
 
   protected void runTestGL( GLCapabilities caps ) throws InterruptedException, InvocationTargetException {
-    final GLPbuffer pbuffer = GLDrawableFactory.getFactory( GLProfile.get( "GL2" ) ).createGLPbuffer(
+    final GLPbuffer pbuffer = GLDrawableFactory.getFactory( GLProfile.getGL2ES2() ).createGLPbuffer(
         null,
         caps, new DefaultGLCapabilitiesChooser(),
         512, 512,
