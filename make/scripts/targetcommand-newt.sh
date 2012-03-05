@@ -2,7 +2,11 @@
 
 THISDIR=`pwd`
 
-XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode"
+export LD_LIBRARY_PATH=$THISDIR/PVRTrace/:$LD_LIBRARY_PATH
+
+XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode -Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext.TraceSwitch "
+#XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode -Djogl.debug.DebugGL -Djogl.debug.TraceGL"
+#XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode -Djogl.debug.EGL -Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.GLDrawable"
 #XTRA_FLAGS="-Dnewt.debug.Screen"
 #XTRA_FLAGS="-Dnativewindow.debug.GraphicsConfiguration -Dnativewindow.debug.NativeWindow"
 #XTRA_FLAGS="-Dnewt.debug.Window -Djogl.debug.EGL -Djogl.debug.GLContext -Djogl.debug.GLDrawable"
@@ -22,7 +26,7 @@ XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode"
 #TSTCLASS=com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01  # (Tegra regressions)
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT
-#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT
+TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT
 
 # Some Regressions (Panda, Omap4)
@@ -36,7 +40,7 @@ XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode"
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES1NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT2
-TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedNEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT
@@ -80,6 +84,8 @@ TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT
        jogamp@jogamp02::PROJECTS/JOGL/gluegen jogamp@jogamp02::PROJECTS/JOGL/jogl $THISDIR/projects-cross 
 
  cd $THISDIR/projects-cross/jogl/make 
+
+ cp -a $THISDIR/pvrtrace.cfg .
  
 function junit_run() {
      java \
@@ -113,4 +119,6 @@ function main_run() {
 # junit_run 2>&1 | tee $THISDIR/targetcommand.log
 
 main_run $* 2>&1 | tee $THISDIR/targetcommand.log
+
+cp -a trace-*.pvrt $THISDIR/
  

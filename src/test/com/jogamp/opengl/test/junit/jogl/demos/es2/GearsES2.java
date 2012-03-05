@@ -174,7 +174,9 @@ public class GearsES2 implements GLEventListener {
         }
         st.useProgram(gl, false);
         
-        gl.setSwapInterval(swapInterval);
+        if(0<=swapInterval) {
+            gl.setSwapInterval(swapInterval);
+        }
         
         System.err.println(Thread.currentThread()+" GearsES2.init FIN");
     }

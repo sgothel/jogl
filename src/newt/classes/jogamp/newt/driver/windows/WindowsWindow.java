@@ -79,7 +79,7 @@ public class WindowsWindow extends WindowImpl {
             return LOCK_SUCCESS;
         }
         if(DEBUG_IMPLEMENTATION) {            
-            System.err.println("********** HDC change "+toHexString(hdc_old)+" -> "+toHexString(hdc));
+            System.err.println("WindowsWindow: surface change "+toHexString(hdc_old)+" -> "+toHexString(hdc));
             // Thread.dumpStack();
         }
         return LOCK_SURFACE_CHANGED;        

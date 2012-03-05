@@ -1,16 +1,16 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2012 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,53 +20,59 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
 
-package com.jogamp.opengl.test.junit.util;
+package jogamp.nativewindow;
 
-import java.lang.reflect.*;
-
-public class MiscUtils {
-    public static int atoi(String str, int def) {
-        try {
-            return Integer.parseInt(str);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return def;
-    }
+/**
+ * Specifies query to the native capabilities identification.
+ * Semantics may differ depending on the native windowing system,
+ * see {@link #getVisualID(int)}.
+ */
+public interface NativeVisualID {
     
-    public static long atol(String str, long def) {
-        try {
-            return Long.parseLong(str);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return def;
-    }
+    public enum NVIDType {
+        GEN_ID(0), NATIVE_ID(1), 
+        EGL_ConfigID(2), EGL_NativeVisualID(3), X11_XVisualID(4), X11_FBConfigID(5), WIN32_PFDID(6); 
+        
+        public final int id;
 
-    public static boolean setFieldIfExists(Object instance, String fieldName, Object value) {
-        try {
-            Field f = instance.getClass().getField(fieldName);
-            if(value instanceof Boolean || f.getType().isInstance(value)) {
-                f.set(instance, value);
-                return true;
-            } else {
-                System.out.println(instance.getClass()+" '"+fieldName+"' field not assignable with "+value.getClass()+", it's a: "+f.getType());
-            }
-        } catch (IllegalAccessException ex) {
-            throw new RuntimeException(ex);
-        } catch (NoSuchFieldException nsfe) {
-            // OK - throw new RuntimeException(instance.getClass()+" has no '"+fieldName+"' field", nsfe);
+        NVIDType(int id){
+            this.id = id;
         }
-        return false;
-    }
+    }    
+    
+    /**
+     * Returns the native identification of the given <code>type</code>.
+     * <p> 
+     * Depending on the native windowing system, this might be
+     * <ul>
+     *   <li>X11
+     *     <ul>
+     *       <li>GEN_ID: X11_XVisualID</li>
+     *       <li>NATIVE_ID: X11_XVisualID</li>
+     *       <li>X11_XVisualID</li>
+     *       <li>X11FBConfigID</li>
+     *     </ul></li>
+     *   <li>Windows
+     *     <ul>
+     *       <li>GEN_ID: WIN32_PFDID</li>
+     *       <li>NATIVE_ID: WIN32_PFDID</li>
+     *       <li>WIN32_PFDID</li>
+     *     </ul></li>
+     *   <li>EGL
+     *     <ul>
+     *       <li>GEN_ID: EGL_ConfigID</li>
+     *       <li>NATIVE_ID: EGL_NativeVisualID (X11_XVisualID, WIN32_PFDID, ..)</li>
+     *       <li>EGL_ConfigID</li>
+     *       <li>EGL_NativeVisualID</li>
+     *     </ul></li>
+     * </ul>
+     * </p>
+     */
+    int getVisualID(NVIDType type);
 }
-
-
-

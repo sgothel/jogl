@@ -50,15 +50,13 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.MutableGraphicsConfiguration;
-import jogamp.opengl.Debug;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 
 public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
-    protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
-
+    
     public final long getNativeConfig() {
         return ((EGLGLCapabilities)capabilitiesChosen).getEGLConfig();
     }
@@ -275,11 +273,15 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         attrs[idx++] = EGL.EGL_BLUE_SIZE;
         attrs[idx++] = caps.getBlueBits();
 
-        attrs[idx++] = EGL.EGL_ALPHA_SIZE;
-        attrs[idx++] = caps.getAlphaBits() > 0 ? caps.getAlphaBits() : EGL.EGL_DONT_CARE;
-
-        attrs[idx++] = EGL.EGL_STENCIL_SIZE;
-        attrs[idx++] = caps.getStencilBits() > 0 ? caps.getStencilBits() : EGL.EGL_DONT_CARE;
+        if(caps.getAlphaBits()>0) {
+            attrs[idx++] = EGL.EGL_ALPHA_SIZE;
+            attrs[idx++] = caps.getAlphaBits();
+        }
+        
+        if(caps.getStencilBits()>0) {
+            attrs[idx++] = EGL.EGL_STENCIL_SIZE;
+            attrs[idx++] = caps.getStencilBits();
+        }
 
         attrs[idx++] = EGL.EGL_DEPTH_SIZE;
         attrs[idx++] = caps.getDepthBits();

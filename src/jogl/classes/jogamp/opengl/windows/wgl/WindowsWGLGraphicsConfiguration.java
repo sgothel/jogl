@@ -54,10 +54,7 @@ import jogamp.nativewindow.windows.MARGINS;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
-public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
-    // Keep this under the same debug flag as the drawable factory for convenience
-    protected static final boolean DEBUG = jogamp.opengl.Debug.debug("GraphicsConfiguration");
-    
+public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {    
     protected static final int MAX_PFORMATS = 256;
     protected static final int MAX_ATTRIBS  = 256;
 
@@ -456,18 +453,22 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
           iattributes[niattribs++] = GL.GL_FALSE;
         }
         
-        iattributes[niattribs++] = WGLExt.WGL_DEPTH_BITS_ARB;
-        iattributes[niattribs++] = caps.getDepthBits();
         iattributes[niattribs++] = WGLExt.WGL_RED_BITS_ARB;
         iattributes[niattribs++] = caps.getRedBits();
         iattributes[niattribs++] = WGLExt.WGL_GREEN_BITS_ARB;
         iattributes[niattribs++] = caps.getGreenBits();
         iattributes[niattribs++] = WGLExt.WGL_BLUE_BITS_ARB;
         iattributes[niattribs++] = caps.getBlueBits();
-        iattributes[niattribs++] = WGLExt.WGL_ALPHA_BITS_ARB;
-        iattributes[niattribs++] = caps.getAlphaBits();
-        iattributes[niattribs++] = WGLExt.WGL_STENCIL_BITS_ARB;
-        iattributes[niattribs++] = caps.getStencilBits();
+        if(caps.getAlphaBits()>0) {
+            iattributes[niattribs++] = WGLExt.WGL_ALPHA_BITS_ARB;
+            iattributes[niattribs++] = caps.getAlphaBits();
+        }
+        if(caps.getStencilBits()>0) {
+            iattributes[niattribs++] = WGLExt.WGL_STENCIL_BITS_ARB;
+            iattributes[niattribs++] = caps.getStencilBits();
+        }
+        iattributes[niattribs++] = WGLExt.WGL_DEPTH_BITS_ARB;
+        iattributes[niattribs++] = caps.getDepthBits();
         if (caps.getAccumRedBits()   > 0 ||
             caps.getAccumGreenBits() > 0 ||
             caps.getAccumBlueBits()  > 0 ||

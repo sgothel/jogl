@@ -28,13 +28,14 @@
 
 package jogamp.opengl.x11.glx;
 
+import jogamp.nativewindow.NativeVisualID;
 import jogamp.nativewindow.x11.XVisualInfo;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 import java.util.Comparator;
 
-public class X11GLCapabilities extends GLCapabilities {
+public class X11GLCapabilities extends GLCapabilities implements NativeVisualID {
   final XVisualInfo xVisualInfo; // maybe null if !onscreen
   final long fbcfg;
   final int  fbcfgid;
@@ -53,10 +54,10 @@ public class X11GLCapabilities extends GLCapabilities {
         }
 
         final X11GLCapabilities caps1 = (X11GLCapabilities) o1;
-        final long id1 = caps1.getXVisualID();
+        final int id1 = caps1.getXVisualID();
 
         final X11GLCapabilities caps2 = (X11GLCapabilities) o2;
-        final long id2 = caps2.getXVisualID();
+        final int id2 = caps2.getXVisualID();
 
         if(id1 > id2) {
             return 1;
@@ -94,25 +95,40 @@ public class X11GLCapabilities extends GLCapabilities {
   }
 
   final public XVisualInfo getXVisualInfo() { return xVisualInfo; }
-  final public long getXVisualID() { return (null!=xVisualInfo) ? xVisualInfo.getVisualid() : 0; }
+  final public int getXVisualID() { return (null!=xVisualInfo) ? (int) xVisualInfo.getVisualid() : 0; }
   final public boolean hasXVisualInfo() { return null!=xVisualInfo; }
 
   final public long getFBConfig() { return fbcfg; }
   final public int getFBConfigID() { return fbcfgid; }
   final public boolean hasFBConfig() { return 0!=fbcfg && fbcfgid>0; }
 
+  final public int getVisualID(NVIDType type) {
+      switch(type) {
+          case GEN_ID:
+          case NATIVE_ID:
+              // fall through intended
+          case X11_XVisualID:
+              return getXVisualID();
+          case X11_FBConfigID:
+              return getFBConfigID();
+          default:
+              throw new IllegalArgumentException("Invalid type <"+type+">");
+      }      
+  }
+  
   final static String na_str = "----" ;
 
   public StringBuffer toString(StringBuffer sink) {
     if(null == sink) {
         sink = new StringBuffer();
     }
+    sink.append("x11 vid ");
     if(hasXVisualInfo()) {
         sink.append("0x").append(Long.toHexString(xVisualInfo.getVisualid()));
     } else {
         sink.append(na_str);
     }
-    sink.append(" ");
+    sink.append(", fbc ");
     if(hasFBConfig()) {
         sink.append("0x").append(Integer.toHexString(fbcfgid));
     } else {

@@ -75,7 +75,7 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
   }
 
   @Override
-  protected void updateHandle() {
+  protected final void updateHandle() {
     if(USE_GLXWINDOW) {
         X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeSurface().getGraphicsConfiguration();
         if(config.getFBConfig()>=0) {

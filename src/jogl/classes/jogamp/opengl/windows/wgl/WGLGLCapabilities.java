@@ -30,6 +30,7 @@ package jogamp.opengl.windows.wgl;
 
 import java.util.Comparator;
 
+import jogamp.nativewindow.NativeVisualID;
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
 import javax.media.opengl.GL;
@@ -37,7 +38,7 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-public class WGLGLCapabilities extends GLCapabilities {
+public class WGLGLCapabilities extends GLCapabilities implements NativeVisualID {
   final PIXELFORMATDESCRIPTOR pfd;
   final int pfdID;
   int arb_pixelformat; // -1 PFD, 0 NOP, 1 ARB
@@ -224,11 +225,23 @@ public class WGLGLCapabilities extends GLCapabilities {
   final public boolean isSetByGDI() { return 0 > arb_pixelformat; }
   final public boolean isSet()      { return 0 != arb_pixelformat; }
   
+  final public int getVisualID(NVIDType type) {
+      switch(type) {
+          case GEN_ID:
+          case NATIVE_ID:
+              // fall through intended
+          case WIN32_PFDID:
+              return getPFDID();
+          default:
+              throw new IllegalArgumentException("Invalid type <"+type+">");
+      }      
+  }
+  
   public StringBuffer toString(StringBuffer sink) {
     if(null == sink) {
         sink = new StringBuffer();
     }
-    sink.append(pfdID).append(" ");
+    sink.append("win32 vid 0x").append(Integer.toHexString(pfdID)).append(" ");
     switch (arb_pixelformat) {
         case -1: 
             sink.append("gdi");

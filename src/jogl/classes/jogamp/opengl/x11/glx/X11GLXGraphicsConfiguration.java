@@ -51,14 +51,11 @@ import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.XRenderDirectFormat;
 import jogamp.nativewindow.x11.XRenderPictFormat;
 import jogamp.nativewindow.x11.XVisualInfo;
-import jogamp.opengl.Debug;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
 import com.jogamp.common.nio.PointerBuffer;
 
 public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implements Cloneable {
-    protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
-    
     public static final int MAX_ATTRIBS = 128;
     private GLCapabilitiesChooser chooser; 
 
@@ -176,14 +173,16 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         res[idx++] = caps.getGreenBits();
         res[idx++] = GLX.GLX_BLUE_SIZE;
         res[idx++] = caps.getBlueBits();
-        res[idx++] = GLX.GLX_ALPHA_SIZE;
-        res[idx++] = caps.getAlphaBits();
-        res[idx++] = GLX.GLX_DEPTH_SIZE;
-        res[idx++] = caps.getDepthBits();
+        if(caps.getAlphaBits()>0) {
+            res[idx++] = GLX.GLX_ALPHA_SIZE;
+            res[idx++] = caps.getAlphaBits();
+        }
         if (caps.getStencilBits() > 0) {
           res[idx++] = GLX.GLX_STENCIL_SIZE;
           res[idx++] = caps.getStencilBits();
         }
+        res[idx++] = GLX.GLX_DEPTH_SIZE;
+        res[idx++] = caps.getDepthBits();
         if (caps.getAccumRedBits()   > 0 ||
             caps.getAccumGreenBits() > 0 ||
             caps.getAccumBlueBits()  > 0 ||

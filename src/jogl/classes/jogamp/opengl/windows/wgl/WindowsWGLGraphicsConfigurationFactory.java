@@ -230,6 +230,9 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         if (config == null) {
             throw new IllegalArgumentException("WindowsWGLGraphicsConfiguration is null");
         }
+        if ( !(_factory instanceof WindowsWGLDrawableFactory) ) {
+            throw new GLException("GLDrawableFactory is not a WindowsWGLDrawableFactory, but: "+_factory.getClass().getSimpleName());
+        }
         WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory) _factory;
         WindowsWGLDrawable sharedDrawable = factory.getOrCreateSharedDrawable(device);
         if(null == sharedDrawable) {

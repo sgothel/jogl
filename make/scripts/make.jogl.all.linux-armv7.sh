@@ -1,5 +1,6 @@
 #! /bin/sh
 
+# arm-linux-gnueabi == armel triplet
 PATH=`pwd`/../../gluegen/make/lib/linux/arm-linux-gnueabi/bin:$PATH
 export PATH
 

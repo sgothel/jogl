@@ -49,14 +49,12 @@ import org.junit.AfterClass;
 import org.junit.Test;
 
 public class TestGearsES2AWT extends UITestCase {
-    static GLProfile glp;
     static int width, height;
     static boolean firstUIActionOnProcess = false;
+    static boolean forceES2 = false;
 
     @BeforeClass
     public static void initClass() {
-        glp = GLProfile.getGL2ES2();
-        Assert.assertNotNull(glp);
         width  = 512;
         height = 512;
     }
@@ -86,7 +84,7 @@ public class TestGearsES2AWT extends UITestCase {
             public void run() {
                 frame.setVisible(true);
             }});
-        animator.setUpdateFPSFrames(60, System.err);        
+        animator.setUpdateFPSFrames(60, System.err);
         animator.start();
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
@@ -110,7 +108,7 @@ public class TestGearsES2AWT extends UITestCase {
 
     @Test
     public void test01() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2());        
         runTestGL(caps);
     }
 
@@ -123,10 +121,13 @@ public class TestGearsES2AWT extends UITestCase {
                 try {
                     duration = Integer.parseInt(args[i]);
                 } catch (Exception ex) { ex.printStackTrace(); }
+            } else if(args[i].equals("-es2")) {
+                forceES2 = true;
             } else if(args[i].equals("-firstUIAction")) {
                 firstUIActionOnProcess = true;
             }
         }
+        System.err.println("forceES2 "+forceES2);
         org.junit.runner.JUnitCore.main(TestGearsES2AWT.class.getName());
     }
 }

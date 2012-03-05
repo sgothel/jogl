@@ -30,6 +30,9 @@ package jogamp.opengl.egl;
 
 import java.nio.IntBuffer;
 
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowFactory;
+
 import jogamp.opengl.Debug;
 
 import com.jogamp.common.util.LongIntHashMap;
@@ -55,7 +58,30 @@ public class EGLDisplayUtil {
     }
 
     public static long eglGetDisplay(long nativeDisplay_id)  {
-        return EGL.eglGetDisplay(nativeDisplay_id);
+        final long eglDisplay = EGL.eglGetDisplay(nativeDisplay_id);
+        if(DEBUG) {
+            System.err.println("EGLDisplayUtil.eglGetDisplay(): eglDisplay("+EGLContext.toHexString(nativeDisplay_id)+"): "+
+                               EGLContext.toHexString(eglDisplay)+
+                               ", "+((EGL.EGL_NO_DISPLAY != eglDisplay)?"OK":"Failed"));
+        }
+        return eglDisplay;
+    }
+    
+    public static long eglGetDisplay(NativeSurface surface, boolean allowFallBackToDefault)  {
+        final long nDisplay;
+        if( NativeWindowFactory.TYPE_WINDOWS.equals(NativeWindowFactory.getNativeWindowType(false)) ) {
+            nDisplay = surface.getSurfaceHandle(); // don't even ask ..
+        } else {
+            nDisplay = surface.getDisplayHandle(); // 0 == EGL.EGL_DEFAULT_DISPLAY
+        }
+        long eglDisplay = EGLDisplayUtil.eglGetDisplay(nDisplay);
+        if (eglDisplay == EGL.EGL_NO_DISPLAY && nDisplay != EGL.EGL_DEFAULT_DISPLAY && allowFallBackToDefault) {
+            if(DEBUG) {
+                System.err.println("EGLDisplayUtil.eglGetDisplay(): Fall back to EGL_DEFAULT_DISPLAY");
+            }
+            eglDisplay = EGLDisplayUtil.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
+        }
+        return eglDisplay;
     }
     
     public static synchronized boolean eglInitialize(long eglDisplay, int[] major, int major_offset, int[] minor, int minor_offset)  {

@@ -32,7 +32,11 @@
 
 package javax.media.nativewindow;
 
+import jogamp.nativewindow.Debug;
+
 public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphicsConfiguration {
+    protected static final boolean DEBUG = Debug.debug("GraphicsConfiguration");
+    
     private AbstractGraphicsScreen screen;
     protected CapabilitiesImmutable capabilitiesChosen;
     protected CapabilitiesImmutable capabilitiesRequested;

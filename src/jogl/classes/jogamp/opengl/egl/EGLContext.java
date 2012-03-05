@@ -37,6 +37,7 @@
 package jogamp.opengl.egl;
 
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.Map;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
@@ -48,6 +49,7 @@ import javax.media.opengl.GLProfile;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 
@@ -160,7 +162,7 @@ public abstract class EGLContext extends GLContextImpl {
         try {
             // might be unavailable on EGL < 1.2
             if(!EGL.eglBindAPI(EGL.EGL_OPENGL_ES_API)) {
-                throw new GLException("eglBindAPI to ES failed , error 0x"+Integer.toHexString(EGL.eglGetError()));
+                throw new GLException("Catched: eglBindAPI to ES failed , error 0x"+Integer.toHexString(EGL.eglGetError()));
             }
         } catch (GLException glex) {
             if (DEBUG) {
@@ -175,18 +177,22 @@ public abstract class EGLContext extends GLContextImpl {
             }
         }
 
-        int[] contextAttrs = new int[] {
-                EGL.EGL_CONTEXT_CLIENT_VERSION, -1,
-                EGL.EGL_NONE
-        };
-        if (glProfile.usesNativeGLES2()) {
-            contextAttrs[1] = 2;
-        } else if (glProfile.usesNativeGLES1()) {
-            contextAttrs[1] = 1;
-        } else {
-            throw new GLException("Error creating OpenGL context - invalid GLProfile: "+glProfile);
+        final IntBuffer contextAttrsNIO; 
+        {
+            final int[] contextAttrs = new int[] {
+                    EGL.EGL_CONTEXT_CLIENT_VERSION, -1,
+                    EGL.EGL_NONE
+            };
+            if (glProfile.usesNativeGLES2()) {
+                contextAttrs[1] = 2;
+            } else if (glProfile.usesNativeGLES1()) {
+                contextAttrs[1] = 1;
+            } else {
+                throw new GLException("Error creating OpenGL context - invalid GLProfile: "+glProfile);
+            }
+            contextAttrsNIO = Buffers.newDirectIntBuffer(contextAttrs);
         }
-        contextHandle = EGL.eglCreateContext(eglDisplay, eglConfig, shareWithHandle, contextAttrs, 0);
+        contextHandle = EGL.eglCreateContext(eglDisplay, eglConfig, shareWithHandle, contextAttrsNIO);
         if (contextHandle == 0) {
             throw new GLException("Error creating OpenGL context: eglDisplay "+toHexString(eglDisplay)+
                                   ", eglConfig "+config+", "+glProfile+", shareWith "+toHexString(shareWithHandle)+", error "+toHexString(EGL.eglGetError()));
@@ -277,6 +283,13 @@ public abstract class EGLContext extends GLContextImpl {
 
     public abstract void releasePbufferFromTexture();
 
+    protected static String toHexString(int hex) {
+        return GLContext.toHexString(hex);
+    }
+    protected static String toHexString(long hex) {
+        return GLContext.toHexString(hex);
+    }
+    
     //----------------------------------------------------------------------
     // Currently unimplemented stuff
     //

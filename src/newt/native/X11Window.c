@@ -510,7 +510,7 @@ static void NewtWindows_setPosSize(Display *dpy, Window w, jint x, jint y, jint 
  */
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_CreateWindow0
   (JNIEnv *env, jobject obj, jlong parent, jlong display, jint screen_index, 
-                             jlong visualID, 
+                             jint visualID, 
                              jlong javaObjectAtom, jlong windowDeleteAtom, 
                              jint x, jint y, jint width, jint height, jboolean autoPosition, int flags)
 {
@@ -548,8 +548,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_CreateWindow0
     if(0==windowParent) {
         windowParent = root;
     }
-    DBG_PRINT( "X11: CreateWindow dpy %p, parent %p, %d/%d %dx%d, undeco %d, alwaysOnTop %d, autoPosition %d\n", 
-        (void*)dpy, (void*)windowParent, x, y, width, height,
+    DBG_PRINT( "X11: CreateWindow dpy %p, screen %d, visualID 0x%X, parent %p, %d/%d %dx%d, undeco %d, alwaysOnTop %d, autoPosition %d\n", 
+        (void*)dpy, scrn_idx, (int)visualID, (void*)windowParent, x, y, width, height,
         TST_FLAG_IS_UNDECORATED(flags), TST_FLAG_IS_ALWAYSONTOP(flags), autoPosition);
 
     // try given VisualID on screen
@@ -557,20 +557,18 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_CreateWindow0
     visualTemplate.screen = scrn_idx;
     visualTemplate.visualid = (VisualID)visualID;
     pVisualQuery = XGetVisualInfo(dpy, VisualIDMask|VisualScreenMask, &visualTemplate,&n);
-    DUMP_VISUAL_INFO("Given VisualID,ScreenIdx", pVisualQuery);
+    DUMP_VISUAL_INFO("Given VisualID", pVisualQuery);
     if(pVisualQuery!=NULL) {
         visual   = pVisualQuery->visual;
         depth    = pVisualQuery->depth;
-        visualID = (jlong)pVisualQuery->visualid;
+        visualID = (jint)pVisualQuery->visualid;
         XFree(pVisualQuery);
         pVisualQuery=NULL;
     }
-    DBG_PRINT( "X11: [CreateWindow] trying given (dpy %p, screen %d, visualID: %d, parent %p) found: %p\n", 
-        dpy, scrn_idx, (int)visualID, (void*)windowParent, visual);
+    DBG_PRINT( "X11: [CreateWindow] found visual: %p\n", visual);
 
-    if (visual==NULL)
-    { 
-        NewtCommon_throwNewRuntimeException(env, "could not query Visual by given VisualID, bail out!");
+    if (visual==NULL) { 
+        NewtCommon_throwNewRuntimeException(env, "could not query Visual by given VisualID 0x%X, bail out!", (int)visualID);
         return 0;
     } 
 

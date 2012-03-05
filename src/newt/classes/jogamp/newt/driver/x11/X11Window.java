@@ -34,12 +34,13 @@
 
 package jogamp.newt.driver.x11;
 
+import jogamp.nativewindow.NativeVisualID;
+import jogamp.nativewindow.NativeVisualID.NVIDType;
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.DisplayImpl.DisplayRunnable;
 import jogamp.newt.WindowImpl;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.x11.*;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
@@ -64,7 +65,7 @@ public class X11Window extends WindowImpl {
         final X11Screen screen = (X11Screen) getScreen();
         final X11Display display = (X11Display) screen.getDisplay();
         final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice());
-        final X11GraphicsConfiguration cfg = (X11GraphicsConfiguration) factory.chooseGraphicsConfiguration(
+        final AbstractGraphicsConfiguration cfg = factory.chooseGraphicsConfiguration(
                 capsRequested, capsRequested, capabilitiesChooser, screen.getGraphicsScreen());
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("X11Window.createNativeImpl() factory: "+factory+", chosen config: "+cfg);
@@ -73,7 +74,7 @@ public class X11Window extends WindowImpl {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
         setGraphicsConfiguration(cfg);
-        final long visualID = cfg.getVisualID();
+        final int visualID = ((NativeVisualID) cfg.getChosenCapabilities()).getVisualID(NVIDType.NATIVE_ID);
         final int flags = getReconfigureFlags(0, true) & 
                           ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;        
         setWindowHandle(CreateWindow0(getParentWindowHandle(),
@@ -236,8 +237,8 @@ public class X11Window extends WindowImpl {
     protected static native boolean initIDs0();
     
     private native long CreateWindow0(long parentWindowHandle, long display, int screen_index, 
-                                            long visualID, long javaObjectAtom, long windowDeleteAtom, 
-                                            int x, int y, int width, int height, boolean autoPosition, int flags); 
+                                      int visualID, long javaObjectAtom, long windowDeleteAtom, 
+                                      int x, int y, int width, int height, boolean autoPosition, int flags); 
     private native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom);
     private native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long windowHandle,
                                            int x, int y, int width, int height, int flags);    

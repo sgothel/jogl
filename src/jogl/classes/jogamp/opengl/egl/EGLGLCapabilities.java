@@ -33,7 +33,9 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-public class EGLGLCapabilities extends GLCapabilities {
+import jogamp.nativewindow.NativeVisualID;
+
+public class EGLGLCapabilities extends GLCapabilities implements NativeVisualID {
   final long eglcfg;
   final int  eglcfgid;
   final int renderableType;  
@@ -74,6 +76,7 @@ public class EGLGLCapabilities extends GLCapabilities {
                                 " with EGL-RenderableType["+renderableTypeToString(null, renderableType)+"]");
       }
       this.renderableType = renderableType;
+      this.nativeVisualID = -1;
   }
 
   public Object cloneMutable() {
@@ -93,6 +96,21 @@ public class EGLGLCapabilities extends GLCapabilities {
   final public int getRenderableType() { return renderableType; }
   final public void setNativeVisualID(int vid) { nativeVisualID=vid; }
   final public int getNativeVisualID() { return nativeVisualID; }
+  
+  final public int getVisualID(NVIDType type) {
+      switch(type) {
+          case GEN_ID:
+              // fall through intended
+          case EGL_ConfigID:
+              return getEGLConfigID();
+          case NATIVE_ID:
+              // fall through intended
+          case EGL_NativeVisualID:
+              return getNativeVisualID();
+          default:
+              throw new IllegalArgumentException("Invalid type <"+type+">");
+      }      
+  }
   
   public static boolean isCompatible(GLProfile glp, int renderableType) {
     if(null == glp) {
@@ -147,8 +165,8 @@ public class EGLGLCapabilities extends GLCapabilities {
     if(null == sink) {
         sink = new StringBuffer();
     }
-    sink.append("0x").append(Long.toHexString(eglcfgid)).append(": ");
-    sink.append("vid 0x").append(Integer.toHexString(nativeVisualID)).append(", ");
+    sink.append("egl cfg 0x").append(Integer.toHexString(eglcfgid));
+    sink.append(", vid 0x").append(Integer.toHexString(nativeVisualID)).append(": ");
     super.toString(sink);
     sink.append(", [");
     renderableTypeToString(sink, renderableType);

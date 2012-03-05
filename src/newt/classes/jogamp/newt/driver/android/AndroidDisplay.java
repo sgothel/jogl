@@ -57,8 +57,6 @@ public class AndroidDisplay extends jogamp.newt.DisplayImpl {
         final long eglDisplay = EGLDisplayUtil.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
         if (eglDisplay == EGL.EGL_NO_DISPLAY) {
             throw new GLException("Failed to created EGL default display: error 0x"+Integer.toHexString(EGL.eglGetError()));
-        } else if(DEBUG) {
-            System.err.println("Android Display.createNativeImpl: eglDisplay(EGL_DEFAULT_DISPLAY): 0x"+Long.toHexString(eglDisplay));
         }
         if (!EGLDisplayUtil.eglInitialize(eglDisplay, null, null)) {
             throw new GLException("eglInitialize failed eglDisplay 0x"+Long.toHexString(eglDisplay)+", error 0x"+Integer.toHexString(EGL.eglGetError()));

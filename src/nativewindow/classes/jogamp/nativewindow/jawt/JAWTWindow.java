@@ -80,6 +80,8 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   protected Rectangle bounds;
   protected Insets insets;
   
+  private long drawable_old;
+  
   /**
    * Constructed by {@link jogamp.nativewindow.NativeWindowFactoryImpl#getNativeWindow(Object, AbstractGraphicsConfiguration)}
    * via this platform's specialization (X11, OSX, Windows, ..).
@@ -121,6 +123,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     jawt = null;
     isOffscreenLayerSurface = false;
     drawable= 0;
+    drawable_old = 0;
     bounds = new Rectangle();
     insets = new Insets();
   }
@@ -275,6 +278,13 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                 jawt = fetchJAWTImpl();
                 isOffscreenLayerSurface = JAWTUtil.isJAWTUsingOffscreenLayer(jawt);
                 res = lockSurfaceImpl();
+                if(LOCK_SUCCESS == res && drawable_old != drawable) {
+                    res = LOCK_SURFACE_CHANGED;
+                    if(DEBUG) {            
+                        System.err.println("JAWTWindow: surface change 0x"+Long.toHexString(drawable_old)+" -> 0x"+Long.toHexString(drawable));
+                        // Thread.dumpStack();
+                    }
+                }
             } finally {
                 if (LOCK_SURFACE_NOT_READY >= res) {
                     adevice.unlock();
@@ -293,6 +303,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
   public final void unlockSurface() {
     surfaceLock.validateLocked();
+    drawable_old = drawable;
 
     if (surfaceLock.getHoldCount() == 1) {
         final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();

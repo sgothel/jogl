@@ -47,19 +47,10 @@ import org.junit.AfterClass;
 import org.junit.Test;
 
 public class TestGearsES1NEWT extends UITestCase {
-    static GLProfile glp;
     static int width, height;
 
     @BeforeClass
     public static void initClass() {
-        /* if(GLProfile.isAvailable(GLProfile.getDefaultEGLDevice(), GLProfile.GLES1)) {
-            // exact match
-            glp = GLProfile.get(GLProfile.getDefaultEGLDevice(), GLProfile.GLES1);
-        } else */ {
-            // default device, somehow ES1 compatible
-            glp = GLProfile.getGL2ES1(); 
-        }
-        Assert.assertNotNull(glp);
         width  = 512;
         height = 512;
     }
@@ -115,7 +106,7 @@ public class TestGearsES1NEWT extends UITestCase {
 
     @Test
     public void test01() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(glp);
+        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES1());
         runTestGL(caps);
     }
 

@@ -31,11 +31,13 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 
 import com.jogamp.opengl.util.Animator;
 
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 
 import javax.media.opengl.GLCapabilities;
@@ -48,6 +50,9 @@ import org.junit.Test;
 
 public class TestRedSquareES2NEWT extends UITestCase {
     static int width, height;
+    static int loops = 1;
+    static boolean vsync = false;
+    static boolean forceES2 = false;
 
     @BeforeClass
     public static void initClass() {
@@ -60,11 +65,13 @@ public class TestRedSquareES2NEWT extends UITestCase {
     }
 
     protected void runTestGL(GLCapabilities caps) throws InterruptedException {
+        System.err.println("requested: vsync "+vsync+", "+caps);
         GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test");
+        glWindow.setSize(width, height);
 
-        glWindow.addGLEventListener(new RedSquareES2());
+        glWindow.addGLEventListener(new RedSquareES2(vsync ? 1 : -1));
 
         Animator animator = new Animator(glWindow);
         QuitAdapter quitAdapter = new QuitAdapter();
@@ -91,11 +98,16 @@ public class TestRedSquareES2NEWT extends UITestCase {
             }
         });
 
-        glWindow.setSize(width, height);
-        glWindow.setVisible(true);
-        animator.setUpdateFPSFrames(60, System.err);
         animator.start();
+        
+        glWindow.setVisible(true);
 
+        System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
+        System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
+        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+        
+        animator.setUpdateFPSFrames(60, System.err);
+        
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
@@ -106,20 +118,13 @@ public class TestRedSquareES2NEWT extends UITestCase {
 
     @Test
     public void test01GL2ES2() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2()); 
-        runTestGL(caps);
+        GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2()); 
+        for(int i=1; i<=loops; i++) {
+            System.err.println("Loop "+i+"/"+loops);
+            runTestGL(caps);
+        }
     }
 
-    @Test
-    public void test02GLES2() throws InterruptedException {
-        if(!GLProfile.isAvailable(GLProfile.GLES2)) {
-            System.out.println("GLProfile GLES2 n/a");
-            return;
-        }
-        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
-        runTestGL(caps);
-    }
-    
     static long duration = 500; // ms
 
     public static void main(String args[]) {
@@ -129,8 +134,15 @@ public class TestRedSquareES2NEWT extends UITestCase {
                 try {
                     duration = Integer.parseInt(args[i]);
                 } catch (Exception ex) { ex.printStackTrace(); }
+            } else if(args[i].equals("-es2")) {
+                forceES2 = true;
+            } else if(args[i].equals("-loops")) {
+                i++;
+                loops = MiscUtils.atoi(args[i], 1);
             }
         }
+        System.err.println("loops "+loops);
+        System.err.println("forceES2 "+forceES2);
         org.junit.runner.JUnitCore.main(TestRedSquareES2NEWT.class.getName());
     }
 }

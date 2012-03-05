@@ -135,12 +135,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   protected void destroyHandle() {}
   
   /** called with locked surface @ setRealized(true) or @ lockSurface(..) when surface changed */ 
-  protected void updateHandle() {
-        if(DEBUG) {
-            System.err.println(getThreadName() + ": updateHandle: "+getClass().getSimpleName()+": "+this);
-            Thread.dumpStack();
-        }      
-  }
+  protected void updateHandle() {}
 
   public long getHandle() {
     return surface.getSurfaceHandle();
