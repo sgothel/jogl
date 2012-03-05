@@ -40,6 +40,7 @@ import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
@@ -82,6 +83,7 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean mouseConfined = false;
     static boolean showFPS = false;
     static int loops = 1;
+    static GLProfile.ShutdownType loop_shutdown = null;
     static boolean forceES2 = false;
     
     @BeforeClass
@@ -235,16 +237,22 @@ public class TestGearsES2NEWT extends UITestCase {
         }
 
         animator.stop();
+        Assert.assertFalse(animator.isAnimating());
+        Assert.assertFalse(animator.isStarted());
         glWindow.destroy();
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
     }
 
     @Test
     public void test01GL2ES2() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2());
-        caps.setBackgroundOpaque(opaque);
         for(int i=1; i<=loops; i++) {
             System.err.println("Loop "+i+"/"+loops);
+            GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2());
+            caps.setBackgroundOpaque(opaque);
             runTestGL(caps, undecorated);
+            if(null != loop_shutdown) {
+                GLProfile.shutdown(loop_shutdown);
+            }
         }
     }
 
@@ -301,6 +309,13 @@ public class TestGearsES2NEWT extends UITestCase {
             } else if(args[i].equals("-loops")) {
                 i++;
                 loops = MiscUtils.atoi(args[i], 1);
+            } else if(args[i].equals("-loop-shutdown")) {
+                i++;
+                switch(MiscUtils.atoi(args[i], 0)) {
+                    case 1: loop_shutdown = GLProfile.ShutdownType.SHARED_ONLY; break; 
+                    case 2: loop_shutdown = GLProfile.ShutdownType.COMPLETE; break;
+                    default: throw new IllegalArgumentException("should be [0..2], 0-off, 1-shared, 2-complete");
+                }
             }
         }
         if(useSize) {
@@ -321,6 +336,7 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("mouseVisible "+mouseVisible);
         System.err.println("mouseConfined "+mouseConfined);
         System.err.println("loops "+loops);
+        System.err.println("loop shutdown "+loop_shutdown);
         System.err.println("forceES2 "+forceES2);
 
         if(waitForKey) {
