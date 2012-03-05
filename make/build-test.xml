@@ -525,7 +525,7 @@
         <var name="junit_extra_classpath" value=""/>
     </target>
 
-    <target name="junit.run.remote.ssh" if="isCrosscompilation" unless="isAndroid">
+    <target name="junit.run.remote.ssh.all" if="isCrosscompilation" unless="isAndroid">
         <echo message="#! /bin/sh${line.separator}" append="false" file="${build.test}/targetcommand.sh" />
         <echo message="${line.separator}
 rsync -av --delete --delete-after --delete-excluded \${line.separator}
@@ -578,6 +578,131 @@ ${line.separator}
 " append="true" file="${build.test}/targetcommand.sh" />
           </sequential>
         </for>
+
+        <for param="test.class.path.m" keepgoing="true">
+            <!-- results in absolute path -->
+            <fileset dir="${classes}">
+                <include name="${java.dir.junit}/**/Test*AWT*"/>
+                <exclude name="**/*$$*"/>
+                <exclude name="**/*SWT*"/>
+                <exclude name="${java.dir.junit}/**/Test*NEWT*"/>
+            </fileset>
+          <sequential>
+            <var name="test.class.path" unset="true"/>
+            <property name="test.class.path" basedir="${classes}" relative="true" location="@{test.class.path.m}"/>
+            <var name="test.class.fqn" unset="true"/>
+            <pathconvert property="test.class.fqn">
+              <fileset file="${classes}${file.separator}${test.class.path}"/>
+              <chainedmapper>
+                  <globmapper    from="${classes.path}${file.separator}*" to="*"/> <!-- rel. -->
+                  <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
+              </chainedmapper>
+            </pathconvert>
+            <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
+            <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
+            <echo message="${line.separator}
+export DISPLAY=:0.0${line.separator}
+java \${line.separator}
+${junit.run.arg0}\${line.separator}
+${junit.run.arg1}\${line.separator}
+${jvmDataModel.arg}\${line.separator}
+-cp ${junit_jogl_awt.run.remote.jars}\${line.separator}
+org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner \${line.separator}
+${test.class.fqn} \${line.separator}
+filtertrace=true \${line.separator}
+haltOnError=false \${line.separator}
+haltOnFailure=false \${line.separator}
+showoutput=true \${line.separator}
+outputtoformatters=true \${line.separator}
+logfailedtests=true \${line.separator}
+logtestlistenerevents=true \${line.separator}
+formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter \${line.separator}
+formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,${test.class.result.file} ${line.separator}
+${line.separator}
+" append="true" file="${build.test}/targetcommand.sh" />
+          </sequential>
+        </for>
+        <exec dir="." executable="sh" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line='-x -c "
+            chmod 0755 ${build.test}/targetcommand.sh ;
+            scp ${build.test}/targetcommand.sh ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}/jogl-targetcommand.sh ;
+            ssh -x ${env.TARGET_UID}@${env.TARGET_IP} ${env.TARGET_ROOT}/jogl-targetcommand.sh ;
+            scp -pr ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}/${jogl.basename}/${env.NODE_LABEL}/make/${results.test}/* ${results.test}/ "'/>
+        </exec>
+    </target>
+
+    <target name="junit.run.remote.ssh.newt" if="isCrosscompilation" unless="isAndroid">
+        <echo message="#! /bin/sh${line.separator}" append="false" file="${build.test}/targetcommand.sh" />
+        <echo message="${line.separator}
+rsync -av --delete --delete-after --delete-excluded \${line.separator}
+      --exclude 'build-x86*/' --exclude 'build-linux-x*/' --exclude 'build-android*/' --exclude 'build-win*/' --exclude 'build-mac*/' \${line.separator}
+      --exclude 'classes/' --exclude 'src/' --exclude '.git/' --exclude '*-java-src.zip' \${line.separator}
+      ${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/${jogl.basename} ${env.TARGET_ROOT} ${line.separator}
+cd ${env.TARGET_ROOT}/${jogl.basename}/${env.NODE_LABEL}/make ${line.separator}
+" append="true" file="${build.test}/targetcommand.sh" />
+
+        <for param="test.class.path.m" keepgoing="true">
+            <!-- results in absolute path -->
+            <fileset dir="${classes}">
+                <include name="${java.dir.junit}/**/Test*NEWT*"/>
+                <exclude name="**/*$$*"/>
+            </fileset>
+          <sequential>
+            <var name="test.class.path" unset="true"/>
+            <property name="test.class.path" basedir="${classes}" relative="true" location="@{test.class.path.m}"/>
+            <var name="test.class.fqn" unset="true"/>
+            <pathconvert property="test.class.fqn">
+              <fileset file="${classes}${file.separator}${test.class.path}"/>
+              <chainedmapper>
+                  <globmapper    from="${classes.path}${file.separator}*" to="*"/> <!-- rel. -->
+                  <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
+              </chainedmapper>
+            </pathconvert>
+            <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
+            <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
+            <echo message="${line.separator}
+export DISPLAY=:0.0${line.separator}
+java \${line.separator}
+${junit.run.arg0}\${line.separator}
+${junit.run.arg1}\${line.separator}
+${jvmDataModel.arg}\${line.separator}
+-cp ${junit_jogl_noawt.run.remote.jars}\${line.separator}
+${jvmarg.headless}\${line.separator}
+com.jogamp.newt.util.MainThread\${line.separator}
+org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner \${line.separator}
+${test.class.fqn} \${line.separator}
+filtertrace=true \${line.separator}
+haltOnError=false \${line.separator}
+haltOnFailure=false \${line.separator}
+showoutput=true \${line.separator}
+outputtoformatters=true \${line.separator}
+logfailedtests=true \${line.separator}
+logtestlistenerevents=true \${line.separator}
+formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter \${line.separator}
+formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,${test.class.result.file} ${line.separator}
+${line.separator}
+" append="true" file="${build.test}/targetcommand.sh" />
+          </sequential>
+        </for>
+
+        <exec dir="." executable="sh" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line='-x -c "
+            chmod 0755 ${build.test}/targetcommand.sh ;
+            scp ${build.test}/targetcommand.sh ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}/jogl-targetcommand.sh ;
+            ssh -x ${env.TARGET_UID}@${env.TARGET_IP} ${env.TARGET_ROOT}/jogl-targetcommand.sh ;
+            scp -pr ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}/${jogl.basename}/${env.NODE_LABEL}/make/${results.test}/* ${results.test}/ "'/>
+        </exec>
+    </target>
+
+    <target name="junit.run.remote.ssh.awt" if="isCrosscompilation" unless="isAndroid">
+        <echo message="#! /bin/sh${line.separator}" append="false" file="${build.test}/targetcommand.sh" />
+        <echo message="${line.separator}
+rsync -av --delete --delete-after --delete-excluded \${line.separator}
+      --exclude 'build-x86*/' --exclude 'build-linux-x*/' --exclude 'build-android*/' --exclude 'build-win*/' --exclude 'build-mac*/' \${line.separator}
+      --exclude 'classes/' --exclude 'src/' --exclude '.git/' --exclude '*-java-src.zip' \${line.separator}
+      ${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/${jogl.basename} ${env.TARGET_ROOT} ${line.separator}
+cd ${env.TARGET_ROOT}/${jogl.basename}/${env.NODE_LABEL}/make ${line.separator}
+" append="true" file="${build.test}/targetcommand.sh" />
 
         <for param="test.class.path.m" keepgoing="true">
             <!-- results in absolute path -->
@@ -693,9 +818,7 @@ ${line.separator}
         </exec>
     </target>
 
-    <target name="junit.run.tests" depends="junit.run.local.d32, junit.run.local, junit.run.remote.ssh"/>
-
-    <!-- target name="junit.run.tests" depends="junit.run.local.d32, junit.run.local, junit.run.remote.ssh, junit.run.remote.adb"/ -->
+    <target name="junit.run.tests" depends="junit.run.local.d32, junit.run.local, junit.run.remote.ssh.newt"/>
 
     <target name="junit.run.settings" depends="declare.common">
         <delete quiet="true">
@@ -715,6 +838,30 @@ ${line.separator}
     </target>
 
     <target name="junit.run" depends="junit.run.settings, junit.run.if.enabled, junit.run.if.disabled">
+        <mkdir dir="${results.test}" />
+        <move todir="${results.test}">
+            <fileset dir="." includes="*.tga" />
+        </move>
+        <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
+    </target>
+
+    <target name="junit.manual.run.remote.ssh.newt" depends="junit.run.settings, junit.run.remote.ssh.newt">
+        <mkdir dir="${results.test}" />
+        <move todir="${results.test}">
+            <fileset dir="." includes="*.tga" />
+        </move>
+        <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
+    </target>
+
+    <target name="junit.manual.run.remote.ssh.awt" depends="junit.run.settings, junit.run.remote.ssh.awt">
+        <mkdir dir="${results.test}" />
+        <move todir="${results.test}">
+            <fileset dir="." includes="*.tga" />
+        </move>
+        <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
+    </target>
+
+    <target name="junit.manual.run.remote.ssh.all" depends="junit.run.settings, junit.run.remote.ssh.all">
         <mkdir dir="${results.test}" />
         <move todir="${results.test}">
             <fileset dir="." includes="*.tga" />
