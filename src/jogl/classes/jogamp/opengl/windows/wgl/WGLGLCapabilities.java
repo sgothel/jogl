@@ -241,7 +241,7 @@ public class WGLGLCapabilities extends GLCapabilities implements NativeVisualID 
     if(null == sink) {
         sink = new StringBuffer();
     }
-    sink.append("win32 vid 0x").append(Integer.toHexString(pfdID)).append(" ");
+    sink.append("wgl vid 0x").append(Integer.toHexString(pfdID)).append(" ");
     switch (arb_pixelformat) {
         case -1: 
             sink.append("gdi");

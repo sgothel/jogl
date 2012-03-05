@@ -56,15 +56,21 @@ public interface NativeVisualID {
      *       <li>GEN_ID: X11_XVisualID</li>
      *       <li>NATIVE_ID: X11_XVisualID</li>
      *       <li>X11_XVisualID</li>
+     *     </ul></li>
+     *   <li>X11/GL
+     *     <ul>
+     *       <li>GEN_ID: X11_XVisualID</li>
+     *       <li>NATIVE_ID: X11_XVisualID</li>
+     *       <li>X11_XVisualID</li>
      *       <li>X11FBConfigID</li>
      *     </ul></li>
-     *   <li>Windows
+     *   <li>Windows/GL
      *     <ul>
      *       <li>GEN_ID: WIN32_PFDID</li>
      *       <li>NATIVE_ID: WIN32_PFDID</li>
      *       <li>WIN32_PFDID</li>
      *     </ul></li>
-     *   <li>EGL
+     *   <li>EGL/GL
      *     <ul>
      *       <li>GEN_ID: EGL_ConfigID</li>
      *       <li>NATIVE_ID: EGL_NativeVisualID (X11_XVisualID, WIN32_PFDID, ..)</li>

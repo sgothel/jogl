@@ -45,6 +45,8 @@ package javax.media.nativewindow;
     contains the minimal number of routines which allow configuration
     on all supported window systems. */
 public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparable {
+  protected final static String na_str = "----" ;
+
   private int     redBits        = 8;
   private int     greenBits      = 8;
   private int     blueBits       = 8;

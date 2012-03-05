@@ -50,6 +50,8 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.nio.PointerBuffer;
+
+import jogamp.nativewindow.x11.X11Capabilities;
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.XVisualInfo;
 import jogamp.opengl.GLGraphicsConfigurationFactory;
@@ -66,7 +68,7 @@ import java.util.List;
     GraphicsDevice and GraphicsConfiguration abstractions. */
 
 public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
-    static X11GLCapabilities.XVisualIDComparator XVisualIDComparator = new X11GLCapabilities.XVisualIDComparator();
+    static X11Capabilities.XVisualIDComparator XVisualIDComparator = new X11Capabilities.XVisualIDComparator();
     static GraphicsConfigurationFactory fallbackX11GraphicsConfigurationFactory = null;
     static void registerFactory() {
         final GraphicsConfigurationFactory newFactory = new X11GLXGraphicsConfigurationFactory();
