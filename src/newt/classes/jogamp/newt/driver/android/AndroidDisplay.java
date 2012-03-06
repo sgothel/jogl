@@ -32,8 +32,9 @@ import jogamp.newt.*;
 import jogamp.opengl.egl.*;
 
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.egl.*;
 import javax.media.opengl.GLException;
+
+import com.jogamp.nativewindow.egl.*;
 
 public class AndroidDisplay extends jogamp.newt.DisplayImpl {
     static {

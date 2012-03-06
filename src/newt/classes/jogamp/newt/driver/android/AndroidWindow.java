@@ -35,13 +35,13 @@ import jogamp.newt.driver.android.event.AndroidNewtEventFactory;
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.egl.EGLGraphicsDevice;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.newt.event.MouseEvent;
 
 import jogamp.opengl.egl.EGL;

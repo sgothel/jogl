@@ -66,23 +66,20 @@
 
         <!-- partitioning -->
 
-        <property name="java.part.swt"
-                  value="jogamp/nativewindow/swt/**"/>
-
         <property name="java.part.core"
-                  value="javax/media/nativewindow/* javax/media/nativewindow/util/* javax/media/nativewindow/egl/* com/jogamp/nativewindow/* jogamp/nativewindow/* jogamp/nativewindow/jvm/* ${java.part.swt}"/>
+                  value="javax/media/nativewindow/* javax/media/nativewindow/util/* com/jogamp/nativewindow/* com/jogamp/nativewindow/egl/* com/jogamp/nativewindow/swt/** jogamp/nativewindow/*"/>
 
         <property name="java.part.awt"
-                  value="javax/media/nativewindow/awt/* jogamp/nativewindow/jawt/** jogamp/nativewindow/**/awt/**"/>
+                  value="com/jogamp/nativewindow/awt/* jogamp/nativewindow/jawt/** jogamp/nativewindow/**/awt/**"/>
 
         <property name="java.part.x11"
-                  value="jogamp/nativewindow/x11/* javax/media/nativewindow/x11/*" />
+                  value="com/jogamp/nativewindow/x11/* jogamp/nativewindow/x11/*" />
 
         <property name="java.part.windows"
-                  value="jogamp/nativewindow/windows/* javax/media/nativewindow/windows/*" />
+                  value="com/jogamp/nativewindow/windows/* jogamp/nativewindow/windows/*" />
 
         <property name="java.part.macosx"
-                  value="jogamp/nativewindow/macosx/* javax/media/nativewindow/macosx/*" />
+                  value="com/jogamp/nativewindow/macosx/* jogamp/nativewindow/macosx/*" />
 
         <!-- condition excludes -->
 

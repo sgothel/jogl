@@ -33,12 +33,12 @@
 
 package jogamp.opengl.x11.glx;
 
-import javax.media.nativewindow.x11.X11GraphicsDevice;
 import javax.media.opengl.GLException;
 
 import jogamp.opengl.Debug;
 
 import com.jogamp.common.util.VersionNumber;
+import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 
 public class GLXUtil {
     public static final boolean DEBUG = Debug.debug("GLXUtil");

@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.ToolkitLock;
 
 import jogamp.nativewindow.Debug;
 
@@ -55,7 +56,7 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionNumber;
 
 public class JAWTUtil {
-  protected static final boolean DEBUG = Debug.debug("JAWT");
+  public static final boolean DEBUG = Debug.debug("JAWT");
 
   /** OSX JAWT version option to use CALayer */
   public static final int JAWT_MACOSX_USE_CALAYER = 0x80000000;
@@ -78,7 +79,7 @@ public class JAWTUtil {
   private static final Method  sunToolkitAWTUnlockMethod;
   private static final boolean hasSunToolkitAWTLock;
 
-  private static final JAWTToolkitLock jawtToolkitLock;
+  private static final ToolkitLock jawtToolkitLock;
 
   private static class PrivilegedDataBlob1 {
     PrivilegedDataBlob1() {
@@ -221,7 +222,14 @@ public class JAWTUtil {
     hasSunToolkitAWTLock = _hasSunToolkitAWTLock;
     // hasSunToolkitAWTLock = false;
 
-    jawtToolkitLock = new JAWTToolkitLock();
+    jawtToolkitLock = new ToolkitLock() {
+          public final void lock() {
+              JAWTUtil.lockToolkit();
+          }    
+          public final void unlock() {
+              JAWTUtil.unlockToolkit();
+          }
+      };  
 
     // trigger native AWT toolkit / properties initialization
     Map<?,?> desktophints = null;
@@ -315,19 +323,22 @@ public class JAWTUtil {
   }
 
   public static void lockToolkit() throws NativeWindowException {
+    if(ToolkitLock.TRACE_LOCK) { System.err.println("JAWTUtil-ToolkitLock.lock()"); }
     if(!headlessMode && !isJava2DQueueFlusherThread()) {
         awtLock();
     }
   }
 
   public static void unlockToolkit() {
+    if(ToolkitLock.TRACE_LOCK) { System.err.println("JAWTUtil-ToolkitLock.unlock()"); }
     if(!headlessMode && !isJava2DQueueFlusherThread()) {
         awtUnlock();
     }
   }
 
-  public static JAWTToolkitLock getJAWTToolkitLock() {
+  public static ToolkitLock getJAWTToolkitLock() {
     return jawtToolkitLock;
   }
+  
 }
 

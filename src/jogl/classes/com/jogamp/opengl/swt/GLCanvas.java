@@ -45,7 +45,6 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.Threading;
 
-import jogamp.nativewindow.swt.SWTAccessor;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableHelper;
 import jogamp.opengl.ThreadingImpl;
@@ -66,6 +65,7 @@ import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
+import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.JoglVersion;
 
 /**

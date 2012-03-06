@@ -33,9 +33,13 @@
 
 package jogamp.newt.driver.macosx;
 
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.macosx.*;
-import jogamp.newt.*;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeWindowException;
+
+import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
+
+import jogamp.newt.DisplayImpl;
+import jogamp.newt.NEWTJNILibLoader;
 
 public class MacDisplay extends DisplayImpl {
     static {

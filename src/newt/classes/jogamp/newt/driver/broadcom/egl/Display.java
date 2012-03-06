@@ -36,7 +36,8 @@ package jogamp.newt.driver.broadcom.egl;
 import jogamp.newt.*;
 import jogamp.opengl.egl.*;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.egl.*;
+
+import com.jogamp.nativewindow.egl.*;
 
 public class Display extends jogamp.newt.DisplayImpl {
 

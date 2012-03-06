@@ -48,7 +48,9 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
+
+import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
+
 
 /** This class encapsulates the reflection routines necessary to peek
     inside a few data structures in the AWT implementation on X11 for

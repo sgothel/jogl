@@ -30,7 +30,10 @@ package jogamp.opengl.x11.glx;
 
 import javax.media.opengl.*;
 
-import javax.media.nativewindow.x11.*;
+import com.jogamp.nativewindow.WrappedSurface;
+import com.jogamp.nativewindow.x11.X11GraphicsDevice;
+import com.jogamp.nativewindow.x11.X11GraphicsScreen;
+
 import jogamp.nativewindow.*;
 import jogamp.nativewindow.x11.*;
 
@@ -55,7 +58,7 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
     X11GraphicsDevice device = (X11GraphicsDevice) screen.getDevice();
     long dpy = device.getHandle();
     int scrn = screen.getIndex();
-    long visualID = config.getVisualID();
+    int visualID = config.getXVisualID();
 
     dummyWindow = X11Lib.CreateDummyWindow(dpy, scrn, visualID, f_dim, f_dim);
     ns.setSurfaceHandle( dummyWindow );

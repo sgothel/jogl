@@ -30,7 +30,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package javax.media.nativewindow.egl;
+package com.jogamp.nativewindow.egl;
 
 import javax.media.nativewindow.*;
 

@@ -31,7 +31,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package javax.media.nativewindow.x11;
+package com.jogamp.nativewindow.x11;
 
 import javax.media.nativewindow.*;
 

@@ -39,12 +39,13 @@ import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.x11.X11GraphicsConfiguration;
-import javax.media.nativewindow.x11.X11GraphicsScreen;
+
+import com.jogamp.nativewindow.x11.X11GraphicsConfiguration;
+import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactory {
     public static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class, new X11GraphicsConfigurationFactory());
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, new X11GraphicsConfigurationFactory());
     }    
     private X11GraphicsConfigurationFactory() {
     }

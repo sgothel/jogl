@@ -36,8 +36,6 @@ package jogamp.opengl.x11.glx;
 import java.util.ArrayList;
 
 import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.x11.X11GraphicsConfiguration;
-import javax.media.nativewindow.x11.X11GraphicsScreen;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
@@ -54,6 +52,8 @@ import jogamp.nativewindow.x11.XVisualInfo;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
 import com.jogamp.common.nio.PointerBuffer;
+import com.jogamp.nativewindow.x11.X11GraphicsConfiguration;
+import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implements Cloneable {
     public static final int MAX_ATTRIBS = 128;
@@ -474,7 +474,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
   }
 
   public String toString() {
-    return "X11GLXGraphicsConfiguration["+getScreen()+", visualID " + toHexString(getVisualID()) + ", fbConfigID " + toHexString(getFBConfigID()) +
+    return "X11GLXGraphicsConfiguration["+getScreen()+", visualID " + toHexString(getXVisualID()) + ", fbConfigID " + toHexString(getFBConfigID()) +
                                         ",\n\trequested " + getRequestedCapabilities()+
                                         ",\n\tchosen    " + getChosenCapabilities()+
                                         "]";

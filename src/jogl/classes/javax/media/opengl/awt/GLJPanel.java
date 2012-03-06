@@ -62,7 +62,6 @@ import javax.swing.JPanel;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.awt.AWTWindowClosingProtocol;
 
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GL;
@@ -83,6 +82,7 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.Threading;
 
+import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.opengl.util.FBObject;
 import com.jogamp.opengl.util.GLBuffers;
 

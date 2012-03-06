@@ -47,7 +47,8 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 
-import jogamp.nativewindow.MutableGraphicsConfiguration;
+import com.jogamp.nativewindow.MutableGraphicsConfiguration;
+
 import jogamp.nativewindow.windows.DWM_BLURBEHIND;
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.MARGINS;

@@ -37,7 +37,8 @@ package jogamp.newt.driver.x11;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.x11.X11GraphicsDevice;
+
+import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.newt.DisplayImpl;

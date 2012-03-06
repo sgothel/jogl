@@ -58,7 +58,8 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 
-import jogamp.nativewindow.MutableGraphicsConfiguration;
+import com.jogamp.nativewindow.MutableGraphicsConfiguration;
+
 
 /** Extends GLDrawableFactory with a few methods for handling
     typically software-accelerated offscreen rendering (Device

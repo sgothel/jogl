@@ -30,7 +30,7 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package javax.media.nativewindow.macosx;
+package com.jogamp.nativewindow.macosx;
 
 import javax.media.nativewindow.*;
 

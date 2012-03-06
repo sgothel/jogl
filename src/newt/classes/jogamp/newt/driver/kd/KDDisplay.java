@@ -33,11 +33,12 @@
 
 package jogamp.newt.driver.kd;
 
+import com.jogamp.nativewindow.egl.*;
 import com.jogamp.newt.*;
+
 import jogamp.newt.*;
 import jogamp.opengl.egl.*;
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.egl.*;
 
 public class KDDisplay extends DisplayImpl {
 

@@ -40,11 +40,13 @@ import java.awt.Frame;
 import java.awt.Insets;
 
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
-import javax.media.nativewindow.awt.AWTGraphicsDevice;
-import javax.media.nativewindow.awt.AWTGraphicsScreen;
 import javax.media.nativewindow.util.Point;
+
 import jogamp.newt.WindowImpl;
+
+import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
+import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
+import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTMouseAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;

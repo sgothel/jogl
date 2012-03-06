@@ -44,16 +44,16 @@ import java.util.Set;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.OffscreenLayerOption;
 import javax.media.nativewindow.WindowClosingProtocol;
-import javax.media.nativewindow.awt.AWTWindowClosingProtocol;
 import javax.swing.MenuSelectionManager;
 
 import jogamp.nativewindow.awt.AWTMisc;
-import jogamp.nativewindow.jawt.JAWTWindow;
 import jogamp.newt.Debug;
 import jogamp.newt.awt.NewtFactoryAWT;
 import jogamp.newt.awt.event.AWTParentWindowAdapter;
 import jogamp.newt.driver.DriverClearFocus;
 
+import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
+import com.jogamp.nativewindow.awt.JAWTWindow;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.InputEvent;

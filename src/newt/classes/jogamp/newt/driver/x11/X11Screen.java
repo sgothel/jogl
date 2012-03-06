@@ -33,19 +33,20 @@
  */
 package jogamp.newt.driver.x11;
 
-import jogamp.nativewindow.x11.X11Lib;
-import jogamp.nativewindow.x11.X11Util;
-import jogamp.newt.DisplayImpl;
-import jogamp.newt.ScreenImpl;
-import jogamp.newt.DisplayImpl.DisplayRunnable;
-
-import com.jogamp.newt.ScreenMode;
-import com.jogamp.newt.util.ScreenModeUtil;
 import java.util.List;
 
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.Point;
-import javax.media.nativewindow.x11.*;
+
+import jogamp.nativewindow.x11.X11Util;
+import jogamp.newt.DisplayImpl;
+import jogamp.newt.DisplayImpl.DisplayRunnable;
+import jogamp.newt.ScreenImpl;
+
+import com.jogamp.nativewindow.x11.X11GraphicsDevice;
+import com.jogamp.nativewindow.x11.X11GraphicsScreen;
+import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.util.ScreenModeUtil;
 
 public class X11Screen extends ScreenImpl {
 

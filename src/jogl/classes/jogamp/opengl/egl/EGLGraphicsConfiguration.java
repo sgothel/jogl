@@ -42,18 +42,18 @@ import java.util.ArrayList;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.egl.EGLGraphicsDevice;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-import jogamp.nativewindow.MutableGraphicsConfiguration;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
+import com.jogamp.nativewindow.MutableGraphicsConfiguration;
+import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
 public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
     

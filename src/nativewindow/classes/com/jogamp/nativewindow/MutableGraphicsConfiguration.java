@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.nativewindow;
+package com.jogamp.nativewindow;
 
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.CapabilitiesImmutable;

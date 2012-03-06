@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.nativewindow.swt;
+package com.jogamp.nativewindow.swt;
 
 import com.jogamp.common.os.Platform;
 import java.lang.reflect.Field;
@@ -37,10 +37,10 @@ import org.eclipse.swt.widgets.Control;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.windows.WindowsGraphicsDevice;
-import javax.media.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.common.util.ReflectionUtil;
-import javax.media.nativewindow.macosx.MacOSXGraphicsDevice;
+import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
+import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
+import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 
 import jogamp.nativewindow.macosx.OSXUtil;
 

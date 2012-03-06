@@ -31,11 +31,12 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package javax.media.nativewindow.x11;
+package com.jogamp.nativewindow.x11;
 
 import javax.media.nativewindow.CapabilitiesImmutable;
 
-import jogamp.nativewindow.MutableGraphicsConfiguration;
+import com.jogamp.nativewindow.MutableGraphicsConfiguration;
+
 import jogamp.nativewindow.x11.XVisualInfo;
 
 /** Encapsulates a graphics configuration, or OpenGL pixel format, on
@@ -59,21 +60,21 @@ public class X11GraphicsConfiguration extends MutableGraphicsConfiguration imple
       return super.clone();
     }
 
-    public XVisualInfo getXVisualInfo() {
+    final public XVisualInfo getXVisualInfo() {
         return info;
     }
 
-    protected void setXVisualInfo(XVisualInfo info) {
+    final protected void setXVisualInfo(XVisualInfo info) {
         this.info = info;
     }
 
-    public long getVisualID() {
-        return (null!=info)?info.getVisualid():0;
+    final public int getXVisualID() {
+        return (null!=info)?(int)info.getVisualid():0;
     }
     
     @Override
     public String toString() {
-        return getClass().getSimpleName()+"["+getScreen()+", visualID 0x" + Long.toHexString(getVisualID()) +
+        return getClass().getSimpleName()+"["+getScreen()+", visualID 0x" + Long.toHexString(getXVisualID()) +
                                        ",\n\tchosen    " + capabilitiesChosen+
                                        ",\n\trequested " + capabilitiesRequested+ 
                                        "]";

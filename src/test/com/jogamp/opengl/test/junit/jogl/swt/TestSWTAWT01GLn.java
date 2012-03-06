@@ -38,7 +38,6 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 
-import jogamp.nativewindow.swt.SWTAccessor;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
@@ -55,6 +54,7 @@ import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
 
+import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.OneTriangle;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 

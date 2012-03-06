@@ -35,6 +35,11 @@ package jogamp.opengl.windows.wgl.awt;
 
 
 import com.jogamp.common.util.ArrayHashSet;
+import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
+import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
+import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
+import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
+
 import jogamp.nativewindow.jawt.windows.Win32SunJDKReflection;
 import jogamp.opengl.GLGraphicsConfigurationFactory;
 import java.awt.GraphicsConfiguration;
@@ -47,10 +52,6 @@ import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
-import javax.media.nativewindow.awt.AWTGraphicsDevice;
-import javax.media.nativewindow.awt.AWTGraphicsScreen;
-import javax.media.nativewindow.windows.WindowsGraphicsDevice;
 
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -62,7 +63,7 @@ import javax.media.opengl.GLDrawableFactory;
 
 public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     public static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.awt.AWTGraphicsDevice.class, new WindowsAWTWGLGraphicsConfigurationFactory());
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.awt.AWTGraphicsDevice.class, new WindowsAWTWGLGraphicsConfigurationFactory());
     }
     private WindowsAWTWGLGraphicsConfigurationFactory() {        
     }

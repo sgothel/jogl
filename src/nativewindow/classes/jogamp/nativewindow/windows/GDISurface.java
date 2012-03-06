@@ -30,8 +30,8 @@ package jogamp.nativewindow.windows;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.NativeWindowException;
-
 import javax.media.nativewindow.ProxySurface;
+
 
 /**
  * GDI Surface implementation which wraps an existing window handle
@@ -56,7 +56,7 @@ public class GDISurface extends ProxySurface {
     surfaceHandle=0;
   }
 
-  protected int lockSurfaceImpl() {
+  final protected int lockSurfaceImpl() {
     if (0 != surfaceHandle) {
         throw new InternalError("surface not released");
     }
@@ -70,7 +70,7 @@ public class GDISurface extends ProxySurface {
     return (0 != surfaceHandle) ? LOCK_SUCCESS : LOCK_SURFACE_NOT_READY;
   }
 
-  protected void unlockSurfaceImpl() {
+  final protected void unlockSurfaceImpl() {
     if (0 == surfaceHandle) {
         throw new InternalError("surface not acquired: "+this+", thread: "+Thread.currentThread().getName());
     }
@@ -80,11 +80,11 @@ public class GDISurface extends ProxySurface {
     surfaceHandle=0;
   }
 
-  public long getSurfaceHandle() {
+  final public long getSurfaceHandle() {
     return surfaceHandle;
   }
 
-  public String toString() {
+  final public String toString() {
     return "GDISurface[config "+getPrivateGraphicsConfiguration()+
                 ", displayHandle 0x"+Long.toHexString(getDisplayHandle())+
                 ", windowHandle 0x"+Long.toHexString(windowHandle)+

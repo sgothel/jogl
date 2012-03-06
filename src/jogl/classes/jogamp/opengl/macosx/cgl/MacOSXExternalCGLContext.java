@@ -49,7 +49,8 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 
-import jogamp.nativewindow.WrappedSurface;
+import com.jogamp.nativewindow.WrappedSurface;
+
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLContextShareSet;
 import jogamp.opengl.macosx.cgl.MacOSXCGLDrawable.GLBackendType;

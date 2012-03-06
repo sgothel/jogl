@@ -40,7 +40,8 @@ import jogamp.newt.DisplayImpl;
 import jogamp.newt.NEWTJNILibLoader;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.windows.WindowsGraphicsDevice;
+
+import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
 
 public class WindowsDisplay extends DisplayImpl {
 

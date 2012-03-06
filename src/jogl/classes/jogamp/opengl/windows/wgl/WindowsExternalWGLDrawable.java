@@ -49,7 +49,8 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-import jogamp.nativewindow.WrappedSurface;
+import com.jogamp.nativewindow.WrappedSurface;
+
 import jogamp.nativewindow.windows.GDI;
 
 public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {

@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
 
-package jogamp.nativewindow;
+package com.jogamp.nativewindow;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.ProxySurface;
@@ -49,19 +49,19 @@ public class WrappedSurface extends ProxySurface implements SurfaceChangeable {
     surfaceHandle = 0;
   }
 
-  public long getSurfaceHandle() {
+  final public long getSurfaceHandle() {
     return surfaceHandle;
   }
 
-  public void setSurfaceHandle(long surfaceHandle) {
+  final public void setSurfaceHandle(long surfaceHandle) {
     this.surfaceHandle=surfaceHandle;
   }
 
-  protected int lockSurfaceImpl() {
+  final protected int lockSurfaceImpl() {
       return LOCK_SUCCESS;
   }
 
-  protected void unlockSurfaceImpl() {
+  final protected void unlockSurfaceImpl() {
   }
 
   public String toString() {

@@ -36,10 +36,11 @@ package jogamp.newt.driver.awt;
 import java.awt.DisplayMode;
 
 import jogamp.newt.ScreenImpl;
-import javax.media.nativewindow.awt.AWTGraphicsDevice;
-import javax.media.nativewindow.awt.AWTGraphicsScreen;
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.Point;
+
+import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
+import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
 
 public class AWTScreen extends ScreenImpl {
     public AWTScreen() {

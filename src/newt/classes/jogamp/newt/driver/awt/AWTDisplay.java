@@ -34,8 +34,9 @@
 
 package jogamp.newt.driver.awt;
 
-import javax.media.nativewindow.awt.AWTGraphicsDevice;
+import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.newt.NewtFactory;
+
 import jogamp.newt.DisplayImpl;
 
 public class AWTDisplay extends DisplayImpl {

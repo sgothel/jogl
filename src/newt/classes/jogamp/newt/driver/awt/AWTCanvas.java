@@ -46,9 +46,11 @@ import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
-import javax.media.nativewindow.awt.AWTGraphicsDevice;
-import javax.media.nativewindow.awt.AWTGraphicsScreen;
+
+
+import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
+import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
+import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
 import com.jogamp.newt.Window;
 
 public class AWTCanvas extends Canvas {

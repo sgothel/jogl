@@ -46,9 +46,9 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-import jogamp.nativewindow.MutableGraphicsConfiguration;
 
 import com.jogamp.common.nio.PointerBuffer;
+import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 
 public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
     long pixelformat;

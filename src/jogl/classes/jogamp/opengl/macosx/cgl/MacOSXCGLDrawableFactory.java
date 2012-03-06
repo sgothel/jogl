@@ -52,7 +52,6 @@ import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.macosx.MacOSXGraphicsDevice;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
@@ -63,7 +62,6 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLProfile.ShutdownType;
 
-import jogamp.nativewindow.WrappedSurface;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.GLDrawableImpl;
@@ -71,6 +69,8 @@ import jogamp.opengl.GLDynamicLookupHelper;
 
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.nativewindow.WrappedSurface;
+import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
 
 public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   private static DesktopGLDynamicLookupHelper macOSXCGLDynamicLookupHelper = null;

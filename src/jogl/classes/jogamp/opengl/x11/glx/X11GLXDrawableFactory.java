@@ -49,8 +49,6 @@ import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.x11.X11GraphicsDevice;
-import javax.media.nativewindow.x11.X11GraphicsScreen;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
@@ -59,7 +57,6 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLProfile.ShutdownType;
 
-import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
@@ -70,6 +67,9 @@ import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.SharedResourceRunner;
 
 import com.jogamp.common.util.VersionNumber;
+import com.jogamp.nativewindow.WrappedSurface;
+import com.jogamp.nativewindow.x11.X11GraphicsDevice;
+import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   

@@ -42,6 +42,7 @@ import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.VisualIDHolder;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLContext;
@@ -64,10 +65,10 @@ import java.util.List;
     GraphicsDevice and GraphicsConfiguration abstractions. */
 
 public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
-    static WGLGLCapabilities.PfdIDComparator PfdIDComparator = new WGLGLCapabilities.PfdIDComparator();
+    static VisualIDHolder.VIDComparator PfdIDComparator = new VisualIDHolder.VIDComparator(VisualIDHolder.VIDType.WIN32_PFD);
 
     static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.windows.WindowsGraphicsDevice.class, new WindowsWGLGraphicsConfigurationFactory());
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.windows.WindowsGraphicsDevice.class, new WindowsWGLGraphicsConfigurationFactory());
     }
     private WindowsWGLGraphicsConfigurationFactory() {
     }

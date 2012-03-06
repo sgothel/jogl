@@ -51,13 +51,15 @@ import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.SurfaceChangeable;
 import javax.media.nativewindow.util.Point;
 
-import jogamp.nativewindow.MutableGraphicsConfiguration;
+import com.jogamp.nativewindow.MutableGraphicsConfiguration;
+import com.jogamp.nativewindow.awt.JAWTWindow;
+
 import jogamp.nativewindow.jawt.JAWT;
 import jogamp.nativewindow.jawt.JAWTFactory;
 import jogamp.nativewindow.jawt.JAWTUtil;
-import jogamp.nativewindow.jawt.JAWTWindow;
 import jogamp.nativewindow.jawt.JAWT_DrawingSurface;
 import jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo;
+import jogamp.nativewindow.jawt.macosx.JAWT_MacOSXDrawingSurfaceInfo;
 import jogamp.nativewindow.macosx.OSXUtil;
 
 public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {

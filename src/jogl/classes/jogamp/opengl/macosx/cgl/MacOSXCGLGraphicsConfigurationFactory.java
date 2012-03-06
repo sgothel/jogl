@@ -50,7 +50,7 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class MacOSXCGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.macosx.MacOSXGraphicsDevice.class, new MacOSXCGLGraphicsConfigurationFactory());
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice.class, new MacOSXCGLGraphicsConfigurationFactory());
     }
     private MacOSXCGLGraphicsConfigurationFactory() {        
     }

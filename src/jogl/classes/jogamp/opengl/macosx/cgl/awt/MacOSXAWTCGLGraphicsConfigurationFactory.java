@@ -44,20 +44,21 @@ import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
-import javax.media.nativewindow.awt.AWTGraphicsDevice;
-import javax.media.nativewindow.awt.AWTGraphicsScreen;
-import javax.media.nativewindow.macosx.MacOSXGraphicsDevice;
 
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLException;
 
+import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
+import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
+import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
+import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
+
 import jogamp.opengl.macosx.cgl.MacOSXCGLGraphicsConfiguration;
 
 public class MacOSXAWTCGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     public static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.awt.AWTGraphicsDevice.class, new MacOSXAWTCGLGraphicsConfigurationFactory());
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.awt.AWTGraphicsDevice.class, new MacOSXAWTCGLGraphicsConfigurationFactory());
     }    
     private MacOSXAWTCGLGraphicsConfigurationFactory() {
     }

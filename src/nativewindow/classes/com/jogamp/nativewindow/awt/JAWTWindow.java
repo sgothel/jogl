@@ -35,7 +35,7 @@
  * facility.
  */
 
-package jogamp.nativewindow.jawt;
+package com.jogamp.nativewindow.awt;
 
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
@@ -51,7 +51,6 @@ import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.OffscreenLayerOption;
 import javax.media.nativewindow.OffscreenLayerSurface;
 import javax.media.nativewindow.SurfaceUpdatedListener;
-import javax.media.nativewindow.awt.AWTGraphicsConfiguration;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
@@ -59,6 +58,9 @@ import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 
 import jogamp.nativewindow.SurfaceUpdatedHelper;
+import jogamp.nativewindow.jawt.JAWT;
+import jogamp.nativewindow.jawt.JAWTUtil;
+import jogamp.nativewindow.jawt.JAWT_Rectangle;
 
 public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface, OffscreenLayerOption {
   protected static final boolean DEBUG = JAWTUtil.DEBUG;

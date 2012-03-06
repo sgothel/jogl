@@ -37,17 +37,15 @@
 
 package jogamp.opengl.awt;
 
-import jogamp.nativewindow.jawt.*;
-
-import javax.media.opengl.*;
-
-import java.lang.reflect.*;
 import java.awt.GraphicsEnvironment;
+import java.lang.reflect.Method;
+
+import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.opengl.GLException;
 
 public class AWTUtil {
   // See whether we're running in headless mode
   private static boolean headlessMode;
-  private static Class j2dClazz = null;
   private static Method isOGLPipelineActive = null;
   private static Method isQueueFlusherThread = null;
   private static boolean j2dOk = false;
@@ -57,7 +55,7 @@ public class AWTUtil {
     headlessMode = GraphicsEnvironment.isHeadless();
     if(!headlessMode) {
         try {
-            j2dClazz = Class.forName("jogamp.opengl.awt.Java2D");
+            final Class<?> j2dClazz = Class.forName("jogamp.opengl.awt.Java2D");
             isOGLPipelineActive = j2dClazz.getMethod("isOGLPipelineActive", (Class[])null);
             isQueueFlusherThread = j2dClazz.getMethod("isQueueFlusherThread", (Class[])null);
             j2dOk = true;
@@ -84,12 +82,12 @@ public class AWTUtil {
       try {
         if( !((Boolean)isOGLPipelineActive.invoke(null, (Object[])null)).booleanValue() ||
             !((Boolean)isQueueFlusherThread.invoke(null, (Object[])null)).booleanValue() ) {
-          JAWTUtil.lockToolkit();
+          NativeWindowFactory.getAWTToolkitLock().lock();
         }
       } catch (Exception e) { j2dOk=false; }
     } 
     if(!j2dOk) {
-      JAWTUtil.lockToolkit();
+      NativeWindowFactory.getAWTToolkitLock().lock();
     }
   }
 
@@ -107,12 +105,12 @@ public class AWTUtil {
           try {
             if( !((Boolean)isOGLPipelineActive.invoke(null, (Object[])null)).booleanValue() ||
                 !((Boolean)isQueueFlusherThread.invoke(null, (Object[])null)).booleanValue() ) {
-              JAWTUtil.unlockToolkit();
+              NativeWindowFactory.getAWTToolkitLock().unlock();
             }
           } catch (Exception e) { j2dOk=false; }
         } 
         if(!j2dOk) {
-          JAWTUtil.unlockToolkit();
+          NativeWindowFactory.getAWTToolkitLock().unlock();
         }
     }
   }

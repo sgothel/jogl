@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.nativewindow.awt;
+package com.jogamp.nativewindow.awt;
 
 import javax.media.nativewindow.*;
 

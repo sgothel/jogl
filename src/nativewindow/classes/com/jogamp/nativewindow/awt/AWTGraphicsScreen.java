@@ -38,11 +38,13 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package javax.media.nativewindow.awt;
+package com.jogamp.nativewindow.awt;
 
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import javax.media.nativewindow.*;
+
+
 
 /** A wrapper for an AWT GraphicsDevice (screen) allowing it to be
     handled in a toolkit-independent manner. */

@@ -51,13 +51,13 @@ import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
 
+import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.OneTriangle;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawable;
-import jogamp.nativewindow.swt.SWTAccessor;
 import org.eclipse.swt.widgets.Canvas;
 
 /**

@@ -39,10 +39,15 @@
 
 package jogamp.opengl.x11.glx;
 
-import javax.media.nativewindow.*;
-import javax.media.nativewindow.x11.*;
-import javax.media.opengl.*;
-import jogamp.nativewindow.WrappedSurface;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
+
+
+import com.jogamp.nativewindow.WrappedSurface;
+import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 
 public class X11ExternalGLXDrawable extends X11GLXDrawable {
