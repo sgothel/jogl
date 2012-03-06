@@ -28,15 +28,20 @@
 
 package javax.media.nativewindow;
 
+
+import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.SurfaceUpdatedHelper;
 
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
 public abstract class ProxySurface implements NativeSurface {
+    public static final boolean DEBUG = Debug.debug("ProxySurface");
+    
     private SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
     private AbstractGraphicsConfiguration config; // control access due to delegation
     protected RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
+    private long surfaceHandle_old;
     protected long displayHandle;
     protected int height;
     protected int scrnIndex;
@@ -46,6 +51,7 @@ public abstract class ProxySurface implements NativeSurface {
         invalidate();
         config = cfg;
         displayHandle=cfg.getNativeGraphicsConfiguration().getScreen().getDevice().getHandle();
+        surfaceHandle_old = 0;
     }
 
     void invalidate() {
@@ -115,6 +121,13 @@ public abstract class ProxySurface implements NativeSurface {
                 adevice.lock();
                 try {
                     res = lockSurfaceImpl();
+                    if(LOCK_SUCCESS == res && surfaceHandle_old != getSurfaceHandle()) {
+                        res = LOCK_SURFACE_CHANGED;
+                        if(DEBUG) {            
+                            System.err.println("ProxySurface: surface change 0x"+Long.toHexString(surfaceHandle_old)+" -> 0x"+Long.toHexString(getSurfaceHandle()));
+                            // Thread.dumpStack();
+                        }
+                    }                    
                 } finally {
                     if (LOCK_SURFACE_NOT_READY >= res) {
                         adevice.unlock();
@@ -131,6 +144,7 @@ public abstract class ProxySurface implements NativeSurface {
 
     public final void unlockSurface() {
         surfaceLock.validateLocked();
+        surfaceHandle_old = getSurfaceHandle();
 
         if (surfaceLock.getHoldCount() == 1) {
             final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();

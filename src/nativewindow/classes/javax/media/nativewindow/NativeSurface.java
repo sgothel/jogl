@@ -50,23 +50,35 @@ public interface NativeSurface extends SurfaceUpdatedListener {
   public static final int LOCK_SUCCESS = 3;
 
   /**
-   * Lock the surface of this native window<P>
-   *
-   * The surface handle, see {@link #lockSurface()}, <br>
-   * shall be valid after a successfull call,
-   * ie return a value other than {@link #LOCK_SURFACE_NOT_READY}.<P>
-   *
+   * Lock the surface of this native window.
+   * <p>
+   * The surface handle shall be valid after a successfull call,
+   * ie return a value other than {@link #LOCK_SURFACE_UNLOCKED} and {@link #LOCK_SURFACE_NOT_READY},
+   * which is 
+   * <pre> 
+   *    boolean ok = lockSurface() > LOCK_SURFACE_NOT_READY; 
+   * </pre> 
+   * </p>
+   * <p>
+   * The caller may need to take care of the result {@link #LOCK_SURFACE_CHANGED},
+   * where the surface handle is valid but has changed.
+   * </p>
+   * <p>
    * This call is blocking until the surface has been locked
-   * or a timeout is reached. The latter will throw a runtime exception. <P>
-   *
-   * This call allows recursion from the same thread.<P>
-   *
+   * or a timeout is reached. The latter will throw a runtime exception.
+   * </p>
+   * <p>
+   * This call allows recursion from the same thread.
+   * </p>
+   * <p>
    * The implementation may want to aquire the 
    * application level {@link com.jogamp.common.util.locks.RecursiveLock}
-   * first before proceeding with a native surface lock. <P>
-   *
+   * first before proceeding with a native surface lock.
+   * </p>
+   * <p>
    * The implementation shall also invoke {@link AbstractGraphicsDevice#lock()}
-   * for the initial lock (recursive count zero).<P>
+   * for the initial lock (recursive count zero).
+   * </p>
    *
    * @return {@link #LOCK_SUCCESS}, {@link #LOCK_SURFACE_CHANGED} or {@link #LOCK_SURFACE_NOT_READY}.
    *
