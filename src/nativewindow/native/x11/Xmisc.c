@@ -420,10 +420,10 @@ Java_jogamp_nativewindow_x11_X11Lib_XCloseDisplay__J(JNIEnv *env, jclass _unused
 /*
  * Class:     jogamp_nativewindow_x11_X11Lib
  * Method:    CreateDummyWindow
- * Signature: (JIJII)J
+ * Signature: (JIIII)J
  */
 JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateDummyWindow
-  (JNIEnv *env, jclass unused, jlong display, jint screen_index, jlong visualID, jint width, jint height)
+  (JNIEnv *env, jclass unused, jlong display, jint screen_index, jint visualID, jint width, jint height)
 {
     Display * dpy  = (Display *)(intptr_t)display;
     int       scrn_idx = (int)screen_index;
@@ -463,7 +463,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateDummyWindow
     if(pVisualQuery!=NULL) {
         visual   = pVisualQuery->visual;
         depth    = pVisualQuery->depth;
-        visualID = (jlong)pVisualQuery->visualid;
+        visualID = (jint)pVisualQuery->visualid;
         XFree(pVisualQuery);
         pVisualQuery=NULL;
     }

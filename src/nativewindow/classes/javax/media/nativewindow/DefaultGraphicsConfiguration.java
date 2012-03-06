@@ -44,13 +44,16 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
     public DefaultGraphicsConfiguration(AbstractGraphicsScreen screen, 
                                         CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested) {
         if(null == screen) {
-            throw new NativeWindowException("Null screen");
+            throw new IllegalArgumentException("Null screen");
         }
         if(null == capsChosen) {
-            throw new NativeWindowException("Null chosen caps");
+            throw new IllegalArgumentException("Null chosen caps");
         }
         if(null == capsRequested) {
-            throw new NativeWindowException("Null requested caps");
+            throw new IllegalArgumentException("Null requested caps");
+        }
+        if( ! ( capsChosen instanceof VisualIDHolder ) ) {
+            throw new IllegalArgumentException("Chosen caps is not implementing NativeVisualID");
         }
         this.screen = screen;
         this.capabilitiesChosen = capsChosen;
@@ -66,15 +69,15 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
         }
     }
 
-    public AbstractGraphicsScreen getScreen() {
+    final public AbstractGraphicsScreen getScreen() {
         return screen;
     }
 
-    public CapabilitiesImmutable getChosenCapabilities() {
+    final public CapabilitiesImmutable getChosenCapabilities() {
         return capabilitiesChosen;
     }
 
-    public CapabilitiesImmutable getRequestedCapabilities() {
+    final public CapabilitiesImmutable getRequestedCapabilities() {
         return capabilitiesRequested;
     }
 
@@ -82,6 +85,11 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
         return this;
     }
 
+    @Override
+    final public int getVisualID(VIDType type) throws NativeWindowException {
+        return capabilitiesChosen.getVisualID(type);
+    }
+            
     /**
      * Set the capabilities to a new value.
      *
@@ -102,7 +110,7 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
      *
      * A copy of the passed object is being used.
      */
-    protected void setScreen(DefaultGraphicsScreen screen) {
+    final protected void setScreen(DefaultGraphicsScreen screen) {
         this.screen = (AbstractGraphicsScreen) screen.clone();
     }
 

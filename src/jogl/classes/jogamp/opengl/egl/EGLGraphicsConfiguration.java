@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.nativewindow.VisualIDHolder;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -170,6 +171,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         final IntBuffer val = Buffers.newDirectIntBuffer(1);
         final int cfgID;
         final int rType;
+        final int visualID;
         
         // get the configID
         if(!EGL.eglGetConfigAttrib(display, config, EGL.EGL_CONFIG_ID, val)) {
@@ -188,10 +190,16 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             return false;
         }
         rType = val.get(0);
+                       
+        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_NATIVE_VISUAL_ID, val)) {
+            visualID = val.get(0);
+        } else {
+            visualID = VisualIDHolder.VID_UNDEFINED;
+        }
         
         EGLGLCapabilities caps = null;        
         try {
-            caps = new EGLGLCapabilities(config, cfgID, glp, rType);
+            caps = new EGLGLCapabilities(config, cfgID, visualID, glp, rType);
         } catch (GLException gle) {
             if(DEBUG) {
                 System.err.println("config "+toHexString(config)+": "+gle);
@@ -199,10 +207,6 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             return false;
         }        
                 
-        // Read the actual configuration into the chosen caps
-        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_NATIVE_VISUAL_ID, val)) {
-            caps.setNativeVisualID(val.get(0));
-        }                
         if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_RED_SIZE, val)) {
             caps.setRedBits(val.get(0));
         }

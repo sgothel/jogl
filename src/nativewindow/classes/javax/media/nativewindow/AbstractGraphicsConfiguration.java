@@ -43,7 +43,7 @@ package javax.media.nativewindow;
 /** A marker interface describing a graphics configuration, visual, or
     pixel format in a toolkit-independent manner. */
 
-public interface AbstractGraphicsConfiguration extends Cloneable {
+public interface AbstractGraphicsConfiguration extends VisualIDHolder, Cloneable {
     /**
      * Return the screen this graphics configuration is valid for
      */

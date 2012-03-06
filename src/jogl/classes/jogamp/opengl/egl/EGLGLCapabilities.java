@@ -28,46 +28,30 @@
 
 package jogamp.opengl.egl;
 
-import java.util.Comparator;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.VisualIDHolder;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-import jogamp.nativewindow.NativeVisualID;
 
-public class EGLGLCapabilities extends GLCapabilities implements NativeVisualID {
-  final long eglcfg;
-  final int  eglcfgid;
-  final int renderableType;  
-  int nativeVisualID;
+public class EGLGLCapabilities extends GLCapabilities {
+  final private long eglcfg;
+  final private int  eglcfgid;
+  final private int  renderableType;  
+  final private int  nativeVisualID;
   
-  /** Comparing EGLConfig ID only */
-  public static class EglCfgIDComparator implements Comparator<EGLGLCapabilities> {
-
-      public int compare(EGLGLCapabilities caps1, EGLGLCapabilities caps2) {
-        final long id1 = caps1.getEGLConfigID();
-
-        final long id2 = caps2.getEGLConfigID();
-
-        if(id1 > id2) {
-            return 1;
-        } else if(id1 < id2) {
-            return -1;
-        }
-        return 0;
-      }
-  }
-
   /**
    * 
    * @param eglcfg
    * @param eglcfgid
+   * @param visualID native visualID if valid, otherwise VisualIDHolder.VID_UNDEFINED
    * @param glp desired GLProfile, or null if determined by renderableType
    * @param renderableType actual EGL renderableType
    * 
    * May throw GLException if given GLProfile is not compatible w/ renderableType
    */
-  public EGLGLCapabilities(long eglcfg, int eglcfgid, GLProfile glp, int renderableType) {
+  public EGLGLCapabilities(long eglcfg, int eglcfgid, int visualID, GLProfile glp, int renderableType) {
       super( ( null != glp ) ? glp : getCompatible(renderableType) );
       this.eglcfg = eglcfg;
       this.eglcfgid = eglcfgid;
@@ -76,7 +60,7 @@ public class EGLGLCapabilities extends GLCapabilities implements NativeVisualID 
                                 " with EGL-RenderableType["+renderableTypeToString(null, renderableType)+"]");
       }
       this.renderableType = renderableType;
-      this.nativeVisualID = -1;
+      this.nativeVisualID = visualID;
   }
 
   public Object cloneMutable() {
@@ -94,21 +78,18 @@ public class EGLGLCapabilities extends GLCapabilities implements NativeVisualID 
   final public long getEGLConfig() { return eglcfg; }
   final public int getEGLConfigID() { return eglcfgid; }
   final public int getRenderableType() { return renderableType; }
-  final public void setNativeVisualID(int vid) { nativeVisualID=vid; }
   final public int getNativeVisualID() { return nativeVisualID; }
   
-  final public int getVisualID(NVIDType type) {
+  @Override
+  final public int getVisualID(VIDType type) throws NativeWindowException {
       switch(type) {
-          case GEN_ID:
-              // fall through intended
-          case EGL_ConfigID:
+          case INTRINSIC:
+          case EGL_CONFIG:
               return getEGLConfigID();
-          case NATIVE_ID:
-              // fall through intended
-          case EGL_NativeVisualID:
+          case NATIVE:
               return getNativeVisualID();
           default:
-              throw new IllegalArgumentException("Invalid type <"+type+">");
+              throw new NativeWindowException("Invalid type <"+type+">");
       }      
   }
   

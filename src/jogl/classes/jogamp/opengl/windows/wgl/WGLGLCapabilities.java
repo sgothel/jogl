@@ -28,48 +28,19 @@
 
 package jogamp.opengl.windows.wgl;
 
-import java.util.Comparator;
-
-import jogamp.nativewindow.NativeVisualID;
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
+
+import javax.media.nativewindow.NativeWindowException;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-public class WGLGLCapabilities extends GLCapabilities implements NativeVisualID {
-  final PIXELFORMATDESCRIPTOR pfd;
-  final int pfdID;
-  int arb_pixelformat; // -1 PFD, 0 NOP, 1 ARB
-
-  /** Comparing pfd id only */
-  public static class PfdIDComparator implements Comparator {
-
-      public int compare(Object o1, Object o2) {
-        if ( ! ( o1 instanceof WGLGLCapabilities ) ) {
-            Class c = (null != o1) ? o1.getClass() : null ;
-            throw new ClassCastException("arg1 not a WGLGLCapabilities object: " + c);
-        }
-        if ( ! ( o2 instanceof WGLGLCapabilities ) ) {
-            Class c = (null != o2) ? o2.getClass() : null ;
-            throw new ClassCastException("arg2 not a WGLGLCapabilities object: " + c);
-        }
-
-        final WGLGLCapabilities caps1 = (WGLGLCapabilities) o1;
-        final long id1 = caps1.getPFDID();
-
-        final WGLGLCapabilities caps2 = (WGLGLCapabilities) o2;
-        final long id2 = caps2.getPFDID();
-
-        if(id1 > id2) {
-            return 1;
-        } else if(id1 < id2) {
-            return -1;
-        }
-        return 0;
-      }
-  }
+public class WGLGLCapabilities extends GLCapabilities {
+  final private PIXELFORMATDESCRIPTOR pfd;
+  final private int pfdID;
+  private int arb_pixelformat; // -1 PFD, 0 NOP, 1 ARB
 
   public WGLGLCapabilities(PIXELFORMATDESCRIPTOR pfd, int pfdID, GLProfile glp) {
       super(glp);
@@ -225,15 +196,15 @@ public class WGLGLCapabilities extends GLCapabilities implements NativeVisualID 
   final public boolean isSetByGDI() { return 0 > arb_pixelformat; }
   final public boolean isSet()      { return 0 != arb_pixelformat; }
   
-  final public int getVisualID(NVIDType type) {
+  @Override
+  final public int getVisualID(VIDType type) throws NativeWindowException {
       switch(type) {
-          case GEN_ID:
-          case NATIVE_ID:
-              // fall through intended
-          case WIN32_PFDID:
+          case INTRINSIC:
+          case NATIVE:
+          case WIN32_PFD:
               return getPFDID();
           default:
-              throw new IllegalArgumentException("Invalid type <"+type+">");
+              throw new NativeWindowException("Invalid type <"+type+">");
       }      
   }
   

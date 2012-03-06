@@ -36,14 +36,14 @@
 
 package jogamp.opengl.egl;
 
-import jogamp.nativewindow.NativeVisualID;
-import jogamp.nativewindow.NativeVisualID.NVIDType;
 import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.GLDrawableImpl;
 
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.egl.*;
+import javax.media.nativewindow.VisualIDHolder.VIDType;
 import javax.media.opengl.*;
+
+import com.jogamp.nativewindow.egl.*;
 
 public abstract class EGLDrawable extends GLDrawableImpl {
     protected boolean ownEGLDisplay = false; // for destruction
@@ -181,17 +181,8 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                         System.err.println(getThreadName() + ": Reusing chosenCaps: "+eglConfig);
                     }
                 } else {
-                    final int nativeVisualID;
-                    {
-                        final GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable) aConfig.getChosenCapabilities();
-                        if(capsChosen instanceof NativeVisualID) {
-                            nativeVisualID = ((NativeVisualID)capsChosen).getVisualID(NVIDType.NATIVE_ID);
-                        } else {
-                            nativeVisualID = -1;
-                        }
-                    }
                     eglConfig = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
-                            capsRequested, capsRequested, null, s, nativeVisualID);
+                            capsRequested, capsRequested, null, s, aConfig.getVisualID(VIDType.NATIVE));
                 
                     if (null == eglConfig) {
                         throw new GLException("Couldn't create EGLGraphicsConfiguration from "+s);

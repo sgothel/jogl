@@ -37,15 +37,15 @@
 package jogamp.opengl.egl;
 
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.egl.EGLGraphicsDevice;
 import javax.media.opengl.*;
 import javax.media.opengl.GLProfile.ShutdownType;
 
 import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.*;
+import com.jogamp.nativewindow.WrappedSurface;
+import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
 import jogamp.opengl.*;
-import jogamp.nativewindow.WrappedSurface;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -358,7 +358,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         // FIXME device/windowHandle -> screen ?!
         EGLGraphicsDevice device = (EGLGraphicsDevice) adevice;
         DefaultGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);
-        EGLGraphicsConfiguration cfg = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen, -1);
+        EGLGraphicsConfiguration cfg = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen, VisualIDHolder.VID_UNDEFINED);
         WrappedSurface ns = new WrappedSurface(cfg, windowHandle);
         return ns;
     }

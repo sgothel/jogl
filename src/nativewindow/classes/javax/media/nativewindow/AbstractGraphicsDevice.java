@@ -114,8 +114,8 @@ public interface AbstractGraphicsDevice extends Cloneable {
      * <p>
      * The default implementation is a <code>NOP</code>, just setting the handle to <code>null</code>.
      * </p>
-     * The specific implementing, ie {@link javax.media.nativewindow.x11.X11GraphicsDevice},
-     * shall have a enable/disable like {@link javax.media.nativewindow.x11.X11GraphicsDevice#setCloseDisplay(boolean, boolean)},<br>
+     * The specific implementing, ie {@link com.jogamp.nativewindow.x11.X11GraphicsDevice},
+     * shall have a enable/disable like {@link com.jogamp.nativewindow.x11.X11GraphicsDevice#setCloseDisplay(boolean, boolean)},<br>
      * which shall be invoked at creation time to determine ownership/role of freeing the resource.<br>
      *
      * @return true if the handle was not <code>null</code>, otherwise false.

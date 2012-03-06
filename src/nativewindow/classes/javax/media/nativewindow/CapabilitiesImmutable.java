@@ -36,7 +36,7 @@ import com.jogamp.common.type.WriteCloneable;
  * 
  * @see javax.media.nativewindow.Capabilities
  */
-public interface CapabilitiesImmutable extends WriteCloneable {
+public interface CapabilitiesImmutable extends VisualIDHolder, WriteCloneable {
 
     /**
      * Returns the number of bits requested for the color buffer's red

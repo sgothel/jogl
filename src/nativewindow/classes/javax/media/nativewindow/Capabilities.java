@@ -40,6 +40,8 @@
 
 package javax.media.nativewindow;
 
+import javax.media.nativewindow.VisualIDHolder.VIDType;
+
 /** Specifies a set of capabilities that a window's rendering context
     must support, such as color depth per channel. It currently
     contains the minimal number of routines which allow configuration
@@ -140,6 +142,17 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
     return 0; // they are equal: RGBA
   }
 
+  @Override
+  public int getVisualID(VIDType type) throws NativeWindowException {
+      switch(type) {
+          case INTRINSIC:
+          case NATIVE:
+              return VisualIDHolder.VID_UNDEFINED;
+          default:
+              throw new NativeWindowException("Invalid type <"+type+">");
+      }      
+  }
+    
   /** Returns the number of bits requested for the color buffer's red
       component. On some systems only the color depth, which is the
       sum of the red, green, and blue bits, is considered. */
@@ -331,4 +344,5 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
     msg.append("]");
     return msg.toString();
   }
+
 }

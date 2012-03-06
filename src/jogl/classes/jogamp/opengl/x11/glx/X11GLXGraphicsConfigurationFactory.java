@@ -39,8 +39,7 @@ import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.x11.X11GraphicsScreen;
-import javax.media.nativewindow.x11.X11GraphicsDevice;
+import javax.media.nativewindow.VisualIDHolder;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
@@ -50,8 +49,9 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.nio.PointerBuffer;
+import com.jogamp.nativewindow.x11.X11GraphicsDevice;
+import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
-import jogamp.nativewindow.x11.X11Capabilities;
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.XVisualInfo;
 import jogamp.opengl.GLGraphicsConfigurationFactory;
@@ -68,11 +68,12 @@ import java.util.List;
     GraphicsDevice and GraphicsConfiguration abstractions. */
 
 public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
-    static X11Capabilities.XVisualIDComparator XVisualIDComparator = new X11Capabilities.XVisualIDComparator();
+    static VisualIDHolder.VIDComparator XVisualIDComparator = new VisualIDHolder.VIDComparator(VisualIDHolder.VIDType.X11_XVISUAL);
+
     static GraphicsConfigurationFactory fallbackX11GraphicsConfigurationFactory = null;
     static void registerFactory() {
         final GraphicsConfigurationFactory newFactory = new X11GLXGraphicsConfigurationFactory();
-        final GraphicsConfigurationFactory oldFactory = GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.x11.X11GraphicsDevice.class, newFactory);
+        final GraphicsConfigurationFactory oldFactory = GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, newFactory);
         if(oldFactory == newFactory) {
             throw new InternalError("GraphicsConfigurationFactory lifecycle impl. error");
         }

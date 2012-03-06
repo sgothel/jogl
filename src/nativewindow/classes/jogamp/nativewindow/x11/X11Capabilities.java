@@ -28,41 +28,12 @@
 
 package jogamp.nativewindow.x11;
 
-import jogamp.nativewindow.NativeVisualID;
-import java.util.Comparator;
-
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.VisualIDHolder;
 
-public class X11Capabilities extends Capabilities implements NativeVisualID {
-  final XVisualInfo xVisualInfo; // maybe null if !onscreen
-
-  /** Comparing xvisual id only */
-  public static class XVisualIDComparator implements Comparator {
-      public int compare(Object o1, Object o2) {
-        if ( ! ( o1 instanceof NativeVisualID ) ) {
-            Class<?> c = (null != o1) ? o1.getClass() : null ;
-            throw new ClassCastException("arg1 not a NativeVisualID object: " + c);
-        }
-        if ( ! ( o2 instanceof NativeVisualID ) ) {
-            Class<?> c = (null != o2) ? o2.getClass() : null ;
-            throw new ClassCastException("arg2 not a NativeVisualID object: " + c);
-        }
-
-        final NativeVisualID nvid1 = (NativeVisualID) o1;
-        final int id1 = nvid1.getVisualID(NativeVisualID.NVIDType.X11_XVisualID);
-
-        final NativeVisualID nvid2 = (NativeVisualID) o2;
-        final int id2 = nvid2.getVisualID(NativeVisualID.NVIDType.X11_XVisualID);
-
-        if(id1 > id2) {
-            return 1;
-        } else if(id1 < id2) {
-            return -1;
-        }
-        return 0;
-      }
-  }
+public class X11Capabilities extends Capabilities {
+  final private XVisualInfo xVisualInfo; // maybe null if !onscreen
 
   public X11Capabilities(XVisualInfo xVisualInfo) {
       super();
@@ -82,20 +53,21 @@ public class X11Capabilities extends Capabilities implements NativeVisualID {
   }
 
   final public XVisualInfo getXVisualInfo() { return xVisualInfo; }
-  final public int getXVisualID() { return (null!=xVisualInfo) ? (int) xVisualInfo.getVisualid() : 0; }
+  final public int getXVisualID() { return (null!=xVisualInfo) ? (int) xVisualInfo.getVisualid() : VisualIDHolder.VID_UNDEFINED; }
   final public boolean hasXVisualInfo() { return null!=xVisualInfo; }
 
-  final public int getVisualID(NVIDType type) {
+  @Override
+  final public int getVisualID(VIDType type) throws NativeWindowException {
       switch(type) {
-          case GEN_ID:
-          case NATIVE_ID:
+          case INTRINSIC:
+          case NATIVE:
               // fall through intended
-          case X11_XVisualID:
+          case X11_XVISUAL:
               return getXVisualID();
-          case X11_FBConfigID:
-              // fall through intended
+          case X11_FBCONFIG:
+              return VisualIDHolder.VID_UNDEFINED;
           default:
-              throw new IllegalArgumentException("Invalid type <"+type+">");
+              throw new NativeWindowException("Invalid type <"+type+">");
       }      
   }
   

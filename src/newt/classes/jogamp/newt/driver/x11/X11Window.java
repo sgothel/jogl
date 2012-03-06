@@ -34,13 +34,12 @@
 
 package jogamp.newt.driver.x11;
 
-import jogamp.nativewindow.NativeVisualID;
-import jogamp.nativewindow.NativeVisualID.NVIDType;
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.DisplayImpl.DisplayRunnable;
 import jogamp.newt.WindowImpl;
 import javax.media.nativewindow.*;
+import javax.media.nativewindow.VisualIDHolder.VIDType;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
@@ -73,8 +72,11 @@ public class X11Window extends WindowImpl {
         if (null == cfg) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
+        final int visualID = cfg.getVisualID(VIDType.NATIVE);
+        if(VisualIDHolder.VID_UNDEFINED == visualID) {
+            throw new NativeWindowException("Chosen Configuration w/o native visual ID: "+cfg);
+        }
         setGraphicsConfiguration(cfg);
-        final int visualID = ((NativeVisualID) cfg.getChosenCapabilities()).getVisualID(NVIDType.NATIVE_ID);
         final int flags = getReconfigureFlags(0, true) & 
                           ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;        
         setWindowHandle(CreateWindow0(getParentWindowHandle(),

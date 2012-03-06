@@ -223,12 +223,12 @@ public abstract class GraphicsConfigurationFactory {
      * returned graphics configuration must be specified in the
      * documentation binding this particular API to the underlying
      * window toolkit. The Reference Implementation accepts {@link
-     * javax.media.nativewindow.awt.AWTGraphicsDevice AWTGraphicsDevice} objects and returns {@link
-     * javax.media.nativewindow.awt.AWTGraphicsConfiguration AWTGraphicsConfiguration} objects. On
+     * com.jogamp.nativewindow.awt.AWTGraphicsDevice AWTGraphicsDevice} objects and returns {@link
+     * com.jogamp.nativewindow.awt.AWTGraphicsConfiguration AWTGraphicsConfiguration} objects. On
      * X11 platforms where the AWT is not in use, it also accepts
-     * {@link javax.media.nativewindow.x11.X11GraphicsDevice
+     * {@link com.jogamp.nativewindow.x11.X11GraphicsDevice
      * X11GraphicsDevice} objects and returns {@link
-     * javax.media.nativewindow.x11.X11GraphicsConfiguration
+     * com.jogamp.nativewindow.x11.X11GraphicsConfiguration
      * X11GraphicsConfiguration} objects.</P>
      *
      * @param capsChosen     the intermediate chosen capabilities to be refined by this implementation, may be equal to capsRequested

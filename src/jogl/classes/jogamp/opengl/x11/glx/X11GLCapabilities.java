@@ -28,16 +28,18 @@
 
 package jogamp.opengl.x11.glx;
 
-import jogamp.nativewindow.NativeVisualID;
 import jogamp.nativewindow.x11.XVisualInfo;
+
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.VisualIDHolder;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-public class X11GLCapabilities extends GLCapabilities implements NativeVisualID {
-  final XVisualInfo xVisualInfo; // maybe null if !onscreen
-  final long fbcfg;
-  final int  fbcfgid;
+public class X11GLCapabilities extends GLCapabilities {
+  final private XVisualInfo xVisualInfo; // maybe null if !onscreen
+  final private long fbcfg;
+  final private int  fbcfgid;
 
   public X11GLCapabilities(XVisualInfo xVisualInfo, long fbcfg, int fbcfgid, GLProfile glp) {
       super(glp);
@@ -50,7 +52,7 @@ public class X11GLCapabilities extends GLCapabilities implements NativeVisualID 
       super(glp);
       this.xVisualInfo = xVisualInfo;
       this.fbcfg = 0;
-      this.fbcfgid = -1;
+      this.fbcfgid = VisualIDHolder.VID_UNDEFINED;
   }
 
   public Object cloneMutable() {
@@ -71,19 +73,19 @@ public class X11GLCapabilities extends GLCapabilities implements NativeVisualID 
 
   final public long getFBConfig() { return fbcfg; }
   final public int getFBConfigID() { return fbcfgid; }
-  final public boolean hasFBConfig() { return 0!=fbcfg && fbcfgid>0; }
+  final public boolean hasFBConfig() { return 0!=fbcfg && fbcfgid!=VisualIDHolder.VID_UNDEFINED; }
 
-  final public int getVisualID(NVIDType type) {
+  @Override
+  final public int getVisualID(VIDType type) throws NativeWindowException {
       switch(type) {
-          case GEN_ID:
-          case NATIVE_ID:
-              // fall through intended
-          case X11_XVisualID:
+          case INTRINSIC:
+          case NATIVE:
+          case X11_XVISUAL:
               return getXVisualID();
-          case X11_FBConfigID:
+          case X11_FBCONFIG:
               return getFBConfigID();
           default:
-              throw new IllegalArgumentException("Invalid type <"+type+">");
+              throw new NativeWindowException("Invalid type <"+type+">");
       }      
   }
   

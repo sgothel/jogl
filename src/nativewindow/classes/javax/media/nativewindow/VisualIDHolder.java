@@ -26,59 +26,110 @@
  * or implied, of JogAmp Community.
  */
 
-package jogamp.nativewindow;
+package javax.media.nativewindow;
+
+import java.util.Comparator;
 
 /**
- * Specifies query to the native capabilities identification.
- * Semantics may differ depending on the native windowing system,
+ * Visual ID holder interface.
+ * <p>
+ * Allows queries of different types of native visual IDs,
  * see {@link #getVisualID(int)}.
+ * </p>
  */
-public interface NativeVisualID {
+public interface VisualIDHolder {
     
-    public enum NVIDType {
-        GEN_ID(0), NATIVE_ID(1), 
-        EGL_ConfigID(2), EGL_NativeVisualID(3), X11_XVisualID(4), X11_FBConfigID(5), WIN32_PFDID(6); 
+    public enum VIDType {
+        // Generic Values
+        INTRINSIC(0), NATIVE(1),
+        // EGL Values
+        EGL_CONFIG(10),
+        // X11 Values
+        X11_XVISUAL(20), X11_FBCONFIG(21),
+        // Windows Values
+        WIN32_PFD(30); 
         
         public final int id;
 
-        NVIDType(int id){
+        VIDType(int id){
             this.id = id;
         }
     }    
     
     /**
-     * Returns the native identification of the given <code>type</code>.
+     * Returns the native visual ID of the given <code>type</code>
+     * if supported, or {@link #VID_UNDEFINED} if not supported.
      * <p> 
-     * Depending on the native windowing system, this might be
+     * Depending on the native windowing system, <code>type</code> is handled as follows:
      * <ul>
-     *   <li>X11
+     *   <li>X11 throws NativeWindowException on <code>EGL_CONFIG</code>, <code>WIN32_PFD</code>
      *     <ul>
-     *       <li>GEN_ID: X11_XVisualID</li>
-     *       <li>NATIVE_ID: X11_XVisualID</li>
-     *       <li>X11_XVisualID</li>
+     *       <li><code>INTRINSIC</code>: <i>X11 XVisual ID</i></li>
+     *       <li><code>NATIVE</code>: <i>X11 XVisual ID</i></li>
+     *       <li><code>X11_XVISUAL</code>: <i>X11 XVisual ID</i></li>
+     *       <li><code>X11_FBCONFIG</code>: <code>VID_UNDEFINED</code></li>
      *     </ul></li>
-     *   <li>X11/GL
+     *   <li>X11/GL throws NativeWindowException on <code>EGL_CONFIG</code>, <code>WIN32_PFD</code>
      *     <ul>
-     *       <li>GEN_ID: X11_XVisualID</li>
-     *       <li>NATIVE_ID: X11_XVisualID</li>
-     *       <li>X11_XVisualID</li>
-     *       <li>X11FBConfigID</li>
+     *       <li><code>INTRINSIC</code>: <i>X11 XVisual ID</i></li>
+     *       <li><code>NATIVE</code>: <i>X11 XVisual ID</i></li>
+     *       <li><code>X11_XVISUAL</code>: <i>X11 XVisual ID</i></li>
+     *       <li><code>X11_FBCONFIG</code>: <i>X11 FBConfig ID</i> or <code>VID_UNDEFINED</code></li>
      *     </ul></li>
-     *   <li>Windows/GL
+     *   <li>Windows/GL throws NativeWindowException on <code>EGL_CONFIG</code>, <code>X11_XVISUAL</code>, <code>X11_FBCONFIG</code> 
      *     <ul>
-     *       <li>GEN_ID: WIN32_PFDID</li>
-     *       <li>NATIVE_ID: WIN32_PFDID</li>
-     *       <li>WIN32_PFDID</li>
+     *       <li><code>INTRINSIC</code>: <i>Win32 PIXELFORMATDESCRIPTOR ID</i></li>
+     *       <li><code>NATIVE</code>: <i>Win32 PIXELFORMATDESCRIPTOR ID</i></li>
+     *       <li><code>WIN32_PFD</code>: <i>Win32 PIXELFORMATDESCRIPTOR ID</i></li>
      *     </ul></li>
-     *   <li>EGL/GL
+     *   <li>EGL/GL throws NativeWindowException on <code>X11_XVISUAL</code>, <code>X11_FBCONFIG</code>, <code>WIN32_PFD</code>
      *     <ul>
-     *       <li>GEN_ID: EGL_ConfigID</li>
-     *       <li>NATIVE_ID: EGL_NativeVisualID (X11_XVisualID, WIN32_PFDID, ..)</li>
-     *       <li>EGL_ConfigID</li>
-     *       <li>EGL_NativeVisualID</li>
+     *       <li><code>INTRINSIC</code>: <i>EGL Config ID</i></li>
+     *       <li><code>NATIVE</code>: <i>EGL NativeVisual ID</i> (<i>X11 XVisual ID</i>, <i>Win32 PIXELFORMATDESCRIPTOR ID</i>, ...)</li>
+     *       <li><code>EGL_CONFIG</code>: <i>EGL Config ID</i></li>
      *     </ul></li>
      * </ul>
      * </p>
+     * Note: <code>INTRINSIC</code> and <code>NATIVE</code> are always handled,
+     *       but may result in {@link #VID_UNDEFINED}. The latter is true if 
+     *       the native value are actually undefined or the corresponding object is not 
+     *       mapped to a native visual object.
+     *       
+     * @throws NativeWindowException if <code>type</code> is neither
+     *         <code>INTRINSIC</code> nor <code>NATIVE</code>
+     *         and does not match the native implementation. 
      */
-    int getVisualID(NVIDType type);
+    int getVisualID(VIDType type) throws NativeWindowException ;
+    
+    /** 
+     * {@link #getVisualID(VIDType)} result indicating an undefined value,
+     * which could be cause by an unsupported query.
+     * <p>
+     * We assume the const value <code>0</code> doesn't reflect a valid native visual ID
+     * and is interpreted as <i>no value</i> on all platforms.
+     * This is currently true for Android, X11 and Windows.
+     * </p> 
+     */
+    static final int VID_UNDEFINED = 0;
+    
+    /** Comparing {@link VIDType#NATIVE} */
+    public static class VIDComparator implements Comparator<VisualIDHolder> {
+        private VIDType type;
+        
+        public VIDComparator(VIDType type) {
+            this.type = type;
+        }
+        
+        public int compare(VisualIDHolder vid1, VisualIDHolder vid2) {
+            final int id1 = vid1.getVisualID(type);
+            final int id2 = vid2.getVisualID(type);
+
+            if(id1 > id2) {
+                return 1;
+            } else if(id1 < id2) {
+                return -1;
+            }
+            return 0;
+        }
+    }    
 }
