@@ -397,9 +397,9 @@
       </linker>
 
       <linker id="linker.cfg.linux.armv7.nativewindow.x11" extends="linker.cfg.linux.armv7">
-        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="X11" />
-        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xxf86vm" />
-        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xrender" />
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11" />
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xxf86vm" />
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xrender" />
       </linker>
 
       <linker id="linker.cfg.solaris.nativewindow.x11" extends="linker.cfg.solaris">
