@@ -91,9 +91,7 @@ public abstract class NativeWindowFactory {
     private static final String OSXUtilClassName = "jogamp.nativewindow.macosx.OSXUtil";
     private static final String GDIClassName = "jogamp.nativewindow.windows.GDIUtil";
     
-    private static Class<?>  jawtUtilClass;
-    private static Method jawtUtilGetJAWTToolkitMethod;
-    private static Method jawtUtilInitMethod;
+    private static ToolkitLock jawtUtilJAWTToolkitLock;
     
     public static final String AWTComponentClassName = "java.awt.Component" ;
     public static final String X11JAWTToolkitLockClassName = "jogamp.nativewindow.jawt.x11.X11JAWTToolkitLock" ;
@@ -210,31 +208,48 @@ public abstract class NativeWindowFactory {
 
             if( !Debug.getBooleanProperty("java.awt.headless", true, acc) &&
                 ReflectionUtil.isClassAvailable(AWTComponentClassName, cl) &&
-                ReflectionUtil.isClassAvailable("javax.media.nativewindow.awt.AWTGraphicsDevice", cl) ) {
-
-                AccessController.doPrivileged(new PrivilegedAction<Object>() {
-                    public Object run() {
+                ReflectionUtil.isClassAvailable("com.jogamp.nativewindow.awt.AWTGraphicsDevice", cl) ) {
+                
+                Method[] jawtUtilMethods = AccessController.doPrivileged(new PrivilegedAction<Method[]>() {
+                    public Method[] run() {
                         try {
-                            jawtUtilClass = Class.forName(JAWTUtilClassName, true, NativeWindowFactory.class.getClassLoader());
-                            jawtUtilInitMethod = jawtUtilClass.getDeclaredMethod("initSingleton", (Class[])null);
+                            Class<?> _jawtUtilClass = Class.forName(JAWTUtilClassName, true, NativeWindowFactory.class.getClassLoader());
+                            Method jawtUtilIsHeadlessMethod = _jawtUtilClass.getDeclaredMethod("isHeadlessMode", (Class[])null);
+                            jawtUtilIsHeadlessMethod.setAccessible(true);
+                            Method jawtUtilInitMethod = _jawtUtilClass.getDeclaredMethod("initSingleton", (Class[])null);
                             jawtUtilInitMethod.setAccessible(true);
-                            jawtUtilGetJAWTToolkitMethod = jawtUtilClass.getDeclaredMethod("getJAWTToolkitLock", new Class[]{});
-                            jawtUtilGetJAWTToolkitMethod.setAccessible(true);
+                            Method jawtUtilGetJAWTToolkitLockMethod = _jawtUtilClass.getDeclaredMethod("getJAWTToolkitLock", new Class[]{});
+                            jawtUtilGetJAWTToolkitLockMethod.setAccessible(true);
+                            return new Method[] { jawtUtilInitMethod, jawtUtilIsHeadlessMethod, jawtUtilGetJAWTToolkitLockMethod }; 
                         } catch (Exception e) {
-                            // Either not a Sun JDK or the interfaces have changed since 1.4.2 / 1.5
+                            if(DEBUG) {
+                                e.printStackTrace();
+                            }
                         }
                         return null;
                     }
                 });
-                if(null != jawtUtilClass && null != jawtUtilGetJAWTToolkitMethod && null != jawtUtilInitMethod) {
+                if(null != jawtUtilMethods) {
+                    final Method jawtUtilInitMethod = jawtUtilMethods[0];
+                    final Method jawtUtilIsHeadlessMethod = jawtUtilMethods[1];
+                    final Method jawtUtilGetJAWTToolkitLockMethod = jawtUtilMethods[2];
+                    
                     ReflectionUtil.callMethod(null, jawtUtilInitMethod);
 
-                    Object resO = ReflectionUtil.callStaticMethod(JAWTUtilClassName, "isHeadlessMode", null, null, cl );
+                    Object resO = ReflectionUtil.callMethod(null, jawtUtilIsHeadlessMethod);
                     if(resO instanceof Boolean) {
                         // AWT is only available in case all above classes are available
                         // and AWT is not int headless mode
                         isAWTAvailable = ((Boolean)resO).equals(Boolean.FALSE);
+                    } else {
+                        throw new RuntimeException("JAWTUtil.isHeadlessMode() didn't return a Boolean");
                     }
+                    resO = ReflectionUtil.callMethod(null, jawtUtilGetJAWTToolkitLockMethod);            
+                    if(resO instanceof ToolkitLock) {
+                        jawtUtilJAWTToolkitLock = (ToolkitLock) resO;
+                    } else {
+                        throw new RuntimeException("JAWTUtil.getJAWTToolkitLock() didn't return a ToolkitLock");
+                    }                    
                 }
             }
             if(!firstUIActionOnProcess) {
@@ -351,10 +366,10 @@ public abstract class NativeWindowFactory {
      *   <ul>
      *     <li>If <b>AWT-type</b> and <b>native-X11-type</b> and <b>AWT-available</b></li>
      *       <ul>
-     *         <li> return {@link jogamp.nativewindow.jawt.JAWTToolkitLock} </li>
+     *         <li> return {@link #getAWTToolkitLock()} </li>
      *       </ul>
      *   </ul>
-     *   <li> Otherwise return {@link jogamp.nativewindow.NullToolkitLock} </li>
+     *   <li> Otherwise return {@link #getNullToolkitLock()} </li>
      * </ul>
      */
     public static ToolkitLock getDefaultToolkitLock(String type) {
@@ -366,18 +381,9 @@ public abstract class NativeWindowFactory {
         return NativeWindowFactoryImpl.getNullToolkitLock();
     }
 
-    private static ToolkitLock getAWTToolkitLock() {
-        Object resO = ReflectionUtil.callMethod(null, jawtUtilGetJAWTToolkitMethod);
-
-        if(DEBUG) {
-            System.err.println("NativeWindowFactory.getAWTToolkitLock()");
-            Thread.dumpStack();
-        }            
-        if(resO instanceof ToolkitLock) {
-            return (ToolkitLock) resO;
-        } else {
-            throw new RuntimeException("JAWTUtil.getJAWTToolkitLock() didn't return a ToolkitLock");
-        }
+    /** Returns the AWT Toolkit (JAWT based) if {@link #isAWTAvailable}, otherwise null. */ 
+    public static ToolkitLock getAWTToolkitLock() {
+        return jawtUtilJAWTToolkitLock;
     }
 
     public static ToolkitLock getNullToolkitLock() {
