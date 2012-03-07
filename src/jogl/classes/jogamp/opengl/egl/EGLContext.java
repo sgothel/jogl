@@ -50,6 +50,7 @@ import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.os.Platform;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 
@@ -274,8 +275,16 @@ public abstract class EGLContext extends GLContextImpl {
     }
 
     protected void setSwapIntervalImpl(int interval) {
-        if (EGL.eglSwapInterval(((EGLDrawable)drawable).getDisplay(), interval)) {
-            currentSwapInterval = interval ;
+        // FIXME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // eglSwapInterval(..) issued:
+        //   Android 4.0.3 / Pandaboard ES / PowerVR SGX 540: crashes
+        // FIXME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        if( ! ( Platform.OSType.ANDROID == Platform.getOSType() && getGLRendererString(true).contains("powervr") ) ) {
+            if (EGL.eglSwapInterval(((EGLDrawable)drawable).getDisplay(), interval)) {
+                currentSwapInterval = interval ;
+            }
+        } else if(DEBUG) {
+            System.err.println("Ignored: eglSwapInterval("+interval+") - cause: OS "+Platform.getOSType() + " / Renderer " + getGLRendererString(false));
         }
     }
 

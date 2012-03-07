@@ -82,6 +82,9 @@ public abstract class GLContextImpl extends GLContext {
   // OpenGL functions.
   private ProcAddressTable glProcAddressTable;
 
+  private String glRenderer;
+  private String glRendererLowerCase;
+  
   // Tracks creation and initialization of buffer objects to avoid
   // repeated glGet calls upon glMapBuffer operations
   private GLBufferSizeTracker bufferSizeTracker; // Singleton - Set by GLContextShareSet
@@ -151,6 +154,9 @@ public abstract class GLContextImpl extends GLContext {
       contextFQN = null;
       additionalCtxCreationFlags = 0;
 
+      glRenderer = "";
+      glRendererLowerCase = glRenderer;
+      
       super.resetStates();
   }
 
@@ -950,6 +956,30 @@ public abstract class GLContextImpl extends GLContext {
     table.reset(getDrawableImpl().getGLDynamicLookupHelper() );
   }
 
+  private final void initGLRendererStrings()  {
+    final GLDynamicLookupHelper glDynLookupHelper = getDrawableImpl().getGLDynamicLookupHelper();
+    final long _glGetString = glDynLookupHelper.dynamicLookupFunction("glGetString");
+    if(0 == _glGetString) {
+        // FIXME
+        System.err.println("Warning: Entry point to 'glGetString' is NULL.");
+        Thread.dumpStack();        
+    } else {
+        final String _glRenderer = glGetStringInt(GL.GL_RENDERER, _glGetString);
+        if(null == _glRenderer) {
+            // FIXME
+            System.err.println("Warning: GL_RENDERER is NULL.");
+            Thread.dumpStack();                
+        } else {
+            glRenderer = _glRenderer;
+            glRendererLowerCase = glRenderer.toLowerCase();
+        }
+    }
+  }
+  
+  protected final String getGLRendererString(boolean lowerCase) {
+      return lowerCase ? glRendererLowerCase : glRenderer;
+  }
+  
   /**
    * Sets the OpenGL implementation class and
    * the cache of which GL functions are available for calling through this
@@ -980,6 +1010,8 @@ public abstract class GLContextImpl extends GLContext {
     }
     updateGLXProcAddressTable();
 
+    initGLRendererStrings();
+    
     if(!isCurrentContextHardwareRasterizer()) {
         ctxProfileBits |= GLContext.CTX_IMPL_ACCEL_SOFT;
     }    
@@ -1086,28 +1118,10 @@ public abstract class GLContextImpl extends GLContext {
     if(!drawable.getChosenGLCapabilities().getHardwareAccelerated()) {
         isHardwareRasterizer = false;
     } else {
-        // On some platforms (eg. X11), a software GL impl. does not properly declare itself properly.
-        // FIXME: We have to evaluate whether this heuristic approach is acceptable.
-        final GLDynamicLookupHelper glDynLookupHelper = getDrawableImpl().getGLDynamicLookupHelper();
-        final long _glGetString = glDynLookupHelper.dynamicLookupFunction("glGetString");
-        if(0 == _glGetString) {
-            // FIXME
-            System.err.println("Warning: Entry point to 'glGetString' is NULL.");
-            Thread.dumpStack();
-        } else {
-            String glRenderer = glGetStringInt(GL.GL_RENDERER, _glGetString);
-            if(null == glRenderer) {
-                // FIXME
-                System.err.println("Warning: GL_RENDERER is NULL.");
-                Thread.dumpStack();                
-            } else {
-                glRenderer = glRenderer.toLowerCase();
-                isHardwareRasterizer = ! ( glRenderer.contains("software") /* Mesa3D */  ||
-                                           glRenderer.contains("mesa x11") /* Mesa3D*/   ||
-                                           glRenderer.contains("softpipe") /* Gallium */                                            
-                                         );
-            }
-        }
+        isHardwareRasterizer = ! ( glRendererLowerCase.contains("software") /* Mesa3D */  ||
+                                   glRendererLowerCase.contains("mesa x11") /* Mesa3D*/   ||
+                                   glRendererLowerCase.contains("softpipe") /* Gallium */                                            
+                                 );
     }
     return isHardwareRasterizer;
   }
