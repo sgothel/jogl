@@ -292,7 +292,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     }
 
     /**
-    Canvas cLock = null;
+    android.graphics.Canvas cLock = null;
     
     @Override
     protected int lockSurfaceImpl() {
@@ -300,7 +300,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
             throw new InternalError("surface already locked");
         }        
         if (0 != surfaceHandle) {
-            cLock = nsv.getHolder().lockCanvas();
+            cLock = androidView.getHolder().lockCanvas();
         }
         return ( null != cLock ) ? LOCK_SUCCESS : LOCK_SURFACE_NOT_READY;
     }
@@ -310,7 +310,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         if (null == cLock) {
             throw new InternalError("surface not locked");
         }
-        nsv.getHolder().unlockCanvasAndPost(cLock);
+        androidView.getHolder().unlockCanvasAndPost(cLock);
         cLock=null;
     } */
     
@@ -354,7 +354,11 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
             surface = aHolder.getSurface();
             surfaceHandle = getSurfaceHandle0(surface);
             acquire0(surfaceHandle);
-            format = getSurfaceVisualID0(surfaceHandle);
+            if(PixelFormat.UNKNOWN == aFormat) {
+                format = getSurfaceVisualID0(surfaceHandle);
+            } else {
+                format = aFormat;
+            }
             final int nWidth = getWidth0(surfaceHandle);
             final int nHeight = getHeight0(surfaceHandle);
             capsByFormat = (GLCapabilitiesImmutable) fixCaps(format, getRequestedCapabilities());
