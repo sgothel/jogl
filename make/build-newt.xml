@@ -274,12 +274,12 @@
       </linker>
 
       <linker id="linker.cfg.linux.armv7.newt.x11" extends="linker.cfg.linux.armv7">
-        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="X11" />
-        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="Xrandr" />
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11" />
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xrandr" />
       </linker>
 
       <linker id="linker.cfg.android.newt" extends="linker.cfg.android">
-        <syslibset dir="${env.TARGET_PLATFORM_LIBS}" libs="android" />
+        <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="android" />
       </linker>
 
       <linker id="linker.cfg.solaris.newt.x11" extends="linker.cfg.solaris">
