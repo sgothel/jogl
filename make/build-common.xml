@@ -387,6 +387,7 @@
         <!-- JavaSE combinations -->
         <property name="gluegen-rt.jar"                 value="${build.gluegen}/gluegen-rt.jar" />
         <property name="jogl.test.jar"                  value="${jar}/jogl.test.jar"/>
+        <property name="jogl.test.apk"                  value="${jar}/jogl.test.apk"/>
 
         <!-- JavaSE combinations . AWT -->
         <property name="jogl.all.jar"                   value="${jar}/jogl.all.jar" />
@@ -395,6 +396,7 @@
         <property name="jogl.all-noawt.jar"             value="${jar}/jogl.all-noawt.jar" />
         <property name="jogl.all-mobile.jar"            value="${jar}/jogl.all-mobile.jar" />
         <property name="jogl.all-android.jar"           value="${jar}/jogl.all-android.jar" />
+        <property name="jogl.all-android.apk"           value="${jar}/jogl.all-android.apk" />
 
         <path id="swt_gluegen.classpath">
             <pathelement location="${gluegen-rt.jar}" />
@@ -464,8 +466,7 @@
         <property name="junit_jogl_noawt.run.jars"
                   value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${jogl.all-noawt.jar}${path.separator}${jogl.test.jar}"/>
         <property name="junit_jogl_noawt.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${gluegen-rt.jar}${path.separator}${jogl.all-noawt.jar}${path.separator}${jogl.test.jar}"/>
-        <!--property name="junit.run.remote.apks" value="${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen.apk${path.separator}${build_t}/gluegen-test.apk"/-->
-
+        <property name="junit.run.remote.apks" value="${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt.apk${path.separator}${jogl.all-android.apk}${path.separator}${jogl.test.apk}"/>
 
         <!-- Test Run w/ SWT .. -->
         <path id="junit_jogl_swt.run.classpath">

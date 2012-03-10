@@ -56,25 +56,22 @@
     <!--
        - Build/run tests/junit.
       -->
-    <target name="test.compile.check" depends="declare.common">
-      <!-- Create the required output directories. -->
-      <mkdir dir="${obj.test}" />
-      <mkdir dir="${classes}" />
-
-      <property name="jogl.test.jar.path" location="${jogl.test.jar}"/> <!-- absolute path -->
-      <echo message="jogl.test.jar ${jogl.test.jar.path}"/>
-      <uptodate property="test.compile.skip">
-        <srcfiles dir= "."                 includes="*.xml"/>
-        <srcfiles dir= "${src.test}"       includes="**"/>
-        <srcfiles                          file="${gluegen.jar}" />
-        <srcfiles                          dir="${src}/nativewindow" />
-        <srcfiles                          dir="${src}/jogl" />
-        <srcfiles                          dir="${src}/newt" />
-        <mapper type="merge" to="${jogl.test.jar.path}"/>
-      </uptodate>
+    <target name="android.test.package" if="isAndroid">
+        <aapt.signed 
+            jarsrcdir="${src}/test"
+            jarbuilddir="${jar}"
+            jarbasename="jogl.test"
+            nativebuilddir="${lib}"
+            nativebasename="non-existing"
+            android.abi="${android.abi}"
+            androidmanifest.path="resources/android/AndroidManifest-test.xml"
+            androidresources.path="resources/android/res-jogl"
+            jarmanifest.path="${build.jogl}/manifest.mf"
+            version.code="${jogl_int_version}"
+            version.name="${jogl.version.plus}" />
     </target>
 
-    <target name="test.compile" depends="test.compile.check" unless="test.compile.skip">
+    <target name="test.compile.java">
         <!-- Perform the junit pass Java compile -->
         <javac destdir="${classes}"
                fork="yes"
@@ -101,6 +98,29 @@
             <fileset dir="${classes}"
                 includes="${java.part.test}"/>
         </jar>
+    </target>
+
+    <target name="test.compile.check" depends="declare.common">
+      <!-- Create the required output directories. -->
+      <mkdir dir="${obj.test}" />
+      <mkdir dir="${classes}" />
+
+      <property name="jogl.test.jar.path" location="${jogl.test.jar}"/> <!-- absolute path -->
+      <echo message="jogl.test.jar ${jogl.test.jar.path}"/>
+      <uptodate property="test.compile.skip">
+        <srcfiles dir= "."                 includes="*.xml"/>
+        <srcfiles dir= "${src.test}"       includes="**"/>
+        <srcfiles                          file="${gluegen.jar}" />
+        <srcfiles                          dir="${src}/nativewindow" />
+        <srcfiles                          dir="${src}/jogl" />
+        <srcfiles                          dir="${src}/newt" />
+        <mapper type="merge" to="${jogl.test.jar.path}"/>
+      </uptodate>
+    </target>
+
+    <target name="test.compile" depends="test.compile.check" unless="test.compile.skip">
+        <antcall target="test.compile.java" inheritRefs="true" inheritAll="true"/>
+        <antcall target="android.test.package" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="test.manual.run" depends="test.compile">
@@ -756,40 +776,56 @@ ${line.separator}
         </exec>
     </target>
 
+<!--
+rsync:
+    -a == -rlptgoD
+    -rt 
+-->
+
     <target name="junit.run.remote.adb" if="isAndroidARMv7">
         <echo message="#! /system/bin/sh${line.separator}" append="false" file="${build.test}/targetcommand.sh" />
         <echo message="${line.separator}
-rsync -av --delete --delete-after --delete-excluded \${line.separator}
+rsync -rtv --delete --delete-after --delete-excluded \${line.separator}
       --exclude 'build-x86*/' --exclude 'build-linux*/' --exclude 'build-win*/' --exclude 'build-mac*/' \${line.separator}
       --exclude 'classes/' --exclude 'src/' --exclude '.git/' --exclude '*-java-src.zip' \${line.separator}
-      ${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/${jogl.basename} ${env.TARGET_ROOT} ${line.separator}
+      --exclude 'gensrc/' --exclude 'doc/' --exclude 'jnlp-files' --exclude 'archive/' \${line.separator}
+      --exclude 'android-sdk/' --exclude 'resources/' --exclude 'scripts/' \${line.separator}
+      --exclude 'stub_includes/' --exclude 'nbproject/' --exclude '*.log' --exclude '*.zip' --exclude '*.7z' \${line.separator}
+      ${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/${gluegen.basename} \${line.separator}
+      ${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/${jogl.basename} \${line.separator}
+      ${env.TARGET_ROOT} ${line.separator}
+mkdir ${env.TARGET_ROOT}/tmp ${line.separator}
 cd ${env.TARGET_ROOT}/${jogl.basename}/${env.NODE_LABEL}/make ${line.separator}
-export ${system.env.library.path}=/system/lib:${env.TARGET_ROOT}/${gluegen.basename}/${rootrel.build}/obj:${env.TARGET_ROOT}/${gluegen.basename}/${rootrel.build}/test/build/natives ${line.separator}
-export BOOTCLASSPATH=/system/framework/core.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar ${line.separator}
+export ${system.env.library.path}=/system/lib:${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/${rootrel.build}/obj:${env.TARGET_ROOT}/${jogl.basename}/${env.NODE_LABEL}/${rootrel.build}/lib ${line.separator}
+# export BOOTCLASSPATH=/system/framework/core.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar ${line.separator}
 " append="true" file="${build.test}/targetcommand.sh" />
 
         <for param="test.class.path.m" keepgoing="true">
             <!-- results in absolute path -->
-            <fileset dir="${build_t.java}">
-                <include name="${test.junit.rel}/**/*Test*"/>
+            <fileset dir="${classes}">
+                <!--include name="${java.dir.junit}/**/Test*NEWT*"/-->
+                <include name="${java.dir.junit}/**/TestMainVersionGLWindowNEWT*"/>
+                <!--include name="${java.dir.junit}/**/TestGLProfile01NEWT*"/-->
                 <exclude name="**/*$$*"/>
             </fileset>
           <sequential>
             <var name="test.class.path" unset="true"/>
-            <property name="test.class.path" basedir="${build_t.java}" relative="true" location="@{test.class.path.m}"/>
+            <property name="test.class.path" basedir="${classes}" relative="true" location="@{test.class.path.m}"/>
             <var name="test.class.fqn" unset="true"/>
             <pathconvert property="test.class.fqn">
-              <fileset file="${build_t.java}${file.separator}${test.class.path}"/>
+              <fileset file="${classes}${file.separator}${test.class.path}"/>
               <chainedmapper>
-                  <globmapper    from="${build_t.java.path}${file.separator}*" to="*"/> <!-- rel. -->
+                  <globmapper    from="${classes.path}${file.separator}*" to="*"/> <!-- rel. -->
                   <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
               </chainedmapper>
             </pathconvert>
-            <var name="test.class.result.file" value="${results}/TEST-${test.class.fqn}.xml"/>
+            <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <echo message="${line.separator}
 dalvikvm \${line.separator}
 -Xjnigreflimit:2000 \${line.separator}
+${junit.run.arg0}\${line.separator}
+${junit.run.arg1}\${line.separator}
 -cp ${junit.run.remote.apks} \${line.separator}
 -Dgluegen.root=${gluegen.root} \${line.separator}
 -Drootrel.build=${rootrel.build} \${line.separator}
@@ -806,19 +842,20 @@ logtestlistenerevents=true \${line.separator}
 formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter \${line.separator}
 formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,${test.class.result.file} ${line.separator}
 ${line.separator}
-" append="true" file="${build_t}/targetcommand.sh" />
+" append="true" file="${build.test}/targetcommand.sh" />
           </sequential>
         </for>
         <exec dir="." executable="sh" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line='-x -c "
-            chmod 0755 ${build_t}/targetcommand.sh ;
-            adb push ${build_t}/targetcommand.sh ${env.TARGET_ROOT}/jogl-targetcommand.sh ;
-            adb shell ${env.TARGET_ROOT}/jogl-targetcommand.sh ;
-            adb pull ${env.TARGET_ROOT}/${jogl.basename}/${env.NODE_LABEL}/make/${results}/ ${results}/ "'/>
+            chmod 0755 ${build.test}/targetcommand.sh ;
+            adb connect ${env.TARGET_IP}:${env.TARGET_ADB_PORT} ;
+            adb -s ${env.TARGET_IP}:${env.TARGET_ADB_PORT} push ${build.test}/targetcommand.sh ${env.TARGET_ROOT}/jogl-targetcommand.sh ;
+            adb -s ${env.TARGET_IP}:${env.TARGET_ADB_PORT} shell ${env.TARGET_ROOT}/jogl-targetcommand.sh ;
+            adb -s ${env.TARGET_IP}:${env.TARGET_ADB_PORT} pull ${env.TARGET_ROOT}/${jogl.basename}/${env.NODE_LABEL}/make/${results.test}/ ${results.test}/ "'/>
         </exec>
     </target>
 
-    <target name="junit.run.tests" depends="junit.run.local.d32, junit.run.local, junit.run.remote.ssh.newt"/>
+    <target name="junit.run.tests" depends="junit.run.local.d32, junit.run.local, junit.run.remote.ssh.newt, junit.run.remote.adb"/>
 
     <target name="junit.run.settings" depends="declare.common">
         <delete quiet="true">

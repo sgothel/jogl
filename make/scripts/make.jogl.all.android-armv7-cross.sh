@@ -8,9 +8,9 @@ export HOST_IP=10.1.0.122
 export HOST_RSYNC_ROOT=PROJECTS/JOGL
 
 export TARGET_UID=jogamp
-#export TARGET_IP=panda02
+export TARGET_IP=panda02
 #export TARGET_IP=jautab03
-export TARGET_IP=jauphone04
+#export TARGET_IP=jauphone04
 export TARGET_ADB_PORT=5555
 # needs executable bit (probably su)
 export TARGET_ROOT=/data/projects
