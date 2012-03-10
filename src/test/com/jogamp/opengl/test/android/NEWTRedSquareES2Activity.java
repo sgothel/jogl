@@ -52,16 +52,14 @@ public class NEWTRedSquareES2Activity extends NewtBaseActivity {
        
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
-       caps.setRedBits(5);
-       caps.setGreenBits(6);
-       caps.setBlueBits(5);
-       caps.setAlphaBits(0);
        Log.d(TAG, "req caps: "+caps);
        GLWindow glWindow = GLWindow.create(caps);
-       glWindow.setFullscreen(true);
+       // glWindow.setSize(200, 200);
+       // glWindow.setUndecorated(true);
+       glWindow.setFullscreen(true);       
        setContentView(getWindow(), glWindow);
        
-       final RedSquareES2 demo = new RedSquareES2(0);
+       final RedSquareES2 demo = new RedSquareES2(-1);
        // demo.enableAndroidTrace(true);
        glWindow.addGLEventListener(demo);
        glWindow.getScreen().addScreenModeListener(new ScreenModeListener() {
@@ -71,12 +69,14 @@ public class NEWTRedSquareES2Activity extends NewtBaseActivity {
         }
        });
        Animator animator = new Animator(glWindow);
-       animator.setUpdateFPSFrames(60, System.err);
        // animator.setRunAsFastAsPossible(true);
        setAnimator(animator);
        // glWindow.setSkipContextReleaseThread(animator.getThread());
        glWindow.setVisible(true);
        
+       animator.setUpdateFPSFrames(60, System.err);
+       animator.resetFPSCounter();
+       glWindow.resetFPSCounter();
        
        Log.d(TAG, "onCreate - X");
    }   

@@ -32,6 +32,8 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.newt.driver.android.NewtBaseActivity;
 
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
 import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.event.ScreenModeListener;
 import com.jogamp.newt.opengl.GLWindow;
@@ -53,14 +55,16 @@ public class NEWTGearsES2TransActivity extends NewtBaseActivity {
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
        caps.setBackgroundOpaque(false);
+       
        Log.d(TAG, "req caps: "+caps);
-       GLWindow glWindow = GLWindow.create(caps);
-       glWindow.setSize(300, 300);
-       // glWindow.setFullscreen(true);
+       Screen screen = NewtFactory.createScreen(NewtFactory.createDisplay(null), 0);
+       screen.addReference();
+       GLWindow glWindow = GLWindow.create(screen, caps);
+       glWindow.setSize(2*screen.getWidth()/3, 2*screen.getHeight()/3);
        glWindow.setUndecorated(true);
        setContentView(getWindow(), glWindow);
        
-       glWindow.addGLEventListener(new GearsES2(1));
+       glWindow.addGLEventListener(new GearsES2(-1));
        glWindow.getScreen().addScreenModeListener(new ScreenModeListener() {
         public void screenModeChangeNotify(ScreenMode sm) { }
         public void screenModeChanged(ScreenMode sm, boolean success) {
@@ -68,12 +72,16 @@ public class NEWTGearsES2TransActivity extends NewtBaseActivity {
         }
        });
        Animator animator = new Animator(glWindow);
-       animator.setUpdateFPSFrames(60, System.err);
        setAnimator(animator);
        // glWindow.setSkipContextReleaseThread(animator.getThread());
        
        glWindow.setVisible(true);
        
+       animator.setUpdateFPSFrames(60, System.err);
+       animator.resetFPSCounter();
+       glWindow.resetFPSCounter();
+       
+       screen.removeReference();
        Log.d(TAG, "onCreate - X");
    }   
 }

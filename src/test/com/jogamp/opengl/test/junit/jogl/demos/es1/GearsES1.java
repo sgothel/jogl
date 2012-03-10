@@ -48,7 +48,6 @@ public class GearsES1 implements GLEventListener {
   private GearsObject gear1=null, gear2=null, gear3=null;
   private float angle = 0.0f;
   private int swapInterval;
-  private boolean initialized = false;
 
   private int prevMouseX, prevMouseY;
 
@@ -83,7 +82,6 @@ public class GearsES1 implements GLEventListener {
   
   public void init(GLAutoDrawable drawable) {
     System.err.println(Thread.currentThread()+" GearsES1.init ...");
-    initialized = true;
     
     // Use debug pipeline
     // drawable.setGL(new DebugGL(drawable.getGL()));
@@ -150,12 +148,16 @@ public class GearsES1 implements GLEventListener {
 
     gl.setSwapInterval(swapInterval);
 
-    float h = (float)height / (float)width;
-            
     gl.glMatrixMode(GL2ES1.GL_PROJECTION);
 
     gl.glLoadIdentity();
-    gl.glFrustum(-1.0f, 1.0f, -h, h, 5.0f, 60.0f);
+    if(height>width) {
+        float h = (float)height / (float)width;
+        gl.glFrustumf(-1.0f, 1.0f, -h, h, 5.0f, 60.0f);
+    } else {
+        float h = (float)width / (float)height;
+        gl.glFrustumf(-h, h, -1.0f, 1.0f, 5.0f, 60.0f);
+    }
     gl.glMatrixMode(GL2ES1.GL_MODELVIEW);
     gl.glLoadIdentity();
     gl.glTranslatef(0.0f, 0.0f, -40.0f);
@@ -164,7 +166,6 @@ public class GearsES1 implements GLEventListener {
 
   public void dispose(GLAutoDrawable drawable) {
     System.err.println(Thread.currentThread()+" GearsES1.dispose ... ");
-    initialized = false;
     GL gl = drawable.getGL();
     gear1.destroy(gl);
     gear1 = null;

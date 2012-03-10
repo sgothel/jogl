@@ -88,6 +88,21 @@ import javax.media.nativewindow.CapabilitiesImmutable;
 public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
   private static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.CapabilitiesChooser", true, AccessController.getContext());
 
+  final static int NO_SCORE = -9999999;
+  final static int DOUBLE_BUFFER_MISMATCH_PENALTY = 1000;
+  final static int OPAQUE_MISMATCH_PENALTY = 750;
+  final static int STENCIL_MISMATCH_PENALTY = 500;
+  final static int MULTISAMPLE_MISMATCH_PENALTY = 500;
+  final static int MULTISAMPLE_EXTENSION_MISMATCH_PENALTY = 250; // just a little drop, no scale
+  // Pseudo attempt to keep equal rank penalties scale-equivalent
+  // (e.g., stencil mismatch is 3 * accum because there are 3 accum
+  // components)
+  final static int COLOR_MISMATCH_PENALTY_SCALE     = 36;
+  final static int DEPTH_MISMATCH_PENALTY_SCALE     = 6;
+  final static int ACCUM_MISMATCH_PENALTY_SCALE     = 1;
+  final static int STENCIL_MISMATCH_PENALTY_SCALE   = 3;
+  final static int MULTISAMPLE_MISMATCH_PENALTY_SCALE   = 3;
+  
   public int chooseCapabilities(final CapabilitiesImmutable desired,
                                 final List /*<CapabilitiesImmutable>*/ available,
                                 final int windowSystemRecommendedChoice) {
@@ -122,20 +137,6 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
 
     // Create score array
     int[] scores = new int[availnum];
-    final int NO_SCORE = -9999999;
-    final int DOUBLE_BUFFER_MISMATCH_PENALTY = 1000;
-    final int OPAQUE_MISMATCH_PENALTY = 750;
-    final int STENCIL_MISMATCH_PENALTY = 500;
-    final int MULTISAMPLE_MISMATCH_PENALTY = 500;
-    final int MULTISAMPLE_EXTENSION_MISMATCH_PENALTY = 250; // just a little drop, no scale
-    // Pseudo attempt to keep equal rank penalties scale-equivalent
-    // (e.g., stencil mismatch is 3 * accum because there are 3 accum
-    // components)
-    final int COLOR_MISMATCH_PENALTY_SCALE     = 36;
-    final int DEPTH_MISMATCH_PENALTY_SCALE     = 6;
-    final int ACCUM_MISMATCH_PENALTY_SCALE     = 1;
-    final int STENCIL_MISMATCH_PENALTY_SCALE   = 3;
-    final int MULTISAMPLE_MISMATCH_PENALTY_SCALE   = 3;
     
     for (int i = 0; i < scores.length; i++) {
       scores[i] = NO_SCORE;

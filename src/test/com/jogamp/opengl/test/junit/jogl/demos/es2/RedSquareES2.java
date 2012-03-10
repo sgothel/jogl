@@ -122,9 +122,7 @@ public class RedSquareES2 implements GLEventListener {
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         st.useProgram(gl, false);        
 
-        if(0<=swapInterval) {
-            gl.setSwapInterval(swapInterval);
-        }
+        gl.setSwapInterval(swapInterval);
         
         if (glad instanceof GLWindow) {
             glWindow = (GLWindow) glad;

@@ -52,10 +52,6 @@ public class NEWTElektronActivity extends NewtBaseActivity {
        
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
-       caps.setRedBits(5);
-       caps.setGreenBits(6);
-       caps.setBlueBits(5);
-       caps.setAlphaBits(0);
        Log.d(TAG, "req caps: "+caps);
        GLWindow glWindow = GLWindow.create(caps);
        glWindow.setFullscreen(true);
@@ -70,8 +66,11 @@ public class NEWTElektronActivity extends NewtBaseActivity {
        });
        glWindow.setVisible(true);
        Animator animator = new Animator(glWindow);
-       animator.setUpdateFPSFrames(60, System.err);
        setAnimator(animator);
+       
+       animator.setUpdateFPSFrames(60, System.err);
+       animator.resetFPSCounter();
+       glWindow.resetFPSCounter();
        
        Log.d(TAG, "onCreate - X");
    }   

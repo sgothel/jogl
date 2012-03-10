@@ -59,9 +59,10 @@ public class NEWTGearsES1Activity extends NewtBaseActivity {
        caps.setAlphaBits(0); */
        Log.d(TAG, "req caps: "+caps);
        GLWindow glWindow = GLWindow.create(caps);
+       glWindow.setFullscreen(true);
        setContentView(getWindow(), glWindow);
        
-       glWindow.addGLEventListener(new GearsES1(1));
+       glWindow.addGLEventListener(new GearsES1(-1));
        glWindow.getScreen().addScreenModeListener(new ScreenModeListener() {
         public void screenModeChangeNotify(ScreenMode sm) { }
         public void screenModeChanged(ScreenMode sm, boolean success) {
@@ -70,8 +71,11 @@ public class NEWTGearsES1Activity extends NewtBaseActivity {
        });
        glWindow.setVisible(true);
        Animator animator = new Animator(glWindow);
-       animator.setUpdateFPSFrames(60, System.err);
        setAnimator(animator);
+       
+       animator.setUpdateFPSFrames(60, System.err);
+       animator.resetFPSCounter();
+       glWindow.resetFPSCounter();
        
        Log.d(TAG, "onCreate - X");
    }   

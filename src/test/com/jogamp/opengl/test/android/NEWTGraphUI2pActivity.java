@@ -70,8 +70,11 @@ public class NEWTGraphUI2pActivity extends NewtBaseActivity {
        });
        glWindow.setVisible(true);
        Animator animator = new Animator(glWindow);
-       animator.setUpdateFPSFrames(60, System.err);
        setAnimator(animator);
+       
+       animator.setUpdateFPSFrames(60, System.err);
+       animator.resetFPSCounter();
+       glWindow.resetFPSCounter();
        
        Log.d(TAG, "onCreate - X");
    }   

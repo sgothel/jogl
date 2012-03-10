@@ -174,9 +174,7 @@ public class GearsES2 implements GLEventListener {
         }
         st.useProgram(gl, false);
         
-        if(0<=swapInterval) {
-            gl.setSwapInterval(swapInterval);
-        }
+        gl.setSwapInterval(swapInterval);
         
         System.err.println(Thread.currentThread()+" GearsES2.init FIN");
     }
@@ -189,12 +187,18 @@ public class GearsES2 implements GLEventListener {
         System.err.println(Thread.currentThread()+" GearsES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        float h = (float)height / (float)width;
-
         st.useProgram(gl, true);
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.glFrustumf(-1.0f, 1.0f, -h, h, 5.0f, 60.0f);
+        
+        if(height>width) {
+            float h = (float)height / (float)width;
+            pmvMatrix.glFrustumf(-1.0f, 1.0f, -h, h, 5.0f, 60.0f);
+        } else {
+            float h = (float)width / (float)height;
+            pmvMatrix.glFrustumf(-h, h, -1.0f, 1.0f, 5.0f, 60.0f);
+        }
+
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0.0f, 0.0f, -40.0f);
