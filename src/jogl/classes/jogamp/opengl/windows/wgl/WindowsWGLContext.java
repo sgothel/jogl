@@ -435,7 +435,7 @@ public class WindowsWGLContext extends GLContextImpl {
   }
   
   @Override
-  protected void setSwapIntervalImpl(int interval) {
+  protected boolean setSwapIntervalImpl(int interval) {
     WGLExt wglExt = getWGLExt();
     if(0==hasSwapIntervalSGI) {
         try {
@@ -444,11 +444,10 @@ public class WindowsWGLContext extends GLContextImpl {
     }
     if (hasSwapIntervalSGI>0) {
         try {
-            if ( wglExt.wglSwapIntervalEXT(interval) ) {
-                currentSwapInterval = interval ;
-            }
+            return wglExt.wglSwapIntervalEXT(interval);
         } catch (Throwable t) { hasSwapIntervalSGI=-1; }
     }
+    return false;
   }
   
   private final int initSwapGroupImpl(WGLExt wglExt) {

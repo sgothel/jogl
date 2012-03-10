@@ -1083,6 +1083,8 @@ public abstract class GLContextImpl extends GLContext {
     // Set GL Version (complete w/ version string)
     //
     setContextVersion(major, minor, ctxProfileBits, true);
+    
+    setDefaultSwapInterval();
   }
 
   protected final void removeCachedVersion(int major, int minor, int ctxProfileBits) {

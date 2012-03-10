@@ -128,6 +128,7 @@ public abstract class GLContext {
   protected int ctxMinorVersion;
   protected int ctxOptions;
   protected String ctxVersionString;
+  private int currentSwapInterval;
 
   protected void resetStates() {
       ctxMajorVersion=-1;
@@ -137,6 +138,7 @@ public abstract class GLContext {
       attachedObjectsByString.clear();
       attachedObjectsByInt.clear();
       contextHandle=0;
+      currentSwapInterval = -1;
   }
 
   /**
@@ -621,16 +623,53 @@ public abstract class GLContext {
       return isGL2GL3() || isGLES2() ;
   }
 
-  public final void setSwapInterval(int interval) {
+  /**
+   * Set the swap interval if the current context.
+   * @param interval Should be &ge; 0. 0 Disables the vertical synchronisation, 
+   *                 where &ge; 1 is the number of vertical refreshes before a swap buffer occurs.
+   *                 A value &lt; 0 is ignored.
+   * @return true if the operation was successful, otherwise false 
+   *  
+   * @throws GLException if the context is not current.
+   */
+  public final boolean setSwapInterval(int interval) throws GLException {
     if (!isCurrent()) {
         throw new GLException("This context is not current. Current context: "+getCurrent()+", this context "+this);
     }
-    setSwapIntervalImpl(interval);
+    if(0<=interval) {
+        if( setSwapIntervalImpl(interval) ) {
+            currentSwapInterval = interval;
+            return true;
+        }
+    }
+    return false;
   }
-  protected void setSwapIntervalImpl(int interval) { /** nop per default .. **/  }
-  protected int currentSwapInterval = -1; // default: not set yet ..
-  public int getSwapInterval() {
+  protected boolean setSwapIntervalImpl(int interval) { 
+      return false; 
+  }    
+  /** Return the current swap interval. 
+   * <p>
+   * If the context has not been made current at all,
+   * the default value <code>-1</code> is returned.
+   * </p>
+   * <p>
+   * The default value for a valid context is <code>1</code> for 
+   * an EGL based profile (ES1 or ES2) and <code>-1</code> (undefined)
+   * for desktop.
+   * </p>
+   */
+  public final int getSwapInterval() {
+    if(-1 == currentSwapInterval && this.isGLES()) {
+        currentSwapInterval = 1;
+    }
     return currentSwapInterval;
+  }
+  protected final void setDefaultSwapInterval() {
+    if(this.isGLES()) {
+        currentSwapInterval = 1;
+    } else {
+        currentSwapInterval = -1;
+    }      
   }
   
   public final boolean queryMaxSwapGroups(int[] maxGroups, int maxGroups_offset,

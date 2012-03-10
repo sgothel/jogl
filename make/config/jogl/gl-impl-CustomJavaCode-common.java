@@ -48,10 +48,16 @@
 
     private GLContextImpl _context;
 
+    /**
+     * @see javax.media.opengl.GLContext#setSwapInterval(int)
+     */
     public void setSwapInterval(int interval) {
       _context.setSwapInterval(interval);
     }
 
+    /**
+     * @see javax.media.opengl.GLContext#getSwapInterval()
+     */
     public int getSwapInterval() {
       return _context.getSwapInterval();
     }

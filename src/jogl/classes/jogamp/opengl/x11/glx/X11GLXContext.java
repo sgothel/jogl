@@ -509,10 +509,10 @@ public abstract class X11GLXContext extends GLContextImpl {
   }
 
   @Override
-  protected void setSwapIntervalImpl(int interval) {
+  protected boolean setSwapIntervalImpl(int interval) {
     X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration();
     GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
-    if(!glCaps.isOnscreen()) return;
+    if(!glCaps.isOnscreen()) { return false; }
 
     GLXExt glXExt = getGLXExt();
     if(0==hasSwapIntervalSGI) {
@@ -522,11 +522,10 @@ public abstract class X11GLXContext extends GLContextImpl {
     }
     if (hasSwapIntervalSGI>0) {
         try {
-            if( 0 == glXExt.glXSwapIntervalSGI(interval) ) {
-                currentSwapInterval = interval;
-            }
+            return 0 == glXExt.glXSwapIntervalSGI(interval);
         } catch (Throwable t) { hasSwapIntervalSGI=-1; }
     }
+    return false;
   }
 
   private final int initSwapGroupImpl(GLXExt glXExt) {

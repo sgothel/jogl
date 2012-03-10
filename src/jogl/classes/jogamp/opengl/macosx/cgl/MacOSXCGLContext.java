@@ -279,14 +279,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
   }
 
-  protected void setSwapIntervalImpl(int interval) {
-    if( ! isCreated() ) {
-        throw new GLException("OpenGL context not created");
-    } 
-    if(!impl.setSwapInterval(interval)) {
-        throw new GLException("Error set swap-interval: "+this);        
-    }
-    currentSwapInterval = interval ;
+  @Override
+  protected boolean setSwapIntervalImpl(int interval) {
+    return impl.setSwapInterval(interval);
   }
 
   public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
