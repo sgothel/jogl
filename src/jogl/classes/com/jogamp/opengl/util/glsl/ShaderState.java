@@ -31,7 +31,6 @@ package com.jogamp.opengl.util.glsl;
 import java.security.AccessController;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 
 import javax.media.opengl.GL;
@@ -205,8 +204,6 @@ public class ShaderState {
      * @throws GLException if program was not linked and linking fails
      */
     public synchronized void attachShaderProgram(GL2ES2 gl, ShaderProgram prog, boolean enable) throws GLException {
-        boolean prgInUse = false; // earmarked state
-
         if(DEBUG) {
             int curId = (null!=shaderProgram)?shaderProgram.id():-1;
             int newId = (null!=prog)?prog.id():-1;
@@ -317,7 +314,7 @@ public class ShaderState {
      * @see GL2ES2#glGetAttribLocation(int, String)
      */
     public int getCachedAttribLocation(String name) {
-        Integer idx = (Integer) activeAttribLocationMap.get(name);
+        Integer idx = activeAttribLocationMap.get(name);
         return (null!=idx)?idx.intValue():-1;
     }
     
@@ -337,7 +334,7 @@ public class ShaderState {
      * @see ShaderProgram#glReplaceShader
      */
     public GLArrayData getAttribute(String name) {
-        return (GLArrayData) activeAttribDataMap.get(name);
+        return activeAttribDataMap.get(name);
     }
     
     /**
@@ -485,7 +482,8 @@ public class ShaderState {
      * @return true if the named attribute is enable
      */
     public final boolean isVertexAttribArrayEnabled(String name) {
-        return enabledAttributes.contains(name);
+        final Boolean v = activedAttribEnabledMap.get(name);
+        return null != v && v.booleanValue();
     }
     
     /**
@@ -496,7 +494,7 @@ public class ShaderState {
     }
     
     private boolean enableVertexAttribArray(GL2ES2 gl, String name, int location) {
-        enabledAttributes.add(name);
+        activedAttribEnabledMap.put(name, Boolean.TRUE);
         if(0>location) {
             location = getAttribLocation(gl, name);
             if(0>location) {
@@ -569,7 +567,7 @@ public class ShaderState {
     }
     
     private boolean disableVertexAttribArray(GL2ES2 gl, String name, int location) {
-        enabledAttributes.remove(name);
+        activedAttribEnabledMap.put(name, Boolean.FALSE);
         if(0>location) {
             location = getAttribLocation(gl, name);
             if(0>location) {
@@ -691,14 +689,14 @@ public class ShaderState {
                     throw new GLException("Internal Error: mapped vertex attribute couldn't be disabled");
                 }
             }
-            for(Iterator<String> iter = enabledAttributes.iterator(); iter.hasNext(); ) {
+            for(Iterator<String> iter = activedAttribEnabledMap.keySet().iterator(); iter.hasNext(); ) {
                 if(!disableVertexAttribArray(gl, iter.next())) {
                     throw new GLException("Internal Error: prev enabled vertex attribute couldn't be disabled");
                 }
             }
         }
         activeAttribDataMap.clear();
-        enabledAttributes.clear();
+        activedAttribEnabledMap.clear();
         activeAttribLocationMap.clear();
         managedAttributes.clear();        
     }
@@ -721,10 +719,10 @@ public class ShaderState {
      * @see ShaderProgram#glReplaceShader
      */
     public void disableAllVertexAttributeArrays(GL2ES2 gl, boolean removeFromState) {
-        for(Iterator<String> iter = enabledAttributes.iterator(); iter.hasNext(); ) {
+        for(Iterator<String> iter = activedAttribEnabledMap.keySet().iterator(); iter.hasNext(); ) {
             final String name = iter.next();
             if(removeFromState) {
-                enabledAttributes.remove(name);
+                activedAttribEnabledMap.remove(name);
             }
             final int index = getAttribLocation(gl, name);
             if(0<=index) {
@@ -740,7 +738,7 @@ public class ShaderState {
         attribute.setLocation(loc);
 
         if(0<=loc) {
-            if(enabledAttributes.contains(name)) {
+            if(isVertexAttribArrayEnabled(name)) {
                 // enable attrib, VBO and pass location/data
                 gl.glEnableVertexAttribArray(loc);
             }
@@ -787,7 +785,7 @@ public class ShaderState {
         if(0<=loc) {
             this.bindAttribLocation(gl, loc, name);
             
-            if(enabledAttributes.contains(name)) {
+            if(isVertexAttribArrayEnabled(name)) {
                 // enable attrib, VBO and pass location/data
                 gl.glEnableVertexAttribArray(loc);
             }
@@ -1006,8 +1004,12 @@ public class ShaderState {
             sb.append("ShaderProgram: null");
         }
         sb.append(Platform.getNewline()).append(" enabledAttributes [");
-        for(Iterator<String> iter = enabledAttributes.iterator(); iter.hasNext(); ) {
-            sb.append(Platform.getNewline()).append("  ").append(iter.next());
+        {
+            Iterator<String> names = activedAttribEnabledMap.keySet().iterator();
+            Iterator<Boolean> values = activedAttribEnabledMap.values().iterator();
+            while( names.hasNext() ) {
+                sb.append(Platform.getNewline()).append("  ").append(names.next()).append(": ").append(values.next());
+            }
         }
         sb.append(Platform.getNewline()).append(" ],").append(" activeAttributes [");
         for(Iterator<GLArrayData> iter = activeAttribDataMap.values().iterator(); iter.hasNext(); ) {
@@ -1037,7 +1039,7 @@ public class ShaderState {
     private boolean verbose = DEBUG ? true : false;
     private ShaderProgram shaderProgram=null;
     
-    private HashSet<String> enabledAttributes = new HashSet<String>();
+    private HashMap<String, Boolean> activedAttribEnabledMap = new HashMap<String, Boolean>();
     private HashMap<String, Integer> activeAttribLocationMap = new HashMap<String, Integer>();
     private HashMap<String, GLArrayData> activeAttribDataMap = new HashMap<String, GLArrayData>();
     private ArrayList<GLArrayData> managedAttributes = new ArrayList<GLArrayData>();
