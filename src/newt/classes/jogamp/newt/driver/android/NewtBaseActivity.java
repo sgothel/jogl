@@ -157,6 +157,7 @@ public class NewtBaseActivity extends Activity {
          newtWindow.destroy();
          newtWindow = null;
      }
+     jogamp.common.os.android.StaticContext.setContext(null);
      if(!isInvokedByExternalActivity) {
          super.onDestroy(); 
      }

@@ -33,8 +33,6 @@ import java.lang.reflect.Method;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.TextView;
 import android.util.Log;
 

@@ -259,7 +259,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     protected void androidWindowConfigurationPreCreate() {
         if( null != androidWindow) {
             if( isFullscreen() || isUndecorated() ) {
-                boolean r = androidWindow.requestFeature(Window.FEATURE_NO_TITLE);
+                androidWindow.requestFeature(Window.FEATURE_NO_TITLE);
             }
             if( isFullscreen() ) {
                 androidWindow.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
