@@ -1702,17 +1702,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     
     private class FullScreenActionImpl implements Runnable {
         boolean fullscreen;
-        boolean nativeFullscreenChange;
 
         private FullScreenActionImpl() { }
         
-        public void init(boolean fullscreen) {
-            this.fullscreen = fullscreen;
-            this.nativeFullscreenChange = isNativeValid() && isFullscreen() != fullscreen ;
+        public boolean init(boolean fullscreen) {            
+            if(isNativeValid()) {
+                this.fullscreen = fullscreen;
+                return isFullscreen() != fullscreen;
+            } else {
+                WindowImpl.this.fullscreen = fullscreen; // set current state for createNative(..)
+                return false;
+            }
         }                
-        public boolean nativeFullscreenChange() { return nativeFullscreenChange; } 
-        public boolean nativeFullscreenOn() { return nativeFullscreenChange && fullscreen; }
-        public boolean nativeFullscreenOff() { return nativeFullscreenChange && !fullscreen; }
+        public boolean fsOn() { return fullscreen; }
 
         public final void run() {
             windowLock.lock();
@@ -1801,9 +1803,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     public boolean setFullscreen(boolean fullscreen) {
         synchronized(fullScreenAction) {
-            fullScreenAction.init(fullscreen);
-            if( fullScreenAction.nativeFullscreenChange() ) {               
-                if(fullScreenAction.nativeFullscreenOn() && 
+            if( fullScreenAction.init(fullscreen) ) {               
+                if(fullScreenAction.fsOn() && 
                    isOffscreenInstance(WindowImpl.this, parentWindow)) { 
                     // enable fullscreen on offscreen instance
                     if(null != parentWindow) {
@@ -1816,7 +1817,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 
                 runOnEDTIfAvail(true, fullScreenAction);
                 
-                if(fullScreenAction.nativeFullscreenOff() && null != nfs_parent) {
+                if(!fullScreenAction.fsOn() && null != nfs_parent) {
                     // disable fullscreen on offscreen instance
                     reparentWindow(nfs_parent, true);
                     nfs_parent = null;
