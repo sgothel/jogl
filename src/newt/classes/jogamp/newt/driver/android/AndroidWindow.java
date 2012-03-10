@@ -28,19 +28,17 @@
 
 package jogamp.newt.driver.android;
 
-import java.nio.IntBuffer;
-
 import jogamp.newt.driver.android.event.AndroidNewtEventFactory;
 
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.VisualIDHolder;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
-import com.jogamp.common.nio.Buffers;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.newt.event.MouseEvent;
 
@@ -65,16 +63,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         AndroidDisplay.initSingleton();
     }
 
-    public static CapabilitiesImmutable fixCapsAlpha(CapabilitiesImmutable rCaps) {
-        if(rCaps.getAlphaBits()==0) {
-            Capabilities nCaps = (Capabilities) rCaps.cloneMutable();
-            nCaps.setAlphaBits(1);
-            return nCaps;
-        }
-        return rCaps;
-    }
-    
-    public static CapabilitiesImmutable fixCaps(int format, CapabilitiesImmutable rCaps) {
+    public static CapabilitiesImmutable fixCaps(boolean matchFormatPrecise, int format, CapabilitiesImmutable rCaps) {
         PixelFormat pf = new PixelFormat(); 
         PixelFormat.getPixelFormatInfo(format, pf);
         final CapabilitiesImmutable res;        
@@ -90,18 +79,19 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
             case PixelFormat.RGB_332:   r=3; g=3; b=2; a=0; break;
             default: throw new InternalError("Unhandled pixelformat: "+format);
         }
-        final boolean fits = rCaps.getRedBits()   <= r &&
-                             rCaps.getGreenBits() <= g &&
-                             rCaps.getBlueBits()  <= b &&
-                             rCaps.getAlphaBits() <= a ;
+        final boolean change = matchFormatPrecise ||
+                               rCaps.getRedBits()   > r &&
+                               rCaps.getGreenBits() > g &&
+                               rCaps.getBlueBits()  > b &&
+                               rCaps.getAlphaBits() > a ;
         
-        if(!fits) {
+        if(change) {
             Capabilities nCaps = (Capabilities) rCaps.cloneMutable();
             nCaps.setRedBits(r);
             nCaps.setGreenBits(g);
             nCaps.setBlueBits(b);
             nCaps.setAlphaBits(a);
-            res = nCaps;            
+            res = nCaps;        
         } else {
             res = rCaps;
         }
@@ -138,32 +128,43 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         return fmt;
     }
     
-    class AndroidEvents implements /* View.OnKeyListener, */ View.OnTouchListener {
+    class AndroidEvents implements /* View.OnKeyListener, */ View.OnTouchListener, View.OnFocusChangeListener {
 
         public boolean onTouch(View v, MotionEvent event) {
             MouseEvent[] newtEvents = AndroidNewtEventFactory.createMouseEvents(AndroidWindow.this, event);
             if(null != newtEvents) {
+                focusChanged(false, true);
                 for(int i=0; i<newtEvents.length; i++) {
                     AndroidWindow.this.enqueueEvent(false, newtEvents[i]);
                 }
+                try { Thread.sleep((long) (1000.0F/30.0F)); }
+                catch(InterruptedException e) { }
+                return true; // consumed/handled, further interest in events
             }
-            return true;
+            return false; // no mapping, no further interest in the event!
         }
 
         /** TODO
         public boolean onKey(View v, int keyCode, KeyEvent event) {
             return false;
         } */
+        
+        public void onFocusChange(View v, boolean hasFocus) {
+            AndroidWindow.this.focusChanged(false, hasFocus);
+        }
+        
     }
 
     @Override
     protected void instantiationFinished() {
         androidView = new MSurfaceView(jogamp.common.os.android.StaticContext.getContext());
-        AndroidEvents ae = new AndroidEvents();
+        final AndroidEvents ae = new AndroidEvents();
         androidView.setOnTouchListener(ae);
         androidView.setClickable(false);
-        // nsv.setOnKeyListener(ae);
-        SurfaceHolder sh = androidView.getHolder();
+        // androidView.setOnKeyListener(ae);
+        androidView.setOnFocusChangeListener(ae);
+        
+        final SurfaceHolder sh = androidView.getHolder();
         sh.addCallback(this); 
         // setFormat is done by SurfaceView in SDK 2.3 and newer. Uncomment
         // this statement if back-porting to 2.2 or older:
@@ -186,10 +187,8 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         System.err.println("setandroidWindow: "+window+", "+getWidth()+"x"+getHeight());
         androidWindow = window;
         androidWindowConfigurationPreCreate();
-        if(getWidth()>0 && getHeight()>0 && !isFullscreen()) {
-            if(null != androidWindow) {
-                androidWindow.setLayout(getWidth(), getHeight());
-            }
+        if(null != androidWindow && getWidth()>0 && getHeight()>0 && !isFullscreen()) {            
+            androidWindow.setLayout(getWidth(), getHeight());
         }
     }
     public android.view.Window getAndroidWindow() { return androidWindow; }
@@ -220,16 +219,10 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         if (eglConfig == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
-        // query native VisualID and pass it to Surface
-        final long eglConfigHandle = eglConfig.getNativeConfig();
-        final IntBuffer nativeVisualID = Buffers.newDirectIntBuffer(1);
-        if(!EGL.eglGetConfigAttrib(eglDevice.getHandle(), eglConfigHandle, EGL.EGL_NATIVE_VISUAL_ID, nativeVisualID)) {
-            throw new NativeWindowException("eglgetConfigAttrib EGL_NATIVE_VISUAL_ID failed eglDisplay 0x"+Long.toHexString(eglDevice.getHandle())+ 
-                                  ", error 0x"+Integer.toHexString(EGL.eglGetError()));
-        }        
-        Log.d(MD.TAG, "nativeVisualID 0x"+Integer.toHexString(nativeVisualID.get(0)));
-        if(nativeVisualID.get(0)>0) {
-            setSurfaceVisualID0(surfaceHandle, nativeVisualID.get(0));
+        final int nativeVisualID = eglConfig.getVisualID(VisualIDHolder.VIDType.NATIVE);
+        Log.d(MD.TAG, "nativeVisualID 0x"+Integer.toHexString(nativeVisualID));
+        if(VisualIDHolder.VID_UNDEFINED != nativeVisualID) {
+            setSurfaceVisualID0(surfaceHandle, nativeVisualID);
         }
         
         eglSurface = EGL.eglCreateWindowSurface(eglDevice.getHandle(), eglConfig.getNativeConfig(), surfaceHandle, null);
@@ -240,6 +233,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         // propagate data ..
         setGraphicsConfiguration(eglConfig);
         setWindowHandle(surfaceHandle);
+        focusChanged(false, true);
         Log.d(MD.TAG, "createNativeImpl X");
     }
 
@@ -256,33 +250,40 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         return eglSurface;
     }
     
-    protected void requestFocusImpl(boolean reparented) { }
+    protected void requestFocusImpl(boolean reparented) { 
+        if(null != androidView) {
+            androidView.requestFocus();
+        }
+    }
 
     protected void androidWindowConfigurationPreCreate() {
         if( null != androidWindow) {
             if( isFullscreen() || isUndecorated() ) {
-                androidWindow.requestFeature(Window.FEATURE_NO_TITLE);
+                boolean r = androidWindow.requestFeature(Window.FEATURE_NO_TITLE);
             }
             if( isFullscreen() ) {
-                androidWindow.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                                       WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                androidWindow.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                androidWindow.clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+            } else {
+                androidWindow.addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+                androidWindow.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);                
             }
         }
     }
     
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         if( 0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
-            System.err.println("reconfigureWindowImpl.setFullscreen post creation (setContentView()) n/a");
+            Log.d(MD.TAG, "reconfigureWindowImpl.setFullscreen post creation (setContentView()) n/a");
             return false;
         }
         if(width>0 || height>0) {
             if(0!=getWindowHandle()) {
-                System.err.println("reconfigureWindowImpl.setSize n/a");
+                Log.d(MD.TAG, "reconfigureWindowImpl.setSize n/a");
                 return false;
             }
         }
         if(x>=0 || y>=0) {
-            System.err.println("reconfigureWindowImpl.setPos n/a");
+            Log.d(MD.TAG, "reconfigureWindowImpl.setPos n/a");
             return false;
         }
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
@@ -291,29 +292,6 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         return true;
     }
 
-    /**
-    android.graphics.Canvas cLock = null;
-    
-    @Override
-    protected int lockSurfaceImpl() {
-        if (null != cLock) {
-            throw new InternalError("surface already locked");
-        }        
-        if (0 != surfaceHandle) {
-            cLock = androidView.getHolder().lockCanvas();
-        }
-        return ( null != cLock ) ? LOCK_SUCCESS : LOCK_SURFACE_NOT_READY;
-    }
-
-    @Override
-    protected void unlockSurfaceImpl() {
-        if (null == cLock) {
-            throw new InternalError("surface not locked");
-        }
-        androidView.getHolder().unlockCanvasAndPost(cLock);
-        cLock=null;
-    } */
-    
     protected Point getLocationOnScreenImpl(int x, int y) {
         return new Point(x,y);
     }
@@ -354,19 +332,21 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
             surface = aHolder.getSurface();
             surfaceHandle = getSurfaceHandle0(surface);
             acquire0(surfaceHandle);
-            if(PixelFormat.UNKNOWN == aFormat) {
-                format = getSurfaceVisualID0(surfaceHandle);
+            final int nFormat = getSurfaceVisualID0(surfaceHandle);
+            if(PixelFormat.UNKNOWN == aFormat || 0 >= aFormat) {
+                format = nFormat;
             } else {
                 format = aFormat;
             }
             final int nWidth = getWidth0(surfaceHandle);
             final int nHeight = getHeight0(surfaceHandle);
-            capsByFormat = (GLCapabilitiesImmutable) fixCaps(format, getRequestedCapabilities());
+            capsByFormat = (GLCapabilitiesImmutable) fixCaps(true /* matchFormatPrecise */, format, getRequestedCapabilities());
             sizeChanged(false, nWidth, nHeight, false);
     
             Log.d(MD.TAG, "surfaceRealized: isValid: "+surface.isValid()+
-                          ", new surfaceHandle 0x"+Long.toHexString(surfaceHandle)+", format: "+format+
-                          ", "+getX()+"/"+getY()+" "+nWidth+"x"+nHeight+", visible: "+isVisible());
+                          ", new surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
+                          ", format: "+format+"(a "+aFormat+"/n "+nFormat+"), "+
+                          getX()+"/"+getY()+" "+nWidth+"x"+nHeight+", visible: "+isVisible());
     
             if(isVisible()) {
                setVisible(true); 
