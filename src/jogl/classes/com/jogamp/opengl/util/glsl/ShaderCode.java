@@ -295,39 +295,43 @@ public class ShaderCode {
         }
     }
 
-    private static int readShaderSource(Class<?> context, URL url, StringBuffer result, int lineno) {
+    private static int readShaderSource(Class<?> context, URL url, StringBuffer result, int lineno) {        
         try {
             if(DEBUG_CODE) {
                 System.err.printf("%3d: // %s\n", lineno, url);
             }
-            BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                lineno++;
-                if(DEBUG_CODE) {
-                    System.err.printf("%3d: %s\n", lineno, line);
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+            try {
+                String line = null;
+                while ((line = reader.readLine()) != null) {
+                    lineno++;
+                    if(DEBUG_CODE) {
+                        System.err.printf("%3d: %s\n", lineno, line);
+                    }
+                    if (line.startsWith("#include ")) {
+                        String includeFile = line.substring(9).trim();
+                        URL nextURL = null;
+                        
+                        // Try relative path first
+                        String next = IOUtil.getRelativeOf(url, includeFile);
+                        if(null != next) {
+                            nextURL = IOUtil.getResource(context, next);        
+                        }
+                        if (nextURL == null) {
+                            // Try absolute path
+                            nextURL = IOUtil.getResource(context, includeFile);        
+                        }
+                        if (nextURL == null) {
+                            // Fail
+                            throw new FileNotFoundException("Can't find include file " + includeFile);
+                        }
+                        lineno = readShaderSource(context, nextURL, result, lineno);
+                    } else {
+                        result.append(line + "\n");
+                    }
                 }
-                if (line.startsWith("#include ")) {
-                    String includeFile = line.substring(9).trim();
-                    URL nextURL = null;
-                    
-                    // Try relative path first
-                    String next = IOUtil.getRelativeOf(url, includeFile);
-                    if(null != next) {
-                        nextURL = IOUtil.getResource(context, next);        
-                    }
-                    if (nextURL == null) {
-                        // Try absolute path
-                        nextURL = IOUtil.getResource(context, includeFile);        
-                    }
-                    if (nextURL == null) {
-                        // Fail
-                        throw new FileNotFoundException("Can't find include file " + includeFile);
-                    }
-                    lineno = readShaderSource(context, nextURL, result, lineno);
-                } else {
-                    result.append(line + "\n");
-                }
+            } finally {
+                IOUtil.close(reader, false);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -358,12 +362,17 @@ public class ShaderCode {
     }
 
     public static ByteBuffer readShaderBinary(Class<?> context, String path) {
+        final URL url = IOUtil.getResource(context, path);
+        if (url == null) {
+            return null;
+        }
         try {
-            URL url = IOUtil.getResource(context, path);
-            if (url == null) {
-                return null;
+            final BufferedInputStream bis = new BufferedInputStream( url.openStream() );
+            try {
+                return IOUtil.copyStream2ByteBuffer( bis );
+            } finally {
+                IOUtil.close(bis, false);
             }
-            return IOUtil.copyStream2ByteBuffer( new BufferedInputStream( url.openStream() ) );
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
