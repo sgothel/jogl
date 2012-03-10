@@ -11,6 +11,7 @@ export PATH
 #    -DisLinuxARMv7=true \
 #    -DisX11=false \
 
+export TARGET_PLATFORM_ROOT=/
 export TARGET_PLATFORM_LIBS=/usr/lib/arm-linux-gnueabi
 export TARGET_JAVA_LIBS=/usr/lib/jvm/default-java/jre/lib/arm
 
