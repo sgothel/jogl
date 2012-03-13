@@ -39,8 +39,6 @@ package com.jogamp.newt.util;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
-import java.security.AccessControlContext;
-import java.security.AccessController;
 
 import javax.media.nativewindow.NativeWindowFactory;
 
@@ -101,11 +99,10 @@ public class MainThread {
     public static final boolean  HINT_USE_MAIN_THREAD;
     
     static {
-        final AccessControlContext localACC = AccessController.getContext();
         NativeWindowFactory.initSingleton(true);
         NEWTJNILibLoader.loadNEWT();
         HINT_USE_MAIN_THREAD = !NativeWindowFactory.isAWTAvailable() || 
-                                Debug.getBooleanProperty("newt.MainThread.force", true, localACC);
+                                Debug.getBooleanProperty("newt.MainThread.force", true);
         osType = Platform.getOSType();
         isMacOSX = osType == Platform.OSType.MACOS;                
     }

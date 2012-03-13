@@ -62,9 +62,9 @@ public class ThreadingImpl {
     private static final ThreadingPlugin threadingPlugin;
   
     static {
-        Object threadingPluginTmp =
-            AccessController.doPrivileged(new PrivilegedAction() {
-                    public Object run() {
+        threadingPlugin =
+            AccessController.doPrivileged(new PrivilegedAction<ThreadingPlugin>() {
+                    public ThreadingPlugin run() {
                         String workaround = Debug.getProperty("jogl.1thread", true);
                         ClassLoader cl = ThreadingImpl.class.getClassLoader();
                         // Default to using the AWT thread on all platforms except
@@ -100,21 +100,20 @@ public class ThreadingImpl {
                         }
                         printWorkaroundNotice();
 
-                        Object threadingPluginObj=null;
+                        ThreadingPlugin threadingPlugin=null;
                         if(hasAWT) {
                             // try to fetch the AWTThreadingPlugin
                             Exception error=null;
                             try {
-                                threadingPluginObj = ReflectionUtil.createInstance("jogamp.opengl.awt.AWTThreadingPlugin", cl);
+                                threadingPlugin = (ThreadingPlugin) ReflectionUtil.createInstance("jogamp.opengl.awt.AWTThreadingPlugin", cl);
                             } catch (JogampRuntimeException jre) { error = jre; }
-                            if(AWT == mode && null==threadingPluginObj) {                                
+                            if(AWT == mode && null==threadingPlugin) {                                
                                 throw new GLException("Mode is AWT, but class 'jogamp.opengl.awt.AWTThreadingPlugin' is not available", error);
                             }
                         }
-                        return threadingPluginObj;
+                        return threadingPlugin;
                     }
                 });
-        threadingPlugin = (ThreadingPlugin) threadingPluginTmp;
         if(DEBUG) {
             System.err.println("Threading: hasAWT "+hasAWT+", mode "+((mode==AWT)?"AWT":"WORKER")+", plugin "+threadingPlugin);
         }

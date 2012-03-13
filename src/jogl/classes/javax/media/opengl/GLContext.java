@@ -41,8 +41,6 @@
 package javax.media.opengl;
 
 import java.nio.IntBuffer;
-import java.security.AccessControlContext;
-import java.security.AccessController;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -70,18 +68,11 @@ import jogamp.opengl.GLContextImpl;
 public abstract class GLContext {
   public static final boolean DEBUG = Debug.debug("GLContext");
   
-  public static final boolean TRACE_SWITCH;       
+  public static final boolean TRACE_SWITCH = Debug.isPropertyDefined("jogl.debug.GLContext.TraceSwitch", true);       
   /** Reflects property jogl.debug.DebugGL. If true, the debug pipeline is enabled at context creation. */
-  public final static boolean DEBUG_GL;
+  public final static boolean DEBUG_GL = Debug.isPropertyDefined("jogl.debug.DebugGL", true);
   /** Reflects property jogl.debug.TraceGL. If true, the trace pipeline is enabled at context creation. */
-  public final static boolean TRACE_GL;
-  
-  static { 
-      final AccessControlContext acl = AccessController.getContext();
-      DEBUG_GL = Debug.isPropertyDefined("jogl.debug.DebugGL", true, acl);
-      TRACE_GL = Debug.isPropertyDefined("jogl.debug.TraceGL", true, acl);
-      TRACE_SWITCH = Debug.isPropertyDefined("jogl.debug.GLContext.TraceSwitch", true, acl);
-  }
+  public final static boolean TRACE_GL = Debug.isPropertyDefined("jogl.debug.TraceGL", true);
   
   /** Indicates that the context was not made current during the last call to {@link #makeCurrent makeCurrent}. */
   public static final int CONTEXT_NOT_CURRENT = 0;

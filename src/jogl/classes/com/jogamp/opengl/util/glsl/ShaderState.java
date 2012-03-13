@@ -28,7 +28,6 @@
 
 package com.jogamp.opengl.util.glsl;
 
-import java.security.AccessController;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -47,7 +46,7 @@ import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.opengl.util.GLArrayDataEditable;
 
 public class ShaderState {
-    public static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.GLSLState", true, AccessController.getContext());
+    public static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.GLSLState", true);
     private static final String currentStateKey = "jogamp.opengl.glsl.ShaderState" ;
     
     public ShaderState() {

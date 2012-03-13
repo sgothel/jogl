@@ -40,7 +40,6 @@
 
 package javax.media.nativewindow;
 
-import java.security.AccessController;
 import java.util.List;
 
 import jogamp.nativewindow.Debug;
@@ -67,7 +66,7 @@ import jogamp.nativewindow.Debug;
 */
 
 public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
-  private static final boolean DEBUG = Debug.isPropertyDefined("nativewindow.debug.CapabilitiesChooser", true, AccessController.getContext());
+  private static final boolean DEBUG = Debug.isPropertyDefined("nativewindow.debug.CapabilitiesChooser", true); 
 
   public int chooseCapabilities(final CapabilitiesImmutable desired,
                                 final List /*<CapabilitiesImmutable>*/ available,

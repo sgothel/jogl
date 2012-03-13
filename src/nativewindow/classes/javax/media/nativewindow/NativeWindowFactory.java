@@ -35,7 +35,6 @@ package javax.media.nativewindow;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Collections;
@@ -191,9 +190,8 @@ public abstract class NativeWindowFactory {
             final ClassLoader cl = NativeWindowFactory.class.getClassLoader();
 
             // Gather the windowing OS first
-            AccessControlContext acc = AccessController.getContext();
             nativeWindowingTypePure = _getNativeWindowingType();
-            String tmp = Debug.getProperty("nativewindow.ws.name", true, acc);
+            String tmp = Debug.getProperty("nativewindow.ws.name", true);
             if(null==tmp || tmp.length()==0) {
                 nativeWindowingTypeCustom = nativeWindowingTypePure;
             } else {
@@ -206,7 +204,7 @@ public abstract class NativeWindowFactory {
             }            
             isAWTAvailable = false; // may be set to true below
 
-            if( !Debug.getBooleanProperty("java.awt.headless", true, acc) &&
+            if( !Debug.getBooleanProperty("java.awt.headless", true) &&
                 ReflectionUtil.isClassAvailable(AWTComponentClassName, cl) &&
                 ReflectionUtil.isClassAvailable("com.jogamp.nativewindow.awt.AWTGraphicsDevice", cl) ) {
                 

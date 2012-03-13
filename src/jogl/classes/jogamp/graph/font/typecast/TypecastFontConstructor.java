@@ -71,7 +71,7 @@ public class TypecastFontConstructor implements FontConstructor  {
                 int len=0;
                 Font f = null;
                 try {         
-                    tf = IOUtil.createTempFile( "joglfont", ".ttf");
+                    tf = IOUtil.createTempFile( "joglfont", ".ttf", null);
                     len = IOUtil.copyURL2File(furl, tf);
                     if(len==0) {
                         tf.delete();

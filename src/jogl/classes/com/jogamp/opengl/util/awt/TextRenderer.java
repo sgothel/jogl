@@ -40,7 +40,7 @@
 package com.jogamp.opengl.util.awt;
 
 import com.jogamp.common.nio.Buffers;
-import jogamp.opengl.Debug;
+
 import com.jogamp.opengl.util.*;
 import com.jogamp.opengl.util.packrect.*;
 import com.jogamp.opengl.util.texture.*;
@@ -66,11 +66,11 @@ import java.text.*;
 
 import java.util.*;
 
-import java.security.*;
-
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
 import javax.media.opengl.awt.*;
+
+import jogamp.opengl.Debug;
 
 
 /** Renders bitmapped Java 2D text into an OpenGL window with high
@@ -127,7 +127,7 @@ import javax.media.opengl.awt.*;
     @author Kenneth Russell
 */
 public class TextRenderer {
-    private static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.TextRenderer", true, AccessController.getContext());
+    private static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.TextRenderer", true); 
 
     // These are occasionally useful for more in-depth debugging
     private static final boolean DISABLE_GLYPH_CACHE = false;

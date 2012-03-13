@@ -34,7 +34,6 @@
 
 package jogamp.newt;
 
-import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
@@ -48,6 +47,7 @@ import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.SurfaceSize;
+
 
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.IntIntHashMap;
@@ -78,7 +78,6 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     protected Dimension vSize = new Dimension(0, 0); // virtual rotated screen size
     protected static Dimension usrSize = null; // property values: newt.ws.swidth and newt.ws.sheight
     protected static volatile boolean usrSizeQueried = false;
-    private static AccessControlContext localACC = AccessController.getContext();
     private ArrayList<ScreenModeListener> referencedScreenModeListener = new ArrayList<ScreenModeListener>();
     private long tCreated; // creationTime
 
@@ -121,8 +120,8 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 synchronized (Screen.class) {
                     if(!usrSizeQueried) {
                         usrSizeQueried = true;
-                        final int w = Debug.getIntProperty("newt.ws.swidth", true, localACC);
-                        final int h = Debug.getIntProperty("newt.ws.sheight", true, localACC);                        
+                        final int w = Debug.getIntProperty("newt.ws.swidth", true, 0);
+                        final int h = Debug.getIntProperty("newt.ws.sheight", true, 0);                        
                         if(w>0 && h>0) {
                             usrSize = new Dimension(w, h);
                             System.err.println("User screen size "+usrSize);

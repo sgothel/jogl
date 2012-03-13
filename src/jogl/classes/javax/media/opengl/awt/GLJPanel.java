@@ -43,8 +43,6 @@ package javax.media.opengl.awt;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.beans.Beans;
-import java.security.AccessControlContext;
-import java.security.AccessController;
 
 import java.awt.Color;
 import java.awt.EventQueue;
@@ -154,22 +152,20 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   // Used by all backends either directly or indirectly to hook up callbacks
   private Updater updater = new Updater();
 
-  private static final AccessControlContext localACC = AccessController.getContext();
-
   // Turns off the pbuffer-based backend (used by default, unless the
   // Java 2D / OpenGL pipeline is in use)
   private static boolean hardwareAccelerationDisabled =
-    Debug.isPropertyDefined("jogl.gljpanel.nohw", true, localACC);
+    Debug.isPropertyDefined("jogl.gljpanel.nohw", true);
 
   // Turns off the fallback to software-based rendering from
   // pbuffer-based rendering
   private static boolean softwareRenderingDisabled =
-    Debug.isPropertyDefined("jogl.gljpanel.nosw", true, localACC);
+    Debug.isPropertyDefined("jogl.gljpanel.nosw", true);
 
   // Indicates whether the Java 2D OpenGL pipeline is enabled
   private boolean oglPipelineEnabled =
     Java2D.isOGLPipelineActive() &&
-    !Debug.isPropertyDefined("jogl.gljpanel.noogl", true, localACC);
+    !Debug.isPropertyDefined("jogl.gljpanel.noogl", true);
 
   // For handling reshape events lazily
   // private int reshapeX;

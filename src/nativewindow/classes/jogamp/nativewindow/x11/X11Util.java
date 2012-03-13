@@ -33,7 +33,6 @@
 
 package jogamp.nativewindow.x11;
 
-import java.security.AccessController;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,7 +82,7 @@ public class X11Util {
     public static final boolean HAS_XLOCKDISPLAY_BUG = true;
     
     private static final boolean DEBUG = Debug.debug("X11Util");
-    private static final boolean TRACE_DISPLAY_LIFECYCLE = Debug.getBooleanProperty("nativewindow.debug.X11Util.TraceDisplayLifecycle", true, AccessController.getContext());
+    private static final boolean TRACE_DISPLAY_LIFECYCLE = Debug.getBooleanProperty("nativewindow.debug.X11Util.TraceDisplayLifecycle", true);
 
     private static String nullDisplayName = null;
     private static boolean isX11LockAvailable = false;

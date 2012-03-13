@@ -39,18 +39,18 @@
 
 package jogamp.nativewindow;
 
-import java.security.*;
+import com.jogamp.common.util.PropertyAccess;
 
 /** Helper routines for logging and debugging. */
 
-public class Debug {
+public class Debug extends PropertyAccess {
   // Some common properties
-  private static boolean verbose;
-  private static boolean debugAll;
-  private static AccessControlContext localACC;
+  private static final boolean verbose;
+  private static final boolean debugAll;
   
   static {
-    localACC=AccessController.getContext();
+    PropertyAccess.addTrustedPrefix("nativewindow.", Debug.class);
+
     verbose = isPropertyDefined("nativewindow.verbose", true);
     debugAll = isPropertyDefined("nativewindow.debug", true);
     if (verbose) {
@@ -61,71 +61,18 @@ public class Debug {
     }
   }
 
-  static int getIntProperty(final String property, final boolean jnlpAlias) {
-      return getIntProperty(property, jnlpAlias, localACC);
+  public static final boolean isPropertyDefined(final String property, final boolean jnlpAlias) {
+    return PropertyAccess.isPropertyDefined(property, jnlpAlias, null);
   }
-
-  public static int getIntProperty(final String property, final boolean jnlpAlias, final AccessControlContext acc) {
-    int i=0;
-    try {
-        Integer iv = Integer.valueOf(Debug.getProperty(property, jnlpAlias, acc));
-        i = iv.intValue();
-    } catch (NumberFormatException nfe) {}
-    return i;
+    
+  public static String getProperty(final String property, final boolean jnlpAlias) {
+    return PropertyAccess.getProperty(property, jnlpAlias, null);
   }
-
-  static boolean getBooleanProperty(final String property, final boolean jnlpAlias) {
-    return getBooleanProperty(property, jnlpAlias, localACC);
+    
+  public static final boolean getBooleanProperty(final String property, final boolean jnlpAlias) {
+      return PropertyAccess.getBooleanProperty(property, jnlpAlias, null);
   }
-
-  public static boolean getBooleanProperty(final String property, final boolean jnlpAlias, final AccessControlContext acc) {
-    Boolean b = Boolean.valueOf(Debug.getProperty(property, jnlpAlias, acc));
-    return b.booleanValue();
-  }
-
-  static boolean isPropertyDefined(final String property, final boolean jnlpAlias) {
-    return isPropertyDefined(property, jnlpAlias, localACC);
-  }
-
-  public static boolean isPropertyDefined(final String property, final boolean jnlpAlias, final AccessControlContext acc) {
-    return (Debug.getProperty(property, jnlpAlias, acc) != null) ? true : false;
-  }
-
-  static String getProperty(final String property, final boolean jnlpAlias) {
-    return getProperty(property, jnlpAlias, localACC);
-  }
-
-  public static String getProperty(final String property, final boolean jnlpAlias, final AccessControlContext acc) {
-    String s=null;
-    if(null!=acc && acc.equals(localACC)) {
-        s = (String) AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
-              String val=null;
-              try {
-                  val = System.getProperty(property);
-              } catch (Exception e) {}
-              if(null==val && jnlpAlias && !property.startsWith(jnlp_prefix)) {
-                  try {
-                      val = System.getProperty(jnlp_prefix + property);
-                  } catch (Exception e) {}
-              }
-              return val;
-            }
-          });
-    } else {
-        try {
-            s = System.getProperty(property);
-        } catch (Exception e) {}
-        if(null==s && jnlpAlias && !property.startsWith(jnlp_prefix)) {
-            try {
-                s = System.getProperty(jnlp_prefix + property);
-            } catch (Exception e) {}
-        }
-    }
-    return s;
-  }
-  public static final String jnlp_prefix = "jnlp." ;
-
+    
   public static boolean verbose() {
     return verbose;
   }

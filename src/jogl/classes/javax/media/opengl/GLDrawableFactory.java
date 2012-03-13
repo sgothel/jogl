@@ -46,7 +46,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.jogamp.common.JogampRuntimeException;
-import jogamp.common.Debug;
 
 import com.jogamp.common.util.ReflectionUtil;
 
@@ -55,6 +54,8 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.opengl.GLProfile.ShutdownType;
+
+import jogamp.opengl.Debug;
 
 /** <P> Provides a virtual machine- and operating system-independent
     mechanism for creating {@link GLDrawable}s. </P>
@@ -122,7 +123,7 @@ public abstract class GLDrawableFactory {
     
     final String nativeOSType = NativeWindowFactory.getNativeWindowType(true);
     GLDrawableFactory tmp = null;
-    String factoryClassName = Debug.getProperty("jogl.gldrawablefactory.class.name", true, AccessController.getContext());
+    String factoryClassName = Debug.getProperty("jogl.gldrawablefactory.class.name", true);
     ClassLoader cl = GLDrawableFactory.class.getClassLoader();
     if (null == factoryClassName) {
         if ( nativeOSType.equals(NativeWindowFactory.TYPE_X11) ) {

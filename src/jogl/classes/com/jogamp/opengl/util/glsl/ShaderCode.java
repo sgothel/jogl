@@ -38,11 +38,10 @@ import java.util.*;
 import java.nio.*;
 import java.io.*;
 import java.net.*;
-import java.security.*;
 
 public class ShaderCode {
     public static final boolean DEBUG = Debug.debug("GLSLCode");
-    public static final boolean DEBUG_CODE = Debug.isPropertyDefined("jogl.debug.GLSLCode", true, AccessController.getContext());
+    public static final boolean DEBUG_CODE = Debug.isPropertyDefined("jogl.debug.GLSLCode", true);
 
     public static final String SUFFIX_VERTEX_SOURCE   =  "vp" ;
     public static final String SUFFIX_VERTEX_BINARY   = "bvp" ;

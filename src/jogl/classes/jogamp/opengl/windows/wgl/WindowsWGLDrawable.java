@@ -40,8 +40,6 @@
 
 package jogamp.opengl.windows.wgl;
 
-import java.security.AccessController;
-
 import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
@@ -53,7 +51,7 @@ import jogamp.opengl.GLDynamicLookupHelper;
 
 
 public abstract class WindowsWGLDrawable extends GLDrawableImpl {
-  private static final boolean PROFILING = Debug.isPropertyDefined("jogl.debug.GLDrawable.profiling", true, AccessController.getContext());
+  private static final boolean PROFILING = Debug.isPropertyDefined("jogl.debug.GLDrawable.profiling", true);
   private static final int PROFILING_TICKS = 200;
   private int  profilingSwapBuffersTicks;
   private long profilingSwapBuffersTime;

@@ -41,11 +41,10 @@
 package javax.media.opengl;
 
 import javax.media.nativewindow.NativeWindowException;
-import jogamp.opengl.Debug;
-
-import java.security.AccessController;
 import java.util.List;
 import javax.media.nativewindow.CapabilitiesImmutable;
+
+import jogamp.opengl.Debug;
 
 /** <P> The default implementation of the {@link
     GLCapabilitiesChooser} interface, which provides consistent visual
@@ -86,7 +85,7 @@ import javax.media.nativewindow.CapabilitiesImmutable;
 */
 
 public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
-  private static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.CapabilitiesChooser", true, AccessController.getContext());
+  private static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.CapabilitiesChooser", true);
 
   final static int NO_SCORE = -9999999;
   final static int DOUBLE_BUFFER_MISMATCH_PENALTY = 1000;

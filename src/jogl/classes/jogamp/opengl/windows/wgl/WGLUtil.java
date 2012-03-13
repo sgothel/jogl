@@ -27,8 +27,6 @@
  */
 package jogamp.opengl.windows.wgl;
 
-import java.security.AccessController;
-
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
 import jogamp.opengl.Debug;
@@ -53,7 +51,7 @@ public class WGLUtil {
     public static final boolean USE_WGLVersion_Of_5WGLGDIFuncSet;
     
     static {
-        USE_WGLVersion_Of_5WGLGDIFuncSet = Debug.isPropertyDefined("jogl.windows.useWGLVersionOf5WGLGDIFuncSet", true, AccessController.getContext());
+        USE_WGLVersion_Of_5WGLGDIFuncSet = Debug.isPropertyDefined("jogl.windows.useWGLVersionOf5WGLGDIFuncSet", true);
         if(USE_WGLVersion_Of_5WGLGDIFuncSet) {
             System.err.println("Use WGL version of 5 WGL/GDI functions.");
         }

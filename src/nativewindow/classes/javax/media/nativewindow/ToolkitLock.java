@@ -29,7 +29,6 @@
 package javax.media.nativewindow;
 
 import jogamp.nativewindow.Debug;
-import java.security.AccessController;
 
 /**
  * Marker for a singleton global recursive blocking lock implementation,
@@ -38,7 +37,7 @@ import java.security.AccessController;
  * One use case is the AWT locking on X11, see {@link jogamp.nativewindow.jawt.JAWTToolkitLock}.
  */
 public interface ToolkitLock {
-    public static final boolean TRACE_LOCK = Debug.isPropertyDefined("nativewindow.debug.ToolkitLock.TraceLock", true, AccessController.getContext());
+    public static final boolean TRACE_LOCK = Debug.isPropertyDefined("nativewindow.debug.ToolkitLock.TraceLock", true);
 
     public void lock();
     public void unlock();
