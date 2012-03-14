@@ -466,7 +466,7 @@
         <property name="junit_jogl_noawt.run.jars"
                   value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${jogl.all-noawt.jar}${path.separator}${jogl.test.jar}"/>
         <property name="junit_jogl_noawt.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${gluegen-rt.jar}${path.separator}${jogl.all-noawt.jar}${path.separator}${jogl.test.jar}"/>
-        <property name="junit.run.remote.apks" value="${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt.apk${path.separator}${jogl.all-android.apk}${path.separator}${jogl.test.apk}"/>
+        <property name="junit.run.remote.apks" value="${gluegen.root}/${rootrel.build}/jogamp.android-launcher.apk${path.separator}${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt.apk${path.separator}${jogl.all-android.apk}${path.separator}${jogl.test.apk}"/>
 
         <!-- Test Run w/ SWT .. -->
         <path id="junit_jogl_swt.run.classpath">

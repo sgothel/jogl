@@ -63,12 +63,7 @@ public class NewtBaseActivity extends Activity {
        newtWindow = newtWindow.getDelegatedWindow();
        if(newtWindow instanceof AndroidWindow) {
            this.newtWindow = (AndroidWindow)newtWindow;
-           this.newtWindow.setAndroidWindow(androidWindow);
-           if(isInvokedByExternalActivity) {
-               extActivity.setContentView(this.newtWindow.getAndroidView());
-           } else {
-               super.setContentView(this.newtWindow.getAndroidView());               
-           }
+           this.newtWindow.becomeContentViewOf(androidWindow);
        } else {
            throw new IllegalArgumentException("Given NEWT Window is not an Android Window: "+newtWindow.getClass()); 
        }
@@ -97,7 +92,6 @@ public class NewtBaseActivity extends Activity {
        } else {
            jogamp.common.os.android.StaticContext.setContext(extActivity.getApplicationContext());
        }
-       extActivity.getWindow();
    }
    
    @Override

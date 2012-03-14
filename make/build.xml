@@ -168,38 +168,6 @@
             version.name="${jogl.version.plus}" />
     </target>
 
-    <target name="android.launcher.package" depends="init,gluegen.cpptasks.detect.os" if="isAndroid">
-        <mkdir dir="${build}/android/classes" />
-        <mkdir dir="${build}/android/lib" />
-        <javac destdir="${build}/android/classes"
-               includes="com/jogamp/android/launcher/**"
-               fork="yes"
-               includeAntRuntime="false"
-               memoryMaximumSize="${javac.memorymax}"
-               encoding="UTF-8"
-               source="${target.sourcelevel}" 
-               target="${target.targetlevel}" 
-               bootclasspath="${target.rt.jar}"
-               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <src path="${project.root}/src/android" />
-            <classpath location="${android.jar}"/>
-        </javac>
-        <jar destfile="${jar}/jogl.android-launcher.jar" filesonly="true">
-            <fileset dir="${build}/android/classes"
-                     includes="com/jogamp/android/launcher/**"/>
-        </jar>
-        <aapt.signed 
-            jarbuilddir="${jar}"
-            jarbasename="jogl.android-launcher"
-            nativebuilddir="${build}/android/lib"
-            nativebasename="non-existing"
-            android.abi="${android.abi}"
-            androidmanifest.path="resources/android/AndroidManifest-launcher.xml"
-            androidresources.path="resources/android/res-launcher"
-            version.code="1"
-            version.name="version 1" />
-    </target>
-
     <target name="one.dir.skip.check" depends="init,gluegen.cpptasks.detect.os">
       <uptodate property="one.dir.skip.native" targetfile="${jar}/jogl-all-natives-${os.and.arch}.jar">
         <srcfiles dir="${lib}" includes="*.${native.library.suffix}" />
@@ -223,7 +191,7 @@
       </condition>
     </target>
 
-    <target name="one.dir" depends="one.dir.skip.check, one.jar.dir, android.jogl.package, android.launcher.package"/>
+    <target name="one.dir" depends="one.dir.skip.check, one.jar.dir, android.jogl.package"/>
 
     <target name="repack-jars" depends="one.jar.dir">
         <!-- Re-pack jars we have the intent to compress later, after signing -->

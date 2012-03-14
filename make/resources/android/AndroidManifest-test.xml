@@ -12,6 +12,89 @@
                  android:description="@string/app_descr"
                  android:persistent="false"
                  >
+
+        <activity android:name="com.jogamp.opengl.test.android.NEWTRedSquareES1ActivityLauncher"
+                  android:label="@string/activity_redsquarees1_name"
+                  android:description="@string/activity_redsquarees1_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.opengl.test.android.NEWTRedSquareES2ActivityLauncher"
+                  android:label="@string/activity_redsquarees2_name"
+                  android:description="@string/activity_redsquarees2_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name="com.jogamp.opengl.test.android.NEWTGearsES1ActivityLauncher"
+                  android:label="@string/activity_gearses1_name"
+                  android:description="@string/activity_gearses1_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.opengl.test.android.NEWTGearsES2ActivityLauncher"
+                  android:label="@string/activity_gearses2_name"
+                  android:description="@string/activity_gearses2_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name="com.jogamp.opengl.test.android.NEWTGearsES2TransActivityLauncher"
+                  android:label="@string/activity_gearses2t_name"
+                  android:description="@string/activity_gearses2t_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.opengl.test.android.NEWTGraphUI1pActivityLauncher"
+                  android:label="@string/activity_graphui1p_name"
+                  android:description="@string/activity_graphui1p_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.opengl.test.android.NEWTGraphUI2pActivityLauncher"
+                  android:label="@string/activity_graphui2p_name"
+                  android:description="@string/activity_graphui2p_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.opengl.test.android.NEWTElektronActivityLauncher"
+                  android:label="@string/activity_elektro_name"
+                  android:description="@string/activity_elektro_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

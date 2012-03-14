@@ -65,7 +65,7 @@
             nativebasename="non-existing"
             android.abi="${android.abi}"
             androidmanifest.path="resources/android/AndroidManifest-test.xml"
-            androidresources.path="resources/android/res-jogl"
+            androidresources.path="resources/android/res-test"
             jarmanifest.path="${build.jogl}/manifest.mf"
             version.code="${jogl_int_version}"
             version.name="${jogl.version.plus}" />
@@ -110,7 +110,8 @@
       <uptodate property="test.compile.skip">
         <srcfiles dir= "."                 includes="*.xml"/>
         <srcfiles dir= "${src.test}"       includes="**"/>
-        <srcfiles                          file="${gluegen.jar}" />
+        <srcfiles dir= "resources/android" includes="**/*.xml"/>
+        <srcfiles                          file="${gluegen-rt.jar}" />
         <srcfiles                          dir="${src}/nativewindow" />
         <srcfiles                          dir="${src}/jogl" />
         <srcfiles                          dir="${src}/newt" />
@@ -850,7 +851,7 @@ ${line.separator}
             chmod 0755 ${build.test}/targetcommand.sh ;
             adb connect ${env.TARGET_IP}:${env.TARGET_ADB_PORT} ;
             adb -s ${env.TARGET_IP}:${env.TARGET_ADB_PORT} push ${build.test}/targetcommand.sh ${env.TARGET_ROOT}/jogl-targetcommand.sh ;
-            adb -s ${env.TARGET_IP}:${env.TARGET_ADB_PORT} shell ${env.TARGET_ROOT}/jogl-targetcommand.sh ;
+            adb -s ${env.TARGET_IP}:${env.TARGET_ADB_PORT} shell su -c ${env.TARGET_ROOT}/jogl-targetcommand.sh ;
             adb -s ${env.TARGET_IP}:${env.TARGET_ADB_PORT} pull ${env.TARGET_ROOT}/${jogl.basename}/${env.NODE_LABEL}/make/${results.test}/ ${results.test}/ "'/>
         </exec>
     </target>

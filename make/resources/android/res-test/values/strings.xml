@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Jogl Launcher</string>
-    <string name="app_name">JogAmp\'s Jogl Launcher</string>
-    <string name="app_descr">Launches Jogl Applications.</string>
+    <string name="hello">Jogl Tests</string>
+    <string name="app_name">Jogl Tests</string>
+    <string name="app_descr">Launches Jogl Tests.</string>
     <string name="activity_redsquarees1_name">RedSqrES1</string>
     <string name="activity_redsquarees1_descr">RedSquareES1</string>
     <string name="activity_redsquarees2_name">RedSqrES2</string>
