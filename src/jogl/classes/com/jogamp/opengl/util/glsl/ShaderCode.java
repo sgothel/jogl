@@ -32,6 +32,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
 
 import javax.media.opengl.*;
+
 import jogamp.opengl.Debug;
 
 import java.util.*;
@@ -39,18 +40,44 @@ import java.nio.*;
 import java.io.*;
 import java.net.*;
 
+/**
+ * Convenient shader code class to use and instantiate vertex or fragment programs.
+ * <p>
+ * A documented example of how to use this code is available
+ * {@link #create(GL2ES2, int, int, Class, String, String, String) here} and
+ * {@link #create(GL2ES2, int, int, Class, String, String[], String, String) here}.
+ * </p>  
+ */
 public class ShaderCode {
     public static final boolean DEBUG = Debug.debug("GLSLCode");
     public static final boolean DEBUG_CODE = Debug.isPropertyDefined("jogl.debug.GLSLCode", true);
 
+    /** Unique resource suffix for {@link GL2ES2#GL_VERTEX_SHADER} in source code: <code>vp</code> */
     public static final String SUFFIX_VERTEX_SOURCE   =  "vp" ;
+    
+    /** Unique resource suffix for {@link GL2ES2#GL_VERTEX_SHADER} in binary: <code>bvp</code> */
     public static final String SUFFIX_VERTEX_BINARY   = "bvp" ;
+    
+    /** Unique resource suffix for {@link GL2ES2#GL_FRAGMENT_SHADER} in source code: <code>fp</code> */
     public static final String SUFFIX_FRAGMENT_SOURCE =  "fp" ;
+    
+    /** Unique resource suffix for {@link GL2ES2#GL_FRAGMENT_SHADER} in binary: <code>bfp</code> */
     public static final String SUFFIX_FRAGMENT_BINARY = "bfp" ;
     
+    /** Unique relative path for binary shader resources for {@link GLES2#GL_NVIDIA_PLATFORM_BINARY_NV NVIDIA}: <code>nvidia</code> */
     public static final String SUB_PATH_NVIDIA = "nvidia" ;
 
-    public ShaderCode(int type, int number, String[][] source) {
+    /**
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER} or {@link GL2ES2#GL_FRAGMENT_SHADER}
+     * @param count number of shaders
+     * @param source string array containing the shader sources, organized as <code>source[count][strings-per-shader]</code>
+     * 
+     * @throws IllegalArgumentException if <code>count</count> and <code>source.length</code> do not match
+     */
+    public ShaderCode(int type, int count, String[][] source) {
+        if(source.length != count) {
+            throw new IllegalArgumentException("shader number ("+count+") and sourceFiles array ("+source.length+") of different lenght.");
+        }
         switch (type) {
             case GL2ES2.GL_VERTEX_SHADER:
             case GL2ES2.GL_FRAGMENT_SHADER:
@@ -62,7 +89,7 @@ public class ShaderCode {
         shaderBinaryFormat = -1;
         shaderBinary = null;
         shaderType   = type;
-        shader = Buffers.newDirectIntBuffer(number);
+        shader = Buffers.newDirectIntBuffer(count);
         id = getNextID();
 
         if(DEBUG_CODE) {
@@ -71,7 +98,12 @@ public class ShaderCode {
         }
     }
 
-    public ShaderCode(int type, int number, int binFormat, Buffer binary) {
+    /**
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER} or {@link GL2ES2#GL_FRAGMENT_SHADER}
+     * @param count number of shaders
+     * @param binary binary buffer containing the shader binaries, 
+     */
+    public ShaderCode(int type, int count, int binFormat, Buffer binary) {
         switch (type) {
             case GL2ES2.GL_VERTEX_SHADER:
             case GL2ES2.GL_FRAGMENT_SHADER:
@@ -83,18 +115,38 @@ public class ShaderCode {
         shaderBinaryFormat = binFormat;
         shaderBinary = binary;
         shaderType   = type;
-        shader = Buffers.newDirectIntBuffer(number);
+        shader = Buffers.newDirectIntBuffer(count);
         id = getNextID();
     }
 
-    public static ShaderCode create(GL2ES2 gl, int type, int number, Class<?> context, String[] sourceFiles) {
-        if(!ShaderUtil.isShaderCompilerAvailable(gl)) return null;
+    /**
+     * Creates a complete {@link ShaderCode} object while reading all shader source of <code>sourceFiles</code>,
+     * which location is resolved using the <code>context</code> class, see {@link #readShaderSource(Class, String)}.
+     * 
+     * @param gl current GL object to determine whether a shader compiler is available. If null, no validation is performed.
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER} or {@link GL2ES2#GL_FRAGMENT_SHADER}
+     * @param count number of shaders
+     * @param context class used to help resolving the source location
+     * @param sourceFiles array of source locations, organized as <code>sourceFiles[count]</code>
+     * 
+     * @throws IllegalArgumentException if <code>count</count> and <code>sourceFiles.length</code> do not match
+     * @see #readShaderSource(Class, String)
+     */
+    public static ShaderCode create(GL2ES2 gl, int type, int count, Class<?> context, String[] sourceFiles) {
+        if(null != gl && !ShaderUtil.isShaderCompilerAvailable(gl)) {
+            return null;
+        }
 
         String[][] shaderSources = null;
         if(null!=sourceFiles) {
+            // sourceFiles.length and count is validated in ctor
             shaderSources = new String[sourceFiles.length][1];
             for(int i=0; i<sourceFiles.length; i++) {
-                shaderSources[i][0] = readShaderSource(context, sourceFiles[i]);
+                try {
+                    shaderSources[i][0] = readShaderSource(context, sourceFiles[i]);
+                } catch (IOException ioe) {
+                    throw new RuntimeException("readShaderSource("+sourceFiles[i]+") error: ", ioe);
+                }
                 if(null == shaderSources[i][0]) {
                     shaderSources = null;
                 }
@@ -103,13 +155,30 @@ public class ShaderCode {
         if(null==shaderSources) {
             return null;
         }
-        return new ShaderCode(type, number, shaderSources);
+        return new ShaderCode(type, count, shaderSources);
     }
 
-    public static ShaderCode create(int type, int number, Class<?> context, int binFormat, String binaryFile) {
+    /**
+     * Creates a complete {@link ShaderCode} object while reading the shader binary of <code>binaryFile</code>,
+     * which location is resolved using the <code>context</code> class, see {@link #readShaderBinary(Class, String)}.
+     * 
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER} or {@link GL2ES2#GL_FRAGMENT_SHADER}
+     * @param count number of shaders
+     * @param context class used to help resolving the source location
+     * @param binFormat a valid native binary format as they can be queried by {@link ShaderUtil#getShaderBinaryFormats(GL)}.
+     * @param sourceFiles array of source locations, organized as <code>sourceFiles[count]</code>
+     * 
+     * @see #readShaderBinary(Class, String)
+     * @see ShaderUtil#getShaderBinaryFormats(GL)
+     */    
+    public static ShaderCode create(int type, int count, Class<?> context, int binFormat, String binaryFile) {
         ByteBuffer shaderBinary = null;
         if(null!=binaryFile && 0<=binFormat) {
-            shaderBinary = readShaderBinary(context, binaryFile);
+            try {
+                shaderBinary = readShaderBinary(context, binaryFile);
+            } catch (IOException ioe) {
+                throw new RuntimeException("readShaderBinary("+binaryFile+") error: ", ioe);
+            }
             if(null == shaderBinary) {
                 binFormat = -1;
             }
@@ -117,9 +186,26 @@ public class ShaderCode {
         if(null==shaderBinary) {
             return null;
         }
-        return new ShaderCode(type, number, binFormat, shaderBinary);
+        return new ShaderCode(type, count, binFormat, shaderBinary);
     }
 
+    /**
+     * Returns a unique suffix for shader resources as follows:
+     * <ul>
+     *   <li>Source<ul>
+     *     <li>{@link GL2ES2#GL_VERTEX_SHADER vertex}: {@link #SUFFIX_VERTEX_SOURCE}</li>
+     *     <li>{@link GL2ES2#GL_FRAGMENT_SHADER fragment}: {@link #SUFFIX_FRAGMENT_SOURCE}</li></ul></li>
+     *   <li>Binary<ul>
+     *     <li>{@link GL2ES2#GL_VERTEX_SHADER vertex}: {@link #SUFFIX_VERTEX_BINARY}</li>
+     *     <li>{@link GL2ES2#GL_FRAGMENT_SHADER fragment}: {@link #SUFFIX_FRAGMENT_BINARY}</li></ul></li>
+     * </ul> 
+     * @param binary true for a binary resource, false for a source resource 
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER} or {@link GL2ES2#GL_FRAGMENT_SHADER}
+     * 
+     * @throws GLException if <code>type</code> is not supported
+     * 
+     * @see #create(GL2ES2, int, int, Class, String, String, String)
+     */
     public static String getFileSuffix(boolean binary, int type) {
         switch (type) {
             case GL2ES2.GL_VERTEX_SHADER:
@@ -131,6 +217,16 @@ public class ShaderCode {
         }
     }
 
+    /** 
+     * Returns a unique relative path for binary shader resources as follows:
+     * <ul>
+     *   <li>{@link GLES2#GL_NVIDIA_PLATFORM_BINARY_NV NVIDIA}: {@link #SUB_PATH_NVIDIA}</li>
+     * </ul>
+     * 
+     * @throws GLException if <code>binFormat</code> is not supported
+     * 
+     * @see #create(GL2ES2, int, int, Class, String, String, String)
+     */    
     public static String getBinarySubPath(int binFormat) {
         switch (binFormat) {
             case GLES2.GL_NVIDIA_PLATFORM_BINARY_NV:
@@ -140,12 +236,78 @@ public class ShaderCode {
         }
     }
 
-    public static ShaderCode create(GL2ES2 gl, int type, int number, Class<?> context, 
-                                    String srcRoot, String binRoot, String basename) {
-        return create(gl, type, number, context, srcRoot, new String[] { basename }, binRoot, basename );        
-    }
-    
-    public static ShaderCode create(GL2ES2 gl, int type, int number, Class<?> context, 
+    /**
+     * Convenient creation method for instantiating a complete {@link ShaderCode} object 
+     * either from source code using {@link #create(GL2ES2, int, int, Class, String[])}, 
+     * or from a binary code using {@link #create(int, int, Class, int, String)},
+     * whatever is available first.
+     * <p>
+     * The source and binary location names are expected w/o suffixes which are 
+     * resolved and appended using {@link #getFileSuffix(boolean, int)}.
+     * </p>
+     * <p>
+     * Additionally, the binary resource is expected within a subfolder of <code>binRoot</code>
+     * which reflects the vendor specific binary format, see {@link #getBinarySubPath(int)}.
+     * All {@link ShaderUtil#getShaderBinaryFormats(GL)} are being iterated
+     * using the binary subfolder, the first existing resource is being used. 
+     * </p>
+     * 
+     * Example:
+     * <pre>
+     *   Your std JVM layout (plain or within a JAR):
+     *   
+     *      org/test/glsl/MyShaderTest.class
+     *      org/test/glsl/shader/vertex.vp
+     *      org/test/glsl/shader/fragment.fp
+     *      org/test/glsl/shader/bin/nvidia/vertex.bvp
+     *      org/test/glsl/shader/bin/nvidia/fragment.bfp
+     *      
+     *   Your Android APK layout:
+     *   
+     *      classes.dex
+     *      assets/org/test/glsl/shader/vertex.vp
+     *      assets/org/test/glsl/shader/fragment.fp
+     *      assets/org/test/glsl/shader/bin/nvidia/vertex.bvp
+     *      assets/org/test/glsl/shader/bin/nvidia/fragment.bfp
+     *      ...
+     *   
+     *   Your invocation in org/test/glsl/MyShaderTest.java:
+     *   
+     *      ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, this.getClass(),
+     *                                         "shader", new String[] { "vertex" }, "shader/bin", "vertex");
+     *      ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, this.getClass(),
+     *                                         "shader", new String[] { "vertex" }, "shader/bin", "fragment");
+     *      ShaderProgram sp0 = new ShaderProgram();
+     *      sp0.add(gl, vp0, System.err);
+     *      sp0.add(gl, fp0, System.err);
+     *      st.attachShaderProgram(gl, sp0, true);
+     * </pre>
+     * A simplified entry point is {@link #create(GL2ES2, int, int, Class, String, String, String)}.
+     * 
+     * <p>
+     * The location is finally being resolved using the <code>context</code> class, see {@link #readShaderBinary(Class, String)}.
+     * </p>
+     * 
+     * @param gl current GL object to determine whether a shader compiler is available (if <code>source</code> is used),
+     *           or to determine the shader binary format (if <code>binary</code> is used).
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER} or {@link GL2ES2#GL_FRAGMENT_SHADER}
+     * @param count number of shaders
+     * @param context class used to help resolving the source and binary location
+     * @param srcRoot relative <i>root</i> path for <code>srcBasenames</code>
+     * @param srcBasenames basenames w/o path or suffix relative to <code>srcRoot</code> for the shader's source code
+     * @param binRoot relative <i>root</i> path for <code>binBasenames</code>
+     * @param binBasename basename w/o path or suffix relative to <code>binRoot</code> for the shader's binary code
+     * 
+     * @throws IllegalArgumentException if <code>count</count> and <code>srcBasenames.length</code> do not match
+     * 
+     * @see #create(GL2ES2, int, int, Class, String[])
+     * @see #create(int, int, Class, int, String)
+     * @see #readShaderSource(Class, String)
+     * @see #getFileSuffix(boolean, int)
+     * @see ShaderUtil#getShaderBinaryFormats(GL)
+     * @see #getBinarySubPath(int)
+     */    
+    public static ShaderCode create(GL2ES2 gl, int type, int count, Class<?> context, 
                                     String srcRoot, String[] srcBasenames, String binRoot, String binBasename) {
         ShaderCode res = null;
         final String srcPath[];
@@ -158,7 +320,7 @@ public class ShaderCode {
             for(int i=0; i<srcPath.length; i++) {
                 srcPath[i] = srcRoot + '/' + srcBasenames[i] + "." + srcSuffix;
             }
-            res = create(gl, type, number, context, srcPath);
+            res = create(gl, type, count, context, srcPath);
             if(null!=res) {
                 return res;
             }
@@ -174,7 +336,7 @@ public class ShaderCode {
                 String bFmtPath = getBinarySubPath(bFmt);
                 if(null==bFmtPath) continue;
                 binFileName = binRoot + '/' + bFmtPath + '/' + binBasename + "." + binSuffix;
-                res = create(type, number, context, bFmt, binFileName);
+                res = create(type, count, context, bFmt, binFileName);
                 if(null!=res) {
                     return res;
                 }
@@ -184,6 +346,60 @@ public class ShaderCode {
                               ", bin: "+binFileName);
     }
 
+    /**
+     * Simplified variation of {@link #create(GL2ES2, int, int, Class, String, String[], String, String)}.
+     * <br>
+     * 
+     * Example:
+     * <pre>
+     *   Your std JVM layout (plain or within a JAR):
+     *   
+     *      org/test/glsl/MyShaderTest.class
+     *      org/test/glsl/shader/vertex.vp
+     *      org/test/glsl/shader/fragment.fp
+     *      org/test/glsl/shader/bin/nvidia/vertex.bvp
+     *      org/test/glsl/shader/bin/nvidia/fragment.bfp
+     *      
+     *   Your Android APK layout:
+     *   
+     *      classes.dex
+     *      assets/org/test/glsl/shader/vertex.vp
+     *      assets/org/test/glsl/shader/fragment.fp
+     *      assets/org/test/glsl/shader/bin/nvidia/vertex.bvp
+     *      assets/org/test/glsl/shader/bin/nvidia/fragment.bfp
+     *      ...
+     *   
+     *   Your invocation in org/test/glsl/MyShaderTest.java:
+     *   
+     *      ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, this.getClass(),
+     *                                         "shader", "shader/bin", "vertex");
+     *      ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, this.getClass(),
+     *                                         "shader", "shader/bin", "fragment");
+     *      ShaderProgram sp0 = new ShaderProgram();
+     *      sp0.add(gl, vp0, System.err);
+     *      sp0.add(gl, fp0, System.err);
+     *      st.attachShaderProgram(gl, sp0, true);
+     * </pre>
+     * 
+     * @param gl current GL object to determine whether a shader compiler is available (if <code>source</code> is used),
+     *           or to determine the shader binary format (if <code>binary</code> is used).
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER} or {@link GL2ES2#GL_FRAGMENT_SHADER}
+     * @param count number of shaders, must be one
+     * @param context class used to help resolving the source and binary location
+     * @param srcRoot relative <i>root</i> path for <code>basename</code>
+     * @param binRoot relative <i>root</i> path for <code>basename</code>
+     * @param basenames basename w/o path or suffix relative to <code>srcRoot</code> and <code>binRoot</code>
+     *                  for the shader's source and binary code.
+     * 
+     * @throws IllegalArgumentException if <code>count</count> is not 1
+     * 
+     * @see #create(GL2ES2, int, int, Class, String, String[], String, String)
+     */    
+    public static ShaderCode create(GL2ES2 gl, int type, int count, Class<?> context, 
+                                    String srcRoot, String binRoot, String basename) {
+        return create(gl, type, count, context, srcRoot, new String[] { basename }, binRoot, basename );        
+    }
+    
     /**
      * returns the uniq shader id as an integer
      */
@@ -294,86 +510,110 @@ public class ShaderCode {
         }
     }
 
-    private static int readShaderSource(Class<?> context, URL url, StringBuffer result, int lineno) {        
+    private static int readShaderSource(Class<?> context, URLConnection conn, StringBuffer result, int lineno) throws IOException  {        
+        if(DEBUG_CODE) {
+            System.err.printf("%3d: // %s\n", lineno, conn.getURL());
+        }
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
         try {
-            if(DEBUG_CODE) {
-                System.err.printf("%3d: // %s\n", lineno, url);
-            }
-            final BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
-            try {
-                String line = null;
-                while ((line = reader.readLine()) != null) {
-                    lineno++;
-                    if(DEBUG_CODE) {
-                        System.err.printf("%3d: %s\n", lineno, line);
-                    }
-                    if (line.startsWith("#include ")) {
-                        String includeFile = line.substring(9).trim();
-                        URL nextURL = null;
-                        
-                        // Try relative path first
-                        String next = IOUtil.getRelativeOf(url, includeFile);
-                        if(null != next) {
-                            nextURL = IOUtil.getResource(context, next);        
-                        }
-                        if (nextURL == null) {
-                            // Try absolute path
-                            nextURL = IOUtil.getResource(context, includeFile);        
-                        }
-                        if (nextURL == null) {
-                            // Fail
-                            throw new FileNotFoundException("Can't find include file " + includeFile);
-                        }
-                        lineno = readShaderSource(context, nextURL, result, lineno);
-                    } else {
-                        result.append(line + "\n");
-                    }
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                lineno++;
+                if(DEBUG_CODE) {
+                    System.err.printf("%3d: %s\n", lineno, line);
                 }
-            } finally {
-                IOUtil.close(reader, false);
+                if (line.startsWith("#include ")) {
+                    String includeFile = line.substring(9).trim();
+                    URLConnection nextConn = null;
+                    
+                    // Try relative of current shader location
+                    nextConn = IOUtil.openURL(IOUtil.getRelativeOf(conn.getURL(), includeFile), "ShaderCode.relativeOf ");
+                    if (nextConn == null) {
+                        // Try relative of class and absolute
+                        nextConn = IOUtil.getResource(context, includeFile);        
+                    }
+                    if (nextConn == null) {
+                        // Fail
+                        throw new FileNotFoundException("Can't find include file " + includeFile);
+                    }
+                    lineno = readShaderSource(context, nextConn, result, lineno);
+                } else {
+                    result.append(line + "\n");
+                }
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } finally {
+            IOUtil.close(reader, false);
         }
         return lineno;
     }
-    
-    public static void readShaderSource(Class<?> context, URL url, StringBuffer result) {
+
+    /**
+     * 
+     * @param context
+     * @param conn
+     * @param result
+     * @throws IOException
+     */
+    public static void readShaderSource(Class<?> context, URLConnection conn, StringBuffer result) throws IOException {
         if(DEBUG_CODE) {
             System.err.println();
             System.err.println("// -----------------------------------------------------------");
         }
-        readShaderSource(context, url, result, 0);
+        readShaderSource(context, conn, result, 0);
         if(DEBUG_CODE) {
             System.err.println("// -----------------------------------------------------------");
             System.err.println();
         }
     }
-
-    public static String readShaderSource(Class<?> context, String path) {
-        URL url = IOUtil.getResource(context, path);        
-        if (url == null) {
+    
+    /**
+     * Reads shader source located in <code>path</code>,
+     * either relative to the <code>context</code> class or absolute <i>as-is</i>.
+     * <p>
+     * Final location lookup is perfomed via {@link ClassLoader#getResource(String)} and {@link ClassLoader#getSystemResource(String)},
+     * see {@link IOUtil#getResource(Class, String)}.
+     * </p>
+     *  
+     * @param context class used to help resolve the source location
+     * @param path location of shader source
+     * @throws IOException 
+     * 
+     * @see IOUtil#getResource(Class, String)
+     */    
+    public static String readShaderSource(Class<?> context, String path) throws IOException {
+        URLConnection conn = IOUtil.getResource(context, path);        
+        if (conn == null) {
             return null;
         }
         StringBuffer result = new StringBuffer();
-        readShaderSource(context, url, result);
+        readShaderSource(context, conn, result);
         return result.toString();
     }
 
-    public static ByteBuffer readShaderBinary(Class<?> context, String path) {
-        final URL url = IOUtil.getResource(context, path);
-        if (url == null) {
+    /**
+     * Reads shader binary located in <code>path</code>, 
+     * either relative to the <code>context</code> class or absolute <i>as-is</i>.
+     * <p>
+     * Final location lookup is perfomed via {@link ClassLoader#getResource(String)} and {@link ClassLoader#getSystemResource(String)},
+     * see {@link IOUtil#getResource(Class, String)}.
+     * </p>
+     *  
+     * @param context class used to help resolve the source location
+     * @param path location of shader binary
+     * @throws IOException 
+     * 
+     * @see IOUtil#getResource(Class, String)
+     */
+    public static ByteBuffer readShaderBinary(Class<?> context, String path) throws IOException {
+        final URLConnection conn = IOUtil.getResource(context, path);
+        if (conn == null) {
             return null;
         }
+        final BufferedInputStream bis = new BufferedInputStream( conn.getInputStream() );
         try {
-            final BufferedInputStream bis = new BufferedInputStream( url.openStream() );
-            try {
-                return IOUtil.copyStream2ByteBuffer( bis );
-            } finally {
-                IOUtil.close(bis, false);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            return IOUtil.copyStream2ByteBuffer( bis );
+        } finally {
+            IOUtil.close(bis, false);
         }
     }
 

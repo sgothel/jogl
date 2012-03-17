@@ -33,13 +33,11 @@ import com.jogamp.opengl.test.junit.util.GLSLSimpleProgram;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 
-import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.newt.opengl.GLWindow;
@@ -49,7 +47,6 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 
 import java.io.IOException;
 import javax.media.opengl.GL2ES2;
-import org.junit.AfterClass;
 
 public class TestGLSLSimple01NEWT extends UITestCase {
     static long durationPerTest = 100; // ms

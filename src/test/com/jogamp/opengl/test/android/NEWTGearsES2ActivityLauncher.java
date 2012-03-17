@@ -35,6 +35,7 @@ import com.jogamp.opengl.test.android.LauncherUtil.OrderedProperties;
 public class NEWTGearsES2ActivityLauncher extends LauncherUtil.BaseActivityLauncher {
 
     static String demo = "com.jogamp.opengl.test.android.NEWTGearsES2Activity";
+    // static String[] pkgs = new String[] { "com.jogamp.common", "javax.media.opengl", "com.jogamp.opengl.test" };
     static String[] pkgs = new String[] { "com.jogamp.opengl.test" };
     
     @Override
@@ -59,6 +60,7 @@ public class NEWTGearsES2ActivityLauncher extends LauncherUtil.BaseActivityLaunc
        props.setProperty("newt.debug.Window", "true");
        // properties.setProperty("newt.debug.Window.MouseEvent", "true");
        // properties.setProperty("newt.debug.Window.KeyEvent", "true");
+       props.setProperty("jogamp.debug.IOUtil", "true");
     }
     
     @Override

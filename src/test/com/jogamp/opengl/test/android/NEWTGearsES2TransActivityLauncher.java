@@ -32,6 +32,7 @@ public class NEWTGearsES2TransActivityLauncher extends LauncherUtil.BaseActivity
        props.setProperty("newt.debug.Window", "true");
        // properties.setProperty("newt.debug.Window.MouseEvent", "true");
        // properties.setProperty("newt.debug.Window.KeyEvent", "true");
+       props.setProperty("jogamp.debug.IOUtil", "true");
     }
     
     @Override

@@ -29,7 +29,7 @@ package jogamp.graph.font.typecast;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URLConnection;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
@@ -64,7 +64,7 @@ public class TypecastFontConstructor implements FontConstructor  {
         throw new InternalError("Unexpected Object: "+o);
     }
     
-    public Font create(final URL furl) throws IOException {
+    public Font create(final URLConnection fconn) throws IOException {
         return AccessController.doPrivileged(new PrivilegedAction<Font>() {
             public Font run() {
                 File tf = null;
@@ -72,10 +72,10 @@ public class TypecastFontConstructor implements FontConstructor  {
                 Font f = null;
                 try {         
                     tf = IOUtil.createTempFile( "joglfont", ".ttf", null);
-                    len = IOUtil.copyURL2File(furl, tf);
+                    len = IOUtil.copyURLConn2File(fconn, tf);
                     if(len==0) {
                         tf.delete();
-                        throw new GLException("Font of stream "+furl+" was zero bytes");
+                        throw new GLException("Font of stream "+fconn.getURL()+" was zero bytes");
                     }
                     f = create(tf);
                     tf.delete();

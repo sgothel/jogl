@@ -411,10 +411,17 @@ public class ShaderUtil {
         getImpl(gl).createShader(gl, type, shaders);
     }
 
+
+    /**
+     * If supported, queries the natively supported shader binary formats using 
+     * {@link GL2ES2#GL_NUM_SHADER_BINARY_FORMATS} and {@link GL2ES2#GL_SHADER_BINARY_FORMATS}
+     * via {@link GL2ES2#glGetIntegerv(int, int[], int)}.
+     */
     public static Set<Integer> getShaderBinaryFormats(GL gl) {
         return getImpl(gl).getShaderBinaryFormats(gl);
     }
 
+    /** Returns true if a hader compiler is available, otherwise false. */
     public static boolean isShaderCompilerAvailable(GL gl) {
         return getImpl(gl).isShaderCompilerAvailable(gl);
     }

@@ -40,23 +40,26 @@ public class NewtBaseActivity extends Activity {
    AndroidWindow newtWindow = null;
    Animator animator = null;
     
-   boolean isInvokedByExternalActivity = false;
-   Activity extActivity = this;
+   boolean isDelegatedActivity;
+   Activity rootActivity;
    
-   public void setIsInvokedByExternalActivity(Activity extActivity) {
-       this.extActivity = extActivity;
-       this.isInvokedByExternalActivity = null != extActivity;
-   }
-   public boolean getIsInvokedByExternalActivity() {
-       return null != extActivity;
+   public NewtBaseActivity() {
+       super();
+       isDelegatedActivity = false;
+       rootActivity = this;
    }
    
-   public Activity getActivity() {
-       if(isInvokedByExternalActivity) {
-           return extActivity;
-       } else {
-           return this;               
-       }
+   public void setRootActivity(Activity rootActivity) {
+       this.isDelegatedActivity = true;
+       this.rootActivity = rootActivity;
+   }
+   
+   public final boolean isDelegatedActivity() {
+       return isDelegatedActivity;
+   }
+   
+   public final Activity getActivity() {
+       return rootActivity;
    }     
    
    public void setContentView(android.view.Window androidWindow, Window newtWindow) {
@@ -85,19 +88,16 @@ public class NewtBaseActivity extends Activity {
    @Override
    public void onCreate(Bundle savedInstanceState) {
        Log.d(MD.TAG, "onCreate");
-       if(!isInvokedByExternalActivity) {
+       if(!isDelegatedActivity()) {
            super.onCreate(savedInstanceState);
-           // register application context 
-           jogamp.common.os.android.StaticContext.setContext(getApplicationContext());
-       } else {
-           jogamp.common.os.android.StaticContext.setContext(extActivity.getApplicationContext());
        }
+       jogamp.common.os.android.StaticContext.init(rootActivity.getApplicationContext());
    }
    
    @Override
    public void onStart() {
      Log.d(MD.TAG, "onStart");
-     if(!isInvokedByExternalActivity) {
+     if(!isDelegatedActivity()) {
          super.onStart();
      }
    }
@@ -105,7 +105,7 @@ public class NewtBaseActivity extends Activity {
    @Override
    public void onRestart() {
      Log.d(MD.TAG, "onRestart");
-     if(!isInvokedByExternalActivity) {
+     if(!isDelegatedActivity()) {
          super.onRestart();
      }
    }
@@ -113,7 +113,7 @@ public class NewtBaseActivity extends Activity {
    @Override
    public void onResume() {
      Log.d(MD.TAG, "onResume");
-     if(!isInvokedByExternalActivity) {
+     if(!isDelegatedActivity()) {
          super.onResume();
      }
      if(null != animator) {
@@ -127,7 +127,7 @@ public class NewtBaseActivity extends Activity {
      if(null != animator) {
          animator.pause();
      }
-     if(!isInvokedByExternalActivity) {
+     if(!isDelegatedActivity()) {
          super.onPause();
      }
    }
@@ -135,7 +135,7 @@ public class NewtBaseActivity extends Activity {
    @Override
    public void onStop() {
      Log.d(MD.TAG, "onStop");
-     if(!isInvokedByExternalActivity) {
+     if(!isDelegatedActivity()) {
          super.onStop();  
      }
    }
@@ -151,8 +151,8 @@ public class NewtBaseActivity extends Activity {
          newtWindow.destroy();
          newtWindow = null;
      }
-     jogamp.common.os.android.StaticContext.setContext(null);
-     if(!isInvokedByExternalActivity) {
+     jogamp.common.os.android.StaticContext.clear();
+     if(!isDelegatedActivity()) {
          super.onDestroy(); 
      }
    }   

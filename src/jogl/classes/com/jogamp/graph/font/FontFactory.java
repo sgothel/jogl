@@ -29,7 +29,7 @@ package com.jogamp.graph.font;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URLConnection;
 
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
@@ -78,8 +78,8 @@ public class FontFactory {
         return fontConstr.create(file);
     }
 
-    public static final Font get(final URL url) throws IOException {
-        return fontConstr.create(url);
+    public static final Font get(final URLConnection conn) throws IOException {
+        return fontConstr.create(conn);
     }    
     
     public static boolean isPrintableChar( char c ) {

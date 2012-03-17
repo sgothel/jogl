@@ -36,7 +36,7 @@ import com.jogamp.common.util.IOUtil;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontSet;
 import com.jogamp.graph.font.FontFactory;
-import java.net.URL;
+import java.net.URLConnection;
 
 public class UbuntuFontLoader implements FontSet {
     
@@ -121,11 +121,11 @@ public class UbuntuFontLoader implements FontSet {
     Font abspath(String fname, int family, int style) throws IOException {
         final String err = "Problem loading font "+fname+", stream "+relPath+fname;
         try {
-            URL url = IOUtil.getResource(UbuntuFontLoader.class, relPath+fname);
-            if(null == url) {
+            URLConnection conn = IOUtil.getResource(UbuntuFontLoader.class, relPath+fname);
+            if(null == conn) {
                 throw new GLException(err);
             }
-            final Font f= FontFactory.get ( url ) ;
+            final Font f= FontFactory.get ( conn ) ;
             if(null != f) {
                 fontMap.put( ( family << 8 ) | style, f );
                 return f;

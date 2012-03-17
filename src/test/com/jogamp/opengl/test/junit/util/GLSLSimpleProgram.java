@@ -62,7 +62,7 @@ public class GLSLSimpleProgram {
         int[] vlengths = new int[] { vlines[0].length() };
         gl.glShaderSource(vertShader, vlines.length, vlines, vlengths, 0);
         gl.glCompileShader(vertShader);
-        if(!ShaderUtil.isShaderStatusValid(gl, vertShader, gl.GL_COMPILE_STATUS, pbaos)) {
+        if(!ShaderUtil.isShaderStatusValid(gl, vertShader, GL2ES2.GL_COMPILE_STATUS, pbaos)) {
             System.out.println("getShader:postCompile vertShader: "+baos.toString());
             Assert.assertTrue(false);
         }
@@ -74,7 +74,7 @@ public class GLSLSimpleProgram {
         int[] flengths = new int[] { flines[0].length() };
         gl.glShaderSource(fragShader, flines.length, flines, flengths, 0);
         gl.glCompileShader(fragShader);
-        if(!ShaderUtil.isShaderStatusValid(gl, fragShader, gl.GL_COMPILE_STATUS, pbaos)) {
+        if(!ShaderUtil.isShaderStatusValid(gl, fragShader, GL2ES2.GL_COMPILE_STATUS, pbaos)) {
             System.out.println("getShader:postCompile fragShader: "+baos.toString());
             Assert.assertTrue(false);
         }
