@@ -451,7 +451,7 @@ public abstract class NativeWindowFactory {
         try {
             if(DEBUG) {
                 System.err.println("NativeWindowFactory.createX11AWTToolkitLock(0x"+Long.toHexString(deviceHandle)+")");
-                Thread.dumpStack();
+                // Thread.dumpStack();
             }            
             return (ToolkitLock) x11JAWTToolkitLockConstructor.newInstance(new Object[]{new Long(deviceHandle)});
         } catch (Exception ex) {

@@ -1505,7 +1505,6 @@ public class GLProfile {
 
         if(DEBUG) {
             System.err.println("Info: GLProfile.initProfilesForDevice: "+device+", isSet "+isSet);
-            Thread.dumpStack();
         }
         if(isSet) {
             // Avoid recursion and check whether impl. is sane!

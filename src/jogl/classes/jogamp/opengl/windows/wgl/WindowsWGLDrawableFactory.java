@@ -165,7 +165,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
             if ( GDI.GetProcessAffinityMask(pid, procMask, sysMask) ) {
                 if(DEBUG) {
                     System.err.println("WindowsWGLDrawableFactory.enterThreadCriticalZone() - 0x" + Long.toHexString(pid) + " - " + Thread.currentThread().getName());
-                    Thread.dumpStack();
+                    // Thread.dumpStack();
                 }
                 processAffinityChanges = pid;
                 GDI.SetProcessAffinityMask(pid, 1);

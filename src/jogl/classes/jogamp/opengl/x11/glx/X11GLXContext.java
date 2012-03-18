@@ -193,7 +193,6 @@ public abstract class X11GLXContext extends GLContextImpl {
       System.err.println("X11GLXContext.createContextARBImpl: "+getGLVersion(major, minor, ctp, "@creation") +
                          ", handle "+toHexString(drawable.getHandle()) + ", share "+toHexString(share)+", direct "+direct+
                          ", glXCreateContextAttribsARB: "+toHexString(glXExtProcAddressTable._addressof_glXCreateContextAttribsARB));
-      Thread.dumpStack();
     }
 
     boolean ctBwdCompat = 0 != ( CTX_PROFILE_COMPAT & ctp ) ;
@@ -459,7 +458,6 @@ public abstract class X11GLXContext extends GLContextImpl {
             mappedGLXProcAddress.put(key, getGLXExtProcAddressTable());
             if(DEBUG) {
                 System.err.println(getThreadName() + ": GLContext GLX ProcAddressTable mapping key("+key+") -> "+toHexString(getGLXExtProcAddressTable().hashCode()));
-                Thread.dumpStack();
             }
         }
     }

@@ -302,7 +302,6 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     protected void createNativeImpl() {
         Log.d(MD.TAG, "createNativeImpl 0 - surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
                     ", format "+format+", "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" - "+Thread.currentThread().getName());
-        Thread.dumpStack();
         if(0!=getParentWindowHandle()) {
             throw new NativeWindowException("Window parenting not supported (yet)");
         }

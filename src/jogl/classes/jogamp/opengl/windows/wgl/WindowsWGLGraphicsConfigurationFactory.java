@@ -210,7 +210,6 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                     }
                     if (DEBUG) {
                         System.err.println("setPixelFormat (post): hdc "+toHexString(hdc) +", "+pfdID+" -> "+config.getPixelFormatID()+", set: "+set);
-                        Thread.dumpStack();
                     }
                 }
             }
@@ -364,6 +363,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                 }
                 if (null == pformats) {
                     if (DEBUG) {
+                        System.err.println("updateGraphicsConfigurationARB: failed, return false");
                         Thread.dumpStack();
                     }
                     return false;
@@ -476,6 +476,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             int chosenIndex = chooseCapabilities(chooser, capsChosen, availableCaps, recommendedIndex);
             if ( 0 > chosenIndex ) {
                 if (DEBUG) {
+                    System.err.println("updateGraphicsConfigurationGDI: failed, return false");
                     Thread.dumpStack();
                 }
                 return false;

@@ -185,7 +185,6 @@ public class WindowsWGLContext extends GLContextImpl {
       System.err.println(getThreadName()+" - WindowWGLContext.createContextARBImpl: "+getGLVersion(major, minor, ctp, "@creation") +
                          ", handle "+toHexString(drawable.getHandle()) + ", share "+toHexString(share)+", direct "+direct+
                          ", wglCreateContextAttribsARB: "+toHexString(wglExtProcAddressTable._addressof_wglCreateContextAttribsARB));
-      Thread.dumpStack();
     }
 
     boolean ctBwdCompat = 0 != ( CTX_PROFILE_COMPAT & ctp ) ;

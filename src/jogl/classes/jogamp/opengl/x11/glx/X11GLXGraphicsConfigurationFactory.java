@@ -227,7 +227,6 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         }
         if(DEBUG) {
             System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationStatic("+x11Screen+","+capsChosen+"): "+res);
-            Thread.dumpStack();
         }
         return res;
     }
@@ -320,6 +319,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         int chosenIndex = chooseCapabilities(chooser, capsChosen, availableCaps, recommendedIndex);
         if ( 0 > chosenIndex ) {
             if (DEBUG) {
+                System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: failed, return null");
                 Thread.dumpStack();
             }
             return null;
@@ -373,7 +373,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         for (int i = 0; i < infos.length; i++) {
             if( !X11GLXGraphicsConfiguration.XVisualInfo2GLCapabilities(availableCaps, glProfile, display, infos[i], winattrmask, isMultisampleAvailable) ) {
                 if(DEBUG) {
-                    System.err.println("X11GLXGraphicsConfiguration.getAvailableGLCapabilitiesXVisual: XVisual invalid: ("+x11Screen+"): fbcfg: "+toHexString(infos[i].getVisualid()));
+                    System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationXVisual: XVisual invalid: ("+x11Screen+"): fbcfg: "+toHexString(infos[i].getVisualid()));
                 }
             } else {
                 // Attempt to find the visual chosenIndex by glXChooseVisual, if not translucent
@@ -386,6 +386,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         int chosenIndex = chooseCapabilities(chooser, capsChosen, availableCaps, recommendedIndex);
         if ( 0 > chosenIndex ) {
             if (DEBUG) {
+                System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationXVisual: failed, return null");
                 Thread.dumpStack();
             }
             return null;

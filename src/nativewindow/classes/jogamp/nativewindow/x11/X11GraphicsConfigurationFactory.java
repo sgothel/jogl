@@ -61,7 +61,6 @@ public class X11GraphicsConfigurationFactory extends GraphicsConfigurationFactor
         AbstractGraphicsConfiguration res = new X11GraphicsConfiguration((X11GraphicsScreen)screen,  x11CapsChosen, capsRequested, x11CapsChosen.getXVisualInfo());
         if(DEBUG) {
             System.err.println("X11GraphicsConfigurationFactory.chooseGraphicsConfigurationImpl("+screen+","+capsChosen+"): "+res);
-            Thread.dumpStack();
         }
         return res;
     }

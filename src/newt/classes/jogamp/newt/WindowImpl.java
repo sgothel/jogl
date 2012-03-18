@@ -783,7 +783,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public void setVisible(boolean visible) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window setVisible: START ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
-            Thread.dumpStack();
         }
         runOnEDTIfAvail(true, new VisibleAction(visible));
     }
