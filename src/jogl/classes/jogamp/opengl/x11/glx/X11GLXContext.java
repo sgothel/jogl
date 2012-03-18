@@ -335,12 +335,13 @@ public abstract class X11GLXContext extends GLContextImpl {
           throw new GLException("Error making temp context(1) current: display "+toHexString(display)+", context "+toHexString(temp_ctx)+", drawable "+drawable);
         }
         setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT); // use GL_VERSION
-        boolean isCreateContextAttribsARBAvailable = isFunctionAvailable("glXCreateContextAttribsARB");
         glXMakeContextCurrent(display, 0, 0, 0); // release temp context
 
         if( !createContextARBTried ) {
-            if ( isCreateContextAttribsARBAvailable &&
-                 isExtensionAvailable("GLX_ARB_create_context") ) {
+            // is*Available calls are valid since setGLFunctionAvailability(..) was called
+            final boolean isProcCreateContextAttribsARBAvailable = isFunctionAvailable("glXCreateContextAttribsARB");
+            final boolean isExtARBCreateContextAvailable = isExtensionAvailable("GLX_ARB_create_context");
+            if ( isProcCreateContextAttribsARBAvailable && isExtARBCreateContextAvailable ) {
                 // initial ARB context creation
                 contextHandle = createContextARB(share, direct);
                 createContextARBTried=true;
@@ -352,7 +353,8 @@ public abstract class X11GLXContext extends GLContextImpl {
                     }
                 }
             } else if (DEBUG) {
-                System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - extension not available - share "+share);
+                System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - extension not available - share "+share+
+                                   ", isProcCreateContextAttribsARBAvailable "+isProcCreateContextAttribsARBAvailable+", isExtGLXARBCreateContextAvailable "+isExtARBCreateContextAvailable);
             }
         }
     }

@@ -542,12 +542,16 @@ public abstract class GLContextImpl extends GLContext {
                     reqMajor = ctxMajorVersion;
                     reqProfile = GLContext.CTX_PROFILE_ES;
                 } else {
-                    // Only GL2 actually
-                    if(ctxMajorVersion>2 || 0 != ( ctxOptions & GLContext.CTX_PROFILE_CORE)) {
-                        throw new InternalError("XXX: "+getGLVersion());
+                    if(ctxMajorVersion<3 || ctxMajorVersion==3 && ctxMinorVersion==0) { 
+                        reqMajor = 2;
+                    } else {
+                        reqMajor = ctxMajorVersion;
                     }
-                    reqMajor = 2;
-                    reqProfile = GLContext.CTX_PROFILE_COMPAT;          
+                    if( 0 != ( ctxOptions & GLContext.CTX_PROFILE_CORE) ) {
+                        reqProfile = GLContext.CTX_PROFILE_CORE;
+                    } else {
+                        reqProfile = GLContext.CTX_PROFILE_COMPAT;
+                    }
                 }
                 GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile,
                                                 ctxMajorVersion, ctxMinorVersion, ctxOptions);
@@ -1137,18 +1141,17 @@ public abstract class GLContextImpl extends GLContext {
   
   public final boolean isFunctionAvailable(String glFunctionName) {
     // Check GL 1st (cached)
-    ProcAddressTable pTable = getGLProcAddressTable(); // null if ctx not created once
-    if(null!=pTable) {
+    if(null!=glProcAddressTable) { // null if this context wasn't not created
         try {
-            if(0!=pTable.getAddressFor(glFunctionName)) {
+            if(0!=glProcAddressTable.getAddressFor(glFunctionName)) {
                 return true;
             }
         } catch (Exception e) {}
     }
 
-    // Check platform extensions 2nd (cached) - had to be enabled once
-    pTable = getPlatformExtProcAddressTable(); // null if ctx not created once
-    if(null!=pTable) {
+    // Check platform extensions 2nd (cached) - context had to be enabled once
+    final ProcAddressTable pTable = getPlatformExtProcAddressTable(); 
+    if(null!=pTable) { 
         try {
             if(0!=pTable.getAddressFor(glFunctionName)) {
                 return true;

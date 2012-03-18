@@ -296,12 +296,13 @@ public class WindowsWGLContext extends GLContextImpl {
             throw new GLException("Error making temp context current: 0x" + toHexString(temp_ctx) + ", werr: "+GDI.GetLastError());
         }
         setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT);  // use GL_VERSION
-        boolean isCreateContextAttribsARBAvailable = isFunctionAvailable("wglCreateContextAttribsARB");
         WGL.wglMakeCurrent(0, 0); // release temp context
 
         if( !createContextARBTried) {
-            if(isCreateContextAttribsARBAvailable &&
-               isExtensionAvailable("WGL_ARB_create_context") ) {
+            // is*Available calls are valid since setGLFunctionAvailability(..) was called
+            final boolean isProcCreateContextAttribsARBAvailable = isFunctionAvailable("wglCreateContextAttribsARB");
+            final boolean isExtARBCreateContextAvailable = isExtensionAvailable("WGL_ARB_create_context");
+            if ( isProcCreateContextAttribsARBAvailable && isExtARBCreateContextAvailable ) {
                 // initial ARB context creation
                 contextHandle = createContextARB(share, true);
                 createContextARBTried=true;
@@ -313,7 +314,8 @@ public class WindowsWGLContext extends GLContextImpl {
                     }
                 }
             } else if (DEBUG) {
-                System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - extension not available - share "+share);
+                System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - extension not available - share "+share+
+                                   ", isProcCreateContextAttribsARBAvailable "+isProcCreateContextAttribsARBAvailable+", isExtGLXARBCreateContextAvailable "+isExtARBCreateContextAvailable);            
             }
         }
     }
