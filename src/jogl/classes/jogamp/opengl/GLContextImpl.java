@@ -1126,7 +1126,8 @@ public abstract class GLContextImpl extends GLContext {
     } else {
         isHardwareRasterizer = ! ( glRendererLowerCase.contains("software") /* Mesa3D */  ||
                                    glRendererLowerCase.contains("mesa x11") /* Mesa3D*/   ||
-                                   glRendererLowerCase.contains("softpipe") /* Gallium */                                            
+                                   glRendererLowerCase.contains("softpipe") /* Gallium */ ||
+                                   glRendererLowerCase.contains("llvmpipe") /* Gallium */                                
                                  );
     }
     return isHardwareRasterizer;
