@@ -480,7 +480,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     */
    protected boolean isRenderThread() {
       if (Threading.isSingleThreaded()) {
-         if (ThreadingImpl.getMode() != ThreadingImpl.WORKER) {
+         if (ThreadingImpl.getMode() != ThreadingImpl.Mode.ST_WORKER) {
             final Display display = getDisplay();
             return display != null && display.getThread() == Thread.currentThread();
          }
@@ -521,7 +521,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     *           The non-null action to dispatch.
     */
    private void runInDesignatedGLThread(final Runnable makeCurrentAndRunAction) {
-      if (ThreadingImpl.getMode() != ThreadingImpl.WORKER) {
+      if (ThreadingImpl.getMode() != ThreadingImpl.Mode.ST_WORKER) {
          final Display display = getDisplay();
          assert display.getThread() != Thread.currentThread() : "Incorrect use of thread dispatching.";
          display.syncExec(makeCurrentAndRunAction);

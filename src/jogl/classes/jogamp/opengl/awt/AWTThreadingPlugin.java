@@ -42,8 +42,6 @@ package jogamp.opengl.awt;
 
 import javax.media.opengl.*;
 
-import java.awt.event.*;
-
 import java.awt.EventQueue;
 import java.lang.reflect.InvocationTargetException;
 
@@ -55,14 +53,14 @@ public class AWTThreadingPlugin implements ThreadingPlugin {
 
   public boolean isOpenGLThread() throws GLException {
     switch (ThreadingImpl.getMode()) {
-      case ThreadingImpl.AWT:
+      case ST_AWT:
         // FIXME: See the FIXME below in 'invokeOnOpenGLThread'
         if (Java2D.isOGLPipelineActive() && !ThreadingImpl.isX11()) {
           return Java2D.isQueueFlusherThread();
         } else {
           return EventQueue.isDispatchThread();
         }
-      case ThreadingImpl.WORKER:
+      case ST_WORKER:
         if (Java2D.isOGLPipelineActive()) {
           // FIXME: ideally only the QFT would be considered to be the
           // "OpenGL thread", but we can not currently run all of
@@ -80,7 +78,7 @@ public class AWTThreadingPlugin implements ThreadingPlugin {
 
   public void invokeOnOpenGLThread(Runnable r) throws GLException {
     switch (ThreadingImpl.getMode()) {
-      case ThreadingImpl.AWT:
+      case ST_AWT:
         // FIXME: ideally should run all OpenGL work on the Java2D QFT
         // thread when it's enabled, but unfortunately there are
         // deadlock issues on X11 platforms when making our
@@ -102,7 +100,7 @@ public class AWTThreadingPlugin implements ThreadingPlugin {
         }
         break;
 
-      case ThreadingImpl.WORKER:
+      case ST_WORKER:
         GLWorkerThread.start(); // singleton start via volatile-dbl-checked-locking
         try {
           GLWorkerThread.invokeAndWait(r);

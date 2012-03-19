@@ -47,13 +47,20 @@ import javax.media.opengl.GLProfile;
 /** Implementation of the {@link javax.media.opengl.Threading} class. */
 
 public class ThreadingImpl {
-    public static final int AWT    = 1;
-    public static final int WORKER = 2;
+    public enum Mode {
+        MT(0), ST_AWT(1), ST_WORKER(2); 
+        
+        public final int id;
+
+        Mode(int id){
+            this.id = id;
+        }
+    }    
 
     protected static final boolean DEBUG = Debug.debug("Threading");
 
     private static boolean singleThreaded = true;
-    private static int mode;
+    private static Mode mode = Mode.MT;
     private static boolean hasAWT;
     // We need to know whether we're running on X11 platforms to change
     // our behavior when the Java2D/JOGL bridge is active
@@ -65,7 +72,11 @@ public class ThreadingImpl {
         threadingPlugin =
             AccessController.doPrivileged(new PrivilegedAction<ThreadingPlugin>() {
                     public ThreadingPlugin run() {
-                        String workaround = Debug.getProperty("jogl.1thread", true);
+                        final String workaround;
+                        {
+                            final String w = Debug.getProperty("jogl.1thread", true);
+                            workaround = null != w ? w.toLowerCase() : null;
+                        }
                         ClassLoader cl = ThreadingImpl.class.getClassLoader();
                         // Default to using the AWT thread on all platforms except
                         // Windows. On OS X there is instability apparently due to
@@ -80,50 +91,48 @@ public class ThreadingImpl {
                         String osType = NativeWindowFactory.getNativeWindowType(false);
                         _isX11 = NativeWindowFactory.TYPE_X11.equals(osType);
 
-                        int defaultMode = ( hasAWT ? AWT : WORKER );
-
-                        mode = defaultMode;
+                        mode  = ( hasAWT ? Mode.ST_AWT : Mode.ST_WORKER ); // default
+                        
                         if (workaround != null) {
-                            workaround = workaround.toLowerCase();
                             if (workaround.equals("true") ||
                                 workaround.equals("auto")) {
                                 // Nothing to do; singleThreaded and mode already set up
                             } else if (workaround.equals("worker")) {
                                 singleThreaded = true;
-                                mode = WORKER;
+                                mode = Mode.ST_WORKER;
                             } else if (hasAWT && workaround.equals("awt")) {
                                 singleThreaded = true;
-                                mode = AWT;
+                                mode = Mode.ST_AWT;
                             } else {
                                 singleThreaded = false;
+                                mode = Mode.MT;
                             }
                         }
-                        printWorkaroundNotice();
-
+                        
                         ThreadingPlugin threadingPlugin=null;
-                        if(hasAWT) {
+                        if(Mode.ST_AWT == mode) {
                             // try to fetch the AWTThreadingPlugin
                             Exception error=null;
                             try {
                                 threadingPlugin = (ThreadingPlugin) ReflectionUtil.createInstance("jogamp.opengl.awt.AWTThreadingPlugin", cl);
                             } catch (JogampRuntimeException jre) { error = jre; }
-                            if(AWT == mode && null==threadingPlugin) {                                
+                            if(null==threadingPlugin) {                                
                                 throw new GLException("Mode is AWT, but class 'jogamp.opengl.awt.AWTThreadingPlugin' is not available", error);
                             }
+                        }
+                        if(DEBUG) {
+                            System.err.println("Threading: jogl.1thread "+workaround+", singleThreaded "+singleThreaded+", hasAWT "+hasAWT+", mode "+mode+", plugin "+threadingPlugin);
                         }
                         return threadingPlugin;
                     }
                 });
-        if(DEBUG) {
-            System.err.println("Threading: hasAWT "+hasAWT+", mode "+((mode==AWT)?"AWT":"WORKER")+", plugin "+threadingPlugin);
-        }
     }
 
     /** No reason to ever instantiate this class */
     private ThreadingImpl() {}
 
     public static boolean isX11() { return _isX11; }
-    public static int getMode() { return mode; }
+    public static Mode getMode() { return mode; }
 
     /** If an implementation of the javax.media.opengl APIs offers a 
         multithreading option but the default behavior is single-threading, 
@@ -165,9 +174,9 @@ public class ThreadingImpl {
         }
 
         switch (mode) {
-            case AWT:
+            case ST_AWT:
                 throw new InternalError();
-            case WORKER:
+            case ST_WORKER:
                 return GLWorkerThread.isWorkerThread();
             default:
                 throw new InternalError("Illegal single-threading mode " + mode);
@@ -198,10 +207,10 @@ public class ThreadingImpl {
         }
 
         switch (mode) {
-            case AWT:
+            case ST_AWT:
                 throw new InternalError();
 
-            case WORKER:
+            case ST_WORKER:
                 GLWorkerThread.start(); // singleton start via volatile-dbl-checked-locking
                 try {
                     GLWorkerThread.invokeAndWait(r);
@@ -220,14 +229,6 @@ public class ThreadingImpl {
     /** This is a workaround for AWT-related deadlocks which only seem
         to show up in the context of applets */
     public static boolean isAWTMode() {
-        return (mode == AWT);
-    }
-
-    private static void printWorkaroundNotice() {
-        if (singleThreaded && Debug.verbose()) {
-            System.err.println("Using " +
-                               (mode == AWT ? "AWT" : "OpenGL worker") +
-                               " thread for performing OpenGL work in javax.media.opengl implementation");
-        }
+        return (mode == Mode.ST_AWT);
     }
 }

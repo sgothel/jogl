@@ -101,17 +101,17 @@ import jogamp.opengl.*;
 
     In addition to specifying programmatically whether the single
     thread for OpenGL work is enabled, users may switch it on and off
-    using the system property <code>opengl.1thread</code>. Valid values
+    using the system property <code>jogl.1thread</code>. Valid values
     for this system property are:
 
     <PRE>
-    -Dopengl.1thread=false     Disable single-threading of OpenGL work
-    -Dopengl.1thread=true      Enable single-threading of OpenGL work (default -- on a newly-created worker thread)
-    -Dopengl.1thread=auto      Select default single-threading behavior (currently on)
-    -Dopengl.1thread=awt       Enable single-threading of OpenGL work on AWT event dispatch thread (current default on all
-                                 platforms, and also the default behavior older releases)
-    -Dopengl.1thread=worker    Enable single-threading of OpenGL work on newly-created worker thread (not suitable for Mac
-                                 OS X or X11 platforms, and risky on Windows in applet environments)
+    -Djogl.1thread=false     Disable single-threading of OpenGL work, hence use multithreading.
+    -Djogl.1thread=true      Enable single-threading of OpenGL work (default -- on a newly-created worker thread)
+    -Djogl.1thread=auto      Select default single-threading behavior (currently on)
+    -Djogl.1thread=awt       Enable single-threading of OpenGL work on AWT event dispatch thread (current default on all
+                             platforms, and also the default behavior older releases)
+    -Djogl.1thread=worker    Enable single-threading of OpenGL work on newly-created worker thread (not suitable for Mac
+                             OS X or X11 platforms, and risky on Windows in applet environments)
     </PRE>    
 */
 
