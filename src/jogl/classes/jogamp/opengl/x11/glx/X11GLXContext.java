@@ -262,7 +262,7 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   protected boolean createImpl(GLContextImpl shareWith) {
       // covers the whole context creation loop incl createContextARBImpl and destroyContextARBImpl
-      X11Util.setX11ErrorHandler(true, true);
+      X11Util.setX11ErrorHandler(true, DEBUG ? false : true);
       try {
           return createImplRaw(shareWith);
       } finally {
@@ -399,7 +399,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     long dpy = drawable.getNativeSurface().getDisplayHandle();
 
     if (GLX.glXGetCurrentContext() != contextHandle) {
-        X11Util.setX11ErrorHandler(true, true);
+        X11Util.setX11ErrorHandler(true, DEBUG ? false : true);
         try {
             if (!glXMakeContextCurrent(dpy, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
                 throw new GLException("Error making context current: "+this);
@@ -412,7 +412,7 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   protected void releaseImpl() throws GLException {
     long display = drawable.getNativeSurface().getDisplayHandle();
-    X11Util.setX11ErrorHandler(true, true);
+    X11Util.setX11ErrorHandler(true, DEBUG ? false : true);
     try {
         if (!glXMakeContextCurrent(display, 0, 0, 0)) {
             throw new GLException("Error freeing OpenGL context");
