@@ -40,8 +40,10 @@
 package jogamp.opengl;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
-import javax.media.opengl.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.media.opengl.GLContext;
 
 /** Singleton thread upon which all OpenGL work is performed by
     default. Unfortunately many vendors' OpenGL drivers are not really
@@ -64,7 +66,7 @@ public class GLWorkerThread {
   // The Runnable to execute immediately on the worker thread
   private static volatile Runnable work;
   // Queue of Runnables to be asynchronously invoked
-  private static List queue = new LinkedList();
+  private static List<Runnable> queue = new ArrayList<Runnable>();
   
   /** Should only be called by Threading class if creation of the
       GLWorkerThread was requested via the opengl.1thread system
@@ -141,7 +143,7 @@ public class GLWorkerThread {
           */
 
         } else {
-          throw new RuntimeException("Should not start GLWorkerThread twice");
+          throw new RuntimeException(getThreadName()+": Should not start GLWorkerThread twice");
         }
       }
     }
@@ -150,7 +152,7 @@ public class GLWorkerThread {
   public static void invokeAndWait(Runnable runnable)
     throws InvocationTargetException, InterruptedException {
     if (!started) {
-      throw new RuntimeException("May not invokeAndWait on worker thread without starting it first");
+      throw new RuntimeException(getThreadName()+": May not invokeAndWait on worker thread without starting it first");
     }
 
     Object lockTemp = lock;
@@ -177,7 +179,7 @@ public class GLWorkerThread {
 
   public static void invokeLater(Runnable runnable) {
     if (!started) {
-      throw new RuntimeException("May not invokeLater on worker thread without starting it first");
+      throw new RuntimeException(getThreadName()+": May not invokeLater on worker thread without starting it first");
     }
 
     Object lockTemp = lock;
@@ -208,6 +210,10 @@ public class GLWorkerThread {
     return (Thread.currentThread() == thread);
   }
 
+  protected static String getThreadName() {
+    return Thread.currentThread().getName();
+  }
+  
   static class WorkerRunnable implements Runnable {
     public void run() {
       // Notify starting thread that we're ready
@@ -252,10 +258,10 @@ public class GLWorkerThread {
 
           while (!queue.isEmpty()) {
             try {
-              Runnable curAsync = (Runnable) queue.remove(0);
+              Runnable curAsync = queue.remove(0);
               curAsync.run();
             } catch (Throwable t) {
-              System.err.println("Exception occurred on JOGL OpenGL worker thread:");
+              System.err.println(getThreadName()+": Exception occurred on JOGL OpenGL worker thread:");
               t.printStackTrace();
             }
           }

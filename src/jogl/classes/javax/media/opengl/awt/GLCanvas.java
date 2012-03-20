@@ -140,11 +140,7 @@ import jogamp.opengl.ThreadingImpl;
 @SuppressWarnings("serial")
 public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosingProtocol, OffscreenLayerOption {
 
-  private static final boolean DEBUG;
-
-  static {
-      DEBUG = Debug.debug("GLCanvas");
-  }
+  private static final boolean DEBUG = Debug.debug("GLCanvas");
 
   private GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private AWTGraphicsConfiguration awtConfig;
@@ -330,14 +326,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         final GraphicsConfiguration compatible = (null!=config)?config.getAWTGraphicsConfiguration():null;
         boolean equalCaps = config.getChosenCapabilities().equals(awtConfig.getChosenCapabilities());
         if(DEBUG) {
-            Exception e = new Exception("Info: Call Stack: "+Thread.currentThread().getName());
-            e.printStackTrace();
+            System.err.println(getThreadName()+": Info:");
             System.err.println("Created Config (n): HAVE    GC "+chosen);
             System.err.println("Created Config (n): THIS    GC "+gc);
             System.err.println("Created Config (n): Choosen GC "+compatible);
             System.err.println("Created Config (n): HAVE    CF "+awtConfig);
             System.err.println("Created Config (n): Choosen CF "+config);
             System.err.println("Created Config (n): EQUALS CAPS "+equalCaps);
+            Thread.dumpStack();
         }
 
         if (compatible != null) {
@@ -412,7 +408,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   public void display() {
     if( !validateGLDrawable() ) {
         if(DEBUG) {
-            System.err.println("Info: GLCanvas display - skipped GL render, drawable not valid yet");
+            System.err.println(getThreadName()+": Info: GLCanvas display - skipped GL render, drawable not valid yet");
         }
         return; // not yet available ..
     }
@@ -427,9 +423,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     try {
         final GLAnimatorControl animator =  getAnimator();
         if(DEBUG) {
-            Exception ex1 = new Exception("Info: dispose("+regenerate+") - START, hasContext " +
+            System.err.println(getThreadName()+": Info: dispose("+regenerate+") - START, hasContext " +
                     (null!=context) + ", hasDrawable " + (null!=drawable)+", "+animator);
-            ex1.printStackTrace();
+            Thread.dumpStack();
         }
 
         if(null!=context) {
@@ -472,7 +468,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         }
 
         if(DEBUG) {
-            System.err.println("dispose("+regenerate+") - END, "+animator);
+            System.err.println(getThreadName()+": dispose("+regenerate+") - END, "+animator);
         }
     } finally {
         drawableSync.unlock();
@@ -533,8 +529,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     @Override
   public void addNotify() {
     if(DEBUG) {
-        Exception ex1 = new Exception(Thread.currentThread().getName()+" - Info: addNotify - start, bounds: "+this.getBounds());
-        ex1.printStackTrace();
+        System.err.println(getThreadName()+": Info: addNotify - start, bounds: "+this.getBounds());
+        Thread.dumpStack();
     }
 
     drawableSync.lock();
@@ -570,7 +566,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         // validateGLDrawable();
 
         if(DEBUG) {
-            System.err.println(Thread.currentThread().getName()+" - Info: addNotify - end: peer: "+getPeer());
+            System.err.println(getThreadName()+": Info: addNotify - end: peer: "+getPeer());
         }
     } finally {
        drawableSync.unlock();
@@ -604,10 +600,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                     realized = true;
                     sendReshape=true; // ensure a reshape is being send ..
                     if(DEBUG) {
-                        String msg = Thread.currentThread().getName()+" - Realized Drawable: "+drawable.toString();
-                        // System.err.println(msg);
-                        Throwable t = new Throwable(msg);
-                        t.printStackTrace();
+                        System.err.println(getThreadName()+": Realized Drawable: "+drawable.toString());
+                        Thread.dumpStack();
                     }
                 }
             }
@@ -630,8 +624,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     @Override
   public void removeNotify() {
     if(DEBUG) {
-        Exception ex1 = new Exception(Thread.currentThread().getName()+" - Info: removeNotify - start");
-        ex1.printStackTrace();
+        System.err.println(getThreadName()+": Info: removeNotify - start");
+        Thread.dumpStack();
     }
 
     awtWindowClosingProtocol.removeClosingListener();
@@ -651,7 +645,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       }
     }
     if(DEBUG) {
-        System.err.println(Thread.currentThread().getName()+" - Info: removeNotify - end, peer: "+getPeer());
+        System.err.println(getThreadName()+": Info: removeNotify - end, peer: "+getPeer());
     }
   }
 
@@ -853,7 +847,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           createDrawableAndContext();
           
           if(DEBUG) {
-            System.err.println("GLCanvas.dispose(true): new drawable: "+drawable);
+            System.err.println(getThreadName()+": GLCanvas.dispose(true): new drawable: "+drawable);
           }
           validateGLDrawable(); // immediate attempt to recreate the drawable
       }
@@ -884,7 +878,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           }
           boolean closed = adevice.close();
           if(DEBUG) {
-            System.err.println(Thread.currentThread().getName() + " - GLCanvas.dispose(false): closed GraphicsDevice: "+adeviceMsg+", result: "+closed);
+            System.err.println(getThreadName()+": GLCanvas.dispose(false): closed GraphicsDevice: "+adeviceMsg+", result: "+closed);
           }
           awtConfig=null;
       }
@@ -923,7 +917,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     public void run() {
       if (sendReshape) {
         if(DEBUG) {
-            System.err.println(Thread.currentThread().getName()+" - reshape: "+getWidth()+"x"+getHeight());
+            System.err.println(getThreadName()+": Reshape: "+getWidth()+"x"+getHeight());
         }
         // Note: we ignore the given x and y within the parent component
         // since we are drawing directly into this heavyweight component.
@@ -994,7 +988,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       }
       disableBackgroundEraseInitialized = true;
       if(DEBUG) {
-        System.err.println("GLCanvas: TK disableBackgroundErase method found: "+
+        System.err.println(getThreadName()+": GLCanvas: TK disableBackgroundErase method found: "+
                 (null!=disableBackgroundEraseMethod));
       }
     }
@@ -1006,7 +1000,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         t = e;
       }
       if(DEBUG) {
-        System.err.println("GLCanvas: TK disableBackgroundErase error: "+t);
+        System.err.println(getThreadName()+": GLCanvas: TK disableBackgroundErase error: "+t);
       }
     }
   }
@@ -1067,6 +1061,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     }
 
     return config;
+  }
+  
+  protected static String getThreadName() {
+    return Thread.currentThread().getName();
   }
   
   /**

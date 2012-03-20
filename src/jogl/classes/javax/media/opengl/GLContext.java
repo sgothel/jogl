@@ -122,6 +122,10 @@ public abstract class GLContext {
   private int currentSwapInterval;
 
   protected void resetStates() {
+      if (DEBUG) {
+        System.err.println(getThreadName() + ": GLContext.resetStates()");
+        // Thread.dumpStack();
+      }
       ctxMajorVersion=-1;
       ctxMinorVersion=-1;
       ctxOptions=0;
@@ -260,7 +264,7 @@ public abstract class GLContext {
   public static GL getCurrentGL() throws GLException {
     GLContext glc = getCurrent();
     if(null==glc) {
-        throw new GLException("No OpenGL context current on this thread");
+        throw new GLException(getThreadName()+": No OpenGL context current on this thread");
     }
     return glc.getGL();
   }
@@ -288,7 +292,7 @@ public abstract class GLContext {
    */
   public final void validateCurrent() throws GLException {  
     if(getCurrent() != this) {
-        throw new GLException("Given GL context not current");
+        throw new GLException(getThreadName()+": This context is not current. Current context: "+getCurrent()+", this context "+this);
     }
   }
   
@@ -299,7 +303,7 @@ public abstract class GLContext {
    */
   protected static void setCurrent(GLContext cur) {
     if(TRACE_SWITCH) {
-       System.err.println("GLContext.ContextSwitch: - setCurrent() - "+Thread.currentThread().getName()+": "+cur);
+       System.err.println(getThreadName()+": GLContext.ContextSwitch: - setCurrent() - "+cur);
     }
     currentContext.set(cur);
   }
@@ -624,9 +628,7 @@ public abstract class GLContext {
    * @throws GLException if the context is not current.
    */
   public final boolean setSwapInterval(int interval) throws GLException {
-    if (!isCurrent()) {
-        throw new GLException("This context is not current. Current context: "+getCurrent()+", this context "+this);
-    }
+    validateCurrent();
     if(0<=interval) {
         if( setSwapIntervalImpl(interval) ) {
             currentSwapInterval = interval;
@@ -665,18 +667,13 @@ public abstract class GLContext {
   
   public final boolean queryMaxSwapGroups(int[] maxGroups, int maxGroups_offset,
                                           int[] maxBarriers, int maxBarriers_offset) {
-      
-    if (!isCurrent()) {
-        throw new GLException("This context is not current. Current context: "+getCurrent()+", this context "+this);
-    }
+    validateCurrent();
     return queryMaxSwapGroupsImpl(maxGroups, maxGroups_offset, maxBarriers, maxBarriers_offset);
   }
   protected boolean queryMaxSwapGroupsImpl(int[] maxGroups, int maxGroups_offset,
                                           int[] maxBarriers, int maxBarriers_offset) { return false; }
   public final boolean joinSwapGroup(int group) {
-    if (!isCurrent()) {
-        throw new GLException("This context is not current. Current context: "+getCurrent()+", this context "+this);
-    }
+    validateCurrent();
     return joinSwapGroupImpl(group);
   }
   protected boolean joinSwapGroupImpl(int group) { /** nop per default .. **/  return false; }
@@ -685,9 +682,7 @@ public abstract class GLContext {
       return currentSwapGroup;
   }
   public final boolean bindSwapBarrier(int group, int barrier) {
-    if (!isCurrent()) {
-        throw new GLException("This context is not current. Current context: "+getCurrent()+", this context "+this);
-    }
+    validateCurrent();
     return bindSwapBarrierImpl(group, barrier);    
   }
   protected boolean bindSwapBarrierImpl(int group, int barrier) { /** nop per default .. **/  return false; }
@@ -875,7 +870,6 @@ public abstract class GLContext {
           deviceVersionsAvailableSet.add(devKey);
           if (DEBUG) {
             System.err.println(getThreadName() + ": createContextARB: SET mappedVersionsAvailableSet "+devKey);
-            // Thread.dumpStack();
           }
       }
   }
