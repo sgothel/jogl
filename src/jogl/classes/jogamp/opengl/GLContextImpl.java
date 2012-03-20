@@ -286,7 +286,7 @@ public abstract class GLContextImpl extends GLContext {
           throw new GLException("XXX: "+lock);
       }
       if (DEBUG || TRACE_SWITCH) {          
-          System.err.println(getThreadName() + ": GLContextImpl.destroy.0 - "+Thread.currentThread().getName()+": " + toHexString(contextHandle) +
+          System.err.println(getThreadName() + ": GLContextImpl.destroy.0: " + toHexString(contextHandle) +
                   ", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
       }
       if (contextHandle != 0) {
@@ -661,7 +661,10 @@ public abstract class GLContextImpl extends GLContext {
     }
 
     if ( !GLContext.getAvailableGLVersionsSet(device) ) {
-        mapGLVersions(device);
+        if(!mapGLVersions(device)) {
+            // none of the ARB context creation calls was successful, bail out 
+            return 0;
+        }
     }
 
     int reqMajor;
@@ -690,19 +693,26 @@ public abstract class GLContextImpl extends GLContext {
     return _ctx;
   }
 
-  private final void mapGLVersions(AbstractGraphicsDevice device) {    
+  private final boolean mapGLVersions(AbstractGraphicsDevice device) {    
     synchronized (GLContext.deviceVersionAvailable) {
+        boolean success = false;
         // Following GLProfile.GL_PROFILE_LIST_ALL order of profile detection { GL4bc, GL3bc, GL2, GL4, GL3, GL2GL3, GLES2, GL2ES2, GLES1, GL2ES1 }
-        createContextARBMapVersionsAvailable(4, true  /* compat */);  // GL4bc
-        createContextARBMapVersionsAvailable(3, true  /* compat */);  // GL3bc
-        createContextARBMapVersionsAvailable(2, true  /* compat */);  // GL2        
-        createContextARBMapVersionsAvailable(4, false /* core   */);  // GL4
-        createContextARBMapVersionsAvailable(3, false /* core   */);  // GL3
-        GLContext.setAvailableGLVersionsSet(device);
+        success |= createContextARBMapVersionsAvailable(4, true  /* compat */);  // GL4bc
+        success |= createContextARBMapVersionsAvailable(3, true  /* compat */);  // GL3bc
+        success |= createContextARBMapVersionsAvailable(2, true  /* compat */);  // GL2        
+        success |= createContextARBMapVersionsAvailable(4, false /* core   */);  // GL4
+        success |= createContextARBMapVersionsAvailable(3, false /* core   */);  // GL3
+        if(success) {
+            // only claim GL versions set [and hence detected] if ARB context creation was successful
+            GLContext.setAvailableGLVersionsSet(device);
+        } else if (DEBUG) {
+            System.err.println(getThreadName() + ": createContextARB-MapVersions NONE for :"+device);
+        }        
+        return success;
     }
   }
 
-  private final void createContextARBMapVersionsAvailable(int reqMajor, boolean compat) {
+  private final boolean createContextARBMapVersionsAvailable(int reqMajor, boolean compat) {
     long _context;
     int reqProfile = compat ? CTX_PROFILE_COMPAT : CTX_PROFILE_CORE ;
     int ctp = CTX_IS_ARB_CREATED | CTX_PROFILE_CORE; // default
@@ -725,8 +735,10 @@ public abstract class GLContextImpl extends GLContext {
         majorMax=3; minorMax=GLContext.getMaxMinor(majorMax);
         majorMin=3; minorMin=1;
     } else /* if( glp.isGL2() ) */ {
+        // our minimum desktop OpenGL runtime requirements are 1.1, 
+        // nevertheless we restrict ARB context creation to 2.0 to spare us futile attempts 
         majorMax=3; minorMax=0;
-        majorMin=1; minorMin=1; // our minimum desktop OpenGL runtime requirements
+        majorMin=2; minorMin=0;
     }
     _context = createContextARBVersions(0, true, ctp, 
                                         /* max */ majorMax, minorMax,
@@ -734,8 +746,8 @@ public abstract class GLContextImpl extends GLContext {
                                         /* res */ major, minor);
 
     if(0==_context && !compat) {
-        ctp &= ~CTX_PROFILE_COMPAT ;
-        ctp |=  CTX_PROFILE_CORE ;
+        // try w/ FORWARD instead of CORE
+        ctp &= ~CTX_PROFILE_CORE ;
         ctp |=  CTX_OPTION_FORWARD ;
         _context = createContextARBVersions(0, true, ctp, 
                                             /* max */ majorMax, minorMax,
@@ -744,8 +756,8 @@ public abstract class GLContextImpl extends GLContext {
        if(0==_context) {
             // Try a compatible one .. even though not requested .. last resort
             ctp &= ~CTX_PROFILE_CORE ;
-            ctp |=  CTX_PROFILE_COMPAT ;
             ctp &= ~CTX_OPTION_FORWARD ;
+            ctp |=  CTX_PROFILE_COMPAT ;
             _context = createContextARBVersions(0, true, ctp, 
                                        /* max */ majorMax, minorMax,
                                        /* min */ majorMin, minorMin,
@@ -757,23 +769,19 @@ public abstract class GLContextImpl extends GLContext {
         // ctxMajorVersion, ctxMinorVersion, ctxOptions is being set by 
         //   createContextARBVersions(..) -> setGLFunctionAvailbility(..) -> setContextVersion(..)
         GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile, ctxMajorVersion, ctxMinorVersion, ctxOptions);
-        /**
-         * TODO: GLES2_TRUE_DESKTOP (see: GLContextImpl, GLProfile)
-         * Hack to enable GLES2 for desktop profiles w/ ES2 compatibility,
-         * however .. a consequent implementation would need to have all GL2ES2
-         * implementing profile to also implement GLES2!
-         * Let's rely on GL2ES2 and let the user/impl. query isGLES2Compatible()
-        if( isGLES2Compatible() && null == GLContext.getAvailableGLVersion(device, 2, GLContext.CTX_PROFILE_ES) ) {
-            GLContext.mapAvailableGLVersion(device, 2, GLContext.CTX_PROFILE_ES, ctxMajorVersion, ctxMinorVersion, ctxOptions);
-        }*/
         destroyContextARBImpl(_context);
         if (DEBUG) {
           System.err.println(getThreadName() + ": createContextARB-MapVersionsAvailable HAVE: " +reqMajor+"."+reqProfile+ " -> "+getGLVersion());
         }
-    } else if (DEBUG) {
-        System.err.println(getThreadName() + ": createContextARB-MapVersionsAvailable NOPE: "+reqMajor+"."+reqProfile);
+        // only reset [and hence modify] this context state if ARB context creation was successful
+        resetStates(); 
+        return true;
+    } else {
+        if (DEBUG) {
+          System.err.println(getThreadName() + ": createContextARB-MapVersionsAvailable NOPE: "+reqMajor+"."+reqProfile);
+        }        
+        return false;
     }
-    resetStates();
   }
 
   private final long createContextARBVersions(long share, boolean direct, int ctxOptionFlags, 
