@@ -50,6 +50,7 @@ import com.jogamp.gluegen.procaddress.ProcAddressJavaMethodBindingEmitter;
 
 import java.io.PrintWriter;
 
+/** Review: This Package/Class is not used and subject to be deleted. */
 public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBindingEmitter {
 
   public NativeSignatureJavaMethodBindingEmitter(GLJavaMethodBindingEmitter methodToWrap) {
@@ -106,7 +107,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     } else if (type.isPrimitiveArray()) {
       writer.print("MO");
     } else if (type.isPrimitive()) {
-      Class clazz = type.getJavaClass();
+      Class<?> clazz = type.getJavaClass();
       if      (clazz == Byte.TYPE)      { writer.print("B"); }
       else if (clazz == Character.TYPE) { writer.print("C"); }
       else if (clazz == Double.TYPE)    { writer.print("D"); }
@@ -145,7 +146,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     super.emitPreCallSetup(binding, writer);
     for (int i = 0; i < binding.getNumArguments(); i++) {
       JavaType type = binding.getJavaArgumentType(i);
-      if (type.isNIOBuffer() && !directNIOOnly) {
+      if (type.isNIOBuffer() && !useNIODirectOnly ) {
         // Emit declarations for variables holding primitive arrays as type Object
         // We don't know 100% sure we're going to use these at this point in the code, though
         writer.println("  Object " + getNIOBufferArrayName(i) + " = (_direct ? null : Buffers.getArray(" +
@@ -245,29 +246,31 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
     writer.print("    ");
     JavaType returnType = binding.getJavaReturnType();
     boolean needsResultAssignment = false;
-
+    
     if (!returnType.isVoid()) {
       if (returnType.isCompoundTypeWrapper() ||
           returnType.isNIOByteBuffer()) {
-        writer.println("java.nio.ByteBuffer _res;");
+        writer.println("final java.nio.ByteBuffer _res;");
         needsResultAssignment = true;
       } else if (returnType.isArrayOfCompoundTypeWrappers()) {
-        writer.println("java.nio.ByteBuffer[] _res;");
+        writer.println("final java.nio.ByteBuffer[] _res;");
         needsResultAssignment = true;
       } else if (returnType.isString() || returnType.isNIOByteBuffer()) {
+        writer.print("final ");
         writer.print(returnType);
         writer.println(" _res;");
         needsResultAssignment = true;
       } else {
         // Always assign to "_res" variable so we can clean up
         // outgoing String arguments, for example
+        writer.print("final ");
         emitReturnType(writer);
         writer.println(" _res;");
         needsResultAssignment = true;
       }
     }
 
-    if (binding.signatureCanUseIndirectNIO() && !directNIOOnly) {
+    if (binding.signatureCanUseIndirectNIO() && !useNIODirectOnly) {
       // Must generate two calls for this gated on whether the NIO
       // buffers coming in are all direct or indirect
       writer.println("if (_direct) {");
@@ -310,7 +313,7 @@ public class NativeSignatureJavaMethodBindingEmitter extends GLJavaMethodBinding
       writer.print(";");
     }
 
-    if (binding.signatureCanUseIndirectNIO() && !directNIOOnly) {
+    if (binding.signatureCanUseIndirectNIO() && !useNIODirectOnly) {
       // Must generate two calls for this gated on whether the NIO
       // buffers coming in are all direct or indirect
       writer.println();

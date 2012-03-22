@@ -55,6 +55,8 @@ import java.util.Set;
 
 /**
  * Emitter producing NativeSignature attributes.
+ * 
+ * Review: This Package/Class is not used and subject to be deleted. 
  */
 public class NativeSignatureEmitter extends GLEmitter {
 
