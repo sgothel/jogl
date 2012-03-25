@@ -73,19 +73,20 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
     }
 
     public static EGLGraphicsConfiguration create(GLCapabilitiesImmutable capsRequested, AbstractGraphicsScreen absScreen, int cfgID) {
-        AbstractGraphicsDevice absDevice = absScreen.getDevice();
+        final AbstractGraphicsDevice absDevice = absScreen.getDevice();
         if(null==absDevice || !(absDevice instanceof EGLGraphicsDevice)) {
             throw new GLException("GraphicsDevice must be a valid EGLGraphicsDevice");
         }
-        long dpy = absDevice.getHandle();
+        final long dpy = absDevice.getHandle();
         if (dpy == EGL.EGL_NO_DISPLAY) {
             throw new GLException("Invalid EGL display: "+absDevice);
         }
-        GLProfile glp = capsRequested.getGLProfile();
-        long cfg = EGLConfigId2EGLConfig(glp, dpy, cfgID);
-        EGLGLCapabilities caps = EGLConfig2Capabilities(glp, dpy, cfg, false, capsRequested.isOnscreen(), capsRequested.isPBuffer());
-        caps = (EGLGLCapabilities) GLGraphicsConfigurationUtil.fixOpaqueGLCapabilities(caps, capsRequested.isBackgroundOpaque()); // FIXME: valid to override EGL transparency ?
-        return new EGLGraphicsConfiguration(absScreen, caps, capsRequested, new DefaultGLCapabilitiesChooser());
+        final long cfg = EGLConfigId2EGLConfig(dpy, cfgID);
+        if(0 < cfg) {
+            final EGLGLCapabilities caps = EGLConfig2Capabilities(capsRequested.getGLProfile(), dpy, cfg, false, capsRequested.isOnscreen(), capsRequested.isPBuffer());
+            return new EGLGraphicsConfiguration(absScreen, caps, capsRequested, new DefaultGLCapabilitiesChooser());
+        }
+        return null;
     }
 
     @Override
@@ -106,7 +107,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         }
     }
 
-    public static long EGLConfigId2EGLConfig(GLProfile glp, long display, int configID) {
+    public static long EGLConfigId2EGLConfig(long display, int configID) {
         int[] attrs = new int[] {
                 EGL.EGL_CONFIG_ID, configID,
                 EGL.EGL_NONE
@@ -365,7 +366,8 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
 
     @Override
     public String toString() {
-        return getClass().getSimpleName()+"["+getScreen()+", eglConfigID "+toHexString(getNativeConfigID())+
+        return getClass().getSimpleName()+"["+getScreen()+
+                                     ",\n\teglConfigHandle "+toHexString(getNativeConfig())+", eglConfigID "+toHexString(getNativeConfigID())+
                                      ",\n\trequested " + getRequestedCapabilities()+
                                      ",\n\tchosen    " + getChosenCapabilities()+
                                      "]";

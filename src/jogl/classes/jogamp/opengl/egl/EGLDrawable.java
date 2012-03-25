@@ -90,8 +90,9 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         }
 
         eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig(), surface.getSurfaceHandle());
-        if (EGL.EGL_NO_SURFACE==eglSurface) {
-            final int eglError0 = EGL.eglGetError();
+        int eglError0 = EGL.EGL_SUCCESS; 
+        if (EGL.EGL_NO_SURFACE == eglSurface) {
+            eglError0 = EGL.eglGetError();
             if(EGL.EGL_BAD_NATIVE_WINDOW == eglError0) {
                 // Try window handle if available and differs (Windows HDC / HWND). 
                 // ANGLE impl. required HWND on Windows.
@@ -102,12 +103,15 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                             System.err.println(getThreadName() + ": Info: Creation of window surface w/ surface handle failed: "+eglConfig+", error "+toHexString(eglError0)+", retry w/ windowHandle");
                         }
                         eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig(), nw.getWindowHandle());
+                        if (EGL.EGL_NO_SURFACE == eglSurface) {
+                            eglError0 = EGL.eglGetError();
+                        }
                     }
                 }
             }
         }
-        if (EGL.EGL_NO_SURFACE==eglSurface) {
-            throw new GLException("Creation of window surface failed: "+eglConfig+", "+surface+", error "+toHexString(EGL.eglGetError()));
+        if (EGL.EGL_NO_SURFACE == eglSurface) {
+            throw new GLException("Creation of window surface failed: "+eglConfig+", "+surface+", error "+toHexString(eglError0));
         }
 
         if(DEBUG) {
@@ -176,7 +180,15 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                 AbstractGraphicsScreen s = new DefaultGraphicsScreen(e, aConfig.getScreen().getIndex());
                 final GLCapabilitiesImmutable capsRequested = (GLCapabilitiesImmutable) aConfig.getRequestedCapabilities();
                 if(aConfig instanceof EGLGraphicsConfiguration) {
-                    eglConfig  = new EGLGraphicsConfiguration(s, (EGLGLCapabilities)aConfig.getChosenCapabilities(), capsRequested, null);
+                    final EGLGLCapabilities capsChosen = (EGLGLCapabilities) aConfig.getChosenCapabilities();
+                    if(0 == capsChosen.getEGLConfig()) {
+                        // 'refresh' the native EGLConfig handle
+                        capsChosen.setEGLConfig(EGLGraphicsConfiguration.EGLConfigId2EGLConfig(eglDisplay, capsChosen.getEGLConfigID()));
+                        if(0 == capsChosen.getEGLConfig()) {
+                            throw new GLException("Refreshing native EGLConfig handle failed: "+capsChosen+" of "+aConfig);
+                        }
+                    }
+                    eglConfig  = new EGLGraphicsConfiguration(s, capsChosen, capsRequested, null);
                     if(DEBUG) {
                         System.err.println(getThreadName() + ": Reusing chosenCaps: "+eglConfig);
                     }

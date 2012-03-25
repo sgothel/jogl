@@ -285,6 +285,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             throw new GLException("Graphics configuration failed [direct caps, eglGetConfig/chooser and fixed-caps(1-3)]");
         }
         if(ownEGLDisplay) {
+            ((EGLGLCapabilities) res.getChosenCapabilities()).setEGLConfig(0); // eglDisplay: EOL 
             EGLDisplayUtil.eglTerminate(eglDisplay);
         }
         return res;

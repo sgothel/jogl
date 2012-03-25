@@ -29,14 +29,13 @@
 package jogamp.opengl.egl;
 
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.VisualIDHolder;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 
 public class EGLGLCapabilities extends GLCapabilities {
-  final private long eglcfg;
+  private long eglcfg;
   final private int  eglcfgid;
   final private int  renderableType;  
   final private int  nativeVisualID;
@@ -74,7 +73,8 @@ public class EGLGLCapabilities extends GLCapabilities {
       throw new GLException(e);
     }
   }
-
+  
+  final protected void setEGLConfig(long v) { eglcfg=v; }
   final public long getEGLConfig() { return eglcfg; }
   final public int getEGLConfigID() { return eglcfgid; }
   final public int getRenderableType() { return renderableType; }
