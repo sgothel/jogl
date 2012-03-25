@@ -52,11 +52,8 @@ function jrun() {
     swton=$1
     shift
 
-    #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=3000 -Djogamp.debug.Lock"
-    #D_ARGS="-Djogl.debug.Threading=true -Djogl.debug.GLCanvas -Djogl.debug.GLJPanel"
-    #D_ARGS="-Djogl.debug.Threading=true -Djogl.debug.GLCanvas -Djogl.debug.GLX_MAKE_CURRENT"
-    #D_ARGS="-Djogl.1thread=true -Djogl.debug.Threading=true -Djogl.debug.GLCanvas -Djogl.debug.GLX_MAKE_CURRENT -Dnativewindow.debug.GraphicsConfiguration"
-    D_ARGS="-Djogl.1thread=true -Djogl.debug.Threading=true -Djogl.debug.GLX_MAKE_CURRENT"
+    #D_ARGS="-Djogl.1thread=false -Djogl.debug.Threading"
+    D_ARGS="-Djogl.1thread=true -Djogl.debug.Threading"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext.TraceSwitch -Djogl.debug=all"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler"

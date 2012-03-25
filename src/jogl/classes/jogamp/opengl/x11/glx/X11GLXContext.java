@@ -55,7 +55,6 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
-import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
 
@@ -64,7 +63,6 @@ import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 
 public abstract class X11GLXContext extends GLContextImpl {
-  private static final boolean DEBUG_GLX_MAKECURRENT = Debug.debug("GLX_MAKE_CURRENT");  
   private static final Map<String, String> functionNameMap;
   private static final Map<String, String> extensionNameMap;
   private GLXExt _glXExt;
@@ -139,11 +137,6 @@ public abstract class X11GLXContext extends GLContextImpl {
     boolean res = false;
 
     try {
-        if(DEBUG_GLX_MAKECURRENT) {
-            System.err.println(getThreadName()+": glXMakeContextCurrent(dpy "+toHexString(dpy)+", write "+ toHexString(writeDrawable)+
-                               ", read "+toHexString(readDrawable)+", ctx "+toHexString(ctx)+") - GLX >= 1.3 "+ isGLXVersionGreaterEqualOneThree());
-            Thread.dumpStack();
-        }
         if ( isGLXVersionGreaterEqualOneThree() ) {
             res = GLX.glXMakeContextCurrent(dpy, writeDrawable, readDrawable, ctx);
         } else if ( writeDrawable == readDrawable ) {
