@@ -89,13 +89,14 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
         
         final GraphicsDevice device = ((AWTGraphicsDevice)awtScreen.getDevice()).getGraphicsDevice();
 
-        long displayHandle = X11SunJDKReflection.graphicsDeviceGetDisplay(device);
+        final long displayHandleAWT = X11SunJDKReflection.graphicsDeviceGetDisplay(device);
+        final long displayHandle;
         boolean owner = false;
-        if(0==displayHandle) {
+        if(0==displayHandleAWT) {
             displayHandle = X11Util.openDisplay(null);
             owner = true;
             if(DEBUG) {
-                System.err.println(Thread.currentThread().getName() + " - X11AWTGraphicsConfigurationFactory: create local X11 display");
+                System.err.println(getThreadName()+" - X11AWTGraphicsConfigurationFactory: Null AWT dpy, create local X11 display: "+toHexString(displayHandle));
             }
         } else {
             /**
@@ -104,12 +105,12 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
              * some work, but some behave erratic. 
              * I.e. hangs in XQueryExtension(..) via X11GraphicsScreen.
              */
-            final String displayName = X11Lib.XDisplayString(displayHandle);
-            if(DEBUG) {
-                System.err.println(Thread.currentThread().getName() + " - X11AWTGraphicsConfigurationFactory: create X11 display @ "+displayName+" / 0x"+Long.toHexString(displayHandle));
-            }
+            final String displayName = X11Lib.XDisplayString(displayHandleAWT);
             displayHandle = X11Util.openDisplay(displayName);
             owner = true;
+            if(DEBUG) {
+                System.err.println(getThreadName()+" - X11AWTGraphicsConfigurationFactory: AWT dpy "+displayName+" / "+toHexString(displayHandleAWT)+", create X11 display "+toHexString(displayHandle));
+            }
         }
         final ToolkitLock lock = owner ? 
                 NativeWindowFactory.getDefaultToolkitLock(NativeWindowFactory.TYPE_AWT) : // own non-shared X11 display connection, no X11 lock

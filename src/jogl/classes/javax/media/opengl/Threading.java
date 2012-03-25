@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2012 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,7 +40,7 @@
 
 package javax.media.opengl;
 
-import jogamp.opengl.*;
+import jogamp.opengl.ThreadingImpl;
 
 /** This API provides access to the threading model for the implementation of 
     the classes in this package.
@@ -133,21 +134,27 @@ public class Threading {
         once disabled, partly to discourage careless use of this
         method. This method should be called as early as possible in an
         application. */ 
-    public static void disableSingleThreading() {
+    public static final void disableSingleThreading() {
         ThreadingImpl.disableSingleThreading();
     }
 
     /** Indicates whether OpenGL work is being automatically forced to a
         single thread in this implementation. */
-    public static boolean isSingleThreaded() {
+    public static final boolean isSingleThreaded() {
         return ThreadingImpl.isSingleThreaded();
     }
 
+    /** Indicates whether the current thread is the designated toolkit thread,
+        if such semantics exists. */    
+    public static final boolean isToolkitThread() throws GLException {
+        return ThreadingImpl.isToolkitThread();
+    }
+    
     /** Indicates whether the current thread is the single thread on
         which this implementation of the javax.media.opengl APIs
         performs all of its OpenGL-related work. This method should only
         be called if the single-thread model is in effect. */
-    public static boolean isOpenGLThread() throws GLException {
+    public static final boolean isOpenGLThread() throws GLException {
         return ThreadingImpl.isOpenGLThread();
     }
 
@@ -159,8 +166,31 @@ public class Threading {
         thread (i.e., if <code>isOpenGLThread()</code> returns
         false). It is up to the end user to check to see whether the
         current thread is the OpenGL thread and either execute the
-        Runnable directly or perform the work inside it. */
-    public static void invokeOnOpenGLThread(Runnable r) throws GLException {
-        ThreadingImpl.invokeOnOpenGLThread(r);
+        Runnable directly or perform the work inside it. 
+     **/
+    public static final void invokeOnOpenGLThread(boolean wait, Runnable r) throws GLException {
+        ThreadingImpl.invokeOnOpenGLThread(wait, r);
+    }
+    
+    /**
+     * If {@link #isSingleThreaded()} <b>and</b> not {@link #isOpenGLThread()}
+     * <b>and</b> the <code>lock</code> is not being hold by this thread,
+     * invoke Runnable <code>r</code> on the OpenGL thread via {@link #invokeOnOpenGLThread(boolean, Runnable)}.
+     * <p>
+     * Otherwise invoke Runnable <code>r</code> on the current thread.
+     * </p>
+     * 
+     * @param wait set to true for waiting until Runnable <code>r</code> is finished, otherwise false. 
+     * @param r the Runnable to be executed
+     * @param lock optional lock object to be tested
+     * @throws GLException
+     */
+    public static final void invoke(boolean wait, Runnable r, Object lock) throws GLException {
+        if ( isSingleThreaded() && !isOpenGLThread() && 
+             ( null == lock || !Thread.holdsLock(lock) ) ) {
+            invokeOnOpenGLThread(wait, r);
+        } else {
+            r.run();
+        }
     }
 }

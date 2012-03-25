@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2012 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -41,8 +42,12 @@ package jogamp.opengl;
 
 import javax.media.opengl.*;
 
-public interface ThreadingPlugin {
-  /** Indicates whether the current thread is the single thread on
+public interface ToolkitThreadingPlugin {
+  /** Indicates whether the current thread is the designated toolkit thread,
+      if such semantics exists. */
+  public boolean isToolkitThread() throws GLException;
+  
+  /** Indicates whether the current thread is the thread on
       which this implementation of the javax.media.opengl APIs
       performs all of its OpenGL-related work. This method should only
       be called if the single-thread model is in effect. */
@@ -57,6 +62,6 @@ public interface ThreadingPlugin {
       false). It is up to the end user to check to see whether the
       current thread is the OpenGL thread and either execute the
       Runnable directly or perform the work inside it. */
-  public void invokeOnOpenGLThread(Runnable r) throws GLException;
+  public void invokeOnOpenGLThread(boolean wait, Runnable r) throws GLException;
 }
 

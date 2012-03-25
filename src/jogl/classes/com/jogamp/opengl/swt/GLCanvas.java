@@ -526,7 +526,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
          assert display.getThread() != Thread.currentThread() : "Incorrect use of thread dispatching.";
          display.syncExec(makeCurrentAndRunAction);
       } else {
-         Threading.invokeOnOpenGLThread(makeCurrentAndRunAction);
+         Threading.invokeOnOpenGLThread(true, makeCurrentAndRunAction);
       }
    }
 

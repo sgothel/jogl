@@ -28,27 +28,15 @@
 
 package jogamp.newt.driver.awt;
 
-import java.awt.EventQueue;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import javax.media.opengl.Threading;
 
-import javax.media.nativewindow.NativeWindowException;
-
-import com.jogamp.newt.Display;
 import com.jogamp.newt.util.EDTUtil;
 import jogamp.newt.Debug;
 
 public class AWTEDTUtil implements EDTUtil {
     public static final boolean DEBUG = Debug.debug("EDT");
 
-    private static Timer pumpMessagesTimer=null;
-    private static TimerTask pumpMessagesTimerTask=null;
-    private static final Map<Display, Runnable> pumpMessageDisplayMap = new HashMap<Display, Runnable>();
     private static AWTEDTUtil singletonMainThread = new AWTEDTUtil(); // one singleton MainThread
-    private static long pollPeriod = EDTUtil.defaultEDTPollPeriod;
     
     public static AWTEDTUtil getSingleton() {
         return singletonMainThread;
@@ -59,11 +47,11 @@ public class AWTEDTUtil implements EDTUtil {
     }
 
     final public long getPollPeriod() {
-        return pollPeriod;
+        return 0;
     }
 
     final public void setPollPeriod(long ms) {
-        pollPeriod = ms;
+        // nop
     }
     
     final public void reset() {
@@ -75,7 +63,7 @@ public class AWTEDTUtil implements EDTUtil {
     }
 
     final public boolean isCurrentThreadEDT() {
-        return EventQueue.isDispatchThread();
+        return Threading.isToolkitThread();
     }
 
     final public boolean isRunning() {
@@ -90,62 +78,22 @@ public class AWTEDTUtil implements EDTUtil {
         if(r == null) {
             return;
         }
-
-        // handover to AWT MainThread ..
-        try {
-            if ( isCurrentThreadEDT() ) {
-                r.run();
-                return;
-            }
-            if(wait) {
-                EventQueue.invokeAndWait(r);
-            } else {
-                EventQueue.invokeLater(r);
-            }
-        } catch (Exception e) {
-            throw new NativeWindowException(e);
-        }
+        
+        Threading.invoke(wait, r, null);
     }
 
     final public void waitUntilIdle() {
         // wait until previous events are processed, at least ..
         try {
-            EventQueue.invokeAndWait( new Runnable() {
+            Threading.invoke(true, new Runnable() {
                 public void run() { }
-            });
+            }, null);
         } catch (Exception e) { }
     }
 
     final public void waitUntilStopped() {
         // nop: AWT is always running
     }
-
-    public static void addPumpMessage(Display dpy, Runnable pumpMessage) {
-        if(DEBUG) {
-            System.err.println("AWTEDTUtil.addPumpMessage(): "+Thread.currentThread().getName()+" - dpy "+dpy);
-        }
-        
-        synchronized (pumpMessageDisplayMap) {
-            if(null == pumpMessagesTimer) {
-                // AWT pump messages .. MAIN_THREAD uses main thread
-                pumpMessagesTimer = new Timer();
-                pumpMessagesTimerTask = new TimerTask() {
-                    public void run() {
-                        synchronized(pumpMessageDisplayMap) {
-                            for(Iterator<Runnable> i = pumpMessageDisplayMap.values().iterator(); i.hasNext(); ) {
-                                AWTEDTUtil.getSingleton().invoke(true, i.next());
-                                // AWTEDTUtil.getSingleton().invoke(false, i.next());
-                                // i.next().run();
-                            }
-                        }
-                    }
-                };
-                pumpMessagesTimer.scheduleAtFixedRate(pumpMessagesTimerTask, 0, pollPeriod);
-            }
-            pumpMessageDisplayMap.put(dpy, pumpMessage);
-        }
-    }
-
 }
 
 

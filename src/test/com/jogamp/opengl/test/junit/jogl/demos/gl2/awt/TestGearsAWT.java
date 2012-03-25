@@ -41,6 +41,9 @@ import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import java.awt.Frame;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
@@ -51,7 +54,7 @@ import org.junit.Test;
 public class TestGearsAWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
-    static boolean firstUIActionOnProcess = false;
+    static boolean waitForKey = false;
 
     @BeforeClass
     public static void initClass() {
@@ -63,6 +66,8 @@ public class TestGearsAWT extends UITestCase {
         } else {
             setTestSupported(false);
         }
+        // Runtime.getRuntime().traceInstructions(true);
+        // Runtime.getRuntime().traceMethodCalls(true);
     }
 
     @AfterClass
@@ -127,9 +132,16 @@ public class TestGearsAWT extends UITestCase {
                 try {
                     duration = Integer.parseInt(args[i]);
                 } catch (Exception ex) { ex.printStackTrace(); }
-            } else if(args[i].equals("-firstUIAction")) {
-                firstUIActionOnProcess = true;
+            } else if(args[i].equals("-wait")) {
+                waitForKey = true;
             }
+        }
+        if(waitForKey) {
+            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+            System.err.println("Press enter to continue");
+            try {
+                System.err.println(stdin.readLine());
+            } catch (IOException e) { }
         }
         org.junit.runner.JUnitCore.main(TestGearsAWT.class.getName());
     }

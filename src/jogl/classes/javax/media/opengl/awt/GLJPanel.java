@@ -89,7 +89,6 @@ import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.GLDrawableHelper;
 import jogamp.opengl.GLDrawableImpl;
-import jogamp.opengl.ThreadingImpl;
 import jogamp.opengl.awt.Java2D;
 import jogamp.opengl.awt.Java2DGLContext;
 
@@ -269,7 +268,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   protected void dispose() {
     if(DEBUG) {
-        System.err.println("Info: dispose() - start - "+Thread.currentThread().getName());
+        System.err.println(getThreadName()+": GLJPanel.dispose() - start");
         // Thread.dumpStack();
     }
 
@@ -281,23 +280,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       }
 
       if(backend.getContext().isCreated()) {      
-          if (Threading.isSingleThreaded() &&
-              !Threading.isOpenGLThread()) {
-              // Workaround for termination issues with applets --
-              // sun.applet.AppletPanel should probably be performing the
-              // remove() call on the EDT rather than on its own thread
-              if (ThreadingImpl.isAWTMode() &&
-                  Thread.holdsLock(getTreeLock())) {
-                // The user really should not be invoking remove() from this
-                // thread -- but since he/she is, we can not go over to the
-                // EDT at this point. Try to destroy the context from here.
-                drawableHelper.disposeGL(GLJPanel.this, backend.getDrawable(), backend.getContext(), postDisposeAction);
-              } else {
-                Threading.invokeOnOpenGLThread(disposeOnEventDispatchThreadAction);
-              }
-          } else {
-              drawableHelper.disposeGL(GLJPanel.this, backend.getDrawable(), backend.getContext(), postDisposeAction);
-          }
+          Threading.invoke(true, disposeAction, getTreeLock());
       }
       if(null != backend) {
           // not yet destroyed due to backend.isUsingOwnThreadManagment() == true
@@ -311,7 +294,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
     
     if(DEBUG) {
-        System.err.println("dispose() - stop");
+        System.err.println(getThreadName()+": GLJPanel.dispose() - stop");
     }
   }
 
@@ -368,9 +351,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     updater.setGraphics(g);
+    
     backend.doPaintComponent(g);
   }
 
+  
   /** Overridden to track when this component is added to a container.
       Subclasses which override this method must call
       super.addNotify() in their addNotify() method in order to
@@ -381,7 +366,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   public void addNotify() {
     super.addNotify();
     if (DEBUG) {
-      System.err.println("GLJPanel.addNotify()");
+      System.err.println(getThreadName()+": GLJPanel.addNotify()");
     }
   }
 
@@ -624,7 +609,7 @@ public void reshape(int x, int y, int width, int height) {
     panelHeight = reshapeHeight;
 
     if (DEBUG) {
-      System.err.println("GLJPanel.handleReshape: (w,h) = (" +
+      System.err.println(getThreadName()+": GLJPanel.handleReshape: (w,h) = (" +
                          panelWidth + "," + panelHeight + ")");
     }
 
@@ -632,7 +617,7 @@ public void reshape(int x, int y, int width, int height) {
     backend.handleReshape();
     handleReshape = false;
   }
-
+  
   // This is used as the GLEventListener for the pbuffer-based backend
   // as well as the callback mechanism for the other backends
   class Updater implements GLEventListener {
@@ -660,7 +645,7 @@ public void reshape(int x, int y, int width, int height) {
       }
       if (sendReshape) {
         if (DEBUG) {
-          System.err.println("display: reshape(" + viewportX + "," + viewportY + " " + panelWidth + "x" + panelHeight + ")");
+          System.err.println(getThreadName()+": GLJPanel.display: reshape(" + viewportX + "," + viewportY + " " + panelWidth + "x" + panelHeight + ")");
         }
         drawableHelper.reshape(GLJPanel.this, viewportX, viewportY, panelWidth, panelHeight);
         sendReshape = false;
@@ -682,7 +667,7 @@ public void reshape(int x, int y, int width, int height) {
     return "AWT-GLJPanel[ "+((null!=backend)?backend.getDrawable().getClass().getName():"null-drawable")+"]";
   }
 
-  class PostDisposeAction implements Runnable {
+  private final Runnable postDisposeAction = new Runnable() {
       public void run() {
           if (backend != null && !backend.isUsingOwnThreadManagment()) {
               backend.destroy();
@@ -690,38 +675,31 @@ public void reshape(int x, int y, int width, int height) {
               isInitialized = false;      
           }
       }
-  }
-  private PostDisposeAction postDisposeAction = new PostDisposeAction();
+  }; 
 
-  private DisposeOnEventDispatchThreadAction disposeOnEventDispatchThreadAction =
-    new DisposeOnEventDispatchThreadAction();
-
-  class DisposeOnEventDispatchThreadAction implements Runnable {
+  private final Runnable disposeAction = new Runnable() {
     public void run() {
       drawableHelper.disposeGL(GLJPanel.this, backend.getDrawable(), backend.getContext(), postDisposeAction);
     }
-  }
-  
-  class InitAction implements Runnable {
+  }; 
+
+  private final Runnable updaterInitAction = new Runnable() {
     public void run() {
       updater.init(GLJPanel.this);
     }
-  }
-  private InitAction initAction = new InitAction();
+  };
 
-  class DisplayAction implements Runnable {
+  private final Runnable updaterDisplayAction = new Runnable() {
     public void run() {
       updater.display(GLJPanel.this);
     }
-  }
-  private DisplayAction displayAction = new DisplayAction();
+  };
 
-  class PaintImmediatelyAction implements Runnable {
+  private final Runnable paintImmediatelyAction = new Runnable() {
     public void run() {
       paintImmediately(0, 0, getWidth(), getHeight());
     }
-  }
-  private PaintImmediatelyAction paintImmediatelyAction = new PaintImmediatelyAction();
+  }; 
 
   private int getNextPowerOf2(int number) {
     // Workaround for problems where 0 width or height are transiently
@@ -738,6 +716,10 @@ public void reshape(int x, int y, int width, int height) {
     return tmp[0];
   }
 
+  protected static String getThreadName() {
+    return Thread.currentThread().getName();
+  }
+    
   //----------------------------------------------------------------------
   // Implementations of the various backends
   //
@@ -980,7 +962,7 @@ public void reshape(int x, int y, int width, int height) {
     
     public void initialize() {
       if(DEBUG) {
-          System.err.println("SoftwareBackend: initialize() - "+Thread.currentThread().getName());
+          System.err.println(getThreadName()+": SoftwareBackend: initialize()");
       }
       // Fall-through path: create an offscreen context instead
       offscreenDrawable = (GLDrawableImpl) factory.createOffscreenDrawable(
@@ -999,7 +981,7 @@ public void reshape(int x, int y, int width, int height) {
 
     public void destroy() {
       if(DEBUG) {
-          System.err.println("SoftwareBackend: destroy() - offscreenContext: "+(null!=offscreenContext)+" - offscreenDrawable: "+(null!=offscreenDrawable)+" - "+Thread.currentThread().getName());
+          System.err.println(getThreadName()+": SoftwareBackend: destroy() - offscreenContext: "+(null!=offscreenContext)+" - offscreenDrawable: "+(null!=offscreenDrawable));
       }
       if (offscreenContext != null) {
         offscreenContext.destroy();
@@ -1058,7 +1040,7 @@ public void reshape(int x, int y, int width, int height) {
     }
 
     protected void doPaintComponentImpl() {
-      drawableHelper.invokeGL(offscreenDrawable, offscreenContext, displayAction, initAction);
+      drawableHelper.invokeGL(offscreenDrawable, offscreenContext, updaterDisplayAction, updaterInitAction);
     }
 
     protected int getGLPixelType() {
@@ -1082,7 +1064,7 @@ public void reshape(int x, int y, int width, int height) {
         throw new InternalError("Creating pbuffer twice without destroying it (memory leak / correctness bug)");
       }
       if(DEBUG) {
-          System.err.println("PbufferBackend: initialize() - "+Thread.currentThread().getName());
+          System.err.println(getThreadName()+": PbufferBackend: initialize()");
       }
       try {
         pbuffer = factory.createGLPbuffer(null /* default platform device */,
@@ -1097,7 +1079,7 @@ public void reshape(int x, int y, int width, int height) {
       } catch (GLException e) {
         if (DEBUG) {
           e.printStackTrace();
-          System.err.println("Info: GLJPanel: Falling back on software rendering because of problems creating pbuffer");
+          System.err.println(getThreadName()+": GLJPanel: Falling back on software rendering because of problems creating pbuffer");
         }
         hardwareAccelerationDisabled = true;
         backend = null;
@@ -1108,7 +1090,7 @@ public void reshape(int x, int y, int width, int height) {
 
     public void destroy() {
       if(DEBUG) {
-          System.err.println("PbufferBackend: destroy() - pbuffer: "+(null!=pbuffer)+" - "+Thread.currentThread().getName());
+          System.err.println(getThreadName()+": PbufferBackend: destroy() - pbuffer: "+(null!=pbuffer));
       }
       if (pbuffer != null) {
         pbuffer.destroy();
@@ -1159,7 +1141,7 @@ public void reshape(int x, int y, int width, int height) {
       if ((panelWidth > pbufferWidth)                  || (panelHeight > pbufferHeight) ||
           (panelWidth < (pbufferWidth / shrinkFactor)) || (panelHeight < (pbufferHeight / shrinkFactor))) {
         if (DEBUG) {
-          System.err.println("Resizing pbuffer from (" + pbufferWidth + ", " + pbufferHeight + ") " +
+          System.err.println(getThreadName()+": Resizing pbuffer from (" + pbufferWidth + ", " + pbufferHeight + ") " +
                              " to fit (" + panelWidth + ", " + panelHeight + ")");
         }
         // Must destroy and recreate pbuffer to fit
@@ -1177,7 +1159,7 @@ public void reshape(int x, int y, int width, int height) {
             readBackWidthInPixels  = Math.max(1, panelWidth);
             readBackHeightInPixels = Math.max(1, panelHeight);
             if (DEBUG) {
-              System.err.println("Warning: falling back to software rendering due to bugs in OpenGL drivers");
+              System.err.println(getThreadName()+": Warning: falling back to software rendering due to bugs in OpenGL drivers");
               e.printStackTrace();
             }
             createAndInitializeBackend();
@@ -1189,7 +1171,7 @@ public void reshape(int x, int y, int width, int height) {
         pbufferWidth = getNextPowerOf2(panelWidth);
         pbufferHeight = getNextPowerOf2(panelHeight);
         if (DEBUG && !hardwareAccelerationDisabled) {
-          System.err.println("New pbuffer size is (" + pbufferWidth + ", " + pbufferHeight + ")");
+          System.err.println(getThreadName()+": New pbuffer size is (" + pbufferWidth + ", " + pbufferHeight + ")");
         }
         initialize();
       }
@@ -1277,7 +1259,7 @@ public void reshape(int x, int y, int width, int height) {
     
     public void initialize() {
       if(DEBUG) {
-          System.err.println("J2DOGL: initialize() - "+Thread.currentThread().getName());
+          System.err.println(getThreadName()+": J2DOGL: initialize()");
       }
       // No-op in this implementation; everything is done lazily
       isInitialized = true;
@@ -1287,7 +1269,7 @@ public void reshape(int x, int y, int width, int height) {
       Java2D.invokeWithOGLContextCurrent(null, new Runnable() {
           public void run() {
             if(DEBUG) {
-                System.err.println("J2DOGL: destroy() - joglContext: "+(null!=joglContext)+" - joglDrawable: "+(null!=joglDrawable)+" - "+Thread.currentThread().getName());
+                System.err.println(getThreadName()+": J2DOGL: destroy() - joglContext: "+(null!=joglContext)+" - joglDrawable: "+(null!=joglDrawable));
             }
             if (joglContext != null) {
               joglContext.destroy();
@@ -1347,12 +1329,12 @@ public void reshape(int x, int y, int width, int height) {
 
       if (r == null) {
         if (DEBUG) {
-          System.err.println("Java2D.getOGLScissorBox() returned null");
+          System.err.println(getThreadName()+": Java2D.getOGLScissorBox() returned null");
         }
         return false;
       }
       if (DEBUG) {
-        System.err.println("GLJPanel: gl.glScissor(" + r.x + ", " + r.y + ", " + r.width + ", " + r.height + ")");
+        System.err.println(getThreadName()+": GLJPanel: gl.glScissor(" + r.x + ", " + r.y + ", " + r.width + ", " + r.height + ")");
       }
 
       gl.glScissor(r.x, r.y, r.width, r.height);
@@ -1364,7 +1346,7 @@ public void reshape(int x, int y, int width, int height) {
           (viewportY != oglViewport.y)) {
         sendReshape = true;
         if (DEBUG) {
-          System.err.println("Sending reshape because viewport changed");
+          System.err.println(getThreadName()+": Sending reshape because viewport changed");
           System.err.println("  viewportX (" + viewportX + ") ?= oglViewport.x (" + oglViewport.x + ")");
           System.err.println("  viewportY (" + viewportY + ") ?= oglViewport.y (" + oglViewport.y + ")");
         }
@@ -1393,14 +1375,14 @@ public void reshape(int x, int y, int width, int height) {
               fbObjectWorkarounds = true;
               createNewDepthBuffer = true;
               if (DEBUG) {
-                  System.err.println("GLJPanel: ERR GL_FRAMEBUFFER_BINDING: Discovered Invalid J2D FBO("+frameBuffer[0]+"): "+FBObject.getStatusString(status) +
+                  System.err.println(getThreadName()+": GLJPanel: ERR GL_FRAMEBUFFER_BINDING: Discovered Invalid J2D FBO("+frameBuffer[0]+"): "+FBObject.getStatusString(status) +
                                      ", frame_buffer_object workarounds to be necessary");
               }
           } else {
             // Don't need the frameBufferTexture temporary any more
             frameBufferTexture = null;
             if (DEBUG) {
-              System.err.println("GLJPanel: OK GL_FRAMEBUFFER_BINDING: "+frameBuffer[0]);
+              System.err.println(getThreadName()+": GLJPanel: OK GL_FRAMEBUFFER_BINDING: "+frameBuffer[0]);
             }
           }
         }
@@ -1424,7 +1406,7 @@ public void reshape(int x, int y, int width, int height) {
                     
           gl.glGenRenderbuffers(1, frameBufferDepthBuffer, 0);
           if (DEBUG) {
-            System.err.println("GLJPanel: Generated frameBufferDepthBuffer " + frameBufferDepthBuffer[0] +
+            System.err.println(getThreadName()+": GLJPanel: Generated frameBufferDepthBuffer " + frameBufferDepthBuffer[0] +
                                " with width " + width[0] + ", height " + height[0]);
           }
                     
@@ -1447,7 +1429,7 @@ public void reshape(int x, int y, int width, int height) {
                                     frameBufferTexture[0],
                                     0);
           if (DEBUG) {
-            System.err.println("GLJPanel: frameBufferDepthBuffer: " + frameBufferDepthBuffer[0]);
+            System.err.println(getThreadName()+": GLJPanel: frameBufferDepthBuffer: " + frameBufferDepthBuffer[0]);
           }
           gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER,
                                        GL.GL_DEPTH_ATTACHMENT,
@@ -1464,7 +1446,7 @@ public void reshape(int x, int y, int width, int height) {
         }
       } else {
         if (DEBUG) {
-          System.err.println("GLJPanel: Setting up drawBuffer " + drawBuffer[0] +
+          System.err.println(getThreadName()+": GLJPanel: Setting up drawBuffer " + drawBuffer[0] +
                              " and readBuffer " + readBuffer[0]);
         }
 
@@ -1522,14 +1504,14 @@ public void reshape(int x, int y, int width, int height) {
       Java2D.invokeWithOGLContextCurrent(g, new Runnable() {
           public void run() {
             if (DEBUG) {
-              System.err.println("-- In invokeWithOGLContextCurrent - "+Thread.currentThread().getName());
+              System.err.println(getThreadName()+": GLJPanel.invokeWithOGLContextCurrent");
             }
 
             // Create no-op context representing Java2D context
             if (j2dContext == null) {
               j2dContext = factory.createExternalGLContext();
               if (DEBUG) {
-                System.err.println("-- Created External Context: "+j2dContext);
+                System.err.println(getThreadName()+": GLJPanel.Created External Context: "+j2dContext);
               }
               if (DEBUG) {
 //                j2dContext.setGL(new DebugGL2(j2dContext.getGL().getGL2()));
@@ -1552,7 +1534,7 @@ public void reshape(int x, int y, int width, int height) {
                   //          (getGLInteger(gl, GL2.GL_DEPTH_BITS)       < offscreenCaps.getDepthBits())      ||
                   (getGLInteger(gl, GL.GL_STENCIL_BITS)     < offscreenCaps.getStencilBits())) {
                 if (DEBUG) {
-                  System.err.println("GLJPanel: Falling back to pbuffer-based support because Java2D context insufficient");
+                  System.err.println(getThreadName()+": GLJPanel: Falling back to pbuffer-based support because Java2D context insufficient");
                   System.err.println("                    Available              Required");
                   System.err.println("GL_RED_BITS         " + getGLInteger(gl, GL.GL_RED_BITS)         + "              " + offscreenCaps.getRedBits());
                   System.err.println("GL_GREEN_BITS       " + getGLInteger(gl, GL.GL_GREEN_BITS)       + "              " + offscreenCaps.getGreenBits());
@@ -1587,13 +1569,13 @@ public void reshape(int x, int y, int width, int height) {
                     joglDrawable = null;
                     sendReshape = true;
                     if (DEBUG) {
-                      System.err.println("Sending reshape because surface changed");
+                      System.err.println(getThreadName()+": Sending reshape because surface changed");
                       System.err.println("New surface = " + curSurface);
                     }
                   }
                   j2dSurface = curSurface;
                   if (DEBUG) {
-                      System.err.print("-- Surface type: ");
+                      System.err.print(getThreadName()+": Surface type: ");
                       int surfaceType = Java2D.getOGLSurfaceType(g);
                       if (surfaceType == Java2D.UNDEFINED) {
                         System.err.println("UNDEFINED");
@@ -1645,7 +1627,7 @@ public void reshape(int x, int y, int width, int height) {
                   ((Java2DGLContext) joglContext).setGraphics(g);
                 }
 
-                drawableHelper.invokeGL(joglDrawable, joglContext, displayAction, initAction);
+                drawableHelper.invokeGL(joglDrawable, joglContext, updaterDisplayAction, updaterInitAction);
               }
             } finally {
               j2dContext.release();
@@ -1665,11 +1647,11 @@ public void reshape(int x, int y, int width, int height) {
           fbObjectWorkarounds = true;
           createNewDepthBuffer = true;
           if (DEBUG) {
-              System.err.println("GLJPanel: Fetched ERR GL_FRAMEBUFFER_BINDING: "+frameBuffer[0]+" - NOT A FBO"+
+              System.err.println(getThreadName()+": GLJPanel: Fetched ERR GL_FRAMEBUFFER_BINDING: "+frameBuffer[0]+" - NOT A FBO"+
                                  ", frame_buffer_object workarounds to be necessary");
           }
         } else if (DEBUG) {
-          System.err.println("GLJPanel: Fetched OK GL_FRAMEBUFFER_BINDING: "+frameBuffer[0]);
+          System.err.println(getThreadName()+": GLJPanel: Fetched OK GL_FRAMEBUFFER_BINDING: "+frameBuffer[0]);
         }
 
         if(fbObjectWorkarounds || !checkedForFBObjectWorkarounds) {
@@ -1684,7 +1666,7 @@ public void reshape(int x, int y, int width, int height) {
                                                      GL.GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME,
                                                      frameBufferTexture, 0);
             if (DEBUG) {
-                System.err.println("GLJPanel: FBO COLOR_ATTACHMENT0: " + frameBufferTexture[0]);
+                System.err.println(getThreadName()+": GLJPanel: FBO COLOR_ATTACHMENT0: " + frameBufferTexture[0]);
             }
         }
 

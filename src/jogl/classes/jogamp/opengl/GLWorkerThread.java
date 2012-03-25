@@ -79,7 +79,7 @@ public class GLWorkerThread {
         if (!started) {
           lock = new Object();
           thread = new Thread(new WorkerRunnable(),
-                              "JOGL GLWorkerThread");
+                              "JOGL-GLWorkerThread-");
           thread.setDaemon(true);
           started = true;
           synchronized (lock) {
@@ -149,6 +149,15 @@ public class GLWorkerThread {
     }
   }
 
+  public static void invoke(boolean wait, Runnable runnable) 
+      throws InvocationTargetException, InterruptedException {
+      if(wait) {
+          invokeAndWait(runnable);
+      } else {
+          invokeLater(runnable);
+      }
+  }
+  
   public static void invokeAndWait(Runnable runnable)
     throws InvocationTargetException, InterruptedException {
     if (!started) {

@@ -40,18 +40,24 @@
 
 package jogamp.opengl.awt;
 
-import javax.media.opengl.*;
-
 import java.awt.EventQueue;
 import java.lang.reflect.InvocationTargetException;
 
-import jogamp.opengl.*;
+import javax.media.opengl.GLException;
 
-public class AWTThreadingPlugin implements ThreadingPlugin {
+import jogamp.opengl.GLWorkerThread;
+import jogamp.opengl.ThreadingImpl;
+import jogamp.opengl.ToolkitThreadingPlugin;
+
+public class AWTThreadingPlugin implements ToolkitThreadingPlugin {
 
   public AWTThreadingPlugin() {}
 
-  public boolean isOpenGLThread() throws GLException {
+  public final boolean isToolkitThread() throws GLException {
+      return EventQueue.isDispatchThread();
+  }
+  
+  public final boolean isOpenGLThread() throws GLException {
     switch (ThreadingImpl.getMode()) {
       case ST_AWT:
         // FIXME: See the FIXME below in 'invokeOnOpenGLThread'
@@ -76,7 +82,7 @@ public class AWTThreadingPlugin implements ThreadingPlugin {
     }
   }
 
-  public void invokeOnOpenGLThread(Runnable r) throws GLException {
+  public final void invokeOnOpenGLThread(boolean wait, Runnable r) throws GLException {
     switch (ThreadingImpl.getMode()) {
       case ST_AWT:
         // FIXME: ideally should run all OpenGL work on the Java2D QFT
@@ -87,11 +93,19 @@ public class AWTThreadingPlugin implements ThreadingPlugin {
         // implementation, which attempts to grab the AWT lock on the
         // QFT which is not allowed. For now, on X11 platforms,
         // continue to perform this work on the EDT.
-        if (Java2D.isOGLPipelineActive() && !ThreadingImpl.isX11()) {
-          Java2D.invokeWithOGLContextCurrent(null, r);
+        if (wait && Java2D.isOGLPipelineActive() && !ThreadingImpl.isX11()) {
+          if(wait) {
+              Java2D.invokeWithOGLContextCurrent(null, r);
+          } else {
+              
+          }
         } else {
           try {
-            EventQueue.invokeAndWait(r);
+            if(wait) {
+                EventQueue.invokeAndWait(r);
+            } else {
+                EventQueue.invokeLater(r);
+            }
           } catch (InvocationTargetException e) {
             throw new GLException(e.getTargetException());
           } catch (InterruptedException e) {
@@ -101,14 +115,7 @@ public class AWTThreadingPlugin implements ThreadingPlugin {
         break;
 
       case ST_WORKER:
-        GLWorkerThread.start(); // singleton start via volatile-dbl-checked-locking
-        try {
-          GLWorkerThread.invokeAndWait(r);
-        } catch (InvocationTargetException e) {
-          throw new GLException(e.getTargetException());
-        } catch (InterruptedException e) {
-          throw new GLException(e);
-        }
+        ThreadingImpl.invokeOnWorkerThread(wait, r);
         break;
 
       default:

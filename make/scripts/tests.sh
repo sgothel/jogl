@@ -40,6 +40,8 @@ $javaexe -version 2>&1 | tee -a java-run.log
 echo LIBXCB_ALLOW_SLOPPY_LOCK: $LIBXCB_ALLOW_SLOPPY_LOCK 2>&1 | tee -a java-run.log
 echo LIBGL_DRIVERS_PATH: $LIBGL_DRIVERS_PATH 2>&1 | tee -a java-run.log
 echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a java-run.log
+echo LIBGL_ALWAYS_INDIRECT: $LIBGL_ALWAYS_INDIRECT 2>&1 | tee -a java-run.log
+echo LIBGL_ALWAYS_SOFTWARE: $LIBGL_ALWAYS_SOFTWARE 2>&1 | tee -a java-run.log
 echo SWT_CLASSPATH: $SWT_CLASSPATH 2>&1 | tee -a java-run.log
 echo $javaexe $javaxargs $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 echo MacOsX $MOSX
@@ -50,6 +52,11 @@ function jrun() {
     swton=$1
     shift
 
+    #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=3000 -Djogamp.debug.Lock"
+    #D_ARGS="-Djogl.debug.Threading=true -Djogl.debug.GLCanvas -Djogl.debug.GLJPanel"
+    #D_ARGS="-Djogl.debug.Threading=true -Djogl.debug.GLCanvas -Djogl.debug.GLX_MAKE_CURRENT"
+    #D_ARGS="-Djogl.1thread=true -Djogl.debug.Threading=true -Djogl.debug.GLCanvas -Djogl.debug.GLX_MAKE_CURRENT -Dnativewindow.debug.GraphicsConfiguration"
+    D_ARGS="-Djogl.1thread=true -Djogl.debug.Threading=true -Djogl.debug.GLX_MAKE_CURRENT"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext.TraceSwitch -Djogl.debug=all"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler"
@@ -79,7 +86,7 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.X11Util -Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug.GLDrawable -Djogl.debug.GLContext"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
-    #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=1000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
+    #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=3000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock -Dnativewindow.debug.ToolkitLock.TraceLock"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Dnativewindow.debug.X11Util"
     #D_ARGS="-Dnewt.debug.EDT -Djogamp.common.utils.locks.Lock.timeout=600000 -Djogl.debug.Animator -Dnewt.debug.Display -Dnewt.debug.Screen"
@@ -92,6 +99,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT -Djogamp.debug.Lock"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GraphicsConfiguration"
     #D_ARGS="-Dnewt.debug.EDT"
+    #D_ARGS="-Djogamp.debug=all -Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
@@ -121,19 +129,24 @@ function jrun() {
     #D_ARGS="-Dnewt.debug=all -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
     #D_ARGS="-Djogl.debug.GLContext -Dnewt.debug=all -Djogamp.debug.Lock -Djogamp.common.utils.locks.Lock.timeout=10000"
     #D_ARGS="-Dnewt.debug=all"
-    #X_ARGS="-Dsun.java2d.noddraw=true -Dsun.java2d.opengl=true"
+    #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=True -Dsun.java2d.xrender=false"
+    X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=false -Dsun.java2d.xrender=false"
     #X_ARGS="-verbose:jni"
+    #X_ARGS="-Xrs"
 
     if [ $awton -eq 1 ] ; then
         export CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
         echo CLASSPATH $CLASSPATH
-        X_ARGS="-Djava.awt.headless=false"
+        X_ARGS="-Djava.awt.headless=false $X_ARGS"
     else
         export CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH
-        X_ARGS="-Djava.awt.headless=true"
+        X_ARGS="-Djava.awt.headless=true $X_ARGS"
     fi
     if [ $swton -eq 1 ] ; then
         export CLASSPATH=$CLASSPATH:$JOGL_SWT_CLASSPATH
+    fi
+    if [ ! -z "$CUSTOM_CLASSPATH" ] ; then
+        export CLASSPATH=$CUSTOM_CLASSPATH:$CLASSPATH
     fi
     echo CLASSPATH $CLASSPATH
     if [ $MOSX_MT -eq 1 ] ; then
@@ -236,17 +249,18 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug551AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn $*
-testawt com.jogamp.opengl.test.junit.jogl.acore.TestAWTCloseX11DisplayBug565 $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestAWTCloseX11DisplayBug565 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextNewtAWTBug523 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestPBufferDeadlockAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.x11.TestGLXCallsOnAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestSwingAWT01GLn
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT02WindowClosing
 #testawt com.jogamp.opengl.test.junit.jogl.awt.text.TestAWTTextRendererUseVertexArrayBug464
-#testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWTAnalyzeBug455 $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT $*

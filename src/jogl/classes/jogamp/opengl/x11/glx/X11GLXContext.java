@@ -55,6 +55,7 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
+import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
 
@@ -63,8 +64,7 @@ import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 
 public abstract class X11GLXContext extends GLContextImpl {
-  protected static final boolean TRACE_CONTEXT_CURRENT = false; // true;
-
+  private static final boolean DEBUG_GLX_MAKECURRENT = Debug.debug("GLX_MAKE_CURRENT");  
   private static final Map<String, String> functionNameMap;
   private static final Map<String, String> extensionNameMap;
   private GLXExt _glXExt;
@@ -139,10 +139,10 @@ public abstract class X11GLXContext extends GLContextImpl {
     boolean res = false;
 
     try {
-        if(TRACE_CONTEXT_CURRENT) {
-            Throwable t = new Throwable(Thread.currentThread()+" - glXMakeContextCurrent("+toHexString(dpy)+", "+
-                    toHexString(writeDrawable)+", "+toHexString(readDrawable)+", "+toHexString(ctx)+") - GLX >= 1.3 "+ isGLXVersionGreaterEqualOneThree());
-            t.printStackTrace();
+        if(DEBUG_GLX_MAKECURRENT) {
+            System.err.println(getThreadName()+": glXMakeContextCurrent(dpy "+toHexString(dpy)+", write "+ toHexString(writeDrawable)+
+                               ", read "+toHexString(readDrawable)+", ctx "+toHexString(ctx)+") - GLX >= 1.3 "+ isGLXVersionGreaterEqualOneThree());
+            Thread.dumpStack();
         }
         if ( isGLXVersionGreaterEqualOneThree() ) {
             res = GLX.glXMakeContextCurrent(dpy, writeDrawable, readDrawable, ctx);
@@ -153,8 +153,8 @@ public abstract class X11GLXContext extends GLContextImpl {
             throw new InternalError("Given readDrawable but no driver support");
         }
     } catch (RuntimeException re) {
-        if(DEBUG) {
-          System.err.println("Warning: X11GLXContext.glXMakeContextCurrent failed: "+re+", with "+
+        if(TRACE_SWITCH) {
+          System.err.println(getThreadName()+": Warning: X11GLXContext.glXMakeContextCurrent failed: "+re+", with "+
             "dpy "+toHexString(dpy)+
             ", write "+toHexString(writeDrawable)+
             ", read "+toHexString(readDrawable)+
@@ -190,7 +190,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     updateGLXProcAddressTable();
     GLXExt _glXExt = getGLXExt();
     if(DEBUG) {
-      System.err.println("X11GLXContext.createContextARBImpl: "+getGLVersion(major, minor, ctp, "@creation") +
+      System.err.println(getThreadName()+": X11GLXContext.createContextARBImpl: "+getGLVersion(major, minor, ctp, "@creation") +
                          ", handle "+toHexString(drawable.getHandle()) + ", share "+toHexString(share)+", direct "+direct+
                          ", glXCreateContextAttribsARB: "+toHexString(glXExtProcAddressTable._addressof_glXCreateContextAttribsARB));
     }
@@ -237,14 +237,14 @@ public abstract class X11GLXContext extends GLContextImpl {
         X11Lib.XSync(display, false);
     } catch (RuntimeException re) {
         if(DEBUG) {
-          Throwable t = new Throwable("Info: X11GLXContext.createContextARBImpl glXCreateContextAttribsARB failed with "+getGLVersion(major, minor, ctp, "@creation"), re);
+          Throwable t = new Throwable(getThreadName()+": Info: X11GLXContext.createContextARBImpl glXCreateContextAttribsARB failed with "+getGLVersion(major, minor, ctp, "@creation"), re);
           t.printStackTrace();
         }
     }
     if(0!=ctx) {
         if (!glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), ctx)) {
             if(DEBUG) {
-              System.err.println("X11GLXContext.createContextARBImpl couldn't make current "+getGLVersion(major, minor, ctp, "@creation"));
+              System.err.println(getThreadName()+": X11GLXContext.createContextARBImpl couldn't make current "+getGLVersion(major, minor, ctp, "@creation"));
             }
             // release & destroy
             glXMakeContextCurrent(display, 0, 0, 0);
@@ -295,14 +295,14 @@ public abstract class X11GLXContext extends GLContextImpl {
     if(config.getFBConfigID()<0) {
         // not able to use FBConfig
         if(glp.isGL3()) {
-          throw new GLException("Unable to create OpenGL >= 3.1 context");
+          throw new GLException(getThreadName()+": Unable to create OpenGL >= 3.1 context");
         }
         contextHandle = GLX.glXCreateContext(display, config.getXVisualInfo(), share, direct);
         if (contextHandle == 0) {
-          throw new GLException("Unable to create context(0)");
+          throw new GLException(getThreadName()+": Unable to create context(0)");
         }
         if (!glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-          throw new GLException("Error making temp context(0) current: display "+toHexString(display)+", context "+toHexString(contextHandle)+", drawable "+drawable);
+          throw new GLException(getThreadName()+": Error making temp context(0) current: display "+toHexString(display)+", context "+toHexString(contextHandle)+", drawable "+drawable);
         }
         setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT); // use GL_VERSION
         isDirect = GLX.glXIsDirect(display, contextHandle);
@@ -329,10 +329,10 @@ public abstract class X11GLXContext extends GLContextImpl {
         // so we are able to use GetProcAddress
         temp_ctx = GLX.glXCreateNewContext(display, config.getFBConfig(), GLX.GLX_RGBA_TYPE, share, direct);
         if (temp_ctx == 0) {
-            throw new GLException("Unable to create temp OpenGL context(1)");
+            throw new GLException(getThreadName()+": Unable to create temp OpenGL context(1)");
         }
         if (!glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), temp_ctx)) {
-          throw new GLException("Error making temp context(1) current: display "+toHexString(display)+", context "+toHexString(temp_ctx)+", drawable "+drawable);
+          throw new GLException(getThreadName()+": Error making temp context(1) current: display "+toHexString(display)+", context "+toHexString(temp_ctx)+", drawable "+drawable);
         }
         setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT); // use GL_VERSION
         glXMakeContextCurrent(display, 0, 0, 0); // release temp context
@@ -364,17 +364,17 @@ public abstract class X11GLXContext extends GLContextImpl {
             glXMakeContextCurrent(display, 0, 0, 0);
             GLX.glXDestroyContext(display, temp_ctx);
             if (!glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-                throw new GLException("Cannot make previous verified context current");
+                throw new GLException(getThreadName()+": Cannot make previous verified context current");
             }
         }
     } else {
         if(glp.isGL3()) {
           glXMakeContextCurrent(display, 0, 0, 0);
           GLX.glXDestroyContext(display, temp_ctx);
-          throw new GLException("X11GLXContext.createContextImpl ctx !ARB, context > GL2 requested - requested: "+glp+", current: "+getGLVersion()+", ");
+          throw new GLException(getThreadName()+": X11GLXContext.createContextImpl ctx !ARB, context > GL2 requested - requested: "+glp+", current: "+getGLVersion()+", ");
         }
         if(DEBUG) {
-          System.err.println("X11GLXContext.createContextImpl failed, fall back to !ARB context "+getGLVersion());
+          System.err.println(getThreadName()+": X11GLXContext.createContextImpl failed, fall back to !ARB context "+getGLVersion());
         }
 
         // continue with temp context for GL <= 3.0
@@ -382,7 +382,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         if (!glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
           glXMakeContextCurrent(display, 0, 0, 0);
           GLX.glXDestroyContext(display, temp_ctx);
-          throw new GLException("Error making context(1) current: display "+toHexString(display)+", context "+toHexString(contextHandle)+", drawable "+drawable);
+          throw new GLException(getThreadName()+": Error making context(1) current: display "+toHexString(display)+", context "+toHexString(contextHandle)+", drawable "+drawable);
         }
         if (DEBUG) {
             System.err.println(getThreadName() + ": createContextImpl: OK (old-2) share "+share);
@@ -402,7 +402,7 @@ public abstract class X11GLXContext extends GLContextImpl {
         X11Util.setX11ErrorHandler(true, DEBUG ? false : true);
         try {
             if (!glXMakeContextCurrent(dpy, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-                throw new GLException("Error making context current: "+this);
+                throw new GLException(getThreadName()+": Error making context current: "+this);
             }
         } finally {
             X11Util.setX11ErrorHandler(false, false);
@@ -415,7 +415,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     X11Util.setX11ErrorHandler(true, DEBUG ? false : true);
     try {
         if (!glXMakeContextCurrent(display, 0, 0, 0)) {
-            throw new GLException("Error freeing OpenGL context");
+            throw new GLException(getThreadName()+": Error freeing OpenGL context");
         }
     } finally {
         X11Util.setX11ErrorHandler(false, false);
@@ -431,7 +431,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     long src = source.getHandle();
     long display = drawable.getNativeSurface().getDisplayHandle();
     if (0 == display) {
-      throw new GLException("Connection to X display not yet set up");
+      throw new GLException(getThreadName()+": Connection to X display not yet set up");
     }
     GLX.glXCopyContext(display, src, dst, mask);
     // Should check for X errors and raise GLException
