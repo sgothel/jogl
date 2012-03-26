@@ -28,17 +28,25 @@
  
 package jogamp.opengl;
 
+import com.jogamp.common.os.DynamicLibraryBundle;
 import com.jogamp.common.os.DynamicLibraryBundleInfo;
+import com.jogamp.common.util.RunnableExecutor;
 
 public abstract class GLDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
     protected GLDynamicLibraryBundleInfo() {
     }
 
     /** default **/
+    @Override
     public boolean shallLinkGlobal() { return false; }
 
     /** default **/
+    @Override
     public boolean shallLookupGlobal() { return false; }
 
+    @Override
+    public RunnableExecutor getLibLoaderExecutor() {
+        return DynamicLibraryBundle.getDefaultRunnableExecutor();
+    }    
 }
 

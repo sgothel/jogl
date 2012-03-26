@@ -36,6 +36,7 @@ public class WindowsWGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryB
         super();
     }
 
+    @Override
     public List<List<String>> getToolLibNames() {
         final List<List<String>> libsList = new ArrayList<List<String>>();
         final List<String> libsGL = new ArrayList<String>();
@@ -44,12 +45,14 @@ public class WindowsWGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryB
         return libsList;
     }
     
+    @Override
     public final List<String> getToolGetProcAddressFuncNameList() {
         List<String> res = new ArrayList<String>();
         res.add("wglGetProcAddress");
         return res;
     }
 
+    @Override
     public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
         return WGL.wglGetProcAddress(toolGetProcAddressHandle, funcName);
     }

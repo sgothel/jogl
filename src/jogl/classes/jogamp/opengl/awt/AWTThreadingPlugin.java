@@ -41,10 +41,10 @@
 package jogamp.opengl.awt;
 
 import java.awt.EventQueue;
-import java.lang.reflect.InvocationTargetException;
 
 import javax.media.opengl.GLException;
 
+import jogamp.common.awt.AWTEDTExecutor;
 import jogamp.opengl.GLWorkerThread;
 import jogamp.opengl.ThreadingImpl;
 import jogamp.opengl.ToolkitThreadingPlugin;
@@ -100,17 +100,7 @@ public class AWTThreadingPlugin implements ToolkitThreadingPlugin {
               
           }
         } else {
-          try {
-            if(wait) {
-                EventQueue.invokeAndWait(r);
-            } else {
-                EventQueue.invokeLater(r);
-            }
-          } catch (InvocationTargetException e) {
-            throw new GLException(e.getTargetException());
-          } catch (InterruptedException e) {
-            throw new GLException(e);
-          }
+          AWTEDTExecutor.singleton.invoke(wait, r);
         }
         break;
 

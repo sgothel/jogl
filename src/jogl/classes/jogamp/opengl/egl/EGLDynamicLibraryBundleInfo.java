@@ -59,8 +59,10 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
      * http://dri.sourceforge.net/doc/DRIuserguide.html
      * </pre>
      */
+    @Override
     public boolean shallLinkGlobal() { return true; }
     
+    @Override
     public boolean shallLookupGlobal() {
         if ( AndroidVersion.isAvailable ) {
             // Android requires global symbol lookup
@@ -70,16 +72,19 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
         return false;
     }
     
+    @Override
     public final List<String> getToolGetProcAddressFuncNameList() {
         List<String> res = new ArrayList<String>();
         res.add("eglGetProcAddress");
         return res;
     }
 
+    @Override
     public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
         return EGL.eglGetProcAddress(toolGetProcAddressHandle, funcName);
     }
 
+    @Override
     public final boolean useToolGetProcAdressFirst(String funcName) {
         if ( AndroidVersion.isAvailable ) {
             // Android requires global dlsym lookup
@@ -105,7 +110,8 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
         
         return eglLibNames;
     }
-    
+
+    @Override
     public final List<String> getGlueLibNames() {
         return glueLibNames;
     }    

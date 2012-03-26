@@ -36,6 +36,7 @@ public class MacOSXCGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBu
         super();
     }
 
+    @Override
     public List<List<String>> getToolLibNames() {
         final List<List<String>> libsList = new ArrayList<List<String>>();
         final List<String> libsGL = new ArrayList<String>();
@@ -45,6 +46,7 @@ public class MacOSXCGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBu
         return libsList;
     }
     
+    @Override
     public final List<String> getToolGetProcAddressFuncNameList() {
         return null; 
         /** OSX manual says: NSImage use is discouraged
@@ -53,6 +55,7 @@ public class MacOSXCGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBu
         return res; */
     }
 
+    @Override
     public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
         return 0;
         /** OSX manual says: NSImage use is discouraged

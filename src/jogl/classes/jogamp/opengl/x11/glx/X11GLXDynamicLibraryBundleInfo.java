@@ -36,6 +36,7 @@ public class X11GLXDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundl
         super();
     }
 
+    @Override
     public List<List<String>> getToolLibNames() {
         final List<List<String>> libsList = new ArrayList<List<String>>();
         final List<String> libsGL = new ArrayList<String>();
@@ -65,8 +66,10 @@ public class X11GLXDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundl
      * http://dri.sourceforge.net/doc/DRIuserguide.html
      * </pre>
      */
+    @Override
     public boolean shallLinkGlobal() { return true; }
 
+    @Override
     public final List<String> getToolGetProcAddressFuncNameList() {
         List<String> res = new ArrayList<String>();
         res.add("glXGetProcAddressARB");
@@ -74,6 +77,7 @@ public class X11GLXDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundl
         return res;
     }
 
+    @Override
     public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
         return GLX.glXGetProcAddress(toolGetProcAddressHandle, funcName);
     }

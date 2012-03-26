@@ -29,8 +29,10 @@
 package com.jogamp.opengl.cg;
 
 import com.jogamp.common.jvm.JNILibLoaderBase;
+import com.jogamp.common.os.DynamicLibraryBundle;
 import com.jogamp.common.os.DynamicLibraryBundleInfo;
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.RunnableExecutor;
 import com.jogamp.common.util.cache.TempJarCache;
 
 import java.security.AccessController;
@@ -66,25 +68,31 @@ public class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
     }
 
     /** Make Cg symbols available to CgGL */
+    @Override
     public boolean shallLinkGlobal() { return true; }
 
     /** default **/
+    @Override
     public boolean shallLookupGlobal() { return false; }
 
     /** Tool has none **/
+    @Override
     public final List<String> getToolGetProcAddressFuncNameList() {
         return null;
     }
 
     /** Tool has none **/
+    @Override
     public final long toolGetProcAddress(long toolGetProcAddressHandle, String funcName) {
         return 0;
     }
     
+    @Override
     public boolean useToolGetProcAdressFirst(String funcName) {
         return false;
     }
 
+    @Override
     public List<List<String>> getToolLibNames() {
         final List<List<String>> libsList = new ArrayList<List<String>>();
         final List<String> libsCg = new ArrayList<String>();
@@ -98,9 +106,15 @@ public class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
         return libsList;
     }
 
+    @Override
     public final List<String> getGlueLibNames() {
         return glueLibNames;
     }
+
+    @Override
+    public RunnableExecutor getLibLoaderExecutor() {
+        return DynamicLibraryBundle.getDefaultRunnableExecutor();
+    }    
 }
 
 

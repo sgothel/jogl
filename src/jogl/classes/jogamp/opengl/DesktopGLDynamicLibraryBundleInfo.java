@@ -43,10 +43,12 @@ public abstract class DesktopGLDynamicLibraryBundleInfo extends GLDynamicLibrary
         super();
     }
 
+    @Override
     public final List<String> getGlueLibNames() {
         return glueLibNames;
     }
     
+    @Override
     public boolean useToolGetProcAdressFirst(String funcName) {
         return true;
     }
