@@ -41,6 +41,7 @@ import javax.media.nativewindow.ToolkitLock;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.ReflectionUtil.AWTNames;
 
 public class NativeWindowFactoryImpl extends NativeWindowFactory {
     private static final ToolkitLock nullToolkitLock = new NullToolkitLock();
@@ -61,13 +62,13 @@ public class NativeWindowFactoryImpl extends NativeWindowFactory {
             throw new IllegalArgumentException("AbstractGraphicsConfiguration is null with a non NativeWindow object");
         }
 
-        if (NativeWindowFactory.isAWTAvailable() && ReflectionUtil.instanceOf(winObj, AWTComponentClassName)) {
+        if (NativeWindowFactory.isAWTAvailable() && ReflectionUtil.instanceOf(winObj, AWTNames.ComponentClass)) {
             return getAWTNativeWindow(winObj, config);
         }
 
         throw new IllegalArgumentException("Target window object type " +
                                            winObj.getClass().getName() + " is unsupported; expected " +
-                                           "javax.media.nativewindow.NativeWindow or "+AWTComponentClassName);
+                                           "javax.media.nativewindow.NativeWindow or "+AWTNames.ComponentClass);
     }
     
     private Constructor<?> nativeWindowConstructor = null;

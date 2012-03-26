@@ -92,7 +92,6 @@ public abstract class NativeWindowFactory {
     
     private static ToolkitLock jawtUtilJAWTToolkitLock;
     
-    public static final String AWTComponentClassName = "java.awt.Component" ;
     public static final String X11JAWTToolkitLockClassName = "jogamp.nativewindow.jawt.x11.X11JAWTToolkitLock" ;
     public static final String X11ToolkitLockClassName = "jogamp.nativewindow.x11.X11ToolkitLock" ;
     
@@ -204,8 +203,7 @@ public abstract class NativeWindowFactory {
             }            
             isAWTAvailable = false; // may be set to true below
 
-            if( !Debug.getBooleanProperty("java.awt.headless", true) &&
-                ReflectionUtil.isClassAvailable(AWTComponentClassName, cl) &&
+            if( Platform.AWT_AVAILABLE &&
                 ReflectionUtil.isClassAvailable("com.jogamp.nativewindow.awt.AWTGraphicsDevice", cl) ) {
                 
                 Method[] jawtUtilMethods = AccessController.doPrivileged(new PrivilegedAction<Method[]>() {
@@ -264,7 +262,7 @@ public abstract class NativeWindowFactory {
         
             if ( isAWTAvailable ) {
                 // register either our default factory or (if exist) the X11/AWT one -> AWT Component
-                registerFactory(ReflectionUtil.getClass(AWTComponentClassName, false, cl), factory);
+                registerFactory(ReflectionUtil.getClass(ReflectionUtil.AWTNames.ComponentClass, false, cl), factory);
             }
 
             if( TYPE_X11 == nativeWindowingTypePure ) {
