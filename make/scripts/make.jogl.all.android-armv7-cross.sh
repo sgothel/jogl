@@ -85,6 +85,7 @@ export GLUEGEN_CPPTASKS_FILE=`pwd`/../../gluegen/make/lib/gluegen-cpptasks-andro
 #export JUNIT_DISABLED="true"
 #export JUNIT_RUN_ARG0="-Dnewt.test.Screen.disableScreenMode"
 
+# BUILD_ARCHIVE=true \
 ant \
     -Drootrel.build=build-android-armv7 \
     $* 2>&1 | tee -a make.jogl.all.android-armv7-cross.log
