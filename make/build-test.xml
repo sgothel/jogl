@@ -856,7 +856,7 @@ ${line.separator}
         </exec>
     </target>
 
-    <target name="junit.run.tests" depends="junit.run.local.d32, junit.run.local, junit.run.remote.ssh.newt, junit.run.remote.adb"/>
+    <target name="junit.run.tests" depends="junit.run.local.d32, junit.run.local, junit.run.remote.ssh.all, junit.run.remote.adb"/>
 
     <target name="junit.run.settings" depends="declare.common">
         <delete quiet="true">
