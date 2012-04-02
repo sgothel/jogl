@@ -79,6 +79,7 @@
 
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2011 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -112,12 +113,15 @@
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
  */
-package jogamp.opengl;
+package com.jogamp.opengl.util;
 
-import java.nio.*;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
-import javax.media.opengl.*;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
+
 import com.jogamp.common.nio.Buffers;
 
 /**
@@ -128,6 +132,7 @@ import com.jogamp.common.nio.Buffers;
  * 
  * @author Erik Duijs
  * @author Kenneth Russell
+ * @author Sven Gothel
  */
 public class ProjectFloat {
   private static final float[] IDENTITY_MATRIX =
@@ -144,6 +149,281 @@ public class ProjectFloat {
       0.0f, 0.0f, 0.0f, 0.0f,
       0.0f, 0.0f, 0.0f, 0.0f };
 
+  /**
+   * Make matrix an identity matrix
+   */
+  public static void makeIdentityf(float[] m, int offset) {
+    for (int i = 0; i < 16; i++) {
+      m[i+offset] = IDENTITY_MATRIX[i];
+    }
+  }
+
+  /**
+   * Make matrix an identity matrix
+   */
+  public static void makeIdentityf(FloatBuffer m) {
+    int oldPos = m.position();
+    m.put(IDENTITY_MATRIX);
+    m.position(oldPos);
+  }
+
+  /**
+   * Make matrix an zero matrix
+   */
+  public static void makeZero(float[] m, int offset) {
+    for (int i = 0; i < 16; i++) {
+      m[i+offset] = 0;
+    }
+  }
+
+  /**
+   * Make matrix an zero matrix
+   */
+  public static void makeZero(FloatBuffer m) {
+    int oldPos = m.position();
+    m.put(ZERO_MATRIX);
+    m.position(oldPos);
+  }
+  
+  /**
+   * @param a
+   * @param b
+   * @param d result a*b
+   */
+  public static final void multMatrixf(final float[] a, int a_off, final float[] b, int b_off, float[] d, int d_off) {
+     for (int i = 0; i < 4; i++) {
+        final float ai0=a[a_off+i+0*4],  ai1=a[a_off+i+1*4],  ai2=a[a_off+i+2*4],  ai3=a[a_off+i+3*4];
+        d[d_off+i+0*4] = ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] ;
+        d[d_off+i+1*4] = ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] ;
+        d[d_off+i+2*4] = ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] ;
+        d[d_off+i+3*4] = ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] ;
+     }
+  }
+
+  /**
+   * @param a
+   * @param b
+   * @param d result a*b
+   */
+  public static final void multMatrixf(final float[] a, int a_off, final float[] b, int b_off, FloatBuffer d) {
+     final int dP = d.position();
+     for (int i = 0; i < 4; i++) {
+        final float ai0=a[a_off+i+0*4],  ai1=a[a_off+i+1*4],  ai2=a[a_off+i+2*4],  ai3=a[a_off+i+3*4];
+        d.put(dP+i+0*4 , ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] );
+        d.put(dP+i+1*4 , ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] );
+        d.put(dP+i+2*4 , ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] );
+        d.put(dP+i+3*4 , ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] );
+     }
+  }
+
+  /**
+   * @param a
+   * @param b
+   * @param d result a*b
+   */
+  public static final void multMatrixf(final FloatBuffer a, final float[] b, int b_off, FloatBuffer d) {
+     final int aP = a.position(); 
+     final int dP = d.position();
+     for (int i = 0; i < 4; i++) {
+        final float ai0=a.get(aP+i+0*4),  ai1=a.get(aP+i+1*4),  ai2=a.get(aP+i+2*4),  ai3=a.get(aP+i+3*4);
+        d.put(dP+i+0*4 , ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] );
+        d.put(dP+i+1*4 , ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] );
+        d.put(dP+i+2*4 , ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] );
+        d.put(dP+i+3*4 , ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] );
+     }
+  }
+
+  /**
+   * @param a
+   * @param b
+   * @param d result a*b
+   */
+  public static final void multMatrixf(final FloatBuffer a, final FloatBuffer b, FloatBuffer d) {
+     final int aP = a.position(); 
+     final int bP = b.position();
+     final int dP = d.position();
+     for (int i = 0; i < 4; i++) {
+        final float ai0=a.get(aP+i+0*4),  ai1=a.get(aP+i+1*4),  ai2=a.get(aP+i+2*4),  ai3=a.get(aP+i+3*4);
+        d.put(dP+i+0*4 , ai0 * b.get(bP+0+0*4) + ai1 * b.get(bP+1+0*4) + ai2 * b.get(bP+2+0*4) + ai3 * b.get(bP+3+0*4) );
+        d.put(dP+i+1*4 , ai0 * b.get(bP+0+1*4) + ai1 * b.get(bP+1+1*4) + ai2 * b.get(bP+2+1*4) + ai3 * b.get(bP+3+1*4) );
+        d.put(dP+i+2*4 , ai0 * b.get(bP+0+2*4) + ai1 * b.get(bP+1+2*4) + ai2 * b.get(bP+2+2*4) + ai3 * b.get(bP+3+2*4) );
+        d.put(dP+i+3*4 , ai0 * b.get(bP+0+3*4) + ai1 * b.get(bP+1+3*4) + ai2 * b.get(bP+2+3*4) + ai3 * b.get(bP+3+3*4) );
+     }
+  }
+  
+  
+  /**
+   * Normalize vector
+   *
+   * @param v makes len(v)==1
+   */
+  public static void normalize(float[] v) {
+    float r = (float) Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+    
+    if ( r == 0.0 || r == 1.0) {
+      return;
+    }
+
+    r = 1.0f / r;
+
+    v[0] *= r;
+    v[1] *= r;
+    v[2] *= r;
+  }
+
+  /**
+   * Normalize vector
+   *
+   * @param v makes len(v)==1
+   */
+  public static void normalize(FloatBuffer v) {
+    final int vPos = v.position();
+
+    float r = (float) Math.sqrt(v.get(0+vPos) * v.get(0+vPos) +
+                                v.get(1+vPos) * v.get(1+vPos) +
+                                v.get(2+vPos) * v.get(2+vPos));
+    
+    if ( r == 0.0 || r == 1.0) {
+      return;
+    }
+
+    r = 1.0f / r;
+
+    v.put(0+vPos, v.get(0+vPos) * r);
+    v.put(1+vPos, v.get(1+vPos) * r);
+    v.put(2+vPos, v.get(2+vPos) * r);
+  }
+
+
+  /**
+   * Calculate cross-product
+   *
+   * @param v1
+   * @param v2
+   * @param result v1 X v2
+   */
+  public static void cross(float[] v1, float[] v2, float[] result) {
+    result[0] = v1[1] * v2[2] - v1[2] * v2[1];
+    result[1] = v1[2] * v2[0] - v1[0] * v2[2];
+    result[2] = v1[0] * v2[1] - v1[1] * v2[0];
+  }
+
+  /**
+   * Calculate cross-product
+   *
+   * @param v1
+   * @param v2
+   * @param result v1 X v2
+   */
+  public static void cross(FloatBuffer v1, FloatBuffer v2, FloatBuffer result) {
+    final int v1Pos = v1.position();
+    final int v2Pos = v2.position();
+    final int rPos  = result.position();
+
+    result.put(0+rPos, v1.get(1+v1Pos) * v2.get(2+v2Pos) - v1.get(2+v1Pos) * v2.get(1+v2Pos));
+    result.put(1+rPos, v1.get(2+v1Pos) * v2.get(0+v2Pos) - v1.get(0+v1Pos) * v2.get(2+v2Pos));
+    result.put(2+rPos, v1.get(0+v1Pos) * v2.get(1+v2Pos) - v1.get(1+v1Pos) * v2.get(0+v2Pos));
+  }
+
+  /**
+   * Method __gluMultMatrixVecf
+   * 
+   * @param m_in
+   * @param m_in_off
+   * @param v_in
+   * @param v_out m_in * v_in
+   */
+  public static void multMatrixVecf(float[] m_in, int m_in_off, float[] v_in, int v_in_off, float[] v_out) {
+    for (int i = 0; i < 4; i++) {
+      v_out[i] =
+        v_in[0+v_in_off] * m_in[0*4+i+m_in_off] +
+        v_in[1+v_in_off] * m_in[1*4+i+m_in_off] +
+        v_in[2+v_in_off] * m_in[2*4+i+m_in_off] +
+        v_in[3+v_in_off] * m_in[3*4+i+m_in_off];
+    }
+  }
+
+  /**
+   * Method __gluMultMatrixVecf
+   * 
+   * @param m_in
+   * @param m_in_off
+   * @param v_in
+   * @param v_out m_in * v_in
+   */
+  public static void multMatrixVecf(float[] m_in, float[] v_in, float[] v_out) {
+    for (int i = 0; i < 4; i++) {
+      v_out[i] =
+        v_in[0] * m_in[0*4+i] +
+        v_in[1] * m_in[1*4+i] +
+        v_in[2] * m_in[2*4+i] +
+        v_in[3] * m_in[3*4+i];
+    }
+  }
+  
+  /**
+   * Method __gluMultMatrixVecf
+   * 
+   * @param m_in
+   * @param v_in
+   * @param v_out m_in * v_in
+   */
+  public static void multMatrixVecf(FloatBuffer m_in, FloatBuffer v_in, FloatBuffer v_out) {
+    int inPos = v_in.position();
+    int outPos = v_out.position();
+    int matrixPos = m_in.position();
+    for (int i = 0; i < 4; i++) {
+      v_out.put(i + outPos,
+              v_in.get(0+inPos) * m_in.get(0*4+i+matrixPos) +
+              v_in.get(1+inPos) * m_in.get(1*4+i+matrixPos) +
+              v_in.get(2+inPos) * m_in.get(2*4+i+matrixPos) +
+              v_in.get(3+inPos) * m_in.get(3*4+i+matrixPos));
+    }
+  }
+
+  /**
+   * Slices a ByteBuffer or a primitive float array to a FloatBuffer at the given position with the given size
+   * in float-space.
+   * <p> 
+   * Using a ByteBuffer as the source guarantees 
+   * keeping the source native order programmatically.  
+   * This works around <a href="http://code.google.com/p/android/issues/detail?id=16434">Honeycomb / Android 3.0 Issue 16434</a>. 
+   * This bug is resolved at least in Android 3.2.
+   * </p>
+   * 
+   * @param buf source Buffer, maybe ByteBuffer (recommended) or FloatBuffer or <code>null</code>. 
+   *            Buffer's position is ignored and floatPos is being used.
+   * @param backing source float array or <code>null</code>
+   * @param floatPos {@link Buffers#SIZEOF_FLOAT} position
+   * @param floatSize {@link Buffers#SIZEOF_FLOAT} size 
+   * @return FloatBuffer w/ native byte order as given ByteBuffer
+   */
+  public static FloatBuffer slice2Float(Buffer buf, float[] backing, int floatPos, int floatSize) {
+        if(buf instanceof ByteBuffer) {
+            ByteBuffer bb = (ByteBuffer) buf;
+            bb.position( floatPos * Buffers.SIZEOF_FLOAT );
+            bb.limit( (floatPos + floatSize) * Buffers.SIZEOF_FLOAT );
+            FloatBuffer fb = bb.slice().order(bb.order()).asFloatBuffer(); // slice and duplicate may change byte order
+            fb.mark();
+            return fb;
+        } else if(null != backing) {
+            FloatBuffer fb  = FloatBuffer.wrap(backing, floatPos, floatSize);
+            fb.mark();
+            return fb;
+        } else if(buf instanceof FloatBuffer) {
+            FloatBuffer fb = (FloatBuffer) buf;
+            fb.position( floatPos );
+            fb.limit( floatPos + floatSize );
+            FloatBuffer fb0 = fb.slice(); // slice and duplicate may change byte order
+            fb0.mark();
+            return fb0;
+        } else {
+            throw new InternalError("XXX");
+        }
+  }
+  
+  public static final int getRequiredFloatBufferSize() { return 2*16+2*4+3*3; }
+  
   // Note that we have cloned parts of the implementation in order to
   // support incoming Buffers. The reason for this is to avoid loading
   // non-direct buffer subclasses unnecessarily, because doing so can
@@ -159,132 +439,63 @@ public class ProjectFloat {
   private final float[] in = new float[4];
   private final float[] out = new float[4];
 
-  private final float[] forward = new float[3];
-  private final float[] side = new float[3];
-  private final float[] up = new float[3];
-  
   // Buffer-based implementation
-  private FloatBuffer locbuf;
-  private final FloatBuffer matrixBuf;
-  private final FloatBuffer tempInvertMatrixBuf;
+  private FloatBuffer matrixBuf;
+  private FloatBuffer tempInvertMatrixBuf;
 
-  private final FloatBuffer inBuf;
-  private final FloatBuffer outBuf;
+  private FloatBuffer inBuf;
+  private FloatBuffer outBuf;
 
-  private final FloatBuffer forwardBuf;
-  private final FloatBuffer sideBuf;
-  private final FloatBuffer upBuf;
+  private FloatBuffer forwardBuf;
+  private FloatBuffer sideBuf;
+  private FloatBuffer upBuf;
 
   public ProjectFloat() {
-    // Use direct buffers to avoid loading indirect buffer
-    // implementations for applications trying to avoid doing so.
-    // Slice up one big buffer because some NIO implementations
-    // allocate a huge amount of memory to back even the smallest of
-    // buffers.
-    locbuf = Buffers.newDirectFloatBuffer(2*16+2*4+3*3);
-    int pos = 0;
-    int sz = 16;
-    matrixBuf = slice(locbuf, pos, sz);
-    pos += sz;
-    tempInvertMatrixBuf = slice(locbuf, pos, sz);
-    pos += sz;
-    sz = 4;
-    inBuf = slice(locbuf, pos, sz);
-    pos += sz;
-    outBuf = slice(locbuf, pos, sz);
-    pos += sz;
-    sz = 3;
-    forwardBuf = slice(locbuf, pos, sz);
-    pos += sz;
-    sideBuf = slice(locbuf, pos, sz);
-    pos += sz;
-    upBuf = slice(locbuf, pos, sz);
+      this(false);
+  }
+  
+  public ProjectFloat(boolean useBackingArray) {
+      this(useBackingArray ? null : Buffers.newDirectByteBuffer(getRequiredFloatBufferSize() * Buffers.SIZEOF_FLOAT), 
+           useBackingArray ? new float[getRequiredFloatBufferSize()] : null, 
+           0);
+  }
+
+  /**
+   * @param floatBuffer source buffer, may be ByteBuffer (recommended) or FloatBuffer or <code>null</code>.
+   *                    If used, shall be &ge; {@link #getRequiredFloatBufferSize()} + floatOffset. 
+   *                    Buffer's position is ignored and floatPos is being used.
+   * @param floatArray source float array or <code>null</code>.
+   *                   If used, size shall be &ge; {@link #getRequiredFloatBufferSize()} + floatOffset.
+   * @param floatOffset Offset for either of the given sources (buffer or array)
+   */
+  public ProjectFloat(Buffer floatBuffer, float[] floatArray, int floatOffset) {    
+    int floatPos = floatOffset;
+    int floatSize = 16;
+    matrixBuf = slice2Float(floatBuffer, floatArray, floatPos, floatSize);
+    floatPos += floatSize;
+    tempInvertMatrixBuf = slice2Float(floatBuffer, floatArray, floatPos, floatSize);
+    floatPos += floatSize;
+    floatSize = 4;
+    inBuf = slice2Float(floatBuffer, floatArray, floatPos, floatSize);
+    floatPos += floatSize;
+    outBuf = slice2Float(floatBuffer, floatArray, floatPos, floatSize);
+    floatPos += floatSize;
+    floatSize = 3;
+    forwardBuf = slice2Float(floatBuffer, floatArray, floatPos, floatSize);
+    floatPos += floatSize;
+    sideBuf = slice2Float(floatBuffer, floatArray, floatPos, floatSize);
+    floatPos += floatSize;
+    upBuf = slice2Float(floatBuffer, floatArray, floatPos, floatSize);
   }
 
   public void destroy() {
-    if(locbuf!=null) {
-        locbuf.clear();
-        locbuf=null;
-    }
-  }
-
-  private static FloatBuffer slice(FloatBuffer buf, int pos, int len) {
-    buf.position(pos);
-    buf.limit(pos + len);
-    return buf.slice();
-  }
-
-  /**
-   * Make matrix an identity matrix
-   */
-  public static void gluMakeIdentityf(FloatBuffer m) {
-    int oldPos = m.position();
-    m.put(IDENTITY_MATRIX);
-    m.position(oldPos);
-  }
-
-  /**
-   * Make matrix an zero matrix
-   */
-  public static void gluMakeZero(FloatBuffer m) {
-    int oldPos = m.position();
-    m.put(ZERO_MATRIX);
-    m.position(oldPos);
-  }
-
-  /**
-   * Make matrix an identity matrix
-   */
-  public static void gluMakeIdentityf(float[] m, int offset) {
-    for (int i = 0; i < 16; i++) {
-      m[i+offset] = IDENTITY_MATRIX[i];
-    }
-  }
-
-  /**
-   * Make matrix an zero matrix
-   */
-  public static void gluMakeZero(float[] m, int offset) {
-    for (int i = 0; i < 16; i++) {
-      m[i+offset] = 0;
-    }
-  }
-
-  /**
-   * Method __gluMultMatrixVecf
-   * 
-   * @param matrix
-   * @param in
-   * @param out
-   */
-  private void __gluMultMatrixVecf(float[] matrix, int matrix_offset, float[] in, float[] out) {
-    for (int i = 0; i < 4; i++) {
-      out[i] =
-        in[0] * matrix[0*4+i+matrix_offset] +
-        in[1] * matrix[1*4+i+matrix_offset] +
-        in[2] * matrix[2*4+i+matrix_offset] +
-        in[3] * matrix[3*4+i+matrix_offset];
-    }
-  }
-
-  /**
-   * Method __gluMultMatrixVecf
-   * 
-   * @param matrix
-   * @param in
-   * @param out
-   */
-  private void __gluMultMatrixVecf(FloatBuffer matrix, FloatBuffer in, FloatBuffer out) {
-    int inPos = in.position();
-    int outPos = out.position();
-    int matrixPos = matrix.position();
-    for (int i = 0; i < 4; i++) {
-      out.put(i + outPos,
-              in.get(0+inPos) * matrix.get(0*4+i+matrixPos) +
-              in.get(1+inPos) * matrix.get(1*4+i+matrixPos) +
-              in.get(2+inPos) * matrix.get(2*4+i+matrixPos) +
-              in.get(3+inPos) * matrix.get(3*4+i+matrixPos));
-    }
+    matrixBuf = null;
+    tempInvertMatrixBuf = null;
+    inBuf = null;
+    outBuf = null;
+    forwardBuf = null;
+    sideBuf = null;
+    upBuf = null;
   }
 
   /**
@@ -304,7 +515,7 @@ public class ProjectFloat {
         temp[i][j] = src[i*4+j+srcOffset];
       }
     }
-    gluMakeIdentityf(inverse, inverseOffset);
+    makeIdentityf(inverse, inverseOffset);
 
     for (i = 0; i < 4; i++) {
       //
@@ -378,7 +589,7 @@ public class ProjectFloat {
         temp.put(i*4+j, src.get(i*4+j + srcPos));
       }
     }
-    gluMakeIdentityf(inverse);
+    makeIdentityf(inverse);
 
     for (i = 0; i < 4; i++) {
       //
@@ -434,122 +645,6 @@ public class ProjectFloat {
 
 
   /**
-   * @param a
-   * @param b
-   * @param r
-   */
-  private void gluMultMatricesf(float[] a, int a_offset, float[] b, int b_offset, float[] r) {
-    for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 4; j++) {
-        r[i*4+j] =
-          a[i*4+0+a_offset]*b[0*4+j+b_offset] +
-          a[i*4+1+a_offset]*b[1*4+j+b_offset] +
-          a[i*4+2+a_offset]*b[2*4+j+b_offset] +
-          a[i*4+3+a_offset]*b[3*4+j+b_offset];
-      }
-    }
-  }
-
-
-  /**
-   * @param a
-   * @param b
-   * @param r
-   */
-  public static void gluMultMatricesf(FloatBuffer a, FloatBuffer b, FloatBuffer r) {
-    int aPos = a.position();
-    int bPos = b.position();
-    int rPos = r.position();
-
-    for (int i = 0; i < 4; i++) {
-      for (int j = 0; j < 4; j++) {
-        r.put(i*4+j + rPos,
-          a.get(i*4+0+aPos)*b.get(0*4+j+bPos) +
-          a.get(i*4+1+aPos)*b.get(1*4+j+bPos) +
-          a.get(i*4+2+aPos)*b.get(2*4+j+bPos) +
-          a.get(i*4+3+aPos)*b.get(3*4+j+bPos));
-      }
-    }
-  }
-
-  /**
-   * Normalize vector
-   *
-   * @param v
-   */
-  public static void normalize(float[] v) {
-    float r;
-
-    r = (float) Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-    if ( r == 0.0 || r == 1.0)
-      return;
-
-    r = 1.0f / r;
-
-    v[0] *= r;
-    v[1] *= r;
-    v[2] *= r;
-
-    return;
-  }
-
-  /**
-   * Normalize vector
-   *
-   * @param v
-   */
-  public static void normalize(FloatBuffer v) {
-    float r;
-
-    int vPos = v.position();
-
-    r = (float) Math.sqrt(v.get(0+vPos) * v.get(0+vPos) +
-                          v.get(1+vPos) * v.get(1+vPos) +
-                          v.get(2+vPos) * v.get(2+vPos));
-    if ( r == 0.0 || r == 1.0)
-      return;
-
-    r = 1.0f / r;
-
-    v.put(0+vPos, v.get(0+vPos) * r);
-    v.put(1+vPos, v.get(1+vPos) * r);
-    v.put(2+vPos, v.get(2+vPos) * r);
-
-    return;
-  }
-
-
-  /**
-   * Calculate cross-product
-   *
-   * @param v1
-   * @param v2
-   * @param result
-   */
-  private static void cross(float[] v1, float[] v2, float[] result) {
-    result[0] = v1[1] * v2[2] - v1[2] * v2[1];
-    result[1] = v1[2] * v2[0] - v1[0] * v2[2];
-    result[2] = v1[0] * v2[1] - v1[1] * v2[0];
-  }
-
-  /**
-   * Calculate cross-product
-   *
-   * @param v1
-   * @param v2
-   * @param result
-   */
-  private static void cross(FloatBuffer v1, FloatBuffer v2, FloatBuffer result) {
-    int v1Pos = v1.position();
-    int v2Pos = v2.position();
-    int rPos  = result.position();
-
-    result.put(0+rPos, v1.get(1+v1Pos) * v2.get(2+v2Pos) - v1.get(2+v1Pos) * v2.get(1+v2Pos));
-    result.put(1+rPos, v1.get(2+v1Pos) * v2.get(0+v2Pos) - v1.get(0+v1Pos) * v2.get(2+v2Pos));
-    result.put(2+rPos, v1.get(0+v1Pos) * v2.get(1+v2Pos) - v1.get(1+v1Pos) * v2.get(0+v2Pos));
-  }
-
-  /**
    * Method gluOrtho2D.
    * 
    * @param left
@@ -582,7 +677,7 @@ public class ProjectFloat {
 
     cotangent = (float) Math.cos(radians) / sine;
 
-    gluMakeIdentityf(matrixBuf);
+    makeIdentityf(matrixBuf);
 
     matrixBuf.put(0 * 4 + 0, cotangent / aspect);
     matrixBuf.put(1 * 4 + 1, cotangent);
@@ -638,7 +733,7 @@ public class ProjectFloat {
     /* Recompute up as: up = side x forward */
     cross(side, forward, up);
 
-    gluMakeIdentityf(matrixBuf);
+    makeIdentityf(matrixBuf);
     matrixBuf.put(0 * 4 + 0, side.get(0));
     matrixBuf.put(1 * 4 + 0, side.get(1));
     matrixBuf.put(2 * 4 + 0, side.get(2));
@@ -688,8 +783,8 @@ public class ProjectFloat {
     in[2] = objz;
     in[3] = 1.0f;
 
-    __gluMultMatrixVecf(modelMatrix, modelMatrix_offset, in, out);
-    __gluMultMatrixVecf(projMatrix, projMatrix_offset, out, in);
+    multMatrixVecf(modelMatrix, modelMatrix_offset, in, 0, out);
+    multMatrixVecf(projMatrix, projMatrix_offset, out, 0, in);
 
     if (in[3] == 0.0f)
       return false;
@@ -738,8 +833,8 @@ public class ProjectFloat {
     in.put(2, objz);
     in.put(3, 1.0f);
 
-    __gluMultMatrixVecf(modelMatrix, in, out);
-    __gluMultMatrixVecf(projMatrix, out, in);
+    multMatrixVecf(modelMatrix, in, out);
+    multMatrixVecf(projMatrix, out, in);
 
     if (in.get(3) == 0.0f)
       return false;
@@ -789,7 +884,7 @@ public class ProjectFloat {
     float[] in = this.in;
     float[] out = this.out;
 
-    gluMultMatricesf(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix);
+    multMatrixf(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix, 0);
 
     if (!gluInvertMatrixf(matrix, 0, matrix, 0))
       return false;
@@ -808,7 +903,7 @@ public class ProjectFloat {
     in[1] = in[1] * 2 - 1;
     in[2] = in[2] * 2 - 1;
 
-    __gluMultMatrixVecf(matrix, 0, in, out);
+    multMatrixVecf(matrix, in, out);
 
     if (out[3] == 0.0)
       return false;
@@ -846,7 +941,7 @@ public class ProjectFloat {
     FloatBuffer in = this.inBuf;
     FloatBuffer out = this.outBuf;
 
-    gluMultMatricesf(modelMatrix, projMatrix, matrixBuf);
+    multMatrixf(modelMatrix, projMatrix, matrixBuf);
 
     if (!gluInvertMatrixf(matrixBuf, matrixBuf))
       return false;
@@ -867,7 +962,7 @@ public class ProjectFloat {
     in.put(1, in.get(1) * 2 - 1);
     in.put(2, in.get(2) * 2 - 1);
 
-    __gluMultMatrixVecf(matrixBuf, in, out);
+    multMatrixVecf(matrixBuf, in, out);
 
     if (out.get(3) == 0.0f)
       return false;
@@ -915,7 +1010,7 @@ public class ProjectFloat {
     float[] in = this.in;
     float[] out = this.out;
 
-    gluMultMatricesf(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix);
+    multMatrixf(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix, 0);
 
     if (!gluInvertMatrixf(matrix, 0, matrix, 0))
       return false;
@@ -935,7 +1030,7 @@ public class ProjectFloat {
     in[1] = in[1] * 2 - 1;
     in[2] = in[2] * 2 - 1;
 
-    __gluMultMatrixVecf(matrix, 0, in, out);
+    multMatrixVecf(matrix, in, out);
 
     if (out[3] == 0.0f)
       return false;
@@ -976,7 +1071,7 @@ public class ProjectFloat {
     FloatBuffer in = this.inBuf;
     FloatBuffer out = this.outBuf;
 
-    gluMultMatricesf(modelMatrix, projMatrix, matrixBuf);
+    multMatrixf(modelMatrix, projMatrix, matrixBuf);
 
     if (!gluInvertMatrixf(matrixBuf, matrixBuf))
       return false;
@@ -997,7 +1092,7 @@ public class ProjectFloat {
     in.put(1, in.get(1) * 2 - 1);
     in.put(2, in.get(2) * 2 - 1);
 
-    __gluMultMatrixVecf(matrixBuf, in, out);
+    multMatrixVecf(matrixBuf, in, out);
 
     if (out.get(3) == 0.0f)
       return false;
@@ -1065,4 +1160,5 @@ public class ProjectFloat {
                     0);
     gl.glScalef(viewport[2+viewport_offset] / deltaX, viewport[3+viewport_offset] / deltaY, 1.0f);
   }
+
 }

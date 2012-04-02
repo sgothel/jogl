@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2009 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2011 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -33,15 +34,17 @@
 
 package com.jogamp.opengl.util;
 
-import com.jogamp.common.nio.Buffers;
-import jogamp.opengl.ProjectFloat;
-
-import java.nio.*;
+import java.nio.Buffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
+import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
+
+import com.jogamp.common.nio.Buffers;
 
 public class PMVMatrix implements GLMatrixFunc {
 
@@ -69,8 +72,6 @@ public class PMVMatrix implements GLMatrixFunc {
      *                        this flag shall be set to <code>true</code> or <code>false</code></p>.
      */
     public PMVMatrix(boolean useBackingArray) {
-          projectFloat = new ProjectFloat();
-
           // I    Identity
           // T    Texture
           // P    Projection
@@ -78,29 +79,30 @@ public class PMVMatrix implements GLMatrixFunc {
           // Mvi  Modelview-Inverse
           // Mvit Modelview-Inverse-Transpose
           if(useBackingArray) {
-              matrixBufferArray = new float[6*16];
+              matrixBufferArray = new float[ 6*16 + ProjectFloat.getRequiredFloatBufferSize() ];
               matrixBuffer = null;
-              // matrixBuffer = FloatBuffer.wrap(new float[12*16]);
           } else {
               matrixBufferArray = null;
-              matrixBuffer = Buffers.newDirectByteBuffer(6*16 * Buffers.SIZEOF_FLOAT);
+              matrixBuffer = Buffers.newDirectByteBuffer( ( 6*16 + ProjectFloat.getRequiredFloatBufferSize() ) * Buffers.SIZEOF_FLOAT );
               matrixBuffer.mark();
           }
           
-          matrixIdent   = slice2Float(matrixBuffer, matrixBufferArray,  0*16, 1*16);  //  I
-          matrixTex     = slice2Float(matrixBuffer, matrixBufferArray,  1*16, 1*16);  //      T
-          matrixPMvMvit = slice2Float(matrixBuffer, matrixBufferArray,  2*16, 4*16);  //          P  + Mv + Mvi + Mvit          
-          matrixPMvMvi  = slice2Float(matrixBuffer, matrixBufferArray,  2*16, 3*16);  //          P  + Mv + Mvi
-          matrixPMv     = slice2Float(matrixBuffer, matrixBufferArray,  2*16, 2*16);  //          P  + Mv
-          matrixP       = slice2Float(matrixBuffer, matrixBufferArray,  2*16, 1*16);  //          P
-          matrixMv      = slice2Float(matrixBuffer, matrixBufferArray,  3*16, 1*16);  //               Mv
-          matrixMvi     = slice2Float(matrixBuffer, matrixBufferArray,  4*16, 1*16);  //                    Mvi
-          matrixMvit    = slice2Float(matrixBuffer, matrixBufferArray,  5*16, 1*16);  //                          Mvit
+          matrixIdent   = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  0*16, 1*16);  //  I
+          matrixTex     = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  1*16, 1*16);  //      T
+          matrixPMvMvit = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  2*16, 4*16);  //          P  + Mv + Mvi + Mvit          
+          matrixPMvMvi  = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  2*16, 3*16);  //          P  + Mv + Mvi
+          matrixPMv     = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  2*16, 2*16);  //          P  + Mv
+          matrixP       = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  2*16, 1*16);  //          P
+          matrixMv      = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  3*16, 1*16);  //               Mv
+          matrixMvi     = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  4*16, 1*16);  //                    Mvi
+          matrixMvit    = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  5*16, 1*16);  //                          Mvit
+          
+          projectFloat  = new ProjectFloat(matrixBuffer, matrixBufferArray, 6*16);
           
           if(null != matrixBuffer) {
               matrixBuffer.reset();
           }          
-          ProjectFloat.gluMakeIdentityf(matrixIdent);
+          ProjectFloat.makeIdentityf(matrixIdent);
           
           vec3f         = new float[3];
           matrixMult    = new float[16];
@@ -109,11 +111,11 @@ public class PMVMatrix implements GLMatrixFunc {
           matrixScale   = new float[16];
           matrixOrtho   = new float[16];
           matrixFrustum = new float[16];
-          ProjectFloat.gluMakeIdentityf(matrixTrans, 0);
-          ProjectFloat.gluMakeIdentityf(matrixRot, 0);
-          ProjectFloat.gluMakeIdentityf(matrixScale, 0);
-          ProjectFloat.gluMakeIdentityf(matrixOrtho, 0);
-          ProjectFloat.gluMakeZero(matrixFrustum, 0);
+          ProjectFloat.makeIdentityf(matrixTrans, 0);
+          ProjectFloat.makeIdentityf(matrixRot, 0);
+          ProjectFloat.makeIdentityf(matrixScale, 0);
+          ProjectFloat.makeIdentityf(matrixOrtho, 0);
+          ProjectFloat.makeZero(matrixFrustum, 0);
 
           matrixPStack = new ArrayList<float[]>();
           matrixMvStack= new ArrayList<float[]>();
@@ -160,43 +162,6 @@ public class PMVMatrix implements GLMatrixFunc {
         }
     }
 
-
-    /**
-     * Slices a ByteBuffer to a FloatBuffer at the given position with the given size
-     * in float-space. Using a ByteBuffer as the source guarantees 
-     * keeping the source native order programmatically.  
-     * This works around <a href="http://code.google.com/p/android/issues/detail?id=16434">Honeycomb / Android 3.0 Issue 16434</a>. 
-     * This bug is resolved at least in Android 3.2.
-     * 
-     * @param buf source ByteBuffer
-     * @param backing source float array
-     * @param posFloat {@link Buffers#SIZEOF_FLOAT} position
-     * @param lenFloat {@link Buffers#SIZEOF_FLOAT} size 
-     * @return FloatBuffer w/ native byte order as given ByteBuffer
-     */
-    private static FloatBuffer slice2Float(Buffer buf, float[] backing, int posFloat, int lenFloat) {
-        if(buf instanceof ByteBuffer) {
-            ByteBuffer bb = (ByteBuffer) buf;
-            bb.position( posFloat * Buffers.SIZEOF_FLOAT );
-            bb.limit( (posFloat + lenFloat) * Buffers.SIZEOF_FLOAT );
-            FloatBuffer fb = bb.slice().order(bb.order()).asFloatBuffer(); // slice and duplicate may change byte order
-            fb.mark();
-            return fb;
-        } else if(null != backing) {
-            FloatBuffer fb  = FloatBuffer.wrap(backing, posFloat, lenFloat);
-            fb.mark();
-            return fb;
-        } else if(buf instanceof FloatBuffer) {
-            FloatBuffer fb = (FloatBuffer) buf;
-            fb.position( posFloat );
-            fb.limit( posFloat + lenFloat );
-            FloatBuffer fb0 = fb.slice(); // slice and duplicate may change byte order
-            fb0.mark();
-            return fb0;
-        } else {
-            throw new InternalError("XXX");
-        }
-    }
 
     public static final boolean isMatrixModeName(final int matrixModeName) {
         switch(matrixModeName) {
@@ -364,30 +329,6 @@ public class PMVMatrix implements GLMatrixFunc {
       glFrustumf(left, right, bottom, top, zNear, zFar);
     }
 
-    public static final void glMultMatrixf(final FloatBuffer a, final FloatBuffer b, FloatBuffer d) {
-       final int aP = a.position(); 
-       final int bP = b.position();
-       final int dP = d.position();
-       for (int i = 0; i < 4; i++) {
-          final float ai0=a.get(aP+i+0*4),  ai1=a.get(aP+i+1*4),  ai2=a.get(aP+i+2*4),  ai3=a.get(aP+i+3*4);
-          d.put(dP+i+0*4 , ai0 * b.get(bP+0+0*4) + ai1 * b.get(bP+1+0*4) + ai2 * b.get(bP+2+0*4) + ai3 * b.get(bP+3+0*4) );
-          d.put(dP+i+1*4 , ai0 * b.get(bP+0+1*4) + ai1 * b.get(bP+1+1*4) + ai2 * b.get(bP+2+1*4) + ai3 * b.get(bP+3+1*4) );
-          d.put(dP+i+2*4 , ai0 * b.get(bP+0+2*4) + ai1 * b.get(bP+1+2*4) + ai2 * b.get(bP+2+2*4) + ai3 * b.get(bP+3+2*4) );
-          d.put(dP+i+3*4 , ai0 * b.get(bP+0+3*4) + ai1 * b.get(bP+1+3*4) + ai2 * b.get(bP+2+3*4) + ai3 * b.get(bP+3+3*4) );
-       }
-    }
-    public static final void glMultMatrixf(final FloatBuffer a, final float[] b, int b_off, FloatBuffer d) {
-       final int aP = a.position(); 
-       final int dP = d.position();
-       for (int i = 0; i < 4; i++) {
-          final float ai0=a.get(aP+i+0*4),  ai1=a.get(aP+i+1*4),  ai2=a.get(aP+i+2*4),  ai3=a.get(aP+i+3*4);
-          d.put(dP+i+0*4 , ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] );
-          d.put(dP+i+1*4 , ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] );
-          d.put(dP+i+2*4 , ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] );
-          d.put(dP+i+3*4 , ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] );
-       }
-    }
-
     // 
     // MatrixIf
     //
@@ -524,26 +465,26 @@ public class PMVMatrix implements GLMatrixFunc {
 
     public final void glMultMatrixf(final FloatBuffer m) {
         if(matrixMode==GL_MODELVIEW) {
-            glMultMatrixf(matrixMv, m, matrixMv);
+            ProjectFloat.multMatrixf(matrixMv, m, matrixMv);
             modified |= DIRTY_MODELVIEW ;
         } else if(matrixMode==GL_PROJECTION) {
-            glMultMatrixf(matrixP, m, matrixP);
+            ProjectFloat.multMatrixf(matrixP, m, matrixP);
             modified |= DIRTY_PROJECTION ;
         } else if(matrixMode==GL.GL_TEXTURE) {
-            glMultMatrixf(matrixTex, m, matrixTex);
+            ProjectFloat.multMatrixf(matrixTex, m, matrixTex);
             modified |= DIRTY_TEXTURE ;
         } 
     }
 
     public void glMultMatrixf(float[] m, int m_offset) {
         if(matrixMode==GL_MODELVIEW) {
-            glMultMatrixf(matrixMv, m, m_offset, matrixMv);
+            ProjectFloat.multMatrixf(matrixMv, m, m_offset, matrixMv);
             modified |= DIRTY_MODELVIEW ;
         } else if(matrixMode==GL_PROJECTION) {
-            glMultMatrixf(matrixP, m, m_offset, matrixP);
+            ProjectFloat.multMatrixf(matrixP, m, m_offset, matrixP);
             modified |= DIRTY_PROJECTION ;
         } else if(matrixMode==GL.GL_TEXTURE) {
-            glMultMatrixf(matrixTex, m, m_offset, matrixTex);
+            ProjectFloat.multMatrixf(matrixTex, m, m_offset, matrixTex);
             modified |= DIRTY_TEXTURE ;
         } 
     }
