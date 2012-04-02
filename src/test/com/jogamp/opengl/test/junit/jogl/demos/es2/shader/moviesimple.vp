@@ -1,0 +1,22 @@
+
+#ifdef GL_ES
+  #define MEDIUMP mediump
+  #define HIGHP highp
+#else
+  #define MEDIUMP
+  #define HIGHP
+#endif
+
+uniform MEDIUMP mat4    mgl_PMVMatrix[2];
+attribute HIGHP vec4    mgl_Vertex;
+attribute HIGHP vec4    mgl_Color;
+attribute HIGHP vec4    mgl_MultiTexCoord;
+varying   HIGHP vec4    frontColor;
+varying   HIGHP vec4    mgl_texCoord;
+
+void main(void)
+{
+  frontColor=mgl_Color;
+  mgl_texCoord = mgl_MultiTexCoord;
+  gl_Position = mgl_PMVMatrix[0] * mgl_PMVMatrix[1] * mgl_Vertex;
+}

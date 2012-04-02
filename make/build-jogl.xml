@@ -108,7 +108,7 @@
                   value="jogamp/opengl/glu/gl2/** jogamp/opengl/glu/nurbs/** jogamp/opengl/glu/registry/** javax/media/opengl/glu/gl2/**"/>
 
         <property name="java.part.openmax"
-                  value="com/jogamp/openmax/** jogamp/openmax/**"/>
+                  value="jogamp/opengl/omx/**"/>
 
         <property name="java.part.sdk"
                   value="com/jogamp/opengl/util/glsl/sdk/**"/>
@@ -121,6 +121,9 @@
 
         <property name="java.part.cgl"
                   value="jogamp/opengl/macosx/cgl/*"/>
+
+        <property name="java.part.android"
+                  value="jogamp/opengl/android/**"/>
 
         <property name="java.part.gldesktop"
                   value="jogamp/opengl/**/gl2/** jogamp/opengl/**/gl3/** jogamp/opengl/**/gl4/**"/>
@@ -173,6 +176,9 @@
         <property name="java.part.util.fixedfuncemu.shadercode"
                   value="jogamp/opengl/util/glsl/fixedfunc/shaders/* jogamp/opengl/util/glsl/fixedfunc/shaders/bin/**"/>
 
+        <property name="java.part.util.av"
+                  value="com/jogamp/opengl/av/** jogamp/opengl/av/**"/>
+
         <property name="java.part.nonjava" 
                   value="${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
 
@@ -191,13 +197,20 @@
            <isset property="setup.noSWT"/> 
         </condition>
 
+        <condition property="java.excludes.android"
+                   value="${java.part.android}">
+           <not>
+               <isset property="isAndroid"/> 
+           </not>
+        </condition>
+
         <property name="java.excludes.javadoc.packagenames"
                   value="jogamp.opengl.gl2.fixme.*,com.jogamp.audio.windows.waveout.TestSpatialization"/>
 
         <property name="java.excludes.fixme" 
                   value="jogamp/opengl/gl2/fixme/** com/jogamp/audio/windows/waveout/TestSpatialization.java" />
 
-        <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.awt} ${java.excludes.swt}" />
+        <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.awt} ${java.excludes.swt} ${java.excludes.android}" />
         <echo message="java.excludes.all: ${java.excludes.all}" />
     </target>
 
@@ -1356,7 +1369,7 @@
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c}/Mixer.cpp" if="isWindows"/-->
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="setup.addNativeOpenMAX"/>
-          <include name="${rootrel.src.c.openmax}/com_jogamp_openmax_OMXInstance.c"  if="setup.addNativeOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/jogamp_opengl_omx_OMXGLMediaPlayer.c"  if="setup.addNativeOpenMAX"/>
 
           <include name="${rootrel.generated.c.jogl}/gl4/GL4bcImpl_JNI.c"/>
           <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
@@ -1372,7 +1385,7 @@
           <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="setup.addNativeOpenMAX"/>
-          <include name="${rootrel.src.c.openmax}/com_jogamp_openmax_OMXInstance.c"  if="setup.addNativeOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/jogamp_opengl_omx_OMXGLMediaPlayer.c"  if="setup.addNativeOpenMAX"/>
 
           <include name="${rootrel.generated.c.jogl}/egl/EGL_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/egl/EGLExtImpl_JNI.c"/>
@@ -1466,7 +1479,7 @@
     </macrodef>  
 
     <target name="c.build.jogl.prepare.openMAX" if="setup.addNativeOpenMAX">
-      <javah destdir="${src.generated.c.openmax}" classpath="${javah.classpath}" class="com.jogamp.openmax.OMXInstance" />
+      <javah destdir="${src.generated.c.openmax}" classpath="${javah.classpath}" class="jogamp.opengl.omx.OMXGLMediaPlayer" />
     </target>
 
     <target name="c.build.jogl.prepare" depends="c.build.jogl.prepare.openMAX">
@@ -1554,6 +1567,12 @@
         </jar>
     </target>
 
+    <target name="build-jars-android" depends="setup-manifestfile" if="isAndroid">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.os.android.jar}" filesonly="true">
+            <fileset dir="${classes}" includes="${java.part.android}"/>
+        </jar>
+    </target>
+
     <target name="build-jars-mobile-javase" depends="setup-manifestfile">
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.glmobile.jar}" filesonly="true">
             <fileset dir="${classes}"
@@ -1608,7 +1627,8 @@
         </jar>
     </target>
 
-    <target name="build-jars-javase" depends="setup-manifestfile, build-jars-mobile-javase, build-jars-desktop-javase, build-jars-awt-javase, build-jars-swt-javase">
+    <target name="build-jars-javase" depends="setup-manifestfile, build-jars-android, build-jars-mobile-javase, 
+                                              build-jars-desktop-javase, build-jars-awt-javase, build-jars-swt-javase">
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
@@ -1628,7 +1648,7 @@
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.util.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.util} ${java.part.util.glsl} ${java.part.util.graph}"
+                     includes="${java.part.util} ${java.part.util.glsl} ${java.part.util.graph} ${java.part.util.av}"
                      excludes="${java.part.util.awt} ${java.part.util.gldesktop} ${java.part.util.fixedfuncemu}"/>
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.util.fixedfuncemu.jar}" filesonly="true">

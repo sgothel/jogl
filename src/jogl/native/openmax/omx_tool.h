@@ -141,7 +141,7 @@ void OMXToolBasicAV_PlayStop(OMXToolBasicAV_t * pOMXAV);
 void OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDfloat32 time);
 GLuint OMXToolBasicAV_GetNextTextureID(OMXToolBasicAV_t * pOMXAV);
 
-KDfloat32 OMXToolBasicAV_GetCurrentPosition(OMXToolBasicAV_t * pOMXAV);
+KDint OMXToolBasicAV_GetCurrentPosition(OMXToolBasicAV_t * pOMXAV);
 
 void OMXToolBasicAV_DestroyInstance(OMXToolBasicAV_t * pOMXAV);
 

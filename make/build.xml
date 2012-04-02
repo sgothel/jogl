@@ -103,7 +103,7 @@
             <archives>
                 <zips>
                     <path refid="nativewindow_core_atoms.classpath"/>
-                    <path refid="jogl_all-mobile_atoms.classpath"/>
+                    <path refid="jogl_all-android_atoms.classpath"/>
                     <path refid="newt_all-android_atoms.classpath"/>
                 </zips>
             </archives>

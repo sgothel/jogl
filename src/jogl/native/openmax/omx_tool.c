@@ -627,14 +627,14 @@ static int StartClock(OMXToolBasicAV_t * pOMXAV, KDboolean start, KDfloat32 time
     return (OMX_ErrorNotReady == eError)?-1:0;
 }
 
-static KDfloat32 GetClockPosition(OMXToolBasicAV_t * pOMXAV)
+static KDint GetClockPosition(OMXToolBasicAV_t * pOMXAV)
 {
     OMX_TIME_CONFIG_TIMESTAMPTYPE stamp;
     INIT_PARAM(stamp);
     stamp.nPortIndex = 0;
 
     OMX_GetConfig(pOMXAV->comp[OMXAV_H_CLOCK], OMX_IndexConfigTimeCurrentMediaTime, &stamp);
-    return (KDfloat32) (stamp.nTimestamp * (1.0f/(1000.0f*1000.0f)));
+    return (int) ( stamp.nTimestamp / 1000 );
 }
 
 static KDfloat32 GetClockScale(OMXToolBasicAV_t * pOMXAV)
@@ -1474,7 +1474,7 @@ GLuint OMXToolBasicAV_GetNextTextureID(OMXToolBasicAV_t * pOMXAV) {
     return texID;
 }
 
-KDfloat32 OMXToolBasicAV_GetCurrentPosition(OMXToolBasicAV_t * pOMXAV) {
+KDint OMXToolBasicAV_GetCurrentPosition(OMXToolBasicAV_t * pOMXAV) {
     KDfloat32 res = -1.0f;
     if(NULL==pOMXAV) {
         java_throwNewRuntimeException(0, "OMX instance null\n");
