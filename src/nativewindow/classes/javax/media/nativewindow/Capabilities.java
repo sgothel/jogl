@@ -40,8 +40,6 @@
 
 package javax.media.nativewindow;
 
-import javax.media.nativewindow.VisualIDHolder.VIDType;
-
 /** Specifies a set of capabilities that a window's rendering context
     must support, such as color depth per channel. It currently
     contains the minimal number of routines which allow configuration

@@ -358,7 +358,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         // FIXME device/windowHandle -> screen ?!
         EGLGraphicsDevice device = (EGLGraphicsDevice) adevice;
         DefaultGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);
-        EGLGraphicsConfiguration cfg = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen, VisualIDHolder.VID_UNDEFINED);
+        EGLGraphicsConfiguration cfg = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen, VisualIDHolder.VID_UNDEFINED, false);
         WrappedSurface ns = new WrappedSurface(cfg, windowHandle);
         return ns;
     }

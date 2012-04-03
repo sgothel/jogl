@@ -83,7 +83,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         }
         final long cfg = EGLConfigId2EGLConfig(dpy, cfgID);
         if(0 < cfg) {
-            final EGLGLCapabilities caps = EGLConfig2Capabilities(capsRequested.getGLProfile(), dpy, cfg, false, capsRequested.isOnscreen(), capsRequested.isPBuffer());
+            final EGLGLCapabilities caps = EGLConfig2Capabilities(capsRequested.getGLProfile(), dpy, cfg, false, capsRequested.isOnscreen(), capsRequested.isPBuffer(), false);
             return new EGLGraphicsConfiguration(absScreen, caps, capsRequested, new DefaultGLCapabilitiesChooser());
         }
         return null;
@@ -148,12 +148,12 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
     }
 
     public static EGLGLCapabilities EGLConfig2Capabilities(GLProfile glp, long display, long config,
-                                                           boolean relaxed, boolean onscreen, boolean usePBuffer) {
+                                                           boolean relaxed, boolean onscreen, boolean usePBuffer, boolean forceTransparentFlag) {
         ArrayList bucket = new ArrayList();
         final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer);
-        if( EGLConfig2Capabilities(bucket, glp, display, config, winattrmask) ) {
+        if( EGLConfig2Capabilities(bucket, glp, display, config, winattrmask, forceTransparentFlag) ) {
             return (EGLGLCapabilities) bucket.get(0);
-        } else if ( relaxed && EGLConfig2Capabilities(bucket, glp, display, config, GLGraphicsConfigurationUtil.ALL_BITS) ) {
+        } else if ( relaxed && EGLConfig2Capabilities(bucket, glp, display, config, GLGraphicsConfigurationUtil.ALL_BITS, forceTransparentFlag) ) {
             return (EGLGLCapabilities) bucket.get(0);
         }
         return null;
@@ -161,7 +161,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
 
     public static boolean EGLConfig2Capabilities(ArrayList capsBucket,
                                                  GLProfile glp, long display, long config,
-                                                 int winattrmask) {
+                                                 int winattrmask, boolean forceTransparentFlag) {
         final int allDrawableTypeBits = EGLConfigDrawableTypeBits(display, config);
         final int drawableTypeBits = winattrmask & allDrawableTypeBits;
 
@@ -241,7 +241,9 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
                 }
             }
         }
-        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_TRANSPARENT_TYPE, val)) {
+        if(forceTransparentFlag) {
+            caps.setBackgroundOpaque(false);
+        } else if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_TRANSPARENT_TYPE, val)) {
             caps.setBackgroundOpaque(val.get(0) != EGL.EGL_TRANSPARENT_RGB);
         }
         if(!caps.isBackgroundOpaque()) {

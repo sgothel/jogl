@@ -194,7 +194,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                     }
                 } else {
                     eglConfig = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
-                            capsRequested, capsRequested, null, s, aConfig.getVisualID(VIDType.NATIVE));
+                            capsRequested, capsRequested, null, s, aConfig.getVisualID(VIDType.NATIVE), false);
                 
                     if (null == eglConfig) {
                         throw new GLException("Couldn't create EGLGraphicsConfiguration from "+s);
