@@ -7,15 +7,15 @@
   #define HIGHP
 #endif
 
-uniform   sampler2D     mgl_ActiveTexture;
-varying   HIGHP vec4    mgl_texCoord;
-varying   HIGHP vec4    frontColor;
+uniform  sampler2D     mgl_ActiveTexture;
+varying  MEDIUMP vec2  mgl_texCoord;
+varying  MEDIUMP vec4  frontColor;
 
 void main (void)
 {
-  vec4 texColor = texture2D(mgl_ActiveTexture, mgl_texCoord.st);
+  HIGHP vec4 texColor = texture2D(mgl_ActiveTexture, mgl_texCoord);
 
   // mix frontColor with texture ..
-  gl_FragColor = vec4(frontColor.rgb*texColor.rgb, frontColor.a);
+  gl_FragColor = vec4(frontColor*texColor);
 }
 

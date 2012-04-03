@@ -95,6 +95,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="com.jogamp.opengl.test.android.MovieSimpleActivityLauncher"
+                  android:label="@string/activity_moviesimple_name"
+                  android:description="@string/activity_moviesimple_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
