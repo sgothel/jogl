@@ -207,15 +207,23 @@ public class Texture {
      <pre>
      gl.glEnable(texture.getTarget());
      </pre>
-     *
+     * 
+     * <p>
+     * Call is ignored if {@link #getTarget()} is {@link GLES2#GL_TEXTURE_EXTERNAL_OES}.
+     * </p>
+     * <p>
      * See the <a href="#perftips">performance tips</a> above for hints
      * on how to maximize performance when using many Texture objects.
+     * </p>
+     * @param gl the current GL object
      *
      * @throws GLException if no OpenGL context was current or if any
      * OpenGL-related errors occurred
      */
     public void enable(GL gl) throws GLException {
-        gl.glEnable(target);
+        if(GLES2.GL_TEXTURE_EXTERNAL_OES != target) {
+            gl.glEnable(target);
+        }
     }
     
     /**
@@ -226,15 +234,22 @@ public class Texture {
      gl.glDisable(texture.getTarget());
      </pre>
      *
+     * <p>
+     * Call is ignored if {@link #getTarget()} is {@link GLES2#GL_TEXTURE_EXTERNAL_OES}.
+     * </p>
+     * <p>
      * See the <a href="#perftips">performance tips</a> above for hints
      * on how to maximize performance when using many Texture objects.
-     * @param gl TODO
+     * </p>
+     * @param gl the current GL object
      *
      * @throws GLException if no OpenGL context was current or if any
      * OpenGL-related errors occurred
      */
     public void disable(GL gl) throws GLException {
-        gl.glDisable(target); 
+        if(GLES2.GL_TEXTURE_EXTERNAL_OES != target) {
+            gl.glDisable(target);
+        }
     }
     
     /**

@@ -36,6 +36,8 @@
 
 package com.jogamp.opengl.util.texture;
 
+import java.nio.FloatBuffer;
+
 /** Specifies texture coordinates for a rectangular area of a
     texture. Note that some textures are inherently flipped vertically
     from OpenGL's standard coordinate system. This class takes care of
@@ -61,6 +63,38 @@ public class TextureCoords {
         this.top = top;
     }
 
+    /** Transfers <code>{s * ss, t * ts}</code> from this object into the given <code>float[8+d_off]</code> in the following order:
+     * <pre>
+     *   left,  bottom
+     *   right, bottom
+     *   left,  top
+     *   right  top
+     * </pre>
+     */
+    public float[] getST_LB_RB_LT_RT(float[] d, int d_off, float ss, float ts) {
+        d[0+d_off] = left  *ss;  d[1+d_off] = bottom*ts;
+        d[2+d_off] = right *ss;  d[3+d_off] = bottom*ts;
+        d[4+d_off] = left  *ss;  d[5+d_off] = top   *ts;
+        d[6+d_off] = right *ss;  d[7+d_off] = top   *ts;
+        return d;
+    }
+    
+    /** Transfers <code>{s * ss, t * ts}</code> from this object into the given FloatBuffer in the following order:
+     * <pre>
+     *   left,  bottom
+     *   right, bottom
+     *   left,  top
+     *   right  top
+     * </pre>
+     */
+    public FloatBuffer getST_LB_RB_LT_RT(FloatBuffer d, float ss, float ts) {
+        d.put( left  *ss);  d.put( bottom*ts);
+        d.put( right *ss);  d.put( bottom*ts);
+        d.put( left  *ss);  d.put( top   *ts);
+        d.put( right *ss);  d.put( top   *ts);
+        return d;
+    }
+    
     /** Returns the leftmost (x) texture coordinate of this
         rectangle. */
     public float left() { return left; }
