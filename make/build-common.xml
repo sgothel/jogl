@@ -422,6 +422,13 @@
             <path refid="nativewindow_all_atoms.classpath" />
         </path>
 
+        <path id="android_nativewindow_gluegen.classpath">
+            <pathelement location="${android.jar}" />
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${swt.jar}" />
+            <path refid="nativewindow_all_atoms.classpath" />
+        </path>
+
         <!-- NEWT Compilation .. -->
         <path id="jogl_nativewindow_gluegen.classpath">
             <pathelement location="${android.jar}" />

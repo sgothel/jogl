@@ -1043,7 +1043,7 @@
         </javac>
     </target>
 
-    <target name="java.compile.secondpass.javase">
+    <target name="java.compile.secondpass.javase" unless="isAndroid">
         <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
         <javac destdir="${classes}"
                excludes="com/jogamp/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all}"
@@ -1061,7 +1061,26 @@
         </javac>
     </target>
 
-    <target name="java.compile.secondpass" depends="java.generate.composable.pipeline, java.compile.secondpass.javase" />
+    <target name="java.compile.secondpass.android" if="isAndroid">
+        <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
+        <javac destdir="${classes}"
+               excludes="com/jogamp/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all}"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="android_nativewindow_gluegen.classpath"/>
+            <src path="${src.java}" />
+            <src path="${src.generated.java}" />
+        </javac>
+    </target>
+
+        <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
+    <target name="java.compile.secondpass" depends="java.generate.composable.pipeline, java.compile.secondpass.javase, java.compile.secondpass.android" />
 
     <target name="java.compile.thirdpass.javase">
         <!-- Perform the third pass Java compile; everything including fixed function emulation. -->
