@@ -159,7 +159,7 @@ public class GLArrayDataWrapper implements GLArrayData {
                        ", vboName "+vboName+ 
                        ", vboUsage 0x"+Integer.toHexString(vboUsage)+ 
                        ", vboTarget 0x"+Integer.toHexString(vboTarget)+ 
-                       ", vboOffset 0x"+Long.toHexString(vboOffset)+ 
+                       ", vboOffset "+vboOffset+ 
                        ", alive "+alive+                       
                        "]";
   }

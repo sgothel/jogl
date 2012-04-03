@@ -342,7 +342,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                        ", vboName "+vboName+ 
                        ", vboUsage 0x"+Integer.toHexString(vboUsage)+ 
                        ", vboTarget 0x"+Integer.toHexString(vboTarget)+ 
-                       ", vboOffset 0x"+Long.toHexString(vboOffset)+                        
+                       ", vboOffset "+vboOffset+                        
                        ", sealed "+sealed+ 
                        ", bufferEnabled "+bufferEnabled+ 
                        ", bufferWritten "+bufferWritten+ 
