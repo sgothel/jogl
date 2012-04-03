@@ -67,7 +67,7 @@ import jogamp.opengl.GLContextImpl;
     refer to a given context. */
 public abstract class GLContext {
   public static final boolean DEBUG = Debug.debug("GLContext");  
-  public static final boolean TRACE_SWITCH = DEBUG || Debug.isPropertyDefined("jogl.debug.GLContext.TraceSwitch", true);
+  public static final boolean TRACE_SWITCH = Debug.isPropertyDefined("jogl.debug.GLContext.TraceSwitch", true);
   
   /** Reflects property jogl.debug.DebugGL. If true, the debug pipeline is enabled at context creation. */
   public final static boolean DEBUG_GL = Debug.isPropertyDefined("jogl.debug.DebugGL", true);

@@ -281,7 +281,7 @@ public abstract class GLContextImpl extends GLContext {
       if(lock.getHoldCount() > 2) {
           throw new GLException("XXX: "+lock);
       }
-      if (TRACE_SWITCH) {          
+      if (DEBUG || TRACE_SWITCH) {          
           System.err.println(getThreadName() + ": GLContextImpl.destroy.0: " + toHexString(contextHandle) +
                   ", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
       }
@@ -470,7 +470,7 @@ public abstract class GLContextImpl extends GLContext {
         if(TRACE_GL) {
             gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) );
         }               
-        if(TRACE_SWITCH) {
+        if(DEBUG || TRACE_SWITCH) {
             System.err.println(getThreadName() +": GLContext.ContextSwitch: - switch - CONTEXT_CURRENT_NEW - "+lock);
         }
       } else if(TRACE_SWITCH) {
