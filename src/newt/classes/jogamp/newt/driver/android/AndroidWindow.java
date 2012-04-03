@@ -61,8 +61,6 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback2;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 
 public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     private static final String[] androidWindowImplClassNames = { "android.policy.PhoneWindow", "com.android.internal.policy.impl.PhoneWindow" };
@@ -158,6 +156,15 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         return fmt;
     }
     
+    public static boolean isAndroidFormatTransparent(int aFormat) {
+        switch (aFormat) {
+            case PixelFormat.TRANSLUCENT:
+            case PixelFormat.TRANSPARENT:
+                return true;
+        }
+        return false;
+    }
+    
     class AndroidEvents implements /* View.OnKeyListener, */ View.OnTouchListener, View.OnFocusChangeListener {
 
         public boolean onTouch(View v, MotionEvent event) {
@@ -193,20 +200,16 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         reset();
     }
 
-    public AndroidWindow(android.view.Window awin) {
-        reset();
-        androidWindow = awin;
-    }
-    
     private void reset() {
-        androidWindow = null;
         ownAndroidWindow = false;
         androidView = null;
-        format = VisualIDHolder.VID_UNDEFINED;
+        nativeFormat = VisualIDHolder.VID_UNDEFINED;
+        androidFormat = VisualIDHolder.VID_UNDEFINED;
         capsByFormat = null;
         surface = null;
         surfaceHandle = 0;
-        eglSurface = 0;        
+        eglSurface = 0;
+        definePosition(0, 0); // default to 0/0
     }
     
     @Override
@@ -214,17 +217,6 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         final Context ctx = StaticContext.getContext();
         if(null == ctx) {
             throw new NativeWindowException("No static [Application] Context has been set. Call StaticContext.setContext(Context) first.");
-        }
-        if(!getRequestedCapabilities().isBackgroundOpaque()) {
-            // FIXME: doesn't work, even though resource is avail, happens before creating the view and setContentView() !  
-            final String frn = ctx.getPackageName()+":style/Theme.Transparent";
-            final int resID = ctx.getResources().getIdentifier("Theme.Transparent", "style", ctx.getPackageName());
-            if(0 == resID) {
-                Log.d(MD.TAG, "Resource n/a: "+frn);
-            } else {
-                Log.d(MD.TAG, "Setting style: "+frn+": 0x"+Integer.toHexString(resID));
-                ctx.setTheme(resID);
-            }
         }
         androidView = new MSurfaceView(ctx);
         final AndroidEvents ae = new AndroidEvents();
@@ -252,47 +244,8 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     
     public SurfaceView getAndroidView() { return androidView; }
     
-    public void becomeContentViewOf(android.view.Window window) {
-        if(null != androidWindow) {
-            throw new NativeWindowException("Android Window already set");
-        }
-        androidWindow = window;
-        ownAndroidWindow = null == androidWindow;
-        if(ownAndroidWindow) {
-            if(null == androidWindowImplCtor) {
-                throw new NativeWindowException("Android Window contructor n/a");
-            }
-            try {
-                androidWindow = (android.view.Window) androidWindowImplCtor.newInstance(new Object[]{StaticContext.getContext()});
-            } catch (Exception e) {
-                throw new NativeWindowException("Error while instantiating new Android Window", e);
-            }
-        }
-        Log.d(MD.TAG, "setAndroidWindow: own: "+ownAndroidWindow+", "+androidWindow+", "+getWidth()+"x"+getHeight());
-        
-        if( isFullscreen() || isUndecorated() ) {
-            androidWindow.requestFeature(Window.FEATURE_NO_TITLE);
-        }
-        if( isFullscreen() ) {
-            androidWindow.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-            androidWindow.clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-        } else {
-            androidWindow.addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-            androidWindow.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);                
-        }
-        
-        if(getWidth()>0 && getHeight()>0 && !isFullscreen()) {            
-            androidWindow.setLayout(getWidth(), getHeight());
-        }
-        androidWindow.setContentView(androidView);
-    }
-    public android.view.Window getAndroidWindow() { return androidWindow; }
-    
     @Override
     protected boolean canCreateNativeImpl() {
-        if(null == androidWindow) {
-            becomeContentViewOf(null); // make own window
-        }
         final boolean b = 0 != surfaceHandle;
         Log.d(MD.TAG, "canCreateNativeImpl: "+b);
         return b;
@@ -301,7 +254,9 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     @Override
     protected void createNativeImpl() {
         Log.d(MD.TAG, "createNativeImpl 0 - surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
-                    ", format "+format+", "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" - "+Thread.currentThread().getName());
+                    ", format [a "+androidFormat+", n "+nativeFormat+"], "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" - "+Thread.currentThread().getName());
+        androidView.bringToFront();
+
         if(0!=getParentWindowHandle()) {
             throw new NativeWindowException("Window parenting not supported (yet)");
         }
@@ -312,7 +267,8 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getScreen().getDisplay().getGraphicsDevice();
         final EGLGraphicsConfiguration eglConfig = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
                 capsByFormat, (GLCapabilitiesImmutable) getRequestedCapabilities(), 
-                (GLCapabilitiesChooser)capabilitiesChooser, getScreen().getGraphicsScreen(), format);
+                (GLCapabilitiesChooser)capabilitiesChooser, getScreen().getGraphicsScreen(), nativeFormat, 
+                isAndroidFormatTransparent(androidFormat));
         if (eglConfig == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
@@ -349,6 +305,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     
     protected void requestFocusImpl(boolean reparented) { 
         if(null != androidView) {
+            androidView.bringToFront();
             androidView.requestFocus();
         }
     }
@@ -391,8 +348,8 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     }
 
     public void surfaceChanged(SurfaceHolder aHolder, int aFormat, int aWidth, int aHeight) {
-        Log.d(MD.TAG, "surfaceChanged: f "+format+" -> "+aFormat+", "+aWidth+"x"+aHeight+", current surfaceHandle: 0x"+Long.toHexString(surfaceHandle));
-        if(0!=surfaceHandle && format != aFormat) {
+        Log.d(MD.TAG, "surfaceChanged: f "+nativeFormat+" -> "+aFormat+", "+aWidth+"x"+aHeight+", current surfaceHandle: 0x"+Long.toHexString(surfaceHandle));
+        if(0!=surfaceHandle && ( androidFormat != aFormat || getWidth()!=aWidth || getHeight()!=aHeight) ) {
             // re-create
             Log.d(MD.TAG, "surfaceChanged (destroy old)");
             windowDestroyNotify();
@@ -411,23 +368,19 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         }
         
         if(0 == surfaceHandle) {
+            androidFormat = aFormat;
             surface = aHolder.getSurface();
             surfaceHandle = getSurfaceHandle0(surface);
             acquire0(surfaceHandle);
-            final int nFormat = getSurfaceVisualID0(surfaceHandle);
-            if(PixelFormat.UNKNOWN == aFormat || 0 >= aFormat) {
-                format = nFormat;
-            } else {
-                format = aFormat;
-            }
+            nativeFormat = getSurfaceVisualID0(surfaceHandle);
             final int nWidth = getWidth0(surfaceHandle);
             final int nHeight = getHeight0(surfaceHandle);
-            capsByFormat = (GLCapabilitiesImmutable) fixCaps(true /* matchFormatPrecise */, format, getRequestedCapabilities());
+            capsByFormat = (GLCapabilitiesImmutable) fixCaps(true /* matchFormatPrecise */, nativeFormat, getRequestedCapabilities());
             sizeChanged(false, nWidth, nHeight, false);
     
             Log.d(MD.TAG, "surfaceRealized: isValid: "+surface.isValid()+
                           ", new surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
-                          ", format: "+format+"(a "+aFormat+"/n "+nFormat+"), "+
+                          ", format [a "+androidFormat+"/n "+nativeFormat+"], "+
                           getX()+"/"+getY()+" "+nWidth+"x"+nHeight+", visible: "+isVisible());
     
             if(isVisible()) {
@@ -450,10 +403,10 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         windowRepaint(0, 0, getWidth(), getHeight());
     }
         
-    private android.view.Window androidWindow;
     private boolean ownAndroidWindow;
     private MSurfaceView androidView;
-    private int format; // stored current PixelFormat
+    private int nativeFormat; // chosen current native PixelFormat (suitable for EGL)
+    private int androidFormat; // chosen current android PixelFormat (-1, -2 ..)
     private GLCapabilitiesImmutable capsByFormat; // fixed requestedCaps by PixelFormat
     private Surface surface;
     private volatile long surfaceHandle;

@@ -27,22 +27,30 @@
  */
 package jogamp.newt.driver.android;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.media.nativewindow.CapabilitiesImmutable;
+
 import com.jogamp.newt.Window;
 import com.jogamp.opengl.util.Animator;
 
 import jogamp.newt.driver.android.AndroidWindow;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.WindowManager;
 
 public class NewtBaseActivity extends Activity {
-   AndroidWindow newtWindow = null;
+   List<Window> newtWindows = new ArrayList<Window>();
    Animator animator = null;
     
    boolean isDelegatedActivity;
    Activity rootActivity;
-   
+   boolean setThemeCalled = false;
+      
    public NewtBaseActivity() {
        super();
        isDelegatedActivity = false;
@@ -62,13 +70,153 @@ public class NewtBaseActivity extends Activity {
        return rootActivity;
    }     
    
+   /**
+    * This is one of the three registration methods (see below).
+    * <p>
+    * This methods issues {@link android.view.Window#setContentView(android.view.View, android.view.ViewGroup.LayoutParams) androidWindow.setContenView(newtWindow.getAndroidView())}
+    * and finally calls {@link #registerNEWTWindow(Window)}.
+    * </p>  
+    * @param androidWindow
+    * @param newtWindow
+    * @see #addContentView(android.view.Window, Window, android.view.ViewGroup.LayoutParams)
+    */
    public void setContentView(android.view.Window androidWindow, Window newtWindow) {
        newtWindow = newtWindow.getDelegatedWindow();
        if(newtWindow instanceof AndroidWindow) {
-           this.newtWindow = (AndroidWindow)newtWindow;
-           this.newtWindow.becomeContentViewOf(androidWindow);
+           adaptTheme4Transparency(newtWindow.getRequestedCapabilities());
+           layoutForNEWTWindow(androidWindow, newtWindow);
+           AndroidWindow newtAWindow = (AndroidWindow)newtWindow;
+           androidWindow.setContentView(newtAWindow.getAndroidView());
+           registerNEWTWindow(newtAWindow);
        } else {
            throw new IllegalArgumentException("Given NEWT Window is not an Android Window: "+newtWindow.getClass()); 
+       }
+   }
+   /**
+    * This is one of the three registration methods (see below).
+    * <p>
+    * This methods issues {@link android.view.Window#addContentView(android.view.View, android.view.ViewGroup.LayoutParams) androidWindow.addContenView(newtWindow.getAndroidView(), params)}
+    * and finally calls {@link #registerNEWTWindow(Window)}.
+    * </p>  
+    * @param androidWindow
+    * @param newtWindow
+    * @param params
+    * @see #setContentView(android.view.Window, Window)
+    * @see #registerNEWTWindow(Window)
+    */
+   public void addContentView(android.view.Window androidWindow, Window newtWindow, android.view.ViewGroup.LayoutParams params) {
+       newtWindow = newtWindow.getDelegatedWindow();
+       if(newtWindow instanceof AndroidWindow) {
+           AndroidWindow newtAWindow = (AndroidWindow)newtWindow;
+           androidWindow.addContentView(newtAWindow.getAndroidView(), params);
+           registerNEWTWindow(newtAWindow);
+       } else {
+           throw new IllegalArgumentException("Given NEWT Window is not an Android Window: "+newtWindow.getClass()); 
+       }       
+   }
+   /**
+    * This is one of the three registration methods (see below).
+    * <p>
+    * This methods simply registers the given NEWT window to ensure it's destruction at {@link #onDestroy()}.
+    * </p>  
+    * 
+    * @param newtWindow
+    * @see #setContentView(android.view.Window, Window)
+    * @see #addContentView(android.view.Window, Window, android.view.ViewGroup.LayoutParams)
+    */
+   public void registerNEWTWindow(Window newtWindow) {
+       newtWindows.add(newtWindow);
+   }
+   
+   /**
+    * Convenient method to set the Android window's flags to fullscreen or size-layout depending on the given NEWT window. 
+    * <p>
+    * Must be called before creating the view and adding any content, i.e. setContentView() !
+    * </p>
+    * @param androidWindow
+    * @param newtWindow
+    */
+   public void layoutForNEWTWindow(android.view.Window androidWindow, Window newtWindow) {
+        if(null == androidWindow || null == newtWindow) {
+            throw new IllegalArgumentException("Android or NEWT Window null");
+        }
+        
+        if( newtWindow.isFullscreen() || newtWindow.isUndecorated() ) {
+            androidWindow.requestFeature(android.view.Window.FEATURE_NO_TITLE);
+        }
+        if( newtWindow.isFullscreen() ) {
+            androidWindow.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            androidWindow.clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+        } else {
+            androidWindow.addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+            androidWindow.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);                
+        }
+        
+        if(newtWindow.getWidth()>0 && newtWindow.getHeight()>0 && !newtWindow.isFullscreen()) {            
+            androidWindow.setLayout(newtWindow.getWidth(), newtWindow.getHeight());
+        }       
+   }
+
+   /**
+    * Convenient method to set the Android window's flags to fullscreen or size-layout depending on the given NEWT window. 
+    * <p>
+    * Must be called before creating the view and adding any content, i.e. setContentView() !
+    * </p>
+    * @param androidWindow
+    * @param newtWindow
+    */
+   public void setFullscreenFeature(android.view.Window androidWindow, boolean fullscreen) {
+        if(null == androidWindow) {
+            throw new IllegalArgumentException("Android or Window null");
+        }
+        
+        if( fullscreen ) {
+            androidWindow.requestFeature(android.view.Window.FEATURE_NO_TITLE);
+            androidWindow.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            androidWindow.clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+        } else {
+            androidWindow.addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+            androidWindow.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        }
+   }
+   
+   /**
+    * Convenient method to set this context's theme to transparency depending on {@link CapabilitiesImmutable#isBackgroundOpaque()}. 
+    * <p>
+    * Must be called before creating the view and adding any content, i.e. setContentView() !
+    * </p>
+    */
+   protected void adaptTheme4Transparency(CapabilitiesImmutable caps) {
+        if(!caps.isBackgroundOpaque()) {
+            setTransparencyTheme();
+        }
+   }
+   
+   /**
+    * Convenient method to set this context's theme to transparency.
+    * <p>
+    * Must be called before creating the view and adding any content, i.e. setContentView() !
+    * </p>
+    * <p>
+    * Is normally issued by {@link #setContentView(android.view.Window, Window)}
+    * if the requested NEWT Capabilities ask for transparency.
+    * </p>
+    * <p>
+    * Can be called only once.
+    * </p>  
+    */
+   public void setTransparencyTheme() {
+       if(!setThemeCalled) {
+           setThemeCalled = true;
+           final Context ctx = getActivity().getApplicationContext();            
+           final String frn = ctx.getPackageName()+":style/Theme.Transparent";
+           final int resID = ctx.getResources().getIdentifier("Theme.Transparent", "style", ctx.getPackageName());
+           if(0 == resID) {
+               Log.d(MD.TAG, "SetTransparencyTheme: Resource n/a: "+frn);
+           } else {
+               Log.d(MD.TAG, "SetTransparencyTheme: Setting style: "+frn+": 0x"+Integer.toHexString(resID));
+               ctx.setTheme(resID);
+           }
        }
    }
    
@@ -147,9 +295,9 @@ public class NewtBaseActivity extends Activity {
          animator.stop();
          animator = null;
      }
-     if(null != newtWindow) {
-         newtWindow.destroy();
-         newtWindow = null;
+     while(newtWindows.size()>0) {
+         final Window win = newtWindows.remove(newtWindows.size()-1);
+         win.destroy();
      }
      jogamp.common.os.android.StaticContext.clear();
      if(!isDelegatedActivity()) {
