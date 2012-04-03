@@ -54,13 +54,20 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     @Override
+    public float getPlaySpeed() {
+        return 0;
+    }
+    
+    @Override
     protected boolean startImpl() {
-        try {
-            mp.start();
-            return true;
-        } catch (IllegalStateException ise) {
-            if(DEBUG) {
-                ise.printStackTrace();
+        if(null != mp) {        
+            try {
+                mp.start();
+                return true;
+            } catch (IllegalStateException ise) {
+                if(DEBUG) {
+                    ise.printStackTrace();
+                }
             }
         }
         return false;
@@ -68,12 +75,14 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
 
     @Override
     protected boolean pauseImpl() {
-        try {
-            mp.pause();
-            return true;
-        } catch (IllegalStateException ise) {
-            if(DEBUG) {
-                ise.printStackTrace();
+        if(null != mp) {
+            try {
+                mp.pause();
+                return true;
+            } catch (IllegalStateException ise) {
+                if(DEBUG) {
+                    ise.printStackTrace();
+                }
             }
         }
         return false;
@@ -81,21 +90,26 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
 
     @Override
     protected boolean stopImpl() {
-        try {
-            mp.stop();
-            return true;
-        } catch (IllegalStateException ise) {
-            if(DEBUG) {
-                ise.printStackTrace();
+        if(null != mp) {
+            try {
+                mp.stop();
+                return true;
+            } catch (IllegalStateException ise) {
+                if(DEBUG) {
+                    ise.printStackTrace();
+                }
             }
         }
         return false;
     }
     
     @Override
-    public long seek(long msec) {
-        mp.seekTo((int)msec);
-        return mp.getCurrentPosition();
+    protected long seekImpl(long msec) {
+        if(null != mp) {
+            mp.seekTo((int)msec);
+            return mp.getCurrentPosition();
+        }
+        return 0;
     }
 
     @Override
@@ -105,7 +119,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
 
     @Override
     public TextureFrame getNextTexture() {
-        if(null != atex) {
+        if(null != atex && null != mp) {
             final boolean _updateSurface;
             synchronized(updateSurfaceLock) {
                 _updateSurface = updateSurface;
@@ -127,11 +141,6 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     @Override
-    public boolean isValid() {
-        return null != mp;
-    }
-    
-    @Override
     protected void destroyImpl(GL gl) {
         if(null != mp) {
             mp.release();
@@ -140,7 +149,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected void setStreamImplPreGL() throws IOException {
+    protected void initStreamImplPreGL() throws IOException {
         if(null!=mp && null!=url) {
             try {
                 final Uri uri = Uri.parse(url.toExternalForm());        
@@ -152,7 +161,11 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             } catch (IllegalStateException e) {
                 throw new RuntimeException(e);
             }
-            mp.prepare();
+            try {
+                mp.prepare();
+            } catch (IOException ioe) {
+                throw new IOException("MediaPlayer failed to process stream <"+url.toExternalForm()+">: "+ioe.getMessage(), ioe);
+            }
             
             width = mp.getVideoWidth();
             height = mp.getVideoHeight();
@@ -163,11 +176,6 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             acodec = "unknown";
             vcodec = "unknown";
         }
-    }
-    
-    @Override
-    protected void setStreamImplPostGL() throws IOException {
-        
     }
     
     @Override
@@ -200,10 +208,5 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             }
             AndroidGLMediaPlayerAPI14.this.newFrameAvailable(atex);
         }        
-    };
-        
-    @Override
-    public float getPlaySpeed() {
-        return 0;
-    }
+    };        
 }

@@ -65,7 +65,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
     
     @Override
-    protected void setStreamImplPreGL() throws IOException {
+    protected void initStreamImplPreGL() throws IOException {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
@@ -96,21 +96,11 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
     
     @Override
-    protected void setStreamImplPostGL() throws IOException {
-        
-    }
-        
-    @Override
     public synchronized long getCurrentPosition() {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
         return _getCurrentPosition(moviePtr);
-    }
-
-    @Override
-    public synchronized boolean isValid() {
-        return (moviePtr != 0);
     }
 
     @Override
@@ -153,7 +143,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
 
     /** @return time position after issuing the command */
     @Override
-    public synchronized long seek(long msec) {
+    protected long seekImpl(long msec) {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }

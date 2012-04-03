@@ -40,7 +40,10 @@ public class MovieSimpleActivityLauncher extends LauncherUtil.BaseActivityLaunch
     
     @Override
     public void init() {
-       final OrderedProperties props = getProperties();       
+       final OrderedProperties props = getProperties();
+       props.setProperty("jnlp.media0_url2", "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_640x360.m4v");
+       props.setProperty("jnlp.media0_url1", "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4");
+       props.setProperty("jnlp.media0_url0", "file:///mnt/sdcard/Movies/BigBuckBunny_320x180.mp4");
        // props.setProperty("jogamp.debug.JNILibLoader", "true");
        // props.setProperty("jogamp.debug.NativeLibrary", "true");
        // props.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");

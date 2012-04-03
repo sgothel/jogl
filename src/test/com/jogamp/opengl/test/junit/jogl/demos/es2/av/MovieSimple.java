@@ -76,7 +76,6 @@ public class MovieSimple implements MouseListener, GLEventListener, GLMediaEvent
     private float ang = 0f;
     private long startTime;
     private long curTime;
-    private URL stream;
     private int effects = EFFECT_NORMAL;
     private float alpha = 1.0f;
 
@@ -144,10 +143,27 @@ public class MovieSimple implements MouseListener, GLEventListener, GLMediaEvent
     public void mouseWheelMoved(MouseEvent e) {
     }
 
-    public MovieSimple(URL stream) {
-        this.stream = stream ;
+    GLMediaPlayer mPlayer;
+    boolean mPlayerExternal;
+
+    public MovieSimple(URL stream) throws IOException {
+        mPlayerExternal = false;
+        mPlayer = GLMediaPlayerFactory.create();
+        mPlayer.addEventListener(this);
+        mPlayer.initStream(stream);
+        System.out.println("p0.1 "+mPlayer);
     }
 
+    public MovieSimple(GLMediaPlayer mediaPlayer) throws IllegalStateException {
+        if(GLMediaPlayer.State.UninitializedGL != mediaPlayer.getState()) {
+            throw new IllegalStateException("Given GLMediaPlayer not in state "+GLMediaPlayer.State.UninitializedGL+": "+mediaPlayer);
+        }
+        mPlayerExternal = true;
+        mPlayer = mediaPlayer;
+        mPlayer.addEventListener(this);
+        System.out.println("p0.2 "+mPlayer);
+    }
+    
     private void run() {
         System.err.println("MovieSimple.run()");
         try {
@@ -203,8 +219,6 @@ public class MovieSimple implements MouseListener, GLEventListener, GLMediaEvent
         st.attachShaderProgram(gl, sp, false);
     }
 
-    GLMediaPlayer mPlayer=null;
-
     public void init(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         System.err.println("Entering initialization");
@@ -216,14 +230,17 @@ public class MovieSimple implements MouseListener, GLEventListener, GLMediaEvent
 
         boolean useExternalTexture = false;
         try {
-            mPlayer = GLMediaPlayerFactory.create();
-            mPlayer.addEventListener(this);
-            // movie.setStream(4, new URL(stream));
-            mPlayer.setStream(gl, stream);
-            System.out.println("p0 "+mPlayer);
+            mPlayer.initGL(gl);
+            System.out.println("p1 "+mPlayer);
             useExternalTexture = GLES2.GL_TEXTURE_EXTERNAL_OES == mPlayer.getTextureTarget();
             mPlayer.setTextureMinMagFilter( new int[] { GL.GL_NEAREST, GL.GL_LINEAR } ); 
-        } catch (IOException ioe) { ioe.printStackTrace(); }
+        } catch (GLException glex) { 
+            if(null != mPlayer) {
+                mPlayer.destroy(gl);
+                mPlayer = null;
+            }
+            throw new GLException(glex);
+        }
         
         pmvMatrix = new PMVMatrix();
 
@@ -331,6 +348,7 @@ public class MovieSimple implements MouseListener, GLEventListener, GLMediaEvent
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+        if(null == mPlayer) { return; }
         winWidth = width;
         winHeight = height;
         
@@ -355,6 +373,8 @@ public class MovieSimple implements MouseListener, GLEventListener, GLMediaEvent
     }
 
     public void dispose(GLAutoDrawable drawable) {
+        if(null == mPlayer) { return; }
+        
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         mPlayer.destroy(gl);
@@ -368,6 +388,8 @@ public class MovieSimple implements MouseListener, GLEventListener, GLMediaEvent
     }
 
     public void display(GLAutoDrawable drawable) {
+        if(null == mPlayer) { return; }
+        
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         st.useProgram(gl, true);
@@ -412,7 +434,7 @@ public class MovieSimple implements MouseListener, GLEventListener, GLMediaEvent
     public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
     }
 
-    public static void main(String[] args) throws MalformedURLException {
+    public static void main(String[] args) throws IOException, MalformedURLException {
         String fname="file:///mnt/sdcard/Movies/BigBuckBunny_320x180.mp4";
         if(args.length>0) fname=args[0];
         new MovieSimple(new URL(fname)).run();

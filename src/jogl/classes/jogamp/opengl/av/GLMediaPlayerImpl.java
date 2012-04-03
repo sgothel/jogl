@@ -8,8 +8,8 @@ import java.util.Iterator;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLES2;
+import javax.media.opengl.GLException;
 
 import com.jogamp.opengl.av.GLMediaPlayer;
 import com.jogamp.opengl.av.GLMediaEventListener;
@@ -36,27 +36,25 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected int[] texMinMagFilter = { GL.GL_NEAREST, GL.GL_NEAREST };
     protected int[] texWrapST = { GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE };
     
-    private int sWidth = 0;
-    private int sHeight = 0;
     protected URL url = null;
     
     protected float playSpeed = 1.0f;
     
-    /** Shall be set by the {@link #setStreamImplPreGL()} or {@link #setStreamImplPostGL()} method implementation. */
+    /** Shall be set by the {@link #initStreamImplPreGL()} method implementation. */
     protected int width = 0;
-    /** Shall be set by the {@link #setStreamImplPreGL()} or {@link #setStreamImplPostGL()}method implementation. */
+    /** Shall be set by the {@link #initStreamImplPreGL()} method implementation. */
     protected int height = 0;
-    /** Shall be set by the {@link #setStreamImplPreGL()} or {@link #setStreamImplPostGL()}method implementation. */
+    /** Shall be set by the {@link #initStreamImplPreGL()} method implementation. */
     protected int fps = 0;
-    /** Shall be set by the {@link #setStreamImplPreGL()} or {@link #setStreamImplPostGL()}method implementation. */
+    /** Shall be set by the {@link #initStreamImplPreGL()} method implementation. */
     protected long bps = 0;
-    /** In frames. Shall be set by the {@link #setStreamImplPreGL()} or {@link #setStreamImplPostGL()}method implementation. */
+    /** In frames. Shall be set by the {@link #initStreamImplPreGL()} method implementation. */
     protected long totalFrames = 0;
-    /** In ms. Shall be set by the {@link #setStreamImplPreGL()} or {@link #setStreamImplPostGL()}method implementation. */
+    /** In ms. Shall be set by the {@link #initStreamImplPreGL()} method implementation. */
     protected long duration = 0;
-    /** Shall be set by the {@link #setStreamImplPreGL()} or {@link #setStreamImplPostGL()}method implementation. */
+    /** Shall be set by the {@link #initStreamImplPreGL()} method implementation. */
     protected String acodec = null;
-    /** Shall be set by the {@link #setStreamImplPreGL()} or {@link #setStreamImplPostGL()}method implementation. */
+    /** Shall be set by the {@link #initStreamImplPreGL()} method implementation. */
     protected String vcodec = null;
 
     protected long frameNumber = 0;
@@ -68,7 +66,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected GLMediaPlayerImpl() {
         this.textureCount=3;
         this.textureTarget=GL.GL_TEXTURE_2D;
-        this.state = State.Uninitialized;
+        this.state = State.UninitializedStream;
     }
 
     protected final void setTextureCount(int textureCount) {
@@ -119,20 +117,34 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
     protected abstract boolean stopImpl();
     
+    public final long seek(long msec) {
+        final long cp;
+        switch(state) {
+            case Stopped:
+            case Playing:
+            case Paused:
+                cp = seekImpl(msec);
+                break;
+            default:
+                cp = 0;
+        }
+        return cp;        
+    }
+    protected abstract long seekImpl(long msec);
+    
     public final State getState() { return state; }
     
     @Override
-    public final void setStream(GL gl, URL url) throws IOException {
-        if(State.Uninitialized != state) {
-            destroy(gl);
+    public final State initStream(URL url) throws IllegalStateException, IOException {
+        if(State.UninitializedStream != state) {
+            throw new IllegalStateException("Instance not in state "+State.UninitializedStream+", but "+state);
         }
         this.url = url;
         if (this.url != null) {
-            setStreamImplPreGL();
-            init(gl);
-            setStreamImplPostGL();
-            state = State.Stopped;
+            initStreamImplPreGL();
+            state = State.UninitializedGL;
         }
+        return state;
     }
     
     /**
@@ -145,52 +157,44 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
      * @see #acodec
      * @see #vcodec
     */
-    protected abstract void setStreamImplPreGL() throws IOException;
+    protected abstract void initStreamImplPreGL() throws IOException;
 
-    /**
-     * Implementation shall set the following set of data here or at {@link #setStreamImplPreGL()}
-     * @see #width
-     * @see #height
-     * @see #fps
-     * @see #bps
-     * @see #totalFrames
-     * @see #acodec
-     * @see #vcodec
-    */
-    protected abstract void setStreamImplPostGL() throws IOException;
-    
-    protected final void init(GL gl) {
+    @Override
+    public final State initGL(GL gl) throws IllegalStateException, GLException {
+        if(State.UninitializedGL != state) {
+            throw new IllegalStateException("Instance not in state "+State.UninitializedGL+", but "+state);
+        }
         final GLContext ctx = gl.getContext();
         if(!ctx.isCurrent()) {
-            throw new RuntimeException("Not current: "+ctx);
+            throw new GLException("Not current: "+ctx);
         }
-        
-        final GLDrawable drawable = ctx.getGLDrawable();
-        sWidth = drawable.getWidth();
-        sHeight = drawable.getHeight();        
-        System.out.println("surface size: "+sWidth+"x"+sHeight);
-        System.out.println("Platform Extensions : "+ctx.getPlatformExtensionsString());
-    
-        if(null!=texFrames) {
-            removeAllImageTextures(ctx);
-        } else {
-            texFrames = new TextureFrame[textureCount];
-        }
-    
-        final int[] tex = new int[textureCount];
-        {
-            gl.glGenTextures(textureCount, tex, 0);
-            final int err = gl.glGetError();
-            if( GL.GL_NO_ERROR != err ) {
-                throw new RuntimeException("TextureNames creation failed (num: "+textureCount+"): err "+toHexString(err));
+
+        try {
+            if(null!=texFrames) {
+                removeAllImageTextures(ctx);
+            } else {
+                texFrames = new TextureFrame[textureCount];
             }
-        }
         
-        for(int i=0; i<textureCount; i++) {
-            final TextureFrame tf = createTexImage(ctx, i, tex); 
-            texFrames[i] = tf;
-            texFrameMap.put(tex[i], tf);
-        }        
+            final int[] tex = new int[textureCount];
+            {
+                gl.glGenTextures(textureCount, tex, 0);
+                final int err = gl.glGetError();
+                if( GL.GL_NO_ERROR != err ) {
+                    throw new RuntimeException("TextureNames creation failed (num: "+textureCount+"): err "+toHexString(err));
+                }
+            }
+            
+            for(int i=0; i<textureCount; i++) {
+                final TextureFrame tf = createTexImage(ctx, i, tex); 
+                texFrames[i] = tf;
+                texFrameMap.put(tex[i], tf);
+            }
+            state = State.Stopped;
+            return state;
+        } catch (Throwable t) {
+            throw new GLException("Error initializing GL resources", t);
+        }
     }
     
     protected TextureFrame createTexImage(GLContext ctx, int idx, int[] tex) {
@@ -246,11 +250,13 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
     
     protected void removeAllImageTextures(GLContext ctx) {
-        for(int i=0; i<textureCount; i++) {
-            final TextureFrame imgTex = texFrames[i]; 
-            destroyTexImage(ctx, imgTex);
-            texFrames[i] = null;
-        }        
+        if(null != texFrames) {
+            for(int i=0; i<textureCount; i++) {
+                final TextureFrame imgTex = texFrames[i]; 
+                destroyTexImage(ctx, imgTex);
+                texFrames[i] = null;
+            }
+        }
         texFrameMap.clear();
     }
 
@@ -276,10 +282,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     @Override
-    public synchronized void destroy(GL gl) {
+    public synchronized State destroy(GL gl) {
         destroyImpl(gl);
         removeAllImageTextures(gl.getContext());
-        state = State.Uninitialized;
+        state = State.UninitializedStream;
+        return state;
     }
     protected abstract void destroyImpl(GL gl);
 
@@ -331,7 +338,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     @Override
     public synchronized String toString() {
         final float ct = getCurrentPosition() / 1000.0f, tt = getDuration() / 1000.0f;
-        return "GLMediaPlayer ["+state+", "+frameNumber+"/"+totalFrames+" frames, "+ct+"/"+tt+"s, stream [video ["+vcodec+", "+width+"x"+height+", "+fps+"fps, "+bps+"bsp]]]";
+        return "GLMediaPlayer ["+state+", "+frameNumber+"/"+totalFrames+" frames, "+ct+"/"+tt+"s, stream [video ["+vcodec+", "+width+"x"+height+", "+fps+"fps, "+bps+"bsp], "+url.toExternalForm()+"]]";
     }
 
     @Override

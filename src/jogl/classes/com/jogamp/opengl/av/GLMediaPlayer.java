@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GLException;
 
 import jogamp.opengl.Debug;
 
@@ -12,17 +13,19 @@ import com.jogamp.opengl.util.texture.Texture;
 /**
  * Lifecycle of an GLMediaPlayer:
  * <ul>
- *   <li>{@link #setStream(GL, URL)}</li>
- *   <li>{@link #start()}</li>
- *   <li>{@link #stop()}</li>
- *   <li>{@link #destroy(GL)}</li>
+ *   <li>{@link #initStream(URL)} - UninitializedStream -> UninitializedGL</li>
+ *   <li>{@link #initGL(GL)}      - UninitializedGL -> Stopped</li>
+ *   <li>{@link #start()}         - Stopped/Paused -> Playing</li>
+ *   <li>{@link #stop()}          - Playing/Paused -> Stopped</li>
+ *   <li>{@link #pause()}         - Playing -> Paused</li>
+ *   <li>{@link #destroy(GL)}     - ANY -> UninitializedStream</li>
  * </ul>
  */
 public interface GLMediaPlayer {
     public static final boolean DEBUG = Debug.debug("GLMediaPlayer");
     
     public enum State {
-        Uninitialized(0), Stopped(1), Playing(2), Paused(3); 
+        UninitializedStream(0), UninitializedGL(1), Stopped(2), Playing(3), Paused(4); 
         
         public final int id;
 
@@ -61,21 +64,32 @@ public interface GLMediaPlayer {
     public int[] getTextureWrapST();
     
     /** 
-     * Sets the stream to be used. Initializes all stream related states and GL resources.
-     * <ul>
-     *   <li>ANY -> Uninitialized - invokes destroy(GL)</li>
-     *   <li>Uninitialized -> Stopped</li>
-     * </ul>
+     * Sets the stream to be used. Initializes all stream related states.
+     * <p>
+     * UninitializedStream -> UninitializedGL
+     * </p>
+     * @throws IOException in case of difficulties to open or process the stream
+     * @throws IllegalStateException if not invoked in state UninitializedStream 
      */
-    public void setStream(GL gl, URL url) throws IOException;
+    public State initStream(URL url) throws IllegalStateException, IOException;
 
+    /** 
+     * Initializes all GL related resources.
+     * <p>
+     * UninitializedGL -> Stopped
+     * </p>
+     * @throws GLException in case of difficulties to initialize the GL resources
+     * @throws IllegalStateException if not invoked in state UninitializedGL 
+     */
+    public State initGL(GL gl) throws IllegalStateException, GLException;
+    
     /**
      * Releases the GL and stream resources.
      * <p>
      * <code>ANY</code> -> Uninitialized
      * </p>
      */
-    public void destroy(GL gl);
+    public State destroy(GL gl);
 
     public void setPlaySpeed(float rate);
 
@@ -107,6 +121,8 @@ public interface GLMediaPlayer {
     public long getCurrentPosition();
 
     /**
+     * Allowed in state Stopped, Playing and Paused, otherwise ignored.
+     * 
      * @param msec absolute desired time position in milliseconds 
      * @return time current position in milliseconds, after seeking to the desired position  
      **/
@@ -125,8 +141,6 @@ public interface GLMediaPlayer {
      */
     public TextureFrame getNextTexture();
     
-    public boolean isValid();
-
     public URL getURL();
 
     /**
