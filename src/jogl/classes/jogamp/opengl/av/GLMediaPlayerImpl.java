@@ -29,29 +29,34 @@ import com.jogamp.opengl.util.texture.Texture;
  */
 public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
+    protected State state;
     protected int textureCount;
     protected int textureTarget;
+    
+    protected int[] texMinMagFilter = { GL.GL_NEAREST, GL.GL_NEAREST };
+    protected int[] texWrapST = { GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE };
     
     private int sWidth = 0;
     private int sHeight = 0;
     protected URL url = null;
     
-    protected Texture texture = null;
     protected float playSpeed = 1.0f;
     
-    /** Shall be set by the {@link #setStreamImpl()} method implementation. */
+    /** Shall be set by the {@link #setStreamImplPreGL()} or {@link #setStreamImplPostGL()} method implementation. */
     protected int width = 0;
-    /** Shall be set by the {@link #setStreamImpl()} method implementation. */
+    /** Shall be set by the {@link #setStreamImplPreGL()} or {@link #setStreamImplPostGL()}method implementation. */
     protected int height = 0;
-    /** Shall be set by the {@link #setStreamImpl()} method implementation. */
+    /** Shall be set by the {@link #setStreamImplPreGL()} or {@link #setStreamImplPostGL()}method implementation. */
     protected int fps = 0;
-    /** Shall be set by the {@link #setStreamImpl()} method implementation. */
+    /** Shall be set by the {@link #setStreamImplPreGL()} or {@link #setStreamImplPostGL()}method implementation. */
     protected long bps = 0;
-    /** Shall be set by the {@link #setStreamImpl()} method implementation. */
+    /** In frames. Shall be set by the {@link #setStreamImplPreGL()} or {@link #setStreamImplPostGL()}method implementation. */
     protected long totalFrames = 0;
-    /** Shall be set by the {@link #setStreamImpl()} method implementation. */
+    /** In ms. Shall be set by the {@link #setStreamImplPreGL()} or {@link #setStreamImplPostGL()}method implementation. */
+    protected long duration = 0;
+    /** Shall be set by the {@link #setStreamImplPreGL()} or {@link #setStreamImplPostGL()}method implementation. */
     protected String acodec = null;
-    /** Shall be set by the {@link #setStreamImpl()} method implementation. */
+    /** Shall be set by the {@link #setStreamImplPreGL()} or {@link #setStreamImplPostGL()}method implementation. */
     protected String vcodec = null;
 
     protected long frameNumber = 0;
@@ -63,29 +68,75 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected GLMediaPlayerImpl() {
         this.textureCount=3;
         this.textureTarget=GL.GL_TEXTURE_2D;
+        this.state = State.Uninitialized;
     }
 
     protected final void setTextureCount(int textureCount) {
         this.textureCount=textureCount;
     }
+    public final int getTextureCount() { return textureCount; }
+    
     protected final void setTextureTarget(int textureTarget) {
         this.textureTarget=textureTarget;
     }
+    public final int getTextureTarget() { return textureTarget; }
+
+    public final void setTextureMinMagFilter(int[] minMagFilter) { texMinMagFilter[0] = minMagFilter[0]; texMinMagFilter[1] = minMagFilter[1];}
+    public final int[] getTextureMinMagFilter() { return texMinMagFilter; }
+    
+    public final void setTextureWrapST(int[] wrapST) { texWrapST[0] = wrapST[0]; texWrapST[1] = wrapST[1];}
+    public final int[] getTextureWrapST() { return texWrapST; }
+
+    public final State start() {
+        switch(state) {
+            case Stopped:
+            case Paused:
+                if(startImpl()) {
+                    state = State.Playing;
+                }
+        }
+        return state;
+    }
+    protected abstract boolean startImpl();
+    
+    public final State pause() {
+        if(State.Playing == state && pauseImpl()) {
+            state = State.Paused;
+        }
+        return state;
+    }
+    protected abstract boolean pauseImpl();
+    
+    public final State stop() {
+        switch(state) {
+            case Playing:
+            case Paused:
+                if(stopImpl()) {
+                    state = State.Stopped;
+                }
+        }
+        return state;
+    }
+    protected abstract boolean stopImpl();
+    
+    public final State getState() { return state; }
     
     @Override
     public final void setStream(GL gl, URL url) throws IOException {
-        this.url = url;
-        if (this.url == null) {
-            System.out.println("setURL (null)");
-            stop();
-            return;
+        if(State.Uninitialized != state) {
+            destroy(gl);
         }
-        setStreamImpl();
-        init(gl);
+        this.url = url;
+        if (this.url != null) {
+            setStreamImplPreGL();
+            init(gl);
+            setStreamImplPostGL();
+            state = State.Stopped;
+        }
     }
     
     /**
-     * Implementation shall set the following set of data: 
+     * Implementation shall set the following set of data here or at {@link #setStreamImplPostGL()} 
      * @see #width
      * @see #height
      * @see #fps
@@ -94,8 +145,20 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
      * @see #acodec
      * @see #vcodec
     */
-    protected abstract void setStreamImpl() throws IOException;
+    protected abstract void setStreamImplPreGL() throws IOException;
 
+    /**
+     * Implementation shall set the following set of data here or at {@link #setStreamImplPreGL()}
+     * @see #width
+     * @see #height
+     * @see #fps
+     * @see #bps
+     * @see #totalFrames
+     * @see #acodec
+     * @see #vcodec
+    */
+    protected abstract void setStreamImplPostGL() throws IOException;
+    
     protected final void init(GL gl) {
         final GLContext ctx = gl.getContext();
         if(!ctx.isCurrent()) {
@@ -147,28 +210,29 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             }
         }
 
-        // create space for buffer with a texture
-        gl.glTexImage2D(
-                textureTarget,    // target
-                0,                // level
-                GL.GL_RGBA,       // internal format
-                width,            // width
-                height,           // height
-                0,                // border
-                GL.GL_RGBA,       // format
-                GL.GL_UNSIGNED_BYTE, // type
-                null);            // pixels -- will be provided later
-        {
-            final int err = gl.glGetError();
-            if( GL.GL_NO_ERROR != err ) {
-                throw new RuntimeException("Couldn't create TexImage2D RGBA "+width+"x"+height+", err "+toHexString(err));
+        if(GLES2.GL_TEXTURE_EXTERNAL_OES != textureTarget) {
+            // create space for buffer with a texture
+            gl.glTexImage2D(
+                    textureTarget,    // target
+                    0,                // level
+                    GL.GL_RGBA,       // internal format
+                    width,            // width
+                    height,           // height
+                    0,                // border
+                    GL.GL_RGBA,       // format
+                    GL.GL_UNSIGNED_BYTE, // type
+                    null);            // pixels -- will be provided later
+            {
+                final int err = gl.glGetError();
+                if( GL.GL_NO_ERROR != err ) {
+                    throw new RuntimeException("Couldn't create TexImage2D RGBA "+width+"x"+height+", err "+toHexString(err));
+                }
             }
         }
-        gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
-        gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);        
-        // Clamp to edge is only option.
-        gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
-        gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
+        gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MIN_FILTER, texMinMagFilter[0]);
+        gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MAG_FILTER, texMinMagFilter[0]);        
+        gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_S, texWrapST[0]);
+        gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_T, texWrapST[1]);
         
         return com.jogamp.opengl.util.texture.TextureIO.newTexture(tex[idx],
                      textureTarget,
@@ -182,7 +246,6 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
     
     protected void removeAllImageTextures(GLContext ctx) {
-        texture = null;
         for(int i=0; i<textureCount; i++) {
             final TextureFrame imgTex = texFrames[i]; 
             destroyTexImage(ctx, imgTex);
@@ -199,6 +262,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         }
     }
     protected void newFrameAvailable(TextureFrame frame) {
+        frameNumber++;        
         synchronized(eventListenersLock) {
             for(Iterator<GLMediaEventListener> i = eventListeners.iterator(); i.hasNext(); ) {
                 i.next().newFrameAvailable(this, frame);
@@ -212,14 +276,10 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     @Override
-    public synchronized Texture getLastTextureID() {
-        return texture;
-    }
-
-    @Override
     public synchronized void destroy(GL gl) {
         destroyImpl(gl);
         removeAllImageTextures(gl.getContext());
+        state = State.Uninitialized;
     }
     protected abstract void destroyImpl(GL gl);
 
@@ -244,6 +304,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     @Override
+    public synchronized long getDuration() {
+        return duration;
+    }
+    
+    @Override
     public synchronized long getBitrate() {
         return bps;
     }
@@ -265,7 +330,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     @Override
     public synchronized String toString() {
-        return "GLMediaPlayer [ stream [ video [ "+vcodec+", "+width+"x"+height+", "+fps+"fps, "+bps+"bsp, "+totalFrames+"f ] ] ]";
+        final float ct = getCurrentPosition() / 1000.0f, tt = getDuration() / 1000.0f;
+        return "GLMediaPlayer ["+state+", "+frameNumber+"/"+totalFrames+" frames, "+ct+"/"+tt+"s, stream [video ["+vcodec+", "+width+"x"+height+", "+fps+"fps, "+bps+"bsp]]]";
     }
 
     @Override

@@ -627,14 +627,14 @@ static int StartClock(OMXToolBasicAV_t * pOMXAV, KDboolean start, KDfloat32 time
     return (OMX_ErrorNotReady == eError)?-1:0;
 }
 
-static KDint GetClockPosition(OMXToolBasicAV_t * pOMXAV)
+static KDint64 GetClockPosition(OMXToolBasicAV_t * pOMXAV)
 {
     OMX_TIME_CONFIG_TIMESTAMPTYPE stamp;
     INIT_PARAM(stamp);
     stamp.nPortIndex = 0;
 
     OMX_GetConfig(pOMXAV->comp[OMXAV_H_CLOCK], OMX_IndexConfigTimeCurrentMediaTime, &stamp);
-    return (int) ( stamp.nTimestamp / 1000 );
+    return (KDint64) ( stamp.nTimestamp / 1000L );
 }
 
 static KDfloat32 GetClockScale(OMXToolBasicAV_t * pOMXAV)
@@ -656,13 +656,13 @@ static KDint SetClockScale(OMXToolBasicAV_t * pOMXAV, KDfloat32 scale)
     return 0;
 }
 
-static int SetMediaPosition(OMXToolBasicAV_t * pOMXAV, KDfloat32 time) {
+static int SetMediaPosition(OMXToolBasicAV_t * pOMXAV, KDint64 time) {
     OMX_ERRORTYPE eError = OMX_ErrorNone;
     OMX_TIME_CONFIG_TIMESTAMPTYPE timestamp;
     int loop=STATE_TIMEOUT_LOOP;
     INIT_PARAM(timestamp);
     timestamp.nPortIndex = 0;
-    timestamp.nTimestamp = (OMX_TICKS) (time * 1000.0 * 1000.0);
+    timestamp.nTimestamp = (OMX_TICKS) (time * 1000L);
 
     eError = OMX_SetConfig(pOMXAV->comp[OMXAV_H_READER], OMX_IndexConfigTimePosition, &timestamp);
     while (loop>0 && OMX_ErrorNotReady == eError)
@@ -1334,7 +1334,7 @@ void OMXToolBasicAV_PlayPause(OMXToolBasicAV_t * pOMXAV)
     kdThreadMutexUnlock(pOMXAV->mutex);
 }
 
-void OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDfloat32 time)
+void OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDint64 time)
 {
     int res;
 
@@ -1474,8 +1474,8 @@ GLuint OMXToolBasicAV_GetNextTextureID(OMXToolBasicAV_t * pOMXAV) {
     return texID;
 }
 
-KDint OMXToolBasicAV_GetCurrentPosition(OMXToolBasicAV_t * pOMXAV) {
-    KDfloat32 res = -1.0f;
+KDint64 OMXToolBasicAV_GetCurrentPosition(OMXToolBasicAV_t * pOMXAV) {
+    KDint64 res = 0L;
     if(NULL==pOMXAV) {
         java_throwNewRuntimeException(0, "OMX instance null\n");
         return res;
