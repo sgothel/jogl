@@ -210,6 +210,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         surfaceHandle = 0;
         eglSurface = 0;
         definePosition(0, 0); // default to 0/0
+        setBrokenFocusChange(true);
     }
     
     @Override
@@ -255,7 +256,6 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     protected void createNativeImpl() {
         Log.d(MD.TAG, "createNativeImpl 0 - surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
                     ", format [a "+androidFormat+", n "+nativeFormat+"], "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" - "+Thread.currentThread().getName());
-        androidView.bringToFront();
 
         if(0!=getParentWindowHandle()) {
             throw new NativeWindowException("Window parenting not supported (yet)");
@@ -305,8 +305,8 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     
     protected void requestFocusImpl(boolean reparented) { 
         if(null != androidView) {
-            androidView.bringToFront();
             androidView.requestFocus();
+            androidView.bringToFront();
         }
     }
 

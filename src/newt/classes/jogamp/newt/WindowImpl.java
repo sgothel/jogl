@@ -93,7 +93,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private AbstractGraphicsConfiguration config = null; // control access due to delegation
     protected CapabilitiesImmutable capsRequested = null;
     protected CapabilitiesChooser capabilitiesChooser = null; // default null -> default
-    private boolean fullscreen = false, hasFocus = false;    
+    private boolean fullscreen = false, hasFocus = false, brokenFocusChange = false;    
     private int width = 128, height = 128; // client-area size w/o insets, default: may be overwritten by user
     private int x = 64, y = 64; // client-area pos w/o insets
     private boolean autoPosition = true; // default: true (allow WM to choose top-level position, if not set by user)
@@ -323,7 +323,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
         if(postParentlockFocus) {
             // harmonize focus behavior for all platforms: focus on creation
-            requestFocusInt(isFullscreen() /* skipFocusAction */, true/* force */);
+            requestFocusInt(isFullscreen() /* skipFocusAction */);
             ((DisplayImpl) screen.getDisplay()).dispatchMessagesNative(); // status up2date
         }
         if(DEBUG_IMPLEMENTATION) {
@@ -1185,7 +1185,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                 ok = WindowImpl.this.waitForSize(width, height, false, TIMEOUT_NATIVEWINDOW);
                             }
                             if(ok) {
-                                requestFocusInt(false /* skipFocusAction */, true/* force */);
+                                requestFocusInt(false /* skipFocusAction */);
                                 display.dispatchMessagesNative(); // status up2date                                
                             }
                         }
@@ -1616,7 +1616,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void requestFocus(boolean wait) {
-        requestFocus(wait /* wait */, false /* skipFocusAction */, false /* force */);
+        requestFocus(wait /* wait */, false /* skipFocusAction */, brokenFocusChange /* force */);
     }
     
     private void requestFocus(boolean wait, boolean skipFocusAction, boolean force) {
@@ -1627,13 +1627,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
     
-    /** Internal request focus on current thread */
-    private void requestFocusInt(boolean skipFocusAction, boolean force) {
+    /** Internally forcing request focus on current thread */
+    private void requestFocusInt(boolean skipFocusAction) {
         if( skipFocusAction || !focusAction() ) {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.RequestFocusInt: force "+force+" - ("+getThreadName()+"): "+hasFocus+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
+                System.err.println("Window.RequestFocusInt: forcing - ("+getThreadName()+"): "+hasFocus+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
-            requestFocusImpl(force);
+            requestFocusImpl(true);
         }        
     }
     
@@ -1655,6 +1655,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             System.err.println("Window.focusAction() END - "+getThreadName()+", focusAction: "+focusAction+" - windowHandle "+toHexString(getWindowHandle())+", res: "+res);
         }
         return res;
+    }
+    
+    protected void setBrokenFocusChange(boolean v) {
+        brokenFocusChange = v;
     }
     
     public void setKeyboardFocusHandler(KeyListener l) {
@@ -2335,7 +2339,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     /** Triggered by implementation's WM events to update the focus state. */
     protected void focusChanged(boolean defer, boolean focusGained) {
-        if(hasFocus != focusGained) {
+        if(brokenFocusChange || hasFocus != focusGained) {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.focusChanged: ("+getThreadName()+"): (defer: "+defer+") "+this.hasFocus+" -> "+focusGained+" - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
             }
@@ -2347,7 +2351,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 enqueueWindowEvent(false, evt);
             }
         }
-    }
+    }    
 
     /** Triggered by implementation's WM events to update the visibility state. */
     protected void visibleChanged(boolean defer, boolean visible) {
