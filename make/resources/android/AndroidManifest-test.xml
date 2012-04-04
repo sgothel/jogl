@@ -95,8 +95,28 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.jogamp.opengl.test.android.MovieSimpleActivityLauncher"
-                  android:label="@string/activity_moviesimple_name"
+        <activity android:name="com.jogamp.opengl.test.android.MovieSimpleActivityLauncher00"
+                  android:label="@string/activity_moviesimple00_name"
+                  android:description="@string/activity_moviesimple_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.opengl.test.android.MovieSimpleActivityLauncher01"
+                  android:label="@string/activity_moviesimple01_name"
+                  android:description="@string/activity_moviesimple_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.opengl.test.android.MovieSimpleActivityLauncher02"
+                  android:label="@string/activity_moviesimple02_name"
                   android:description="@string/activity_moviesimple_descr"
                   android:theme="@android:style/Theme.NoDisplay"
                   >

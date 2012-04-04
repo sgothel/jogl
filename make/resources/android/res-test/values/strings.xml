@@ -19,6 +19,8 @@
     <string name="activity_graphui2p_descr">GraphUI 2-pass</string>
     <string name="activity_elektro_name">Elektro</string>
     <string name="activity_elektro_descr">Elektro</string>
-    <string name="activity_moviesimple_name">MovieSimple</string>
+    <string name="activity_moviesimple00_name">MovieSimple0</string>
+    <string name="activity_moviesimple01_name">MovieSimple1</string>
+    <string name="activity_moviesimple02_name">MovieSimple2</string>
     <string name="activity_moviesimple_descr">MovieSimple</string>
 </resources>
