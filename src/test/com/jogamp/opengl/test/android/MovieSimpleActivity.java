@@ -110,7 +110,7 @@ public class MovieSimpleActivity extends NewtBaseActivity {
               
        try {
            final GLMediaPlayer mPlayerMain = GLMediaPlayerFactory.create();
-           mPlayerMain.initStream(urlConnection0.getURL());
+           mPlayerMain.initStream(urlConnection0);
            
            final GLMediaPlayer mPlayerHUD;
            if(!mPlayerNormal) {               
@@ -118,7 +118,7 @@ public class MovieSimpleActivity extends NewtBaseActivity {
                    mPlayerHUD = mPlayerMain;
                } else {
                    mPlayerHUD = GLMediaPlayerFactory.create();
-                   mPlayerHUD.initStream(urlConnection1.getURL());               
+                   mPlayerHUD.initStream(urlConnection1);               
                }
            } else {
                mPlayerHUD = null;

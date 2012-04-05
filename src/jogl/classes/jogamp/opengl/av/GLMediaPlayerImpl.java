@@ -1,7 +1,7 @@
 package jogamp.opengl.av;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -36,7 +36,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected int[] texMinMagFilter = { GL.GL_NEAREST, GL.GL_NEAREST };
     protected int[] texWrapST = { GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE };
     
-    protected URL url = null;
+    protected URLConnection urlConn = null;
     
     protected float playSpeed = 1.0f;
     
@@ -135,12 +135,12 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     public final State getState() { return state; }
     
     @Override
-    public final State initStream(URL url) throws IllegalStateException, IOException {
+    public final State initStream(URLConnection urlConn) throws IllegalStateException, IOException {
         if(State.UninitializedStream != state) {
             throw new IllegalStateException("Instance not in state "+State.UninitializedStream+", but "+state);
         }
-        this.url = url;
-        if (this.url != null) {
+        this.urlConn = urlConn;
+        if (this.urlConn != null) {
             initStreamImplPreGL();
             state = State.UninitializedGL;
         }
@@ -234,7 +234,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             }
         }
         gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MIN_FILTER, texMinMagFilter[0]);
-        gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MAG_FILTER, texMinMagFilter[0]);        
+        gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_MAG_FILTER, texMinMagFilter[1]);        
         gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_S, texWrapST[0]);
         gl.glTexParameteri(textureTarget, GL.GL_TEXTURE_WRAP_T, texWrapST[1]);
         
@@ -291,8 +291,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected abstract void destroyImpl(GL gl);
 
     @Override
-    public synchronized URL getURL() {
-        return url;
+    public synchronized URLConnection getURLConnection() {
+        return urlConn;
     }
 
     @Override
@@ -338,7 +338,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     @Override
     public synchronized String toString() {
         final float ct = getCurrentPosition() / 1000.0f, tt = getDuration() / 1000.0f;
-        return "GLMediaPlayer ["+state+", "+frameNumber+"/"+totalFrames+" frames, "+ct+"/"+tt+"s, stream [video ["+vcodec+", "+width+"x"+height+", "+fps+"fps, "+bps+"bsp], "+url.toExternalForm()+"]]";
+        return "GLMediaPlayer ["+state+", "+frameNumber+"/"+totalFrames+" frames, "+ct+"/"+tt+"s, stream [video ["+vcodec+", "+width+"x"+height+", "+fps+"fps, "+bps+"bsp], "+urlConn.getURL().toExternalForm()+"]]";
     }
 
     @Override

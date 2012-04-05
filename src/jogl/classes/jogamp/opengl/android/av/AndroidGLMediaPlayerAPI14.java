@@ -150,9 +150,9 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     
     @Override
     protected void initStreamImplPreGL() throws IOException {
-        if(null!=mp && null!=url) {
+        if(null!=mp && null!=urlConn) {
             try {
-                final Uri uri = Uri.parse(url.toExternalForm());        
+                final Uri uri = Uri.parse(urlConn.getURL().toExternalForm());        
                 mp.setDataSource(StaticContext.getContext(), uri);
             } catch (IllegalArgumentException e) {
                 throw new RuntimeException(e);
@@ -164,7 +164,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             try {
                 mp.prepare();
             } catch (IOException ioe) {
-                throw new IOException("MediaPlayer failed to process stream <"+url.toExternalForm()+">: "+ioe.getMessage(), ioe);
+                throw new IOException("MediaPlayer failed to process stream <"+urlConn.getURL().toExternalForm()+">: "+ioe.getMessage(), ioe);
             }
             
             width = mp.getVideoWidth();

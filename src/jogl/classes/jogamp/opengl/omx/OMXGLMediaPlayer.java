@@ -1,16 +1,14 @@
 
 package jogamp.opengl.omx;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 
 import com.jogamp.opengl.av.GLMediaEventListener;
-import com.jogamp.opengl.av.GLMediaPlayer.TextureFrame;
 
 import jogamp.opengl.av.EGLMediaPlayerImpl;
 import jogamp.opengl.egl.EGL;
@@ -69,25 +67,11 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
-        String path=null;
-        if (url.getProtocol() == null || "file".equals(url.getProtocol())) {
-            // CV only accepts absolute paths
-            try {
-                File file = new File(url.getPath());
-                if (!file.exists()) {
-                    throw new FileNotFoundException(file.toString());
-                }
-                path = file.getCanonicalPath();
-                System.out.println("setURL: path "+path);
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new IOException(e);
-            }
+        final URL url = urlConn.getURL();
+        if(!url.getProtocol().equals("file")) {
+            throw new IOException("Only file URLs are allowed: "+url);            
         }
-        path = replaceAll(path, "\\", "/").trim();
-        if(null==path) {
-            throw new IOException("Couldn't parse stream URL: "+url);
-        }
+        final String path=url.getPath();
         System.out.println("setURL: clean path "+path);
     
         System.out.println("setURL: p1 "+this);

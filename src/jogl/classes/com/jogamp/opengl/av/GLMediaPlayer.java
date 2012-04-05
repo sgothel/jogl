@@ -1,7 +1,7 @@
 package com.jogamp.opengl.av;
 
 import java.io.IOException;
-import java.net.URL;
+import java.net.URLConnection;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLException;
@@ -12,14 +12,15 @@ import com.jogamp.opengl.util.texture.Texture;
 
 /**
  * Lifecycle of an GLMediaPlayer:
- * <ul>
- *   <li>{@link #initStream(URL)} - UninitializedStream -> UninitializedGL</li>
- *   <li>{@link #initGL(GL)}      - UninitializedGL -> Stopped</li>
- *   <li>{@link #start()}         - Stopped/Paused -> Playing</li>
- *   <li>{@link #stop()}          - Playing/Paused -> Stopped</li>
- *   <li>{@link #pause()}         - Playing -> Paused</li>
- *   <li>{@link #destroy(GL)}     - ANY -> UninitializedStream</li>
- * </ul>
+ * <table border="1">
+ *   <tr><th>action</th>                             <th>state before</th>        <th>state after</th></tr>
+ *   <tr><td>{@link #initStream(URLConnection)}</td> <td>UninitializedStream</td> <td>UninitializedGL</td></tr>
+ *   <tr><td>{@link #initGL(GL)}</td>                <td>UninitializedGL</td>     <td>Stopped</td></tr>
+ *   <tr><td>{@link #start()}</td>                   <td>Stopped, Paused</td>     <td>Playing</td></tr>
+ *   <tr><td>{@link #stop()}</td>                    <td>Playing, Paused</td>     <td>Stopped</td></tr>
+ *   <tr><td>{@link #pause()}</td>                   <td>Playing</td>             <td>Paused</td></tr>
+ *   <tr><td>{@link #destroy(GL)}</td>               <td>ANY</td>                 <td>UninitializedStream</td></tr>
+ * </table>
  */
 public interface GLMediaPlayer {
     public static final boolean DEBUG = Debug.debug("GLMediaPlayer");
@@ -71,7 +72,7 @@ public interface GLMediaPlayer {
      * @throws IOException in case of difficulties to open or process the stream
      * @throws IllegalStateException if not invoked in state UninitializedStream 
      */
-    public State initStream(URL url) throws IllegalStateException, IOException;
+    public State initStream(URLConnection urlConn) throws IllegalStateException, IOException;
 
     /** 
      * Initializes all GL related resources.
@@ -141,7 +142,7 @@ public interface GLMediaPlayer {
      */
     public TextureFrame getNextTexture();
     
-    public URL getURL();
+    public URLConnection getURLConnection();
 
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.
