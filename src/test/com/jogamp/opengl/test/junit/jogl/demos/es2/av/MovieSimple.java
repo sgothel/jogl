@@ -55,6 +55,7 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.av.GLMediaPlayer;
 import com.jogamp.opengl.av.GLMediaEventListener;
 import com.jogamp.opengl.av.GLMediaPlayer.TextureFrame;
@@ -78,11 +79,15 @@ public class MovieSimple implements MouseListener, GLEventListener, GLMediaEvent
     private long curTime;
     private int effects = EFFECT_NORMAL;
     private float alpha = 1.0f;
+    private int texUnit = 0;
 
     public static final int EFFECT_NORMAL      =    0;
     public static final int EFFECT_GRADIENT_BOTTOM2TOP     = 1<<1;
     public static final int EFFECT_TRANSPARENT = 1<<3; 
 
+    public void setTextureUnit(int u) { texUnit = u; }
+    public int getTextureUnit() { return texUnit; }
+    
     public boolean hasEffect(int e) { return 0 != ( effects & e ) ; }
     public void setEffects(int e) { effects = e; };
     public void setTransparency(float alpha) {
@@ -207,8 +212,8 @@ public class MovieSimple implements MouseListener, GLEventListener, GLMediaEvent
     
     private void initShader(GL2ES2 gl, boolean useExternalTexture) {
 // Create & Compile the shader objects
-        final String vShaderBasename = "moviesimple" ;
-        final String fShaderBasename = useExternalTexture ? "moviesimple_exttex" : "moviesimple" ;
+        final String vShaderBasename = gl.isGLES2() ? "moviesimple_es2" : "moviesimple_gl2" ;
+        final String fShaderBasename = gl.isGLES2() ? ( useExternalTexture ? "moviesimple_es2_exttex" : "moviesimple_es2" ) : "moviesimple_gl2";
         
         ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, MovieSimple.class,
                                             "../shader", "../shader/bin", vShaderBasename);
@@ -230,10 +235,7 @@ public class MovieSimple implements MouseListener, GLEventListener, GLMediaEvent
 
     public void init(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
-        System.err.println("Entering initialization");
-        System.err.println("GL_VERSION=" + gl.glGetString(GL.GL_VERSION));
-        System.err.println("GL_EXTENSIONS:");
-        System.err.println("  " + gl.glGetString(GL.GL_EXTENSIONS));
+        System.err.println(JoglVersion.getGLInfo(gl, null));
         System.err.println("Alpha: "+alpha+", opaque "+drawable.getChosenGLCapabilities().isBackgroundOpaque()+
                            ", "+drawable.getClass().getName()+", "+drawable);
 
@@ -244,11 +246,14 @@ public class MovieSimple implements MouseListener, GLEventListener, GLMediaEvent
             }
             System.out.println("p1 "+mPlayer);
             useExternalTexture = GLES2.GL_TEXTURE_EXTERNAL_OES == mPlayer.getTextureTarget();
+            if(useExternalTexture && !gl.isExtensionAvailable("GL_OES_EGL_image_external")) {
+                throw new GLException("GL_OES_EGL_image_external requested but not available");
+            }
             if(!mPlayerShared) {
                 mPlayer.setTextureMinMagFilter( new int[] { GL.GL_NEAREST, GL.GL_LINEAR } );
             }
         } catch (GLException glex) { 
-            if(null != mPlayer) {
+            if(!mPlayerShared && null != mPlayer) {
                 mPlayer.destroy(gl);
                 mPlayer = null;
             }
@@ -272,10 +277,9 @@ public class MovieSimple implements MouseListener, GLEventListener, GLMediaEvent
             throw new GLException("Error setting PMVMatrix in shader: "+st);
         }
         final GLMediaPlayer.TextureFrame texFrame = mPlayer.getLastTexture();
-        if(!st.uniform(gl, new GLUniformData("mgl_ActiveTexture", 0))) {
+        if(!st.uniform(gl, new GLUniformData("mgl_ActiveTexture", texUnit))) {
             throw new GLException("Error setting mgl_ActiveTexture in shader: "+st);
         }
-        gl.glActiveTexture(GL.GL_TEXTURE0);
         
         float dWidth = drawable.getWidth();
         float dHeight = drawable.getHeight();
@@ -455,7 +459,7 @@ public class MovieSimple implements MouseListener, GLEventListener, GLMediaEvent
             }
         }
 
-        Texture tex = null;
+        final Texture tex;
         if(null!=mPlayer) {
             final GLMediaPlayer.TextureFrame texFrame;
             if(mPlayerShared) {
@@ -463,9 +467,12 @@ public class MovieSimple implements MouseListener, GLEventListener, GLMediaEvent
             } else {
                 texFrame=mPlayer.getNextTexture();
             }
-            tex = texFrame.getTexture(); 
+            tex = texFrame.getTexture();
+            gl.glActiveTexture(GL.GL_TEXTURE0+texUnit);
             tex.enable(gl);
             tex.bind(gl);
+        } else {
+            tex = null;
         }
 
         // Draw a square
