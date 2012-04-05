@@ -27,7 +27,7 @@
  */
 package com.jogamp.opengl.util.awt;
 
-import com.jogamp.opengl.util.awt.RasterTextRenderer.RenderDelegate;
+import com.jogamp.opengl.util.awt.TextRenderer.RenderDelegate;
 import com.jogamp.opengl.util.packrect.BackingStoreManager;
 import com.jogamp.opengl.util.packrect.Rect;
 import com.jogamp.opengl.util.packrect.RectVisitor;

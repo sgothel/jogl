@@ -47,7 +47,7 @@ import org.junit.Test;
 /**
  * Test for {@link RasterTextRenderer}.
  */
-public class RasterTextRendererTest {
+public class TextRendererTest {
 
     // Font to render with
     private static final Font FONT = new Font("Monospace", Font.PLAIN, 110);
@@ -59,7 +59,7 @@ public class RasterTextRendererTest {
     private WordBank wordBank;
 
     // Instance to render with
-    private RasterTextRenderer textRenderer;
+    private TextRenderer textRenderer;
 
     // Utility for making canvases
     private final GLCanvasFactory canvasFactory = new GLCanvasFactory();
@@ -67,7 +67,7 @@ public class RasterTextRendererTest {
     /**
      * Constructs a raster text renderer test.
      */
-    public RasterTextRendererTest() {
+    public TextRendererTest() {
         wordBank = new WordBank();
         textRenderer = null;
     }
@@ -95,7 +95,7 @@ public class RasterTextRendererTest {
 
             @Override
             public void doInit(final GL2 gl) {
-                textRenderer = new RasterTextRenderer(FONT);
+                textRenderer = new TextRenderer(FONT);
             }
 
             @Override
@@ -143,7 +143,7 @@ public class RasterTextRendererTest {
 
             @Override
             public void doInit(final GL3 gl) {
-                textRenderer = new RasterTextRenderer(FONT);
+                textRenderer = new TextRenderer(FONT);
             }
 
             @Override

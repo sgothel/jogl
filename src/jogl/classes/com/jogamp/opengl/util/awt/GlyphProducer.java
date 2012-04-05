@@ -27,7 +27,7 @@
  */
 package com.jogamp.opengl.util.awt;
 
-import com.jogamp.opengl.util.awt.RasterTextRenderer.RenderDelegate;
+import com.jogamp.opengl.util.awt.TextRenderer.RenderDelegate;
 
 import java.awt.Font;
 import java.awt.font.FontRenderContext;
