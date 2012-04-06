@@ -247,7 +247,7 @@ public class TGAImage {
      * it into the JimiImage structure. This was taken from the
      * prototype and modified for the new Jimi structure
      */
-    private void decodeImage(LEDataInputStream dIn) throws IOException {
+    private void decodeImage(GLProfile glp, LEDataInputStream dIn) throws IOException {
         switch (header.imageType()) {
         case Header.UCOLORMAPPED:
             throw new IOException("TGADecoder Uncompressed Colormapped images not supported");
@@ -259,7 +259,7 @@ public class TGAImage {
 
             case 24:
             case 32:
-                decodeRGBImageU24_32(dIn);
+                decodeRGBImageU24_32(glp, dIn);
                 break;
             }
             break;
@@ -282,7 +282,7 @@ public class TGAImage {
      * This assumes that the body is for a 24 bit or 32 bit for a
      * RGB or ARGB image respectively.
      */
-    private void decodeRGBImageU24_32(LEDataInputStream dIn) throws IOException {
+    private void decodeRGBImageU24_32(GLProfile glp, LEDataInputStream dIn) throws IOException {
         int i;    // row index
         int y;    // output row index
         int rawWidth = header.width() * (header.pixelDepth() / 8);
@@ -300,10 +300,9 @@ public class TGAImage {
             System.arraycopy(rawBuf, 0, tmpData, y * rawWidth, rawBuf.length);
         }
 
-        GL gl = GLContext.getCurrentGL();
         if (header.pixelDepth() == 24) {
             bpp=3;
-            if(gl.isGL2GL3()) {
+            if(glp.isGL2GL3()) {
                 format = GL2GL3.GL_BGR;
             } else {
                 format = GL.GL_RGB;
@@ -312,8 +311,12 @@ public class TGAImage {
         } else {
             assert header.pixelDepth() == 32;
             bpp=4;
-
-            if( gl.getContext().isTextureFormatBGRA8888Available() ) {
+            boolean useBGRA = glp.isGL2GL3();
+            if(!useBGRA) {
+                final GLContext ctx = GLContext.getCurrent();
+                useBGRA = null != ctx && ctx.isTextureFormatBGRA8888Available();
+            }
+            if( useBGRA ) {
                 format = GL.GL_BGRA;
             } else {
                 format = GL.GL_RGBA;
@@ -355,17 +358,17 @@ public class TGAImage {
     public ByteBuffer getData()  { return data; }
 
     /** Reads a Targa image from the specified file. */
-    public static TGAImage read(String filename) throws IOException {
-        return read(new FileInputStream(filename));
+    public static TGAImage read(GLProfile glp, String filename) throws IOException {
+        return read(glp, new FileInputStream(filename));
     }
 
     /** Reads a Targa image from the specified InputStream. */
-    public static TGAImage read(InputStream in) throws IOException {
+    public static TGAImage read(GLProfile glp, InputStream in) throws IOException {
         LEDataInputStream dIn = new LEDataInputStream(new BufferedInputStream(in));
 
         Header header = new Header(dIn);
         TGAImage res = new TGAImage(header);
-        res.decodeImage(dIn);
+        res.decodeImage(glp, dIn);
         return res;
     }
 

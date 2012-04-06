@@ -434,7 +434,7 @@ public class Texture {
      * 
      * @throws GLException if any OpenGL-related errors occurred
      */
-    public void updateImage(GL gl, TextureData data, int target) throws GLException {
+    public void updateImage(GL gl, TextureData data, int targetOverride) throws GLException {
         validateTexID(gl, true);
 
         imgWidth = data.getWidth();
@@ -553,10 +553,10 @@ public class Texture {
         texParamTarget = texTarget;
         setImageSize(imgWidth, imgHeight, texTarget);
 
-        if (target != 0) {
+        if (targetOverride != 0) {
             // Allow user to override auto detection and skip bind step (for
             // cubemap construction)
-            texTarget = target;
+            texTarget = targetOverride;
             if (this.target == 0) {
                 throw new GLException("Override of target failed; no target specified yet");
             }

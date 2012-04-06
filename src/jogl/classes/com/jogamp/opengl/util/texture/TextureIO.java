@@ -424,7 +424,7 @@ public class TextureIO {
 
     /** 
      * Creates an OpenGL texture object from the specified TextureData
-     * using the current OpenGL context.
+     * using the given OpenGL context.
      *
      * @param data the texture data to turn into an OpenGL texture
      * @throws GLException if no OpenGL context is current or if an
@@ -608,10 +608,10 @@ public class TextureIO {
 
         // First fetch the texture data
         GL _gl = GLContext.getCurrentGL();
-        if (!_gl.isGL2()) {
-            throw new GLException("Only GL2 supports fetching compressed images, GL: " + _gl);
+        if (!_gl.isGL2GL3()) {
+            throw new GLException("Implementation only supports GL2GL3 (Use GLReadBufferUtil and the TextureData variant), have: " + _gl);
         }
-        GL2 gl = _gl.getGL2();
+        GL2GL3 gl = _gl.getGL2();
 
         texture.bind(gl);
         int internalFormat = glGetTexLevelParameteri(gl, GL.GL_TEXTURE_2D, 0, GL2.GL_TEXTURE_INTERNAL_FORMAT);
@@ -651,11 +651,11 @@ public class TextureIO {
             }
 
             // Fetch using glGetTexImage
-            int packAlignment  = glGetInteger(GL.GL_PACK_ALIGNMENT);
-            int packRowLength  = glGetInteger(GL2.GL_PACK_ROW_LENGTH);
-            int packSkipRows   = glGetInteger(GL2.GL_PACK_SKIP_ROWS);
-            int packSkipPixels = glGetInteger(GL2.GL_PACK_SKIP_PIXELS);
-            int packSwapBytes  = glGetInteger(GL2.GL_PACK_SWAP_BYTES);
+            int packAlignment  = glGetInteger(gl, GL.GL_PACK_ALIGNMENT);
+            int packRowLength  = glGetInteger(gl, GL2.GL_PACK_ROW_LENGTH);
+            int packSkipRows   = glGetInteger(gl, GL2.GL_PACK_SKIP_ROWS);
+            int packSkipPixels = glGetInteger(gl, GL2.GL_PACK_SKIP_PIXELS);
+            int packSwapBytes  = glGetInteger(gl, GL2.GL_PACK_SWAP_BYTES);
 
             gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1);
             gl.glPixelStorei(GL2.GL_PACK_ROW_LENGTH, 0);
@@ -691,8 +691,8 @@ public class TextureIO {
     }
   
     public static void write(TextureData data, File file) throws IOException, GLException {
-        for (Iterator iter = textureWriters.iterator(); iter.hasNext(); ) {
-            TextureWriter writer = (TextureWriter) iter.next();
+        for (Iterator<TextureWriter> iter = textureWriters.iterator(); iter.hasNext(); ) {
+            TextureWriter writer = iter.next();
             if (writer.write(file, data)) {
                 return;
             }
@@ -756,8 +756,8 @@ public class TextureIO {
     // Internals only below this point
     //
 
-    private static List/*<TextureProvider>*/ textureProviders = new ArrayList/*<TextureProvider>*/();
-    private static List/*<TextureWriter>*/   textureWriters   = new ArrayList/*<TextureWriter>*/();
+    private static List<TextureProvider> textureProviders = new ArrayList<TextureProvider>();
+    private static List<TextureWriter>   textureWriters   = new ArrayList<TextureWriter>();
 
     static {
         // ImageIO provider, the fall-back, must be the first one added
@@ -816,8 +816,8 @@ public class TextureIO {
 
         fileSuffix = toLowerCase(fileSuffix);
 
-        for (Iterator iter = textureProviders.iterator(); iter.hasNext(); ) {
-            TextureProvider provider = (TextureProvider) iter.next();
+        for (Iterator<TextureProvider> iter = textureProviders.iterator(); iter.hasNext(); ) {
+            TextureProvider provider = iter.next();
             TextureData data = provider.newTextureData(glp, file,
                                                        internalFormat,
                                                        pixelFormat,
@@ -847,8 +847,8 @@ public class TextureIO {
             stream = new BufferedInputStream(stream);
         }
 
-        for (Iterator iter = textureProviders.iterator(); iter.hasNext(); ) {
-            TextureProvider provider = (TextureProvider) iter.next();
+        for (Iterator<TextureProvider> iter = textureProviders.iterator(); iter.hasNext(); ) {
+            TextureProvider provider = iter.next();
             TextureData data = provider.newTextureData(glp, stream,
                                                        internalFormat,
                                                        pixelFormat,
@@ -873,8 +873,8 @@ public class TextureIO {
 
         fileSuffix = toLowerCase(fileSuffix);
 
-        for (Iterator iter = textureProviders.iterator(); iter.hasNext(); ) {
-            TextureProvider provider = (TextureProvider) iter.next();
+        for (Iterator<TextureProvider> iter = textureProviders.iterator(); iter.hasNext(); ) {
+            TextureProvider provider = iter.next();
             TextureData data = provider.newTextureData(glp, url,
                                                        internalFormat,
                                                        pixelFormat,
@@ -1097,13 +1097,12 @@ public class TextureIO {
                                           boolean mipmap,
                                           String fileSuffix) throws IOException {
             if (TGA.equals(fileSuffix)) {
-                TGAImage image = TGAImage.read(stream);
+                TGAImage image = TGAImage.read(glp, stream);
                 if (pixelFormat == 0) {
                     pixelFormat = image.getGLFormat();
                 }
                 if (internalFormat == 0) {
-                    GL gl = GLContext.getCurrentGL();
-                    if(gl.isGL2()) {
+                    if(glp.isGL2()) {
                         internalFormat = GL.GL_RGBA8;
                     } else {
                         internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA:GL.GL_RGB;
@@ -1272,14 +1271,13 @@ public class TextureIO {
     // Helper routines
     //
 
-    private static int glGetInteger(int pname) {
+    private static int glGetInteger(GL gl, int pname) {
         int[] tmp = new int[1];
-        GL gl = GLContext.getCurrentGL();
         gl.glGetIntegerv(pname, tmp, 0);
         return tmp[0];
     }
 
-    private static int glGetTexLevelParameteri(GL2 gl, int target, int level, int pname) {
+    private static int glGetTexLevelParameteri(GL2GL3 gl, int target, int level, int pname) {
         int[] tmp = new int[1];
         gl.glGetTexLevelParameteriv(target, 0, pname, tmp, 0);
         return tmp[0];

@@ -39,13 +39,20 @@
 
 package com.jogamp.opengl.util.texture.spi;
 
-import java.io.*;
-import java.nio.*;
-import java.nio.channels.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.channels.FileChannel;
 
-import javax.media.opengl.*;
-import com.jogamp.opengl.util.*;
-import com.jogamp.opengl.util.texture.*;
+import javax.media.opengl.GL;
+
+import com.jogamp.opengl.util.GLBuffers;
 
 /** A reader and writer for DirectDraw Surface (.dds) files, which are
     used to describe textures. These files can contain multiple mipmap
