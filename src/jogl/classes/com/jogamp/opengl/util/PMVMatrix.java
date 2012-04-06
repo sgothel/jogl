@@ -72,6 +72,8 @@ public class PMVMatrix implements GLMatrixFunc {
      *                        this flag shall be set to <code>true</code> or <code>false</code></p>.
      */
     public PMVMatrix(boolean useBackingArray) {
+          this.usesBackingArray = useBackingArray;
+          
           // I    Identity
           // T    Texture
           // P    Projection
@@ -131,6 +133,8 @@ public class PMVMatrix implements GLMatrixFunc {
           update();
     }
 
+    public final boolean usesBackingArray() { return usesBackingArray; }          
+    
     public void destroy() {
         if(null!=projectFloat) {
             projectFloat.destroy(); projectFloat=null;
@@ -319,14 +323,6 @@ public class PMVMatrix implements GLMatrixFunc {
         } else {
             throw new GLException("unsupported matrixName: "+matrixName);
         }
-    }
-
-    public final void gluPerspective(final float fovy, final float aspect, final float zNear, final float zFar) {
-      float top=(float)Math.tan(fovy*((float)Math.PI)/360.0f)*zNear;
-      float bottom=-1.0f*top;
-      float left=aspect*bottom;
-      float right=aspect*top;
-      glFrustumf(left, right, bottom, top, zNear, zFar);
     }
 
     // 
@@ -573,6 +569,14 @@ public class PMVMatrix implements GLMatrixFunc {
         glMultMatrixf(matrixOrtho, 0);
     }
 
+    public final void gluPerspective(final float fovy, final float aspect, final float zNear, final float zFar) {
+      float top=(float)Math.tan(fovy*((float)Math.PI)/360.0f)*zNear;
+      float bottom=-1.0f*top;
+      float left=aspect*bottom;
+      float right=aspect*top;
+      glFrustumf(left, right, bottom, top, zNear, zFar);
+    }
+
     public final void glFrustumf(final float left, final float right, final float bottom, final float top, final float zNear, final float zFar) {
         if(zNear<=0.0f||zFar<0.0f) {
             throw new GLException("GL_INVALID_VALUE: zNear and zFar must be positive, and zNear>0");
@@ -607,6 +611,78 @@ public class PMVMatrix implements GLMatrixFunc {
         glMultMatrixf(matrixFrustum, 0);
     }
 
+    public void gluLookAt(float eyex, float eyey, float eyez,
+                          float centerx, float centery, float centerz,
+                          float upx, float upy, float upz) {
+        projectFloat.gluLookAt(this, eyex, eyey, eyez, centerx, centery, centerz, upx, upy, upz);
+    }
+
+    /**
+     * Uses this instance {@link #glGetMvMatrixf()} and {@link #glGetPMatrixf()}
+     * 
+     * @param objx
+     * @param objy
+     * @param objz
+     * @param viewport
+     * @param viewport_offset
+     * @param win_pos
+     * @param win_pos_offset
+     * @return
+     */
+    public boolean gluProject(float objx, float objy, float objz,
+                            int[] viewport, int viewport_offset,
+                            float[] win_pos, int win_pos_offset ) {
+        if(usesBackingArray) {
+            return projectFloat.gluProject(objx, objy, objz,
+                                           matrixMv.array(), 0,
+                                           matrixP.array(), 0,
+                                           viewport, viewport_offset, 
+                                           win_pos, win_pos_offset);
+        } else {
+            return projectFloat.gluProject(objx, objy, objz,
+                                           matrixMv,
+                                           matrixP,
+                                           viewport, viewport_offset, 
+                                           win_pos, win_pos_offset);
+        }
+    }
+
+    /**
+     * Uses this instance {@link #glGetMvMatrixf()} and {@link #glGetPMatrixf()}
+     * 
+     * @param winx
+     * @param winy
+     * @param winz
+     * @param viewport
+     * @param viewport_offset
+     * @param obj_pos
+     * @param obj_pos_offset
+     * @return
+     */
+    public boolean gluUnProject(float winx, float winy, float winz,
+                              int[] viewport, int viewport_offset,
+                              float[] obj_pos, int obj_pos_offset) {
+        if(usesBackingArray) {
+            return projectFloat.gluUnProject(winx, winy, winz,
+                                             matrixMv.array(), 0,
+                                             matrixP.array(), 0,
+                                             viewport, viewport_offset, 
+                                             obj_pos, obj_pos_offset);
+        } else {
+            return projectFloat.gluUnProject(winx, winy, winz,
+                                             matrixMv,
+                                             matrixP,
+                                             viewport, viewport_offset, 
+                                             obj_pos, obj_pos_offset);
+        }        
+    }
+    
+    public void gluPickMatrix(float x, float y,
+                              float deltaX, float deltaY,
+                              int[] viewport, int viewport_offset) {
+        projectFloat.gluPickMatrix(this, x, y, deltaX, deltaY, viewport, viewport_offset);
+    }
+    
     //
     // private 
     //
@@ -659,6 +735,7 @@ public class PMVMatrix implements GLMatrixFunc {
         }        
     }
 
+    protected final boolean usesBackingArray;
     protected Buffer matrixBuffer;
     protected FloatBuffer matrixIdent, matrixPMvMvit, matrixPMvMvi, matrixPMv, matrixP, matrixTex, matrixMv, matrixMvi, matrixMvit;
     protected float[] matrixMult, matrixTrans, matrixRot, matrixScale, matrixOrtho, matrixFrustum, vec3f;

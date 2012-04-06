@@ -703,15 +703,9 @@ public class ProjectFloat {
    * @param upz
    */
   public void gluLookAt(GLMatrixFunc gl,
-                        float eyex,
-                        float eyey,
-                        float eyez,
-                        float centerx,
-                        float centery,
-                        float centerz,
-                        float upx,
-                        float upy,
-                        float upz) {
+                        float eyex, float eyey, float eyez,
+                        float centerx, float centery, float centerz,
+                        float upx, float upy, float upz) {
     FloatBuffer forward = this.forwardBuf;
     FloatBuffer side = this.sideBuf;
     FloatBuffer up = this.upBuf;
@@ -763,17 +757,11 @@ public class ProjectFloat {
    * 
    * @return
    */
-  public boolean gluProject(float objx,
-                            float objy,
-                            float objz,
-                            float[] modelMatrix,
-                            int modelMatrix_offset,
-                            float[] projMatrix,
-                            int projMatrix_offset,
-                            int[] viewport,
-                            int viewport_offset,
-                            float[] win_pos,
-                            int win_pos_offset ) {
+  public boolean gluProject(float objx, float objy, float objz,
+                            float[] modelMatrix, int modelMatrix_offset,
+                            float[] projMatrix, int projMatrix_offset,
+                            int[] viewport, int viewport_offset,
+                            float[] win_pos, int win_pos_offset ) {
 
     float[] in = this.in;
     float[] out = this.out;
@@ -786,8 +774,9 @@ public class ProjectFloat {
     multMatrixVecf(modelMatrix, modelMatrix_offset, in, 0, out);
     multMatrixVecf(projMatrix, projMatrix_offset, out, 0, in);
 
-    if (in[3] == 0.0f)
+    if (in[3] == 0.0f) {
       return false;
+    }
 
     in[3] = (1.0f / in[3]) * 0.5f;
 
@@ -804,6 +793,42 @@ public class ProjectFloat {
     return true;
   }
 
+  public boolean gluProject(float objx, float objy, float objz,
+                            FloatBuffer modelMatrix,
+                            FloatBuffer projMatrix,
+                            int[] viewport, int viewport_offset,
+                            float[] win_pos, int win_pos_offset ) {
+
+    FloatBuffer in = this.inBuf;
+    FloatBuffer out = this.outBuf;
+
+    in.put(0, objx);
+    in.put(1, objy);
+    in.put(2, objz);
+    in.put(3, 1.0f);
+
+    multMatrixVecf(modelMatrix, in, out);
+    multMatrixVecf(projMatrix, out, in);
+
+    if (in.get(3) == 0.0f) {
+      return false;
+    }
+
+    in.put(3, (1.0f / in.get(3)) * 0.5f);
+
+    // Map x, y and z to range 0-1
+    in.put(0, in.get(0) * in.get(3) + 0.5f);
+    in.put(1, in.get(1) * in.get(3) + 0.5f);
+    in.put(2, in.get(2) * in.get(3) + 0.5f);
+
+    // Map x,y to viewport
+    win_pos[0+win_pos_offset] = in.get(0) * viewport[2+viewport_offset] + viewport[0+viewport_offset];
+    win_pos[1+win_pos_offset] = in.get(1) * viewport[3+viewport_offset] + viewport[1+viewport_offset];
+    win_pos[2+win_pos_offset] = in.get(2);
+
+    return true;
+  }
+  
   /**
    * Method gluProject
    * 
@@ -817,9 +842,7 @@ public class ProjectFloat {
    * 
    * @return
    */
-  public boolean gluProject(float objx,
-                            float objy,
-                            float objz,
+  public boolean gluProject(float objx, float objy, float objz,
                             FloatBuffer modelMatrix,
                             FloatBuffer projMatrix,
                             IntBuffer viewport,
@@ -836,8 +859,9 @@ public class ProjectFloat {
     multMatrixVecf(modelMatrix, in, out);
     multMatrixVecf(projMatrix, out, in);
 
-    if (in.get(3) == 0.0f)
+    if (in.get(3) == 0.0f) {
       return false;
+    }
 
     in.put(3, (1.0f / in.get(3)) * 0.5f);
 
@@ -870,24 +894,19 @@ public class ProjectFloat {
    * 
    * @return
    */
-  public boolean gluUnProject(float winx,
-                              float winy,
-                              float winz,
-                              float[] modelMatrix,
-                              int modelMatrix_offset,
-                              float[] projMatrix,
-                              int projMatrix_offset,
-                              int[] viewport,
-                              int viewport_offset,
-                              float[] obj_pos,
-                              int obj_pos_offset) {
+  public boolean gluUnProject(float winx, float winy, float winz,
+                              float[] modelMatrix, int modelMatrix_offset,
+                              float[] projMatrix, int projMatrix_offset,
+                              int[] viewport, int viewport_offset,
+                              float[] obj_pos, int obj_pos_offset) {
     float[] in = this.in;
     float[] out = this.out;
 
     multMatrixf(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix, 0);
 
-    if (!gluInvertMatrixf(matrix, 0, matrix, 0))
+    if (!gluInvertMatrixf(matrix, 0, matrix, 0)) {
       return false;
+    }
 
     in[0] = winx;
     in[1] = winy;
@@ -905,8 +924,9 @@ public class ProjectFloat {
 
     multMatrixVecf(matrix, in, out);
 
-    if (out[3] == 0.0)
+    if (out[3] == 0.0) {
       return false;
+    }
 
     out[3] = 1.0f / out[3];
 
@@ -918,6 +938,49 @@ public class ProjectFloat {
   }
 
 
+  public boolean gluUnProject(float winx, float winy, float winz,
+                              FloatBuffer modelMatrix, 
+                              FloatBuffer projMatrix,
+                              int[] viewport, int viewport_offset,
+                              float[] obj_pos, int obj_pos_offset) {
+    FloatBuffer in = this.inBuf;
+    FloatBuffer out = this.outBuf;
+
+    multMatrixf(modelMatrix, projMatrix, matrixBuf);
+
+    if (!gluInvertMatrixf(matrixBuf, matrixBuf)) {
+      return false;
+    }
+
+    in.put(0, winx);
+    in.put(1, winy);
+    in.put(2, winz);
+    in.put(3, 1.0f);
+
+    // Map x and y from window coordinates
+    in.put(0, (in.get(0) - viewport[0+viewport_offset]) / viewport[2+viewport_offset]);
+    in.put(1, (in.get(1) - viewport[1+viewport_offset]) / viewport[3+viewport_offset]);
+    
+    // Map to range -1 to 1
+    in.put(0, in.get(0) * 2 - 1);
+    in.put(1, in.get(1) * 2 - 1);
+    in.put(2, in.get(2) * 2 - 1);
+
+    multMatrixVecf(matrixBuf, in, out);
+
+    if (out.get(3) == 0.0f) {
+      return false;
+    }
+
+    out.put(3, 1.0f / out.get(3));
+
+    obj_pos[0+obj_pos_offset] = out.get(0) * out.get(3);
+    obj_pos[1+obj_pos_offset] = out.get(1) * out.get(3);
+    obj_pos[2+obj_pos_offset] = out.get(2) * out.get(3);
+
+    return true;
+  }
+  
   /**
    * Method gluUnproject
    * 
@@ -931,10 +994,8 @@ public class ProjectFloat {
    * 
    * @return
    */
-  public boolean gluUnProject(float winx,
-                              float winy,
-                              float winz,
-                              FloatBuffer modelMatrix,
+  public boolean gluUnProject(float winx, float winy, float winz,
+                              FloatBuffer modelMatrix, 
                               FloatBuffer projMatrix,
                               IntBuffer viewport,
                               FloatBuffer obj_pos) {
@@ -943,8 +1004,9 @@ public class ProjectFloat {
 
     multMatrixf(modelMatrix, projMatrix, matrixBuf);
 
-    if (!gluInvertMatrixf(matrixBuf, matrixBuf))
+    if (!gluInvertMatrixf(matrixBuf, matrixBuf)) {
       return false;
+    }
 
     in.put(0, winx);
     in.put(1, winy);
@@ -964,8 +1026,9 @@ public class ProjectFloat {
 
     multMatrixVecf(matrixBuf, in, out);
 
-    if (out.get(3) == 0.0f)
+    if (out.get(3) == 0.0f) {
       return false;
+    }
 
     out.put(3, 1.0f / out.get(3));
 
