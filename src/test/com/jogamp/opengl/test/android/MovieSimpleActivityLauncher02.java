@@ -42,6 +42,7 @@ public class MovieSimpleActivityLauncher02 extends LauncherUtil.BaseActivityLaun
     public void init() {
        final OrderedProperties props = getProperties();       
        props.setProperty("jnlp.mplayer.normal", "false");
+       props.setProperty("jnlp.mplayer.nozoom", "false");
        props.setProperty("jnlp.mplayer.shared", "false");
        props.setProperty("jnlp.media0_url2", "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_640x360.m4v");
        props.setProperty("jnlp.media0_url1", "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4");

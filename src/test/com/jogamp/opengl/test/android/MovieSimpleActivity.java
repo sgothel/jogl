@@ -71,8 +71,9 @@ public class MovieSimpleActivity extends NewtBaseActivity {
        
        final boolean mPlayerLocal = Boolean.valueOf(System.getProperty("jnlp.mplayer.local"));
        final boolean mPlayerNormal = Boolean.valueOf(System.getProperty("jnlp.mplayer.normal"));
+       final boolean mPlayerNoZoom = Boolean.valueOf(System.getProperty("jnlp.mplayer.nozoom"));
        final boolean mPlayerShared = !mPlayerNormal && Boolean.valueOf(System.getProperty("jnlp.mplayer.shared"));
-       Log.d(TAG, "onCreate - 0 - mPlayerLocal "+mPlayerLocal+", mPlayerNormal "+mPlayerNormal+", mPlayerShared "+mPlayerShared);
+       Log.d(TAG, "onCreate - 0 - mPlayerLocal "+mPlayerLocal+", mPlayerNormal "+mPlayerNormal+", mPlayerNoScale "+mPlayerNoZoom+", mPlayerShared "+mPlayerShared);
        
        String[] urls0 = new String[] {                    
                System.getProperty("jnlp.media0_url2"),
@@ -133,7 +134,7 @@ public class MovieSimpleActivity extends NewtBaseActivity {
                demoMain.setEffects(MovieSimple.EFFECT_GRADIENT_BOTTOM2TOP);
                demoMain.setTransparency(0.9f);
            }
-           demoMain.setScaleOrig(mPlayerNormal);
+           demoMain.setScaleOrig(mPlayerNoZoom);
            final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);
            glWindowMain.setFullscreen(true);
            // setContentView(getWindow(), glWindowMain);

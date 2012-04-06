@@ -58,6 +58,7 @@
       -->
     <target name="android.test.package" if="isAndroid">
         <aapt.signed 
+            assetsdir="resources/assets-test"
             jarsrcdir="${src}/test"
             jarbuilddir="${jar}"
             jarbasename="jogl.test"
@@ -97,6 +98,8 @@
                  to get the same resource file twice in the jar) -->
             <fileset dir="${classes}"
                 includes="${java.part.test}"/>
+            <fileset dir="resources/assets-test"
+                      includes="**" />
         </jar>
     </target>
 
