@@ -95,8 +95,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.jogamp.opengl.test.android.MovieSimpleActivityLauncher00"
-                  android:label="@string/activity_moviesimple00_name"
+        <activity android:name="com.jogamp.opengl.test.android.MovieSimpleActivityLauncher00a"
+                  android:label="@string/activity_moviesimple0a_name"
                   android:description="@string/activity_moviesimple_descr"
                   android:theme="@android:style/Theme.NoDisplay"
                   >
@@ -105,8 +105,28 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.jogamp.opengl.test.android.MovieSimpleActivityLauncher01"
-                  android:label="@string/activity_moviesimple01_name"
+        <activity android:name="com.jogamp.opengl.test.android.MovieSimpleActivityLauncher00b"
+                  android:label="@string/activity_moviesimple0b_name"
+                  android:description="@string/activity_moviesimple_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.opengl.test.android.MovieSimpleActivityLauncher01a"
+                  android:label="@string/activity_moviesimple1a_name"
+                  android:description="@string/activity_moviesimple_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.opengl.test.android.MovieSimpleActivityLauncher01b"
+                  android:label="@string/activity_moviesimple1b_name"
                   android:description="@string/activity_moviesimple_descr"
                   android:theme="@android:style/Theme.NoDisplay"
                   >
@@ -116,7 +136,7 @@
             </intent-filter>
         </activity>
         <activity android:name="com.jogamp.opengl.test.android.MovieSimpleActivityLauncher02"
-                  android:label="@string/activity_moviesimple02_name"
+                  android:label="@string/activity_moviesimple2_name"
                   android:description="@string/activity_moviesimple_descr"
                   android:theme="@android:style/Theme.NoDisplay"
                   >
