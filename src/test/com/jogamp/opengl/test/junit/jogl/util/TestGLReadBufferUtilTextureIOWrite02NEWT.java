@@ -104,6 +104,42 @@ public class TestGLReadBufferUtilTextureIOWrite02NEWT extends UITestCase {
         glWindow.destroy();
     }
 
+    @Test
+    public void testWritePNGWithResize() throws InterruptedException {
+        final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
+        GLWindow glWindow = GLWindow.create(caps);
+        Assert.assertNotNull(glWindow);
+        glWindow.setTitle("Shared Gears NEWT Test");
+        glWindow.setSize(width, height);
+        glWindow.addGLEventListener(new GearsES2(1));
+        glWindow.addGLEventListener(new GLEventListener() {
+            int i=0;
+            public void init(GLAutoDrawable drawable) {}
+            public void dispose(GLAutoDrawable drawable) {}
+            public void display(GLAutoDrawable drawable) {
+                StringWriter filename = new StringWriter();
+                {
+                    PrintWriter pw = new PrintWriter(filename);
+                    pw.printf("%s-rgba-%s-%03dx%03d-n%03d.png", 
+                            getSimpleTestName("."), drawable.getGLProfile().getName(), 
+                            drawable.getWidth(), drawable.getHeight(), i++);
+                }
+                if(screenshot.readPixels(drawable.getGL(), drawable, false)) {
+                    screenshot.write(new File(filename.toString()));
+                }                
+            }
+            public void reshape(GLAutoDrawable drawable, int x, int y,
+                    int width, int height) { }
+        });
+        glWindow.setVisible(true);
+        Thread.sleep(60);
+        glWindow.setSize(300, 300);
+        Thread.sleep(60);
+        glWindow.setSize(400, 400);
+        Thread.sleep(60);
+        glWindow.destroy();
+    }
+
     public static void main(String args[]) {
         org.junit.runner.JUnitCore.main(TestGLReadBufferUtilTextureIOWrite02NEWT.class.getName());
     }

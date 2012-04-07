@@ -64,6 +64,7 @@ import jogamp.opengl.Debug;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.util.texture.spi.DDSImage;
 import com.jogamp.opengl.util.texture.spi.NetPbmTextureWriter;
+import com.jogamp.opengl.util.texture.spi.PNGImage;
 import com.jogamp.opengl.util.texture.spi.SGIImage;
 import com.jogamp.opengl.util.texture.spi.TGAImage;
 import com.jogamp.opengl.util.texture.spi.TextureProvider;
@@ -775,6 +776,7 @@ public class TextureIO {
         }
 
         // Other special-case providers
+        addTextureProvider(new PNGTextureProvider());
         addTextureProvider(new DDSTextureProvider());
         addTextureProvider(new SGITextureProvider());
         addTextureProvider(new TGATextureProvider());
@@ -798,6 +800,7 @@ public class TextureIO {
         }
 
         // Other special-case writers
+        addTextureWriter(new PNGTextureWriter());
         addTextureWriter(new DDSTextureWriter());
         addTextureWriter(new SGITextureWriter());
         addTextureWriter(new TGATextureWriter());
@@ -1102,7 +1105,44 @@ public class TextureIO {
                     pixelFormat = image.getGLFormat();
                 }
                 if (internalFormat == 0) {
-                    if(glp.isGL2()) {
+                    if(glp.isGL2GL3()) {
+                        internalFormat = GL.GL_RGBA8;
+                    } else {
+                        internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA:GL.GL_RGB;
+                    }
+                }
+                return new TextureData(glp, internalFormat,
+                                       image.getWidth(),
+                                       image.getHeight(),
+                                       0,
+                                       pixelFormat,
+                                       GL.GL_UNSIGNED_BYTE,
+                                       mipmap,
+                                       false,
+                                       false,
+                                       image.getData(),
+                                       null);
+            }
+
+            return null;
+        }
+    }
+
+    //----------------------------------------------------------------------
+    // PNG image provider
+    static class PNGTextureProvider extends StreamBasedTextureProvider {
+        public TextureData newTextureData(GLProfile glp, InputStream stream,
+                                          int internalFormat,
+                                          int pixelFormat,
+                                          boolean mipmap,
+                                          String fileSuffix) throws IOException {
+            if (PNG.equals(fileSuffix)) {
+                PNGImage image = PNGImage.read(/*glp, */ stream);
+                if (pixelFormat == 0) {
+                    pixelFormat = image.getGLFormat();
+                }
+                if (internalFormat == 0) {
+                    if(glp.isGL2GL3()) {
                         internalFormat = GL.GL_RGBA8;
                     } else {
                         internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA:GL.GL_RGB;
@@ -1267,6 +1307,61 @@ public class TextureIO {
         }    
     }
 
+    //----------------------------------------------------------------------
+    // PNG texture writer
+  
+    static class PNGTextureWriter implements TextureWriter {
+        public boolean write(File file, TextureData data) throws IOException {
+            if (PNG.equals(IOUtil.getFileSuffix(file))) {
+                // See whether the PNG writer can handle this TextureData
+                int pixelFormat = data.getPixelFormat();
+                int pixelType   = data.getPixelType();
+                boolean reversedChannels;
+                int bytesPerPixel;
+                switch(pixelFormat) {
+                    case GL.GL_RGB:
+                        reversedChannels=false;
+                        bytesPerPixel=3;
+                        break;
+                    case GL.GL_RGBA:
+                        reversedChannels=false;
+                        bytesPerPixel=4;
+                        break;
+                    case GL2.GL_BGR:
+                        reversedChannels=true;
+                        bytesPerPixel=3;
+                        break;
+                    case GL.GL_BGRA:
+                        reversedChannels=true;
+                        bytesPerPixel=4;
+                        break;
+                    default:
+                        reversedChannels=false;
+                        bytesPerPixel=-1;
+                        break;
+                }
+                if ( 1 < bytesPerPixel &&
+                    (pixelType == GL.GL_BYTE ||
+                     pixelType == GL.GL_UNSIGNED_BYTE)) {
+                    
+                    ByteBuffer buf = (ByteBuffer) data.getBuffer();
+                    if (null == buf) {
+                        buf = (ByteBuffer) data.getMipmapData()[0];
+                    }
+                    buf.rewind();
+                    
+                    PNGImage image = PNGImage.createFromData(data.getWidth(), data.getHeight(), -1f, -1f,
+                                                             bytesPerPixel, reversedChannels, buf);
+                    image.write(file, true);
+                    return true;
+                }
+                throw new IOException("PNG writer doesn't support this pixel format 0x"+Integer.toHexString(pixelFormat)+
+                                      " / type 0x"+Integer.toHexString(pixelFormat)+" (only GL_RGB/A, GL_BGR/A + bytes)");
+            }
+            return false;
+        }    
+    }
+    
     //----------------------------------------------------------------------
     // Helper routines
     //

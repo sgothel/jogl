@@ -44,6 +44,8 @@ import java.nio.*;
 import java.nio.channels.*;
 import javax.media.opengl.*;
 
+import com.jogamp.common.util.IOUtil;
+
 /**
  * Targa image reader and writer adapted from sources of the <a href =
  * "http://java.sun.com/products/jimi/">Jimi</a> image I/O class library.
@@ -379,7 +381,7 @@ public class TGAImage {
 
     /** Writes the image in Targa format to the specified file. */
     public void write(File file) throws IOException {
-        FileOutputStream stream = new FileOutputStream(file);
+        FileOutputStream stream = IOUtil.getFileOutputStream(file, true);
         FileChannel chan = stream.getChannel();
         ByteBuffer buf = ByteBuffer.allocate(header.size());
         buf.order(ByteOrder.LITTLE_ENDIAN);

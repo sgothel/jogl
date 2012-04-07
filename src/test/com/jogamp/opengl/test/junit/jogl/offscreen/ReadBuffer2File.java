@@ -31,7 +31,6 @@ package com.jogamp.opengl.test.junit.jogl.offscreen;
 import java.io.IOException;
 import javax.media.opengl.*;
 
-import com.jogamp.opengl.util.texture.TextureIO;
 import java.io.File;
 
 public class ReadBuffer2File extends ReadBufferBase {
@@ -51,7 +50,7 @@ public class ReadBuffer2File extends ReadBufferBase {
             return;
         }
 
-        File file = File.createTempFile("shot" + shotNum + "-", ".ppm");
+        File file = File.createTempFile("shot" + shotNum + "-", ".png");
         readBufferUtil.write(file);
         System.out.println("Wrote: " + file.getAbsolutePath() + ", ...");
         shotNum++;

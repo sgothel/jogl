@@ -47,6 +47,8 @@
     <target name="clean" description="Remove all build products" depends="declare.common">
         <delete includeEmptyDirs="true" quiet="true">
             <fileset dir="${build.test}" />
+            <fileset dir="." includes="*.png" />
+            <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
             <fileset file="${jogl.test.jar}" />
         </delete>
@@ -534,6 +536,8 @@
 
         <mkdir dir="${build}/test/results-x32"/>
         <move todir="${build}/test/results-x32">
+            <fileset dir="." includes="*.png" />
+            <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
         </move>
         <move todir="${build}/test/results-x32">
@@ -864,6 +868,8 @@ ${line.separator}
             <fileset dir="${results.test}" includes="**"/>
             <fileset dir="${build}/test/results-x32" includes="**"/>
             <fileset file="${build}/${test.archive.name}.7z"/>
+            <fileset dir="." includes="*.png" />
+            <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
         </delete>
         <mkdir dir="${results.test}" />
@@ -879,6 +885,8 @@ ${line.separator}
     <target name="junit.run" depends="junit.run.settings, junit.run.if.enabled, junit.run.if.disabled">
         <mkdir dir="${results.test}" />
         <move todir="${results.test}">
+            <fileset dir="." includes="*.png" />
+            <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
         </move>
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
@@ -887,6 +895,8 @@ ${line.separator}
     <target name="junit.manual.run.remote.ssh.newt" depends="junit.run.settings, junit.run.remote.ssh.newt">
         <mkdir dir="${results.test}" />
         <move todir="${results.test}">
+            <fileset dir="." includes="*.png" />
+            <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
         </move>
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
@@ -895,6 +905,8 @@ ${line.separator}
     <target name="junit.manual.run.remote.ssh.awt" depends="junit.run.settings, junit.run.remote.ssh.awt">
         <mkdir dir="${results.test}" />
         <move todir="${results.test}">
+            <fileset dir="." includes="*.png" />
+            <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
         </move>
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>
@@ -903,6 +915,8 @@ ${line.separator}
     <target name="junit.manual.run.remote.ssh.all" depends="junit.run.settings, junit.run.remote.ssh.all">
         <mkdir dir="${results.test}" />
         <move todir="${results.test}">
+            <fileset dir="." includes="*.png" />
+            <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
         </move>
         <antcall target="test-zip-archive" inheritRefs="true" inheritAll="true"/>

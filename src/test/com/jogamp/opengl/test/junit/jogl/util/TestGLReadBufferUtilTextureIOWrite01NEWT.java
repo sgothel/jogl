@@ -68,7 +68,7 @@ public class TestGLReadBufferUtilTextureIOWrite01NEWT extends UITestCase {
     }
     
     @Test
-    public void testWriteTGAAndPAM() throws InterruptedException {
+    public void testWritePNG_TGA_PAM() throws InterruptedException {
         GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Shared Gears NEWT Test");
@@ -79,8 +79,10 @@ public class TestGLReadBufferUtilTextureIOWrite01NEWT extends UITestCase {
             public void dispose(GLAutoDrawable drawable) {}
             public void display(GLAutoDrawable drawable) {
                 // snapshot(drawable, false, true,  getSimpleTestName(".")+"-rgb_-"+drawable.getGLProfile().getName()+".ppm");
+                snapshot(drawable, true,  false, getSimpleTestName(".")+"-rgba-"+drawable.getGLProfile().getName()+".png");
                 snapshot(drawable, true,  false, getSimpleTestName(".")+"-rgba-"+drawable.getGLProfile().getName()+".tga");
                 snapshot(drawable, true,  true,  getSimpleTestName(".")+"-rgba-"+drawable.getGLProfile().getName()+".pam");
+                snapshot(drawable, false, false, getSimpleTestName(".")+"-rgb_-"+drawable.getGLProfile().getName()+".png");
                 snapshot(drawable, false, false, getSimpleTestName(".")+"-rgb_-"+drawable.getGLProfile().getName()+".tga");
                 snapshot(drawable, false, true,  getSimpleTestName(".")+"-rgb_-"+drawable.getGLProfile().getName()+".pam");
             }

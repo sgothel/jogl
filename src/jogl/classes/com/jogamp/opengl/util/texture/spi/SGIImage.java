@@ -41,7 +41,8 @@ package com.jogamp.opengl.util.texture.spi;
 
 import java.io.*;
 import javax.media.opengl.*;
-import com.jogamp.opengl.util.*;
+
+import com.jogamp.common.util.IOUtil;
 
 /** <p> Reads and writes SGI RGB/RGBA images. </p>
 
@@ -584,7 +585,7 @@ public class SGIImage {
         if (DEBUG) 
             System.err.println("total_size was " + total_size);
 
-        DataOutputStream stream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
+        DataOutputStream stream = new DataOutputStream(new BufferedOutputStream(IOUtil.getFileOutputStream(file, true)));
 
         writeHeader(stream, xsize, ysize, zsize, true);
 

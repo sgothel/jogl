@@ -238,7 +238,8 @@ function testawtswt() {
 #testnoawt -Djava.awt.headless=true com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestGLReadBufferUtilTextureIOWrite01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestGLReadBufferUtilTextureIOWrite02NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
+testnoawt com.jogamp.opengl.test.junit.jogl.util.TestPNGImage01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 
 #
 # awt (testawt)

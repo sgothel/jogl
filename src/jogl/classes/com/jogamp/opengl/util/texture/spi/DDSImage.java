@@ -52,6 +52,7 @@ import java.nio.channels.FileChannel;
 
 import javax.media.opengl.GL;
 
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.util.GLBuffers;
 
 /** A reader and writer for DirectDraw Surface (.dds) files, which are
@@ -281,7 +282,7 @@ public class DDSImage {
      * @throws java.io.IOException if an I/O exception occurred
      */
     public void write(File file) throws IOException {
-        FileOutputStream stream = new FileOutputStream(file);
+        FileOutputStream stream = IOUtil.getFileOutputStream(file, true);
         FileChannel chan = stream.getChannel();
         // Create ByteBuffer for header in case the start of our
         // ByteBuffer isn't actually memory-mapped

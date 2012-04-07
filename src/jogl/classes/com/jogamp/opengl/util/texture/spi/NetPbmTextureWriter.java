@@ -138,7 +138,7 @@ public class NetPbmTextureWriter implements TextureWriter {
                 throw new IOException("NetPbmTextureWriter magic 6 (PPM) doesn't RGBA pixel format, use magic 7 (PAM)");
             }
 
-            FileOutputStream fos = new FileOutputStream(file);
+            FileOutputStream fos = IOUtil.getFileOutputStream(file, true);
             
             StringBuilder header = new StringBuilder();
             header.append("P");

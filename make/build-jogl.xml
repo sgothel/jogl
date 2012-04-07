@@ -150,7 +150,7 @@
                   value="com/jogamp/opengl/**/swt/**"/>
 
         <property name="java.part.util"
-                  value="com/jogamp/opengl/util/* com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/packrect/** jogamp/opengl/util/*"/>
+                  value="com/jogamp/opengl/util/* com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/packrect/** jogamp/opengl/util/* jogamp/opengl/util/pngj/**"/>
 
         <property name="java.part.util.awt"
                   value="com/jogamp/opengl/util/**/awt/** com/jogamp/opengl/util/AWTAnimatorImpl*"/>
