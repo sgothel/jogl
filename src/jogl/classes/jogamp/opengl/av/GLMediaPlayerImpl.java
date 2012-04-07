@@ -279,9 +279,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected void removeAllImageTextures(GLContext ctx) {
         if(null != texFrames) {
             for(int i=0; i<textureCount; i++) {
-                final TextureFrame imgTex = texFrames[i]; 
-                destroyTexImage(ctx, imgTex);
-                texFrames[i] = null;
+                final TextureFrame imgTex = texFrames[i];
+                if(null != imgTex) {
+                    destroyTexImage(ctx, imgTex);
+                    texFrames[i] = null;
+                }
             }
         }
         texFrameMap.clear();
