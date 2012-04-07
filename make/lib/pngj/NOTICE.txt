@@ -1,0 +1,6 @@
+PNGJ : PNG image IO Java librry
+Copyright 2009 Hernán J. González
+
+This product includes software developed by
+Hernán J. González (http://hjg.com.ar/).
+

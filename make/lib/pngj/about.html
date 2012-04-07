@@ -1,0 +1,47 @@
+<body>
+<p>
+<b>PNGJ: A simple library for reading/writing PNG images.</b>
+</p>
+
+
+<p>
+ Focused on high resolution images,
+both huge in size (and hence not appropiate to be loaded in memory, eg. as a BufferedImage)
+and quality (the library is dedicated to truecolor images, with 8 and 16 bits per sample,
+with or without alpha). It provides basic line-oriented reading and writing capabilities.
+</p>
+<p>
+
+A quick example: this code reads a PNG image file (true colour, 8-16 bpp, RGB-RGBA) and
+rewrites it cutting the red channel by two.
+</p>
+
+<pre>
+
+    public static void decreaseRed(String origFilename, String destFilename) {
+      PngReader pngr = new PngReader(origFilename);
+      PngWriter pngw = new PngWriter(destFilename, pngr.imgInfo);
+      pngw.setOverrideFile(true); // allows to override writen file if it already exits
+      System.out.println(pngr.toString());
+      pngw.prepare(pngr); // not necesary; but this can copy some informational chunks from original 
+      int channels = pngr.imgInfo.channels;
+      if(channels<3) throw new RuntimeException("Only for truecolour images");
+      for (int row = 0; row &lt; pngr.imgInfo.rows; row++) {
+        ImageLine l1 = pngr.readRow(row);
+        for(int j=0;j&lt;pngr.imgInfo.cols;j++)
+          l1.scanline[j*channels]/=2;
+        pngw.writeRow(l1);
+      }
+      pngr.end();
+      pngw.end();
+   }
+  </pre>
+<p>
+See the docs and source of the samples for more.
+</p>
+
+http://code.google.com/p/pngj/<br>
+<a href="http://code.google.com/p/pngj/">PNGJ</a>
+
+</body>
+</html>

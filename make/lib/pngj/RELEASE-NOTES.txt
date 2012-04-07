@@ -1,0 +1,70 @@
+PNGJ:  Release Notes  & History
+==============================================================================
+
+Version 0.85  (1 April 2012)
+ - More robust Chunk management (ChunkGroup is now inside PngChunk; both PngReader and PngWriter have a ChunkList...)    
+ - PngMetadata: both  PngReader and PngWriter have an instance to deal with metadata (chunks) at high level. eg: setDpi()/getDpi 
+ - Added sPLT chunk
+ - The test of all testsuite images now copies all chunks ok.
+ - Deprecated Pngwrite.writeRow(ImageLine), use better Pngwrite.writeRow(ImageLine,rown)
+ - remove PngReader.foundChunksInfo 
+  
+Version 0.80  (28 March 2012)
+ - Roll back auto increment of ImageLine rownumber at writing. Define some new PngWrite.writeLine() methods with slight change in semantics  
+ - Fix bad chunk-id in PngChunkITXT
+ 
+Version 0.71  (March 2012)
+ - Full support for all Chunk types (bKGD CHRM ICCP ITXT TRNS ZTXT - some yet untested)  
+ - ar.com.hjg.pngj.nosandbox is now empty: PngFileHelper is back to main jar
+ - Lossy compression ar.com.hjg.pngj.lossy - (very EXPERIMENTAL yet, undocumented, lots of rough edges) 
+
+Version 0.62  (Jun 2011)
+-----------------------
+- Added Javadocs
+- Implemented ImageLineHelper.tf_palIdx2RGB()
+- Several code and comment polishing
+
+Version 0.61  (Jun 2011)
+-----------------------
+- Better PNG filter strategies (different filters in same writer).
+- Fixed issue with compression level (zip stream), it had no effect before.
+- More chunks implemented (cHRM  , sRGB , sBIT)
+- Restricted visibility of some methods/fields
+
+Version 0.6  (May 2011)
+-----------------------
+- Full support for indexed and grayscale, with  any bitdepth 
+- The only non supported PNG images are the interlaced now.
+- Chunk management fully reimplemented. (package ar.hjg.com.png.chunks)
+- Decouple google-appengine-unfriendy code in package   
+ ar.com.hjg.pngj.nosandbox package. See PngFileHelper.
+- Constructors PngReader/PngWriter now use streams. See factory methods 
+in ar.com.hjg.pngj.nosandbox.PngFileHelper if you want to use files.
+- Added test images from PNG suite - see MirrorTest
+- Polished code, translated some spanish comments 
+
+Version 0.2  (Apr 2011)
+-----------------------
+- Issue with extra trailing IDAT chunks fixed.  
+
+Version 0.1  (January 2009)
+---------------------------
+- Full reading/writing capabilities for truecolor formats: RGB/RGBA , 8 and 16 bpp
+- Other formats: paletted and grayscale images implemented (almost no testing), 
+only with 8bitdepth resolution (1,2,4 bits not implemented). 
+- Palette handling: very rudimentary: PngReader only reads the raw chunk and 
+PngWriter -if applicable- writes it back.
+- Special color transformations (ICC) : unvisible for the API. The chunks are
+read and write 'raw'. 
+- Special chunks: limited support for Physical resolution (DPI) and textual chunks.
+All other ancillary chunks are blindly read and write.
+
+
+Feedback:
+--------
+
+http://code.google.com/p/pngj
+
+hgonzalez@gmail.com
+
+Hernan J. Gonzalez

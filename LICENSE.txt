@@ -271,7 +271,7 @@ A.3) The JOGL source tree contains code from David Schweinsberg
 A.4) The JOGL source tree contains fonts from Ubuntu
      which is covered by the UBUNTU FONT LICENCE Version 1.0
 
-   Ubunut Font Family
+   Ubuntu Font Family
    ==================
 
    The Ubuntu Font Family are libre fonts funded by Canonical Ltd on behalf of the Ubuntu project. 
@@ -336,3 +336,28 @@ A.5) The JOGL source tree also contains header files from NVIDIA,
    NEGLIGENCE), STRICT LIABILITY OR OTHERWISE, EVEN IF NVIDIA HAS BEEN ADVISED 
    OF THE POSSIBILITY OF SUCH DAMAGE.
    
+A.6) The JOGL source tree contains code from Hernan J. Gonzalez and Shawn Hartsock
+     which is covered by the Apache License Version 2.0
+
+   PNGJ
+   ====
+
+   PNGJ: Java library for reading and writing PNG images.
+
+   Version 0.85  (1 April 2012)
+
+   <http://code.google.com/p/pngj/>
+
+   Author: Hernan J. Gonzalez and Shawn Hartsock
+
+   Copyright (C) 2004 The Apache Software Foundation. All rights reserved.
+
+   Apache Licenses
+   http://www.apache.org/licenses/
+
+   Apache License Version 2.0
+   http://www.apache.org/licenses/LICENSE-2.0
+   Or within this repository: doc/licenses/Apache.LICENSE-2.0
+    src/jogl/classes/jogamp/opengl/util/pngj/**
+
+
