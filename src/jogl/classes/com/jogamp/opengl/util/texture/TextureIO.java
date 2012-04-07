@@ -776,10 +776,10 @@ public class TextureIO {
         }
 
         // Other special-case providers
-        addTextureProvider(new PNGTextureProvider());
         addTextureProvider(new DDSTextureProvider());
         addTextureProvider(new SGITextureProvider());
         addTextureProvider(new TGATextureProvider());
+        addTextureProvider(new PNGTextureProvider());
 
         // ImageIO writer, the fall-back, must be the first one added
         if(GLProfile.isAWTAvailable()) {
@@ -800,11 +800,11 @@ public class TextureIO {
         }
 
         // Other special-case writers
-        addTextureWriter(new PNGTextureWriter());
         addTextureWriter(new DDSTextureWriter());
         addTextureWriter(new SGITextureWriter());
         addTextureWriter(new TGATextureWriter());
         addTextureWriter(new NetPbmTextureWriter());
+        addTextureWriter(new PNGTextureWriter());
     }
 
     // Implementation methods
