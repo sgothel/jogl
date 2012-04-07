@@ -1669,6 +1669,7 @@
             <fileset dir="${classes}"
                      includes="${java.part.util} ${java.part.util.glsl} ${java.part.util.graph} ${java.part.util.av}"
                      excludes="${java.part.util.awt} ${java.part.util.gldesktop} ${java.part.util.fixedfuncemu}"/>
+            <fileset dir="resources/assets" includes="jogl/util/**" />
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.util.fixedfuncemu.jar}" filesonly="true">
             <fileset dir="${classes}"

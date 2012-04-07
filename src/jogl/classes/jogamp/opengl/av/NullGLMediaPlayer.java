@@ -29,6 +29,7 @@ package jogamp.opengl.av;
 
 import java.io.IOException;
 import java.net.URLConnection;
+import java.nio.ByteBuffer;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLContext;
@@ -36,6 +37,7 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.opengl.av.GLMediaPlayerImpl;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureData;
@@ -112,9 +114,9 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     @Override
     protected void initStreamImplPreGL() throws IOException {
         try {
-            URLConnection urlConn = IOUtil.getResource("data/av/test-ntsc01-640x360.tga", NullGLMediaPlayer.class.getClassLoader());
+            URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-160x90.png", NullGLMediaPlayer.class.getClassLoader());
             if(null != urlConn) {
-                texData = TextureIO.newTextureData(GLProfile.getGL2ES2(), urlConn.getInputStream(), false, "tga");
+                texData = TextureIO.newTextureData(GLProfile.getGL2ES2(), urlConn.getInputStream(), false, TextureIO.PNG);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -125,6 +127,15 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
         } else {
             width = 640;
             height = 480;
+            ByteBuffer buffer = Buffers.newDirectByteBuffer(width*height*4);
+            while(buffer.hasRemaining()) {
+                buffer.put((byte) 0xEA); buffer.put((byte) 0xEA); buffer.put((byte) 0xEA); buffer.put((byte) 0xEA);
+            }
+            buffer.rewind();
+            texData = new TextureData(GLProfile.getGL2ES2(),
+                   GL.GL_RGBA, width, height, 0,
+                   GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, false, 
+                   false, false, buffer, null);
         }
         fps = 30;
         bps = 0;
@@ -141,7 +152,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     
     @Override
     protected TextureFrame createTexImage(GLContext ctx, int idx, int[] tex) {
-        Texture texture = super.createTexImageImpl(ctx, idx, tex, true);
+        Texture texture = super.createTexImageImpl(ctx, idx, tex, false);
         if(null != texData) {
             texture.updateImage(ctx.getGL(), texData);
         }                      

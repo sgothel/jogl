@@ -155,6 +155,7 @@
 
     <target name="android.jogl.package" depends="init,gluegen.cpptasks.detect.os,android.package.jogl.skip.check" if="isAndroid" unless="android.package.jogl.skip">
         <aapt.signed 
+            assetsdir="resources/assets"
             jarsrcdir="${src}/jogl/classes"
             jarbuilddir="${jar}"
             jarbasename="jogl.all-android"

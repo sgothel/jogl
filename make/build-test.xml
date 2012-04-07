@@ -96,10 +96,8 @@
             <!-- get all class files, but skip any resource files that external tools
                  might have copied into the class directory (otherwise, it's possible
                  to get the same resource file twice in the jar) -->
-            <fileset dir="${classes}"
-                includes="${java.part.test}"/>
-            <fileset dir="resources/assets-test"
-                      includes="**" />
+            <fileset dir="${classes}" includes="${java.part.test}"/>
+            <fileset dir="resources/assets-test" includes="**" />
         </jar>
     </target>
 
