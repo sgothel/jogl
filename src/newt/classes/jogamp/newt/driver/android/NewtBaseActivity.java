@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.media.nativewindow.CapabilitiesImmutable;
+import javax.media.opengl.FPSCounter;
 
 import com.jogamp.newt.Window;
 import com.jogamp.opengl.util.Animator;
@@ -266,6 +267,13 @@ public class NewtBaseActivity extends Activity {
      }
      if(null != animator) {
          animator.resume();
+         animator.resetFPSCounter();
+     }
+     for(int i=newtWindows.size()-1; i>=0; i--) {
+         final Window win = newtWindows.get(i);
+         if(win instanceof FPSCounter) {
+             ((FPSCounter)win).resetFPSCounter();
+         }
      }
    }
 

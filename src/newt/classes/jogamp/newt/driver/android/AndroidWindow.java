@@ -28,9 +28,6 @@
 
 package jogamp.newt.driver.android;
 
-import java.lang.reflect.Constructor;
-import java.util.Arrays;
-
 import jogamp.common.os.android.StaticContext;
 import jogamp.newt.driver.android.event.AndroidNewtEventFactory;
 
@@ -43,8 +40,6 @@ import javax.media.nativewindow.util.Point;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
-import com.jogamp.common.JogampRuntimeException;
-import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.newt.event.MouseEvent;
 
@@ -62,33 +57,9 @@ import android.view.SurfaceHolder.Callback2;
 import android.view.SurfaceView;
 import android.view.View;
 
-public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
-    private static final String[] androidWindowImplClassNames = { "android.policy.PhoneWindow", "com.android.internal.policy.impl.PhoneWindow" };
-    private static final Constructor<?> androidWindowImplCtor;
-    
+public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {    
     static {
         AndroidDisplay.initSingleton();
-        final ClassLoader cl = AndroidWindow.class.getClassLoader();
-        Class<?> androidWindowImplClass = null;
-        int i;
-        for(i=0; i<androidWindowImplClassNames.length; i++) {
-            try {
-                androidWindowImplClass = ReflectionUtil.getClass(androidWindowImplClassNames[i], false, cl);
-                if(null != androidWindowImplClass) {
-                    break;
-                }
-            } catch (JogampRuntimeException jre) { }
-        }
-        if(null == androidWindowImplClass) { 
-            Log.d(MD.TAG, "Window Impl.: No class available: "+Arrays.asList(androidWindowImplClassNames));
-            androidWindowImplCtor = null;
-        } else {
-            androidWindowImplCtor = ReflectionUtil.getConstructor(androidWindowImplClass, new Class[] { android.content.Context.class } );        
-            if(null == androidWindowImplCtor) { 
-                throw new NativeWindowException("Constructor <"+androidWindowImplClassNames[i]+"(Context)> n/a.");
-            }
-            Log.d(MD.TAG, "Window Impl.: Found "+androidWindowImplClassNames[i]);
-        }
     }
 
     public static CapabilitiesImmutable fixCaps(boolean matchFormatPrecise, int format, CapabilitiesImmutable rCaps) {
@@ -215,11 +186,12 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     
     @Override
     protected void instantiationFinished() {
-        final Context ctx = StaticContext.getContext();
+        final Context ctx = StaticContext.getContext();        
         if(null == ctx) {
             throw new NativeWindowException("No static [Application] Context has been set. Call StaticContext.setContext(Context) first.");
         }
         androidView = new MSurfaceView(ctx);
+        
         final AndroidEvents ae = new AndroidEvents();
         androidView.setOnTouchListener(ae);
         androidView.setClickable(false);
@@ -227,17 +199,8 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         androidView.setOnFocusChangeListener(ae);
         
         final SurfaceHolder sh = androidView.getHolder();
-        sh.addCallback(this); 
-        // setFormat is done by SurfaceView in SDK 2.3 and newer. Uncomment
-        // this statement if back-porting to 2.2 or older:
-        // sh.setFormat(PixelFormat.RGB_565);
-        // sh.setFormat(PixelFormat.RGBA_5551);
-        // sh.setFormat(PixelFormat.RGBA_8888);
+        sh.addCallback(AndroidWindow.this); 
         sh.setFormat(getFormat(getRequestedCapabilities()));
-        // setType is not needed for SDK 2.0 or newer. Uncomment this
-        // statement if back-porting this code to older SDKs.
-        // sh.setType(SurfaceHolder.SURFACE_TYPE_GPU);
-        // sh.setType(SurfaceHolder.SURFACE_TYPE_NORMAL);
         
         // default size -> TBD ! 
         defineSize(0, 0);
@@ -305,6 +268,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     
     protected void requestFocusImpl(boolean reparented) { 
         if(null != androidView) {
+            Log.d(MD.TAG, "requestFocusImpl: reparented "+reparented);
             androidView.requestFocus();
             androidView.bringToFront();
         }
@@ -386,9 +350,8 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
             if(isVisible()) {
                setVisible(true); 
             }
-        } else {
-            sizeChanged(false, aWidth, aHeight, false);
         }
+        sizeChanged(false, aWidth, aHeight, false);
         windowRepaint(0, 0, aWidth, aHeight);
         Log.d(MD.TAG, "surfaceChanged: X");
     }
@@ -416,6 +379,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         public MSurfaceView (Context ctx) {
             super(ctx);
             setBackgroundDrawable(null);
+            // setBackgroundColor(Color.TRANSPARENT);
         }
     }
     //----------------------------------------------------------------------

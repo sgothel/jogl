@@ -150,6 +150,12 @@ public class LauncherUtil {
                    System.setProperty(key, map.get(key));
            }
        }
+       public final void clearSystemProperties() {
+           Iterator<String> argKeys = keyList.iterator();
+           while(argKeys.hasNext()) {
+               System.clearProperty(argKeys.next());
+           }
+       }
        
        public final String getProperty(String key) { return map.get(key); }
        public final Map<String, String> getProperties() { return map; }
@@ -189,6 +195,9 @@ public class LauncherUtil {
        }
        public final void setSystemProperties() {
            properties.setSystemProperties();
+       }   
+       public final void clearSystemProperties() {
+           properties.clearSystemProperties();
        }   
        public final String getProperty(String key) { return properties.getProperty(key); }
        public final OrderedProperties getProperties() { return properties; }
