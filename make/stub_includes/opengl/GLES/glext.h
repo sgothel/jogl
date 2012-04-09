@@ -65,7 +65,8 @@ extern "C" {
 
 /* GL_OES_EGL_image */
 #ifndef GL_OES_EGL_image
-typedef void* GLeglImageOES;
+// typedef void* GLeglImageOES;
+typedef struct __GLeglImageOES *GLeglImageOES;
 #endif
 
 /* GL_OES_EGL_image_external */

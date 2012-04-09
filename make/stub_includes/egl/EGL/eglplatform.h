@@ -97,9 +97,9 @@ typedef Window   EGLNativeWindowType;
 
 #warning "Info: Using generic void pointer for EGLNativeDisplayType, EGLNativeWindowType and EGLNativePixmapType"
 
-typedef void* EGLNativeDisplayType;
-typedef void* EGLNativeWindowType;
-typedef void* EGLNativePixmapType;
+typedef struct __EGLNativeDisplayType* EGLNativeDisplayType;
+typedef struct __EGLNativeWindowType* EGLNativeWindowType;
+typedef struct __EGLNativePixmapType* EGLNativePixmapType;
 
 #endif
 

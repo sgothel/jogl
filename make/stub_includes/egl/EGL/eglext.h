@@ -78,7 +78,7 @@ typedef EGLBoolean (EGLAPIENTRYP PFNEGLUNLOCKSURFACEKHRPROC) (EGLDisplay display
 #ifndef EGL_KHR_image
 #define EGL_KHR_image 1
 #define EGL_NATIVE_PIXMAP_KHR			0x30B0	/* eglCreateImageKHR target */
-typedef void *EGLImageKHR;
+typedef struct __EGLImageKHR *EGLImageKHR;
 /* Manual: #define EGL_NO_IMAGE_KHR ((EGLImageKHR)0) */
 #ifdef EGL_EGLEXT_PROTOTYPES
 EGLAPI EGLImageKHR EGLAPIENTRY eglCreateImageKHR (EGLDisplay dpy, EGLContext ctx, EGLenum target, EGLClientBuffer buffer, const EGLint *attrib_list);
@@ -124,7 +124,7 @@ typedef EGLBoolean (EGLAPIENTRYP PFNEGLDESTROYIMAGEKHRPROC) (EGLDisplay dpy, EGL
 #ifndef EGL_KHR_reusable_sync
 #define EGL_KHR_reusable_sync 1
 
-typedef void* EGLSyncKHR;
+typedef struct __EGLSyncKHR* EGLSyncKHR;
 typedef khronos_utime_nanoseconds_t EGLTimeKHR;
 
 #define EGL_SYNC_STATUS_KHR			0x30F1

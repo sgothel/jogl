@@ -43,10 +43,10 @@ extern "C" {
 /* EGLint is defined in eglplatform.h */
 typedef unsigned int EGLBoolean;
 typedef unsigned int EGLenum;
-typedef void *EGLConfig;
-typedef void *EGLContext;
-typedef void *EGLDisplay;
-typedef void *EGLSurface;
+typedef struct __EGLConfig *EGLConfig;
+typedef struct __EGLContext *EGLContext;
+typedef struct __EGLDisplay *EGLDisplay;
+typedef struct __EGLSurface *EGLSurface;
 typedef void *EGLClientBuffer;
 
 /* EGL Versioning */
