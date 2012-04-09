@@ -56,7 +56,6 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.av.GLMediaPlayer;
 import com.jogamp.opengl.av.GLMediaEventListener;
-import com.jogamp.opengl.av.GLMediaPlayer.TextureFrame;
 import com.jogamp.opengl.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
@@ -80,7 +79,6 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
     private long startTime;
     private int effects = EFFECT_NORMAL;
     private float alpha = 1.0f;
-    private int texUnit = 0;
 
     public static final int EFFECT_NORMAL                  =    0;
     public static final int EFFECT_GRADIENT_BOTTOM2TOP     = 1<<1;
@@ -89,9 +87,6 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
     /** defaults to true */
     public void setOrthoProjection(boolean v) { orthoProjection=v; }
     public boolean getOrthoProjection() { return orthoProjection; }
-    
-    public void setTextureUnit(int u) { texUnit = u; }
-    public int getTextureUnit() { return texUnit; }
     
     public boolean hasEffect(int e) { return 0 != ( effects & e ) ; }
     public void setEffects(int e) { effects = e; };
@@ -149,29 +144,29 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
     };
 
     GLMediaPlayer mPlayer;
+    URLConnection stream = null;
     boolean mPlayerExternal;
     boolean mPlayerShared;
     boolean mPlayerScaleOrig;
 
     public MovieSimple(URLConnection stream) throws IOException {
         mPlayerScaleOrig = false;
+        mPlayerShared = false;
         mPlayerExternal = false;
         mPlayer = GLMediaPlayerFactory.create();
         mPlayer.addEventListener(this);
-        mPlayer.initStream(stream);        
-        System.out.println("p0.1 "+mPlayer);
+        this.stream = stream;
+        System.out.println("pC.1 "+mPlayer);
     }
 
-    public MovieSimple(GLMediaPlayer mediaPlayer, boolean shared) throws IllegalStateException {
-        if(!shared && GLMediaPlayer.State.UninitializedGL != mediaPlayer.getState()) {
-            throw new IllegalStateException("Given GLMediaPlayer not in state "+GLMediaPlayer.State.UninitializedGL+": "+mediaPlayer);
-        }
+    public MovieSimple(GLMediaPlayer sharedMediaPlayer) throws IllegalStateException {
         mPlayerScaleOrig = false;
-        mPlayerShared = shared;
+        mPlayerShared = true;
         mPlayerExternal = true;
-        mPlayer = mediaPlayer;
+        mPlayer = sharedMediaPlayer;
         mPlayer.addEventListener(this);
-        System.out.println("p0.2 shared "+mPlayerShared+", "+mPlayer);
+        this.stream = null;
+        System.out.println("pC.2 shared "+mPlayerShared+", "+mPlayer);
     }
     
     public GLMediaPlayer getGLMediaPlayer() { return mPlayer; }
@@ -181,13 +176,13 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
     }
     
     @Override
-    public void attributesChanges(GLMediaPlayer mp, int event_mask) {
-        System.out.println("attributesChanges: "+mp+", 0x"+Integer.toHexString(event_mask));        
+    public void attributesChanges(GLMediaPlayer mp, int event_mask, long when) {
+        System.out.println("attributesChanges: "+mp+", 0x"+Integer.toHexString(event_mask)+", when "+when);        
     }
 
     @Override
-    public void newFrameAvailable(GLMediaPlayer mp, TextureFrame frame) {
-        // System.out.println("newFrameAvailable: "+mp+", "+frame);                
+    public void newFrameAvailable(GLMediaPlayer mp, long when) {
+        // System.out.println("newFrameAvailable: "+mp+", when "+when);
     }
 
     public void start() {
@@ -240,13 +235,16 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         System.err.println(JoglVersion.getGLInfo(gl, null));
         System.err.println("Alpha: "+alpha+", opaque "+drawable.getChosenGLCapabilities().isBackgroundOpaque()+
                            ", "+drawable.getClass().getName()+", "+drawable);
+        
+        gl.glFinish();
 
         boolean useExternalTexture = false;
         try {
+            System.out.println("p0 "+mPlayer+", shared "+mPlayerShared);
             if(!mPlayerShared) {
-                mPlayer.initGL(gl);
+                mPlayer.initGLStream(gl, stream);
             }
-            System.out.println("p1 "+mPlayer);
+            System.out.println("p1 "+mPlayer+", shared "+mPlayerShared);
             useExternalTexture = GLES2.GL_TEXTURE_EXTERNAL_OES == mPlayer.getTextureTarget();
             if(useExternalTexture && !gl.isExtensionAvailable("GL_OES_EGL_image_external")) {
                 throw new GLException("GL_OES_EGL_image_external requested but not available");
@@ -274,8 +272,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         if(!st.uniform(gl, pmvMatrixUniform)) {
             throw new GLException("Error setting PMVMatrix in shader: "+st);
         }
-        final GLMediaPlayer.TextureFrame texFrame = mPlayer.getLastTexture();
-        if(!st.uniform(gl, new GLUniformData("mgl_ActiveTexture", texUnit))) {
+        if(!st.uniform(gl, new GLUniformData("mgl_ActiveTexture", mPlayer.getTextureUnit()))) {
             throw new GLException("Error setting mgl_ActiveTexture in shader: "+st);
         }
         
@@ -320,7 +317,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
             FloatBuffer verticeb = (FloatBuffer)vertices.getBuffer();
             
             GLArrayData texcoord = interleaved.addGLSLSubArray("mgl_MultiTexCoord", 2, GL.GL_ARRAY_BUFFER);
-            TextureCoords tc = texFrame.getTexture().getImageTexCoords();
+            TextureCoords tc = mPlayer.getTextureCoords();
             FloatBuffer texcoordb = (FloatBuffer)texcoord.getBuffer();
             
             GLArrayData colors = interleaved.addGLSLSubArray("mgl_Color",  4, GL.GL_ARRAY_BUFFER);
@@ -364,10 +361,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         }
         interleaved.seal(gl, true);
         
-        // OpenGL Render Settings
-        // gl.glClearColor(0f, 0f, 0f, 0f);
-        // gl.glClearColor(0.9f, 0.9f, 0.9f, 0.3f);
-        gl.glClearColor(0.1f, 0.1f, 0.1f, 0.4f);
+        gl.glClearColor(0.3f, 0.3f, 0.3f, 0.3f);
         
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
 
@@ -378,7 +372,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
 
         if(null!=mPlayer) {
             start();
-            System.out.println("p1 "+mPlayer);
+            System.out.println("p2 "+mPlayer);
         }
         
         startTime = System.currentTimeMillis();
@@ -395,25 +389,25 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         if(null == mPlayer) { return; }
         winWidth = width;
         winHeight = height;
+                
+        if(null != st) {
+            reshapePMV(width, height);
+            GL2ES2 gl = drawable.getGL().getGL2ES2();
+            st.useProgram(gl, true);
+            st.uniform(gl, pmvMatrixUniform);
+            st.useProgram(gl, false);
+        }
         
-        reshapePMV(width, height);
-        
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
-
-        st.useProgram(gl, true);
-        st.uniform(gl, pmvMatrixUniform);
-        st.useProgram(gl, false);
-        
-        System.out.println("p2 "+mPlayer);
+        System.out.println("pR "+mPlayer);
     }
     
     private void reshapePMV(int width, int height) {
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
         if(orthoProjection) {
-            float fw = (float) width;
-            float fh = (float) height;
-            pmvMatrix.glOrthof(-fw/2f, fw/2f, -fh/2f, fh/2f, -1.0f, 1.0f);
+            final float fw = (float) width / 2f;
+            final float fh = (float) height/ 2f;
+            pmvMatrix.glOrthof(-fw, fw, -fh, fh, -1.0f, 1.0f);
             nearPlaneNormalized = 0f;
         } else {
             pmvMatrix.gluPerspective(45.0f, (float)width / (float)height, 1f, 10.0f);
@@ -430,6 +424,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         if(null == mPlayer) { return; }
         
         stop();
+        System.out.println("pD.1 "+mPlayer);
         
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -437,6 +432,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         if(!mPlayerExternal) {
             mPlayer.destroy(gl);
         }
+        System.out.println("pD.X "+mPlayer);
         mPlayer=null;
         pmvMatrixUniform = null;
         pmvMatrix.destroy();
@@ -448,11 +444,11 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
     public void display(GLAutoDrawable drawable) {
         if(null == mPlayer) { return; }
         
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
-
-        st.useProgram(gl, true);
+        GL2ES2 gl = drawable.getGL().getGL2ES2();        
 
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+
+        st.useProgram(gl, true);
 
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
@@ -465,27 +461,21 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         }
         st.uniform(gl, pmvMatrixUniform);
 
-        final Texture tex;
         if(null!=mPlayer) {
             final GLMediaPlayer.TextureFrame texFrame;
             if(mPlayerShared) {
                 texFrame=mPlayer.getLastTexture();
             } else {
-                texFrame=mPlayer.getNextTexture();
+                texFrame=mPlayer.getNextTexture(gl, true);
             }
-            tex = texFrame.getTexture();
-            gl.glActiveTexture(GL.GL_TEXTURE0+texUnit);
-            tex.enable(gl);
-            tex.bind(gl);
-        } else {
-            tex = null;
-        }
-
-        // Draw a square
-        gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
-
-        if(null!=tex) {
-            tex.disable(gl);
+            if(null != texFrame) {
+                final Texture tex = texFrame.getTexture();
+                gl.glActiveTexture(GL.GL_TEXTURE0+mPlayer.getTextureUnit());
+                tex.enable(gl);
+                tex.bind(gl);
+                gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
+                tex.disable(gl);                    
+            }
         }
 
         st.useProgram(gl, false);

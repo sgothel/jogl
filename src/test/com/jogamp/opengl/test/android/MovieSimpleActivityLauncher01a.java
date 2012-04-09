@@ -41,10 +41,11 @@ public class MovieSimpleActivityLauncher01a extends LauncherUtil.BaseActivityLau
     @Override
     public void init() {
        final OrderedProperties props = getProperties();       
-       props.setProperty("jnlp.mplayer.normal", "false");
-       props.setProperty("jnlp.mplayer.nozoom", "true");
-       props.setProperty("jnlp.mplayer.shared", "true");
-       props.setProperty("jnlp.media0_url2", "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_640x360.m4v");
+       props.setProperty("jnlp.mplayer.nozoom",     "true");
+       props.setProperty("jnlp.mplayer.hud",        "true");
+       props.setProperty("jnlp.mplayer.hud.shared", "true");
+       // props.setProperty("jnlp.media0_url2", "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_640x360.m4v");
+       props.setProperty("jnlp.media0_url2", "");
        props.setProperty("jnlp.media0_url1", "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4");
        props.setProperty("jnlp.media0_url0", "file:///mnt/sdcard/Movies/BigBuckBunny_320x180.mp4");
        props.setProperty("jnlp.media1_url0", "http://archive.org/download/ElephantsDream/ed_1024_512kb.mp4");

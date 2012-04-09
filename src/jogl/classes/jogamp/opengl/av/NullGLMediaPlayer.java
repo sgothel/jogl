@@ -32,7 +32,6 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GLContext;
 import javax.media.opengl.GLProfile;
 
 import jogamp.opengl.av.GLMediaPlayerImpl;
@@ -40,6 +39,7 @@ import jogamp.opengl.av.GLMediaPlayerImpl;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
 
@@ -96,8 +96,13 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    public TextureFrame getNextTexture() {
+    public TextureFrame getNextTexture(GL gl, boolean blocking) {
         return frame;
+    }
+    
+    @Override
+    public TextureCoords getTextureCoords() {
+        return frame.getTexture().getImageTexCoords();
     }
     
     @Override
@@ -112,7 +117,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected void initStreamImplPreGL() throws IOException {
+    protected void initGLStreamImpl(GL gl, int[] texNames) throws IOException {
         try {
             URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-160x90.png", NullGLMediaPlayer.class.getClassLoader());
             if(null != urlConn) {
@@ -146,15 +151,15 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected void destroyTexImage(GLContext ctx, TextureFrame imgTex) {
-        super.destroyTexImage(ctx, imgTex);
+    protected void destroyTexImage(GL gl, TextureFrame imgTex) {
+        super.destroyTexImage(gl, imgTex);
     }
     
     @Override
-    protected TextureFrame createTexImage(GLContext ctx, int idx, int[] tex) {
-        Texture texture = super.createTexImageImpl(ctx, idx, tex, false);
+    protected TextureFrame createTexImage(GL gl, int idx, int[] tex) {
+        Texture texture = super.createTexImageImpl(gl, idx, tex, false);
         if(null != texData) {
-            texture.updateImage(ctx.getGL(), texData);
+            texture.updateImage(gl, texData);
         }                      
         frame = new TextureFrame( texture );
         return frame;

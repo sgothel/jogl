@@ -1411,9 +1411,9 @@ void OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDint64 time)
     kdThreadMutexUnlock(pOMXAV->mutex);
 }
 
-GLuint OMXToolBasicAV_GetNextTextureID(OMXToolBasicAV_t * pOMXAV) {
+GLuint OMXToolBasicAV_GetNextTextureID(OMXToolBasicAV_t * pOMXAV, int blocking) {
     GLuint texID = 0;
-    int ret = pOMXAV->glPos;
+    int idx = pOMXAV->glPos;
     kdThreadMutexLock(pOMXAV->mutex);
 
     if(pOMXAV->status==OMXAV_PLAYING) {
@@ -1438,9 +1438,10 @@ GLuint OMXToolBasicAV_GetNextTextureID(OMXToolBasicAV_t * pOMXAV) {
                 pOMXAV->omxPos = next;
                 next = (pOMXAV->omxPos + 1) % pOMXAV->vBufferNum;
                 pOMXAV->filled++;
-            }
-            else
-            {
+                if(!blocking) {
+                    break;
+                }
+            } else {
                 DBG_PRINT2( "GetNextTexture p2.3\n");
                 break;
             }
@@ -1462,11 +1463,11 @@ GLuint OMXToolBasicAV_GetNextTextureID(OMXToolBasicAV_t * pOMXAV) {
             pOMXAV->available--;
             pOMXAV->filled--;
             pOMXAV->glPos = (pOMXAV->glPos + 1) % pOMXAV->vBufferNum;
-            ret = pOMXAV->glPos;
+            idx = pOMXAV->glPos;
         }
     }
 
-    texID = pOMXAV->available ? pOMXAV->buffers[ret].tex : 0;
+    texID = pOMXAV->available ? pOMXAV->buffers[idx].tex : 0;
     DBG_PRINT2( "GetNextTexture B avail %d, filled %d, pos o:%d g:%d t:%d\n", 
                 pOMXAV->available, pOMXAV->filled, pOMXAV->omxPos, pOMXAV->glPos, texID);
 

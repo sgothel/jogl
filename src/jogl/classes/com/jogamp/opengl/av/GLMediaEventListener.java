@@ -1,7 +1,7 @@
 
 package com.jogamp.opengl.av;
 
-import com.jogamp.opengl.av.GLMediaPlayer.TextureFrame;
+import javax.media.opengl.GL;
 
 public interface GLMediaEventListener {
 
@@ -10,8 +10,19 @@ public interface GLMediaEventListener {
     static final int EVENT_CHANGE_BPS    = 1<<2;
     static final int EVENT_CHANGE_LENGTH = 1<<3;
 
-    public void attributesChanges(GLMediaPlayer mp, int event_mask);
-    public void newFrameAvailable(GLMediaPlayer mp, TextureFrame frame);
+    /**
+     * @param mp the event source 
+     * @param event_mask the changes attributes
+     * @param when system time in msec. 
+     */
+    public void attributesChanges(GLMediaPlayer mp, int event_mask, long when);
+    
+    /** 
+     * Signaling listeners that {@link GLMediaPlayer#getNextTexture(GL, boolean)} is able to deliver a new frame.
+     * @param mp the event source 
+     * @param when system time in msec. 
+     **/
+    public void newFrameAvailable(GLMediaPlayer mp, long when);
 
 }
 

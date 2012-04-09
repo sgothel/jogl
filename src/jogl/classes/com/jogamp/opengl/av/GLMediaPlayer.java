@@ -36,24 +36,24 @@ import javax.media.opengl.GLException;
 import jogamp.opengl.Debug;
 
 import com.jogamp.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.TextureCoords;
 
 /**
  * Lifecycle of an GLMediaPlayer:
  * <table border="1">
- *   <tr><th>action</th>                             <th>state before</th>        <th>state after</th></tr>
- *   <tr><td>{@link #initStream(URLConnection)}</td> <td>UninitializedStream</td> <td>UninitializedGL</td></tr>
- *   <tr><td>{@link #initGL(GL)}</td>                <td>UninitializedGL</td>     <td>Stopped</td></tr>
- *   <tr><td>{@link #start()}</td>                   <td>Stopped, Paused</td>     <td>Playing</td></tr>
- *   <tr><td>{@link #stop()}</td>                    <td>Playing, Paused</td>     <td>Stopped</td></tr>
- *   <tr><td>{@link #pause()}</td>                   <td>Playing</td>             <td>Paused</td></tr>
- *   <tr><td>{@link #destroy(GL)}</td>               <td>ANY</td>                 <td>UninitializedStream</td></tr>
+ *   <tr><th>action</th>                                   <th>state before</th>        <th>state after</th></tr>
+ *   <tr><td>{@link #initGLStream(GL, URLConnection)}</td> <td>Uninitialized</td>       <td>Stopped</td></tr>
+ *   <tr><td>{@link #start()}</td>                         <td>Stopped, Paused</td>     <td>Playing</td></tr>
+ *   <tr><td>{@link #stop()}</td>                          <td>Playing, Paused</td>     <td>Stopped</td></tr>
+ *   <tr><td>{@link #pause()}</td>                         <td>Playing</td>             <td>Paused</td></tr>
+ *   <tr><td>{@link #destroy(GL)}</td>                     <td>ANY</td>                 <td>Uninitialized</td></tr>
  * </table>
  */
 public interface GLMediaPlayer {
     public static final boolean DEBUG = Debug.debug("GLMediaPlayer");
     
     public enum State {
-        UninitializedStream(0), UninitializedGL(1), Stopped(2), Playing(3), Paused(4); 
+        Uninitialized(0), Stopped(1), Playing(2), Paused(3); 
         
         public final int id;
 
@@ -83,6 +83,10 @@ public interface GLMediaPlayer {
     
     public int getTextureTarget();
     
+    /** Defaults to 0 */
+    public void setTextureUnit(int u);
+    public int getTextureUnit();
+    
     /** Sets the texture min-mag filter, defaults to {@link GL#GL_NEAREST}. */
     public void setTextureMinMagFilter(int[] minMagFilter);
     public int[] getTextureMinMagFilter();
@@ -92,24 +96,20 @@ public interface GLMediaPlayer {
     public int[] getTextureWrapST();
     
     /** 
-     * Sets the stream to be used. Initializes all stream related states.
+     * Sets the stream to be used. Initializes all stream related states inclusive OpenGL ones,
+     * if <code>gl</code> is not null.
      * <p>
-     * UninitializedStream -> UninitializedGL
+     * Uninitialized -> Stopped
      * </p>
+     * @param gl current GL object. If null, no video output and textures will be available.
+     * @param urlConn the stream connection
+     * @return the new state
+     * 
+     * @throws IllegalStateException if not invoked in state Uninitialized 
      * @throws IOException in case of difficulties to open or process the stream
-     * @throws IllegalStateException if not invoked in state UninitializedStream 
-     */
-    public State initStream(URLConnection urlConn) throws IllegalStateException, IOException;
-
-    /** 
-     * Initializes all GL related resources.
-     * <p>
-     * UninitializedGL -> Stopped
-     * </p>
      * @throws GLException in case of difficulties to initialize the GL resources
-     * @throws IllegalStateException if not invoked in state UninitializedGL 
      */
-    public State initGL(GL gl) throws IllegalStateException, GLException;
+    public State initGLStream(GL gl, URLConnection urlConn) throws IllegalStateException, GLException, IOException;
     
     /**
      * Releases the GL and stream resources.
@@ -157,17 +157,27 @@ public interface GLMediaPlayer {
     public long seek(long msec);
 
     /**
-     * @return the last updated texture. Not blocking. 
+     * @return the last updated texture. Maybe <code>null</code> in case no last frame is available. 
+     *         Not blocking. 
      */
     public TextureFrame getLastTexture();
     
     /**
-     * @return the next texture, which should be rendered. May block, depending on implementation.
+     * Returns the next texture to be rendered. 
+     * <p>
+     * Implementation shall block until next frame is available if <code>blocking</code> is <code>true</code>,
+     * otherwise it shall return the last frame in case a new frame is not available.
+     * </p>
+     * <p>
+     * Shall return <code>null</code> in case <i>no</i> frame is available.
+     * </p>
      * 
      * @see #addEventListener(GLMediaEventListener)
-     * @see GLMediaEventListener#newFrameAvailable(GLMediaPlayer, TextureFrame)
+     * @see GLMediaEventListener#newFrameAvailable(GLMediaPlayer, long)
      */
-    public TextureFrame getNextTexture();
+    public TextureFrame getNextTexture(GL gl, boolean blocking);
+    
+    public TextureCoords getTextureCoords();
     
     public URLConnection getURLConnection();
 

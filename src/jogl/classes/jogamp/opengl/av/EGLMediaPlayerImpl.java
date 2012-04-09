@@ -27,8 +27,11 @@
  */
 package jogamp.opengl.av;
 
-import javax.media.opengl.GLContext;
+import java.nio.IntBuffer;
 
+import javax.media.opengl.GL;
+
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.texture.Texture;
 
 import jogamp.opengl.egl.EGL;
@@ -80,22 +83,23 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected TextureFrame createTexImage(GLContext ctx, int idx, int[] tex) {
-        final Texture texture = super.createTexImageImpl(ctx, idx, tex, true);
+    protected TextureFrame createTexImage(GL gl, int idx, int[] tex) {
+        final Texture texture = super.createTexImageImpl(gl, idx, tex, true);
         final long image;
         final long sync;
         
-        final EGLContext eglCtx = (EGLContext) ctx;
+        final EGLContext eglCtx = (EGLContext) gl.getContext();
         final EGLExt eglExt = eglCtx.getEGLExt();
         final EGLDrawable eglDrawable = (EGLDrawable) eglCtx.getGLDrawable();            
         int[] tmp = new int[1];
+        IntBuffer nioTmp = Buffers.newDirectIntBuffer(1);
         
         if(TextureType.KHRImage == texType) {
             // create EGLImage from texture
-            tmp[0] = EGL.EGL_NONE;
+            nioTmp.put(0, EGL.EGL_NONE);
             image =  eglExt.eglCreateImageKHR( eglDrawable.getDisplay(), eglCtx.getHandle(),
                                                EGLExt.EGL_GL_TEXTURE_2D_KHR,
-                                               tex[idx], tmp, 0);
+                                               null /* buffer */, nioTmp);
             if (0==image) {
                 throw new RuntimeException("EGLImage creation failed: "+EGL.eglGetError()+", ctx "+eglCtx+", tex "+tex[idx]+", err "+toHexString(EGL.eglGetError()));
             }
@@ -119,8 +123,8 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected void destroyTexImage(GLContext ctx, TextureFrame imgTex) {
-        final EGLContext eglCtx = (EGLContext) ctx;
+    protected void destroyTexImage(GL gl, TextureFrame imgTex) {
+        final EGLContext eglCtx = (EGLContext) gl.getContext();
         final EGLExt eglExt = eglCtx.getEGLExt();
         final EGLDrawable eglDrawable = (EGLDrawable) eglCtx.getGLDrawable();
         final EGLTextureFrame eglTex = (EGLTextureFrame) imgTex;
@@ -131,6 +135,6 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
         if(0!=eglTex.getSync()) {
             eglExt.eglDestroySyncKHR(eglDrawable.getDisplay(), eglTex.getSync());
         }
-        super.destroyTexImage(ctx, imgTex);
+        super.destroyTexImage(gl, imgTex);
     }
 }

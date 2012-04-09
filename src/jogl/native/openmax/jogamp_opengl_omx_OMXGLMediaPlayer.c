@@ -222,12 +222,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_opengl_omx_OMXGLMediaPlayer__1seek
 }
 
 JNIEXPORT jint JNICALL Java_jogamp_opengl_omx_OMXGLMediaPlayer__1getNextTextureID
-  (JNIEnv *env, jobject instance, jlong ptr)
+  (JNIEnv *env, jobject instance, jlong ptr, jboolean blocking)
 {
   jint textureID = 0xffffffff;
   OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
   if (pOMXAV != NULL) {
-      textureID = OMXToolBasicAV_GetNextTextureID(pOMXAV);
+      textureID = OMXToolBasicAV_GetNextTextureID(pOMXAV, blocking ? 1 : 0);
   }
   return textureID;
 }

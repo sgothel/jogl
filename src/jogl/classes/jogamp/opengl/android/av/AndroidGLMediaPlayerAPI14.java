@@ -30,8 +30,9 @@ package jogamp.opengl.android.av;
 import java.io.IOException;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GLContext;
 import javax.media.opengl.GLES2;
+
+import com.jogamp.opengl.util.texture.TextureCoords;
 
 import jogamp.common.os.android.StaticContext;
 import jogamp.opengl.av.GLMediaPlayerImpl;
@@ -42,31 +43,21 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.view.Surface;
 
-import com.jogamp.opengl.util.texture.Texture;
-
 /***
  * Android API Level 14: {@link MediaPlayer#setSurface(Surface)}
  * Android API Level 14: {@link Surface#Surface(android.graphics.SurfaceTexture)}
  */
 public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     MediaPlayer mp;
-    boolean updateSurface = false;
+    volatile boolean updateSurface = false;
     Object updateSurfaceLock = new Object();
-    AndroidTextureFrame atex = null;
-    
-    public static class AndroidTextureFrame extends TextureFrame {
-        public AndroidTextureFrame(Texture t, SurfaceTexture stex) {
-            super(t);
-            this.stex = stex;
-        }
-        
-        public final SurfaceTexture getSurfaceTexture() { return stex; }
-        
-        public String toString() {
-            return "AndroidTextureFrame[" + texture + ", "+ stex + "]";
-        }
-        protected SurfaceTexture stex;
-    }
+    TextureFrame lastTexFrame = null;
+
+    /**
+    private static String toString(MediaPlayer m) {
+        if(null == m) return "<nil>";
+        return "MediaPlayer[playing "+m.isPlaying()+", pos "+m.getCurrentPosition()/1000.0f+"s, "+m.getVideoWidth()+"x"+m.getVideoHeight()+"]";
+    } */
     
     public AndroidGLMediaPlayerAPI14() {
         super();
@@ -103,6 +94,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     @Override
     protected boolean pauseImpl() {
         if(null != mp) {
+            wakeUp(false);
             try {
                 mp.pause();
                 return true;
@@ -118,6 +110,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     @Override
     protected boolean stopImpl() {
         if(null != mp) {
+            wakeUp(false);
             try {
                 mp.stop();
                 return true;
@@ -141,24 +134,49 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
 
     @Override
     public TextureFrame getLastTexture() {
-        return atex;
+        return lastTexFrame;
     }
 
     @Override
-    public TextureFrame getNextTexture() {
-        if(null != atex && null != mp) {
-            final boolean _updateSurface;
-            synchronized(updateSurfaceLock) {
-                _updateSurface = updateSurface;
-                updateSurface = false;
+    public TextureFrame getNextTexture(GL gl, boolean blocking) {
+        if(null != stex && null != mp) {
+            // Only block once, no while-loop. 
+            // This relaxes locking code of non crucial resources/events.
+            boolean update = updateSurface;
+            if(!update && blocking) {
+                synchronized(updateSurfaceLock) {
+                    if(!updateSurface) { // volatile OK.
+                        try {
+                            updateSurfaceLock.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    updateSurface = false;
+                    update = true;
+                }
             }
-            if(_updateSurface) {
-                atex.getSurfaceTexture().updateTexImage();
-                // atex.getSurfaceTexture().getTransformMatrix(atex.getSTMatrix());
+            if(update) {
+                stex.updateTexImage();
+                // stex.getTransformMatrix(atex.getSTMatrix());
+                lastTexFrame=texFrames[0];
             }
-            return atex;
-        } else {
-            return null;
+            
+        }
+        return lastTexFrame;
+    }
+    
+    @Override
+    public TextureCoords getTextureCoords() {
+        return texFrames[0].getTexture().getImageTexCoords();
+    }
+    
+    private void wakeUp(boolean newFrame) {
+        synchronized(updateSurfaceLock) {
+            if(newFrame) {
+                updateSurface = true;
+            }
+            updateSurfaceLock.notifyAll();
         }
     }
     
@@ -170,13 +188,16 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     @Override
     protected void destroyImpl(GL gl) {
         if(null != mp) {
+            wakeUp(false);
             mp.release();
             mp = null;
         }
     }
     
+    SurfaceTexture stex = null;
+    
     @Override
-    protected void initStreamImplPreGL() throws IOException {
+    protected void initGLStreamImpl(GL gl, int[] texNames) throws IOException {
         if(null!=mp && null!=urlConn) {
             try {
                 final Uri uri = Uri.parse(urlConn.getURL().toExternalForm());        
@@ -188,12 +209,16 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             } catch (IllegalStateException e) {
                 throw new RuntimeException(e);
             }
+            stex = new SurfaceTexture(texNames[0]); // only 1 texture
+            stex.setOnFrameAvailableListener(onFrameAvailableListener);
+            final Surface surf = new Surface(stex);
+            mp.setSurface(surf);
+            surf.release();
             try {
                 mp.prepare();
             } catch (IOException ioe) {
                 throw new IOException("MediaPlayer failed to process stream <"+urlConn.getURL().toExternalForm()+">: "+ioe.getMessage(), ioe);
             }
-            
             width = mp.getVideoWidth();
             height = mp.getVideoHeight();
             fps = 0;
@@ -206,34 +231,20 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected void destroyTexImage(GLContext ctx, TextureFrame imgTex) {
-        final AndroidTextureFrame atf = (AndroidTextureFrame) imgTex;
-        atf.getSurfaceTexture().release();
-        atex = null;
-        super.destroyTexImage(ctx, imgTex);
+    protected void destroyTexImage(GL gl, TextureFrame imgTex) {
+        if(null != stex) {
+            stex.release();
+            stex = null;
+        }
+        lastTexFrame = null;
+        super.destroyTexImage(gl, imgTex);
     }
     
-    @Override
-    protected TextureFrame createTexImage(GLContext ctx, int idx, int[] tex) {
-        final Texture texture = super.createTexImageImpl(ctx, idx, tex, true);
-                
-        final SurfaceTexture stex = new SurfaceTexture(tex[idx]);
-        stex.setOnFrameAvailableListener(onFrameAvailableListener);
-        final Surface surf = new Surface(stex);
-        mp.setSurface(surf);
-        surf.release();
-        
-        atex = new AndroidTextureFrame( texture, stex );
-        return atex;
-    }
-
     protected OnFrameAvailableListener onFrameAvailableListener = new OnFrameAvailableListener() {
         @Override
         public void onFrameAvailable(SurfaceTexture surfaceTexture) {
-            synchronized(updateSurfaceLock) {
-                updateSurface = true;
-            }
-            AndroidGLMediaPlayerAPI14.this.newFrameAvailable(atex);
+            wakeUp(true);
+            AndroidGLMediaPlayerAPI14.this.newFrameAvailable();
         }        
     };        
 }
