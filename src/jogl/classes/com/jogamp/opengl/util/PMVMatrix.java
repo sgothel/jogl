@@ -44,6 +44,9 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
+import jogamp.opengl.ProjectFloat;
+
+import com.jogamp.opengl.FloatUtil;
 import com.jogamp.common.nio.Buffers;
 
 public class PMVMatrix implements GLMatrixFunc {
@@ -89,22 +92,22 @@ public class PMVMatrix implements GLMatrixFunc {
               matrixBuffer.mark();
           }
           
-          matrixIdent   = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  0*16, 1*16);  //  I
-          matrixTex     = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  1*16, 1*16);  //      T
-          matrixPMvMvit = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  2*16, 4*16);  //          P  + Mv + Mvi + Mvit          
-          matrixPMvMvi  = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  2*16, 3*16);  //          P  + Mv + Mvi
-          matrixPMv     = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  2*16, 2*16);  //          P  + Mv
-          matrixP       = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  2*16, 1*16);  //          P
-          matrixMv      = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  3*16, 1*16);  //               Mv
-          matrixMvi     = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  4*16, 1*16);  //                    Mvi
-          matrixMvit    = ProjectFloat.slice2Float(matrixBuffer, matrixBufferArray,  5*16, 1*16);  //                          Mvit
+          matrixIdent   = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  0*16, 1*16);  //  I
+          matrixTex     = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  1*16, 1*16);  //      T
+          matrixPMvMvit = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  2*16, 4*16);  //          P  + Mv + Mvi + Mvit          
+          matrixPMvMvi  = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  2*16, 3*16);  //          P  + Mv + Mvi
+          matrixPMv     = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  2*16, 2*16);  //          P  + Mv
+          matrixP       = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  2*16, 1*16);  //          P
+          matrixMv      = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  3*16, 1*16);  //               Mv
+          matrixMvi     = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  4*16, 1*16);  //                    Mvi
+          matrixMvit    = Buffers.slice2Float(matrixBuffer, matrixBufferArray,  5*16, 1*16);  //                          Mvit
           
           projectFloat  = new ProjectFloat(matrixBuffer, matrixBufferArray, 6*16);
           
           if(null != matrixBuffer) {
               matrixBuffer.reset();
           }          
-          ProjectFloat.makeIdentityf(matrixIdent);
+          FloatUtil.makeIdentityf(matrixIdent);
           
           vec3f         = new float[3];
           matrixMult    = new float[16];
@@ -113,11 +116,11 @@ public class PMVMatrix implements GLMatrixFunc {
           matrixScale   = new float[16];
           matrixOrtho   = new float[16];
           matrixFrustum = new float[16];
-          ProjectFloat.makeIdentityf(matrixTrans, 0);
-          ProjectFloat.makeIdentityf(matrixRot, 0);
-          ProjectFloat.makeIdentityf(matrixScale, 0);
-          ProjectFloat.makeIdentityf(matrixOrtho, 0);
-          ProjectFloat.makeZero(matrixFrustum, 0);
+          FloatUtil.makeIdentityf(matrixTrans, 0);
+          FloatUtil.makeIdentityf(matrixRot, 0);
+          FloatUtil.makeIdentityf(matrixScale, 0);
+          FloatUtil.makeIdentityf(matrixOrtho, 0);
+          FloatUtil.makeZero(matrixFrustum, 0);
 
           matrixPStack = new ArrayList<float[]>();
           matrixMvStack= new ArrayList<float[]>();
@@ -461,26 +464,26 @@ public class PMVMatrix implements GLMatrixFunc {
 
     public final void glMultMatrixf(final FloatBuffer m) {
         if(matrixMode==GL_MODELVIEW) {
-            ProjectFloat.multMatrixf(matrixMv, m, matrixMv);
+            FloatUtil.multMatrixf(matrixMv, m, matrixMv);
             modified |= DIRTY_MODELVIEW ;
         } else if(matrixMode==GL_PROJECTION) {
-            ProjectFloat.multMatrixf(matrixP, m, matrixP);
+            FloatUtil.multMatrixf(matrixP, m, matrixP);
             modified |= DIRTY_PROJECTION ;
         } else if(matrixMode==GL.GL_TEXTURE) {
-            ProjectFloat.multMatrixf(matrixTex, m, matrixTex);
+            FloatUtil.multMatrixf(matrixTex, m, matrixTex);
             modified |= DIRTY_TEXTURE ;
         } 
     }
 
     public void glMultMatrixf(float[] m, int m_offset) {
         if(matrixMode==GL_MODELVIEW) {
-            ProjectFloat.multMatrixf(matrixMv, m, m_offset, matrixMv);
+            FloatUtil.multMatrixf(matrixMv, m, m_offset, matrixMv);
             modified |= DIRTY_MODELVIEW ;
         } else if(matrixMode==GL_PROJECTION) {
-            ProjectFloat.multMatrixf(matrixP, m, m_offset, matrixP);
+            FloatUtil.multMatrixf(matrixP, m, m_offset, matrixP);
             modified |= DIRTY_PROJECTION ;
         } else if(matrixMode==GL.GL_TEXTURE) {
-            ProjectFloat.multMatrixf(matrixTex, m, m_offset, matrixTex);
+            FloatUtil.multMatrixf(matrixTex, m, m_offset, matrixTex);
             modified |= DIRTY_TEXTURE ;
         } 
     }
@@ -504,7 +507,7 @@ public class PMVMatrix implements GLMatrixFunc {
         final float s = (float)Math.sin(angrad);
 
         vec3f[0]=x; vec3f[1]=y; vec3f[2]=z;
-        ProjectFloat.normalize(vec3f);
+        FloatUtil.normalize(vec3f);
         x = vec3f[0]; y = vec3f[1]; z = vec3f[2];
 
         // Rotation matrix:
