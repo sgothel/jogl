@@ -45,13 +45,11 @@ public class ShaderUtil {
     static abstract class Impl {
         public abstract String getShaderInfoLog(GL gl, int shaderObj);
         public abstract String getProgramInfoLog(GL gl, int programObj);
-        public abstract boolean isShaderStatusValid(GL gl, int shaderObj, int name);
         public abstract boolean isShaderStatusValid(GL gl, int shaderObj, int name, PrintStream verboseOut);
-        public abstract boolean isShaderStatusValid(GL gl, IntBuffer shaders, int name);
         public abstract boolean isShaderStatusValid(GL gl, IntBuffer shaders, int name, PrintStream verboseOut);
         public abstract boolean isProgramStatusValid(GL gl, int programObj, int name);
-        public abstract boolean isProgramValid(GL gl, int programObj);
-        public abstract boolean isProgramValid(GL gl, int programObj, PrintStream verboseOut);
+        public abstract boolean isProgramLinkStatusValid(GL gl, int programObj, PrintStream verboseOut);
+        public abstract boolean isProgramExecStatusValid(GL gl, int programObj, PrintStream verboseOut);
         public abstract void createShader(GL gl, int type, IntBuffer shaders);
         public abstract Set<Integer> getShaderBinaryFormats(GL gl);
         public abstract boolean isShaderCompilerAvailable(GL gl);
@@ -103,10 +101,6 @@ public class ShaderUtil {
             return new String(infoLogBytes, 0, charsWritten[0]);
         }
 
-        public boolean isShaderStatusValid(GL _gl, int shaderObj, int name) {
-            return isShaderStatusValid(_gl, shaderObj, name, null);
-        }
-
         public boolean isShaderStatusValid(GL _gl, int shaderObj, int name, PrintStream verboseOut) {
             GL2ES2 gl = _gl.getGL2ES2();
             int[] ires = new int[1];
@@ -117,10 +111,6 @@ public class ShaderUtil {
                 verboseOut.println("Shader status invalid: "+ getShaderInfoLog(gl, shaderObj));
             }
             return res;
-        }
-
-        public boolean isShaderStatusValid(GL _gl, IntBuffer shaders, int name) {
-            return isShaderStatusValid(_gl, shaders, name, null);
         }
 
         public boolean isShaderStatusValid(GL _gl, IntBuffer shaders, int name, PrintStream verboseOut) {
@@ -139,11 +129,7 @@ public class ShaderUtil {
             return ires[0]==1;
         }
 
-        public boolean isProgramValid(GL _gl, int programObj) {
-            return isProgramValid(_gl, programObj, null);
-        }
-
-        public boolean isProgramValid(GL _gl, int programObj, PrintStream verboseOut) {
+        public boolean isProgramLinkStatusValid(GL _gl, int programObj, PrintStream verboseOut) {
             GL2ES2 gl = _gl.getGL2ES2();
             if(!gl.glIsProgram(programObj)) {
                 if(null!=verboseOut) {
@@ -157,15 +143,17 @@ public class ShaderUtil {
                 }
                 return false;
             }
-            if ( !gl.isGLES2() || isShaderCompilerAvailable(gl) ) {
-                // failed on APX2500 (ES2.0, no compiler) for valid programs
-                gl.glValidateProgram(programObj);
-                if(!isProgramStatusValid(gl, programObj, GL2ES2.GL_VALIDATE_STATUS)) {
-                    if(null!=verboseOut) {
-                        verboseOut.println("Program validation failed: "+programObj+"\n\t"+ getProgramInfoLog(gl, programObj));
-                    }
-                    return false;
+            return true;
+        }
+        
+        public boolean isProgramExecStatusValid(GL _gl, int programObj, PrintStream verboseOut) {
+            GL2ES2 gl = _gl.getGL2ES2();
+            gl.glValidateProgram(programObj);
+            if(!isProgramStatusValid(gl, programObj, GL2ES2.GL_VALIDATE_STATUS)) {
+                if(null!=verboseOut) {
+                    verboseOut.println("Program validation failed: "+programObj+"\n\t"+ getProgramInfoLog(gl, programObj));
                 }
+                return false;
             }
             return true;
         }
@@ -379,16 +367,8 @@ public class ShaderUtil {
         return getImpl(gl).getProgramInfoLog(gl, programObj);
     }
 
-    public static boolean isShaderStatusValid(GL gl, int shaderObj, int name) {
-        return getImpl(gl).isShaderStatusValid(gl, shaderObj, name);
-    }
-
     public static boolean isShaderStatusValid(GL gl, int shaderObj, int name, PrintStream verboseOut) {
         return getImpl(gl).isShaderStatusValid(gl, shaderObj, name, verboseOut);
-    }
-
-    public static boolean isShaderStatusValid(GL gl, IntBuffer shaders, int name) {
-        return getImpl(gl).isShaderStatusValid(gl, shaders, name);
     }
 
     public static boolean isShaderStatusValid(GL gl, IntBuffer shaders, int name, PrintStream verboseOut) {
@@ -399,12 +379,24 @@ public class ShaderUtil {
         return getImpl(gl).isProgramStatusValid(gl, programObj, name);
     }
 
-    public static boolean isProgramValid(GL gl, int programObj) {
-        return getImpl(gl).isProgramValid(gl, programObj);
+    public static boolean isProgramLinkStatusValid(GL gl, int programObj, PrintStream verboseOut) {
+        return getImpl(gl).isProgramLinkStatusValid(gl, programObj, verboseOut);
     }
-
-    public static boolean isProgramValid(GL gl, int programObj, PrintStream verboseOut) {
-        return getImpl(gl).isProgramValid(gl, programObj, verboseOut);
+    
+    /**
+     * Performs {@link GL2ES2#glValidateProgram(int)}
+     * <p>
+     * One shall only call this method while debugging and only if all required 
+     * resources by the shader are set.
+     * </p>
+     * <p>
+     * Note: It is possible that a working shader program will fail validation.
+     * This has been experienced on NVidia APX2500 and Tegra2.
+     * </p>
+     * @see GL2ES2#glValidateProgram(int)
+     **/
+    public static boolean isProgramExecStatusValid(GL gl, int programObj, PrintStream verboseOut) {
+        return getImpl(gl).isProgramExecStatusValid(gl, programObj, verboseOut);
     }
 
     public static void createShader(GL gl, int type, IntBuffer shaders) {

@@ -126,7 +126,7 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
 
         boolean error = false;
 
-        if(!ShaderUtil.isProgramValid(gl, myShader.shaderProgram, pbaos)) {
+        if(!ShaderUtil.isProgramLinkStatusValid(gl, myShader.shaderProgram, pbaos)) {
             System.out.println("Error (unexpected link error) - testGlTransformFeedbackVaryings_WhenVarNameOK:postLink: "+baos.toString());
             error = true;
         }
@@ -164,7 +164,7 @@ public class TestTransformFeedbackVaryingsBug407NEWT extends UITestCase {
 
         boolean error = false;
 
-        if(!ShaderUtil.isProgramValid(gl, myShader.shaderProgram, pbaos)) {
+        if(!ShaderUtil.isProgramLinkStatusValid(gl, myShader.shaderProgram, pbaos)) {
             System.out.println("GOOD (expected link error) - testGlTransformFeedbackVaryings_WhenVarNameWrong:postLink: "+baos.toString());
             // should be invalid, due to wrong var name
         } else {

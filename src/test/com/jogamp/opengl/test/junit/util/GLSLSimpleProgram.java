@@ -90,7 +90,7 @@ public class GLSLSimpleProgram {
 
         if(link) {
             gl.glLinkProgram(shaderProgram);
-            if(!ShaderUtil.isProgramValid(gl, shaderProgram, pbaos)) {
+            if(!ShaderUtil.isProgramLinkStatusValid(gl, shaderProgram, pbaos)) {
                 System.out.println("Error (GLSL link error):  "+baos.toString());
                 Assert.assertTrue(false);
             }

@@ -214,7 +214,7 @@ public class ShaderProgram {
         
         gl.glLinkProgram(shaderProgram);
         
-        programLinked = ShaderUtil.isProgramValid(gl, shaderProgram, System.err);
+        programLinked = ShaderUtil.isProgramLinkStatusValid(gl, shaderProgram, System.err);
         if ( programLinked && shaderWasInUse )  {
             useProgram(gl, true);
         }
@@ -250,7 +250,7 @@ public class ShaderProgram {
         // Link the program
         gl.glLinkProgram(shaderProgram);
 
-        programLinked = ShaderUtil.isProgramValid(gl, shaderProgram, System.err);
+        programLinked = ShaderUtil.isProgramLinkStatusValid(gl, shaderProgram, System.err);
 
         return programLinked;
     }
@@ -284,9 +284,17 @@ public class ShaderProgram {
         return toString(null).toString();
     }
 
+    /**
+     * Performs {@link GL2ES2#glValidateProgram(int)} via {@link ShaderUtil#isProgramExecStatusValid(GL, int, PrintStream)}.
+     * @see ShaderUtil#isProgramExecStatusValid(GL, int, PrintStream)
+     **/
+    public synchronized boolean validateProgram(GL2ES2 gl, PrintStream verboseOut) {
+        return ShaderUtil.isProgramExecStatusValid(gl, shaderProgram, verboseOut);
+    }
+    
     public synchronized void useProgram(GL2ES2 gl, boolean on) {
-        if(!programLinked) throw new GLException("Program is not linked");
-        if(programInUse==on) return;
+        if(!programLinked) { throw new GLException("Program is not linked"); }
+        if(programInUse==on) { return; }
         gl.glUseProgram(on?shaderProgram:0);
         programInUse = on;
     }
