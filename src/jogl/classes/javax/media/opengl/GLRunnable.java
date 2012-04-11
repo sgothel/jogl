@@ -39,12 +39,14 @@ package javax.media.opengl;
  */
 public interface GLRunnable { 
     /**
-     * Called by the drawable to initiate one-shot OpenGL commands by the
-     * client, like {@link GLEventListener#display(GLAutoDrawable)}.
-     * 
-     * @param drawable the associated drawable the implementation shall use
-     * @return false if impl invalidates the back buffers, hence {@link GLAutoDrawable#display()} will 
-     *         issue another {@link GLEventListener#display(GLAutoDrawable)} call. Otherwise true.
+     * Initiate one-shot OpenGL commands with a valid current context, 
+     * processed by {@link GLAutoDrawable#display()}, enqueued by 
+     * {@link GLAutoDrawable#invoke(boolean, GLRunnable)}. 
+     *  
+     * @param drawable the associated drawable and current context for this call
+     * @return true if the GL [back] framebuffer remain intact by this runnable, otherwise false.
+     *         If returning false and hence the impl signals an invalidated back buffer,
+     *         another {@link GLEventListener#display(GLAutoDrawable)} call will be issued.
      */
     boolean run(GLAutoDrawable drawable);
 }

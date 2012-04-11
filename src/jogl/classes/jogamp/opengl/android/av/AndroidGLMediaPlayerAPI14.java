@@ -228,7 +228,6 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     @Override
     protected TextureSequence.TextureFrame createTexImage(GL gl, int idx, int[] tex) {
         lastTexFrame = new TextureSequence.TextureFrame( createTexImageImpl(gl, idx, tex, true) );
-        // lastTexFrame = super.createTexImage(gl, idx, tex);
         return lastTexFrame; 
     }
     

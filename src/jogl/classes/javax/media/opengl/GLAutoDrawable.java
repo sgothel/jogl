@@ -181,15 +181,15 @@ public interface GLAutoDrawable extends GLDrawable {
 
   /** 
    * <p>
-   * Enqueues a one-shot {@link javax.media.opengl.GLRunnable},
+   * Enqueues a one-shot {@link javax.media.opengl.GLRunnable GLRunnable},
    * which will be executed with the next {@link #display()} call.</p>
    * <p>
-   * If no {@link javax.media.opengl.GLAnimatorControl} is registered, or if it is not animating, the default situation,<br>
+   * If no {@link javax.media.opengl.GLAnimatorControl GLAnimatorControl} is animating (default),<br>
    * or if the current thread is the animator thread,<br>
    * a {@link #display()} call is issued after enqueue the <code>GLRunnable</code>.<br>
    * No extra synchronization is performed in case <code>wait</code> is true, since it is executed in the current thread.</p>
    * <p>
-   * If {@link javax.media.opengl.GLAnimatorControl} is registered and is animating,<br>
+   * If an {@link javax.media.opengl.GLAnimatorControl GLAnimatorControl} is animating,<br>
    * no {@link #display()} call is issued, since the animator thread performs it.<br>
    * If <code>wait</code> is true, the implementation waits until the <code>GLRunnable</code> is executed.<br>
    * </p><br>
@@ -217,7 +217,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * <ul>
    *     <li> Calling {@link GLEventListener#display display(..)} for all
    *          registered {@link GLEventListener}s. </li>
-   *     <li> Executes all one-shot {@link javax.media.opengl.GLRunnable},
+   *     <li> Executes all one-shot {@link javax.media.opengl.GLRunnable GLRunnable},
    *          enqueued via {@link #invoke(boolean, GLRunnable)}.</li>
    * </ul></p>
    * <p> 
