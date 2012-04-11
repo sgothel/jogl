@@ -32,18 +32,15 @@ import java.util.List;
 
 import com.jogamp.opengl.test.android.LauncherUtil.OrderedProperties;
 
-public class MovieSimpleActivityLauncher01b extends LauncherUtil.BaseActivityLauncher {
+public class MovieCubeActivityLauncher0 extends LauncherUtil.BaseActivityLauncher {
 
-    static String demo = "com.jogamp.opengl.test.android.MovieSimpleActivity1";
+    static String demo = "com.jogamp.opengl.test.android.MovieCubeActivity0";
     // static String[] pkgs = new String[] { "com.jogamp.common", "javax.media.opengl", "com.jogamp.opengl.test" };
     static String[] pkgs = new String[] { "com.jogamp.opengl.test" };
     
     @Override
     public void init() {
        final OrderedProperties props = getProperties();       
-       props.setProperty("jnlp.mplayer.nozoom",     "false");
-       props.setProperty("jnlp.mplayer.hud",        "true");
-       props.setProperty("jnlp.mplayer.hud.shared", "true");
        // props.setProperty("jnlp.media0_url2", "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_640x360.m4v");
        props.setProperty("jnlp.media0_url2", "");
        props.setProperty("jnlp.media0_url1", "http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4");

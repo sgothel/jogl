@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.opengl.av;
+package jogamp.opengl.util.av;
 
 import java.nio.IntBuffer;
 
@@ -33,6 +33,7 @@ import javax.media.opengl.GL;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.TextureSequence;
 
 import jogamp.opengl.egl.EGL;
 import jogamp.opengl.egl.EGLContext;
@@ -53,7 +54,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
         }
     }    
     
-    public static class EGLTextureFrame extends TextureFrame {
+    public static class EGLTextureFrame extends TextureSequence.TextureFrame {
         
         public EGLTextureFrame(Texture t, long khrImage, long khrSync) {
             super(t);
@@ -83,7 +84,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected TextureFrame createTexImage(GL gl, int idx, int[] tex) {
+    protected TextureSequence.TextureFrame createTexImage(GL gl, int idx, int[] tex) {
         final Texture texture = super.createTexImageImpl(gl, idx, tex, true);
         final long image;
         final long sync;
@@ -123,7 +124,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected void destroyTexImage(GL gl, TextureFrame imgTex) {
+    protected void destroyTexImage(GL gl, TextureSequence.TextureFrame imgTex) {
         final EGLContext eglCtx = (EGLContext) gl.getContext();
         final EGLExt eglExt = eglCtx.getEGLExt();
         final EGLDrawable eglDrawable = (EGLDrawable) eglCtx.getGLDrawable();

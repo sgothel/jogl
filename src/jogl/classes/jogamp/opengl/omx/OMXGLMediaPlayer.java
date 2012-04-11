@@ -7,11 +7,10 @@ import java.net.URL;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLException;
 
-import com.jogamp.opengl.av.GLMediaEventListener;
-import com.jogamp.opengl.util.texture.TextureCoords;
+import com.jogamp.opengl.util.texture.TextureSequence;
 
-import jogamp.opengl.av.EGLMediaPlayerImpl;
 import jogamp.opengl.egl.EGL;
+import jogamp.opengl.util.av.EGLMediaPlayerImpl;
 
 public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     protected long moviePtr = 0;
@@ -26,7 +25,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     protected long o_totalFrames = 0;
     protected long o_duration = 0;
         
-    protected TextureFrame lastTex = null;
+    protected TextureSequence.TextureFrame lastTex = null;
 
     public OMXGLMediaPlayer() {
         super(TextureType.KHRImage, true);
@@ -41,7 +40,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
     
     @Override
-    protected TextureFrame createTexImage(GL gl, int idx, int[] tex) {
+    protected TextureSequence.TextureFrame createTexImage(GL gl, int idx, int[] tex) {
         final EGLTextureFrame eglTex = (EGLTextureFrame) super.createTexImage(gl, idx, tex);
         _setStreamEGLImageTexture2D(moviePtr, idx, tex[idx], eglTex.getImage(), eglTex.getSync());
         lastTex = eglTex;
@@ -49,8 +48,9 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
     
     @Override
-    protected void destroyTexImage(GL gl, TextureFrame imgTex) {
-        super.destroyTexImage(gl, imgTex);
+    protected void destroyTexImage(GL gl, TextureSequence.TextureFrame imgTex) {
+        lastTex = null;
+        super.destroyTexImage(gl, imgTex);        
     }
     
     @Override
@@ -76,7 +76,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     
         System.out.println("setURL: p1 "+this);
         _setStream(moviePtr, textureCount, path);
-        System.out.println("setURL: p2 "+this);
+        System.out.println("setURL: p2 "+this);        
     }
     
     @Override
@@ -135,18 +135,18 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    public TextureFrame getLastTexture() {
+    public TextureSequence.TextureFrame getLastTexture() {
         return lastTex;
     }
     
     @Override
-    public synchronized TextureFrame getNextTexture(GL gl, boolean blocking) {
+    public synchronized TextureSequence.TextureFrame getNextTexture(GL gl, boolean blocking) {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
         final int nextTex = _getNextTextureID(moviePtr, blocking);
         if(0 < nextTex) {
-            final TextureFrame eglImgTex = texFrameMap.get(new Integer(_getNextTextureID(moviePtr, blocking)));
+            final TextureSequence.TextureFrame eglImgTex = texFrameMap.get(new Integer(_getNextTextureID(moviePtr, blocking)));
             if(null!=eglImgTex) {
                 lastTex = eglImgTex;
             }
@@ -154,12 +154,6 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
         return lastTex;
     }
     
-    @Override
-    public TextureCoords getTextureCoords() {
-        return lastTex.getTexture().getImageTexCoords();
-    }
-    
-
     protected void attributesUpdated() {
         int event_mask = 0;
         if( o_width != width || o_height != height ) {

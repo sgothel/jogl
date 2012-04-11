@@ -150,7 +150,7 @@
                   value="com/jogamp/opengl/**/swt/**"/>
 
         <property name="java.part.util"
-                  value="com/jogamp/opengl/util/* com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/packrect/** jogamp/opengl/util/* jogamp/opengl/util/pngj/**"/>
+                  value="com/jogamp/opengl/util/* com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/av/* com/jogamp/opengl/util/packrect/** jogamp/opengl/util/* jogamp/opengl/util/av/* jogamp/opengl/util/pngj/**"/>
 
         <property name="java.part.util.awt"
                   value="com/jogamp/opengl/util/**/awt/** com/jogamp/opengl/util/AWTAnimatorImpl*"/>
@@ -175,9 +175,6 @@
 
         <property name="java.part.util.fixedfuncemu.shadercode"
                   value="jogamp/opengl/util/glsl/fixedfunc/shaders/* jogamp/opengl/util/glsl/fixedfunc/shaders/bin/**"/>
-
-        <property name="java.part.util.av"
-                  value="com/jogamp/opengl/av/** jogamp/opengl/av/**"/>
 
         <property name="java.part.nonjava" 
                   value="${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
@@ -1667,7 +1664,7 @@
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.util.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.util} ${java.part.util.glsl} ${java.part.util.graph} ${java.part.util.av}"
+                     includes="${java.part.util} ${java.part.util.glsl} ${java.part.util.graph}"
                      excludes="${java.part.util.awt} ${java.part.util.gldesktop} ${java.part.util.fixedfuncemu}"/>
             <fileset dir="resources/assets" includes="jogl/util/**" />
         </jar>

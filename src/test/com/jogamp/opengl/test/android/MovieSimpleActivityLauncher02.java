@@ -34,7 +34,7 @@ import com.jogamp.opengl.test.android.LauncherUtil.OrderedProperties;
 
 public class MovieSimpleActivityLauncher02 extends LauncherUtil.BaseActivityLauncher {
 
-    static String demo = "com.jogamp.opengl.test.android.MovieSimpleActivity";
+    static String demo = "com.jogamp.opengl.test.android.MovieSimpleActivity1";
     // static String[] pkgs = new String[] { "com.jogamp.common", "javax.media.opengl", "com.jogamp.opengl.test" };
     static String[] pkgs = new String[] { "com.jogamp.opengl.test" };
     

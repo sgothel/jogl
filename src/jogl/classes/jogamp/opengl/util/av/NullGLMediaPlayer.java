@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.opengl.av;
+package jogamp.opengl.util.av;
 
 import java.io.IOException;
 import java.net.URLConnection;
@@ -34,21 +34,21 @@ import java.nio.ByteBuffer;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLProfile;
 
-import jogamp.opengl.av.GLMediaPlayerImpl;
+import jogamp.opengl.util.av.GLMediaPlayerImpl;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.util.texture.Texture;
-import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
+import com.jogamp.opengl.util.texture.TextureSequence;
 
 /***
  * A dummy null media player implementation using a static test frame (if available).
  */
 public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     private TextureData texData = null;
-    private TextureFrame frame = null;
+    private TextureSequence.TextureFrame frame = null;
     private long pos_ms = 0;
     private long pos_start = 0;
     
@@ -91,18 +91,13 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
     
     @Override
-    public TextureFrame getLastTexture() {
+    public TextureSequence.TextureFrame getLastTexture() {
         return frame;
     }
 
     @Override
-    public TextureFrame getNextTexture(GL gl, boolean blocking) {
+    public TextureSequence.TextureFrame getNextTexture(GL gl, boolean blocking) {
         return frame;
-    }
-    
-    @Override
-    public TextureCoords getTextureCoords() {
-        return frame.getTexture().getImageTexCoords();
     }
     
     @Override
@@ -151,18 +146,21 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected void destroyTexImage(GL gl, TextureFrame imgTex) {
-        super.destroyTexImage(gl, imgTex);
-    }
-    
-    @Override
-    protected TextureFrame createTexImage(GL gl, int idx, int[] tex) {
+    protected TextureSequence.TextureFrame createTexImage(GL gl, int idx, int[] tex) {
         Texture texture = super.createTexImageImpl(gl, idx, tex, false);
         if(null != texData) {
             texture.updateImage(gl, texData);
+            texData.destroy();
+            texData = null;
         }                      
-        frame = new TextureFrame( texture );
+        frame = new TextureSequence.TextureFrame( texture );
         return frame;
+    }
+    
+    @Override
+    protected void destroyTexImage(GL gl, TextureSequence.TextureFrame imgTex) {
+        frame = null;
+        super.destroyTexImage(gl, imgTex);
     }
     
     private void validatePos() {

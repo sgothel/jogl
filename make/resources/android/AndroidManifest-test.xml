@@ -145,6 +145,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="com.jogamp.opengl.test.android.MovieCubeActivityLauncher0"
+                  android:label="@string/activity_moviecube0_name"
+                  android:description="@string/activity_moviecube_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

@@ -8,4 +8,4 @@ precision mediump float;
 
 uniform  samplerExternalOES  mgl_ActiveTexture;
 
-#include moviesimple_xxx.fp
+#include texsimple_xxx.fp

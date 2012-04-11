@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.av;
+package com.jogamp.opengl.util.av;
 
 import java.io.IOException;
 import java.net.URLConnection;
@@ -35,8 +35,7 @@ import javax.media.opengl.GLException;
 
 import jogamp.opengl.Debug;
 
-import com.jogamp.opengl.util.texture.Texture;
-import com.jogamp.opengl.util.texture.TextureCoords;
+import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
  * Lifecycle of an GLMediaPlayer:
@@ -49,8 +48,23 @@ import com.jogamp.opengl.util.texture.TextureCoords;
  *   <tr><td>{@link #destroy(GL)}</td>                     <td>ANY</td>                 <td>Uninitialized</td></tr>
  * </table>
  */
-public interface GLMediaPlayer {
+public interface GLMediaPlayer extends TextureSequence {
     public static final boolean DEBUG = Debug.debug("GLMediaPlayer");
+        
+    public interface GLMediaEventListener extends TexSeqEventListener<GLMediaPlayer> {
+    
+        static final int EVENT_CHANGE_SIZE   = 1<<0;
+        static final int EVENT_CHANGE_FPS    = 1<<1;
+        static final int EVENT_CHANGE_BPS    = 1<<2;
+        static final int EVENT_CHANGE_LENGTH = 1<<3;
+    
+        /**
+         * @param mp the event source 
+         * @param event_mask the changes attributes
+         * @param when system time in msec. 
+         */
+        public void attributesChanges(GLMediaPlayer mp, int event_mask, long when);    
+    }
     
     public enum State {
         Uninitialized(0), Stopped(1), Playing(2), Paused(3); 
@@ -62,38 +76,14 @@ public interface GLMediaPlayer {
         }
     }
     
-    public static class TextureFrame {
-        public TextureFrame(Texture t) {
-            texture = t;
-            // stMatrix = new float[4*4];
-            // ProjectFloat.makeIdentityf(stMatrix, 0);
-        }
-        
-        public final Texture getTexture() { return texture; }
-        // public final float[] getSTMatrix() { return stMatrix; }
-        
-        public String toString() {
-            return "TextureFrame[" + texture + "]";
-        }
-        protected final Texture texture;
-        // protected final float[] stMatrix;
-    }
-    
     public int getTextureCount();
-    
-    public int getTextureTarget();
     
     /** Defaults to 0 */
     public void setTextureUnit(int u);
-    public int getTextureUnit();
-    
     /** Sets the texture min-mag filter, defaults to {@link GL#GL_NEAREST}. */
     public void setTextureMinMagFilter(int[] minMagFilter);
-    public int[] getTextureMinMagFilter();
-    
     /** Sets the texture min-mag filter, defaults to {@link GL#GL_CLAMP_TO_EDGE}. */
     public void setTextureWrapST(int[] wrapST);
-    public int[] getTextureWrapST();
     
     /** 
      * Sets the stream to be used. Initializes all stream related states inclusive OpenGL ones,
@@ -157,27 +147,17 @@ public interface GLMediaPlayer {
     public long seek(long msec);
 
     /**
-     * @return the last updated texture. Maybe <code>null</code> in case no last frame is available. 
-     *         Not blocking. 
+     * {@inheritDoc}
      */
-    public TextureFrame getLastTexture();
-    
+    public TextureSequence.TextureFrame getLastTexture();
+
     /**
-     * Returns the next texture to be rendered. 
-     * <p>
-     * Implementation shall block until next frame is available if <code>blocking</code> is <code>true</code>,
-     * otherwise it shall return the last frame in case a new frame is not available.
-     * </p>
-     * <p>
-     * Shall return <code>null</code> in case <i>no</i> frame is available.
-     * </p>
+     * {@inheritDoc}
      * 
      * @see #addEventListener(GLMediaEventListener)
      * @see GLMediaEventListener#newFrameAvailable(GLMediaPlayer, long)
      */
-    public TextureFrame getNextTexture(GL gl, boolean blocking);
-    
-    public TextureCoords getTextureCoords();
+    public TextureSequence.TextureFrame getNextTexture(GL gl, boolean blocking);
     
     public URLConnection getURLConnection();
 
@@ -226,5 +206,6 @@ public interface GLMediaPlayer {
 
     public void removeEventListener(GLMediaEventListener l);
 
-    public GLMediaEventListener[] getEventListeners();
+    public GLMediaEventListener[] getEventListeners();    
+    
 }

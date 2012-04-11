@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.opengl.av;
+package jogamp.opengl.util.av;
 
 import java.io.IOException;
 import java.net.URLConnection;
@@ -37,9 +37,9 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GLES2;
 import javax.media.opengl.GLException;
 
-import com.jogamp.opengl.av.GLMediaPlayer;
-import com.jogamp.opengl.av.GLMediaEventListener;
+import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
  * After object creation an implementation may customize the behavior:
@@ -86,8 +86,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
 
     protected long frameNumber = 0;
     
-    protected TextureFrame[] texFrames = null;
-    protected HashMap<Integer, TextureFrame> texFrameMap = new HashMap<Integer, TextureFrame>();
+    protected TextureSequence.TextureFrame[] texFrames = null;
+    protected HashMap<Integer, TextureSequence.TextureFrame> texFrameMap = new HashMap<Integer, TextureSequence.TextureFrame>();
     private ArrayList<GLMediaEventListener> eventListeners = new ArrayList<GLMediaEventListener>();
 
     protected GLMediaPlayerImpl() {
@@ -172,27 +172,29 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         }
         this.urlConn = urlConn;
         if (this.urlConn != null) {
-            try {
-                if(null!=texFrames) {
-                    removeAllImageTextures(gl);
-                } else {
-                    texFrames = new TextureFrame[textureCount];
-                }
-            
-                final int[] tex = new int[textureCount];
-                {
-                    gl.glGenTextures(textureCount, tex, 0);
-                    final int err = gl.glGetError();
-                    if( GL.GL_NO_ERROR != err ) {
-                        throw new RuntimeException("TextureNames creation failed (num: "+textureCount+"): err "+toHexString(err));
+            try {                
+                if(null != gl) {
+                    if(null!=texFrames) {
+                        // re-init ..
+                        removeAllImageTextures(gl);
+                    } else {
+                        texFrames = new TextureSequence.TextureFrame[textureCount];
                     }
-                }
-                initGLStreamImpl(gl, tex);
-                
-                for(int i=0; i<textureCount; i++) {
-                    final TextureFrame tf = createTexImage(gl, i, tex); 
-                    texFrames[i] = tf;
-                    texFrameMap.put(tex[i], tf);
+                    final int[] tex = new int[textureCount];
+                    {
+                        gl.glGenTextures(textureCount, tex, 0);
+                        final int err = gl.glGetError();
+                        if( GL.GL_NO_ERROR != err ) {
+                            throw new RuntimeException("TextureNames creation failed (num: "+textureCount+"): err "+toHexString(err));
+                        }
+                    }
+                    initGLStreamImpl(gl, tex);
+                    
+                    for(int i=0; i<textureCount; i++) {
+                        final TextureSequence.TextureFrame tf = createTexImage(gl, i, tex); 
+                        texFrames[i] = tf;
+                        texFrameMap.put(tex[i], tf);
+                    }
                 }
                 state = State.Stopped;
                 return state;
@@ -216,9 +218,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
      * @see #vcodec
     */
     protected abstract void initGLStreamImpl(GL gl, int[] texNames) throws IOException;
-
-    protected TextureFrame createTexImage(GL gl, int idx, int[] tex) {
-        return new TextureFrame( createTexImageImpl(gl, idx, tex, true) );
+    
+    protected TextureSequence.TextureFrame createTexImage(GL gl, int idx, int[] tex) {
+        return new TextureSequence.TextureFrame( createTexImageImpl(gl, idx, tex, false) );
     }
     
     protected Texture createTexImageImpl(GL gl, int idx, int[] tex, boolean mustFlipVertically) {
@@ -264,14 +266,14 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                      mustFlipVertically);        
     }
     
-    protected void destroyTexImage(GL gl, TextureFrame imgTex) {
+    protected void destroyTexImage(GL gl, TextureSequence.TextureFrame imgTex) {
         imgTex.getTexture().destroy(gl);        
     }
     
     protected void removeAllImageTextures(GL gl) {
         if(null != texFrames) {
             for(int i=0; i<textureCount; i++) {
-                final TextureFrame imgTex = texFrames[i];
+                final TextureSequence.TextureFrame imgTex = texFrames[i];
                 if(null != imgTex) {
                     destroyTexImage(gl, imgTex);
                     texFrames[i] = null;

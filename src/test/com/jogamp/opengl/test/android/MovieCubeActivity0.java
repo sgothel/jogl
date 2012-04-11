@@ -43,14 +43,14 @@ import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.opengl.GLWindow;
 
-import com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube;
 import com.jogamp.opengl.util.Animator;
 
 import android.os.Bundle;
 import android.util.Log;
 
-public class MovieSimpleActivity0 extends NewtBaseActivity {
-   static String TAG = "MovieSimpleActivity0";
+public class MovieCubeActivity0 extends NewtBaseActivity {
+   static String TAG = "MovieCubeActivity0";
    
    MouseAdapter toFrontMouseListener = new MouseAdapter() {
        public void mouseClicked(MouseEvent e) {
@@ -85,8 +85,7 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
            setAnimator(animator);
            
            // Main           
-           final MovieSimple demoMain = new MovieSimple(urlConnection0);
-           demoMain.setScaleOrig(true);
+           final MovieCube demoMain = new MovieCube(urlConnection0, -2.3f, 0f, 0f);
            final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);
            glWindowMain.setFullscreen(true);
            setContentView(getWindow(), glWindowMain);
@@ -94,8 +93,8 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
            animator.add(glWindowMain);
            glWindowMain.setVisible(true);
            
-           animator.setUpdateFPSFrames(60, System.err);
-           // animator.setUpdateFPSFrames(-1, null);
+           // animator.setUpdateFPSFrames(60, System.err);
+           animator.setUpdateFPSFrames(-1, null);
            animator.resetFPSCounter();
        } catch (IOException e) {
            e.printStackTrace();

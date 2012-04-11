@@ -45,16 +45,16 @@ import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.opengl.GLWindow;
 
-import com.jogamp.opengl.av.GLMediaPlayer;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.av.GLMediaPlayer;
 
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 
-public class MovieSimpleActivity extends NewtBaseActivity {
-   static String TAG = "NEWTGearsES2Activity";
+public class MovieSimpleActivity1 extends NewtBaseActivity {
+   static String TAG = "MovieSimpleActivity1";
    
    MouseAdapter toFrontMouseListener = new MouseAdapter() {
        public void mouseClicked(MouseEvent e) {

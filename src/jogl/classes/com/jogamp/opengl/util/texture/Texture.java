@@ -197,6 +197,7 @@ public class Texture {
         this.mustFlipVertically = mustFlipVertically;
         this.texWidth = texWidth;
         this.texHeight = texHeight;
+        aspectRatio = (float) imgWidth / (float) imgHeight;
         setImageSize(imgWidth, imgHeight, target);
     }
 

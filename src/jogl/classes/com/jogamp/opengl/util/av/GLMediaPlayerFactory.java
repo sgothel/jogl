@@ -25,9 +25,9 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.av;
+package com.jogamp.opengl.util.av;
 
-import jogamp.opengl.av.NullGLMediaPlayer;
+import jogamp.opengl.util.av.NullGLMediaPlayer;
 
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.Platform;

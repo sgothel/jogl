@@ -4,4 +4,4 @@
 
 uniform  sampler2D     mgl_ActiveTexture;
 
-#include moviesimple_xxx.fp
+#include texsimple_xxx.fp

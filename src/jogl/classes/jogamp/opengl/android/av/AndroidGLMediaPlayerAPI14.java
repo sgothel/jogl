@@ -32,10 +32,10 @@ import java.io.IOException;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLES2;
 
-import com.jogamp.opengl.util.texture.TextureCoords;
+import com.jogamp.opengl.util.texture.TextureSequence;
 
 import jogamp.common.os.android.StaticContext;
-import jogamp.opengl.av.GLMediaPlayerImpl;
+import jogamp.opengl.util.av.GLMediaPlayerImpl;
 
 import android.graphics.SurfaceTexture;
 import android.graphics.SurfaceTexture.OnFrameAvailableListener;
@@ -51,7 +51,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     MediaPlayer mp;
     volatile boolean updateSurface = false;
     Object updateSurfaceLock = new Object();
-    TextureFrame lastTexFrame = null;
+    TextureSequence.TextureFrame lastTexFrame = null;
 
     /**
     private static String toString(MediaPlayer m) {
@@ -133,12 +133,12 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     @Override
-    public TextureFrame getLastTexture() {
+    public TextureSequence.TextureFrame getLastTexture() {
         return lastTexFrame;
     }
 
     @Override
-    public TextureFrame getNextTexture(GL gl, boolean blocking) {
+    public TextureSequence.TextureFrame getNextTexture(GL gl, boolean blocking) {
         if(null != stex && null != mp) {
             // Only block once, no while-loop. 
             // This relaxes locking code of non crucial resources/events.
@@ -164,11 +164,6 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             
         }
         return lastTexFrame;
-    }
-    
-    @Override
-    public TextureCoords getTextureCoords() {
-        return texFrames[0].getTexture().getImageTexCoords();
     }
     
     private void wakeUp(boolean newFrame) {
@@ -226,12 +221,19 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             totalFrames = 0;
             duration = mp.getDuration();
             acodec = "unknown";
-            vcodec = "unknown";
+            vcodec = "unknown";            
         }
     }
     
     @Override
-    protected void destroyTexImage(GL gl, TextureFrame imgTex) {
+    protected TextureSequence.TextureFrame createTexImage(GL gl, int idx, int[] tex) {
+        lastTexFrame = new TextureSequence.TextureFrame( createTexImageImpl(gl, idx, tex, true) );
+        // lastTexFrame = super.createTexImage(gl, idx, tex);
+        return lastTexFrame; 
+    }
+    
+    @Override
+    protected void destroyTexImage(GL gl, TextureSequence.TextureFrame imgTex) {
         if(null != stex) {
             stex.release();
             stex = null;
