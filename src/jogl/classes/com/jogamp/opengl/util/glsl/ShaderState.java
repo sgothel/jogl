@@ -684,14 +684,10 @@ public class ShaderState {
     public void releaseAllAttributes(GL2ES2 gl) {
         if(null!=shaderProgram) {
             for(Iterator<GLArrayData> iter = activeAttribDataMap.values().iterator(); iter.hasNext(); ) {
-                if(!disableVertexAttribArray(gl, iter.next())) {
-                    throw new GLException("Internal Error: mapped vertex attribute couldn't be disabled");
-                }
+                disableVertexAttribArray(gl, iter.next());
             }
             for(Iterator<String> iter = activedAttribEnabledMap.keySet().iterator(); iter.hasNext(); ) {
-                if(!disableVertexAttribArray(gl, iter.next())) {
-                    throw new GLException("Internal Error: prev enabled vertex attribute couldn't be disabled");
-                }
+                disableVertexAttribArray(gl, iter.next());
             }
         }
         activeAttribDataMap.clear();
