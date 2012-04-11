@@ -28,7 +28,7 @@
 
 package javax.media.opengl;
 
-import java.nio.*;
+import java.nio.Buffer;
 
 /**
  *
@@ -129,7 +129,10 @@ public interface GLArrayData {
     public int getComponentSizeInBytes();
 
     /**
-     * The current number of used elements.<br>
+     * The current number of used elements.
+     * <p>
+     * On element consist out of {@link #getComponentCount()} components.
+     * </p>
      * In case the buffer's position is 0 (sealed, flipped), it's based on it's limit instead of it's position.
      */
     public int getElementCount();

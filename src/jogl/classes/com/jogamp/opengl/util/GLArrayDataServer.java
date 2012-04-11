@@ -60,7 +60,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
 
   /**
    * Create a VBO, using a predefined fixed function array index
-   * and starting with a new created Buffer object with initialSize size
+   * and starting with a new created Buffer object with initialElementCount size
    *
    * On profiles GL2 and ES1 the fixed function pipeline behavior is as expected.
    * On profile ES2 the fixed function emulation will transform these calls to 
@@ -74,39 +74,39 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    * @param comps The array component number
    * @param dataType The array index GL data type
    * @param normalized Whether the data shall be normalized
-   * @param initialSize
+   * @param initialElementCount
    * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
    *
    * @see javax.media.opengl.GLContext#getPredefinedArrayIndexName(int)
    */
-  public static GLArrayDataServer createFixed(int index, int comps, int dataType, boolean normalized, int initialSize, 
+  public static GLArrayDataServer createFixed(int index, int comps, int dataType, boolean normalized, int initialElementCount, 
                                               int vboUsage)
     throws GLException
   {
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLFixedArrayHandler(ads);
-    ads.init(null, index, comps, dataType, normalized, 0, null, initialSize, false, glArrayHandler,
+    ads.init(null, index, comps, dataType, normalized, 0, null, initialElementCount, false, glArrayHandler,
              0, 0, vboUsage, GL.GL_ARRAY_BUFFER, false);
     return ads;
   }
 
   /**
    * Create a VBO, using a custom GLSL array attribute name
-   * and starting with a new created Buffer object with initialSize size
+   * and starting with a new created Buffer object with initialElementCount size
    * @param name  The custom name for the GL attribute    
    * @param comps The array component number
    * @param dataType The array index GL data type
    * @param normalized Whether the data shall be normalized
-   * @param initialSize
+   * @param initialElementCount
    * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
    */
   public static GLArrayDataServer createGLSL(String name, int comps,
-                                             int dataType, boolean normalized, int initialSize, int vboUsage) 
+                                             int dataType, boolean normalized, int initialElementCount, int vboUsage) 
     throws GLException 
   {
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLSLArrayHandler(ads);
-    ads.init(name, -1, comps, dataType, normalized, 0, null, initialSize,
+    ads.init(name, -1, comps, dataType, normalized, 0, null, initialElementCount,
              true, glArrayHandler, 0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
     return ads;
   }  
@@ -133,7 +133,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
              0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
     return ads;
   }
-
+  
   /**
    * Create a VBO data object for any target w/o render pipeline association, ie {@link GL#GL_ELEMENT_ARRAY_BUFFER}.
    * 
@@ -165,17 +165,17 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
    * 
    * @param comps The array component number
    * @param dataType The array index GL data type
-   * @param initialSize
+   * @param initialElementCount
    * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
    * @param vboTarget {@link GL#GL_ELEMENT_ARRAY_BUFFER}, ..
    */
-  public static GLArrayDataServer createData(int comps, int dataType, int initialSize, 
+  public static GLArrayDataServer createData(int comps, int dataType, int initialElementCount, 
                                              int vboUsage, int vboTarget)
     throws GLException
   {
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLDataArrayHandler(ads);
-    ads.init(null, -1, comps, dataType, false, 0, null, initialSize, false, glArrayHandler,
+    ads.init(null, -1, comps, dataType, false, 0, null, initialElementCount, false, glArrayHandler,
              0, 0, vboUsage, vboTarget, false);
     return ads;
   }
@@ -183,22 +183,22 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
   
   /**
    * Create a VBO for fixed function interleaved array data
-   * starting with a new created Buffer object with initialSize size.
+   * starting with a new created Buffer object with initialElementCount size.
    * <p>User needs to <i>configure</i> the interleaved segments via {@link #addFixedSubArray(int, int, int)}.</p>
    * 
    * @param comps The total number of all interleaved components.
    * @param dataType The array index GL data type
    * @param normalized Whether the data shall be normalized
-   * @param initialSize 
+   * @param initialElementCount 
    * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
    */
-  public static GLArrayDataServer createFixedInterleaved(int comps, int dataType, boolean normalized, int initialSize, 
+  public static GLArrayDataServer createFixedInterleaved(int comps, int dataType, boolean normalized, int initialElementCount, 
                                               int vboUsage)
     throws GLException
   {
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLArrayHandlerInterleaved(ads);
-    ads.init(GLPointerFuncUtil.mgl_InterleaveArray, -1, comps, dataType, false, 0, null, initialSize, false, glArrayHandler,
+    ads.init(GLPointerFuncUtil.mgl_InterleaveArray, -1, comps, dataType, false, 0, null, initialElementCount, false, glArrayHandler,
              0, 0, vboUsage, GL.GL_ARRAY_BUFFER, false);
     return ads;
   }
@@ -239,22 +239,22 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
   
   /**
    * Create a VBO for GLSL interleaved array data
-   * starting with a new created Buffer object with initialSize size.
+   * starting with a new created Buffer object with initialElementCount size.
    * <p>User needs to <i>configure</i> the interleaved segments via {@link #addGLSLSubArray(int, int, int)}.</p>
    * 
    * @param comps The total number of all interleaved components.
    * @param dataType The array index GL data type
    * @param normalized Whether the data shall be normalized
-   * @param initialSize 
+   * @param initialElementCount 
    * @param vboUsage {@link GL2ES2#GL_STREAM_DRAW}, {@link GL#GL_STATIC_DRAW} or {@link GL#GL_DYNAMIC_DRAW}
    */
-  public static GLArrayDataServer createGLSLInterleaved(int comps, int dataType, boolean normalized, int initialSize, 
+  public static GLArrayDataServer createGLSLInterleaved(int comps, int dataType, boolean normalized, int initialElementCount, 
                                               int vboUsage)
     throws GLException
   {
     GLArrayDataServer ads = new GLArrayDataServer();
     GLArrayHandler glArrayHandler = new GLSLArrayHandlerInterleaved(ads);
-    ads.init(GLPointerFuncUtil.mgl_InterleaveArray, -1, comps, dataType, false, 0, null, initialSize, false, glArrayHandler,
+    ads.init(GLPointerFuncUtil.mgl_InterleaveArray, -1, comps, dataType, false, 0, null, initialElementCount, false, glArrayHandler,
              0, 0, vboUsage, GL.GL_ARRAY_BUFFER, true);
     return ads;
   }
@@ -283,7 +283,7 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
       final GLArrayDataWrapper ad = GLArrayDataWrapper.createGLSL(
               name, comps, getComponentType(), 
               getNormalized(), getStride(), getBuffer(), 
-              getVBOName(), interleavedOffset, getVBOUsage(), vboTarget);     
+              getVBOName(), interleavedOffset, getVBOUsage(), vboTarget);      
       ad.setVBOEnabled(isVBO());
       interleavedOffset += comps * getComponentSizeInBytes();
       if(GL.GL_ARRAY_BUFFER == vboTarget) { 
@@ -332,12 +332,12 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
                        ", index "+index+
                        ", location "+location+
                        ", isVertexAttribute "+isVertexAttribute+
-                       ", dataType "+componentType+ 
+                       ", dataType 0x"+Integer.toHexString(componentType)+ 
                        ", bufferClazz "+componentClazz+ 
                        ", elements "+getElementCount()+
                        ", components "+components+ 
                        ", stride "+strideB+"b "+strideL+"c"+
-                       ", initialSize "+initialSize+
+                       ", initialElementCount "+initialElementCount+
                        ", vboEnabled "+vboEnabled+ 
                        ", vboName "+vboName+ 
                        ", vboUsage 0x"+Integer.toHexString(vboUsage)+ 
@@ -356,12 +356,12 @@ public class GLArrayDataServer extends GLArrayDataClient implements GLArrayDataE
   //
 
   protected void init(String name, int index, int comps, int dataType, boolean normalized, 
-                      int stride, Buffer data, int initialSize, boolean isVertexAttribute,
+                      int stride, Buffer data, int initialElementCount, boolean isVertexAttribute,
                       GLArrayHandler glArrayHandler,
                       int vboName, long vboOffset, int vboUsage, int vboTarget, boolean usesGLSL)
     throws GLException
   {
-    super.init(name, index, comps, dataType, normalized, stride, data, initialSize, isVertexAttribute, glArrayHandler,
+    super.init(name, index, comps, dataType, normalized, stride, data, initialElementCount, isVertexAttribute, glArrayHandler,
                vboName, vboOffset, vboUsage, vboTarget, usesGLSL);
 
     vboEnabled=true;

@@ -81,16 +81,16 @@ public class VBORegion2PES2  extends GLRegion {
         }
 
         if(null == indicesFbo) {
-            final int initialSize = 256;
+            final int initialElementCount = 256;
             final ShaderState st = rs.getShaderState();
             
-            indicesFbo = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialSize, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);                
+            indicesFbo = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);                
             indicesFbo.puts((short) 0); indicesFbo.puts((short) 1); indicesFbo.puts((short) 3);
             indicesFbo.puts((short) 1); indicesFbo.puts((short) 2); indicesFbo.puts((short) 3);
             indicesFbo.seal(true);
             
             texCoordFboAttr = GLArrayDataServer.createGLSL(AttributeNames.TEXCOORD_ATTR_NAME, 2, GL2ES2.GL_FLOAT, 
-                                                           false, initialSize, GL.GL_STATIC_DRAW);
+                                                           false, initialElementCount, GL.GL_STATIC_DRAW);
             st.ownAttribute(texCoordFboAttr, true);
             texCoordFboAttr.putf(5); texCoordFboAttr.putf(5);        
             texCoordFboAttr.putf(5); texCoordFboAttr.putf(6);        
@@ -99,18 +99,18 @@ public class VBORegion2PES2  extends GLRegion {
             texCoordFboAttr.seal(true);
             
             verticeFboAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT, 
-                                                          false, initialSize, GL.GL_STATIC_DRAW); 
+                                                          false, initialElementCount, GL.GL_STATIC_DRAW); 
             st.ownAttribute(verticeFboAttr, true);
             
             
-            indicesTxt = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialSize, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);                
+            indicesTxt = GLArrayDataServer.createData(3, GL2ES2.GL_SHORT, initialElementCount, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);                
             
             verticeTxtAttr = GLArrayDataServer.createGLSL(AttributeNames.VERTEX_ATTR_NAME, 3, GL2ES2.GL_FLOAT, 
-                                                          false, initialSize, GL.GL_STATIC_DRAW);
+                                                          false, initialElementCount, GL.GL_STATIC_DRAW);
             st.ownAttribute(verticeTxtAttr, true);
             
             texCoordTxtAttr = GLArrayDataServer.createGLSL(AttributeNames.TEXCOORD_ATTR_NAME, 2, GL2ES2.GL_FLOAT, 
-                                                           false, initialSize, GL.GL_STATIC_DRAW);
+                                                           false, initialElementCount, GL.GL_STATIC_DRAW);
             st.ownAttribute(texCoordTxtAttr, true);
             
             if(DEBUG_INSTANCE) {

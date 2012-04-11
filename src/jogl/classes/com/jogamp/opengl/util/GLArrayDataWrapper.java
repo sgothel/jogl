@@ -1,14 +1,24 @@
 
 package com.jogamp.opengl.util;
 
-import javax.media.opengl.*;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
+
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES1;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLArrayData;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
 import javax.media.opengl.fixedfunc.GLPointerFuncUtil;
 
-import jogamp.opengl.util.glsl.fixedfunc.*;
-
-import java.nio.*;
+import jogamp.opengl.Debug;
 
 public class GLArrayDataWrapper implements GLArrayData {
+  public static final boolean DEBUG = Debug.debug("GLArrayData");
 
   /**
    * Create a VBO, using a predefined fixed function array index, wrapping the given data.
@@ -28,8 +38,7 @@ public class GLArrayDataWrapper implements GLArrayData {
    * @throws GLException
    */
   public static GLArrayDataWrapper createFixed(int index, int comps, int dataType, boolean normalized, int stride, 
-                                               Buffer buffer, int vboName,
-                                               long vboOffset, int vboUsage, int vboTarget)
+                                               Buffer buffer, int vboName, long vboOffset, int vboUsage, int vboTarget)
     throws GLException
   {
       GLArrayDataWrapper adc = new GLArrayDataWrapper();
@@ -55,8 +64,7 @@ public class GLArrayDataWrapper implements GLArrayData {
    * @throws GLException
    */
   public static GLArrayDataWrapper createGLSL(String name, int comps, int dataType, boolean normalized, int stride, 
-                                             Buffer buffer, int vboName,                                             
-                                             long vboOffset, int vboUsage, int vboTarget)
+                                             Buffer buffer, int vboName, long vboOffset, int vboUsage, int vboTarget)
     throws GLException
   {
       GLArrayDataWrapper adc = new GLArrayDataWrapper();
@@ -149,7 +157,7 @@ public class GLArrayDataWrapper implements GLArrayData {
                        ", index "+index+
                        ", location "+location+
                        ", isVertexAttribute "+isVertexAttribute+
-                       ", dataType "+componentType+ 
+                       ", dataType 0x"+Integer.toHexString(componentType)+ 
                        ", bufferClazz "+componentClazz+ 
                        ", elements "+getElementCount()+
                        ", components "+components+ 
