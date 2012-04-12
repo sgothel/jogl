@@ -8,6 +8,10 @@
 static const char * const ClazzNameRuntimeException = "java/lang/RuntimeException";
 static jclass    runtimeExceptionClz=NULL;
 
+static JavaVM *_jvmHandle = NULL;
+static int _jvmVersion = 0;
+
+
 void JoglCommon_FatalError(JNIEnv *env, const char* msg, ...)
 {
     char buffer[512];
@@ -45,6 +49,19 @@ void JoglCommon_init(JNIEnv *env) {
             JoglCommon_FatalError(env, "JOGL: can't use %s", ClazzNameRuntimeException);
         }
     }
+    if(0 != (*env)->GetJavaVM(env, &_jvmHandle)) {
+        JoglCommon_FatalError(env, "JOGL: can't fetch JavaVM handle");
+    } else {
+        _jvmVersion = (*env)->GetVersion(env);
+    }
+}
+
+JavaVM *JoglCommon_GetJVMHandle() {
+    return _jvmHandle;
+}
+
+int JoglCommon_GetJVMVersion() {
+    return _jvmVersion;
 }
 
 jchar* JoglCommon_GetNullTerminatedStringChars(JNIEnv* env, jstring str)
@@ -55,6 +72,50 @@ jchar* JoglCommon_GetNullTerminatedStringChars(JNIEnv* env, jstring str)
         (*env)->GetStringRegion(env, str, 0, (*env)->GetStringLength(env, str), strChars);
     }
     return strChars;
+}
+
+JNIEnv* JoglCommon_GetJNIEnv (int * shallBeDetached)
+{
+    JNIEnv* curEnv = NULL;
+    JNIEnv* newEnv = NULL;
+    int envRes;
+
+    if(NULL == _jvmHandle) {
+        fprintf(stderr, "JOGL: No JavaVM handle registered, call JoglCommon_init(..) 1st");
+        return NULL;
+    }
+
+    // retrieve this thread's JNIEnv curEnv - or detect it's detached
+    envRes = (*_jvmHandle)->GetEnv(_jvmHandle, (void **) &curEnv, _jvmVersion) ;
+    if( JNI_EDETACHED == envRes ) {
+        // detached thread - attach to JVM
+        if( JNI_OK != ( envRes = (*_jvmHandle)->AttachCurrentThread(_jvmHandle, (void**) &newEnv, NULL) ) ) {
+            fprintf(stderr, "JNIEnv: can't attach thread: %d\n", envRes);
+            return NULL;
+        }
+        curEnv = newEnv;
+    } else if( JNI_OK != envRes ) {
+        // oops ..
+        fprintf(stderr, "can't GetEnv: %d\n", envRes);
+        return NULL;
+    }
+    if (curEnv==NULL) {
+        fprintf(stderr, "env is NULL\n");
+        return NULL;
+    }
+    *shallBeDetached = NULL != newEnv;
+    return curEnv;
+}
+
+void JoglCommon_ReleaseJNIEnv (int shallBeDetached) {
+    if(NULL == _jvmHandle) {
+        fprintf(stderr, "JOGL: No JavaVM handle registered, call JoglCommon_init(..) 1st");
+        return NULL;
+    }
+
+    if(shallBeDetached) {
+        (*_jvmHandle)->DetachCurrentThread(_jvmHandle);
+    }
 }
 
 /*
