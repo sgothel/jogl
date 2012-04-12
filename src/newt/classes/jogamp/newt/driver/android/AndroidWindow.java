@@ -313,7 +313,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
 
     public void surfaceChanged(SurfaceHolder aHolder, int aFormat, int aWidth, int aHeight) {
         Log.d(MD.TAG, "surfaceChanged: f "+nativeFormat+" -> "+aFormat+", "+aWidth+"x"+aHeight+", current surfaceHandle: 0x"+Long.toHexString(surfaceHandle));
-        if(0!=surfaceHandle && ( androidFormat != aFormat || getWidth()!=aWidth || getHeight()!=aHeight) ) {
+        if(0!=surfaceHandle && androidFormat != aFormat ) {
             // re-create
             Log.d(MD.TAG, "surfaceChanged (destroy old)");
             windowDestroyNotify();
