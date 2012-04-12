@@ -1,5 +1,5 @@
 
-package jogamp.opengl.omx;
+package jogamp.opengl.util.av.impl;
 
 import java.io.IOException;
 import java.net.URL;
@@ -205,10 +205,6 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
             System.out.println("EGL Error: ("+s+"): 0x"+Integer.toHexString(e));
         }
     }
-
-    //
-    // OMXEventListener Support
-    //
 
     native long _createInstance();    
     native void _destroyInstance(long moviePtr);
