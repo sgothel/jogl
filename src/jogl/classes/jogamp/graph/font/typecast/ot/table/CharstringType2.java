@@ -141,7 +141,7 @@ public class CharstringType2 extends Charstring {
         return _name;
     }
     
-    private void disassemble(StringBuffer sb) {
+    private void disassemble(StringBuilder sb) {
         Number operand = null;
         while (isOperandAtIndex()) {
             operand = nextOperand();
@@ -224,7 +224,7 @@ public class CharstringType2 extends Charstring {
     }
     
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         resetIP();
         while (moreBytes()) {
             disassemble(sb);

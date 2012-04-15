@@ -70,7 +70,7 @@ public class ImmModeSink {
   }
 
   public String toString() {
-    StringBuffer sb = new StringBuffer("ImmModeSink[");
+    StringBuilder sb = new StringBuilder("ImmModeSink[");
     sb.append(",\n\tVBO list: "+vboSetList.size()+" [");
     for(Iterator<VBOSet> i=vboSetList.iterator(); i.hasNext() ; ) {
         sb.append("\n\t");

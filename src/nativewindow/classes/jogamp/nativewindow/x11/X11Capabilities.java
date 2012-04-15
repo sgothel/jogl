@@ -71,9 +71,9 @@ public class X11Capabilities extends Capabilities {
       }      
   }
   
-  public StringBuffer toString(StringBuffer sink) {
+  public StringBuilder toString(StringBuilder sink) {
     if(null == sink) {
-        sink = new StringBuffer();
+        sink = new StringBuilder();
     }
     sink.append("x11 vid ");
     if(hasXVisualInfo()) {

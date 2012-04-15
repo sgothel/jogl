@@ -208,9 +208,9 @@ public class WGLGLCapabilities extends GLCapabilities {
       }      
   }
   
-  public StringBuffer toString(StringBuffer sink) {
+  public StringBuilder toString(StringBuilder sink) {
     if(null == sink) {
-        sink = new StringBuffer();
+        sink = new StringBuilder();
     }
     sink.append("wgl vid 0x").append(Integer.toHexString(pfdID)).append(" ");
     switch (arb_pixelformat) {

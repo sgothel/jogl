@@ -135,7 +135,7 @@ public class CmapTable implements Table {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer().append("cmap\n");
+        StringBuilder sb = new StringBuilder().append("cmap\n");
 
         // Get each of the index entries
         for (int i = 0; i < _numTables; i++) {

@@ -114,7 +114,7 @@ public class TableDirectory {
     }
     
     public String toString() {
-        StringBuffer sb = new StringBuffer()
+        StringBuilder sb = new StringBuilder()
             .append("Offset Table\n------ -----")
             .append("\n  sfnt version:     ").append(Fixed.floatValue(_version))
             .append("\n  numTables =       ").append(_numTables)

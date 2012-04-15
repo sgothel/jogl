@@ -96,7 +96,7 @@ public class DirectoryEntry implements Cloneable {
     }
 
     public String getTagAsString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append((char)((_tag>>24)&0xff))
             .append((char)((_tag>>16)&0xff))
             .append((char)((_tag>>8)&0xff))
@@ -105,7 +105,7 @@ public class DirectoryEntry implements Cloneable {
     }
     
     public String toString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append("'").append(getTagAsString())
             .append("' - chksm = 0x").append(Integer.toHexString(_checksum))
             .append(", off = 0x").append(Integer.toHexString(_offset))

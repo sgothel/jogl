@@ -39,7 +39,7 @@ public class GaspTable implements Table {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("'gasp' Table - Grid-fitting And Scan-conversion Procedure\n---------------------------------------------------------");
         sb.append("\n  'gasp' version:      ").append(version);
         sb.append("\n  numRanges:           ").append(numRanges);

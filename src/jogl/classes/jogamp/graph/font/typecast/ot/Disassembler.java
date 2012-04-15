@@ -82,7 +82,7 @@ public class Disassembler {
     }
 
      public static String disassemble(short[] instructions, int leadingSpaces) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         int ip = 0;
         while (ip < instructions.length) {
             for (int i = 0; i < leadingSpaces; i++) {

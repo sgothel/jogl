@@ -89,9 +89,9 @@ public class X11GLCapabilities extends GLCapabilities {
       }      
   }
   
-  public StringBuffer toString(StringBuffer sink) {
+  public StringBuilder toString(StringBuilder sink) {
     if(null == sink) {
-        sink = new StringBuffer();
+        sink = new StringBuilder();
     }
     sink.append("glx vid ");
     if(hasXVisualInfo()) {

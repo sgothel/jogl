@@ -564,7 +564,7 @@ public class BuildComposablePipeline {
          */
         protected void postMethodEmissionHook(PrintWriter output) {
             output.println("  public String toString() {");
-            output.println("    StringBuffer sb = new StringBuffer();");
+            output.println("    StringBuilder sb = new StringBuilder();");
             output.println("    sb.append(\"" + getOutputName() + " [ implementing " + baseInterfaceClass.getName() + ",\\n\\t\");");
             if (null != prologClassOpt) {
                 output.println("    sb.append(\" prolog: \"+" + getPrologObjectNameOpt() + ".toString()+\",\\n\\t\");");
@@ -859,7 +859,7 @@ public class BuildComposablePipeline {
                     + ".glGetError();");
             output.println("    if (err == GL_NO_ERROR) { return; }");
             output.println();
-            output.println("    StringBuffer buf = new StringBuffer(Thread.currentThread()+");
+            output.println("    StringBuilder buf = new StringBuilder(Thread.currentThread()+");
             output.println("      \" glGetError() returned the following error codes after a call to \" + caller + \": \");");
             output.println();
             output.println("    // Loop repeatedly to allow for distributed GL implementations,");
@@ -1010,7 +1010,7 @@ public class BuildComposablePipeline {
             output.println("protected String dumpArray(Object obj)");
             output.println("{");
             output.println("  if (obj == null) return \"[null]\";");
-            output.println("  StringBuffer sb = new StringBuffer(\"[\");");
+            output.println("  StringBuilder sb = new StringBuilder(\"[\");");
             output.println("  int len  = java.lang.reflect.Array.getLength(obj);");
             output.println("  int count = Math.min(len,16);");
             output.println("  for ( int i =0; i < count; i++ ) {");

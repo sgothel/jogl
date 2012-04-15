@@ -298,7 +298,7 @@ public class Os2Table implements Table {
     }
 
     public String toString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append("'OS/2' Table - OS/2 and Windows Metrics\n---------------------------------------")
             .append("\n  'OS/2' version:      ").append(_version)
             .append("\n  xAvgCharWidth:       ").append(_xAvgCharWidth)
@@ -337,7 +337,7 @@ public class Os2Table implements Table {
     }
     
     private String getVendorIDAsString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append((char)((_achVendorID>>24)&0xff))
             .append((char)((_achVendorID>>16)&0xff))
             .append((char)((_achVendorID>>8)&0xff))

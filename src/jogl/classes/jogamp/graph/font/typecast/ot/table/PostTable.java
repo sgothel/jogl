@@ -375,7 +375,7 @@ public class PostTable implements Table {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("'post' Table - PostScript Metrics\n---------------------------------\n")
             .append("\n        'post' version:        ").append(Fixed.floatValue(version))
             .append("\n        italicAngle:           ").append(Fixed.floatValue(italicAngle))

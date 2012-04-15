@@ -1603,7 +1603,7 @@ public class TextRenderer {
                 } else {
                     // Assemble a run of characters that don't fit in
                     // the cache
-                    StringBuffer buf = new StringBuffer();
+                    StringBuilder buf = new StringBuilder();
                     while (i < lengthInGlyphs &&
                            getGlyph(inString, fullRunGlyphVector.getGlyphMetrics(i), i) == null) {
                         buf.append(inString.charAt(i++));

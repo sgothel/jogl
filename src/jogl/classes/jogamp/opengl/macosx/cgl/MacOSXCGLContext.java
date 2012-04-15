@@ -382,7 +382,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   }  
   
   public String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append(getClass().getSimpleName());
     sb.append(" [");
     super.append(sb);

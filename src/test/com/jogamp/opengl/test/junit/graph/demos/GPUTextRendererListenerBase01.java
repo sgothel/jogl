@@ -97,7 +97,7 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         "in lorem. Maecenas in ipsum ac justo scelerisque sollicitudin. Quisque sit amet neque lorem,\n" +
         "-------Press H to change text---------\n"; 
     
-    StringBuffer userString = new StringBuffer();
+    StringBuilder userString = new StringBuilder();
     boolean userInput = false;
     
     public GPUTextRendererListenerBase01(RenderState rs, int modes, boolean debug, boolean trace) {

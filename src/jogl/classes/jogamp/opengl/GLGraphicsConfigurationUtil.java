@@ -40,9 +40,9 @@ public class GLGraphicsConfigurationUtil {
     public static final int PBUFFER_BIT = 1 << 2;
     public static final int ALL_BITS    = WINDOW_BIT | BITMAP_BIT | PBUFFER_BIT ;
 
-    public static final StringBuffer winAttributeBits2String(StringBuffer sb, int winattrbits) {
+    public static final StringBuilder winAttributeBits2String(StringBuilder sb, int winattrbits) {
         if(null==sb) {
-            sb = new StringBuffer();
+            sb = new StringBuilder();
         }
         boolean seperator = false;
         if( 0 != ( WINDOW_BIT & winattrbits )  )  {

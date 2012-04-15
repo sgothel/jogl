@@ -38,7 +38,7 @@ public class CvtTable implements Table {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("'cvt ' Table - Control Value Table\n----------------------------------\n");
         sb.append("Size = ").append(0).append(" bytes, ").append(values.length).append(" entries\n");
         sb.append("        Values\n        ------\n");

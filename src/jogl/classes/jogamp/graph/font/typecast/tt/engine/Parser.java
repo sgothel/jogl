@@ -149,7 +149,7 @@ public class Parser {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         int ip = 0;
         while (ip < instructions[0].length) {
             sb.append(Mnemonic.getMnemonic(getOpcode(ip)));

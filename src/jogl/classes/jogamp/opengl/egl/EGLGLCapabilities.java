@@ -122,9 +122,9 @@ public class EGLGLCapabilities extends GLCapabilities {
     return null;
   }
   
-  public static StringBuffer renderableTypeToString(StringBuffer sink, int renderableType) {
+  public static StringBuilder renderableTypeToString(StringBuilder sink, int renderableType) {
     if(null == sink) {
-        sink = new StringBuffer();
+        sink = new StringBuilder();
     }
     boolean first=true;
     if(0 != (renderableType & EGL.EGL_OPENGL_BIT)) {
@@ -142,9 +142,9 @@ public class EGLGLCapabilities extends GLCapabilities {
     return sink;      
   }
   
-  public StringBuffer toString(StringBuffer sink) {
+  public StringBuilder toString(StringBuilder sink) {
     if(null == sink) {
-        sink = new StringBuffer();
+        sink = new StringBuilder();
     }
     sink.append("egl cfg 0x").append(Integer.toHexString(eglcfgid));
     sink.append(", vid 0x").append(Integer.toHexString(nativeVisualID)).append(": ");

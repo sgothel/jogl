@@ -43,7 +43,7 @@ public class LtshTable implements Table {
     }
     
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("'LTSH' Table - Linear Threshold Table\n-------------------------------------")
             .append("\n 'LTSH' Version:       ").append(version)
             .append("\n Number of Glyphs:     ").append(numGlyphs)

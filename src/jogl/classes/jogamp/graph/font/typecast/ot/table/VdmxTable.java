@@ -153,7 +153,7 @@ public class VdmxTable implements Table {
     }
     
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("'VDMX' Table - Precomputed Vertical Device Metrics\n")
             .append("--------------------------------------------------\n")
             .append("  Version:                 ").append(_version).append("\n")

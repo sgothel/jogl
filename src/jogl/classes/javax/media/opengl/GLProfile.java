@@ -1654,7 +1654,7 @@ public class GLProfile {
     }
 
     private static String array2String(String[] list) {
-        StringBuffer msg = new StringBuffer();
+        StringBuilder msg = new StringBuilder();
         msg.append("[");
         for (int i = 0; i < list.length; i++) {
             if (i > 0)

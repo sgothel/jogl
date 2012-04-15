@@ -136,7 +136,7 @@ public class TestInitConcurrentNEWT extends UITestCase {
         return true;
     }
     protected static String doneDump(JOGLTask[] tasks) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("[");
         for(int i=0; i<tasks.length; i++) {
             if(i>0) {
@@ -157,7 +157,7 @@ public class TestInitConcurrentNEWT extends UITestCase {
         return true;
     }
     protected static String isAliveDump(Thread[] threads) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("[");
         for(int i=0; i<threads.length; i++) {
             if(i>0) {

@@ -91,7 +91,7 @@ public class CmapIndexEntry implements Comparable {
     }
 
     public String toString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append("platform id: ")
             .append(_platformId)
             .append(" (")

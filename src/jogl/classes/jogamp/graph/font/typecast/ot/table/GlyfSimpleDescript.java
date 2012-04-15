@@ -186,7 +186,7 @@ public class GlyfSimpleDescript extends GlyfDescript {
     }
     
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(super.toString());
         sb.append("\n\n        EndPoints\n        ---------");
         for (int i = 0; i < _endPtsOfContours.length; i++) {

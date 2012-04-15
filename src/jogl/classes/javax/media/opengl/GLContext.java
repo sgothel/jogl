@@ -396,7 +396,7 @@ public abstract class GLContext {
    * Classname, GL, GLDrawable
    */
   public String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
     sb.append(getClass().getSimpleName());
     sb.append(" [");
     this.append(sb);
@@ -404,7 +404,7 @@ public abstract class GLContext {
     return sb.toString();
   }
 
-  public final StringBuffer append(StringBuffer sb) {
+  public final StringBuilder append(StringBuilder sb) {
     sb.append("OpenGL ");
     sb.append(getGLVersionMajor());
     sb.append(".");

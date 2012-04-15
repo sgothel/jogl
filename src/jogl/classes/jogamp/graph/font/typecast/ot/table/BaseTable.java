@@ -212,7 +212,7 @@ public class BaseTable implements Table {
         }
 
         public String toString() {
-            StringBuffer sb = new StringBuffer()
+            StringBuilder sb = new StringBuilder()
                 .append("\nBaseScript BaseScriptT").append(Integer.toHexString(_thisOffset))
                 .append("\nBaseValuesT").append(Integer.toHexString(_thisOffset + _baseValuesOffset))
                 .append("\nMinMaxT").append(Integer.toHexString(_thisOffset + _defaultMinMaxOffset))
@@ -274,7 +274,7 @@ public class BaseTable implements Table {
         }
 
         public String toString() {
-            StringBuffer sb = new StringBuffer()
+            StringBuilder sb = new StringBuilder()
                 .append("\nBaseScriptList BaseScriptListT").append(Integer.toHexString(_thisOffset))
                 .append("\n").append(Integer.toHexString(_baseScriptCount));
             for (int i = 0; i < _baseScriptCount; ++i) {
@@ -306,7 +306,7 @@ public class BaseTable implements Table {
         }
 
         public String toString() {
-            StringBuffer sb = new StringBuffer()
+            StringBuilder sb = new StringBuilder()
                 .append("\nBaseTagList BaseTagListT").append(Integer.toHexString(_thisOffset))
                 .append("\n").append(Integer.toHexString(_baseTagCount));
             for (int i = 0; i < _baseTagCount; ++i) {
@@ -339,7 +339,7 @@ public class BaseTable implements Table {
         }
 
         public String toString() {
-            return new StringBuffer()
+            return new StringBuilder()
                 .append("\nAxis AxisT").append(Integer.toHexString(_thisOffset))
                 .append("\nBaseTagListT").append(Integer.toHexString(_thisOffset + _baseTagListOffset))
                 .append("\nBaseScriptListT").append(Integer.toHexString(_thisOffset + _baseScriptListOffset))
@@ -408,7 +408,7 @@ public class BaseTable implements Table {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer()
+        StringBuilder sb = new StringBuilder()
             .append("; 'BASE' Table - Baseline\n;-------------------------------------\n\n")
             .append("BASEHeader BASEHeaderT").append(Integer.toHexString(0))
             .append("\n").append(Integer.toHexString(_version))

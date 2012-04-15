@@ -101,7 +101,7 @@ public class HheaTable implements Table {
     }
 
     public String toString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append("'hhea' Table - Horizontal Header\n--------------------------------")
             .append("\n        'hhea' version:       ").append(Fixed.floatValue(version))
             .append("\n        yAscender:            ").append(ascender)

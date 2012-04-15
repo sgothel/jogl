@@ -126,7 +126,7 @@ public class MaxpTable implements Table {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("'maxp' Table - Maximum Profile\n------------------------------")
             .append("\n        'maxp' version:         ").append(Fixed.floatValue(versionNumber))
             .append("\n        numGlyphs:              ").append(numGlyphs);

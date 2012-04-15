@@ -158,7 +158,7 @@ public class MouseEvent extends InputEvent
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("MouseEvent[").append(getEventTypeString(getEventType()))
         .append(", ").append(x).append("/").append(y)
         .append(", button ").append(button).append(", count ")

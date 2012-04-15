@@ -143,7 +143,7 @@ public class CmapFormat4 extends CmapFormat {
     }
 
     public String toString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append(super.toString())
             .append(", segCountX2: ")
             .append(_segCountX2)

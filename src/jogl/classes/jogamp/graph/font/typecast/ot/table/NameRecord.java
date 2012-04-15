@@ -98,7 +98,7 @@ public class NameRecord {
     }
 
     protected void loadString(DataInput di) throws IOException {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         di.skipBytes(_stringOffset);
         if (_platformId == ID.platformUnicode) {
             
@@ -131,7 +131,7 @@ public class NameRecord {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         
         sb.append("             Platform ID:       ").append(_platformId)
             .append("\n             Specific ID:       ").append(_encodingId)

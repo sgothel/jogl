@@ -472,7 +472,7 @@ public class DDSImage {
         @return String format code
     */
     public static String getCompressionFormatName(int compressionFormat) {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         for (int i = 0; i < 4; i++) {
             char c = (char) (compressionFormat & 0xFF);
             buf.append(c);

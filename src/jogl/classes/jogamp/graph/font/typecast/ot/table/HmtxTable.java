@@ -111,7 +111,7 @@ public class HmtxTable implements Table {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("'hmtx' Table - Horizontal Metrics\n---------------------------------\n");
         sb.append("Size = ").append(_de.getLength()).append(" bytes, ")
             .append(_hMetrics.length).append(" entries\n");

@@ -492,8 +492,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                               ( isAlwaysOnTop() ? FLAG_IS_ALWAYSONTOP : 0 ) |
                               ( visible ? FLAG_IS_VISIBLE : 0 ) ;
     }
-    protected static String getReconfigureFlagsAsString(StringBuffer sb, int flags) {
-        if(null == sb) { sb = new StringBuffer(); }
+    protected static String getReconfigureFlagsAsString(StringBuilder sb, int flags) {
+        if(null == sb) { sb = new StringBuilder(); }
         sb.append("[");
         
         if( 0 != ( FLAG_CHANGE_PARENTING & flags) ) {

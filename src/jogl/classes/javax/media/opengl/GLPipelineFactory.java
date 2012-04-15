@@ -159,7 +159,7 @@ public class GLPipelineFactory {
     }
 
     private static final String getArgsClassNameList(Class<?> arg0, Object[] args) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(arg0.getName());
         if(args!=null) {
             for(int j=0; j<args.length; j++) {

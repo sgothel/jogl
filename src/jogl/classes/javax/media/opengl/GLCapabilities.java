@@ -401,9 +401,9 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     return pbufferRenderToTextureRectangle;
   }
 
-  public StringBuffer toString(StringBuffer sink) {
+  public StringBuilder toString(StringBuilder sink) {
     if(null == sink) {
-        sink = new StringBuffer();
+        sink = new StringBuilder();
     }
 
     int samples = sampleBuffers ? numSamples : 0 ;
@@ -448,7 +448,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   /** Returns a textual representation of this GLCapabilities
       object. */ 
   public String toString() {
-    StringBuffer msg = new StringBuffer();
+    StringBuilder msg = new StringBuilder();
     msg.append("GLCaps[");
     toString(msg);
     msg.append("]");

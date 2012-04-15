@@ -54,7 +54,7 @@ public class LocaTable implements Table {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("'loca' Table - Index To Location Table\n--------------------------------------\n")
             .append("Size = ").append(_de.getLength()).append(" bytes, ")
             .append(_offsets.length).append(" entries\n");

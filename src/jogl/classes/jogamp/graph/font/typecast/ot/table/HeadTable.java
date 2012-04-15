@@ -171,7 +171,7 @@ public class HeadTable implements Table {
     }
 
     public String toString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append("'head' Table - Font Header\n--------------------------")
             .append("\n  'head' version:      ").append(Fixed.floatValue(_versionNumber))
             .append("\n  fontRevision:        ").append(Fixed.roundedFloatValue(_fontRevision, 8))

@@ -60,7 +60,7 @@ public class DsigTable implements Table {
     }
     
     public String toString() {
-        StringBuffer sb = new StringBuffer().append("DSIG\n");
+        StringBuilder sb = new StringBuilder().append("DSIG\n");
         for (int i = 0; i < numSigs; i++) {
             sb.append(sigBlocks[i].toString());
         }

@@ -31,10 +31,9 @@ package jogamp.opengl.util.glsl.fixedfunc;
 
 import javax.media.opengl.*;
 import javax.media.opengl.fixedfunc.*;
-import javax.media.opengl.glu.*;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.*;
-import com.jogamp.opengl.util.glsl.*;
+
 import java.nio.*;
 
 public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFunc {
@@ -56,7 +55,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
 
     public FixedFuncHook(GL2ES2 gl, PMVMatrix matrix, 
-                       Class shaderRootClass, String shaderSrcRoot, String shaderBinRoot, 
+                       Class<?> shaderRootClass, String shaderSrcRoot, String shaderBinRoot, 
                        String vertexColorFile,
                        String vertexColorLightFile,
                        String fragmentColorFile,
@@ -112,28 +111,28 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
 
     public void glGetFloatv(int pname, java.nio.FloatBuffer params) {
-        if(pmvMatrix.isMatrixGetName(pname)) {
+        if(PMVMatrix.isMatrixGetName(pname)) {
             pmvMatrix.glGetFloatv(pname, params);
             return;
         }
         gl.glGetFloatv(pname, params);
     }
     public void glGetFloatv(int pname, float[] params, int params_offset) {
-        if(pmvMatrix.isMatrixGetName(pname)) {
+        if(PMVMatrix.isMatrixGetName(pname)) {
             pmvMatrix.glGetFloatv(pname, params, params_offset);
             return;
         }
         gl.glGetFloatv(pname, params, params_offset);
     }
     public void glGetIntegerv(int pname, IntBuffer params) {
-        if(pmvMatrix.isMatrixGetName(pname)) {
+        if(PMVMatrix.isMatrixGetName(pname)) {
             pmvMatrix.glGetIntegerv(pname, params);
             return;
         }
         gl.glGetIntegerv(pname, params);
     }
     public void glGetIntegerv(int pname, int[] params, int params_offset) {
-        if(pmvMatrix.isMatrixGetName(pname)) {
+        if(PMVMatrix.isMatrixGetName(pname)) {
             pmvMatrix.glGetIntegerv(pname, params, params_offset);
             return;
         }
@@ -339,7 +338,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
 
     public final String toString() {
-          StringBuffer buf = new StringBuffer();
+          StringBuilder buf = new StringBuilder();
           buf.append(getClass().getName()+" (");
           if(null!=pmvMatrix) {
               buf.append(", matrixDirty: "+pmvMatrix.isDirty());

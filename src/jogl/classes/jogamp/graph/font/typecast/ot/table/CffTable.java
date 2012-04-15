@@ -132,7 +132,7 @@ public class CffTable implements Table {
             } else if (b0 == 30) {
                 
                 // Real number
-                StringBuffer fString = new StringBuffer();
+                StringBuilder fString = new StringBuilder();
                 int nibble1 = 0;
                 int nibble2 = 0;
                 ++_index;
@@ -165,7 +165,7 @@ public class CffTable implements Table {
         }
         
         public String toString() {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             Enumeration<Integer> keys = _entries.keys();
             while (keys.hasMoreElements()) {
                 Integer key = keys.nextElement();
@@ -221,7 +221,7 @@ public class CffTable implements Table {
         }
 
         public String toString() {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             sb.append("DICT\n");
             sb.append("count: ").append(_count).append("\n");
             sb.append("offSize: ").append(_offSize).append("\n");
@@ -255,7 +255,7 @@ public class CffTable implements Table {
         }
 
         public String toString() {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < getCount(); ++i) {
                 sb.append(getTopDict(i).toString()).append("\n");
             }
@@ -276,7 +276,7 @@ public class CffTable implements Table {
 
             // Ensure the name hasn't been deleted
             if (getData()[offset] != 0) {
-                StringBuffer sb = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
                 for (int i = offset; i < offset + len; ++i) {
                     sb.append((char) getData()[i]);
                 }
@@ -288,7 +288,7 @@ public class CffTable implements Table {
         }
         
         public String toString() {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < getCount(); ++i) {
                 sb.append(getName(i)).append("\n");
             }
@@ -313,7 +313,7 @@ public class CffTable implements Table {
                 int offset = getOffset(index) - 1;
                 int len = getOffset(index + 1) - offset - 1;
 
-                StringBuffer sb = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
                 for (int i = offset; i < offset + len; ++i) {
                     sb.append((char) getData()[i]);
                 }
@@ -323,7 +323,7 @@ public class CffTable implements Table {
         
         public String toString() {
             int nonStandardBase = CffStandardStrings.standardStrings.length;
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < getCount(); ++i) {
                 sb.append(nonStandardBase + i).append(": ");
                 sb.append(getString(nonStandardBase + i)).append("\n");
@@ -591,7 +591,7 @@ public class CffTable implements Table {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("'CFF' Table - Compact Font Format\n---------------------------------\n");
         sb.append("\nName INDEX\n");
         sb.append(_nameIndex.toString());

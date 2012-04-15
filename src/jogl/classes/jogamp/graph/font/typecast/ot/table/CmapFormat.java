@@ -123,7 +123,7 @@ public abstract class CmapFormat {
     public abstract int mapCharCode(int charCode);
     
     public String toString() {
-        return new StringBuffer()
+        return new StringBuilder()
         .append("format: ")
         .append(_format)
         .append(", length: ")

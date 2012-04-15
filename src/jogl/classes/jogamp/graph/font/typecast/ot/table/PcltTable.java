@@ -70,7 +70,7 @@ public class PcltTable implements Table {
     }
     
     public String toString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append("'PCLT' Table - Printer Command Language Table\n---------------------------------------------")
             .append("\n        version:             0x").append(Integer.toHexString(version).toUpperCase())
             .append("\n        fontNumber:          ").append(fontNumber).append(" (0x").append(Long.toHexString(fontNumber).toUpperCase())

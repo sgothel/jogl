@@ -60,7 +60,7 @@ public class ResourceType {
     }
     
     public String getTypeAsString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append((char)((type>>24)&0xff))
             .append((char)((type>>16)&0xff))
             .append((char)((type>>8)&0xff))

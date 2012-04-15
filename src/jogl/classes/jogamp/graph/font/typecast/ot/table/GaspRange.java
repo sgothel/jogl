@@ -31,7 +31,7 @@ public class GaspRange {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("  rangeMaxPPEM:        ").append(rangeMaxPPEM)
             .append("\n  rangeGaspBehavior:   0x").append(rangeGaspBehavior);
         if ((rangeGaspBehavior & GASP_GRIDFIT) != 0) {

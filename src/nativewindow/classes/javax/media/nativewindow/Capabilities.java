@@ -314,9 +314,9 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
       A value of -1 is interpreted as any value. */
   public void setTransparentAlphaValue(int transValueAlpha) { transparentValueAlpha=transValueAlpha; }
 
-  public StringBuffer toString(StringBuffer sink) {
+  public StringBuilder toString(StringBuilder sink) {
     if(null == sink) {
-        sink = new StringBuffer();
+        sink = new StringBuilder();
     }
     if(onscreen) {
         sink.append("on-scr");
@@ -336,7 +336,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
   /** Returns a textual representation of this Capabilities
       object. */ 
   public String toString() {
-    StringBuffer msg = new StringBuffer();
+    StringBuilder msg = new StringBuilder();
     msg.append("Caps[");
     toString(msg);
     msg.append("]");

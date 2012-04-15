@@ -3,7 +3,6 @@ package com.jogamp.opengl.util.glsl.sdk;
 import com.jogamp.common.util.IOUtil;
 
 import javax.media.opengl.*;
-import com.jogamp.opengl.util.*;
 import com.jogamp.opengl.util.glsl.*;
 
 import java.io.*;
@@ -68,7 +67,7 @@ public abstract class CompileShader {
         URL resourceURL = IOUtil.getResource(null, resourceName).getURL();
         String dirName = dirname(resourceURL.getPath());
 
-        String shader = ShaderCode.readShaderSource(null, resourceName);
+        CharSequence shader = ShaderCode.readShaderSource(null, resourceName, false);
         if(null==shader) {
             System.err.println("Can't find shader source " + resourceName + " - ignored");
             return;
@@ -93,7 +92,7 @@ public abstract class CompileShader {
         tmpDir.mkdirs();
         File tmpFile = new File(tmpDir, justName);
         Writer writer = new BufferedWriter(new FileWriter(tmpFile));
-        writer.write(shader, 0, shader.length());
+        writer.write(shader.toString(), 0, shader.length());
         writer.flush();
         writer.close();
         System.err.println("Preprocessed: "+ tmpFile.getAbsolutePath());

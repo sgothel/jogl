@@ -113,7 +113,7 @@ public abstract class GlyfDescript extends Program implements GlyphDescription {
     }
     
     public String toString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append("          numberOfContours: ").append(_numberOfContours)
             .append("\n          xMin:             ").append(_xMin)
             .append("\n          yMin:             ").append(_yMin)

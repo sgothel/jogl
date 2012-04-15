@@ -33,7 +33,7 @@ public class SignatureBlock {
     }
 
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < signatureLen; i += 16) {
             if (signatureLen - i >= 16) {
                 sb.append(new String(signature, i, 16)).append("\n");

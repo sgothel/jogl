@@ -98,7 +98,7 @@ public class HdmxTable implements Table {
     }
     
     public String toString() {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append("'hdmx' Table - Horizontal Device Metrics\n----------------------------------------\n");
         sb.append("Size = ").append(_de.getLength()).append(" bytes\n")
             .append("\t'hdmx' version:         ").append(_version).append("\n")

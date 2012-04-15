@@ -114,7 +114,7 @@ public class VheaTable implements Table {
     }
 
     public String toString() {
-        return new StringBuffer()
+        return new StringBuilder()
             .append("'vhea' Table - Vertical Header\n------------------------------")
             .append("\n        'vhea' version:       ").append(Fixed.floatValue(_version))
             .append("\n        xAscender:            ").append(_ascent)
