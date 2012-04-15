@@ -1,4 +1,4 @@
-//Copyright 2010 JogAmp Community. All rights reserved.
+// Copyright 2012 JogAmp Community. All rights reserved.
 
 uniform   mat4    mgl_PMVMatrix[2];
 // uniform  mat4  mgl_STMatrix;
