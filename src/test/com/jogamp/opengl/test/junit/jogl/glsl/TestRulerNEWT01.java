@@ -72,10 +72,10 @@ public class TestRulerNEWT01 extends UITestCase {
         // test code ..        
         final ShaderState st = new ShaderState();
         
-        final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, RedSquareES2.class,
-                "shader", "shader/bin", "default");
-        final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, RedSquareES2.class,
-                "shader", "shader/bin", "ruler");
+        final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RedSquareES2.class, "shader",
+                "shader/bin", "default", false);
+        final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RedSquareES2.class, "shader",
+                "shader/bin", "ruler", false);
 
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);

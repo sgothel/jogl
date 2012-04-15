@@ -72,10 +72,10 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         // test code ..        
         final ShaderState st = new ShaderState();
         
-        final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, RedSquareES2.class,
-                "shader", "shader/bin", "RedSquareShader");
-        final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, RedSquareES2.class,
-                "shader", "shader/bin", "RedSquareShader");
+        final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RedSquareES2.class, "shader",
+                "shader/bin", "RedSquareShader", false);
+        final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RedSquareES2.class, "shader",
+                "shader/bin", "RedSquareShader", false);
 
         final ShaderProgram sp = new ShaderProgram();
         Assert.assertTrue(0>sp.program());
@@ -201,10 +201,10 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         // test code ..        
         final ShaderState st = new ShaderState();
         
-        final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, RedSquareES2.class,
-                "shader", "shader/bin", "RedSquareShader");
-        final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, RedSquareES2.class,
-                "shader", "shader/bin", "RedSquareShader");
+        final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RedSquareES2.class, "shader",
+                "shader/bin", "RedSquareShader", false);
+        final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RedSquareES2.class, "shader",
+                "shader/bin", "RedSquareShader", false);
 
         final ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);
@@ -289,10 +289,10 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         // test code ..        
         final ShaderState st = new ShaderState();
         
-        final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, RedSquareES2.class,
-                "shader", "shader/bin", "RedSquareShader");
-        final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, RedSquareES2.class,
-                "shader", "shader/bin", "RedSquareShader");
+        final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RedSquareES2.class, "shader",
+                "shader/bin", "RedSquareShader", false);
+        final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RedSquareES2.class, "shader",
+                "shader/bin", "RedSquareShader", false);
 
         final ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);

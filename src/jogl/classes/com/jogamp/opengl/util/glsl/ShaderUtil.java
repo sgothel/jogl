@@ -200,7 +200,7 @@ public class ShaderUtil {
         return info.shaderCompilerAvailable.booleanValue();
     }
 
-    public static void shaderSource(GL _gl, int shader, java.lang.String[] source)
+    public static void shaderSource(GL _gl, int shader, CharSequence[] source)
     {
         final GL2ES2 gl = _gl.getGL2ES2();
         if(!isShaderCompilerAvailable(_gl)) {
@@ -215,11 +215,27 @@ public class ShaderUtil {
         IntBuffer lengths = Buffers.newDirectIntBuffer(count);
         for(int i=0; i<count; i++) {
             lengths.put(i, source[i].length());
+        }        
+        if(source instanceof String[]) {
+            // rare case ..
+            gl.glShaderSource(shader, count, (String[])source, lengths);
+        } else {
+            final String[] tmp = new String[source.length];
+            for(int i = source.length - 1; i>=0; i--) {
+                final CharSequence csq = source[i];
+                if(csq instanceof String) {
+                    // if ShaderCode.create(.. mutableStringBuffer == false )
+                    tmp[i] = (String) csq;
+                } else {
+                    // if ShaderCode.create(.. mutableStringBuffer == true )
+                    tmp[i] = source[i].toString();
+                }
+            }
+            gl.glShaderSource(shader, count, tmp, lengths);
         }
-        gl.glShaderSource(shader, count, source, lengths);
     }
 
-    public static void shaderSource(GL _gl, IntBuffer shaders, java.lang.String[][] sources)
+    public static void shaderSource(GL _gl, IntBuffer shaders, CharSequence[][] sources)
     {
         int sourceNum = (null!=sources)?sources.length:0;
         int shaderNum = (null!=shaders)?shaders.remaining():0;
@@ -312,7 +328,7 @@ public class ShaderUtil {
     }
 
     public static boolean createAndCompileShader(GL _gl, IntBuffer shader, int shaderType,
-                                                 java.lang.String[][] sources, 
+                                                 CharSequence[][] sources, 
                                                  PrintStream verboseOut)
     {
         final GL2ES2 gl = _gl.getGL2ES2();

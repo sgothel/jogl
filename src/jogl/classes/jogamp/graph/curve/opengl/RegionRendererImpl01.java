@@ -56,10 +56,10 @@ public class RegionRendererImpl01 extends RegionRenderer {
     protected boolean initShaderProgram(GL2ES2 gl) {
         final ShaderState st = rs.getShaderState();
         
-        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, RegionRendererImpl01.class,
-                "shader", "shader/bin", getVertexShaderName(gl));
-        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, RegionRendererImpl01.class,
-                "shader", "shader/bin", getFragmentShaderName(gl));
+        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RegionRendererImpl01.class, "shader",
+                "shader/bin", getVertexShaderName(gl), false);
+        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RegionRendererImpl01.class, "shader",
+                "shader/bin", getFragmentShaderName(gl), false);
     
         ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);

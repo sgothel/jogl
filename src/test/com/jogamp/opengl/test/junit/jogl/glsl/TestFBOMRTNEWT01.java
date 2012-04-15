@@ -72,10 +72,10 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         final ShaderState st = new ShaderState();
         // st.setVerbose(true);
         
-        final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, RedSquareES2.class,
-                "shader", "shader/bin", "fbo-mrt-1");
-        final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, RedSquareES2.class,
-                "shader", "shader/bin", "fbo-mrt-1");
+        final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RedSquareES2.class, "shader",
+                "shader/bin", "fbo-mrt-1", false);
+        final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RedSquareES2.class, "shader",
+                "shader/bin", "fbo-mrt-1", false);
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);
         sp0.add(gl, fp0, System.err);       
@@ -85,10 +85,10 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());        
         st.attachShaderProgram(gl, sp0, false);
         
-        final ShaderCode vp1 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, RedSquareES2.class,
-                "shader", "shader/bin", "fbo-mrt-2");
-        final ShaderCode fp1 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, RedSquareES2.class,
-                "shader", "shader/bin", "fbo-mrt-2");
+        final ShaderCode vp1 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RedSquareES2.class, "shader",
+                "shader/bin", "fbo-mrt-2", false);
+        final ShaderCode fp1 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RedSquareES2.class, "shader",
+                "shader/bin", "fbo-mrt-2", false);
         final ShaderProgram sp1 = new ShaderProgram();
         sp1.add(gl, vp1, System.err);
         sp1.add(gl, fp1, System.err);       

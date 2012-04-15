@@ -409,17 +409,17 @@ public class FixedFuncPipeline {
         this.shaderState.setVerbose(verbose);
         ShaderCode vertexColor, vertexColorLight, fragmentColor, fragmentColorTexture;
 
-        vertexColor = ShaderCode.create( gl, gl.GL_VERTEX_SHADER, 1, shaderRootClass,
-                                         shaderSrcRoot, shaderBinRoot, vertexColorFile);
+        vertexColor = ShaderCode.create( gl, gl.GL_VERTEX_SHADER, shaderRootClass, shaderSrcRoot,
+                                         shaderBinRoot, vertexColorFile, false);
 
-        vertexColorLight = ShaderCode.create( gl, gl.GL_VERTEX_SHADER, 1, shaderRootClass,
-                                           shaderSrcRoot, shaderBinRoot, vertexColorLightFile);
+        vertexColorLight = ShaderCode.create( gl, gl.GL_VERTEX_SHADER, shaderRootClass, shaderSrcRoot,
+                                           shaderBinRoot, vertexColorLightFile, false);
 
-        fragmentColor = ShaderCode.create( gl, gl.GL_FRAGMENT_SHADER, 1, shaderRootClass,
-                                           shaderSrcRoot, shaderBinRoot, fragmentColorFile);
+        fragmentColor = ShaderCode.create( gl, gl.GL_FRAGMENT_SHADER, shaderRootClass, shaderSrcRoot,
+                                           shaderBinRoot, fragmentColorFile, false);
 
-        fragmentColorTexture = ShaderCode.create( gl, gl.GL_FRAGMENT_SHADER, 1, shaderRootClass,
-                                                  shaderSrcRoot, shaderBinRoot, fragmentColorTextureFile);
+        fragmentColorTexture = ShaderCode.create( gl, gl.GL_FRAGMENT_SHADER, shaderRootClass, shaderSrcRoot,
+                                                  shaderBinRoot, fragmentColorTextureFile, false);
 
         shaderProgramColor = new ShaderProgram();
         shaderProgramColor.add(vertexColor);

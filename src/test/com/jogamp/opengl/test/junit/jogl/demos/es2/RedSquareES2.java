@@ -78,10 +78,10 @@ public class RedSquareES2 implements GLEventListener {
         
         st = new ShaderState();
         st.setVerbose(true);
-        final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, this.getClass(),
-                "shader", "shader/bin", "RedSquareShader");
-        final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, this.getClass(),
-                "shader", "shader/bin", "RedSquareShader");
+        final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(), "shader",
+                "shader/bin", "RedSquareShader", false);
+        final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), "shader",
+                "shader/bin", "RedSquareShader", false);
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);
         sp0.add(gl, fp0, System.err);

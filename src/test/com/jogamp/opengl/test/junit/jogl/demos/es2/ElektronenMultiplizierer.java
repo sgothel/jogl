@@ -231,11 +231,11 @@ public class ElektronenMultiplizierer implements GLEventListener {
         gl.setSwapInterval(1);
 
         st = new ShaderState();        
-        final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, this.getClass(),
-                "shader", "shader/bin", "default");
-        final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, this.getClass(),
-                "shader", "shader/bin", "elektronenmultiplizierer_development");
-          //    "shader", "shader/bin", "elektronenmultiplizierer_port");
+        final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(), "shader",
+                "shader/bin", "default", false);
+        final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), "shader",
+                "shader/bin", "elektronenmultiplizierer_development", false);
+          //    "shader", "shader/bin", "elektronenmultiplizierer_port", false);
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);
         sp0.add(gl, fp0, System.err);       
