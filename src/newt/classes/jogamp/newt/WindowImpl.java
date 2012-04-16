@@ -1853,6 +1853,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
 
             if(success) {
+                if(!animatorPaused && null!=lifecycleHook) {
+                    // Didn't pass above notify method. probably detected screen change after it happened.
+                    animatorPaused = lifecycleHook.pauseRenderingAction();
+                }
                 DimensionImmutable screenSize = sm.getMonitorMode().getSurfaceSize().getResolution();
                 if ( getHeight() > screenSize.getHeight()  ||
                      getWidth() > screenSize.getWidth() ) {
