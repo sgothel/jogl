@@ -150,7 +150,7 @@
                   value="com/jogamp/opengl/**/swt/**"/>
 
         <property name="java.part.util"
-                  value="com/jogamp/opengl/util/* com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/av/* com/jogamp/opengl/util/packrect/** jogamp/opengl/util/* jogamp/opengl/util/av/* jogamp/opengl/util/pngj/**"/>
+                  value="com/jogamp/opengl/util/* com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/av/* com/jogamp/opengl/util/packrect/** jogamp/opengl/util/* jogamp/opengl/util/av/** jogamp/opengl/util/pngj/**"/>
 
         <property name="java.part.util.awt"
                   value="com/jogamp/opengl/util/**/awt/** com/jogamp/opengl/util/AWTAnimatorImpl*"/>
@@ -221,6 +221,7 @@
         <property name="rootrel.src.java"         value="src/jogl/classes" />
         <property name="rootrel.src.c"            value="src/jogl/native" />
         <property name="rootrel.src.c.openmax"    value="src/jogl/native/openmax" />
+        <property name="rootrel.src.c.libav"      value="src/jogl/native/libav" />
 
         <property name="rootrel.src.generated"    value="${rootrel.build}/jogl/gensrc" />
         <property name="rootrel.generated.c.jogl" value="${rootrel.src.generated}/native/jogl" />
@@ -231,12 +232,13 @@
         <property name="src.c"    value="${project.root}/${rootrel.src.c}" />
         
         <!-- The generated source directories. -->
-        <property name="src.generated" value="${build.jogl}/gensrc" />
-        <property name="src.generated.java" value="${src.generated}/classes" />
-        <property name="src.generated.java.cg" value="${src.generated.java}/com/jogamp/opengl/cg" />
-        <property name="src.generated.c" value="${src.generated}/native/jogl" />
-        <property name="src.generated.c.openmax" value="${src.generated}/native/openmax" />
-        <property name="src.generated.c.cg" value="${src.generated}/native/jogl_cg" />
+        <property name="src.generated"            value="${build.jogl}/gensrc" />
+        <property name="src.generated.java"       value="${src.generated}/classes" />
+        <property name="src.generated.java.cg"    value="${src.generated.java}/com/jogamp/opengl/cg" />
+        <property name="src.generated.c"          value="${src.generated}/native/jogl" />
+        <property name="src.generated.c.openmax"  value="${src.generated}/native/openmax" />
+        <property name="src.generated.c.libav"    value="${src.generated}/native/libav" />
+        <property name="src.generated.c.cg"        value="${src.generated}/native/jogl_cg" />
         
         <!-- The compiler output directories. -->
         <property name="classes"                    value="${build.jogl}/classes" />
@@ -341,6 +343,7 @@
         <mkdir dir="${src.generated.c}/Windows" />
         <mkdir dir="${src.generated.c}/X11" />
         <mkdir dir="${src.generated.c.openmax}" />
+        <mkdir dir="${src.generated.c.libav}" />
         <mkdir dir="${classes}" />
         <mkdir dir="${obj.jogl}" />
         <mkdir dir="${obj.joglsub}" />
@@ -1384,8 +1387,9 @@
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <!-- FIXME: the Mixer should be moved to another library -->
           <!--include name="${rootrel.src.c}/Mixer.cpp" if="isWindows"/-->
+          <include name="${rootrel.src.c.libav}/jogamp_opengl_util_av_impl_FFMPEGMediaPlayer.c"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="setup.addNativeOpenMAX"/>
-          <include name="${rootrel.src.c.openmax}/jogamp_opengl_omx_OMXGLMediaPlayer.c"  if="setup.addNativeOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/jogamp_opengl_util_av_impl_OMXGLMediaPlayer.c"  if="setup.addNativeOpenMAX"/>
 
           <include name="${rootrel.generated.c.jogl}/gl4/GL4bcImpl_JNI.c"/>
           <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
@@ -1400,8 +1404,9 @@
           <include name="${rootrel.src.c}/JoglCommon.c"/>
           <include name="${rootrel.src.c}/GLDebugMessageHandler.c"/>
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
+          <include name="${rootrel.src.c.libav}/jogamp_opengl_util_av_impl_FFMPEGMediaPlayer.c"/>
           <include name="${rootrel.src.c.openmax}/omx_tool.c"  if="setup.addNativeOpenMAX"/>
-          <include name="${rootrel.src.c.openmax}/jogamp_opengl_omx_OMXGLMediaPlayer.c"  if="setup.addNativeOpenMAX"/>
+          <include name="${rootrel.src.c.openmax}/jogamp_opengl_util_av_impl_OMXGLMediaPlayer.c"  if="setup.addNativeOpenMAX"/>
 
           <include name="${rootrel.generated.c.jogl}/egl/EGL_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/egl/EGLExtImpl_JNI.c"/>
@@ -1447,6 +1452,7 @@
                 <includepath path="stub_includes/khr"/>
                 <includepath path="stub_includes/egl"/>
                 <includepath path="stub_includes/opengl"/>
+                <includepath path="stub_includes/libav" /> <!-- headers required by our libav/ffmpeg MediaPlayer impl. -->
                 <includepath path="stub_includes/openmax" if="setup.addNativeOpenMAX"/>
                 <includepath path="stub_includes/cg" if="setup.addNativeNVidiaCG"/>        
       
@@ -1456,6 +1462,7 @@
                 <includepath path="${src.generated.c}/X11" if="isX11"/>
                 <includepath path="${src.generated.c}/MacOSX" if="isOSX"/>
                 <includepath path="${src.generated.c}/Windows" if="isWindows"/>
+                <includepath path="${src.generated.c.libav}" />
                 <includepath path="${src.generated.c.openmax}" if="setup.addNativeOpenMAX"/>
       
                 <!-- This must come last to not override real include paths -->
@@ -1494,13 +1501,11 @@
       </sequential>
     </macrodef>  
 
-    <target name="c.build.jogl.prepare.openMAX" if="setup.addNativeOpenMAX">
-      <javah destdir="${src.generated.c.openmax}" classpath="${javah.classpath}" class="jogamp.opengl.omx.OMXGLMediaPlayer" />
-    </target>
-
-    <target name="c.build.jogl.prepare" depends="c.build.jogl.prepare.openMAX">
+    <target name="c.build.jogl.prepare">
       <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLDebugMessageHandler" />
       <javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="jogamp.opengl.GLContextImpl" />
+      <javah destdir="${src.generated.c.libav}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.FFMPEGMediaPlayer" />
+      <javah destdir="${src.generated.c.openmax}" classpath="${javah.classpath}" class="jogamp.opengl.util.av.impl.OMXGLMediaPlayer" />
       <!-- Generate the waveout Mixer header -->
       <!-- FIXME: this is temporary until we move this to another workspace -->
       <!--javah destdir="${build.jogl}/gensrc/native/jogl" classpath="${javah.classpath}" class="com.jogamp.audio.windows.waveout.Mixer" /-->
