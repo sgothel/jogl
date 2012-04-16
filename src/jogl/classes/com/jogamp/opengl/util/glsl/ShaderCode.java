@@ -564,6 +564,8 @@ public class ShaderCode {
      * @param fromIndex start search <code>tag</code> begininig with this index
      * @param data the text to be inserted. Shall end with an EOL '\n' character.
      * @return index after the inserted <code>data</code>
+     * 
+     * @throws IllegalStateException if the shader source's CharSequence is immutable, i.e. not of type <code>StringBuilder</code>
      */
     public int insertShaderSource(int shaderIdx, String tag, int fromIndex, CharSequence data) {
         if(null==shaderSource) {
@@ -608,6 +610,56 @@ public class ShaderCode {
     }
 
     /**
+     * Replaces <code>oldName</code> with <code>newName</code> in all shader sources.
+     * <p>
+     * In case <code>oldName</code> and <code>newName</code> are equal, no action is performed.
+     * </p> 
+     * <p>
+     * Note: The shader source to be edit must be created using a mutable StringBuilder.
+     * </p>
+     *  
+     * @param oldName the to be replace string
+     * @param newName the replacement string
+     * @return the number of replacements
+     * 
+     * @throws IllegalStateException if the shader source's CharSequence is immutable, i.e. not of type <code>StringBuilder</code>
+     */
+    public int replaceInShaderSource(String oldName, String newName) {
+        if(null==shaderSource) {
+            throw new IllegalStateException("no shader source");
+        }
+        if(oldName == newName || oldName.equals(newName)) {
+            return 0;
+        }
+        final int oldNameLen = oldName.length();
+        final int newNameLen = newName.length();
+        int num = 0;
+        final int sourceCount = (null!=shaderSource)?shaderSource.length:0;
+        for(int shaderIdx = 0; shaderIdx<sourceCount; shaderIdx++) {
+            final CharSequence[] src = shaderSource[shaderIdx];
+            for(int j=0; j<src.length; j++) {
+                if( !(src[j] instanceof StringBuilder) ) {
+                    throw new IllegalStateException("shader source not a mutable StringBuilder, but CharSequence of type: "+src[j].getClass().getName());
+                }
+                final StringBuilder sb = (StringBuilder)src[j];
+                int curPos = 0;
+                while(curPos<sb.length()-oldNameLen+1) {
+                    int startIdx = sb.indexOf(oldName, curPos);
+                    if(0<=startIdx) {
+                        int endIdx = startIdx + oldNameLen;
+                        sb.replace(startIdx, endIdx, newName);
+                        curPos = startIdx + newNameLen;
+                        num++;
+                    } else {
+                        curPos = sb.length();
+                    }
+                }
+            }
+        }
+        return num;
+    }
+    
+    /**
      * Adds <code>data</code> at <code>offset</code> in shader source for shader <code>shaderIdx</code>.
      * <p>
      * Note: The shader source to be edit must be created using a mutable StringBuilder.
@@ -617,6 +669,8 @@ public class ShaderCode {
      * @param position in shader source segments of shader <code>shaderIdx</code>
      * @param data the text to be inserted. Shall end with an EOL '\n' character.
      * @return index after the inserted <code>data</code>
+     * 
+     * @throws IllegalStateException if the shader source's CharSequence is immutable, i.e. not of type <code>StringBuilder</code>
      */
     public int insertShaderSource(int shaderIdx, int position, CharSequence data) {
         if(null==shaderSource) {
@@ -645,7 +699,7 @@ public class ShaderCode {
         }
         return -1;
     }
-    
+
     private static int readShaderSource(Class<?> context, URLConnection conn, StringBuilder result, int lineno) throws IOException  {
         if(DEBUG_CODE) {
             if(0 == lineno) {
