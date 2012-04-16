@@ -41,7 +41,6 @@ import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
-import com.jogamp.newt.event.MouseEvent;
 
 import jogamp.opengl.egl.EGL;
 import jogamp.opengl.egl.EGLGraphicsConfiguration;
@@ -50,7 +49,6 @@ import jogamp.opengl.egl.EGLGraphicsConfigurationFactory;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback2;
@@ -136,10 +134,11 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         return false;
     }
     
-    class AndroidEvents implements /* View.OnKeyListener, */ View.OnTouchListener, View.OnFocusChangeListener {
+    class AndroidEvents implements View.OnKeyListener, View.OnTouchListener, View.OnFocusChangeListener {
 
-        public boolean onTouch(View v, MotionEvent event) {
-            MouseEvent[] newtEvents = AndroidNewtEventFactory.createMouseEvents(AndroidWindow.this, event);
+        @Override
+        public boolean onTouch(View v, android.view.MotionEvent event) {
+            final com.jogamp.newt.event.MouseEvent[] newtEvents = AndroidNewtEventFactory.createMouseEvents(event, AndroidWindow.this);
             if(null != newtEvents) {
                 focusChanged(false, true);
                 for(int i=0; i<newtEvents.length; i++) {
@@ -152,11 +151,19 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
             return false; // no mapping, no further interest in the event!
         }
 
-        /** TODO
-        public boolean onKey(View v, int keyCode, KeyEvent event) {
+        @Override
+        public boolean onKey(View v, int keyCode, android.view.KeyEvent event) {
+            final com.jogamp.newt.event.KeyEvent[] newtEvents = AndroidNewtEventFactory.createKeyEvents(keyCode, event, AndroidWindow.this);
+            if(null != newtEvents) {
+                for(int i=0; i<newtEvents.length; i++) {
+                    AndroidWindow.this.enqueueEvent(false, newtEvents[i]);
+                }
+                return true;
+            }
             return false;
-        } */
+        }
         
+        @Override
         public void onFocusChange(View v, boolean hasFocus) {
             AndroidWindow.this.focusChanged(false, hasFocus);
         }
@@ -195,8 +202,10 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         final AndroidEvents ae = new AndroidEvents();
         androidView.setOnTouchListener(ae);
         androidView.setClickable(false);
-        // androidView.setOnKeyListener(ae);
+        androidView.setOnKeyListener(ae);
         androidView.setOnFocusChangeListener(ae);
+        androidView.setFocusable(true);
+        androidView.setFocusableInTouchMode(true);
         
         final SurfaceHolder sh = androidView.getHolder();
         sh.addCallback(AndroidWindow.this); 

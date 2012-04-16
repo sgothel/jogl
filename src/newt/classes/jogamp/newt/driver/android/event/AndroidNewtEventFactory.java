@@ -45,10 +45,6 @@ public class AndroidNewtEventFactory {
         IntIntHashMap map = new IntIntHashMap();
         map.setKeyNotFoundValue(0xFFFFFFFF);
         
-        map.put(android.view.KeyEvent.ACTION_DOWN, com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED);
-        map.put(android.view.KeyEvent.ACTION_UP, com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED);
-        map.put(android.view.KeyEvent.ACTION_MULTIPLE, com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED);
-        
         map.put(android.view.MotionEvent.ACTION_DOWN, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_PRESSED);
         map.put(android.view.MotionEvent.ACTION_UP, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED);
         map.put(android.view.MotionEvent.ACTION_CANCEL, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED);
@@ -64,46 +60,47 @@ public class AndroidNewtEventFactory {
     }
 
     static final int androidKeyCode2Newt(int androidKeyCode) {
-        //safest ...but ugly
-        if (android.view.KeyEvent.KEYCODE_0 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_0;
-        if (android.view.KeyEvent.KEYCODE_1 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_1;
-        if (android.view.KeyEvent.KEYCODE_2 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_2;
-        if (android.view.KeyEvent.KEYCODE_3 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_3;
-        if (android.view.KeyEvent.KEYCODE_4 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_4;
-        if (android.view.KeyEvent.KEYCODE_5 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_5;
-        if (android.view.KeyEvent.KEYCODE_6 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_6;
-        if (android.view.KeyEvent.KEYCODE_7 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_7;
-        if (android.view.KeyEvent.KEYCODE_8 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_8;
-        if (android.view.KeyEvent.KEYCODE_9 == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_9;
-        
-        if (android.view.KeyEvent.KEYCODE_A == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_A;
-        if (android.view.KeyEvent.KEYCODE_B == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_B;
-        if (android.view.KeyEvent.KEYCODE_C == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_C;
-        if (android.view.KeyEvent.KEYCODE_D == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_D;
-        if (android.view.KeyEvent.KEYCODE_E == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_E;
-        if (android.view.KeyEvent.KEYCODE_F == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_F;
-        if (android.view.KeyEvent.KEYCODE_G == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_G;
-        if (android.view.KeyEvent.KEYCODE_H == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_H;
-        if (android.view.KeyEvent.KEYCODE_I == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_I;
-        if (android.view.KeyEvent.KEYCODE_J == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_J;
-        if (android.view.KeyEvent.KEYCODE_K == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_K;
-        if (android.view.KeyEvent.KEYCODE_L == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_L;
-        if (android.view.KeyEvent.KEYCODE_M == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_M;
-        if (android.view.KeyEvent.KEYCODE_N == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_N;
-        if (android.view.KeyEvent.KEYCODE_O == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_O;
-        if (android.view.KeyEvent.KEYCODE_P == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_P;
-        if (android.view.KeyEvent.KEYCODE_Q == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_Q;
-        if (android.view.KeyEvent.KEYCODE_R == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_R;
-        if (android.view.KeyEvent.KEYCODE_S == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_S;
-        if (android.view.KeyEvent.KEYCODE_T == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_T;
-        if (android.view.KeyEvent.KEYCODE_U == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_U;
-        if (android.view.KeyEvent.KEYCODE_V == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_V;
-        if (android.view.KeyEvent.KEYCODE_W == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_W;
-        if (android.view.KeyEvent.KEYCODE_X == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_X;
-        if (android.view.KeyEvent.KEYCODE_Y == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_Y;
-        if (android.view.KeyEvent.KEYCODE_Z == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_Z;
-          
-        if (android.view.KeyEvent.KEYCODE_AT == androidKeyCode) return com.jogamp.newt.event.KeyEvent.VK_AT;
+        if(android.view.KeyEvent.KEYCODE_0 <= androidKeyCode && androidKeyCode <= android.view.KeyEvent.KEYCODE_9) {
+            return com.jogamp.newt.event.KeyEvent.VK_0 + ( androidKeyCode - android.view.KeyEvent.KEYCODE_0 ) ; 
+        }
+        if(android.view.KeyEvent.KEYCODE_A <= androidKeyCode && androidKeyCode <= android.view.KeyEvent.KEYCODE_Z) {
+            return com.jogamp.newt.event.KeyEvent.VK_A + ( androidKeyCode - android.view.KeyEvent.KEYCODE_A ) ; 
+        }
+        if(android.view.KeyEvent.KEYCODE_F1 <= androidKeyCode && androidKeyCode <= android.view.KeyEvent.KEYCODE_F12) {
+            return com.jogamp.newt.event.KeyEvent.VK_F1 + ( androidKeyCode - android.view.KeyEvent.KEYCODE_F1 ) ; 
+        }
+        if(android.view.KeyEvent.KEYCODE_NUMPAD_0 <= androidKeyCode && androidKeyCode <= android.view.KeyEvent.KEYCODE_NUMPAD_9) {
+            return com.jogamp.newt.event.KeyEvent.VK_NUMPAD0 + ( androidKeyCode - android.view.KeyEvent.KEYCODE_NUMPAD_0 ) ; 
+        }           
+        switch(androidKeyCode) {
+            case android.view.KeyEvent.KEYCODE_COMMA: return com.jogamp.newt.event.KeyEvent.VK_COMMA; 
+            case android.view.KeyEvent.KEYCODE_PERIOD: return com.jogamp.newt.event.KeyEvent.VK_PERIOD;
+            case android.view.KeyEvent.KEYCODE_ALT_LEFT: return com.jogamp.newt.event.KeyEvent.VK_ALT;
+            case android.view.KeyEvent.KEYCODE_ALT_RIGHT: return com.jogamp.newt.event.KeyEvent.VK_ALT_GRAPH;
+            case android.view.KeyEvent.KEYCODE_SHIFT_LEFT: return com.jogamp.newt.event.KeyEvent.VK_SHIFT;
+            case android.view.KeyEvent.KEYCODE_SHIFT_RIGHT: return com.jogamp.newt.event.KeyEvent.VK_SHIFT;
+            case android.view.KeyEvent.KEYCODE_TAB: return com.jogamp.newt.event.KeyEvent.VK_TAB;
+            case android.view.KeyEvent.KEYCODE_SPACE: return com.jogamp.newt.event.KeyEvent.VK_SPACE;
+            case android.view.KeyEvent.KEYCODE_ENTER: return com.jogamp.newt.event.KeyEvent.VK_ENTER;
+            case android.view.KeyEvent.KEYCODE_DEL: return com.jogamp.newt.event.KeyEvent.VK_DELETE;
+            case android.view.KeyEvent.KEYCODE_MINUS: return com.jogamp.newt.event.KeyEvent.VK_MINUS;
+            case android.view.KeyEvent.KEYCODE_EQUALS: return com.jogamp.newt.event.KeyEvent.VK_EQUALS;
+            case android.view.KeyEvent.KEYCODE_LEFT_BRACKET: return com.jogamp.newt.event.KeyEvent.VK_LEFT_PARENTHESIS;
+            case android.view.KeyEvent.KEYCODE_RIGHT_BRACKET: return com.jogamp.newt.event.KeyEvent.VK_RIGHT_PARENTHESIS;
+            case android.view.KeyEvent.KEYCODE_BACKSLASH: return com.jogamp.newt.event.KeyEvent.VK_BACK_SLASH;
+            case android.view.KeyEvent.KEYCODE_SEMICOLON: return com.jogamp.newt.event.KeyEvent.VK_SEMICOLON;
+            // case android.view.KeyEvent.KEYCODE_APOSTROPHE: ??
+            case android.view.KeyEvent.KEYCODE_SLASH: return com.jogamp.newt.event.KeyEvent.VK_SLASH;
+            case android.view.KeyEvent.KEYCODE_AT: return com.jogamp.newt.event.KeyEvent.VK_AT;
+            // case android.view.KeyEvent.KEYCODE_MUTE: ??
+            case android.view.KeyEvent.KEYCODE_PAGE_UP: return com.jogamp.newt.event.KeyEvent.VK_PAGE_UP;
+            case android.view.KeyEvent.KEYCODE_PAGE_DOWN: return com.jogamp.newt.event.KeyEvent.VK_PAGE_DOWN;
+            // case android.view.KeyEvent.KEYCODE_HOME: return com.jogamp.newt.event.KeyEvent.VK_HOME;
+            // case android.view.KeyEvent.KEYCODE_BACK: return com.jogamp.newt.event.KeyEvent.VK_BACK_SPACE;
+            case android.view.KeyEvent.KEYCODE_ESCAPE: return com.jogamp.newt.event.KeyEvent.VK_ESCAPE;
+            case android.view.KeyEvent.KEYCODE_CTRL_LEFT: return com.jogamp.newt.event.KeyEvent.VK_CONTROL;
+            case android.view.KeyEvent.KEYCODE_CTRL_RIGHT: return com.jogamp.newt.event.KeyEvent.VK_CONTROL; // ??
+        }        
         return 0;
     }
     
@@ -124,18 +121,47 @@ public class AndroidNewtEventFactory {
         return newtMods;
     }
     
-    public static final com.jogamp.newt.event.KeyEvent createKeyEvent(android.view.KeyEvent event, com.jogamp.newt.Window newtSource) {
-        int type = eventTypeANDROID2NEWT.get(event.getAction());
+    private static final int androidKeyAction2NewtEventType(int androidKeyAction) {
+        switch(androidKeyAction) {
+            case android.view.KeyEvent.ACTION_DOWN: 
+            case android.view.KeyEvent.ACTION_MULTIPLE:
+                return com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED;
+            case android.view.KeyEvent.ACTION_UP:
+                return com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED;
+            default: 
+                return 0;
+        }
+    }
+    
+    public static final com.jogamp.newt.event.KeyEvent[] createKeyEvents(int keyCode, android.view.KeyEvent event, com.jogamp.newt.Window newtSource) {
+        final int type = androidKeyAction2NewtEventType(event.getAction());        
+        if(Window.DEBUG_MOUSE_EVENT) {
+            System.err.println("createKeyEvent: type 0x"+Integer.toHexString(type)+", keyCode 0x"+Integer.toHexString(keyCode)+", "+event);
+        }
         if(0xFFFFFFFF != type) {
-            return new com.jogamp.newt.event.KeyEvent(
-                           type, (null==newtSource)?null:(Object)newtSource, event.getEventTime(), 
-                           androidKeyModifiers2Newt(event.getMetaState()), 
-                           androidKeyCode2Newt(event.getKeyCode()), event.getDisplayLabel());
+            final int newtKeyCode = androidKeyCode2Newt(keyCode);
+            if(0 != newtKeyCode) {
+                final Object src = (null==newtSource)?null:(Object)newtSource;
+                final long unixTime = System.currentTimeMillis() + ( event.getEventTime() - android.os.SystemClock.uptimeMillis() );
+                final int newtMods = androidKeyModifiers2Newt(event.getMetaState());
+                
+                final com.jogamp.newt.event.KeyEvent ke1 = new com.jogamp.newt.event.KeyEvent(
+                                    type, src, unixTime, newtMods, newtKeyCode, event.getDisplayLabel());
+                
+                if( com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED == type ) {
+                    return new com.jogamp.newt.event.KeyEvent[] { ke1,
+                            new com.jogamp.newt.event.KeyEvent(
+                                    com.jogamp.newt.event.KeyEvent.EVENT_KEY_TYPED,
+                                    src, unixTime, newtMods, newtKeyCode, event.getDisplayLabel()) };
+                } else {
+                    return new com.jogamp.newt.event.KeyEvent[] { ke1 };
+                }
+            }
         }
         return null;
     }
 
-    public static final com.jogamp.newt.event.MouseEvent[] createMouseEvents(com.jogamp.newt.Window newtSource, android.view.MotionEvent event) {
+    public static final com.jogamp.newt.event.MouseEvent[] createMouseEvents(android.view.MotionEvent event, com.jogamp.newt.Window newtSource) {
         if(Window.DEBUG_MOUSE_EVENT) {
             System.err.println("createMouseEvent: "+toString(event));
         }
@@ -167,30 +193,24 @@ public class AndroidNewtEventFactory {
                 }
             }
                                 
-            com.jogamp.newt.event.MouseEvent res[];
-
-            com.jogamp.newt.event.MouseEvent me1 = 
-                    new com.jogamp.newt.event.MouseEvent(
-                           type, 
-                           (null==newtSource)?null:(Object)newtSource, event.getEventTime(),
+            final Object src = (null==newtSource)?null:(Object)newtSource;
+            final long unixTime = System.currentTimeMillis() + ( event.getEventTime() - android.os.SystemClock.uptimeMillis() );
+            final int button = pointers.length==1 ? MouseEvent.BUTTON1 : 0;
+            
+            final com.jogamp.newt.event.MouseEvent me1 = new com.jogamp.newt.event.MouseEvent(
+                           type,  src, unixTime,
                            modifiers, x, y, pressure, pointers, clickCount, 
-                           pointers.length==1 ? MouseEvent.BUTTON1 : 0, rotation);
+                           button, rotation);
             
             if(type == com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED) {
-                com.jogamp.newt.event.MouseEvent me2 =
+                return new com.jogamp.newt.event.MouseEvent[] { me1, 
                     new com.jogamp.newt.event.MouseEvent(
                            com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_CLICKED, 
-                           (null==newtSource)?null:(Object)newtSource, event.getEventTime(),
-                           modifiers, x, y, pressure, pointers, clickCount, 
-                           pointers.length==1 ? MouseEvent.BUTTON1 : 0, rotation);
-                res = new com.jogamp.newt.event.MouseEvent[2];
-                res[0] = me1;
-                res[1] = me2;
+                           src, unixTime, modifiers, x, y, pressure, pointers, clickCount, 
+                           button, rotation) };
             } else {
-                res = new com.jogamp.newt.event.MouseEvent[1];
-                res[0] = me1;                
+                return new com.jogamp.newt.event.MouseEvent[] { me1 }; 
             }
-            return res;
         } 
         return null; // no mapping ..
     }
