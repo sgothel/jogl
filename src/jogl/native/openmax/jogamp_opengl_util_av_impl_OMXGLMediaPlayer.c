@@ -14,94 +14,68 @@
 // http://developer.apple.com/qa/qa2001/qa1262.html
 
 #include "jogamp_opengl_util_av_impl_OMXGLMediaPlayer.h"
+#include "JoglCommon.h"
 #include "omx_tool.h"
 #include <stdarg.h>
 
-static const char * const ClazzNameRuntimeException =
-                            "java/lang/RuntimeException";
-static jclass    runtimeExceptionClz=NULL;
+static const char * const ClazzNameOMXGLMediaPlayer = "jogamp/opengl/util/av/impl/OMXGLMediaPlayer";
+
+static jclass omxGLMediaPlayerClazz = NULL;
+static jmethodID jni_mid_updateAttributes = NULL;
+
 #ifdef _WIN32_WCE
     #define STDOUT_FILE "\\Storage Card\\demos\\stdout.txt"
     #define STDERR_FILE "\\Storage Card\\demos\\stderr.txt"
 #endif
 
-static void _initStatics(JNIEnv *env)
+JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_OMXGLMediaPlayer_initIDs0
+  (JNIEnv *env, jclass clazz)
 {
-    jclass c;
 #ifdef _WIN32_WCE
     _wfreopen(TEXT(STDOUT_FILE),L"w",stdout);
     _wfreopen(TEXT(STDERR_FILE),L"w",stderr);
 #endif
-    fprintf(stdout, "_initstatics ..\n"); fflush(stdout); // JAU
-    if (runtimeExceptionClz != NULL) {
+    JoglCommon_init(env);
+
+    jclass c;
+    if (omxGLMediaPlayerClazz != NULL) {
         return;
     }
 
-    c = (*env)->FindClass(env, ClazzNameRuntimeException);
+    c = (*env)->FindClass(env, ClazzNameOMXGLMediaPlayer);
     if(NULL==c) {
-        fprintf(stdout, "FatalError: can't find %s\n", ClazzNameRuntimeException);
-        (*env)->FatalError(env, ClazzNameRuntimeException);
+        JoglCommon_FatalError(env, "JOGL OMX: can't find %s", ClazzNameOMXGLMediaPlayer);
     }
-    runtimeExceptionClz = (jclass)(*env)->NewGlobalRef(env, c);
-    if(NULL==runtimeExceptionClz) {
-        fprintf(stdout, "FatalError: can't use %s\n", ClazzNameRuntimeException);
-        (*env)->FatalError(env, ClazzNameRuntimeException);
+    omxGLMediaPlayerClazz = (jclass)(*env)->NewGlobalRef(env, c);
+    (*env)->DeleteLocalRef(env, c);
+    if(NULL==omxGLMediaPlayerClazz) {
+        JoglCommon_FatalError(env, "JOGL OMX: can't use %s", ClazzNameOMXGLMediaPlayer);
     }
+
+    jni_mid_updateAttributes = (*env)->GetMethodID(env, omxGLMediaPlayerClazz, "updateAttributes", "(IIIIIFIILjava/lang/String;Ljava/lang/String;)V");
+
+    if(jni_mid_updateAttributes == NULL) {
+        return JNI_FALSE;
+    }
+    return JNI_TRUE;
 }
 
-void java_throwNewRuntimeException(intptr_t jni_env, const char* format, ...)
+void OMXInstance_UpdateJavaAttributes(OMXToolBasicAV_t *pAV)
 {
-    va_list ap;
-    char buffer[255];
-    va_start(ap, format);
-    #ifdef _WIN32
-        _vsnprintf(buffer, sizeof(buffer)-1, format, ap);
-    #else
-        vsnprintf(buffer, sizeof(buffer)-1, format, ap);
-    #endif
-    va_end(ap);
-    buffer[sizeof(buffer)-1]=0;
-    fprintf(stderr, "RuntimeException: %s\n", buffer); fflush(stderr);
-    if(jni_env!=0) {
-        (*((JNIEnv *)jni_env))->ThrowNew((JNIEnv *)jni_env, runtimeExceptionClz, buffer);
-    }
-}
-
-void OMXInstance_SaveJavaAttributes(OMXToolBasicAV_t *pOMXAV, KDboolean issueJavaCallback)
-{
-    if(NULL==pOMXAV || 0==pOMXAV->jni_env || 0==pOMXAV->jni_instance) {
-        fprintf(stderr, "OMXInstance_SaveJavaAttributes failed");
-        return;
-    } else if(issueJavaCallback==KD_TRUE) {
-        JNIEnv  * env = (JNIEnv *)pOMXAV->jni_env;
-        jobject instance = (jobject)pOMXAV->jni_instance;
-        (*env)->CallVoidMethod(env, instance, (jmethodID)pOMXAV->jni_mid_saveAttributes);
-    }
-}
-
-void OMXInstance_UpdateJavaAttributes(OMXToolBasicAV_t *pOMXAV, KDboolean issueJavaCallback)
-{
-    if(NULL==pOMXAV || 0==pOMXAV->jni_env || 0==pOMXAV->jni_instance) {
+    if(NULL==pAV || 0==pAV->jni_instance) {
         fprintf(stderr, "OMXInstance_UpdateJavaAttributes failed");
         return;
-    } else {
-        JNIEnv  * env = (JNIEnv *)pOMXAV->jni_env;
-        jobject instance = (jobject)pOMXAV->jni_instance;
-        (*env)->SetIntField(env, instance, (jfieldID)pOMXAV->jni_fid_width, (jint)pOMXAV->width);
-        (*env)->SetIntField(env, instance, (jfieldID)pOMXAV->jni_fid_height, (jint)pOMXAV->height);
-        (*env)->SetIntField(env, instance, (jfieldID)pOMXAV->jni_fid_fps, (jint)pOMXAV->framerate);
-        (*env)->SetLongField(env, instance, (jfieldID)pOMXAV->jni_fid_bps, (jlong)pOMXAV->bitrate);
-        (*env)->SetLongField(env, instance, (jfieldID)pOMXAV->jni_fid_totalFrames, (jlong)(pOMXAV->length*pOMXAV->framerate));
-        if(issueJavaCallback==KD_TRUE) {
-            (*env)->CallVoidMethod(env, instance, (jmethodID)pOMXAV->jni_mid_attributesUpdated);
-        } else {
-            if(strlen(pOMXAV->videoCodec)>0) {
-                (*env)->SetObjectField(env, instance, (jfieldID)pOMXAV->jni_fid_vcodec, (*env)->NewStringUTF(env, pOMXAV->videoCodec));
-            }
-            if(strlen(pOMXAV->audioCodec)>0) {
-                (*env)->SetObjectField(env, instance, (jfieldID)pOMXAV->jni_fid_acodec, (*env)->NewStringUTF(env, pOMXAV->audioCodec));
-            }
-        }
+    }
+    int shallBeDetached = 0;
+    JNIEnv  * env = JoglCommon_GetJNIEnv (&shallBeDetached); 
+    if(NULL!=env) {
+        (*env)->CallVoidMethod(env, (jobject)pAV->jni_instance, jni_mid_updateAttributes,
+                               pAV->width, pAV->height, 
+                               pAV->bitrate, 0, 0, 
+                               pAV->framerate, (uint32_t)(pAV->length*pAV->framerate), pAV->length,
+                               (*env)->NewStringUTF(env, pAV->videoCodec),
+                               (*env)->NewStringUTF(env, pAV->audioCodec) );
+        JoglCommon_ReleaseJNIEnv (shallBeDetached);
     }
 }
 
@@ -110,26 +84,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_opengl_util_av_impl_OMXGLMediaPlayer__1creat
 {
     OMXToolBasicAV_t * pOMXAV;
 
-    _initStatics(env);
-
-    pOMXAV->jni_env=(intptr_t)env;
-    pOMXAV->jni_instance=(intptr_t)instance;
-
     pOMXAV = OMXToolBasicAV_CreateInstance((EGLDisplay)(intptr_t)env);
-    if(NULL!=pOMXAV) {
-        jclass cls = (*env)->GetObjectClass(env, instance);
-        pOMXAV->jni_mid_saveAttributes = (intptr_t) (*env)->GetMethodID(env, cls, "saveAttributes", "()V");
-        pOMXAV->jni_mid_attributesUpdated = (intptr_t) (*env)->GetMethodID(env, cls, "attributesUpdated", "()V");
-        pOMXAV->jni_fid_width = (intptr_t) (*env)->GetFieldID(env, cls, "width",  "I");
-        pOMXAV->jni_fid_height = (intptr_t) (*env)->GetFieldID(env, cls, "height",  "I");
-        pOMXAV->jni_fid_fps = (intptr_t) (*env)->GetFieldID(env, cls, "fps",  "I");
-        pOMXAV->jni_fid_bps = (intptr_t) (*env)->GetFieldID(env, cls, "bps",  "J");
-        pOMXAV->jni_fid_totalFrames = (intptr_t) (*env)->GetFieldID(env, cls, "totalFrames",  "J");
-        pOMXAV->jni_fid_acodec = (intptr_t) (*env)->GetFieldID(env, cls, "acodec",  "Ljava/lang/String;");
-        pOMXAV->jni_fid_vcodec = (intptr_t) (*env)->GetFieldID(env, cls, "vcodec",  "Ljava/lang/String;");
-    }
-
-    return (jlong) (intptr_t) (void *)pOMXAV;
+    pOMXAV->jni_instance=(intptr_t)instance;
+    return (jlong) (intptr_t) pOMXAV;
 }
 
 JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_OMXGLMediaPlayer__1setStream
@@ -142,7 +99,6 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_OMXGLMediaPlayer__1setStr
     if (pOMXAV != NULL) {
         const char *filePath = (*env)->GetStringUTFChars(env, jpath, &iscopy);
         fprintf(stdout, "setStream 2 %s..\n", filePath); fflush(stdout); // JAU
-        pOMXAV->jni_env=(intptr_t)env;
         pOMXAV->jni_instance=(intptr_t)instance;
         OMXToolBasicAV_SetStream(pOMXAV, vBufferNum, filePath);
         (*env)->ReleaseStringChars(env, jpath, (const jchar *)filePath);
@@ -213,8 +169,8 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_OMXGLMediaPlayer__1stop
     OMXToolBasicAV_PlayStop(pOMXAV);
 }
 
-JNIEXPORT jlong JNICALL Java_jogamp_opengl_util_av_impl_OMXGLMediaPlayer__1seek
-  (JNIEnv *env, jobject instance, jlong ptr, jlong pos)
+JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_OMXGLMediaPlayer__1seek
+  (JNIEnv *env, jobject instance, jlong ptr, jint pos)
 {
     OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
     OMXToolBasicAV_PlaySeek(pOMXAV, pos);
@@ -232,7 +188,7 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_OMXGLMediaPlayer__1getNex
   return textureID;
 }
 
-JNIEXPORT jlong JNICALL Java_jogamp_opengl_util_av_impl_OMXGLMediaPlayer__1getCurrentPosition
+JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_OMXGLMediaPlayer__1getCurrentPosition
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));

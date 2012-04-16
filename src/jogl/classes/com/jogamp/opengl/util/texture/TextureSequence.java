@@ -29,23 +29,98 @@ package com.jogamp.opengl.util.texture;
 
 import javax.media.opengl.GL;
 
+/**
+ * Protocol for texture sequences, like animations, movies, etc.
+ * <p>
+ * Ensure to respect the texture coordinates provided by 
+ * {@link TextureFrame}.{@link TextureFrame#getTexture() getTexture()}.{@link Texture#getImageTexCoords() getImageTexCoords()}.
+ * </p>
+ * The user's shader shall be fitted for this implementation. 
+ * Assuming we use a base shader code w/o headers using </code>ShaderCode</code>.
+ * (Code copied from unit test / demo <code>TexCubeES2</code>)
+ * <pre>
+ * 
+    static final String[] es2_prelude = { "#version 100\n", "precision mediump float;\n" };
+    static final String gl2_prelude = "#version 110\n";
+    static final String shaderBasename = "texsequence_xxx";  // the base shader code w/o headers
+    static final String myTextureLookupName = "myTexture2D"; // the desired texture lookup function    
+    
+    private void initShader(GL2ES2 gl, TextureSequence texSeq) {
+        // Create & Compile the shader objects
+        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, TexCubeES2.class, 
+                                            "shader", "shader/bin", shaderBasename, true);
+        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, TexCubeES2.class, 
+                                            "shader", "shader/bin", shaderBasename, true);
+        
+        // Prelude shader code w/ GLSL profile specifics [ 1. pre-proc, 2. other ]
+        int rsFpPos;
+        if(gl.isGLES2()) {
+            // insert ES2 version string in beginning
+            rsVp.insertShaderSource(0, 0, es2_prelude[0]);
+            rsFpPos = rsFp.insertShaderSource(0, 0, es2_prelude[0]);
+        } else {
+            // insert GL2 version string in beginning
+            rsVp.insertShaderSource(0, 0, gl2_prelude);
+            rsFpPos = rsFp.insertShaderSource(0, 0, gl2_prelude);
+        }
+        // insert required extensions as determined by TextureSequence implementation.
+        rsFpPos = rsFp.insertShaderSource(0, rsFpPos, texSeq.getRequiredExtensionsShaderStub());
+        if(gl.isGLES2()) {
+            // insert ES2 default precision declaration
+            rsFpPos = rsFp.insertShaderSource(0, rsFpPos, es2_prelude[1]);
+        }        
+        // negotiate the texture lookup function name
+        final String texLookupFuncName = texSeq.getTextureLookupFunctionName(myTextureLookupName);
+        
+        // in case a fixed lookup function is being chosen, replace the name in our code        
+        rsFp.replaceInShaderSource(myTextureLookupName, texLookupFuncName);
+        
+        // Cache the TextureSequence shader details in StringBuffer:
+        final StringBuilder sFpIns = new StringBuilder();
+        
+        // .. declaration of the texture sampler using the implementation specific type
+        sFpIns.append("uniform ").append(texSeq.getTextureSampler2DType()).append(" mgl_ActiveTexture;\n");
+        
+        // .. the actual texture lookup function, maybe null in case a built-in function is being used
+        sFpIns.append(texSeq.getTextureLookupFragmentShaderImpl());
+        
+        // Now insert the TextureShader details in our shader after the given tag:
+        rsFp.insertShaderSource(0, "TEXTURE-SEQUENCE-CODE-BEGIN", 0, sFpIns);
+        
+        // Create & Link the shader program
+        ShaderProgram sp = new ShaderProgram();
+        sp.add(rsVp);
+        sp.add(rsFp);
+        if(!sp.link(gl, System.err)) {
+            throw new GLException("Couldn't link program: "+sp);
+        }
+        ...
+ * </pre>
+ * The above procedure might look complicated, however, it allows most flexibility and
+ * workarounds to also deal with GLSL bugs.
+ *  
+ */
 public interface TextureSequence {
-
+    public static final String GL_OES_EGL_image_external_Required_Prelude = "#extension GL_OES_EGL_image_external : enable\n";
+    public static final String GL_OES_EGL_image_external = "GL_OES_EGL_image_external";
+    public static final String samplerExternalOES = "samplerExternalOES";
+    public static final String sampler2D = "sampler2D";
+    
+    /** 
+     * Texture holder interface, maybe specialized by implementation
+     * to associated related data. 
+     */
     public static class TextureFrame {
         public TextureFrame(Texture t) {
             texture = t;
-            // stMatrix = new float[4*4];
-            // ProjectFloat.makeIdentityf(stMatrix, 0);
         }
         
         public final Texture getTexture() { return texture; }
-        // public final float[] getSTMatrix() { return stMatrix; }
         
         public String toString() {
             return "TextureFrame[" + texture + "]";
         }
         protected final Texture texture;
-        // protected final float[] stMatrix;
     }
 
     public interface TexSeqEventListener<T extends TextureSequence> {
@@ -57,8 +132,7 @@ public interface TextureSequence {
         public void newFrameAvailable(T ts, long when);
     }
     
-    public int getTextureTarget();
-
+    /** Return the texture unit to be used with this frame. */
     public int getTextureUnit();
 
     public int[] getTextureMinMagFilter();
@@ -66,15 +140,17 @@ public interface TextureSequence {
     public int[] getTextureWrapST();
 
     /**
-     * Returns the last updated texture. 
+     * Returns the last updated texture.
      * <p>
      * In case the instance is just initialized, it shall return a <code>TextureFrame</code>
      * object with valid attributes. The texture content may be undefined 
      * until the first call of {@link #getNextTexture(GL, boolean)}.<br>
      * </p> 
-     * Not blocking. 
+     * Not blocking.
+     *  
+     * @throws IllegalStateException if instance is not initialized 
      */
-    public TextureFrame getLastTexture();
+    public TextureFrame getLastTexture() throws IllegalStateException ;
 
     /**
      * Returns the next texture to be rendered. 
@@ -85,6 +161,61 @@ public interface TextureSequence {
      * <p>
      * Shall return <code>null</code> in case <i>no</i> frame is available.
      * </p>
+     *  
+     * @throws IllegalStateException if instance is not initialized 
      */
-    public TextureFrame getNextTexture(GL gl, boolean blocking);
+    public TextureFrame getNextTexture(GL gl, boolean blocking) throws IllegalStateException ;
+    
+    /**
+     * In case a shader extension is required, based on the implementation 
+     * and the runtime GL profile, this method returns the preprocessor macros, e.g.:
+     * <pre>
+     * #extension GL_OES_EGL_image_external : enable
+     * </pre> 
+     *  
+     * @throws IllegalStateException if instance is not initialized 
+     */
+    public String getRequiredExtensionsShaderStub() throws IllegalStateException ;
+    
+    /** 
+     * Returns either <code>sampler2D</code> or <code>samplerExternalOES</code>
+     * depending on {@link #getLastTexture()}.{@link TextureFrame#getTexture() getTexture()}.{@link Texture#getTarget() getTarget()}. 
+     *  
+     * @throws IllegalStateException if instance is not initialized 
+     **/
+    public String getTextureSampler2DType() throws IllegalStateException ;
+    
+    /**
+     * @param desiredFuncName desired lookup function name. If <code>null</code> or ignored by the implementation,
+     *                        a build-in name is returned. 
+     * @return the final lookup function name
+     *  
+     * @see {@link #getTextureLookupFragmentShaderImpl()}
+     * 
+     * @throws IllegalStateException if instance is not initialized
+     */
+    public String getTextureLookupFunctionName(String desiredFuncName) throws IllegalStateException ;
+    
+    /**
+     * Returns the complete texture2D lookup function code of type
+     * <pre>
+     *   vec4 <i>funcName</i>(in <i>getTextureSampler2DType()</i> image, in vec2 texCoord) {
+     *      vec4 texColor = do_something_with(image, texCoord);
+     *      return texColor;
+     *   }
+     * </pre>
+     * <p>
+     * <i>funcName</i> can be negotiated and queried via {@link #getTextureLookupFunctionName(String)}.
+     * </p>
+     * Note: This function may return an empty string in case a build-in lookup
+     * function is being chosen. If the implementation desires so, 
+     * {@link #getTextureLookupFunctionName(String)} will ignore the desired function name
+     * and returns the build-in lookup function name.
+     * </p>
+     * @see #getTextureLookupFunctionName(String)
+     * @see #getTextureSampler2DType()
+     *  
+     * @throws IllegalStateException if instance is not initialized 
+     */
+    public String getTextureLookupFragmentShaderImpl() throws IllegalStateException ;    
 }

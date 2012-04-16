@@ -129,7 +129,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
             
             if(y>winHeight/2) {
                 final float dp  = (float)(x-prevMouseX)/(float)winWidth;
-                mPlayer.seek(mPlayer.getCurrentPosition() + (long) (mPlayer.getDuration() * dp));                
+                mPlayer.seek(mPlayer.getCurrentPosition() + (int) (mPlayer.getDuration() * dp));                
             } else {
                 mPlayer.start();
                 rotate = 1;                
@@ -198,16 +198,39 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
     ShaderState st;
     PMVMatrix pmvMatrix;
     GLUniformData pmvMatrixUniform;
+    static final String[] es2_prelude = { "#version 100\n", "precision mediump float;\n" };
+    static final String gl2_prelude = "#version 110\n";
+    static final String shaderBasename = "texsequence_xxx";
+    static final String myTextureLookupName = "myTexture2D";
     
-    private void initShader(GL2ES2 gl, boolean useExternalTexture) {
+    private void initShader(GL2ES2 gl) {
         // Create & Compile the shader objects
-        final String vShaderBasename = gl.isGLES2() ? "texsimple_es2" : "texsimple_gl2" ;
-        final String fShaderBasename = gl.isGLES2() ? ( useExternalTexture ? "texsimple_es2_exttex" : "texsimple_es2" ) : "texsimple_gl2";
+        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, MovieSimple.class, 
+                                            "../shader", "../shader/bin", shaderBasename, true);
+        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, MovieSimple.class, 
+                                            "../shader", "../shader/bin", shaderBasename, true);
+
+        // Prelude shader code w/ GLSL profile specifics [ 1. pre-proc, 2. other ]
+        int rsFpPos;
+        if(gl.isGLES2()) {
+            rsVp.insertShaderSource(0, 0, es2_prelude[0]);
+            rsFpPos = rsFp.insertShaderSource(0, 0, es2_prelude[0]);
+        } else {
+            rsVp.insertShaderSource(0, 0, gl2_prelude);
+            rsFpPos = rsFp.insertShaderSource(0, 0, gl2_prelude);
+        }
+        rsFpPos = rsFp.insertShaderSource(0, rsFpPos, mPlayer.getRequiredExtensionsShaderStub());
+        if(gl.isGLES2()) {
+            rsFpPos = rsFp.insertShaderSource(0, rsFpPos, es2_prelude[1]);
+        }
+        final String texLookupFuncName = mPlayer.getTextureLookupFunctionName(myTextureLookupName);        
+        rsFp.replaceInShaderSource(myTextureLookupName, texLookupFuncName);
         
-        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, MovieSimple.class,
-                                            "../shader", "../shader/bin", vShaderBasename);
-        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, MovieSimple.class,
-                                            "../shader", "../shader/bin", fShaderBasename);
+        // Inject TextureSequence shader details
+        final StringBuilder sFpIns = new StringBuilder();
+        sFpIns.append("uniform ").append(mPlayer.getTextureSampler2DType()).append(" mgl_ActiveTexture;\n");
+        sFpIns.append(mPlayer.getTextureLookupFragmentShaderImpl());
+        rsFp.insertShaderSource(0, "TEXTURE-SEQUENCE-CODE-BEGIN", 0, sFpIns);
 
         // Create & Link the shader program
         ShaderProgram sp = new ShaderProgram();
@@ -232,14 +255,16 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         System.err.println("Alpha: "+alpha+", opaque "+drawable.getChosenGLCapabilities().isBackgroundOpaque()+
                            ", "+drawable.getClass().getName()+", "+drawable);
         
+        final Texture tex;
         boolean useExternalTexture = false;
         try {
             System.out.println("p0 "+mPlayer+", shared "+mPlayerShared);
             if(!mPlayerShared) {
                 mPlayer.initGLStream(gl, stream);
             }
+            tex = mPlayer.getLastTexture().getTexture();
             System.out.println("p1 "+mPlayer+", shared "+mPlayerShared);
-            useExternalTexture = GLES2.GL_TEXTURE_EXTERNAL_OES == mPlayer.getTextureTarget();
+            useExternalTexture = GLES2.GL_TEXTURE_EXTERNAL_OES == tex.getTarget();
             if(useExternalTexture && !gl.isExtensionAvailable("GL_OES_EGL_image_external")) {
                 throw new GLException("GL_OES_EGL_image_external requested but not available");
             }
@@ -254,7 +279,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
             throw new GLException(glex);
         }
         
-        initShader(gl, useExternalTexture);
+        initShader(gl);
 
         // Push the 1st uniform down the path 
         st.useProgram(gl, true);
@@ -313,7 +338,6 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
             interleavedVBO.addGLSLSubArray("mgl_MultiTexCoord", 2, GL.GL_ARRAY_BUFFER);
             
             final FloatBuffer ib = (FloatBuffer)interleavedVBO.getBuffer();
-            final Texture tex= mPlayer.getLastTexture().getTexture();
             final TextureCoords tc = tex.getImageTexCoords();                                   
             final float aspect = tex.getAspectRatio();
             System.err.println("XXX0: tex aspect: "+aspect);

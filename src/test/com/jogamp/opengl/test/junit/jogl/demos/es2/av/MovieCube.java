@@ -45,6 +45,10 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.newt.Window;
+import com.jogamp.newt.event.KeyAdapter;
+import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -61,15 +65,55 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
     boolean quit = false;
     TexCubeES2 cube=null;
     GLMediaPlayer mPlayer=null;
-    URLConnection stream = null;
+    URLConnection stream = null;    
 
     public MovieCube(URLConnection stream, float zoom0, float rotx, float roty) throws IOException {
         this.stream = stream;
         mPlayer = GLMediaPlayerFactory.create();
         mPlayer.addEventListener(this);
-        cube = new TexCubeES2(mPlayer, false, zoom0, rotx, roty);
+        cube = new TexCubeES2(mPlayer, false, zoom0, rotx, roty);        
     }
 
+    private final KeyListener keyAction = new KeyAdapter() {
+        public void keyTyped(KeyEvent e)  {
+            System.err.println("MC "+e);
+            int pts0 = mPlayer.getCurrentPosition();
+            int pts1 = 0;
+            switch(e.getKeyCode()) {
+                case KeyEvent.VK_3:
+                case KeyEvent.VK_RIGHT:      pts1 = pts0 +  1000; break;
+                case KeyEvent.VK_4:
+                case KeyEvent.VK_UP:         pts1 = pts0 + 10000; break;
+                case KeyEvent.VK_2:
+                case KeyEvent.VK_LEFT:       pts1 = pts0 -  1000; break;
+                case KeyEvent.VK_1:
+                case KeyEvent.VK_DOWN:       pts1 = pts0 - 10000; break;
+                case KeyEvent.VK_ESCAPE:
+                case KeyEvent.VK_DELETE:
+                case KeyEvent.VK_BACK_SPACE: {
+                    mPlayer.seek(0);
+                    mPlayer.setPlaySpeed(1.0f);
+                    mPlayer.start();
+                    break;
+                }
+                case KeyEvent.VK_SPACE: {
+                    if(GLMediaPlayer.State.Paused == mPlayer.getState()) {
+                        mPlayer.start();
+                    } else {
+                        mPlayer.pause();
+                    }
+                    break;
+                }
+                case KeyEvent.VK_S: mPlayer.setPlaySpeed(mPlayer.getPlaySpeed()/2.0f); break;
+                case KeyEvent.VK_F: mPlayer.setPlaySpeed(mPlayer.getPlaySpeed()*2.0f); break;
+            }
+            
+            if( 0 != pts1 ) {
+                mPlayer.seek(pts1);
+            }
+        }        
+    };
+    
     @Override
     public void attributesChanges(GLMediaPlayer mp, int event_mask, long when) {
         System.out.println("attributesChanges: "+mp+", 0x"+Integer.toHexString(event_mask)+", when "+when);        
@@ -99,6 +143,14 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
         
         cube.init(drawable);
         mPlayer.start();
+
+        boolean added;
+        if (drawable instanceof Window) {
+            Window window = (Window) drawable;
+            window.addKeyListener(keyAction);
+            added = true;
+        } else { added = false; }       
+        System.err.println("MC.init: kl-added "+added+", "+drawable.getClass().getName());
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {

@@ -60,12 +60,12 @@ public class MovieSimpleActivityLauncher02 extends LauncherUtil.BaseActivityLaun
        props.setProperty("jogl.debug.GLDrawable", "true");
        props.setProperty("jogl.debug.GLContext", "true");
        props.setProperty("jogl.debug.GLSLCode", "true");
-       props.setProperty("jogl.debug.CapabilitiesChooser", "true");       
+       // props.setProperty("jogl.debug.CapabilitiesChooser", "true");       
        // props.setProperty("jogl.debug.GLSLState", "true");
        // props.setProperty("jogl.debug.DebugGL", "true");
        // props.setProperty("jogl.debug.TraceGL", "true");
        // props.setProperty("newt.debug", "all");
-       props.setProperty("newt.debug.Window", "true");
+       // props.setProperty("newt.debug.Window", "true");
        // props.setProperty("newt.debug.Window.MouseEvent", "true");
        // props.setProperty("newt.debug.Window.KeyEvent", "true");
        props.setProperty("jogamp.debug.IOUtil", "true");

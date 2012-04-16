@@ -47,6 +47,15 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  *   <tr><td>{@link #pause()}</td>                         <td>Playing</td>             <td>Paused</td></tr>
  *   <tr><td>{@link #destroy(GL)}</td>                     <td>ANY</td>                 <td>Uninitialized</td></tr>
  * </table>
+ * <p>
+ * Variable type, value range and dimension has been chosen to suit embedded CPUs
+ * and characteristics of audio and video streaming.
+ * Milliseconds of type integer with a maximum value of {@link Integer#MAX_VALUE} 
+ * will allow tracking time up 2,147,483.647 seconds or
+ * 24 days 20 hours 31 minutes and 23 seconds.
+ * Milliseconds granularity is also more than enough to deal with A-V synchronization,
+ * where the threshold usually lies within 100ms. 
+ * </p>
  */
 public interface GLMediaPlayer extends TextureSequence {
     public static final boolean DEBUG = Debug.debug("GLMediaPlayer");
@@ -57,6 +66,7 @@ public interface GLMediaPlayer extends TextureSequence {
         static final int EVENT_CHANGE_FPS    = 1<<1;
         static final int EVENT_CHANGE_BPS    = 1<<2;
         static final int EVENT_CHANGE_LENGTH = 1<<3;
+        static final int EVENT_CHANGE_CODEC  = 1<<3;
     
         /**
          * @param mp the event source 
@@ -136,7 +146,7 @@ public interface GLMediaPlayer extends TextureSequence {
     /**
      * @return time current position in milliseconds 
      **/
-    public long getCurrentPosition();
+    public int getCurrentPosition();
 
     /**
      * Allowed in state Stopped, Playing and Paused, otherwise ignored.
@@ -144,20 +154,26 @@ public interface GLMediaPlayer extends TextureSequence {
      * @param msec absolute desired time position in milliseconds 
      * @return time current position in milliseconds, after seeking to the desired position  
      **/
-    public long seek(long msec);
+    public int seek(int msec);
 
     /**
      * {@inheritDoc}
      */
-    public TextureSequence.TextureFrame getLastTexture();
+    @Override
+    public TextureSequence.TextureFrame getLastTexture() throws IllegalStateException;
 
     /**
      * {@inheritDoc}
      * 
+     * <p>
+     * In case the current state is not {@link State#Playing}, {@link #getLastTexture()} is returned.
+     * </p>
+     * 
      * @see #addEventListener(GLMediaEventListener)
      * @see GLMediaEventListener#newFrameAvailable(GLMediaPlayer, long)
      */
-    public TextureSequence.TextureFrame getNextTexture(GL gl, boolean blocking);
+    @Override
+    public TextureSequence.TextureFrame getNextTexture(GL gl, boolean blocking) throws IllegalStateException;
     
     public URLConnection getURLConnection();
 
@@ -182,19 +198,31 @@ public interface GLMediaPlayer extends TextureSequence {
     /**
      * @return total duration of stream in msec.
      */
-    public long getDuration();
+    public int getDuration();
     
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.
      * @return the overall bitrate of the stream.  
      */
-    public long getBitrate();
+    public long getStreamBitrate();
 
+    /**
+     * <i>Warning:</i> Optional information, may not be supported by implementation.
+     * @return video bitrate  
+     */
+    public int getVideoBitrate();
+    
+    /**
+     * <i>Warning:</i> Optional information, may not be supported by implementation.
+     * @return the audio bitrate  
+     */
+    public int getAudioBitrate();
+    
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.
      * @return the framerate of the video
      */
-    public int getFramerate();
+    public float getFramerate();
 
     public int getWidth();
 
@@ -207,5 +235,5 @@ public interface GLMediaPlayer extends TextureSequence {
     public void removeEventListener(GLMediaEventListener l);
 
     public GLMediaEventListener[] getEventListeners();    
-    
+
 }

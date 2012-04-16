@@ -48,6 +48,14 @@ import android.view.Surface;
  * Android API Level 14: {@link Surface#Surface(android.graphics.SurfaceTexture)}
  */
 public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
+    static final boolean available;
+    
+    static {
+        available = true; // default .. TODO: May restrict availability ? 
+    }
+    
+    public static final boolean isAvailable() { return available; }
+    
     MediaPlayer mp;
     volatile boolean updateSurface = false;
     Object updateSurfaceLock = new Object();
@@ -61,21 +69,19 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     
     public AndroidGLMediaPlayerAPI14() {
         super();
+        if(!available) {
+            throw new RuntimeException("AndroidGLMediaPlayerAPI14 not available");
+        }
         this.setTextureTarget(GLES2.GL_TEXTURE_EXTERNAL_OES);
         this.setTextureCount(1);
         mp = new MediaPlayer();
     }
 
     @Override
-    public void setPlaySpeed(float rate) {
-        // n/a
+    protected boolean setPlaySpeedImpl(float rate) {
+        return false;
     }
 
-    @Override
-    public float getPlaySpeed() {
-        return 0;
-    }
-    
     @Override
     protected boolean startImpl() {
         if(null != mp) {        
@@ -124,21 +130,21 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected long seekImpl(long msec) {
+    protected int seekImpl(int msec) {
         if(null != mp) {
-            mp.seekTo((int)msec);
+            mp.seekTo(msec);
             return mp.getCurrentPosition();
         }
         return 0;
     }
 
     @Override
-    public TextureSequence.TextureFrame getLastTexture() {
+    protected TextureSequence.TextureFrame getLastTextureImpl() {
         return lastTexFrame;
     }
 
     @Override
-    public TextureSequence.TextureFrame getNextTexture(GL gl, boolean blocking) {
+    protected TextureSequence.TextureFrame getNextTextureImpl(GL gl, boolean blocking) {
         if(null != stex && null != mp) {
             // Only block once, no while-loop. 
             // This relaxes locking code of non crucial resources/events.
@@ -176,7 +182,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
     
     @Override
-    public long getCurrentPosition() {
+    protected int getCurrentPositionImpl() {
         return null != mp ? mp.getCurrentPosition() : 0;
     }
 
@@ -214,20 +220,16 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             } catch (IOException ioe) {
                 throw new IOException("MediaPlayer failed to process stream <"+urlConn.getURL().toExternalForm()+">: "+ioe.getMessage(), ioe);
             }
-            width = mp.getVideoWidth();
-            height = mp.getVideoHeight();
-            fps = 0;
-            bps = 0;
-            totalFrames = 0;
-            duration = mp.getDuration();
-            acodec = "unknown";
-            vcodec = "unknown";            
+            updateAttributes(mp.getVideoWidth(), mp.getVideoHeight(), 
+                             0, 0, 0, 
+                             0f, 0, mp.getDuration(), 
+                             null, null);
         }
     }
     
     @Override
     protected TextureSequence.TextureFrame createTexImage(GL gl, int idx, int[] tex) {
-        lastTexFrame = new TextureSequence.TextureFrame( createTexImageImpl(gl, idx, tex, true) );
+        lastTexFrame = new TextureSequence.TextureFrame( createTexImageImpl(gl, idx, tex, width, height, true) );
         return lastTexFrame; 
     }
     

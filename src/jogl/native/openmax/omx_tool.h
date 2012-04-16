@@ -73,16 +73,16 @@ typedef struct {
     OMX_HANDLETYPE endComponent;
     OMX_CALLBACKTYPE callbacks;
 
-    KDchar audioCodec[256];
-    KDchar audioCodecComponent[256];
-    KDchar videoCodec[256];
-    KDchar videoCodecComponent[256];
+    KDchar audioCodec[64];
+    KDchar audioCodecComponent[64];
+    KDchar videoCodec[64];
+    KDchar videoCodecComponent[64];
     int audioPort;
     int videoPort;
     KDuint32 width;
     KDuint32 height;
     KDuint32 bitrate; // per seconds
-    KDuint32 framerate; // per seconds
+    KDfloat32 framerate; // per seconds
     KDfloat32 length; // seconds
     KDfloat32 speed; // current clock scale
     KDfloat32 play_speed; // current play clock scale
@@ -99,17 +99,7 @@ typedef struct {
 
     int status;
 
-    intptr_t jni_env;
     intptr_t jni_instance;
-    intptr_t jni_mid_saveAttributes;
-    intptr_t jni_mid_attributesUpdated;
-    intptr_t jni_fid_width;
-    intptr_t jni_fid_height;
-    intptr_t jni_fid_fps;
-    intptr_t jni_fid_bps;
-    intptr_t jni_fid_totalFrames;
-    intptr_t jni_fid_acodec;
-    intptr_t jni_fid_vcodec;
 } OMXToolBasicAV_t ;
 
 //

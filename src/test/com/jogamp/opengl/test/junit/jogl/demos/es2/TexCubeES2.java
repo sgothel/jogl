@@ -1,3 +1,30 @@
+/**
+ * Copyright 2012 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
 package com.jogamp.opengl.test.junit.jogl.demos.es2;
 
 import java.nio.ByteBuffer;
@@ -23,6 +50,7 @@ import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.TestTextureSequence;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -30,18 +58,19 @@ import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 import com.jogamp.opengl.util.texture.Texture;
+import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 public class TexCubeES2 implements GLEventListener {
     public TexCubeES2 (TextureSequence texSource, boolean innerCube, float zoom0, float rotx, float roty) {
-        this.texSource = texSource;
+        this.texSeq = texSource;
         this.innerCube = innerCube;
         this.zoom0     = zoom0;
         this.view_rotx = rotx;
         this.view_roty = roty;
     }
 
-    private TextureSequence texSource;
+    private TextureSequence texSeq;
     private ShaderState st;
     private PMVMatrix pmvMatrix;
     private GLUniformData pmvMatrixUniform;
@@ -117,17 +146,40 @@ public class TexCubeES2 implements GLEventListener {
         }
     };
     
+    static final String[] es2_prelude = { "#version 100\n", "precision mediump float;\n" };
+    static final String gl2_prelude = "#version 110\n";
+    static final String shaderBasename = "texsequence_xxx";
+    static final String myTextureLookupName = "myTexture2D";
     
-    private void initShader(GL2ES2 gl, boolean useExternalTexture) {
+    private void initShader(GL2ES2 gl) {
         // Create & Compile the shader objects
-        final String vShaderBasename = gl.isGLES2() ? "texsimple_es2" : "texsimple_gl2" ;
-        final String fShaderBasename = gl.isGLES2() ? ( useExternalTexture ? "texsimple_es2_exttex" : "texsimple_es2" ) : "texsimple_gl2";
+        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, TexCubeES2.class, 
+                                            "shader", "shader/bin", shaderBasename, true);
+        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, TexCubeES2.class, 
+                                            "shader", "shader/bin", shaderBasename, true);
         
-        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, 1, TexCubeES2.class,
-                                            "shader", "shader/bin", vShaderBasename);
-        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, 1, TexCubeES2.class,
-                                            "shader", "shader/bin", fShaderBasename);
-
+        // Prelude shader code w/ GLSL profile specifics [ 1. pre-proc, 2. other ]
+        int rsFpPos;
+        if(gl.isGLES2()) {
+            rsVp.insertShaderSource(0, 0, es2_prelude[0]);
+            rsFpPos = rsFp.insertShaderSource(0, 0, es2_prelude[0]);
+        } else {
+            rsVp.insertShaderSource(0, 0, gl2_prelude);
+            rsFpPos = rsFp.insertShaderSource(0, 0, gl2_prelude);
+        }
+        rsFpPos = rsFp.insertShaderSource(0, rsFpPos, texSeq.getRequiredExtensionsShaderStub());
+        if(gl.isGLES2()) {
+            rsFpPos = rsFp.insertShaderSource(0, rsFpPos, es2_prelude[1]);
+        }        
+        final String texLookupFuncName = texSeq.getTextureLookupFunctionName(myTextureLookupName);        
+        rsFp.replaceInShaderSource(myTextureLookupName, texLookupFuncName);
+        
+        // Inject TextureSequence shader details
+        final StringBuilder sFpIns = new StringBuilder();
+        sFpIns.append("uniform ").append(texSeq.getTextureSampler2DType()).append(" mgl_ActiveTexture;\n");
+        sFpIns.append(texSeq.getTextureLookupFragmentShaderImpl());
+        rsFp.insertShaderSource(0, "TEXTURE-SEQUENCE-CODE-BEGIN", 0, sFpIns);
+        
         // Create & Link the shader program
         ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);
@@ -146,13 +198,14 @@ public class TexCubeES2 implements GLEventListener {
     public void init(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         System.err.println(JoglVersion.getGLInfo(gl, null));
+        final Texture tex= texSeq.getLastTexture().getTexture();
         
-        final boolean useExternalTexture = GLES2.GL_TEXTURE_EXTERNAL_OES == texSource.getTextureTarget();
+        final boolean useExternalTexture = GLES2.GL_TEXTURE_EXTERNAL_OES == tex.getTarget();
         if(useExternalTexture && !gl.isExtensionAvailable("GL_OES_EGL_image_external")) {
             throw new GLException("GL_OES_EGL_image_external requested but not available");
         }
         
-        initShader(gl, useExternalTexture);
+        initShader(gl);
 
         // Push the 1st uniform down the path 
         st.useProgram(gl, true);
@@ -163,26 +216,31 @@ public class TexCubeES2 implements GLEventListener {
         if(!st.uniform(gl, pmvMatrixUniform)) {
             throw new GLException("Error setting PMVMatrix in shader: "+st);
         }
-        if(!st.uniform(gl, new GLUniformData("mgl_ActiveTexture", texSource.getTextureUnit()))) {
+        if(!st.uniform(gl, new GLUniformData("mgl_ActiveTexture", texSeq.getTextureUnit()))) {
             throw new GLException("Error setting mgl_ActiveTexture in shader: "+st);
         }
         
         
         {
-            final Texture tex= texSource.getLastTexture().getTexture();
             final float aspect = tex.getAspectRatio();
+            final TextureCoords tc = tex.getImageTexCoords();
             System.err.println("XXX0: aspect: "+aspect);
             System.err.println("XXX0: y-flip: "+tex.getMustFlipVertically());
-            System.err.println("XXX0: "+tex.getImageTexCoords());
+            System.err.println("XXX0: "+tc);
+            final float tc_x1 = Math.max(tc.left(), tc.right());
+            final float tc_y1 = Math.max(tc.bottom(), tc.top());
             final float ss=1f, ts=aspect; // scale tex-coord
             final float dy = ( 1f - aspect ) / 2f ;
             for(int i=0; i<s_cubeTexCoords.length; i+=2) {
-                s_cubeTexCoords[i+0] *= ss;
-                final float t = s_cubeTexCoords[i+1];
-                if(t==0 && !tex.getMustFlipVertically() || t!=0 && tex.getMustFlipVertically()) {
-                    s_cubeTexCoords[i+1] = 0f      + dy;
+                final float tx = s_cubeTexCoords[i+0];
+                final float ty = s_cubeTexCoords[i+1];
+                if(tx!=0) {
+                    s_cubeTexCoords[i+0] = tc_x1 * ss;
+                }
+                if(ty==0 && !tex.getMustFlipVertically() || ty!=0 && tex.getMustFlipVertically()) {
+                    s_cubeTexCoords[i+1] = 0f         + dy;
                 } else {
-                    s_cubeTexCoords[i+1] = 1f * ts + dy;
+                    s_cubeTexCoords[i+1] = tc_y1 * ts + dy;
                 }
             }
         }
@@ -274,7 +332,7 @@ public class TexCubeES2 implements GLEventListener {
     public void dispose(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        texSource = null;        
+        texSeq = null;        
         pmvMatrixUniform = null;
         pmvMatrix.destroy();
         pmvMatrix=null;
@@ -298,11 +356,11 @@ public class TexCubeES2 implements GLEventListener {
         st.uniform(gl, pmvMatrixUniform);
         interleavedVBO.enableBuffer(gl, true);
         Texture tex = null;
-        if(null!=texSource) {
-            final TextureSequence.TextureFrame texFrame = texSource.getNextTexture(gl, true);
+        if(null!=texSeq) {
+            final TextureSequence.TextureFrame texFrame = texSeq.getNextTexture(gl, true);
             if(null != texFrame) {
                 tex = texFrame.getTexture();
-                gl.glActiveTexture(GL.GL_TEXTURE0+texSource.getTextureUnit());
+                gl.glActiveTexture(GL.GL_TEXTURE0+texSeq.getTextureUnit());
                 tex.enable(gl);
                 tex.bind(gl);                
             }
@@ -401,14 +459,27 @@ public class TexCubeES2 implements GLEventListener {
     public static void main(String[] args) {
         int width = 510;
         int height = 300;
+        boolean useBuildInTexLookup = false;
         System.err.println("TexCubeES2.run()");
 
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-width")) {
+                i++;
+                width = MiscUtils.atoi(args[i], width);
+            } else if(args[i].equals("-height")) {
+                i++;
+                height = MiscUtils.atoi(args[i], height);
+            } else if(args[i].equals("-shaderBuildIn")) {
+                useBuildInTexLookup = true;
+            }
+        }
+        
         final GLWindow window = GLWindow.create(new GLCapabilities(GLProfile.getGL2ES2()));
         // Size OpenGL to Video Surface
         window.setSize(width, height);
         window.setFullscreen(false);
         window.setSize(width, height);
-        final TestTextureSequence texSource = new TestTextureSequence();
+        final TestTextureSequence texSource = new TestTextureSequence(useBuildInTexLookup);
         window.addGLEventListener(new GLEventListener() {
             @Override
             public void init(GLAutoDrawable drawable) {

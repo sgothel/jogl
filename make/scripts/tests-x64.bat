@@ -24,7 +24,7 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.T
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT -time 5000
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLSimple01NEWT -time 2000
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestParenting01AWT
@@ -50,6 +50,10 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestScreenMode0
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.ManualScreenMode03NEWT
+
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple %*
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.TexCubeES2 %*
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT

@@ -11,32 +11,6 @@ static jclass    runtimeExceptionClz=NULL;
 static JavaVM *_jvmHandle = NULL;
 static int _jvmVersion = 0;
 
-
-void JoglCommon_FatalError(JNIEnv *env, const char* msg, ...)
-{
-    char buffer[512];
-    va_list ap;
-
-    va_start(ap, msg);
-    vsnprintf(buffer, sizeof(buffer), msg, ap);
-    va_end(ap);
-
-    fprintf(stderr, "%s\n", buffer);
-    (*env)->FatalError(env, buffer);
-}
-
-void JoglCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...)
-{
-    char buffer[512];
-    va_list ap;
-
-    va_start(ap, msg);
-    vsnprintf(buffer, sizeof(buffer), msg, ap);
-    va_end(ap);
-
-    (*env)->ThrowNew(env, runtimeExceptionClz, buffer);
-}
-
 void JoglCommon_init(JNIEnv *env) {
     if(NULL==runtimeExceptionClz) {
         jclass c = (*env)->FindClass(env, ClazzNameRuntimeException);
@@ -53,6 +27,47 @@ void JoglCommon_init(JNIEnv *env) {
         JoglCommon_FatalError(env, "JOGL: can't fetch JavaVM handle");
     } else {
         _jvmVersion = (*env)->GetVersion(env);
+    }
+}
+
+void JoglCommon_FatalError(JNIEnv *env, const char* msg, ...)
+{
+    char buffer[512];
+    va_list ap;
+    int shallBeDetached = 0;
+
+    if(NULL == env) {
+        env = JoglCommon_GetJNIEnv (&shallBeDetached);
+    }
+
+    va_start(ap, msg);
+    vsnprintf(buffer, sizeof(buffer), msg, ap);
+    va_end(ap);
+
+    fprintf(stderr, "%s\n", buffer);
+    if(NULL != env) {
+        (*env)->FatalError(env, buffer);
+        JoglCommon_ReleaseJNIEnv (shallBeDetached);
+    }
+}
+
+void JoglCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...)
+{
+    char buffer[512];
+    va_list ap;
+    int shallBeDetached = 0;
+
+    if(NULL == env) {
+        env = JoglCommon_GetJNIEnv (&shallBeDetached);
+    }
+
+    va_start(ap, msg);
+    vsnprintf(buffer, sizeof(buffer), msg, ap);
+    va_end(ap);
+
+    if(NULL != env) {
+        (*env)->ThrowNew(env, runtimeExceptionClz, buffer);
+        JoglCommon_ReleaseJNIEnv (shallBeDetached);
     }
 }
 
@@ -110,7 +125,6 @@ JNIEnv* JoglCommon_GetJNIEnv (int * shallBeDetached)
 void JoglCommon_ReleaseJNIEnv (int shallBeDetached) {
     if(NULL == _jvmHandle) {
         fprintf(stderr, "JOGL: No JavaVM handle registered, call JoglCommon_init(..) 1st");
-        return NULL;
     }
 
     if(shallBeDetached) {

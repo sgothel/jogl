@@ -12,7 +12,7 @@ public class NEWTRedSquareES2ActivityLauncher extends Activity {
            super.onCreate(savedInstanceState);
            
            final Uri uri = Uri.parse("launch://jogamp.org/com.jogamp.opengl.test.android.NEWTRedSquareES2Activity?pkg=com.jogamp.opengl.test");
-           final Intent intent = new Intent("org.jogamp.launcher.action.LAUNCH_ACTIVITY_NORMAL", uri);
+           final Intent intent = new Intent("org.jogamp.launcher.action.LAUNCH_ACTIVITY_NORMAL", uri);           
            Log.d(getClass().getSimpleName(), "Launching Activity: "+intent);
            startActivity (intent);
            

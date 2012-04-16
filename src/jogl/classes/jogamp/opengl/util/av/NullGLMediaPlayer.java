@@ -49,8 +49,8 @@ import com.jogamp.opengl.util.texture.TextureSequence;
 public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     private TextureData texData = null;
     private TextureSequence.TextureFrame frame = null;
-    private long pos_ms = 0;
-    private long pos_start = 0;
+    private int pos_ms = 0;
+    private int pos_start = 0;
     
     public NullGLMediaPlayer() {
         super();
@@ -58,18 +58,13 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    public void setPlaySpeed(float rate) {
-        // n/a
+    protected boolean setPlaySpeedImpl(float rate) {
+        return false;
     }
 
     @Override
-    public float getPlaySpeed() {
-        return 0;
-    }
-    
-    @Override
     protected boolean startImpl() {
-        pos_start = System.currentTimeMillis();
+        pos_start = (int)System.currentTimeMillis();
         return true;
     }
 
@@ -84,25 +79,25 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected long seekImpl(long msec) {
+    protected int seekImpl(int msec) {
         pos_ms = msec;
         validatePos();
         return pos_ms;
     }
     
     @Override
-    public TextureSequence.TextureFrame getLastTexture() {
+    protected TextureSequence.TextureFrame getLastTextureImpl() {
         return frame;
     }
 
     @Override
-    public TextureSequence.TextureFrame getNextTexture(GL gl, boolean blocking) {
+    protected TextureSequence.TextureFrame getNextTextureImpl(GL gl, boolean blocking) {
         return frame;
     }
     
     @Override
-    public long getCurrentPosition() {
-        pos_ms = System.currentTimeMillis() - pos_start;
+    protected int getCurrentPositionImpl() {
+        pos_ms = (int)System.currentTimeMillis() - pos_start;
         validatePos();
         return pos_ms;
     }
@@ -137,17 +132,15 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
                    GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, false, 
                    false, false, buffer, null);
         }
-        fps = 30;
-        bps = 0;
-        totalFrames = 0;
-        duration = 10*60*1000;
-        acodec = "none";
-        vcodec = "tga-dummy";
+        fps = 24f;
+        duration = 10*60*1000; // msec
+        totalFrames = (int) ( (duration/1000)*fps );
+        vcodec = "png-static";
     }
     
     @Override
     protected TextureSequence.TextureFrame createTexImage(GL gl, int idx, int[] tex) {
-        Texture texture = super.createTexImageImpl(gl, idx, tex, false);
+        Texture texture = super.createTexImageImpl(gl, idx, tex, width, height, false);
         if(null != texData) {
             texture.updateImage(gl, texData);
             texData.destroy();

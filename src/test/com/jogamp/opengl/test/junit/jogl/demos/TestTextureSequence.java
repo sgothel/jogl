@@ -19,8 +19,10 @@ public class TestTextureSequence implements TextureSequence {
     int textureUnit = 0;
     protected int[] texMinMagFilter = { GL.GL_NEAREST, GL.GL_NEAREST };
     protected int[] texWrapST = { GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE };
-
-    public TestTextureSequence() {
+    final boolean useBuildInTexLookup;
+    
+    public TestTextureSequence(boolean useBuildInTexLookup) {
+        this.useBuildInTexLookup = useBuildInTexLookup;
     }
     
     public void initGLResources(GL gl) throws GLException {
@@ -57,11 +59,6 @@ public class TestTextureSequence implements TextureSequence {
     }
     
     @Override
-    public int getTextureTarget() {
-        return frame.getTexture().getTarget();
-    }
-
-    @Override
     public int getTextureUnit() {
         return textureUnit;
     }
@@ -77,13 +74,47 @@ public class TestTextureSequence implements TextureSequence {
     }
 
     @Override
-    public TextureSequence.TextureFrame getLastTexture() {
+    public TextureSequence.TextureFrame getLastTexture() throws IllegalStateException {
         return frame; // may return null
     }
 
     @Override
-    public TextureSequence.TextureFrame getNextTexture(GL gl, boolean blocking) {
+    public TextureSequence.TextureFrame getNextTexture(GL gl, boolean blocking) throws IllegalStateException {
         return frame;
     }
     
+    @Override
+    public String getRequiredExtensionsShaderStub() throws IllegalStateException {
+        return "// TextTextureSequence: No extensions required\n";
+    }
+    
+    @Override
+    public String getTextureSampler2DType() throws IllegalStateException {
+        return "sampler2D" ;
+    }    
+    
+    private String textureLookupFunctionName = "myTexture2D";
+    
+    @Override
+    public String getTextureLookupFunctionName(String desiredFuncName) throws IllegalStateException {
+        if(useBuildInTexLookup) {
+            return "texture2D";
+        }
+        if(null != desiredFuncName && desiredFuncName.length()>0) {
+            textureLookupFunctionName = desiredFuncName;
+        }
+        return textureLookupFunctionName;
+    }
+    
+    @Override
+    public String getTextureLookupFragmentShaderImpl() throws IllegalStateException {
+        if(useBuildInTexLookup) {
+          return "";
+        }
+        return
+          "\n"+
+          "vec4 "+textureLookupFunctionName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
+          "  return texture2D(image, texCoord);\n"+
+          "}\n\n";
+    }
 }

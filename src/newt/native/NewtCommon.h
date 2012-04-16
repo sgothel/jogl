@@ -39,6 +39,42 @@ jchar* NewtCommon_GetNullTerminatedStringChars(JNIEnv* env, jstring str);
 void NewtCommon_FatalError(JNIEnv *env, const char* msg, ...);
 void NewtCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...);
 
+/**
+ *
+ * 1) Store jvmHandle and jvmVersion
+
+    JavaVM *jvmHandle = NULL;
+    int jvmVersion = 0;
+
+    if(0 != (*env)->GetJavaVM(env, &jvmHandle)) {
+        jvmHandle = NULL;
+    } else {
+        jvmVersion = (*env)->GetVersion(env);
+    }
+
+ *
+ * 2) Use current thread JNIEnv or attach current thread to JVM, generating new JNIEnv
+ *
+
+    int shallBeDetached = 0;
+    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
+    if(NULL==env) {
+        DBG_PRINT("drawRect: null JNIEnv\n");
+        return;
+    }
+    
+ *
+ * 3) Use JNIEnv ..
+ *
+    .. your JNIEnv code here ..
+
+ *
+ * 4) Detach thread from JVM, if required
+ *
+    if (shallBeDetached) {
+        (*jvmHandle)->DetachCurrentThread(jvmHandle);
+    }
+ */
 JNIEnv* NewtCommon_GetJNIEnv (JavaVM * jvmHandle, int jvmVersion, int * shallBeDetached);
 
 #endif

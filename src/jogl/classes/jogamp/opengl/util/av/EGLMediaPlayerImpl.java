@@ -27,6 +27,7 @@
  */
 package jogamp.opengl.util.av;
 
+import java.nio.Buffer;
 import java.nio.IntBuffer;
 
 import javax.media.opengl.GL;
@@ -41,8 +42,8 @@ import jogamp.opengl.egl.EGLDrawable;
 import jogamp.opengl.egl.EGLExt;
 
 public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
-    TextureType texType;
-    boolean useKHRSync;
+    final protected TextureType texType;
+    final protected boolean useKHRSync;
     
     public enum TextureType {
         GL(0), KHRImage(1); 
@@ -56,18 +57,21 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
     
     public static class EGLTextureFrame extends TextureSequence.TextureFrame {
         
-        public EGLTextureFrame(Texture t, long khrImage, long khrSync) {
+        public EGLTextureFrame(Buffer clientBuffer, Texture t, long khrImage, long khrSync) {
             super(t);
+            this.clientBuffer = clientBuffer;
             this.image = khrImage;
             this.sync = khrSync;
         }
         
+        public final Buffer getClientBuffer() { return clientBuffer; }
         public final long getImage() { return image; }        
         public final long getSync() { return sync; }
         
         public String toString() {
-            return "EGLTextureFrame[" + texture + ", img "+ image + ", sync "+ sync+"]";
+            return "EGLTextureFrame[" + texture + ", img "+ image + ", sync "+ sync+", clientBuffer "+clientBuffer+"]";
         }
+        protected final Buffer clientBuffer;
         protected final long image;
         protected final long sync;
     }
@@ -85,30 +89,43 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
 
     @Override
     protected TextureSequence.TextureFrame createTexImage(GL gl, int idx, int[] tex) {
-        final Texture texture = super.createTexImageImpl(gl, idx, tex, true);
+        final Texture texture = super.createTexImageImpl(gl, idx, tex, width, height, false);
+        final Buffer clientBuffer;
         final long image;
         final long sync;
+        final boolean eglUsage = TextureType.KHRImage == texType || useKHRSync ; 
+        final EGLContext eglCtx;
+        final EGLExt eglExt;
+        final EGLDrawable eglDrawable;
         
-        final EGLContext eglCtx = (EGLContext) gl.getContext();
-        final EGLExt eglExt = eglCtx.getEGLExt();
-        final EGLDrawable eglDrawable = (EGLDrawable) eglCtx.getGLDrawable();            
-        int[] tmp = new int[1];
-        IntBuffer nioTmp = Buffers.newDirectIntBuffer(1);
+        if(eglUsage) {
+            eglCtx = (EGLContext) gl.getContext();
+            eglExt = eglCtx.getEGLExt();
+            eglDrawable = (EGLDrawable) eglCtx.getGLDrawable();            
+        } else {
+            eglCtx = null;
+            eglExt = null;
+            eglDrawable = null;
+        }
         
         if(TextureType.KHRImage == texType) {
+            IntBuffer nioTmp = Buffers.newDirectIntBuffer(1);
             // create EGLImage from texture
+            clientBuffer = null; // FIXME
             nioTmp.put(0, EGL.EGL_NONE);
             image =  eglExt.eglCreateImageKHR( eglDrawable.getDisplay(), eglCtx.getHandle(),
                                                EGLExt.EGL_GL_TEXTURE_2D_KHR,
-                                               null /* buffer */, nioTmp);
+                                               clientBuffer, nioTmp);
             if (0==image) {
                 throw new RuntimeException("EGLImage creation failed: "+EGL.eglGetError()+", ctx "+eglCtx+", tex "+tex[idx]+", err "+toHexString(EGL.eglGetError()));
             }
         } else {
+            clientBuffer = null;
             image = 0;
         }
 
         if(useKHRSync) {
+            int[] tmp = new int[1];
             // Create sync object so that we can be sure that gl has finished
             // rendering the EGLImage texture before we tell OpenMAX to fill
             // it with a new frame.
@@ -120,14 +137,25 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
         } else {
             sync = 0;
         }
-        return new EGLTextureFrame(texture, image, sync);
+        return new EGLTextureFrame(clientBuffer, texture, image, sync);
     }
     
     @Override
     protected void destroyTexImage(GL gl, TextureSequence.TextureFrame imgTex) {
-        final EGLContext eglCtx = (EGLContext) gl.getContext();
-        final EGLExt eglExt = eglCtx.getEGLExt();
-        final EGLDrawable eglDrawable = (EGLDrawable) eglCtx.getGLDrawable();
+        final boolean eglUsage = TextureType.KHRImage == texType || useKHRSync ; 
+        final EGLContext eglCtx;
+        final EGLExt eglExt;
+        final EGLDrawable eglDrawable;
+        
+        if(eglUsage) {
+            eglCtx = (EGLContext) gl.getContext();
+            eglExt = eglCtx.getEGLExt();
+            eglDrawable = (EGLDrawable) eglCtx.getGLDrawable();            
+        } else {
+            eglCtx = null;
+            eglExt = null;
+            eglDrawable = null;
+        }
         final EGLTextureFrame eglTex = (EGLTextureFrame) imgTex;
         
         if(0!=eglTex.getImage()) {

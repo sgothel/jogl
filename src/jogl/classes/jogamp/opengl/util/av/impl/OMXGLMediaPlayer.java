@@ -6,6 +6,7 @@ import java.net.URL;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
 
 import com.jogamp.opengl.util.texture.TextureSequence;
 
@@ -13,22 +14,25 @@ import jogamp.opengl.egl.EGL;
 import jogamp.opengl.util.av.EGLMediaPlayerImpl;
 
 public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
+    static final boolean available;
+    
+    static {
+        // OMX binding is included in jogl_desktop and jogl_mobile     
+        GLProfile.initSingleton();
+        available = initIDs0();
+    }
+    
+    public static final boolean isAvailable() { return available; }
+    
     protected long moviePtr = 0;
     
-    /**
-     * Old stream values, before the last attributesUpdated)
-     */
-    protected int o_width = 0;
-    protected int o_height = 0;
-    protected int o_fps = 0;
-    protected long o_bps = 0;
-    protected long o_totalFrames = 0;
-    protected long o_duration = 0;
-        
     protected TextureSequence.TextureFrame lastTex = null;
 
     public OMXGLMediaPlayer() {
         super(TextureType.KHRImage, true);
+        if(!available) {
+            throw new RuntimeException("OMXGLMediaPlayer not available");
+        }
         initOMX();
     }
 
@@ -80,20 +84,17 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
     
     @Override
-    public synchronized long getCurrentPosition() {
-        if(0==moviePtr) {
-            throw new GLException("OMX native instance null");
-        }
-        return _getCurrentPosition(moviePtr);
+    protected int getCurrentPositionImpl() {
+        return 0!=moviePtr ? _getCurrentPosition(moviePtr) : 0;
     }
 
     @Override
-    public synchronized void setPlaySpeed(float rate) {
+    protected boolean setPlaySpeedImpl(float rate) {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
         _setPlaySpeed(moviePtr, rate);
-        playSpeed = rate;
+        return true;
     }
 
     @Override
@@ -127,7 +128,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
 
     /** @return time position after issuing the command */
     @Override
-    protected long seekImpl(long msec) {
+    protected int seekImpl(int msec) {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
@@ -135,12 +136,12 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    public TextureSequence.TextureFrame getLastTexture() {
+    protected TextureSequence.TextureFrame getLastTextureImpl() {
         return lastTex;
     }
     
     @Override
-    public synchronized TextureSequence.TextureFrame getNextTexture(GL gl, boolean blocking) {
+    protected TextureSequence.TextureFrame getNextTextureImpl(GL gl, boolean blocking) {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
@@ -154,38 +155,6 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
         return lastTex;
     }
     
-    protected void attributesUpdated() {
-        int event_mask = 0;
-        if( o_width != width || o_height != height ) {
-            event_mask |= GLMediaEventListener.EVENT_CHANGE_SIZE;
-        }   
-        if( o_fps != fps ) {
-            event_mask |= GLMediaEventListener.EVENT_CHANGE_FPS;
-        }
-        if( o_bps != bps ) {
-            event_mask |= GLMediaEventListener.EVENT_CHANGE_BPS;
-        }
-        if( o_totalFrames != totalFrames ) {
-            event_mask |= GLMediaEventListener.EVENT_CHANGE_LENGTH;
-        }
-        if(0==event_mask) {
-            return;
-        }
-        super.attributesUpdated(event_mask);    
-    }
-
-    /**
-     * Java callback method issued by the native OMX backend
-     */
-    private void saveAttributes() {
-        o_width = width;
-        o_height = height;
-        o_fps = fps;
-        o_bps = bps;
-        o_totalFrames = totalFrames;
-        o_duration = duration;
-    }
-
     private String replaceAll(String orig, String search, String repl) {
         String dest=null;
         // In case replaceAll / java.util.regex.* is not supported (-> CVM)
@@ -206,21 +175,22 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
         }
     }
 
-    native long _createInstance();    
-    native void _destroyInstance(long moviePtr);
+    private static native boolean initIDs0();
+    private native long _createInstance();    
+    private native void _destroyInstance(long moviePtr);
     
-    native void _detachVideoRenderer(long moviePtr); // stop before
-    native void _attachVideoRenderer(long moviePtr); // detach before
-    native void _setStream(long moviePtr, int textureNum, String path);
-    native void _activateStream(long moviePtr);
+    private native void _detachVideoRenderer(long moviePtr); // stop before
+    private native void _attachVideoRenderer(long moviePtr); // detach before
+    private native void _setStream(long moviePtr, int textureNum, String path);
+    private native void _activateStream(long moviePtr);
     
-    native void _setStreamEGLImageTexture2D(long moviePtr, int i, int tex, long image, long sync);
-    native long _seek(long moviePtr, long position);
-    native void _setPlaySpeed(long moviePtr, float rate);
-    native void _play(long moviePtr);
-    native void _pause(long moviePtr);
-    native void _stop(long moviePtr);
-    native int  _getNextTextureID(long moviePtr, boolean blocking);
-    native long _getCurrentPosition(long moviePtr);
+    private native void _setStreamEGLImageTexture2D(long moviePtr, int i, int tex, long image, long sync);
+    private native int  _seek(long moviePtr, int position);
+    private native void _setPlaySpeed(long moviePtr, float rate);
+    private native void _play(long moviePtr);
+    private native void _pause(long moviePtr);
+    private native void _stop(long moviePtr);
+    private native int  _getNextTextureID(long moviePtr, boolean blocking);
+    private native int  _getCurrentPosition(long moviePtr);
 }
 

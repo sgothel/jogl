@@ -15,7 +15,10 @@ int JoglCommon_GetJVMVersion();
 
 jchar* JoglCommon_GetNullTerminatedStringChars(JNIEnv* env, jstring str);
 
+/** env may be NULL, in which case JoglCommon_GetJNIEnv() is being used. */
 void JoglCommon_FatalError(JNIEnv *env, const char* msg, ...);
+
+/** env may be NULL, in which case JoglCommon_GetJNIEnv() is being used. */
 void JoglCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...);
 
 /**

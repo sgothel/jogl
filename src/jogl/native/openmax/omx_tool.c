@@ -28,35 +28,15 @@
 #define NOTSET_U32 ((OMX_U32)0xDEDEDEDE)
 #define INIT_PARAM(_X_)  (memset(&(_X_), NOTSET_U8, sizeof(_X_)), ((_X_).nSize = sizeof (_X_)), (_X_).nVersion = vOMX)
 
-void OMXInstance_SaveJavaAttributes(OMXToolBasicAV_t *pOMXAV, KDboolean issueJavaCallback);
-void OMXInstance_UpdateJavaAttributes(OMXToolBasicAV_t *pOMXAV, KDboolean issueJavaCallback);
+void OMXInstance_UpdateJavaAttributes(OMXToolBasicAV_t *pOMXAV);
 
-#if !defined(SELF_TEST)
-void java_throwNewRuntimeException(intptr_t jni_env, const char* format, ...);
-#else
-#include <stdarg.h>
-void java_throwNewRuntimeException(intptr_t jni_env, const char* format, ...) {
-    va_list ap;
-    char buffer[255];
-    va_start(ap, format);
-    #ifdef _WIN32
-        _vsnprintf(buffer, sizeof(buffer)-1, format, ap);
-    #else
-        vsnprintf(buffer, sizeof(buffer)-1, format, ap);
-    #endif
-    va_end(ap);
-    buffer[sizeof(buffer)-1]=0;
-    DBG_PRINT( "RuntimeException: %s\n", buffer);
-    exit(1);
-}
-#endif
 static void DestroyInstanceUnlock(OMXToolBasicAV_t * pOMXAV);
 
 #define OMXSAFEVOID(x) \
 do { \
     OMX_ERRORTYPE err = (x); \
     if (err != OMX_ErrorNone) { \
-        java_throwNewRuntimeException((NULL!=pOMXAV)?pOMXAV->jni_env:0, "FAILED at %s:%d, Error: 0x%x\n", __FILE__, __LINE__, err); \
+        JoglCommon_throwNewRuntimeException(0, "FAILED at %s:%d, Error: 0x%x\n", __FILE__, __LINE__, err); \
         if(NULL!=pOMXAV) { \
             DestroyInstanceUnlock(pOMXAV); \
         } \
@@ -68,7 +48,7 @@ do { \
 do { \
     OMX_ERRORTYPE err = (x); \
     if (err != OMX_ErrorNone) { \
-        java_throwNewRuntimeException((NULL!=pOMXAV)?pOMXAV->jni_env:0, "FAILED at %s:%d, Error: 0x%x\n", __FILE__, __LINE__, err); \
+        JoglCommon_throwNewRuntimeException(0, "FAILED at %s:%d, Error: 0x%x\n", __FILE__, __LINE__, err); \
         if(NULL!=pOMXAV) { \
             DestroyInstanceUnlock(pOMXAV); \
         } \
@@ -80,7 +60,7 @@ do { \
 do { \
     OMX_ERRORTYPE err = (x); \
     if (err != OMX_ErrorNone) { \
-        java_throwNewRuntimeException((NULL!=pOMXAV)?pOMXAV->jni_env:0, "FAILED at %s:%d, Error: 0x%x\n", __FILE__, __LINE__, err); \
+        JoglCommon_throwNewRuntimeException(0, "FAILED at %s:%d, Error: 0x%x\n", __FILE__, __LINE__, err); \
         if(NULL!=pOMXAV) { \
             DestroyInstanceUnlock(pOMXAV); \
         } \
@@ -466,7 +446,7 @@ static void DestroyInstanceUnlock(OMXToolBasicAV_t * pOMXAV)
     DBG_PRINT( "Destroy p2\n");
     if(0!=(res1=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateIdle, KD_TRUE)))
     {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "Destroy - Wait for Idle Failed (%d)", res1);
+        JoglCommon_throwNewRuntimeException(0, "Destroy - Wait for Idle Failed (%d)", res1);
     }
 
     DBG_PRINT( "Destroy p3\n");
@@ -479,7 +459,7 @@ static void DestroyInstanceUnlock(OMXToolBasicAV_t * pOMXAV)
     if(0!=(res2=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateLoaded, KD_TRUE)))
     {
         if(!res1) {
-            java_throwNewRuntimeException(pOMXAV->jni_env, "Destroy - Wait for Loaded Failed (%d)", res2);
+            JoglCommon_throwNewRuntimeException(0, "Destroy - Wait for Loaded Failed (%d)", res2);
         }
     }
 
@@ -726,19 +706,20 @@ static OMX_ERRORTYPE UpdateStreamInfo(OMXToolBasicAV_t * pOMXAV, KDboolean issue
     }
 
     DBG_PRINT( "Update StreamInfo p1\n" );
-    OMXInstance_SaveJavaAttributes(pOMXAV, issueCallback);
 
     pOMXAV->width = oPortDef.format.video.nFrameWidth;
     pOMXAV->height = oPortDef.format.video.nFrameHeight;
     /* pOMXAV->stride = oPortDef.format.video.nStride;
     pOMXAV->sliceHeight = oPortDef.format.video.nSliceHeight; */
-    pOMXAV->framerate = oPortDef.format.video.xFramerate;
+    pOMXAV->framerate = (float) oPortDef.format.video.xFramerate;
     pOMXAV->bitrate = oPortDef.format.video.nBitrate;
-    DBG_PRINT( "Update StreamInfo p2 %dx%d, fps %d, bps %d\n", pOMXAV->width, pOMXAV->height, pOMXAV->framerate, pOMXAV->bitrate );
+    DBG_PRINT( "Update StreamInfo p2 %dx%d, fps %f, bps %d\n", pOMXAV->width, pOMXAV->height, pOMXAV->framerate, pOMXAV->bitrate );
     pOMXAV->length = GetMediaLength(pOMXAV);
     pOMXAV->speed = GetClockScale(pOMXAV);
 
-    OMXInstance_UpdateJavaAttributes(pOMXAV, issueCallback);
+    if(issueCallback) {
+        OMXInstance_UpdateJavaAttributes(pOMXAV);
+    }
 
     return err;
 }
@@ -755,7 +736,7 @@ static int AttachAudioRenderer(OMXToolBasicAV_t * pOMXAV)
         // FIXME: proper audio buffering .. 
         OMXSAFE(OMX_GetHandle(&pOMXAV->comp[OMXAV_H_ABUFFERING], "OMX.Nvidia.audio.visualization", pOMXAV, &pOMXAV->callbacks));
         if(0!=(res=SyncOnState(pOMXAV->comp[OMXAV_H_ABUFFERING], OMX_StateLoaded))) {
-            java_throwNewRuntimeException(pOMXAV->jni_env, "Loading AudioBuffering Failed (%d)", res);
+            JoglCommon_throwNewRuntimeException(0, "Loading AudioBuffering Failed (%d)", res);
             return res;
         }
         /**
@@ -777,7 +758,7 @@ static int AttachAudioRenderer(OMXToolBasicAV_t * pOMXAV)
 
     // mandatory before SetupTunnel
     if(0!=(res=SyncOnState(pOMXAV->comp[OMXAV_H_ARENDERER], OMX_StateLoaded))) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "Loading AudioRenderer Failed (%d)", res);
+        JoglCommon_throwNewRuntimeException(0, "Loading AudioRenderer Failed (%d)", res);
         return res;
     }
 
@@ -828,7 +809,7 @@ static int AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV)
 {
     int i, res=0;
     if(KD_NULL!=pOMXAV->comp[OMXAV_H_VSCHEDULER]) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "Detach Video first");
+        JoglCommon_throwNewRuntimeException(0, "Detach Video first");
         return -1;
     }
     OMXSAFE(OMX_GetHandle(&pOMXAV->comp[OMXAV_H_VSCHEDULER], "OMX.Nvidia.video.scheduler", pOMXAV, &pOMXAV->callbacks));
@@ -836,7 +817,7 @@ static int AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV)
 
     // mandatory before SetupTunnel
     if(0!=(res=SyncOnState(pOMXAV->comp[OMXAV_H_VSCHEDULER], OMX_StateLoaded))) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "Loading VideoScheduler Failed (%d)", res);
+        JoglCommon_throwNewRuntimeException(0, "Loading VideoScheduler Failed (%d)", res);
         return res;
     }
     // mandatory before EGLUseImage
@@ -861,7 +842,7 @@ static int AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV)
         DBG_PRINT( "UseEGLImg %p #%d t:%d i:%p s:%p p1\n", pOMXAV, i, pBuf->tex, pBuf->image, pBuf->sync);
 
         if(NULL==pBuf->image) {
-            java_throwNewRuntimeException(pOMXAV->jni_env, "AttachVideoRenderer: User didn't set buffer %d/%d\n", i, pOMXAV->vBufferNum);
+            JoglCommon_throwNewRuntimeException(0, "AttachVideoRenderer: User didn't set buffer %d/%d\n", i, pOMXAV->vBufferNum);
             return -1;
         } else  {
             // tell decoder output port that it will be using EGLImage
@@ -886,7 +867,7 @@ static int DetachVideoRenderer(OMXToolBasicAV_t * pOMXAV)
     if(NULL==pOMXAV) return -1;
 
     if(KD_NULL==pOMXAV->comp[OMXAV_H_VSCHEDULER]) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "Attach Video first");
+        JoglCommon_throwNewRuntimeException(0, "Attach Video first");
         return -1;
     }
     DBG_PRINT( "DetachVideoRenderer p0\n");
@@ -968,11 +949,11 @@ void OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, int vBufferNum, const K
 
     // FIXME: verify player state .. ie stop !
     if(pOMXAV->status!=OMXAV_INIT) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "Player instance in use\n");
+        JoglCommon_throwNewRuntimeException(0, "Player instance in use\n");
         return;
     }
     if(vBufferNum>EGLIMAGE_MAX_BUFFERS) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "buffer number %d > MAX(%d)\n", vBufferNum, EGLIMAGE_MAX_BUFFERS);
+        JoglCommon_throwNewRuntimeException(0, "buffer number %d > MAX(%d)\n", vBufferNum, EGLIMAGE_MAX_BUFFERS);
         return;
     }
 
@@ -987,7 +968,7 @@ void OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, int vBufferNum, const K
 
     eError = AddFile(pOMXAV, stream);
     if(eError!=OMX_ErrorNone) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "Couldn't open or handle stream: %s\n", stream);
+        JoglCommon_throwNewRuntimeException(0, "Couldn't open or handle stream: %s\n", stream);
         kdThreadMutexUnlock(pOMXAV->mutex);
         return;
     }
@@ -1040,7 +1021,7 @@ void OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, int vBufferNum, const K
 
         if (pOMXAV->audioPort == -1 && pOMXAV->videoPort == -1)
         {
-            java_throwNewRuntimeException(pOMXAV->jni_env, "Neither audioport or videoport could be played back!\n");
+            JoglCommon_throwNewRuntimeException(0, "Neither audioport or videoport could be played back!\n");
             kdThreadMutexUnlock(pOMXAV->mutex);
             return;
         }
@@ -1071,12 +1052,12 @@ void OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, int vBufferNum, const K
 void OMXToolBasicAV_SetStreamEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, KDint i, GLuint tex, EGLImageKHR image, EGLSyncKHR sync)
 {
     if(NULL==pOMXAV) {
-        java_throwNewRuntimeException(0, "OMX instance null\n");
+        JoglCommon_throwNewRuntimeException(0, "OMX instance null\n");
         return;
     }
     DBG_PRINT( "SetStreamEGLImg %p #%d/%d t:%d i:%p s:%p..\n", pOMXAV, i, pOMXAV->vBufferNum, tex, image, sync);
     if(i<0||i>=pOMXAV->vBufferNum) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "Buffer index out of range: %d\n", i);
+        JoglCommon_throwNewRuntimeException(0, "Buffer index out of range: %d\n", i);
         return;
     }
 
@@ -1094,7 +1075,7 @@ void OMXToolBasicAV_SetStreamEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, KDint 
 void OMXToolBasicAV_ActivateStream(OMXToolBasicAV_t * pOMXAV) {
     int res;
     if(NULL==pOMXAV) {
-        java_throwNewRuntimeException(0, "OMX instance null\n");
+        JoglCommon_throwNewRuntimeException(0, "OMX instance null\n");
         return;
     }
     DBG_PRINT( "ActivateStream 1\n");
@@ -1115,7 +1096,7 @@ void OMXToolBasicAV_ActivateStream(OMXToolBasicAV_t * pOMXAV) {
     // mandatory: before SetupTunnel (->Activate), wait until all devices are ready ..
     //            arender/vrender must wait as well ..
     if(0!=(res=OMXToolBasicAV_WaitForState(pOMXAV, OMX_StateLoaded))) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "Loaded Failed (%d)", res);
+        JoglCommon_throwNewRuntimeException(0, "Loaded Failed (%d)", res);
         kdThreadMutexUnlock(pOMXAV->mutex);
         return;
     }
@@ -1161,7 +1142,7 @@ void OMXToolBasicAV_ActivateStream(OMXToolBasicAV_t * pOMXAV) {
     //
     if(0!=(res=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateIdle, KD_TRUE)))
     {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "Wait for Idle Failed (%d)", res);
+        JoglCommon_throwNewRuntimeException(0, "Wait for Idle Failed (%d)", res);
         kdThreadMutexUnlock(pOMXAV->mutex);
         return;
     }
@@ -1172,11 +1153,11 @@ void OMXToolBasicAV_ActivateStream(OMXToolBasicAV_t * pOMXAV) {
 
 void OMXToolBasicAV_DetachVideoRenderer(OMXToolBasicAV_t * pOMXAV) {
     if(NULL==pOMXAV) {
-        java_throwNewRuntimeException(0, "OMX instance null\n");
+        JoglCommon_throwNewRuntimeException(0, "OMX instance null\n");
         return;
     }
     if(pOMXAV->status<=OMXAV_INIT) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
+        JoglCommon_throwNewRuntimeException(0, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
         return;
     }
     kdThreadMutexLock(pOMXAV->mutex);
@@ -1188,11 +1169,11 @@ void OMXToolBasicAV_DetachVideoRenderer(OMXToolBasicAV_t * pOMXAV) {
 
 void OMXToolBasicAV_AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV) {
     if(NULL==pOMXAV) {
-        java_throwNewRuntimeException(0, "OMX instance null\n");
+        JoglCommon_throwNewRuntimeException(0, "OMX instance null\n");
         return;
     }
     if(pOMXAV->status<=OMXAV_INIT) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
+        JoglCommon_throwNewRuntimeException(0, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
         return;
     }
     kdThreadMutexLock(pOMXAV->mutex);
@@ -1205,11 +1186,11 @@ void OMXToolBasicAV_AttachVideoRenderer(OMXToolBasicAV_t * pOMXAV) {
 void OMXToolBasicAV_SetPlaySpeed(OMXToolBasicAV_t * pOMXAV, KDfloat32 scale)
 {
     if(NULL==pOMXAV) {
-        java_throwNewRuntimeException(0, "OMX instance null\n");
+        JoglCommon_throwNewRuntimeException(0, "OMX instance null\n");
         return;
     }
     if(pOMXAV->status<=OMXAV_INIT) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
+        JoglCommon_throwNewRuntimeException(0, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
         return;
     }
     kdThreadMutexLock(pOMXAV->mutex);
@@ -1226,11 +1207,11 @@ void OMXToolBasicAV_PlayStart(OMXToolBasicAV_t * pOMXAV)
 {
     int res;
     if(NULL==pOMXAV) {
-        java_throwNewRuntimeException(0, "OMX instance null\n");
+        JoglCommon_throwNewRuntimeException(0, "OMX instance null\n");
         return;
     }
     if(pOMXAV->status<=OMXAV_INIT) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
+        JoglCommon_throwNewRuntimeException(0, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
         return;
     }
     if(pOMXAV->status==OMXAV_PLAYING) {
@@ -1244,14 +1225,14 @@ void OMXToolBasicAV_PlayStart(OMXToolBasicAV_t * pOMXAV)
 
     DBG_PRINT( "Play 3.1\n");
     if(0!=(res=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateExecuting, KD_TRUE))) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "Play Execute Failed (%d)", res);
+        JoglCommon_throwNewRuntimeException(0, "Play Execute Failed (%d)", res);
         kdThreadMutexUnlock(pOMXAV->mutex);
         return;
     }
     if(pOMXAV->status==OMXAV_STOPPED || pOMXAV->status==OMXAV_FIN) {
         DBG_PRINT( "Play 3.2\n");
         if(StartClock(pOMXAV, KD_TRUE, 0.0)) {
-            java_throwNewRuntimeException(pOMXAV->jni_env, "Play StartClock Failed");
+            JoglCommon_throwNewRuntimeException(0, "Play StartClock Failed");
             kdThreadMutexUnlock(pOMXAV->mutex);
             return;
         }
@@ -1275,13 +1256,13 @@ static int PlayStop(OMXToolBasicAV_t * pOMXAV)
 
     if(OMXToolBasicAV_CheckState(pOMXAV, OMX_StateLoaded)) {
         if(StartClock(pOMXAV, KD_FALSE, 0.0)) {
-            java_throwNewRuntimeException(pOMXAV->jni_env, "Stop StopClock Failed");
+            JoglCommon_throwNewRuntimeException(0, "Stop StopClock Failed");
             kdThreadMutexUnlock(pOMXAV->mutex);
             return -1;
         }
         if(OMXToolBasicAV_CheckState(pOMXAV, OMX_StateIdle)) {
             if(0!=(res=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateIdle, KD_TRUE))) {
-                java_throwNewRuntimeException(pOMXAV->jni_env, "Stop Idle Failed (%d)", res);
+                JoglCommon_throwNewRuntimeException(0, "Stop Idle Failed (%d)", res);
                 kdThreadMutexUnlock(pOMXAV->mutex);
                 return res;
             }
@@ -1294,11 +1275,11 @@ static int PlayStop(OMXToolBasicAV_t * pOMXAV)
 void OMXToolBasicAV_PlayStop(OMXToolBasicAV_t * pOMXAV)
 {
     if(NULL==pOMXAV) {
-        java_throwNewRuntimeException(0, "OMX instance null\n");
+        JoglCommon_throwNewRuntimeException(0, "OMX instance null\n");
         return;
     }
     if(pOMXAV->status<=OMXAV_INIT) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
+        JoglCommon_throwNewRuntimeException(0, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
         return;
     }
     kdThreadMutexLock(pOMXAV->mutex);
@@ -1312,11 +1293,11 @@ void OMXToolBasicAV_PlayPause(OMXToolBasicAV_t * pOMXAV)
 {
     int res;
     if(NULL==pOMXAV) {
-        java_throwNewRuntimeException(0, "OMX instance null\n");
+        JoglCommon_throwNewRuntimeException(0, "OMX instance null\n");
         return;
     }
     if(pOMXAV->status<=OMXAV_INIT) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
+        JoglCommon_throwNewRuntimeException(0, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
         return;
     }
     if(pOMXAV->status==OMXAV_PAUSED || pOMXAV->status!=OMXAV_PLAYING) {
@@ -1339,11 +1320,11 @@ void OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDint64 time)
     int res;
 
     if(NULL==pOMXAV) {
-        java_throwNewRuntimeException(0, "OMX instance null\n");
+        JoglCommon_throwNewRuntimeException(0, "OMX instance null\n");
         return;
     }
     if(pOMXAV->status<=OMXAV_INIT) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
+        JoglCommon_throwNewRuntimeException(0, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
         return;
     }
     kdThreadMutexLock(pOMXAV->mutex);
@@ -1359,7 +1340,7 @@ void OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDint64 time)
     //    state transition to OMX_StatePause.
     if(pOMXAV->status!=OMXAV_PAUSED) {
         if(0!=(res=OMXToolBasicAV_RequestState(pOMXAV, OMX_StatePause, KD_TRUE))) {
-            java_throwNewRuntimeException(pOMXAV->jni_env, "Seek Pause Failed (%d)", res);
+            JoglCommon_throwNewRuntimeException(0, "Seek Pause Failed (%d)", res);
             kdThreadMutexUnlock(pOMXAV->mutex);
             return;
         }
@@ -1369,7 +1350,7 @@ void OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDint64 time)
     //    on OMX_TIME_CONFIG_CLOCKSTATETYPE requesting a transition to
     //    OMX_TIME_ClockStateStopped.
     if(StartClock(pOMXAV, KD_FALSE, 0.0)) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "Seek StopClock Failed");
+        JoglCommon_throwNewRuntimeException(0, "Seek StopClock Failed");
         kdThreadMutexUnlock(pOMXAV->mutex);
         return;
     }
@@ -1377,14 +1358,14 @@ void OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDint64 time)
     // 3. Seek to the desired location through the use of OMX_SetConfig on
     //    OMX_IndexConfigTimePosition requesting the desired timestamp.
     if(SetMediaPosition(pOMXAV, time)) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "Seek position Failed");
+        JoglCommon_throwNewRuntimeException(0, "Seek position Failed");
         kdThreadMutexUnlock(pOMXAV->mutex);
         return;
     }
 
     // 4. Flush all components.
     if(SendCommand(pOMXAV, OMX_CommandFlush, OMX_ALL, 0)) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "Seek Flush Failed");
+        JoglCommon_throwNewRuntimeException(0, "Seek Flush Failed");
         kdThreadMutexUnlock(pOMXAV->mutex);
         return;
     }
@@ -1394,7 +1375,7 @@ void OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDint64 time)
     //    OMX_TIME_ClockStateRunning or
     //    OMX_TIME_ClockStateWaitingForStartTime.
     if(StartClock(pOMXAV, KD_TRUE, time)) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "Seek StartClock Failed");
+        JoglCommon_throwNewRuntimeException(0, "Seek StartClock Failed");
         kdThreadMutexUnlock(pOMXAV->mutex);
         return;
     }
@@ -1403,7 +1384,7 @@ void OMXToolBasicAV_PlaySeek(OMXToolBasicAV_t * pOMXAV, KDint64 time)
     //    state transition to OMX_StateExecuting.
     if(pOMXAV->status==OMXAV_PLAYING) {
         if(0!=(res=OMXToolBasicAV_RequestState(pOMXAV, OMX_StateExecuting, KD_TRUE))) {
-            java_throwNewRuntimeException(pOMXAV->jni_env, "Seek Execute Failed (%d)", res);
+            JoglCommon_throwNewRuntimeException(0, "Seek Execute Failed (%d)", res);
             kdThreadMutexUnlock(pOMXAV->mutex);
             return;
         }
@@ -1478,11 +1459,11 @@ GLuint OMXToolBasicAV_GetNextTextureID(OMXToolBasicAV_t * pOMXAV, int blocking) 
 KDint64 OMXToolBasicAV_GetCurrentPosition(OMXToolBasicAV_t * pOMXAV) {
     KDint64 res = 0L;
     if(NULL==pOMXAV) {
-        java_throwNewRuntimeException(0, "OMX instance null\n");
+        JoglCommon_throwNewRuntimeException(0, "OMX instance null\n");
         return res;
     }
     if(pOMXAV->status<=OMXAV_INIT) {
-        java_throwNewRuntimeException(pOMXAV->jni_env, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
+        JoglCommon_throwNewRuntimeException(0, "OMX invalid status: %d <= INIT\n", pOMXAV->status);
         return res;
     }
     kdThreadMutexLock(pOMXAV->mutex);

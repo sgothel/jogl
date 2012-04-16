@@ -46,19 +46,25 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube;
 import com.jogamp.opengl.util.Animator;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.inputmethod.InputMethodManager;
 
 public class MovieCubeActivity0 extends NewtBaseActivity {
    static String TAG = "MovieCubeActivity0";
    
-   MouseAdapter toFrontMouseListener = new MouseAdapter() {
-       public void mouseClicked(MouseEvent e) {
-           Object src = e.getSource();
-           if(src instanceof AndroidWindow) {
-               ((AndroidWindow)src).requestFocus(false);
+   MouseAdapter showKeyboardMouseListener = new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent e) {
+           if(e.getPressure()>2f) {
+               final AndroidWindow win = (AndroidWindow)e.getSource();           
+               InputMethodManager mgr = (InputMethodManager) win.getAndroidView().getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+               mgr.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0); // shows keyboard ..
+               win.getAndroidView().requestFocus();
            }
-       } };
+        }
+   };
    
    @Override
    public void onCreate(Bundle savedInstanceState) {
@@ -89,6 +95,7 @@ public class MovieCubeActivity0 extends NewtBaseActivity {
            final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);
            glWindowMain.setFullscreen(true);
            setContentView(getWindow(), glWindowMain);
+           glWindowMain.addMouseListener(showKeyboardMouseListener);
            glWindowMain.addGLEventListener(demoMain);
            animator.add(glWindowMain);
            glWindowMain.setVisible(true);
