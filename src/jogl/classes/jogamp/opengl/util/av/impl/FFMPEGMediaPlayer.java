@@ -49,15 +49,56 @@ import jogamp.opengl.gl4.GL4bcProcAddressTable;
 import jogamp.opengl.util.av.EGLMediaPlayerImpl;
 
 /***
- * Currently only YUV420P and the usual packed RGB formats are supported.
+ * Implementation utilizes <a href="http://libav.org/">Libav</a>
+ * or  <a href="http://ffmpeg.org/">FFmpeg</a> which is ubiquitous
+ * available and usually pre-installed on Unix platforms. Due to legal 
+ * reasons we cannot deploy binaries of it, which contains patented codecs.
+ * Besides the default BSD/Linux/.. repositories and installations,
+ * precompiled binaries can be found at the listed location below. 
+ * <p>
+ * Implements YUV420P to RGB fragment shader conversion 
+ * and the usual packed RGB formats.
+ * The decoded video frame is written directly into an OpenGL texture 
+ * on the GPU in it's native format. A custom fragment shader converts 
+ * the native pixelformat to a usable RGB format if required. 
+ * Hence only 1 copy is required before bloating the picture 
+ * from YUV to RGB, for example.
+ * </p> 
+ * <p>
+ * Utilizes a slim dynamic and native binding to the Lib_av 
+ * libraries:
+ * <ul>
+ *   <li>libavutil</li>
+ *   <li>libavformat</li>
+ *   <li>libavcodec</li>
+ * </ul> 
+ * </p>
+ * <p>
+ * http://libav.org/
+ * </p>
  * <p> 
  * Check tag 'FIXME: Add more planar formats !' 
  * here and in the corresponding native code
  * <code>jogl/src/jogl/native/ffmpeg/jogamp_opengl_util_av_impl_FFMPEGMediaPlayer.c</code>
  * </p>
  * <p>
- * TODO: Audio Output
+ * TODO:
+ * <ul>
+ *   <li>Audio Output</li>
+ *   <li>Off thread <i>next frame</i> processing using multiple target textures</li>
+ *   <li>better pts sync handling</li>
+ *   <li>fix seek</li>   
+ * </ul> 
  * </p>
+ * Pre-compiled Libav / FFmpeg packages:
+ * <ul>
+ *   <li>Windows: http://ffmpeg.zeranoe.com/builds/</li>
+ *   <li>MacOSX: http://www.ffmpegx.com/</li>
+ *   <li>OpenIndiana/Solaris:<pre>
+ *       pkg set-publisher -p http://pkg.openindiana.org/sfe-encumbered.
+ *       pkt install pkg:/video/ffmpeg
+ *       </pre></li>
+ * </ul> 
  */
 public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
     public static final VersionNumber avUtilVersion;

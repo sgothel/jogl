@@ -48,6 +48,15 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  *   <tr><td>{@link #destroy(GL)}</td>                     <td>ANY</td>                 <td>Uninitialized</td></tr>
  * </table>
  * <p>
+ * Current implementations (check each API doc link for details):
+ * <ul>
+ *   <li>{@link jogamp.opengl.util.av.NullGLMediaPlayer}</li>
+ *   <li>{@link jogamp.opengl.util.av.impl.OMXGLMediaPlayer}</li>
+ *   <li>{@link jogamp.opengl.util.av.impl.FFMPEGMediaPlayer}</li>
+ *   <li>{@link jogamp.opengl.android.av.AndroidGLMediaPlayerAPI14}</li> 
+ * </ul>
+ * </p>
+ * <p>
  * Variable type, value range and dimension has been chosen to suit embedded CPUs
  * and characteristics of audio and video streaming.
  * Milliseconds of type integer with a maximum value of {@link Integer#MAX_VALUE} 

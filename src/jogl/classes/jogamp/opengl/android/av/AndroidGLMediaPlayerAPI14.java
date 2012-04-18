@@ -44,8 +44,17 @@ import android.net.Uri;
 import android.view.Surface;
 
 /***
- * Android API Level 14: {@link MediaPlayer#setSurface(Surface)}
- * Android API Level 14: {@link Surface#Surface(android.graphics.SurfaceTexture)}
+ * Android implementation utilizes API level 14 (4.0.? ICS) features
+ * as listed below.
+ * <p>
+ * We utilize the {@link MediaPlayer} with direct to texture streaming.
+ * The MediaPlayer uses <code>libstagefright</code> to access the OpenMAX AL implementation
+ * for hardware decoding.
+ * </p>
+ * <ul>
+ *   <li>Android API Level 14: {@link MediaPlayer#setSurface(Surface)}</li>
+ *   <li>Android API Level 14: {@link Surface#Surface(android.graphics.SurfaceTexture)}</li>
+ * </ul>
  */
 public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     static final boolean available;

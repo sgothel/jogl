@@ -44,7 +44,8 @@ import com.jogamp.opengl.util.texture.TextureIO;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 /***
- * A dummy null media player implementation using a static test frame (if available).
+ * A dummy null media player implementation using a static test frame
+ * available on all platforms.
  */
 public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     private TextureData texData = null;
