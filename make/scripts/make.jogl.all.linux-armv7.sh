@@ -15,6 +15,8 @@ export TARGET_PLATFORM_ROOT=/
 export TARGET_PLATFORM_LIBS=/usr/lib/arm-linux-gnueabi
 export TARGET_JAVA_LIBS=/usr/lib/jvm/default-java/jre/lib/arm
 
+export GLUEGEN_CPPTASKS_FILE="../../gluegen/make/lib/gluegen-cpptasks-linux-armv4.xml"
+
 ant \
     -Drootrel.build=build-linux-armv7 \
     -Dsetup.addNativeKD=true \

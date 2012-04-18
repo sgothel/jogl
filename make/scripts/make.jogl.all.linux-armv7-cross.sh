@@ -33,7 +33,7 @@ export TARGET_PLATFORM_ROOT=/opt-linux-armv7-armel
 export TARGET_PLATFORM_LIBS=$TARGET_PLATFORM_ROOT/usr/lib
 export TARGET_JAVA_LIBS=$TARGET_PLATFORM_ROOT/jre/lib/arm
 
-export GLUEGEN_CPPTASKS_FILE="../../gluegen/make/lib/gluegen-cpptasks-linux-armv7.xml"
+export GLUEGEN_CPPTASKS_FILE="../../gluegen/make/lib/gluegen-cpptasks-linux-armv4.xml"
 
 #export JUNIT_DISABLED="true"
 export JUNIT_RUN_ARG0="-Dnewt.test.Screen.disableScreenMode"
