@@ -278,8 +278,12 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     protected void requestFocusImpl(boolean reparented) { 
         if(null != androidView) {
             Log.d(MD.TAG, "requestFocusImpl: reparented "+reparented);
-            androidView.requestFocus();
-            androidView.bringToFront();
+            androidView.post(new Runnable() {
+                public void run() {
+                    androidView.requestFocus();
+                    androidView.bringToFront();
+                }
+            });
         }
     }
 
@@ -357,7 +361,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
                           getX()+"/"+getY()+" "+nWidth+"x"+nHeight+", visible: "+isVisible());
     
             if(isVisible()) {
-               setVisible(true); 
+               setVisible(true);
             }
         }
         sizeChanged(false, aWidth, aHeight, false);
