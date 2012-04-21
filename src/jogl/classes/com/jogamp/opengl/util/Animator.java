@@ -279,6 +279,11 @@ public class Animator extends AnimatorBase {
         } else {
             thread = new Thread(threadGroup, runnable, threadName);
         }
+        thread.setDaemon(false); // force to be non daemon, regardless of parent thread 
+        if(DEBUG) {
+            final Thread ct = Thread.currentThread();
+            System.err.println("Animator "+ct.getName()+"[daemon "+ct.isDaemon()+"]: starting "+thread.getName()+"[daemon "+thread.isDaemon()+"]");
+        }
         thread.start();
         finishLifecycleAction(waitForStartedCondition);
         return true;
