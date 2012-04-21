@@ -700,17 +700,17 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_close0
     NewtMacWindow* mWin = (NewtMacWindow*) ((intptr_t) window);
     NewtView* mView = (NewtView *)[mWin contentView];
     NSWindow* pWin = [mWin parentWindow];
-    DBG_PRINT( "windowClose.0 - %p,%d view %p,%d, parent %p\n", 
-        mWin, getRetainCount(mWin), mView, getRetainCount(mView), pWin);
+    BOOL destroyNotifySent = (NULL != mView) ? [mView getDestroyNotifySent] : false;
+
+    DBG_PRINT( "windowClose.0 - %p,%d, destroyNotifySent %d, view %p,%d, parent %p\n", 
+        mWin, getRetainCount(mWin), destroyNotifySent, mView, getRetainCount(mView), pWin);
 
     if(NULL!=mView) {
+        // cleanup view
         jobject javaWindowObject = [mView getJavaWindowObject];
-        if( false == [mView getDestroyNotifySent] ) {
-            [mView setDestroyNotifySent: true];
-        } else if(NULL!=javaWindowObject) {
-            DBG_PRINT( "windowClose.Error: javaWindowObject not NULL (%p), destroyNotifySent==true\n", javaWindowObject);
-        }
+        [mView setDestroyNotifySent: true];
         if(NULL!=javaWindowObject) {
+            DBG_PRINT( "windowClose.0: Clear global javaWindowObject reference (%p)\n", javaWindowObject);
             (*env)->DeleteGlobalRef(env, javaWindowObject);
             [mView setJavaWindowObject: NULL];
         }
@@ -737,15 +737,19 @@ NS_ENDHANDLER
     DBG_PRINT( "windowClose.1 - %p,%d view %p,%d, parent %p\n", 
         mWin, getRetainCount(mWin), mView, getRetainCount(mView), pWin);
 
-    // '[mWin close]' causes a crash at exit.
-    // This probably happens b/c it sends events to the main loop
-    // but our resources are gone ?!
-    // However, issuing a simple release seems to work quite well.
-    // [mWin release];
-    [mWin performSelectorOnMainThread:@selector(release) withObject:nil waitUntilDone:NO];
+    // Only release window, if release is not yet in process.
+    // E.g. destroyNotifySent:=true set by NewtMacWindow::windowWillClose(), i.e. window-close was clicked.
+    if(!destroyNotifySent) { 
+        // '[mWin close]' causes a crash at exit.
+        // This probably happens b/c it sends events to the main loop
+        // but our resources are gone ?!
+        // However, issuing a simple release seems to work quite well.
+        // [mWin release];
+        [mWin performSelectorOnMainThread:@selector(release) withObject:nil waitUntilDone:NO];
+    }
 
-    DBG_PRINT( "windowClose.X - %p,%d view %p,%d, parent %p\n", 
-        mWin, getRetainCount(mWin), mView, getRetainCount(mView), pWin);
+    DBG_PRINT( "windowClose.X - %p,%d, released %d, view %p,%d, parent %p\n", 
+        mWin, getRetainCount(mWin), !destroyNotifySent, mView, getRetainCount(mView), pWin);
 
     [pool release];
 }

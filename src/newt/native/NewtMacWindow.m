@@ -119,12 +119,25 @@ static jmethodID windowRepaintID = NULL;
     return [super initWithFrame:frameRect];
 }
 
+- (void) release
+{
+#ifdef VERBOSE_ON
+    NSLog(@"NewtView::release\n");
+    NSLog(@"%@",[NSThread callStackSymbols]);
+#endif
+    [super release];
+}
+
 - (void) dealloc
 {
     if(softLocked) {
         NSLog(@"NewtView::dealloc: softLock still hold @ dealloc!\n");
     }
     pthread_mutex_destroy(&softLockSync);
+#ifdef VERBOSE_ON
+    NSLog(@"NewtView::dealloc\n");
+    NSLog(@"%@",[NSThread callStackSymbols]);
+#endif
     [super dealloc];
 }
 
@@ -360,6 +373,24 @@ static jmethodID windowRepaintID = NULL;
     mouseInside = NO;
     cursorIsHidden = NO;
     return res;
+}
+
+- (void) release
+{
+#ifdef VERBOSE_ON
+    NSLog(@"NewtWindow::release\n");
+    NSLog(@"%@",[NSThread callStackSymbols]);
+#endif
+    [super release];
+}
+
+- (void) dealloc
+{
+#ifdef VERBOSE_ON
+    NSLog(@"NewtWindow::dealloc\n");
+    NSLog(@"%@",[NSThread callStackSymbols]);
+#endif
+    [super dealloc];
 }
 
 - (void) updateInsets: (JNIEnv*) env
@@ -940,11 +971,6 @@ static jint mods2JavaMods(NSUInteger mods)
 
         [view setDestroyNotifySent: true];
         (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyNotifyID);
-        // Can't issue call here - locked window state, done from Java method
-
-        // EOL ..
-        (*env)->DeleteGlobalRef(env, javaWindowObject);
-        [view setJavaWindowObject: NULL];
 
         if (shallBeDetached) {
             (*jvmHandle)->DetachCurrentThread(jvmHandle);

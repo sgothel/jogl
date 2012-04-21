@@ -65,6 +65,7 @@
 }
 
 - (id)initWithFrame:(NSRect)frameRect;
+- (void) release;
 - (void) dealloc;
 
 /* Set during event dispatching cycle */
@@ -122,6 +123,8 @@
        defer: (BOOL) deferCreation
        screen:(NSScreen *)screen
        isFullscreenWindow:(BOOL)isfs;
+- (void) release;
+- (void) dealloc;
 
 - (void) updateInsets: (JNIEnv*) env;
 - (void) attachToParent: (NSWindow*) parent;
