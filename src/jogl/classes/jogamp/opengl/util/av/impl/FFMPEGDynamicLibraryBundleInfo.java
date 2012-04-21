@@ -42,10 +42,15 @@ import com.jogamp.common.os.DynamicLibraryBundle;
 import com.jogamp.common.os.DynamicLibraryBundleInfo;
 import com.jogamp.common.util.RunnableExecutor;
 
+/**
+ * FIXME: We need native structure access methods to deal with API changes
+ *        in the libav headers, which break binary compatibility!
+ *        Currently we are binary compatible w/ [0.6 ?, ] 0.7 and 0.8 but not w/ trunk.
+ */
 class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     private static List<String> glueLibNames = new ArrayList<String>(); // none
     
-    private static final int symbolCount = 29;
+    private static final int symbolCount = 31;
     private static String[] symbolNames = {
          "avcodec_version",
          "avformat_version",
@@ -71,6 +76,8 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 /* 18 */ "av_get_bits_per_pixel",
         
          // libavformat
+         "avformat_alloc_context",
+         "avformat_free_context",     // 52.96.0   (opt)
          "avformat_close_input",      // 53.17.0   (opt)
          "av_close_input_file",
          "av_register_all", 
@@ -94,6 +101,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     
     // optional symbol names
     private static String[] optionalSymbolNames = {
+         "avformat_free_context",     // 52.96.0   (opt)
          "avformat_network_init",     // 53.13.0   (opt)
          "avformat_network_deinit",   // 53.13.0   (opt)
     };

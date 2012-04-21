@@ -90,6 +90,8 @@ static AV_GET_BITS_PER_PIXEL sp_av_get_bits_per_pixel;
 // count: 18
 
 // libavformat
+typedef AVFormatContext *(APIENTRYP AVFORMAT_ALLOC_CONTEXT)(void);
+typedef void (APIENTRYP AVFORMAT_FREE_CONTEXT)(AVFormatContext *s);  // 52.96.0
 typedef void (APIENTRYP AVFORMAT_CLOSE_INPUT)(AVFormatContext **s);  // 53.17.0
 typedef void (APIENTRYP AV_CLOSE_INPUT_FILE)(AVFormatContext *s);
 typedef void (APIENTRYP AV_REGISTER_ALL)(void);
@@ -101,6 +103,9 @@ typedef int (APIENTRYP AVFORMAT_NETWORK_INIT)(void);                            
 typedef int (APIENTRYP AVFORMAT_NETWORK_DEINIT)(void);                                               // 53.13.0
 typedef int (APIENTRYP AVFORMAT_FIND_STREAM_INFO)(AVFormatContext *ic, AVDictionary **options);      // 53.3.0
 typedef int (APIENTRYP AV_FIND_STREAM_INFO)(AVFormatContext *ic);
+
+static AVFORMAT_ALLOC_CONTEXT sp_avformat_alloc_context;
+static AVFORMAT_FREE_CONTEXT sp_avformat_free_context;            // 52.96.0
 static AVFORMAT_CLOSE_INPUT sp_avformat_close_input;              // 53.17.0
 static AV_CLOSE_INPUT_FILE sp_av_close_input_file;
 static AV_REGISTER_ALL sp_av_register_all;
@@ -112,9 +117,9 @@ static AVFORMAT_NETWORK_INIT sp_avformat_network_init;            // 53.13.0
 static AVFORMAT_NETWORK_DEINIT sp_avformat_network_deinit;        // 53.13.0
 static AVFORMAT_FIND_STREAM_INFO sp_avformat_find_stream_info;    // 53.3.0
 static AV_FIND_STREAM_INFO sp_av_find_stream_info;
-// count: 29
+// count: 31
 
-#define SYMBOL_COUNT 29
+#define SYMBOL_COUNT 31
 
 JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryBundleInfo_initSymbols0
   (JNIEnv *env, jclass clazz, jobject jSymbols, jint count)
@@ -156,6 +161,8 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryB
     sp_av_get_bits_per_pixel = (AV_GET_BITS_PER_PIXEL) (intptr_t) symbols[i++];
     // count: 18
 
+    sp_avformat_alloc_context = (AVFORMAT_ALLOC_CONTEXT) (intptr_t) symbols[i++];;
+    sp_avformat_free_context = (AVFORMAT_FREE_CONTEXT) (intptr_t) symbols[i++];
     sp_avformat_close_input = (AVFORMAT_CLOSE_INPUT) (intptr_t) symbols[i++];
     sp_av_close_input_file = (AV_CLOSE_INPUT_FILE) (intptr_t) symbols[i++];
     sp_av_register_all = (AV_REGISTER_ALL) (intptr_t) symbols[i++];
@@ -167,7 +174,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryB
     sp_avformat_network_deinit = (AVFORMAT_NETWORK_DEINIT) (intptr_t) symbols[i++];
     sp_avformat_find_stream_info = (AVFORMAT_FIND_STREAM_INFO) (intptr_t) symbols[i++];
     sp_av_find_stream_info = (AV_FIND_STREAM_INFO) (intptr_t) symbols[i++];
-    // count: 29
+    // count: 31
 
     (*env)->ReleasePrimitiveArrayCritical(env, jSymbols, symbols, 0);
 
@@ -186,8 +193,16 @@ static void _updateJavaAttributes(JNIEnv *env, jobject instance, FFMPEGToolBasic
     // int shallBeDetached = 0;
     // JNIEnv  * env = JoglCommon_GetJNIEnv (&shallBeDetached); 
     if(NULL!=env) {
+        int32_t w, h;
+        if( NULL != pAV->pVCodecCtx ) {
+            // FIXME: Libav Binary compatibility! JAU01
+            w = pAV->pVCodecCtx->width; h = pAV->pVCodecCtx->height;
+        } else {
+            w = 0;                      h = 0;
+        }
+
         (*env)->CallVoidMethod(env, instance, jni_mid_updateAttributes1,
-                               pAV->pVCodecCtx->width, pAV->pVCodecCtx->height,
+                               w, h, 
                                pAV->bps_stream, pAV->bps_video, pAV->bps_audio,
                                pAV->fps, (int32_t)((pAV->duration/1000)*pAV->fps), pAV->duration,
                                (*env)->NewStringUTF(env, pAV->vcodec),
@@ -204,16 +219,6 @@ static void _updateJavaAttributes(JNIEnv *env, jobject instance, FFMPEGToolBasic
 static void freeInstance(FFMPEGToolBasicAV_t* pAV) {
     int i;
     if(NULL != pAV) {
-        // Close the video file
-        if(NULL != pAV->pFormatCtx) {
-            if(HAS_FUNC(sp_avformat_close_input)) {
-                sp_avformat_close_input(&pAV->pFormatCtx);
-            } else {
-                sp_av_close_input_file(pAV->pFormatCtx);
-            }
-            pAV->pFormatCtx = NULL;
-        }
-
         // Close the V codec
         if(NULL != pAV->pVCodecCtx) {
             sp_avcodec_close(pAV->pVCodecCtx);
@@ -228,6 +233,7 @@ static void freeInstance(FFMPEGToolBasicAV_t* pAV) {
         }
         pAV->pACodec=NULL;
 
+        // Close the frames
         if(NULL != pAV->pVFrame) {
             sp_av_free(pAV->pVFrame);
             pAV->pVFrame = NULL;
@@ -237,6 +243,18 @@ static void freeInstance(FFMPEGToolBasicAV_t* pAV) {
             pAV->pAFrame = NULL;
         }
 
+        // Close the video file
+        if(NULL != pAV->pFormatCtx) {
+            if(HAS_FUNC(sp_avformat_close_input)) {
+                sp_avformat_close_input(&pAV->pFormatCtx);
+            } else {
+                sp_av_close_input_file(pAV->pFormatCtx);
+                if(HAS_FUNC(sp_avformat_free_context)) {
+                    sp_avformat_free_context(pAV->pFormatCtx);
+                }
+            }
+            pAV->pFormatCtx = NULL;
+        }
         free(pAV);
     }
 }
@@ -362,171 +380,192 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
     jboolean iscopy;
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)(intptr_t)ptr;
 
-    if (pAV != NULL) {
-        // Open video file
-        const char *urlPath = (*env)->GetStringUTFChars(env, jURL, &iscopy);
-        res = sp_avformat_open_input(&pAV->pFormatCtx, urlPath, NULL, NULL);
-        if(res != 0) {
+    if (pAV == NULL) {
+        JoglCommon_throwNewRuntimeException(env, "NULL AV ptr");
+        return;
+    }
+
+    pAV->pFormatCtx = sp_avformat_alloc_context();
+
+    // Open video file
+    const char *urlPath = (*env)->GetStringUTFChars(env, jURL, &iscopy);
+    res = sp_avformat_open_input(&pAV->pFormatCtx, urlPath, NULL, NULL);
+    if(res != 0) {
+        (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
+        JoglCommon_throwNewRuntimeException(env, "Couldn't open URL");
+        return;
+    }
+
+    // Retrieve detailed stream information
+    if(HAS_FUNC(sp_avformat_find_stream_info)) {
+        if(sp_avformat_find_stream_info(pAV->pFormatCtx, NULL)<0) {
             (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
-            JoglCommon_throwNewRuntimeException(env, "Couldn't open URL");
+            JoglCommon_throwNewRuntimeException(env, "Couldn't find stream information");
+            return;
+        }
+    } else {
+        if(sp_av_find_stream_info(pAV->pFormatCtx)<0) {
+            (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
+            JoglCommon_throwNewRuntimeException(env, "Couldn't find stream information");
+            return;
+        }
+    }
+
+    if(pAV->verbose) {
+        // Dump information about file onto standard error
+        sp_av_dump_format(pAV->pFormatCtx, 0, urlPath, JNI_FALSE);
+    }
+    (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
+    // FIXME: Libav Binary compatibility! JAU01
+    if (pAV->pFormatCtx->duration != AV_NOPTS_VALUE) {
+        pAV->duration = pAV->pFormatCtx->duration / AV_TIME_BASE_MSEC;
+    }
+    if (pAV->pFormatCtx->start_time != AV_NOPTS_VALUE) {
+        pAV->start_time = pAV->pFormatCtx->start_time / AV_TIME_BASE_MSEC;
+    }
+    if (pAV->pFormatCtx->bit_rate) {
+        pAV->bps_stream = pAV->pFormatCtx->bit_rate;
+    }
+
+    fprintf(stderr, "Streams: %d\n", pAV->pFormatCtx->nb_streams); // JAU
+
+    // Find the first audio and video stream, or the one matching vid
+    // FIXME: Libav Binary compatibility! JAU01
+    for(i=0; ( -1==pAV->aid || -1==pAV->vid ) && i<pAV->pFormatCtx->nb_streams; i++) {
+        AVStream *st = pAV->pFormatCtx->streams[i];
+        fprintf(stderr, "Stream: %d: is-video %d, is-audio %d\n", i, (AVMEDIA_TYPE_VIDEO == st->codec->codec_type), AVMEDIA_TYPE_AUDIO == st->codec->codec_type); // JAU
+        if(AVMEDIA_TYPE_VIDEO == st->codec->codec_type) {
+            if(-1==pAV->vid && (-1==vid || vid == i) ) {
+                pAV->pVStream = st;
+                pAV->vid=i;
+            }
+        } else if(AVMEDIA_TYPE_AUDIO == st->codec->codec_type) {
+            if(-1==pAV->aid && (-1==aid || aid == i) ) {
+                pAV->pAStream = st;
+                pAV->aid=i;
+            }
+        }
+    }
+
+    fprintf(stderr, "Found vid %d, aid %d\n", pAV->vid, pAV->aid); // JAU
+
+    if(0<=pAV->aid) {
+        // Get a pointer to the codec context for the audio stream
+        // FIXME: Libav Binary compatibility! JAU01
+        pAV->pACodecCtx=pAV->pAStream->codec;
+
+        // FIXME: Libav Binary compatibility! JAU01
+        if (pAV->pACodecCtx->bit_rate) {
+            pAV->bps_audio = pAV->pACodecCtx->bit_rate;
+        }
+        sp_avcodec_string(pAV->acodec, sizeof(pAV->acodec), pAV->pACodecCtx, 0);
+
+        // Find the decoder for the audio stream
+        pAV->pACodec=sp_avcodec_find_decoder(pAV->pACodecCtx->codec_id);
+        if(pAV->pACodec==NULL) {
+            JoglCommon_throwNewRuntimeException(env, "Couldn't find audio codec %d, %s", pAV->pACodecCtx->codec_id, pAV->acodec);
             return;
         }
 
-        // Retrieve detailed stream information
-        if(HAS_FUNC(sp_avformat_find_stream_info)) {
-            if(sp_avformat_find_stream_info(pAV->pFormatCtx, NULL)<0) {
-                (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
-                JoglCommon_throwNewRuntimeException(env, "Couldn't find stream information");
-                return;
-            }
+        // Open codec
+        if(HAS_FUNC(sp_avcodec_open2)) {
+            res = sp_avcodec_open2(pAV->pACodecCtx, pAV->pACodec, NULL);
         } else {
-            if(sp_av_find_stream_info(pAV->pFormatCtx)<0) {
-                (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
-                JoglCommon_throwNewRuntimeException(env, "Couldn't find stream information");
-                return;
-            }
+            res = sp_avcodec_open(pAV->pACodecCtx, pAV->pACodec);
+        }
+        if(res<0) {
+            JoglCommon_throwNewRuntimeException(env, "Couldn't open audio codec %d, %s", pAV->pACodecCtx->codec_id, pAV->acodec);
+            return;
         }
 
-        if(pAV->verbose) {
-            // Dump information about file onto standard error
-            sp_av_dump_format(pAV->pFormatCtx, 0, urlPath, JNI_FALSE);
+        // Allocate audio frames
+        // FIXME: Libav Binary compatibility! JAU01
+        pAV->aSampleRate = pAV->pACodecCtx->sample_rate;
+        pAV->aChannels = pAV->pACodecCtx->channels;
+        pAV->aFrameSize = pAV->pACodecCtx->frame_size;
+        pAV->aSampleFmt = pAV->pACodecCtx->sample_fmt;
+        pAV->pAFrame=sp_avcodec_alloc_frame();
+        if(pAV->pAFrame==NULL) {
+            JoglCommon_throwNewRuntimeException(env, "Couldn't alloc audio frame");
+            return;
         }
-        (*env)->ReleaseStringChars(env, jURL, (const jchar *)urlPath);
-        if (pAV->pFormatCtx->duration != AV_NOPTS_VALUE) {
-            pAV->duration = pAV->pFormatCtx->duration / AV_TIME_BASE_MSEC;
-        }
-        if (pAV->pFormatCtx->start_time != AV_NOPTS_VALUE) {
-            pAV->start_time = pAV->pFormatCtx->start_time / AV_TIME_BASE_MSEC;
-        }
-        if (pAV->pFormatCtx->bit_rate) {
-            pAV->bps_stream = pAV->pFormatCtx->bit_rate;
-        }
-
-        // Find the first audio and video stream, or the one matching vid
-        for(i=0; ( -1==pAV->aid || -1==pAV->vid ) && i<pAV->pFormatCtx->nb_streams; i++) {
-            AVStream *st = pAV->pFormatCtx->streams[i];
-            if(AVMEDIA_TYPE_VIDEO == st->codec->codec_type) {
-                if(-1==pAV->vid && (-1==vid || vid == i) ) {
-                    pAV->pVStream = st;
-                    pAV->vid=i;
-                }
-            } else if(AVMEDIA_TYPE_AUDIO == st->codec->codec_type) {
-                if(-1==pAV->aid && (-1==aid || aid == i) ) {
-                    pAV->pAStream = st;
-                    pAV->aid=i;
-                }
-            }
-        }
-
-        if(0<=pAV->aid) {
-            // Get a pointer to the codec context for the audio stream
-            pAV->pACodecCtx=pAV->pAStream->codec;
-
-            if (pAV->pACodecCtx->bit_rate) {
-                pAV->bps_audio = pAV->pACodecCtx->bit_rate;
-            }
-            sp_avcodec_string(pAV->acodec, sizeof(pAV->acodec), pAV->pACodecCtx, 0);
-
-            // Find the decoder for the audio stream
-            pAV->pACodec=sp_avcodec_find_decoder(pAV->pACodecCtx->codec_id);
-            if(pAV->pACodec==NULL) {
-                JoglCommon_throwNewRuntimeException(env, "Couldn't find audio codec %d, %s", pAV->pACodecCtx->codec_id, pAV->acodec);
-                return;
-            }
-
-            // Open codec
-            if(HAS_FUNC(sp_avcodec_open2)) {
-                res = sp_avcodec_open2(pAV->pACodecCtx, pAV->pACodec, NULL);
-            } else {
-                res = sp_avcodec_open(pAV->pACodecCtx, pAV->pACodec);
-            }
-            if(res<0) {
-                JoglCommon_throwNewRuntimeException(env, "Couldn't open audio codec %d, %s", pAV->pACodecCtx->codec_id, pAV->acodec);
-                return;
-            }
-
-            // Allocate audio frames
-            pAV->aSampleRate = pAV->pACodecCtx->sample_rate;
-            pAV->aChannels = pAV->pACodecCtx->channels;
-            pAV->aFrameSize = pAV->pACodecCtx->frame_size;
-            pAV->aSampleFmt = pAV->pACodecCtx->sample_fmt;
-            pAV->pAFrame=sp_avcodec_alloc_frame();
-            if(pAV->pAFrame==NULL) {
-                JoglCommon_throwNewRuntimeException(env, "Couldn't alloc audio frame");
-                return;
-            }
-        }
-
-        if(0<=pAV->vid) {
-            // Get a pointer to the codec context for the video stream
-            pAV->pVCodecCtx=pAV->pVStream->codec;
-            #if 0
-            pAV->pVCodecCtx->get_format = my_get_format;
-            #endif
-
-            if (pAV->pVCodecCtx->bit_rate) {
-                pAV->bps_video = pAV->pVCodecCtx->bit_rate;
-            }
-            sp_avcodec_string(pAV->vcodec, sizeof(pAV->vcodec), pAV->pVCodecCtx, 0);
-
-            // Find the decoder for the video stream
-            pAV->pVCodec=sp_avcodec_find_decoder(pAV->pVCodecCtx->codec_id);
-            if(pAV->pVCodec==NULL) {
-                JoglCommon_throwNewRuntimeException(env, "Couldn't find video codec %d, %s", pAV->pVCodecCtx->codec_id, pAV->vcodec);
-                return;
-            }
-
-            // Open codec
-            if(HAS_FUNC(sp_avcodec_open2)) {
-                res = sp_avcodec_open2(pAV->pVCodecCtx, pAV->pVCodec, NULL);
-            } else {
-                res = sp_avcodec_open(pAV->pVCodecCtx, pAV->pVCodec);
-            }
-            if(res<0) {
-                JoglCommon_throwNewRuntimeException(env, "Couldn't open video codec %d, %s", pAV->pVCodecCtx->codec_id, pAV->vcodec);
-                return;
-            }
-
-            // Hack to correct wrong frame rates that seem to be generated by some codecs
-            if(pAV->pVCodecCtx->time_base.num>1000 && pAV->pVCodecCtx->time_base.den==1) {
-                pAV->pVCodecCtx->time_base.den=1000;
-            }
-            pAV->fps = my_av_q2f(pAV->pVStream->avg_frame_rate);
-                
-            // Allocate video frames
-            pAV->vPixFmt = pAV->pVCodecCtx->pix_fmt;
-            {   
-                AVPixFmtDescriptor pixDesc = sp_av_pix_fmt_descriptors[pAV->vPixFmt];
-                pAV->vBitsPerPixel = sp_av_get_bits_per_pixel(&pixDesc);
-                pAV->vBufferPlanes = my_getPlaneCount(&pixDesc);
-            }
-            pAV->pVFrame=sp_avcodec_alloc_frame();
-            if( pAV->pVFrame == NULL ) {
-                JoglCommon_throwNewRuntimeException(env, "Couldn't alloc video frame");
-                return;
-            }
-            res = sp_avcodec_default_get_buffer(pAV->pVCodecCtx, pAV->pVFrame);
-            if(0==res) {
-                const int32_t bytesPerPixel = ( pAV->vBitsPerPixel + 7 ) / 8 ;
-                if(1 == pAV->vBufferPlanes) {
-                    pAV->vBytesPerPixelPerPlane = bytesPerPixel;
-                } else {
-                    pAV->vBytesPerPixelPerPlane = 1;
-                }
-                for(i=0; i<3; i++) {
-                    pAV->vLinesize[i] = pAV->pVFrame->linesize[i];
-                    pAV->vTexWidth[i] = pAV->vLinesize[i] / pAV->vBytesPerPixelPerPlane ;
-                }
-                sp_avcodec_default_release_buffer(pAV->pVCodecCtx, pAV->pVFrame);
-            } else {
-                JoglCommon_throwNewRuntimeException(env, "Couldn't peek video buffer dimension");
-                return;
-            }
-        }
-        pAV->vPTS=0;
-        pAV->aPTS=0;
-        _updateJavaAttributes(env, instance, pAV);
     }
+
+    if(0<=pAV->vid) {
+        // Get a pointer to the codec context for the video stream
+        // FIXME: Libav Binary compatibility! JAU01
+        pAV->pVCodecCtx=pAV->pVStream->codec;
+        #if 0
+        pAV->pVCodecCtx->get_format = my_get_format;
+        #endif
+
+        if (pAV->pVCodecCtx->bit_rate) {
+            // FIXME: Libav Binary compatibility! JAU01
+            pAV->bps_video = pAV->pVCodecCtx->bit_rate;
+        }
+        sp_avcodec_string(pAV->vcodec, sizeof(pAV->vcodec), pAV->pVCodecCtx, 0);
+
+        // Find the decoder for the video stream
+        pAV->pVCodec=sp_avcodec_find_decoder(pAV->pVCodecCtx->codec_id);
+        if(pAV->pVCodec==NULL) {
+            JoglCommon_throwNewRuntimeException(env, "Couldn't find video codec %d, %s", pAV->pVCodecCtx->codec_id, pAV->vcodec);
+            return;
+        }
+
+        // Open codec
+        if(HAS_FUNC(sp_avcodec_open2)) {
+            res = sp_avcodec_open2(pAV->pVCodecCtx, pAV->pVCodec, NULL);
+        } else {
+            res = sp_avcodec_open(pAV->pVCodecCtx, pAV->pVCodec);
+        }
+        if(res<0) {
+            JoglCommon_throwNewRuntimeException(env, "Couldn't open video codec %d, %s", pAV->pVCodecCtx->codec_id, pAV->vcodec);
+            return;
+        }
+
+        // Hack to correct wrong frame rates that seem to be generated by some codecs
+        // FIXME: Libav Binary compatibility! JAU01
+        if(pAV->pVCodecCtx->time_base.num>1000 && pAV->pVCodecCtx->time_base.den==1) {
+            pAV->pVCodecCtx->time_base.den=1000;
+        }
+        // FIXME: Libav Binary compatibility! JAU01
+        pAV->fps = my_av_q2f(pAV->pVStream->avg_frame_rate);
+            
+        // Allocate video frames
+        // FIXME: Libav Binary compatibility! JAU01
+        pAV->vPixFmt = pAV->pVCodecCtx->pix_fmt;
+        {   
+            AVPixFmtDescriptor pixDesc = sp_av_pix_fmt_descriptors[pAV->vPixFmt];
+            pAV->vBitsPerPixel = sp_av_get_bits_per_pixel(&pixDesc);
+            pAV->vBufferPlanes = my_getPlaneCount(&pixDesc);
+        }
+        pAV->pVFrame=sp_avcodec_alloc_frame();
+        if( pAV->pVFrame == NULL ) {
+            JoglCommon_throwNewRuntimeException(env, "Couldn't alloc video frame");
+            return;
+        }
+        res = sp_avcodec_default_get_buffer(pAV->pVCodecCtx, pAV->pVFrame);
+        if(0==res) {
+            const int32_t bytesPerPixel = ( pAV->vBitsPerPixel + 7 ) / 8 ;
+            if(1 == pAV->vBufferPlanes) {
+                pAV->vBytesPerPixelPerPlane = bytesPerPixel;
+            } else {
+                pAV->vBytesPerPixelPerPlane = 1;
+            }
+            for(i=0; i<3; i++) {
+                // FIXME: Libav Binary compatibility! JAU01
+                pAV->vLinesize[i] = pAV->pVFrame->linesize[i];
+                pAV->vTexWidth[i] = pAV->vLinesize[i] / pAV->vBytesPerPixelPerPlane ;
+            }
+            sp_avcodec_default_release_buffer(pAV->pVCodecCtx, pAV->pVFrame);
+        } else {
+            JoglCommon_throwNewRuntimeException(env, "Couldn't peek video buffer dimension");
+            return;
+        }
+    }
+    pAV->vPTS=0;
+    pAV->aPTS=0;
+    _updateJavaAttributes(env, instance, pAV);
 }
 
 JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNextPacket0
@@ -595,6 +634,7 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
             if(frameFinished)
             {
                 res = 2;
+                // FIXME: Libav Binary compatibility! JAU01
                 const AVRational time_base = pAV->pVStream->time_base;
                 const int64_t pts = pAV->pVFrame->pkt_pts;
                 if(AV_NOPTS_VALUE != pts) { // discard invalid PTS ..
@@ -614,6 +654,7 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                 #endif
 
                 // 1st plane or complete packed frame
+                // FIXME: Libav Binary compatibility! JAU01
                 procAddrGLTexSubImage2D(texTarget, 0, 
                                         0,                 0, 
                                         pAV->vTexWidth[0], pAV->pVCodecCtx->height, 
@@ -621,11 +662,13 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
 
                 if(pAV->vPixFmt == PIX_FMT_YUV420P) {
                     // U plane
+                    // FIXME: Libav Binary compatibility! JAU01
                     procAddrGLTexSubImage2D(texTarget, 0, 
                                             pAV->pVCodecCtx->width, 0,
                                             pAV->vTexWidth[1],      pAV->pVCodecCtx->height/2, 
                                             texFmt, texType, pAV->pVFrame->data[1]);
                     // V plane
+                    // FIXME: Libav Binary compatibility! JAU01
                     procAddrGLTexSubImage2D(texTarget, 0, 
                                             pAV->pVCodecCtx->width, pAV->pVCodecCtx->height/2,
                                             pAV->vTexWidth[2],      pAV->pVCodecCtx->height/2, 
