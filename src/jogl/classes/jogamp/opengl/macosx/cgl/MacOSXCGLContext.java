@@ -396,6 +396,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   class NSOpenGLImpl implements GLBackendImpl {
     long nsOpenGLLayer = 0;
     long nsOpenGLLayerPFmt = 0;
+    int vsyncTimeout = 16;
     
     public boolean isNSContext() { return true; }
 
@@ -555,13 +556,22 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         CGL.setNSOpenGLLayerSwapInterval(nsOpenGLLayer, interval);
       }
       CGL.setSwapInterval(contextHandle, interval);
+      if (interval == 0) {
+        // v-sync is disabled, frames were drawn as quickly as possible without adding any
+        // timeout delay.
+        vsyncTimeout = 0;
+      } else {
+        // v-sync is enabled. Swaping interval of 1 means a
+        // timeout of 16ms -> 60Hz, 60fps
+        vsyncTimeout = interval * 16;
+      }
       return true;
     }
     
     public boolean swapBuffers() {
-      if(0 != nsOpenGLLayer) {
+      if(0 != nsOpenGLLayer && 0 < vsyncTimeout) {
         // sync w/ CALayer renderer - wait until next frame is required (v-sync)
-        CGL.waitUntilNSOpenGLLayerIsReady(nsOpenGLLayer, 16); // timeout 16ms -> 60Hz
+        CGL.waitUntilNSOpenGLLayerIsReady(nsOpenGLLayer, vsyncTimeout);
       }
       if(CGL.flushBuffer(contextHandle)) {
           if(0 != nsOpenGLLayer) {
