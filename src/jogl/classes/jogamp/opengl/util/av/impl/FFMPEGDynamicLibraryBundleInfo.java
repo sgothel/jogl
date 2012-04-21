@@ -46,6 +46,11 @@ import com.jogamp.common.util.RunnableExecutor;
  * FIXME: We need native structure access methods to deal with API changes
  *        in the libav headers, which break binary compatibility!
  *        Currently we are binary compatible w/ [0.6 ?, ] 0.7 and 0.8 but not w/ trunk.
+ *        
+ *        ChangeList for trunk:
+ *          Thu Jan 12 11:21:02 2012 a17479dfce67fbea2d0a1bf303010dce1e79059f major 53 -> 54
+ *          Mon Feb 27 22:40:11 2012 ee42df8a35c2b795f524c856834d0823dbd4e75d reorder AVStream and AVFormatContext
+ *          Tue Feb 28 12:07:53 2012 322537478b63c6bc01e640643550ff539864d790 minor  1 ->  2
  */
 class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     private static List<String> glueLibNames = new ArrayList<String>(); // none
