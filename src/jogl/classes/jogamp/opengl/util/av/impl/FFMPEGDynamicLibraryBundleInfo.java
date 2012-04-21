@@ -30,8 +30,10 @@ package jogamp.opengl.util.av.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.media.opengl.GLProfile;
@@ -79,16 +81,21 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
          "avformat_network_init",     // 53.13.0   (opt)
          "avformat_network_deinit",   // 53.13.0   (opt)
          "avformat_find_stream_info", // 53.3.0    (opt)
-/* 29 */ "av_find_stream_info"
+/* 29 */ "av_find_stream_info",
     };
     
+    // alternate symbol names
+    private static String[][] altSymbolNames = {
+        { "avcodec_open",          "avcodec_open2" },              // old, 53.6.0
+        { "avcodec_decode_audio3", "avcodec_decode_audio4" },      // old, 53.25.0
+        { "av_close_input_file",   "avformat_close_input" },       // old, 53.17.0
+        { "av_find_stream_info",   "avformat_find_stream_info" },  // old, 53.3.0       
+    };
+    
+    // optional symbol names
     private static String[] optionalSymbolNames = {
-         "avcodec_open2",             // 53.6.0    (opt) 
-         "avcodec_decode_audio4",     // 53.25.0   (opt)
-         "avformat_close_input",      // 53.17.0   (opt)
          "avformat_network_init",     // 53.13.0   (opt)
          "avformat_network_deinit",   // 53.13.0   (opt)
-         "avformat_find_stream_info"  // 53.3.0    (opt)        
     };
     
     private static long[] symbolAddr;
@@ -121,34 +128,65 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         }        
         if(!dl.isToolLibComplete()) {
             throw new RuntimeException("FFMPEG Tool libraries incomplete");
-        }        
-        symbolAddr = new long[symbolCount];
+        }
+        if(symbolNames.length != symbolCount) {
+            throw new InternalError("XXX0 "+symbolNames.length+" != "+symbolCount);
+        }
+        symbolAddr = new long[symbolCount];        
         
-        final Set<String> optionalSet = new HashSet<String>();
-        optionalSet.addAll(Arrays.asList(optionalSymbolNames));
+        // optional symbol name set
+        final Set<String> optionalSymbolNameSet = new HashSet<String>();
+        optionalSymbolNameSet.addAll(Arrays.asList(optionalSymbolNames));
         
-        if(!lookupSymbols(dl, symbolNames, optionalSet, symbolAddr, symbolCount)) {
-            return false;
-        }        
-        return initSymbols0(symbolAddr, symbolAddr.length);
-    }
-    
-    private static boolean lookupSymbols(DynamicLibraryBundle dl, 
-                                         String[] symbols, Set<String> optionalSymbols, 
-                                         long[] addresses, int symbolCount) {
+        // alternate symbol name mapping to indexed array
+        final Map<String, Integer> mAltSymbolNames = new HashMap<String, Integer>();
+        final int[][] iAltSymbolNames = new int[altSymbolNames.length][];
+        {
+            final List<String> symbolNameList = Arrays.asList(symbolNames);
+            for(int i=0; i<altSymbolNames.length; i++) {
+                iAltSymbolNames[i] = new int[altSymbolNames[i].length];        
+                for(int j=0; j<altSymbolNames[i].length; j++) {
+                    mAltSymbolNames.put(altSymbolNames[i][j], new Integer(i));
+                    iAltSymbolNames[i][j] = symbolNameList.indexOf(altSymbolNames[i][j]); 
+                }            
+            }
+        }
+        
+        // lookup
         for(int i = 0; i<symbolCount; i++) {
-            final long addr = dl.dynamicLookupFunction(symbols[i]);
-            if( 0 == addr ) {
-                if(!optionalSymbols.contains(symbols[i])) {
-                    System.err.println("Could not resolve mandatory symbol <"+symbols[i]+">");
-                    return false;
+            symbolAddr[i] = dl.dynamicLookupFunction(symbolNames[i]);
+        }        
+        
+        // validate results
+        for(int i = 0; i<symbolCount; i++) {
+            if( 0 == symbolAddr[i] ) {
+                // no symbol, check optional and alternative symbols
+                final String symbol = symbolNames[i];
+                if ( !optionalSymbolNameSet.contains(symbol) ) {
+                    // check for API changed symbols
+                    boolean ok = false;                    
+                    final Integer cI = mAltSymbolNames.get(symbol);
+                    if ( null != cI ) {
+                        // check whether alternative symbol is available
+                        final int ci = cI.intValue();
+                        for(int j=0; !ok && j<iAltSymbolNames[ci].length; j++) {
+                            final int si = iAltSymbolNames[ci][j];
+                            ok = 0 != symbolAddr[si];
+                            if(ok && (true || DEBUG )) { // keep it verbose per default for now ..
+                                System.err.println("OK: Unresolved symbol <"+symbol+">, but has alternative <"+symbolNames[si]+">");
+                            }
+                        }
+                    }
+                    if(!ok) {
+                        System.err.println("Fail: Could not resolve symbol <"+symbolNames[i]+">: not optional, no alternatives.");
+                        return false;
+                    }
                 } else if(true || DEBUG ) { // keep it verbose per default for now ..
-                    System.err.println("Could not resolve optional symbol <"+symbols[i]+">");
+                    System.err.println("OK: Unresolved optional symbol <"+symbolNames[i]+">");
                 }
             }
-            addresses[i] = addr;
         }
-        return true;
+        return initSymbols0(symbolAddr, symbolCount);
     }
     
     protected FFMPEGDynamicLibraryBundleInfo() {
