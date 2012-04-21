@@ -39,6 +39,8 @@ package com.jogamp.newt.util;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.media.nativewindow.NativeWindowFactory;
 
@@ -93,7 +95,7 @@ public class MainThread {
     private static final String MACOSXDisplayClassName = "jogamp.newt.driver.macosx.MacDisplay";
     private static final Platform.OSType osType;
     private static final boolean isMacOSX;
-        
+    private static final ThreadGroup rootThreadGroup;
     
     /** if true, use the main thread EDT, otherwise AWT's EDT */
     public static final boolean  HINT_USE_MAIN_THREAD;
@@ -104,7 +106,8 @@ public class MainThread {
         HINT_USE_MAIN_THREAD = !NativeWindowFactory.isAWTAvailable() || 
                                 Debug.getBooleanProperty("newt.MainThread.force", true);
         osType = Platform.getOSType();
-        isMacOSX = osType == Platform.OSType.MACOS;                
+        isMacOSX = osType == Platform.OSType.MACOS;
+        rootThreadGroup = getRootThreadGroup();
     }
     
     public static boolean useMainThread = false;
@@ -112,44 +115,116 @@ public class MainThread {
     protected static final boolean DEBUG = Debug.debug("MainThread");
 
     private static final MainThread singletonMainThread = new MainThread(); // one singleton MainThread
-
+    
+    private static final ThreadGroup getRootThreadGroup() {
+        ThreadGroup rootGroup = Thread.currentThread( ).getThreadGroup( );
+        ThreadGroup parentGroup;
+        while ( ( parentGroup = rootGroup.getParent() ) != null ) {
+            rootGroup = parentGroup;
+        }
+        return rootGroup;   
+    }
+    
+    private static final Thread[] getAllThreads(int[] count) {
+        int tn;
+        Thread[] threads = new Thread[ rootThreadGroup.activeCount() ];
+        while ( ( tn = rootThreadGroup.enumerate( threads, true ) ) == threads.length ) {
+            threads = new Thread[ threads.length * 2 ];
+        }
+        count[0] = tn;
+        return threads;
+    }
+    private static final List<Thread> getNonDaemonThreads() {
+        List<Thread> res = new ArrayList<Thread>();
+        int[] tn = { 0 };
+        Thread[] threads = getAllThreads(tn);
+        for(int i = tn[0] - 1; i >= 0; i--) {
+            final Thread thread = threads[i];
+            try {
+                if(thread.isAlive() && !thread.isDaemon()) {
+                    res.add(thread);
+                    if(DEBUG) System.err.println("XXX0: "+thread.getName()+", "+thread);
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }
+        return res;        
+    }
+    private static final int getNonDaemonThreadCount(List<Thread> ignoreThreads) {
+        int res = 0;
+        int[] tn = { 0 };
+        Thread[] threads = getAllThreads(tn);
+        
+        for(int i = tn[0] - 1; i >= 0; i--) {
+            final Thread thread = threads[i];
+            try {
+                if(thread.isAlive() && !thread.isDaemon() && !ignoreThreads.contains(thread)) {                    
+                    res++;
+                    if(DEBUG) System.err.println("MainAction.run(): non daemon thread: "+thread);
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }
+        return res;        
+    }
+    
     static class UserApp extends Thread {
-        private String mainClassName;
-        private String[] mainClassArgs;
+        private final String mainClassNameShort;
+        private final String mainClassName;
+        private final String[] mainClassArgs;
+        private final Method mainClassMain;
+        private List<Thread> nonDaemonThreadsAtStart;
 
-        private Method mainClassMain;
-
-        public UserApp(String mainClassName, String[] mainClassArgs) {
+        public UserApp(String mainClassName, String[] mainClassArgs) throws SecurityException, NoSuchMethodException, ClassNotFoundException {
+            super();
             this.mainClassName=mainClassName;
             this.mainClassArgs=mainClassArgs;
+            
+            final Class<?> mainClass = ReflectionUtil.getClass(mainClassName, true, getClass().getClassLoader());
+            if(null==mainClass) {
+                throw new ClassNotFoundException("MainAction couldn't find main class "+mainClassName);
+            }
+            mainClassNameShort = mainClass.getSimpleName();
+            mainClassMain = mainClass.getDeclaredMethod("main", new Class[] { String[].class });
+            mainClassMain.setAccessible(true);
+
+            setName(getName()+"-UserApp-"+mainClassNameShort);
+            setDaemon(false);
+            
+            if(DEBUG) System.err.println("MainAction(): instantiated: "+getName()+", is daemon "+isDaemon()+", main-class: "+mainClass.getName());
         }
 
         @Override
         public void run() {
-            setName(getName()+"-UserApp");
-            
-            if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" start");
+            nonDaemonThreadsAtStart = getNonDaemonThreads();
+            if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" start, nonDaemonThreadsAtStart "+nonDaemonThreadsAtStart);
             // start user app ..
             try {
-                Class<?> mainClass = ReflectionUtil.getClass(mainClassName, true, getClass().getClassLoader());
-                if(null==mainClass) {
-                    throw new RuntimeException(new ClassNotFoundException("MainAction couldn't find main class "+mainClassName));
-                }
-                try {
-                    mainClassMain = mainClass.getDeclaredMethod("main", new Class[] { String[].class });
-                    mainClassMain.setAccessible(true);
-                } catch (Throwable t) {
-                    throw new RuntimeException(t);
-                }
                 if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" invoke "+mainClassName);
                 mainClassMain.invoke(null, new Object[] { mainClassArgs } );
             } catch (InvocationTargetException ite) {
                 ite.getTargetException().printStackTrace();
+                return;
             } catch (Throwable t) {
                 t.printStackTrace();
+                return;
             }
 
-            if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" user app fin");
+            // wait until no more active non-daemon threads are running
+            {
+                int ndtr;
+                while( 0 < ( ndtr = getNonDaemonThreadCount(nonDaemonThreadsAtStart) ) ) {
+                    if(DEBUG) System.err.println("MainAction.run(): post user app, non daemon threads alive: "+ndtr);
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if(DEBUG) System.err.println("MainAction.run(): "+Thread.currentThread().getName()+" user app fin: "+ndtr);
+            }
 
             if ( useMainThread ) {
                 if(isMacOSX) {
@@ -174,8 +249,11 @@ public class MainThread {
     }
     private static UserApp mainAction;
 
-    /** Your new java application main entry, which pipelines your application */
-    public static void main(String[] args) {
+    /** Your new java application main entry, which pipelines your application 
+     * @throws ClassNotFoundException 
+     * @throws NoSuchMethodException 
+     * @throws SecurityException */
+    public static void main(String[] args) throws SecurityException, NoSuchMethodException, ClassNotFoundException {
         final Thread cur = Thread.currentThread();
         
         useMainThread = HINT_USE_MAIN_THREAD;
