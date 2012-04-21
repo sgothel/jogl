@@ -33,7 +33,9 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.es2.av;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -61,6 +63,7 @@ import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 
 public class MovieCube implements GLEventListener, GLMediaEventListener {
+    static boolean waitForKey = false;
     GLWindow window;
     boolean quit = false;
     TexCubeES2 cube=null;
@@ -128,6 +131,13 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         System.err.println(JoglVersion.getGLInfo(gl, null));
 
+        if(waitForKey) {
+            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+            System.err.println("Press enter to continue");
+            try {
+                System.err.println(stdin.readLine());
+            } catch (IOException e) { }
+        }
         try {
             System.out.println("p0 "+mPlayer);
             mPlayer.initGLStream(gl, stream);
@@ -159,6 +169,7 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
     }
 
     public void dispose(GLAutoDrawable drawable) {
+        System.err.println(Thread.currentThread()+" MovieCube.dispose ... ");
         if(null == mPlayer) { return; }
         mPlayer.stop();
         GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -176,7 +187,7 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
     public void displayChanged(javax.media.opengl.GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
     }
     
-    public static void main(String[] args) throws MalformedURLException, IOException {
+    public static void main(String[] args) throws MalformedURLException, IOException, InterruptedException {
         int width = 510;
         int height = 300;
         System.err.println("TexCubeES2.run()");
@@ -192,6 +203,8 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
             } else if(args[i].equals("-url")) {
                 i++;
                 url_s = args[i];
+            } else if(args[i].equals("-wait")) {
+                waitForKey = true;
             }
         }
         final MovieCube mc = new MovieCube(new URL(url_s).openConnection(), -2.3f, 0f, 0f);
@@ -202,15 +215,15 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
         window.setFullscreen(false);
         window.setSize(width, height);
         window.addGLEventListener(mc);
-        window.setVisible(true);
         final Animator anim = new Animator(window);
-        // anim.setUpdateFPSFrames(60, System.err);
-        anim.start();
         window.addWindowListener(new WindowAdapter() {
             public void windowDestroyed(WindowEvent e) {
                 anim.stop();
             }                
         });
+        // anim.setUpdateFPSFrames(60, System.err);
+        anim.start();
+        window.setVisible(true);
     }
 }
 

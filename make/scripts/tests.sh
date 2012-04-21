@@ -32,6 +32,7 @@ MOSX=0
 MOSX_MT=0
 uname -a | grep -i Darwin && MOSX=1
 if [ $MOSX -eq 1 ] ; then
+    #export NSZombieEnabled=YES
     MOSX_MT=1
 fi
 
@@ -62,6 +63,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode -Djogl.debug.GLSLState"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode"
+    #D_ARGS="-Djogamp.debug.IOUtil -Djogl.debug.GLSLCode -Djogl.debug.GLMediaPlayer -Djogamp.gluegen.UseTempJarCache=false"
     D_ARGS="-Djogamp.debug.IOUtil -Djogl.debug.GLSLCode -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLArrayData"
     #D_ARGS="-Djogl.debug.EGL -Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.GLDrawable"
@@ -169,6 +171,7 @@ function jrun() {
     #LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/mesa:/usr/lib/i386-linux-gnu/mesa:$LD_LIBRARY_PATH \
     #LD_LIBRARY_PATH=$spath/../lib/PVRVFrame/OGLES-2.0/Linux_x86_64:$LD_LIBRARY_PATH \
     #LD_LIBRARY_PATH=$spath/../lib/PVRVFrame/OGLES-2.0/Linux_x86_32:$LD_LIBRARY_PATH \
+    #gdb --args $javaexe $javaxargs $X_ARGS $D_ARGS $C_ARG $*
     $javaexe $javaxargs $X_ARGS $D_ARGS $C_ARG $*
     echo
     echo "Test End: $*"
