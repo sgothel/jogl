@@ -745,3 +745,39 @@ Bool setGammaRamp(int tableSize, float* redRamp, float* greenRamp, float* blueRa
 void resetGammaRamp() {
   CGDisplayRestoreColorSyncSettings();
 }
+
+/***
+ * The following static functions are copied out of NEWT's OSX impl. <src/newt/native/MacWindow.m>
+ * May need to push code to NativeWindow, to remove duplication.
+ */
+static NSScreen * NewtScreen_getNSScreenByIndex(int screen_idx) {
+    NSArray *screens = [NSScreen screens];
+    if(screen_idx<0) screen_idx=0;
+    if(screen_idx>=[screens count]) screen_idx=0;
+    return (NSScreen *) [screens objectAtIndex: screen_idx];
+}
+static CGDirectDisplayID NewtScreen_getCGDirectDisplayIDByNSScreen(NSScreen *screen) {
+    // Mind: typedef uint32_t CGDirectDisplayID; - however, we assume it's 64bit on 64bit ?!
+    NSDictionary * dict = [screen deviceDescription];
+    NSNumber * val = (NSNumber *) [dict objectForKey: @"NSScreenNumber"];
+    // [NSNumber integerValue] returns NSInteger which is 32 or 64 bit native size
+    return (CGDirectDisplayID) [val integerValue];
+}
+static long GetDictionaryLong(CFDictionaryRef theDict, const void* key) 
+{
+    long value = 0;
+    CFNumberRef numRef;
+    numRef = (CFNumberRef)CFDictionaryGetValue(theDict, key); 
+    if (numRef != NULL)
+        CFNumberGetValue(numRef, kCFNumberLongType, &value);    
+    return value;
+}
+#define CGDDGetModeRefreshRate(mode) GetDictionaryLong((mode), kCGDisplayRefreshRate)
+
+int getScreenRefreshRate(int scrn_idx) {
+    NSScreen *screen = NewtScreen_getNSScreenByIndex(scrn_idx);
+    CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
+    CFDictionaryRef mode = CGDisplayCurrentMode(display);
+    return CGDDGetModeRefreshRate(mode);
+}
+

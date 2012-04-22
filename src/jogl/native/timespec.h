@@ -5,6 +5,7 @@
 
 void timespec_now(struct timespec *ts);
 void timespec_addms(struct timespec *ts, long ms);
+void timespec_addmicros(struct timespec *ts, long micro);
 void timespec_addns(struct timespec *ts, long ns);
 
 /** returns 0: a==b, >0: a>b, <0: a<b */

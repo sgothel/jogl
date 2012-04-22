@@ -33,6 +33,8 @@
     int texHeight;
     GLuint textureID;
     GLint swapInterval;
+    GLint swapIntervalCounter;
+    struct timespec lastWaitTime;
 #ifdef HAS_CADisplayLink
     CADisplayLink* displayLink;
 #else
@@ -78,8 +80,14 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
     #ifdef DBG_PERF
         [l tick];
     #endif
-    pthread_cond_signal(&l->renderSignal);
-    SYNC_PRINT("-*-");
+    if(0 < l->swapInterval) {
+        l->swapIntervalCounter++;
+        if(l->swapIntervalCounter>=l->swapInterval) {
+            l->swapIntervalCounter = 0;
+            pthread_cond_signal(&l->renderSignal);
+            SYNC_PRINT("S");
+        }
+    }
     pthread_mutex_unlock(&l->renderLock);
     [pool release];
     return kCVReturnSuccess;
@@ -103,7 +111,9 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
     pthread_cond_init(&renderSignal, NULL); // no attribute
 
     textureID = 0;
-    swapInterval = -1;
+    swapInterval = 1; // defaults to on (as w/ new GL profiles)
+    swapIntervalCounter = 0;
+    timespec_now(&lastWaitTime);
     shallDraw = NO;
     texWidth = _texWidth;
     texHeight = _texHeight;
@@ -244,10 +254,10 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
     pthread_mutex_lock(&renderLock);
     Bool res = NULL != pbuffer && YES == shallDraw;
     if(!res) {
-        SYNC_PRINT("<0>");
+        SYNC_PRINT("0");
         pthread_mutex_unlock(&renderLock);
     } else {
-        SYNC_PRINT("<");
+        SYNC_PRINT("1");
     }
     return res;
 }
@@ -336,10 +346,10 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
     [super drawInOpenGLContext: context pixelFormat: pixelFormat forLayerTime: timeInterval displayTime: timeStamp];
     shallDraw = NO;
     if(0 >= swapInterval) {
-        pthread_cond_signal(&renderSignal);
-        SYNC_PRINT("*");
+        pthread_cond_signal(&renderSignal); // just to wake up
+        SYNC_PRINT("s");
     }
-    SYNC_PRINT("1>");
+    SYNC_PRINT("$");
     pthread_mutex_unlock(&renderLock);
 }
 
@@ -352,6 +362,7 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
 {
     DBG_PRINT("MyNSOpenGLLayer::setSwapInterval: %d\n", interval);
     swapInterval = interval;
+    swapIntervalCounter = 0;
     if(0 < swapInterval) {
         tc = 0;
         timespec_now(&t0);
@@ -409,7 +420,7 @@ void setNSOpenGLLayerSwapInterval(NSOpenGLLayer* layer, int interval) {
   pthread_mutex_unlock(&l->renderLock);
 }
 
-void waitUntilNSOpenGLLayerIsReady(NSOpenGLLayer* layer, long to_ms) {
+void waitUntilNSOpenGLLayerIsReady(NSOpenGLLayer* layer, long to_micros) {
     MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
     BOOL ready = NO;
     int wr = 0;
@@ -420,17 +431,23 @@ void waitUntilNSOpenGLLayerIsReady(NSOpenGLLayer* layer, long to_ms) {
             ready = !l->shallDraw;
         }
         if(NO == ready) {
-            if(0 < to_ms) {
-                struct timespec to_abs;
-                timespec_now(&to_abs);
-                timespec_addms(&to_abs, to_ms);
+            if(0 < to_micros) {
+                #ifdef DBG_SYNC
+                    struct timespec t0, t1, td, td2;
+                    timespec_now(&t0);
+                #endif
+                struct timespec to_abs = l->lastWaitTime;
+                timespec_addmicros(&to_abs, to_micros);
+                #ifdef DBG_SYNC
+                    timespec_subtract(&td, &to_abs, &t0);
+                    fprintf(stderr, "(%ld) / ", timespec_milliseconds(&td));
+                #endif
                 wr = pthread_cond_timedwait(&l->renderSignal, &l->renderLock, &to_abs);
                 #ifdef DBG_SYNC
-                    struct timespec t1, td;
                     timespec_now(&t1);
-                    timespec_subtract(&td, &t1, &to_abs);
-                    long td_ms = timespec_milliseconds(&td);
-                    fprintf(stderr, "%ld ms", td_ms);
+                    timespec_subtract(&td, &t1, &t0);
+                    timespec_subtract(&td2, &t1, &l->lastWaitTime);
+                    fprintf(stderr, "(%ld) / (%ld) ms", timespec_milliseconds(&td), timespec_milliseconds(&td2));
                 #endif
             } else {
                 pthread_cond_wait (&l->renderSignal, &l->renderLock);
@@ -439,32 +456,25 @@ void waitUntilNSOpenGLLayerIsReady(NSOpenGLLayer* layer, long to_ms) {
         }
     } while (NO == ready && 0 == wr) ;
     SYNC_PRINT("-%d}", ready);
+    timespec_now(&l->lastWaitTime);
     pthread_mutex_unlock(&l->renderLock);
 }
 
 void setNSOpenGLLayerNeedsDisplay(NSOpenGLLayer* layer) {
-  MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
-  @synchronized(l) {
-      NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-      pthread_mutex_lock(&l->renderLock);
-      SYNC_PRINT("[");
-      l->shallDraw = YES;
-      if([l getSwapInterval] > 0) {
-          // only trigger update if async mode is off (swapInterval>0)
-          if ( [NSThread isMainThread] == YES ) {
-              [l setNeedsDisplay];
-          } else {
-              // can't wait, otherwise we may deadlock AWT
-              [l performSelectorOnMainThread:@selector(setNeedsDisplay) withObject:nil waitUntilDone:NO];
-          }
-          SYNC_PRINT("1]");
-      } else {
-          SYNC_PRINT("0]");
-      }
-      pthread_mutex_unlock(&l->renderLock);
-      // DBG_PRINT("MyNSOpenGLLayer::setNSOpenGLLayerNeedsDisplay %p\n", l);
-      [pool release];
-  }
+    MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    pthread_mutex_lock(&l->renderLock);
+    l->shallDraw = YES;
+    if ( [NSThread isMainThread] == YES ) {
+      [l setNeedsDisplay];
+    } else {
+      // can't wait, otherwise we may deadlock AWT
+      [l performSelectorOnMainThread:@selector(setNeedsDisplay) withObject:nil waitUntilDone:NO];
+    }
+    SYNC_PRINT(".");
+    pthread_mutex_unlock(&l->renderLock);
+    // DBG_PRINT("MyNSOpenGLLayer::setNSOpenGLLayerNeedsDisplay %p\n", l);
+    [pool release];
 }
 
 void releaseNSOpenGLLayer(NSOpenGLLayer* layer) {

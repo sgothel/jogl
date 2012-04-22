@@ -396,11 +396,12 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   class NSOpenGLImpl implements GLBackendImpl {
     long nsOpenGLLayer = 0;
     long nsOpenGLLayerPFmt = 0;
-    int vsyncTimeout = 16;
+    float screenVSyncTimeout; // microSec
+    int vsyncTimeout;    // microSec - for nsOpenGLLayer mode
     
     public boolean isNSContext() { return true; }
 
-    public long create(long share, int ctp, int major, int minor) {
+    public long create(long share, int ctp, int major, int minor) {        
         long ctx = 0;
         final MacOSXCGLDrawable drawable = (MacOSXCGLDrawable) MacOSXCGLContext.this.drawable;
         final NativeSurface surface = drawable.getNativeSurface();
@@ -415,6 +416,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           return 0;
         }
         config.setChosenPixelFormat(pixelFormat);
+        int sRefreshRate = CGL.getScreenRefreshRate(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getIndex());
+        screenVSyncTimeout = 1000000f / (float)sRefreshRate;
         if(DEBUG) {
             System.err.println("NS create OSX>=lion "+isLionOrLater);
             System.err.println("NS create backendType: "+drawable.getOpenGLMode());
@@ -424,6 +427,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
             System.err.println("NS create pixelFormat: "+toHexString(pixelFormat));
             System.err.println("NS create drawable native-handle: "+toHexString(drawable.getHandle()));
             System.err.println("NS create drawable NSView-handle: "+toHexString(drawable.getNSViewHandle()));
+            System.err.println("NS create screen refresh-rate: "+sRefreshRate+" hz, "+screenVSyncTimeout+" micros");
             // Thread.dumpStack();
         }
         try {
@@ -483,6 +487,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer)+", texSize "+texWidth+"x"+texHeight+", "+drawable);
               }
               backingLayerHost.attachSurfaceLayer(nsOpenGLLayer);
+              setSwapInterval(1); // enabled per default in layered surface
           }
         } finally {
           if(0!=pixelFormat) {
@@ -554,23 +559,17 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     public boolean setSwapInterval(int interval) {
       if(0 != nsOpenGLLayer) {
         CGL.setNSOpenGLLayerSwapInterval(nsOpenGLLayer, interval);
+        vsyncTimeout = interval * (int)screenVSyncTimeout;
+        if(DEBUG) { System.err.println("NS setSwapInterval: "+vsyncTimeout+" micros"); }
       }
       CGL.setSwapInterval(contextHandle, interval);
-      if (interval == 0) {
-        // v-sync is disabled, frames were drawn as quickly as possible without adding any
-        // timeout delay.
-        vsyncTimeout = 0;
-      } else {
-        // v-sync is enabled. Swaping interval of 1 means a
-        // timeout of 16ms -> 60Hz, 60fps
-        vsyncTimeout = interval * 16;
-      }
       return true;
     }
     
     public boolean swapBuffers() {
-      if(0 != nsOpenGLLayer && 0 < vsyncTimeout) {
-        // sync w/ CALayer renderer - wait until next frame is required (v-sync)
+      if( 0 != nsOpenGLLayer ) {
+        // If v-sync is disabled, frames will be drawn as quickly as possible 
+        // w/o delay but in sync w/ CALayer. Otherwise wait until next swap interval (v-sync).        
         CGL.waitUntilNSOpenGLLayerIsReady(nsOpenGLLayer, vsyncTimeout);
       }
       if(CGL.flushBuffer(contextHandle)) {

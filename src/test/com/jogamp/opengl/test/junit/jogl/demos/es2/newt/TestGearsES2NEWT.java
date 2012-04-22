@@ -77,7 +77,7 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean alwaysOnTop = false;
     static boolean fullscreen = false;
     static boolean pmvUseBackingArray = true;
-    static boolean vsync = false;
+    static int swapInterval = 1;
     static boolean waitForKey = false;
     static boolean mouseVisible = true;
     static boolean mouseConfined = false;
@@ -98,12 +98,12 @@ public class TestGearsES2NEWT extends UITestCase {
     }
 
     protected void runTestGL(GLCapabilitiesImmutable caps, boolean undecorated) throws InterruptedException {
-        System.err.println("requested: vsync "+vsync+", "+caps);
+        System.err.println("requested: vsync "+swapInterval+", "+caps);
         Display dpy = NewtFactory.createDisplay(null);
         Screen screen = NewtFactory.createScreen(dpy, screenIdx);
         final GLWindow glWindow = GLWindow.create(screen, caps);
         Assert.assertNotNull(glWindow);
-        glWindow.setTitle("Gears NEWT Test (translucent "+!caps.isBackgroundOpaque()+"), vsync "+vsync+", size "+wsize+", pos "+wpos);
+        glWindow.setTitle("Gears NEWT Test (translucent "+!caps.isBackgroundOpaque()+"), swapInterval "+swapInterval+", size "+wsize+", pos "+wpos);
         glWindow.setSize(wsize.getWidth(), wsize.getHeight());
         if(null != wpos) {
             glWindow.setPosition(wpos.getX(), wpos.getY());
@@ -114,7 +114,7 @@ public class TestGearsES2NEWT extends UITestCase {
         glWindow.setPointerVisible(mouseVisible);
         glWindow.confinePointer(mouseConfined);
 
-        final GearsES2 demo = new GearsES2(vsync ? 1 : -1);
+        final GearsES2 demo = new GearsES2(swapInterval);
         demo.setPMVUseBackingArray(pmvUseBackingArray);
         glWindow.addGLEventListener(demo);
         if(waitForKey) {
@@ -276,7 +276,8 @@ public class TestGearsES2NEWT extends UITestCase {
             } else if(args[i].equals("-pmvDirect")) {
                 pmvUseBackingArray = false;
             } else if(args[i].equals("-vsync")) {
-                vsync = true;
+                i++;
+                swapInterval = MiscUtils.atoi(args[i], swapInterval);
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
             } else if(args[i].equals("-wait")) {
@@ -332,7 +333,7 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("atop "+alwaysOnTop);
         System.err.println("fullscreen "+fullscreen);
         System.err.println("pmvDirect "+(!pmvUseBackingArray));
-        System.err.println("vsync "+vsync);
+        System.err.println("swapInterval "+swapInterval);
         System.err.println("mouseVisible "+mouseVisible);
         System.err.println("mouseConfined "+mouseConfined);
         System.err.println("loops "+loops);

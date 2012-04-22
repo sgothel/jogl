@@ -38,9 +38,13 @@ import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import java.awt.Frame;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
@@ -52,6 +56,9 @@ public class TestGearsES2AWT extends UITestCase {
     static int width, height;
     static boolean firstUIActionOnProcess = false;
     static boolean forceES2 = false;
+    static boolean shallUseOffscreenLayer = false;
+    static int swapInterval = 1;
+    static boolean showFPS = false;    
 
     @BeforeClass
     public static void initClass() {
@@ -69,10 +76,12 @@ public class TestGearsES2AWT extends UITestCase {
 
         final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
+        glCanvas.setShallUseOffscreenLayer(shallUseOffscreenLayer);
         frame.add(glCanvas);
         frame.setSize(512, 512);
+        frame.setTitle("Gears AWT Test (translucent "+!caps.isBackgroundOpaque()+"), swapInterval "+swapInterval);
 
-        glCanvas.addGLEventListener(new GearsES2(1));
+        glCanvas.addGLEventListener(new GearsES2(swapInterval));
 
         Animator animator = new Animator(glCanvas);
         QuitAdapter quitAdapter = new QuitAdapter();
@@ -115,6 +124,8 @@ public class TestGearsES2AWT extends UITestCase {
     static long duration = 500; // ms
 
     public static void main(String args[]) {
+        boolean waitForKey = false;
+        
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -123,11 +134,30 @@ public class TestGearsES2AWT extends UITestCase {
                 } catch (Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
+            } else if(args[i].equals("-vsync")) {
+                i++;
+                swapInterval = MiscUtils.atoi(args[i], swapInterval);
+            } else if(args[i].equals("-layered")) {
+                shallUseOffscreenLayer = true;
+            } else if(args[i].equals("-showFPS")) {
+                showFPS = true;
             } else if(args[i].equals("-firstUIAction")) {
                 firstUIActionOnProcess = true;
+            } else if(args[i].equals("-wait")) {
+                waitForKey = true;
             }
         }
         System.err.println("forceES2 "+forceES2);
+        System.err.println("swapInterval "+swapInterval);
+        System.err.println("shallUseOffscreenLayer "+shallUseOffscreenLayer);
+        
+        if(waitForKey) {
+            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+            System.err.println("Press enter to continue");
+            try {
+                System.err.println(stdin.readLine());
+            } catch (IOException e) { }
+        }
         org.junit.runner.JUnitCore.main(TestGearsES2AWT.class.getName());
     }
 }
