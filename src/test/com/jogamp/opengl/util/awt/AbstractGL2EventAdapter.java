@@ -68,7 +68,7 @@ abstract class AbstractGL2EventAdapter extends GLEventAdapter {
                               final int x, final int y,
                               final int width, final int height) {
         final GL2 gl = drawable.getGL().getGL2();
-        doDispose(gl);
+        doReshape(gl, x, y, width, height);
     }
 
     //-----------------------------------------------------------------

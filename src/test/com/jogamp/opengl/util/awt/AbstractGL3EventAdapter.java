@@ -68,7 +68,7 @@ abstract class AbstractGL3EventAdapter extends GLEventAdapter {
                               final int x, final int y,
                               final int width, final int height) {
         final GL3 gl = drawable.getGL().getGL3();
-        doDispose(gl);
+        doReshape(gl, x, y, width, height);
     }
 
     //-----------------------------------------------------------------
