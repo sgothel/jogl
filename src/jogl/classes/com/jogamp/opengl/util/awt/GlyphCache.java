@@ -221,8 +221,10 @@ final class GlyphCache implements TextureBackingStore.EventListener {
      */
     void dispose(final GL gl) {
         packer.dispose();
-        backingStore.dispose(gl);
-        backingStore = null;
+        if (backingStore != null) {
+            backingStore.dispose(gl);
+            backingStore = null;
+        }
     }
 
     /**
