@@ -657,7 +657,7 @@ final class GlyphRendererGL2 extends AbstractGlyphRenderer {
      * @throws NullPointerException if context is <tt>null</tt>
      */
     GlyphRendererGL2(final GL2 gl2) {
-        // pass
+        useVertexArrays = true;
     }
 
     //-----------------------------------------------------------------
@@ -715,10 +715,14 @@ final class GlyphRendererGL2 extends AbstractGlyphRenderer {
      */
     protected QuadPipeline doCreateQuadPipeline(final GL gl) {
         final GL2 gl2 = gl.getGL2();
-        if (gl2.isExtensionAvailable("GL_VERSION_1_5")) {
-            return new QuadPipelineGL15(gl2);
-        } else if (gl2.isExtensionAvailable("GL_VERSION_1_1")) {
-            return new QuadPipelineGL11(gl2);
+        if (useVertexArrays) {
+            if (gl2.isExtensionAvailable("GL_VERSION_1_5")) {
+                return new QuadPipelineGL15(gl2);
+            } else if (gl2.isExtensionAvailable("GL_VERSION_1_1")) {
+                return new QuadPipelineGL11(gl2);
+            } else {
+                return new QuadPipelineGL10(gl2);
+            }
         } else {
             return new QuadPipelineGL10(gl2);
         }
