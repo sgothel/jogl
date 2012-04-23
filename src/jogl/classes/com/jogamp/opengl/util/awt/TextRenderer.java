@@ -846,7 +846,7 @@ public final class TextRenderer {
         private Boolean transposed;
 
         // Whether to use vertex arrays or not
-        private Boolean useVertexArrays;
+        private boolean useVertexArrays = true;
 
         GlyphRendererAdapter() {
             this.listeners = new ArrayList<EventListener>();
@@ -884,9 +884,7 @@ public final class TextRenderer {
                 }
 
                 // Set whether to use vertex arrays or not
-                if (useVertexArrays != null) {
-                    delegate.setUseVertexArrays(useVertexArrays);
-                }
+                delegate.setUseVertexArrays(useVertexArrays);
             }
             delegate.beginRendering(gl, ortho, width, height, disableDepthTest);
         }
@@ -949,18 +947,20 @@ public final class TextRenderer {
 
         @Override
         public boolean getUseVertexArrays() {
-            if (delegate == null) {
-                return true;
+            if (delegate != null) {
+                return delegate.getUseVertexArrays();
+            } else {
+                return useVertexArrays;
             }
-            return delegate.getUseVertexArrays();
         }
 
         @Override
         public void setUseVertexArrays(boolean useVertexArrays) {
-            if (delegate == null) {
+            if (delegate != null) {
+                delegate.setUseVertexArrays(useVertexArrays);
+            } else {
                 this.useVertexArrays = useVertexArrays;
             }
-            delegate.setUseVertexArrays(useVertexArrays);
         }
     }
 }
