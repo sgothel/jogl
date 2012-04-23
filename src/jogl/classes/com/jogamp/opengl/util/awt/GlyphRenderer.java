@@ -922,7 +922,7 @@ final class GlyphRendererGL3 extends AbstractGlyphRenderer {
      * Constructs a glyph renderer for OpenGL 3.
      */
     GlyphRendererGL3(final GL3 gl3) {
-        this.program = ShaderLoader.loadProgram(VERT_SOURCE, FRAG_SOURCE);
+        this.program = ShaderLoader.loadProgram(gl3, VERT_SOURCE, FRAG_SOURCE);
         this.transform = new UniformMatrix(gl3, program, "MVPMatrix");
         this.color = new UniformVector(gl3, program, "Color");
     }

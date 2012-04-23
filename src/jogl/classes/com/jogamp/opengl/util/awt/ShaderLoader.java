@@ -28,7 +28,6 @@
 package com.jogamp.opengl.util.awt;
 
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 
 
@@ -58,27 +57,26 @@ class ShaderLoader {
     /**
      * Loads a shader program from a pair of strings.
      *
+     * @param gl Current OpenGL context
      * @param vss Vertex shader source
      * @param fss Fragment shader source
      * @return OpenGL handle to the shader program
+     * @throws AssertionError if context is <tt>null</tt>
      * @throws AssertionError if vertex shader or fragment shader is <tt>null</tt> or empty
-     * @throws GLException if a GLSL-capable context is not active
      * @throws GLException if either shader could not be compiled
      * @throws GLException if program could not be linked
      */
-    static int loadProgram(final String vss, final String fss) {
+    static int loadProgram(final GL2ES2 gl, final String vss, final String fss) {
 
+        assert (gl != null);
         assert (vss != null);
         assert (!vss.isEmpty());
         assert (fss != null);
         assert (!fss.isEmpty());
 
-        // Get the current context
-        final GL2ES2 gl = GLContext.getCurrentGL().getGL2ES2();
-
         // Create the shaders
-        final int vs = loadShader(vss, GL2ES2.GL_VERTEX_SHADER);
-        final int fs = loadShader(fss, GL2ES2.GL_FRAGMENT_SHADER);
+        final int vs = loadShader(gl, vss, GL2ES2.GL_VERTEX_SHADER);
+        final int fs = loadShader(gl, fss, GL2ES2.GL_FRAGMENT_SHADER);
 
         // Create a program and attach the shaders
         final int program = gl.glCreateProgram();
@@ -197,21 +195,21 @@ class ShaderLoader {
     /**
      * Loads the source of a shader from a string.
      *
+     * @param gl Current OpenGL context
      * @param source Source code of the shader as one long string
      * @param type Either <i>GL_FRAGMENT_SHADER</i> or <i>GL_VERTEX_SHADER</i>
      * @return OpenGL handle to the shader
+     * @throws AssertionError if context is <tt>null</tt>
      * @throws AssertionError if source is empty
      * @throws AssertionError if type is invalid
      * @throws GLException if a GLSL-capable context is not active
      * @throws GLException if could not compile shader
      */
-    private static int loadShader(final String source, final int type) {
+    private static int loadShader(final GL2ES2 gl, final String source, final int type) {
 
+        assert (gl != null);
         assert (!source.isEmpty());
         assert (isValidType(type));
-
-        // Get the current context
-        final GL2ES2 gl = GLContext.getCurrentGL().getGL2ES2();
 
         // Create and read source
         final int shader = gl.glCreateShader(type);

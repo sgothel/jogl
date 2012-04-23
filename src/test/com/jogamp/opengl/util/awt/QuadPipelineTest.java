@@ -32,6 +32,7 @@ import static org.junit.Assert.*;
 import com.jogamp.opengl.util.awt.QuadPipeline.Quad;
 
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL3;
 import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
@@ -254,7 +255,7 @@ public class QuadPipelineTest {
 
             @Override
             public void doInit(final GL3 gl) {
-                program = createProgram();
+                program = createProgram(gl);
                 pipeline = new QuadPipelineGL30(gl, program);
                 quad = createQuad();
             }
@@ -284,10 +285,10 @@ public class QuadPipelineTest {
     /**
      * Returns a shader program for use with pipeline.
      */
-    private static int createProgram() {
+    private static int createProgram(final GL2ES2 gl) {
         int program = -1;
         try {
-            program = ShaderLoader.loadProgram(VERT_SOURCE, FRAG_SOURCE);
+            program = ShaderLoader.loadProgram(gl, VERT_SOURCE, FRAG_SOURCE);
         } catch (Exception e) {
             e.printStackTrace();
             fail();
