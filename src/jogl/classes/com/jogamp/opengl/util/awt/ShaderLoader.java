@@ -27,6 +27,8 @@
  */
 package com.jogamp.opengl.util.awt;
 
+import com.jogamp.opengl.util.glsl.ShaderUtil;
+
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
 
@@ -86,7 +88,8 @@ class ShaderLoader {
         gl.glLinkProgram(program);
         gl.glValidateProgram(program);
         if ((!isProgramLinked(gl, program)) || (!isProgramValidated(gl, program))) {
-            throw new GLException(getLog(gl, program));
+            final String log = ShaderUtil.getProgramInfoLog(gl, program);
+            throw new GLException(log);
         }
 
         // Clean up the shaders
@@ -102,35 +105,6 @@ class ShaderLoader {
     //
 
     /**
-     * Retrieves the log of a shader or program.
-     *
-     * @param gl OpenGL context that supports programmable shaders
-     * @param handle OpenGL handle to a shader or program
-     * @return Log of the shader or program as one long string
-     */
-    private static String getLog(final GL2ES2 gl, final int handle) {
-
-        final byte[] log = new byte[256];
-        final int[] length = new int[1];
-
-        // Make string from log array
-        if (gl.glIsShader(handle)) {
-            gl.glGetShaderInfoLog(
-                    handle,                 // shader handle
-                    log.length,             // buffer size
-                    length, 0,              // length of log message
-                    log, 0);                // log message
-        } else {
-            gl.glGetProgramInfoLog(
-                    handle,                 // program handle
-                    log.length,             // buffer size
-                    length, 0,              // length of log message
-                    log, 0);                // log message
-        }
-        return new String(log, 0, length[0]);
-    }
-
-    /**
      * Checks that a shader was compiled correctly.
      *
      * @param gl OpenGL context that supports programmable shaders
@@ -138,16 +112,7 @@ class ShaderLoader {
      * @return True if <tt>shader</tt> was compiled without errors
      */
     private static boolean isCompiled(final GL2ES2 gl, final int shader) {
-
-        final int[] compiled = new int[1];
-
-        // Query OpenGL for shader's status
-        gl.glGetShaderiv(
-                shader,                    // shader handle
-                GL2ES2.GL_COMPILE_STATUS,  // parameter name
-                compiled,                  // array to store result in
-                0);                        // offset into array
-        return (compiled[0] == GL2ES2.GL_TRUE);
+        return ShaderUtil.isShaderStatusValid(gl, shader, GL2ES2.GL_COMPILE_STATUS);
     }
 
     /**
@@ -158,16 +123,7 @@ class ShaderLoader {
      * @return True if <tt>program</tt> was linked successfully
      */
     private static boolean isProgramLinked(final GL2ES2 gl, final int program) {
-
-        final int[] linked = new int[1];
-
-        // Query OpenGL for program's status
-        gl.glGetProgramiv(
-                program,                   // program handle
-                GL2ES2.GL_LINK_STATUS,     // parameter name
-                linked,                    // array to store result in
-                0);                        // offset into array
-        return (linked[0] == GL2ES2.GL_TRUE);
+        return ShaderUtil.isProgramStatusValid(gl, program, GL2ES2.GL_LINK_STATUS);
     }
 
     /**
@@ -178,16 +134,7 @@ class ShaderLoader {
      * @return True if <tt>program</tt> was validated successfully
      */
     private static boolean isProgramValidated(final GL2ES2 gl, final int program) {
-
-        final int[] valid = new int[1];
-
-        // Query OpenGL for program's status
-        gl.glGetProgramiv(
-                program,                   // program handle
-                GL2ES2.GL_VALIDATE_STATUS, // parameter name
-                valid,                     // array to store result in
-                0);                        // offset into array
-        return (valid[0] == GL2ES2.GL_TRUE);
+        return ShaderUtil.isProgramStatusValid(gl, program, GL2ES2.GL_VALIDATE_STATUS);
     }
 
     /**
@@ -242,7 +189,8 @@ class ShaderLoader {
         // Compile
         gl.glCompileShader(shader);
         if (!isCompiled(gl, shader)) {
-            throw new GLException(getLog(gl, shader));
+            final String log = ShaderUtil.getShaderInfoLog(gl, shader);
+            throw new GLException(log);
         }
 
         // Return the shader
