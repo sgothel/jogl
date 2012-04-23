@@ -115,9 +115,15 @@ public class TextRendererTest {
                 textRenderer.draw(wordBank.next(), getX(width), getY(height));
                 textRenderer.endRendering();
             }
+
+            @Override
+            public void doDispose(final GL2 gl) {
+                textRenderer.dispose();
+            }
         });
         animator.start();
         TestRunner.run(frame, WAIT_TIME);
+        animator.stop();
     }
 
     /**
@@ -163,9 +169,15 @@ public class TextRendererTest {
                 textRenderer.draw(wordBank.next(), getX(width), getY(height));
                 textRenderer.endRendering();
             }
+
+            @Override
+            public void doDispose(final GL3 gl) {
+                textRenderer.dispose();
+            }
         });
         animator.start();
         TestRunner.run(frame, WAIT_TIME);
+        animator.stop();
     }
 
     //-----------------------------------------------------------------
