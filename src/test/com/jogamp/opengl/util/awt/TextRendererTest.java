@@ -41,6 +41,7 @@ import javax.media.opengl.GL3;
 import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JFrame;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 
@@ -53,7 +54,8 @@ public class TextRendererTest {
     private static final Font FONT = new Font("Monospace", Font.PLAIN, 110);
 
     // Time to wait before closing window
-    private static final int WAIT_TIME = 4000;
+    private static final int LONG_WAIT_TIME = 4000;
+    private static final int SHORT_WAIT_TIME = 1000;
 
     // Random collection of words to render
     private WordBank wordBank;
@@ -122,7 +124,7 @@ public class TextRendererTest {
             }
         });
         animator.start();
-        TestRunner.run(frame, WAIT_TIME);
+        TestRunner.run(frame, LONG_WAIT_TIME);
         animator.stop();
     }
 
@@ -176,8 +178,45 @@ public class TextRendererTest {
             }
         });
         animator.start();
-        TestRunner.run(frame, WAIT_TIME);
+        TestRunner.run(frame, LONG_WAIT_TIME);
         animator.stop();
+    }
+
+    /**
+     * Ensures the user can request whether vertex arrays are used before <i>beginRendering</i> is called.
+     */
+    @Test
+    public void testSetUseVertexArraysBeforeBeginRendering() {
+
+        final JFrame frame = new JFrame("testSetUseVertexArraysBeforeBeginRendering");
+        final GLCanvas canvas = canvasFactory.createGLCanvas("GL2");
+
+        frame.add(canvas);
+        canvas.addGLEventListener(new DebugGL2EventAdapter() {
+
+            @Override
+            public void doInit(final GL2 gl) {
+                textRenderer = new TextRenderer(FONT);
+                Assert.assertTrue(textRenderer.getUseVertexArrays());
+                textRenderer.setUseVertexArrays(false);
+                Assert.assertFalse(textRenderer.getUseVertexArrays());
+            }
+
+            @Override
+            public void doDisplay(final GL2 gl) {
+                final int width = canvas.getWidth();
+                final int height = canvas.getHeight();
+                textRenderer.beginRendering(width, height);
+                textRenderer.endRendering();
+                Assert.assertFalse(textRenderer.getUseVertexArrays());
+            }
+
+            @Override
+            public void doDispose(final GL2 gl) {
+                textRenderer.dispose();
+            }
+        });
+        TestRunner.run(frame, SHORT_WAIT_TIME);
     }
 
     //-----------------------------------------------------------------
