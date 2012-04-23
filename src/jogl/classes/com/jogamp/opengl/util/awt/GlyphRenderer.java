@@ -200,6 +200,7 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
 
     // Buffer of quads
     private QuadPipeline pipeline;
+    private boolean pipelineDirty;
 
     // True if between begin and end calls
     private boolean inRenderCycle;
@@ -226,6 +227,7 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
         this.listeners = new ArrayList<EventListener>();
         this.quad = new Quad();
         this.pipeline = null;
+        this.pipelineDirty = true;
         this.inRenderCycle = false;
         this.orthoMode = false;
         this.r = DEFAULT_RED;
@@ -273,9 +275,8 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
         orthoMode = ortho;
 
         // Make sure the pipeline is made
-        if (pipeline == null) {
-            pipeline = doCreateQuadPipeline(gl);
-            pipeline.addListener(this);
+        if (pipelineDirty) {
+            setPipeline(gl, doCreateQuadPipeline(gl));
         }
 
         // Pass to quad renderer
@@ -445,13 +446,20 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
     }
 
     /**
+     * Requests that the pipeline be replaced on the next call to <i>beginRendering</i>.
+     */
+    protected final void dirtyPipeline() {
+        pipelineDirty = true;
+    }
+
+    /**
      * Changes the quad pipeline.
      *
      * @param gl Current OpenGL context
      * @param pipeline Quad pipeline to change to
      * @throws NullPointerException if context or pipeline is <tt>null</tt>
      */
-    protected final void setPipeline(final GL gl, final QuadPipeline pipeline) {
+    private final void setPipeline(final GL gl, final QuadPipeline pipeline) {
 
         assert (gl != null);
         assert (pipeline != null);
@@ -466,6 +474,7 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
         // Store the new pipeline
         this.pipeline = pipeline;
         this.pipeline.addListener(this);
+        this.pipelineDirty = false;
     }
 
     /**
@@ -841,16 +850,10 @@ final class GlyphRendererGL2 extends AbstractGlyphRenderer {
      */
     @Override
     public void setUseVertexArrays(final boolean useVertexArrays) {
-        final GL gl = GLContext.getCurrentGL();
-        if (useVertexArrays != getUseVertexArrays()) {
-            final GL2 gl2 = gl.getGL2();
-            if (useVertexArrays) {
-                setPipeline(gl, doCreateQuadPipeline(gl2));
-            } else {
-                setPipeline(gl, new QuadPipelineGL10(gl2));
-            }
+        if (useVertexArrays != this.useVertexArrays) {
+            dirtyPipeline();
+            this.useVertexArrays = useVertexArrays;
         }
-        this.useVertexArrays = useVertexArrays;
     }
 }
 
