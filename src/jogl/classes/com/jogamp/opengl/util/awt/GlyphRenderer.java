@@ -457,8 +457,11 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
         assert (pipeline != null);
 
         // Remove the old pipeline
-        this.pipeline.removeListener(this);
-        this.pipeline.dispose(gl);
+        if (this.pipeline != null) {
+            this.pipeline.removeListener(this);
+            this.pipeline.dispose(gl);
+            this.pipeline = null;
+        }
 
         // Store the new pipeline
         this.pipeline = pipeline;
