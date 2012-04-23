@@ -63,8 +63,7 @@ class ShaderLoader {
      * @return OpenGL handle to the shader program
      * @throws AssertionError if context is <tt>null</tt>
      * @throws AssertionError if vertex shader or fragment shader is <tt>null</tt> or empty
-     * @throws GLException if either shader could not be compiled
-     * @throws GLException if program could not be linked
+     * @throws GLException if program did not compile, link, or validate successfully
      */
     static int loadProgram(final GL2ES2 gl, final String vss, final String fss) {
 
@@ -83,9 +82,10 @@ class ShaderLoader {
         gl.glAttachShader(program, vs);
         gl.glAttachShader(program, fs);
 
-        // Link the program
+        // Link and validate the program
         gl.glLinkProgram(program);
-        if (!isLinked(gl, program)) {
+        gl.glValidateProgram(program);
+        if ((!isProgramLinked(gl, program)) || (!isProgramValidated(gl, program))) {
             throw new GLException(getLog(gl, program));
         }
 
@@ -151,13 +151,13 @@ class ShaderLoader {
     }
 
     /**
-     * Checks that a shader program was linked correctly.
+     * Checks that a shader program was linked successfully.
      *
      * @param gl OpenGL context that supports programmable shaders
      * @param program OpenGL handle to a shader program
-     * @return True if <tt>program</tt> was linked without errors
+     * @return True if <tt>program</tt> was linked successfully
      */
-    private static boolean isLinked(final GL2ES2 gl, final int program) {
+    private static boolean isProgramLinked(final GL2ES2 gl, final int program) {
 
         final int[] linked = new int[1];
 
@@ -168,6 +168,26 @@ class ShaderLoader {
                 linked,                    // array to store result in
                 0);                        // offset into array
         return (linked[0] == GL2ES2.GL_TRUE);
+    }
+
+    /**
+     * Checks that a shader program was validated successfully.
+     *
+     * @param gl OpenGL context that supports programmable shaders
+     * @param program OpenGL handle to a shader program
+     * @return True if <tt>program</tt> was validated successfully
+     */
+    private static boolean isProgramValidated(final GL2ES2 gl, final int program) {
+
+        final int[] valid = new int[1];
+
+        // Query OpenGL for program's status
+        gl.glGetProgramiv(
+                program,                   // program handle
+                GL2ES2.GL_VALIDATE_STATUS, // parameter name
+                valid,                     // array to store result in
+                0);                        // offset into array
+        return (valid[0] == GL2ES2.GL_TRUE);
     }
 
     /**
