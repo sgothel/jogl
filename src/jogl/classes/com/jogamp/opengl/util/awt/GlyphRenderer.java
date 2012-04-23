@@ -449,11 +449,11 @@ abstract class AbstractGlyphRenderer implements GlyphRenderer, QuadPipeline.Even
      *
      * @param gl Current OpenGL context
      * @param pipeline Quad pipeline to change to
-     * @throws NullPointerException if context is <tt>null</tt>
-     * @throws AssertionError if pipeline is <tt>null</tt>
+     * @throws NullPointerException if context or pipeline is <tt>null</tt>
      */
     protected final void setPipeline(final GL gl, final QuadPipeline pipeline) {
 
+        assert (gl != null);
         assert (pipeline != null);
 
         // Remove the old pipeline
