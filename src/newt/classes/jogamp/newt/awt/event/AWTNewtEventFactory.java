@@ -120,7 +120,8 @@ public class AWTNewtEventFactory {
         if(0xFFFFFFFF != type) {
             int rotation = 0;
             if (event instanceof java.awt.event.MouseWheelEvent) {
-                rotation = ((java.awt.event.MouseWheelEvent)event).getWheelRotation();
+                // AWT/NEWT rotation is reversed - AWT +1 is down, NEWT +1 is up.
+                rotation = -1 * ((java.awt.event.MouseWheelEvent)event).getWheelRotation();
             }
 
             int mods = awtModifiers2Newt(event.getModifiers(), true);

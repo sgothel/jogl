@@ -65,7 +65,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 public class TestParentingFocusTraversal01AWT extends UITestCase {
     static Dimension glSize, fSize;
     static int numFocus = 8;
-    static long durationPerTest = numFocus * 100;
+    static long durationPerTest = numFocus * 200;
     static GLCapabilities glCaps;
     static boolean manual = false;
 
