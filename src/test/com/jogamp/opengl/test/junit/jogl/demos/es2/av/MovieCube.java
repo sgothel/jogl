@@ -69,7 +69,12 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
     TexCubeES2 cube=null;
     GLMediaPlayer mPlayer=null;
     URLConnection stream = null;    
-
+    
+    public MovieCube() throws IOException {
+        this(new URL("http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4").openConnection(), 
+             -2.3f, 0f, 0f);        
+    }
+    
     public MovieCube(URLConnection stream, float zoom0, float rotx, float roty) throws IOException {
         this.stream = stream;
         mPlayer = GLMediaPlayerFactory.create();
