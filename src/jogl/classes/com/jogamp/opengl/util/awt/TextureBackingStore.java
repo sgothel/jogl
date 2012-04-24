@@ -63,9 +63,7 @@ import javax.media.opengl.GL3;
  *
  * <p>Note that since texturing hasn't changed much, BackingStore is
  * compatible with GL2 or GL3.  For that reason, it only requests
- * simple GL objects.  Actually, BackingStore would be completely
- * backwards-compatible except certain UNPACK parameters require
- * OpenGL 1.2.
+ * simple GL objects.
  */
 final class TextureBackingStore {
 

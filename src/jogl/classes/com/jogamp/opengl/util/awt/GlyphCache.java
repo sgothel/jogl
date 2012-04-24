@@ -41,7 +41,6 @@ import java.util.List;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
 
 
 /**
@@ -519,16 +518,6 @@ final class GlyphCache implements TextureBackingStore.EventListener {
         // Check the render delegate
         if (!renderDelegate.intensityOnly()) {
             throw new UnsupportedOperationException("Currently only supports intensity.");
-        }
-
-        // Get the current profile
-        GLProfile profile = gl.getGLProfile();
-
-        // OpenGL 2 checks
-        if (profile.isGL2()) {
-            if (!gl.isExtensionAvailable("GL_VERSION_1_2")) {
-                throw new GLException("Need GL 1.2 for glPixelStorei.");
-            }
         }
     }
 
