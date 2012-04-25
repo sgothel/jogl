@@ -59,7 +59,7 @@ public abstract class UITestCase {
             // singletonInstance = SingletonInstance.createFileLock(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_FILE);
             singletonInstance = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_PORT);
             if(!singletonInstance.tryLock(SINGLE_INSTANCE_LOCK_TO)) {
-                throw new RuntimeException("Fatal: Could lock single instance: "+singletonInstance.getName());
+                throw new RuntimeException("Fatal: Could not lock single instance: "+singletonInstance.getName());
             }
         }
     }
