@@ -45,9 +45,27 @@ public abstract class InputEvent extends NEWTEvent
  public static final int  BUTTON1_MASK   = 1 <<  6;
  public static final int  BUTTON2_MASK   = 1 <<  7;
  public static final int  BUTTON3_MASK   = 1 <<  8;
+ public static final int  BUTTON4_MASK   = 1 <<  9;
+ public static final int  BUTTON5_MASK   = 1 << 10;
+ public static final int  BUTTON6_MASK   = 1 << 11;
  public static final int  CONFINED_MASK  = 1 << 16;
  public static final int  INVISIBLE_MASK = 1 << 17;
 
+ /** 
+  * Returns the corresponding button mask for the given button.
+  * <p>
+  * In case the given button lies outside 
+  * of the valid range [{@link MouseEvent#BUTTON1} .. {@link MouseEvent#BUTTON6}],
+  * null is returned.
+  * </p>
+  */
+ public static final int getButtonMask(int button)  {
+     if( 0 < button && button <= MouseEvent.BUTTON_NUMBER ) {
+         return 1 << ( 5 + button ) ;
+     }
+     return 0;
+ }
+ 
  /** Object when attached via {@link #setAttachment(Object)} marks the event consumed,
   * ie. stops propagating the event any further to the event listener. 
   */
@@ -84,35 +102,27 @@ public abstract class InputEvent extends NEWTEvent
  }
 
  /**
-  * @return Array of pressed mouse buttons  [{@link MouseEvent#BUTTON1} ..]. 
+  * @return Array of pressed mouse buttons  [{@link MouseEvent#BUTTON1} .. {@link MouseEvent#BUTTON6}]. 
   *         If none is down, the resulting array is of length 0.
   */
  public final int[] getButtonsDown()  {
      int len = 0;
-     if(isButton1Down()) { len++; }
-     if(isButton2Down()) { len++; }
-     if(isButton3Down()) { len++; }
+     for(int i=1; i<=MouseEvent.BUTTON_NUMBER; i++) {
+         if(isButtonDown(i)) { len++; }
+     }
      
      int[] res = new int[len];
-     int i=0;
-     if(isButton1Down()) { res[i++] = MouseEvent.BUTTON1; }
-     if(isButton2Down()) { res[i++] = MouseEvent.BUTTON2; }
-     if(isButton3Down()) { res[i++] = MouseEvent.BUTTON3; }
+     int j = 0;
+     for(int i=1; i<=MouseEvent.BUTTON_NUMBER; i++) {
+         if(isButtonDown(i)) { res[j++] = ( MouseEvent.BUTTON1 - 1 ) + i; }
+     }
      return res;
  }
 
- public final boolean isButton1Down()  {
-    return (modifiers&BUTTON1_MASK)!=0;
+ public final boolean isButtonDown(int button)  {
+    return ( modifiers & getButtonMask(button) ) != 0;
  }
-
- public final boolean isButton2Down()  {
-    return (modifiers&BUTTON2_MASK)!=0;
- }
-
- public final boolean isButton3Down()  {
-    return (modifiers&BUTTON3_MASK)!=0;
- }
-
+ 
  public String toString() {
      return "InputEvent[modifiers: 0x"+Integer.toHexString(modifiers)+", "+super.toString()+"]";
  }

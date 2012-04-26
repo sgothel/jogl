@@ -37,12 +37,19 @@ package com.jogamp.newt.event;
 @SuppressWarnings("serial")
 public class MouseEvent extends InputEvent
 {
+    /** ID for button 1, value <code>1</code> */
     public static final int BUTTON1 = 1;
+    /** ID for button 2, value <code>2</code> */
     public static final int BUTTON2 = 2;
+    /** ID for button 3, value <code>3</code> */
     public static final int BUTTON3 = 3;
+    /** ID for button 4, value <code>4</code> */
     public static final int BUTTON4 = 4;
+    /** ID for button 5, value <code>5</code> */
     public static final int BUTTON5 = 5;
+    /** ID for button 6, value <code>6</code> */
     public static final int BUTTON6 = 6;
+    /** Number of buttons, value <code>6</code> */
     public static final int BUTTON_NUMBER = 6;
 
     public static final int getClickTimeout() { 
