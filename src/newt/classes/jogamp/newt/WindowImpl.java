@@ -2030,9 +2030,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             lastMousePosition.setX(x);
             lastMousePosition.setY(y);
         }
-        if(button<0||button>MouseEvent.BUTTON_NUMBER) {
+        if( 0 > button || button > MouseEvent.BUTTON_NUMBER ) {
             throw new NativeWindowException("Invalid mouse button number" + button);
         }
+        // Fixes Bug 571: X11 behavior, where the PRESSED button is not included in the native mask.
+        modifiers |= InputEvent.getButtonMask(button);
+
         MouseEvent eClicked = null;
         MouseEvent e = null;
 
