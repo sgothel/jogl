@@ -300,10 +300,10 @@ Java_jogamp_nativewindow_x11_X11Util_initialize0(JNIEnv *env, jclass _unused, jb
                 fprintf(stderr, "Warning: XInitThreads() failed\n");
             } else {
                 _xinitThreadsOK=JNI_TRUE;
-                fprintf(stderr, "Info: XInitThreads() called for concurrent Thread support\n");
+                DBG_PRINT( "X11: XInitThreads() called for concurrent Thread support\n");
             }
         } else {
-            fprintf(stderr, "Info: XInitThreads() _not_ called for concurrent Thread support\n");
+            DBG_PRINT( "X11: XInitThreads() _not_ called for concurrent Thread support\n");
         }
 
         _initClazzAccess(env);
