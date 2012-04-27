@@ -744,12 +744,15 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
     if( TST_FLAG_CHANGE_FULLSCREEN(flags) ) {
         fsEWMHFlags |= _NET_WM_FULLSCREEN;
         if( TST_FLAG_IS_FULLSCREEN(flags) ) {
-            fsEWMHFlags |= _NET_WM_ABOVE; // fs & above on
+            if( TST_FLAG_IS_ALWAYSONTOP(flags) ) {
+                fsEWMHFlags |= _NET_WM_ABOVE; // fs on,  above on
+            } // else { }                     // fs on,  above off
         } else if( !TST_FLAG_IS_ALWAYSONTOP(flags) ) {
-            fsEWMHFlags |= _NET_WM_ABOVE; // fs & above off
-        } /* else { } */                  // fs off, keep above
-    } else if( TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) {
-        fsEWMHFlags |= _NET_WM_ABOVE; // toggle above only
+            fsEWMHFlags |= _NET_WM_ABOVE;     // fs off, above off
+        } // else { }                         // fs off, above on
+    }
+    if( TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) {
+        fsEWMHFlags |= _NET_WM_ABOVE;         // toggle above
     }
 
     NewtDisplay_displayDispatchErrorHandlerEnable(1, env);
