@@ -2025,6 +2025,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             x = Math.min(Math.max(x,  0), getWidth()-1);
             y = Math.min(Math.max(y,  0), getHeight()-1);
             mouseInWindow = eventType == MouseEvent.EVENT_MOUSE_ENTERED;
+            lastMousePressed=0;   // clear state
+            mouseButtonPressed=0; // clear state
         }
         if(x<0||y<0||x>=getWidth()||y>=getHeight()) {
             return; // .. invalid ..
@@ -2034,15 +2036,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                ", mod "+modifiers+", pos "+x+"/"+y+", button "+button+", lastMousePosition: "+lastMousePosition);
         }
         long when = System.currentTimeMillis();
+        MouseEvent eEntered = null;
         if(eventType == MouseEvent.EVENT_MOUSE_MOVED) {
             if(!mouseInWindow) {
                 mouseInWindow = true;
-                MouseEvent e = new MouseEvent(MouseEvent.EVENT_MOUSE_ENTERED, this, when,
-                                              modifiers, x, y, lastMouseClickCount, button, 0);
-                if(DEBUG_MOUSE_EVENT) {
-                    System.err.println("doMouseEvent: synthesized MOUSE_ENTERED event: "+e);
-                }
-                doEvent(enqueue, wait, e);
+                eEntered = new MouseEvent(MouseEvent.EVENT_MOUSE_ENTERED, this, when,
+                                          modifiers, x, y, lastMouseClickCount, button, 0);
+                lastMousePressed=0;   // clear state
+                mouseButtonPressed=0; // clear state
             } else if(lastMousePosition.getX() == x && lastMousePosition.getY()==y) { 
                 if(DEBUG_MOUSE_EVENT) {
                     System.err.println("doMouseEvent: skip EVENT_MOUSE_MOVED w/ same position: "+lastMousePosition);
@@ -2102,7 +2103,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         } else {
             e = new MouseEvent(eventType, this, when, modifiers, x, y, 0, button, 0);
         }
-        doEvent(enqueue, wait, e);
+        if(null!=eEntered) {
+            if(DEBUG_MOUSE_EVENT) {
+                System.err.println("doMouseEvent: synthesized MOUSE_ENTERED event: "+eEntered);
+            }
+            doEvent(enqueue, wait, eEntered);
+        }
+        doEvent(enqueue, wait, e); // actual mouse event
         if(null!=eClicked) {
             if(DEBUG_MOUSE_EVENT) {
                 System.err.println("doMouseEvent: synthesized MOUSE_CLICKED event: "+eClicked);
