@@ -32,35 +32,38 @@ package javax.media.nativewindow;
  * Protocol for handling window closing events.
  * <p>
  * The implementation shall obey either the user value set by this interface,<br>
- * an underlying toolkit set user value or it's default, eg. {@link #DO_NOTHING_ON_CLOSE DO_NOTHING_ON_CLOSE} within an AWT environment.<br>
+ * an underlying toolkit set user value or it's default, eg. {@link WindowClosingMode#DO_NOTHING_ON_CLOSE DO_NOTHING_ON_CLOSE} within an AWT environment.<br>
  * If none of the above determines the operation,
- * this protocol default behavior {@link #DISPOSE_ON_CLOSE DISPOSE_ON_CLOSE} shall be used.</p>
+ * this protocol default behavior {@link WindowClosingMode#DISPOSE_ON_CLOSE DISPOSE_ON_CLOSE} shall be used.</p>
  */
 public interface WindowClosingProtocol {
-    /**
-     * Dispose resources on native window close operation.<br>
-     * This is the default behavior in case no underlying toolkit defines otherwise.
-     */
-    int DISPOSE_ON_CLOSE = 1;
+    public enum WindowClosingMode {
+        /**
+         * Do nothing on native window close operation.<br>
+         * This is the default behavior within an AWT environment.
+         */
+        DO_NOTHING_ON_CLOSE,
+        
+        /**
+         * Dispose resources on native window close operation.<br>
+         * This is the default behavior in case no underlying toolkit defines otherwise.
+         */
+        DISPOSE_ON_CLOSE;
+    }
 
-    /**
-     * Do nothing on native window close operation.<br>
-     * This is the default behavior within an AWT environment.
-     */
-    int DO_NOTHING_ON_CLOSE = 0;
 
     /**
      * @return the current close operation value
-     * @see #DISPOSE_ON_CLOSE
-     * @see #DO_NOTHING_ON_CLOSE
+     * @see WindowClosingMode#DISPOSE_ON_CLOSE
+     * @see WindowClosingMode#DO_NOTHING_ON_CLOSE
      */
-    int getDefaultCloseOperation();
+    WindowClosingMode getDefaultCloseOperation();
 
     /**
      * @param op the new close operation value
      * @return the previous close operation value
-     * @see #DISPOSE_ON_CLOSE
-     * @see #DO_NOTHING_ON_CLOSE
+     * @see WindowClosingMode#DISPOSE_ON_CLOSE
+     * @see WindowClosingMode#DO_NOTHING_ON_CLOSE
      */
-    int setDefaultCloseOperation(int op);
+    WindowClosingMode setDefaultCloseOperation(WindowClosingMode op);
 }

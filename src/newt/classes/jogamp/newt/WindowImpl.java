@@ -385,17 +385,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // WindowClosingProtocol implementation
     //
     private Object closingListenerLock = new Object();
-    private int defaultCloseOperation = DISPOSE_ON_CLOSE;
+    private WindowClosingMode defaultCloseOperation = WindowClosingMode.DISPOSE_ON_CLOSE;
 
-    public int getDefaultCloseOperation() {
+    public WindowClosingMode getDefaultCloseOperation() {
         synchronized (closingListenerLock) {
             return defaultCloseOperation;
         }
     }
 
-    public int setDefaultCloseOperation(int op) {
+    public WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
         synchronized (closingListenerLock) {
-            int _op = defaultCloseOperation;
+            WindowClosingMode _op = defaultCloseOperation;
             defaultCloseOperation = op;
             return _op;
         }
@@ -2476,7 +2476,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     /**
      * Triggered by implementation's WM events or programmatically
      * 
-     * @param force if true, overrides {@link #setDefaultCloseOperation(int)} with {@link WindowClosingProtocol#DISPOSE_ON_CLOSE}
+     * @param force if true, overrides {@link #setDefaultCloseOperation(WindowClosingMode)} with {@link WindowClosingProtocol#DISPOSE_ON_CLOSE}
      *              and hence force destruction. Otherwise is follows the user settings.
      * @return true if this window is no more valid and hence has been destroyed, otherwise false.
      */
@@ -2485,13 +2485,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             System.err.println("Window.windowDestroyNotify(force: "+force+") START "+getThreadName()+": "+this);
         }
         if(force) {
-            setDefaultCloseOperation(WindowClosingProtocol.DISPOSE_ON_CLOSE);
+            setDefaultCloseOperation(WindowClosingMode.DISPOSE_ON_CLOSE);
         }
 
         // send synced destroy notifications
         enqueueWindowEvent(true, WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
 
-        if(handleDestroyNotify && DISPOSE_ON_CLOSE == getDefaultCloseOperation()) {
+        if(handleDestroyNotify && WindowClosingMode.DISPOSE_ON_CLOSE == getDefaultCloseOperation()) {
             destroy();
         }
         

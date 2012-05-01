@@ -74,7 +74,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     private boolean shallUseOffscreenLayer = false;
     private Window newtChild = null;
     private boolean isOnscreen = true;
-    private int newtChildCloseOp;
+    private WindowClosingMode newtChildCloseOp;
     private AWTAdapter awtAdapter = null;
     private AWTAdapter awtMouseAdapter = null;
     private AWTAdapter awtKeyAdapter = null;
@@ -283,11 +283,11 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
      * or {@link #addNotify()} hasn't been called yet.*/
     public NativeWindow getNativeWindow() { return jawtWindow; }
     
-    public int getDefaultCloseOperation() {
+    public WindowClosingMode getDefaultCloseOperation() {
         return awtWindowClosingProtocol.getDefaultCloseOperation();
     }
 
-    public int setDefaultCloseOperation(int op) {
+    public WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
         return awtWindowClosingProtocol.setDefaultCloseOperation(op);
     }
 
@@ -319,7 +319,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 awtAdapter = new AWTParentWindowAdapter(jawtWindow, newtChild).addTo(this);
                 newtChild.addWindowListener(clearAWTMenusOnNewtFocus);
                 newtChild.setFocusAction(focusAction); // enable AWT focus traversal
-                newtChildCloseOp = newtChild.setDefaultCloseOperation(WindowClosingProtocol.DO_NOTHING_ON_CLOSE);
+                newtChildCloseOp = newtChild.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE);
                 awtWindowClosingProtocol.addClosingListenerOneShot();
                 keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
                 keyboardFocusManager.addPropertyChangeListener("focusOwner", focusPropertyChangeListener);

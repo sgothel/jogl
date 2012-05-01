@@ -36,7 +36,7 @@ import java.awt.Frame;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
@@ -71,8 +71,8 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         //
         // close with op: DO_NOTHING_ON_CLOSE -> NOP (default)
         //
-        int op = glCanvas.getDefaultCloseOperation();
-        Assert.assertEquals(WindowClosingProtocol.DO_NOTHING_ON_CLOSE, op);
+        WindowClosingMode op = glCanvas.getDefaultCloseOperation();
+        Assert.assertEquals(WindowClosingMode.DO_NOTHING_ON_CLOSE, op);
 
         Assert.assertEquals(true, AWTRobotUtil.closeWindow(frame, false)); // nop
         Thread.sleep(100);
@@ -84,9 +84,9 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         //
         // close with op (GLCanvas): DISPOSE_ON_CLOSE -> dispose
         //
-        glCanvas.setDefaultCloseOperation(WindowClosingProtocol.DISPOSE_ON_CLOSE);
+        glCanvas.setDefaultCloseOperation(WindowClosingMode.DISPOSE_ON_CLOSE);
         op = glCanvas.getDefaultCloseOperation();
-        Assert.assertEquals(WindowClosingProtocol.DISPOSE_ON_CLOSE, op);
+        Assert.assertEquals(WindowClosingMode.DISPOSE_ON_CLOSE, op);
 
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false)); // no frame close
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, false));
@@ -123,8 +123,8 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         // close with op: DO_NOTHING_ON_CLOSE -> NOP / HIDE (default)
         //
         Assert.assertEquals(JFrame.HIDE_ON_CLOSE, frame.getDefaultCloseOperation());
-        int op = glCanvas.getDefaultCloseOperation();
-        Assert.assertEquals(WindowClosingProtocol.DO_NOTHING_ON_CLOSE, op);
+        WindowClosingMode op = glCanvas.getDefaultCloseOperation();
+        Assert.assertEquals(WindowClosingMode.DO_NOTHING_ON_CLOSE, op);
 
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false)); // nop
         Thread.sleep(100);
@@ -145,7 +145,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         Assert.assertEquals(JFrame.DISPOSE_ON_CLOSE, frame.getDefaultCloseOperation());
         op = glCanvas.getDefaultCloseOperation();
-        Assert.assertEquals(WindowClosingProtocol.DISPOSE_ON_CLOSE, op);
+        Assert.assertEquals(WindowClosingMode.DISPOSE_ON_CLOSE, op);
 
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, false));

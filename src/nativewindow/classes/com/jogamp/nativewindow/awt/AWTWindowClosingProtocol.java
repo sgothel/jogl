@@ -43,7 +43,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
   private Runnable closingOperation;
   private volatile boolean closingListenerSet = false;
   private Object closingListenerLock = new Object();
-  private int defaultCloseOperation = DISPOSE_ON_CLOSE;
+  private WindowClosingMode defaultCloseOperation = WindowClosingMode.DISPOSE_ON_CLOSE;
   private boolean defaultCloseOperationSetByUser = false;
 
   public AWTWindowClosingProtocol(Component comp, Runnable closingOperation) {
@@ -54,9 +54,9 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
   class WindowClosingAdapter extends WindowAdapter {
     @Override
     public void windowClosing(WindowEvent e) {
-      int op = AWTWindowClosingProtocol.this.getDefaultCloseOperation();
+      final WindowClosingMode op = AWTWindowClosingProtocol.this.getDefaultCloseOperation();
 
-      if( DISPOSE_ON_CLOSE == op ) {
+      if( WindowClosingMode.DISPOSE_ON_CLOSE == op ) {
           // we have to issue this call right away,
           // otherwise the window gets destroyed
           closingOperation.run();
@@ -111,27 +111,23 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
 
   /**
    *
-   * @return the user set close operation if set by {@link #setDefaultCloseOperation(int) setDefaultCloseOperation(int)},
+   * @return the user set close operation if set by {@link #setDefaultCloseOperation(WindowClosingMode) setDefaultCloseOperation(int)},
    *         otherwise return the AWT/Swing close operation value translated to
    *         a {@link WindowClosingProtocol} value .
    */
-  public final int getDefaultCloseOperation() {
-      int op = -1;
+  public final WindowClosingMode getDefaultCloseOperation() {
       synchronized(closingListenerLock) {
         if(defaultCloseOperationSetByUser) {
-          op = defaultCloseOperation;
+          return defaultCloseOperation;
         }
-      }
-      if(0 <= op) {
-          return op;
       }
       // User didn't determine the behavior, use underlying AWT behavior
       return AWTMisc.getNWClosingOperation(comp);
   }
 
-  public final int setDefaultCloseOperation(int op) {
+  public final WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
       synchronized(closingListenerLock) {
-          int _op = defaultCloseOperation;
+          final WindowClosingMode _op = defaultCloseOperation;
           defaultCloseOperation = op;
           defaultCloseOperationSetByUser = true;
           return _op;

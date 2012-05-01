@@ -75,22 +75,22 @@ public class AWTMisc {
         MenuSelectionManager.defaultManager().clearSelectedPath();
     }
 
-    public static int AWT2NWClosingOperation(int awtClosingOperation) {
+    public static WindowClosingProtocol.WindowClosingMode AWT2NWClosingOperation(int awtClosingOperation) {
         switch (awtClosingOperation) {
             case WindowConstants.DISPOSE_ON_CLOSE:
             case WindowConstants.EXIT_ON_CLOSE:
-                return WindowClosingProtocol.DISPOSE_ON_CLOSE;
+                return WindowClosingProtocol.WindowClosingMode.DISPOSE_ON_CLOSE;
             case WindowConstants.DO_NOTHING_ON_CLOSE:
             case WindowConstants.HIDE_ON_CLOSE:
-                return WindowClosingProtocol.DO_NOTHING_ON_CLOSE;
+                return WindowClosingProtocol.WindowClosingMode.DO_NOTHING_ON_CLOSE;
             default:
                 throw new NativeWindowException("Unhandled AWT Closing Operation: " + awtClosingOperation);
         }
     }
 
-    public static int getNWClosingOperation(Component c) {
-        JFrame jf = getJFrame(c);
-        int op = (null != jf) ? jf.getDefaultCloseOperation() : WindowConstants.DO_NOTHING_ON_CLOSE ;
+    public static WindowClosingProtocol.WindowClosingMode getNWClosingOperation(Component c) {
+        final JFrame jf = getJFrame(c);
+        final int op = (null != jf) ? jf.getDefaultCloseOperation() : WindowConstants.DO_NOTHING_ON_CLOSE ;
         return AWT2NWClosingOperation(op);
     }
 }

@@ -37,7 +37,7 @@ import java.lang.reflect.InvocationTargetException;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
@@ -82,8 +82,8 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
         // close with op: DO_NOTHING_ON_CLOSE -> NOP / HIDE (default)
         //
         Assert.assertEquals(JFrame.HIDE_ON_CLOSE, frame.getDefaultCloseOperation());
-        int op = newtCanvas.getDefaultCloseOperation();
-        Assert.assertEquals(WindowClosingProtocol.DO_NOTHING_ON_CLOSE, op);
+        WindowClosingMode op = newtCanvas.getDefaultCloseOperation();
+        Assert.assertEquals(WindowClosingMode.DO_NOTHING_ON_CLOSE, op);
 
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false));
         Assert.assertEquals(true,  frame.isDisplayable());
@@ -108,7 +108,7 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         Assert.assertEquals(JFrame.DISPOSE_ON_CLOSE, frame.getDefaultCloseOperation());
         op = newtCanvas.getDefaultCloseOperation();
-        Assert.assertEquals(WindowClosingProtocol.DISPOSE_ON_CLOSE, op);
+        Assert.assertEquals(WindowClosingMode.DISPOSE_ON_CLOSE, op);
 
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true));
         Assert.assertEquals(false, frame.isDisplayable());

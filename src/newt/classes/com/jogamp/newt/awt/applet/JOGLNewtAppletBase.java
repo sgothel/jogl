@@ -32,7 +32,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
 import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
@@ -164,7 +164,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                 // Closing action: back to parent!
                 @Override
                 public void windowDestroyNotify(WindowEvent e) {
-                    if( WindowClosingProtocol.DO_NOTHING_ON_CLOSE == glWindow.getDefaultCloseOperation() ) {
+                    if( WindowClosingMode.DO_NOTHING_ON_CLOSE == glWindow.getDefaultCloseOperation() ) {
                         if(null == glWindow.getParent()) {
                             // we may be called directly by the native EDT
                             new Thread(new Runnable() {
@@ -298,7 +298,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
             } else {
                 glWindow.reparentWindow(null);
                 if(glClosable) {
-                    glWindow.setDefaultCloseOperation(WindowClosingProtocol.DISPOSE_ON_CLOSE);
+                    glWindow.setDefaultCloseOperation(WindowClosingMode.DISPOSE_ON_CLOSE);
                 }
             }
        }

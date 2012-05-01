@@ -33,7 +33,7 @@ import java.lang.reflect.InvocationTargetException;
 import org.junit.Test;
 import org.junit.Assert;
 
-import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
@@ -60,15 +60,15 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
         Assert.assertEquals(true, glWindow.isVisible());
 
         // CHECK DEFAULT ..
-        int op = glWindow.getDefaultCloseOperation();
-        Assert.assertEquals(WindowClosingProtocol.DISPOSE_ON_CLOSE, op);
+        WindowClosingMode op = glWindow.getDefaultCloseOperation();
+        Assert.assertEquals(WindowClosingMode.DISPOSE_ON_CLOSE, op);
 
         //
         // close with op: DO_NOTHING_ON_CLOSE -> NOP
         //
-        glWindow.setDefaultCloseOperation(WindowClosingProtocol.DO_NOTHING_ON_CLOSE);
+        glWindow.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE);
         op = glWindow.getDefaultCloseOperation();
-        Assert.assertEquals(WindowClosingProtocol.DO_NOTHING_ON_CLOSE, op);
+        Assert.assertEquals(WindowClosingMode.DO_NOTHING_ON_CLOSE, op);
 
         Assert.assertEquals(true, AWTRobotUtil.closeWindow(glWindow, false)); // nop
         Assert.assertEquals(true, glWindow.isNativeValid());
@@ -78,9 +78,9 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
         //
         // close with op (GLCanvas): DISPOSE_ON_CLOSE -> dispose
         //
-        glWindow.setDefaultCloseOperation(WindowClosingProtocol.DISPOSE_ON_CLOSE);
+        glWindow.setDefaultCloseOperation(WindowClosingMode.DISPOSE_ON_CLOSE);
         op = glWindow.getDefaultCloseOperation();
-        Assert.assertEquals(WindowClosingProtocol.DISPOSE_ON_CLOSE, op);
+        Assert.assertEquals(WindowClosingMode.DISPOSE_ON_CLOSE, op);
 
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(glWindow, true));
         Assert.assertEquals(false, glWindow.isNativeValid());

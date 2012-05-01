@@ -66,6 +66,7 @@ import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAnimatorControl;
@@ -386,11 +387,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       return ( null != drawable ) ? drawable.isRealized() : false;
   }
 
-  public int getDefaultCloseOperation() {
+  public WindowClosingMode getDefaultCloseOperation() {
       return awtWindowClosingProtocol.getDefaultCloseOperation();
   }
 
-  public int setDefaultCloseOperation(int op) {
+  public WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
       return awtWindowClosingProtocol.setDefaultCloseOperation(op);
   }
 

@@ -60,6 +60,7 @@ import javax.swing.JPanel;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
 
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GL;
@@ -596,11 +597,11 @@ public void reshape(int x, int y, int width, int height) {
     awtWindowClosingProtocol.addClosingListenerOneShot();
   }
 
-  public int getDefaultCloseOperation() {
+  public WindowClosingMode getDefaultCloseOperation() {
       return awtWindowClosingProtocol.getDefaultCloseOperation();
   }
 
-  public int setDefaultCloseOperation(int op) {
+  public WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
       return awtWindowClosingProtocol.setDefaultCloseOperation(op);
   }
 

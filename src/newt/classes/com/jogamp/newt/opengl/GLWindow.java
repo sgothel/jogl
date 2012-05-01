@@ -94,7 +94,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
 
                 @Override
                 public void windowDestroyNotify(WindowEvent e) {
-                    if( DISPOSE_ON_CLOSE == GLWindow.this.getDefaultCloseOperation() ) {
+                    if( WindowClosingMode.DISPOSE_ON_CLOSE == GLWindow.this.getDefaultCloseOperation() ) {
                         // Is an animator thread perform rendering?
                         if (GLWindow.this.helper.isExternalAnimatorRunning()) {
                             // Pause animations before initiating safe destroy.
@@ -176,11 +176,11 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
     //----------------------------------------------------------------------
     // WindowClosingProtocol implementation
     //
-    public int getDefaultCloseOperation() {
+    public WindowClosingMode getDefaultCloseOperation() {
         return window.getDefaultCloseOperation();
     }
 
-    public int setDefaultCloseOperation(int op) {
+    public WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
         return window.setDefaultCloseOperation(op);
     }
 

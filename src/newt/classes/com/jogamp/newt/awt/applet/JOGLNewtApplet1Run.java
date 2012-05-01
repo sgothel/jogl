@@ -36,7 +36,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
 import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
@@ -187,7 +187,7 @@ public class JOGLNewtApplet1Run extends Applet {
             glWindow.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
             glWindow.setUndecorated(glUndecorated);
             glWindow.setAlwaysOnTop(glAlwaysOnTop);
-            glWindow.setDefaultCloseOperation(glCloseable ? WindowClosingProtocol.DISPOSE_ON_CLOSE : WindowClosingProtocol.DO_NOTHING_ON_CLOSE);
+            glWindow.setDefaultCloseOperation(glCloseable ? WindowClosingMode.DISPOSE_ON_CLOSE : WindowClosingMode.DO_NOTHING_ON_CLOSE);
             container.setLayout(new BorderLayout());
             if(appletDebugTestBorder) {
                 container.add(new Button("North"), BorderLayout.NORTH);
