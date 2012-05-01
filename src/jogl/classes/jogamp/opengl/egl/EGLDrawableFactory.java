@@ -41,12 +41,14 @@ import javax.media.opengl.*;
 import javax.media.opengl.GLProfile.ShutdownType;
 
 import com.jogamp.common.JogampRuntimeException;
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.*;
 import com.jogamp.nativewindow.WrappedSurface;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
 import jogamp.opengl.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -55,6 +57,18 @@ import java.util.List;
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     private static GLDynamicLookupHelper eglES1DynamicLookupHelper = null;
     private static GLDynamicLookupHelper eglES2DynamicLookupHelper = null;
+    private static boolean isANGLE = false;
+    
+    private static final boolean isANGLE(GLDynamicLookupHelper dl) {
+        if(Platform.OSType.WINDOWS == Platform.OS_TYPE) {
+            final boolean r = 0 != dl.dynamicLookupFunction("eglQuerySurfacePointerANGLE") ||
+                              0 != dl.dynamicLookupFunction("glBlitFramebufferANGLE") ||
+                              0 != dl.dynamicLookupFunction("glRenderbufferStorageMultisampleANGLE");
+            return r;
+        } else {
+            return false;
+        }
+    }
     
     public EGLDrawableFactory() {
         super();
@@ -114,8 +128,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 if(null!=tmp && tmp.isLibComplete()) {
                     eglES1DynamicLookupHelper = tmp;
                     EGL.resetProcAddressTable(eglES1DynamicLookupHelper);
+                    final boolean isANGLEES1 = isANGLE(eglES1DynamicLookupHelper);
+                    isANGLE |= isANGLEES1;
                     if (GLProfile.DEBUG) {
-                        System.err.println("Info: EGLDrawableFactory: EGL ES1 - OK");
+                        System.err.println("Info: EGLDrawableFactory: EGL ES1 - OK, isANGLE: "+isANGLEES1);
                     }                    
                 } else if (GLProfile.DEBUG) {
                     System.err.println("Info: EGLDrawableFactory: EGL ES1 - NOPE");
@@ -133,8 +149,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 if(null!=tmp && tmp.isLibComplete()) {
                     eglES2DynamicLookupHelper = tmp;
                     EGL.resetProcAddressTable(eglES2DynamicLookupHelper);
+                    final boolean isANGLEES2 = isANGLE(eglES2DynamicLookupHelper);
+                    isANGLE |= isANGLEES2;
                     if (GLProfile.DEBUG) {
-                        System.err.println("Info: EGLDrawableFactory: EGL ES2 - OK");
+                        System.err.println("Info: EGLDrawableFactory: EGL ES2 - OK, isANGLE: "+isANGLEES2);
                     }                    
                 } else if (GLProfile.DEBUG) {
                     System.err.println("Info: EGLDrawableFactory: EGL ES2 - NOPE");
@@ -162,36 +180,37 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         defaultDevice = null;
         /**
          * Pulling away the native library may cause havoc ..
-         * 
+         */
         if(ShutdownType.COMPLETE == shutdownType) {
             if(null != eglES1DynamicLookupHelper) {
-                eglES1DynamicLookupHelper.destroy();
+                // eglES1DynamicLookupHelper.destroy();
                 eglES1DynamicLookupHelper = null;
             }
             if(null != eglES2DynamicLookupHelper) {
-                eglES2DynamicLookupHelper.destroy();
+                // eglES2DynamicLookupHelper.destroy();
                 eglES2DynamicLookupHelper = null;
             }
-        } */
+        }
+        EGLGraphicsConfigurationFactory.unregisterFactory();
     }
 
     private HashMap<String /*connection*/, SharedResource> sharedMap = new HashMap<String /*connection*/, SharedResource>();
     private EGLGraphicsDevice defaultDevice;
 
     static class SharedResource {
-      private EGLGraphicsDevice device;
-      // private EGLDrawable drawable;
-      // private EGLContext contextES1;
-      // private EGLContext contextES2;
-      private boolean wasES1ContextCreated;
-      private boolean wasES2ContextCreated;
+      private final EGLGraphicsDevice device;
+      // private final EGLDrawable drawable;
+      // private final EGLContext contextES1;
+      // private final EGLContext contextES2;
+      private final boolean wasES1ContextCreated;
+      private final boolean wasES2ContextCreated;
 
       SharedResource(EGLGraphicsDevice dev, boolean wasContextES1Created, boolean wasContextES2Created 
                      /*EGLDrawable draw, EGLContext ctxES1, EGLContext ctxES2 */) {
-          device = dev;
-          // drawable = draw;
-          // contextES1 = ctxES1;
-          // contextES2 = ctxES2;
+          this.device = dev;
+          // this.drawable = draw;
+          // this.contextES1 = ctxES1;
+          // this.contextES2 = ctxES2;
           this.wasES1ContextCreated = wasContextES1Created;
           this.wasES2ContextCreated = wasContextES2Created;
       }
@@ -310,6 +329,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return null;
     }
 
+    public boolean isANGLE() {
+        return isANGLE;
+    }
+    
     public GLDynamicLookupHelper getGLDynamicLookupHelper(int esProfile) {
         if (2==esProfile) {
             return eglES2DynamicLookupHelper;
@@ -321,6 +344,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
+        if(null == eglES1DynamicLookupHelper && null == eglES2DynamicLookupHelper) {
+            return new ArrayList<GLCapabilitiesImmutable>(); // null
+        }
         return EGLGraphicsConfigurationFactory.getAvailableCapabilities(this, device);
     }
 

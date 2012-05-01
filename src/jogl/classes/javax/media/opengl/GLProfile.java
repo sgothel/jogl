@@ -74,6 +74,16 @@ import java.util.List;
 public class GLProfile {
     
     public static final boolean DEBUG = Debug.debug("GLProfile");
+    
+    /** 
+     * We have to disable support for ANGLE, the D3D ES2 emulation on Windows provided w/ Firefox and Chrome. 
+     * When run in the mentioned browsers, the eglInitialize(..) implementation crashes.
+     * <p>
+     * This can be overridden by explicitly enabling ANGLE on Windows by setting the property
+     * <code>jogl.enable.ANGLE</code>.
+     * </p> 
+     */
+    private static final boolean enableANGLE = Debug.isPropertyDefined("jogl.enable.ANGLE", true);
 
     static {
         // Also initializes TempJarCache if shall be used.
@@ -1418,10 +1428,23 @@ public class GLProfile {
             try {
                 eglFactory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactoryImpl(GLES2);
                 if(null != eglFactory) {
-                    hasEGLFactory = true;
-                    // update hasGLES1Impl, hasGLES2Impl based on EGL
-                    hasGLES2Impl = null!=eglFactory.getGLDynamicLookupHelper(2) && hasGLES2Impl;
-                    hasGLES1Impl = null!=eglFactory.getGLDynamicLookupHelper(1) && hasGLES1Impl;
+                    final boolean isANGLE = ((jogamp.opengl.egl.EGLDrawableFactory)eglFactory).isANGLE();
+                    if(isANGLE && !enableANGLE) {
+                        if(DEBUG) {
+                            System.err.println("Info: GLProfile.init - EGL/ES2 ANGLE disabled");
+                        }
+                        eglFactory.destroy(ShutdownType.COMPLETE);
+                        eglFactory    = null;
+                        hasEGLFactory = false;
+                    } else {
+                        if(DEBUG && isANGLE) {
+                            System.err.println("Info: GLProfile.init - EGL/ES2 ANGLE enabled");
+                        }
+                        hasEGLFactory = true;
+                        // update hasGLES1Impl, hasGLES2Impl based on EGL
+                        hasGLES2Impl = null!=eglFactory.getGLDynamicLookupHelper(2) && hasGLES2Impl;
+                        hasGLES1Impl = null!=eglFactory.getGLDynamicLookupHelper(1) && hasGLES1Impl;
+                    }
                 }
             } catch (LinkageError le) {
                 t=le;
@@ -1548,8 +1571,8 @@ public class GLProfile {
         
         final boolean deviceIsEGLCompatible = hasEGLFactory && eglFactory.getIsDeviceCompatible(device);
         
-        // also test GLES1 and GLES2 on desktop, since we have implementations / emulations available
-        if( deviceIsEGLCompatible && ( hasGLES2Impl || hasGLES1Impl ) ) {             
+        // also test GLES1 and GLES2 on desktop, since we have implementations / emulations available.
+        if( deviceIsEGLCompatible && ( hasGLES2Impl || hasGLES1Impl ) ) {
             // 1st pretend we have all EGL profiles ..
             computeProfileMap(device, false /* desktopCtxUndef*/, true /* esCtxUndef */);
 
