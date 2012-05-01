@@ -47,7 +47,6 @@ import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
-import com.jogamp.newt.event.WindowUpdateEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 
@@ -170,7 +169,6 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                             // we may be called directly by the native EDT
                             new Thread(new Runnable() {
                                public void run() {
-                                // try { Thread.sleep(10); } catch (InterruptedException e) { }
                                 glWindow.reparentWindow(awtParent);
                                }
                             }).start();                         
