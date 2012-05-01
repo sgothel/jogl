@@ -269,22 +269,22 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      */
     void warpPointer(int x, int y);
     
-    /** Defining ids for the reparenting strategy */
-    public interface ReparentAction {
+    /** Reparenting operation types */
+    public enum ReparentOperation {
         /** No native reparenting valid */
-        static final int ACTION_INVALID = -1;
+        ACTION_INVALID,
 
         /** No native reparenting action required, no change*/
-        static final int ACTION_UNCHANGED = 0;
+        ACTION_NOP,
 
         /** Native reparenting incl. Window tree */
-        static final int ACTION_NATIVE_REPARENTING = 1;
+        ACTION_NATIVE_REPARENTING,
 
         /** Native window creation after tree change - instead of reparenting. */
-        static final int ACTION_NATIVE_CREATION = 2;
+        ACTION_NATIVE_CREATION,
 
         /** Change Window tree only, native creation is pending */
-        static final int ACTION_NATIVE_CREATION_PENDING = 3;
+        ACTION_NATIVE_CREATION_PENDING;        
     }
 
     /**
@@ -299,9 +299,9 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      *
      * @return The issued reparent action type (strategy) as defined in Window.ReparentAction
      */
-    int reparentWindow(NativeWindow newParent);
+    ReparentOperation reparentWindow(NativeWindow newParent);
 
-    int reparentWindow(NativeWindow newParent, boolean forceDestroyCreate);
+    ReparentOperation reparentWindow(NativeWindow newParent, boolean forceDestroyCreate);
 
     boolean setFullscreen(boolean fullscreen);
     

@@ -308,11 +308,11 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
                ", \n\tContext: " + context + ", \n\tWindow: "+window+ /** ", \n\tFactory: "+factory+ */ "]";
     }
 
-    public final int reparentWindow(NativeWindow newParent) {
+    public final ReparentOperation reparentWindow(NativeWindow newParent) {
         return window.reparentWindow(newParent);
     }
 
-    public final int reparentWindow(NativeWindow newParent, boolean forceDestroyCreate) {
+    public final ReparentOperation reparentWindow(NativeWindow newParent, boolean forceDestroyCreate) {
         return window.reparentWindow(newParent, forceDestroyCreate);
     }
 
