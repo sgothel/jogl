@@ -368,7 +368,7 @@ public class TestParenting01NEWT extends UITestCase {
         animator2.start();
 
         int state = 0;
-        int reparentAction;
+        Window.ReparentOperation reparentAction;
         while(animator1.isAnimating() && animator1.getTotalFPSDuration()<3*durationPerTest) {
             Thread.sleep(durationPerTest);
             switch(state) {
@@ -378,7 +378,7 @@ public class TestParenting01NEWT extends UITestCase {
                     System.err.println("Frames(1) "+glWindow2.getTotalFPSFrames());
                     reparentAction = glWindow2.reparentWindow(glWindow1, reparentRecreate);
                     System.err.println("Frames(2) "+glWindow2.getTotalFPSFrames());
-                    Assert.assertTrue(Window.ReparentAction.ACTION_INVALID < reparentAction);
+                    Assert.assertTrue(Window.ReparentOperation.ACTION_INVALID != reparentAction);
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeValid());
                     Assert.assertSame(glWindow1,glWindow2.getParent());
@@ -402,7 +402,7 @@ public class TestParenting01NEWT extends UITestCase {
                     Assert.assertEquals(true, glWindow2.isVisible());
 
                     reparentAction = glWindow2.reparentWindow(null, reparentRecreate);
-                    Assert.assertTrue(Window.ReparentAction.ACTION_INVALID < reparentAction);
+                    Assert.assertTrue(Window.ReparentOperation.ACTION_INVALID != reparentAction);
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeValid());
                     Assert.assertNull(glWindow2.getParent());
@@ -556,14 +556,14 @@ public class TestParenting01NEWT extends UITestCase {
         animator2.start();
 
         int state = 0;
-        int reparentAction;
+        Window.ReparentOperation reparentAction;
         while(animator1.isAnimating() && animator1.getTotalFPSDuration()<3*durationPerTest) {
             Thread.sleep(durationPerTest);
             switch(state) {
                 case 0:
                     Assert.assertEquals(true, glWindow2.isVisible());
                     reparentAction = glWindow2.reparentWindow(null, reparentRecreate);
-                    Assert.assertTrue(Window.ReparentAction.ACTION_INVALID < reparentAction);
+                    Assert.assertTrue(Window.ReparentOperation.ACTION_INVALID != reparentAction);
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeValid());
                     System.err.println("Frames for reparentWindow(parent, "+reparentRecreate+"): "+reparentAction+", B2: "+glWindow2.getTotalFPSFrames());
@@ -576,7 +576,7 @@ public class TestParenting01NEWT extends UITestCase {
                 case 1:
                     Assert.assertEquals(true, glWindow2.isVisible());
                     reparentAction = glWindow2.reparentWindow(glWindow1, reparentRecreate);
-                    Assert.assertTrue(Window.ReparentAction.ACTION_INVALID < reparentAction);
+                    Assert.assertTrue(Window.ReparentOperation.ACTION_INVALID != reparentAction);
                     Assert.assertEquals(true, glWindow2.isVisible());
                     Assert.assertEquals(true, glWindow2.isNativeValid());
                     System.err.println("Frames for reparentWindow(parent, "+reparentRecreate+"): "+reparentAction+", B3 "+glWindow2.getTotalFPSFrames());
