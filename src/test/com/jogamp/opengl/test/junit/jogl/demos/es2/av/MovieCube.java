@@ -64,11 +64,10 @@ import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 
 public class MovieCube implements GLEventListener, GLMediaEventListener {
     static boolean waitForKey = false;
-    GLWindow window;
-    boolean quit = false;
+    final URLConnection stream;
+    final float zoom0, rotx, roty;
     TexCubeES2 cube=null;
     GLMediaPlayer mPlayer=null;
-    URLConnection stream = null;    
     
     public MovieCube() throws IOException {
         this(new URL("http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4").openConnection(), 
@@ -77,9 +76,9 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
     
     public MovieCube(URLConnection stream, float zoom0, float rotx, float roty) throws IOException {
         this.stream = stream;
-        mPlayer = GLMediaPlayerFactory.create();
-        mPlayer.addEventListener(this);
-        cube = new TexCubeES2(mPlayer, false, zoom0, rotx, roty);        
+        this.zoom0 = zoom0;
+        this.rotx = rotx;
+        this.roty = roty;
     }
 
     private final KeyListener keyAction = new KeyAdapter() {
@@ -136,6 +135,10 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         System.err.println(JoglVersion.getGLInfo(gl, null));
 
+        mPlayer = GLMediaPlayerFactory.create();
+        mPlayer.addEventListener(this);
+        cube = new TexCubeES2(mPlayer, false, zoom0, rotx, roty);        
+        
         if(waitForKey) {
             BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
             System.err.println("Press enter to continue");
