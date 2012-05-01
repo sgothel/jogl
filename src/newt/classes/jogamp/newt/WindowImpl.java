@@ -130,8 +130,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private ArrayList<WindowListener> windowListeners  = new ArrayList<WindowListener>();
     private boolean repaintQueued = false;
 
-    ScreenModeListenerImpl screenModeListenerImpl = new ScreenModeListenerImpl();
-
     // Workaround for initialization order problems on Mac OS X
     // between native Newt and (apparently) Fmod -- if Fmod is
     // initialized first then the connection to the window server
@@ -777,7 +775,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             setVisibleActionImpl(visible);
         }
     }
-    private VisibleActionImpl visibleAction = new VisibleActionImpl();
+    private final VisibleActionImpl visibleAction = new VisibleActionImpl();
     
     public void setVisible(boolean visible) {
         synchronized(visibleAction) {
@@ -789,12 +787,20 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
     
-    final void setSizeActionImpl(int width, int height) {
-        boolean recreate = false;
-        windowLock.lock();
-        try {
-            int visibleAction = 0; // 1 invisible, 2 visible (create)
-            if ( !fullscreen && ( getWidth() != width || getHeight() != height ) ) {
+    private class SetSizeActionImpl implements Runnable {
+        int width, height;
+
+        private boolean init(int w, int h) {
+            this.width = w;
+            this.height = h;
+            return ( getWidth() != w || getHeight() != h ) && !isFullscreen();
+        }
+        
+        public final void run() {
+            boolean recreate = false;
+            windowLock.lock();
+            try {
+                int visibleAction = 0; // 1 invisible, 2 visible (create)
                 recreate = isNativeValid() && !getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window setSize: START "+getWidth()+"x"+getHeight()+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible+", recreate "+recreate);
@@ -825,31 +831,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     case 1: setVisibleActionImpl(false); break;
                     case 2: setVisibleActionImpl(true); break;
                 }
-            }
-        } finally {
-            if(recreate) {
-                screen.removeReference(); // bring back ref-count
-            }
-            windowLock.unlock();
-        }        
-    }
-    private class SetSizeActionImpl implements Runnable {
-        int width, height;
-
-        private void init(int w, int h) {
-            width = w;
-            height = h;
-        }
-        public final void run() {
-            setSizeActionImpl(width, height);
+            } finally {
+                if(recreate) {
+                    screen.removeReference(); // bring back ref-count
+                }
+                windowLock.unlock();
+            }        
         }
     }
-    private SetSizeActionImpl setSizeAction = new SetSizeActionImpl();
+    private final SetSizeActionImpl setSizeAction = new SetSizeActionImpl();
     
     public void setSize(int width, int height) {
         synchronized(setSizeAction) {
-            setSizeAction.init(width, height);
-            runOnEDTIfAvail(true, setSizeAction);
+            if( setSizeAction.init(width, height) ) {
+                runOnEDTIfAvail(true, setSizeAction);
+            }
         }
     }    
     public void setTopLevelSize(int width, int height) {
@@ -941,7 +937,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             */                        
         }
     }
-    private DestroyAction destroyAction = new DestroyAction();
+    private final DestroyAction destroyAction = new DestroyAction();
 
     public void destroy() {
         visible = false; // Immediately mark synchronized visibility flag, avoiding possible recreation 
@@ -1240,7 +1236,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
         }
     }
-    private ReparentActionImpl reparentAction = new ReparentActionImpl();
+    private final ReparentActionImpl reparentAction = new ReparentActionImpl();
     
     private class ReparentActionRecreate implements Runnable {
         public final void run() {
@@ -1256,7 +1252,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
         }
     }
-    private ReparentActionRecreate reparentActionRecreate = new ReparentActionRecreate();
+    private final ReparentActionRecreate reparentActionRecreate = new ReparentActionRecreate();
 
     public final int reparentWindow(NativeWindow newParent) {
         return reparentWindow(newParent, false);
@@ -1287,49 +1283,45 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private class DecorationActionImpl implements Runnable {
         boolean undecorated;
 
-        private void init(boolean undecorated) {
-            this.undecorated = undecorated;
+        private boolean init(boolean undecorated) {            
+            if( isNativeValid() && !isFullscreen() ) {
+                this.undecorated = undecorated;
+                return isUndecorated() != undecorated;
+            } else {
+                WindowImpl.this.undecorated = undecorated; // set current state for createNative(..)
+                return false;
+            }            
         }
 
         public final void run() {
             windowLock.lock();
-            try {
-                if(WindowImpl.this.undecorated != undecorated) {
-                  final boolean nativeUndecorationChange = !fullscreen && isNativeValid() && 
-                                                           isUndecorated() != undecorated ;
-                  
-                  // set current state
-                  WindowImpl.this.undecorated = undecorated;
-                  
-                  if( nativeUndecorationChange ) {
-                    // Change decoration on active window
-                      
-                    // Mirror pos/size so native change notification can get overwritten
-                    final int x = getX();
-                    final int y = getY();
-                    final int width = getWidth();
-                    final int height = getHeight();
+            try {                    
+                // set current state
+                WindowImpl.this.undecorated = undecorated;
+              
+                // Mirror pos/size so native change notification can get overwritten
+                final int x = getX();
+                final int y = getY();
+                final int width = getWidth();
+                final int height = getHeight();
 
-                    if( isNativeValid() ) {
-                        DisplayImpl display = (DisplayImpl) screen.getDisplay();
-                        display.dispatchMessagesNative(); // status up2date
-                        reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_DECORATION, isVisible()));
-                        display.dispatchMessagesNative(); // status up2date
-                    }
-                  }
-                }
+                DisplayImpl display = (DisplayImpl) screen.getDisplay();
+                display.dispatchMessagesNative(); // status up2date
+                reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_DECORATION, isVisible()));
+                display.dispatchMessagesNative(); // status up2date
             } finally {
                 windowLock.unlock();
             }
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
     }
-    private DecorationActionImpl decorationAction = new DecorationActionImpl();
+    private final DecorationActionImpl decorationAction = new DecorationActionImpl();
 
     public void setUndecorated(boolean value) {
         synchronized(decorationAction) {
-            decorationAction.init(value);
-            runOnEDTIfAvail(true, decorationAction);
+            if( decorationAction.init(value) ) {
+                runOnEDTIfAvail(true, decorationAction);
+            }
         }
     }
 
@@ -1340,49 +1332,45 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private class AlwaysOnTopActionImpl implements Runnable {
         boolean alwaysOnTop;
 
-        private void init(boolean undecorated) {
-            this.alwaysOnTop = undecorated;
+        private boolean init(boolean alwaysOnTop) {
+            if( isNativeValid() ) {
+                this.alwaysOnTop = alwaysOnTop;
+                return isAlwaysOnTop() != alwaysOnTop;
+            } else {
+                WindowImpl.this.alwaysOnTop = alwaysOnTop; // set current state for createNative(..)
+                return false;
+            }            
         }
 
         public final void run() {
             windowLock.lock();
             try {
-                if(WindowImpl.this.alwaysOnTop != alwaysOnTop) {
-                  final boolean nativeAlwaysOnTopChange =  isNativeValid() && 
-                                                           isAlwaysOnTop() != alwaysOnTop ;
-                  
-                  // set current state
-                  WindowImpl.this.alwaysOnTop = alwaysOnTop;
-                  
-                  if( nativeAlwaysOnTopChange ) {
-                    // Change decoration on active window
-                      
-                    // Mirror pos/size so native change notification can get overwritten
-                    final int x = getX();
-                    final int y = getY();
-                    final int width = getWidth();
-                    final int height = getHeight();
+                // set current state
+                WindowImpl.this.alwaysOnTop = alwaysOnTop;
+              
+                // Mirror pos/size so native change notification can get overwritten
+                final int x = getX();
+                final int y = getY();
+                final int width = getWidth();
+                final int height = getHeight();
 
-                    if( isNativeValid() ) {
-                        DisplayImpl display = (DisplayImpl) screen.getDisplay();
-                        display.dispatchMessagesNative(); // status up2date
-                        reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()));
-                        display.dispatchMessagesNative(); // status up2date
-                    }
-                  }
-                }
+                DisplayImpl display = (DisplayImpl) screen.getDisplay();
+                display.dispatchMessagesNative(); // status up2date
+                reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()));
+                display.dispatchMessagesNative(); // status up2date
             } finally {
                 windowLock.unlock();
             }
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
     }
-    private AlwaysOnTopActionImpl alwaysOnTopAction = new AlwaysOnTopActionImpl(); 
+    private final AlwaysOnTopActionImpl alwaysOnTopAction = new AlwaysOnTopActionImpl(); 
 
     public final void setAlwaysOnTop(boolean value) {
-        synchronized(alwaysOnTopAction) {
-            alwaysOnTopAction.init(value);
-            runOnEDTIfAvail(true, alwaysOnTopAction);
+        synchronized(alwaysOnTopAction) {            
+            if( alwaysOnTopAction.init(value) )  {
+                runOnEDTIfAvail(true, alwaysOnTopAction);
+            }
         }
     }
     
@@ -1610,7 +1598,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         d.runOnEDTIfAvail(wait, task);
     }
 
-    private Runnable requestFocusAction = new Runnable() {
+    private final Runnable requestFocusAction = new Runnable() {
         public final void run() {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.RequestFocusAction: force 0 - ("+getThreadName()+"): "+hasFocus+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
@@ -1618,7 +1606,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             WindowImpl.this.requestFocusImpl(false);
         }
     };
-    private Runnable requestFocusActionForced = new Runnable() {
+    private final Runnable requestFocusActionForced = new Runnable() {
         public final void run() {
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.RequestFocusAction: force 1 - ("+getThreadName()+"): "+hasFocus+" -> true - windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle));
@@ -1688,38 +1676,38 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private class SetPositionActionImpl implements Runnable {
         int x, y;
 
-        private void init(int x, int y) {
-            this.x = x;
-            this.y = y;
+        private boolean init(int x, int y) {
+            WindowImpl.this.autoPosition = false;
+            if(isNativeValid()) {
+                this.x = x;
+                this.y = y;
+                return ( getX() != x || getY() != y ) && !isFullscreen();
+            } else {
+                definePosition(x, y); // set pos for createNative(..)
+                return false;
+            }
         }
+        
         public final void run() {
             windowLock.lock();
             try {
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window setPosition: "+getX()+"/"+getY()+" -> "+x+"/"+y+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle));
                 }
-                if ( getX() != x || getY() != y ) {
-                    if(!fullscreen) {
-                        if(0!=windowHandle) {
-                            // this.x/this.y will be set by sizeChanged, triggered by windowing event system
-                            reconfigureWindowImpl(x, y, getWidth(), getHeight(), getReconfigureFlags(0, isVisible()));
-                        } else {
-                            definePosition(x, y);
-                        }
-                    }
-                }
+                // this.x/this.y will be set by sizeChanged, triggered by windowing event system
+                reconfigureWindowImpl(x, y, getWidth(), getHeight(), getReconfigureFlags(0, isVisible()));
             } finally {
                 windowLock.unlock();
             }
         }
     }
-    private SetPositionActionImpl setPositionAction = new SetPositionActionImpl();
+    private final SetPositionActionImpl setPositionAction = new SetPositionActionImpl();
 
     public void setPosition(int x, int y) {
         synchronized(setPositionAction) {
-            setPositionAction.init(x, y);
-            autoPosition = false;
-            runOnEDTIfAvail(true, setPositionAction);
+            if( setPositionAction.init(x, y) ) {
+                runOnEDTIfAvail(true, setPositionAction);
+            }
         }
     }
     
@@ -1824,7 +1812,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
     }
-    private FullScreenActionImpl fullScreenAction = new FullScreenActionImpl();
+    private final FullScreenActionImpl fullScreenAction = new FullScreenActionImpl();
 
     public boolean setFullscreen(boolean fullscreen) {
         synchronized(fullScreenAction) {
@@ -1892,6 +1880,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
     }
+    private final ScreenModeListenerImpl screenModeListenerImpl = new ScreenModeListenerImpl();
+
+
 
     //----------------------------------------------------------------------
     // Child Window Management
