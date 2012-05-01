@@ -73,6 +73,7 @@ import java.nio.IntBuffer;
 public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     static VisualIDHolder.VIDComparator EglCfgIDComparator = new VisualIDHolder.VIDComparator(VisualIDHolder.VIDType.EGL_CONFIG);
     static GraphicsConfigurationFactory nativeGraphicsConfigurationFactory = null;
+    static GraphicsConfigurationFactory kdeglGraphicsConfigurationFactory = null;
     
     static void registerFactory() {
         GraphicsConfigurationFactory eglFactory = new EGLGraphicsConfigurationFactory();
@@ -87,7 +88,21 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         } */
         
         // become the selector for KD/EGL ..
-        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.egl.EGLGraphicsDevice.class, eglFactory);
+        kdeglGraphicsConfigurationFactory = GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.egl.EGLGraphicsDevice.class, eglFactory);
+    }
+    
+    static void unregisterFactory() {
+        final String nwType = NativeWindowFactory.getNativeWindowType(false);
+        if(NativeWindowFactory.TYPE_X11 == nwType) {
+            GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, nativeGraphicsConfigurationFactory);                    
+        } /* else if(NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false)) {
+            GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.windows.WindowsGraphicsDevice.class, nativeGraphicsConfigurationFactory);
+        } else if(NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false)) {            
+        } */
+        nativeGraphicsConfigurationFactory = null;
+        
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.egl.EGLGraphicsDevice.class, kdeglGraphicsConfigurationFactory);
+        kdeglGraphicsConfigurationFactory = null;
     }
     
     private EGLGraphicsConfigurationFactory() {

@@ -190,10 +190,19 @@ public abstract class GraphicsConfigurationFactory {
         if (!(abstractGraphicsDeviceClass.isAssignableFrom(abstractGraphicsDeviceImplementor))) {
             throw new IllegalArgumentException("Given class must implement AbstractGraphicsDevice");
         }
-        GraphicsConfigurationFactory prevFactory = registeredFactories.put(abstractGraphicsDeviceImplementor, factory);
-        if(DEBUG) {
-            System.err.println("GraphicsConfigurationFactory.registerFactory() "+abstractGraphicsDeviceImplementor+" -> "+factory+
-                               ", overridding: "+prevFactory);
+        final GraphicsConfigurationFactory prevFactory;
+        if(null == factory) {
+            prevFactory = registeredFactories.remove(abstractGraphicsDeviceImplementor);
+            if(DEBUG) {
+                System.err.println("GraphicsConfigurationFactory.registerFactory() remove "+abstractGraphicsDeviceImplementor+
+                                   ", deleting: "+prevFactory);
+            }
+        } else {
+            prevFactory = registeredFactories.put(abstractGraphicsDeviceImplementor, factory);
+            if(DEBUG) {
+                System.err.println("GraphicsConfigurationFactory.registerFactory() put "+abstractGraphicsDeviceImplementor+" -> "+factory+
+                                   ", overridding: "+prevFactory);
+            }
         }
         return prevFactory;
     }
