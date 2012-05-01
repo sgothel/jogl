@@ -38,7 +38,7 @@ public class WindowImplAccess {
         final WindowImpl winImpl = (WindowImpl) win.getDelegatedWindow();
         winImpl.runOnEDTIfAvail(true, new Runnable() {
             public void run() {
-                winImpl.windowDestroyNotify();
+                winImpl.windowDestroyNotify(false);
             }
         });        
     }

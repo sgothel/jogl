@@ -810,7 +810,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     //    Java::DestroyWindow(wnd) _or_ window-close-button -> 
     //     WM_CLOSE -> Java::windowDestroyNotify -> W_DESTROY
     case WM_CLOSE:
-        (*env)->CallVoidMethod(env, window, windowDestroyNotifyID);
+        (*env)->CallBooleanMethod(env, window, windowDestroyNotifyID, JNI_FALSE);
         break;
 
     case WM_DESTROY:
@@ -1297,7 +1297,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_initIDs
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZII)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
-    windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "()V");
+    windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
     enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZIIIIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");

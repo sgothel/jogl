@@ -117,8 +117,10 @@ public class X11Window extends WindowImpl {
             // client position -> top-level window position
             x -= i.getLeftWidth() ;
             y -= i.getTopHeight() ;
-        }        
-        reconfigureWindow0( getDisplayEDTHandle(), getScreenIndex(), getParentWindowHandle(), getWindowHandle(),
+        }
+        final X11Display display = (X11Display) getScreen().getDisplay();
+        reconfigureWindow0( getDisplayEDTHandle(), getScreenIndex(), 
+                            getParentWindowHandle(), getWindowHandle(), display.getWindowDeleteAtom(),
                             x, y, width, height, flags);
 
         return true;
@@ -243,7 +245,7 @@ public class X11Window extends WindowImpl {
                                       int x, int y, int width, int height, boolean autoPosition, int flags); 
     private native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom);
     private native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long windowHandle,
-                                           int x, int y, int width, int height, int flags);    
+                                           long windowDeleteAtom, int x, int y, int width, int height, int flags);    
     private native void requestFocus0(long display, long windowHandle, boolean force);
     
     private static native void setTitle0(long display, long windowHandle, String title);

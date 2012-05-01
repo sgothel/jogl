@@ -337,7 +337,7 @@ static jmethodID windowRepaintID = NULL;
     insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
     positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZII)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
-    windowDestroyNotifyID    = (*env)->GetMethodID(env, clazz, "windowDestroyNotify",    "()V");
+    windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
     requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
     if (enqueueMouseEventID && sendMouseEventID && enqueueKeyEventID && sendKeyEventID && sizeChangedID && visibleChangedID && insetsChangedID &&
@@ -372,6 +372,7 @@ static jmethodID windowRepaintID = NULL;
     mouseVisible = YES;
     mouseInside = NO;
     cursorIsHidden = NO;
+    realized = YES;
     return res;
 }
 
@@ -391,6 +392,16 @@ static jmethodID windowRepaintID = NULL;
     NSLog(@"%@",[NSThread callStackSymbols]);
 #endif
     [super dealloc];
+}
+
+- (void) setUnrealized
+{
+    realized = NO;
+}
+
+- (BOOL) isRealized
+{
+    return realized;
 }
 
 - (void) updateInsets: (JNIEnv*) env
@@ -942,8 +953,19 @@ static jint mods2JavaMods(NSUInteger mods)
     }
 }
 
+- (BOOL)windowShouldClose: (id) sender
+{
+    return [self windowClosingImpl: NO];
+}
+
 - (void)windowWillClose: (NSNotification*) notification
 {
+    [self windowClosingImpl: YES];
+}
+
+- (BOOL) windowClosingImpl: (BOOL) force
+{
+    jboolean closed = JNI_FALSE;
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
     [self cursorHide: NO];
@@ -969,17 +991,22 @@ static jint mods2JavaMods(NSUInteger mods)
             return;
         }
 
-        [view setDestroyNotifySent: true];
-        (*env)->CallVoidMethod(env, javaWindowObject, windowDestroyNotifyID);
+        [view setDestroyNotifySent: true]; // earmark assumption of being closed
+        closed = (*env)->CallBooleanMethod(env, javaWindowObject, windowDestroyNotifyID, force ? JNI_TRUE : JNI_FALSE);
+        if(!force && !closed) {
+            // not closed on java side, not force -> clear flag
+            [view setDestroyNotifySent: false];
+        }
 
         if (shallBeDetached) {
             (*jvmHandle)->DetachCurrentThread(jvmHandle);
         }
-        DBG_PRINT( "*************** windowWillClose.X: %p\n", (void *)(intptr_t)javaWindowObject);
+        DBG_PRINT( "*************** windowWillClose.X: %p, closed %d\n", (void *)(intptr_t)javaWindowObject, (int)closed);
     } else {
         DBG_PRINT( "*************** windowWillClose (skip)\n");
     }
     [pool release];
+    return JNI_TRUE == closed ? YES : NO ;
 }
 
 @end

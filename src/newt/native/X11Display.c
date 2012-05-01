@@ -266,7 +266,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Display_initIDs0
     focusChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "focusChanged", "(ZZ)V");
     visibleChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "visibleChanged", "(ZZ)V");
     reparentNotifyID = (*env)->GetMethodID(env, X11NewtWindowClazz, "reparentNotify", "(J)V");
-    windowDestroyNotifyID = (*env)->GetMethodID(env, X11NewtWindowClazz, "windowDestroyNotify", "()V");
+    windowDestroyNotifyID = (*env)->GetMethodID(env, X11NewtWindowClazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, X11NewtWindowClazz, "windowRepaint", "(ZIIII)V");
     enqueueMouseEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "enqueueMouseEvent", "(ZIIIIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendMouseEvent", "(IIIIII)V");
@@ -563,9 +563,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
                 break;
             case ClientMessage:
                 if (evt.xclient.send_event==True && evt.xclient.data.l[0]==wm_delete_atom) { // windowDeleteAtom
-                    DBG_PRINT( "X11: event . ClientMessage call %p type 0x%X\n", 
+                    jboolean closed;
+                    DBG_PRINT( "X11: event . ClientMessage call %p type 0x%X ..\n", 
                         (void*)evt.xclient.window, (unsigned int)evt.xclient.message_type);
-                    (*env)->CallVoidMethod(env, jwindow, windowDestroyNotifyID);
+                    closed = (*env)->CallBooleanMethod(env, jwindow, windowDestroyNotifyID, JNI_FALSE);
+                    DBG_PRINT( "X11: event . ClientMessage call %p type 0x%X, closed: %d\n", 
+                        (void*)evt.xclient.window, (unsigned int)evt.xclient.message_type, (int)closed);
                     // Called by Window.java: CloseWindow(); 
                     num_events = 0; // end loop in case of destroyed display
                 }

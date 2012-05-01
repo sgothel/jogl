@@ -36,6 +36,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
+import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
@@ -64,7 +65,7 @@ import com.jogamp.newt.opengl.GLWindow;
  *  </p>
  *  
  *  <p>
- *  Example of an applet tag using GearsES2 in an undecorated, translucent and always-on-top window: 
+ *  Example of an applet tag using GearsES2 in an undecorated, translucent, closeable and always-on-top window: 
  *  <pre>
         &lt;applet width=1 height=1&gt;
            &lt;param name="java_arguments" value="-Dsun.java2d.noddraw=true"&gt;
@@ -73,6 +74,7 @@ import com.jogamp.newt.opengl.GLWindow;
            &lt;param name="gl_swap_interval" value="1"&gt;
            &lt;param name="gl_undecorated" value="true"&gt;
            &lt;param name="gl_alwaysontop" value="true"&gt;
+           &lt;param name="gl_closeable" value="true"&gt;
            &lt;param name="gl_alpha" value="1"&gt;
            &lt;param name="gl_multisamplebuffer" value="0"&gt;
            &lt;param name="gl_opaque" value="false"&gt;
@@ -115,6 +117,7 @@ public class JOGLNewtApplet1Run extends Applet {
         boolean glTrace=false;
         boolean glUndecorated=false;
         boolean glAlwaysOnTop=false;
+        boolean glCloseable=false;
         boolean glOpaque=true;
         int glAlphaBits=0;
         int glNumMultisampleBuffer=0;
@@ -128,6 +131,7 @@ public class JOGLNewtApplet1Run extends Applet {
             glTrace = JOGLNewtAppletBase.str2Bool(getParameter("gl_trace"), glTrace);
             glUndecorated = JOGLNewtAppletBase.str2Bool(getParameter("gl_undecorated"), glUndecorated);
             glAlwaysOnTop = JOGLNewtAppletBase.str2Bool(getParameter("gl_alwaysontop"), glAlwaysOnTop);
+            glCloseable = JOGLNewtAppletBase.str2Bool(getParameter("gl_closeable"), glCloseable);
             glOpaque = JOGLNewtAppletBase.str2Bool(getParameter("gl_opaque"), glOpaque);
             glAlphaBits = JOGLNewtAppletBase.str2Int(getParameter("gl_alpha"), glAlphaBits);
             glNumMultisampleBuffer = JOGLNewtAppletBase.str2Int(getParameter("gl_multisamplebuffer"), glNumMultisampleBuffer); 
@@ -157,6 +161,7 @@ public class JOGLNewtApplet1Run extends Applet {
             System.err.println("glTrace: "+glTrace);
             System.err.println("glUndecorated: "+glUndecorated);
             System.err.println("glAlwaysOnTop: "+glAlwaysOnTop);
+            System.err.println("glCloseable: "+glCloseable);
             System.err.println("glOpaque: "+glOpaque);
             System.err.println("glAlphaBits: "+glAlphaBits);
             System.err.println("glNumMultisampleBuffer: "+glNumMultisampleBuffer);
@@ -166,6 +171,7 @@ public class JOGLNewtApplet1Run extends Applet {
         base = new JOGLNewtAppletBase(glEventListenerClazzName, 
                                       glSwapInterval,
                                       glNoDefaultKeyListener,
+                                      glCloseable,
                                       glDebug,
                                       glTrace);
 
@@ -181,6 +187,7 @@ public class JOGLNewtApplet1Run extends Applet {
             glWindow.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
             glWindow.setUndecorated(glUndecorated);
             glWindow.setAlwaysOnTop(glAlwaysOnTop);
+            glWindow.setDefaultCloseOperation(glCloseable ? WindowClosingProtocol.DISPOSE_ON_CLOSE : WindowClosingProtocol.DO_NOTHING_ON_CLOSE);
             container.setLayout(new BorderLayout());
             if(appletDebugTestBorder) {
                 container.add(new Button("North"), BorderLayout.NORTH);

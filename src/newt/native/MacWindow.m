@@ -705,6 +705,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_close0
     DBG_PRINT( "windowClose.0 - %p,%d, destroyNotifySent %d, view %p,%d, parent %p\n", 
         mWin, getRetainCount(mWin), destroyNotifySent, mView, getRetainCount(mView), pWin);
 
+    [mWin setUnrealized];
+
     if(NULL!=mView) {
         // cleanup view
         jobject javaWindowObject = [mView getJavaWindowObject];
@@ -763,6 +765,9 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_lockSurface0
   (JNIEnv *env, jclass clazz, jlong window)
 {
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
+    if(NO == [mWin isRealized]) {
+        return JNI_FALSE;
+    }
     NewtView * mView = (NewtView *) [mWin contentView];
     return [mView softLock] == YES ? JNI_TRUE : JNI_FALSE;
     /** deadlocks, since we render independent of focus

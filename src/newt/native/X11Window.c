@@ -730,11 +730,13 @@ static Bool WaitForReparentNotify( Display *dpy, XEvent *event, XPointer arg ) {
  * Signature: (JIJJIIIII)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
-  (JNIEnv *env, jobject obj, jlong jdisplay, jint screen_index, jlong jparent, jlong jwindow, 
+  (JNIEnv *env, jobject obj, jlong jdisplay, jint screen_index,
+   jlong jparent, jlong jwindow, jlong windowDeleteAtom,
    jint x, jint y, jint width, jint height, jint flags)
 {
     Display * dpy = (Display *) (intptr_t) jdisplay;
     Window w = (Window)jwindow;
+    Atom wm_delete_atom = (Atom)windowDeleteAtom;
     Window root = RootWindow(dpy, screen_index);
     Window parent = (0!=jparent)?(Window)jparent:root;
     XEvent event;
@@ -810,6 +812,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
         XReparentWindow( dpy, w, parent, x, y ); // actual reparent call
         // XIfEvent( dpy, &event, WaitForReparentNotify, (XPointer) w );
         XSync(dpy, False);
+        XSetWMProtocols(dpy, w, &wm_delete_atom, 1); // windowDeleteAtom
     }
 
     if( TST_FLAG_CHANGE_DECORATION(flags) ) {

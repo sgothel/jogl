@@ -66,6 +66,7 @@ import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.SurfaceUpdatedListener;
+import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
@@ -428,12 +429,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * The implementation should invoke the referenced java state callbacks
      * to notify this Java object of state changes.</p>
      * 
-     * @see #windowDestroyNotify()
+     * @see #windowDestroyNotify(boolean)
      * @see #focusChanged(boolean, boolean)
      * @see #visibleChanged(boolean, boolean)
      * @see #sizeChanged(int,int)
      * @see #positionChanged(boolean,int, int)
-     * @see #windowDestroyNotify()
+     * @see #windowDestroyNotify(boolean)
      */
     protected abstract void createNativeImpl();
 
@@ -908,16 +909,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     System.err.println("Window.destroy() END "+getThreadName()/*+", "+WindowImpl.this*/);
                 }
             } finally {
+                // update states before release window lock
+                setWindowHandle(0);
+                visible = false;
+                fullscreen = false;
+                hasFocus = false;
+                parentWindowHandle = 0;
+                
                 windowLock.unlock();
             }
             if(animatorPaused) {
                 lifecycleHook.resumeRenderingAction();
             }
-            setWindowHandle(0);
-            visible = false;
-            fullscreen = false;
-            hasFocus = false;
-            parentWindowHandle = 0;
             
             // these refs shall be kept alive - resurrection via setVisible(true)
             /**
@@ -1525,8 +1528,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     
     /**
      * If set to true, the default value, this NEWT Window implementation will
-     * handle the destruction (ie {@link #destroy()} call) within {@link #windowDestroyNotify()} implementation.<br>
-     * If set to false, it's up to the caller/owner to handle destruction within {@link #windowDestroyNotify()}.
+     * handle the destruction (ie {@link #destroy()} call) within {@link #windowDestroyNotify(boolean)} implementation.<br>
+     * If set to false, it's up to the caller/owner to handle destruction within {@link #windowDestroyNotify(boolean)}.
      */
     public void setHandleDestroyNotify(boolean b) {
         handleDestroyNotify = b;
@@ -2498,21 +2501,34 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
     
-    protected void windowDestroyNotify() {
+    /**
+     * Triggered by implementation's WM events or programmatically
+     * 
+     * @param force if true, overrides {@link #setDefaultCloseOperation(int)} with {@link WindowClosingProtocol#DISPOSE_ON_CLOSE}
+     *              and hence force destruction. Otherwise is follows the user settings.
+     * @return true if this window is no more valid and hence has been destroyed, otherwise false.
+     */
+    protected boolean windowDestroyNotify(boolean force) {
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.windowDestroyNotify START "+getThreadName());
+            System.err.println("Window.windowDestroyNotify(force: "+force+") START "+getThreadName()+": "+this);
+        }
+        if(force) {
+            setDefaultCloseOperation(WindowClosingProtocol.DISPOSE_ON_CLOSE);
         }
 
         // send synced destroy notifications
         enqueueWindowEvent(true, WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
 
-        if(handleDestroyNotify && DISPOSE_ON_CLOSE == defaultCloseOperation) {
+        if(handleDestroyNotify && DISPOSE_ON_CLOSE == getDefaultCloseOperation()) {
             destroy();
         }
+        
+        final boolean destroyed = !isNativeValid();
 
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.windowDestroyeNotify END "+getThreadName());
+            System.err.println("Window.windowDestroyNotify(force: "+force+") END "+getThreadName()+": destroyed "+destroyed+", "+this);
         }
+        return destroyed;
     }
 
     public void windowRepaint(int x, int y, int width, int height) {

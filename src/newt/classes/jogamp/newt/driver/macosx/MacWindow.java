@@ -77,19 +77,19 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
     protected void closeNativeImpl() {
         try {
             if(DEBUG_IMPLEMENTATION) { System.err.println("MacWindow.CloseAction "+Thread.currentThread().getName()); }
-            if (getWindowHandle() != 0) {
-                close0(getWindowHandle());
+            final long handle = getWindowHandle(); 
+            setWindowHandle(0);
+            surfaceHandle = 0;
+            sscSurfaceHandle = 0;
+            isOffscreenInstance = false;            
+            if (0 != handle) {
+                close0(handle);
             }
         } catch (Throwable t) {
             if(DEBUG_IMPLEMENTATION) { 
                 Exception e = new Exception("Warning: closeNative failed - "+Thread.currentThread().getName(), t);
                 e.printStackTrace();
             }
-        } finally {
-            setWindowHandle(0);
-            surfaceHandle = 0;
-            sscSurfaceHandle = 0;
-            isOffscreenInstance = false;            
         }
     }
     

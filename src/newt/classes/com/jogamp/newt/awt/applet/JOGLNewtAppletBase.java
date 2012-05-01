@@ -32,6 +32,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
@@ -43,8 +44,10 @@ import jogamp.newt.Debug;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseListener;
+import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
+import com.jogamp.newt.event.WindowUpdateEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 
@@ -58,6 +61,7 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     String glEventListenerClazzName;
     int glSwapInterval;
     boolean noDefaultKeyListener;
+    boolean glClosable;
     boolean glDebug;
     boolean glTrace;
 
@@ -70,12 +74,14 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     public JOGLNewtAppletBase(String glEventListenerClazzName, 
                               int glSwapInterval,
                               boolean noDefaultKeyListener,
+                              boolean glClosable,
                               boolean glDebug,
                               boolean glTrace) {
     
         this.glEventListenerClazzName=glEventListenerClazzName;
         this.glSwapInterval=glSwapInterval;
         this.noDefaultKeyListener = noDefaultKeyListener;
+        this.glClosable = glClosable;
         this.glDebug = glDebug;
         this.glTrace = glTrace;
     }
@@ -152,9 +158,25 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
         init(Thread.currentThread().getThreadGroup(), glWindow);
     }
 
-    public void init(ThreadGroup tg, GLWindow glWindow) {
+    public void init(ThreadGroup tg, final GLWindow glWindow) {
         isValid = false;
         this.glWindow = glWindow;
+        this.glWindow.addWindowListener(new WindowAdapter() {
+                // Closing action: back to parent!
+                @Override
+                public void windowDestroyNotify(WindowEvent e) {
+                    if( WindowClosingProtocol.DO_NOTHING_ON_CLOSE == glWindow.getDefaultCloseOperation() ) {
+                        if(null == glWindow.getParent()) {
+                            // we may be called directly by the native EDT
+                            new Thread(new Runnable() {
+                               public void run() {
+                                // try { Thread.sleep(10); } catch (InterruptedException e) { }
+                                glWindow.reparentWindow(awtParent);
+                               }
+                            }).start();                         
+                        }                        
+                    }
+                } } );
 
         glEventListener = createInstance(glEventListenerClazzName);
         if(null == glEventListener) {
@@ -277,6 +299,9 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                 glWindow.reparentWindow(awtParent);
             } else {
                 glWindow.reparentWindow(null);
+                if(glClosable) {
+                    glWindow.setDefaultCloseOperation(WindowClosingProtocol.DISPOSE_ON_CLOSE);
+                }
             }
        }
     }

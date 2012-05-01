@@ -110,6 +110,7 @@
     BOOL mouseVisible;
     BOOL mouseInside;
     BOOL cursorIsHidden;
+    BOOL realized;
     NSPoint lastInsideMousePosition;
 @public
     int cachedInsets[4]; // l, r, t, b
@@ -125,6 +126,8 @@
        isFullscreenWindow:(BOOL)isfs;
 - (void) release;
 - (void) dealloc;
+- (void) setUnrealized;
+- (BOOL) isRealized;
 
 - (void) updateInsets: (JNIEnv*) env;
 - (void) attachToParent: (NSWindow*) parent;
@@ -166,5 +169,10 @@
 - (void) rightMouseUp: (NSEvent*) theEvent;
 - (void) otherMouseDown: (NSEvent*) theEvent;
 - (void) otherMouseUp: (NSEvent*) theEvent;
+- (void) windowDidResize: (NSNotification*) notification;
+- (void) windowDidMove: (NSNotification*) notification;
+- (BOOL) windowClosingImpl: (BOOL) force;
+- (BOOL) windowShouldClose: (id) sender;
+- (void) windowWillClose: (NSNotification*) notification;
 
 @end

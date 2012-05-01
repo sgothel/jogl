@@ -329,8 +329,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         if(0!=surfaceHandle && androidFormat != aFormat ) {
             // re-create
             Log.d(MD.TAG, "surfaceChanged (destroy old)");
-            windowDestroyNotify();
-            if(isNativeValid()) {
+            if(!windowDestroyNotify(true)) {
                 destroy();
             }
             surfaceHandle = 0;
@@ -371,7 +370,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
     
     public void surfaceDestroyed(SurfaceHolder holder) {
         Log.d(MD.TAG, "surfaceDestroyed");
-        windowDestroyNotify();
+        windowDestroyNotify(true); // actually too late .. however ..
     }
 
     public void surfaceRedrawNeeded(SurfaceHolder holder) {
