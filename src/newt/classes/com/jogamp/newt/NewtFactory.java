@@ -58,11 +58,16 @@ public class NewtFactory {
 
     public static Class<?> getCustomClass(String packageName, String classBaseName) {
         Class<?> clazz = null;
-        if(packageName!=null || classBaseName!=null) {
-            String clazzName = packageName + "." + classBaseName ;
+        if(packageName!=null && classBaseName!=null) {
+            final String clazzName = packageName + "." + classBaseName ;
             try {
                 clazz = Class.forName(clazzName);
-            } catch (Throwable t) {}
+            } catch (Throwable t) {
+                System.err.println("Warning: Failed to find class <"+clazzName+">: "+t.getMessage());
+                if(DEBUG_IMPLEMENTATION) {
+                    t.printStackTrace();
+                }
+            }
         }
         return clazz;
     }
