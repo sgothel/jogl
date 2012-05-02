@@ -806,10 +806,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_requestFocus0
     DBG_PRINT( "requestFocus - window: %p, force %d, hasFocus %d (START)\n", mWin, force, hasFocus);
 
     [mWin makeFirstResponder: nil];
-    // [mWin performSelectorOnMainThread:@selector(orderFrontRegardless) withObject:nil waitUntilDone:YES];
-    // [mWin performSelectorOnMainThread:@selector(makeKeyWindow) withObject:nil waitUntilDone:YES];
-    [mWin orderFrontRegardless];
-    [mWin makeKeyWindow];
+    [mWin performSelectorOnMainThread:@selector(orderFrontRegardless) withObject:nil waitUntilDone:YES];
+    [mWin performSelectorOnMainThread:@selector(makeKeyWindow) withObject:nil waitUntilDone:YES];
+    // This will occasionally cause a free of non allocated object crash:
+    // [mWin orderFrontRegardless];
+    // [mWin makeKeyWindow];
 
     DBG_PRINT( "requestFocus - window: %p, force %d (END)\n", mWin, force);
 
@@ -833,7 +834,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_requestFocusPare
 
     DBG_PRINT( "requestFocusParent0 - window: %p, parent: %p, hasFocus %d (START)\n", mWin, pWin, hasFocus );
     if(NULL != pWin) {
-        [pWin makeKeyWindow];
+        [pWin performSelectorOnMainThread:@selector(makeKeyWindow) withObject:nil waitUntilDone:YES];
+        // This will occasionally cause a free of non allocated object crash:
+        // [pWin makeKeyWindow];
     }
     DBG_PRINT( "requestFocusParent0 - window: %p, parent: %p (END)\n", mWin, pWin);
 
@@ -853,7 +856,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_orderFront0
 
     DBG_PRINT( "orderFront0 - window: %p (START)\n", win);
 
-    [win orderFrontRegardless];
+    [win performSelectorOnMainThread:@selector(orderFrontRegardless) withObject:nil waitUntilDone:YES];
+    // This will occasionally cause a free of non allocated object crash:
+    // [win orderFrontRegardless];
 
     DBG_PRINT( "orderFront0 - window: %p (END)\n", win);
 
@@ -875,9 +880,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_orderOut0
     DBG_PRINT( "orderOut0 - window: (parent %p) %p (START)\n", pWin, mWin);
 
     if(NULL == pWin) {
-        [mWin orderOut: mWin];
+        [mWin performSelectorOnMainThread:@selector(orderOut:) withObject:mWin waitUntilDone:YES];
+        // This will occasionally cause a free of non allocated object crash:
+        // [mWin orderOut: mWin];
     } else {
-        [mWin orderBack: mWin];
+        [mWin performSelectorOnMainThread:@selector(orderBack:) withObject:mWin waitUntilDone:YES];
+        // This will occasionally cause a free of non allocated object crash:
+        // [mWin orderBack: mWin];
     }
 
     DBG_PRINT( "orderOut0 - window: (parent %p) %p (END)\n", pWin, mWin);
