@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2012 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -33,12 +34,15 @@
 
 package jogamp.newt.driver.kd;
 
-import com.jogamp.nativewindow.egl.*;
-import com.jogamp.newt.*;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeWindowException;
 
-import jogamp.newt.*;
-import jogamp.opengl.egl.*;
-import javax.media.nativewindow.*;
+import jogamp.newt.DisplayImpl;
+import jogamp.newt.NEWTJNILibLoader;
+import jogamp.opengl.egl.EGL;
+import jogamp.opengl.egl.EGLDisplayUtil;
+
+import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
 public class KDDisplay extends DisplayImpl {
 

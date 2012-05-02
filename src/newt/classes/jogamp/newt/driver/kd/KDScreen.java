@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2012 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -33,10 +34,11 @@
 
 package jogamp.newt.driver.kd;
 
-import jogamp.newt.ScreenImpl;
-import javax.media.nativewindow.*;
+import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.Point;
+
+import jogamp.newt.ScreenImpl;
 
 public class KDScreen extends ScreenImpl {
     static {
