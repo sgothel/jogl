@@ -88,7 +88,7 @@
         <property name="nativewindow.version" value="${nativewindow_base_version}-b${jogl.build.number}-${version.timestamp}" />
         <property name="jogl.version"         value="${jogl_base_version}-b${jogl.build.number}-${version.timestamp}" />
         <property name="newt.version"         value="${newt_base_version}-b${jogl.build.number}-${version.timestamp}" />
-        <property name="jogl.version.plus"    value="${jogl_base_version}-${jogl.build.branch}-b${jogl.build.number}-${jogl.build.commit}-${version.timestamp}" />
+        <property name="jogl.version.plus"    value="${jogl_base_version}-${jogl.build.branch}-b${jogl.build.number}-${version.timestamp}" />
 
         <property name="archive.name"         value="jogl-${jogl.version}-${os.and.arch}" />
         <property name="archive"              value="${build}/${archive.name}" />
