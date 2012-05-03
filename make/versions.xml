@@ -12,7 +12,7 @@
        betas before release candidates to give the Community time to
        react.-->
   <property name="jogl_base_version" value="2.0" />
-  <property name="jogl_int_version"  value="2" />
+  <property name="jogl_int_version"  value="1" />
 
   <!-- Uncomment this property in order to produce a JOGL release
        build without running the "RI" (Reference Implementation)
