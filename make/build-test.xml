@@ -557,6 +557,7 @@
 rsync -av --delete --delete-after --delete-excluded \${line.separator}
       --exclude 'build-x86*/' --exclude 'build-linux-x*/' --exclude 'build-android*/' --exclude 'build-win*/' --exclude 'build-mac*/' \${line.separator}
       --exclude 'classes/' --exclude 'src/' --exclude '.git/' --exclude '*-java-src.zip' \${line.separator}
+      --exclude 'make/lib/external/' \${line.separator}
       ${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/${jogl.basename} ${env.TARGET_ROOT} ${line.separator}
 cd ${env.TARGET_ROOT}/${jogl.basename}/${env.NODE_LABEL}/make ${line.separator}
 " append="true" file="${build.test}/targetcommand.sh" />
