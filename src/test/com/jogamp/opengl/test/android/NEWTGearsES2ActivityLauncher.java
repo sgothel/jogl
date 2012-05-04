@@ -43,11 +43,11 @@ public class NEWTGearsES2ActivityLauncher extends LauncherUtil.BaseActivityLaunc
        final OrderedProperties props = getProperties();       
        // props.setProperty("jogamp.debug.JNILibLoader", "true");
        // props.setProperty("jogamp.debug.NativeLibrary", "true");
+       // props.setProperty("jogamp.debug.IOUtil", "true");       
        // properties.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
-       // properties.setProperty("jogamp.debug.IOUtil", "true");       
-       // properties.setProperty("nativewindow.debug", "all");
+       // props.setProperty("nativewindow.debug", "all");
        props.setProperty("nativewindow.debug.GraphicsConfiguration", "true");
-       // properties.setProperty("jogl.debug", "all");
+       // props.setProperty("jogl.debug", "all");
        // properties.setProperty("jogl.debug.GLProfile", "true");
        props.setProperty("jogl.debug.GLDrawable", "true");
        props.setProperty("jogl.debug.GLContext", "true");
@@ -60,7 +60,6 @@ public class NEWTGearsES2ActivityLauncher extends LauncherUtil.BaseActivityLaunc
        // props.setProperty("newt.debug.Window", "true");
        // props.setProperty("newt.debug.Window.MouseEvent", "true");
        // props.setProperty("newt.debug.Window.KeyEvent", "true");
-       props.setProperty("jogamp.debug.IOUtil", "true");
     }
     
     @Override

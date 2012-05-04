@@ -28,7 +28,6 @@
  
 package com.jogamp.opengl.test.junit.util;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.locks.SingletonInstance;
 
 import org.junit.Assume;
@@ -38,7 +37,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.rules.TestName;
-import org.junit.runner.manipulation.NoTestsRemainException;
 
 
 public abstract class UITestCase {
