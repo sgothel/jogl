@@ -56,7 +56,7 @@ public class NEWTJNILibLoader extends JNILibLoaderBase {
         if(TempJarCache.isInitialized() && null == TempJarCache.findLibrary(libName)) {
             addNativeJarLibs(NEWTJNILibLoader.class, "jogl-all", new String[] { "nativewindow", "newt" } );
         }
-        loadLibrary(libName, false);
+        loadLibrary(libName, false, NEWTJNILibLoader.class.getClassLoader());
         return null;
       }
     });
