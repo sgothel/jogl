@@ -69,7 +69,7 @@
             android.abi="${android.abi}"
             androidmanifest.path="resources/android/AndroidManifest-test.xml"
             androidresources.path="resources/android/res-test"
-            jarmanifest.path="${build.jogl}/manifest.mf"
+            jarmanifest.path="${build.test}/manifest-test.mf"
             version.code="${jogl_int_version}"
             version.name="${jogl.version.plus}" />
     </target>
@@ -94,7 +94,18 @@
                 <exclude name="**/*.java"/>
             </fileset>
         </copy>
-        <jar destfile="${jogl.test.jar}" filesonly="true">
+        <copy file="joglversion-test"
+            tofile="${build.test}/manifest-test.mf"
+            overwrite="true">
+            <filterset>
+                <filter token="VERSION" value="${jogl.version}"/>
+                <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+                <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
+                <filter token="BASEVERSION" value="${jogl_base_version}"/>
+            </filterset>
+        </copy>
+
+        <jar manifest="${build.test}/manifest-test.mf" destfile="${jogl.test.jar}" filesonly="true">
             <!-- get all class files, but skip any resource files that external tools
                  might have copied into the class directory (otherwise, it's possible
                  to get the same resource file twice in the jar) -->
