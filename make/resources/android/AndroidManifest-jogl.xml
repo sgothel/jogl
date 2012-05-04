@@ -11,7 +11,7 @@
                  android:description="@string/app_descr"
                  android:persistent="false"
                  >
-        <activity android:name="jogamp.newt.driver.android.NewtVersionActivity"
+        <activity android:name="jogamp.newt.driver.android.NewtVersionActivityLauncher"
                   android:finishOnTaskLaunch="true"
                   android:launchMode="singleTop"
                   android:configChanges="keyboardHidden|orientation"

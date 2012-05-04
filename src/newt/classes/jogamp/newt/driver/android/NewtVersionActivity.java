@@ -27,33 +27,78 @@
  */
 package jogamp.newt.driver.android;
 
+import javax.media.opengl.GL;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLProfile;
+
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
+import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.JoglVersion;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 public class NewtVersionActivity extends NewtBaseActivity {
-   TextView tv = null;
-   
    @Override
    public void onCreate(Bundle savedInstanceState) {
        super.onCreate(savedInstanceState);
        
-       System.setProperty("nativewindow.debug", "all");
-       System.setProperty("jogl.debug", "all");
-       System.setProperty("newt.debug", "all");
-       System.setProperty("jogamp.debug.JNILibLoader", "true");
-       System.setProperty("jogamp.debug.NativeLibrary", "true");
-       // System.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
-       
-       tv = new TextView(this);
-       tv.setText(VersionUtil.getPlatformInfo()+Platform.NEWLINE+GlueGenVersion.getInstance()+Platform.NEWLINE+JoglVersion.getInstance()+Platform.NEWLINE);               
-       setContentView(tv);
+       setFullscreenFeature(getWindow(), true);
 
+       final android.view.ViewGroup viewGroup = new android.widget.FrameLayout(getActivity().getApplicationContext());
+       getWindow().setContentView(viewGroup);
+       
+       final TextView tv = new TextView(getActivity());
+       final ScrollView scroller = new ScrollView(getActivity());
+       scroller.addView(tv);
+       viewGroup.addView(scroller, new android.widget.FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.TOP|Gravity.LEFT));
+       
+       tv.setText(VersionUtil.getPlatformInfo()+Platform.NEWLINE+GlueGenVersion.getInstance()+Platform.NEWLINE+JoglVersion.getInstance()+Platform.NEWLINE);               
+       
+       // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
+       GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
+       GLWindow glWindow = GLWindow.create(caps);
+       glWindow.setUndecorated(true);
+       glWindow.setSize(32, 32);
+       glWindow.setPosition(0, 0);
+       final android.view.View androidGLView = ((AndroidWindow)glWindow.getDelegatedWindow()).getAndroidView();       
+       viewGroup.addView(androidGLView, new android.widget.FrameLayout.LayoutParams(glWindow.getWidth(), glWindow.getHeight(), Gravity.BOTTOM|Gravity.RIGHT));
+       registerNEWTWindow(glWindow);
+       
+       glWindow.addGLEventListener(new GLEventListener() {
+            public void init(GLAutoDrawable drawable) {
+                GL gl = drawable.getGL();
+                final StringBuffer sb = new StringBuffer();
+                sb.append(JoglVersion.getGLInfo(gl, null)).append(Platform.NEWLINE);
+                sb.append("Requested: ").append(Platform.NEWLINE);
+                sb.append(drawable.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities()).append(Platform.NEWLINE).append(Platform.NEWLINE);
+                sb.append("Chosen: ").append(Platform.NEWLINE);
+                sb.append(drawable.getChosenGLCapabilities()).append(Platform.NEWLINE).append(Platform.NEWLINE);
+                viewGroup.post(new Runnable() {
+                    public void run() {
+                        tv.append(sb.toString());
+                        viewGroup.removeView(androidGLView);
+                    } } );                
+            }
+
+            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+            }
+
+            public void display(GLAutoDrawable drawable) {
+            }
+
+            public void dispose(GLAutoDrawable drawable) {
+            }
+        });
+       glWindow.setVisible(true);
        Log.d(MD.TAG, "onCreate - X");
    }   
 }
