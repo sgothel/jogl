@@ -249,7 +249,7 @@ public class LauncherUtil {
            }
            
            final String q = uri.getQuery();
-           final int q_l = q.length();
+           final int q_l = null != q ? q.length() : -1;
            int q_e = -1;
            while(q_e < q_l) {
                int q_b = q_e + 1; // next term
@@ -292,9 +292,6 @@ public class LauncherUtil {
        public final void validate() {
            if(null == activityName) {
                throw new RuntimeException("Activity is not NULL");
-           }
-           if(packages.size() == 0) {
-               throw new RuntimeException("Empty package list");
            }
        }
    }
