@@ -12,7 +12,7 @@
        betas before release candidates to give the Community time to
        react.-->
   <property name="jogl_base_version" value="2.0" />
-  <property name="jogl_int_version"  value="0914008" /> <!-- xxyyzzz, xx=API yy screen-from-to zzz app-version-->
+  <property name="jogl_int_version"  value="0914009" /> <!-- xxyyzzz, xx=API yy screen-from-to zzz app-version-->
 
   <!-- Uncomment this property in order to produce a JOGL release
        build without running the "RI" (Reference Implementation)
