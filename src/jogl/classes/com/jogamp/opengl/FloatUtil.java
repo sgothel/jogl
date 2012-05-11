@@ -32,6 +32,10 @@ import java.nio.FloatBuffer;
 /**
  * Basic Float math utility functions.
  * <p>
+ * Implementation assumes linear matrix layout in column-major order
+ * matching OpenGL's implementation.
+ * </p>
+ * <p>
  * Derived from ProjectFloat.java - Created 11-jan-2004
  * </p>
  * 
@@ -91,29 +95,31 @@ public class FloatUtil {
   }
   
   /**
-   * @param a
-   * @param b
-   * @param d result a*b
+   * @param a 4x4 matrix in column-major order
+   * @param b 4x4 matrix in column-major order
+   * @param d result a*b in column-major order
    */
   public static final void multMatrixf(final float[] a, int a_off, final float[] b, int b_off, float[] d, int d_off) {
      for (int i = 0; i < 4; i++) {
-        final float ai0=a[a_off+i+0*4],  ai1=a[a_off+i+1*4],  ai2=a[a_off+i+2*4],  ai3=a[a_off+i+3*4];
+        // one row in column-major order
+        final float ai0=a[a_off+i+0*4],  ai1=a[a_off+i+1*4],  ai2=a[a_off+i+2*4],  ai3=a[a_off+i+3*4]; // row-i of a
         d[d_off+i+0*4] = ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] ;
         d[d_off+i+1*4] = ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] ;
         d[d_off+i+2*4] = ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] ;
         d[d_off+i+3*4] = ai0 * b[b_off+0+3*4] + ai1 * b[b_off+1+3*4] + ai2 * b[b_off+2+3*4] + ai3 * b[b_off+3+3*4] ;
      }
   }
-
+  
   /**
-   * @param a
-   * @param b
-   * @param d result a*b
+   * @param a 4x4 matrix in column-major order
+   * @param b 4x4 matrix in column-major order
+   * @param d result a*b in column-major order
    */
   public static final void multMatrixf(final float[] a, int a_off, final float[] b, int b_off, FloatBuffer d) {
      final int dP = d.position();
      for (int i = 0; i < 4; i++) {
-        final float ai0=a[a_off+i+0*4],  ai1=a[a_off+i+1*4],  ai2=a[a_off+i+2*4],  ai3=a[a_off+i+3*4];
+        // one row in column-major order
+        final float ai0=a[a_off+i+0*4],  ai1=a[a_off+i+1*4],  ai2=a[a_off+i+2*4],  ai3=a[a_off+i+3*4]; // row-i of a
         d.put(dP+i+0*4 , ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] );
         d.put(dP+i+1*4 , ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] );
         d.put(dP+i+2*4 , ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] );
@@ -122,15 +128,16 @@ public class FloatUtil {
   }
 
   /**
-   * @param a
-   * @param b
-   * @param d result a*b
+   * @param a 4x4 matrix in column-major order
+   * @param b 4x4 matrix in column-major order
+   * @param d result a*b in column-major order
    */
   public static final void multMatrixf(final FloatBuffer a, final float[] b, int b_off, FloatBuffer d) {
      final int aP = a.position(); 
      final int dP = d.position();
      for (int i = 0; i < 4; i++) {
-        final float ai0=a.get(aP+i+0*4),  ai1=a.get(aP+i+1*4),  ai2=a.get(aP+i+2*4),  ai3=a.get(aP+i+3*4);
+        // one row in column-major order
+        final float ai0=a.get(aP+i+0*4),  ai1=a.get(aP+i+1*4),  ai2=a.get(aP+i+2*4),  ai3=a.get(aP+i+3*4); // row-i of a
         d.put(dP+i+0*4 , ai0 * b[b_off+0+0*4] + ai1 * b[b_off+1+0*4] + ai2 * b[b_off+2+0*4] + ai3 * b[b_off+3+0*4] );
         d.put(dP+i+1*4 , ai0 * b[b_off+0+1*4] + ai1 * b[b_off+1+1*4] + ai2 * b[b_off+2+1*4] + ai3 * b[b_off+3+1*4] );
         d.put(dP+i+2*4 , ai0 * b[b_off+0+2*4] + ai1 * b[b_off+1+2*4] + ai2 * b[b_off+2+2*4] + ai3 * b[b_off+3+2*4] );
@@ -139,16 +146,17 @@ public class FloatUtil {
   }
 
   /**
-   * @param a
-   * @param b
-   * @param d result a*b
+   * @param a 4x4 matrix in column-major order
+   * @param b 4x4 matrix in column-major order
+   * @param d result a*b in column-major order
    */
   public static final void multMatrixf(final FloatBuffer a, final FloatBuffer b, FloatBuffer d) {
      final int aP = a.position(); 
      final int bP = b.position();
      final int dP = d.position();
      for (int i = 0; i < 4; i++) {
-        final float ai0=a.get(aP+i+0*4),  ai1=a.get(aP+i+1*4),  ai2=a.get(aP+i+2*4),  ai3=a.get(aP+i+3*4);
+        // one row in column-major order
+        final float ai0=a.get(aP+i+0*4),  ai1=a.get(aP+i+1*4),  ai2=a.get(aP+i+2*4),  ai3=a.get(aP+i+3*4); // row-i of a
         d.put(dP+i+0*4 , ai0 * b.get(bP+0+0*4) + ai1 * b.get(bP+1+0*4) + ai2 * b.get(bP+2+0*4) + ai3 * b.get(bP+3+0*4) );
         d.put(dP+i+1*4 , ai0 * b.get(bP+0+1*4) + ai1 * b.get(bP+1+1*4) + ai2 * b.get(bP+2+1*4) + ai3 * b.get(bP+3+1*4) );
         d.put(dP+i+2*4 , ai0 * b.get(bP+0+2*4) + ai1 * b.get(bP+1+2*4) + ai2 * b.get(bP+2+2*4) + ai3 * b.get(bP+3+2*4) );
@@ -201,10 +209,10 @@ public class FloatUtil {
 
 
   /**
-   * Calculate cross-product
+   * Calculate cross-product of 2 vector
    *
-   * @param v1
-   * @param v2
+   * @param v1 3-component vector
+   * @param v2 3-component vector
    * @param result v1 X v2
    */
   public static final void cross(float[] v1, float[] v2, float[] result) {
@@ -214,10 +222,10 @@ public class FloatUtil {
   }
 
   /**
-   * Calculate cross-product
+   * Calculate cross-product of 2 vector
    *
-   * @param v1
-   * @param v2
+   * @param v1 3-component vector
+   * @param v2 3-component vector
    * @param result v1 X v2
    */
   public static final void cross(FloatBuffer v1, FloatBuffer v2, FloatBuffer result) {
@@ -231,15 +239,14 @@ public class FloatUtil {
   }
 
   /**
-   * Method __gluMultMatrixVecf
-   * 
-   * @param m_in
+   * @param m_in 4x4 matrix in column-major order
    * @param m_in_off
-   * @param v_in
+   * @param v_in 4-component column-vector
    * @param v_out m_in * v_in
    */
   public static final void multMatrixVecf(float[] m_in, int m_in_off, float[] v_in, int v_in_off, float[] v_out) {
     for (int i = 0; i < 4; i++) {
+      // (one matrix row in column-major order) X (column vector)
       v_out[i] =
         v_in[0+v_in_off] * m_in[0*4+i+m_in_off] +
         v_in[1+v_in_off] * m_in[1*4+i+m_in_off] +
@@ -249,15 +256,14 @@ public class FloatUtil {
   }
 
   /**
-   * Method __gluMultMatrixVecf
-   * 
-   * @param m_in
+   * @param m_in 4x4 matrix in column-major order
    * @param m_in_off
-   * @param v_in
+   * @param v_in 4-component column-vector
    * @param v_out m_in * v_in
    */
   public static final void multMatrixVecf(float[] m_in, float[] v_in, float[] v_out) {
     for (int i = 0; i < 4; i++) {
+      // (one matrix row in column-major order) X (column vector)
       v_out[i] =
         v_in[0] * m_in[0*4+i] +
         v_in[1] * m_in[1*4+i] +
@@ -267,10 +273,8 @@ public class FloatUtil {
   }
   
   /**
-   * Method __gluMultMatrixVecf
-   * 
-   * @param m_in
-   * @param v_in
+   * @param m_in 4x4 matrix in column-major order
+   * @param v_in 4-component column-vector
    * @param v_out m_in * v_in
    */
   public static final void multMatrixVecf(FloatBuffer m_in, FloatBuffer v_in, FloatBuffer v_out) {
@@ -278,6 +282,7 @@ public class FloatUtil {
     int outPos = v_out.position();
     int matrixPos = m_in.position();
     for (int i = 0; i < 4; i++) {
+      // (one matrix row in column-major order) X (column vector)
       v_out.put(i + outPos,
               v_in.get(0+inPos) * m_in.get(0*4+i+matrixPos) +
               v_in.get(1+inPos) * m_in.get(1*4+i+matrixPos) +

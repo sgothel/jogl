@@ -615,7 +615,7 @@ public class ProjectFloat {
     float[] in = this.in;
     float[] out = this.out;
 
-    FloatUtil.multMatrixf(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix, 0);
+    FloatUtil.multMatrixf(projMatrix, projMatrix_offset, modelMatrix, modelMatrix_offset, matrix, 0);
 
     if (!gluInvertMatrixf(matrix, 0, matrix, 0)) {
       return false;
@@ -659,7 +659,7 @@ public class ProjectFloat {
     FloatBuffer in = this.inBuf;
     FloatBuffer out = this.outBuf;
 
-    FloatUtil.multMatrixf(modelMatrix, projMatrix, matrixBuf);
+    FloatUtil.multMatrixf(projMatrix, modelMatrix, matrixBuf);
 
     if (!gluInvertMatrixf(matrixBuf, matrixBuf)) {
       return false;
@@ -715,7 +715,7 @@ public class ProjectFloat {
     FloatBuffer in = this.inBuf;
     FloatBuffer out = this.outBuf;
 
-    FloatUtil.multMatrixf(modelMatrix, projMatrix, matrixBuf);
+    FloatUtil.multMatrixf(projMatrix, modelMatrix, matrixBuf);
 
     if (!gluInvertMatrixf(matrixBuf, matrixBuf)) {
       return false;
@@ -786,7 +786,7 @@ public class ProjectFloat {
     float[] in = this.in;
     float[] out = this.out;
 
-    FloatUtil.multMatrixf(modelMatrix, modelMatrix_offset, projMatrix, projMatrix_offset, matrix, 0);
+    FloatUtil.multMatrixf(projMatrix, projMatrix_offset, modelMatrix, modelMatrix_offset, matrix, 0);
 
     if (!gluInvertMatrixf(matrix, 0, matrix, 0))
       return false;
@@ -847,7 +847,7 @@ public class ProjectFloat {
     FloatBuffer in = this.inBuf;
     FloatBuffer out = this.outBuf;
 
-    FloatUtil.multMatrixf(modelMatrix, projMatrix, matrixBuf);
+    FloatUtil.multMatrixf(projMatrix, modelMatrix, matrixBuf);
 
     if (!gluInvertMatrixf(matrixBuf, matrixBuf))
       return false;
