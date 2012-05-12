@@ -33,14 +33,10 @@ import javax.media.opengl.glu.GLU;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- * @author Julien Gouesse
- */
 public class TestGluUnprojectFloatNOUI {
-
     
     @Test
-    public void test(){
+    public void testNaN(){
         final GLU glu = new GLU();
         final int[] pickedPoint = new int[]{400,300};
         final float pickedPointDepth = 0;
@@ -50,6 +46,55 @@ public class TestGluUnprojectFloatNOUI {
         final float[] objCoords = new float[]{Float.NaN,Float.NaN,Float.NaN};
         glu.gluUnProject(pickedPoint[0], pickedPoint[1], pickedPointDepth, sceneModelViewValues, 0, projectionValues, 0, viewport, 0, objCoords, 0);
         Assert.assertTrue(!Double.isNaN(objCoords[0])&&!Double.isNaN(objCoords[1])&&!Double.isNaN(objCoords[2]));      
+    }
+    
+    @Test
+    public void test01(){
+        float[] mv = new float[] { 1, 0, 0, 0, 
+                                   0, 1, 0, 0, 
+                                   0, 0, 1, 0, 
+                                   0, 0, 0, 1 };
+        
+        float[] p = new float[] { 2.3464675f, 0,          0,        0, 
+                                  0,          2.4142134f, 0,        0, 
+                                  0,          0,         -1.0002f, -1, 
+                                  0,          0,        -20.002f,   0 };
+        
+        int[] v = new int[] { 0, 0, 1000, 1000 };
+        
+        float[] s = new float[] { 250, 250, 0.5f };
+        
+        float[] expected = new float[] { -4.2612f, -4.1417f, -19.9980f };
+        float[] result = new float[] { 0, 0, 0 };
+        
+        final GLU glu = new GLU();
+        glu.gluUnProject(s[0], s[1], s[2], mv, 0, p, 0, v, 0, result, 0);
+        
+        Assert.assertArrayEquals(expected, result, 0.0001f);
+    }
+
+    @Test
+    public void test02(){
+        float[] mv = new float[] { 1, 0,    0, 0, 
+                                   0, 1,    0, 0, 
+                                   0, 0,    1, 0, 
+                                   0, 0, -200, 1 } ;
+        
+        float[] p = new float[] { 2.3464675f, 0,          0,        0, 
+                                  0,          2.4142134f, 0,        0, 
+                                  0,          0,         -1.0002f, -1, 
+                                  0,          0,        -20.002f,   0 };
+        
+        int[] v = new int[] { 0, 0, 1000, 1000 };
+        
+        float[] s = new float[] { 250, 250, 0.5f };
+        float[] expected = new float[] { -4.2612f, -4.1417f, 180.002f };
+        float[] result = new float[] { 0, 0, 0 };
+        
+        final GLU glu = new GLU();
+        glu.gluUnProject(s[0], s[1], s[2], mv, 0, p, 0, v, 0, result, 0);
+        
+        Assert.assertArrayEquals(expected, result, 0.0001f);
     }
     
     public static void main(String args[]) {
