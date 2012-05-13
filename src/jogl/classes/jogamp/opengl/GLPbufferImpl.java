@@ -85,7 +85,6 @@ public class GLPbufferImpl implements GLPbuffer {
     }
     this.pbufferDrawable = pbufferDrawable;
     context = (GLContextImpl) pbufferDrawable.createContext(parentContext);
-    context.setSynchronized(true);
   }
 
   public GLContext createContext(GLContext shareWith) {

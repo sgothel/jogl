@@ -221,7 +221,6 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
                 drawable.setRealized(true);
                 final GLContext context = drawable.createContext(null);
                 if (null != context) {
-                    context.setSynchronized(true);
                     try {
                         context.makeCurrent(); // could cause exception
                         madeCurrent = context.isCurrent();

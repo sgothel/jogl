@@ -541,7 +541,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     try {
         drawable = GLDrawableFactory.getFactory(capsReqUser.getGLProfile()).createGLDrawable(jawtWindow);
         context = (GLContextImpl) drawable.createContext(shareWith);
-        context.setSynchronized(true);
         context.setContextCreationFlags(additionalCtxCreationFlags);
     } finally {
         jawtWindow.unlockSurface();

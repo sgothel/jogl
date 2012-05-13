@@ -421,7 +421,6 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
                 }
                 drawable.setRealized(true);
                 context = drawable.createContext(sharedContext);
-                context.setSynchronized(true);
                 context.setContextCreationFlags(additionalCtxCreationFlags);                
             }
             if(Window.DEBUG_IMPLEMENTATION) {

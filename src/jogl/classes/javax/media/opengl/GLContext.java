@@ -319,16 +319,6 @@ public abstract class GLContext {
   public abstract void destroy();
 
   /**
-   * Returns true if 'makeCurrent' will exhibit synchronized behavior.
-   */
-  public abstract boolean isSynchronized();
-    
-  /** 
-   * Determines whether 'makeCurrent' will exhibit synchronized behavior.
-   */
-  public abstract void setSynchronized(boolean isSynchronized);
-
-  /**
    * Returns the GL pipeline object for this GLContext.
    *
    * @return the aggregated GL instance, or null if this context was not yet made current.

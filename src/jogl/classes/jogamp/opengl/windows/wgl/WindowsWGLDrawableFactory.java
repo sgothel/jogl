@@ -307,7 +307,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                 if (null == sharedContext) {
                     throw new GLException("Couldn't create shared context for drawable: "+sharedDrawable);
                 }
-                sharedContext.setSynchronized(true);
                 boolean hasARBPixelFormat;
                 boolean hasARBMultisample;
                 boolean hasARBPBuffer;

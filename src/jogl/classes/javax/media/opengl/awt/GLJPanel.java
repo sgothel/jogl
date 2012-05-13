@@ -974,7 +974,6 @@ public void reshape(int x, int y, int width, int height) {
                                                 Math.max(1, panelHeight));
       offscreenDrawable.setRealized(true);
       offscreenContext = (GLContextImpl) offscreenDrawable.createContext(shareWith);
-      offscreenContext.setSynchronized(true);
       offscreenContext.setContextCreationFlags(additionalCtxCreationFlags);
       
       isInitialized = true;
@@ -1600,7 +1599,6 @@ public void reshape(int x, int y, int width, int height) {
                   if (factory.canCreateExternalGLDrawable(device)) {
                     joglDrawable = factory.createExternalGLDrawable();
                     joglContext = joglDrawable.createContext(j2dContext);
-                    joglContext.setSynchronized(true);
                     if (DEBUG) {
                         System.err.println("-- Created External Drawable: "+joglDrawable);
                         System.err.println("-- Created Context: "+joglContext);
@@ -1608,7 +1606,6 @@ public void reshape(int x, int y, int width, int height) {
                   } else if (factory.canCreateContextOnJava2DSurface(device)) {
                     // Mac OS X code path
                     joglContext = factory.createContextOnJava2DSurface(g, j2dContext);
-                    joglContext.setSynchronized(true);
                     if (DEBUG) {
                         System.err.println("-- Created Context: "+joglContext);
                     }

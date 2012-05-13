@@ -245,7 +245,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 if (null == sharedContext) {
                     throw new GLException("Couldn't create shared context for drawable: "+sharedDrawable);
                 }
-                sharedContext.setSynchronized(true);
                 boolean madeCurrent = false;
                 sharedContext.makeCurrent();
                 try {

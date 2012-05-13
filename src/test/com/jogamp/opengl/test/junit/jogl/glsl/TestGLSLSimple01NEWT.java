@@ -65,7 +65,6 @@ public class TestGLSLSimple01NEWT extends UITestCase {
         Assert.assertTrue(window.isNativeValid());
 
         GLContext context = window.getContext();
-        context.setSynchronized(true);
         
         // trigger native creation of drawable/context
         window.display();
