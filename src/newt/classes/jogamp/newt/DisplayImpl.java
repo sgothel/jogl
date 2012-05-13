@@ -70,6 +70,9 @@ public abstract class DisplayImpl extends Display {
                 throw new RuntimeException("Unknown display type \"" + type + "\"");
             }
         }
+        if(null==displayClass) {
+            throw new ClassNotFoundException("Failed to find NEWT Display Class <"+type+".Display>");            
+        }
         return displayClass;
     }
 

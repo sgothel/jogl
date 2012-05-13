@@ -170,6 +170,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 throw new NativeWindowException("Unknown window type \"" + type + "\"");
             }
         }
+        if(null==windowClass) {
+            throw new ClassNotFoundException("Failed to find NEWT Window Class <"+type+".Window>");            
+        }
         return windowClass;
     }
 

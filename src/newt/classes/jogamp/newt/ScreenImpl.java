@@ -111,6 +111,9 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 throw new RuntimeException("Unknown window type \"" + type + "\"");
             }
         }
+        if(null==screenClass) {
+            throw new ClassNotFoundException("Failed to find NEWT Screen Class <"+type+".Screen>");            
+        }
         return (Class<? extends Screen>)screenClass;
     }
 

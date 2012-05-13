@@ -63,8 +63,8 @@ public class NewtFactory {
             try {
                 clazz = Class.forName(clazzName);
             } catch (Throwable t) {
-                System.err.println("Warning: Failed to find class <"+clazzName+">: "+t.getMessage());
                 if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("Warning: Failed to find class <"+clazzName+">: "+t.getMessage());
                     t.printStackTrace();
                 }
             }
