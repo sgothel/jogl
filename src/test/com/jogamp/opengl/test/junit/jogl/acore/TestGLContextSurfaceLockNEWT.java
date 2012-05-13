@@ -195,6 +195,8 @@ public class TestGLContextSurfaceLockNEWT extends UITestCase {
             Thread.sleep(100);
             i++;
         }
+        
+        glWindow.destroy();
     }
     
     @Test
