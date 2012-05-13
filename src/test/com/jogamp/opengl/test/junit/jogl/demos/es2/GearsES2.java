@@ -184,7 +184,7 @@ public class GearsES2 implements GLEventListener {
     }
     
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        System.err.println(Thread.currentThread()+" GearsES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
+        // System.err.println(Thread.currentThread()+" GearsES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         st.useProgram(gl, true);
@@ -213,7 +213,7 @@ public class GearsES2 implements GLEventListener {
             } catch (NoClassDefFoundError e) { useAndroidDebug=false; }
         }
         
-        System.err.println(Thread.currentThread()+" GearsES2.reshape FIN");
+        // System.err.println(Thread.currentThread()+" GearsES2.reshape FIN");
     }
     private boolean useAndroidDebug = false;
 
