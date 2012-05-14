@@ -265,8 +265,8 @@ public abstract class GLContextImpl extends GLContext {
               // FIXME: This is actually impossible now, since we acquired the surface lock already,
               //        which is a prerequisite to acquire the context lock.
               lock.lock(); // holdCount++ -> 1 or 2
-              if(lock.getHoldCount() > 2) {
-                  throw new GLException("XXX: "+lock);
+              if ( lock.getHoldCount() > 2 ) {
+                  throw new GLException(getThreadName() + ": Lock was hold more than once - makeCurrent/release imbalance: "+lock);
               }
               try {          
                   // release current context
