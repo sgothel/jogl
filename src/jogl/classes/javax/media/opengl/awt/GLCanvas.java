@@ -66,7 +66,6 @@ import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
-import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAnimatorControl;
@@ -92,6 +91,7 @@ import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.nativewindow.awt.JAWTWindow;
 import com.jogamp.opengl.JoglVersion;
 
+import jogamp.common.awt.AWTEDTExecutor;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableHelper;
@@ -550,10 +550,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private boolean validateGLDrawable() {
     boolean realized = false;
     if (!Beans.isDesignTime()) {
-        if ( null != drawable ) {
+        if ( null != drawable ) { // OK: drawable is volatile
             realized = drawable.isRealized();
             if ( !realized && 0 < drawable.getWidth() * drawable.getHeight() ) {
-                drawable.setRealized(true);
+                // make sure drawable realization happens on AWT EDT, due to AWTTree lock
+                AWTEDTExecutor.singleton.invoke(true, setRealizedOnEventDispatchThreadAction);
                 realized = true;
                 sendReshape=true; // ensure a reshape is being send ..
                 if(DEBUG) {
@@ -565,6 +566,10 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     }
     return realized;
   }
+  private Runnable setRealizedOnEventDispatchThreadAction = new Runnable() {
+      public void run() {
+          drawable.setRealized(true);
+      } };
 
   /** <p>Overridden to track when this component is removed from a
       container. Subclasses which override this method must call
