@@ -30,23 +30,28 @@ package javax.media.opengl;
 
 /**
  * <p>
- * Declares one-shot OpenGL commands usable for injection into a {@link GLAutoDrawable},<br>
+ * Declares a one-shot OpenGL command usable for injection
  * via {@link GLAutoDrawable#invoke(boolean, javax.media.opengl.GLRunnable)}.<br>
- * {@link GLAutoDrawable} executes these commands within it's {@link GLAutoDrawable#display()}
- * method while the OpenGL context is current.<br>
+ * {@link GLAutoDrawable} executes the GLRunnables within it's {@link GLAutoDrawable#display() display()}
+ * method after all registered {@link GLEventListener}s 
+ * {@link GLEventListener#display(GLAutoDrawable) display(GLAutoDrawable)} 
+ * methods has been called.
+ * </p>
+ * <p>
+ * The OpenGL context is current while executing the GLRunnable.
+ * </p>
  * <p>
  * This might be useful to inject OpenGL commands from an I/O event listener.
+ * </p>
  */
 public interface GLRunnable { 
     /**
-     * Initiate one-shot OpenGL commands with a valid current context, 
-     * processed by {@link GLAutoDrawable#display()}, enqueued by 
-     * {@link GLAutoDrawable#invoke(boolean, GLRunnable)}. 
-     *  
      * @param drawable the associated drawable and current context for this call
-     * @return true if the GL [back] framebuffer remain intact by this runnable, otherwise false.
-     *         If returning false and hence the impl signals an invalidated back buffer,
-     *         another {@link GLEventListener#display(GLAutoDrawable)} call will be issued.
+     * @return true if the GL [back] framebuffer remains intact by this runnable, otherwise false.
+     *         If returning false {@link GLAutoDrawable} will call
+     *         {@link GLEventListener#display(GLAutoDrawable) display(GLAutoDrawable)} 
+     *         of all registered {@link GLEventListener}s once more. 
+     * @see GLRunnable
      */
     boolean run(GLAutoDrawable drawable);
 }

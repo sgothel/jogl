@@ -181,22 +181,26 @@ public interface GLAutoDrawable extends GLDrawable {
 
   /** 
    * <p>
-   * Enqueues a one-shot {@link javax.media.opengl.GLRunnable GLRunnable},
-   * which will be executed with the next {@link #display()} call.</p>
+   * Enqueues a one-shot {@link GLRunnable},
+   * which will be executed within the next {@link #display()} call
+   * after all registered {@link GLEventListener}s 
+   * {@link GLEventListener#display(GLAutoDrawable) display(GLAutoDrawable)} 
+   * methods has been called.
+   * </p>
    * <p>
-   * If no {@link javax.media.opengl.GLAnimatorControl GLAnimatorControl} is animating (default),<br>
+   * If no {@link GLAnimatorControl} is animating (default),<br>
    * or if the current thread is the animator thread,<br>
    * a {@link #display()} call is issued after enqueue the <code>GLRunnable</code>.<br>
    * No extra synchronization is performed in case <code>wait</code> is true, since it is executed in the current thread.</p>
    * <p>
-   * If an {@link javax.media.opengl.GLAnimatorControl GLAnimatorControl} is animating,<br>
+   * If an {@link GLAnimatorControl} is animating,<br>
    * no {@link #display()} call is issued, since the animator thread performs it.<br>
    * If <code>wait</code> is true, the implementation waits until the <code>GLRunnable</code> is executed.<br>
    * </p><br>
    *
-   * @see #setAnimator(javax.media.opengl.GLAnimatorControl)
+   * @see #setAnimator(GLAnimatorControl)
    * @see #display()
-   * @see javax.media.opengl.GLRunnable
+   * @see GLRunnable
    */   
   public void invoke(boolean wait, GLRunnable glRunnable);
 
