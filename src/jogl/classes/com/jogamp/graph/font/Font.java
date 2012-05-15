@@ -74,6 +74,12 @@ public interface Font {
      * Glyph for font
      */
     public interface Glyph {
+        // reserved special glyph IDs 
+        // http://scripts.sil.org/cms/scripts/page.php?item_id=IWS-Chapter08#ba57949e
+        public static final int ID_UNKNOWN = 0;
+        public static final int ID_CR = 2;
+        public static final int ID_SPACE = 3;
+                
         public Font getFont();
         public char getSymbol();
         public AABBox getBBox(float pixelSize);

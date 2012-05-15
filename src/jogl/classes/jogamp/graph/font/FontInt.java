@@ -38,13 +38,7 @@ import com.jogamp.graph.geom.Vertex.Factory;
 
 public interface FontInt extends Font {
 
-    public interface Glyph extends Font.Glyph {
-        // reserved special glyph IDs 
-        // http://scripts.sil.org/cms/scripts/page.php?item_id=IWS-Chapter08#ba57949e
-        public static final int ID_UNKNOWN = 0;
-        public static final int ID_CR = 2;
-        public static final int ID_SPACE = 3;
-                
+    public interface GlyphInt extends Font.Glyph {
         public Path2D getPath();  // unscaled path
         public Path2D getPath(float pixelSize);         
     }

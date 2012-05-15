@@ -29,6 +29,7 @@ package jogamp.graph.font.typecast;
 
 import java.util.ArrayList;
 
+import jogamp.graph.font.FontInt.GlyphInt;
 import jogamp.graph.font.typecast.ot.OTGlyph;
 import jogamp.graph.font.typecast.ot.Point;
 import jogamp.graph.geom.plane.AffineTransform;
@@ -37,6 +38,7 @@ import jogamp.graph.geom.plane.PathIterator;
 
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
+import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
 
@@ -75,11 +77,11 @@ public class TypecastRenderer {
                 advanceTotal = 0;
                 continue;
             } else if (character == ' ') {
-                advanceTotal += font.font.getHmtxTable().getAdvanceWidth(TypecastGlyph.ID_SPACE) * metrics.getScale(pixelSize);
+                advanceTotal += font.font.getHmtxTable().getAdvanceWidth(Glyph.ID_SPACE) * metrics.getScale(pixelSize);
                 continue;
             }        
-            TypecastGlyph glyph = (TypecastGlyph) font.getGlyph(character);
-            Path2D gp = glyph.getPath();
+            Glyph glyph = font.getGlyph(character);
+            Path2D gp = ((GlyphInt)glyph).getPath();
             float scale = metrics.getScale(pixelSize);
             t.translate(advanceTotal, y);
             t.scale(scale, scale);
