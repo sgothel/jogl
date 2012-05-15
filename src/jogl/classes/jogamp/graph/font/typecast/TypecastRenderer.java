@@ -77,7 +77,7 @@ public class TypecastRenderer {
                 advanceTotal = 0;
                 continue;
             } else if (character == ' ') {
-                advanceTotal += font.font.getHmtxTable().getAdvanceWidth(Glyph.ID_SPACE) * metrics.getScale(pixelSize);
+                advanceTotal += font.getAdvanceWidth(Glyph.ID_SPACE, pixelSize);
                 continue;
             }        
             Glyph glyph = font.getGlyph(character);

@@ -97,6 +97,7 @@ public interface Font {
     
     public StringBuilder getAllNames(StringBuilder string, String separator);
     
+    public float getAdvanceWidth(int i, float pixelSize);
     public Metrics getMetrics();
     public Glyph getGlyph(char symbol);
     public int getNumGlyphs();

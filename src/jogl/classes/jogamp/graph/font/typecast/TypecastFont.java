@@ -44,6 +44,7 @@ import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.graph.curve.OutlineShape;
 import com.jogamp.graph.font.Font;
 import com.jogamp.graph.font.FontFactory;
+import com.jogamp.graph.font.Font.Glyph;
 import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
@@ -162,6 +163,10 @@ class TypecastFont implements FontInt {
         return sb;
     }    
 
+    public float getAdvanceWidth(int i, float pixelSize) {
+        return font.getHmtxTable().getAdvanceWidth(i) * metrics.getScale(pixelSize);        
+    }
+    
     public Metrics getMetrics() {
         if (metrics == null) {
             metrics = new TypecastHMetrics(this);
