@@ -66,7 +66,6 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     
     int headType = 0;
     boolean drawFPS = false;
-    boolean updateFont = true;
     final int fontSizeFixed = 6;
     int fontSize = 40;
     final int fontSizeModulo = 100;
@@ -197,7 +196,6 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
         
     public void fontIncr(int v) {
         fontSize = Math.abs((fontSize + v) % fontSizeModulo) ;
-        updateFont = true;
         dumpMatrix(true);
     }
 
