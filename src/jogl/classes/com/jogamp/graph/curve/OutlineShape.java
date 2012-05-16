@@ -449,15 +449,10 @@ public class OutlineShape implements Comparable<OutlineShape> {
                     continue;
                 }
 
-                {
-                    final float[] coordA = a.getCoord();
-                    final float[] coordB = b.getCoord();
-                    final float[] coordC = c.getCoord();
-                    if(VectorUtil.vertexInTriangle(coordA, coordB, coordC, current.getCoord(), tempVecAC, tempVecAB, tempVecAP) ||
-                       VectorUtil.vertexInTriangle(coordA, coordB, coordC, nextV.getCoord(), tempVecAC, tempVecAB, tempVecAP) ||
-                       VectorUtil.vertexInTriangle(coordA, coordB, coordC, prevV.getCoord(), tempVecAC, tempVecAB, tempVecAP) ) {
-                        return current;
-                    }
+                if( VectorUtil.vertexInTriangle3(a.getCoord(), b.getCoord(), c.getCoord(),
+                                                 current.getCoord(), nextV.getCoord(), prevV.getCoord(),
+                                                 tempVecAC, tempVecAB, tempVecAP) ) {
+                    return current;
                 }
                 if(VectorUtil.testTri2SegIntersection(a, b, c, prevV, current) ||
                    VectorUtil.testTri2SegIntersection(a, b, c, current, nextV) ||

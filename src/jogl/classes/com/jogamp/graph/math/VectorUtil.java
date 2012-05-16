@@ -312,7 +312,8 @@ public class VectorUtil {
      * @param p the vertex in question
      * @return true if p is in triangle (a, b, c), false otherwise.
      */
-    public static boolean vertexInTriangle(float[] a, float[]  b, float[]  c, float[] p,
+    public static boolean vertexInTriangle(float[] a, float[]  b, float[]  c, 
+                                           float[] p,
                                            float[] ac, float[] ab, float[] ap){
         // Compute vectors        
         computeVector(ac, a, c); //v0
@@ -322,8 +323,8 @@ public class VectorUtil {
         // Compute dot products
         final float dot00 = dot(ac, ac);
         final float dot01 = dot(ac, ab);
-        final float dot02 = dot(ac, ap);
         final float dot11 = dot(ab, ab);
+        final float dot02 = dot(ac, ap);
         final float dot12 = dot(ab, ap);
 
         // Compute barycentric coordinates
@@ -335,6 +336,72 @@ public class VectorUtil {
         return (u >= 0) && (v >= 0) && (u + v < 1);
     }
 
+    /** Check if one of three vertices are in triangle using 
+     * barycentric coordinates computation. 
+     * @param a first triangle vertex
+     * @param b second triangle vertex
+     * @param c third triangle vertex
+     * @param p1 the vertex in question
+     * @param p2 the vertex in question
+     * @param p3 the vertex in question
+     * @return true if p1 or p2 or p3 is in triangle (a, b, c), false otherwise.
+     */
+    public static boolean vertexInTriangle3(float[] a, float[]  b, float[]  c, 
+                                            float[] p1, float[] p2, float[] p3,
+                                            float[] ac, float[] ab, float[] ap){
+        // Compute vectors        
+        computeVector(ac, a, c); //v0
+        computeVector(ab, a, b); //v1
+
+        // Compute dot products
+        final float dotAC_AC = dot(ac, ac);
+        final float dotAC_AB = dot(ac, ab);
+        final float dotAB_AB = dot(ab, ab);
+
+        // Compute barycentric coordinates
+        final float invDenom = 1 / (dotAC_AC * dotAB_AB - dotAC_AB * dotAC_AB);
+        {
+            computeVector(ap, a, p1); //v2
+            final float dotAC_AP1 = dot(ac, ap);
+            final float dotAB_AP1 = dot(ab, ap);
+            final float u1 = (dotAB_AB * dotAC_AP1 - dotAC_AB * dotAB_AP1) * invDenom;
+            final float v1 = (dotAC_AC * dotAB_AP1 - dotAC_AB * dotAC_AP1) * invDenom;
+    
+            // Check if point is in triangle
+            if ( (u1 >= 0) && (v1 >= 0) && (u1 + v1 < 1) ) { 
+                return true;
+            }
+        }
+        
+        {
+            computeVector(ap, a, p2); //v2
+            final float dotAC_AP2 = dot(ac, ap);
+            final float dotAB_AP2 = dot(ab, ap);
+            final float u = (dotAB_AB * dotAC_AP2 - dotAC_AB * dotAB_AP2) * invDenom;
+            final float v = (dotAC_AC * dotAB_AP2 - dotAC_AB * dotAC_AP2) * invDenom;
+            
+            // Check if point is in triangle
+            if ( (u >= 0) && (v >= 0) && (u + v < 1) ) { 
+                return true;
+            }
+        }
+        
+        {
+            computeVector(ap, a, p3); //v2
+            final float dotAC_AP3 = dot(ac, ap);
+            final float dotAB_AP3 = dot(ab, ap);
+            final float u = (dotAB_AB * dotAC_AP3 - dotAC_AB * dotAB_AP3) * invDenom;
+            final float v = (dotAC_AC * dotAB_AP3 - dotAC_AB * dotAC_AP3) * invDenom;
+            
+            // Check if point is in triangle
+            if ( (u >= 0) && (v >= 0) && (u + v < 1) ) { 
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
     /** Check if points are in ccw order
      * @param a first vertex
      * @param b second vertex
