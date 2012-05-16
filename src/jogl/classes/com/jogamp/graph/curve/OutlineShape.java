@@ -427,6 +427,10 @@ public class OutlineShape implements Comparable<OutlineShape> {
         }while(!overlaps.isEmpty());
     }
 
+    private final float[] tempVecAC = new float[3];
+    private final float[] tempVecAB = new float[3];
+    private final float[] tempVecAP = new float[3];
+    
     private Vertex checkTriOverlaps(Vertex a, Vertex b, Vertex c) {
         int count = getOutlineNumber();
         for (int cc = 0; cc < count; cc++) { 
@@ -445,15 +449,19 @@ public class OutlineShape implements Comparable<OutlineShape> {
                     continue;
                 }
 
-                if(VectorUtil.vertexInTriangle(a.getCoord(), b.getCoord(), c.getCoord(), current.getCoord())
-                        || VectorUtil.vertexInTriangle(a.getCoord(), b.getCoord(), c.getCoord(), nextV.getCoord())
-                        || VectorUtil.vertexInTriangle(a.getCoord(), b.getCoord(), c.getCoord(), prevV.getCoord())) {
-
-                    return current;
+                {
+                    final float[] coordA = a.getCoord();
+                    final float[] coordB = b.getCoord();
+                    final float[] coordC = c.getCoord();
+                    if(VectorUtil.vertexInTriangle(coordA, coordB, coordC, current.getCoord(), tempVecAC, tempVecAB, tempVecAP) ||
+                       VectorUtil.vertexInTriangle(coordA, coordB, coordC, nextV.getCoord(), tempVecAC, tempVecAB, tempVecAP) ||
+                       VectorUtil.vertexInTriangle(coordA, coordB, coordC, prevV.getCoord(), tempVecAC, tempVecAB, tempVecAP) ) {
+                        return current;
+                    }
                 }
-                if(VectorUtil.tri2SegIntersection(a, b, c, prevV, current) 
-                        || VectorUtil.tri2SegIntersection(a, b, c, current, nextV)
-                        || VectorUtil.tri2SegIntersection(a, b, c, prevV, nextV)) {
+                if(VectorUtil.testTri2SegIntersection(a, b, c, prevV, current) ||
+                   VectorUtil.testTri2SegIntersection(a, b, c, current, nextV) ||
+                   VectorUtil.testTri2SegIntersection(a, b, c, prevV, nextV)) {
                     return current;
                 }
             }

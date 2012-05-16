@@ -249,19 +249,17 @@ public class VectorUtil {
     }
 
     /** Compute Vector
+     * @param vector storage for resulting Vector V1V2
      * @param v1 vertex 1
      * @param v2 vertex2 2
-     * @return Vector V1V2
      */
-    public static float[] computeVector(float[] v1, float[] v2)
+    public static void computeVector(float[] vector, float[] v1, float[] v2)
     {
-        float[] vector = new float[3];
         vector[0] = v2[0] - v1[0];
         vector[1] = v2[1] - v1[1];
-        vector[2] = v2[2] - v1[2];
-        return vector;
+        vector[2] = v2[2] - v1[2];        
     }
-
+    
     /** Check if vertices in triangle circumcircle
      * @param a triangle vertex 1
      * @param b triangle vertex 2
@@ -271,10 +269,14 @@ public class VectorUtil {
      * vertices a, b, c. from paper by Guibas and Stolfi (1985).
      */
     public static boolean inCircle(Vertex a, Vertex b, Vertex c, Vertex d){
-        return (a.getX() * a.getX() + a.getY() * a.getY()) * triArea(b, c, d) -
-        (b.getX() * b.getX() + b.getY() * b.getY()) * triArea(a, c, d) +
-        (c.getX() * c.getX() + c.getY() * c.getY()) * triArea(a, b, d) -
-        (d.getX() * d.getX() + d.getY() * d.getY()) * triArea(a, b, c) > 0;
+        final float[] A = a.getCoord();
+        final float[] B = b.getCoord();
+        final float[] C = c.getCoord();
+        final float[] D = d.getCoord();
+        return (A[0] * A[0] + A[1] * A[1]) * triArea(B, C, D) -
+               (B[0] * B[0] + B[1] * B[1]) * triArea(A, C, D) +
+               (C[0] * C[0] + C[1] * C[1]) * triArea(A, B, D) -
+               (D[0] * D[0] + D[1] * D[1]) * triArea(A, B, C) > 0;
     }
 
     /** Computes oriented area of a triangle
@@ -285,9 +287,23 @@ public class VectorUtil {
      * is positive if the triangle is oriented counterclockwise.
      */
     public static float triArea(Vertex a, Vertex b, Vertex c){
-        return (b.getX() - a.getX()) * (c.getY() - a.getY()) - (b.getY() - a.getY())*(c.getX() - a.getX());
+        final float[] A = a.getCoord();
+        final float[] B = b.getCoord();
+        final float[] C = c.getCoord();        
+        return (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1])*(C[0] - A[0]);
     }
 
+    /** Computes oriented area of a triangle
+     * @param A first vertex
+     * @param B second vertex
+     * @param C third vertex
+     * @return compute twice the area of the oriented triangle (a,b,c), the area
+     * is positive if the triangle is oriented counterclockwise.
+     */
+    public static float triArea(float[] A, float[] B, float[] C){
+        return (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1])*(C[0] - A[0]);
+    }
+    
     /** Check if a vertex is in triangle using 
      * barycentric coordinates computation. 
      * @param a first triangle vertex
@@ -296,23 +312,24 @@ public class VectorUtil {
      * @param p the vertex in question
      * @return true if p is in triangle (a, b, c), false otherwise.
      */
-    public static boolean vertexInTriangle(float[] a, float[]  b, float[]  c, float[]  p){
+    public static boolean vertexInTriangle(float[] a, float[]  b, float[]  c, float[] p,
+                                           float[] ac, float[] ab, float[] ap){
         // Compute vectors        
-        float[] ac = computeVector(a, c); //v0
-        float[] ab = computeVector(a, b); //v1
-        float[] ap = computeVector(a, p); //v2
+        computeVector(ac, a, c); //v0
+        computeVector(ab, a, b); //v1
+        computeVector(ap, a, p); //v2
 
         // Compute dot products
-        float dot00 = dot(ac, ac);
-        float dot01 = dot(ac, ab);
-        float dot02 = dot(ac, ap);
-        float dot11 = dot(ab, ab);
-        float dot12 = dot(ab, ap);
+        final float dot00 = dot(ac, ac);
+        final float dot01 = dot(ac, ab);
+        final float dot02 = dot(ac, ap);
+        final float dot11 = dot(ab, ab);
+        final float dot12 = dot(ab, ap);
 
         // Compute barycentric coordinates
-        float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-        float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-        float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+        final float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+        final float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+        final float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
         // Check if point is in triangle
         return (u >= 0) && (v >= 0) && (u + v < 1);
@@ -372,24 +389,56 @@ public class VectorUtil {
      * returns null 
      */
     public static float[] seg2SegIntersection(Vertex a, Vertex b, Vertex c, Vertex d) {
-        float determinant = (a.getX()-b.getX())*(c.getY()-d.getY()) - (a.getY()-b.getY())*(c.getX()-d.getX());
+        final float determinant = (a.getX()-b.getX())*(c.getY()-d.getY()) - (a.getY()-b.getY())*(c.getX()-d.getX());
 
         if (determinant == 0) 
             return null;
 
-        float alpha = (a.getX()*b.getY()-a.getY()*b.getX());
-        float beta = (c.getX()*d.getY()-c.getY()*d.getY());
-        float xi = ((c.getX()-d.getX())*alpha-(a.getX()-b.getX())*beta)/determinant;
-        float yi = ((c.getY()-d.getY())*alpha-(a.getY()-b.getY())*beta)/determinant;
+        final float alpha = (a.getX()*b.getY()-a.getY()*b.getX());
+        final float beta = (c.getX()*d.getY()-c.getY()*d.getY());
+        final float xi = ((c.getX()-d.getX())*alpha-(a.getX()-b.getX())*beta)/determinant;
+        final float yi = ((c.getY()-d.getY())*alpha-(a.getY()-b.getY())*beta)/determinant;
 
-        float gamma = (xi - a.getX())/(b.getX() - a.getX());
-        float gamma1 = (xi - c.getX())/(d.getX() - c.getX());
+        final float gamma = (xi - a.getX())/(b.getX() - a.getX());
+        final float gamma1 = (xi - c.getX())/(d.getX() - c.getX());
         if(gamma <= 0 || gamma >= 1) return null;
         if(gamma1 <= 0 || gamma1 >= 1) return null;
 
         return new float[]{xi,yi,0};
     }
 
+    /** Compute intersection between two segments
+     * @param a vertex 1 of first segment
+     * @param b vertex 2 of first segment
+     * @param c vertex 1 of second segment
+     * @param d vertex 2 of second segment
+     * @return true if the segments intersect, otherwise returns false
+     */
+    public static boolean testSeg2SegIntersection(Vertex a, Vertex b, Vertex c, Vertex d) {
+        final float[] A = a.getCoord();
+        final float[] B = b.getCoord();
+        final float[] C = c.getCoord();
+        final float[] D = d.getCoord();
+        
+        final float determinant = (A[0]-B[0])*(C[1]-D[1]) - (A[1]-B[1])*(C[0]-D[0]);
+
+        if (determinant == 0) { 
+            return false;
+        }
+
+        final float alpha = (A[0]*B[1]-A[1]*B[0]);
+        final float beta = (C[0]*D[1]-C[1]*D[1]);
+        final float xi = ((C[0]-D[0])*alpha-(A[0]-B[0])*beta)/determinant;
+
+        final float gamma = (xi - A[0])/(B[0] - A[0]);
+        final float gamma1 = (xi - C[0])/(D[0] - C[0]);
+        if(gamma <= 0 || gamma >= 1 || gamma1 <= 0 || gamma1 >= 1) {
+            return false;
+        }
+
+        return true;
+    }
+    
     /** Compute intersection between two lines
      * @param a vertex 1 of first line
      * @param b vertex 2 of first line
@@ -420,14 +469,9 @@ public class VectorUtil {
      * @param e vertex 2 of first segment
      * @return true if the segment intersects at least one segment of the triangle, false otherwise
      */
-    public static boolean tri2SegIntersection(Vertex a, Vertex b, Vertex c, Vertex d, Vertex e){
-        if(seg2SegIntersection(a, b, d, e) != null)
-            return true;
-        if(seg2SegIntersection(b, c, d, e) != null)
-            return true;
-        if(seg2SegIntersection(a, c, d, e) != null)
-            return true;
-
-        return false;
+    public static boolean testTri2SegIntersection(Vertex a, Vertex b, Vertex c, Vertex d, Vertex e){
+        return testSeg2SegIntersection(a, b, d, e) ||
+               testSeg2SegIntersection(b, c, d, e) ||
+               testSeg2SegIntersection(a, c, d, e) ;
     }
 }
