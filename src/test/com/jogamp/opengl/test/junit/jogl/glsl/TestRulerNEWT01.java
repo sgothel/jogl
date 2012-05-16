@@ -53,7 +53,6 @@ import javax.media.opengl.GLUniformData;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.BeforeClass;
 
 public class TestRulerNEWT01 extends UITestCase {
     static long durationPerTest = 10; // ms
