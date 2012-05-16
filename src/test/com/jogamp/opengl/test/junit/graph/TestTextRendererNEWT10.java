@@ -144,7 +144,6 @@ public class TestTextRendererNEWT10 extends UITestCase {
         
         NEWTGLContext.destroyWindow(winctx);
     }    
-    int screenshot_num = 0;
     
     int lastRow = -1;
     
