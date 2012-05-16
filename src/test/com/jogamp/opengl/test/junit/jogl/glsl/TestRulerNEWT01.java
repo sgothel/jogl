@@ -46,6 +46,7 @@ import java.nio.FloatBuffer;
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLUniformData;
@@ -63,7 +64,8 @@ public class TestRulerNEWT01 extends UITestCase {
         GLProfile.initSingleton();
         long t1 = System.nanoTime();
         // preset ..
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(GLProfile.getGL2ES2(), 640, 480, true);
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(
+                new GLCapabilities(GLProfile.getGL2ES2()), 640, 480, true);
         final GLDrawable drawable = winctx.context.getGLDrawable();
         final GL2ES2 gl = winctx.context.getGL().getGL2ES2();
         System.err.println(winctx.context);

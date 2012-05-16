@@ -43,6 +43,7 @@ import java.io.IOException;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLProfile;
@@ -61,7 +62,8 @@ public class TestFBOMRTNEWT01 extends UITestCase {
             System.err.println("Test requires GL2/GL3 profile.");
             return;
         }
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(GLProfile.getGL2GL3(), 640, 480, true);        
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(
+                new GLCapabilities(GLProfile.getGL2GL3()), 640, 480, true);        
         final GLDrawable drawable = winctx.context.getGLDrawable();
         GL2GL3 gl = winctx.context.getGL().getGL2GL3();
         gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, gl, null) ).getGL2GL3();

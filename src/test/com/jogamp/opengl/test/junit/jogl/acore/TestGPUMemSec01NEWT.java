@@ -37,6 +37,7 @@ import java.nio.ByteBuffer;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
@@ -56,7 +57,8 @@ public class TestGPUMemSec01NEWT extends UITestCase {
     }
     
     static NEWTGLContext.WindowContext createCurrentGLOffscreenWindow(GLProfile glp, int width, int height) throws GLException, InterruptedException {
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOffscreenWindow(glp, width, height, true);
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOffscreenWindow(
+                new GLCapabilities(glp), width, height, true);
         final GL gl = winctx.context.getGL();
 
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());

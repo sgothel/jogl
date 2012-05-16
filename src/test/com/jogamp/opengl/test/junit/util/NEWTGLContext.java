@@ -36,7 +36,6 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 
@@ -52,8 +51,7 @@ public class NEWTGLContext {
         }
     }
 
-    public static WindowContext createOffscreenWindow(GLProfile glp, int width, int height, boolean debugGL) throws InterruptedException {        
-        GLCapabilities caps = new GLCapabilities(glp);
+    public static WindowContext createOffscreenWindow(GLCapabilities caps, int width, int height, boolean debugGL) throws InterruptedException {        
         caps.setOnscreen(false);
         caps.setPBuffer(true);
         
@@ -73,7 +71,7 @@ public class NEWTGLContext {
         AWTRobotUtil.waitForVisible(window, true);
         AWTRobotUtil.waitForRealized(window, true);
             
-        GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
+        GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
         GLDrawable drawable = factory.createGLDrawable(window);
         Assert.assertNotNull(drawable);
         
@@ -91,8 +89,7 @@ public class NEWTGLContext {
         return new WindowContext(window, context);
     }
 
-    public static WindowContext createOnscreenWindow(GLProfile glp, int width, int height, boolean debugGL) throws InterruptedException {        
-        GLCapabilities caps = new GLCapabilities(glp);
+    public static WindowContext createOnscreenWindow(GLCapabilities caps, int width, int height, boolean debugGL) throws InterruptedException {        
         //
         // Create native windowing resources .. X11/Win/OSX
         // 
@@ -109,7 +106,7 @@ public class NEWTGLContext {
         Assert.assertTrue(AWTRobotUtil.waitForVisible(window, true));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(window, true));
             
-        GLDrawableFactory factory = GLDrawableFactory.getFactory(glp);
+        GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
         GLDrawable drawable = factory.createGLDrawable(window);
         Assert.assertNotNull(drawable);
         

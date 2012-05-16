@@ -37,6 +37,7 @@ import java.nio.ByteOrder;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
@@ -70,7 +71,8 @@ public class TestMapBufferRead01NEWT extends UITestCase {
     }
 
     private void testWriteRead01(ByteBuffer verticiesBB) throws InterruptedException {
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOffscreenWindow(GLProfile.getGL2GL3(), 800, 600, true);
+        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOffscreenWindow(
+                new GLCapabilities(GLProfile.getGL2GL3()), 800, 600, true);
         final GL gl = winctx.context.getGL();
 
         int[] vertexBuffer = new int[1];
