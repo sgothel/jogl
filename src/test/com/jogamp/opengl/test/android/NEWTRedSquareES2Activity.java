@@ -79,5 +79,20 @@ public class NEWTRedSquareES2Activity extends NewtBaseActivity {
        glWindow.resetFPSCounter();
        
        Log.d(TAG, "onCreate - X");
-   }   
+   }
+   
+   @Override
+   public void onResume() {
+       // android.os.Debug.startMethodTracing("GearsES2.trace");
+       // android.os.Debug.startAllocCounting();       
+       super.onResume();
+   }
+   
+   @Override
+   public void onPause() {
+       // android.os.Debug.stopAllocCounting();
+       // android.os.Debug.stopMethodTracing();
+       super.onPause();       
+   }
+   
 }

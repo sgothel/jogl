@@ -398,8 +398,10 @@
 
         <!-- JavaSE combinations -->
         <property name="gluegen-rt.jar"                 value="${build.gluegen}/gluegen-rt.jar" />
+        <property name="gluegen-rt-android.jar"         value="${build.gluegen}/gluegen-rt-android.jar" />
         <property name="jogl.test.jar"                  value="${jar}/jogl.test.jar"/>
-        <property name="jogl.test.apk"                  value="${jar}/jogl.test.apk"/>
+        <property name="jogl.test-android.jar"          value="${jar}/jogl.test-android.jar"/>
+        <property name="jogl.test-android.apk"          value="${jar}/jogl.test-android.apk"/>
 
         <!-- JavaSE combinations . AWT -->
         <property name="jogl.all.jar"                   value="${jar}/jogl.all.jar" />
@@ -408,7 +410,7 @@
         <property name="jogl.all-noawt.jar"             value="${jar}/jogl.all-noawt.jar" />
         <property name="jogl.all-mobile.jar"            value="${jar}/jogl.all-mobile.jar" />
         <property name="jogl.all-android.jar"           value="${jar}/jogl.all-android.jar" />
-        <property name="jogl.all-android.apk"           value="${jar}/jogl.all-android.apk" />
+        <property name="jogl.all-android.apk"           value="${jar}/jogl.all-android-${android.abi}.apk" />
 
         <path id="swt_gluegen.classpath">
             <pathelement location="${gluegen-rt.jar}" />
@@ -422,25 +424,31 @@
             <path refid="nativewindow_all_atoms.classpath" />
         </path>
 
-        <path id="android_nativewindow_gluegen.classpath">
+        <path id="nativewindow_gluegen_android.classpath">
             <pathelement location="${android.jar}" />
-            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${gluegen-rt-android.jar}" />
             <pathelement location="${swt.jar}" />
             <path refid="nativewindow_all_atoms.classpath" />
         </path>
 
         <!-- NEWT Compilation .. -->
         <path id="jogl_nativewindow_gluegen.classpath">
-            <pathelement location="${android.jar}" />
             <pathelement location="${gluegen-rt.jar}" />
             <pathelement location="${swt.jar}" />
             <path refid="nativewindow_all_atoms.classpath" />
             <path refid="jogl_all_atoms.classpath" />
         </path>
 
-        <!-- Test Compilation .. -->
-        <path id="junit_jogl_newt_android.compile.classpath">
+        <path id="jogl_nativewindow_gluegen_android.classpath">
             <pathelement location="${android.jar}" />
+            <pathelement location="${gluegen-rt-android.jar}" />
+            <pathelement location="${swt.jar}" />
+            <path refid="nativewindow_all_atoms.classpath" />
+            <path refid="jogl_all_atoms.classpath" />
+        </path>
+
+        <!-- Test Compilation .. -->
+        <path id="junit_jogl_newt.compile.classpath">
             <pathelement location="${junit.jar}" />
             <pathelement location="${ant.jar}" />
             <pathelement location="${ant-junit.jar}" />
@@ -449,11 +457,23 @@
             <path refid="nativewindow_all_atoms.classpath" />
             <path refid="jogl_all_atoms.classpath" />
             <path refid="newt_all_atoms.classpath" />
+        </path>
+
+        <path id="junit_jogl_newt_android.compile.classpath">
+            <pathelement location="${android.jar}" />
+            <pathelement location="${junit.jar}" />
+            <pathelement location="${ant.jar}" />
+            <pathelement location="${ant-junit.jar}" />
+            <pathelement location="${gluegen-rt-android.jar}" />
+            <pathelement location="${swt.jar}" />
+            <path refid="nativewindow_all_atoms.classpath" />
+            <path refid="jogl_all_atoms.classpath" />
+            <path refid="newt_all_atoms.classpath" />
             <pathelement location="${newt.driver.android.jar}" />
         </path>
 
         <!-- Postbuild: javadoc .. -->
-        <path id="jogl_all.classpath">
+        <path id="jogl_doc.classpath">
             <pathelement location="${android.jar}" />
             <pathelement location="${gluegen-rt.jar}" />
             <pathelement location="${swt.jar}" />
@@ -485,7 +505,6 @@
         <property name="junit_jogl_noawt.run.jars"
                   value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${jogl.all-noawt.jar}${path.separator}${jogl.test.jar}"/>
         <property name="junit_jogl_noawt.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${gluegen-rt.jar}${path.separator}${jogl.all-noawt.jar}${path.separator}${jogl.test.jar}"/>
-        <property name="junit.run.remote.apks" value="${gluegen.root}/${rootrel.build}/jogamp.android-launcher.apk${path.separator}${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt.apk${path.separator}${jogl.all-android.apk}${path.separator}${jogl.test.apk}"/>
 
         <!-- Test Run w/ SWT .. -->
         <path id="junit_jogl_swt.run.classpath">
@@ -506,12 +525,14 @@
             <pathelement location="${ant.jar}" />
             <pathelement location="${ant-junit.jar}" />
             <pathelement location="${android.jar}" />
-            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${gluegen-rt-android.jar}" />
             <pathelement location="${jogl.all-android.jar}" />
             <pathelement location="${jogl.test.jar}" />
         </path>
         <property name="junit_jogl_android.run.jars"
-                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt.jar}${path.separator}${jogl.all-android.jar}${path.separator}${jogl.test.jar}"/>
+                  value="${junit.jar}${path.separator}${ant.jar}${path.separator}${ant-junit.jar}${path.separator}${gluegen-rt-android.jar}${path.separator}${jogl.all-android.jar}${path.separator}${jogl.test.jar}"/>
+        <property name="junit.run.remote.apks" 
+                  value="${gluegen.root}/${rootrel.build}/jogamp.android-launcher.apk${path.separator}${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt-android-${android.abi}.apk${path.separator}${jogl.all-android.apk}${path.separator}${jogl.test.apk}"/>
 
         <!-- Dummy extra CLASSPATH value, maybe overwritten -->  
         <property name="junit_extra_classpath" value=""/>

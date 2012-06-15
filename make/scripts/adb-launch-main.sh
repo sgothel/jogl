@@ -61,7 +61,7 @@ am start -a android.intent.action.MAIN -n jogamp.android.launcher/jogamp.android
 # \
 #dalvikvm \
 #  -Xjnigreflimit:2000 \
-#  -cp ../../gluegen/make/$BUILD_DIR/jogamp.android-launcher.apk:../../gluegen/make/lib/ant-junit-all.apk:../../gluegen/make/$BUILD_DIR/gluegen-rt.apk:$BUILD_DIR/jar/jogl.all-android.apk:$BUILD_DIR/jar/jogl.test.apk:$BUILD_DIR/jar/jogl.android-launcher.apk \
+#  -cp ../../gluegen/make/$BUILD_DIR/jogamp.android-launcher.apk:../../gluegen/make/lib/ant-junit-all.apk:../../gluegen/make/$BUILD_DIR/gluegen-rt-android-armeabi-v7a.apk:$BUILD_DIR/jar/jogl.all-android-armeabi-v7a.apk:$BUILD_DIR/jar/jogl.test.apk \
 #  -Dgluegen.root=../../gluegen \
 #  -Drootrel.build=build-android-armv7 \
 #  com.android.internal.util.WithFramework \

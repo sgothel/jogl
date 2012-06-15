@@ -26,7 +26,8 @@
         <property name="classes"              value="${build.test}/classes" />
         <property name="classes.path"         location="${classes}"/> <!-- absolute path -->
 
-        <property name="java.part.test"       value="com/jogamp/** jogamp/**"/>
+        <property name="java.part.test.all"   value="com/jogamp/** jogamp/**"/>
+        <property name="java.part.test.android" value="com/jogamp/opengl/test/android/**"/>
         <property name="java.dir.test"        value="com/jogamp/opengl/test"/>
         <property name="java.dir.junit"       value="${java.dir.test}/junit"/>
         <property name="java.dir.bugs"        value="${java.dir.test}/bugs"/>
@@ -58,25 +59,10 @@
     <!--
        - Build/run tests/junit.
       -->
-    <target name="android.test.package" if="isAndroid">
-        <aapt.signed 
-            assetsdir="resources/assets-test"
-            jarsrcdir="${src}/test"
-            jarbuilddir="${jar}"
-            jarbasename="jogl.test"
-            nativebuilddir="${lib}"
-            nativebasename="non-existing"
-            android.abi="${android.abi}"
-            androidmanifest.path="resources/android/AndroidManifest-test.xml"
-            androidresources.path="resources/android/res-test"
-            jarmanifest.path="${build.test}/manifest-test.mf"
-            version.code="${jogl_int_version}"
-            version.name="${jogl.version.plus}" />
-    </target>
-
-    <target name="test.compile.java">
-        <!-- Perform the junit pass Java compile -->
+    <target name="test.compile.javase">
+        <!-- Perform the junit pass Java SE compile -->
         <javac destdir="${classes}"
+               excludes="${java.part.test.android}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -85,15 +71,9 @@
                target="${target.targetlevel}" 
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="junit_jogl_newt_android.compile.classpath"/>
+            <classpath refid="junit_jogl_newt.compile.classpath"/>
             <src path="${src.test}" />
         </javac>
-        <!-- include any resource files that tests may require -->
-        <copy todir="${classes}">
-            <fileset dir="${src.test}">
-                <exclude name="**/*.java"/>
-            </fileset>
-        </copy>
         <copy file="joglversion-test"
             tofile="${build.test}/manifest-test.mf"
             overwrite="true">
@@ -109,9 +89,59 @@
             <!-- get all class files, but skip any resource files that external tools
                  might have copied into the class directory (otherwise, it's possible
                  to get the same resource file twice in the jar) -->
-            <fileset dir="${classes}" includes="${java.part.test}"/>
+            <fileset dir="${classes}" 
+                     includes="${java.part.test.all}"
+                     excludes="${java.part.test.android}"/>
             <fileset dir="resources/assets-test" includes="**" />
         </jar>
+    </target>
+
+    <target name="test.compile.android" if="isAndroid">
+        <!-- Perform the junit pass Java Android compile -->
+        <javac destdir="${classes}"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="junit_jogl_newt_android.compile.classpath"/>
+            <src path="${src.test}" />
+        </javac>
+        <copy file="joglversion-test-android"
+            tofile="${build.test}/manifest-test-android.mf"
+            overwrite="true">
+            <filterset>
+                <filter token="VERSION" value="${jogl.version}"/>
+                <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+                <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
+                <filter token="BASEVERSION" value="${jogl_base_version}"/>
+            </filterset>
+        </copy>
+
+        <jar manifest="${build.test}/manifest-test-android.mf" destfile="${jogl.test-android.jar}" filesonly="true">
+            <!-- get all class files, but skip any resource files that external tools
+                 might have copied into the class directory (otherwise, it's possible
+                 to get the same resource file twice in the jar) -->
+            <fileset dir="${classes}" 
+                     includes="${java.part.test.all}"/>
+            <fileset dir="resources/assets-test" includes="**" />
+        </jar>
+
+        <aapt.signed 
+            assetsdir="resources/assets-test"
+            jarsrcdir="${src}/test"
+            jarbuilddir="${jar}"
+            jarbasename="jogl.test-android"
+            nativebuilddir="${lib}"
+            nativebasename="non-existing"
+            androidmanifest.path="resources/android/AndroidManifest-test.xml"
+            androidresources.path="resources/android/res-test"
+            jarmanifest.path="${build.test}/manifest-test-android.mf"
+            version.code="${jogl_int_version}"
+            version.name="${jogl.version.plus}" />
     </target>
 
     <target name="test.compile.check" depends="declare.common">
@@ -134,8 +164,14 @@
     </target>
 
     <target name="test.compile" depends="test.compile.check" unless="test.compile.skip">
-        <antcall target="test.compile.java" inheritRefs="true" inheritAll="true"/>
-        <antcall target="android.test.package" inheritRefs="true" inheritAll="true"/>
+        <!-- include any resource files that tests may require -->
+        <copy todir="${classes}">
+            <fileset dir="${src.test}">
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+        <antcall target="test.compile.javase" inheritRefs="true" inheritAll="true"/>
+        <antcall target="test.compile.android" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="test.manual.run" depends="test.compile">

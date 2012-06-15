@@ -372,7 +372,7 @@
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
                  bottom="${javadoc.bottom}" >
-            <classpath refid="jogl_all.classpath"/>
+            <classpath refid="jogl_doc.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
             <link offline="false" href="${gluegen.link}" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/> 
@@ -394,7 +394,7 @@
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
                  bottom="${javadoc.bottom}" >
-            <classpath refid="jogl_all.classpath"/>
+            <classpath refid="jogl_doc.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
             <link offline="false" href="${gluegen.link}" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
@@ -417,7 +417,7 @@
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
                  bottom="${javadoc.bottom}" >
-            <classpath refid="jogl_all.classpath"/>
+            <classpath refid="jogl_doc.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
             <link offline="false" href="${gluegen.link}" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
@@ -439,7 +439,7 @@
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
                  bottom="${javadoc.bottom}" >
-            <classpath refid="jogl_all.classpath"/>
+            <classpath refid="jogl_doc.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
             <link offline="false" href="${gluegen.link}" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>

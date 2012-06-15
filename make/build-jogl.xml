@@ -194,20 +194,13 @@
            <isset property="setup.noSWT"/> 
         </condition>
 
-        <condition property="java.excludes.android"
-                   value="${java.part.android}">
-           <not>
-               <isset property="isAndroid"/> 
-           </not>
-        </condition>
-
         <property name="java.excludes.javadoc.packagenames"
                   value="jogamp.opengl.gl2.fixme.*,com.jogamp.audio.windows.waveout.TestSpatialization"/>
 
         <property name="java.excludes.fixme" 
                   value="jogamp/opengl/gl2/fixme/** com/jogamp/audio/windows/waveout/TestSpatialization.java" />
 
-        <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.awt} ${java.excludes.swt} ${java.excludes.android}" />
+        <property name="java.excludes.all" value="${java.excludes.fixme} ${java.excludes.awt} ${java.excludes.swt}" />
         <echo message="java.excludes.all: ${java.excludes.all}" />
     </target>
 
@@ -1043,10 +1036,10 @@
         </javac>
     </target>
 
-    <target name="java.compile.secondpass.javase" unless="isAndroid">
+    <target name="java.compile.secondpass.javase">
         <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
         <javac destdir="${classes}"
-               excludes="com/jogamp/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all}"
+               excludes="com/jogamp/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all},${java.part.android}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -1064,7 +1057,7 @@
     <target name="java.compile.secondpass.android" if="isAndroid">
         <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
         <javac destdir="${classes}"
-               excludes="com/jogamp/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all}"
+               includes="${java.part.android}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -1073,7 +1066,7 @@
                target="${target.targetlevel}" 
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
-            <classpath refid="android_nativewindow_gluegen.classpath"/>
+            <classpath refid="nativewindow_gluegen_android.classpath"/>
             <src path="${src.java}" />
             <src path="${src.generated.java}" />
         </javac>
@@ -1085,7 +1078,7 @@
     <target name="java.compile.thirdpass.javase">
         <!-- Perform the third pass Java compile; everything including fixed function emulation. -->
         <javac destdir="${classes}"
-               excludes="${java.excludes.all}"
+               excludes="${java.excludes.all},${java.part.android}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"

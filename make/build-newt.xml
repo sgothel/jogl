@@ -203,9 +203,8 @@
        - Compile the original and generated source.
       -->
     <target name="java.compile.javase">
-        <!-- Perform the second pass Java compile; everything. -->
         <javac destdir="${classes}"
-               excludes="${java.excludes.all}"
+               excludes="${java.excludes.all} ${java.part.driver.android}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -219,7 +218,21 @@
         </javac>
     </target>
 
-    <target name="java.compile" depends="java.compile.javase" />
+    <target name="java.compile.android" if="isAndroid">
+        <javac destdir="${classes}"
+               excludes="${java.excludes.all}"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <src path="${src.java}" />
+            <classpath refid="jogl_nativewindow_gluegen_android.classpath"/>
+        </javac>
+    </target>
 
     <!-- ================================================================== -->
     <!--
@@ -644,6 +657,9 @@
       <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.X11Window" />
       <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.X11Screen" />
       <javah destdir="${src.generated.c}/X11"         classpath="${javah.classpath}" class="jogamp.newt.driver.x11.X11Display" />
+    </target>
+
+    <target name="c.build.newt.prepare.android" if="isAndroid">
       <javah destdir="${src.generated.c}/Android"     classpath="${javah.classpath}:${android.jar}" class="jogamp.newt.driver.android.AndroidWindow" />
     </target>
 
@@ -662,7 +678,7 @@
     <target name="c.build.newt.natives" depends="c.build.newt.windowlib" unless="setup.nonatives">
     </target>
 
-    <target name="c.build.newt" depends="c.configure,c.build.newt.prepare,c.build.newt.natives">
+    <target name="c.build.newt" depends="c.configure,c.build.newt.prepare,c.build.newt.prepare.android,c.build.newt.natives">
       <antcall target="c.manifest" inheritRefs="true" />
     </target>
 
@@ -670,8 +686,6 @@
     <!--
        - Build the newt.jar files.
       -->
-    <target name="build-jars" depends="gluegen.cpptasks.detect.os,build-jars-javase" />
-
     <target name="setup-manifestfile">
         <property name="manifestfile" value="newtversion"/>
         <copy file="${manifestfile}"
@@ -713,10 +727,6 @@
             <fileset dir="${classes}"
                      includes="${java.part.driver.macosx}"/>
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.android.jar}" filesonly="true">
-            <fileset dir="${classes}"
-                     includes="${java.part.driver.android}"/>
-        </jar>
         <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.kd.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.driver.kd}"/>
@@ -746,6 +756,16 @@
                 <include name="jogamp/newt/Debug*" />
             </fileset>
         </jar>
+    </target>
+
+    <target name="build-jars-android" depends="setup-manifestfile" if="isAndroid">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.android.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.driver.android}"/>
+        </jar>
+    </target>
+
+    <target name="build-jars-native" depends="gluegen.cpptasks.detect.os,setup-manifestfile">
         <jar manifest="${build.newt}/manifest.mf" destfile="${build.newt}/newt-natives-${os.and.arch}.jar" filesonly="true">
             <fileset dir="${obj.newt}">
               <include name="*.${native.library.suffix}" />
@@ -772,7 +792,7 @@
                  maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
-         <classpath refid="jogl_nativewindow_gluegen.classpath"/>
+         <classpath refid="jogl_doc.classpath"/>
         </javadoc>
     </target>
 
@@ -788,7 +808,7 @@
                  maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
                  bottom="${javadoc.bottom}" >
-         <classpath refid="jogl_nativewindow_gluegen.classpath"/>
+         <classpath refid="jogl_doc.classpath"/>
         </javadoc>
     </target>
 
@@ -804,7 +824,7 @@
                  maxmemory="${javac.memorymax}"
                  linkoffline="${javadoc.link} 142-packages"
          bottom="${javadoc.bottom}" >
-         <classpath refid="jogl_nativewindow_gluegen.classpath"/>
+         <classpath refid="jogl_doc.classpath"/>
         </javadoc>
     </target>
 
@@ -827,7 +847,7 @@
     <!--
        - Build everything.
       -->
-    <target name="all" description="Build NEWT JAR file(s) and native libraries." depends="init,java.compile,c.build.newt,build-jars,generate.version.txt" />
+    <target name="all" description="Build NEWT JAR file(s) and native libraries." depends="init,java.compile.javase,build-jars-javase,java.compile.android,build-jars-android,c.build.newt,generate.version.txt" />
 
     <target name="generate.version.txt" depends="init">
         <!-- Create a version.txt file indicating which version we just built -->

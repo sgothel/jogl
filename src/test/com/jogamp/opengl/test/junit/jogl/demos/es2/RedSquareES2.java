@@ -156,10 +156,6 @@ public class RedSquareES2 implements GLEventListener {
         st.useProgram(gl, false);
     }
 
-    public void enableAndroidTrace(boolean v) {
-        useAndroidDebug = v;
-    }
-    
     public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
         System.err.println(Thread.currentThread()+" RedSquareES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);        
         GL2ES2 gl = glad.getGL().getGL2ES2();
@@ -173,23 +169,10 @@ public class RedSquareES2 implements GLEventListener {
         st.uniform(gl, pmvMatrixUniform);
         st.useProgram(gl, false);
         
-        if(useAndroidDebug) {
-            try {
-                android.os.Debug.startMethodTracing("RedSquareES2.trace");
-                // android.os.Debug.startAllocCounting();
-                useAndroidDebug = true;
-            } catch (NoClassDefFoundError e) { useAndroidDebug=false; }
-        }
-        
         System.err.println(Thread.currentThread()+" RedSquareES2.reshape FIN");
     }
-    private boolean useAndroidDebug = false;
 
     public void dispose(GLAutoDrawable glad) {
-        if(useAndroidDebug) {
-            // android.os.Debug.stopAllocCounting();
-            android.os.Debug.stopMethodTracing();
-        }
         System.err.println(Thread.currentThread()+" RedSquareES2.dispose ... ");
         if (null != glWindow) {
             glWindow.removeMouseListener(myMouse);
