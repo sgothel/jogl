@@ -53,6 +53,9 @@
   public static final int GL_SMOOTH_POINT_SIZE_RANGE = 0x0B12;
   /** Common in ES1, GL2 and GL3 */
   public static final int GL_XOR = 0x1506;
+  /** Part of <code>GL_ARB_half_float_vertex</code>; <code>GL_NV_half_float</code>; <code>GL_ARB_half_float_pixel</code>, 
+      earmarked for ES 3.0 (hence kept in GL while fixing Bug 590)  */
+  public static final int GL_HALF_FLOAT = 0x140B;
 
   public void glClearDepth( double depth );
 

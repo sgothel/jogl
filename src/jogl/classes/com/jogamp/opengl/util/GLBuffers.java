@@ -43,6 +43,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
+import javax.media.opengl.GLES2;
 import javax.media.opengl.GLException;
 
 import java.nio.*;
@@ -456,6 +457,7 @@ public class GLBuffers extends Buffers {
             case GL.GL_SHORT:
             case GL.GL_UNSIGNED_SHORT:
             case GL.GL_HALF_FLOAT:
+            case GLES2.GL_HALF_FLOAT_OES:
               esize = 2;
               break;
             case GL2ES2.GL_INT:
