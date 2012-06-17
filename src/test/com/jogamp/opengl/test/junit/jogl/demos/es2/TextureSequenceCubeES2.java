@@ -33,7 +33,6 @@ import java.nio.FloatBuffer;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLES2;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
@@ -45,13 +44,7 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
-import com.jogamp.newt.event.WindowAdapter;
-import com.jogamp.newt.event.WindowEvent;
-import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.test.junit.jogl.demos.TestTextureSequence;
-import com.jogamp.opengl.test.junit.util.MiscUtils;
-import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -61,8 +54,8 @@ import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
-public class TexCubeES2 implements GLEventListener {
-    public TexCubeES2 (TextureSequence texSource, boolean innerCube, float zoom0, float rotx, float roty) {
+public class TextureSequenceCubeES2 implements GLEventListener {
+    public TextureSequenceCubeES2 (TextureSequence texSource, boolean innerCube, float zoom0, float rotx, float roty) {
         this.texSeq = texSource;
         this.innerCube = innerCube;
         this.zoom0     = zoom0;
@@ -153,9 +146,9 @@ public class TexCubeES2 implements GLEventListener {
     
     private void initShader(GL2ES2 gl) {
         // Create & Compile the shader objects
-        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, TexCubeES2.class, 
+        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, TextureSequenceCubeES2.class, 
                                             "shader", "shader/bin", shaderBasename, true);
-        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, TexCubeES2.class, 
+        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, TextureSequenceCubeES2.class, 
                                             "shader", "shader/bin", shaderBasename, true);
         
         // Prelude shader code w/ GLSL profile specifics [ 1. pre-proc, 2. other ]
@@ -274,6 +267,9 @@ public class TexCubeES2 implements GLEventListener {
         if (drawable instanceof Window) {
             Window window = (Window) drawable;
             window.addMouseListener(mouseAction);
+        } else if (GLProfile.isAWTAvailable() && drawable instanceof java.awt.Component) {
+            java.awt.Component comp = (java.awt.Component) drawable;
+            new com.jogamp.newt.event.awt.AWTMouseAdapter(mouseAction).addTo(comp);
         }
         
         // Let's show the completed shader state ..
@@ -432,6 +428,7 @@ public class TexCubeES2 implements GLEventListener {
             255f/255f, 70f/255f, 60f/255f, 255f/255f,     255f/255f, 70f/255f, 60f/255f, 255f/255f
         };
     
+    /*
     private static final float[] s_cubeNormals =
         {
              0f,  0f,  1f,    0f,  0f,  1f,    0f,  0f,  1f,    0f,  0f,  1f,
@@ -445,7 +442,7 @@ public class TexCubeES2 implements GLEventListener {
              1f,  0f,  0f,    1f,  0f,  0f,    1f,  0f,  0f,    1f,  0f,  0f,
             
             -1f,  0f,  0f,   -1f,  0f,  0f,   -1f,  0f,  0f,   -1f,  0f,  0f
-        };
+        };*/
     private static final byte[] s_cubeIndices =  
         {
              0,  3,  1,  2,  0,  1, /* front  */
@@ -455,53 +452,5 @@ public class TexCubeES2 implements GLEventListener {
             16, 19, 17, 18, 16, 17, /* right  */
             23, 20, 21, 20, 22, 21  /* left   */
         };
-
-    public static void main(String[] args) {
-        int width = 510;
-        int height = 300;
-        boolean useBuildInTexLookup = false;
-        System.err.println("TexCubeES2.run()");
-
-        for(int i=0; i<args.length; i++) {
-            if(args[i].equals("-width")) {
-                i++;
-                width = MiscUtils.atoi(args[i], width);
-            } else if(args[i].equals("-height")) {
-                i++;
-                height = MiscUtils.atoi(args[i], height);
-            } else if(args[i].equals("-shaderBuildIn")) {
-                useBuildInTexLookup = true;
-            }
-        }
-        
-        final GLWindow window = GLWindow.create(new GLCapabilities(GLProfile.getGL2ES2()));
-        // Size OpenGL to Video Surface
-        window.setSize(width, height);
-        window.setFullscreen(false);
-        window.setSize(width, height);
-        final TestTextureSequence texSource = new TestTextureSequence(useBuildInTexLookup);
-        window.addGLEventListener(new GLEventListener() {
-            @Override
-            public void init(GLAutoDrawable drawable) {
-                texSource.initGLResources(drawable.getGL());
-            }
-            @Override
-            public void dispose(GLAutoDrawable drawable) { }
-            @Override
-            public void display(GLAutoDrawable drawable) { }
-            @Override
-            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }            
-        });
-        window.addGLEventListener(new TexCubeES2(texSource, false, -2.3f, 0f, 0f));
-        window.setVisible(true);
-        final Animator anim = new Animator(window);
-        // anim.setUpdateFPSFrames(60, System.err);
-        anim.start();
-        window.addWindowListener(new WindowAdapter() {
-            public void windowDestroyed(WindowEvent e) {
-                anim.stop();
-            }                
-        });
-    }
 }
 

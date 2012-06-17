@@ -14,14 +14,14 @@ import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
-public class TestTextureSequence implements TextureSequence {
+public class TextureSequenceDemo01 implements TextureSequence {
     TextureSequence.TextureFrame frame = null;    
     int textureUnit = 0;
     protected int[] texMinMagFilter = { GL.GL_NEAREST, GL.GL_NEAREST };
     protected int[] texWrapST = { GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE };
     final boolean useBuildInTexLookup;
     
-    public TestTextureSequence(boolean useBuildInTexLookup) {
+    public TextureSequenceDemo01(boolean useBuildInTexLookup) {
         this.useBuildInTexLookup = useBuildInTexLookup;
     }
     

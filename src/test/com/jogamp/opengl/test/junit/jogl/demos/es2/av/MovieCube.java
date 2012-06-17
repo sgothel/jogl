@@ -55,7 +55,7 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.test.junit.jogl.demos.es2.TexCubeES2;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.TextureSequenceCubeES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
@@ -66,7 +66,7 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
     static boolean waitForKey = false;
     final URLConnection stream;
     final float zoom0, rotx, roty;
-    TexCubeES2 cube=null;
+    TextureSequenceCubeES2 cube=null;
     GLMediaPlayer mPlayer=null;
     
     public MovieCube() throws IOException {
@@ -137,7 +137,7 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
 
         mPlayer = GLMediaPlayerFactory.create();
         mPlayer.addEventListener(this);
-        cube = new TexCubeES2(mPlayer, false, zoom0, rotx, roty);        
+        cube = new TextureSequenceCubeES2(mPlayer, false, zoom0, rotx, roty);        
         
         if(waitForKey) {
             BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
