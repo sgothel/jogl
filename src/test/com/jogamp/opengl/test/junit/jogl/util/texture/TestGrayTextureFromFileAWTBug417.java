@@ -26,27 +26,24 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.texture;
+package com.jogamp.opengl.test.junit.jogl.util.texture;
 
-import com.jogamp.opengl.test.junit.jogl.util.texture.gl2.TextureGL2ListenerDraw1;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.awt.GLCanvas;
-import com.jogamp.opengl.util.texture.TextureData;
-import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
+import com.jogamp.opengl.util.texture.TextureIO;
 import com.jogamp.opengl.util.Animator;
 
-import java.awt.AlphaComposite;
-import java.awt.Color;
 import java.awt.Frame;
-import java.awt.GradientPaint;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
 
 import java.io.IOException;
+import java.io.InputStream;
+
 import org.junit.Assert;
 import org.junit.After;
 import org.junit.Assume;
@@ -54,10 +51,16 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class TestTexture01AWT extends UITestCase {
+/**
+ * Unit test for bug 417, which shows a GLException when reading a grayscale texture.
+ * Couldn't duplicate the failure, so it must have been fixed unknowingly sometime
+ * after the bug was submitted.
+ * @author Wade Walker
+ */
+public class TestGrayTextureFromFileAWTBug417 extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
-    BufferedImage textureImage;
+    InputStream textureStream;
 
     @BeforeClass
     public static void initClass() {
@@ -73,36 +76,13 @@ public class TestTexture01AWT extends UITestCase {
 
     @Before
     public void initTest() {
-        // create base image
-        BufferedImage baseImage = new BufferedImage(256, 256, BufferedImage.TYPE_3BYTE_BGR);
-        Assert.assertNotNull(baseImage);
-        Graphics2D g = baseImage.createGraphics();
-        Assert.assertNotNull(g);
-        g.setPaint(new GradientPaint(0, 0, Color.CYAN,
-                                 baseImage.getWidth(), baseImage.getHeight(), Color.BLUE));
-        g.fillRect(0, 0, baseImage.getWidth(), baseImage.getHeight());
-        g.dispose();
-
-        // create texture image
-        int imageType = BufferedImage.TYPE_3BYTE_BGR;
-        textureImage = new BufferedImage(baseImage.getWidth(),
-                                         baseImage.getHeight(),
-                                         imageType);
-        Assert.assertNotNull(textureImage);
-        g = textureImage.createGraphics();
-        g.setComposite(AlphaComposite.Src);
-        g.drawImage(baseImage, 0, 0, null);
-        g.dispose();
-
-        baseImage.flush();
-        baseImage=null;
+        textureStream = TestGrayTextureFromFileAWTBug417.class.getResourceAsStream( "grayscale_texture.png" );
+        Assert.assertNotNull(textureStream);
     }
 
     @After
     public void cleanupTest() {
-        Assert.assertNotNull(textureImage);
-        textureImage.flush();
-        textureImage=null;
+        textureStream=null;
     }
 
     @Test
@@ -111,11 +91,26 @@ public class TestTexture01AWT extends UITestCase {
         final Frame frame = new Frame("Texture Test");
         Assert.assertNotNull(frame);
         frame.add(glCanvas);
-        frame.setSize(512, 512);
+        frame.setSize( 256, 128 );
 
-        // create texture    
-        TextureData textureData = AWTTextureIO.newTextureData(caps.getGLProfile(), textureImage, false);
-        glCanvas.addGLEventListener(new TextureGL2ListenerDraw1(textureData));
+        // load texture from file inside current GL context to match the way
+        // the bug submitter was doing it
+        glCanvas.addGLEventListener(new TextureGL2ListenerDraw1( null ) {
+            @Override
+            public void init(GLAutoDrawable drawable) {
+                try {
+                    setTexture( TextureIO.newTexture( textureStream, true, TextureIO.PNG ) );
+                }
+                catch(GLException glexception) {
+                    glexception.printStackTrace();
+                    Assume.assumeNoException(glexception);
+                }
+                catch(IOException ioexception) {
+                    ioexception.printStackTrace();
+                    Assume.assumeNoException(ioexception);
+                }
+            }
+        });
 
         Animator animator = new Animator(glCanvas);
         frame.setVisible(true);
@@ -134,11 +129,11 @@ public class TestTexture01AWT extends UITestCase {
         } catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }                
+        }        
     }
 
     public static void main(String args[]) throws IOException {
-        String tstname = TestTexture01AWT.class.getName();
+        String tstname = TestGrayTextureFromFileAWTBug417.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

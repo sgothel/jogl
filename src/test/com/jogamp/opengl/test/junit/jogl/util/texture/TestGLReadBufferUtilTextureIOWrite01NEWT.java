@@ -26,11 +26,9 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.util;
+package com.jogamp.opengl.test.junit.jogl.util.texture;
 
 import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 import com.jogamp.newt.opengl.GLWindow;
 
@@ -47,7 +45,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class TestGLReadBufferUtilTextureIOWrite02NEWT extends UITestCase {
+public class TestGLReadBufferUtilTextureIOWrite01NEWT extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
     static int width, height;
@@ -62,85 +60,41 @@ public class TestGLReadBufferUtilTextureIOWrite02NEWT extends UITestCase {
         height = 256;
     }
 
-    protected void snapshot(GLAutoDrawable drawable, GLReadBufferUtil screenshot, String filename) {
-        if(screenshot.readPixels(drawable.getGL(), drawable, false)) {
+    protected void snapshot(GLAutoDrawable drawable, boolean alpha, boolean flip, String filename) {
+        GLReadBufferUtil screenshot = new GLReadBufferUtil(alpha, false);
+        if(screenshot.readPixels(drawable.getGL(), drawable, flip)) {
             screenshot.write(new File(filename));
         }                
     }
     
     @Test
-    public void testWriteTGAWithResize() throws InterruptedException {
-        final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
+    public void testWritePNG_TGA_PAM() throws InterruptedException {
         GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Shared Gears NEWT Test");
         glWindow.setSize(width, height);
         glWindow.addGLEventListener(new GearsES2(1));
         glWindow.addGLEventListener(new GLEventListener() {
-            int i=0;
             public void init(GLAutoDrawable drawable) {}
             public void dispose(GLAutoDrawable drawable) {}
             public void display(GLAutoDrawable drawable) {
-                StringWriter filename = new StringWriter();
-                {
-                    PrintWriter pw = new PrintWriter(filename);
-                    pw.printf("%s-rgba-%s-%03dx%03d-n%03d.tga", 
-                            getSimpleTestName("."), drawable.getGLProfile().getName(), 
-                            drawable.getWidth(), drawable.getHeight(), i++);
-                }
-                if(screenshot.readPixels(drawable.getGL(), drawable, false)) {
-                    screenshot.write(new File(filename.toString()));
-                }                
+                // snapshot(drawable, false, true,  getSimpleTestName(".")+"-rgb_-"+drawable.getGLProfile().getName()+".ppm");
+                snapshot(drawable, true,  false, getSimpleTestName(".")+"-rgba-"+drawable.getGLProfile().getName()+".png");
+                snapshot(drawable, true,  false, getSimpleTestName(".")+"-rgba-"+drawable.getGLProfile().getName()+".tga");
+                snapshot(drawable, true,  true,  getSimpleTestName(".")+"-rgba-"+drawable.getGLProfile().getName()+".pam");
+                snapshot(drawable, false, false, getSimpleTestName(".")+"-rgb_-"+drawable.getGLProfile().getName()+".png");
+                snapshot(drawable, false, false, getSimpleTestName(".")+"-rgb_-"+drawable.getGLProfile().getName()+".tga");
+                snapshot(drawable, false, true,  getSimpleTestName(".")+"-rgb_-"+drawable.getGLProfile().getName()+".pam");
             }
             public void reshape(GLAutoDrawable drawable, int x, int y,
                     int width, int height) { }
         });
         glWindow.setVisible(true);
         Thread.sleep(60);
-        glWindow.setSize(300, 300);
-        Thread.sleep(60);
-        glWindow.setSize(400, 400);
-        Thread.sleep(60);
-        glWindow.destroy();
-    }
-
-    @Test
-    public void testWritePNGWithResize() throws InterruptedException {
-        final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
-        GLWindow glWindow = GLWindow.create(caps);
-        Assert.assertNotNull(glWindow);
-        glWindow.setTitle("Shared Gears NEWT Test");
-        glWindow.setSize(width, height);
-        glWindow.addGLEventListener(new GearsES2(1));
-        glWindow.addGLEventListener(new GLEventListener() {
-            int i=0;
-            public void init(GLAutoDrawable drawable) {}
-            public void dispose(GLAutoDrawable drawable) {}
-            public void display(GLAutoDrawable drawable) {
-                StringWriter filename = new StringWriter();
-                {
-                    PrintWriter pw = new PrintWriter(filename);
-                    pw.printf("%s-rgba-%s-%03dx%03d-n%03d.png", 
-                            getSimpleTestName("."), drawable.getGLProfile().getName(), 
-                            drawable.getWidth(), drawable.getHeight(), i++);
-                }
-                if(screenshot.readPixels(drawable.getGL(), drawable, false)) {
-                    screenshot.write(new File(filename.toString()));
-                }                
-            }
-            public void reshape(GLAutoDrawable drawable, int x, int y,
-                    int width, int height) { }
-        });
-        glWindow.setVisible(true);
-        Thread.sleep(60);
-        glWindow.setSize(300, 300);
-        Thread.sleep(60);
-        glWindow.setSize(400, 400);
-        Thread.sleep(60);
-        glWindow.destroy();
+        glWindow.destroy();        
     }
 
     public static void main(String args[]) {
-        org.junit.runner.JUnitCore.main(TestGLReadBufferUtilTextureIOWrite02NEWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGLReadBufferUtilTextureIOWrite01NEWT.class.getName());
     }
 }
