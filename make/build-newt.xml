@@ -847,7 +847,7 @@
     <!--
        - Build everything.
       -->
-    <target name="all" description="Build NEWT JAR file(s) and native libraries." depends="init,java.compile.javase,build-jars-javase,java.compile.android,build-jars-android,c.build.newt,generate.version.txt" />
+    <target name="all" description="Build NEWT JAR file(s) and native libraries." depends="init,java.compile.javase,build-jars-javase,java.compile.android,build-jars-android,c.build.newt,build-jars-native,generate.version.txt" />
 
     <target name="generate.version.txt" depends="init">
         <!-- Create a version.txt file indicating which version we just built -->
