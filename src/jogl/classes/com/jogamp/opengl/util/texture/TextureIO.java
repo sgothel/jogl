@@ -1106,7 +1106,7 @@ public class TextureIO {
                 }
                 if (internalFormat == 0) {
                     if(glp.isGL2GL3()) {
-                        internalFormat = GL.GL_RGBA8;
+                        internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA8:GL.GL_RGB8;
                     } else {
                         internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA:GL.GL_RGB;
                     }
@@ -1143,7 +1143,7 @@ public class TextureIO {
                 }
                 if (internalFormat == 0) {
                     if(glp.isGL2GL3()) {
-                        internalFormat = GL.GL_RGBA8;
+                        internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA8:GL.GL_RGB8;
                     } else {
                         internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA:GL.GL_RGB;
                     }
@@ -1153,7 +1153,7 @@ public class TextureIO {
                                        image.getHeight(),
                                        0,
                                        pixelFormat,
-                                       GL.GL_UNSIGNED_BYTE,
+                                       image.getGLType(),
                                        mipmap,
                                        false,
                                        false,
@@ -1183,13 +1183,13 @@ public class TextureIO {
                 int d3dFormat = 0;
                 // FIXME: some of these are probably not completely correct and would require swizzling
                 switch (pixelFormat) {
-                case GL.GL_RGB:                        d3dFormat = DDSImage.D3DFMT_R8G8B8; break;
-                case GL.GL_RGBA:                       d3dFormat = DDSImage.D3DFMT_A8R8G8B8; break;
-                case GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT:  d3dFormat = DDSImage.D3DFMT_DXT1; break;
-                case GL.GL_COMPRESSED_RGBA_S3TC_DXT1_EXT: throw new IOException("RGBA DXT1 not yet supported");
-                case GL.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT: d3dFormat = DDSImage.D3DFMT_DXT3; break;
-                case GL.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT: d3dFormat = DDSImage.D3DFMT_DXT5; break;
-                default: throw new IOException("Unsupported pixel format 0x" + Integer.toHexString(pixelFormat) + " by DDS writer");
+                    case GL.GL_RGB:                        d3dFormat = DDSImage.D3DFMT_R8G8B8; break;
+                    case GL.GL_RGBA:                       d3dFormat = DDSImage.D3DFMT_A8R8G8B8; break;
+                    case GL.GL_COMPRESSED_RGB_S3TC_DXT1_EXT:  d3dFormat = DDSImage.D3DFMT_DXT1; break;
+                    case GL.GL_COMPRESSED_RGBA_S3TC_DXT1_EXT: throw new IOException("RGBA DXT1 not yet supported");
+                    case GL.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT: d3dFormat = DDSImage.D3DFMT_DXT3; break;
+                    case GL.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT: d3dFormat = DDSImage.D3DFMT_DXT5; break;
+                    default: throw new IOException("Unsupported pixel format 0x" + Integer.toHexString(pixelFormat) + " by DDS writer");
                 }
         
                 ByteBuffer[] mipmaps = null;
@@ -1319,6 +1319,10 @@ public class TextureIO {
                 boolean reversedChannels;
                 int bytesPerPixel;
                 switch(pixelFormat) {
+                    case GL.GL_LUMINANCE:
+                        reversedChannels=false;
+                        bytesPerPixel=1;
+                        break;
                     case GL.GL_RGB:
                         reversedChannels=false;
                         bytesPerPixel=3;
@@ -1340,10 +1344,8 @@ public class TextureIO {
                         bytesPerPixel=-1;
                         break;
                 }
-                if ( 1 < bytesPerPixel &&
-                    (pixelType == GL.GL_BYTE ||
-                     pixelType == GL.GL_UNSIGNED_BYTE)) {
-                    
+                if ( ( 1 == bytesPerPixel || 3 == bytesPerPixel || 4 == bytesPerPixel) &&
+                     ( pixelType == GL.GL_BYTE || pixelType == GL.GL_UNSIGNED_BYTE)) {                    
                     ByteBuffer buf = (ByteBuffer) data.getBuffer();
                     if (null == buf) {
                         buf = (ByteBuffer) data.getMipmapData()[0];

@@ -23,7 +23,7 @@ import com.jogamp.common.util.IOUtil;
 public class PNGImage {    
     /** Creates a PNGImage from data supplied by the end user. Shares
         data with the passed ByteBuffer. Assumes the data is already in
-        the correct byte order for writing to disk, i.e., RGB or RGBA bottom-to-top (OpenGL coord). */
+        the correct byte order for writing to disk, i.e., LUMINANCE, RGB or RGBA bottom-to-top (OpenGL coord). */
     public static PNGImage createFromData(int width, int height, double dpiX, double dpiY,
                                           int bytesPerPixel, boolean reversedChannels, ByteBuffer data) {
         return new PNGImage(width, height, dpiX, dpiY, bytesPerPixel, reversedChannels, data);
@@ -44,7 +44,7 @@ public class PNGImage {
         d.put(dOff--, (byte)line.scanline[lineOff    ]); // R
         return dOff;
     }    
-    /** Reverse read and store, implicitly flip image from GL coords. */
+    /** Reverse read and store, implicitly flip image from GL coords. Handle reversed channels (BGR[A])*/
     private static int setPixelRGBA8(ImageLine line, int lineOff, ByteBuffer d, int dOff, boolean hasAlpha, boolean reversedChannels) {
         if(reversedChannels) {
             line.scanline[lineOff    ] = d.get(dOff--); // R, A
@@ -83,12 +83,15 @@ public class PNGImage {
     private PNGImage(InputStream in) {
         final PngReader pngr = new PngReader(new BufferedInputStream(in), null);
         final int channels = pngr.imgInfo.channels;
-        if (3 > channels || channels > 4 ) {
-            throw new RuntimeException("PNGImage can only handle RGB/RGBA images for now. Channels "+channels);
+        if ( ! ( 1 == channels || 3 == channels || 4 == channels ) ) {
+            throw new RuntimeException("PNGImage can only handle Lum/RGB/RGBA [1/3/4 channels] images for now. Channels "+channels);
         }
         bytesPerPixel=pngr.imgInfo.bytesPixel;
-        if (3 > bytesPerPixel || bytesPerPixel > 4 ) {
-            throw new RuntimeException("PNGImage can only handle RGB/RGBA images for now. BytesPerPixel "+bytesPerPixel);
+        if ( ! ( 1 == bytesPerPixel || 3 == bytesPerPixel || 4 == bytesPerPixel ) ) {
+            throw new RuntimeException("PNGImage can only handle Lum/RGB/RGBA [1/3/4 bpp] images for now. BytesPerPixel "+bytesPerPixel);
+        }
+        if(channels != bytesPerPixel) {
+            throw new RuntimeException("PNGImage currently only handles Channels [1/3/4] == BytePerPixel [1/3/4], channels: "+channels+", bytesPerPixel "+bytesPerPixel);
         }
         pixelWidth=pngr.imgInfo.cols;
         pixelHeight=pngr.imgInfo.rows;
@@ -97,18 +100,29 @@ public class PNGImage {
             final double[] dpi2 = pngr.getMetadata().getDpi();
             dpi[0]=dpi2[0];
             dpi[1]=dpi2[1];
-        }        
-        glFormat= ( 4 == bytesPerPixel ) ? GL.GL_RGBA : GL.GL_RGB;
+        }
+        switch(channels) {
+            case 1: glFormat = GL.GL_LUMINANCE; break;
+            case 3: glFormat = GL.GL_RGB; break;
+            case 4: glFormat = GL.GL_RGBA; break;
+            default: throw new InternalError("XXX: channels: "+channels+", bytesPerPixel "+bytesPerPixel);
+        }
         data = Buffers.newDirectByteBuffer(bytesPerPixel * pixelWidth * pixelHeight);
         reversedChannels = false; // RGB[A]
-        final boolean hasAlpha = 4 == bytesPerPixel;
+        final boolean hasAlpha = 4 == channels;
         int dataOff = bytesPerPixel * pixelWidth * pixelHeight - 1; // start at end-of-buffer, reverse store
         for (int row = 0; row < pixelHeight; row++) {
             final ImageLine l1 = pngr.readRow(row);
             int lineOff = ( pixelWidth - 1 ) * bytesPerPixel ;      // start w/ last pixel in line, reverse read
-            for (int j = pixelWidth - 1; j >= 0; j--) {
-                dataOff = getPixelRGBA8(data, dataOff, l1, lineOff, hasAlpha);
-                lineOff -= bytesPerPixel;
+            if(1 == channels) {
+                for (int j = pixelWidth - 1; j >= 0; j--) {
+                    data.put(dataOff--, (byte)l1.scanline[lineOff--]); // Luminance, 1 bytesPerPixel
+                }
+            } else {
+                for (int j = pixelWidth - 1; j >= 0; j--) {
+                    dataOff = getPixelRGBA8(data, dataOff, l1, lineOff, hasAlpha);
+                    lineOff -= bytesPerPixel;
+                }
             }
         }
         pngr.end();
@@ -132,6 +146,9 @@ public class PNGImage {
     
     /** Returns the OpenGL format for this texture; e.g. GL.GL_BGR or GL.GL_BGRA. */
     public int getGLFormat() { return glFormat; }
+    
+    /** Returns the OpenGL data type: GL.GL_UNSIGNED_BYTE. */
+    public int getGLType() { return GL.GL_UNSIGNED_BYTE; }
 
     /** Returns the bytes per pixel */
     public int getBytesPerPixel() { return bytesPerPixel; }
@@ -156,9 +173,15 @@ public class PNGImage {
             int dataOff = bytesPerPixel * pixelWidth * pixelHeight - 1; // start at end-of-buffer, reverse read
             for (int row = 0; row < pixelHeight; row++) {
                 int lineOff = ( pixelWidth - 1 ) * bytesPerPixel ;      // start w/ last pixel in line, reverse store
-                for (int j = pixelWidth - 1; j >= 0; j--) {
-                    dataOff = setPixelRGBA8(l1, lineOff, data, dataOff, hasAlpha, reversedChannels);
-                    lineOff -= bytesPerPixel;
+                if(1 == bytesPerPixel) {
+                    for (int j = pixelWidth - 1; j >= 0; j--) {
+                        l1.scanline[lineOff--] = data.get(dataOff--); // // Luminance, 1 bytesPerPixel
+                    }
+                } else {
+                    for (int j = pixelWidth - 1; j >= 0; j--) {
+                        dataOff = setPixelRGBA8(l1, lineOff, data, dataOff, hasAlpha, reversedChannels);
+                        lineOff -= bytesPerPixel;
+                    }
                 }
                 png.writeRow(l1, row);
             }

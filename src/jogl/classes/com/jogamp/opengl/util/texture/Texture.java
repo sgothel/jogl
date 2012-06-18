@@ -907,12 +907,17 @@ public class Texture {
             }
         } else {
             if (mustFlipVertically) {
-                coords = new TextureCoords(0, (float) imgHeight / (float) texHeight,
-                                           (float) imgWidth / (float) texWidth, 0);
+                coords = new TextureCoords(0,                                      // l 
+                                           (float) imgHeight / (float) texHeight,  // b
+                                           (float) imgWidth / (float) texWidth,    // r
+                                           0                                       // t
+                                          );
             } else {
-                coords = new TextureCoords(0, 0,
-                                           (float) imgWidth / (float) texWidth,
-                                           (float) imgHeight / (float) texHeight);
+                coords = new TextureCoords(0,                                      // l 
+                                           0,                                      // b
+                                           (float) imgWidth / (float) texWidth,    // r
+                                           (float) imgHeight / (float) texHeight   // t
+                                          );
             }
         }
     }
