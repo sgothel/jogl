@@ -53,16 +53,16 @@ function jrun() {
     swton=$1
     shift
 
-    #D_ARGS="-Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.UseCurrentThreadLibLoader"
-    #D_ARGS="-Djogl.1thread=false -Djogl.debug.Threading"
-    #D_ARGS="-Djogl.1thread=true -Djogl.debug.Threading"
-    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch"
-    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext.TraceSwitch -Djogl.debug=all"
+    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode -Djogl.debug.GLSLState"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode"
+    #D_ARGS="-Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.UseCurrentThreadLibLoader"
+    #D_ARGS="-Djogl.1thread=false -Djogl.debug.Threading"
+    #D_ARGS="-Djogl.1thread=true -Djogl.debug.Threading"
+    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext.TraceSwitch -Djogl.debug=all"
     #D_ARGS="-Djogamp.debug.IOUtil -Djogl.debug.GLSLCode -Djogl.debug.GLMediaPlayer"
     #D_ARGS="-Djogl.debug.GLArrayData"
     #D_ARGS="-Djogl.debug.EGL -Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.GLDrawable"
@@ -330,11 +330,12 @@ function testawtswt() {
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestPNGImage01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTexture01AWT
-#testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGrayTextureFromFileAWTBug417
+testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileAWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTextureSequence01NEWT $*
-testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTextureSequence01AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTextureSequence01AWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*

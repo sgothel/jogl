@@ -6,8 +6,6 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-import jogamp.opengl.util.av.NullGLMediaPlayer;
-
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureData;
@@ -29,7 +27,7 @@ public class TextureSequenceDemo01 implements TextureSequence {
         if(null == frame) {
             TextureData texData = null;
             try {
-                URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-160x90.png", NullGLMediaPlayer.class.getClassLoader());
+                URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-160x90.png", this.getClass().getClassLoader());
                 if(null != urlConn) {
                     texData = TextureIO.newTextureData(GLProfile.getGL2ES2(), urlConn.getInputStream(), false, TextureIO.PNG);
                 }

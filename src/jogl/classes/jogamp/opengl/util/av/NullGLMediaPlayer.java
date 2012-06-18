@@ -110,7 +110,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     @Override
     protected void initGLStreamImpl(GL gl, int[] texNames) throws IOException {
         try {
-            URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-160x90.png", NullGLMediaPlayer.class.getClassLoader());
+            URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-160x90.png", this.getClass().getClassLoader());
             if(null != urlConn) {
                 texData = TextureIO.newTextureData(GLProfile.getGL2ES2(), urlConn.getInputStream(), false, TextureIO.PNG);
             }

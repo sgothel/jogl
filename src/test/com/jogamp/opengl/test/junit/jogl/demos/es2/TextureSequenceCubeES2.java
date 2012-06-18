@@ -146,9 +146,9 @@ public class TextureSequenceCubeES2 implements GLEventListener {
     
     private void initShader(GL2ES2 gl) {
         // Create & Compile the shader objects
-        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, TextureSequenceCubeES2.class, 
+        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(), 
                                             "shader", "shader/bin", shaderBasename, true);
-        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, TextureSequenceCubeES2.class, 
+        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), 
                                             "shader", "shader/bin", shaderBasename, true);
         
         // Prelude shader code w/ GLSL profile specifics [ 1. pre-proc, 2. other ]
@@ -205,7 +205,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
 
         pmvMatrix = new PMVMatrix();
         reshapePMV(drawable.getWidth(), drawable.getHeight());
-        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf());
+        pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()); // P, Mv
         if(!st.uniform(gl, pmvMatrixUniform)) {
             throw new GLException("Error setting PMVMatrix in shader: "+st);
         }
@@ -214,6 +214,8 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         }
         
         
+        // calculate centered tex coords w/ aspect ratio
+        float[] fixedCubeTexCoords = new float[s_cubeTexCoords.length]; 
         {
             final float aspect = tex.getAspectRatio();
             final TextureCoords tc = tex.getImageTexCoords();
@@ -228,17 +230,16 @@ public class TextureSequenceCubeES2 implements GLEventListener {
                 final float tx = s_cubeTexCoords[i+0];
                 final float ty = s_cubeTexCoords[i+1];
                 if(tx!=0) {
-                    s_cubeTexCoords[i+0] = tc_x1 * ss;
+                    fixedCubeTexCoords[i+0] = tc_x1 * ss;
                 }
                 if(ty==0 && !tex.getMustFlipVertically() || ty!=0 && tex.getMustFlipVertically()) {
-                    s_cubeTexCoords[i+1] = 0f         + dy;
+                    fixedCubeTexCoords[i+1] = 0f         + dy;
                 } else {
-                    s_cubeTexCoords[i+1] = tc_y1 * ts + dy;
+                    fixedCubeTexCoords[i+1] = tc_y1 * ts + dy;
                 }
             }
         }
-        
-        
+                
         interleavedVBO = GLArrayDataServer.createGLSLInterleaved(3+4+2, GL.GL_FLOAT, false, 3*6*4, GL.GL_STATIC_DRAW);
         {        
             interleavedVBO.addGLSLSubArray("mgl_Vertex",        3, GL.GL_ARRAY_BUFFER);            
@@ -252,7 +253,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
                 ib.put(s_cubeVertices,  i*3, 3);
                 ib.put(s_cubeColors,    i*4, 4);  
                 //ib.put(s_cubeNormals,   i*3, 3);
-                ib.put(s_cubeTexCoords, i*2, 2);
+                ib.put(fixedCubeTexCoords, i*2, 2);
             }                        
         }
         interleavedVBO.seal(gl, true);

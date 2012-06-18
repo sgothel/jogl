@@ -29,6 +29,7 @@
 package com.jogamp.opengl.test.junit.jogl.util.texture;
 
 
+import com.jogamp.opengl.test.junit.jogl.demos.gl2.TextureDraw01GL2Listener;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import javax.media.opengl.GLProfile;
@@ -114,7 +115,7 @@ public class TestTexture01AWT extends UITestCase {
 
         // create texture    
         TextureData textureData = AWTTextureIO.newTextureData(caps.getGLProfile(), textureImage, false);
-        glCanvas.addGLEventListener(new TextureGL2ListenerDraw1(textureData));
+        glCanvas.addGLEventListener(new TextureDraw01GL2Listener(textureData));
 
         Animator animator = new Animator(glCanvas);
         frame.setVisible(true);

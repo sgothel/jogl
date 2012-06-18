@@ -26,8 +26,9 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.util.texture;
+package com.jogamp.opengl.test.junit.jogl.demos.gl2;
 
+import com.jogamp.opengl.test.junit.jogl.demos.TextureDraw01Accessor;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureData;
@@ -38,25 +39,25 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.glu.GLU;
 
-public class TextureGL2ListenerDraw1 implements GLEventListener {
+public class TextureDraw01GL2Listener implements GLEventListener, TextureDraw01Accessor {
     private GLU      glu = new GLU();
     private TextureData textureData;
     private Texture  texture;
     
-    public TextureGL2ListenerDraw1(TextureData td) {
+    public TextureDraw01GL2Listener(TextureData td) {
         this.textureData = td;
     }
 
     public void init(GLAutoDrawable drawable) {
         if(null!=textureData) {
-            this.texture = TextureIO.newTexture(textureData);
+            this.texture = TextureIO.newTexture(drawable.getGL(), textureData);
         }
     }
 
-    public void setTexture( Texture texture ) {
-        this.texture = texture;
+    public Texture getTexture( ) {
+        return this.texture;
     }
-
+    
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
         GL2 gl = drawable.getGL().getGL2();
         gl.glMatrixMode(GL2ES1.GL_PROJECTION);
@@ -80,16 +81,7 @@ public class TextureGL2ListenerDraw1 implements GLEventListener {
     public void display(GLAutoDrawable drawable) {
         GL2 gl = drawable.getGL().getGL2();
 
-        // need a valid GL context for this ..
-
-        /** OpenGL ..
-        texture.updateSubImage(textureData, 0,
-                               20, 20, 
-                               20, 20,
-                               100, 100); */
-
-    
-        // Now draw one quad with the texture
+        // draw one quad with the texture
         if(null!=texture) {
             texture.enable(gl);
             texture.bind(gl);

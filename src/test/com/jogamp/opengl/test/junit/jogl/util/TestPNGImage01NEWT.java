@@ -18,7 +18,7 @@ public class TestPNGImage01NEWT extends UITestCase {
         final File out1_f=new File(getSimpleTestName(".")+"-PNGImageTest1.png");
         final File out2_f=new File(getSimpleTestName(".")+"-PNGImageTest2.png");
         final String url_s="jogl/util/data/av/test-ntsc01-160x90.png";
-        URLConnection urlConn = IOUtil.getResource(url_s, PNGImage.class.getClassLoader());
+        URLConnection urlConn = IOUtil.getResource(url_s, this.getClass().getClassLoader());
         PNGImage image0 = PNGImage.read(urlConn.getInputStream());
         System.err.println("PNGImage - Orig: "+image0);        
         image0.write(out1_f, true); 

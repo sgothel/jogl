@@ -39,8 +39,6 @@ public class TestTextureSequence01NEWT extends UITestCase {
         window.setTitle("TestTextureSequence01NEWT");
         // Size OpenGL to Video Surface
         window.setSize(width, height);
-        window.setFullscreen(false);
-        window.setSize(width, height);
         final TextureSequenceDemo01 texSource = new TextureSequenceDemo01(useBuildInTexLookup);
         window.addGLEventListener(new GLEventListener() {
             @Override
