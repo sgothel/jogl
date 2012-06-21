@@ -30,7 +30,6 @@ package com.jogamp.opengl.test.android;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
-import jogamp.newt.driver.android.AndroidWindow;
 import jogamp.newt.driver.android.NewtBaseActivity;
 
 import com.jogamp.newt.ScreenMode;
@@ -42,10 +41,8 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.util.Animator;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.inputmethod.InputMethodManager;
 
 public class NEWTGearsES2Activity extends NewtBaseActivity {
    static String TAG = "NEWTGearsES2Activity";
@@ -65,10 +62,7 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
         @Override
         public void mousePressed(MouseEvent e) {
            if(e.getPressure()>2f) { // show Keyboard
-               final AndroidWindow win = (AndroidWindow)e.getSource();           
-               InputMethodManager mgr = (InputMethodManager) win.getAndroidView().getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-               mgr.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0); // shows keyboard ..
-               win.getAndroidView().requestFocus();
+               ((com.jogamp.newt.Window) e.getSource()).setKeyboardVisible(true);
            }
         }
        });

@@ -790,6 +790,14 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
         window.addWindowListener(index, l);
     }
 
+    public final void setKeyboardVisible(boolean visible) {
+        window.setKeyboardVisible(visible);
+    }
+    
+    public final boolean isKeyboardVisible() {
+        return window.isKeyboardVisible();
+    }
+    
     public final void addKeyListener(KeyListener l) {
         window.addKeyListener(l);
     }

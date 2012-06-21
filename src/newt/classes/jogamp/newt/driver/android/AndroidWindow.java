@@ -48,10 +48,14 @@ import jogamp.opengl.egl.EGLGraphicsConfigurationFactory;
 
 import android.content.Context;
 import android.graphics.PixelFormat;
+import android.os.Bundle;
+import android.os.IBinder;
+import android.os.ResultReceiver;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback2;
+import android.view.inputmethod.InputMethodManager;
 import android.view.SurfaceView;
 import android.view.View;
 
@@ -314,6 +318,52 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
 
     protected void updateInsetsImpl(Insets insets) {
         // nop ..        
+    }
+    
+    //----------------------------------------------------------------------
+    // Virtual On-Screen Keyboard / SoftInput 
+    //
+    
+    private class KeyboardVisibleReceiver extends ResultReceiver {
+        public KeyboardVisibleReceiver() {
+            super(null);
+        }
+        
+        @Override 
+        public void onReceiveResult(int r, Bundle data) {
+            boolean v = false;
+        
+            switch(r) {
+                case InputMethodManager.RESULT_UNCHANGED_SHOWN:
+                case InputMethodManager.RESULT_SHOWN:
+                    v = true;
+                    break;
+                case InputMethodManager.RESULT_HIDDEN:
+                case InputMethodManager.RESULT_UNCHANGED_HIDDEN:
+                    v = false;
+                    break;            
+            }
+            Log.d(MD.TAG, "keyboardVisible: "+v);
+            keyboardVisibilityChanged(v);
+        }
+    }
+    private KeyboardVisibleReceiver keyboardVisibleReceiver = new KeyboardVisibleReceiver();
+    
+    protected final boolean setKeyboardVisibleImpl(boolean visible) {
+        if(null != androidView) {
+            final InputMethodManager imm = (InputMethodManager) getAndroidView().getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            final IBinder winid = getAndroidView().getWindowToken();
+            if(visible) {
+                // Show soft-keyboard:
+                imm.showSoftInput(androidView, 0, keyboardVisibleReceiver);
+            } else {
+                // hide keyboard :
+                imm.hideSoftInputFromWindow(winid, 0, keyboardVisibleReceiver);
+            }
+            return visible;
+        } else {
+            return false; // nop
+        }
     }
     
     //----------------------------------------------------------------------

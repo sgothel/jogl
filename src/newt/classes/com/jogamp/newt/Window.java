@@ -106,11 +106,11 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     void destroy();
 
     /**
-     * <p>
      * <code>setVisible</code> makes the window and children visible if <code>visible</code> is true,
-     * otherwise the window and children becomes invisible.<br></p>
+     * otherwise the window and children becomes invisible.
      * <p>
-     * The <code>setVisible(true)</code> is responsible to actual create the native window.<br></p>
+     * The <code>setVisible(true)</code> is responsible to actual create the native window.
+     * </p>
      * <p>
      * Zero size semantics are respected, see {@link #setSize(int,int)}:<br>
      * <pre>
@@ -125,10 +125,11 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * }
      * </pre></p>
      * <p>
-     * In case this window is a child window and a parent {@link javax.media.nativewindow.NativeWindow} is being used,<br>
-     * the parent's {@link javax.media.nativewindow.NativeWindow} handle is retrieved via {@link javax.media.nativewindow.NativeWindow#getWindowHandle()}.<br>
-     * If this action fails, ie if the parent {@link javax.media.nativewindow.NativeWindow} is not valid yet,<br>
-     * no native window is created yet and <code>setVisible(true)</code> shall be repeated when it is.<br></p>
+     * In case this window is a child window and has a {@link javax.media.nativewindow.NativeWindow} parent,<br>
+     * <code>setVisible(true)</code> has no effect as long the parent's is not valid yet,
+     * i.e. {@link javax.media.nativewindow.NativeWindow#getWindowHandle()} returns <code>null</code>.<br>
+     * <code>setVisible(true)</code> shall be repeated when the parent becomes valid.
+     * </p>
      */
     void setVisible(boolean visible);
 
@@ -399,7 +400,27 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     // KeyListener
     //
 
+    /**
+     * In case the platform supports or even requires a virtual on-screen keyboard,
+     * this method shows or hide it depending on whether <code>visible</code> is <code>true</code>
+     * or <code>false</code>.
+     * <p>
+     * One known platform where NEWT supports this feature is <code>Android</code>.
+     * </p>
+     */
+    void setKeyboardVisible(boolean visible);
 
+    /** 
+     * Return <code>true</code> if the virtual on-screen keyboard is visible, otherwise <code>false</code>.
+     * <p>
+     * Currently on <code>Android</code>, the only supported platform right now,
+     * there is no way to reliably be notified of the current keyboard state.<br>
+     * It would be best, if your code does not rely on this information.
+     * </p>
+     * @see #setKeyboardVisible(boolean)
+     */
+    boolean isKeyboardVisible();
+    
     /**
      *
      * Appends the given {@link com.jogamp.newt.event.KeyListener} to the end of

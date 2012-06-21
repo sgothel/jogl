@@ -303,6 +303,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     setTitleImpl(title);
                     setPointerVisibleImpl(pointerVisible);
                     confinePointerImpl(pointerConfined);
+                    setKeyboardVisible(keyboardVisible);
                     if(waitForVisible(true, false)) {
                         if(isFullscreen()) {
                             synchronized(fullScreenAction) {
@@ -2182,6 +2183,36 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         addKeyListener(-1, l);
     }
 
+    public final void setKeyboardVisible(boolean visible) {
+        if(isNativeValid()) {
+            // We don't skip the impl. if it seems that there is no state change,
+            // since we cannot assume the impl. reliably gives us it's current state. 
+            final boolean n = setKeyboardVisibleImpl(visible);
+            if(DEBUG_IMPLEMENTATION || DEBUG_KEY_EVENT) {
+                System.err.println("setKeyboardVisible(native): visible "+keyboardVisible+" -> "+visible +" -> "+n);
+            }
+            keyboardVisible = n;
+        } else {
+            keyboardVisible = visible; // earmark for creation
+        }
+    }
+    public final boolean isKeyboardVisible() {
+        return keyboardVisible;
+    }    
+    protected boolean setKeyboardVisibleImpl(boolean visible) {
+        return false; // nop
+    }
+    /** Triggered by implementation's WM events to update the virtual on-screen keyboard's visibility state. */
+    protected void keyboardVisibilityChanged(boolean visible) {
+        if(keyboardVisible != visible) {
+            if(DEBUG_IMPLEMENTATION || DEBUG_KEY_EVENT) {
+                System.err.println("keyboardVisibilityChanged: "+keyboardVisible+" -> "+visible);
+            }
+            keyboardVisible = visible;
+        }
+    }
+    protected boolean keyboardVisible = false;
+    
     public void addKeyListener(int index, KeyListener l) {
         if(l == null) {
             return;
@@ -2356,8 +2387,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 enqueueWindowEvent(false, evt);
             }
         }
-    }    
-
+    }
+    
     /** Triggered by implementation's WM events to update the visibility state. */
     protected void visibleChanged(boolean defer, boolean visible) {
         if(this.visible != visible) {
