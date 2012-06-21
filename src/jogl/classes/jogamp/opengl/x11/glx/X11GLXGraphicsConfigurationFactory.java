@@ -269,7 +269,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         final boolean isMultisampleAvailable = factory.isGLXMultisampleAvailable(absDevice);
         int[] attribs = X11GLXGraphicsConfiguration.GLCapabilities2AttribList(capsChosen, true, isMultisampleAvailable, display, screen);
         int[] count = { -1 };
-        ArrayList/*<X11GLCapabilities>*/ availableCaps = new ArrayList();
+        List<GLCapabilitiesImmutable> availableCaps = new ArrayList<GLCapabilitiesImmutable>();
         final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer);
 
         // 1st choice: get GLCapabilities based on users GLCapabilities setting recommendedIndex as preferred choice
@@ -339,7 +339,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
 
         GLProfile glProfile = capsChosen.getGLProfile();
         final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(capsChosen.isOnscreen(), false /* pbuffer */);
-        ArrayList availableCaps = new ArrayList();
+        List<GLCapabilitiesImmutable> availableCaps = new ArrayList<GLCapabilitiesImmutable>();
         int recommendedIndex = -1;
 
         AbstractGraphicsDevice absDevice = x11Screen.getDevice();

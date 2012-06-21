@@ -69,7 +69,7 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
   private static final boolean DEBUG = Debug.isPropertyDefined("nativewindow.debug.CapabilitiesChooser", true); 
 
   public int chooseCapabilities(final CapabilitiesImmutable desired,
-                                final List /*<CapabilitiesImmutable>*/ available,
+                                final List<? extends CapabilitiesImmutable> available,
                                 final int windowSystemRecommendedChoice) {
     if (DEBUG) {
       System.err.println("Desired: " + desired);
@@ -99,7 +99,7 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
     }
     // Compute score for each
     for (int i = 0; i < availnum; i++) {
-      CapabilitiesImmutable cur = (CapabilitiesImmutable) available.get(i);
+      final CapabilitiesImmutable cur = available.get(i);
       if (cur == null) {
         continue;
       }

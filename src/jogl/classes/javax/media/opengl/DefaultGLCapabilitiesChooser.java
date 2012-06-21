@@ -102,8 +102,9 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
   final static int STENCIL_MISMATCH_PENALTY_SCALE   = 3;
   final static int MULTISAMPLE_MISMATCH_PENALTY_SCALE   = 3;
   
+  @Override
   public int chooseCapabilities(final CapabilitiesImmutable desired,
-                                final List /*<CapabilitiesImmutable>*/ available,
+                                final List<? extends CapabilitiesImmutable> available,
                                 final int windowSystemRecommendedChoice) {
     if ( null == desired ) {
       throw new NativeWindowException("Null desired capabilities");
@@ -144,7 +145,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     
     // Compute score for each
     for (int i = 0; i < availnum; i++) {
-      GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
+      final GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
       if (cur == null) {
         continue;
       }
@@ -207,7 +208,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
       if (score == NO_SCORE) {
         continue;
       }
-      GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
+      final GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
       if (cur.getHardwareAccelerated()) {
         int absScore = Math.abs(score);
         if (!gotHW ||
@@ -223,7 +224,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
         if (score == NO_SCORE) {
           continue;
         }
-        GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
+        final GLCapabilitiesImmutable cur = (GLCapabilitiesImmutable) available.get(i);
         if (!cur.getHardwareAccelerated()) {
           if (score <= 0) {
             score -= maxAbsoluteHWScore;

@@ -181,7 +181,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         EGLGraphicsDevice eglDevice = sharedResource.getDevice();
         long eglDisplay = eglDevice.getHandle();
 
-        List/*<EGLGLCapabilities>*/ availableCaps = null;
+        List<GLCapabilitiesImmutable> availableCaps = null;
         IntBuffer numConfigs = Buffers.newDirectIntBuffer(1);
 
         if(!EGL.eglGetConfigs(eglDisplay, null, 0, numConfigs)) {
@@ -316,7 +316,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         final boolean onscreen = capsChosen.isOnscreen();
         final boolean usePBuffer = capsChosen.isPBuffer();
         final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer);
-        List/*<EGLGLCapabilities>*/ availableCaps = null;
+        List<GLCapabilitiesImmutable> availableCaps = null;
         int recommendedIndex = -1;
         long recommendedEGLConfig = -1;
         IntBuffer numConfigs = Buffers.newDirectIntBuffer(1);
@@ -388,7 +388,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         }
 
         if( VisualIDHolder.VID_UNDEFINED != nativeVisualID ) {
-            List/*<EGLGLCapabilities>*/ removedCaps = new ArrayList();
+            List<GLCapabilitiesImmutable> removedCaps = new ArrayList<GLCapabilitiesImmutable>();
             for(int i=0; i<availableCaps.size(); ) {
                 VisualIDHolder vidh = (VisualIDHolder) availableCaps.get(i);
                 if(vidh.getVisualID(VIDType.NATIVE) != nativeVisualID) {
@@ -421,15 +421,15 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         return new EGLGraphicsConfiguration(absScreen, chosenCaps, capsRequested, chooser);
     }
 
-    static List/*<GLCapabilitiesImmutable>*/ eglConfigs2GLCaps(GLProfile glp, long eglDisplay, PointerBuffer configs, int num, int winattrmask, boolean forceTransparentFlag) {
-        ArrayList caps = new ArrayList(num);
+    static List<GLCapabilitiesImmutable> eglConfigs2GLCaps(GLProfile glp, long eglDisplay, PointerBuffer configs, int num, int winattrmask, boolean forceTransparentFlag) {
+        List<GLCapabilitiesImmutable> caps = new ArrayList<GLCapabilitiesImmutable>(num);
         for(int i=0; i<num; i++) {
             EGLGraphicsConfiguration.EGLConfig2Capabilities(caps, glp, eglDisplay, configs.get(i), winattrmask, forceTransparentFlag);
         }
         return caps;
     }
 
-    static void printCaps(String prefix, List/*GLCapabilitiesImmutable*/ caps, PrintStream out) {
+    static void printCaps(String prefix, List<GLCapabilitiesImmutable> caps, PrintStream out) {
         for(int i=0; i<caps.size(); i++) {
             out.println(prefix+"["+i+"] "+caps.get(i));
         }

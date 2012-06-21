@@ -40,7 +40,12 @@
 
 package javax.media.opengl;
 
+import java.util.List;
+
+import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.CapabilitiesChooser;
+
+import javax.media.opengl.GLCapabilitiesImmutable;
 
 /** Provides a mechanism by which applications can customize the
     window type selection for a given {@link GLCapabilities}.
@@ -48,9 +53,10 @@ import javax.media.nativewindow.CapabilitiesChooser;
     the appropriate method of {@link GLDrawableFactory}; the chooser
     will be called during the OpenGL context creation process. Note
     that this is only a marker interface; its signature is the same as
-    {@link CapabilitiesChooser}, but the array of {@link Capabilities}
-    objects passed to {@link #chooseCapabilities chooseCapabilities}
-    will actually be an array of {@link GLCapabilities}. */
+    {@link CapabilitiesChooser} and the {@link List} of 
+    objects extending {@link CapabilitiesImmutable}
+    passed to {@link #chooseCapabilities chooseCapabilities}
+    is actually a {@link List} of type {@link GLCapabilitiesImmutable}. */
 
 public interface GLCapabilitiesChooser extends CapabilitiesChooser {
 }

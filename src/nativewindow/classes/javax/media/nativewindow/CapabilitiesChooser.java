@@ -65,6 +65,6 @@ public interface CapabilitiesChooser {
       choice to some other CapabilitiesChooser object.
   */
   public int chooseCapabilities(CapabilitiesImmutable desired,
-                                List /*<CapabilitiesImmutable>*/ available,
+                                List<? extends CapabilitiesImmutable> available,
                                 int windowSystemRecommendedChoice);
 }

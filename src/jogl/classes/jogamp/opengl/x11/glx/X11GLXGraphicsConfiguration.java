@@ -34,6 +34,7 @@
 package jogamp.opengl.x11.glx;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
@@ -253,7 +254,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
   static X11GLCapabilities GLXFBConfig2GLCapabilities(GLProfile glp, long display, long fbcfg,
                                                             boolean relaxed, boolean onscreen, boolean usePBuffer,
                                                             boolean isMultisampleAvailable) {
-    ArrayList bucket = new ArrayList();
+    ArrayList<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>();
     final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer);
     if( GLXFBConfig2GLCapabilities(bucket, glp, display, fbcfg, winattrmask, isMultisampleAvailable) ) {
         return (X11GLCapabilities) bucket.get(0);
@@ -271,7 +272,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return renderPictFmt.getDirect();
   }
 
-  static boolean GLXFBConfig2GLCapabilities(ArrayList capsBucket,
+  static boolean GLXFBConfig2GLCapabilities(List<GLCapabilitiesImmutable> capsBucket,
                                             GLProfile glp, long display, long fbcfg,
                                             int winattrmask, boolean isMultisampleAvailable) {
     final int allDrawableTypeBits = FBCfgDrawableTypeBits(display, fbcfg);
@@ -388,7 +389,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       return res;
   }
 
-  static boolean XVisualInfo2GLCapabilities(ArrayList capsBucket,
+  static boolean XVisualInfo2GLCapabilities(List<GLCapabilitiesImmutable> capsBucket,
                                             GLProfile glp, long display, XVisualInfo info,
                                             final int winattrmask, boolean isMultisampleEnabled) {
     final int allDrawableTypeBits = GLGraphicsConfigurationUtil.WINDOW_BIT | GLGraphicsConfigurationUtil.BITMAP_BIT ;

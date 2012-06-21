@@ -38,6 +38,7 @@ package jogamp.opengl.egl;
 
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
@@ -149,7 +150,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
 
     public static EGLGLCapabilities EGLConfig2Capabilities(GLProfile glp, long display, long config,
                                                            boolean relaxed, boolean onscreen, boolean usePBuffer, boolean forceTransparentFlag) {
-        ArrayList bucket = new ArrayList();
+        List<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>();
         final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer);
         if( EGLConfig2Capabilities(bucket, glp, display, config, winattrmask, forceTransparentFlag) ) {
             return (EGLGLCapabilities) bucket.get(0);
@@ -159,7 +160,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         return null;
     }
 
-    public static boolean EGLConfig2Capabilities(ArrayList capsBucket,
+    public static boolean EGLConfig2Capabilities(List<GLCapabilitiesImmutable> capsBucket,
                                                  GLProfile glp, long display, long config,
                                                  int winattrmask, boolean forceTransparentFlag) {
         final int allDrawableTypeBits = EGLConfigDrawableTypeBits(display, config);

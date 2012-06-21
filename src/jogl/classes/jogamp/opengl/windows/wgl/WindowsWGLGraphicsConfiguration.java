@@ -317,10 +317,10 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
             throw new GLException("wglARBPFID2GLCapabilities: Error getting pixel format attributes for pixel format " + pfdID + 
                                   " of device context " + toHexString(hdc) + ", werr " + GDI.GetLastError());
         }
-        ArrayList<WGLGLCapabilities> bucket = new ArrayList<WGLGLCapabilities>(1);
+        List<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>(1);
         final int winattrbits = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer);
         if(AttribList2GLCapabilities(bucket, glp, hdc, pfdID, iattributes, niattribs, iresults, winattrbits)) {
-            return bucket.get(0);
+            return (WGLGLCapabilities) bucket.get(0);
         }
         return null;
     }
@@ -372,19 +372,19 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return pformats;
     }
 
-    static List /*<GLCapabilitiesImmutable>*/ wglARBPFIDs2GLCapabilities(WindowsWGLDrawableFactory.SharedResource sharedResource,
-                                                                         long hdc, int[] pfdIDs, GLProfile glp, boolean onscreen, boolean usePBuffer) {
+    static List<GLCapabilitiesImmutable> wglARBPFIDs2GLCapabilities(WindowsWGLDrawableFactory.SharedResource sharedResource,
+                                                                    long hdc, int[] pfdIDs, GLProfile glp, boolean onscreen, boolean usePBuffer) {
         final int winattrbits = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer);
         return wglARBPFIDs2GLCapabilitiesImpl(sharedResource, hdc, pfdIDs, glp, winattrbits);
     }
 
-    static List /*<GLCapabilitiesImmutable>*/ wglARBPFIDs2AllGLCapabilities(WindowsWGLDrawableFactory.SharedResource sharedResource,
-                                                                            long hdc, int[] pfdIDs, GLProfile glp) {
+    static List <GLCapabilitiesImmutable> wglARBPFIDs2AllGLCapabilities(WindowsWGLDrawableFactory.SharedResource sharedResource,
+                                                                                  long hdc, int[] pfdIDs, GLProfile glp) {
         return wglARBPFIDs2GLCapabilitiesImpl(sharedResource, hdc, pfdIDs, glp, GLGraphicsConfigurationUtil.ALL_BITS);
     }
     
-    private static List /*<GLCapabilitiesImmutable>*/ wglARBPFIDs2GLCapabilitiesImpl(WindowsWGLDrawableFactory.SharedResource sharedResource,
-                                                                                     long hdc, int[] pfdIDs, GLProfile glp, int winattrbits) {
+    private static List <GLCapabilitiesImmutable> wglARBPFIDs2GLCapabilitiesImpl(WindowsWGLDrawableFactory.SharedResource sharedResource,
+                                                                                 long hdc, int[] pfdIDs, GLProfile glp, int winattrbits) {
         if (!sharedResource.hasARBPixelFormat()) {
             return null;
         }
@@ -600,7 +600,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return val;
     }
 
-    static boolean AttribList2GLCapabilities( ArrayList<? extends GLCapabilitiesImmutable> capsBucket,
+    static boolean AttribList2GLCapabilities( List<GLCapabilitiesImmutable> capsBucket,
                                               final GLProfile glp, final long hdc, final int pfdID, final int[] iattribs,
                                               final int niattribs,
                                               final int[] iresults, final int winattrmask) {
@@ -659,14 +659,14 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
 
     static WGLGLCapabilities PFD2GLCapabilities(GLProfile glp, long hdc, int pfdID, boolean onscreen) {
         final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, false);
-        ArrayList<WGLGLCapabilities> capsBucket = new ArrayList<WGLGLCapabilities>(1);
+        List<GLCapabilitiesImmutable> capsBucket = new ArrayList<GLCapabilitiesImmutable>(1);
         if( PFD2GLCapabilities(capsBucket, glp, hdc, pfdID, winattrmask) ) {
-            return capsBucket.get(0);
+            return (WGLGLCapabilities) capsBucket.get(0);
         }
         return null;
     }
 
-    static boolean  PFD2GLCapabilities(ArrayList<? extends GLCapabilitiesImmutable> capsBucket, final GLProfile glp, final long hdc, final int pfdID, final int winattrmask) {
+    static boolean  PFD2GLCapabilities(List<GLCapabilitiesImmutable> capsBucket, final GLProfile glp, final long hdc, final int pfdID, final int winattrmask) {
         PIXELFORMATDESCRIPTOR pfd = createPixelFormatDescriptor(hdc, pfdID);
         if(null == pfd) {
             return false;
