@@ -58,6 +58,7 @@ public class TestGLReadBufferUtilTextureIOWrite02NEWT extends UITestCase {
         Assert.assertNotNull(glp);
         caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
+        caps.setAlphaBits(1); // req. alpha channel
         width  = 256;
         height = 256;
     }
@@ -81,19 +82,19 @@ public class TestGLReadBufferUtilTextureIOWrite02NEWT extends UITestCase {
             public void init(GLAutoDrawable drawable) {}
             public void dispose(GLAutoDrawable drawable) {}
             public void display(GLAutoDrawable drawable) {
-                StringWriter filename = new StringWriter();
+                final StringWriter filename = new StringWriter();
                 {
-                    PrintWriter pw = new PrintWriter(filename);
-                    pw.printf("%s-rgba-%s-%03dx%03d-n%03d.tga", 
-                            getSimpleTestName("."), drawable.getGLProfile().getName(), 
+                    final PrintWriter pw = new PrintWriter(filename);
+                    final String pfmt = drawable.getChosenGLCapabilities().getAlphaBits() > 0 ? "rgba" : "rgb_";
+                    pw.printf("%s-F_rgba-I_%s-%s-%03dx%03d-n%03d.tga", 
+                            getSimpleTestName("."), pfmt, drawable.getGLProfile().getName(), 
                             drawable.getWidth(), drawable.getHeight(), i++);
                 }
                 if(screenshot.readPixels(drawable.getGL(), drawable, false)) {
                     screenshot.write(new File(filename.toString()));
                 }                
             }
-            public void reshape(GLAutoDrawable drawable, int x, int y,
-                    int width, int height) { }
+            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
         });
         glWindow.setVisible(true);
         Thread.sleep(60);
@@ -117,19 +118,19 @@ public class TestGLReadBufferUtilTextureIOWrite02NEWT extends UITestCase {
             public void init(GLAutoDrawable drawable) {}
             public void dispose(GLAutoDrawable drawable) {}
             public void display(GLAutoDrawable drawable) {
-                StringWriter filename = new StringWriter();
+                final StringWriter filename = new StringWriter();
                 {
-                    PrintWriter pw = new PrintWriter(filename);
-                    pw.printf("%s-rgba-%s-%03dx%03d-n%03d.png", 
-                            getSimpleTestName("."), drawable.getGLProfile().getName(), 
+                    final PrintWriter pw = new PrintWriter(filename);
+                    final String pfmt = drawable.getChosenGLCapabilities().getAlphaBits() > 0 ? "rgba" : "rgb_";
+                    pw.printf("%s-F_rgba-I_%s-%s-%03dx%03d-n%03d.png", 
+                            getSimpleTestName("."), pfmt, drawable.getGLProfile().getName(), 
                             drawable.getWidth(), drawable.getHeight(), i++);
                 }
                 if(screenshot.readPixels(drawable.getGL(), drawable, false)) {
                     screenshot.write(new File(filename.toString()));
                 }                
             }
-            public void reshape(GLAutoDrawable drawable, int x, int y,
-                    int width, int height) { }
+            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
         });
         glWindow.setVisible(true);
         Thread.sleep(60);

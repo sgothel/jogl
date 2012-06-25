@@ -118,7 +118,7 @@ public class RedSquareES2 implements GLEventListener {
         colors.enableBuffer(gl, false);
         
         // OpenGL Render Settings
-        gl.glClearColor(0, 0, 0, 1);
+        gl.glClearColor(0, 0, 0, 0);
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         st.useProgram(gl, false);        
 

@@ -40,6 +40,7 @@ import com.jogamp.opengl.util.GLReadBufferUtil;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.jogl.offscreen.WindowUtilNEWT;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -56,6 +57,7 @@ public class TestGLReadBufferUtilTextureIOWrite01NEWT extends UITestCase {
         Assert.assertNotNull(glp);
         caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
+        caps.setAlphaBits(1); // req. alpha channel
         width  = 256;
         height = 256;
     }
@@ -68,7 +70,7 @@ public class TestGLReadBufferUtilTextureIOWrite01NEWT extends UITestCase {
     }
     
     @Test
-    public void testWritePNG_TGA_PAM() throws InterruptedException {
+    public void testOnscreenWritePNG_TGA_PAM() throws InterruptedException {
         GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Shared Gears NEWT Test");
@@ -78,16 +80,38 @@ public class TestGLReadBufferUtilTextureIOWrite01NEWT extends UITestCase {
             public void init(GLAutoDrawable drawable) {}
             public void dispose(GLAutoDrawable drawable) {}
             public void display(GLAutoDrawable drawable) {
+                final String pfmt = drawable.getChosenGLCapabilities().getAlphaBits() > 0 ? "rgba" : "rgb_";
                 // snapshot(drawable, false, true,  getSimpleTestName(".")+"-rgb_-"+drawable.getGLProfile().getName()+".ppm");
-                snapshot(drawable, true,  false, getSimpleTestName(".")+"-rgba-"+drawable.getGLProfile().getName()+".png");
-                snapshot(drawable, true,  false, getSimpleTestName(".")+"-rgba-"+drawable.getGLProfile().getName()+".tga");
-                snapshot(drawable, true,  true,  getSimpleTestName(".")+"-rgba-"+drawable.getGLProfile().getName()+".pam");
-                snapshot(drawable, false, false, getSimpleTestName(".")+"-rgb_-"+drawable.getGLProfile().getName()+".png");
-                snapshot(drawable, false, false, getSimpleTestName(".")+"-rgb_-"+drawable.getGLProfile().getName()+".tga");
-                snapshot(drawable, false, true,  getSimpleTestName(".")+"-rgb_-"+drawable.getGLProfile().getName()+".pam");
+                snapshot(drawable, true,  false, getSimpleTestName(".")+"-F_rgba-I_"+pfmt+"-"+drawable.getGLProfile().getName()+".png");
+                snapshot(drawable, true,  false, getSimpleTestName(".")+"-F_rgba-I_"+pfmt+"-"+drawable.getGLProfile().getName()+".tga");
+                snapshot(drawable, true,  true,  getSimpleTestName(".")+"-F_rgba-I_"+pfmt+"-"+drawable.getGLProfile().getName()+".pam");
+                snapshot(drawable, false, false, getSimpleTestName(".")+"-F_rgb_-I_"+pfmt+"-"+drawable.getGLProfile().getName()+".png");
+                snapshot(drawable, false, false, getSimpleTestName(".")+"-F_rgb_-I_"+pfmt+"-"+drawable.getGLProfile().getName()+".tga");
+                snapshot(drawable, false, true,  getSimpleTestName(".")+"-F_rgb_-I_"+pfmt+"-"+drawable.getGLProfile().getName()+".pam");
             }
-            public void reshape(GLAutoDrawable drawable, int x, int y,
-                    int width, int height) { }
+            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
+        });
+        glWindow.setVisible(true);
+        Thread.sleep(60);
+        glWindow.destroy();        
+    }
+
+    @Test
+    public void testOffscreenWritePNG() throws InterruptedException {
+        final GLCapabilities caps2 = WindowUtilNEWT.fixCaps(caps, false, true, false);        
+        GLWindow glWindow = GLWindow.create(caps2);
+        Assert.assertNotNull(glWindow);
+        glWindow.setSize(width, height);
+        glWindow.addGLEventListener(new GearsES2(1));
+        glWindow.addGLEventListener(new GLEventListener() {
+            public void init(GLAutoDrawable drawable) {}
+            public void dispose(GLAutoDrawable drawable) {}
+            public void display(GLAutoDrawable drawable) {
+                final String pfmt = drawable.getChosenGLCapabilities().getAlphaBits() > 0 ? "rgba" : "rgb_";
+                snapshot(drawable, true,  false, getSimpleTestName(".")+"-F_rgba-I_"+pfmt+"-"+drawable.getGLProfile().getName()+".png");
+                snapshot(drawable, false, false, getSimpleTestName(".")+"-F_rgb_-I_"+pfmt+"-"+drawable.getGLProfile().getName()+".png");
+            }
+            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
         });
         glWindow.setVisible(true);
         Thread.sleep(60);

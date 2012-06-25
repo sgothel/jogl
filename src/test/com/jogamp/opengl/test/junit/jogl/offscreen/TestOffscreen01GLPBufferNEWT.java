@@ -32,8 +32,6 @@ import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
-import com.jogamp.newt.event.MouseListener;
-import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.opengl.GLWindow;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -42,7 +40,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.media.opengl.*;
-import javax.media.nativewindow.*;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
@@ -72,6 +69,7 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
     public void init() {
         capsDefault = new GLCapabilities(glpDefault);
         Assert.assertNotNull(capsDefault);
+        capsDefault.setAlphaBits(1); // req. alpha channel        
     }
 
     private void do01OffscreenWindowPBuffer(GLCapabilities caps) {
@@ -280,14 +278,8 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
         Assert.assertNotNull(glWindow);
         glWindow.setVisible(true);
 
-        WindowListener wl=null;
-        MouseListener ml=null;
-        SurfaceUpdatedListener ul=null;
-
-        GLEventListener demo = new RedSquareES2();
-        Assert.assertNotNull(demo);
-
-        WindowUtilNEWT.run(glWindow, demo, null, wl, ml, ul, 2, true /*snapshot*/, false /*debug*/);
+        WindowUtilNEWT.run(getSimpleTestName("."), glWindow, new RedSquareES2(), null, null, null, null, 
+                           2 /* frames */, true /*snapshot*/, false /*debug*/);
 
         if(null!=glWindow) {
             glWindow.destroy();
