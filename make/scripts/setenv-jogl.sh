@@ -57,7 +57,7 @@ GLUEGEN_OS=$GLUEGEN_BUILDDIR/obj
 JUNIT_JAR=$GLUEGEN_DIR/make/lib/junit.jar
 
 if [ -z "$ANT_PATH" ] ; then
-    ANT_PATH=$(dirname `which ant`)/..
+    ANT_PATH=$(dirname $(dirname $(which ant)))
     if [ -e $ANT_PATH/lib/ant.jar ] ; then
         export ANT_PATH
         echo autosetting ANT_PATH to $ANT_PATH
@@ -76,8 +76,8 @@ echo JOGL BUILDDIR: $JOGL_BUILDDIR
 echo JOGL BUILDDIR BASE: $JOGL_BUILDDIR_BASE
 echo JOGL PROFILE: $JOGL_PROFILE
 
-J2RE_HOME=$(which java)
-JAVA_HOME=$(which javac)
+J2RE_HOME=$(dirname $(dirname $(which java)))
+JAVA_HOME=$(dirname $(dirname $(which javac)))
 CP_SEP=:
 
 . $JOGL_DIR/etc/profile.jogl $JOGL_PROFILE $JOGL_BUILDDIR 
