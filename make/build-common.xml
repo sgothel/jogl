@@ -470,7 +470,7 @@
             <path refid="nativewindow_all_atoms.classpath" />
             <path refid="jogl_all_atoms.classpath" />
             <path refid="newt_all_atoms.classpath" />
-            <pathelement location="${newt.driver.android.jar}" />
+            <pathelement location="${newt-driver-android.jar}" />
         </path>
 
         <!-- Postbuild: javadoc .. -->
