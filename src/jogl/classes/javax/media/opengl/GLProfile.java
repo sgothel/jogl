@@ -37,6 +37,7 @@
 
 package javax.media.opengl;
 
+import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
@@ -133,11 +134,17 @@ public class GLProfile {
                         Platform.initSingleton();
                         
                         if(TempJarCache.isInitialized()) {
-                           String[] atomicNativeJarBaseNames = new String[] { "nativewindow", "jogl", null };
-                           if( ReflectionUtil.isClassAvailable("com.jogamp.newt.NewtFactory", GLProfile.class.getClassLoader()) ) {
-                               atomicNativeJarBaseNames[2] = "newt";
+                           final ClassLoader cl = GLProfile.class.getClassLoader();
+                           // either: [jogl-all.jar, jogl-all-noawt.jar, jogl-all-mobile.jar] -> jogl-all-natives-<os.and.arch>.jar
+                           // or:     nativewindow-core.jar                                   -> nativewindow-natives-<os.and.arch>.jar,
+                           //         jogl-core.jar                                           -> jogl-natives-<os.and.arch>.jar,
+                           //        (newt-core.jar                                           -> newt-natives-<os.and.arch>.jar)? (if available)
+                           final String newtFactoryClassName = "com.jogamp.newt.NewtFactory";
+                           final Class<?>[] classesFromJavaJars = new Class<?>[] { NWJNILibLoader.class, GLProfile.class, null };
+                           if( ReflectionUtil.isClassAvailable(newtFactoryClassName, cl) ) {
+                               classesFromJavaJars[2] = ReflectionUtil.getClass(newtFactoryClassName, false, cl);
                            }
-                           JNILibLoaderBase.addNativeJarLibs(GLProfile.class, "jogl-all", atomicNativeJarBaseNames);
+                           JNILibLoaderBase.addNativeJarLibs(classesFromJavaJars, "-all", new String[] { "-noawt", "-mobile", "-core" } );
                         }
                         initProfilesForDefaultDevices(firstUIActionOnProcess);
                         return null;
@@ -1497,8 +1504,10 @@ public class GLProfile {
             System.err.println("GLProfile.init hasGLES1Impl         "+hasGLES1Impl);
             System.err.println("GLProfile.init hasGLES2Impl         "+hasGLES2Impl);
             System.err.println("GLProfile.init defaultDevice        "+defaultDevice);
-            System.err.println("GLProfile.init profile order        "+array2String(GL_PROFILE_LIST_ALL));            
-            System.err.println(JoglVersion.getDefaultOpenGLInfo(null));            
+            System.err.println("GLProfile.init profile order        "+array2String(GL_PROFILE_LIST_ALL));
+            if(hasGL234Impl || hasGLES1Impl || hasGLES2Impl) { // avoid deadlock
+                System.err.println(JoglVersion.getDefaultOpenGLInfo(null));
+            }
         }
     }
 
@@ -1527,7 +1536,7 @@ public class GLProfile {
         boolean isSet = GLContext.getAvailableGLVersionsSet(device);
 
         if(DEBUG) {
-            System.err.println("Info: GLProfile.initProfilesForDevice: "+device+", isSet "+isSet);
+            System.err.println("Info: GLProfile.initProfilesForDevice: "+device+" ("+device.getClass().getName()+"), isSet "+isSet+", hasDesktopGLFactory "+hasDesktopGLFactory+", hasEGLFactory "+hasEGLFactory);
         }
         if(isSet) {
             // Avoid recursion and check whether impl. is sane!
@@ -1901,9 +1910,14 @@ public class GLProfile {
     {
         initSingleton();
 
+        if(null==defaultDevice) { // avoid NPE and notify of incomplete initialization
+            throw new GLException("No default device available");
+        }
+        
         if(null==device) {
             device = defaultDevice;
         }
+        
         final String deviceKey = device.getUniqueID();
         HashMap<String /*GLProfile_name*/, GLProfile> map = deviceConn2ProfileMap.get(deviceKey);
         if( null != map ) {

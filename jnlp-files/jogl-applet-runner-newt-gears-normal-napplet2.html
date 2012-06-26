@@ -21,8 +21,8 @@ If Applet is out of browser window, it is closeable.
       width="200" height="200">
    <param name="code" value="com.jogamp.newt.awt.applet.JOGLNewtApplet1Run">
    <param name="archive" value="jar/gluegen-rt.jar,
-                                jar/jogl.all.jar,
-                                jar/jogl.test.jar">
+                                jar/jogl-all.jar,
+                                jar/jogl-test.jar">
    <param name="java_arguments" value="-Dsun.java2d.noddraw=true">
    <param name="gl_event_listener_class" value="com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2">
    <param name="gl_profile" value="GL2ES2">
@@ -36,8 +36,8 @@ If Applet is out of browser window, it is closeable.
           type="application/x-java-applet;version=1.6"
           pluginspage="http://java.sun.com/javase/downloads/ea.jsp"
           archive="jar/gluegen-rt.jar,
-                   jar/jogl.all.jar,
-                   jar/jogl.test.jar"
+                   jar/jogl-all.jar,
+                   jar/jogl-test.jar"
           java_arguments="-Dsun.java2d.noddraw=true"
           gl_event_listener_class="com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2"
           gl_profile="GL2ES2"
@@ -61,8 +61,8 @@ The applet above is instantiated with the following code:
       width="200" height="200"&gt;
    &lt;param name="code" value="com.jogamp.newt.awt.applet.JOGLNewtApplet1Run"&gt;
    &lt;param name="archive" value="jar/gluegen-rt.jar,
-                                jar/jogl.all.jar,
-                                jar/jogl.test.jar"&gt;
+                                jar/jogl-all.jar,
+                                jar/jogl-test.jar"&gt;
    &lt;param name="java_arguments" value="-Dsun.java2d.noddraw=true"&gt;
    &lt;param name="gl_event_listener_class" value="com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2"&gt;
    &lt;param name="gl_profile" value="GL2ES2"&gt;
@@ -76,8 +76,8 @@ The applet above is instantiated with the following code:
           type="application/x-java-applet;version=1.6"
           pluginspage="http://java.sun.com/javase/downloads/ea.jsp"
           archive="jar/gluegen-rt.jar,
-                   jar/jogl.all.jar,
-                   jar/jogl.test.jar"
+                   jar/jogl-all.jar,
+                   jar/jogl-test.jar"
           java_arguments="-Dsun.java2d.noddraw=true"
           gl_event_listener_class="com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2"
           gl_profile="GL2ES2"
@@ -95,7 +95,7 @@ The applet above is instantiated with the following code:
 </P>
 <P>
 
-Note that the jogl.test.jar, which contains the test applet class,
+Note that the jogl-test.jar, which contains the test applet class,
 <B>does not need to be signed</B>! JogAmp Community signs
 jogl.jar and gluegen-rt.jar, which contain
 JOGL's supporting classes; this is the only

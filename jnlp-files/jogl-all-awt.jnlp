@@ -14,7 +14,7 @@
       <all-permissions/>
   </security>
     <resources>
-      <jar href="jar/jogl.all.jar" />
+      <jar href="jar/jogl-all.jar" />
 
       <extension name="gluegen-rt"   href="GLUEGEN_CODEBASE_TAG/gluegen-rt.jnlp" />
     </resources>

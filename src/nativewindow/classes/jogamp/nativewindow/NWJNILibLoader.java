@@ -44,7 +44,9 @@ public class NWJNILibLoader extends JNILibLoaderBase {
         Platform.initSingleton();
         final String libName = "nativewindow_"+ossuffix ;
         if(TempJarCache.isInitialized() && null == TempJarCache.findLibrary(libName)) {
-            addNativeJarLibs(NWJNILibLoader.class, "jogl-all", new String[] { "nativewindow" } );
+            // either: [jogl-all.jar, jogl-all-noawt.jar, jogl-all-mobile.jar] -> jogl-all-natives-<os.and.arch>.jar
+            // or:     nativewindow-core.jar                                   -> nativewindow-natives-<os.and.arch>.jar
+            addNativeJarLibs(new Class<?>[] { NWJNILibLoader.class }, "-all", new String[] { "-noawt", "-mobile", "-core" } );
         }
         return new Boolean(loadLibrary(libName, false, NWJNILibLoader.class.getClassLoader()));
       }

@@ -1550,7 +1550,7 @@
             <srcfileset dir="${src.java}"
                      includes="${java.part.nonjava}"/>
             <targetfileset dir="."
-                     includes="${jogl.util.jar} ${jogl.util.fixedfuncemu.jar}" />
+                     includes="${jogl-util.jar} ${jogl-util-fixedfuncemu.jar}" />
         </dependset>
     </target>
     <target name="build-jars" depends="build-jars-dependset,build-jars-javase" />
@@ -1570,48 +1570,48 @@
     </target>
 
     <target name="build-jars-os-desktop-javase" depends="setup-manifestfile">
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.os.x11.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-os-x11.jar}" filesonly="true">
             <fileset dir="${classes}" includes="${java.part.glx}"/>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.os.win.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-os-win.jar}" filesonly="true">
             <fileset dir="${classes}" includes="${java.part.wgl}" />
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.os.osx.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-os-osx.jar}" filesonly="true">
             <fileset dir="${classes}" includes="${java.part.cgl}"/>
         </jar>
     </target>
 
     <target name="build-jars-android" depends="setup-manifestfile" if="isAndroid">
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.os.android.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-os-android.jar}" filesonly="true">
             <fileset dir="${classes}" includes="${java.part.android}"/>
         </jar>
     </target>
 
     <target name="build-jars-mobile-javase" depends="setup-manifestfile">
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.glmobile.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-glmobile.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.egl} ${java.part.es1} ${java.part.es2}"
                      excludes="${java.part.awt} ${java.part.swt} ${java.part.es1.dbg} ${java.part.es2.dbg}"/>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.glmobile.dbg.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-glmobile-dbg.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.es1.dbg} ${java.part.es2.dbg}"/>
         </jar>
     </target>
 
     <target name="build-jars-awt-javase" depends="setup-manifestfile" unless="setup.noAWT">
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.awt.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-awt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.awt}" />
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.util.awt.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util-awt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.util.awt}"/>
         </jar>
     </target>
 
     <target name="build-jars-swt-javase" depends="setup-manifestfile" unless="setup.noSWT">
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.swt.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-swt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.swt}" />
         </jar>
@@ -1619,22 +1619,22 @@
 
     <target name="build-jars-desktop-javase" depends="setup-manifestfile,build-jars-os-desktop-javase">
         <!--os specific gldesktop-->
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.gldesktop.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-gldesktop.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.gldesktop}"
                      excludes="${java.part.gldesktop.dbg} ${java.part.glugldesktop}"/>
         </jar>
 
         <!-- misc -->
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.gldesktop.dbg.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-gldesktop-dbg.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.gldesktop.dbg}"/>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.glugldesktop.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-glu-gldesktop.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.glugldesktop}"/>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.util.gldesktop.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util-gldesktop.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.util.gldesktop}"
                      excludes="${java.part.awt} ${java.part.util.awt} ${java.part.swt}"/>
@@ -1643,50 +1643,50 @@
 
     <target name="build-jars-javase" depends="setup-manifestfile, build-jars-android, build-jars-mobile-javase, 
                                               build-jars-desktop-javase, build-jars-awt-javase, build-jars-swt-javase">
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.core.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
                      excludes="${java.part.core.exclude}"/>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.sdk.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-sdk.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.sdk}"/>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.glutess.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-glutess.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.glutess}"/>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.glumipmap.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-glumipmap.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.glumipmap}"/>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.util.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.util} ${java.part.util.glsl} ${java.part.util.graph}"
                      excludes="${java.part.util.awt} ${java.part.util.gldesktop} ${java.part.util.fixedfuncemu}"/>
             <fileset dir="resources/assets" includes="jogl/util/**" />
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.util.fixedfuncemu.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util-fixedfuncemu.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.util.fixedfuncemu}"/>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.omx.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-omx.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.openmax}"/>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl.cg.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-cg.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.nv-cg}"/>
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${build.jogl}/jogl-natives-${os.and.arch}.jar" filesonly="true">
             <fileset dir="${obj.jogl}">
               <include name="*.${native.library.suffix}" />
-              <exclude name="*jogl_cg.${native.library.suffix}" />
+              <exclude name="*jogl-cg.${native.library.suffix}" />
             </fileset>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${build.jogl}/jogl_cg-natives-${os.and.arch}.jar" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${build.jogl}/jogl-cg-natives-${os.and.arch}.jar" filesonly="true">
             <fileset dir="${obj.jogl}">
-              <include name="*jogl_cg.${native.library.suffix}" />
+              <include name="*jogl-cg.${native.library.suffix}" />
             </fileset>
         </jar>
     </target>

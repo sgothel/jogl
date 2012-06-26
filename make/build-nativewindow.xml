@@ -820,7 +820,7 @@
     </target>
 
     <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
-        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.awt.jar}" filesonly="true">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-awt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.awt}"
                      excludes="${java.excludes.awt}"/>
@@ -828,28 +828,28 @@
     </target>
 
     <target name="build-jars-x11" depends="setup-manifestfile">
-        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.os.x11.jar}" filesonly="true">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-os-x11.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.x11}" />
         </jar>
     </target>
 
     <target name="build-jars-windows" depends="setup-manifestfile">
-        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.os.win.jar}" filesonly="true">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-os-win.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.windows}" />
         </jar>
     </target>
 
     <target name="build-jars-macosx" depends="setup-manifestfile">
-        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.os.macosx.jar}" filesonly="true">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-os-osx.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.macosx}" />
         </jar>
     </target>
 
     <target name="build-jars-javase" depends="setup-manifestfile,build-jars-awt,build-jars-x11,build-jars-windows,build-jars-macosx">
-        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow.core.jar}" filesonly="true">
+        <jar manifest="${build.nativewindow}/manifest.mf" destfile="${nativewindow-core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"
                      excludes="${java.part.awt} ${java.part.x11} ${java.part.windows}"/>

@@ -51,7 +51,7 @@
             <fileset dir="." includes="*.png" />
             <fileset dir="." includes="*.pam" />
             <fileset dir="." includes="*.tga" />
-            <fileset file="${jogl.test.jar}" />
+            <fileset file="${jogl-test.jar}" />
         </delete>
     </target>
 
@@ -85,7 +85,7 @@
             </filterset>
         </copy>
 
-        <jar manifest="${build.test}/manifest-test.mf" destfile="${jogl.test.jar}" filesonly="true">
+        <jar manifest="${build.test}/manifest-test.mf" destfile="${jogl-test.jar}" filesonly="true">
             <!-- get all class files, but skip any resource files that external tools
                  might have copied into the class directory (otherwise, it's possible
                  to get the same resource file twice in the jar) -->
@@ -121,7 +121,7 @@
             </filterset>
         </copy>
 
-        <jar manifest="${build.test}/manifest-test-android.mf" destfile="${jogl.test-android.jar}" filesonly="true">
+        <jar manifest="${build.test}/manifest-test-android.mf" destfile="${jogl-test-android.jar}" filesonly="true">
             <!-- get all class files, but skip any resource files that external tools
                  might have copied into the class directory (otherwise, it's possible
                  to get the same resource file twice in the jar) -->
@@ -134,7 +134,7 @@
             assetsdir="resources/assets-test"
             jarsrcdir="${src}/test"
             jarbuilddir="${jar}"
-            jarbasename="jogl.test-android"
+            jarbasename="jogl-test-android"
             nativebuilddir="${lib}"
             nativebasename="non-existing"
             androidmanifest.path="resources/android/AndroidManifest-test.xml"
@@ -149,8 +149,8 @@
       <mkdir dir="${obj.test}" />
       <mkdir dir="${classes}" />
 
-      <property name="jogl.test.jar.path" location="${jogl.test.jar}"/> <!-- absolute path -->
-      <echo message="jogl.test.jar ${jogl.test.jar.path}"/>
+      <property name="jogl-test.jar.path" location="${jogl-test.jar}"/> <!-- absolute path -->
+      <echo message="jogl-test.jar ${jogl-test.jar.path}"/>
       <uptodate property="test.compile.skip">
         <srcfiles dir= "."                 includes="*.xml"/>
         <srcfiles dir= "${src.test}"       includes="**"/>
@@ -159,7 +159,7 @@
         <srcfiles                          dir="${src}/nativewindow" />
         <srcfiles                          dir="${src}/jogl" />
         <srcfiles                          dir="${src}/newt" />
-        <mapper type="merge" to="${jogl.test.jar.path}"/>
+        <mapper type="merge" to="${jogl-test.jar.path}"/>
       </uptodate>
     </target>
 

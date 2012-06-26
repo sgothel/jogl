@@ -42,6 +42,8 @@ package jogamp.newt;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import jogamp.nativewindow.NWJNILibLoader;
+
 import com.jogamp.common.jvm.JNILibLoaderBase;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.cache.TempJarCache;
@@ -54,7 +56,10 @@ public class NEWTJNILibLoader extends JNILibLoaderBase {
         Platform.initSingleton();
         final String libName = "newt";
         if(TempJarCache.isInitialized() && null == TempJarCache.findLibrary(libName)) {
-            addNativeJarLibs(NEWTJNILibLoader.class, "jogl-all", new String[] { "nativewindow", "newt" } );
+           // either: [jogl-all.jar, jogl-all-noawt.jar, jogl-all-mobile.jar] -> jogl-all-natives-<os.and.arch>.jar
+           // or:     nativewindow-core.jar                                   -> nativewindow-natives-<os.and.arch>.jar,
+           //         newt-core.jar                                           -> newt-natives-<os.and.arch>.jar
+           JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { NWJNILibLoader.class, NEWTJNILibLoader.class }, "-all", new String[] { "-noawt", "-mobile", "-core" } );
         }
         loadLibrary(libName, false, NEWTJNILibLoader.class.getClassLoader());
         return null;

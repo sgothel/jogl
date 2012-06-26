@@ -47,8 +47,8 @@ public class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
                 Platform.initSingleton();
                 
                 if(TempJarCache.isInitialized()) {
-                   // Cg class and natives are available in their single atomic JAR files only 
-                   JNILibLoaderBase.addNativeJarLibs(CgDynamicLibraryBundleInfo.class, "jogl_cg", null);
+                   // only: jogl-cg.jar -> jogl-cg-natives-<os.and.arch>.jar [atomic JAR files only]
+                   JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { CgDynamicLibraryBundleInfo.class }, null, null );                   
                 }
                 return null;
             }

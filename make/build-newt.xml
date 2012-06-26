@@ -701,52 +701,52 @@
     </target>
 
     <target name="build-jars-awt" depends="setup-manifestfile" unless="setup.noAWT">
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.awt.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-awt.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.awt}"/>
         </jar>
     </target>
 
     <target name="build-jars-opengl" depends="setup-manifestfile" unless="setup.noOpenGL">
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.ogl.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-ogl.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.opengl}"/>
         </jar>
     </target>
 
     <target name="build-jars-driver" depends="setup-manifestfile">
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.x11.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-x11.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.driver.x11}"/>
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.win.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-win.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.driver.windows}"/>
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.macosx.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-osx.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.driver.macosx}"/>
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.kd.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-kd.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.driver.kd}"/>
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.broadcomegl.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-broadcomegl.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.driver.broadcomegl}"/>
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.intelgdl.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-intelgdl.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.driver.intelgdl}"/>
         </jar>
     </target>
 
     <target name="build-jars-javase" depends="setup-manifestfile,build-jars-opengl,build-jars-awt,build-jars-driver">
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.core.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"/>
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.event.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-event.jar}" filesonly="true">
             <fileset dir="${classes}">
                 <include name="com/jogamp/newt/Display*" />
                 <include name="com/jogamp/newt/Screen*" />
@@ -759,7 +759,7 @@
     </target>
 
     <target name="build-jars-android" depends="setup-manifestfile" if="isAndroid">
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt.driver.android.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-android.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.driver.android}"/>
         </jar>
