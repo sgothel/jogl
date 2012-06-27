@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -57,6 +57,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
     super(drawable, shareWith);
   }
 
+  @Override
   public void bindPbufferToTexture() {
     if (!rtt) {
       throw new GLException("Shouldn't try to bind a pbuffer to a texture if render-to-texture hasn't been " +
@@ -75,6 +76,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
     // we perform a glCopyTexImage2D in swapBuffers().
   }
 
+  @Override
   public void releasePbufferFromTexture() {
     if (!rtt) {
       throw new GLException("Shouldn't try to bind a pbuffer to a texture if render-to-texture hasn't been " +
@@ -88,6 +90,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
     }
   }
 
+  @Override
   protected boolean createImpl(GLContextImpl shareWith) {
     boolean res = super.createImpl(shareWith);
     if(res) {
@@ -118,7 +121,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
             if (DEBUG) {
               System.err.println("  Using render-to-texture-rectangle");
             }
-            textureTarget = GL2.GL_TEXTURE_RECTANGLE_ARB;
+            textureTarget = GL2GL3.GL_TEXTURE_RECTANGLE_ARB;
           } else {
             if (DEBUG) {
               System.err.println("  Using vanilla render-to-texture");
@@ -140,6 +143,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
     return res;
   }
 
+  @Override
   public int getFloatingPointMode() {
     return ((WindowsPbufferWGLDrawable)drawable).getFloatingPointMode();
   }

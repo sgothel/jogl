@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -65,7 +65,7 @@ import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 
 public abstract class MacOSXCGLContext extends GLContextImpl
-{    
+{
   // Abstract interface for implementation of this context (either
   // NSOpenGL-based or CGL-based)
   protected interface GLBackendImpl {
@@ -78,7 +78,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         boolean setSwapInterval(int interval);
         boolean swapBuffers();
   }
-      
+
   /* package */ static final boolean isTigerOrLater;
   /* package */ static final boolean isLionOrLater;
 
@@ -91,7 +91,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   static boolean isGLProfileSupported(int ctp, int major, int minor) {
     boolean ctBwdCompat = 0 != ( CTX_PROFILE_COMPAT & ctp ) ;
     boolean ctCore      = 0 != ( CTX_PROFILE_CORE & ctp ) ;
-    
+
     // We exclude 3.0, since we would map it's core to GL2. Hence we force mapping 2.1 to GL2
     if(3==major && 1<=minor && minor<=2) {
         // [3.1..3.2] -> GL3*
@@ -119,26 +119,26 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         return CGL.kCGLOGLPVersion_3_2_Core;
     } else {
         return CGL.kCGLOGLPVersion_Legacy;
-    }        
-  }  
+    }
+  }
 
   private boolean haveSetOpenGLMode = false;
   private GLBackendType openGLMode = GLBackendType.NSOPENGL;
-  
+
   // Implementation object (either NSOpenGL-based or CGL-based)
   protected GLBackendImpl impl;
-      
+
   private CGLExt _cglExt;
   // Table that holds the addresses of the native C-language entry points for
   // CGL extension functions.
   private CGLExtProcAddressTable cglExtProcAddressTable;
-  
+
   protected MacOSXCGLContext(GLDrawableImpl drawable,
                    GLContext shareWith) {
     super(drawable, shareWith);
     initOpenGLImpl(getOpenGLMode());
   }
-  
+
   @Override
   protected void resetStates() {
     // no inner state _cglExt = null;
@@ -146,12 +146,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     super.resetStates();
   }
 
+  @Override
   public Object getPlatformGLExtensions() {
     return getCGLExt();
   }
 
-  protected boolean isNSContext() { 
-      return (null != impl) ? impl.isNSContext() : this.openGLMode == GLBackendType.NSOPENGL; 
+  protected boolean isNSContext() {
+      return (null != impl) ? impl.isNSContext() : this.openGLMode == GLBackendType.NSOPENGL;
   }
 
   public CGLExt getCGLExt() {
@@ -161,6 +162,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     return _cglExt;
   }
 
+  @Override
   public final ProcAddressTable getPlatformExtProcAddressTable() {
     return getCGLExtProcAddressTable();
   }
@@ -169,10 +171,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     return cglExtProcAddressTable;
   }
 
+  @Override
   protected Map<String, String> getFunctionNameMap() { return null; }
 
+  @Override
   protected Map<String, String> getExtensionNameMap() { return null; }
 
+  @Override
   protected long createContextARBImpl(long share, boolean direct, int ctp, int major, int minor) {
     if(!isGLProfileSupported(ctp, major, minor)) {
         if(DEBUG) {
@@ -200,11 +205,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     return ctx;
   }
 
+  @Override
   protected void destroyContextARBImpl(long _context) {
       impl.release(_context);
       impl.destroy(_context);
   }
 
+  @Override
   public final boolean isGLReadDrawableAvailable() {
     return false;
   }
@@ -219,7 +226,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         throw new GLException("GLContextShareSet returned a NULL OpenGL context");
       }
     }
-    
+
     MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
     GLCapabilitiesImmutable capabilitiesChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     if (capabilitiesChosen.getPbufferFloatingPointBuffers() && !isTigerOrLater) {
@@ -229,40 +236,45 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     if(glp.isGLES1() || glp.isGLES2() || glp.isGL4() || glp.isGL3() && !isLionOrLater) {
         throw new GLException("OpenGL profile not supported on MacOSX "+Platform.getOSVersionNumber()+": "+glp);
     }
-    
+
     if (DEBUG) {
       System.err.println("Share context is " + toHexString(share) + " for " + this);
     }
-    return share;      
+    return share;
   }
-  
+
+  @Override
   protected boolean createImpl(GLContextImpl shareWith) throws GLException {
     long share = createImplPreset(shareWith);
     contextHandle = createContextARB(share, true);
     return 0 != contextHandle;
   }
-  
+
+  @Override
   protected void makeCurrentImpl() throws GLException {
     if (getOpenGLMode() != ((MacOSXCGLDrawable)drawable).getOpenGLMode()) {
       setOpenGLMode(((MacOSXCGLDrawable)drawable).getOpenGLMode());
     }
     if (!impl.makeCurrent(contextHandle)) {
       throw new GLException("Error making Context current: "+this);
-    }      
+    }
   }
-    
+
+  @Override
   protected void releaseImpl() throws GLException {
     if (!impl.release(contextHandle)) {
       throw new GLException("Error releasing OpenGL Context: "+this);
     }
   }
 
+  @Override
   protected void destroyImpl() throws GLException {
     if(!impl.destroy(contextHandle)) {
         throw new GLException("Error destroying OpenGL Context: "+this);
     }
   }
 
+  @Override
   protected void copyImpl(GLContext source, int mask) throws GLException {
     if( isNSContext() != ((MacOSXCGLContext)source).isNSContext() ) {
         throw new GLException("Source/Destination OpenGL Context tyoe mismatch: source "+source+", dest: "+this);
@@ -275,7 +287,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   protected void swapBuffers() {
     // single-buffer is already filtered out @ GLDrawableImpl#swapBuffers()
     if(!impl.swapBuffers()) {
-        throw new GLException("Error swapping buffers: "+this);        
+        throw new GLException("Error swapping buffers: "+this);
     }
   }
 
@@ -284,11 +296,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     return impl.setSwapInterval(interval);
   }
 
+  @Override
   public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
     // FIXME: apparently the Apple extension doesn't require a custom memory allocator
     throw new GLException("Not yet implemented");
   }
 
+  @Override
   protected final void updateGLXProcAddressTable() {
     final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
@@ -316,11 +330,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         }
     }
   }
-    
+
+  @Override
   protected final StringBuilder getPlatformExtensionsStringImpl() {
     return new StringBuilder();
   }
-    
+
+  @Override
   public boolean isExtensionAvailable(String glExtensionName) {
     if (glExtensionName.equals("GL_ARB_pbuffer") ||
         glExtensionName.equals("GL_ARB_pixel_format")) {
@@ -328,7 +344,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
     return super.isExtensionAvailable(glExtensionName);
   }
-  
+
+  @Override
   public int getOffscreenContextPixelDataType() {
     throw new GLException("Should not call this");
   }
@@ -337,18 +354,21 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     throw new GLException("Should not call this");
   }
 
+  @Override
   public boolean offscreenImageNeedsVerticalFlip() {
     throw new GLException("Should not call this");
   }
 
+  @Override
   public void bindPbufferToTexture() {
     throw new GLException("Should not call this");
   }
-    
+
+  @Override
   public void releasePbufferFromTexture() {
     throw new GLException("Should not call this");
   }
-    
+
   // Support for "mode switching" as described in MacOSXCGLDrawable
   public void setOpenGLMode(GLBackendType mode) {
       if (mode == openGLMode) {
@@ -364,10 +384,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       }
       initOpenGLImpl(mode);
       openGLMode = mode;
-      haveSetOpenGLMode = true;      
+      haveSetOpenGLMode = true;
   }
   public final GLBackendType getOpenGLMode() { return openGLMode; }
-  
+
   protected void initOpenGLImpl(GLBackendType backend) {
     switch (backend) {
       case NSOPENGL:
@@ -379,8 +399,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       default:
         throw new InternalError("Illegal implementation mode " + backend);
     }
-  }  
-  
+  }
+
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(getClass().getSimpleName());
@@ -391,22 +412,24 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     sb.append("] ");
     return sb.toString();
   }
-  
+
   // NSOpenGLContext-based implementation
   class NSOpenGLImpl implements GLBackendImpl {
     long nsOpenGLLayer = 0;
     long nsOpenGLLayerPFmt = 0;
     float screenVSyncTimeout; // microSec
     int vsyncTimeout;    // microSec - for nsOpenGLLayer mode
-    
+
+    @Override
     public boolean isNSContext() { return true; }
 
-    public long create(long share, int ctp, int major, int minor) {        
+    @Override
+    public long create(long share, int ctp, int major, int minor) {
         long ctx = 0;
         final MacOSXCGLDrawable drawable = (MacOSXCGLDrawable) MacOSXCGLContext.this.drawable;
         final NativeSurface surface = drawable.getNativeSurface();
         final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) surface.getGraphicsConfiguration();
-        final OffscreenLayerSurface backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(surface, true);        
+        final OffscreenLayerSurface backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(surface, true);
         final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         long pixelFormat = MacOSXCGLGraphicsConfiguration.GLCapabilities2NSPixelFormat(chosenCaps, ctp, major, minor);
         if (pixelFormat == 0) {
@@ -417,7 +440,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         }
         config.setChosenPixelFormat(pixelFormat);
         int sRefreshRate = CGL.getScreenRefreshRate(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getIndex());
-        screenVSyncTimeout = 1000000f / (float)sRefreshRate;
+        screenVSyncTimeout = 1000000f / sRefreshRate;
         if(DEBUG) {
             System.err.println("NS create OSX>=lion "+isLionOrLater);
             System.err.println("NS create backendType: "+drawable.getOpenGLMode());
@@ -444,7 +467,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
             }
             return 0;
           }
-    
+
           if (!chosenCaps.isPBuffer() && !chosenCaps.isBackgroundOpaque()) {
               // Set the context opacity
               CGL.setContextOpacity(ctx, 0);
@@ -456,7 +479,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           }
           GLCapabilitiesImmutable fixedCaps = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(chosenCaps.getGLProfile(), pixelFormat);
           fixedCaps = GLGraphicsConfigurationUtil.fixOpaqueGLCapabilities(fixedCaps, chosenCaps.isBackgroundOpaque());
-          config.setChosenCapabilities(fixedCaps);          
+          config.setChosenCapabilities(fixedCaps);
           if(DEBUG) {
               System.err.println("NS create fixedCaps: "+fixedCaps);
           }
@@ -466,7 +489,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           }
           //
           // handled layered surface
-          // 
+          //
           if(null != backingLayerHost) {
               nsOpenGLLayerPFmt = pixelFormat;
               pixelFormat = 0;
@@ -477,8 +500,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   texHeight = osxPDrawable.getTextureHeight();
               } else {
                   texWidth = drawable.getWidth();
-                  texHeight = drawable.getHeight();                  
-              }              
+                  texHeight = drawable.getHeight();
+              }
               nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, nsOpenGLLayerPFmt, drawable.getHandle(), fixedCaps.isBackgroundOpaque(), texWidth, texHeight);
               if(0>=texWidth || 0>=texHeight || !drawable.isRealized()) {
                   throw new GLException("Drawable not realized yet or invalid texture size, texSize "+texWidth+"x"+texHeight+", "+drawable);
@@ -494,9 +517,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               CGL.deletePixelFormat(pixelFormat);
           }
         }
-        return ctx;        
+        return ctx;
     }
-    
+
+    @Override
     public boolean destroy(long ctx) {
       if(0 != nsOpenGLLayer) {
           final NativeSurface surface = drawable.getNativeSurface();
@@ -516,11 +540,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       return CGL.deleteContext(ctx, true);
     }
 
+    @Override
     public boolean copyImpl(long src, int mask) {
         CGL.copyContext(contextHandle, src, mask);
         return true;
     }
-    
+
+    @Override
     public boolean makeCurrent(long ctx) {
       final long cglCtx = CGL.getCGLContext(ctx);
       if(0 == cglCtx) {
@@ -535,13 +561,14 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       return false;
     }
 
+    @Override
     public boolean release(long ctx) {
       try {
           gl.glFlush(); // w/o glFlush()/glFinish() OSX < 10.7 (NVidia driver) may freeze
       } catch (GLException gle) {
           if(DEBUG) {
             System.err.println("MacOSXCGLContext.NSOpenGLImpl.release: INFO: glFlush() catched exception:");
-            gle.printStackTrace();              
+            gle.printStackTrace();
           }
       }
       final boolean res = CGL.clearCurrentContext(ctx);
@@ -552,10 +579,11 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       final int err = CGL.CGLUnlockContext(cglCtx);
       if(DEBUG && CGL.kCGLNoError != err) {
           System.err.println("CGL: Could not unlock context: err 0x"+Integer.toHexString(err)+": "+this);
-      }      
+      }
       return res && CGL.kCGLNoError == err;
     }
 
+    @Override
     public boolean setSwapInterval(int interval) {
       if(0 != nsOpenGLLayer) {
         CGL.setNSOpenGLLayerSwapInterval(nsOpenGLLayer, interval);
@@ -565,11 +593,12 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       CGL.setSwapInterval(contextHandle, interval);
       return true;
     }
-    
+
+    @Override
     public boolean swapBuffers() {
       if( 0 != nsOpenGLLayer ) {
-        // If v-sync is disabled, frames will be drawn as quickly as possible 
-        // w/o delay but in sync w/ CALayer. Otherwise wait until next swap interval (v-sync).        
+        // If v-sync is disabled, frames will be drawn as quickly as possible
+        // w/o delay but in sync w/ CALayer. Otherwise wait until next swap interval (v-sync).
         CGL.waitUntilNSOpenGLLayerIsReady(nsOpenGLLayer, vsyncTimeout);
       }
       if(CGL.flushBuffer(contextHandle)) {
@@ -584,8 +613,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   }
 
   class CGLImpl implements GLBackendImpl {
+    @Override
     public boolean isNSContext() { return false; }
-    
+
+    @Override
     public long create(long share, int ctp, int major, int minor) {
       long ctx = 0;
       MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
@@ -595,7 +626,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         throw new GLException("Unable to allocate pixel format with requested GLCapabilities");
       }
       config.setChosenPixelFormat(pixelFormat);
-      try {      
+      try {
           // Create new context
           PointerBuffer ctxPB = PointerBuffer.allocateDirect(1);
           if (DEBUG) {
@@ -617,23 +648,26 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               if(DEBUG) {
                   GLCapabilitiesImmutable caps0 = MacOSXCGLGraphicsConfiguration.CGLPixelFormat2GLCapabilities(pixelFormat);
                   System.err.println("NS created: "+caps0);
-              }              
+              }
           }
       } finally {
-          CGL.CGLDestroyPixelFormat(pixelFormat);          
+          CGL.CGLDestroyPixelFormat(pixelFormat);
       }
       return ctx;
     }
-    
+
+    @Override
     public boolean destroy(long ctx) {
       return CGL.CGLDestroyContext(ctx) == CGL.kCGLNoError;
     }
 
+    @Override
     public boolean copyImpl(long src, int mask) {
         CGL.CGLCopyContext(src, contextHandle, mask);
         return true;
     }
-    
+
+    @Override
     public boolean makeCurrent(long ctx) {
       int err = CGL.CGLLockContext(ctx);
       if(CGL.kCGLNoError == err) {
@@ -649,13 +683,14 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       return false;
     }
 
+    @Override
     public boolean release(long ctx) {
       try {
           gl.glFlush(); // w/o glFlush()/glFinish() OSX < 10.7 (NVidia driver) may freeze
       } catch (GLException gle) {
           if(DEBUG) {
             System.err.println("MacOSXCGLContext.CGLImpl.release: INFO: glFlush() catched exception:");
-            gle.printStackTrace();              
+            gle.printStackTrace();
           }
       }
       int err = CGL.CGLSetCurrentContext(0);
@@ -668,14 +703,16 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       }
       return CGL.kCGLNoError == err && CGL.kCGLNoError == err2;
     }
-    
+
+    @Override
     public boolean setSwapInterval(int interval) {
         int[] lval = new int[] { interval } ;
         CGL.CGLSetParameter(contextHandle, CGL.kCGLCPSwapInterval, lval, 0);
         return true;
-    }    
+    }
+    @Override
     public boolean swapBuffers() {
         return CGL.kCGLNoError == CGL.CGLFlushDrawable(contextHandle);
-    }    
-  }  
+    }
+  }
 }

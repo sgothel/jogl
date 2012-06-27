@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -96,10 +96,11 @@ public class WindowsWGLContext extends GLContextImpl {
     // no inner state _wglExt=null;
     wglExtProcAddressTable=null;
     hasSwapIntervalSGI = 0;
-    hasSwapGroupNV = 0;    
-    super.resetStates();    
+    hasSwapGroupNV = 0;
+    super.resetStates();
   }
-  
+
+  @Override
   public Object getPlatformGLExtensions() {
     return getWGLExt();
   }
@@ -114,6 +115,7 @@ public class WindowsWGLContext extends GLContextImpl {
     return _wglExt;
   }
 
+  @Override
   public final boolean isGLReadDrawableAvailable() {
     if(!wglGLReadDrawableAvailableSet && null != getWGLExtProcAddressTable()) {
         WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory)drawable.getFactoryImpl();
@@ -159,6 +161,7 @@ public class WindowsWGLContext extends GLContextImpl {
     return ok;
   }
 
+  @Override
   public final ProcAddressTable getPlatformExtProcAddressTable() {
     return getWGLExtProcAddressTable();
   }
@@ -167,15 +170,19 @@ public class WindowsWGLContext extends GLContextImpl {
     return wglExtProcAddressTable;
   }
 
+  @Override
   protected Map<String, String> getFunctionNameMap() { return functionNameMap; }
 
+  @Override
   protected Map<String, String> getExtensionNameMap() { return extensionNameMap; }
 
+  @Override
   protected void destroyContextARBImpl(long context) {
     WGL.wglMakeCurrent(0, 0);
     WGL.wglDeleteContext(context);
   }
 
+  @Override
   protected long createContextARBImpl(long share, boolean direct, int ctp, int major, int minor) {
     if( null == getWGLExtProcAddressTable()) {
         updateGLXProcAddressTable();
@@ -213,8 +220,8 @@ public class WindowsWGLContext extends GLContextImpl {
             attribs[idx_profile+1]  = WGLExt.WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
         } else {
             attribs[idx_profile+1]  = WGLExt.WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
-        } 
-    } 
+        }
+    }
 
     if ( major >= 3 ) {
         if( !ctBwdCompat && ctFwdCompat ) {
@@ -255,6 +262,7 @@ public class WindowsWGLContext extends GLContextImpl {
    * Creates and initializes an appropriate OpenGL context. Should only be
    * called by {@link #makeCurrentImpl()}.
    */
+  @Override
   protected boolean createImpl(GLContextImpl shareWith) {
     AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
     AbstractGraphicsDevice device = config.getScreen().getDevice();
@@ -315,11 +323,11 @@ public class WindowsWGLContext extends GLContextImpl {
                 }
             } else if (DEBUG) {
                 System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - extension not available - share "+share+
-                                   ", isProcCreateContextAttribsARBAvailable "+isProcCreateContextAttribsARBAvailable+", isExtGLXARBCreateContextAvailable "+isExtARBCreateContextAvailable);            
+                                   ", isProcCreateContextAttribsARBAvailable "+isProcCreateContextAttribsARBAvailable+", isExtGLXARBCreateContextAvailable "+isExtARBCreateContextAvailable);
             }
         }
     }
-    
+
     if(0!=contextHandle) {
         share = 0; // mark as shared thx to the ARB create method
         if(0!=temp_ctx) {
@@ -347,7 +355,7 @@ public class WindowsWGLContext extends GLContextImpl {
             throw new GLException("Error making old context current: 0x" + toHexString(contextHandle) + ", werr: " + GDI.GetLastError());
         }
         if(0!=share) {
-            // Only utilize the classic GDI 'wglShareLists' shared context method 
+            // Only utilize the classic GDI 'wglShareLists' shared context method
             // for traditional non ARB context.
             if (!WGL.wglShareLists(share, contextHandle)) {
                 throw new GLException("wglShareLists(" + toHexString(share) +
@@ -361,7 +369,8 @@ public class WindowsWGLContext extends GLContextImpl {
 
     return true;
   }
-  
+
+  @Override
   protected void  makeCurrentImpl() throws GLException {
     if (WGL.wglGetCurrentContext() != contextHandle) {
       if (!wglMakeContextCurrent(drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
@@ -370,12 +379,14 @@ public class WindowsWGLContext extends GLContextImpl {
     }
   }
 
+  @Override
   protected void releaseImpl() throws GLException {
     if (!wglMakeContextCurrent(0, 0, 0)) {
         throw new GLException("Error freeing OpenGL context, werr: " + GDI.GetLastError());
     }
   }
 
+  @Override
   protected void destroyImpl() throws GLException {
       WGL.wglMakeCurrent(0, 0);
       if (!WGL.wglDeleteContext(contextHandle)) {
@@ -383,12 +394,14 @@ public class WindowsWGLContext extends GLContextImpl {
       }
   }
 
+  @Override
   protected void copyImpl(GLContext source, int mask) throws GLException {
     if (!WGL.wglCopyContext(source.getHandle(), getHandle(), mask)) {
       throw new GLException("wglCopyContext failed");
     }
   }
 
+  @Override
   protected final void updateGLXProcAddressTable() {
     final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
@@ -421,10 +434,11 @@ public class WindowsWGLContext extends GLContextImpl {
         }
     }
   }
-  
+
+  @Override
   protected final StringBuilder getPlatformExtensionsStringImpl() {
     StringBuilder sb = new StringBuilder();
-    
+
     if (!wglGetExtensionsStringEXTInitialized) {
       wglGetExtensionsStringEXTAvailable = (WGL.wglGetProcAddress("wglGetExtensionsStringEXT") != 0);
       wglGetExtensionsStringEXTInitialized = true;
@@ -434,7 +448,7 @@ public class WindowsWGLContext extends GLContextImpl {
     }
     return sb;
   }
-  
+
   @Override
   protected boolean setSwapIntervalImpl(int interval) {
     WGLExt wglExt = getWGLExt();
@@ -450,7 +464,7 @@ public class WindowsWGLContext extends GLContextImpl {
     }
     return false;
   }
-  
+
   private final int initSwapGroupImpl(WGLExt wglExt) {
       if(0==hasSwapGroupNV) {
         try {
@@ -462,7 +476,7 @@ public class WindowsWGLContext extends GLContextImpl {
       }
       return hasSwapGroupNV;
   }
-  
+
   @Override
   protected final boolean queryMaxSwapGroupsImpl(int[] maxGroups, int maxGroups_offset,
                                                  int[] maxBarriers, int maxBarriers_offset) {
@@ -471,7 +485,7 @@ public class WindowsWGLContext extends GLContextImpl {
       if (initSwapGroupImpl(wglExt)>0) {
         final NativeSurface ns = drawable.getNativeSurface();
         try {
-            if( wglExt.wglQueryMaxSwapGroupsNV(ns.getDisplayHandle(), 
+            if( wglExt.wglQueryMaxSwapGroupsNV(ns.getDisplayHandle(),
                                                maxGroups, maxGroups_offset,
                                                maxBarriers, maxBarriers_offset) ) {
                 res = true;
@@ -480,7 +494,7 @@ public class WindowsWGLContext extends GLContextImpl {
       }
       return res;
   }
-  
+
   @Override
   protected final boolean joinSwapGroupImpl(int group) {
       boolean res = false;
@@ -495,7 +509,7 @@ public class WindowsWGLContext extends GLContextImpl {
       }
       return res;
   }
-  
+
   @Override
   protected final boolean bindSwapBarrierImpl(int group, int barrier) {
       boolean res = false;
@@ -507,13 +521,15 @@ public class WindowsWGLContext extends GLContextImpl {
             }
         } catch (Throwable t) { hasSwapGroupNV=-1; }
       }
-      return res;  
+      return res;
   }
-  
+
+  @Override
   public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
     return getWGLExt().wglAllocateMemoryNV(arg0, arg1, arg2, arg3);
   }
 
+  @Override
   public int getOffscreenContextPixelDataType() {
     throw new GLException("Should not call this");
   }
@@ -522,14 +538,17 @@ public class WindowsWGLContext extends GLContextImpl {
     throw new GLException("Should not call this");
   }
 
+  @Override
   public boolean offscreenImageNeedsVerticalFlip() {
     throw new GLException("Should not call this");
   }
 
+  @Override
   public void bindPbufferToTexture() {
     throw new GLException("Should not call this");
   }
 
+  @Override
   public void releasePbufferFromTexture() {
     throw new GLException("Should not call this");
   }

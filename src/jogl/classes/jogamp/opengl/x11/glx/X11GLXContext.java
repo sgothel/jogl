@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -91,7 +91,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                 GLContext shareWith) {
     super(drawable, shareWith);
   }
-  
+
   @Override
   protected void resetStates() {
     // no inner state _glXExt=null;
@@ -102,6 +102,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     super.resetStates();
   }
 
+  @Override
   public final ProcAddressTable getPlatformExtProcAddressTable() {
     return getGLXExtProcAddressTable();
   }
@@ -110,6 +111,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     return glXExtProcAddressTable;
   }
 
+  @Override
   public Object getPlatformGLExtensions() {
     return getGLXExt();
   }
@@ -121,14 +123,17 @@ public abstract class X11GLXContext extends GLContextImpl {
     return _glXExt;
   }
 
+  @Override
   protected Map<String, String> getFunctionNameMap() { return functionNameMap; }
 
+  @Override
   protected Map<String, String> getExtensionNameMap() { return extensionNameMap; }
 
   protected final boolean isGLXVersionGreaterEqualOneThree() {
-    return ((X11GLXDrawableFactory)drawable.getFactoryImpl()).isGLXVersionGreaterEqualOneThree(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice());      
+    return ((X11GLXDrawableFactory)drawable.getFactoryImpl()).isGLXVersionGreaterEqualOneThree(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice());
   }
-  
+
+  @Override
   public final boolean isGLReadDrawableAvailable() {
     return isGLXVersionGreaterEqualOneThree();
   }
@@ -158,6 +163,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     return res;
   }
 
+  @Override
   protected void destroyContextARBImpl(long ctx) {
     X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration();
     long display = config.getScreen().getDevice().getHandle();
@@ -178,7 +184,8 @@ public abstract class X11GLXContext extends GLContextImpl {
         /*  8 */ 0,                                 0,
         /* 10 */ 0
     };
-    
+
+  @Override
   protected long createContextARBImpl(long share, boolean direct, int ctp, int major, int minor) {
     updateGLXProcAddressTable();
     GLXExt _glXExt = getGLXExt();
@@ -197,15 +204,15 @@ public abstract class X11GLXContext extends GLContextImpl {
     IntBuffer attribs = Buffers.newDirectIntBuffer(ctx_arb_attribs_rom);
     attribs.put(ctx_arb_attribs_idx_major + 1, major);
     attribs.put(ctx_arb_attribs_idx_minor + 1, minor);
-    
+
     if ( major > 3 || major == 3 && minor >= 2  ) {
         attribs.put(ctx_arb_attribs_idx_profile + 0, GLX.GLX_CONTEXT_PROFILE_MASK_ARB);
         if( ctBwdCompat ) {
             attribs.put(ctx_arb_attribs_idx_profile + 1, GLX.GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB);
         } else {
             attribs.put(ctx_arb_attribs_idx_profile + 1, GLX.GLX_CONTEXT_CORE_PROFILE_BIT_ARB);
-        } 
-    } 
+        }
+    }
 
     if ( major >= 3 ) {
         int flags = attribs.get(ctx_arb_attribs_idx_flags + 1);
@@ -253,6 +260,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     return ctx;
   }
 
+  @Override
   protected boolean createImpl(GLContextImpl shareWith) {
       // covers the whole context creation loop incl createContextARBImpl and destroyContextARBImpl
       X11Util.setX11ErrorHandler(true, DEBUG ? false : true);
@@ -340,7 +348,7 @@ public abstract class X11GLXContext extends GLContextImpl {
                 createContextARBTried=true;
                 if (DEBUG) {
                     if(0!=contextHandle) {
-                        System.err.println(getThreadName() + ": createContextImpl: OK (ARB, initial) share "+share);                        
+                        System.err.println(getThreadName() + ": createContextImpl: OK (ARB, initial) share "+share);
                     } else {
                         System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - creation failed - share "+share);
                     }
@@ -388,6 +396,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     return true;
   }
 
+  @Override
   protected void makeCurrentImpl() throws GLException {
     long dpy = drawable.getNativeSurface().getDisplayHandle();
 
@@ -403,6 +412,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     }
   }
 
+  @Override
   protected void releaseImpl() throws GLException {
     long display = drawable.getNativeSurface().getDisplayHandle();
     X11Util.setX11ErrorHandler(true, DEBUG ? false : true);
@@ -415,10 +425,12 @@ public abstract class X11GLXContext extends GLContextImpl {
     }
   }
 
+  @Override
   protected void destroyImpl() throws GLException {
     GLX.glXDestroyContext(drawable.getNativeSurface().getDisplayHandle(), contextHandle);
   }
 
+  @Override
   protected void copyImpl(GLContext source, int mask) throws GLException {
     long dst = getHandle();
     long src = source.getHandle();
@@ -430,6 +442,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     // Should check for X errors and raise GLException
   }
 
+  @Override
   protected final void updateGLXProcAddressTable() {
     final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
@@ -458,11 +471,12 @@ public abstract class X11GLXContext extends GLContextImpl {
     }
   }
 
+  @Override
   protected final StringBuilder getPlatformExtensionsStringImpl() {
     StringBuilder sb = new StringBuilder();
     if (DEBUG) {
       System.err.println("GLX Version client version "+ GLXUtil.getClientVersionNumber()+
-                         ", server: "+         
+                         ", server: "+
         ((X11GLXDrawableFactory)drawable.getFactoryImpl()).getGLXVersionNumber(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice()));
     }
     final NativeSurface ns = drawable.getNativeSurface();
@@ -492,6 +506,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     return sb;
   }
 
+  @Override
   public boolean isExtensionAvailable(String glExtensionName) {
     if (glExtensionName.equals("GL_ARB_pbuffer") ||
         glExtensionName.equals("GL_ARB_pixel_format")) {
@@ -532,7 +547,7 @@ public abstract class X11GLXContext extends GLContextImpl {
       }
       return hasSwapGroupNV;
   }
-  
+
   @Override
   protected final boolean queryMaxSwapGroupsImpl(int[] maxGroups, int maxGroups_offset,
                                                  int[] maxBarriers, int maxBarriers_offset) {
@@ -541,7 +556,7 @@ public abstract class X11GLXContext extends GLContextImpl {
       if (initSwapGroupImpl(glXExt)>0) {
         final NativeSurface ns = drawable.getNativeSurface();
         try {
-            if( glXExt.glXQueryMaxSwapGroupsNV(ns.getDisplayHandle(), ns.getScreenIndex(), 
+            if( glXExt.glXQueryMaxSwapGroupsNV(ns.getDisplayHandle(), ns.getScreenIndex(),
                                                maxGroups, maxGroups_offset,
                                                maxBarriers, maxBarriers_offset) ) {
                 res = true;
@@ -550,7 +565,7 @@ public abstract class X11GLXContext extends GLContextImpl {
       }
       return res;
   }
-  
+
   @Override
   protected final boolean joinSwapGroupImpl(int group) {
       boolean res = false;
@@ -565,7 +580,7 @@ public abstract class X11GLXContext extends GLContextImpl {
       }
       return res;
   }
-  
+
   @Override
   protected final boolean bindSwapBarrierImpl(int group, int barrier) {
       boolean res = false;
@@ -577,7 +592,7 @@ public abstract class X11GLXContext extends GLContextImpl {
             }
         } catch (Throwable t) { hasSwapGroupNV=-1; }
       }
-      return res;  
+      return res;
   }
 
   @Override
@@ -585,6 +600,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     return getGLXExt().glXAllocateMemoryNV(arg0, arg1, arg2, arg3);
   }
 
+  @Override
   public int getOffscreenContextPixelDataType() {
     throw new GLException("Should not call this");
   }
@@ -593,18 +609,22 @@ public abstract class X11GLXContext extends GLContextImpl {
     throw new GLException("Should not call this");
   }
 
+  @Override
   public boolean offscreenImageNeedsVerticalFlip() {
     throw new GLException("Should not call this");
   }
 
+  @Override
   public void bindPbufferToTexture() {
     throw new GLException("Should not call this");
   }
 
+  @Override
   public void releasePbufferFromTexture() {
     throw new GLException("Should not call this");
   }
 
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(getClass().getSimpleName());

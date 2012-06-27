@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -66,14 +66,14 @@ import jogamp.opengl.GLContextImpl;
     abstraction provides a stable object which clients can use to
     refer to a given context. */
 public abstract class GLContext {
-  public static final boolean DEBUG = Debug.debug("GLContext");  
+  public static final boolean DEBUG = Debug.debug("GLContext");
   public static final boolean TRACE_SWITCH = Debug.isPropertyDefined("jogl.debug.GLContext.TraceSwitch", true);
-  
+
   /** Reflects property jogl.debug.DebugGL. If true, the debug pipeline is enabled at context creation. */
   public final static boolean DEBUG_GL = Debug.isPropertyDefined("jogl.debug.DebugGL", true);
   /** Reflects property jogl.debug.TraceGL. If true, the trace pipeline is enabled at context creation. */
   public final static boolean TRACE_GL = Debug.isPropertyDefined("jogl.debug.TraceGL", true);
-  
+
   /** Indicates that the context was not made current during the last call to {@link #makeCurrent makeCurrent}. */
   public static final int CONTEXT_NOT_CURRENT = 0;
   /** Indicates that the context was made current during the last call to {@link #makeCurrent makeCurrent}. */
@@ -93,19 +93,19 @@ public abstract class GLContext {
   protected static final int CTX_OPTION_FORWARD  = 1 <<  4;
   /** <code>ARB_create_context</code> related: flag debug. Not a cache key. */
   public static final int CTX_OPTION_DEBUG       = 1 <<  5;
-  
+
   /** <code>GL_ARB_ES2_compatibility</code> implementation related: Context is compatible w/ ES2. Not a cache key. */
   protected static final int CTX_IMPL_ES2_COMPAT = 1 <<  8;
 
   /** Context uses software rasterizer, otherwise hardware rasterizer. Cache key value. */
   protected static final int CTX_IMPL_ACCEL_SOFT = 1 << 15;
-  
+
   private static ThreadLocal<GLContext> currentContext = new ThreadLocal<GLContext>();
 
   private HashMap<String, Object> attachedObjectsByString = new HashMap<String, Object>();
   private IntObjectHashMap attachedObjectsByInt = new IntObjectHashMap();
 
-  // RecursiveLock maintains a queue of waiting Threads, ensuring the longest waiting thread will be notified at unlock.  
+  // RecursiveLock maintains a queue of waiting Threads, ensuring the longest waiting thread will be notified at unlock.
   protected RecursiveLock lock = LockFactory.createRecursiveLock();
 
   /** The underlying native OpenGL context */
@@ -114,7 +114,7 @@ public abstract class GLContext {
   protected GLContext() {
       resetStates();
   }
-  
+
   protected int ctxMajorVersion;
   protected int ctxMinorVersion;
   protected int ctxOptions;
@@ -188,7 +188,7 @@ public abstract class GLContext {
    * the underlying drawable has not ben realized on the display) ,
    * a value of CONTEXT_NOT_CURRENT is returned.
    * </p>
-   * <p> 
+   * <p>
    * If the context is in use by another thread at the time of the
    * call, then if isSynchronized() is true the call will
    * block. If isSynchronized() is false, an exception will be
@@ -196,7 +196,7 @@ public abstract class GLContext {
    * </p>
    * <p>
    * The drawable's surface is being locked at entry
-   * and unlocked at {@link #release()} 
+   * and unlocked at {@link #release()}
    * </p>
    *
    * @return CONTEXT_CURRENT if the context was successfully made current
@@ -216,7 +216,7 @@ public abstract class GLContext {
    * Releases control of this GLContext from the current thread.
    * <p>
    * The drawable's surface is being unlocked at exit,
-   * assumed to be locked by {@link #makeCurrent()}. 
+   * assumed to be locked by {@link #makeCurrent()}.
    * </p>
    *
    * @throws GLException if the context had not previously been made
@@ -284,18 +284,18 @@ public abstract class GLContext {
    * @return true if this GLContext is current on this thread
    */
   public final boolean isCurrent() {
-    return getCurrent() == this ; 
+    return getCurrent() == this ;
   }
 
   /**
    * @throws GLException if this GLContext is not current on this thread
    */
-  public final void validateCurrent() throws GLException {  
+  public final void validateCurrent() throws GLException {
     if(getCurrent() != this) {
         throw new GLException(getThreadName()+": This context is not current. Current context: "+getCurrent()+", this context "+this);
     }
   }
-  
+
   /**
    * Sets the thread-local variable returned by {@link #getCurrent}
    * and has no other side-effects. For use by third parties adding
@@ -307,14 +307,14 @@ public abstract class GLContext {
     }
     currentContext.set(cur);
   }
-  
+
   /**
    * Destroys this OpenGL context and frees its associated
    * resources.
    * <p>
    * The context may be current w/o recursion when calling <code>destroy()</code>,
    * in which case this method destroys the context and releases the lock.
-   * </p> 
+   * </p>
    */
   public abstract void destroy();
 
@@ -337,8 +337,8 @@ public abstract class GLContext {
    */
   public final long getHandle() { return contextHandle; }
 
-  /** 
-   * Indicates whether the underlying OpenGL context has been created. 
+  /**
+   * Indicates whether the underlying OpenGL context has been created.
    */
   public final boolean isCreated() {
     return 0 != contextHandle;
@@ -369,7 +369,7 @@ public abstract class GLContext {
   public final Object detachObject(int name) {
       return attachedObjectsByInt.remove(name);
   }
-  
+
   /**
    * Sets the attached user object for the given name to this GLContext.
    * Returns the previously set object or null.
@@ -381,10 +381,11 @@ public abstract class GLContext {
   public final Object detachObject(String name) {
       return attachedObjectsByString.remove(name);
   }
-  
+
   /**
    * Classname, GL, GLDrawable
    */
+  @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append(getClass().getSimpleName());
@@ -433,7 +434,7 @@ public abstract class GLContext {
    * javax.media.opengl.GL#glPolygonOffset(float,float)} is available).
    */
   public abstract boolean isFunctionAvailable(String glFunctionName);
-  
+
   /**
    * Returns true if the specified OpenGL extension can be
    * successfully called using this GL context given the current host (OpenGL
@@ -445,10 +446,10 @@ public abstract class GLContext {
    * "GL_VERTEX_PROGRAM_ARB").
    */
   public abstract boolean isExtensionAvailable(String glExtensionName);
-  
+
   /** Returns the number of platform extensions */
   public abstract int getPlatformExtensionCount();
-  
+
   /** Returns a non-null (but possibly empty) string containing the
       space-separated list of available platform-dependent (e.g., WGL,
       GLX) extensions. Can only be called while this context is
@@ -457,7 +458,7 @@ public abstract class GLContext {
 
   /** Returns the number of OpenGL extensions */
   public abstract int getGLExtensionCount();
-  
+
   /** Returns a non-null (but possibly empty) string containing the
       space-separated list of available extensions.
       Can only be called while this context is current.
@@ -479,8 +480,8 @@ public abstract class GLContext {
    * @see GLAutoDrawable#setContextCreationFlags(int)
    */
   public abstract void setContextCreationFlags(int flags);
-    
-  /** 
+
+  /**
    * Returns a valid OpenGL version string, ie<br>
    * <pre>
    *     major.minor ([option]?[options,]*) - gl-version
@@ -509,7 +510,7 @@ public abstract class GLContext {
    * <td>row 2, cell 1</td>
    * <td>row 2, cell 2</td>
    * </tr>
-   * </table> 
+   * </table>
    *
    * <table border="0">
    *     <tr><td></td>   <td>ES2</td>  <td><code>2.0 (ES profile, ES2 compatible, hardware) - 2.0 ES Profile</code></td></tr>
@@ -520,7 +521,7 @@ public abstract class GLContext {
    *     <tr><td>NV</td><td>GL3</td>   <td><code>3.3 (Core profile, arb, hardware) - 3.3.0 NVIDIA 195.36.07.03</code></td></tr>
    *     <tr><td>NV</td><td>GL3bc</td> <td><code>3.3 (Compatibility profile, arb, hardware) - 3.3.0 NVIDIA 195.36.07.03</code></td></tr>
    *     <tr><td>NV</td><td>GL2</td>   <td><code>3.0 (Compatibility profile, arb, ES2 compatible, hardware) - 3.0.0 NVIDIA 290.10</code></td></tr>
-   * </table> 
+   * </table>
    */
   public final String getGLVersion() {
     return ctxVersionString;
@@ -533,28 +534,28 @@ public abstract class GLContext {
   public final boolean isGLForwardCompatible()    { return ( 0 != ( CTX_OPTION_FORWARD & ctxOptions ) ); }
   public final boolean isGLDebugEnabled()         { return ( 0 != ( CTX_OPTION_DEBUG   & ctxOptions ) ); }
   public final boolean isCreatedWithARBMethod()   { return ( 0 != ( CTX_IS_ARB_CREATED & ctxOptions ) ); }
-  
+
   /**
-   * @return true if this context is an ES2 context or implements 
-   *         the extension <code>GL_ARB_ES2_compatibility</code>, otherwise false 
+   * @return true if this context is an ES2 context or implements
+   *         the extension <code>GL_ARB_ES2_compatibility</code>, otherwise false
    */
   public final boolean isGLES2Compatible() {
       return 0 != ( ctxOptions & CTX_IMPL_ES2_COMPAT ) ;
   }
-  
+
   public final boolean hasGLSL() {
       return isGL2ES2() ;
   }
-  
+
   /** Note: The GL impl. may return a const value, ie {@link GLES2#isNPOTTextureAvailable()} always returns <code>true</code>. */
   public boolean isNPOTTextureAvailable() {
       return isGL3() || isGLES2Compatible() || isExtensionAvailable(GL_ARB_texture_non_power_of_two);
   }
   private static final String GL_ARB_texture_non_power_of_two = "GL_ARB_texture_non_power_of_two";
-  
+
   public boolean isTextureFormatBGRA8888Available() {
-      return isGL2GL3() || 
-             isExtensionAvailable("GL_EXT_texture_format_BGRA8888") || 
+      return isGL2GL3() ||
+             isExtensionAvailable("GL_EXT_texture_format_BGRA8888") ||
              isExtensionAvailable("GL_IMG_texture_format_BGRA8888") ;
   }
 
@@ -610,11 +611,11 @@ public abstract class GLContext {
 
   /**
    * Set the swap interval if the current context.
-   * @param interval Should be &ge; 0. 0 Disables the vertical synchronisation, 
+   * @param interval Should be &ge; 0. 0 Disables the vertical synchronisation,
    *                 where &ge; 1 is the number of vertical refreshes before a swap buffer occurs.
    *                 A value &lt; 0 is ignored.
-   * @return true if the operation was successful, otherwise false 
-   *  
+   * @return true if the operation was successful, otherwise false
+   *
    * @throws GLException if the context is not current.
    */
   public final boolean setSwapInterval(int interval) throws GLException {
@@ -627,16 +628,16 @@ public abstract class GLContext {
     }
     return false;
   }
-  protected boolean setSwapIntervalImpl(int interval) { 
-      return false; 
-  }    
-  /** Return the current swap interval. 
+  protected boolean setSwapIntervalImpl(int interval) {
+      return false;
+  }
+  /** Return the current swap interval.
    * <p>
    * If the context has not been made current at all,
    * the default value <code>-1</code> is returned.
    * </p>
    * <p>
-   * The default value for a valid context is <code>1</code> for 
+   * The default value for a valid context is <code>1</code> for
    * an EGL based profile (ES1 or ES2) and <code>-1</code> (undefined)
    * for desktop.
    * </p>
@@ -652,9 +653,9 @@ public abstract class GLContext {
         currentSwapInterval = 1;
     } else {
         currentSwapInterval = -1;
-    }      
+    }
   }
-  
+
   public final boolean queryMaxSwapGroups(int[] maxGroups, int maxGroups_offset,
                                           int[] maxBarriers, int maxBarriers_offset) {
     validateCurrent();
@@ -667,21 +668,21 @@ public abstract class GLContext {
     return joinSwapGroupImpl(group);
   }
   protected boolean joinSwapGroupImpl(int group) { /** nop per default .. **/  return false; }
-  protected int currentSwapGroup = -1; // default: not set yet ..  
+  protected int currentSwapGroup = -1; // default: not set yet ..
   public int getSwapGroup() {
       return currentSwapGroup;
   }
   public final boolean bindSwapBarrier(int group, int barrier) {
     validateCurrent();
-    return bindSwapBarrierImpl(group, barrier);    
+    return bindSwapBarrierImpl(group, barrier);
   }
   protected boolean bindSwapBarrierImpl(int group, int barrier) { /** nop per default .. **/  return false; }
 
-  
+
   /**
-   * @return The extension implementing the GLDebugOutput feature, 
-   *         either <i>GL_ARB_debug_output</i> or <i>GL_AMD_debug_output</i>. 
-   *         If unavailable or called before initialized via {@link #makeCurrent()}, <i>null</i> is returned. 
+   * @return The extension implementing the GLDebugOutput feature,
+   *         either <i>GL_ARB_debug_output</i> or <i>GL_AMD_debug_output</i>.
+   *         If unavailable or called before initialized via {@link #makeCurrent()}, <i>null</i> is returned.
    */
   public abstract String getGLDebugMessageExtension();
 
@@ -690,84 +691,84 @@ public abstract class GLContext {
    * @see #setSynchronous(boolean)
    */
   public abstract boolean isGLDebugSynchronous();
-    
+
   /**
    * Enables or disables the synchronous debug behavior via
-   * {@link GL2GL3#GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB glEnable/glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB)}, 
+   * {@link GL2GL3#GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB glEnable/glDisable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB)},
    * if extension is {@link #GL_ARB_debug_output}.
    * There is no equivalent for {@link #GL_AMD_debug_output}.
-   * <p> The default is <code>true</code>, ie {@link GL2GL3#GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB}.</p> 
+   * <p> The default is <code>true</code>, ie {@link GL2GL3#GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB}.</p>
    */
   public abstract void setGLDebugSynchronous(boolean synchronous);
-  
+
   /**
    * @return true if the GLDebugOutput feature is enabled or not.
    */
   public abstract boolean isGLDebugMessageEnabled();
-  
+
   /**
-   * Enables or disables the GLDebugOutput feature of extension <i>GL_ARB_debug_output</i> 
+   * Enables or disables the GLDebugOutput feature of extension <i>GL_ARB_debug_output</i>
    * or <i>GL_AMD_debug_output</i>, if available.
-   * 
+   *
    * <p>To enable the GLDebugOutput feature {@link #enableGLDebugMessage(boolean) enableGLDebugMessage(true)}
    * or {@link #setContextCreationFlags(int) setContextCreationFlags}({@link GLContext#CTX_OPTION_DEBUG})
    * shall be called <b>before</b> context creation via {@link #makeCurrent()}!</p>
-   * 
-   * <p>In case {@link GLAutoDrawable} are being used, 
+   *
+   * <p>In case {@link GLAutoDrawable} are being used,
    * {@link GLAutoDrawable#setContextCreationFlags(int) glAutoDrawable.setContextCreationFlags}({@link GLContext#CTX_OPTION_DEBUG})
    * shall be issued before context creation via {@link #makeCurrent()}!</p>
-   * 
+   *
    * <p>After context creation, the GLDebugOutput feature may be enabled or disabled at any time using this method.</p>
-   * 
+   *
    * @param enable If true enables, otherwise disables the GLDebugOutput feature.
-   * 
+   *
    * @throws GLException if this context is not current or GLDebugOutput registration failed (enable)
-   * 
+   *
    * @see #setContextCreationFlags(int)
    * @see #addGLDebugListener(GLDebugListener)
    * @see GLAutoDrawable#setContextCreationFlags(int)
    */
   public abstract void enableGLDebugMessage(boolean enable) throws GLException;
-  
+
   /**
    * Add {@link GLDebugListener}.<br>
-   * 
+   *
    * @param listener {@link GLDebugListener} handling {@GLDebugMessage}s
-   * @see #enableGLDebugMessage(boolean) 
+   * @see #enableGLDebugMessage(boolean)
    * @see #removeGLDebugListener(GLDebugListener)
    */
   public abstract void addGLDebugListener(GLDebugListener listener);
-  
+
   /**
    * Remove {@link GLDebugListener}.<br>
-   * 
+   *
    * @param listener {@link GLDebugListener} handling {@GLDebugMessage}s
-   * @see #enableGLDebugMessage(boolean) 
+   * @see #enableGLDebugMessage(boolean)
    * @see #addGLDebugListener(GLDebugListener)
    */
   public abstract void removeGLDebugListener(GLDebugListener listener);
-  
+
   /**
-   * Generic entry for {@link GL2GL3#glDebugMessageControlARB(int, int, int, int, IntBuffer, boolean)} 
+   * Generic entry for {@link GL2GL3#glDebugMessageControlARB(int, int, int, int, IntBuffer, boolean)}
    * and {@link GL2GL3#glDebugMessageEnableAMD(int, int, int, IntBuffer, boolean)} of the GLDebugOutput feature.
-   * @see #enableGLDebugMessage(boolean) 
+   * @see #enableGLDebugMessage(boolean)
    */
   public abstract void glDebugMessageControl(int source, int type, int severity, int count, IntBuffer ids, boolean enabled);
-  
+
   /**
-   * Generic entry for {@link GL2GL3#glDebugMessageControlARB(int, int, int, int, int[], int, boolean)} 
-   * and {@link GL2GL3#glDebugMessageEnableAMD(int, int, int, int[], int, boolean)} of the GLDebugOutput feature. 
-   * @see #enableGLDebugMessage(boolean) 
+   * Generic entry for {@link GL2GL3#glDebugMessageControlARB(int, int, int, int, int[], int, boolean)}
+   * and {@link GL2GL3#glDebugMessageEnableAMD(int, int, int, int[], int, boolean)} of the GLDebugOutput feature.
+   * @see #enableGLDebugMessage(boolean)
    */
   public abstract void glDebugMessageControl(int source, int type, int severity, int count, int[] ids, int ids_offset, boolean enabled);
-  
+
   /**
-   * Generic entry for {@link GL2GL3#glDebugMessageInsertARB(int, int, int, int, int, String)} 
+   * Generic entry for {@link GL2GL3#glDebugMessageInsertARB(int, int, int, int, int, String)}
    * and {@link GL2GL3#glDebugMessageInsertAMD(int, int, int, int, String)} of the GLDebugOutput feature.
-   * @see #enableGLDebugMessage(boolean) 
+   * @see #enableGLDebugMessage(boolean)
    */
   public abstract void glDebugMessageInsert(int source, int type, int id, int severity, String buf);
-  
+
   public static final int GL_VERSIONS[][] = {
       /* 0.*/ { -1 },
       /* 1.*/ { 0, 1, 2, 3, 4, 5 },
@@ -832,7 +833,7 @@ public abstract class GLContext {
   //
 
   /**
-   * @see #getDeviceVersionAvailableKey(javax.media.nativewindow.AbstractGraphicsDevice, int, int) 
+   * @see #getDeviceVersionAvailableKey(javax.media.nativewindow.AbstractGraphicsDevice, int, int)
    */
   protected static /*final*/ HashMap<String, Integer> deviceVersionAvailable = new HashMap<String, Integer>();
 
@@ -863,11 +864,11 @@ public abstract class GLContext {
           }
       }
   }
-  
+
   /** clears the device/context mappings as well as the GL/GLX proc address tables. */
   protected static void shutdown() {
       deviceVersionAvailable.clear();
-      deviceVersionsAvailableSet.clear();      
+      deviceVersionsAvailableSet.clear();
       GLContextImpl.shutdownImpl(); // well ..
   }
 
@@ -919,7 +920,7 @@ public abstract class GLContext {
    * @param minor if not null, returns the used minor version
    * @param ctp if not null, returns the used context profile
    */
-  protected static boolean getAvailableGLVersion(AbstractGraphicsDevice device, int reqMajor, int reqProfile, 
+  protected static boolean getAvailableGLVersion(AbstractGraphicsDevice device, int reqMajor, int reqProfile,
                                                  int[] major, int minor[], int ctp[]) {
 
     Integer valI = getAvailableGLVersion(device, reqMajor, reqProfile);
@@ -940,34 +941,34 @@ public abstract class GLContext {
     }
     return true;
   }
-  
-  /** 
+
+  /**
    * returns the highest GLProfile string regarding the implementation version and context profile bits.
    * @throws GLException if version and context profile bits could not be mapped to a GLProfile
    */
-  protected static String getGLProfile(int major, int minor, int ctp) 
+  protected static String getGLProfile(int major, int minor, int ctp)
           throws GLException {
-    if(0 != ( CTX_PROFILE_COMPAT & ctp )) {        
+    if(0 != ( CTX_PROFILE_COMPAT & ctp )) {
         if(major >= 4)                            { return GLProfile.GL4bc; }
         else if(major == 3 && minor >= 1)         { return GLProfile.GL3bc; }
-        else                                      { return GLProfile.GL2; }        
+        else                                      { return GLProfile.GL2; }
     } else if(0 != ( CTX_PROFILE_CORE & ctp )) {
         if(major >= 4)                            { return GLProfile.GL4; }
-        else if(major == 3 && minor >= 1)         { return GLProfile.GL3; }        
+        else if(major == 3 && minor >= 1)         { return GLProfile.GL3; }
     } else if(0 != ( CTX_PROFILE_ES & ctp )) {
         if(major == 2)                            { return GLProfile.GLES2; }
-        else if(major == 1)                       { return GLProfile.GLES1; }                
+        else if(major == 1)                       { return GLProfile.GLES1; }
     }
     throw new GLException("Unhandled OpenGL version/profile: "+GLContext.getGLVersion(major, minor, ctp, null));
   }
-  
-  /** 
+
+  /**
    * @param major Key Value either 1, 2, 3 or 4
    * @param profile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
    * @return the highest GLProfile string regarding the version and profile bits.
    * @throws GLException if version and context profile bits could not be mapped to a GLProfile
-   */  
-  public static String getAvailableGLProfile(AbstractGraphicsDevice device, int reqMajor, int reqProfile) 
+   */
+  public static String getAvailableGLProfile(AbstractGraphicsDevice device, int reqMajor, int reqProfile)
           throws GLException {
     int major[] = { 0 };
     int minor[] = { 0 };
@@ -1046,9 +1047,9 @@ public abstract class GLContext {
     needColon = appendString(sb, "ES profile",            needColon, 0 != ( CTX_PROFILE_ES & ctp ));
     needColon = appendString(sb, "Compatibility profile", needColon, 0 != ( CTX_PROFILE_COMPAT & ctp ));
     needColon = appendString(sb, "Core profile",          needColon, 0 != ( CTX_PROFILE_CORE & ctp ));
-    needColon = appendString(sb, "forward",               needColon, 0 != ( CTX_OPTION_FORWARD & ctp )); 
+    needColon = appendString(sb, "forward",               needColon, 0 != ( CTX_OPTION_FORWARD & ctp ));
     needColon = appendString(sb, "arb",                   needColon, 0 != ( CTX_IS_ARB_CREATED & ctp ));
-    needColon = appendString(sb, "debug",                 needColon, 0 != ( CTX_OPTION_DEBUG & ctp ));    
+    needColon = appendString(sb, "debug",                 needColon, 0 != ( CTX_OPTION_DEBUG & ctp ));
     needColon = appendString(sb, "ES2 compatible",        needColon, 0 != ( CTX_IMPL_ES2_COMPAT & ctp ));
     if( 0 != ( CTX_IMPL_ACCEL_SOFT & ctp ) ) {
         needColon = appendString(sb, "software",          needColon, true);
@@ -1064,9 +1065,9 @@ public abstract class GLContext {
   }
 
   //
-  // internal string utils 
+  // internal string utils
   //
-  
+
   protected static String toHexString(int hex) {
     return "0x" + Integer.toHexString(hex);
   }
@@ -1085,7 +1086,7 @@ public abstract class GLContext {
     }
     return needColon;
   }
-  
+
   protected static String getThreadName() {
     return Thread.currentThread().getName();
   }
