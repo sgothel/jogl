@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -82,10 +82,10 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   // lifetime of a given GLPbuffer. This is not a fully general
   // solution (for example, you can't share textures among a
   // GLPbuffer, a GLJPanel and a GLCanvas simultaneously) but should
-  // be enough to get things off the ground.  
+  // be enough to get things off the ground.
   public enum GLBackendType {
-    NSOPENGL(0), CGL(1); 
-    
+    NSOPENGL(0), CGL(1);
+
     public final int id;
 
     GLBackendType(int id){
@@ -93,22 +93,23 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
     }
   }
   private List<WeakReference<MacOSXCGLContext>> createdContexts = new ArrayList<WeakReference<MacOSXCGLContext>>();
-  
+
   private boolean haveSetOpenGLMode = false;
   private GLBackendType openGLMode = GLBackendType.NSOPENGL;
-  
+
   public MacOSXCGLDrawable(GLDrawableFactory factory, NativeSurface comp, boolean realized) {
     super(factory, comp, realized);
     initOpenGLImpl(getOpenGLMode());
   }
-  
+
+  @Override
   protected void setRealizedImpl() {
   }
 
   protected long getNSViewHandle() {
       return GLBackendType.NSOPENGL == openGLMode ? getHandle() : 0;
   }
-  
+
   protected void registerContext(MacOSXCGLContext ctx) {
     // NOTE: we need to keep track of the created contexts in order to
     // implement swapBuffers() because of how Mac OS X implements its
@@ -117,6 +118,7 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
       createdContexts.add(new WeakReference<MacOSXCGLContext>(ctx));
     }
   }
+  @Override
   protected final void swapBuffersImpl() {
     // single-buffer is already filtered out @ GLDrawableImpl#swapBuffers()
     synchronized (createdContexts) {
@@ -130,8 +132,9 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
           }
         }
     }
-  }  
-    
+  }
+
+  @Override
   public GLDynamicLookupHelper getGLDynamicLookupHelper() {
     return getFactoryImpl().getGLDynamicLookupHelper(0);
   }
@@ -148,17 +151,17 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
       if (haveSetOpenGLMode) {
         throw new GLException("Can't switch between using NSOpenGLPixelBuffer and CGLPBufferObj more than once");
       }
-    
+
       destroyImpl();
       if (DEBUG) {
         System.err.println("MacOSXCGLDrawable: Switching context mode " + openGLMode + " -> " + mode);
       }
       initOpenGLImpl(mode);
       openGLMode = mode;
-      haveSetOpenGLMode = true;      
+      haveSetOpenGLMode = true;
   }
   public final GLBackendType getOpenGLMode() { return openGLMode; }
 
   protected void initOpenGLImpl(GLBackendType backend) { /* nop */ }
-  
+
 }

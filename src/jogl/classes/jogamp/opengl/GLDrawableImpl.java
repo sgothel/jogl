@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -61,7 +61,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
       this.requestedCapabilities = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getRequestedCapabilities();
   }
 
-  /** 
+  /**
    * Returns the DynamicLookupHelper
    */
   public abstract GLDynamicLookupHelper getGLDynamicLookupHelper();
@@ -84,6 +84,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
     throw new GLException("Should not call this (should only be called for offscreen GLDrawables)");
   }
 
+  @Override
   public final void swapBuffers() throws GLException {
     GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)surface.getGraphicsConfiguration().getChosenCapabilities();
     if ( caps.getDoubleBuffered() ) {
@@ -103,7 +104,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
         }
     } else {
         GLContext ctx = GLContext.getCurrent();
-        if(null!=ctx && ctx.getGLDrawable()==this) { 
+        if(null!=ctx && ctx.getGLDrawable()==this) {
             ctx.getGL().glFinish();
         }
     }
@@ -115,10 +116,12 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return "0x" + Long.toHexString(hex);
   }
 
+  @Override
   public GLProfile getGLProfile() {
     return requestedCapabilities.getGLProfile();
   }
 
+  @Override
   public GLCapabilitiesImmutable getChosenGLCapabilities() {
     return  (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getChosenCapabilities();
   }
@@ -127,24 +130,28 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return requestedCapabilities;
   }
 
+  @Override
   public NativeSurface getNativeSurface() {
     return surface;
   }
 
-  /** called with locked surface @ setRealized(false) */ 
+  /** called with locked surface @ setRealized(false) */
   protected void destroyHandle() {}
-  
-  /** called with locked surface @ setRealized(true) or @ lockSurface(..) when surface changed */ 
+
+  /** called with locked surface @ setRealized(true) or @ lockSurface(..) when surface changed */
   protected void updateHandle() {}
 
+  @Override
   public long getHandle() {
     return surface.getSurfaceHandle();
   }
 
+  @Override
   public GLDrawableFactory getFactory() {
     return factory;
   }
 
+  @Override
   public final synchronized void setRealized(boolean realizedArg) {
     if ( realized != realizedArg ) {
         if(DEBUG) {
@@ -159,7 +166,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
         } else {
             aDevice.lock();
         }
-        try {            
+        try {
             setRealizedImpl();
             if(realizedArg) {
                 updateHandle();
@@ -178,15 +185,18 @@ public abstract class GLDrawableImpl implements GLDrawable {
     }
   }
   protected abstract void setRealizedImpl();
-  
+
+  @Override
   public synchronized boolean isRealized() {
     return realized;
   }
 
+  @Override
   public int getWidth() {
     return surface.getWidth();
   }
-  
+
+  @Override
   public int getHeight() {
     return surface.getHeight();
   }
@@ -199,6 +209,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
     surface.unlockSurface();
   }
 
+  @Override
   public String toString() {
     return getClass().getSimpleName()+"[Realized "+isRealized()+
                 ",\n\tFactory   "+getFactory()+
@@ -209,7 +220,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   protected static String getThreadName() {
     return Thread.currentThread().getName();
   }
-  
+
   protected GLDrawableFactory factory;
   protected NativeSurface surface;
   protected GLCapabilitiesImmutable requestedCapabilities;

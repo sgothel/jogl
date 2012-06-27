@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -63,6 +63,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         return eglDisplay;
     }
 
+    @Override
     public long getHandle() {
         return eglSurface;
     }
@@ -71,10 +72,12 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         return eglConfig;
     }
 
+    @Override
     public GLCapabilitiesImmutable getChosenGLCapabilities() {
         return (null==eglConfig)?super.getChosenGLCapabilities():(GLCapabilitiesImmutable)eglConfig.getChosenCapabilities();
     }
 
+    @Override
     public abstract GLContext createContext(GLContext shareWith);
 
     protected abstract long createSurface(long eglDpy, long eglNativeCfg, long surfaceHandle);
@@ -90,11 +93,11 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         }
 
         eglSurface = createSurface(eglDisplay, eglConfig.getNativeConfig(), surface.getSurfaceHandle());
-        int eglError0 = EGL.EGL_SUCCESS; 
+        int eglError0 = EGL.EGL_SUCCESS;
         if (EGL.EGL_NO_SURFACE == eglSurface) {
             eglError0 = EGL.eglGetError();
             if(EGL.EGL_BAD_NATIVE_WINDOW == eglError0) {
-                // Try window handle if available and differs (Windows HDC / HWND). 
+                // Try window handle if available and differs (Windows HDC / HWND).
                 // ANGLE impl. required HWND on Windows.
                 if(surface instanceof NativeWindow) {
                     final NativeWindow nw = (NativeWindow) surface;
@@ -125,7 +128,8 @@ public abstract class EGLDrawable extends GLDrawableImpl {
             recreateSurface();
         }
     }
-    
+
+    @Override
     protected void setRealizedImpl() {
         if (realized) {
             AbstractGraphicsConfiguration aConfig = surface.getGraphicsConfiguration();
@@ -195,7 +199,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                 } else {
                     eglConfig = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
                             capsRequested, capsRequested, null, s, aConfig.getVisualID(VIDType.NATIVE), false);
-                
+
                     if (null == eglConfig) {
                         throw new GLException("Couldn't create EGLGraphicsConfiguration from "+s);
                     } else if(DEBUG) {
@@ -224,6 +228,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         }
     }
 
+    @Override
     protected final void swapBuffersImpl() {
         // single-buffer is already filtered out @ GLDrawableImpl#swapBuffers()
         if(!EGL.eglSwapBuffers(eglDisplay, eglSurface)) {
@@ -231,9 +236,9 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         }
     }
 
-    /** 
+    /**
      * Surface not realizes yet (onscreen) .. Quering EGL surface size only makes sense for external drawable.
-     * Leave it here for later impl. of an EGLExternalDrawable.  
+     * Leave it here for later impl. of an EGLExternalDrawable.
     public int getWidth() {
         int[] tmp = new int[1];
         if (!EGL.eglQuerySurface(eglDisplay, eglSurface, EGL.EGL_WIDTH, tmp, 0)) {
@@ -250,6 +255,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         return tmp[0];
     } */
 
+    @Override
     public GLDynamicLookupHelper getGLDynamicLookupHelper() {
         if (getGLProfile().usesNativeGLES2()) {
             return getFactoryImpl().getGLDynamicLookupHelper(2);
@@ -260,6 +266,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         }
     }
 
+    @Override
     public String toString() {
         return getClass().getName()+"[realized "+isRealized()+
                     ",\n\tfactory    "+getFactory()+

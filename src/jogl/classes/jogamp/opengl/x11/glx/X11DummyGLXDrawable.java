@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package jogamp.opengl.x11.glx;
 
 import javax.media.opengl.*;
@@ -34,20 +34,19 @@ import com.jogamp.nativewindow.WrappedSurface;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
-import jogamp.nativewindow.*;
 import jogamp.nativewindow.x11.*;
 
 public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
   private static final int f_dim = 64;
   private long dummyWindow = 0;
 
-  /** 
+  /**
    * Due to the ATI Bug https://bugzilla.mozilla.org/show_bug.cgi?id=486277,
-   * we cannot switch the Display as we please, 
-   * hence we reuse the target's screen configuration. 
+   * we cannot switch the Display as we please,
+   * hence we reuse the target's screen configuration.
    */
   public X11DummyGLXDrawable(X11GraphicsScreen screen, GLDrawableFactory factory, GLCapabilitiesImmutable caps) {
-    super(factory, 
+    super(factory,
           new WrappedSurface(X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
             caps, caps, null, screen)));
     this.realized = true;
@@ -75,14 +74,17 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
   public void setSize(int width, int height) {
   }
 
+  @Override
   public int getWidth() {
     return 1;
   }
 
+  @Override
   public int getHeight() {
     return 1;
   }
 
+  @Override
   protected void destroyImpl() {
     if(0!=dummyWindow) {
         destroyHandle();

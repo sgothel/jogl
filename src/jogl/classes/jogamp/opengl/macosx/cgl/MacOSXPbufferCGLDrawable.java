@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -45,6 +45,7 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.SurfaceChangeable;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
@@ -54,7 +55,7 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.opengl.util.GLBuffers;
 
-public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {  
+public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   // Abstract interface for implementation of this drawable (either
   // NSOpenGL-based or CGL-based)
   interface GLBackendImpl {
@@ -64,7 +65,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
 
   // Implementation object (either NSOpenGL-based or CGL-based)
   protected GLBackendImpl impl;
-  
+
   // State for render-to-texture and render-to-texture-rectangle support
   // private int textureTarget; // e.g. GL_TEXTURE_2D, GL_TEXTURE_RECTANGLE_NV
   // private int texture;       // actual texture object
@@ -78,10 +79,12 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     super(factory, target, false);
   }
 
+  @Override
   protected void destroyImpl() {
-    setRealized(false);  
+    setRealized(false);
   }
-  
+
+  @Override
   protected void setRealizedImpl() {
     if(realized) {
         createPbuffer();
@@ -90,6 +93,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     }
   }
 
+  @Override
   public GLContext createContext(GLContext shareWith) {
     final MacOSXPbufferCGLContext ctx = new MacOSXPbufferCGLContext(this, shareWith);
     registerContext(ctx);
@@ -101,16 +105,16 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
       // pbuffer handle is NSOpenGLPixelBuffer
       return 0;
   }
-  
+
   @Override
   public long getHandle() {
     return pBuffer;
   }
-  
+
   protected int getTextureTarget() { return pBufferTexTarget;  }
   protected int getTextureWidth() { return pBufferTexWidth; }
   protected int getTextureHeight() { return pBufferTexHeight; }
-    
+
   protected void destroyPbuffer() {
     if (this.pBuffer != 0) {
       NativeSurface ns = getNativeSurface();
@@ -126,7 +130,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     final GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
     final GLProfile glProfile = capabilities.getGLProfile();
     MacOSXCGLDrawableFactory.SharedResource sr = ((MacOSXCGLDrawableFactory)factory).getOrCreateOSXSharedResource(config.getScreen().getDevice());
-    
+
     if (DEBUG) {
         System.out.println("Pbuffer config: " + config);
         if(null != sr) {
@@ -138,11 +142,11 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     }
 
     if ( capabilities.getPbufferRenderToTextureRectangle() && null!=sr && sr.isRECTTextureAvailable() ) {
-      pBufferTexTarget = GL2.GL_TEXTURE_RECTANGLE;
+      pBufferTexTarget = GL2GL3.GL_TEXTURE_RECTANGLE;
     } else {
       pBufferTexTarget = GL.GL_TEXTURE_2D;
     }
-    if ( GL2.GL_TEXTURE_RECTANGLE == pBufferTexTarget || ( null!=sr && sr.isNPOTTextureAvailable() ) ) { 
+    if ( GL2GL3.GL_TEXTURE_RECTANGLE == pBufferTexTarget || ( null!=sr && sr.isNPOTTextureAvailable() ) ) {
       pBufferTexWidth = getWidth();
       pBufferTexHeight = getHeight();
     } else {
@@ -161,7 +165,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
         default: throw new GLException("Invalid floating-point bit depth (only 16 and 32 supported)");
       }
     }
-    
+
     pBuffer = impl.create(pBufferTexTarget, internalFormat, getWidth(), getHeight());
     if(DEBUG) {
         System.err.println("MacOSXPbufferCGLDrawable tex: target "+toHexString(pBufferTexTarget)+
@@ -178,11 +182,13 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     ((SurfaceChangeable)ns).setSurfaceHandle(pBuffer);
   }
 
+  @Override
   public void setOpenGLMode(GLBackendType mode) {
     super.setOpenGLMode(mode);
     createPbuffer(); // recreate
   }
 
+  @Override
   protected void initOpenGLImpl(GLBackendType backend) {
     switch (backend) {
       case NSOPENGL:
@@ -194,14 +200,16 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
       default:
         throw new InternalError("Illegal implementation mode " + backend);
     }
-  }  
-  
+  }
+
   // NSOpenGLPixelBuffer implementation
   class NSOpenGLImpl implements GLBackendImpl {
+    @Override
     public long create(int renderTarget, int internalFormat, int width, int height) {
       return CGL.createPBuffer(renderTarget, internalFormat, width, height);
     }
 
+    @Override
     public void destroy(long pbuffer) {
       CGL.destroyPBuffer(pbuffer);
     }
@@ -209,6 +217,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
 
   // CGL implementation
   class CGLImpl implements GLBackendImpl {
+    @Override
     public long create(int renderTarget, int internalFormat, int width, int height) {
       PointerBuffer pbuffer = PointerBuffer.allocateDirect(1);
       int res = CGL.CGLCreatePBuffer(width, height, renderTarget, internalFormat, 0, pbuffer);
@@ -218,12 +227,13 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
       return pbuffer.get(0);
     }
 
+    @Override
     public void destroy(long pbuffer) {
       int res = CGL.CGLDestroyPBuffer(pbuffer);
       if (res != CGL.kCGLNoError) {
         throw new GLException("Error destroying CGL-based pbuffer: error code " + res);
       }
     }
-  }  
-  
+  }
+
 }
