@@ -37,17 +37,17 @@ import javax.media.opengl.GLProfile;
 public class EGLGLCapabilities extends GLCapabilities {
   private long eglcfg;
   final private int  eglcfgid;
-  final private int  renderableType;  
+  final private int  renderableType;
   final private int  nativeVisualID;
-  
+
   /**
-   * 
+   *
    * @param eglcfg
    * @param eglcfgid
    * @param visualID native visualID if valid, otherwise VisualIDHolder.VID_UNDEFINED
    * @param glp desired GLProfile, or null if determined by renderableType
    * @param renderableType actual EGL renderableType
-   * 
+   *
    * May throw GLException if given GLProfile is not compatible w/ renderableType
    */
   public EGLGLCapabilities(long eglcfg, int eglcfgid, int visualID, GLProfile glp, int renderableType) {
@@ -62,10 +62,12 @@ public class EGLGLCapabilities extends GLCapabilities {
       this.nativeVisualID = visualID;
   }
 
+  @Override
   public Object cloneMutable() {
     return clone();
   }
 
+  @Override
   public Object clone() {
     try {
       return super.clone();
@@ -73,13 +75,13 @@ public class EGLGLCapabilities extends GLCapabilities {
       throw new GLException(e);
     }
   }
-  
+
   final protected void setEGLConfig(long v) { eglcfg=v; }
   final public long getEGLConfig() { return eglcfg; }
   final public int getEGLConfigID() { return eglcfgid; }
   final public int getRenderableType() { return renderableType; }
   final public int getNativeVisualID() { return nativeVisualID; }
-  
+
   @Override
   final public int getVisualID(VIDType type) throws NativeWindowException {
       switch(type) {
@@ -90,9 +92,9 @@ public class EGLGLCapabilities extends GLCapabilities {
               return getNativeVisualID();
           default:
               throw new NativeWindowException("Invalid type <"+type+">");
-      }      
+      }
   }
-  
+
   public static boolean isCompatible(GLProfile glp, int renderableType) {
     if(null == glp) {
         return true;
@@ -121,7 +123,7 @@ public class EGLGLCapabilities extends GLCapabilities {
     }
     return null;
   }
-  
+
   public static StringBuilder renderableTypeToString(StringBuilder sink, int renderableType) {
     if(null == sink) {
         sink = new StringBuilder();
@@ -139,9 +141,10 @@ public class EGLGLCapabilities extends GLCapabilities {
     if(0 != (renderableType & EGL.EGL_OPENVG_API)) {
         if(!first) sink.append(", "); sink.append("VG");  first=false;
     }
-    return sink;      
+    return sink;
   }
-  
+
+  @Override
   public StringBuilder toString(StringBuilder sink) {
     if(null == sink) {
         sink = new StringBuilder();

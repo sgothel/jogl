@@ -33,10 +33,10 @@ import com.jogamp.common.type.WriteCloneable;
 /**
  * Specifies an immutable set of capabilities that a window's rendering context
  * must support, such as color depth per channel.
- * 
+ *
  * @see javax.media.nativewindow.Capabilities
  */
-public interface CapabilitiesImmutable extends VisualIDHolder, WriteCloneable {
+public interface CapabilitiesImmutable extends VisualIDHolder, WriteCloneable, Comparable<CapabilitiesImmutable> {
 
     /**
      * Returns the number of bits requested for the color buffer's red

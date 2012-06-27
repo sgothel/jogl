@@ -119,7 +119,7 @@ public class WGLGLCapabilities extends GLCapabilities {
                   if (iresults[i] == WGLExt.WGL_TYPE_RGBA_FLOAT_ARB) {
                       setPbufferFloatingPointBuffers(true);
                   }
-                  
+
                   // normal RGBA FB: WGLExt.WGL_TYPE_RGBA_ARB
                   // ignore unknown results here
                   break;
@@ -177,10 +177,12 @@ public class WGLGLCapabilities extends GLCapabilities {
       return true;
   }
 
+  @Override
   public Object cloneMutable() {
     return clone();
   }
 
+  @Override
   public Object clone() {
     try {
       return super.clone();
@@ -191,11 +193,11 @@ public class WGLGLCapabilities extends GLCapabilities {
 
   final public PIXELFORMATDESCRIPTOR getPFD() { return pfd; }
   final public int getPFDID() { return pfdID; }
-  
+
   final public boolean isSetByARB() { return 0 < arb_pixelformat; }
   final public boolean isSetByGDI() { return 0 > arb_pixelformat; }
   final public boolean isSet()      { return 0 != arb_pixelformat; }
-  
+
   @Override
   final public int getVisualID(VIDType type) throws NativeWindowException {
       switch(type) {
@@ -205,16 +207,17 @@ public class WGLGLCapabilities extends GLCapabilities {
               return getPFDID();
           default:
               throw new NativeWindowException("Invalid type <"+type+">");
-      }      
+      }
   }
-  
+
+  @Override
   public StringBuilder toString(StringBuilder sink) {
     if(null == sink) {
         sink = new StringBuilder();
     }
     sink.append("wgl vid 0x").append(Integer.toHexString(pfdID)).append(" ");
     switch (arb_pixelformat) {
-        case -1: 
+        case -1:
             sink.append("gdi");
             break;
         case  0:

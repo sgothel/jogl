@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003-2009 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -41,6 +41,7 @@
 package javax.media.opengl;
 
 import javax.media.nativewindow.Capabilities;
+import javax.media.nativewindow.CapabilitiesImmutable;
 
 /** Specifies a set of OpenGL capabilities.<br>
     At creation time of a {@link GLDrawable} using {@link GLDrawableFactory},
@@ -86,10 +87,12 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
       glProfile = (null!=glp)?glp:GLProfile.getDefault(GLProfile.getDefaultDevice());
   }
 
+  @Override
   public Object cloneMutable() {
     return clone();
   }
 
+  @Override
   public Object clone() {
     try {
       return super.clone();
@@ -98,6 +101,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     }
   }
 
+  @Override
   public int hashCode() {
     // 31 * x == (x << 5) - x
     int hash = 31 + this.glProfile.hashCode() ;
@@ -119,6 +123,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     return hash;
   }
 
+  @Override
   public boolean equals(Object obj) {
     if(this == obj)  { return true; }
     if(!(obj instanceof GLCapabilitiesImmutable)) {
@@ -142,46 +147,52 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
                   other.getPbufferRenderToTextureRectangle()==pbufferRenderToTextureRectangle;
     if(sampleBuffers) {
         res = res &&
-              other.getNumSamples()==numSamples && 
+              other.getNumSamples()==numSamples &&
               other.getSampleExtension().equals(sampleExtension) ;
     }
     return res;
   }
 
   /** comparing hw/sw, stereo, multisample, stencil, RGBA and depth only */
-  public int compareTo(Object o) {
-    if ( ! ( o instanceof GLCapabilities ) ) {
+  @Override
+  public int compareTo(final CapabilitiesImmutable o) {
+    if ( ! ( o instanceof GLCapabilitiesImmutable ) ) {
         Class<?> c = (null != o) ? o.getClass() : null ;
-        throw new ClassCastException("Not a GLCapabilities object: " + c);
+        throw new ClassCastException("Not a GLCapabilitiesImmutable object, but " + c);
     }
+    final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) o;
 
-    final GLCapabilities caps = (GLCapabilities) o;
-
-    if(hardwareAccelerated && !caps.hardwareAccelerated) {
+    if(hardwareAccelerated && !caps.getHardwareAccelerated()) {
         return 1;
-    } else if(!hardwareAccelerated && caps.hardwareAccelerated) {
+    } else if(!hardwareAccelerated && caps.getHardwareAccelerated()) {
         return -1;
     }
 
-    if(stereo && !caps.stereo) {
+    if(stereo && !caps.getStereo()) {
         return 1;
-    } else if(!stereo && caps.stereo) {
+    } else if(!stereo && caps.getStereo()) {
+        return -1;
+    }
+
+    if(doubleBuffered && !caps.getDoubleBuffered()) {
+        return 1;
+    } else if(!doubleBuffered && caps.getDoubleBuffered()) {
         return -1;
     }
 
     final int ms = sampleBuffers ? numSamples : 0;
-    final int xms = caps.sampleBuffers ? caps.numSamples : 0;
+    final int xms = caps.getSampleBuffers() ? caps.getNumSamples() : 0;
 
     if(ms > xms) {
         return 1;
     } else if( ms < xms ) {
         return -1;
     }
-    // ignore the sample extension 
+    // ignore the sample extension
 
-    if(stencilBits > caps.stencilBits) {
+    if(stencilBits > caps.getStencilBits()) {
         return 1;
-    } else if(stencilBits < caps.stencilBits) {
+    } else if(stencilBits < caps.getStencilBits()) {
         return -1;
     }
 
@@ -190,16 +201,17 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
         return sc;
     }
 
-    if(depthBits > caps.depthBits) {
+    if(depthBits > caps.getDepthBits()) {
         return 1;
-    } else if(depthBits < caps.depthBits) {
+    } else if(depthBits < caps.getDepthBits()) {
         return -1;
     }
 
     return 0; // they are equal: hw/sw, stereo, multisample, stencil, RGBA and depth
   }
 
-  public GLProfile getGLProfile() {
+  @Override
+  public final GLProfile getGLProfile() {
     return glProfile;
   }
 
@@ -208,11 +220,12 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     glProfile=profile;
   }
 
-  public boolean isPBuffer() {
+  @Override
+  public final boolean isPBuffer() {
     return pbuffer;
   }
 
-  /** 
+  /**
    * Enables or disables pbuffer usage.<br>
    * If enabled this method also invokes {@link #setOnscreen(int) setOnscreen(false)}<br>
    * Defaults to false.
@@ -229,6 +242,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
    * If enabled this method also invokes {@link #setPBuffer(int) setPBuffer(false)}<br>
    * Defaults to true.
   */
+  @Override
   public void setOnscreen(boolean onscreen) {
     if(onscreen) {
         setPBuffer(false);
@@ -236,7 +250,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     super.setOnscreen(onscreen);
   }
 
-  public boolean getDoubleBuffered() {
+  @Override
+  public final boolean getDoubleBuffered() {
     return doubleBuffered;
   }
 
@@ -245,25 +260,28 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     doubleBuffered = enable;
   }
 
-  public boolean getStereo() {
+  @Override
+  public final boolean getStereo() {
     return stereo;
   }
-  
+
   /** Enables or disables stereo viewing. */
   public void setStereo(boolean enable) {
     stereo = enable;
   }
 
-  public boolean getHardwareAccelerated() {
+  @Override
+  public final boolean getHardwareAccelerated() {
     return hardwareAccelerated;
   }
-  
+
   /** Enables or disables hardware acceleration. */
   public void setHardwareAccelerated(boolean enable) {
     hardwareAccelerated = enable;
   }
 
-  public int getDepthBits() {
+  @Override
+  public final int getDepthBits() {
     return depthBits;
   }
 
@@ -271,8 +289,9 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   public void setDepthBits(int depthBits) {
     this.depthBits = depthBits;
   }
-  
-  public int getStencilBits() {
+
+  @Override
+  public final int getStencilBits() {
     return stencilBits;
   }
 
@@ -280,8 +299,9 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   public void setStencilBits(int stencilBits) {
     this.stencilBits = stencilBits;
   }
-  
-  public int getAccumRedBits() {
+
+  @Override
+  public final int getAccumRedBits() {
     return accumRedBits;
   }
 
@@ -293,7 +313,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     this.accumRedBits = accumRedBits;
   }
 
-  public int getAccumGreenBits() {
+  @Override
+  public final int getAccumGreenBits() {
     return accumGreenBits;
   }
 
@@ -305,7 +326,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     this.accumGreenBits = accumGreenBits;
   }
 
-  public int getAccumBlueBits() {
+  @Override
+  public final int getAccumBlueBits() {
     return accumBlueBits;
   }
 
@@ -317,7 +339,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     this.accumBlueBits = accumBlueBits;
   }
 
-  public int getAccumAlphaBits() {
+  @Override
+  public final int getAccumAlphaBits() {
     return accumAlphaBits;
   }
 
@@ -333,14 +356,15 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
    * Sets the desired extension for full-scene antialiasing
    * (FSAA), default is {@link #DEFAULT_SAMPLE_EXTENSION}.
    */
-  public void setSampleExtension(String se) { 
-      sampleExtension = se; 
+  public void setSampleExtension(String se) {
+      sampleExtension = se;
   }
-    
-  public String getSampleExtension() { 
-      return sampleExtension; 
+
+  @Override
+  public final String getSampleExtension() {
+      return sampleExtension;
   }
-  
+
   /**
    * Defaults to false.<br>
    * Indicates whether sample buffers for full-scene antialiasing
@@ -353,10 +377,11 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     sampleBuffers = enable;
     if(sampleBuffers && getAlphaBits()==0) {
         setAlphaBits(1);
-    }        
+    }
   }
 
-  public boolean getSampleBuffers() {
+  @Override
+  public final boolean getSampleBuffers() {
     return sampleBuffers;
   }
 
@@ -366,7 +391,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     this.numSamples = numSamples;
   }
 
-  public int getNumSamples() {
+  @Override
+  public final int getNumSamples() {
     return numSamples;
   }
 
@@ -376,7 +402,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     pbufferFloatingPointBuffers = enable;
   }
 
-  public boolean getPbufferFloatingPointBuffers() {
+  @Override
+  public final boolean getPbufferFloatingPointBuffers() {
     return pbufferFloatingPointBuffers;
   }
 
@@ -386,7 +413,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     pbufferRenderToTexture = enable;
   }
 
-  public boolean getPbufferRenderToTexture() {
+  @Override
+  public final boolean getPbufferRenderToTexture() {
     return pbufferRenderToTexture;
   }
 
@@ -397,10 +425,12 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     pbufferRenderToTextureRectangle = enable;
   }
 
-  public boolean getPbufferRenderToTextureRectangle() {
+  @Override
+  public final boolean getPbufferRenderToTextureRectangle() {
     return pbufferRenderToTextureRectangle;
   }
 
+  @Override
   public StringBuilder toString(StringBuilder sink) {
     if(null == sink) {
         sink = new StringBuilder();
@@ -441,12 +471,13 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
             sink.append(", pixmap");
         }
     }
-    
+
     return sink;
   }
 
   /** Returns a textual representation of this GLCapabilities
-      object. */ 
+      object. */
+  @Override
   public String toString() {
     StringBuilder msg = new StringBuilder();
     msg.append("GLCaps[");

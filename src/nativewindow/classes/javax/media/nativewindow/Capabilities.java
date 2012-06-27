@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -44,7 +44,7 @@ package javax.media.nativewindow;
     must support, such as color depth per channel. It currently
     contains the minimal number of routines which allow configuration
     on all supported window systems. */
-public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparable {
+public class Capabilities implements CapabilitiesImmutable, Cloneable {
   protected final static String na_str = "----" ;
 
   private int     redBits        = 8;
@@ -67,10 +67,12 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
     */
   public Capabilities() {}
 
+  @Override
   public Object cloneMutable() {
     return clone();
   }
-  
+
+  @Override
   public Object clone() {
     try {
       return super.clone();
@@ -79,6 +81,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
     }
   }
 
+  @Override
   public int hashCode() {
     // 31 * x == (x << 5) - x
     int hash = 31 + this.redBits;
@@ -94,6 +97,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
     return hash;
   }
 
+  @Override
   public boolean equals(Object obj) {
     if(this == obj)  { return true; }
     if(!(obj instanceof CapabilitiesImmutable)) {
@@ -116,20 +120,23 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
     return res;
   }
 
-  /** comparing RGBA values only */
-  public int compareTo(Object o) {
-    if ( ! ( o instanceof Capabilities ) ) {
+  /**
+   * Comparing RGBA values only
+   **/
+  @Override
+  public int compareTo(final CapabilitiesImmutable caps) {
+    /** 
+    if ( ! ( o instanceof CapabilitiesImmutable ) ) {
         Class<?> c = (null != o) ? o.getClass() : null ;
-        throw new ClassCastException("Not a Capabilities object: " + c);
+        throw new ClassCastException("Not a CapabilitiesImmutable object, but " + c);
     }
-
-    final Capabilities caps = (Capabilities) o;
-
+    final CapabilitiesImmutable caps = (CapabilitiesImmutable) o; */
+        
     final int a = ( alphaBits > 0 ) ? alphaBits : 1;
     final int rgba = redBits * greenBits * blueBits * a;
 
-    final int xa = ( caps.alphaBits ) > 0 ? caps.alphaBits : 1;
-    final int xrgba = caps.redBits * caps.greenBits * caps.blueBits * xa;
+    final int xa = ( caps.getAlphaBits() ) > 0 ? caps.getAlphaBits() : 1;
+    final int xrgba = caps.getRedBits() * caps.getGreenBits() * caps.getBlueBits() * xa;
 
     if(rgba > xrgba) {
         return 1;
@@ -148,13 +155,14 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
               return VisualIDHolder.VID_UNDEFINED;
           default:
               throw new NativeWindowException("Invalid type <"+type+">");
-      }      
+      }
   }
-    
+
   /** Returns the number of bits requested for the color buffer's red
       component. On some systems only the color depth, which is the
       sum of the red, green, and blue bits, is considered. */
-  public int getRedBits() {
+  @Override
+  public final int getRedBits() {
     return redBits;
   }
 
@@ -168,7 +176,8 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
   /** Returns the number of bits requested for the color buffer's
       green component. On some systems only the color depth, which is
       the sum of the red, green, and blue bits, is considered. */
-  public int getGreenBits() {
+  @Override
+  public final int getGreenBits() {
     return greenBits;
   }
 
@@ -182,7 +191,8 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
   /** Returns the number of bits requested for the color buffer's blue
       component. On some systems only the color depth, which is the
       sum of the red, green, and blue bits, is considered. */
-  public int getBlueBits() {
+  @Override
+  public final int getBlueBits() {
     return blueBits;
   }
 
@@ -192,11 +202,12 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
   public void setBlueBits(int blueBits) {
     this.blueBits = blueBits;
   }
-  
+
   /** Returns the number of bits requested for the color buffer's
       alpha component. On some systems only the color depth, which is
       the sum of the red, green, and blue bits, is considered. */
-  public int getAlphaBits() {
+  @Override
+  public final int getAlphaBits() {
     return alphaBits;
   }
 
@@ -207,36 +218,36 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
     this.alphaBits = alphaBits;
   }
 
-    /**
-     * Defaults to true, ie. opaque surface.
-     * <p>
-     * On supported platforms, setting opaque to false may result in a translucent surface. </p>
-     * 
-     * <p>
-     * Platform implementations may need an alpha component in the surface (eg. Windows), 
-     * or expect pre-multiplied alpha values (eg. X11/XRender).<br>
-     * To unify the experience, this method also invokes {@link #setAlphaBits(int) setAlphaBits(1)}
-     * if {@link #getAlphaBits()} == 0.<br>
-     * Please note that in case alpha is required on the platform the 
-     * clear color shall have an alpha lower than 1.0 to allow anything shining through.
-     * </p>
-     *   
-     * <p>
-     * Mind that translucency may cause a performance penalty
-     * due to the composite work required by the window manager.</p>
-     *
-     * <p>
-     * The platform implementation may utilize the transparency RGBA values.<br>
-     * This is true for the original GLX transparency specification, which is no more used today.<br>
-     * Actually these values are currently not used by any implementation, 
-     * so we may mark them deprecated soon, if this doesn't change.<br>
-     * </p>
-     */
+  /**
+   * Defaults to true, ie. opaque surface.
+   * <p>
+   * On supported platforms, setting opaque to false may result in a translucent surface. </p>
+   *
+   * <p>
+   * Platform implementations may need an alpha component in the surface (eg. Windows),
+   * or expect pre-multiplied alpha values (eg. X11/XRender).<br>
+   * To unify the experience, this method also invokes {@link #setAlphaBits(int) setAlphaBits(1)}
+   * if {@link #getAlphaBits()} == 0.<br>
+   * Please note that in case alpha is required on the platform the
+   * clear color shall have an alpha lower than 1.0 to allow anything shining through.
+   * </p>
+   *
+   * <p>
+   * Mind that translucency may cause a performance penalty
+   * due to the composite work required by the window manager.</p>
+   *
+   * <p>
+   * The platform implementation may utilize the transparency RGBA values.<br>
+   * This is true for the original GLX transparency specification, which is no more used today.<br>
+   * Actually these values are currently not used by any implementation,
+   * so we may mark them deprecated soon, if this doesn't change.<br>
+   * </p>
+   */
   public void setBackgroundOpaque(boolean opaque) {
-    backgroundOpaque = opaque;
-    if(!opaque && getAlphaBits()==0) {
-        setAlphaBits(1);
-    }
+      backgroundOpaque = opaque;
+      if(!opaque && getAlphaBits()==0) {
+          setAlphaBits(1);
+      }
   }
 
   /** Indicates whether the background of this OpenGL context should
@@ -244,7 +255,8 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
 
       @see #setBackgroundOpaque
   */
-  public boolean isBackgroundOpaque() {
+  @Override
+  public final boolean isBackgroundOpaque() {
     return backgroundOpaque;
   }
 
@@ -258,7 +270,8 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
   /** Indicates whether the drawable surface is onscreen.
       Defaults to true.
   */
-  public boolean isOnscreen() {
+  @Override
+  public final boolean isOnscreen() {
     return onscreen;
   }
 
@@ -266,25 +279,29 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
     * This value is undefined if {@link #isBackgroundOpaque()} equals true.
     * @see #setTransparentRedValue
     */
-  public int getTransparentRedValue() { return transparentValueRed; }
+  @Override
+  public final int getTransparentRedValue() { return transparentValueRed; }
 
   /** Gets the transparent green value for the frame buffer configuration.
     * This value is undefined if {@link #isBackgroundOpaque()} equals true.
     * @see #setTransparentGreenValue
     */
-  public int getTransparentGreenValue() { return transparentValueGreen; }
+  @Override
+  public final int getTransparentGreenValue() { return transparentValueGreen; }
 
   /** Gets the transparent blue value for the frame buffer configuration.
     * This value is undefined if {@link #isBackgroundOpaque()} equals true.
     * @see #setTransparentBlueValue
     */
-  public int getTransparentBlueValue() { return transparentValueBlue; }
+  @Override
+  public final int getTransparentBlueValue() { return transparentValueBlue; }
 
   /** Gets the transparent alpha value for the frame buffer configuration.
     * This value is undefined if {@link #isBackgroundOpaque()} equals true.
     * @see #setTransparentAlphaValue
     */
-  public int getTransparentAlphaValue() { return transparentValueAlpha; }
+  @Override
+  public final int getTransparentAlphaValue() { return transparentValueAlpha; }
 
   /** Sets the transparent red value for the frame buffer configuration,
       ranging from 0 to the maximum frame buffer value for red.
@@ -314,6 +331,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
       A value of -1 is interpreted as any value. */
   public void setTransparentAlphaValue(int transValueAlpha) { transparentValueAlpha=transValueAlpha; }
 
+  @Override
   public StringBuilder toString(StringBuilder sink) {
     if(null == sink) {
         sink = new StringBuilder();
@@ -334,7 +352,8 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
   protected final String toHexString(int val) { return Integer.toHexString(val); }
 
   /** Returns a textual representation of this Capabilities
-      object. */ 
+      object. */
+  @Override
   public String toString() {
     StringBuilder msg = new StringBuilder();
     msg.append("Caps[");
@@ -342,5 +361,4 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable, Comparabl
     msg.append("]");
     return msg.toString();
   }
-
 }
