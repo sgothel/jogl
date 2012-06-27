@@ -164,7 +164,7 @@ public abstract class GLContextImpl extends GLContext {
     if(null!=read && drawable!=read && !isGLReadDrawableAvailable()) {
         throw new GLException("GL Read Drawable not available");
     }
-    boolean lockHeld = lock.isOwner();
+    final boolean lockHeld = lock.isOwner(Thread.currentThread());
     if(lockHeld) {
         release();
     }
@@ -224,8 +224,8 @@ public abstract class GLContextImpl extends GLContext {
     if(TRACE_SWITCH) {
         System.err.println(getThreadName() +": GLContext.ContextSwitch: - release() - force: "+force+", "+lock);
     }
-    if ( !lock.isOwner() ) {
-      throw new GLException("Context not current on current thread "+Thread.currentThread().getName()+": "+this);
+    if ( !lock.isOwner(Thread.currentThread()) ) {
+        throw new GLException("Context not current on current thread "+Thread.currentThread().getName()+": "+this);
     }
     final boolean actualRelease = force || lock.getHoldCount() == 1 ;
     try {        

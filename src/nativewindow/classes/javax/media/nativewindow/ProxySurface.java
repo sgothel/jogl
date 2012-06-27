@@ -37,7 +37,7 @@ import com.jogamp.common.util.locks.RecursiveLock;
 
 public abstract class ProxySurface implements NativeSurface {
     public static final boolean DEBUG = Debug.debug("ProxySurface");
-    
+
     private SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
     private AbstractGraphicsConfiguration config; // control access due to delegation
     protected RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
@@ -60,6 +60,7 @@ public abstract class ProxySurface implements NativeSurface {
     }
     protected abstract void invalidateImpl();
 
+    @Override
     public final long getDisplayHandle() {
         return displayHandle;
     }
@@ -67,21 +68,26 @@ public abstract class ProxySurface implements NativeSurface {
     protected final AbstractGraphicsConfiguration getPrivateGraphicsConfiguration() {
         return config;
     }
-    
+
+    @Override
     public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
         return config.getNativeGraphicsConfiguration();
     }
 
+    @Override
     public final int getScreenIndex() {
         return getGraphicsConfiguration().getScreen().getIndex();
     }
 
+    @Override
     public abstract long getSurfaceHandle();
 
+    @Override
     public final int getWidth() {
         return width;
     }
 
+    @Override
     public final int getHeight() {
         return height;
     }
@@ -91,26 +97,32 @@ public abstract class ProxySurface implements NativeSurface {
         this.height = height;
     }
 
+    @Override
     public boolean surfaceSwap() {
         return false;
     }
 
+    @Override
     public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
         surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
     }
 
+    @Override
     public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
         surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
     }
 
+    @Override
     public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
         surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
     }
 
+    @Override
     public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
         surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
-    }    
-    
+    }
+
+    @Override
     public int lockSurface() throws NativeWindowException {
         surfaceLock.lock();
         int res = surfaceLock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
@@ -123,11 +135,11 @@ public abstract class ProxySurface implements NativeSurface {
                     res = lockSurfaceImpl();
                     if(LOCK_SUCCESS == res && surfaceHandle_old != getSurfaceHandle()) {
                         res = LOCK_SURFACE_CHANGED;
-                        if(DEBUG) {            
+                        if(DEBUG) {
                             System.err.println("ProxySurface: surface change 0x"+Long.toHexString(surfaceHandle_old)+" -> 0x"+Long.toHexString(getSurfaceHandle()));
                             // Thread.dumpStack();
                         }
-                    }                    
+                    }
                 } finally {
                     if (LOCK_SURFACE_NOT_READY >= res) {
                         adevice.unlock();
@@ -142,6 +154,7 @@ public abstract class ProxySurface implements NativeSurface {
         return res;
     }
 
+    @Override
     public final void unlockSurface() {
         surfaceLock.validateLocked();
         surfaceHandle_old = getSurfaceHandle();
@@ -165,17 +178,16 @@ public abstract class ProxySurface implements NativeSurface {
         surfaceLock.validateLocked();
     }
 
-    public final boolean isSurfaceLocked() {
-        return surfaceLock.isLocked();
-    }
-
+    @Override
     public final boolean isSurfaceLockedByOtherThread() {
         return surfaceLock.isLockedByOtherThread();
     }
 
+    @Override
     public final Thread getSurfaceLockOwner() {
         return surfaceLock.getOwner();
     }
 
-    public abstract String toString();    
+    @Override
+    public abstract String toString();
 }

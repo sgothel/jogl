@@ -104,15 +104,16 @@ public interface NativeSurface extends SurfaceUpdatedListener {
   public void unlockSurface() throws NativeWindowException ;
 
   /**
-   * Return if surface is locked by another thread, ie not the current one
+   * Query if surface is locked by another thread, i.e. not the current one.
+   * <br>
+   * Convenient shortcut for:
+   * <pre>
+   *   final Thread o = getSurfaceLockOwner();
+   *   if( null != o && Thread.currentThread() != o ) { .. }
+   * </pre>
    */
   public boolean isSurfaceLockedByOtherThread();
-
-  /**
-   * Return if surface is locked
-   */
-  public boolean isSurfaceLocked();
-
+  
   /**
    * Return the locking owner's Thread, or null if not locked.
    */

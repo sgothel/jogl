@@ -267,10 +267,6 @@ public class GLPbufferImpl implements GLPbuffer {
     recurLock.unlock();
   }
 
-  public boolean isSurfaceLocked() {
-    return recurLock.isLocked();
-  }
-
   public int getFloatingPointMode() {
     if (floatMode == 0) {
       throw new GLException("Pbuffer not initialized, or floating-point support not requested");

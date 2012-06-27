@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -67,7 +67,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
   // user properties
   protected boolean shallUseOffscreenLayer = false;
-  
+
   // lifetime: forever
   protected Component component;
   private AWTGraphicsConfiguration config; // control access due to delegation
@@ -81,13 +81,13 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   protected long drawable;
   protected Rectangle bounds;
   protected Insets insets;
-  
+
   private long drawable_old;
-  
+
   /**
    * Constructed by {@link jogamp.nativewindow.NativeWindowFactoryImpl#getNativeWindow(Object, AbstractGraphicsConfiguration)}
    * via this platform's specialization (X11, OSX, Windows, ..).
-   * 
+   *
    * @param comp
    * @param config
    */
@@ -107,19 +107,22 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     this.component = windowObject;
     this.isApplet = false;
   }
-  
+
+  @Override
   public void setShallUseOffscreenLayer(boolean v) {
       shallUseOffscreenLayer = v;
   }
-  
+
+  @Override
   public final boolean getShallUseOffscreenLayer() {
       return shallUseOffscreenLayer;
   }
-  
-  public final boolean isOffscreenLayerSurfaceEnabled() { 
+
+  @Override
+  public final boolean isOffscreenLayerSurfaceEnabled() {
       return isOffscreenLayerSurface;
   }
-  
+
   protected synchronized void invalidate() {
     invalidateNative();
     jawt = null;
@@ -136,7 +139,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     bounds.setY(jawtBounds.getY());
     bounds.setWidth(jawtBounds.getWidth());
     bounds.setHeight(jawtBounds.getHeight());
-    
+
     if(component instanceof Container) {
         java.awt.Insets contInsets = ((Container)component).getInsets();
         insets.setLeftWidth(contInsets.left);
@@ -148,16 +151,17 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
   /** @return the JAWT_DrawingSurfaceInfo's (JAWT_Rectangle) bounds, updated with lock */
   public final RectangleImmutable getBounds() { return bounds; }
-  
+
+  @Override
   public final InsetsImmutable getInsets() { return insets; }
 
   public final Component getAWTComponent() {
     return component;
   }
-  
-  /** 
-   * Returns true if the AWT component is parented to an {@link java.applet.Applet}, 
-   * otherwise false. This information is valid only after {@link #lockSurface()}. 
+
+  /**
+   * Returns true if the AWT component is parented to an {@link java.applet.Applet},
+   * otherwise false. This information is valid only after {@link #lockSurface()}.
    */
   public final boolean isApplet() {
       return isApplet;
@@ -168,10 +172,11 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       return jawt;
   }
 
-  /** 
+  /**
    * {@inheritDoc}
    */
-  public final void attachSurfaceLayer(final long layerHandle) throws NativeWindowException {  
+  @Override
+  public final void attachSurfaceLayer(final long layerHandle) throws NativeWindowException {
       if( !isOffscreenLayerSurfaceEnabled() ) {
           throw new NativeWindowException("Not an offscreen layer surface");
       }
@@ -187,13 +192,14 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       } finally {
           unlockSurface();
       }
-  }  
+  }
   protected abstract void attachSurfaceLayerImpl(final long layerHandle);
-  
-  /** 
+
+  /**
    * {@inheritDoc}
    */
-  public final void detachSurfaceLayer(final long layerHandle) throws NativeWindowException {  
+  @Override
+  public final void detachSurfaceLayer(final long layerHandle) throws NativeWindowException {
       if( !isOffscreenLayerSurfaceEnabled() ) {
           throw new java.lang.UnsupportedOperationException("Not an offscreen layer surface");
       }
@@ -209,29 +215,33 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       } finally {
           unlockSurface();
       }
-  }  
+  }
   protected abstract void detachSurfaceLayerImpl(final long layerHandle);
-  
+
   //
   // SurfaceUpdateListener
   //
 
+  @Override
   public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
       surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
   }
 
+  @Override
   public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
       surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
   }
 
+  @Override
   public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
       surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
   }
 
+  @Override
   public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
       surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
-  }    
-  
+  }
+
   //
   // NativeSurface
   //
@@ -243,14 +253,14 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
         c = c.getParent();
     }
   }
-  
+
   /**
-   * If JAWT offscreen layer is supported, 
+   * If JAWT offscreen layer is supported,
    * implementation shall respect {@link #getShallUseOffscreenLayer()}
    * and may respect {@link #isApplet()}.
-   * 
+   *
    * @return The JAWT instance reflecting offscreen layer support, etc.
-   * 
+   *
    * @throws NativeWindowException
    */
   protected abstract JAWT fetchJAWTImpl() throws NativeWindowException;
@@ -266,7 +276,8 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       }
       // Thread.dumpStack();
   }
-    
+
+  @Override
   public final int lockSurface() throws NativeWindowException {
     surfaceLock.lock();
     int res = surfaceLock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
@@ -282,7 +293,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                 res = lockSurfaceImpl();
                 if(LOCK_SUCCESS == res && drawable_old != drawable) {
                     res = LOCK_SURFACE_CHANGED;
-                    if(DEBUG) {            
+                    if(DEBUG) {
                         System.err.println("JAWTWindow: surface change 0x"+Long.toHexString(drawable_old)+" -> 0x"+Long.toHexString(drawable));
                         // Thread.dumpStack();
                     }
@@ -303,6 +314,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
   protected abstract void unlockSurfaceImpl() throws NativeWindowException;
 
+  @Override
   public final void unlockSurface() {
     surfaceLock.validateLocked();
     drawable_old = drawable;
@@ -318,46 +330,51 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     surfaceLock.unlock();
   }
 
+  @Override
   public final boolean isSurfaceLockedByOtherThread() {
     return surfaceLock.isLockedByOtherThread();
   }
 
-  public final boolean isSurfaceLocked() {
-    return surfaceLock.isLocked();
-  }
-
+  @Override
   public final Thread getSurfaceLockOwner() {
     return surfaceLock.getOwner();
   }
 
+  @Override
   public boolean surfaceSwap() {
     return false;
   }
 
+  @Override
   public long getSurfaceHandle() {
     return drawable;
   }
-  
+
   public final AWTGraphicsConfiguration getPrivateGraphicsConfiguration() {
     return config;
   }
-  
+
+  @Override
   public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
     return config.getNativeGraphicsConfiguration();
   }
 
+  @Override
   public final long getDisplayHandle() {
     return getGraphicsConfiguration().getScreen().getDevice().getHandle();
   }
 
+  @Override
   public final int getScreenIndex() {
     return getGraphicsConfiguration().getScreen().getIndex();
   }
 
+  @Override
   public int getWidth() {
     return component.getWidth();
   }
 
+  @Override
   public int getHeight() {
     return component.getHeight();
   }
@@ -366,41 +383,47 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   // NativeWindow
   //
 
+  @Override
   public synchronized void destroy() {
-    invalidate();    
-    component = null; // don't dispose the AWT component, since we are merely an immutable uplink 
+    invalidate();
+    component = null; // don't dispose the AWT component, since we are merely an immutable uplink
   }
 
+  @Override
   public final NativeWindow getParent() {
       return null;
   }
 
+  @Override
   public long getWindowHandle() {
     return drawable;
   }
-  
+
+  @Override
   public final int getX() {
       return component.getX();
   }
 
+  @Override
   public final int getY() {
       return component.getY();
   }
-  
+
   /**
    * {@inheritDoc}
-   * 
+   *
    * <p>
-   * This JAWT default implementation is currently still using 
+   * This JAWT default implementation is currently still using
    * a blocking implementation. It first attempts to retrieve the location
    * via a native implementation. If this fails, it tries the blocking AWT implementation.
-   * If the latter fails due to an external AWT tree-lock, the non block 
+   * If the latter fails due to an external AWT tree-lock, the non block
    * implementation {@link #getLocationOnScreenNonBlocking(Point, Component)} is being used.
    * The latter simply traverse up to the AWT component tree and sums the rel. position.
    * We have to determine whether the latter is good enough for all cases,
    * currently only OS X utilizes the non blocking method per default.
-   * </p>   
+   * </p>
    */
+  @Override
   public Point getLocationOnScreen(Point storage) {
       Point los = getLocationOnScreenNative(storage);
       if(null == los) {
@@ -421,7 +444,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       }
       return los;
   }
-  
+
   protected Point getLocationOnScreenNative(Point storage) {
       int lockRes = lockSurface();
       if(LOCK_SURFACE_NOT_READY == lockRes) {
@@ -442,12 +465,12 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
           return d;
       } finally {
           unlockSurface();
-      }      
+      }
   }
   protected abstract Point getLocationOnScreenNativeImpl(int x, int y);
 
-  protected static Point getLocationOnScreenNonBlocking(Point storage, Component comp) {     
-      int x = 0; 
+  protected static Point getLocationOnScreenNonBlocking(Point storage, Component comp) {
+      int x = 0;
       int y = 0;
       while(null != comp) {
           x += comp.getX();
@@ -460,11 +483,12 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       }
       return new Point(x, y);
   }
-  
+
+  @Override
   public boolean hasFocus() {
       return component.hasFocus();
   }
-  
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
@@ -487,5 +511,4 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
     return sb.toString();
   }
-
 }

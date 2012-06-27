@@ -199,10 +199,6 @@ public abstract class GLDrawableImpl implements GLDrawable {
     surface.unlockSurface();
   }
 
-  public boolean isSurfaceLocked() {
-    return surface.isSurfaceLocked();
-  }
-
   public String toString() {
     return getClass().getSimpleName()+"[Realized "+isRealized()+
                 ",\n\tFactory   "+getFactory()+

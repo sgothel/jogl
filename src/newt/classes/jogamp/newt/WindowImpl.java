@@ -562,6 +562,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // NativeSurface
     //
 
+    @Override
     public final int lockSurface() {
         windowLock.lock();
         surfaceLock.lock();
@@ -590,6 +591,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return res;
     }
 
+    @Override
     public final void unlockSurface() {
         surfaceLock.validateLocked();
         windowLock.validateLocked();
@@ -606,28 +608,22 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         windowLock.unlock();
     }
 
-    public final boolean isWindowLockedByOtherThread() {
-        return windowLock.isLockedByOtherThread();
-    }
-
-    public final boolean isWindowLocked() {
-        return windowLock.isLocked();
-    }
-
-    public final Thread getWindowLockOwner() {
-        return windowLock.getOwner();
-    }
-
+    @Override
     public final boolean isSurfaceLockedByOtherThread() {
         return surfaceLock.isLockedByOtherThread();
     }
 
-    public final boolean isSurfaceLocked() {
-        return surfaceLock.isLocked();
-    }
-
+    @Override
     public final Thread getSurfaceLockOwner() {
         return surfaceLock.getOwner();
+    }
+
+    public final boolean isWindowLockedByOtherThread() {
+        return windowLock.isLockedByOtherThread();
+    }
+
+    public final Thread getWindowLockOwner() {
+        return windowLock.getOwner();
     }
 
     public long getSurfaceHandle() {
@@ -1574,7 +1570,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void runOnEDTIfAvail(boolean wait, final Runnable task) {
-        if(windowLock.isOwner()) {
+        if(windowLock.isOwner(Thread.currentThread())) {
             task.run();
         } else {
             Screen scrn = getScreen();
@@ -1913,7 +1909,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             // special repaint treatment
             case WindowEvent.EVENT_WINDOW_REPAINT:
                 // queue repaint event in case window is locked, ie in operation
-                if( isWindowLocked() ) {
+                if( null != getWindowLockOwner() ) {
                     // make sure only one repaint event is queued
                     if(!repaintQueued) {
                         repaintQueued=true;
@@ -1932,7 +1928,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             // common treatment
             case WindowEvent.EVENT_WINDOW_RESIZED:
                 // queue event in case window is locked, ie in operation
-                if( isWindowLocked() ) {
+                if( null != getWindowLockOwner() ) {
                     final boolean discardTO = QUEUED_EVENT_TO <= System.currentTimeMillis()-e.getWhen();
                     if(DEBUG_IMPLEMENTATION) {
                         System.err.println("Window.consumeEvent: "+Thread.currentThread().getName()+" - queued "+e+", discard-to "+discardTO);

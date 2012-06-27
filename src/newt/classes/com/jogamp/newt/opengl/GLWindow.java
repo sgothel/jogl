@@ -842,22 +842,22 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
     // NativeWindow completion
     //
 
+    @Override
     public final int lockSurface() {
         return window.lockSurface();
     }
 
+    @Override
     public final void unlockSurface() throws NativeWindowException {
         window.unlockSurface();
     }
 
+    @Override
     public final boolean isSurfaceLockedByOtherThread() {
         return window.isSurfaceLockedByOtherThread();
     }
 
-    public final boolean isSurfaceLocked() {
-        return window.isSurfaceLocked();
-    }
-
+    @Override
     public final Thread getSurfaceLockOwner() {
         return window.getSurfaceLockOwner();
 
