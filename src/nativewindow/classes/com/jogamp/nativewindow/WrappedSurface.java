@@ -44,30 +44,36 @@ public class WrappedSurface extends ProxySurface implements SurfaceChangeable {
     super(cfg);
     surfaceHandle=handle;
   }
-  
+
+  @Override
   protected final void invalidateImpl() {
     surfaceHandle = 0;
   }
 
+  @Override
   final public long getSurfaceHandle() {
     return surfaceHandle;
   }
 
+  @Override
   final public void setSurfaceHandle(long surfaceHandle) {
     this.surfaceHandle=surfaceHandle;
   }
 
+  @Override
   final protected int lockSurfaceImpl() {
       return LOCK_SUCCESS;
   }
 
+  @Override
   final protected void unlockSurfaceImpl() {
   }
 
+  @Override
   public String toString() {
-    return "WrappedSurface[config " + getPrivateGraphicsConfiguration()+ 
-           ", displayHandle 0x" + Long.toHexString(getDisplayHandle()) + 
-           ", surfaceHandle 0x" + Long.toHexString(getSurfaceHandle()) + 
+    return "WrappedSurface[config " + getPrivateGraphicsConfiguration()+
+           ", displayHandle 0x" + Long.toHexString(getDisplayHandle()) +
+           ", surfaceHandle 0x" + Long.toHexString(getSurfaceHandle()) +
            ", size " + getWidth() + "x" + getHeight() +
            ", surfaceLock "+surfaceLock+"]";
   }

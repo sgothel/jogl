@@ -71,7 +71,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
 
     /**
      * Set the CapabilitiesChooser to help determine the native visual type.
-     * 
+     *
      * @param chooser the new CapabilitiesChooser
      * @return the previous CapabilitiesChooser
      */
@@ -86,7 +86,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
 
     /**
      * Gets an immutable set of chosen capabilities.
-     * 
+     *
      * @return the chosen capabilities
      */
     CapabilitiesImmutable getChosenCapabilities();
@@ -103,6 +103,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * @see #destroy()
      * @see #setVisible(boolean)
      */
+    @Override
     void destroy();
 
     /**
@@ -135,14 +136,14 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
 
     boolean isVisible();
 
-    /** 
-     * If the implementation uses delegation, return the delegated {@link Window} instance, 
+    /**
+     * If the implementation uses delegation, return the delegated {@link Window} instance,
      * otherwise return <code>this</code> instance. */
     Window getDelegatedWindow();
-    
+
     //
     // Child Window Management
-    // 
+    //
 
     boolean addChild(NativeWindow win);
 
@@ -154,7 +155,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
 
     /**
      * Sets the size of the window's client area, excluding decorations.
-     * 
+     *
      * <p>
      * Zero size semantics are respected, see {@link #setVisible(boolean)}:<br>
      * <pre>
@@ -171,72 +172,72 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      *
      * @param width of the window's client area
      * @param height of the window's client area
-     * 
+     *
      * @see #getInsets()
      */
     void setSize(int width, int height);
 
     /**
      * Sets the size of the top-level window including insets (window decorations).
-     * 
+     *
      * <p>
      * Note: Insets (if supported) are available only after the window is set visible and hence has been created.
      * </p>
      *
      * @param width of the top-level window area
      * @param height of the top-level window area
-     * 
+     *
      * @see #setSize(int, int)
      * @see #getInsets()
      */
     void setTopLevelSize(int width, int height);
-    
+
     /**
      * Sets the location of the window's client area, excluding insets (window decorations).<br>
-     * 
+     *
      * This call is ignored if in fullscreen mode.<br>
      *
      * @param x coord of the client-area's top left corner
      * @param y coord of the client-area's top left corner
-     * 
+     *
      * @see #getInsets()
      */
     void setPosition(int x, int y);
-    
+
     /**
      * Sets the location of the top-level window inclusive insets (window decorations).<br>
-     * 
+     *
      * <p>
      * Note: Insets (if supported) are available only after the window is set visible and hence has been created.
      * </p>
-     * 
+     *
      * This call is ignored if in fullscreen mode.<br>
      *
      * @param x coord of the top-level left corner
      * @param y coord of the top-level left corner
-     * 
+     *
      * @see #setPosition(int, int)
      * @see #getInsets()
      */
     void setTopLevelPosition(int x, int y);
 
     void setUndecorated(boolean value);
-    
+
     boolean isUndecorated();
-    
+
     void setAlwaysOnTop(boolean value);
-    
+
     boolean isAlwaysOnTop();
-    
+
     void setTitle(String title);
 
     String getTitle();
 
     boolean isPointerVisible();
-    
+
     /**
      * Makes the pointer visible or invisible.
-     * 
+     *
      * @param pointerVisible defaults to <code>true</code> for platforms w/ visible pointer,
      *                       otherwise defaults to <code>true</code>, eg. Android.
      * @see #confinePointer(boolean)
@@ -244,32 +245,32 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     void setPointerVisible(boolean pointerVisible);
 
     boolean isPointerConfined();
-    
+
     /**
      * Confine the pointer to this window, ie. pointer jail.
      * <p>
-     * Before jailing the mouse pointer, 
+     * Before jailing the mouse pointer,
      * the window request the focus and the pointer is centered in the window.
      * </p>
      * <p>
-     * In combination w/ {@link #warpPointer(int, int)} 
+     * In combination w/ {@link #warpPointer(int, int)}
      * and maybe {@link #setPointerVisible(boolean)} a simple mouse
      * navigation can be realized.</p>
-     *  
+     *
      * @param confine defaults to <code>false</code>.
      */
     void confinePointer(boolean confine);
-    
+
     /**
      * Moves the pointer to x/y relative to this window's origin.
-     * 
+     *
      * @param x relative pointer x position within this window
      * @param y relative pointer y position within this window
-     * 
+     *
      * @see #confinePointer(boolean)
      */
     void warpPointer(int x, int y);
-    
+
     /** Reparenting operation types */
     public enum ReparentOperation {
         /** No native reparenting valid */
@@ -285,7 +286,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
         ACTION_NATIVE_CREATION,
 
         /** Change Window tree only, native creation is pending */
-        ACTION_NATIVE_CREATION_PENDING;        
+        ACTION_NATIVE_CREATION_PENDING;
     }
 
     /**
@@ -305,7 +306,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     ReparentOperation reparentWindow(NativeWindow newParent, boolean forceDestroyCreate);
 
     boolean setFullscreen(boolean fullscreen);
-    
+
     boolean isFullscreen();
 
     static interface FocusRunnable {
@@ -317,7 +318,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     }
 
     /**
-     * Sets a {@link FocusRunnable}, 
+     * Sets a {@link FocusRunnable},
      * which {@link FocusRunnable#run()} method is executed before the native focus is requested.
      * <p>
      * This allows notifying a covered window toolkit like AWT that the focus is requested,
@@ -325,7 +326,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * </p>
      */
     void setFocusAction(FocusRunnable focusAction);
-    
+
     /**
      * Sets a {@link KeyListener} allowing focus traversal with a covered window toolkit like AWT.
      * <p>
@@ -336,27 +337,27 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      */
     void setKeyboardFocusHandler(KeyListener l);
 
-    /** 
+    /**
      * Request focus for this native window
      * <p>
      * The request is handled on this Window EDT and blocked until finished.
      * </p>
-     * 
+     *
      * @see #requestFocus(boolean)
      */
     void requestFocus();
 
-    /** 
+    /**
      * Request focus for this native window
      * <p>
-     * The request is handled on this Window EDT. 
+     * The request is handled on this Window EDT.
      * </p>
-     * 
+     *
      * @param wait true if waiting until the request is executed, otherwise false
      * @see #requestFocus()
      */
     void requestFocus(boolean wait);
-    
+
     void windowRepaint(int x, int y, int width, int height);
 
     void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event);
@@ -410,7 +411,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      */
     void setKeyboardVisible(boolean visible);
 
-    /** 
+    /**
      * Return <code>true</code> if the virtual on-screen keyboard is visible, otherwise <code>false</code>.
      * <p>
      * Currently on <code>Android</code>, the only supported platform right now,
@@ -420,7 +421,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * @see #setKeyboardVisible(boolean)
      */
     boolean isKeyboardVisible();
-    
+
     /**
      *
      * Appends the given {@link com.jogamp.newt.event.KeyListener} to the end of

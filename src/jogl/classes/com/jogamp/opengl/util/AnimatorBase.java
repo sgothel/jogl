@@ -208,6 +208,6 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     }
 
     public String toString() {
-        return getClass().getName()+"[started "+isStarted()+", animating "+isAnimating()+", paused "+isPaused()+", drawable "+drawables.size()+"]";
+        return getClass().getName()+"[started "+isStarted()+", animating "+isAnimating()+", paused "+isPaused()+", drawable "+drawables.size()+", totals[dt "+getTotalFPSDuration()+", frames "+getTotalFPSFrames()+", fps "+getTotalFPS()+"]]";
     }
 }
