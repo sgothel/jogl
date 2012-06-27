@@ -1574,12 +1574,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void runOnEDTIfAvail(boolean wait, final Runnable task) {
-        Screen scrn = getScreen();
-        if(null==scrn) {
-            throw new RuntimeException("Null screen of inner class: "+this);
+        if(windowLock.isOwner()) {
+            task.run();
+        } else {
+            Screen scrn = getScreen();
+            if(null==scrn) {
+                throw new RuntimeException("Null screen of inner class: "+this);
+            }
+            DisplayImpl d = (DisplayImpl) scrn.getDisplay();
+            d.runOnEDTIfAvail(wait, task);
         }
-        DisplayImpl d = (DisplayImpl) scrn.getDisplay();
-        d.runOnEDTIfAvail(wait, task);
     }
 
     private final Runnable requestFocusAction = new Runnable() {
