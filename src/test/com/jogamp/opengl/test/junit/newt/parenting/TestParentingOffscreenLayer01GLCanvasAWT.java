@@ -115,37 +115,26 @@ public class TestParentingOffscreenLayer01GLCanvasAWT extends UITestCase {
     
     @Test
     public void testOnscreenLayerGLCanvas_Onscreen() throws InterruptedException, InvocationTargetException {
-        if(!JAWTUtil.isOffscreenLayerRequired()) {
-            testOffscreenLayerGLCanvas_Impl(false, false);
-        } else {
-            System.err.println("onscreen layer n/a");
-        }
+        testOffscreenLayerGLCanvas_Impl(false);
     }
-    
-    /** We have no GLCanvas OffscreenWindow as we have for NEWT .. test disabled.
-    @Test
-    public void testOffscreenLayerGLCanvas_OffscreenLayerWithOffscreenClass() throws InterruptedException, InvocationTargetException {
-        testOffscreenLayerGLCanvas_Impl(true, true);
-    } */
     
     @Test
     public void testOffscreenLayerGLCanvas_OffscreenLayerWithOnscreenClass() throws InterruptedException, InvocationTargetException {        
-        if(JAWTUtil.isOffscreenLayerSupported()) {
-            testOffscreenLayerGLCanvas_Impl(true, false);
-        } else {
-            System.err.println("offscreen layer n/a");
-        }
+        testOffscreenLayerGLCanvas_Impl(true);
     }
     
-    private void testOffscreenLayerGLCanvas_Impl(boolean offscreenLayer, boolean offscreenClass) throws InterruptedException, InvocationTargetException {
+    private void testOffscreenLayerGLCanvas_Impl(boolean offscreenLayer) throws InterruptedException, InvocationTargetException {
+        if(!offscreenLayer && JAWTUtil.isOffscreenLayerRequired()) {
+            System.err.println("onscreen layer n/a");
+            return;
+        }
+        if(offscreenLayer && !JAWTUtil.isOffscreenLayerSupported()) {
+            System.err.println("offscreen layer n/a");
+            return;
+        }        
         final Frame frame1 = new Frame("AWT Parent Frame");
         
         GLCapabilities glCaps = new GLCapabilities(null);
-        if(offscreenClass) {
-            glCaps.setOnscreen(false);
-            glCaps.setPBuffer(true);
-        }
-
         final GLCanvas glc = new GLCanvas(glCaps);
         glc.setShallUseOffscreenLayer(offscreenLayer); // trigger offscreen layer - if supported
         glc.setPreferredSize(preferredGLSize);

@@ -38,9 +38,12 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 
+import jogamp.nativewindow.jawt.JAWTUtil;
+
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
@@ -72,9 +75,17 @@ public class TestGLReadBufferUtilTextureIOWrite01AWT extends UITestCase {
         }                
     }
     
-    @Test
-    public void testOnscreenWritePNG() throws InterruptedException {
+    protected void testWritePNG_Impl(boolean offscreenLayer) throws InterruptedException {
+        if(!offscreenLayer && JAWTUtil.isOffscreenLayerRequired()) {
+            System.err.println("onscreen layer n/a");
+            return;
+        }
+        if(offscreenLayer && !JAWTUtil.isOffscreenLayerSupported()) {
+            System.err.println("offscreen layer n/a");
+            return;
+        }        
         final GLCanvas glc = new GLCanvas(caps);
+        glc.setShallUseOffscreenLayer(offscreenLayer); // trigger offscreen layer - if supported
         Dimension glc_sz = new Dimension(width, height);
         glc.setMinimumSize(glc_sz);
         glc.setPreferredSize(glc_sz);
@@ -108,6 +119,10 @@ public class TestGLReadBufferUtilTextureIOWrite01AWT extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
+        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc, true));
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glc, true));
+        Assert.assertEquals(JAWTUtil.isOffscreenLayerSupported() && offscreenLayer,
+                            glc.isOffscreenLayerSurfaceEnabled());
         animator.start();
 
         while(animator.getTotalFPSFrames() < 2) {
@@ -126,6 +141,16 @@ public class TestGLReadBufferUtilTextureIOWrite01AWT extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }        
+    }
+
+    @Test
+    public void testOnscreenWritePNG() throws InterruptedException {
+        testWritePNG_Impl(false);
+    }
+    
+    @Test
+    public void testOffscreenWritePNG() throws InterruptedException {
+        testWritePNG_Impl(true);
     }
 
     public static void main(String args[]) {

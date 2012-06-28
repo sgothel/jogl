@@ -28,29 +28,34 @@
  
 package com.jogamp.opengl.test.junit.jogl.util.texture;
 
+import java.awt.Dimension;
+import java.awt.Frame;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-
-import com.jogamp.newt.opengl.GLWindow;
 
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
+import javax.media.opengl.Threading;
+import javax.media.opengl.awt.GLCanvas;
+
+import jogamp.nativewindow.jawt.JAWTUtil;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
-import com.jogamp.opengl.test.junit.jogl.offscreen.WindowUtilNEWT;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class TestGLReadBufferUtilTextureIOWrite02NEWT extends UITestCase {
+public class TestGLReadBufferUtilTextureIOWrite02AWT extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
     static int width, height;
@@ -74,78 +79,119 @@ public class TestGLReadBufferUtilTextureIOWrite02NEWT extends UITestCase {
             pw.printf("%s-F_rgba-I_%s-%s-n%03d-%04dx%04d.png", 
                     getSimpleTestName("."), pfmt, drawable.getGLProfile().getName(), i, drawable.getWidth(), drawable.getHeight());
         }
+        drawable.getGL().glFinish(); // poor mans sync ..
         if(screenshot.readPixels(drawable.getGL(), drawable, false)) {
             screenshot.write(new File(filename.toString()));
         }                
     }
     
-    private void testWritePNGWithResizeImpl(boolean offscreen) throws InterruptedException {
+    protected void testWritePNGWithResizeImpl(boolean offscreenLayer) throws InterruptedException {
+        if(!offscreenLayer && JAWTUtil.isOffscreenLayerRequired()) {
+            System.err.println("onscreen layer n/a");
+            return;
+        }
+        if(offscreenLayer && !JAWTUtil.isOffscreenLayerSupported()) {
+            System.err.println("offscreen layer n/a");
+            return;
+        }        
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
-        final GLCapabilities caps2 = offscreen ? WindowUtilNEWT.fixCaps(caps, false, true, false) : caps;
-        final GLWindow glWindow = GLWindow.create(caps2);
-        Assert.assertNotNull(glWindow);
-        glWindow.setTitle("Shared Gears NEWT Test");
-        glWindow.setSize(width, height);
-        glWindow.addGLEventListener(new GearsES2(1));
-        glWindow.addGLEventListener(new GLEventListener() {
-            int i=0, dw_old=0, c=0;
-            public void init(GLAutoDrawable drawable) {
-                System.err.println("XXX: init");
-            }
-            public void dispose(GLAutoDrawable drawable) {
-                System.err.println("XXX: dispose");
-            }
+        final GLCanvas glc = new GLCanvas(caps);
+        glc.setShallUseOffscreenLayer(offscreenLayer); // trigger offscreen layer - if supported
+        Dimension glc_sz = new Dimension(width, height);
+        glc.setMinimumSize(glc_sz);
+        glc.setPreferredSize(glc_sz);
+        glc.setSize(glc_sz);
+        final Frame frame = new Frame(getSimpleTestName("."));
+        Assert.assertNotNull(frame);
+        frame.add(glc);
+        
+        glc.addGLEventListener(new GearsES2(1));
+        glc.addGLEventListener(new GLEventListener() {
+            int i=0, fw_old=0, dw_old=0, c=0;
+            public void init(GLAutoDrawable drawable) {}
+            public void dispose(GLAutoDrawable drawable) {}
             public void display(GLAutoDrawable drawable) {
+                final int fw = frame.getWidth();
+                final int fh = frame.getHeight();
                 final int dw = drawable.getWidth();
                 final int dh = drawable.getHeight();
-                final boolean sz_changed = dw_old != dw && dw <= 512;
+                final boolean sz_changed = fw_old != fw && dw_old != dw && dw <= 512; // need to check both sizes [frame + drawable], due to async resize of AWT!
                 final boolean snap;
                 if(sz_changed) {
                     c++;
-                    snap = c>1; // only snap the 3rd image ..
+                    snap = c>3; // only snap the 3rd image ..
                 } else {
                     snap = false;
                 }
                 
                 if(snap) {
-                    System.err.println("XXX: ["+dw_old+"], "+dw+"x"+dh+", sz_changed "+sz_changed+", snap "+snap);
+                    System.err.println("XXX: ["+fw_old+", "+dw_old+"], "+fw+"x"+fh+", "+dw+"x"+dh+", sz_changed "+sz_changed+", snap "+snap);
                     c=0;
                     snapshot(drawable, screenshot, i++);
                     dw_old = dw;
-                    new Thread() { 
-                        @Override
+                    fw_old = fw;
+                    Threading.invoke(true, new Runnable() {
                         public void run() {
-                            glWindow.setSize(2*dw, 2*dh);                            
-                        } }.start();
+                            final Dimension new_sz = new Dimension(2*dw, 2*dh);
+                            glc.setMinimumSize(new_sz);
+                            glc.setPreferredSize(new_sz);
+                            glc.setSize(new_sz);
+                            frame.pack();
+                            frame.validate();
+                        } }, glc.getTreeLock());
                 }
             }
             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
         });
-        Animator animator = new Animator(glWindow);
+        
+        Animator animator = new Animator(glc);
         animator.setUpdateFPSFrames(60, null);
         
-        glWindow.setVisible(true);
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.pack();
+                    frame.setVisible(true);
+                }});
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }
+        Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc, true));
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glc, true));
+        Assert.assertEquals(JAWTUtil.isOffscreenLayerSupported() && offscreenLayer,
+                            glc.isOffscreenLayerSurfaceEnabled());
         animator.start();
-        
-        while(animator.getTotalFPSFrames() < 50) {
+
+        while(animator.getTotalFPSFrames() < 30) {
             Thread.sleep(60);
         }
         
         animator.stop();
-        glWindow.destroy();        
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setVisible(false);
+                    frame.remove(glc);
+                    frame.dispose();
+                }});
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }        
     }
-    
+
     @Test
     public void testOnscreenWritePNGWithResize() throws InterruptedException {
         testWritePNGWithResizeImpl(false);
     }
-
+    
     @Test
     public void testOffscreenWritePNGWithResize() throws InterruptedException {
         testWritePNGWithResizeImpl(true);
     }
-
+    
     public static void main(String args[]) {
-        org.junit.runner.JUnitCore.main(TestGLReadBufferUtilTextureIOWrite02NEWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGLReadBufferUtilTextureIOWrite02AWT.class.getName());
     }
 }
