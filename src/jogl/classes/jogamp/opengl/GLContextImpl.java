@@ -228,7 +228,7 @@ public abstract class GLContextImpl extends GLContext {
   }
   private void release(boolean force) throws GLException {
     if(TRACE_SWITCH) {
-        System.err.println(getThreadName() +": GLContext.ContextSwitch: - release() - force: "+force+", "+lock);
+        System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - release() - force: "+force+", "+lock);
     }
     if ( !lock.isOwner(Thread.currentThread()) ) {
         throw new GLException("Context not current on current thread "+Thread.currentThread().getName()+": "+this);
@@ -248,7 +248,7 @@ public abstract class GLContextImpl extends GLContext {
       drawable.unlockSurface();
       lock.unlock();
       if(TRACE_SWITCH) {
-          System.err.println(getThreadName() +": GLContext.ContextSwitch: - "+(actualRelease?"switch":"keep  ")+" - CONTEXT_RELEASE - "+lock);
+          System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - "+(actualRelease?"switch":"keep  ")+" - CONTEXT_RELEASE - "+lock);
       }
     }
   }
@@ -257,7 +257,7 @@ public abstract class GLContextImpl extends GLContext {
   @Override
   public final void destroy() {
       if (DEBUG || TRACE_SWITCH) {
-          System.err.println(getThreadName() + ": GLContextImpl.destroy.0: " + toHexString(contextHandle) +
+          System.err.println(getThreadName() + ": GLContextImpl.destroy.0: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle) +
                   ", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
       }
       if (contextHandle != 0) {
@@ -298,8 +298,9 @@ public abstract class GLContextImpl extends GLContext {
               } finally {
                   lock.unlock();
                   if (TRACE_SWITCH) {
-                      System.err.println(getThreadName() + ": GLContextImpl.destroy.X: " + toHexString(contextHandle) +
+                      System.err.println(getThreadName() + ": GLContextImpl.destroy.X: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle) +
                               ", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
+                      Thread.dumpStack(); // JAU
                   }
               }
           } finally {
@@ -398,7 +399,7 @@ public abstract class GLContextImpl extends GLContext {
                     // For Mac OS X, however, we need to update the context to track resizes
                     drawableUpdatedNotify();
                     if(TRACE_SWITCH) {
-                        System.err.println(getThreadName() +": GLContext.ContextSwitch: - keep   - CONTEXT_CURRENT - "+lock);
+                        System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - keep   - CONTEXT_CURRENT - "+lock);                        
                     }
                     return CONTEXT_CURRENT;
                 } else {
@@ -438,7 +439,7 @@ public abstract class GLContextImpl extends GLContext {
 
     if (res == CONTEXT_NOT_CURRENT) {
       if(TRACE_SWITCH) {
-          System.err.println(getThreadName() +": GLContext.ContextSwitch: - switch - CONTEXT_NOT_CURRENT - "+lock);
+          System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - switch - CONTEXT_NOT_CURRENT - "+lock);
       }
     } else {
       setCurrent(this);
@@ -459,10 +460,10 @@ public abstract class GLContextImpl extends GLContext {
             gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) );
         }
         if(DEBUG || TRACE_SWITCH) {
-            System.err.println(getThreadName() +": GLContext.ContextSwitch: - switch - CONTEXT_CURRENT_NEW - "+lock);
+            System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - switch - CONTEXT_CURRENT_NEW - "+lock);
         }
       } else if(TRACE_SWITCH) {
-        System.err.println(getThreadName() +": GLContext.ContextSwitch: - switch - CONTEXT_CURRENT - "+lock);
+        System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - switch - CONTEXT_CURRENT - "+lock);
       }
 
       /* FIXME: refactor dependence on Java 2D / JOGL bridge
@@ -496,11 +497,12 @@ public abstract class GLContextImpl extends GLContext {
                 shareWith.getDrawableImpl().unlockSurface();
             }
         }
-        if (DEBUG) {
+        if (DEBUG || TRACE_SWITCH) {
             if(created) {
-                System.err.println(getThreadName() + ": Create GL context OK: " + toHexString(contextHandle) + " for " + getClass().getName()+" - "+getGLVersion());
+                System.err.println(getThreadName() + ": Create GL context OK: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle) + " for " + getClass().getName()+" - "+getGLVersion());
+                Thread.dumpStack(); // JAU
             } else {
-                System.err.println(getThreadName() + ": Create GL context FAILED for " + getClass().getName());
+                System.err.println(getThreadName() + ": Create GL context FAILED obj " + toHexString(hashCode()) + ", for " + getClass().getName());
             }
         }
         if(!created) {

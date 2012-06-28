@@ -52,6 +52,7 @@ import com.jogamp.common.util.locks.RecursiveLock;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.GLContextShareSet;
 
 /** Abstraction for an OpenGL rendering context. In order to perform
     OpenGL rendering, a context must be "made current" on the current
@@ -303,7 +304,11 @@ public abstract class GLContext {
    */
   protected static void setCurrent(GLContext cur) {
     if(TRACE_SWITCH) {
-       System.err.println(getThreadName()+": GLContext.ContextSwitch: - setCurrent() - "+cur);
+       if(null == cur) {
+           System.err.println(getThreadName()+": GLContext.ContextSwitch: - setCurrent() - NULL");
+       } else {
+           System.err.println(getThreadName()+": GLContext.ContextSwitch: - setCurrent() - obj " + toHexString(cur.hashCode()) + ", ctx " + toHexString(cur.getHandle()));
+       }
     }
     currentContext.set(cur);
   }
@@ -404,6 +409,8 @@ public abstract class GLContext {
     sb.append(Integer.toHexString(ctxOptions));
     sb.append(", ");
     sb.append(getGLVersion());
+    sb.append(", this ");
+    sb.append(toHexString(hashCode()));
     sb.append(", handle ");
     sb.append(toHexString(contextHandle));
     sb.append(", ");
