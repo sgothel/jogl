@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -54,7 +54,7 @@ import jogamp.opengl.Debug;
     based rendering mechanism as well by end users directly.<P>
 
     The implementation shall initialize itself as soon as possible,
-    ie if the attached {@link javax.media.nativewindow.NativeSurface NativeSurface} becomes visible/realized. 
+    ie if the attached {@link javax.media.nativewindow.NativeSurface NativeSurface} becomes visible/realized.
     The following protocol shall be satisfied:
     <ul>
         <li> Create the  {@link GLDrawable} with the requested {@link GLCapabilities}</li>
@@ -66,15 +66,15 @@ import jogamp.opengl.Debug;
              registered {@link GLEventListener}s. This shall be done after the {@link GLEventListener#init init(..)} calls.</li>
     </ul><P>
 
-    Another implementation detail is the drawable reconfiguration. One use case is where a window is being 
-    dragged to another screen with a different pixel configuration, ie {@link GLCapabilities}. The implementation 
+    Another implementation detail is the drawable reconfiguration. One use case is where a window is being
+    dragged to another screen with a different pixel configuration, ie {@link GLCapabilities}. The implementation
     shall be able to detect such cases in conjunction with the associated {@link javax.media.nativewindow.NativeSurface NativeSurface}.<br>
     For example, AWT's {@link java.awt.Canvas} 's {@link java.awt.Canvas#getGraphicsConfiguration getGraphicsConfiguration()}
-    is capable to determine a display device change. This is demonstrated within {@link javax.media.opengl.awt.GLCanvas}'s 
-    and NEWT's <code>AWTCanvas</code> {@link javax.media.opengl.awt.GLCanvas#getGraphicsConfiguration getGraphicsConfiguration()} 
-    specialization. Another demonstration is NEWT's {@link javax.media.nativewindow.NativeWindow NativeWindow} 
+    is capable to determine a display device change. This is demonstrated within {@link javax.media.opengl.awt.GLCanvas}'s
+    and NEWT's <code>AWTCanvas</code> {@link javax.media.opengl.awt.GLCanvas#getGraphicsConfiguration getGraphicsConfiguration()}
+    specialization. Another demonstration is NEWT's {@link javax.media.nativewindow.NativeWindow NativeWindow}
     implementation on the Windows platform, which utilizes the native platform's <i>MonitorFromWindow(HWND)</i> function.<br>
-    All OpenGL resources shall be regenerated, while the drawable's {@link GLCapabilities} has 
+    All OpenGL resources shall be regenerated, while the drawable's {@link GLCapabilities} has
     to be choosen again. The following protocol shall be satisfied.
     <ul>
         <li> Controlled disposal:</li>
@@ -95,21 +95,21 @@ import jogamp.opengl.Debug;
                  registered {@link GLEventListener}s. This shall be done after the {@link GLEventListener#init init(..)} calls.</li>
         </ul>
     </ul>
-    Note: Current graphics driver keep the surface configuration for a given window, even if the window is moved to 
+    Note: Current graphics driver keep the surface configuration for a given window, even if the window is moved to
     a monitor with a different pixel configuration, ie 32bpp to 16bpp. However, it is best to not assume such behavior
     and make your application comply with the above protocol.<P>
 
-    However, to not introduce to much breakage with older applications and because of the situation 
-    mentioned above, the <code>boolean</code> system property <code>jogl.screenchange.action</code> will control the 
+    However, to not introduce to much breakage with older applications and because of the situation
+    mentioned above, the <code>boolean</code> system property <code>jogl.screenchange.action</code> will control the
     screen change action as follows:<br>
 
     <PRE>
     -Djogl.screenchange.action=false Disable the drawable reconfiguration (the default)
     -Djogl.screenchange.action=true  Enable  the drawable reconfiguration
-    </PRE>    
+    </PRE>
   */
 public interface GLAutoDrawable extends GLDrawable {
-  /** Flag reflecting wheather the drawable reconfiguration will be issued in 
+  /** Flag reflecting wheather the drawable reconfiguration will be issued in
     * case a screen device change occured, e.g. in a multihead environment,
     * where you drag the window to another monitor. */
   public static final boolean SCREEN_CHANGE_ACTION_ENABLED = Debug.getBooleanProperty("jogl.screenchange.action", true);
@@ -130,10 +130,10 @@ public interface GLAutoDrawable extends GLDrawable {
       The listeners are notified of events in the order of the queue. */
   public void addGLEventListener(GLEventListener listener);
 
-  /** 
+  /**
    * Adds a {@link GLEventListener} at the given index of this drawable queue.
    * The listeners are notified of events in the order of the queue.
-   * @param index Position where the listener will be inserted. 
+   * @param index Position where the listener will be inserted.
    *              Should be within (0 <= index && index <= size()).
    *              An index value of -1 is interpreted as the end of the list, size().
    * @param listener The GLEventListener object to be inserted
@@ -168,7 +168,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * @see #display()
    * @see #invoke(boolean, GLRunnable)
    * @see javax.media.opengl.GLAnimatorControl
-   */ 
+   */
   public abstract void setAnimator(GLAnimatorControl animatorControl) throws GLException;
 
   /**
@@ -179,12 +179,12 @@ public interface GLAutoDrawable extends GLDrawable {
    */
   public GLAnimatorControl getAnimator();
 
-  /** 
+  /**
    * <p>
    * Enqueues a one-shot {@link GLRunnable},
    * which will be executed within the next {@link #display()} call
-   * after all registered {@link GLEventListener}s 
-   * {@link GLEventListener#display(GLAutoDrawable) display(GLAutoDrawable)} 
+   * after all registered {@link GLEventListener}s
+   * {@link GLEventListener#display(GLAutoDrawable) display(GLAutoDrawable)}
    * methods has been called.
    * </p>
    * <p>
@@ -201,7 +201,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * @see #setAnimator(GLAnimatorControl)
    * @see #display()
    * @see GLRunnable
-   */   
+   */
   public void invoke(boolean wait, GLRunnable glRunnable);
 
   /** Destroys all resources associated with this GLAutoDrawable,
@@ -214,7 +214,7 @@ public interface GLAutoDrawable extends GLDrawable {
       routine may be called manually. */
   public void destroy();
 
-  /** 
+  /**
    * <p>
    * Causes OpenGL rendering to be performed for this GLAutoDrawable
    * in the following order:
@@ -224,21 +224,21 @@ public interface GLAutoDrawable extends GLDrawable {
    *     <li> Executes all one-shot {@link javax.media.opengl.GLRunnable GLRunnable},
    *          enqueued via {@link #invoke(boolean, GLRunnable)}.</li>
    * </ul></p>
-   * <p> 
+   * <p>
    * May be called periodically by a running {@link javax.media.opengl.GLAnimatorControl} implementation,<br>
    * which must register itself with {@link #setAnimator(javax.media.opengl.GLAnimatorControl)}.</p>
    * <p>
    * Called automatically by the window system toolkit upon receiving a repaint() request, <br>
    * except an {@link javax.media.opengl.GLAnimatorControl} implementation {@link javax.media.opengl.GLAnimatorControl#isAnimating()}.</p>
-   * <p> 
+   * <p>
    * This routine may also be called manually for better control over the
    * rendering process. It is legal to call another GLAutoDrawable's
    * display method from within the {@link GLEventListener#display
    * display(..)} callback.</p>
    * <p>
-   * In case of a new generated OpenGL context, 
+   * In case of a new generated OpenGL context,
    * the implementation shall call {@link GLEventListener#init init(..)} for all
-   * registered {@link GLEventListener}s <i>before</i> making the 
+   * registered {@link GLEventListener}s <i>before</i> making the
    * actual {@link GLEventListener#display display(..)} calls,
    * in case this has not been done yet.</p>
    *
@@ -260,12 +260,12 @@ public interface GLAutoDrawable extends GLDrawable {
 
   /**
    * @param flags Additional context creation flags.
-   * 
+   *
    * @see GLContext#setContextCreationFlags(int)
    * @see GLContext#enableGLDebugMessage(boolean)
    */
   public void setContextCreationFlags(int flags);
-      
+
   /**
    * @return Additional context creation flags
    */

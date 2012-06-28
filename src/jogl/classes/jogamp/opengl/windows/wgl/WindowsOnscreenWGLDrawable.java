@@ -40,8 +40,9 @@
 
 package jogamp.opengl.windows.wgl;
 
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
 
 public class WindowsOnscreenWGLDrawable extends WindowsWGLDrawable {
   protected WindowsOnscreenWGLDrawable(GLDrawableFactory factory, NativeSurface component) {

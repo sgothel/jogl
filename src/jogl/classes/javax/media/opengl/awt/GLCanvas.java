@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -139,22 +139,23 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   private static final boolean DEBUG = Debug.debug("GLCanvas");
 
-  private GLDrawableHelper drawableHelper = new GLDrawableHelper();
+  private final GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private AWTGraphicsConfiguration awtConfig;
   private volatile GLDrawable drawable;
   private GLContextImpl context;
   private boolean sendReshape = false;
-  
+
   // copy of the cstr args, mainly for recreation
   private GLCapabilitiesImmutable capsReqUser;
   private GLCapabilitiesChooser chooser;
   private GLContext shareWith;
-  private int additionalCtxCreationFlags = 0;  
+  private int additionalCtxCreationFlags = 0;
   private GraphicsDevice device;
   private boolean shallUseOffscreenLayer = false;
 
   private AWTWindowClosingProtocol awtWindowClosingProtocol =
           new AWTWindowClosingProtocol(this, new Runnable() {
+                @Override
                 public void run() {
                     GLCanvas.this.destroy();
                 }
@@ -162,7 +163,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   /** Creates a new GLCanvas component with a default set of OpenGL
       capabilities, using the default OpenGL capabilities selection
-      mechanism, on the default screen device. 
+      mechanism, on the default screen device.
    * @throws GLException if no default profile is available for the default desktop device.
    */
   public GLCanvas() throws GLException {
@@ -171,7 +172,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   /** Creates a new GLCanvas component with the requested set of
       OpenGL capabilities, using the default OpenGL capabilities
-      selection mechanism, on the default screen device. 
+      selection mechanism, on the default screen device.
    * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
    * @see GLCanvas#GLCanvas(javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser, javax.media.opengl.GLContext, java.awt.GraphicsDevice)
    */
@@ -187,8 +188,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
    * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
    * @see GLCanvas#GLCanvas(javax.media.opengl.GLCapabilitiesImmutable, javax.media.opengl.GLCapabilitiesChooser, javax.media.opengl.GLContext, java.awt.GraphicsDevice)
    */
-  public GLCanvas(GLCapabilitiesImmutable capsReqUser, GLContext shareWith) 
-          throws GLException 
+  public GLCanvas(GLCapabilitiesImmutable capsReqUser, GLContext shareWith)
+          throws GLException
   {
     this(capsReqUser, null, shareWith, null);
   }
@@ -207,14 +208,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       sharing</a>. The passed GraphicsDevice indicates the screen on
       which to create the GLCanvas; the GLDrawableFactory uses the
       default screen device of the local GraphicsEnvironment if null
-      is passed for this argument. 
+      is passed for this argument.
    * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
    */
   public GLCanvas(GLCapabilitiesImmutable capsReqUser,
                   GLCapabilitiesChooser chooser,
                   GLContext shareWith,
-                  GraphicsDevice device) 
-      throws GLException 
+                  GraphicsDevice device)
+      throws GLException
   {
     /*
      * Determination of the native window is made in 'super.addNotify()',
@@ -246,14 +247,17 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     this.device = device;
   }
 
+  @Override
   public void setShallUseOffscreenLayer(boolean v) {
       shallUseOffscreenLayer = v;
   }
 
+  @Override
   public final boolean getShallUseOffscreenLayer() {
-      return shallUseOffscreenLayer;        
+      return shallUseOffscreenLayer;
   }
 
+  @Override
   public final boolean isOffscreenLayerSurfaceEnabled() {
       if(null != drawable) {
           return ((JAWTWindow)drawable.getNativeSurface()).isOffscreenLayerSurfaceEnabled();
@@ -261,18 +265,18 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       return false;
   }
 
-  
+
   /**
    * Overridden to choose a GraphicsConfiguration on a parent container's
    * GraphicsDevice because both devices
    */
-    @Override
+  @Override
   public GraphicsConfiguration getGraphicsConfiguration() {
     /*
      * Workaround for problems with Xinerama and java.awt.Component.checkGD
      * when adding to a container on a different graphics device than the
      * one that this Canvas is associated with.
-     * 
+     *
      * GC will be null unless:
      *   - A native peer has assigned it. This means we have a native
      *     peer, and are already comitted to a graphics configuration.
@@ -286,7 +290,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
      * chosen is only non-null on platforms where the GLDrawableFactory
      * returns a non-null GraphicsConfiguration (in the GLCanvas
      * constructor).
-     * 
+     *
      * if gc is from this Canvas' native peer then it should equal chosen,
      * otherwise it is from an ancestor component that this Canvas is being
      * added to, and we go into this block.
@@ -298,21 +302,21 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
        * Check for compatibility with gc. If they differ by only the
        * device then return a new GCconfig with the super-class' GDevice
        * (and presumably the same visual ID in Xinerama).
-       * 
+       *
        */
       if (!chosen.getDevice().getIDstring().equals(gc.getDevice().getIDstring())) {
         /*
          * Here we select a GraphicsConfiguration on the alternate
          * device that is presumably identical to the chosen
          * configuration, but on the other device.
-         * 
+         *
          * Should really check to ensure that we select a configuration
          * with the same X visual ID for Xinerama screens, otherwise the
          * GLDrawable may have the wrong visual ID (I don't think this
          * ever gets updated). May need to add a method to
          * X11GLDrawableFactory to do this in a platform specific
          * manner.
-         * 
+         *
          * However, on platforms where we can actually get into this
          * block, both devices should have the same visual list, and the
          * same configuration should be selected here.
@@ -353,7 +357,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
        * return the GC that was selected in the constructor (and might
        * cause an exception in Component.checkGD when adding to a
        * container, but in this case that would be the desired behavior).
-       * 
+       *
        */
       return chosen;
     } else if (gc == null) {
@@ -372,14 +376,17 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
      */
     return gc;
   }
-  
+
+  @Override
   public GLContext createContext(GLContext shareWith) {
       return (null != drawable) ? drawable.createContext(shareWith) : null;
   }
 
+  @Override
   public void setRealized(boolean realized) {
   }
 
+  @Override
   public boolean isRealized() {
      return ( null != drawable ) ? drawable.isRealized() : false;
   }
@@ -387,14 +394,17 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       return ( null != drawable ) ? drawable.isRealized() : false;
   }
 
+  @Override
   public WindowClosingMode getDefaultCloseOperation() {
       return awtWindowClosingProtocol.getDefaultCloseOperation();
   }
 
+  @Override
   public WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
       return awtWindowClosingProtocol.setDefaultCloseOperation(op);
   }
 
+  @Override
   public void display() {
     if( !validateGLDrawable() ) {
         if(DEBUG) {
@@ -402,7 +412,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         }
         return; // not yet available ..
     }
-    Threading.invoke(true, displayOnEventDispatchThreadAction, getTreeLock());
+    Threading.invoke(true, displayOnEDTAction, getTreeLock());
 
     awtWindowClosingProtocol.addClosingListenerOneShot();
   }
@@ -425,14 +435,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         disposeRegenerate=regenerate;
 
         if(context.isCreated()) {
-            Threading.invoke(true, disposeOnEventDispatchThreadAction, getTreeLock());
+            Threading.invoke(true, disposeOnEDTAction, getTreeLock());
         }
 
         if(animatorPaused) {
             animator.resume();
         }
     }
-    
+
     if(!regenerate) {
         disposeAbstractGraphicsDevice();
     }
@@ -443,8 +453,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   /**
-   * Just an alias for removeNotify
+   * {@inheritDoc}
+   *
+   * <p>
+   * This impl. calls this class's {@link #removeNotify()} AWT override,
+   * where the actual implementation resides.
+   * </p>
    */
+  @Override
   public void destroy() {
     removeNotify();
   }
@@ -546,7 +562,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         jawtWindow.unlockSurface();
     }
   }
-  
+
   private boolean validateGLDrawable() {
     boolean realized = false;
     if (!Beans.isDesignTime()) {
@@ -554,7 +570,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
             realized = drawable.isRealized();
             if ( !realized && 0 < drawable.getWidth() * drawable.getHeight() ) {
                 // make sure drawable realization happens on AWT EDT, due to AWTTree lock
-                AWTEDTExecutor.singleton.invoke(true, setRealizedOnEventDispatchThreadAction);
+                AWTEDTExecutor.singleton.invoke(true, setRealizedOnEDTAction);
                 realized = true;
                 sendReshape=true; // ensure a reshape is being send ..
                 if(DEBUG) {
@@ -566,8 +582,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     }
     return realized;
   }
-  private Runnable setRealizedOnEventDispatchThreadAction = new Runnable() {
-      public void run() {
+  private Runnable setRealizedOnEDTAction = new Runnable() {
+      @Override
+    public void run() {
           drawable.setRealized(true);
       } };
 
@@ -626,7 +643,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   /** <B>Overrides:</B>
       <DL><DD><CODE>update</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
-  /** 
+  /**
    * Overridden from Canvas to prevent the AWT's clearing of the
    * canvas from interfering with the OpenGL rendering.
    */
@@ -634,31 +651,38 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   public void update(Graphics g) {
     paint(g);
   }
-  
+
+  @Override
   public void addGLEventListener(GLEventListener listener) {
     drawableHelper.addGLEventListener(listener);
   }
 
+  @Override
   public void addGLEventListener(int index, GLEventListener listener) {
     drawableHelper.addGLEventListener(index, listener);
   }
 
+  @Override
   public void removeGLEventListener(GLEventListener listener) {
     drawableHelper.removeGLEventListener(listener);
   }
 
+  @Override
   public void setAnimator(GLAnimatorControl animatorControl) {
     drawableHelper.setAnimator(animatorControl);
   }
 
+  @Override
   public GLAnimatorControl getAnimator() {
     return drawableHelper.getAnimator();
   }
 
+  @Override
   public void invoke(boolean wait, GLRunnable glRunnable) {
     drawableHelper.invoke(this, wait, glRunnable);
   }
 
+  @Override
   public void setContext(GLContext ctx) {
     context=(GLContextImpl)ctx;
     if(null != context) {
@@ -666,10 +690,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     }
   }
 
+  @Override
   public GLContext getContext() {
     return context;
   }
 
+  @Override
   public GL getGL() {
     if (Beans.isDesignTime()) {
       return null;
@@ -678,6 +704,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     return (ctx == null) ? null : ctx.getGL();
   }
 
+  @Override
   public GL setGL(GL gl) {
     GLContext ctx = getContext();
     if (ctx != null) {
@@ -688,30 +715,37 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
 
+  @Override
   public void setAutoSwapBufferMode(boolean onOrOff) {
     drawableHelper.setAutoSwapBufferMode(onOrOff);
   }
 
+  @Override
   public boolean getAutoSwapBufferMode() {
     return drawableHelper.getAutoSwapBufferMode();
   }
 
+  @Override
   public void swapBuffers() {
-    Threading.invoke(true, swapBuffersOnEventDispatchThreadAction, getTreeLock());
+    Threading.invoke(true, swapBuffersOnEDTAction, getTreeLock());
   }
 
+  @Override
   public void setContextCreationFlags(int flags) {
     additionalCtxCreationFlags = flags;
   }
-      
+
+  @Override
   public int getContextCreationFlags() {
-    return additionalCtxCreationFlags;                
+    return additionalCtxCreationFlags;
   }
-          
+
+  @Override
   public GLProfile getGLProfile() {
     return capsReqUser.getGLProfile();
   }
 
+  @Override
   public GLCapabilitiesImmutable getChosenGLCapabilities() {
     if (awtConfig == null) {
         throw new GLException("No AWTGraphicsConfiguration: "+this);
@@ -728,14 +762,17 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     return (GLCapabilitiesImmutable)awtConfig.getRequestedCapabilities();
   }
 
+  @Override
   public NativeSurface getNativeSurface() {
     return (null != drawable) ? drawable.getNativeSurface() : null;
   }
 
+  @Override
   public long getHandle() {
     return (null != drawable) ? drawable.getHandle() : 0;
   }
 
+  @Override
   public GLDrawableFactory getFactory() {
     return (null != drawable) ? drawable.getFactory() : null;
   }
@@ -744,9 +781,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   public String toString() {
     final int dw = (null!=drawable) ? drawable.getWidth() : -1;
     final int dh = (null!=drawable) ? drawable.getHeight() : -1;
-    
+
     return "AWT-GLCanvas[Realized "+isRealized()+
-                          ",\n\t"+((null!=drawable)?drawable.getClass().getName():"null-drawable")+                         
+                          ",\n\t"+((null!=drawable)?drawable.getClass().getName():"null-drawable")+
                           ",\n\tFactory   "+getFactory()+
                           ",\n\thandle    0x"+Long.toHexString(getHandle())+
                           ",\n\tDrawable size "+dw+"x"+dh+
@@ -754,13 +791,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                           ",\n\tvisible "+isVisible()+
                           ",\n\t"+awtConfig+"]";
   }
-  
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
 
   private boolean disposeRegenerate;
   private final Runnable postDisposeAction = new Runnable() {
+    @Override
     public void run() {
       context=null;
       if(null!=drawable) {
@@ -769,39 +807,41 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
           drawable=null;
           if(null!=jawtWindow) {
             jawtWindow.destroy();
-          }          
+          }
       }
-      
+
       if(disposeRegenerate) {
           // Similar process as in addNotify()!
-          
+
           // Recreate GLDrawable/GLContext to reflect it's new graphics configuration
           createDrawableAndContext();
-          
+
           if(DEBUG) {
             System.err.println(getThreadName()+": GLCanvas.dispose(true): new drawable: "+drawable);
           }
           validateGLDrawable(); // immediate attempt to recreate the drawable
       }
     }
-  }; 
+  };
 
-  private final Runnable disposeOnEventDispatchThreadAction = new Runnable() {
+  private final Runnable disposeOnEDTAction = new Runnable() {
+    @Override
     public void run() {
-      drawableHelper.disposeGL(GLCanvas.this, drawable, context, postDisposeAction);      
+      drawableHelper.disposeGL(GLCanvas.this, drawable, context, postDisposeAction);
     }
   };
 
   private final Runnable disposeAbstractGraphicsDeviceAction = new Runnable() {
+    @Override
     public void run() {
       if(null != awtConfig) {
-          final AbstractGraphicsConfiguration aconfig = awtConfig.getNativeGraphicsConfiguration();          
+          final AbstractGraphicsConfiguration aconfig = awtConfig.getNativeGraphicsConfiguration();
           final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
           final String adeviceMsg;
           if(DEBUG) {
             adeviceMsg = adevice.toString();
           } else {
-            adeviceMsg = null;  
+            adeviceMsg = null;
           }
           boolean closed = adevice.close();
           if(DEBUG) {
@@ -833,12 +873,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   private final Runnable initAction = new Runnable() {
+    @Override
     public void run() {
       drawableHelper.init(GLCanvas.this);
     }
   };
-  
+
   private final Runnable displayAction = new Runnable() {
+    @Override
     public void run() {
       if (sendReshape) {
         if(DEBUG) {
@@ -855,6 +897,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   };
 
   private final Runnable swapBuffersAction = new Runnable() {
+    @Override
     public void run() {
       drawable.swapBuffers();
     }
@@ -863,16 +906,18 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   // Workaround for ATI driver bugs related to multithreading issues
   // like simultaneous rendering via Animators to canvases that are
   // being resized on the AWT event dispatch thread
-  private final Runnable displayOnEventDispatchThreadAction = new Runnable() {
+  private final Runnable displayOnEDTAction = new Runnable() {
+    @Override
     public void run() {
         drawableHelper.invokeGL(drawable, context, displayAction, initAction);
     }
   };
-  
-  private final Runnable swapBuffersOnEventDispatchThreadAction = new Runnable() {
+
+  private final Runnable swapBuffersOnEDTAction = new Runnable() {
+    @Override
     public void run() {
         drawableHelper.invokeGL(drawable, context, swapBuffersAction, initAction);
-    }  
+    }
   };
 
   // Disables the AWT's erasing of this Canvas's background on Windows
@@ -886,6 +931,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     if (!disableBackgroundEraseInitialized) {
       try {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
             public Object run() {
               try {
                 Class<?> clazz = getToolkit().getClass();
@@ -946,7 +992,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       return null;
     }
 
-    final AbstractGraphicsScreen aScreen = null != device ? 
+    final AbstractGraphicsScreen aScreen = null != device ?
             AWTGraphicsScreen.createScreenDevice(device, AbstractGraphicsDevice.DEFAULT_UNIT):
             AWTGraphicsScreen.createDefault();
     AWTGraphicsConfiguration config = null;
@@ -960,6 +1006,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         try {
             final ArrayList<AWTGraphicsConfiguration> bucket = new ArrayList<AWTGraphicsConfiguration>(1);
             EventQueue.invokeAndWait(new Runnable() {
+                @Override
                 public void run() {
                     AWTGraphicsConfiguration c = (AWTGraphicsConfiguration)
                             GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capsChosen,
@@ -982,11 +1029,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
     return config;
   }
-  
+
   protected static String getThreadName() {
     return Thread.currentThread().getName();
   }
-  
+
   /**
    * A most simple JOGL AWT test entry
    */
@@ -1006,17 +1053,22 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     frame.setSize(128, 128);
 
     glCanvas.addGLEventListener(new GLEventListener() {
+        @Override
         public void init(GLAutoDrawable drawable) {
             GL gl = drawable.getGL();
             System.err.println(JoglVersion.getGLInfo(gl, null));
         }
+        @Override
         public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
+        @Override
         public void display(GLAutoDrawable drawable) { }
+        @Override
         public void dispose(GLAutoDrawable drawable) { }
     });
 
     try {
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 frame.setVisible(true);
             }});
@@ -1026,6 +1078,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     glCanvas.display();
     try {
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
             public void run() {
                 frame.dispose();
             }});

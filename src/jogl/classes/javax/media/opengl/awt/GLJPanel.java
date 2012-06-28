@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,20 +29,16 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
 package javax.media.opengl.awt;
-
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.beans.Beans;
 
 import java.awt.Color;
 import java.awt.EventQueue;
@@ -55,13 +51,13 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.awt.image.DataBufferInt;
-import javax.swing.JPanel;
+import java.beans.Beans;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
-import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
-
+import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
@@ -80,10 +76,7 @@ import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.Threading;
-
-import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
-import com.jogamp.opengl.util.FBObject;
-import com.jogamp.opengl.util.GLBuffers;
+import javax.swing.JPanel;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
@@ -92,6 +85,10 @@ import jogamp.opengl.GLDrawableHelper;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.awt.Java2D;
 import jogamp.opengl.awt.Java2DGLContext;
+
+import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
+import com.jogamp.opengl.util.FBObject;
+import com.jogamp.opengl.util.GLBuffers;
 
 // FIXME: Subclasses need to call resetGLFunctionAvailability() on their
 // context whenever the displayChanged() function is called on their
@@ -107,9 +104,9 @@ import jogamp.opengl.awt.Java2DGLContext;
     #setOpaque}(false). Pixels with resulting OpenGL alpha values less
     than 1.0 will be overlaid on any underlying Swing rendering. </P>
     <P>
-    Notes specific to the Reference Implementation: This component 
-    attempts to use hardware-accelerated rendering via pbuffers and 
-    falls back on to software rendering if problems occur. 
+    Notes specific to the Reference Implementation: This component
+    attempts to use hardware-accelerated rendering via pbuffers and
+    falls back on to software rendering if problems occur.
     Note that because this component attempts to use pbuffers for
     rendering, and because pbuffers can not be resized, somewhat
     surprising behavior may occur during resize operations; the {@link
@@ -138,7 +135,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private GLCapabilitiesChooser chooser;
   private GLContext             shareWith;
   private int additionalCtxCreationFlags = 0;
-  
+
   // Width of the actual GLJPanel
   private int panelWidth   = 0;
   private int panelHeight  = 0;
@@ -180,6 +177,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   private AWTWindowClosingProtocol awtWindowClosingProtocol =
           new AWTWindowClosingProtocol(this, new Runnable() {
+                @Override
                 public void run() {
                     GLJPanel.this.destroy();
                 }
@@ -198,7 +196,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   /** Creates a new GLJPanel component with a default set of OpenGL
       capabilities and using the default OpenGL capabilities selection
-      mechanism. 
+      mechanism.
    * @throws GLException if no default profile is available for the default desktop device.
    */
   public GLJPanel() throws GLException {
@@ -207,7 +205,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   /** Creates a new GLJPanel component with the requested set of
       OpenGL capabilities, using the default OpenGL capabilities
-      selection mechanism. 
+      selection mechanism.
    * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
    */
   public GLJPanel(GLCapabilitiesImmutable userCapsRequest) throws GLException {
@@ -229,8 +227,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       since J2D GL Context must be shared and we can only share one context.
     * @throws GLException if no GLCapabilities are given and no default profile is available for the default desktop device.
   */
-  public GLJPanel(GLCapabilitiesImmutable userCapsRequest, GLCapabilitiesChooser chooser, GLContext shareWith) 
-          throws GLException 
+  public GLJPanel(GLCapabilitiesImmutable userCapsRequest, GLCapabilitiesChooser chooser, GLContext shareWith)
+          throws GLException
   {
     super();
 
@@ -252,6 +250,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     this.shareWith = shareWith;
   }
 
+  @Override
   public void display() {
     if (EventQueue.isDispatchThread()) {
       // Want display() to be synchronous, so call paintImmediately()
@@ -280,7 +279,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         animatorPaused = animator.pause();
       }
 
-      if(backend.getContext().isCreated()) {      
+      if(backend.getContext().isCreated()) {
           Threading.invoke(true, disposeAction, getTreeLock());
       }
       if(null != backend) {
@@ -291,9 +290,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
       if(animatorPaused) {
         animator.resume();
-      }     
+      }
     }
-    
+
     if(DEBUG) {
         System.err.println(getThreadName()+": GLJPanel.dispose() - stop");
     }
@@ -302,6 +301,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   /**
    * Just an alias for removeNotify
    */
+  @Override
   public void destroy() {
       removeNotify();
   }
@@ -352,11 +352,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     updater.setGraphics(g);
-    
+
     backend.doPaintComponent(g);
   }
 
-  
+
   /** Overridden to track when this component is added to a container.
       Subclasses which override this method must call
       super.addNotify() in their addNotify() method in order to
@@ -393,7 +393,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       <DL><DD><CODE>reshape</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
   @SuppressWarnings("deprecation")
   @Override
-public void reshape(int x, int y, int width, int height) {
+  public void reshape(int x, int y, int width, int height) {
     super.reshape(x, y, width, height);
 
     // reshapeX = x;
@@ -411,41 +411,51 @@ public void reshape(int x, int y, int width, int height) {
     super.setOpaque(opaque);
   }
 
+  @Override
   public void addGLEventListener(GLEventListener listener) {
     drawableHelper.addGLEventListener(listener);
   }
 
+  @Override
   public void addGLEventListener(int index, GLEventListener listener) {
     drawableHelper.addGLEventListener(index, listener);
   }
 
+  @Override
   public void removeGLEventListener(GLEventListener listener) {
     drawableHelper.removeGLEventListener(listener);
   }
 
+  @Override
   public void setAnimator(GLAnimatorControl animatorControl) {
     drawableHelper.setAnimator(animatorControl);
   }
 
+  @Override
   public GLAnimatorControl getAnimator() {
     return drawableHelper.getAnimator();
   }
 
+  @Override
   public void invoke(boolean wait, GLRunnable glRunnable) {
     drawableHelper.invoke(this, wait, glRunnable);
   }
 
+  @Override
   public GLContext createContext(GLContext shareWith) {
     return (null != backend) ? backend.createContext(shareWith) : null;
   }
 
+  @Override
   public void setRealized(boolean realized) {
   }
 
+  @Override
   public boolean isRealized() {
       return isInitialized;
   }
 
+  @Override
   public void setContext(GLContext ctx) {
     if (backend == null) {
       return;
@@ -456,6 +466,7 @@ public void reshape(int x, int y, int width, int height) {
     backend.setContext(ctx);
   }
 
+  @Override
   public GLContext getContext() {
     if (backend == null) {
       return null;
@@ -463,6 +474,7 @@ public void reshape(int x, int y, int width, int height) {
     return backend.getContext();
   }
 
+  @Override
   public GL getGL() {
     if (Beans.isDesignTime()) {
       return null;
@@ -471,6 +483,7 @@ public void reshape(int x, int y, int width, int height) {
     return (context == null) ? null : context.getGL();
   }
 
+  @Override
   public GL setGL(GL gl) {
     GLContext context = getContext();
     if (context != null) {
@@ -480,6 +493,7 @@ public void reshape(int x, int y, int width, int height) {
     return null;
   }
 
+  @Override
   public void setAutoSwapBufferMode(boolean onOrOff) {
     // In the current implementation this is a no-op. Both the pbuffer
     // and pixmap based rendering paths use a single-buffered surface
@@ -488,6 +502,7 @@ public void reshape(int x, int y, int width, int height) {
     // Swing portion of the GLJPanel in any of the rendering paths.
   }
 
+  @Override
   public boolean getAutoSwapBufferMode() {
     // In the current implementation this is a no-op. Both the pbuffer
     // and pixmap based rendering paths use a single-buffered surface
@@ -496,7 +511,8 @@ public void reshape(int x, int y, int width, int height) {
     // Swing portion of the GLJPanel in any of the rendering paths.
     return true;
   }
-  
+
+  @Override
   public void swapBuffers() {
     // In the current implementation this is a no-op. Both the pbuffer
     // and pixmap based rendering paths use a single-buffered surface
@@ -505,14 +521,16 @@ public void reshape(int x, int y, int width, int height) {
     // Swing portion of the GLJPanel in any of the rendering paths.
   }
 
+  @Override
   public void setContextCreationFlags(int flags) {
     additionalCtxCreationFlags = flags;
   }
-      
+
+  @Override
   public int getContextCreationFlags() {
-    return additionalCtxCreationFlags;                
+    return additionalCtxCreationFlags;
   }
-            
+
   /** For a translucent GLJPanel (one for which {@link #setOpaque
       setOpaque}(false) has been called), indicates whether the
       application should preserve the OpenGL color buffer
@@ -529,22 +547,27 @@ public void reshape(int x, int y, int width, int height) {
     return oglPipelineEnabled;
   }
 
+  @Override
   public GLCapabilitiesImmutable getChosenGLCapabilities() {
     return backend.getChosenGLCapabilities();
   }
 
+  @Override
   public final GLProfile getGLProfile() {
     return glProfile;
   }
 
+  @Override
   public NativeSurface getNativeSurface() {
     throw new GLException("FIXME");
   }
 
+  @Override
   public long getHandle() {
     throw new GLException("FIXME");
   }
 
+  @Override
   public final GLDrawableFactory getFactory() {
     return factory;
   }
@@ -597,10 +620,12 @@ public void reshape(int x, int y, int width, int height) {
     awtWindowClosingProtocol.addClosingListenerOneShot();
   }
 
+  @Override
   public WindowClosingMode getDefaultCloseOperation() {
       return awtWindowClosingProtocol.getDefaultCloseOperation();
   }
 
+  @Override
   public WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
       return awtWindowClosingProtocol.setDefaultCloseOperation(op);
   }
@@ -618,7 +643,7 @@ public void reshape(int x, int y, int width, int height) {
     backend.handleReshape();
     handleReshape = false;
   }
-  
+
   // This is used as the GLEventListener for the pbuffer-based backend
   // as well as the callback mechanism for the other backends
   class Updater implements GLEventListener {
@@ -628,6 +653,7 @@ public void reshape(int x, int y, int width, int height) {
       this.g = g;
     }
 
+    @Override
     public void init(GLAutoDrawable drawable) {
       if (!backend.preGL(g)) {
         return;
@@ -636,10 +662,12 @@ public void reshape(int x, int y, int width, int height) {
       backend.postGL(g, false);
     }
 
+    @Override
     public void dispose(GLAutoDrawable drawable) {
       drawableHelper.dispose(GLJPanel.this);
     }
 
+    @Override
     public void display(GLAutoDrawable drawable) {
       if (!backend.preGL(g)) {
         return;
@@ -656,6 +684,7 @@ public void reshape(int x, int y, int width, int height) {
       backend.postGL(g, true);
     }
 
+    @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
       // This is handled above and dispatched directly to the appropriate context
     }
@@ -664,43 +693,49 @@ public void reshape(int x, int y, int width, int height) {
     }
   }
 
+  @Override
   public String toString() {
     return "AWT-GLJPanel[ "+((null!=backend)?backend.getDrawable().getClass().getName():"null-drawable")+"]";
   }
 
   private final Runnable postDisposeAction = new Runnable() {
+      @Override
       public void run() {
           if (backend != null && !backend.isUsingOwnThreadManagment()) {
               backend.destroy();
               backend = null;
-              isInitialized = false;      
+              isInitialized = false;
           }
       }
-  }; 
+  };
 
   private final Runnable disposeAction = new Runnable() {
+    @Override
     public void run() {
       drawableHelper.disposeGL(GLJPanel.this, backend.getDrawable(), backend.getContext(), postDisposeAction);
     }
-  }; 
+  };
 
   private final Runnable updaterInitAction = new Runnable() {
+    @Override
     public void run() {
       updater.init(GLJPanel.this);
     }
   };
 
   private final Runnable updaterDisplayAction = new Runnable() {
+    @Override
     public void run() {
       updater.display(GLJPanel.this);
     }
   };
 
   private final Runnable paintImmediatelyAction = new Runnable() {
+    @Override
     public void run() {
       paintImmediately(0, 0, getWidth(), getHeight());
     }
-  }; 
+  };
 
   private int getNextPowerOf2(int number) {
     // Workaround for problems where 0 width or height are transiently
@@ -720,7 +755,7 @@ public void reshape(int x, int y, int width, int height) {
   protected static String getThreadName() {
     return Thread.currentThread().getName();
   }
-    
+
   //----------------------------------------------------------------------
   // Implementations of the various backends
   //
@@ -731,7 +766,7 @@ public void reshape(int x, int y, int width, int height) {
   static interface Backend {
     // Create, Destroy, ..
     public boolean isUsingOwnThreadManagment();
-    
+
     // Called each time the backend needs to initialize itself
     public void initialize();
 
@@ -801,6 +836,7 @@ public void reshape(int x, int y, int width, int height) {
     private int[] skippixels   = new int[1];
     private int[] alignment    = new int[1];
 
+    @Override
     public void setOpaque(boolean opaque) {
       if (opaque != isOpaque()) {
         if (offscreenImage != null) {
@@ -810,11 +846,13 @@ public void reshape(int x, int y, int width, int height) {
       }
     }
 
+    @Override
     public boolean preGL(Graphics g) {
       // Empty in this implementation
       return true;
     }
 
+    @Override
     public void postGL(Graphics g, boolean isDisplay) {
       if (isDisplay) {
         // Must now copy pixels from offscreen context into surface
@@ -938,6 +976,7 @@ public void reshape(int x, int y, int width, int height) {
       }
     }
 
+    @Override
     public void doPaintComponent(Graphics g) {
       doPaintComponentImpl();
       if (offscreenImage != null) {
@@ -959,8 +998,10 @@ public void reshape(int x, int y, int width, int height) {
     private GLDrawableImpl offscreenDrawable;
     private GLContextImpl offscreenContext;
 
+    @Override
     public boolean isUsingOwnThreadManagment() { return false; }
-    
+
+    @Override
     public void initialize() {
       if(DEBUG) {
           System.err.println(getThreadName()+": SoftwareBackend: initialize()");
@@ -975,10 +1016,11 @@ public void reshape(int x, int y, int width, int height) {
       offscreenDrawable.setRealized(true);
       offscreenContext = (GLContextImpl) offscreenDrawable.createContext(shareWith);
       offscreenContext.setContextCreationFlags(additionalCtxCreationFlags);
-      
+
       isInitialized = true;
     }
 
+    @Override
     public void destroy() {
       if(DEBUG) {
           System.err.println(getThreadName()+": SoftwareBackend: destroy() - offscreenContext: "+(null!=offscreenContext)+" - offscreenDrawable: "+(null!=offscreenDrawable));
@@ -997,22 +1039,27 @@ public void reshape(int x, int y, int width, int height) {
       }
     }
 
+    @Override
     public GLContext createContext(GLContext shareWith) {
       return (null != offscreenDrawable) ? offscreenDrawable.createContext(shareWith) : null;
     }
 
+    @Override
     public void setContext(GLContext ctx) {
       offscreenContext=(GLContextImpl)ctx;
     }
 
+    @Override
     public GLContext getContext() {
       return offscreenContext;
     }
 
+    @Override
     public GLDrawable getDrawable() {
         return offscreenDrawable;
     }
 
+    @Override
     public GLCapabilitiesImmutable getChosenGLCapabilities() {
       if (offscreenDrawable == null) {
         return null;
@@ -1020,6 +1067,7 @@ public void reshape(int x, int y, int width, int height) {
       return offscreenDrawable.getChosenGLCapabilities();
     }
 
+    @Override
     public GLProfile getGLProfile() {
       if (offscreenDrawable == null) {
         return null;
@@ -1027,6 +1075,7 @@ public void reshape(int x, int y, int width, int height) {
       return offscreenDrawable.getGLProfile();
     }
 
+    @Override
     public void handleReshape() {
       destroy();
       initialize();
@@ -1039,14 +1088,17 @@ public void reshape(int x, int y, int width, int height) {
       }
     }
 
+    @Override
     protected void doPaintComponentImpl() {
       drawableHelper.invokeGL(offscreenDrawable, offscreenContext, updaterDisplayAction, updaterInitAction);
     }
 
+    @Override
     protected int getGLPixelType() {
       return offscreenContext.getOffscreenContextPixelDataType();
     }
 
+    @Override
     protected boolean flipVertically() {
       return offscreenContext.offscreenImageNeedsVerticalFlip();
     }
@@ -1057,8 +1109,10 @@ public void reshape(int x, int y, int width, int height) {
     private int       pbufferWidth  = 256;
     private int       pbufferHeight = 256;
 
+    @Override
     public boolean isUsingOwnThreadManagment() { return false; }
-    
+
+    @Override
     public void initialize() {
       if (pbuffer != null) {
         throw new InternalError("Creating pbuffer twice without destroying it (memory leak / correctness bug)");
@@ -1073,7 +1127,7 @@ public void reshape(int x, int y, int width, int height) {
                                           pbufferWidth,
                                           pbufferHeight,
                                           shareWith);
-        pbuffer.setContextCreationFlags(additionalCtxCreationFlags);        
+        pbuffer.setContextCreationFlags(additionalCtxCreationFlags);
         pbuffer.addGLEventListener(updater);
         isInitialized = true;
       } catch (GLException e) {
@@ -1088,6 +1142,7 @@ public void reshape(int x, int y, int width, int height) {
       }
     }
 
+    @Override
     public void destroy() {
       if(DEBUG) {
           System.err.println(getThreadName()+": PbufferBackend: destroy() - pbuffer: "+(null!=pbuffer));
@@ -1098,10 +1153,12 @@ public void reshape(int x, int y, int width, int height) {
       }
     }
 
+    @Override
     public GLContext createContext(GLContext shareWith) {
       return (null != pbuffer) ? pbuffer.createContext(shareWith) : null;
     }
 
+    @Override
     public void setContext(GLContext ctx) {
       if (pbuffer == null && Beans.isDesignTime()) {
         return;
@@ -1109,6 +1166,7 @@ public void reshape(int x, int y, int width, int height) {
       pbuffer.setContext(ctx);
     }
 
+    @Override
     public GLContext getContext() {
       // Workaround for crashes in NetBeans GUI builder
       if (pbuffer == null && Beans.isDesignTime()) {
@@ -1117,24 +1175,28 @@ public void reshape(int x, int y, int width, int height) {
       return pbuffer.getContext();
     }
 
+    @Override
     public GLDrawable getDrawable() {
         return pbuffer;
     }
 
+    @Override
     public GLCapabilitiesImmutable getChosenGLCapabilities() {
       if (pbuffer == null) {
         return null;
       }
       return pbuffer.getChosenGLCapabilities();
     }
-    
+
+    @Override
     public GLProfile getGLProfile() {
       if (pbuffer == null) {
         return null;
       }
       return pbuffer.getGLProfile();
     }
-    
+
+    @Override
     public void handleReshape() {
       // Use factor larger than 2 during shrinks for some hysteresis
       float shrinkFactor = 2.5f;
@@ -1192,15 +1254,18 @@ public void reshape(int x, int y, int width, int height) {
       }
     }
 
+    @Override
     protected void doPaintComponentImpl() {
       pbuffer.display();
     }
 
+    @Override
     protected int getGLPixelType() {
       // This seems to be a good choice on all platforms
       return GL2.GL_UNSIGNED_INT_8_8_8_8_REV;
     }
 
+    @Override
     protected boolean flipVertically() {
       return true;
     }
@@ -1255,8 +1320,10 @@ public void reshape(int x, int y, int width, int height) {
     // comment related to Issue 274 below
     private GraphicsConfiguration workaroundConfig;
 
+    @Override
     public boolean isUsingOwnThreadManagment() { return true; }
-    
+
+    @Override
     public void initialize() {
       if(DEBUG) {
           System.err.println(getThreadName()+": J2DOGL: initialize()");
@@ -1265,8 +1332,10 @@ public void reshape(int x, int y, int width, int height) {
       isInitialized = true;
     }
 
+    @Override
     public void destroy() {
       Java2D.invokeWithOGLContextCurrent(null, new Runnable() {
+          @Override
           public void run() {
             if(DEBUG) {
                 System.err.println(getThreadName()+": J2DOGL: destroy() - joglContext: "+(null!=joglContext)+" - joglDrawable: "+(null!=joglDrawable));
@@ -1284,10 +1353,12 @@ public void reshape(int x, int y, int width, int height) {
         });
     }
 
+    @Override
     public void setOpaque(boolean opaque) {
       // Empty in this implementation
     }
 
+    @Override
     public GLContext createContext(GLContext shareWith) {
       if(null != shareWith) {
           throw new GLException("J2DOGLBackend cannot create context w/ additional shared context, since it already needs to share the context w/ J2D.");
@@ -1295,32 +1366,39 @@ public void reshape(int x, int y, int width, int height) {
       return (null != joglDrawable && null != j2dContext) ? joglDrawable.createContext(j2dContext) : null;
     }
 
+    @Override
     public void setContext(GLContext ctx) {
         joglContext=ctx;
     }
 
+    @Override
     public GLContext getContext() {
       return joglContext;
     }
 
+    @Override
     public GLDrawable getDrawable() {
         return joglDrawable;
     }
 
+    @Override
     public GLCapabilitiesImmutable getChosenGLCapabilities() {
       // FIXME: should do better than this; is it possible to using only platform-independent code?
       return new GLCapabilities(null);
     }
 
+    @Override
     public GLProfile getGLProfile() {
       // FIXME: should do better than this; is it possible to using only platform-independent code?
       return GLProfile.getDefault(GLProfile.getDefaultDevice());
     }
 
+    @Override
     public void handleReshape() {
       // Empty in this implementation
     }
 
+    @Override
     public boolean preGL(Graphics g) {
       GL2 gl = joglContext.getGL().getGL2();
       // Set up needed state in JOGL context from Java2D context
@@ -1403,13 +1481,13 @@ public void reshape(int x, int y, int width, int height) {
           int[] height = new int[1];
           gl.glGetTexLevelParameteriv(fboTextureTarget, 0, GL2.GL_TEXTURE_WIDTH, width, 0);
           gl.glGetTexLevelParameteriv(fboTextureTarget, 0, GL2.GL_TEXTURE_HEIGHT, height, 0);
-                    
+
           gl.glGenRenderbuffers(1, frameBufferDepthBuffer, 0);
           if (DEBUG) {
             System.err.println(getThreadName()+": GLJPanel: Generated frameBufferDepthBuffer " + frameBufferDepthBuffer[0] +
                                " with width " + width[0] + ", height " + height[0]);
           }
-                    
+
           gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, frameBufferDepthBuffer[0]);
           // FIXME: may need a loop here like in Java2D
           gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, GL2GL3.GL_DEPTH_COMPONENT24, width[0], height[0]);
@@ -1457,6 +1535,7 @@ public void reshape(int x, int y, int width, int height) {
       return true;
     }
 
+    @Override
     public void postGL(Graphics g, boolean isDisplay) {
       // Cause OpenGL pipeline to flush its results because
       // otherwise it's possible we will buffer up multiple frames'
@@ -1473,6 +1552,7 @@ public void reshape(int x, int y, int width, int height) {
       }
     }
 
+    @Override
     public void doPaintComponent(final Graphics g) {
       // This is a workaround for an issue in the Java 2D / JOGL
       // bridge (reported by an end user as JOGL Issue 274) where Java
@@ -1498,10 +1578,12 @@ public void reshape(int x, int y, int width, int height) {
             getDefaultScreenDevice().
             getDefaultConfiguration();
         }
-        Java2D.invokeWithOGLSharedContextCurrent(workaroundConfig, new Runnable() { public void run() {}});
+        Java2D.invokeWithOGLSharedContextCurrent(workaroundConfig, new Runnable() { @Override
+        public void run() {}});
       }
 
       Java2D.invokeWithOGLContextCurrent(g, new Runnable() {
+          @Override
           public void run() {
             if (DEBUG) {
               System.err.println(getThreadName()+": GLJPanel.invokeWithOGLContextCurrent");

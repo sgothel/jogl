@@ -40,8 +40,10 @@
 
 package jogamp.opengl.x11.glx;
 
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
 
 public class X11OnscreenGLXDrawable extends X11GLXDrawable {
   /** GLXWindow can't be made current on AWT with NVidia driver, hence disabled for now */

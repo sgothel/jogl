@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -72,7 +72,7 @@ import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
-  
+
   public static final VersionNumber versionOneZero = new VersionNumber(1, 0, 0);
   public static final VersionNumber versionOneOne = new VersionNumber(1, 1, 0);
   public static final VersionNumber versionOneTwo = new VersionNumber(1, 2, 0);
@@ -80,7 +80,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   public static final VersionNumber versionOneFour = new VersionNumber(1, 4, 0);
 
   private static DesktopGLDynamicLookupHelper x11GLXDynamicLookupHelper = null;
-  
+
   public X11GLXDrawableFactory() {
     super();
 
@@ -93,30 +93,31 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 if(DEBUG) {
                     gle.printStackTrace();
                 }
-            }            
+            }
             if(null!=tmp && tmp.isLibComplete()) {
                 x11GLXDynamicLookupHelper = tmp;
                 GLX.getGLXProcAddressTable().reset(x11GLXDynamicLookupHelper);
             }
         }
     }
-    
+
     defaultDevice = new X11GraphicsDevice(X11Util.getNullDisplayName(), AbstractGraphicsDevice.DEFAULT_UNIT);
-    
+
     if(null!=x11GLXDynamicLookupHelper) {
         // Register our GraphicsConfigurationFactory implementations
         // The act of constructing them causes them to be registered
         X11GLXGraphicsConfigurationFactory.registerFactory();
-        
+
         sharedMap = new HashMap<String, SharedResourceRunner.Resource>();
-        
+
         // Init shared resources off thread
         // Will be released via ShutdownHook
         sharedResourceRunner = new SharedResourceRunner(new SharedResourceImplementation());
         sharedResourceRunner.start();
-    }    
+    }
   }
 
+  @Override
   protected final void destroy(ShutdownType shutdownType) {
     if(null != sharedResourceRunner) {
         sharedResourceRunner.stop();
@@ -129,7 +130,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     defaultDevice = null;
     /**
      * Pulling away the native library may cause havoc ..
-     * 
+     *
     if(ShutdownType.COMPLETE == shutdownType && null != x11GLXDynamicLookupHelper) {
         x11GLXDynamicLookupHelper.destroy();
         x11GLXDynamicLookupHelper = null;
@@ -140,13 +141,14 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     X11Util.shutdown( false, DEBUG );
   }
 
+  @Override
   public final GLDynamicLookupHelper getGLDynamicLookupHelper(int profile) {
       return x11GLXDynamicLookupHelper;
   }
 
   private X11GraphicsDevice defaultDevice;
   private SharedResourceRunner sharedResourceRunner;
-  private HashMap<String /* connection */, SharedResourceRunner.Resource> sharedMap;  
+  private HashMap<String /* connection */, SharedResourceRunner.Resource> sharedMap;
 
   static class SharedResource implements SharedResourceRunner.Resource {
       X11GraphicsDevice device;
@@ -169,16 +171,20 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
           drawable = draw;
           context = ctx;
           glXServerVersion = glXServerVer;
-          glXServerVersionOneOneCapable = glXServerVersion.compareTo(versionOneOne) >= 0 ;        
-          glXServerVersionOneThreeCapable = glXServerVersion.compareTo(versionOneThree) >= 0 ;        
+          glXServerVersionOneOneCapable = glXServerVersion.compareTo(versionOneOne) >= 0 ;
+          glXServerVersionOneThreeCapable = glXServerVersion.compareTo(versionOneThree) >= 0 ;
           glXServerVendorName = glXServerVendor;
           isGLXServerVendorATI = GLXUtil.isVendorATI(glXServerVendorName);
           isGLXServerVendorNVIDIA = GLXUtil.isVendorNVIDIA(glXServerVendorName);
           glXMultisampleAvailable = glXServerMultisampleAvail;
       }
+      @Override
       final public AbstractGraphicsDevice getDevice() { return device; }
+      @Override
       final public AbstractGraphicsScreen getScreen() { return screen; }
+      @Override
       final public GLDrawableImpl getDrawable() { return drawable; }
+      @Override
       final public GLContextImpl getContext() { return context; }
 
       final String getGLXVendorName() { return glXServerVendorName; }
@@ -191,42 +197,47 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   class SharedResourceImplementation implements SharedResourceRunner.Implementation {
+        @Override
         public void clear() {
             synchronized(sharedMap) {
                 sharedMap.clear();
             }
         }
+        @Override
         public SharedResourceRunner.Resource mapPut(String connection, SharedResourceRunner.Resource resource) {
             synchronized(sharedMap) {
                 return sharedMap.put(connection, resource);
             }
         }
+        @Override
         public SharedResourceRunner.Resource mapGet(String connection) {
             synchronized(sharedMap) {
                 return sharedMap.get(connection);
             }
         }
+        @Override
         public Collection<SharedResourceRunner.Resource> mapValues() {
             synchronized(sharedMap) {
                 return sharedMap.values();
             }
         }
 
+        @Override
         public SharedResourceRunner.Resource createSharedResource(String connection) {
-            X11GraphicsDevice sharedDevice = 
-                    new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT, 
+            X11GraphicsDevice sharedDevice =
+                    new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT,
                                           true); // own non-shared display connection, no locking
-                    // new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT, 
+                    // new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT,
                     //                       NativeWindowFactory.getNullToolkitLock(), true); // own non-shared display connection, no locking
             sharedDevice.lock();
             try {
                 if(!GLXUtil.isGLXAvailableOnServer(sharedDevice)) {
                     throw new GLException("GLX not available on device/server: "+sharedDevice);
                 }
-                GLXUtil.initGLXClientDataSingleton(sharedDevice);                
+                GLXUtil.initGLXClientDataSingleton(sharedDevice);
                 final String glXServerVendorName = GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_VENDOR);
                 final VersionNumber glXServerVersion = GLXUtil.getGLXServerVersionNumber(sharedDevice.getHandle());
-                final boolean glXServerMultisampleAvailable = GLXUtil.isMultisampleAvailable(GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_EXTENSIONS));                
+                final boolean glXServerMultisampleAvailable = GLXUtil.isMultisampleAvailable(GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_EXTENSIONS));
                 if(X11Util.ATI_HAS_XCLOSEDISPLAY_BUG && GLXUtil.isVendorATI(glXServerVendorName)) {
                     X11Util.setMarkAllDisplaysUnclosable(true);
                     X11Util.markDisplayUncloseable(sharedDevice.getHandle());
@@ -263,8 +274,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                     System.err.println("GLX Client Version:     " + GLXUtil.getClientVersionNumber());
                     System.err.println("GLX Client Multisample: " + GLXUtil.isClientMultisampleAvailable());
                 }
-                return new SharedResource(sharedDevice, sharedScreen, sharedDrawable, sharedContext, 
-                                          glXServerVersion, glXServerVendorName, 
+                return new SharedResource(sharedDevice, sharedScreen, sharedDrawable, sharedContext,
+                                          glXServerVersion, glXServerVendorName,
                                           glXServerMultisampleAvailable && GLXUtil.isClientMultisampleAvailable());
             } catch (Throwable t) {
                 throw new GLException("X11GLXDrawableFactory - Could not initialize shared resources for "+connection, t);
@@ -273,6 +284,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
             }
         }
 
+        @Override
         public void releaseSharedResource(SharedResourceRunner.Resource shared) {
             SharedResource sr = (SharedResource) shared;
             if (DEBUG) {
@@ -308,10 +320,12 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         }
   }
 
+  @Override
   public final AbstractGraphicsDevice getDefaultDevice() {
       return defaultDevice;
   }
 
+  @Override
   public final boolean getIsDeviceCompatible(AbstractGraphicsDevice device) {
       if(null != x11GLXDynamicLookupHelper && device instanceof X11GraphicsDevice) {
           return true;
@@ -319,10 +333,12 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       return false;
   }
 
+  @Override
   protected final Thread getSharedResourceThread() {
     return sharedResourceRunner.start();
   }
-    
+
+  @Override
   protected final boolean createSharedResource(AbstractGraphicsDevice device) {
     try {
         SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
@@ -337,7 +353,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     }
     return false;
   }
-  
+
+  @Override
   protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
     SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
     if(null!=sr) {
@@ -346,6 +363,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return null;
   }
 
+  @Override
   protected AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device) {
     SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
     if(null!=sr) {
@@ -366,10 +384,12 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return (SharedResource) sharedResourceRunner.getOrCreateShared(device);
   }
 
+  @Override
   protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
     return X11GLXGraphicsConfigurationFactory.getAvailableCapabilities(this, device);
   }
 
+  @Override
   protected final GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
@@ -377,6 +397,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return new X11OnscreenGLXDrawable(this, target);
   }
 
+  @Override
   protected final GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
@@ -412,7 +433,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public final boolean isGLXMultisampleAvailable(AbstractGraphicsDevice device) {
-    if(null != device) {  
+    if(null != device) {
         SharedResource sr = (SharedResource) sharedResourceRunner.getOrCreateShared(device);
         if(null!=sr) {
           return sr.isGLXMultisampleAvailable();
@@ -422,7 +443,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   public final VersionNumber getGLXVersionNumber(AbstractGraphicsDevice device) {
-    if(null != device) {  
+    if(null != device) {
         SharedResource sr = (SharedResource) sharedResourceRunner.getOrCreateShared(device);
         if(null!=sr) {
           return sr.getGLXVersion();
@@ -433,9 +454,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     }
     return null;
   }
-  
+
   public final boolean isGLXVersionGreaterEqualOneOne(AbstractGraphicsDevice device) {
-    if(null != device) {  
+    if(null != device) {
         SharedResource sr = (SharedResource) sharedResourceRunner.getOrCreateShared(device);
         if(null!=sr) {
           return sr.isGLXVersionGreaterEqualOneOne();
@@ -447,9 +468,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     }
     return false;
   }
-  
+
   public final boolean isGLXVersionGreaterEqualOneThree(AbstractGraphicsDevice device) {
-    if(null != device) {  
+    if(null != device) {
         SharedResource sr = (SharedResource) sharedResourceRunner.getOrCreateShared(device);
         if(null!=sr) {
           return sr.isGLXVersionGreaterEqualOneThree();
@@ -462,6 +483,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return false;
   }
 
+  @Override
   public final boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
       if(null == device) {
         SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(defaultDevice);
@@ -472,6 +494,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       return isGLXVersionGreaterEqualOneThree(device);
   }
 
+  @Override
   protected final NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice deviceReq,
                                                            GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
                                                            GLCapabilitiesChooser chooser,
@@ -488,8 +511,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
     // create screen/device pair - Null X11 locking, due to private non-shared Display handle
     final X11GraphicsDevice device = new X11GraphicsDevice(X11Util.openDisplay(sharedDevice.getConnection()), AbstractGraphicsDevice.DEFAULT_UNIT, NativeWindowFactory.getNullToolkitLock(), true);
-    final X11GraphicsScreen screen = new X11GraphicsScreen(device, sharedScreen.getIndex()); 
-    
+    final X11GraphicsScreen screen = new X11GraphicsScreen(device, sharedScreen.getIndex());
+
     WrappedSurface ns = new WrappedSurface(
                X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen) );
     if(ns != null) {
@@ -498,6 +521,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return ns;
   }
 
+  @Override
   protected final ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice adevice, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
     // FIXME device/windowHandle -> screen ?!
     X11GraphicsDevice device = (X11GraphicsDevice) adevice;
@@ -506,23 +530,28 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     WrappedSurface ns = new WrappedSurface(cfg, windowHandle);
     return ns;
   }
- 
+
+  @Override
   protected final GLContext createExternalGLContextImpl() {
     return X11ExternalGLXContext.create(this, null);
   }
 
+  @Override
   public final boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device) {
     return canCreateGLPbuffer(device);
   }
 
+  @Override
   protected final GLDrawable createExternalGLDrawableImpl() {
     return X11ExternalGLXDrawable.create(this, null);
   }
 
+  @Override
   public final boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {
     return false;
   }
 
+  @Override
   public final GLContext createContextOnJava2DSurface(Object graphics, GLContext shareWith)
     throws GLException {
     throw new GLException("Unimplemented on this platform");
@@ -534,6 +563,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
   private boolean gotGammaRampLength;
   private int gammaRampLength;
+  @Override
   protected final synchronized int getGammaRampLength() {
     if (gotGammaRampLength) {
       return gammaRampLength;
@@ -556,6 +586,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return gammaRampLength;
   }
 
+  @Override
   protected final boolean setGammaRamp(float[] ramp) {
     long display = getOrCreateSharedDpy(defaultDevice);
     if(0 == display) {
@@ -577,6 +608,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return res;
   }
 
+  @Override
   protected final Buffer getGammaRamp() {
     long display = getOrCreateSharedDpy(defaultDevice);
     if(0 == display) {
@@ -607,6 +639,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     return rampData;
   }
 
+  @Override
   protected final void resetGammaRamp(Buffer originalGammaRamp) {
     if (originalGammaRamp == null) {
         return; // getGammaRamp failed originally

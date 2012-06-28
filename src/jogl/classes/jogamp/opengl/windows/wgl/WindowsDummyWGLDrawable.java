@@ -40,18 +40,17 @@
 
 package jogamp.opengl.windows.wgl;
 
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLProfile;
-
 import javax.media.nativewindow.AbstractGraphicsScreen;
-import jogamp.nativewindow.windows.GDI;
-import jogamp.nativewindow.windows.GDIUtil;
-
 import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
+
+import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.GDISurface;
+import jogamp.nativewindow.windows.GDIUtil;
 
 public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
   private long hwnd;

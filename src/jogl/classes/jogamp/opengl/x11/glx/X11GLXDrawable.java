@@ -40,10 +40,11 @@
 
 package jogamp.opengl.x11.glx;
 
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.opengl.GLDrawableFactory;
 
-import jogamp.opengl.*;
+import jogamp.opengl.GLDrawableImpl;
+import jogamp.opengl.GLDynamicLookupHelper;
 
 public abstract class X11GLXDrawable extends GLDrawableImpl {
   protected X11GLXDrawable(GLDrawableFactory factory, NativeSurface comp, boolean realized) {

@@ -28,13 +28,16 @@
 
 package jogamp.opengl.x11.glx;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLProfile;
+
+import jogamp.nativewindow.x11.X11Lib;
 
 import com.jogamp.nativewindow.WrappedSurface;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
-
-import jogamp.nativewindow.x11.*;
 
 public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
   private static final int f_dim = 64;

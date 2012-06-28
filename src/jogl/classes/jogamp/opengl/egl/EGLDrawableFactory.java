@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,24 +29,12 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
 package jogamp.opengl.egl;
-
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
-import javax.media.opengl.GLProfile.ShutdownType;
-
-import com.jogamp.common.JogampRuntimeException;
-import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.*;
-import com.jogamp.nativewindow.WrappedSurface;
-import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
-
-import jogamp.opengl.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,11 +42,37 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.DefaultGraphicsScreen;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.ProxySurface;
+import javax.media.nativewindow.VisualIDHolder;
+import javax.media.opengl.GLCapabilitiesChooser;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.GLProfile.ShutdownType;
+
+import jogamp.opengl.GLDrawableFactoryImpl;
+import jogamp.opengl.GLDrawableImpl;
+import jogamp.opengl.GLDynamicLookupHelper;
+
+import com.jogamp.common.JogampRuntimeException;
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.nativewindow.WrappedSurface;
+import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     private static GLDynamicLookupHelper eglES1DynamicLookupHelper = null;
     private static GLDynamicLookupHelper eglES2DynamicLookupHelper = null;
     private static boolean isANGLE = false;
-    
+
     private static final boolean isANGLE(GLDynamicLookupHelper dl) {
         if(Platform.OSType.WINDOWS == Platform.OS_TYPE) {
             final boolean r = 0 != dl.dynamicLookupFunction("eglQuerySurfacePointerANGLE") ||
@@ -69,10 +83,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             return false;
         }
     }
-    
+
     public EGLDrawableFactory() {
         super();
-        
+
         // Register our GraphicsConfigurationFactory implementations
         // The act of constructing them causes them to be registered
         EGLGraphicsConfigurationFactory.registerFactory();
@@ -85,15 +99,15 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         defaultDevice = new EGLGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
-        
-        // FIXME: Probably need to move EGL from a static model 
-        // to a dynamic one, where there can be 2 instances 
+
+        // FIXME: Probably need to move EGL from a static model
+        // to a dynamic one, where there can be 2 instances
         // for each ES profile with their own ProcAddressTable.
 
         synchronized(EGLDrawableFactory.class) {
             /**
              * Currently AMD's EGL impl. crashes at eglGetDisplay(EGL_DEFAULT_DISPLAY)
-             *  
+             *
             // Check Desktop ES2 Availability first (AMD, ..)
             if(null==eglES2DynamicLookupHelper) {
                 GLDynamicLookupHelper tmp=null;
@@ -103,19 +117,19 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     if(DEBUG) {
                         gle.printStackTrace();
                     }
-                }                
+                }
                 if(null!=tmp && tmp.isLibComplete()) {
                     eglES2DynamicLookupHelper = tmp;
                     EGL.resetProcAddressTable(eglES2DynamicLookupHelper);
                     if (GLProfile.DEBUG) {
                         System.err.println("Info: EGLDrawableFactory: Desktop ES2 - OK");
-                    }                    
+                    }
                 } else if (GLProfile.DEBUG) {
                     System.err.println("Info: EGLDrawableFactory: Desktop ES2 - NOPE");
-                }                    
+                }
             } */
             final boolean hasDesktopES2 = null != eglES2DynamicLookupHelper;
-            
+
             if(!hasDesktopES2 && null==eglES1DynamicLookupHelper) {
                 GLDynamicLookupHelper tmp=null;
                 try {
@@ -124,7 +138,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     if(DEBUG) {
                         gle.printStackTrace();
                     }
-                }                
+                }
                 if(null!=tmp && tmp.isLibComplete()) {
                     eglES1DynamicLookupHelper = tmp;
                     EGL.resetProcAddressTable(eglES1DynamicLookupHelper);
@@ -132,10 +146,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     isANGLE |= isANGLEES1;
                     if (GLProfile.DEBUG) {
                         System.err.println("Info: EGLDrawableFactory: EGL ES1 - OK, isANGLE: "+isANGLEES1);
-                    }                    
+                    }
                 } else if (GLProfile.DEBUG) {
                     System.err.println("Info: EGLDrawableFactory: EGL ES1 - NOPE");
-                }                    
+                }
             }
             if(!hasDesktopES2 && null==eglES2DynamicLookupHelper) {
                 GLDynamicLookupHelper tmp=null;
@@ -145,7 +159,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     if(DEBUG) {
                         gle.printStackTrace();
                     }
-                }                
+                }
                 if(null!=tmp && tmp.isLibComplete()) {
                     eglES2DynamicLookupHelper = tmp;
                     EGL.resetProcAddressTable(eglES2DynamicLookupHelper);
@@ -153,14 +167,15 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     isANGLE |= isANGLEES2;
                     if (GLProfile.DEBUG) {
                         System.err.println("Info: EGLDrawableFactory: EGL ES2 - OK, isANGLE: "+isANGLEES2);
-                    }                    
+                    }
                 } else if (GLProfile.DEBUG) {
                     System.err.println("Info: EGLDrawableFactory: EGL ES2 - NOPE");
-                }                    
+                }
             }
         }
     }
 
+    @Override
     protected final void destroy(ShutdownType shutdownType) {
         if(null != sharedMap) {
             Collection<SharedResource> srl = sharedMap.values();
@@ -205,7 +220,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
       private final boolean wasES1ContextCreated;
       private final boolean wasES2ContextCreated;
 
-      SharedResource(EGLGraphicsDevice dev, boolean wasContextES1Created, boolean wasContextES2Created 
+      SharedResource(EGLGraphicsDevice dev, boolean wasContextES1Created, boolean wasContextES2Created
                      /*EGLDrawable draw, EGLContext ctxES1, EGLContext ctxES2 */) {
           this.device = dev;
           // this.drawable = draw;
@@ -222,10 +237,12 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
       final boolean wasES2ContextAvailable() { return wasES2ContextCreated; }
     }
 
+    @Override
     public final AbstractGraphicsDevice getDefaultDevice() {
       return defaultDevice;
     }
 
+    @Override
     public final boolean getIsDeviceCompatible(AbstractGraphicsDevice device) {
       // via mappings (X11/WGL/.. -> EGL) we shall be able to handle all types.
       return null!=eglES2DynamicLookupHelper || null!=eglES1DynamicLookupHelper;
@@ -239,7 +256,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         caps.setDoubleBuffered(false);
         caps.setOnscreen(false);
         caps.setPBuffer(true);
-        final EGLDrawable drawable = (EGLDrawable) createGLDrawable( createOffscreenSurfaceImpl(sharedDevice, caps, caps, null, 64, 64) );        
+        final EGLDrawable drawable = (EGLDrawable) createGLDrawable( createOffscreenSurfaceImpl(sharedDevice, caps, caps, null, 64, 64) );
         if(null!=drawable) {
             final EGLContext context = (EGLContext) drawable.createContext(null);
             if (null != context) {
@@ -251,7 +268,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     if (DEBUG) {
                         System.err.println("EGLDrawableFactory.createShared: INFO: makeCurrent failed");
                         gle.printStackTrace();
-                    }                    
+                    }
                 } finally {
                     context.destroy();
                 }
@@ -260,7 +277,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
         return madeCurrent;
     } */
-    
+
     /* package */ SharedResource getOrCreateEGLSharedResource(AbstractGraphicsDevice adevice) {
         if(null == eglES1DynamicLookupHelper && null == eglES2DynamicLookupHelper) {
             return null;
@@ -268,7 +285,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         String connection = adevice.getConnection();
         SharedResource sr;
         synchronized(sharedMap) {
-            sr = (SharedResource) sharedMap.get(connection);
+            sr = sharedMap.get(connection);
         }
         if(null==sr) {
             long eglDisplay = EGLDisplayUtil.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
@@ -280,7 +297,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             if (!EGLDisplayUtil.eglInitialize(eglDisplay, null, null)) {
                 throw new GLException("eglInitialize failed"+", error 0x"+Integer.toHexString(EGL.eglGetError()));
             }
-            final EGLGraphicsDevice sharedDevice = new EGLGraphicsDevice(eglDisplay, connection, adevice.getUnitID());            
+            final EGLGraphicsDevice sharedDevice = new EGLGraphicsDevice(eglDisplay, connection, adevice.getUnitID());
             // final boolean madeCurrentES1 = isEGLContextAvailable(sharedDevice, GLProfile.GLES1);
             // final boolean madeCurrentES2 = isEGLContextAvailable(sharedDevice, GLProfile.GLES2);
             final boolean madeCurrentES1 = true; // FIXME
@@ -293,15 +310,17 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 System.err.println("EGLDrawableFactory.createShared: device:  " + sharedDevice);
                 System.err.println("EGLDrawableFactory.createShared: context ES1: " + madeCurrentES1);
                 System.err.println("EGLDrawableFactory.createShared: context ES2: " + madeCurrentES2);
-            }                        
+            }
         }
         return sr;
     }
 
+    @Override
     protected final Thread getSharedResourceThread() {
         return null;
     }
-    
+
+    @Override
     protected final boolean createSharedResource(AbstractGraphicsDevice device) {
         try {
             SharedResource sr = getOrCreateEGLSharedResource(device);
@@ -314,13 +333,15 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 gle.printStackTrace();
             }
         }
-        return false;        
+        return false;
     }
-    
+
+    @Override
     protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
         return null; // n/a for EGL .. since we don't keep the resources
     }
-    
+
+    @Override
     protected AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device) {
         SharedResource sr = getOrCreateEGLSharedResource(device);
         if(null!=sr) {
@@ -332,7 +353,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     public boolean isANGLE() {
         return isANGLE;
     }
-    
+
+    @Override
     public GLDynamicLookupHelper getGLDynamicLookupHelper(int esProfile) {
         if (2==esProfile) {
             return eglES2DynamicLookupHelper;
@@ -343,6 +365,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
 
+    @Override
     protected List<GLCapabilitiesImmutable> getAvailableCapabilitiesImpl(AbstractGraphicsDevice device) {
         if(null == eglES1DynamicLookupHelper && null == eglES2DynamicLookupHelper) {
             return new ArrayList<GLCapabilitiesImmutable>(); // null
@@ -350,6 +373,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return EGLGraphicsConfigurationFactory.getAvailableCapabilities(this, device);
     }
 
+    @Override
     protected GLDrawableImpl createOnscreenDrawableImpl(NativeSurface target) {
         if (target == null) {
           throw new IllegalArgumentException("Null target");
@@ -357,6 +381,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return new EGLOnscreenDrawable(this, target);
     }
 
+    @Override
     protected GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) {
         if (target == null) {
           throw new IllegalArgumentException("Null target");
@@ -370,17 +395,20 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return new EGLPbufferDrawable(this, target);
     }
 
+    @Override
     public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
         return true;
     }
 
+    @Override
     protected NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice device, GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
         WrappedSurface ns = new WrappedSurface(EGLGraphicsConfigurationFactory.createOffscreenGraphicsConfiguration(device, capsChosen, capsRequested, chooser));
         ns.surfaceSizeChanged(width, height);
         return ns;
     }
 
-    protected ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice adevice, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {    
+    @Override
+    protected ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice adevice, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
         // FIXME device/windowHandle -> screen ?!
         EGLGraphicsDevice device = (EGLGraphicsDevice) adevice;
         DefaultGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);
@@ -388,24 +416,29 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         WrappedSurface ns = new WrappedSurface(cfg, windowHandle);
         return ns;
     }
-    
+
+    @Override
     protected GLContext createExternalGLContextImpl() {
         AbstractGraphicsScreen absScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_EGL);
         return new EGLExternalContext(absScreen);
     }
 
+    @Override
     public boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device) {
         return false;
     }
 
+    @Override
     protected GLDrawable createExternalGLDrawableImpl() {
         throw new GLException("Not yet implemented");
     }
 
+    @Override
     public boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {
         return false;
     }
 
+    @Override
     public GLContext createContextOnJava2DSurface(Object graphics, GLContext shareWith)
         throws GLException {
         throw new GLException("Unimplemented on this platform");

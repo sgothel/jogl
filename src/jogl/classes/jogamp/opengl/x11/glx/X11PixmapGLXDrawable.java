@@ -40,9 +40,16 @@
 
 package jogamp.opengl.x11.glx;
 
-import javax.media.nativewindow.*;
-import javax.media.opengl.*;
-import jogamp.nativewindow.x11.*;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.SurfaceChangeable;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+
+import jogamp.nativewindow.x11.X11Lib;
+import jogamp.nativewindow.x11.XVisualInfo;
 
 public class X11PixmapGLXDrawable extends X11GLXDrawable {
   private long pixmap;

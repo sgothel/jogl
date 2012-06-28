@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -104,11 +104,11 @@ public interface GLDrawable {
    *
    * <P>
    *
-   * With an argument of <code>true</code>, 
-   * the minimum implementation shall call 
+   * With an argument of <code>true</code>,
+   * the minimum implementation shall call
    * {@link NativeSurface#lockSurface() NativeSurface's lockSurface()} and if successfull:
    * <ul>
-   *    <li> Update the {@link GLCapabilities}, which are associated with 
+   *    <li> Update the {@link GLCapabilities}, which are associated with
    *         the attached {@link NativeSurface}'s {@link AbstractGraphicsConfiguration}.</li>
    *    <li> Release the lock with {@link NativeSurface#unlockSurface() NativeSurface's unlockSurface()}.</li>
    * </ul><br>
@@ -146,7 +146,7 @@ public interface GLDrawable {
       On some platforms, the pixel format is not directly associated
       with the drawable; a best attempt is made to return a reasonable
       value in this case. <br>
-      This object shall be directly associated to the attached {@link NativeSurface}'s 
+      This object shall be directly associated to the attached {@link NativeSurface}'s
       {@link AbstractGraphicsConfiguration}, and if changes are necessary,
       they should reflect those as well.
       @return A copy of the queried object.
@@ -159,14 +159,14 @@ public interface GLDrawable {
   public GLProfile getGLProfile();
 
   /**
-   * Returns the underlying native surface which surface handle 
+   * Returns the underlying native surface which surface handle
    * represents this OpenGL drawable's native resource.
-   * 
+   *
    * @see #getHandle()
    */
   public NativeSurface getNativeSurface();
 
-  /** 
+  /**
    * This is the GL/Windowing drawable handle.<br>
    * It is usually the {@link javax.media.nativewindow.NativeSurface#getSurfaceHandle()},
    * ie the native surface handle of the underlying windowing toolkit.<br>
@@ -175,7 +175,9 @@ public interface GLDrawable {
    */
   public long getHandle();
 
+  /** Return the {@link GLDrawableFactory} being used to create this instance. */
   public GLDrawableFactory getFactory();
 
+  @Override
   public String toString();
 }

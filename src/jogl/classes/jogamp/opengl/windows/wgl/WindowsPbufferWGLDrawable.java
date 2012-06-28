@@ -44,17 +44,16 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.SurfaceChangeable;
 import javax.media.opengl.GL;
+import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
-// import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.windows.GDI;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.windows.wgl.WindowsWGLDrawableFactory.SharedResource;
-
-import javax.media.opengl.GLCapabilitiesImmutable;
+// import javax.media.opengl.GLPbuffer;
 
 public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   private WGLExt cachedWGLExt; // cached WGLExt instance from parent GLCanvas,

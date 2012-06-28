@@ -40,9 +40,9 @@
 
 package jogamp.opengl.windows.wgl;
 
-import com.jogamp.common.nio.PointerBuffer;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.SurfaceChangeable;
+import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
@@ -50,7 +50,8 @@ import javax.media.opengl.GLException;
 import jogamp.nativewindow.windows.BITMAPINFO;
 import jogamp.nativewindow.windows.BITMAPINFOHEADER;
 import jogamp.nativewindow.windows.GDI;
-import javax.media.opengl.GLCapabilitiesImmutable;
+
+import com.jogamp.common.nio.PointerBuffer;
 
 public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
   private long origbitmap;

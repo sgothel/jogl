@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,19 +29,16 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
 package jogamp.opengl;
-
-import com.jogamp.common.util.locks.LockFactory;
-import com.jogamp.common.util.locks.RecursiveLock;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
@@ -56,6 +53,9 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
+
+import com.jogamp.common.util.locks.LockFactory;
+import com.jogamp.common.util.locks.RecursiveLock;
 
 /** Platform-independent class exposing pbuffer functionality to
     applications. This class is not exposed in the public API as it
@@ -87,21 +87,25 @@ public class GLPbufferImpl implements GLPbuffer {
     context = (GLContextImpl) pbufferDrawable.createContext(parentContext);
   }
 
+  @Override
   public GLContext createContext(GLContext shareWith) {
     return pbufferDrawable.createContext(shareWith);
   }
 
+  @Override
   public void setRealized(boolean realized) {
   }
 
+  @Override
   public boolean isRealized() {
     return true;
   }
 
+  @Override
   public void destroy() {
     if(pbufferDrawable.isRealized()) {
         final AbstractGraphicsDevice adevice = pbufferDrawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
-        
+
         if (null != context && context.isCreated()) {
             try {
                 drawableHelper.disposeGL(GLPbufferImpl.this, pbufferDrawable, context, null);
@@ -113,7 +117,7 @@ public class GLPbufferImpl implements GLPbuffer {
         }
         pbufferDrawable.destroy();
         pbufferDrawable = null;
-        
+
         if(null != adevice) {
             adevice.close();
         }
@@ -125,26 +129,32 @@ public class GLPbufferImpl implements GLPbuffer {
     throw new GLException("Not yet implemented");
   }
 
+  @Override
   public NativeSurface getNativeSurface() {
       return pbufferDrawable.getNativeSurface();
   }
 
+  @Override
   public long getHandle() {
     return pbufferDrawable.getHandle();
   }
 
+  @Override
   public GLDrawableFactory getFactory() {
       return pbufferDrawable.getFactory();
   }
 
+  @Override
   public int getWidth() {
     return pbufferDrawable.getWidth();
   }
 
+  @Override
   public int getHeight() {
     return pbufferDrawable.getHeight();
   }
 
+  @Override
   public void display() {
     invokeGL(displayAction);
   }
@@ -153,37 +163,45 @@ public class GLPbufferImpl implements GLPbuffer {
     display();
   }
 
+  @Override
   public void addGLEventListener(GLEventListener listener) {
     drawableHelper.addGLEventListener(listener);
   }
 
+  @Override
   public void addGLEventListener(int index, GLEventListener listener) {
     drawableHelper.addGLEventListener(index, listener);
   }
 
+  @Override
   public void removeGLEventListener(GLEventListener listener) {
     drawableHelper.removeGLEventListener(listener);
   }
 
+  @Override
   public void setAnimator(GLAnimatorControl animatorControl) {
     drawableHelper.setAnimator(animatorControl);
   }
 
+  @Override
   public GLAnimatorControl getAnimator() {
     return drawableHelper.getAnimator();
   }
 
+  @Override
   public void invoke(boolean wait, GLRunnable glRunnable) {
     drawableHelper.invoke(this, wait, glRunnable);
   }
 
+  @Override
   public void setContext(GLContext ctx) {
     context=(GLContextImpl)ctx;
     if(null != context) {
         context.setContextCreationFlags(additionalCtxCreationFlags);
-    }    
+    }
   }
 
+  @Override
   public GLContext getContext() {
     return context;
   }
@@ -192,49 +210,59 @@ public class GLPbufferImpl implements GLPbuffer {
     return pbufferDrawable;
   }
 
+  @Override
   public GL getGL() {
     return getContext().getGL();
   }
 
+  @Override
   public GL setGL(GL gl) {
     return getContext().setGL(gl);
   }
 
+  @Override
   public void setAutoSwapBufferMode(boolean onOrOff) {
     drawableHelper.setAutoSwapBufferMode(onOrOff);
   }
 
+  @Override
   public boolean getAutoSwapBufferMode() {
     return drawableHelper.getAutoSwapBufferMode();
   }
 
+  @Override
   public void swapBuffers() {
     invokeGL(swapBuffersAction);
   }
 
+  @Override
   public void setContextCreationFlags(int flags) {
     additionalCtxCreationFlags = flags;
     if(null != context) {
         context.setContextCreationFlags(additionalCtxCreationFlags);
-    }        
+    }
   }
-      
+
+  @Override
   public int getContextCreationFlags() {
-    return additionalCtxCreationFlags;                
+    return additionalCtxCreationFlags;
   }
-            
+
+  @Override
   public void bindTexture() {
     // Doesn't make much sense to try to do this on the event dispatch
     // thread given that it has to be called while the context is current
     context.bindPbufferToTexture();
   }
 
+  @Override
   public void releaseTexture() {
     // Doesn't make much sense to try to do this on the event dispatch
     // thread given that it has to be called while the context is current
     context.releasePbufferFromTexture();
   }
 
+  @Override
   public GLCapabilitiesImmutable getChosenGLCapabilities() {
     if (pbufferDrawable == null)
       return null;
@@ -249,6 +277,7 @@ public class GLPbufferImpl implements GLPbuffer {
     return pbufferDrawable.getRequestedGLCapabilities();
   }
 
+  @Override
   public GLProfile getGLProfile() {
     if (pbufferDrawable == null)
       return null;
@@ -267,6 +296,7 @@ public class GLPbufferImpl implements GLPbuffer {
     recurLock.unlock();
   }
 
+  @Override
   public int getFloatingPointMode() {
     if (floatMode == 0) {
       throw new GLException("Pbuffer not initialized, or floating-point support not requested");
@@ -284,14 +314,16 @@ public class GLPbufferImpl implements GLPbuffer {
 
 
   class InitAction implements Runnable {
+    @Override
     public void run() {
       floatMode = context.getFloatingPointMode();
       drawableHelper.init(GLPbufferImpl.this);
     }
   }
   private InitAction initAction = new InitAction();
-  
+
   class DisplayAction implements Runnable {
+    @Override
     public void run() {
       drawableHelper.display(GLPbufferImpl.this);
     }
@@ -299,6 +331,7 @@ public class GLPbufferImpl implements GLPbuffer {
   private DisplayAction displayAction = new DisplayAction();
 
   class SwapBuffersAction implements Runnable {
+    @Override
     public void run() {
       pbufferDrawable.swapBuffers();
     }

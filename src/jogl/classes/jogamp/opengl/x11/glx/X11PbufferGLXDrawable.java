@@ -40,8 +40,15 @@
 
 package jogamp.opengl.x11.glx;
 
-import javax.media.opengl.*;
-import javax.media.nativewindow.*;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.SurfaceChangeable;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLPbuffer;
 
 public class X11PbufferGLXDrawable extends X11GLXDrawable {
   protected X11PbufferGLXDrawable(GLDrawableFactory factory, NativeSurface target) {
