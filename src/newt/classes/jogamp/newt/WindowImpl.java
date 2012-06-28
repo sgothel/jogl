@@ -618,6 +618,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return surfaceLock.getOwner();
     }
 
+    public final void lockWindow() {
+        windowLock.lock();        
+    }
+    public final void unlockWindow() {
+        windowLock.unlock();
+    }
+    
     public final boolean isWindowLockedByOtherThread() {
         return windowLock.isLockedByOtherThread();
     }
