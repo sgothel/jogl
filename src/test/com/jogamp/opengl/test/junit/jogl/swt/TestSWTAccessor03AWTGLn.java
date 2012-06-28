@@ -63,7 +63,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * the SWT_AWT bridge.
  * @author Wade Walker, et.al.
  */
-public class TestSWTAWT01GLn extends UITestCase {
+public class TestSWTAccessor03AWTGLn extends UITestCase {
 
     static final int duration = 250;
 
@@ -190,6 +190,6 @@ public class TestSWTAWT01GLn extends UITestCase {
     }
 
     public static void main(String args[]) {
-        org.junit.runner.JUnitCore.main( TestSWTAWT01GLn.class.getName() );
+        org.junit.runner.JUnitCore.main( TestSWTAccessor03AWTGLn.class.getName() );
     }
 }

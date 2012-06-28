@@ -63,16 +63,21 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.VersionUtil;
-import com.jogamp.common.util.locks.LockFactory;
-import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.JoglVersion;
 
 /**
  * Native SWT Canvas implementing GLAutoDrawable
  * <p>
- * FIXME: Still needs AWT for threading impl., 
+ * FIXME: Still needs AWT for threading impl.,
  *        ie. will issue a 'wrong thread' error if runs in headless mode!
+ * </p>
+ * <p>
+ * FIXME: If this instance runs in multithreading mode, see {@link Threading#isSingleThreaded()} (impossible), 
+ *        proper recursive locking is required for drawable/context @ destroy and display. 
+ *        Recreation etc could pull those instances while animating!
+ *        Simply locking before using drawable/context offthread
+ *        would allow a deadlock situation!
  * </p>
  */
 public class GLCanvas extends Canvas implements GLAutoDrawable {
@@ -81,17 +86,17 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     * Flag for whether the SWT thread should be used for OpenGL calls when in single-threaded mode. This is controlled
     * by the setting of the threading mode to worker (do not use SWT thread), awt (use SWT thread), or false (always use
     * calling thread).
-    * 
+    *
     * @see Threading
-    * 
+    *
     * Now done dynamically to avoid early loading of gluegen library.
     */
    //private static final boolean useSWTThread = ThreadingImpl.getMode() != ThreadingImpl.WORKER;
 
    /* GL Stuff */
    private final GLDrawableHelper drawableHelper = new GLDrawableHelper();
-   private GLDrawable drawable;
-   private GLContext context;
+   private volatile GLDrawable drawable; // volatile avoids locking all accessors. FIXME still need to sync destroy/display
+   private volatile GLContext context;   // volatile avoids locking all accessors. FIXME still need to sync destroy/display
 
    /* Native window surface */
    private AbstractGraphicsDevice device;
@@ -100,13 +105,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    /* Construction parameters stored for GLAutoDrawable accessor methods */
    private int ctxCreationFlags = 0;
-   
-   private final GLCapabilitiesImmutable glCapsRequested;
 
-   /*
-    * Lock for access to GLDrawable, as used in GLCanvas,
-    */
-   private final RecursiveLock lock = LockFactory.createRecursiveLock();
+   private final GLCapabilitiesImmutable glCapsRequested;
 
    /* Flag indicating whether an unprocessed reshape is pending. */
    private volatile boolean sendReshape;
@@ -115,6 +115,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     * Invokes init(...) on all GLEventListeners. Assumes context is current when run.
     */
    private final Runnable initAction = new Runnable() {
+      @Override
       public void run() {
          drawableHelper.init(GLCanvas.this);
       }
@@ -122,10 +123,11 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    /*
     * Action to handle display in OpenGL, also processes reshape since they should be done at the same time.
-    * 
+    *
     * Assumes GLContext is current when run.
     */
    private final Runnable displayAction = new Runnable() {
+      @Override
       public void run() {
          if (sendReshape) {
             drawableHelper.reshape(GLCanvas.this, 0, 0, getWidth(), getHeight());
@@ -137,6 +139,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    /* Action to make specified context current prior to running displayAction */
    private final Runnable makeCurrentAndDisplayAction = new Runnable() {
+      @Override
       public void run() {
          drawableHelper.invokeGL(drawable, context, displayAction, initAction);
       }
@@ -144,6 +147,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    /* Swaps buffers, assuming the GLContext is current */
    private final Runnable swapBuffersAction = new Runnable() {
+      @Override
       public void run() {
          drawable.swapBuffers();
       }
@@ -151,6 +155,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    /* Swaps buffers, making the GLContext current first */
    private final Runnable makeCurrentAndSwapBuffersAction = new Runnable() {
+      @Override
       public void run() {
          drawableHelper.invokeGL(drawable, context, swapBuffersAction, initAction);
       }
@@ -160,8 +165,9 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     * Disposes of OpenGL resources
     */
    private final Runnable postDisposeGLAction = new Runnable() {
+      @Override
       public void run() {
-         context = null;         
+         context = null;
          if (null != drawable) {
             drawable.setRealized(false);
             drawable = null;
@@ -170,12 +176,14 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    };
 
    private final Runnable disposeOnEDTGLAction = new Runnable() {
+      @Override
       public void run() {
          drawableHelper.disposeGL(GLCanvas.this, drawable, context, postDisposeGLAction);
       }
    };
 
    private final Runnable disposeGraphicsDeviceAction = new Runnable() {
+      @Override
       public void run() {
          if (null != device) {
             device.close();
@@ -191,7 +199,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    /**
     * Creates a new SWT GLCanvas.
-    * 
+    *
     * @param parent
     *           Required (non-null) parent Composite.
     * @param style
@@ -211,7 +219,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
                    final GLCapabilitiesChooser chooser, final GLContext shareWith) {
       /* NO_BACKGROUND required to avoid clearing bg in native SWT widget (we do this in the GL display) */
       super(parent, style | SWT.NO_BACKGROUND);
-      
+
       GLProfile.initSingleton(); // ensure JOGL is completly initialized
 
       SWTAccessor.setRealized(this, true);
@@ -228,7 +236,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
           caps = new GLCapabilities(GLProfile.getDefault(device));
       }
       glCapsRequested = caps;
-      
+
       final GLDrawableFactory glFactory = GLDrawableFactory.getFactory(caps.getGLProfile());
 
       /* Create a NativeWindow proxy for the SWT canvas */
@@ -239,17 +247,18 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       drawable.setRealized(true);
 
       context = drawable.createContext(shareWith);
-      
+
       /* Register SWT listeners (e.g. PaintListener) to render/resize GL surface. */
       /* TODO: verify that these do not need to be manually de-registered when destroying the SWT component */
       addPaintListener(new PaintListener() {
-         public void paintControl(final PaintEvent arg0) {
+         @Override
+        public void paintControl(final PaintEvent arg0) {
             if (!drawableHelper.isExternalAnimatorAnimating()) {
                display();
             }
          }
       });
-      
+
       addControlListener(new ControlAdapter() {
          @Override
          public void controlResized(final ControlEvent arg0) {
@@ -260,211 +269,206 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       });
    }
 
+   @Override
    public void addGLEventListener(final GLEventListener arg0) {
       drawableHelper.addGLEventListener(arg0);
    }
 
+   @Override
    public void addGLEventListener(final int arg0, final GLEventListener arg1) throws IndexOutOfBoundsException {
       drawableHelper.addGLEventListener(arg0, arg1);
    }
 
    /**
     * {@inheritDoc}
+    *
     * <p>
-    * Also disposes of the SWT component.
+    * This impl. calls this class's {@link #dispose()} SWT override,
+    * where the actual implementation resides.
+    * </p>
     */
+   @Override
    public void destroy() {
-      drawable.setRealized(false);
       dispose();
    }
 
+   @Override
    public void display() {
       runInGLThread(makeCurrentAndDisplayAction, displayAction);
    }
 
+   @Override
    public GLAnimatorControl getAnimator() {
       return drawableHelper.getAnimator();
    }
 
+   @Override
    public boolean getAutoSwapBufferMode() {
       return drawableHelper.getAutoSwapBufferMode();
    }
 
+   @Override
    public GLContext getContext() {
       return context;
    }
 
+   @Override
    public int getContextCreationFlags() {
       return ctxCreationFlags;
    }
 
+   @Override
    public GL getGL() {
-      final GLContext ctx = getContext();
-      return (ctx == null) ? null : ctx.getGL();
+      return (null == context) ? null : context.getGL();
    }
 
+   @Override
    public void invoke(final boolean wait, final GLRunnable run) {
       /* Queue task for running during the next display(). */
       drawableHelper.invoke(this, wait, run);
    }
 
+   @Override
    public void removeGLEventListener(final GLEventListener arg0) {
       drawableHelper.removeGLEventListener(arg0);
    }
 
+   @Override
    public void setAnimator(final GLAnimatorControl arg0) throws GLException {
       drawableHelper.setAnimator(arg0);
    }
 
+   @Override
    public void setAutoSwapBufferMode(final boolean arg0) {
       drawableHelper.setAutoSwapBufferMode(arg0);
    }
 
+   @Override
    public void setContext(final GLContext ctx) {
-      this.context = ctx;
       if (ctx instanceof GLContextImpl) {
          ((GLContextImpl) ctx).setContextCreationFlags(ctxCreationFlags);
       }
+      this.context = ctx;
    }
 
+   @Override
    public void setContextCreationFlags(final int arg0) {
       ctxCreationFlags = arg0;
    }
 
+   @Override
    public GL setGL(final GL arg0) {
-      final GLContext ctx = getContext();
-      if (ctx != null) {
-         ctx.setGL(arg0);
+      if (null != context) {
+         context.setGL(arg0);
          return arg0;
       }
       return null;
    }
 
+   @Override
    public GLContext createContext(final GLContext arg0) {
-      lock.lock();
-      try {
-         final GLDrawable drawable = this.drawable;
-         return (drawable != null) ? drawable.createContext(arg0) : null;
-      } finally {
-         lock.unlock();
-      }
+      return (drawable != null) ? drawable.createContext(arg0) : null;
    }
 
+   @Override
    public GLCapabilitiesImmutable getChosenGLCapabilities() {
       return (GLCapabilitiesImmutable)proxySurface.getGraphicsConfiguration().getChosenCapabilities();
    }
 
    /**
     * Accessor for the GLCapabilities that were requested (via the constructor parameter).
-    * 
+    *
     * @return Non-null GLCapabilities.
     */
    public GLCapabilitiesImmutable getRequestedGLCapabilities() {
       return (GLCapabilitiesImmutable)proxySurface.getGraphicsConfiguration().getRequestedCapabilities();
    }
 
+   @Override
    public GLDrawableFactory getFactory() {
-      lock.lock();
-      try {
-         final GLDrawable drawable = this.drawable;
-         return (drawable != null) ? drawable.getFactory() : null;
-      } finally {
-         lock.unlock();
-      }
+      return (drawable != null) ? drawable.getFactory() : null;
    }
 
+   @Override
    public GLProfile getGLProfile() {
       return glCapsRequested.getGLProfile();
    }
 
+   @Override
    public long getHandle() {
-      lock.lock();
-      try {
-         final GLDrawable drawable = this.drawable;
-         return (drawable != null) ? drawable.getHandle() : 0;
-      } finally {
-         lock.unlock();
-      }
+      return (drawable != null) ? drawable.getHandle() : 0;
    }
 
+   @Override
    public int getHeight() {
       final Rectangle clientArea = this.clientArea;
       if (clientArea == null) return 0;
       return clientArea.height;
    }
 
+   @Override
    public NativeSurface getNativeSurface() {
-      lock.lock();
-      try {
-         final GLDrawable drawable = this.drawable;
-         return (drawable != null) ? drawable.getNativeSurface() : null;
-      } finally {
-         lock.unlock();
-      }
+      return (drawable != null) ? drawable.getNativeSurface() : null;
    }
 
+   @Override
    public int getWidth() {
       final Rectangle clientArea = this.clientArea;
       if (clientArea == null) return 0;
       return clientArea.width;
    }
 
+   @Override
    public boolean isRealized() {
-      lock.lock();
-      try {
-         final GLDrawable drawable = this.drawable;
-         return (drawable != null) ? drawable.isRealized() : false;
-      } finally {
-         lock.unlock();
-      }
+      return (drawable != null) ? drawable.isRealized() : false;
    }
 
+   @Override
    public void setRealized(final boolean arg0) {
       /* Intentionally empty */
    }
 
+   @Override
    public void swapBuffers() throws GLException {
       runInGLThread(makeCurrentAndSwapBuffersAction, swapBuffersAction);
    }
 
    // FIXME: API of update() method ?
+   @Override
    public void update() {
     // FIXME:     display();
    }
 
+   @Override
    public void dispose() {
-      lock.lock();
-      try {
-         final Display display = getDisplay();
+     if (null != context) {
+        boolean animatorPaused = false;
+        final GLAnimatorControl animator = getAnimator();
+        if (null != animator) {
+           // can't remove us from animator for recreational addNotify()
+           animatorPaused = animator.pause();
+        }
 
-         if (null != context) {
-            boolean animatorPaused = false;
-            final GLAnimatorControl animator = getAnimator();
-            if (null != animator) {
-               // can't remove us from animator for recreational addNotify()
-               animatorPaused = animator.pause();
+        if(context.isCreated()) {
+            if (Threading.isSingleThreaded() && !Threading.isOpenGLThread()) {
+               runInDesignatedGLThread(disposeOnEDTGLAction);
+            } else if (context.isCreated()) {
+               drawableHelper.disposeGL(GLCanvas.this, drawable, context, postDisposeGLAction);
             }
-            if(context.isCreated()) {
-                if (Threading.isSingleThreaded() && !Threading.isOpenGLThread()) {
-                   runInDesignatedGLThread(disposeOnEDTGLAction);
-                } else if (context.isCreated()) {
-                   drawableHelper.disposeGL(GLCanvas.this, drawable, context, postDisposeGLAction);
-                }
-            }
+        }
 
-            if (animatorPaused) {
-               animator.resume();
-            }
-         }
-         if (display.getThread() == Thread.currentThread()) {
-            disposeGraphicsDeviceAction.run();
-         } else {
-            display.syncExec(disposeGraphicsDeviceAction);
-         }
-      } finally {
-         lock.unlock();
-      }
-      super.dispose();
+        if (animatorPaused) {
+           animator.resume();
+        }
+     }
+     final Display display = getDisplay();
+
+     if (display.getThread() == Thread.currentThread()) {
+        disposeGraphicsDeviceAction.run();
+     } else {
+        display.syncExec(disposeGraphicsDeviceAction);
+     }
+     super.dispose();
    }
 
    /**
@@ -473,8 +477,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     * OpenGL worker thread depending on the state of {@link #useSWTThread}. Otherwise this always returns true because
     * the threading model is user defined.
     * <p>
-    * TODO: should this be moved to {@link Threading}?
-    * 
+    * FIXME: Redundant .. remove! Merge isRenderThread, runInGLThread and runInDesignatedGLThread
+    *
     * @return true if the calling thread is the correct thread to execute OpenGL calls in, false otherwise.
     */
    protected boolean isRenderThread() {
@@ -494,13 +498,14 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    /**
     * Runs the specified action in the designated OpenGL thread. If the current thread is designated, then the
     * syncAction is run synchronously, otherwise the asyncAction is dispatched to the appropriate worker thread.
-    * 
+    *
     * @param asyncAction
     *           The non-null action to dispatch to an OpenGL worker thread. This action should not assume that a
     *           GLContext is current when invoked.
     * @param syncAction
     *           The non-null action to run synchronously if the current thread is designated to handle OpenGL calls.
     *           This action may assume the GLContext is current.
+    * FIXME: Redundant .. remove! Merge isRenderThread, runInGLThread and runInDesignatedGLThread
     */
    private void runInGLThread(final Runnable asyncAction, final Runnable syncAction) {
       if (Threading.isSingleThreaded() && !isRenderThread()) {
@@ -515,9 +520,10 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    /**
     * Dispatches the specified runnable to the appropriate OpenGL worker thread (either the SWT event dispatch thread,
     * or the OpenGL worker thread depending on the state of {@link #useSWTThread}).
-    * 
+    *
     * @param makeCurrentAndRunAction
     *           The non-null action to dispatch.
+    * FIXME: Redundant .. remove! Merge isRenderThread, runInGLThread and runInDesignatedGLThread
     */
    private void runInDesignatedGLThread(final Runnable makeCurrentAndRunAction) {
       if (ThreadingImpl.getMode() != ThreadingImpl.Mode.ST_WORKER) {
@@ -529,7 +535,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       }
    }
 
-   
+
    public static void main(final String[] args) {
        System.err.println(VersionUtil.getPlatformInfo());
        System.err.println(GlueGenVersion.getInstance());
@@ -537,7 +543,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
        System.err.println(JoglVersion.getInstance());
 
        System.err.println(JoglVersion.getDefaultOpenGLInfo(null).toString());
-       
+
        final GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault(GLProfile.getDefaultDevice()) );
        final Display display = new Display();
        final Shell shell = new Shell(display);
@@ -547,13 +553,17 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
        final GLCanvas canvas = new GLCanvas(shell, 0, caps, null, null);
 
        canvas.addGLEventListener(new GLEventListener() {
+           @Override
            public void init(final GLAutoDrawable drawable) {
                GL gl = drawable.getGL();
                System.err.println(JoglVersion.getGLInfo(gl, null));
            }
-           public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {}                 
+           @Override
+           public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {}
+           @Override
            public void display(final GLAutoDrawable drawable) {}
-           public void dispose(final GLAutoDrawable drawable) {}         
+           @Override
+           public void dispose(final GLAutoDrawable drawable) {}
        });
        shell.open();
        canvas.display();

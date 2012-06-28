@@ -62,7 +62,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * </p>
  * @author Wade Walker, et.al.
  */
-public class TestSWTJOGLGLCanvas01GLnAWT extends UITestCase {
+public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
 
     static int duration = 250;
 
@@ -169,6 +169,6 @@ public class TestSWTJOGLGLCanvas01GLnAWT extends UITestCase {
             }
         }
         System.out.println("durationPerTest: "+duration);
-        org.junit.runner.JUnitCore.main(TestSWTJOGLGLCanvas01GLnAWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestSWTJOGLGLCanvas01GLn.class.getName());
     }
 }
