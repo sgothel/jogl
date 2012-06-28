@@ -156,7 +156,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private final GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private AWTGraphicsConfiguration awtConfig;
   private volatile GLDrawable drawable;   // volatile avoids locking all accessors. FIXME still need to sync destroy/display
-  private volatile GLContextImpl context; // volatile avoids locking all accessors. FIXME still need to sync destroy/display
+  private GLContextImpl context;
   private boolean sendReshape = false;
 
   // copy of the cstr args, mainly for recreation
@@ -436,7 +436,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         Thread.dumpStack();
     }
 
-    if(null!=context) {
+    if(null!=drawable && null!=context) { // drawable is volatile!
         boolean animatorPaused = false;
         if(null!=animator) {
             // can't remove us from animator for recreational addNotify()

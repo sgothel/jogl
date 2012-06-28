@@ -109,7 +109,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    /* GL Stuff */
    private final GLDrawableHelper drawableHelper = new GLDrawableHelper();
    private volatile GLDrawable drawable; // volatile avoids locking all accessors. FIXME still need to sync destroy/display
-   private volatile GLContext context;   // volatile avoids locking all accessors. FIXME still need to sync destroy/display
+   private GLContext context;
 
    /* Native window surface */
    private AbstractGraphicsDevice device;
@@ -454,7 +454,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    @Override
    public void dispose() {
-     if (null != context) {
+     if (null != drawable && null != context) { // drawable is volatile!
         boolean animatorPaused = false;
         final GLAnimatorControl animator = getAnimator();
         if (null != animator) {
