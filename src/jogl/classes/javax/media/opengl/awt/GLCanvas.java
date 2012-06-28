@@ -132,6 +132,20 @@ import jogamp.opengl.GLDrawableHelper;
  * <ul>
  *   <li><pre>sun.awt.noerasebackground=true</pre></li>
  * </ul>
+ * <p>
+ * FIXME: If this instance runs in multithreading mode, see {@link Threading#isSingleThreaded()} (default: single-thread), 
+ *        proper recursive locking is required for drawable/context @ destroy and display. 
+ *        Recreation etc could pull those instances while animating!
+ *        Simply locking before using drawable/context offthread
+ *        would allow a deadlock situation!
+ * </p>
+ * <p>
+ * NOTE: [MT-0] Methods utilizing [volatile] drawable/context are not synchronized.
+         In case any of the methods are called outside of a locked state
+         extra care should be added. Maybe we shall expose locking facilities to the user.
+         However, since the user shall stick to the GLEventListener model while utilizing
+         GLAutoDrawable implementations, she is safe due to the implicit locked state.
+ * </p>
  */
 
 @SuppressWarnings("serial")
@@ -141,8 +155,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   private final GLDrawableHelper drawableHelper = new GLDrawableHelper();
   private AWTGraphicsConfiguration awtConfig;
-  private volatile GLDrawable drawable;
-  private GLContextImpl context;
+  private volatile GLDrawable drawable;   // volatile avoids locking all accessors. FIXME still need to sync destroy/display
+  private volatile GLContextImpl context; // volatile avoids locking all accessors. FIXME still need to sync destroy/display
   private boolean sendReshape = false;
 
   // copy of the cstr args, mainly for recreation
@@ -388,10 +402,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public boolean isRealized() {
-     return ( null != drawable ) ? drawable.isRealized() : false;
-  }
-  protected final boolean isRealizedImpl() {
-      return ( null != drawable ) ? drawable.isRealized() : false;
+      return (null != drawable) ? drawable.isRealized() : false;
   }
 
   @Override

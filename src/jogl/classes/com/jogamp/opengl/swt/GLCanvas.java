@@ -79,6 +79,19 @@ import com.jogamp.opengl.JoglVersion;
  *        Simply locking before using drawable/context offthread
  *        would allow a deadlock situation!
  * </p>
+ * <p>
+ * NOTE: [MT-0] Methods utilizing [volatile] drawable/context are not synchronized.
+         In case any of the methods are called outside of a locked state
+         extra care should be added. Maybe we shall expose locking facilities to the user.
+         However, since the user shall stick to the GLEventListener model while utilizing
+         GLAutoDrawable implementations, she is safe due to the implicit locked state.
+ * </p>
+ * <p>
+ * FIXME: [MT-2] Revise threading code
+          The logic whether to spawn off the GL task and 
+          determination which thread to use is too complex and redundant.
+          (See isRenderThread(), runInGLThread() and runInDesignatedGLThread())
+ * </p>
  */
 public class GLCanvas extends Canvas implements GLAutoDrawable {
 
