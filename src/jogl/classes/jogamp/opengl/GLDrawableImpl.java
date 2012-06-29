@@ -66,7 +66,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
    */
   public abstract GLDynamicLookupHelper getGLDynamicLookupHelper();
 
-  public GLDrawableFactoryImpl getFactoryImpl() {
+  public final GLDrawableFactoryImpl getFactoryImpl() {
     return (GLDrawableFactoryImpl) getFactory();
   }
 
@@ -86,6 +86,9 @@ public abstract class GLDrawableImpl implements GLDrawable {
 
   @Override
   public final void swapBuffers() throws GLException {
+    if( !realized ) {
+        return; // destroyed already
+    }
     GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)surface.getGraphicsConfiguration().getChosenCapabilities();
     if ( caps.getDoubleBuffered() ) {
         if(!surface.surfaceSwap()) {
@@ -112,12 +115,12 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
   protected abstract void swapBuffersImpl();
 
-  public static String toHexString(long hex) {
+  public final static String toHexString(long hex) {
     return "0x" + Long.toHexString(hex);
   }
 
   @Override
-  public GLProfile getGLProfile() {
+  public final GLProfile getGLProfile() {
     return requestedCapabilities.getGLProfile();
   }
 
@@ -126,7 +129,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return  (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getChosenCapabilities();
   }
 
-  public GLCapabilitiesImmutable getRequestedGLCapabilities() {
+  public final GLCapabilitiesImmutable getRequestedGLCapabilities() {
     return requestedCapabilities;
   }
 
@@ -147,7 +150,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   @Override
-  public GLDrawableFactory getFactory() {
+  public final GLDrawableFactory getFactory() {
     return factory;
   }
 
@@ -187,7 +190,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   protected abstract void setRealizedImpl();
 
   @Override
-  public synchronized boolean isRealized() {
+  public final synchronized boolean isRealized() {
     return realized;
   }
 
@@ -201,11 +204,11 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return surface.getHeight();
   }
 
-  public int lockSurface() throws GLException {
+  public final int lockSurface() throws GLException {
     return surface.lockSurface();
   }
 
-  public void unlockSurface() {
+  public final void unlockSurface() {
     surface.unlockSurface();
   }
 

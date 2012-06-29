@@ -233,12 +233,10 @@ public abstract class GLContextImpl extends GLContext {
     if ( !lock.isOwner(Thread.currentThread()) ) {
         throw new GLException("Context not current on current thread "+Thread.currentThread().getName()+": "+this);
     }
-    final boolean actualRelease = force || lock.getHoldCount() == 1 ;
+    final boolean actualRelease = ( force || lock.getHoldCount() == 1 ) && 0 != contextHandle;
     try {
         if( actualRelease ) {
-            if (contextHandle != 0) { // allow dbl-release
-                releaseImpl();
-            }
+            releaseImpl();
         }
     } finally {
       // exception prone ..
@@ -269,11 +267,16 @@ public abstract class GLContextImpl extends GLContext {
           try {
               // Must hold the lock around the destroy operation to make sure we
               // don't destroy the context while another thread renders to it.
-              // FIXME: This is actually impossible now, since we acquired the surface lock already,
-              //        which is a prerequisite to acquire the context lock.
-              lock.lock(); // holdCount++ -> 1 or 2
+              lock.lock(); // holdCount++ -> 1 - 3 (1: not locked, 2-3: destroy while rendering)
               if ( lock.getHoldCount() > 2 ) {
-                  throw new GLException(getThreadName() + ": Lock was hold more than once - makeCurrent/release imbalance: "+lock);
+                  final String msg = getThreadName() + ": GLContextImpl.destroy: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle);
+                  if (DEBUG || TRACE_SWITCH) {
+                      System.err.println(msg+" - Lock was hold more than once - makeCurrent/release imbalance: "+lock);
+                      Thread.dumpStack();
+                  }
+                  if ( lock.getHoldCount() > 3 ) {
+                      throw new GLException(msg+" - Lock was hold more than twice - makeCurrent/release imbalance: "+lock);
+                  }
               }
               try {
                   // release current context

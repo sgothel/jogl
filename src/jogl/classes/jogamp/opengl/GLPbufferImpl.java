@@ -88,16 +88,16 @@ public class GLPbufferImpl implements GLPbuffer {
   }
 
   @Override
-  public GLContext createContext(GLContext shareWith) {
+  public final GLContext createContext(GLContext shareWith) {
     return pbufferDrawable.createContext(shareWith);
   }
 
   @Override
-  public void setRealized(boolean realized) {
+  public final void setRealized(boolean realized) {
   }
 
   @Override
-  public boolean isRealized() {
+  public final boolean isRealized() {
     return true;
   }
 
