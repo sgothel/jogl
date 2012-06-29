@@ -278,7 +278,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
 
   @Override
-  public final int lockSurface() throws NativeWindowException {
+  public final int lockSurface() throws NativeWindowException, RuntimeException  {
     surfaceLock.lock();
     int res = surfaceLock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
 
@@ -322,7 +322,9 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     if (surfaceLock.getHoldCount() == 1) {
         final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
         try {
-            unlockSurfaceImpl();
+            if(null != jawt) {
+                unlockSurfaceImpl();
+            }
         } finally {
             adevice.unlock();
         }

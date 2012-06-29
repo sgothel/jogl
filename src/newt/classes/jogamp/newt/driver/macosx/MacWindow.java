@@ -104,7 +104,10 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
     @Override
     protected void unlockSurfaceImpl() {
         if(!isOffscreenInstance) {
-            unlockSurface0(getWindowHandle());
+            final long h = getWindowHandle();
+            if(0 != h) {
+                unlockSurface0(h);
+            }
         }
     }
     

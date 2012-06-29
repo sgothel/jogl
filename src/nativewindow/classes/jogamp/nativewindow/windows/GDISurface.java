@@ -74,13 +74,12 @@ public class GDISurface extends ProxySurface {
 
   @Override
   final protected void unlockSurfaceImpl() {
-    if (0 == surfaceHandle) {
-        throw new InternalError("surface not acquired: "+this+", thread: "+Thread.currentThread().getName());
+    if (0 != surfaceHandle) {
+        if(0 == GDI.ReleaseDC(windowHandle, surfaceHandle)) {
+            throw new NativeWindowException("DC not released: "+this+", isWindow "+GDI.IsWindow(windowHandle)+", werr "+GDI.GetLastError()+", thread: "+Thread.currentThread().getName());        
+        }
+        surfaceHandle=0;
     }
-    if(0 == GDI.ReleaseDC(windowHandle, surfaceHandle)) {
-        throw new NativeWindowException("DC not released: "+this+", isWindow "+GDI.IsWindow(windowHandle)+", werr "+GDI.GetLastError()+", thread: "+Thread.currentThread().getName());        
-    }
-    surfaceHandle=0;
   }
 
   @Override

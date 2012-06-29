@@ -87,12 +87,11 @@ public class WindowsWindow extends WindowImpl {
 
     @Override
     protected void unlockSurfaceImpl() {
-        if (0 == hdc) {
-            throw new InternalError("surface not acquired");
+        if (0 != hdc) {
+            GDI.ReleaseDC(getWindowHandle(), hdc);
+            hdc_old = hdc;
+            hdc=0;
         }
-        GDI.ReleaseDC(getWindowHandle(), hdc);
-        hdc_old = hdc;
-        hdc=0;
     }
 
     @Override

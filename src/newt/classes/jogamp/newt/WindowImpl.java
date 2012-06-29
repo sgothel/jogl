@@ -563,7 +563,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
 
     @Override
-    public final int lockSurface() {
+    public final int lockSurface() throws NativeWindowException, RuntimeException {
         windowLock.lock();
         surfaceLock.lock();
         int res = surfaceLock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?

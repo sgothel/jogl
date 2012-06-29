@@ -995,12 +995,12 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
     //
 
     @Override
-    public final int lockSurface() {
+    public final int lockSurface() throws NativeWindowException, RuntimeException {
         return window.lockSurface();
     }
 
     @Override
-    public final void unlockSurface() throws NativeWindowException {
+    public final void unlockSurface() {
         window.unlockSurface();
     }
 

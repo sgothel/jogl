@@ -123,7 +123,7 @@ public abstract class ProxySurface implements NativeSurface {
     }
 
     @Override
-    public int lockSurface() throws NativeWindowException {
+    public int lockSurface() throws NativeWindowException, RuntimeException  {
         surfaceLock.lock();
         int res = surfaceLock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
 

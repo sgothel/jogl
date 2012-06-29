@@ -83,10 +83,11 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    * @return {@link #LOCK_SUCCESS}, {@link #LOCK_SURFACE_CHANGED} or {@link #LOCK_SURFACE_NOT_READY}.
    *
    * @throws RuntimeException after timeout when waiting for the surface lock
+   * @throws NativeWindowException if native locking failed, maybe platform related
    *
    * @see com.jogamp.common.util.locks.RecursiveLock
    */
-  public int lockSurface();
+  public int lockSurface() throws NativeWindowException, RuntimeException;
 
   /**
    * Unlock the surface of this native window
@@ -96,12 +97,13 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    * The implementation shall also invoke {@link AbstractGraphicsDevice#unlock()}
    * for the final unlock (recursive count zero).<P>
    *
-   * @throws RuntimeException if surface is not locked
+   * The implementation shall be fail safe, i.e. tolerant in case the native resources
+   * are already released / unlocked. In this case the implementation shall simply ignore the call.
    *
    * @see #lockSurface
    * @see com.jogamp.common.util.locks.RecursiveLock
    */
-  public void unlockSurface() throws NativeWindowException ;
+  public void unlockSurface();
 
   /**
    * Query if surface is locked by another thread, i.e. not the current one.
