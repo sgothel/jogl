@@ -413,10 +413,10 @@ public class GLDrawableHelper {
   
     try {
       res = context.makeCurrent();
-      if (res != GLContext.CONTEXT_NOT_CURRENT) {
+      if (GLContext.CONTEXT_NOT_CURRENT != res) {
         if(!isDisposeAction) {
             perThreadInitAction.set(initAction);
-            if (res == GLContext.CONTEXT_CURRENT_NEW) {
+            if (GLContext.CONTEXT_CURRENT_NEW == res) {
               if (DEBUG) {
                 System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
               }
@@ -427,7 +427,7 @@ public class GLDrawableHelper {
                 drawable.swapBuffers();
             }
         } else {
-            if(res == GLContext.CONTEXT_CURRENT_NEW) {
+            if(GLContext.CONTEXT_CURRENT_NEW == res) {
                 throw new GLException(currentThread.getName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context was not created (new ctx): "+context);
             }
             if(listeners.size()>0) {
@@ -439,7 +439,7 @@ public class GLDrawableHelper {
       try {
           if(isDisposeAction) {
               context.destroy();
-          } else if( res != GLContext.CONTEXT_NOT_CURRENT ) {
+          } else if( GLContext.CONTEXT_NOT_CURRENT != res ) {
               context.release();
           }
       } catch (Exception e) {

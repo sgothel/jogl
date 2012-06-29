@@ -52,7 +52,6 @@ import com.jogamp.common.util.locks.RecursiveLock;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
-import jogamp.opengl.GLContextShareSet;
 
 /** Abstraction for an OpenGL rendering context. In order to perform
     OpenGL rendering, a context must be "made current" on the current
@@ -190,10 +189,8 @@ public abstract class GLContext {
    * a value of CONTEXT_NOT_CURRENT is returned.
    * </p>
    * <p>
-   * If the context is in use by another thread at the time of the
-   * call, then if isSynchronized() is true the call will
-   * block. If isSynchronized() is false, an exception will be
-   * thrown and the context will remain current on the other thread.
+   * This method is blocking, i.e. waits until another thread has
+   * released the context. 
    * </p>
    * <p>
    * The drawable's surface is being locked at entry

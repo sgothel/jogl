@@ -57,22 +57,24 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
     useGLXWindow=false;
   }
 
-  @SuppressWarnings("unused")
   @Override
   public long getHandle() {
-    if(USE_GLXWINDOW && useGLXWindow) {
-        return glXWindow;
+    if(USE_GLXWINDOW) {
+        if(useGLXWindow) {
+            return glXWindow;
+        }
     }
     return super.getHandle();
   }
 
-  @SuppressWarnings("unused")
   @Override
   protected void destroyHandle() {
-    if(USE_GLXWINDOW && 0!=glXWindow) {
-        GLX.glXDestroyWindow(getNativeSurface().getDisplayHandle(), glXWindow);
-        glXWindow = 0;
-        useGLXWindow=false;
+    if(USE_GLXWINDOW) {
+        if(0!=glXWindow) {
+            GLX.glXDestroyWindow(getNativeSurface().getDisplayHandle(), glXWindow);
+            glXWindow = 0;
+            useGLXWindow=false;
+        }
     }
   }
 
