@@ -115,8 +115,8 @@ public class JAWTUtil {
     JAWT jawt = JAWT.create();
     
     // default queries
-    boolean tryOffscreenLayer = false;
-    boolean tryOnscreenLayer = true;
+    boolean tryOffscreenLayer;
+    boolean tryOnscreen;
     int jawt_version_flags_offscreen = jawt_version_flags;
     
     if(isOffscreenLayerRequired()) {
@@ -124,7 +124,7 @@ public class JAWTUtil {
             if(Platform.OS_VERSION_NUMBER.compareTo(JAWTUtil.JAWT_MacOSXCALayerMinVersion) >= 0) {
                 jawt_version_flags_offscreen |= JAWTUtil.JAWT_MACOSX_USE_CALAYER;
                 tryOffscreenLayer = true;
-                tryOnscreenLayer = false;            
+                tryOnscreen = false;
             } else {
                 throw new RuntimeException("OSX: Invalid version of Java ("+Platform.JAVA_VERSION_NUMBER+") / OS X ("+Platform.OS_VERSION_NUMBER+")");
             }
@@ -135,9 +135,16 @@ public class JAWTUtil {
         if(Platform.OS_TYPE == Platform.OSType.MACOS) {
             jawt_version_flags_offscreen |= JAWTUtil.JAWT_MACOSX_USE_CALAYER;
             tryOffscreenLayer = true;
+            tryOnscreen = true;
         } else {
             throw new InternalError("offscreen requested and supported, but n/a for: "+Platform.OS_TYPE);
         }
+    } else {
+        tryOffscreenLayer = false;
+        tryOnscreen = true;
+    }    
+    if(DEBUG) {
+        System.err.println("JAWTUtil.getJAWT(tryOffscreenLayer "+tryOffscreenLayer+", tryOnscreen "+tryOnscreen+")");
     }
     
     StringBuilder errsb = new StringBuilder();
@@ -147,7 +154,7 @@ public class JAWTUtil {
             return jawt;
         }
     }
-    if(tryOnscreenLayer) {
+    if(tryOnscreen) {
         if(tryOffscreenLayer) {
             errsb.append(", ");
         }
@@ -260,6 +267,7 @@ public class JAWTUtil {
         System.err.println("JAWTUtil: Is headless " + headlessMode);
         int hints = ( null != desktophints ) ? desktophints.size() : 0 ;
         System.err.println("JAWTUtil: AWT Desktop hints " + hints);
+        System.err.println("JAWTUtil: OffscreenLayer Supported: "+isOffscreenLayerSupported()+" - Required "+isOffscreenLayerRequired());
     }
   }
 

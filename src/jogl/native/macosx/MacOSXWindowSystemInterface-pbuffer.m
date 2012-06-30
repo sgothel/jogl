@@ -32,8 +32,6 @@
     int texWidth;
     int texHeight;
     GLuint textureID;
-    GLint swapInterval;
-    GLint swapIntervalCounter;
     struct timespec lastWaitTime;
 #ifdef HAS_CADisplayLink
     CADisplayLink* displayLink;
@@ -43,6 +41,8 @@
     int tc;
     struct timespec t0;
 @public
+    GLint swapInterval;
+    GLint swapIntervalCounter;
     pthread_mutex_t renderLock;
     pthread_cond_t renderSignal;
     BOOL shallDraw;
@@ -280,23 +280,22 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
         }
     } */
     GLenum textureTarget = [pbuffer textureTarget];
-    GLfloat tWidth, tHeight;
+    GLfloat texCoordWidth, texCoordHeight;
     {
         GLsizei pwidth = [pbuffer pixelsWide];
         GLsizei pheight = [pbuffer pixelsHigh];
-        tWidth  = textureTarget == GL_TEXTURE_2D ? (GLfloat)pwidth /(GLfloat)texWidth  : pwidth;
-        tHeight = textureTarget == GL_TEXTURE_2D ? (GLfloat)pheight/(GLfloat)texHeight : pheight;
+        texCoordWidth  = textureTarget == GL_TEXTURE_2D ? (GLfloat)pwidth /(GLfloat)texWidth  : pwidth;
+        texCoordHeight = textureTarget == GL_TEXTURE_2D ? (GLfloat)pheight/(GLfloat)texHeight : pheight;
     }
     Bool texCreated = 0 == textureID;
    
     if(texCreated) {
         glGenTextures(1, &textureID);
-        DBG_PRINT("MyNSOpenGLLayer::drawInOpenGLContext %p, ctx %p, pfmt %p tex %dx%d -> %fx%f 0x%X: creating texID 0x%X\n", 
-            self, context, pixelFormat, texWidth, texHeight, tWidth, tHeight, textureTarget, textureID);
 
         CGRect lRect = [self frame];
-        DBG_PRINT("MyNSOpenGLLayer::drawInOpenGLContext %p frame0: %lf/%lf %lfx%lf\n", 
-            self, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+        DBG_PRINT("MyNSOpenGLLayer::drawInOpenGLContext %p, pbuffer %p %dx%d -> tex %dx%d [%fx%f] id 0x%X target 0x%X, frame: %lf/%lf %lfx%lf (refcnt %d)\n", 
+            self, pbuffer, [pbuffer pixelsWide], [pbuffer pixelsHigh], texWidth, texHeight, texCoordWidth, texCoordHeight, textureID, textureTarget,
+            lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height, (int)[self retainCount]);
     }
 
     glBindTexture(textureTarget, textureID);
@@ -324,10 +323,10 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
     };
    
     GLfloat tex[] = {
-     0.0,    0.0,
-     0.0,    tHeight,
-     tWidth, tHeight,
-     tWidth, 0.0
+     0.0,           0.0,
+     0.0,           texCoordHeight,
+     texCoordWidth, texCoordHeight,
+     texCoordWidth, 0.0
     };
    
     glEnableClientState(GL_VERTEX_ARRAY);
