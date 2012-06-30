@@ -109,10 +109,14 @@ public class X11Util {
                     isX11LockAvailable = isXInitThreadsOK && !HAS_XLOCKDISPLAY_BUG ;
         
                     final long dpy = X11Lib.XOpenDisplay(null);
-                    try {
-                        nullDisplayName = X11Lib.XDisplayString(dpy);
-                    } finally {
-                        X11Lib.XCloseDisplay(dpy);
+                    if(0 != dpy) {
+                        try {
+                            nullDisplayName = X11Lib.XDisplayString(dpy);
+                        } finally {
+                            X11Lib.XCloseDisplay(dpy);
+                        }
+                    } else {
+                        nullDisplayName = "nil";
                     }
                     
                     if(DEBUG) {
