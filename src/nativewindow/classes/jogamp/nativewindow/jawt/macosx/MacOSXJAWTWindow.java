@@ -207,20 +207,20 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
             ((MutableGraphicsConfiguration)getGraphicsConfiguration()).setChosenCapabilities(caps);
         }
         if(0 == rootSurfaceLayerHandle) {
-            rootSurfaceLayerHandle = OSXUtil.CreateCALayer();
+            rootSurfaceLayerHandle = OSXUtil.CreateCALayer(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
             if(0 == rootSurfaceLayerHandle) {
               OSXUtil.DestroyNSWindow(drawable);
               drawable = 0;
               unlockSurfaceImpl();
               throw new NativeWindowException("Could not create root CALayer: "+this);                
             }
-            if(!AttachJAWTSurfaceLayer0(dsi.getBuffer(), rootSurfaceLayerHandle)) {
+            if(!SetJAWTRootSurfaceLayer0(dsi.getBuffer(), rootSurfaceLayerHandle)) {
               OSXUtil.DestroyCALayer(rootSurfaceLayerHandle);
               rootSurfaceLayerHandle = 0;
               OSXUtil.DestroyNSWindow(drawable);
               drawable = 0;
               unlockSurfaceImpl();
-              throw new NativeWindowException("Could not attach JAWT surfaceLayerHandle: "+this);
+              throw new NativeWindowException("Could not set JAWT rootSurfaceLayerHandle: "+this);
             }
         }
         ret = NativeWindow.LOCK_SUCCESS;
@@ -267,8 +267,8 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
   }  
   protected Point getLocationOnScreenNativeImpl(final int x0, final int y0) { return null; }
 
-  private static native boolean AttachJAWTSurfaceLayer0(Buffer jawtDrawingSurfaceInfoBuffer, long caLayer);
-  // private static native boolean DetachJAWTSurfaceLayer0(Buffer jawtDrawingSurfaceInfoBuffer, long caLayer);
+  private static native boolean SetJAWTRootSurfaceLayer0(Buffer jawtDrawingSurfaceInfoBuffer, long caLayer);
+  // private static native boolean UnsetJAWTRootSurfaceLayer0(Buffer jawtDrawingSurfaceInfoBuffer, long caLayer);
   
   // Variables for lockSurface/unlockSurface
   private JAWT_DrawingSurface ds;

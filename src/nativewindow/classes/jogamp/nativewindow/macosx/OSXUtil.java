@@ -77,8 +77,8 @@ public class OSXUtil {
         DestroyNSWindow0(nsWindow);
     }
     
-    public static long CreateCALayer() {
-        return CreateCALayer0();
+    public static long CreateCALayer(int x, int y, int width, int height) {
+        return CreateCALayer0(x, y, width, height);
     }
     public static void AddCASublayer(long rootCALayer, long subCALayer) {
         if(0==rootCALayer || 0==subCALayer) {
@@ -117,7 +117,7 @@ public class OSXUtil {
     private static native void DestroyNSView0(long nsView);
     private static native long CreateNSWindow0(int x, int y, int width, int height);
     private static native void DestroyNSWindow0(long nsWindow);
-    private static native long CreateCALayer0();
+    private static native long CreateCALayer0(int x, int y, int width, int height);
     private static native void AddCASublayer0(long rootCALayer, long subCALayer);
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
     private static native void DestroyCALayer0(long caLayer);

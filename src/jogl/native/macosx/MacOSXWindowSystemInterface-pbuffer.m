@@ -171,7 +171,7 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
 #endif
     [self setAsynchronous: YES];
 
-    [self setNeedsDisplayOnBoundsChange: YES]; // FIXME: learn how to recreate on size change!
+    [self setNeedsDisplayOnBoundsChange: YES];
 
     [self setOpaque: opaque ? YES : NO];
 
@@ -192,10 +192,8 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
         [displayLink setPaused: YES];
         [displayLink release];
 #else
-        if(NULL!=displayLink) {
-            CVDisplayLinkStop(displayLink);
-            CVDisplayLinkRelease(displayLink);
-        }
+        CVDisplayLinkStop(displayLink);
+        CVDisplayLinkRelease(displayLink);
 #endif
         displayLink = NULL;
     }
@@ -267,18 +265,6 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
 {
     [context makeCurrentContext];
    
-    /**
-     * v-sync doesn't works w/ NSOpenGLLayer's context .. well :(
-     * Using CVDisplayLink .. see setSwapInterval() below.
-     *
-    if(0 <= swapInterval) {
-        GLint si;
-        [context getValues: &si forParameter: NSOpenGLCPSwapInterval];
-        if(si != swapInterval) {
-            DBG_PRINT("MyNSOpenGLLayer::drawInOpenGLContext %p setSwapInterval: %d -> %d\n", self, si, swapInterval);
-            [context setValues: &swapInterval forParameter: NSOpenGLCPSwapInterval];
-        }
-    } */
     GLenum textureTarget = [pbuffer textureTarget];
     GLfloat texCoordWidth, texCoordHeight;
     {
@@ -359,33 +345,50 @@ static CVReturn renderMyNSOpenGLLayer(CVDisplayLinkRef displayLink,
 
 - (void)setSwapInterval:(int)interval
 {
-    DBG_PRINT("MyNSOpenGLLayer::setSwapInterval: %d\n", interval);
+    /**
+     * v-sync doesn't works w/ NSOpenGLLayer's context .. well :(
+     * Using CVDisplayLink .. see setSwapInterval() below.
+     *
+        GLint si;
+        [context getValues: &si forParameter: NSOpenGLCPSwapInterval];
+        if(si != swapInterval) {
+            DBG_PRINT("MyNSOpenGLLayer::drawInOpenGLContext %p setSwapInterval: %d -> %d\n", self, si, swapInterval);
+            [context setValues: &swapInterval forParameter: NSOpenGLCPSwapInterval];
+        }
+    } */
+
+    pthread_mutex_lock(&renderLock);
+    DBG_PRINT("MyNSOpenGLLayer::setSwapInterval.0: %d - displayLink %p\n", interval, displayLink);
     swapInterval = interval;
     swapIntervalCounter = 0;
-    if(0 < swapInterval) {
-        tc = 0;
-        timespec_now(&t0);
+    pthread_mutex_unlock(&renderLock);
 
-        [self setAsynchronous: NO];
-        #ifdef HAS_CADisplayLink
-            [displayLink setPaused: NO];
-            [displayLink setFrameInterval: interval];
-        #else
-            if(NULL!=displayLink) {
+    if(NULL!=displayLink) {
+        if(0 < swapInterval) {
+            tc = 0;
+            timespec_now(&t0);
+
+            [self setAsynchronous: NO];
+            #ifdef HAS_CADisplayLink
+                [displayLink setPaused: NO];
+                [displayLink setFrameInterval: interval];
+            #else
+                DBG_PRINT("MyNSOpenGLLayer::setSwapInterval.1.b.1\n");
                 CVDisplayLinkStart(displayLink);
-                // FIXME: doesn't support interval ..
-            }
-        #endif
-    } else {
-        #ifdef HAS_CADisplayLink
-            [displayLink setPaused: YES];
-        #else
-            if(NULL!=displayLink) {
+                DBG_PRINT("MyNSOpenGLLayer::setSwapInterval.1.b.X\n");
+            #endif
+        } else {
+            #ifdef HAS_CADisplayLink
+                [displayLink setPaused: YES];
+            #else
+                DBG_PRINT("MyNSOpenGLLayer::setSwapInterval.0.b.1\n");
                 CVDisplayLinkStop(displayLink);
-            }
-        #endif
-        [self setAsynchronous: YES];
+                DBG_PRINT("MyNSOpenGLLayer::setSwapInterval.0.b.X\n");
+            #endif
+            [self setAsynchronous: YES];
+        }
     }
+    DBG_PRINT("MyNSOpenGLLayer::setSwapInterval.X: %d\n", interval);
 }
 
 -(void)tick
@@ -414,9 +417,7 @@ NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, NSOpenGLPixelFormat* fm
 
 void setNSOpenGLLayerSwapInterval(NSOpenGLLayer* layer, int interval) {
   MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
-  pthread_mutex_lock(&l->renderLock);
   [l setSwapInterval: interval];
-  pthread_mutex_unlock(&l->renderLock);
 }
 
 void waitUntilNSOpenGLLayerIsReady(NSOpenGLLayer* layer, long to_micros) {

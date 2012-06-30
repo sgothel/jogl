@@ -225,22 +225,25 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyNSWindow0
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    CreateCALayer0
- * Signature: (V)J
+ * Signature: (IIII)J
  */
 JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
-  (JNIEnv *env, jclass unused)
+  (JNIEnv *env, jclass unused, jint x, jint y, jint width, jint height)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
     CALayer* layer = [[CALayer alloc] init];
-    DBG_PRINT("CALayer::CreateCALayer.0: %p (refcnt %d)\n", layer, (int)[layer retainCount]);
+    DBG_PRINT("CALayer::CreateCALayer.0: %p %d/%d %dx%d (refcnt %d)\n", layer, x, y, width, height, (int)[layer retainCount]);
+    // avoid zero size
+    if(0 == width) { width = 32; }
+    if(0 == height) { height = 32; }
 
     // initial dummy size !
     CGRect lRect = [layer frame];
-    lRect.origin.x = 0;
-    lRect.origin.y = 0;
-    lRect.size.width = 32;
-    lRect.size.height = 32;
+    lRect.origin.x = x;
+    lRect.origin.y = y;
+    lRect.size.width = width;
+    lRect.size.height = height;
     [layer setFrame: lRect];
     // no animations for add/remove/swap sublayers etc 
     // doesn't work: [layer removeAnimationForKey: kCAOnOrderIn, kCAOnOrderOut, kCATransition]
@@ -422,10 +425,10 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_IsMainThread0
 
 /*
  * Class:     Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
- * Method:    AttachJAWTSurfaceLayer
+ * Method:    SetJAWTRootSurfaceLayer0
  * Signature: (JJ)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_AttachJAWTSurfaceLayer0
+JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_SetJAWTRootSurfaceLayer0
   (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
 {
     JNF_COCOA_ENTER(env);
@@ -437,9 +440,9 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
     CALayer* layer = (CALayer*) (intptr_t) caLayer;
     [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
         id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
-        DBG_PRINT("CALayer::attachJAWTSurfaceLayer: %p -> %p (refcnt %d)\n", surfaceLayers.layer, layer, (int)[layer retainCount]);
+        DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.0: %p -> %p (refcnt %d)\n", surfaceLayers.layer, layer, (int)[layer retainCount]);
         surfaceLayers.layer = layer; // already incr. retain count
-        DBG_PRINT("CALayer::attachJAWTSurfaceLayer.X: %p (refcnt %d)\n", layer, (int)[layer retainCount]);
+        DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.X: %p (refcnt %d)\n", layer, (int)[layer retainCount]);
     }];
     JNF_COCOA_EXIT(env);
     return JNI_TRUE;
@@ -447,9 +450,9 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
 
 /*
  * Class:     Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
- * Method:    DetachJAWTSurfaceLayer
+ * Method:    UnsetJAWTRootSurfaceLayer0
  * Signature: (JJ)Z
-JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_DetachJAWTSurfaceLayer0
+JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_UnsetJAWTRootSurfaceLayer0
   (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
 {
     JNF_COCOA_ENTER(env);

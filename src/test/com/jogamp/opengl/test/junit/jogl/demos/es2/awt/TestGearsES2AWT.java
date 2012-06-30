@@ -32,6 +32,8 @@ import javax.media.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
 import javax.media.opengl.awt.GLCanvas;
+
+import com.jogamp.common.os.Platform;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
 import com.jogamp.newt.event.TraceKeyAdapter;
@@ -41,7 +43,11 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Frame;
+import java.awt.TextArea;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -57,6 +63,7 @@ public class TestGearsES2AWT extends UITestCase {
     static boolean firstUIActionOnProcess = false;
     static boolean forceES2 = false;
     static boolean shallUseOffscreenLayer = false;
+    static boolean addComp = true;
     static int swapInterval = 1;
     static boolean showFPS = false;    
 
@@ -77,8 +84,19 @@ public class TestGearsES2AWT extends UITestCase {
         final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
         glCanvas.setShallUseOffscreenLayer(shallUseOffscreenLayer);
-        frame.add(glCanvas);
-        frame.setSize(512, 512);
+        Dimension glc_sz = new Dimension(width, height);
+        glCanvas.setMinimumSize(glc_sz);
+        glCanvas.setPreferredSize(glc_sz);
+        glCanvas.setSize(glc_sz);
+        if(addComp) {
+            final TextArea ta = new TextArea(2, 20);
+            ta.append("0123456789");
+            ta.append(Platform.getNewline());
+            ta.append("Some Text");
+            ta.append(Platform.getNewline());
+            frame.add(ta, BorderLayout.SOUTH);
+        }
+        frame.add(glCanvas, BorderLayout.CENTER);
         frame.setTitle("Gears AWT Test (translucent "+!caps.isBackgroundOpaque()+"), swapInterval "+swapInterval);
 
         glCanvas.addGLEventListener(new GearsES2(swapInterval));
@@ -91,12 +109,13 @@ public class TestGearsES2AWT extends UITestCase {
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                frame.pack();
                 frame.setVisible(true);
             }});
         animator.setUpdateFPSFrames(60, System.err);
         animator.start();
 
-        while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
+        while(!quitAdapter.shouldQuit() /* && animator.isAnimating() */ && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
 
@@ -145,6 +164,8 @@ public class TestGearsES2AWT extends UITestCase {
                 firstUIActionOnProcess = true;
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
+            } else if(args[i].equals("-justGears")) {
+                addComp = false;
             }
         }
         System.err.println("forceES2 "+forceES2);

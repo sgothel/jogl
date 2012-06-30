@@ -135,6 +135,13 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   protected abstract void invalidateNative();
 
   protected final void updateBounds(JAWT_Rectangle jawtBounds) {
+    if(DEBUG) {
+        final Rectangle jb = new Rectangle(jawtBounds.getX(), jawtBounds.getY(), jawtBounds.getWidth(), jawtBounds.getHeight());
+        if(!bounds.equals(jb)) {
+            System.err.println("JAWTWindow.updateBounds: "+bounds+" -> "+jb);
+            Thread.dumpStack();
+        }
+    }
     bounds.setX(jawtBounds.getX());
     bounds.setY(jawtBounds.getY());
     bounds.setWidth(jawtBounds.getWidth());
@@ -186,7 +193,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       }
       try {
           if(DEBUG) {
-            System.err.println("JAWTWindow.attachSurfaceHandle(): 0x"+Long.toHexString(layerHandle));
+            System.err.println("JAWTWindow.attachSurfaceHandle(): 0x"+Long.toHexString(layerHandle) + ", bounds "+bounds);
           }
           attachSurfaceLayerImpl(layerHandle);
       } finally {
@@ -288,8 +295,10 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
             final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
             adevice.lock();
             try {
-                jawt = fetchJAWTImpl();
-                isOffscreenLayerSurface = JAWTUtil.isJAWTUsingOffscreenLayer(jawt);
+                if(null == jawt) { // no need to re-fetch for each frame
+                    jawt = fetchJAWTImpl();
+                    isOffscreenLayerSurface = JAWTUtil.isJAWTUsingOffscreenLayer(jawt);
+                }
                 res = lockSurfaceImpl();
                 if(LOCK_SUCCESS == res && drawable_old != drawable) {
                     res = LOCK_SURFACE_CHANGED;
@@ -386,9 +395,14 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   //
 
   @Override
-  public synchronized void destroy() {
-    invalidate();
-    component = null; // don't dispose the AWT component, since we are merely an immutable uplink
+  public void destroy() {
+    surfaceLock.lock();
+    try {
+        invalidate();
+        component = null; // don't dispose the AWT component, since we are merely an immutable uplink
+    } finally {
+        surfaceLock.unlock();
+    }
   }
 
   @Override
