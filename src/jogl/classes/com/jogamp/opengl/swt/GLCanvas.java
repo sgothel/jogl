@@ -117,7 +117,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    private final ProxySurface proxySurface;
 
    /* Construction parameters stored for GLAutoDrawable accessor methods */
-   private int ctxCreationFlags = 0;
+   private int additionalCtxCreationFlags = 0;
 
    private final GLCapabilitiesImmutable glCapsRequested;
 
@@ -327,7 +327,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    @Override
    public int getContextCreationFlags() {
-      return ctxCreationFlags;
+      return additionalCtxCreationFlags;
    }
 
    @Override
@@ -357,16 +357,22 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    }
 
    @Override
-   public void setContext(final GLContext ctx) {
-      if (ctx instanceof GLContextImpl) {
-         ((GLContextImpl) ctx).setContextCreationFlags(ctxCreationFlags);
+   public GLContext setContext(GLContext newCtx) {
+      final GLContext oldCtx = context;
+      final boolean newCtxCurrent = drawableHelper.switchContext(drawable, oldCtx, newCtx, additionalCtxCreationFlags);
+      context=(GLContextImpl)newCtx;
+      if(newCtxCurrent) {
+          context.makeCurrent();
       }
-      this.context = ctx;
+      return oldCtx;
    }
 
    @Override
    public void setContextCreationFlags(final int arg0) {
-      ctxCreationFlags = arg0;
+      additionalCtxCreationFlags = arg0;
+      if(null != context) {
+        context.setContextCreationFlags(additionalCtxCreationFlags);
+      }
    }
 
    @Override
@@ -379,8 +385,13 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    }
 
    @Override
-   public GLContext createContext(final GLContext arg0) {
-      return (drawable != null) ? drawable.createContext(arg0) : null;
+   public GLContext createContext(final GLContext shareWith) {
+     if(drawable != null) {
+         final GLContext _ctx = drawable.createContext(shareWith);
+         _ctx.setContextCreationFlags(additionalCtxCreationFlags);
+         return _ctx;
+     }
+     return null;
    }
 
    @Override

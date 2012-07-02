@@ -41,38 +41,26 @@
 package jogamp.opengl;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeSurface;
-import javax.media.opengl.GL;
-import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLPbuffer;
-import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLRunnable;
-
-import com.jogamp.common.util.locks.LockFactory;
-import com.jogamp.common.util.locks.RecursiveLock;
 
 /** Platform-independent class exposing pbuffer functionality to
     applications. This class is not exposed in the public API as it
     would probably add no value; however it implements the GLDrawable
     interface so can be interacted with via its display() method. */
 
-public class GLPbufferImpl implements GLPbuffer {
-  private GLDrawableImpl pbufferDrawable;
-  private GLContextImpl context;
-  private GLDrawableHelper drawableHelper = new GLDrawableHelper();
+public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
   private int floatMode;
-  private int additionalCtxCreationFlags = 0;
 
   public GLPbufferImpl(GLDrawableImpl pbufferDrawable,
-                       GLContext parentContext) {
+                       GLContext sharedContext) {
+    super(pbufferDrawable, null); // drawable := pbufferDrawable 
+    
     GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)
-         pbufferDrawable.getNativeSurface().getGraphicsConfiguration().getChosenCapabilities();
+         drawable.getNativeSurface().getGraphicsConfiguration().getChosenCapabilities();
     if(caps.isOnscreen()) {
         if(caps.isPBuffer()) {
             throw new IllegalArgumentException("Error: Given drawable is Onscreen and Pbuffer: "+pbufferDrawable);
@@ -83,171 +71,13 @@ public class GLPbufferImpl implements GLPbuffer {
             throw new IllegalArgumentException("Error: Given drawable is not Pbuffer: "+pbufferDrawable);
         }
     }
-    this.pbufferDrawable = pbufferDrawable;
-    context = (GLContextImpl) pbufferDrawable.createContext(parentContext);
+    context = (GLContextImpl) drawable.createContext(sharedContext);
   }
 
-  @Override
-  public final GLContext createContext(GLContext shareWith) {
-    return pbufferDrawable.createContext(shareWith);
-  }
-
-  @Override
-  public final void setRealized(boolean realized) {
-  }
-
-  @Override
-  public final boolean isRealized() {
-    return true;
-  }
-
-  @Override
-  public void destroy() {
-    if(pbufferDrawable.isRealized()) {
-        final AbstractGraphicsDevice adevice = pbufferDrawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
-
-        if (null != context && context.isCreated()) {
-            try {
-                drawableHelper.disposeGL(GLPbufferImpl.this, pbufferDrawable, context, null);
-            } catch (GLException gle) {
-                gle.printStackTrace();
-            }
-            context = null;
-            // drawableHelper.reset();
-        }
-        pbufferDrawable.destroy();
-        pbufferDrawable = null;
-
-        if(null != adevice) {
-            adevice.close();
-        }
-    }
-  }
-
-  public void setSize(int width, int height) {
-    // FIXME
-    throw new GLException("Not yet implemented");
-  }
-
-  @Override
-  public NativeSurface getNativeSurface() {
-      return pbufferDrawable.getNativeSurface();
-  }
-
-  @Override
-  public long getHandle() {
-    return pbufferDrawable.getHandle();
-  }
-
-  @Override
-  public GLDrawableFactory getFactory() {
-      return pbufferDrawable.getFactory();
-  }
-
-  @Override
-  public int getWidth() {
-    return pbufferDrawable.getWidth();
-  }
-
-  @Override
-  public int getHeight() {
-    return pbufferDrawable.getHeight();
-  }
-
-  @Override
-  public void display() {
-    invokeGL(displayAction);
-  }
-
-  public void repaint() {
-    display();
-  }
-
-  @Override
-  public void addGLEventListener(GLEventListener listener) {
-    drawableHelper.addGLEventListener(listener);
-  }
-
-  @Override
-  public void addGLEventListener(int index, GLEventListener listener) {
-    drawableHelper.addGLEventListener(index, listener);
-  }
-
-  @Override
-  public void removeGLEventListener(GLEventListener listener) {
-    drawableHelper.removeGLEventListener(listener);
-  }
-
-  @Override
-  public void setAnimator(GLAnimatorControl animatorControl) {
-    drawableHelper.setAnimator(animatorControl);
-  }
-
-  @Override
-  public GLAnimatorControl getAnimator() {
-    return drawableHelper.getAnimator();
-  }
-
-  @Override
-  public void invoke(boolean wait, GLRunnable glRunnable) {
-    drawableHelper.invoke(this, wait, glRunnable);
-  }
-
-  @Override
-  public void setContext(GLContext ctx) {
-    context=(GLContextImpl)ctx;
-    if(null != context) {
-        context.setContextCreationFlags(additionalCtxCreationFlags);
-    }
-  }
-
-  @Override
-  public GLContext getContext() {
-    return context;
-  }
-
-  public GLDrawable getDrawable() {
-    return pbufferDrawable;
-  }
-
-  @Override
-  public GL getGL() {
-    return getContext().getGL();
-  }
-
-  @Override
-  public GL setGL(GL gl) {
-    return getContext().setGL(gl);
-  }
-
-  @Override
-  public void setAutoSwapBufferMode(boolean onOrOff) {
-    drawableHelper.setAutoSwapBufferMode(onOrOff);
-  }
-
-  @Override
-  public boolean getAutoSwapBufferMode() {
-    return drawableHelper.getAutoSwapBufferMode();
-  }
-
-  @Override
-  public void swapBuffers() {
-    invokeGL(swapBuffersAction);
-  }
-
-  @Override
-  public void setContextCreationFlags(int flags) {
-    additionalCtxCreationFlags = flags;
-    if(null != context) {
-        context.setContextCreationFlags(additionalCtxCreationFlags);
-    }
-  }
-
-  @Override
-  public int getContextCreationFlags() {
-    return additionalCtxCreationFlags;
-  }
-
+  //
+  // pbuffer specifics
+  // 
+  
   @Override
   public void bindTexture() {
     // Doesn't make much sense to try to do this on the event dispatch
@@ -263,40 +93,6 @@ public class GLPbufferImpl implements GLPbuffer {
   }
 
   @Override
-  public GLCapabilitiesImmutable getChosenGLCapabilities() {
-    if (pbufferDrawable == null)
-      return null;
-
-    return pbufferDrawable.getChosenGLCapabilities();
-  }
-
-  public GLCapabilitiesImmutable getRequestedGLCapabilities() {
-    if (pbufferDrawable == null)
-      return null;
-
-    return pbufferDrawable.getRequestedGLCapabilities();
-  }
-
-  @Override
-  public GLProfile getGLProfile() {
-    if (pbufferDrawable == null)
-      return null;
-
-    return pbufferDrawable.getGLProfile();
-  }
-
-  private RecursiveLock recurLock = LockFactory.createRecursiveLock();
-
-  public int lockSurface() throws GLException {
-    recurLock.lock();
-    return NativeSurface.LOCK_SUCCESS;
-  }
-
-  public void unlockSurface() {
-    recurLock.unlock();
-  }
-
-  @Override
   public int getFloatingPointMode() {
     if (floatMode == 0) {
       throw new GLException("Pbuffer not initialized, or floating-point support not requested");
@@ -304,37 +100,61 @@ public class GLPbufferImpl implements GLPbuffer {
     return floatMode;
   }
 
+  //
+  // GLDrawable delegation
+  // 
+  
+  @Override
+  public final void setRealized(boolean realized) {
+  }
+
+  //
+  // GLAutoDrawable completion
+  //
+  
+  @Override
+  public void destroy() {
+    if(drawable.isRealized()) {
+        final AbstractGraphicsDevice adevice = drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
+
+        if (null != context && context.isCreated()) {
+            try {
+                helper.disposeGL(GLPbufferImpl.this, drawable, context, null);
+            } catch (GLException gle) {
+                gle.printStackTrace();
+            }
+            context = null;
+            // drawableHelper.reset();
+        }
+        drawable.destroy();
+        drawable = null;
+
+        if(null != adevice) {
+            adevice.close();
+        }
+    }
+  }
+
+  @Override
+  public GLDrawableFactory getFactory() {
+      return drawable.getFactory();
+  }
+
+  @Override
+  public void display() {
+      if( null == drawable || !drawable.isRealized() || null == context ) { return; }
+      helper.invokeGL(drawable, context, defaultDisplayAction, initAction);
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
 
-  private void invokeGL(Runnable invokeGLAction) {
-    drawableHelper.invokeGL(pbufferDrawable, context, invokeGLAction, initAction);
-  }
-
-
-  class InitAction implements Runnable {
+  protected final Runnable initAction = new Runnable() {
     @Override
-    public void run() {
-      floatMode = context.getFloatingPointMode();
-      drawableHelper.init(GLPbufferImpl.this);
-    }
-  }
-  private InitAction initAction = new InitAction();
-
-  class DisplayAction implements Runnable {
-    @Override
-    public void run() {
-      drawableHelper.display(GLPbufferImpl.this);
-    }
-  }
-  private DisplayAction displayAction = new DisplayAction();
-
-  class SwapBuffersAction implements Runnable {
-    @Override
-    public void run() {
-      pbufferDrawable.swapBuffers();
-    }
-  }
-  private SwapBuffersAction swapBuffersAction = new SwapBuffersAction();
+    public final void run() {
+        floatMode = context.getFloatingPointMode();
+        defaultInitAction.run();
+    } };
+  
 }

@@ -392,10 +392,15 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public GLContext createContext(GLContext shareWith) {
-      return (null != drawable) ? drawable.createContext(shareWith) : null;
+  public GLContext createContext(final GLContext shareWith) {
+    if(drawable != null) {
+      final GLContext _ctx = drawable.createContext(shareWith);
+      _ctx.setContextCreationFlags(additionalCtxCreationFlags);
+      return _ctx;
+    }
+    return null;
   }
-
+    
   @Override
   public void setRealized(boolean realized) {
   }
@@ -694,11 +699,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public void setContext(GLContext ctx) {
-    context=(GLContextImpl)ctx;
-    if(null != context) {
-        context.setContextCreationFlags(additionalCtxCreationFlags);
-    }
+  public GLContext setContext(GLContext newCtx) {
+      final GLContext oldCtx = context;
+      final boolean newCtxCurrent = drawableHelper.switchContext(drawable, oldCtx, newCtx, additionalCtxCreationFlags);
+      context=(GLContextImpl)newCtx;
+      if(newCtxCurrent) {
+          context.makeCurrent();
+      }
+      return oldCtx;
   }
 
   @Override
@@ -744,6 +752,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   @Override
   public void setContextCreationFlags(int flags) {
     additionalCtxCreationFlags = flags;
+    if(null != context) {
+      context.setContextCreationFlags(additionalCtxCreationFlags);
+    }
   }
 
   @Override

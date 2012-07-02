@@ -456,15 +456,19 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public void setContext(GLContext ctx) {
-    if (backend == null) {
-      return;
-    }
-    if(null != ctx) {
-        ctx.setContextCreationFlags(additionalCtxCreationFlags);
-    }
-    backend.setContext(ctx);
+  public GLContext setContext(GLContext newCtx) {
+      if (backend == null) {
+          return null;
+      }
+      final GLContext oldCtx = backend.getContext();
+      final boolean newCtxCurrent = drawableHelper.switchContext(backend.getDrawable(), oldCtx, newCtx, additionalCtxCreationFlags);
+      backend.setContext(newCtx);
+      if(newCtxCurrent) {
+          newCtx.makeCurrent();
+      }
+      return oldCtx;
   }
+
 
   @Override
   public GLContext getContext() {
@@ -1160,7 +1164,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
     @Override
     public void setContext(GLContext ctx) {
-      if (pbuffer == null && Beans.isDesignTime()) {
+      if (pbuffer == null || Beans.isDesignTime()) {
         return;
       }
       pbuffer.setContext(ctx);
@@ -1169,7 +1173,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     @Override
     public GLContext getContext() {
       // Workaround for crashes in NetBeans GUI builder
-      if (pbuffer == null && Beans.isDesignTime()) {
+      if (null == pbuffer || Beans.isDesignTime()) {
         return null;
       }
       return pbuffer.getContext();

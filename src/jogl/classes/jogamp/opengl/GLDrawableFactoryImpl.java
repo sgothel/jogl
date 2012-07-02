@@ -130,8 +130,8 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
       throw new IllegalArgumentException("Null target");
     }
     final MutableGraphicsConfiguration config = (MutableGraphicsConfiguration) target.getGraphicsConfiguration();
-    GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
-    AbstractGraphicsDevice adevice = config.getScreen().getDevice();
+    final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+    final AbstractGraphicsDevice adevice = config.getScreen().getDevice();
     GLDrawable result = null;
     adevice.lock();
     try {
@@ -183,7 +183,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
 
   //---------------------------------------------------------------------------
   //
-  // PBuffer GLDrawable construction 
+  // PBuffer Offscreen GLDrawable construction 
   //
 
   public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device);
@@ -225,7 +225,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     }
     return new GLPbufferImpl( drawable, shareWith);
   }
-
 
   //---------------------------------------------------------------------------
   //

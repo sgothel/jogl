@@ -122,10 +122,36 @@ public interface GLAutoDrawable extends GLDrawable {
   public GLContext getContext();
 
   /**
-   * Associate a new context to this drawable.
+   * Associate a new context to this drawable and also propagates the context/drawable switch by 
+   * calling {@link GLContext#setGLDrawable(GLDrawable, boolean) newCtx.setGLDrawable(drawable, true);}.
+   * <code>drawable</code> might be an inner GLDrawable instance if using such a delegation pattern,
+   * or this GLAutoDrawable itself. 
+   * <p>
+   * If the old context's drawable was an {@link GLAutoDrawable}, it's reference to the given drawable
+   * is being cleared by calling 
+   * {@link GLAutoDrawable#setContext(GLContext) ((GLAutoDrawable)oldCtx.getGLDrawable()).setContext(null)}.
+   * </p>
+   * <p>
+   * If the old or new context was current on this thread, it is being released before switching the drawable.
+   * The new context will be made current afterwards, if it was current before. 
+   * However the user shall take extra care that not other thread
+   * attempts to make this context current. Otherwise a race condition may happen.
+   * </p>
+   * <p>
+   * <b>Disclaimer</b>: Even though the API may allows this functionality in theory, your mileage may vary 
+   * switching the drawable of an already established GLContext, i.e. which is already made current once.
+   * FIXME: Validate functionality! 
+   * </p>
+   * 
+   * @param newCtx the new context
+   * @return the replaced GLContext, maybe <code>null</code>
+   *  
+   * @see GLContext#setGLDrawable(GLDrawable, boolean)
+   * @see GLContext#setGLReadDrawable(GLDrawable)
+   * @see jogamp.opengl.GLDrawableHelper#switchContext(GLDrawable, GLContext, GLContext, int)
    */
-  public void setContext(GLContext context);
-
+  public GLContext setContext(GLContext newCtx);
+  
   /** Adds a {@link GLEventListener} to the end of this drawable queue.
       The listeners are notified of events in the order of the queue. */
   public void addGLEventListener(GLEventListener listener);
@@ -271,6 +297,21 @@ public interface GLAutoDrawable extends GLDrawable {
    */
   public int getContextCreationFlags();
 
+  /**
+   * {@inheritDoc}
+   * <p>
+   * This GLAutoDrawable implementation holds it's own GLContext reference,
+   * thus created a GLContext using this methods won't replace it implicitly.
+   * To replace or set this GLAutoDrawable's GLContext you need to call {@link #setContext(GLContext)}. 
+   * </p>
+   * <p>
+   * The GLAutoDrawable implementation shall also set the 
+   * context creation flags as customized w/ {@link #setContextCreationFlags(int)}. 
+   * </p>
+   */
+  @Override
+  public GLContext createContext(GLContext shareWith);
+  
   /** Returns the {@link GL} pipeline object this GLAutoDrawable uses.
       If this method is called outside of the {@link
       GLEventListener}'s callback methods (init, display, etc.) it may

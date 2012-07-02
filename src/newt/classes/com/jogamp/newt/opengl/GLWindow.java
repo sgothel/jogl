@@ -34,8 +34,6 @@
 
 package com.jogamp.newt.opengl;
 
-import java.io.PrintStream;
-
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
@@ -53,16 +51,15 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLRunnable;
 
 import jogamp.newt.WindowImpl;
-import jogamp.opengl.FPSCounterImpl;
-import jogamp.opengl.GLDrawableHelper;
+import jogamp.opengl.GLAutoDrawableBase;
+import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.GLDrawableImpl;
 
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.VersionUtil;
@@ -78,7 +75,6 @@ import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.WindowUpdateEvent;
 import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.util.Animator;
 
 /**
  * An implementation of {@link GLAutoDrawable} and {@link Window} interface,
@@ -100,30 +96,25 @@ import com.jogamp.opengl.util.Animator;
          GLAutoDrawable implementations, she is safe due to the implicit locked state.
  * </p>    
  */
-public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSCounter {
+public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Window, NEWTEventConsumer, FPSCounter {
     private final WindowImpl window;
 
     /**
      * Constructor. Do not call this directly -- use {@link #create()} instead.
      */
     protected GLWindow(Window window) {
-        resetFPSCounter();
+        super(null, null);
         this.window = (WindowImpl) window;
         this.window.setHandleDestroyNotify(false);
         window.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowRepaint(WindowUpdateEvent e) {
-                    if( !GLWindow.this.window.isWindowLockedByOtherThread() && !GLWindow.this.helper.isAnimatorAnimating() ) {
-                        display();
-                    }
+                    defaultRepaintOp();
                 }
 
                 @Override
                 public void windowResized(WindowEvent e) {
-                    sendReshape = true;
-                    if( !GLWindow.this.window.isWindowLockedByOtherThread() && !GLWindow.this.helper.isAnimatorAnimating() ) {
-                        display();
-                    }
+                    defaultReshapeOp();
                 }
 
                 @Override
@@ -132,7 +123,7 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
                         // Is an animator thread perform rendering?
                         if (GLWindow.this.helper.isExternalAnimatorRunning()) {
                             // Pause animations before initiating safe destroy.
-                            GLAnimatorControl ctrl = GLWindow.this.helper.getAnimator();
+                            final GLAnimatorControl ctrl = GLWindow.this.helper.getAnimator();
                             boolean isPaused = ctrl.pause();
                             destroy();
                             if(isPaused) {
@@ -343,6 +334,26 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
     }
 
     @Override
+    public final int getX() {
+        return window.getX();
+    }
+
+    @Override
+    public final int getY() {
+        return window.getY();
+    }
+    
+    @Override
+    public final int getWidth() {
+        return window.getWidth();
+    }
+
+    @Override
+    public final int getHeight() {
+        return window.getHeight();
+    }
+    
+    @Override
     public final void setPosition(int x, int y) {
         window.setPosition(x, y);
     }
@@ -495,10 +506,10 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
                     factory = GLDrawableFactory.getFactory(glCaps.getGLProfile());
                 }
                 if(null==drawable) {
-                    drawable = factory.createGLDrawable(nw);
+                    drawable = (GLDrawableImpl) factory.createGLDrawable(nw);
                 }
                 drawable.setRealized(true);
-                context = drawable.createContext(sharedContext);
+                context = (GLContextImpl) drawable.createContext(sharedContext);
                 context.setContextCreationFlags(additionalCtxCreationFlags);
             }
             if(Window.DEBUG_IMPLEMENTATION) {
@@ -531,20 +542,6 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
     //
 
     private GLContext sharedContext = null;
-    private int additionalCtxCreationFlags = 0;
-    private GLDrawableFactory factory;
-    private GLDrawable drawable;
-    private GLContext context;
-    private GLDrawableHelper helper = new GLDrawableHelper();
-    // To make reshape events be sent immediately before a display event
-    private boolean sendReshape=false;
-    private boolean sendDestroy=false;
-    private final FPSCounterImpl fpsCounter = new FPSCounterImpl();
-
-    @Override
-    public GLDrawableFactory getFactory() {
-        return factory;
-    }
 
     /**
      * Specifies an {@link javax.media.opengl.GLContext OpenGL context} to share with.<br>
@@ -556,79 +553,6 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
      */
     public void setSharedContext(GLContext sharedContext) {
         this.sharedContext = sharedContext;
-    }
-
-    @Override
-    public void setContext(GLContext newCtx) {
-        context = newCtx;
-        if(null != context) {
-            context.setContextCreationFlags(additionalCtxCreationFlags);
-        }
-    }
-
-    @Override
-    public GLContext getContext() {
-        return context;
-    }
-
-    @Override
-    public GL getGL() {
-        if (context == null) {
-            return null;
-        }
-        return context.getGL();
-    }
-
-    @Override
-    public GL setGL(GL gl) {
-        if (context != null) {
-            context.setGL(gl);
-            return gl;
-        }
-        return null;
-    }
-
-    @Override
-    public void addGLEventListener(GLEventListener listener) {
-        if(null!=helper) {
-            helper.addGLEventListener(listener);
-        }
-    }
-
-    @Override
-    public void addGLEventListener(int index, GLEventListener listener) {
-        if(null!=helper) {
-            helper.addGLEventListener(index, listener);
-        }
-    }
-
-    @Override
-    public void removeGLEventListener(GLEventListener listener) {
-        if(null!=helper) {
-            helper.removeGLEventListener(listener);
-        }
-    }
-
-    @Override
-    public void setAnimator(GLAnimatorControl animatorControl) {
-        if(null!=helper) {
-            helper.setAnimator(animatorControl);
-        }
-    }
-
-    @Override
-    public GLAnimatorControl getAnimator() {
-        if(null!=helper) {
-            return helper.getAnimator();
-        }
-        return null;
-    }
-
-    @Override
-    public void invoke(boolean wait, GLRunnable glRunnable) {
-        if(null!=helper) {
-            helper.invoke(this, wait, glRunnable);
-        }
     }
 
     @Override
@@ -650,213 +574,25 @@ public class GLWindow implements GLAutoDrawable, Window, NEWTEventConsumer, FPSC
 
             if( null != context ) {
                 // surface is locked/unlocked implicit by context's makeCurrent/release
-                helper.invokeGL(drawable, context, displayAction, initAction);
+                helper.invokeGL(drawable, context, defaultDisplayAction, defaultInitAction);
             }
         } finally {
             window.unlockWindow();
         }
     }
 
-    @Override
-    public void setAutoSwapBufferMode(boolean enable) {
-        if(null!=helper) {
-            helper.setAutoSwapBufferMode(enable);
-        }
-    }
-
-    @Override
-    public boolean getAutoSwapBufferMode() {
-        if(null!=helper) {
-            return helper.getAutoSwapBufferMode();
-        }
-        return false;
-    }
-
-    /**
-     * @param t the thread for which context release shall be skipped, usually the animation thread,
-     *          ie. {@link Animator#getThread()}.
-     * @deprecated this is an experimental feature,
-     *             intended for measuring performance in regards to GL context switch
-     */
-    @Deprecated
-    public void setSkipContextReleaseThread(Thread t) {
-        if(null!=helper) {
-            helper.setSkipContextReleaseThread(t);
-        }
-    }
-
-    /**
-     * @deprecated see {@link #setSkipContextReleaseThread(Thread)}
-     */
-    @Deprecated
-    public Thread getSkipContextReleaseThread() {
-        if(null!=helper) {
-            return helper.getSkipContextReleaseThread();
-        }
-        return null;
-    }
-
-    @Override
-    public void swapBuffers() {
-        if(drawable!=null && context != null) {
-            drawable.swapBuffers();
-        }
-    }
-
-    @Override
-    public void setContextCreationFlags(int flags) {
-        additionalCtxCreationFlags = flags;
-    }
-
-    @Override
-    public int getContextCreationFlags() {
-        return additionalCtxCreationFlags;
-    }
-
-    private class InitAction implements Runnable {
-        @Override
-        public final void run() {
-            // Lock: Locked Surface/Window by MakeCurrent/Release
-            helper.init(GLWindow.this);
-            resetFPSCounter();
-        }
-    }
-    private InitAction initAction = new InitAction();
-
-    private class DisplayAction implements Runnable {
-        @Override
-        public final void run() {
-            // Lock: Locked Surface/Window by display _and_ MakeCurrent/Release
-            if (sendReshape) {
-                helper.reshape(GLWindow.this, 0, 0, getWidth(), getHeight());
-                sendReshape = false;
-            }
-
-            helper.display(GLWindow.this);
-
-            fpsCounter.tickFPS();
-        }
-    }
-    private DisplayAction displayAction = new DisplayAction();
-
-    @Override
-    public final void setUpdateFPSFrames(int frames, PrintStream out) {
-        fpsCounter.setUpdateFPSFrames(frames, out);
-    }
-
-    @Override
-    public final void resetFPSCounter() {
-        fpsCounter.resetFPSCounter();
-    }
-
-    @Override
-    public final int getUpdateFPSFrames() {
-        return fpsCounter.getUpdateFPSFrames();
-    }
-
-    @Override
-    public final long getFPSStartTime()   {
-        return fpsCounter.getFPSStartTime();
-    }
-
-    @Override
-    public final long getLastFPSUpdateTime() {
-        return fpsCounter.getLastFPSUpdateTime();
-    }
-
-    @Override
-    public final long getLastFPSPeriod() {
-        return fpsCounter.getLastFPSPeriod();
-    }
-
-    @Override
-    public final float getLastFPS() {
-        return fpsCounter.getLastFPS();
-    }
-
-    @Override
-    public final int getTotalFPSFrames() {
-        return fpsCounter.getTotalFPSFrames();
-    }
-
-    @Override
-    public final long getTotalFPSDuration() {
-        return fpsCounter.getTotalFPSDuration();
-    }
-
-    @Override
-    public final float getTotalFPS() {
-        return fpsCounter.getTotalFPS();
-    }
-
     //----------------------------------------------------------------------
     // GLDrawable methods
     //
+    private GLDrawableFactory factory;
 
     @Override
-    public final NativeSurface getNativeSurface() {
-        return null!=drawable ? drawable.getNativeSurface() : null;
-    }
-
-    @Override
-    public final long getHandle() {
-        return null!=drawable ? drawable.getHandle() : 0;
-    }
-
-    @Override
-    public final int getX() {
-        return window.getX();
-    }
-
-    @Override
-    public final int getY() {
-        return window.getY();
-    }
-
-    @Override
-    public final int getWidth() {
-        return window.getWidth();
-    }
-
-    @Override
-    public final int getHeight() {
-        return window.getHeight();
-    }
-
-    //----------------------------------------------------------------------
-    // GLDrawable methods that are not really needed
-    //
-
-    @Override
-    public final GLContext createContext(GLContext shareWith) {
-        return drawable.createContext(shareWith);
+    public GLDrawableFactory getFactory() {
+        return factory;
     }
 
     @Override
     public final void setRealized(boolean realized) {
-    }
-
-    @Override
-    public final boolean isRealized() {
-        return ( null != drawable ) ? drawable.isRealized() : false;
-    }
-
-    @Override
-    public final GLCapabilitiesImmutable getChosenGLCapabilities() {
-        if (drawable == null) {
-            throw new GLException("No drawable yet");
-        }
-
-        return drawable.getChosenGLCapabilities();
-    }
-
-    @Override
-    public final GLProfile getGLProfile() {
-        if (drawable == null) {
-            throw new GLException("No drawable yet");
-        }
-
-        return drawable.getGLProfile();
     }
 
     //----------------------------------------------------------------------
