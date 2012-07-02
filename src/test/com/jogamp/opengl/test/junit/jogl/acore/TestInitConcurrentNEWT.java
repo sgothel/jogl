@@ -91,7 +91,7 @@ public class TestInitConcurrentNEWT extends UITestCase {
             glWindow.setTitle("Task "+id);
             glWindow.setPosition(x + insets.getLeftWidth(), y + insets.getTopHeight() );
     
-            glWindow.addGLEventListener(new GearsES2(1));
+            glWindow.addGLEventListener(new GearsES2(0));
     
             Animator animator = new Animator(glWindow);
     

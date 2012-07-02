@@ -89,7 +89,7 @@ public class TestGearsES2NEWT extends UITestCase {
     @BeforeClass
     public static void initClass() {
         if(null == wsize) {
-            wsize = new Dimension(200, 200);
+            wsize = new Dimension(640, 480);
         }
     }
 
@@ -257,7 +257,7 @@ public class TestGearsES2NEWT extends UITestCase {
     }
 
     public static void main(String args[]) throws IOException {        
-        int x=0, y=0, w=200, h=200;
+        int x=0, y=0, w=640, h=480;
         boolean useSize = false;
         boolean usePos = false;
         
@@ -319,9 +319,8 @@ public class TestGearsES2NEWT extends UITestCase {
                 }
             }
         }
-        if(useSize) {
-            wsize = new Dimension(w, h);
-        }
+        wsize = new Dimension(w, h);
+        
         if(usePos) {
             wpos = new Point(x, y);
         }

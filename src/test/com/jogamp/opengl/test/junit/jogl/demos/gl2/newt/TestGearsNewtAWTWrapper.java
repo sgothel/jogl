@@ -53,8 +53,8 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
     public static void initClass() {
         glp = GLProfile.getGL2ES2();
         Assert.assertNotNull(glp);
-        width  = 512;
-        height = 512;
+        width  = 640;
+        height = 480;
     }
 
     @AfterClass

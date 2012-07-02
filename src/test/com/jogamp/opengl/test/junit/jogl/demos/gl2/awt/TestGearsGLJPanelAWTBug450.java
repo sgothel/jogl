@@ -30,14 +30,16 @@
 import javax.media.opengl.*;
 
 import com.jogamp.opengl.util.FPSAnimator;
+import com.jogamp.opengl.util.GLReadBufferUtil;
 
 import javax.media.opengl.awt.GLJPanel;
 import javax.media.opengl.glu.gl2.GLUgl2;
 
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import java.awt.AWTException;
 import java.awt.BorderLayout;
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 
@@ -62,26 +64,32 @@ import org.junit.Test;
 public class TestGearsGLJPanelAWTBug450 extends UITestCase {
     static GLProfile glp;
     static int width, height;
+    static int r_x, r_y;
     /** Set this if test fails. Needed because we can't throw an exception
      * all the way up the stack from where we test the pixel. */
     static boolean failed;
 
     @BeforeClass
     public static void initClass() {
-        if(GLProfile.isAvailable(GLProfile.GL2)) {
-            glp = GLProfile.get(GLProfile.GL2);
-            Assert.assertNotNull(glp);
-            width  = 512;
-            height = 256;
-        } else {
-            setTestSupported(false);
-        }
+        glp = GLProfile.getGL2ES2();
+        Assert.assertNotNull(glp);
+        height = 256;
+        width  = 2*height;
+        r_x    = 5*height/4; // 5/8 * width
+        r_y    =   height/2;
     }
 
     @AfterClass
     public static void releaseClass() {
     }
 
+    protected void snapshot(GLAutoDrawable drawable, boolean alpha, boolean flip, String filename) {
+        GLReadBufferUtil screenshot = new GLReadBufferUtil(alpha, false);
+        if(screenshot.readPixels(drawable.getGL(), drawable, flip)) {
+            screenshot.write(new File(filename));
+        }                
+    }
+    
     protected void runTestGL(GLCapabilities caps)
             throws AWTException, InterruptedException, InvocationTargetException
     {
@@ -90,21 +98,39 @@ public class TestGearsGLJPanelAWTBug450 extends UITestCase {
 
         GLJPanel glJPanel = new GLJPanel(caps);
         Assert.assertNotNull(glJPanel);
-        glJPanel.addGLEventListener(new Gears() {
+        RedSquareES2 demo = new RedSquareES2();
+        demo.setAspect((float)width/(float)height);
+        demo.setDoRotation(false);
+        glJPanel.addGLEventListener(demo);
+        glJPanel.addGLEventListener(new GLEventListener() {
+            int f = 0;
+            @Override
+            public void init(GLAutoDrawable drawable) {
+                // drawable.getGL().glClearColor(0, 0, 1, 1);                
+            }
             @Override
             public void display(GLAutoDrawable drawable) {
-                super.display(drawable);
                 // look at one pixel at the bottom of the frame, just right of
                 // the center line, and make sure it's not black
                 GL2 gl = GLUgl2.getCurrentGL2();
                 ByteBuffer bytebuffer = ByteBuffer.allocateDirect( 3 );
-                gl.glReadPixels( 260, 10, 1, 1, GL2.GL_BGR, GL2.GL_UNSIGNED_BYTE, bytebuffer );
+                gl.glReadPixels( r_x, r_y, 1, 1, GL2.GL_BGR, GL2.GL_UNSIGNED_BYTE, bytebuffer );
                 byte byte0 = bytebuffer.get( 0 );
                 byte byte1 = bytebuffer.get( 1 );
                 byte byte2 = bytebuffer.get( 2 );
-                if( (byte0 == 0) && (byte1 == 0) && (byte2 == 0) )
+                if( (byte0 == 0) && (byte1 == 0) && (byte2 == 0) ) {
                     failed = true;
+                }
+                if(0 == f) {
+                    System.err.println("BGR ("+r_x+"/"+r_y+"): "+byte0+", "+byte1+", "+byte2+" - OK "+(!failed));
+                    snapshot(drawable, true,  false, getSimpleTestName(".")+".png");
+                }
+                f++;
             }
+            @Override
+            public void dispose(GLAutoDrawable drawable) {}
+            @Override
+            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
         });
 
         FPSAnimator animator = new FPSAnimator(glJPanel, 60);

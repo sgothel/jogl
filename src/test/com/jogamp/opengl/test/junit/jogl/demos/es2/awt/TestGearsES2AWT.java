@@ -69,8 +69,8 @@ public class TestGearsES2AWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        width  = 512;
-        height = 512;
+        width  = 640;
+        height = 480;
     }
 
     @AfterClass

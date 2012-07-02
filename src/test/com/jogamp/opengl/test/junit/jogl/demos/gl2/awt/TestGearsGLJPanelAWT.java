@@ -37,6 +37,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import java.awt.AWTException;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.lang.reflect.InvocationTargetException;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
@@ -55,8 +56,8 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         if(GLProfile.isAvailable(GLProfile.GL2)) {
             glp = GLProfile.get(GLProfile.GL2);
             Assert.assertNotNull(glp);
-            width  = 512;
-            height = 512;
+            width  = 640;
+            height = 480;
         } else {
             setTestSupported(false);
         }
@@ -74,6 +75,10 @@ public class TestGearsGLJPanelAWT extends UITestCase {
 
         GLJPanel glJPanel = new GLJPanel(caps);
         Assert.assertNotNull(glJPanel);
+        Dimension glc_sz = new Dimension(width, height);
+        glJPanel.setMinimumSize(glc_sz);
+        glJPanel.setPreferredSize(glc_sz);
+        glJPanel.setSize(glc_sz);
         glJPanel.addGLEventListener(new Gears());
 
         FPSAnimator animator = new FPSAnimator(glJPanel, 60);
@@ -83,7 +88,8 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     _frame.getContentPane().add(_glJPanel, BorderLayout.CENTER);
-                    _frame.setSize(512, 512);
+                    _frame.getContentPane().validate();
+                    _frame.pack();
                     _frame.setVisible(true);
                 } } ) ;
 

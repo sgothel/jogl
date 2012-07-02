@@ -29,6 +29,8 @@ public class Gears implements GLEventListener {
   private int gear1=0, gear2=0, gear3=0;
   private float angle = 0.0f;
   private int swapInterval;
+  private MouseListener gearsMouse = new GearsMouseAdapter();    
+  private KeyListener gearsKeys = new GearsKeyAdapter();
 
   // private boolean mouseRButtonDown = false;
   private int prevMouseX, prevMouseY;
@@ -122,18 +124,14 @@ public class Gears implements GLEventListener {
             
     gl.glEnable(GL2.GL_NORMALIZE);
                 
-    // MouseListener gearsMouse = new TraceMouseAdapter(new GearsMouseAdapter());
-    MouseListener gearsMouse = new GearsMouseAdapter();    
-    KeyListener gearsKeys = new GearsKeyAdapter();
-
-    if (drawable instanceof Window) {
-        Window window = (Window) drawable;
-        window.addMouseListener(gearsMouse);
-        window.addKeyListener(gearsKeys);
-    } else if (GLProfile.isAWTAvailable() && drawable instanceof java.awt.Component) {
+    if (GLProfile.isAWTAvailable() && drawable instanceof java.awt.Component) {
         java.awt.Component comp = (java.awt.Component) drawable;
         new AWTMouseAdapter(gearsMouse).addTo(comp);
-        new AWTKeyAdapter(gearsKeys).addTo(comp);
+        new AWTKeyAdapter(gearsKeys).addTo(comp);    
+    } else if (drawable.getNativeSurface() instanceof Window) {
+        Window window = (Window) drawable.getNativeSurface();
+        window.addMouseListener(gearsMouse);
+        window.addKeyListener(gearsKeys);
     }
   }
     
@@ -143,12 +141,16 @@ public class Gears implements GLEventListener {
 
     gl.setSwapInterval(swapInterval);
 
-    float h = (float)height / (float)width;
-            
     gl.glMatrixMode(GL2.GL_PROJECTION);
 
     gl.glLoadIdentity();
-    gl.glFrustum(-1.0f, 1.0f, -h, h, 5.0f, 60.0f);
+    if(height>width) {
+        float h = (float)height / (float)width;
+        gl.glFrustum(-1.0f, 1.0f, -h, h, 5.0f, 60.0f);
+    } else {
+        float h = (float)width / (float)height;
+        gl.glFrustum(-h, h, -1.0f, 1.0f, 5.0f, 60.0f);
+    }
     gl.glMatrixMode(GL2.GL_MODELVIEW);
     gl.glLoadIdentity();
     gl.glTranslatef(0.0f, 0.0f, -40.0f);
@@ -156,6 +158,13 @@ public class Gears implements GLEventListener {
 
   public void dispose(GLAutoDrawable drawable) {
     System.err.println("Gears: Dispose");
+    try {
+        if (drawable.getNativeSurface() instanceof Window) {
+            Window window = (Window) drawable.getNativeSurface();
+            window.removeMouseListener(gearsMouse);
+            window.removeKeyListener(gearsKeys);
+        }
+    } catch (Exception e) { System.err.println("Catched: "); e.printStackTrace(); }
     setGears(0, 0, 0);
   }
 

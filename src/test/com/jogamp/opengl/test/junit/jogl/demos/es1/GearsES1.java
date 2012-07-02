@@ -48,6 +48,9 @@ public class GearsES1 implements GLEventListener {
   private GearsObject gear1=null, gear2=null, gear3=null;
   private float angle = 0.0f;
   private int swapInterval;
+  private MouseListener gearsMouse = new GearsMouseAdapter();    
+  private KeyListener gearsKeys = new GearsKeyAdapter();
+
 
   private int prevMouseX, prevMouseY;
 
@@ -126,12 +129,8 @@ public class GearsES1 implements GLEventListener {
             
     gl.glEnable(GL2ES1.GL_NORMALIZE);
                 
-    // MouseListener gearsMouse = new TraceMouseAdapter(new GearsMouseAdapter());
-    MouseListener gearsMouse = new GearsMouseAdapter();    
-    KeyListener gearsKeys = new GearsKeyAdapter();
-
-    if (drawable instanceof Window) {
-        Window window = (Window) drawable;
+    if (drawable.getNativeSurface() instanceof Window) {
+        Window window = (Window) drawable.getNativeSurface();
         window.addMouseListener(gearsMouse);
         window.addKeyListener(gearsKeys);
     } else if (GLProfile.isAWTAvailable() && drawable instanceof java.awt.Component) {
@@ -166,6 +165,11 @@ public class GearsES1 implements GLEventListener {
 
   public void dispose(GLAutoDrawable drawable) {
     System.err.println(Thread.currentThread()+" GearsES1.dispose ... ");
+    if (drawable.getNativeSurface() instanceof Window) {
+        Window window = (Window) drawable.getNativeSurface();
+        window.removeMouseListener(gearsMouse);
+        window.removeKeyListener(gearsKeys);
+    }
     GL gl = drawable.getGL();
     gear1.destroy(gl);
     gear1 = null;

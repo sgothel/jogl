@@ -55,8 +55,8 @@ public class TestGearsNEWT extends UITestCase {
         if(GLProfile.isAvailable(GLProfile.GL2)) {
             glp = GLProfile.get(GLProfile.GL2);
             Assert.assertNotNull(glp);
-            width  = 512;
-            height = 512;
+            width  = 640;
+            height = 480;
         } else {
             setTestSupported(false);
         }

@@ -53,6 +53,8 @@ public class RedSquareES2 implements GLEventListener {
     private int swapInterval = 0;
     MyMouseAdapter myMouse = new MyMouseAdapter();
     GLWindow glWindow = null;
+    float aspect = 1.0f;
+    boolean doRotate = true;
 
     public RedSquareES2(int swapInterval) {
         this.swapInterval = swapInterval;
@@ -62,6 +64,9 @@ public class RedSquareES2 implements GLEventListener {
         this.swapInterval = 1;
     }
         
+    public void setAspect(float aspect) { this.aspect = aspect; }
+    public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
+    
     public void init(GLAutoDrawable glad) {
         System.err.println(Thread.currentThread()+" RedSquareES2.init ...");
         GL2ES2 gl = glad.getGL().getGL2ES2();
@@ -142,9 +147,11 @@ public class RedSquareES2 implements GLEventListener {
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
         pmvMatrix.glTranslatef(0, 0, -10);
-        float ang = ((float) (t1 - t0) * 360.0F) / 4000.0F;
-        pmvMatrix.glRotatef(ang, 0, 0, 1);
-        pmvMatrix.glRotatef(ang, 0, 1, 0);
+        if(doRotate) {
+            float ang = ((float) (t1 - t0) * 360.0F) / 4000.0F;
+            pmvMatrix.glRotatef(ang, 0, 0, 1);
+            pmvMatrix.glRotatef(ang, 0, 1, 0);
+        }
         st.uniform(gl, pmvMatrixUniform);        
 
         // Draw a square
@@ -164,7 +171,7 @@ public class RedSquareES2 implements GLEventListener {
         // Set location in front of camera
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.gluPerspective(45.0F, (float) width / (float) height, 1.0F, 100.0F);
+        pmvMatrix.gluPerspective(45.0F, ( (float) width / (float) height ) / aspect, 1.0F, 100.0F);
         //pmvMatrix.glOrthof(-4.0f, 4.0f, -4.0f, 4.0f, 1.0f, 100.0f);
         st.uniform(gl, pmvMatrixUniform);
         st.useProgram(gl, false);

@@ -163,8 +163,8 @@ public class GearsES2 implements GLEventListener {
             System.err.println("gear3 reused: "+gear3);
         }                
         
-        if (drawable instanceof Window) {
-            Window window = (Window) drawable;
+        if (drawable.getNativeSurface() instanceof Window) {
+            Window window = (Window) drawable.getNativeSurface();
             window.addMouseListener(gearsMouse);
             window.addKeyListener(gearsKeys);
         } else if (GLProfile.isAWTAvailable() && drawable instanceof java.awt.Component) {
@@ -207,8 +207,8 @@ public class GearsES2 implements GLEventListener {
 
     public void dispose(GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" GearsES2.dispose ... ");
-        if (drawable instanceof Window) {
-            Window window = (Window) drawable;
+        if (drawable.getNativeSurface() instanceof Window) {
+            Window window = (Window) drawable.getNativeSurface();
             window.removeMouseListener(gearsMouse);
             window.removeKeyListener(gearsKeys);
         }

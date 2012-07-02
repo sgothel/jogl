@@ -40,6 +40,8 @@ import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
+
+import java.awt.Dimension;
 import java.awt.Frame;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -61,8 +63,8 @@ public class TestGearsAWT extends UITestCase {
         if(GLProfile.isAvailable(GLProfile.GL2)) {
             glp = GLProfile.get(GLProfile.GL2);
             Assert.assertNotNull(glp);
-            width  = 512;
-            height = 512;
+            width  = 640;
+            height = 480;
         } else {
             setTestSupported(false);
         }
@@ -80,8 +82,11 @@ public class TestGearsAWT extends UITestCase {
 
         final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
+        Dimension glc_sz = new Dimension(width, height);
+        glCanvas.setMinimumSize(glc_sz);
+        glCanvas.setPreferredSize(glc_sz);
+        glCanvas.setSize(glc_sz);
         frame.add(glCanvas);
-        frame.setSize(512, 512);
 
         glCanvas.addGLEventListener(new Gears(1));
 
@@ -93,6 +98,7 @@ public class TestGearsAWT extends UITestCase {
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                frame.pack();
                 frame.setVisible(true);
             }});
         animator.setUpdateFPSFrames(60, System.err);        
