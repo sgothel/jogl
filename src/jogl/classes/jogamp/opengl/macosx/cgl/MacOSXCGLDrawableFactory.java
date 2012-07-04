@@ -250,7 +250,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
                         }
                     }
                 }
-                drawable.destroy();
+                drawable.setRealized(false);
             }
         }
         sr = new SharedResource(sharedDevice, madeCurrent, hasNPOTTextures, hasRECTTextures, hasAppleFloatPixels);

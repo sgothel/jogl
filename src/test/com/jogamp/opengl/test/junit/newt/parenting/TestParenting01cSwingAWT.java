@@ -66,6 +66,57 @@ public class TestParenting01cSwingAWT extends UITestCase {
         glCaps = new GLCapabilities(null);
     }
 
+    static class GLDisturbanceAction implements Runnable {        
+        public boolean isRunning = false;
+        private volatile boolean shallStop = false;
+        private final GLAutoDrawable glad;
+        private final GLRunnable glRunnable;
+        
+        public GLDisturbanceAction(GLAutoDrawable glad) {
+            this.glad = glad;
+            this.glRunnable = new GLRunnableDummy();
+        }
+        
+        public void waitUntilRunning() {
+            synchronized(this) {
+                while(!isRunning) {
+                    try {
+                        this.wait();
+                    } catch (InterruptedException e) { e.printStackTrace(); }
+                }                
+            }
+        }
+        
+        public void stopAndWaitUntilDone() {
+            shallStop = true;
+            synchronized(this) {
+                while(isRunning) {
+                    try {
+                        this.wait();
+                    } catch (InterruptedException e) { e.printStackTrace(); }
+                }                
+            }
+        }
+        
+        public void run() {
+            synchronized(this) {
+                isRunning = true;
+                this.notifyAll();
+                System.out.println("$");
+            }
+            while(!shallStop) {
+               try {
+                   glad.invoke(true, glRunnable);
+                   Thread.sleep(100);
+               } catch (Throwable t) {}
+            }
+            synchronized(this) {
+                isRunning = false;
+                this.notifyAll();
+            }
+        }
+    }
+    
     @Test
     public void testWindowParenting01CreateVisibleDestroy1() throws InterruptedException, InvocationTargetException {
         /**
@@ -84,22 +135,9 @@ public class TestParenting01cSwingAWT extends UITestCase {
         animator1.setUpdateFPSFrames(1, null);
         animator1.start();
         
-        final GLWindow _glWindow1 = glWindow1;
-        final GLRunnable _glRunnable = new GLRunnableDummy();
-        Thread disturbanceThread = new Thread(new Runnable() {
-            public void run() {
-                System.out.println("$");
-                while(true) 
-                {
-                   try {
-                       _glWindow1.invoke(true, _glRunnable);
-                       Thread.sleep(100);
-                   } catch (Throwable t) {}
-               }
-            }
-        });
-        disturbanceThread.start();
-
+        final GLDisturbanceAction disturbanceAction = new GLDisturbanceAction(glWindow1);
+        new Thread(disturbanceAction).start();
+        disturbanceAction.waitUntilRunning();
 
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
         Assert.assertNotNull(newtCanvasAWT);
@@ -175,6 +213,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
                 } });
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
+        disturbanceAction.stopAndWaitUntilDone();
         glWindow1.destroy();
         Assert.assertEquals(false, glWindow1.isNativeValid());
     }
@@ -192,26 +231,33 @@ public class TestParenting01cSwingAWT extends UITestCase {
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
         GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
+        /*
+        glWindow1.addGLEventListener(new GLEventListener() {
+            @Override
+            public void init(GLAutoDrawable drawable) {
+                System.err.println("XXX init");                
+            }
+            @Override
+            public void dispose(GLAutoDrawable drawable) {
+                System.err.println("XXX dispose");                
+                // Thread.dumpStack();
+            }
+            @Override
+            public void display(GLAutoDrawable drawable) {}
+            @Override
+            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+                System.err.println("XXX reshape");
+                // Thread.dumpStack();
+            }            
+        }); */
         glWindow1.addGLEventListener(demo1);
         Animator animator1 = new Animator(glWindow1);
         animator1.setUpdateFPSFrames(1, null);
         animator1.start();
-        
-        final GLWindow _glWindow1 = glWindow1;
-        final GLRunnable _glRunnable = new GLRunnableDummy();
-        Thread disturbanceThread = new Thread(new Runnable() {
-            public void run() {
-                System.out.println("$");
-                while(true) 
-                {
-                   try {
-                       _glWindow1.invoke(true, _glRunnable);
-                       Thread.sleep(100);
-                   } catch (Throwable t) {}
-               }
-            }
-        });
-        disturbanceThread.start();
+
+        final GLDisturbanceAction disturbanceAction = new GLDisturbanceAction(glWindow1);
+        new Thread(disturbanceAction).start();
+        disturbanceAction.waitUntilRunning();
 
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
         Assert.assertNotNull(newtCanvasAWT);
@@ -298,6 +344,8 @@ public class TestParenting01cSwingAWT extends UITestCase {
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
 
+        disturbanceAction.stopAndWaitUntilDone();
+        
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     jFrame1.setVisible(false);

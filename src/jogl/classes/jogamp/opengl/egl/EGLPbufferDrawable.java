@@ -56,11 +56,6 @@ public class EGLPbufferDrawable extends EGLDrawable {
     }
 
     @Override
-    protected void destroyImpl() {
-        setRealized(false);
-    }
-
-    @Override
     protected long createSurface(long eglDpy, long eglNativeCfg, long surfaceHandle) {
         final AbstractGraphicsConfiguration config = getNativeSurface().getGraphicsConfiguration();
         final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();

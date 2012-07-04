@@ -59,11 +59,6 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
   }
 
   @Override
-  protected void destroyImpl() {
-    setRealized(false);
-  }
-
-  @Override
   protected void setRealizedImpl() {
     if(realized) {
         createPbuffer();

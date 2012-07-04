@@ -151,8 +151,7 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
       if (haveSetOpenGLMode) {
         throw new GLException("Can't switch between using NSOpenGLPixelBuffer and CGLPBufferObj more than once");
       }
-
-      destroyImpl();
+      setRealized(false);
       if (DEBUG) {
         System.err.println("MacOSXCGLDrawable: Switching context mode " + openGLMode + " -> " + mode);
       }

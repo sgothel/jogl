@@ -125,7 +125,7 @@ import com.jogamp.opengl.util.GLBuffers;
 public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosingProtocol {
   private static final boolean DEBUG = Debug.debug("GLJPanel");
 
-  private GLDrawableHelper drawableHelper = new GLDrawableHelper();
+  private GLDrawableHelper helper = new GLDrawableHelper();
   private volatile boolean isInitialized;
 
   // Data used for either pbuffers or pixmap-based offscreen surfaces
@@ -413,32 +413,37 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public void addGLEventListener(GLEventListener listener) {
-    drawableHelper.addGLEventListener(listener);
+    helper.addGLEventListener(listener);
   }
 
   @Override
   public void addGLEventListener(int index, GLEventListener listener) {
-    drawableHelper.addGLEventListener(index, listener);
+    helper.addGLEventListener(index, listener);
   }
 
   @Override
   public void removeGLEventListener(GLEventListener listener) {
-    drawableHelper.removeGLEventListener(listener);
+    helper.removeGLEventListener(listener);
   }
 
   @Override
+  public GLEventListener removeGLEventListener(int index) throws IndexOutOfBoundsException {
+    return helper.removeGLEventListener(index);
+  }       
+  
+  @Override
   public void setAnimator(GLAnimatorControl animatorControl) {
-    drawableHelper.setAnimator(animatorControl);
+    helper.setAnimator(animatorControl);
   }
 
   @Override
   public GLAnimatorControl getAnimator() {
-    return drawableHelper.getAnimator();
+    return helper.getAnimator();
   }
 
   @Override
-  public void invoke(boolean wait, GLRunnable glRunnable) {
-    drawableHelper.invoke(this, wait, glRunnable);
+  public boolean invoke(boolean wait, GLRunnable glRunnable) {
+    return helper.invoke(this, wait, glRunnable);
   }
 
   @Override
@@ -461,7 +466,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           return null;
       }
       final GLContext oldCtx = backend.getContext();
-      final boolean newCtxCurrent = drawableHelper.switchContext(backend.getDrawable(), oldCtx, newCtx, additionalCtxCreationFlags);
+      final boolean newCtxCurrent = helper.switchContext(backend.getDrawable(), oldCtx, newCtx, additionalCtxCreationFlags);
       backend.setContext(newCtx);
       if(newCtxCurrent) {
           newCtx.makeCurrent();
@@ -662,13 +667,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       if (!backend.preGL(g)) {
         return;
       }
-      drawableHelper.init(GLJPanel.this);
+      helper.init(GLJPanel.this);
       backend.postGL(g, false);
     }
 
     @Override
     public void dispose(GLAutoDrawable drawable) {
-      drawableHelper.dispose(GLJPanel.this);
+      helper.dispose(GLJPanel.this);
     }
 
     @Override
@@ -680,11 +685,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         if (DEBUG) {
           System.err.println(getThreadName()+": GLJPanel.display: reshape(" + viewportX + "," + viewportY + " " + panelWidth + "x" + panelHeight + ")");
         }
-        drawableHelper.reshape(GLJPanel.this, viewportX, viewportY, panelWidth, panelHeight);
+        helper.reshape(GLJPanel.this, viewportX, viewportY, panelWidth, panelHeight);
         sendReshape = false;
       }
 
-      drawableHelper.display(GLJPanel.this);
+      helper.display(GLJPanel.this);
       backend.postGL(g, true);
     }
 
@@ -716,7 +721,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private final Runnable disposeAction = new Runnable() {
     @Override
     public void run() {
-      drawableHelper.disposeGL(GLJPanel.this, backend.getDrawable(), backend.getContext(), postDisposeAction);
+      helper.disposeGL(GLJPanel.this, backend.getDrawable(), backend.getContext(), postDisposeAction);
     }
   };
 
@@ -1035,7 +1040,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       }
       if (offscreenDrawable != null) {
         final AbstractGraphicsDevice adevice = offscreenDrawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
-        offscreenDrawable.destroy();
+        offscreenDrawable.setRealized(false);
         offscreenDrawable = null;
         if(null != adevice) {
             adevice.close();
@@ -1094,7 +1099,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
     @Override
     protected void doPaintComponentImpl() {
-      drawableHelper.invokeGL(offscreenDrawable, offscreenContext, updaterDisplayAction, updaterInitAction);
+      helper.invokeGL(offscreenDrawable, offscreenContext, updaterDisplayAction, updaterInitAction);
     }
 
     @Override
@@ -1711,7 +1716,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                   ((Java2DGLContext) joglContext).setGraphics(g);
                 }
 
-                drawableHelper.invokeGL(joglDrawable, joglContext, updaterDisplayAction, updaterInitAction);
+                helper.invokeGL(joglDrawable, joglContext, updaterDisplayAction, updaterInitAction);
               }
             } finally {
               j2dContext.release();

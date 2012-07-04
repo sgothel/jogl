@@ -31,6 +31,8 @@ package jogamp.opengl;
 import java.io.PrintStream;
 
 import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
 import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAnimatorControl;
@@ -76,7 +78,8 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     /** Returns the delegated GLDrawable */
     public final GLDrawable getDelegatedDrawable() { return drawable; }
     
-    protected void defaultRepaintOp() {
+    /** Default implementation to handle repaint events from the windowing system */
+    protected void defaultWindowRepaintOp() {
         if( null != drawable && drawable.isRealized() ) {
             if( !drawable.getNativeSurface().isSurfaceLockedByOtherThread() && !helper.isAnimatorAnimating() ) {
                 display();
@@ -84,16 +87,74 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
         }        
     }
     
-    protected void defaultReshapeOp() {
+    /** Default implementation to handle resize events from the windowing system */
+    protected void defaultWindowResizedOp() {
         if( null!=drawable ) {
             if(DEBUG) {
                 System.err.println("GLAutoDrawableBase.sizeChanged: ("+Thread.currentThread().getName()+"): "+getWidth()+"x"+getHeight()+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
             }
             sendReshape = true;
-            defaultRepaintOp();
+            defaultWindowRepaintOp();
         }
     }
-            
+
+    /** Default implementation to handle destroy notifications from the windowing system */
+    protected void defaultWindowDestroyNotifyOp() {
+        final NativeSurface ns = getNativeSurface();
+        final boolean shallClose;
+        if(ns instanceof WindowClosingProtocol) {
+            shallClose = WindowClosingMode.DISPOSE_ON_CLOSE == ((WindowClosingProtocol)ns).getDefaultCloseOperation();
+        } else {
+            shallClose = true;
+        }        
+        if( shallClose ) {
+            // Is an animator thread perform rendering?
+            if (helper.isExternalAnimatorRunning()) {
+                // Pause animations before initiating safe destroy.
+                final GLAnimatorControl ctrl = helper.getAnimator();
+                final boolean isPaused = ctrl.pause();
+                destroy();
+                if(isPaused) {
+                    ctrl.resume();
+                }
+            } else if (null != ns && ns.isSurfaceLockedByOtherThread()) {
+                // surface is locked by another thread
+                // Flag that destroy should be performed on the next
+                // attempt to display.
+                sendDestroy = true;
+            } else {
+                // Without an external thread animating or locking the
+                // surface, we are safe.
+                destroy ();
+            }
+        }                
+    }
+    
+    /**
+     * Default implementation to destroys the drawable and context of this GLAutoDrawable:
+     * <ul>
+     *   <li>issues the GLEventListener dispose call, if drawable and context are valid</li>
+     *   <li>destroys the GLContext, if valid</li>
+     *   <li>destroys the GLDrawable, if valid</li>
+     * </ul>
+     */
+    protected void defaultDestroyOp() {
+        if( null != drawable && drawable.isRealized() ) {
+            if( null != context && context.isCreated() ) {
+                // Catch dispose GLExceptions by GLEventListener, just 'print' them
+                // so we can continue with the destruction.
+                try {
+                    helper.disposeGL(this, drawable, context, null);
+                } catch (GLException gle) {
+                    gle.printStackTrace();
+                }
+            }
+            drawable.setRealized(false);
+        }
+        context = null;
+        drawable = null;        
+    }
+    
     //
     // GLAutoDrawable
     //
@@ -157,8 +218,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     }
 
     @Override
-    public final void addGLEventListener(int index, GLEventListener listener)
-            throws IndexOutOfBoundsException {
+    public final void addGLEventListener(int index, GLEventListener listener) throws IndexOutOfBoundsException {
         helper.addGLEventListener(index, listener);        
     }
 
@@ -166,7 +226,12 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     public final void removeGLEventListener(GLEventListener listener) {
         helper.removeGLEventListener(listener);        
     }
-
+    
+    @Override
+    public GLEventListener removeGLEventListener(int index) throws IndexOutOfBoundsException {
+        return helper.removeGLEventListener(index);
+    }
+    
     @Override
     public final void setAnimator(GLAnimatorControl animatorControl)
             throws GLException {
@@ -179,8 +244,8 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     }
 
     @Override
-    public final void invoke(boolean wait, GLRunnable glRunnable) {
-        helper.invoke(this, wait, glRunnable);        
+    public final boolean invoke(boolean wait, GLRunnable glRunnable) {
+        return helper.invoke(this, wait, glRunnable);        
     }
 
     @Override

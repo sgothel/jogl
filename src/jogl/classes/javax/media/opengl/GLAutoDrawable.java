@@ -165,15 +165,31 @@ public interface GLAutoDrawable extends GLDrawable {
    * @param listener The GLEventListener object to be inserted
    * @throws IndexOutOfBoundsException If the index is not within (0 <= index && index <= size()), or -1
    */
-  public void addGLEventListener(int index, GLEventListener listener)
-    throws IndexOutOfBoundsException;
+  public void addGLEventListener(int index, GLEventListener listener) throws IndexOutOfBoundsException;
 
-  /** Removes a {@link GLEventListener} from this drawable. Note that
-      if this is done from within a particular drawable's {@link
-      GLEventListener} handler (reshape, display, etc.) that it is not
-      guaranteed that all other listeners will be evaluated properly
-      during this update cycle. */
+  /** 
+   * Removes a {@link GLEventListener} from this drawable. 
+   * Note that if this is done from within a particular drawable's 
+   * {@link GLEventListener} handler (reshape, display, etc.) that it is not
+   * guaranteed that all other listeners will be evaluated properly
+   * during this update cycle.
+   * @param listener The GLEventListener object to be removed
+   */  
   public void removeGLEventListener(GLEventListener listener);
+
+  /** 
+   * Removes a {@link GLEventListener} at the given index from this drawable. 
+   * Note that if this is done from within a particular drawable's 
+   * {@link GLEventListener} handler (reshape, display, etc.) that it is not
+   * guaranteed that all other listeners will be evaluated properly
+   * during this update cycle.
+   * @param index Position of the listener to be removed.
+   *              Should be within (0 <= index && index < size()).
+   *              An index value of -1 is interpreted as last listener, size()-1.
+   * @return The removed GLEventListener object
+   * @throws IndexOutOfBoundsException If the index is not within (0 <= index && index < size()), or -1
+   */  
+  public GLEventListener removeGLEventListener(int index) throws IndexOutOfBoundsException;
 
   /**
    * <p>
@@ -221,14 +237,30 @@ public interface GLAutoDrawable extends GLDrawable {
    * <p>
    * If an {@link GLAnimatorControl} is animating,<br>
    * no {@link #display()} call is issued, since the animator thread performs it.<br>
-   * If <code>wait</code> is true, the implementation waits until the <code>GLRunnable</code> is executed.<br>
-   * </p><br>
+   * </p>
+   * <p>
+   * If <code>wait</code> is <code>true</code> the call blocks until the <code>glRunnable</code>
+   * has been executed.<p>
+   * <p>
+   * If <code>wait</code> is <code>true</code> <b>and</b> 
+   * {@link #isRealized()} returns <code>false</code> <i>or</i> {@link #getContext()} returns <code>null</code>,
+   * the call is ignored and returns <code>false</code>.<br>
+   * This helps avoiding deadlocking the caller.
+   * </p>
+   * <p>
+   * The internal queue of {@link GLRunnable}'s is being flushed with {@link #destroy()}
+   * where all blocked callers are being notified.
+   * </p>
    *
+   * @param wait if <code>true</code> block until execution of <code>glRunnable</code> is finished, otherwise return immediatly w/o waiting
+   * @param glRunnable the {@link GLRunnable} to execute within {@link #display()}
+   * @return <code>true</code> if the {@link GLRunnable} has been processed or queued, otherwise <code>false</code>.
+   * 
    * @see #setAnimator(GLAnimatorControl)
    * @see #display()
    * @see GLRunnable
    */
-  public void invoke(boolean wait, GLRunnable glRunnable);
+  public boolean invoke(boolean wait, GLRunnable glRunnable);
 
   /** Destroys all resources associated with this GLAutoDrawable,
       inclusive the GLContext.

@@ -86,13 +86,17 @@ public class X11DummyGLXDrawable extends X11OnscreenGLXDrawable {
   public int getHeight() {
     return 1;
   }
-
+  
+  
   @Override
-  protected void destroyImpl() {
-    if(0!=dummyWindow) {
-        destroyHandle();
-        X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeSurface().getGraphicsConfiguration();
-        X11Lib.DestroyDummyWindow(config.getScreen().getDevice().getHandle(), dummyWindow);
+  protected void setRealizedImpl() {
+    super.setRealizedImpl();
+    if(!realized) {
+        if(0!=dummyWindow) {
+            destroyHandle();
+            X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeSurface().getGraphicsConfiguration();
+            X11Lib.DestroyDummyWindow(config.getScreen().getDevice().getHandle(), dummyWindow);
+        }
     }
   }
 }

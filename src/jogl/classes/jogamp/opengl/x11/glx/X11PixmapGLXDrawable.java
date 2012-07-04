@@ -59,11 +59,6 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
   }
 
   @Override
-  protected void destroyImpl() {
-    setRealized(false);
-  }
-
-  @Override
   protected void setRealizedImpl() {
     if(realized) {
         createPixmap();

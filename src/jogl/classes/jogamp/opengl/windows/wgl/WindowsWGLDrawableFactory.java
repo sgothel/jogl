@@ -373,7 +373,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
             }
 
             if (null != sr.drawable) {
-                sr.drawable.destroy();
+                sr.drawable.setRealized(false);
                 sr.drawable = null;
             }
 

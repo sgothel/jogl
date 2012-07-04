@@ -39,7 +39,8 @@ public class GLRunnableTask implements GLRunnable {
     GLRunnable runnable;
     Object notifyObject;
     boolean catchExceptions;
-    boolean isExecuted;
+    volatile boolean isExecuted;
+    volatile boolean isFlushed;
 
     Throwable runnableException;
 
@@ -48,6 +49,7 @@ public class GLRunnableTask implements GLRunnable {
         this.notifyObject = notifyObject ;
         this.catchExceptions = catchExceptions;
         isExecuted = false;
+        isFlushed = false;
     }
 
     public boolean run(GLAutoDrawable drawable) {
@@ -84,8 +86,41 @@ public class GLRunnableTask implements GLRunnable {
         }
         return res;
     }
-
+    
+    /** 
+     * Simply flush this task and notify a waiting executor.
+     * The executor which might have been blocked until notified
+     * will be unblocked and the task removed from the queue.
+     * 
+     * @see #isFlushed()
+     * @see #isInQueue()
+     */ 
+    public void flush() {
+        if(!isExecuted() && null != notifyObject) {
+            synchronized (notifyObject) {
+                isFlushed=true;
+                notifyObject.notifyAll();                
+            }
+        }
+    }
+    
+    /**
+     * @return !{@link #isExecuted()} && !{@link #isFlushed()}
+     */
+    public boolean isInQueue() { return !isExecuted && !isFlushed; }
+    
+    /**
+     * @return whether this task has been executed.
+     * @see #isInQueue()
+     */
     public boolean isExecuted() { return isExecuted; }
+    
+    /**
+     * @return whether this task has been flushed.
+     * @see #isInQueue()
+     */
+    public boolean isFlushed() { return isFlushed; }
+    
     public Throwable getThrowable() { return runnableException; }
 }
 

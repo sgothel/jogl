@@ -111,8 +111,8 @@ public class TestParenting02NEWT extends UITestCase {
         Assert.assertEquals(height,glWindow1.getHeight());
         glWindow1.setTitle("testWindowParenting01NewtOnNewtParentChildDraw - PARENT");
         glWindow1.setPosition(x,y);
-        glWindow1.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
-        glWindow1.addWindowListener(new TraceWindowAdapter());
+        //glWindow1.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
+        //glWindow1.addWindowListener(new TraceWindowAdapter());
 
         GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, window1, glWindow1, false);
@@ -132,8 +132,8 @@ public class TestParenting02NEWT extends UITestCase {
         //Assert.assertEquals(height/2,glWindow2.getHeight());
         glWindow2.setTitle("testWindowParenting01NewtOnNewtParentChildDraw - CHILD");
         glWindow2.setPosition(glWindow1.getWidth()/2, glWindow1.getHeight()/2);
-        glWindow2.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
-        glWindow2.addWindowListener(new TraceWindowAdapter(new WindowAction(eventFifo)));
+        //glWindow2.addKeyListener(new TraceKeyAdapter(new KeyAction(eventFifo)));
+        //glWindow2.addWindowListener(new TraceWindowAdapter(new WindowAction(eventFifo)));
         // glWindow2.addMouseListener(new TraceMouseAdapter());
 
         GLEventListener demo2 = new GearsES2();

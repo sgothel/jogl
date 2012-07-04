@@ -153,7 +153,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   private static final boolean DEBUG = Debug.debug("GLCanvas");
 
-  private final GLDrawableHelper drawableHelper = new GLDrawableHelper();
+  private final GLDrawableHelper helper = new GLDrawableHelper();
   private AWTGraphicsConfiguration awtConfig;
   private volatile GLDrawable drawable;   // volatile avoids locking all accessors. FIXME still need to sync destroy/display
   private GLContextImpl context;
@@ -510,7 +510,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                    (int) ((getHeight() + bounds.getHeight()) / 2));
       return;
     }
-    if( ! this.drawableHelper.isAnimatorAnimating() ) {
+    if( ! this.helper.isAnimatorAnimating() ) {
         display();
     }
   }
@@ -670,38 +670,43 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public void addGLEventListener(GLEventListener listener) {
-    drawableHelper.addGLEventListener(listener);
+    helper.addGLEventListener(listener);
   }
 
   @Override
-  public void addGLEventListener(int index, GLEventListener listener) {
-    drawableHelper.addGLEventListener(index, listener);
+  public void addGLEventListener(int index, GLEventListener listener) throws IndexOutOfBoundsException {
+    helper.addGLEventListener(index, listener);
   }
 
   @Override
   public void removeGLEventListener(GLEventListener listener) {
-    drawableHelper.removeGLEventListener(listener);
+    helper.removeGLEventListener(listener);
   }
 
   @Override
+  public GLEventListener removeGLEventListener(int index) throws IndexOutOfBoundsException {
+    return helper.removeGLEventListener(index);
+  }
+  
+  @Override
   public void setAnimator(GLAnimatorControl animatorControl) {
-    drawableHelper.setAnimator(animatorControl);
+    helper.setAnimator(animatorControl);
   }
 
   @Override
   public GLAnimatorControl getAnimator() {
-    return drawableHelper.getAnimator();
+    return helper.getAnimator();
   }
 
   @Override
-  public void invoke(boolean wait, GLRunnable glRunnable) {
-    drawableHelper.invoke(this, wait, glRunnable);
+  public boolean invoke(boolean wait, GLRunnable glRunnable) {
+    return helper.invoke(this, wait, glRunnable);
   }
 
   @Override
   public GLContext setContext(GLContext newCtx) {
       final GLContext oldCtx = context;
-      final boolean newCtxCurrent = drawableHelper.switchContext(drawable, oldCtx, newCtx, additionalCtxCreationFlags);
+      final boolean newCtxCurrent = helper.switchContext(drawable, oldCtx, newCtx, additionalCtxCreationFlags);
       context=(GLContextImpl)newCtx;
       if(newCtxCurrent) {
           context.makeCurrent();
@@ -736,12 +741,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public void setAutoSwapBufferMode(boolean onOrOff) {
-    drawableHelper.setAutoSwapBufferMode(onOrOff);
+    helper.setAutoSwapBufferMode(onOrOff);
   }
 
   @Override
   public boolean getAutoSwapBufferMode() {
-    return drawableHelper.getAutoSwapBufferMode();
+    return helper.getAutoSwapBufferMode();
   }
 
   @Override
@@ -849,7 +854,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private final Runnable disposeOnEDTAction = new Runnable() {
     @Override
     public void run() {
-      drawableHelper.disposeGL(GLCanvas.this, drawable, context, postDisposeAction);
+      helper.disposeGL(GLCanvas.this, drawable, context, postDisposeAction);
     }
   };
 
@@ -897,7 +902,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private final Runnable initAction = new Runnable() {
     @Override
     public void run() {
-      drawableHelper.init(GLCanvas.this);
+      helper.init(GLCanvas.this);
     }
   };
 
@@ -910,11 +915,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         }
         // Note: we ignore the given x and y within the parent component
         // since we are drawing directly into this heavyweight component.
-        drawableHelper.reshape(GLCanvas.this, 0, 0, getWidth(), getHeight());
+        helper.reshape(GLCanvas.this, 0, 0, getWidth(), getHeight());
         sendReshape = false;
       }
 
-      drawableHelper.display(GLCanvas.this);
+      helper.display(GLCanvas.this);
     }
   };
 
@@ -931,14 +936,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private final Runnable displayOnEDTAction = new Runnable() {
     @Override
     public void run() {
-        drawableHelper.invokeGL(drawable, context, displayAction, initAction);
+        helper.invokeGL(drawable, context, displayAction, initAction);
     }
   };
 
   private final Runnable swapBuffersOnEDTAction = new Runnable() {
     @Override
     public void run() {
-        drawableHelper.invokeGL(drawable, context, swapBuffersAction, initAction);
+        helper.invokeGL(drawable, context, swapBuffersAction, initAction);
     }
   };
 

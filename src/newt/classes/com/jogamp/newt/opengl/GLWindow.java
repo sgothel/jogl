@@ -53,7 +53,6 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import jogamp.newt.WindowImpl;
@@ -109,37 +108,17 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         window.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowRepaint(WindowUpdateEvent e) {
-                    defaultRepaintOp();
+                    defaultWindowRepaintOp();
                 }
 
                 @Override
                 public void windowResized(WindowEvent e) {
-                    defaultReshapeOp();
+                    defaultWindowResizedOp();
                 }
 
                 @Override
                 public void windowDestroyNotify(WindowEvent e) {
-                    if( WindowClosingMode.DISPOSE_ON_CLOSE == GLWindow.this.getDefaultCloseOperation() ) {
-                        // Is an animator thread perform rendering?
-                        if (GLWindow.this.helper.isExternalAnimatorRunning()) {
-                            // Pause animations before initiating safe destroy.
-                            final GLAnimatorControl ctrl = GLWindow.this.helper.getAnimator();
-                            boolean isPaused = ctrl.pause();
-                            destroy();
-                            if(isPaused) {
-                                ctrl.resume();
-                            }
-                        } else if (GLWindow.this.window.isWindowLockedByOtherThread()) {
-                            // Window is locked by another thread
-                            // Flag that destroy should be performed on the next
-                            // attempt to display.
-                            sendDestroy = true;
-                        } else {
-                            // Without an external thread animating or locking the
-                            // surface, we are safe.
-                            destroy ();
-                        }
-                    }
+                    defaultWindowDestroyNotifyOp();
                 }
             });
         this.window.setLifecycleHook(new GLLifecycleHook());
@@ -453,20 +432,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 //e1.printStackTrace();
             }
 
-            if( window.isNativeValid() && null != drawable && drawable.isRealized() ) {
-                if( null != context && context.isCreated() ) {
-                    // Catch dispose GLExceptions by GLEventListener, just 'print' them
-                    // so we can continue with the destruction.
-                    try {
-                        helper.disposeGL(GLWindow.this, drawable, context, null);
-                    } catch (GLException gle) {
-                        gle.printStackTrace();
-                    }
-                }
-                drawable.setRealized(false);
-            }
-            context = null;
-            drawable = null;
+            defaultDestroyOp();
 
             if(Window.DEBUG_IMPLEMENTATION) {
                 System.err.println("GLWindow.destroy() "+Thread.currentThread()+", fin");

@@ -61,13 +61,13 @@ public class GLDrawableHelper {
   private static final boolean PERF_STATS = Debug.isPropertyDefined("jogl.debug.GLDrawable.PerfStats", true);
     
   protected static final boolean DEBUG = GLDrawableImpl.DEBUG;
-  private Object listenersLock = new Object();
-  private ArrayList<GLEventListener> listeners;
-  private HashSet<GLEventListener> listenersToBeInit;
+  private final Object listenersLock = new Object();
+  private final ArrayList<GLEventListener> listeners = new ArrayList<GLEventListener>();
+  private final HashSet<GLEventListener> listenersToBeInit = new HashSet<GLEventListener>();
+  private final Object glRunnablesLock = new Object();
+  private volatile ArrayList<GLRunnableTask> glRunnables = new ArrayList<GLRunnableTask>();
   private boolean autoSwapBufferMode;
   private Thread skipContextReleaseThread;
-  private Object glRunnablesLock = new Object();
-  private ArrayList<GLRunnable> glRunnables;
   private GLAnimatorControl animatorCtrl;
 
   public GLDrawableHelper() {
@@ -76,13 +76,13 @@ public class GLDrawableHelper {
 
   public final void reset() {
     synchronized(listenersLock) {
-        listeners = new ArrayList<GLEventListener>();
-        listenersToBeInit = new HashSet<GLEventListener>();
+        listeners.clear();
+        listenersToBeInit.clear();
     }
     autoSwapBufferMode = true;
     skipContextReleaseThread = null;
     synchronized(glRunnablesLock) {
-        glRunnables = new ArrayList<GLRunnable>();
+        glRunnables.clear();
     }
     animatorCtrl = null;
   }
@@ -105,6 +105,46 @@ public class GLDrawableHelper {
     return sb.toString();
   }
 
+  /**
+   * Associate a new context to the drawable and also propagates the context/drawable switch by 
+   * calling {@link GLContext#setGLDrawable(GLDrawable, boolean) newCtx.setGLDrawable(drawable, true);}.
+   * <p>
+   * If the old context's drawable was an {@link GLAutoDrawable}, it's reference to the given drawable
+   * is being cleared by calling 
+   * {@link GLAutoDrawable#setContext(GLContext) ((GLAutoDrawable)oldCtx.getGLDrawable()).setContext(null)}.
+   * </p>
+   * <p> 
+   * If the old or new context was current on this thread, it is being released before switching the drawable.
+   * </p>
+   * 
+   * @param drawable the drawable which context is changed
+   * @param newCtx the new context
+   * @param oldCtx the old context
+   * @return true if the newt context was current, otherwise false
+   *  
+   * @see GLAutoDrawable#setContext(GLContext)
+   */
+  public final boolean switchContext(GLDrawable drawable, GLContext oldCtx, GLContext newCtx, int additionalCtxCreationFlags) {
+      if(null != oldCtx && oldCtx.isCurrent()) {
+          oldCtx.release();
+      }
+      final boolean newCtxCurrent;
+      if(null!=newCtx) {
+          newCtxCurrent = newCtx.isCurrent();
+          if(newCtxCurrent) {
+              newCtx.release();
+          }
+          newCtx.setContextCreationFlags(additionalCtxCreationFlags);
+          newCtx.setGLDrawable(drawable, true); // propagate context/drawable switch
+      } else {
+          newCtxCurrent = false;
+      }
+      if(null!=oldCtx && oldCtx.getGLDrawable() instanceof GLAutoDrawable) {
+          ((GLAutoDrawable)oldCtx.getGLDrawable()).setContext(null);
+      }
+      return newCtxCurrent;
+  }
+  
   public final void addGLEventListener(GLEventListener listener) {
     addGLEventListener(-1, listener);
   }
@@ -128,6 +168,16 @@ public class GLDrawableHelper {
     }
   }
 
+  public final GLEventListener removeGLEventListener(int index)
+    throws IndexOutOfBoundsException {
+    synchronized(listenersLock) {
+        if(0>index) {
+            index = listeners.size()-1;
+        }
+        return listeners.remove(index);
+    }
+  }
+  
   /**
    * Issues {@link javax.media.opengl.GLEventListener#dispose(javax.media.opengl.GLAutoDrawable)}
    * to all listeners.
@@ -144,18 +194,19 @@ public class GLDrawableHelper {
         }
     }
   }
-  
-  private boolean init(GLEventListener l, GLAutoDrawable drawable, boolean sendReshape) {
+
+  private final boolean init(GLEventListener l, GLAutoDrawable drawable, boolean sendReshape) {
       if(listenersToBeInit.remove(l)) {
           l.init(drawable);
           if(sendReshape) {
-              reshape(l, drawable, 0, 0, drawable.getWidth(), drawable.getHeight(), true /* setViewport */, false);
+              reshape(l, drawable, 0, 0, drawable.getWidth(), drawable.getHeight(), true /* setViewport */, false /* checkInit */);
           }
           return true;
       }
       return false;
   }
 
+  /** The default init action to be called once after ctx is being created @ 1st makeCurrent(). */
   public final void init(GLAutoDrawable drawable) {
     synchronized(listenersLock) {
         for (int i=0; i < listeners.size(); i++) {
@@ -166,7 +217,7 @@ public class GLDrawableHelper {
           // hence the must always be initialized unconditional.
           listenersToBeInit.add(listener);
 
-          if ( ! init( listener, drawable, false ) ) {
+          if ( ! init( listener, drawable, true /* sendReshape */) ) {
             throw new GLException("GLEventListener "+listener+" already initialized: "+drawable);
           }
         }
@@ -179,24 +230,26 @@ public class GLDrawableHelper {
         displayImpl(drawable);  
     }
   }
-  private void displayImpl(GLAutoDrawable drawable) {
+  private final void displayImpl(GLAutoDrawable drawable) {
       synchronized(listenersLock) {
           for (int i=0; i < listeners.size(); i++) {
             final GLEventListener listener = listeners.get(i) ;
             // GLEventListener may need to be init, 
             // in case this one is added after the realization of the GLAutoDrawable
-            init( listener, drawable, true ) ; 
+            init( listener, drawable, true /* sendReshape */) ; 
             listener.display(drawable);
           }
       }
   }
 
-  private void reshape(GLEventListener listener, GLAutoDrawable drawable,
-                       int x, int y, int width, int height, boolean setViewport, boolean checkInit) {
+  private final void reshape(GLEventListener listener, GLAutoDrawable drawable,
+                             int x, int y, int width, int height, boolean setViewport, boolean checkInit) {
     if(checkInit) {
         // GLEventListener may need to be init, 
-        // in case this one is added after the realization of the GLAutoDrawable      
-        init( listener, drawable, false ) ;
+        // in case this one is added after the realization of the GLAutoDrawable
+        synchronized(listenersLock) {
+            init( listener, drawable, false /* sendReshape */) ;
+        }
     }
     if(setViewport) {
         drawable.getGL().glViewport(x, y, width, height);
@@ -212,27 +265,50 @@ public class GLDrawableHelper {
     }
   }
 
-  private boolean execGLRunnables(GLAutoDrawable drawable) {
+  private final boolean execGLRunnables(GLAutoDrawable drawable) {
     boolean res = true;
-    if(glRunnables.size()>0) {
+    if(glRunnables.size()>0) { // volatile OK
         // swap one-shot list asap
-        ArrayList<GLRunnable> _glRunnables = null;
+        final ArrayList<GLRunnableTask> _glRunnables;
         synchronized(glRunnablesLock) {
             if(glRunnables.size()>0) {
                 _glRunnables = glRunnables;
-                glRunnables = new ArrayList<GLRunnable>();
+                glRunnables = new ArrayList<GLRunnableTask>();
+            } else {
+                _glRunnables = null;
             }
         }
         
         if(null!=_glRunnables) {
             for (int i=0; i < _glRunnables.size(); i++) {
-              res = _glRunnables.get(i).run(drawable) && res;
+                res = _glRunnables.get(i).run(drawable) && res;
             }
         }
     }
     return res;
   }
 
+  public final void flushGLRunnables() {
+    if(glRunnables.size()>0) { // volatile OK
+        // swap one-shot list asap
+        final ArrayList<GLRunnableTask> _glRunnables;
+        synchronized(glRunnablesLock) {
+            if(glRunnables.size()>0) {
+                _glRunnables = glRunnables;
+                glRunnables = new ArrayList<GLRunnableTask>();
+            } else {
+                _glRunnables = null;
+            }
+        }
+        
+        if(null!=_glRunnables) {
+            for (int i=0; i < _glRunnables.size(); i++) {
+                _glRunnables.get(i).flush();
+            }
+        }
+    }
+  }
+  
   public final void setAnimator(GLAnimatorControl animator) throws GLException {
     synchronized(glRunnablesLock) {
         if(animatorCtrl!=animator && null!=animator && null!=animatorCtrl) {
@@ -264,10 +340,28 @@ public class GLDrawableHelper {
     return ( null != animatorCtrl ) ? animatorCtrl.isAnimating() : false ;
   }
 
-  public final void invoke(GLAutoDrawable drawable, boolean wait, GLRunnable glRunnable) {
-    if( null == drawable || null == glRunnable ) {
-        return;
+  /**
+   * <p>
+   * If <code>wait</code> is <code>true</code> the call blocks until the <code>glRunnable</code>
+   * has been executed.<p>
+   * <p>
+   * If <code>wait</code> is <code>true</code> <b>and</b> 
+   * {@link GLDrawable#isRealized()} returns <code>false</code> <i>or</i> {@link GLAutoDrawable#getContext()} returns <code>null</code>,
+   * the call is ignored and returns <code>false</code>.<br>
+   * This helps avoiding deadlocking the caller.
+   * </p>
+   *
+   * @param drawable the {@link GLAutoDrawable} to be used
+   * @param wait if <code>true</code> block until execution of <code>glRunnable</code> is finished, otherwise return immediatly w/o waiting
+   * @param glRunnable the {@link GLRunnable} to execute within {@link #display()}
+   * @return <code>true</code> if the {@link GLRunnable} has been processed or queued, otherwise <code>false</code>.
+   */
+  public final boolean invoke(GLAutoDrawable drawable, boolean wait, GLRunnable glRunnable) {
+    if( null == glRunnable || null == drawable ||
+        wait && ( !drawable.isRealized() || null==drawable.getContext() ) ) {
+        return false;
     }
+    
     Throwable throwable = null;
     GLRunnableTask rTask = null;
     Object rTaskLock = new Object();
@@ -299,6 +393,7 @@ public class GLDrawableHelper {
             }
         }
     }
+    return true;
   }
 
   public final void setAutoSwapBufferMode(boolean enable) {
@@ -439,6 +534,7 @@ public class GLDrawableHelper {
       try {
           if(isDisposeAction) {
               context.destroy();
+              flushGLRunnables();
           } else if( GLContext.CONTEXT_NOT_CURRENT != res ) {
               context.release();
           }
@@ -526,6 +622,7 @@ public class GLDrawableHelper {
       try {
           if(isDisposeAction) {
               context.destroy();
+              flushGLRunnables();
               ctxDestroyed = true;
           } else if( res != GLContext.CONTEXT_NOT_CURRENT &&
                      (null == skipContextReleaseThread || currentThread != skipContextReleaseThread) ) {

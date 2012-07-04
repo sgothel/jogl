@@ -40,7 +40,6 @@
 
 package jogamp.opengl;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
@@ -114,36 +113,19 @@ public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
   
   @Override
   public void destroy() {
-    if(drawable.isRealized()) {
-        final AbstractGraphicsDevice adevice = drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
-
-        if (null != context && context.isCreated()) {
-            try {
-                helper.disposeGL(GLPbufferImpl.this, drawable, context, null);
-            } catch (GLException gle) {
-                gle.printStackTrace();
-            }
-            context = null;
-            // drawableHelper.reset();
-        }
-        drawable.destroy();
-        drawable = null;
-
-        if(null != adevice) {
-            adevice.close();
-        }
-    }
+    defaultDestroyOp();
   }
 
   @Override
   public GLDrawableFactory getFactory() {
-      return drawable.getFactory();
+    return drawable.getFactory();
   }
 
   @Override
   public void display() {
-      if( null == drawable || !drawable.isRealized() || null == context ) { return; }
+    if( null != drawable && drawable.isRealized() && null != context ) {
       helper.invokeGL(drawable, context, defaultDisplayAction, initAction);
+    }
   }
 
   //----------------------------------------------------------------------

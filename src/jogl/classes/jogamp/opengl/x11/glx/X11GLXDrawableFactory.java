@@ -304,7 +304,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
             if (null != sr.drawable) {
                 // may cause JVM SIGSEGV:
-                sr.drawable.destroy();
+                sr.drawable.setRealized(false);
                 sr.drawable = null;
             }
 

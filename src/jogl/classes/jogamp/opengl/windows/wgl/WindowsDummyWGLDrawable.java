@@ -70,7 +70,7 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
           System.err.println("WindowsDummyWGLDrawable: "+config);
         }
     } catch (Throwable t) {
-        destroyImpl();
+        setRealized(false);
         throw new GLException(t);
     } finally {
         unlockSurface();
@@ -96,11 +96,14 @@ public class WindowsDummyWGLDrawable extends WindowsWGLDrawable {
   }
 
   @Override
-  protected void destroyImpl() {
-    if (handleHwndLifecycle && hwnd != 0) {
-      GDI.ShowWindow(hwnd, GDI.SW_HIDE);
-      GDIUtil.DestroyDummyWindow(hwnd);
-      hwnd = 0;
+  protected void setRealizedImpl() {
+    super.setRealizedImpl();
+    if(!realized) {
+        if (handleHwndLifecycle && hwnd != 0) {
+          GDI.ShowWindow(hwnd, GDI.SW_HIDE);
+          GDIUtil.DestroyDummyWindow(hwnd);
+          hwnd = 0;
+        }
     }
   }
 }

@@ -62,11 +62,6 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
   }
 
   @Override
-  protected void destroyImpl() {
-      setRealized(false);
-  }
-
-  @Override
   protected void setRealizedImpl() {
     if(realized) {
         createBitmap();

@@ -70,20 +70,6 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return (GLDrawableFactoryImpl) getFactory();
   }
 
-  /** For offscreen GLDrawables (pbuffers and "pixmap" drawables),
-      indicates that native resources should be reclaimed. */
-  public void destroy() {
-      surface.getGraphicsConfiguration().getScreen().getDevice().lock();
-      try {
-          destroyImpl();
-      } finally {
-          surface.getGraphicsConfiguration().getScreen().getDevice().unlock();
-      }
-  }
-  protected void destroyImpl() {
-    throw new GLException("Should not call this (should only be called for offscreen GLDrawables)");
-  }
-
   @Override
   public final void swapBuffers() throws GLException {
     if( !realized ) {
@@ -164,7 +150,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
         AbstractGraphicsDevice aDevice = surface.getGraphicsConfiguration().getScreen().getDevice();
         if(realizedArg) {
             if(NativeSurface.LOCK_SURFACE_NOT_READY >= lockSurface()) {
-                throw new GLException("GLDrawableImpl.setRealized(true): already realized, but surface not ready (lockSurface)");
+                throw new GLException("GLDrawableImpl.setRealized(true): Surface not ready (lockSurface)");
             }
         } else {
             aDevice.lock();

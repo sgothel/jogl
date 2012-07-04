@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2012 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -30,60 +30,95 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
 
-import javax.media.opengl.GLAnimatorControl;
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLAutoDrawableDelegate;
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import org.junit.Assert;
 import org.junit.Test;
 
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Window;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
+import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.WindowUpdateEvent;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
-import com.jogamp.opengl.test.junit.util.NEWTGLContext;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+/**
+ * Demonstrates a full featured custom GLAutoDrawable implementation
+ * utilizing {@link GLAutoDrawableDelegate}. 
+ */
 public class TestGLAutoDrawableDelegateNEWT extends UITestCase {
 
-    @Test
-    public void test01() throws GLException, InterruptedException {
-        final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(
-                new GLCapabilities(GLProfile.getGL2ES2()), 640, 480, false);
-        winctx.context.release();
+    /** Note: Creates a full featured GLAutoDrawable w/ all window events connected. */
+    private GLAutoDrawable createGLAutoDrawable(GLCapabilities caps, int x, int y, int width, int height, WindowListener wl) throws InterruptedException {
+        final Window window = NewtFactory.createWindow(caps);
+        Assert.assertNotNull(window);
+        window.setPosition(x, y);
+        window.setSize(width, height);
+        window.setVisible(true);
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(window, true));
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(window, true));
+            
+        GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
+        GLDrawable drawable = factory.createGLDrawable(window);
+        Assert.assertNotNull(drawable);
         
-        final GLAutoDrawableDelegate glad = new GLAutoDrawableDelegate(winctx.drawable, winctx.context);
-        glad.addGLEventListener(new GearsES2(1));
-
+        drawable.setRealized(true);
+        Assert.assertTrue(drawable.isRealized());
+        
+        GLContext context = drawable.createContext(null);
+        Assert.assertNotNull(context);
+        
+        int res = context.makeCurrent();
+        Assert.assertTrue(GLContext.CONTEXT_CURRENT_NEW==res || GLContext.CONTEXT_CURRENT==res);
+        context.release();
+        
+        final GLAutoDrawableDelegate glad = new GLAutoDrawableDelegate(drawable, context) {
+            @Override
+            public void destroy() {
+                super.destroy();  // destroys drawable/context
+                window.destroy(); // destroys the actual window
+            }            
+        };
+        
         // add basic window interaction
-        winctx.window.addWindowListener(new WindowAdapter() {
+        window.addWindowListener(new WindowAdapter() {
             @Override
             public void windowRepaint(WindowUpdateEvent e) {
-                glad.defaultRepaintOp();
+                glad.defaultWindowRepaintOp();
             }
             @Override
             public void windowResized(WindowEvent e) {
-                glad.defaultReshapeOp();
+                glad.defaultWindowResizedOp();
             }
             @Override
             public void windowDestroyNotify(WindowEvent e) {
-                final GLAnimatorControl ctrl = glad.getAnimator();
-                boolean isPaused = ctrl.pause();
-                glad.destroy();
-                NEWTGLContext.destroyWindow(winctx);
-                if(isPaused) {
-                    ctrl.resume();
-                }
+                glad.defaultWindowDestroyNotifyOp();
             }
         });
+        window.addWindowListener(wl);
         
+        return glad;
+    }
+    
+    @Test
+    public void test01() throws GLException, InterruptedException {
         final QuitAdapter quitAdapter = new QuitAdapter();
-        winctx.window.addWindowListener(quitAdapter);
-        
+        GLAutoDrawable glad = createGLAutoDrawable(new GLCapabilities(GLProfile.getGL2ES2()), 0, 0, 640, 480, quitAdapter);        
+        glad.addGLEventListener(new GearsES2(1));
+
         final Animator animator = new Animator(glad);
         animator.setUpdateFPSFrames(60, null);
         animator.start();
@@ -93,7 +128,8 @@ public class TestGLAutoDrawableDelegateNEWT extends UITestCase {
         }
 
         animator.stop();
-        NEWTGLContext.destroyWindow(winctx);
+        
+        glad.destroy();
     }
 
     static long duration = 2000; // ms

@@ -107,7 +107,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    //private static final boolean useSWTThread = ThreadingImpl.getMode() != ThreadingImpl.WORKER;
 
    /* GL Stuff */
-   private final GLDrawableHelper drawableHelper = new GLDrawableHelper();
+   private final GLDrawableHelper helper = new GLDrawableHelper();
    private volatile GLDrawable drawable; // volatile avoids locking all accessors. FIXME still need to sync destroy/display
    private GLContext context;
 
@@ -130,7 +130,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    private final Runnable initAction = new Runnable() {
       @Override
       public void run() {
-         drawableHelper.init(GLCanvas.this);
+         helper.init(GLCanvas.this);
       }
    };
 
@@ -143,10 +143,10 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       @Override
       public void run() {
          if (sendReshape) {
-            drawableHelper.reshape(GLCanvas.this, 0, 0, getWidth(), getHeight());
+            helper.reshape(GLCanvas.this, 0, 0, getWidth(), getHeight());
             sendReshape = false;
          }
-         drawableHelper.display(GLCanvas.this);
+         helper.display(GLCanvas.this);
       }
    };
 
@@ -154,7 +154,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    private final Runnable makeCurrentAndDisplayAction = new Runnable() {
       @Override
       public void run() {
-         drawableHelper.invokeGL(drawable, context, displayAction, initAction);
+         helper.invokeGL(drawable, context, displayAction, initAction);
       }
    };
 
@@ -170,7 +170,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    private final Runnable makeCurrentAndSwapBuffersAction = new Runnable() {
       @Override
       public void run() {
-         drawableHelper.invokeGL(drawable, context, swapBuffersAction, initAction);
+         helper.invokeGL(drawable, context, swapBuffersAction, initAction);
       }
    };
 
@@ -191,7 +191,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    private final Runnable disposeOnEDTGLAction = new Runnable() {
       @Override
       public void run() {
-         drawableHelper.disposeGL(GLCanvas.this, drawable, context, postDisposeGLAction);
+         helper.disposeGL(GLCanvas.this, drawable, context, postDisposeGLAction);
       }
    };
 
@@ -266,7 +266,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       addPaintListener(new PaintListener() {
          @Override
         public void paintControl(final PaintEvent arg0) {
-            if (!drawableHelper.isExternalAnimatorAnimating()) {
+            if (!helper.isExternalAnimatorAnimating()) {
                display();
             }
          }
@@ -284,12 +284,12 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    @Override
    public void addGLEventListener(final GLEventListener arg0) {
-      drawableHelper.addGLEventListener(arg0);
+      helper.addGLEventListener(arg0);
    }
 
    @Override
    public void addGLEventListener(final int arg0, final GLEventListener arg1) throws IndexOutOfBoundsException {
-      drawableHelper.addGLEventListener(arg0, arg1);
+      helper.addGLEventListener(arg0, arg1);
    }
 
    /**
@@ -312,12 +312,12 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    @Override
    public GLAnimatorControl getAnimator() {
-      return drawableHelper.getAnimator();
+      return helper.getAnimator();
    }
 
    @Override
    public boolean getAutoSwapBufferMode() {
-      return drawableHelper.getAutoSwapBufferMode();
+      return helper.getAutoSwapBufferMode();
    }
 
    @Override
@@ -336,30 +336,34 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    }
 
    @Override
-   public void invoke(final boolean wait, final GLRunnable run) {
-      /* Queue task for running during the next display(). */
-      drawableHelper.invoke(this, wait, run);
+   public boolean invoke(final boolean wait, final GLRunnable run) {
+      return helper.invoke(this, wait, run);
    }
 
    @Override
    public void removeGLEventListener(final GLEventListener arg0) {
-      drawableHelper.removeGLEventListener(arg0);
+      helper.removeGLEventListener(arg0);
    }
 
    @Override
+   public GLEventListener removeGLEventListener(int index) throws IndexOutOfBoundsException {
+      return helper.removeGLEventListener(index);
+   }
+       
+   @Override
    public void setAnimator(final GLAnimatorControl arg0) throws GLException {
-      drawableHelper.setAnimator(arg0);
+      helper.setAnimator(arg0);
    }
 
    @Override
    public void setAutoSwapBufferMode(final boolean arg0) {
-      drawableHelper.setAutoSwapBufferMode(arg0);
+      helper.setAutoSwapBufferMode(arg0);
    }
 
    @Override
    public GLContext setContext(GLContext newCtx) {
       final GLContext oldCtx = context;
-      final boolean newCtxCurrent = drawableHelper.switchContext(drawable, oldCtx, newCtx, additionalCtxCreationFlags);
+      final boolean newCtxCurrent = helper.switchContext(drawable, oldCtx, newCtx, additionalCtxCreationFlags);
       context=(GLContextImpl)newCtx;
       if(newCtxCurrent) {
           context.makeCurrent();
@@ -477,7 +481,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
             if (Threading.isSingleThreaded() && !Threading.isOpenGLThread()) {
                runInDesignatedGLThread(disposeOnEDTGLAction);
             } else if (context.isCreated()) {
-               drawableHelper.disposeGL(GLCanvas.this, drawable, context, postDisposeGLAction);
+               helper.disposeGL(GLCanvas.this, drawable, context, postDisposeGLAction);
             }
         }
 
@@ -537,7 +541,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
          runInDesignatedGLThread(asyncAction);
       } else {
          /* Run in current thread... */
-         drawableHelper.invokeGL(drawable, context, syncAction, initAction);
+         helper.invokeGL(drawable, context, syncAction, initAction);
       }
    }
 

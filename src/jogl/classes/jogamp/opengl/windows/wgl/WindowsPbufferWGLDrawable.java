@@ -67,11 +67,6 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   }
 
   @Override
-  protected void destroyImpl() {
-      setRealized(false);
-  }
-
-  @Override
   protected void setRealizedImpl() {
     if(realized) {
         createPbuffer();
