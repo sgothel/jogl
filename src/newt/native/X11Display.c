@@ -84,8 +84,8 @@ static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
         XGetErrorText(dpy, e->error_code, errCodeStr, sizeof(errCodeStr));
 
         fprintf(stderr, "Info: Newt X11 Error (Thread: %s): %d - %s, dpy %p, id %x, # %d: %d:%d %s\n",
-            threadName, e->error_code, errCodeStr, e->display, e->resourceid, e->serial,
-            e->request_code, e->minor_code, reqCodeStr);
+            threadName, e->error_code, errCodeStr, e->display, (int)e->resourceid, (int)e->serial,
+            (int)e->request_code, (int)e->minor_code, reqCodeStr);
 
         if( errorHandlerDebug ) {
             (*jniEnv)->CallStaticVoidMethod(jniEnv, X11NewtWindowClazz, dumpStackID);
@@ -94,8 +94,8 @@ static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
         if(errorHandlerThrowException) {
             if(NULL != jniEnv) {
                 NewtCommon_throwNewRuntimeException(jniEnv, "Newt X11 Error (Thread: %s): %d - %s, dpy %p, id %x, # %d: %d:%d %s\n",
-                                                    threadName, e->error_code, errCodeStr, e->display, e->resourceid, e->serial,
-                                                    e->request_code, e->minor_code, reqCodeStr);
+                                                    threadName, e->error_code, errCodeStr, e->display, (int)e->resourceid, (int)e->serial,
+                                                    (int)e->request_code, (int)e->minor_code, reqCodeStr);
             } else {
                 fprintf(stderr, "Nativewindow X11 Error: null JNIEnv");
                 #if 0

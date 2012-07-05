@@ -572,7 +572,7 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
   (JNIEnv *env, jobject instance, jlong ptr, jlong jProcAddrGLTexSubImage2D, jint texTarget, jint texFmt, jint texType)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
-    PFNGLTEXSUBIMAGE2DPROC procAddrGLTexSubImage2D = (PFNGLTEXSUBIMAGE2DPROC) jProcAddrGLTexSubImage2D;
+    PFNGLTEXSUBIMAGE2DPROC procAddrGLTexSubImage2D = (PFNGLTEXSUBIMAGE2DPROC) (intptr_t)jProcAddrGLTexSubImage2D;
 
     jint res = 0; // 1 - audio, 2 - video
     AVPacket packet;
@@ -694,10 +694,10 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_seek0
     if(pos1 < pos0) {
         flags |= AVSEEK_FLAG_BACKWARD;
     }
-    fprintf(stderr, "SEEK: pre  : u %d, p %d -> u %d, p %d\n", pos0, pts0, pos1, pts1);
+    fprintf(stderr, "SEEK: pre  : u %ld, p %ld -> u %ld, p %ld\n", pos0, pts0, pos1, pts1);
     sp_av_seek_frame(pAV->pFormatCtx, pAV->vid, pts1, flags);
     pAV->vPTS = pAV->pVFrame->pkt_pts * my_av_q2i32(1000, pAV->pVStream->time_base);
-    fprintf(stderr, "SEEK: post : u %d, p %d\n", pAV->vPTS, pAV->pVFrame->pkt_pts);
+    fprintf(stderr, "SEEK: post : u %ld, p %ld\n", pAV->vPTS, pAV->pVFrame->pkt_pts);
     return pAV->vPTS;
 }
 
