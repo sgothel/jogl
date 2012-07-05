@@ -230,6 +230,9 @@ public class X11Window extends WindowImpl {
     // Internals only
     //
     
+    private static final String getCurrentThreadName() { return Thread.currentThread().getName(); } // Callback for JNI
+    private static final void dumpStack() { Thread.dumpStack(); } // Callback for JNI
+    
     private final long getDisplayEDTHandle() {
         return ((X11Display) getScreen().getDisplay()).getEDTHandle();
     }

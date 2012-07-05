@@ -49,7 +49,7 @@ public class X11Display extends DisplayImpl {
     static {
         NEWTJNILibLoader.loadNEWT();
 
-        if ( !initIDs0() ) {
+        if ( !initIDs0(X11Util.XERROR_STACKDUMP) ) {
             throw new NativeWindowException("Failed to initialize X11Display jmethodIDs");
         }
 
@@ -139,7 +139,7 @@ public class X11Display extends DisplayImpl {
     //----------------------------------------------------------------------
     // Internals only
     //
-    private static native boolean initIDs0();
+    private static native boolean initIDs0(boolean debug);
 
     private native void CompleteDisplay0(long handle);
 

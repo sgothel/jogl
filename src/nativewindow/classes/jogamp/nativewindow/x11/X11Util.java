@@ -81,9 +81,10 @@ public class X11Util {
     /** Value is <code>true</code>, best 'stable' results if not using XLockDisplay/XUnlockDisplay at all. */
     public static final boolean HAS_XLOCKDISPLAY_BUG = true;
     
-    private static final boolean DEBUG = Debug.debug("X11Util");
-    private static final boolean TRACE_DISPLAY_LIFECYCLE = Debug.getBooleanProperty("nativewindow.debug.X11Util.TraceDisplayLifecycle", true);
-
+    public static final boolean DEBUG = Debug.debug("X11Util");
+    public static final boolean XSYNC_ENABLED = Debug.isPropertyDefined("nativewindow.debug.X11Util.XSync", true);
+    public static final boolean XERROR_STACKDUMP = DEBUG || Debug.isPropertyDefined("nativewindow.debug.X11Util.XErrorStackDump", true);
+    private static final boolean TRACE_DISPLAY_LIFECYCLE = Debug.isPropertyDefined("nativewindow.debug.X11Util.TraceDisplayLifecycle", true);
     private static String nullDisplayName = null;
     private static boolean isX11LockAvailable = false;
     private static boolean requiresX11Lock = true;
@@ -105,11 +106,14 @@ public class X11Util {
                     }
         
                     final boolean callXInitThreads = XINITTHREADS_ALWAYS_ENABLED || firstX11ActionOnProcess;
-                    final boolean isXInitThreadsOK = initialize0( XINITTHREADS_ALWAYS_ENABLED || firstX11ActionOnProcess );
+                    final boolean isXInitThreadsOK = initialize0( XINITTHREADS_ALWAYS_ENABLED || firstX11ActionOnProcess, XERROR_STACKDUMP);
                     isX11LockAvailable = isXInitThreadsOK && !HAS_XLOCKDISPLAY_BUG ;
         
                     final long dpy = X11Lib.XOpenDisplay(null);
                     if(0 != dpy) {
+                        if(XSYNC_ENABLED) {
+                            X11Lib.XSynchronize(dpy, true);
+                        }                    
                         try {
                             nullDisplayName = X11Lib.XDisplayString(dpy);
                         } finally {
@@ -124,7 +128,8 @@ public class X11Util {
                                            ", requiresX11Lock "+requiresX11Lock+
                                            ", XInitThreads [called "+callXInitThreads+", OK "+isXInitThreadsOK+"]"+
                                            ", isX11LockAvailable "+isX11LockAvailable+
-                                           ", X11 Display(NULL) <"+nullDisplayName+">");
+                                           ", X11 Display(NULL) <"+nullDisplayName+">"+
+                                           ", XSynchronize Enabled: "+XSYNC_ENABLED);
                         // Thread.dumpStack();
                     }
                 }
@@ -455,6 +460,9 @@ public class X11Util {
         NativeWindowFactory.getDefaultToolkitLock().lock();
         try {
             long handle = X11Lib.XOpenDisplay(arg0);
+            if(XSYNC_ENABLED && 0 != handle) {
+                X11Lib.XSynchronize(handle, true);
+            }                    
             if(TRACE_DISPLAY_LIFECYCLE) {
                 System.err.println(Thread.currentThread()+" - X11Util.XOpenDisplay("+arg0+") 0x"+Long.toHexString(handle));
                 // Thread.dumpStack();
@@ -520,7 +528,10 @@ public class X11Util {
         return false;
     }
     
-    private static native boolean initialize0(boolean firstUIActionOnProcess);
+    private static final String getCurrentThreadName() { return Thread.currentThread().getName(); } // Callback for JNI
+    private static final void dumpStack() { Thread.dumpStack(); } // Callback for JNI
+    
+    private static native boolean initialize0(boolean firstUIActionOnProcess, boolean debug);
     private static native void shutdown0();
     private static native void setX11ErrorHandler0(boolean onoff, boolean quiet);
 }

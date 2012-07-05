@@ -38,6 +38,8 @@ static const char * const ClazzNameX11NewtWindow = "jogamp/newt/driver/x11/X11Wi
 
 static jmethodID displayCompletedID = NULL;
 
+static jmethodID getCurrentThreadNameID = NULL;
+static jmethodID dumpStackID = NULL;
 static jmethodID sizeChangedID = NULL;
 static jmethodID positionChangedID = NULL;
 static jmethodID focusChangedID = NULL;
@@ -61,32 +63,51 @@ static void setupJVMVars(JNIEnv * env) {
 }
 
 static XErrorHandler origErrorHandler = NULL ;
+static int errorHandlerQuiet = 0 ;
+static int errorHandlerDebug = 0 ;
+static int errorHandlerThrowException = 0;
 
-static int displayDispatchErrorHandler(Display *dpy, XErrorEvent *e)
+static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
 {
-    fprintf(stderr, "Warning: NEWT X11 Error: DisplayDispatch %p, Code 0x%X, errno %s\n", dpy, e->error_code, strerror(errno));
-    
-    if (e->error_code == BadAtom) {
-        fprintf(stderr, "         BadAtom (%p): Atom probably already removed\n", (void*)e->resourceid);
-    } else if (e->error_code == BadWindow) {
-        fprintf(stderr, "         BadWindow (%p): Window probably already removed\n", (void*)e->resourceid);
-    } else {
+    if(!errorHandlerQuiet) {
+        const char * errnoStr = strerror(errno);
+        char threadName[80];
+        char errCodeStr[80];
+        char reqCodeStr[80];
+
         int shallBeDetached = 0;
-        JNIEnv *jniEnv = NULL;
-        const char * errStr = strerror(errno);
+        JNIEnv *jniEnv = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
 
-        fprintf(stderr, "Info: NEWT X11 Error: Display %p, Code 0x%X, errno %s\n", dpy, e->error_code, errStr);
+        (void) NewtCommon_GetStaticStringMethod(jniEnv, X11NewtWindowClazz, getCurrentThreadNameID, threadName, sizeof(threadName), "n/a");
+        snprintf(errCodeStr, sizeof(errCodeStr), "%d", e->request_code);
+        XGetErrorDatabaseText(dpy, "XRequest", errCodeStr, "Unknown", reqCodeStr, sizeof(reqCodeStr));
+        XGetErrorText(dpy, e->error_code, errCodeStr, sizeof(errCodeStr));
 
-        jniEnv = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
-        if(NULL==jniEnv) {
-            fprintf(stderr, "NEWT X11 Error: null JNIEnv");
-            return;
+        fprintf(stderr, "Info: Newt X11 Error (Thread: %s): %d - %s, dpy %p, id %x, # %d: %d:%d %s\n",
+            threadName, e->error_code, errCodeStr, e->display, e->resourceid, e->serial,
+            e->request_code, e->minor_code, reqCodeStr);
+
+        if( errorHandlerDebug ) {
+            (*jniEnv)->CallStaticVoidMethod(jniEnv, X11NewtWindowClazz, dumpStackID);
         }
 
-        NewtCommon_throwNewRuntimeException(jniEnv, "Info: NEWT X11 Error: Display %p, Code 0x%X, errno %s", 
-                                            dpy, e->error_code, errStr);
+        if(errorHandlerThrowException) {
+            if(NULL != jniEnv) {
+                NewtCommon_throwNewRuntimeException(jniEnv, "Newt X11 Error (Thread: %s): %d - %s, dpy %p, id %x, # %d: %d:%d %s\n",
+                                                    threadName, e->error_code, errCodeStr, e->display, e->resourceid, e->serial,
+                                                    e->request_code, e->minor_code, reqCodeStr);
+            } else {
+                fprintf(stderr, "Nativewindow X11 Error: null JNIEnv");
+                #if 0
+                    if(NULL!=origErrorHandler) {
+                        origErrorHandler(dpy, e);
+                    }
+                #endif
+            }
+        }
+        fflush(stderr);
 
-        if (shallBeDetached) {
+        if (NULL != jniEnv && shallBeDetached) {
             (*jvmHandle)->DetachCurrentThread(jvmHandle);
         }
     }
@@ -94,14 +115,21 @@ static int displayDispatchErrorHandler(Display *dpy, XErrorEvent *e)
     return 0;
 }
 
-void NewtDisplay_displayDispatchErrorHandlerEnable(int onoff, JNIEnv * env) {
+void NewtDisplay_x11ErrorHandlerEnable(JNIEnv * env, Display *dpy, int onoff, int quiet, int sync) {
+    errorHandlerQuiet = quiet;
     if(onoff) {
         if(NULL==origErrorHandler) {
             setupJVMVars(env);
-            origErrorHandler = XSetErrorHandler(displayDispatchErrorHandler);
+            origErrorHandler = XSetErrorHandler(x11ErrorHandler);
+            if(sync && NULL!=dpy) {
+                XSync(dpy, False);
+            }
         }
     } else {
         if(NULL!=origErrorHandler) {
+            if(sync && NULL!=dpy) {
+                XSync(dpy, False);
+            }
             XSetErrorHandler(origErrorHandler);
             origErrorHandler = NULL;
         }
@@ -241,10 +269,13 @@ static jint X11InputState2NewtModifiers(unsigned int xstate) {
  * Signature: (Z)Z
  */
 JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Display_initIDs0
-  (JNIEnv *env, jclass clazz)
+  (JNIEnv *env, jclass clazz, jboolean debug)
 {
     jclass c;
 
+    if(debug) {
+        errorHandlerDebug = 1 ;
+    }
     NewtCommon_init(env);
 
     if(NULL==X11NewtWindowClazz) {
@@ -260,6 +291,8 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Display_initIDs0
     }
 
     displayCompletedID = (*env)->GetMethodID(env, clazz, "displayCompleted", "(JJ)V");
+    getCurrentThreadNameID = (*env)->GetStaticMethodID(env, X11NewtWindowClazz, "getCurrentThreadName", "()Ljava/lang/String;");
+    dumpStackID = (*env)->GetStaticMethodID(env, X11NewtWindowClazz, "dumpStack", "()V");
     insetsChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "insetsChanged", "(ZIIII)V");
     sizeChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sizeChanged", "(ZIIZ)V");
     positionChangedID = (*env)->GetMethodID(env, X11NewtWindowClazz, "positionChanged", "(ZII)V");
@@ -275,6 +308,8 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Display_initIDs0
     requestFocusID = (*env)->GetMethodID(env, X11NewtWindowClazz, "requestFocus", "(Z)V");
 
     if (displayCompletedID == NULL ||
+        getCurrentThreadNameID == NULL ||
+        dumpStackID == NULL ||
         insetsChangedID == NULL ||
         sizeChangedID == NULL ||
         positionChangedID == NULL ||
@@ -403,7 +438,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
 
         // DBG_PRINT( "X11: DispatchMessages dpy %p, win %p, Event %d\n", (void*)dpy, (void*)evt.xany.window, (int)evt.type);
 
-        NewtDisplay_displayDispatchErrorHandlerEnable(1, env);
+        NewtDisplay_x11ErrorHandlerEnable(env, dpy, 1, 0, 0);
 
         jwindow = getJavaWindowProperty(env, dpy, evt.xany.window, javaObjectAtom,
         #ifdef VERBOSE_ON
@@ -413,7 +448,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
         #endif
             );
 
-        NewtDisplay_displayDispatchErrorHandlerEnable(0, env);
+        NewtDisplay_x11ErrorHandlerEnable(env, dpy, 0, 0, 1);
 
         if(NULL==jwindow) {
             fprintf(stderr, "Warning: NEWT X11 DisplayDispatch %p, Couldn't handle event %d for X11 window %p\n", 

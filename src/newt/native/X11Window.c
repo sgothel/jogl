@@ -683,12 +683,16 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_CloseWindow0
 
     DBG_PRINT( "X11: CloseWindow START dpy %p, win %p\n", (void*)dpy, (void*)w);
 
+    NewtDisplay_x11ErrorHandlerEnable(env, dpy, 1, 0, 0);
+
     jwindow = getJavaWindowProperty(env, dpy, w, javaObjectAtom, True);
     if(NULL==jwindow) {
+        NewtDisplay_x11ErrorHandlerEnable(env, dpy, 0, 0, 1);
         NewtCommon_throwNewRuntimeException(env, "could not fetch Java Window object, bail out!");
         return;
     }
     if ( JNI_FALSE == (*env)->IsSameObject(env, jwindow, obj) ) {
+        NewtDisplay_x11ErrorHandlerEnable(env, dpy, 0, 0, 1);
         NewtCommon_throwNewRuntimeException(env, "Internal Error .. Window global ref not the same!");
         return;
     }
@@ -696,7 +700,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_CloseWindow0
     XSync(dpy, False);
     XSelectInput(dpy, w, 0);
     XUnmapWindow(dpy, w);
-    XSync(dpy, False);
+    NewtDisplay_x11ErrorHandlerEnable(env, dpy, 0, 0, 1);
 
     // Drain all events related to this window ..
     Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0(env, obj, display, javaObjectAtom, windowDeleteAtom);
@@ -757,7 +761,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
         fsEWMHFlags |= _NET_WM_ABOVE;         // toggle above
     }
 
-    NewtDisplay_displayDispatchErrorHandlerEnable(1, env);
+    NewtDisplay_x11ErrorHandlerEnable(env, dpy, 1, 0, 0);
 
     DBG_PRINT( "X11: reconfigureWindow0 dpy %p, scrn %d, parent %p/%p, win %p, %d/%d %dx%d, parentChange %d, hasParent %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, alwaysOnTopChange %d, alwaysOnTop %d, visibleChange %d, visible %d, tempInvisible %d, fsEWMHFlags %d\n",
         (void*)dpy, screen_index, (void*) jparent, (void*)parent, (void*)w,
@@ -775,7 +779,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
         ( TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) ) {
         Bool enable = TST_FLAG_CHANGE_FULLSCREEN(flags) ? TST_FLAG_IS_FULLSCREEN(flags) : TST_FLAG_IS_ALWAYSONTOP(flags) ;
         if( NewtWindows_setFullscreenEWMH(dpy, root, w, fsEWMHFlags, isVisible, enable) ) {
-            NewtDisplay_displayDispatchErrorHandlerEnable(0, env);
+            NewtDisplay_x11ErrorHandlerEnable(env, dpy, 0, 0, 1);
             #ifdef FS_GRAB_KEYBOARD
             if(TST_FLAG_CHANGE_FULLSCREEN(flags)) {
                 if(TST_FLAG_IS_FULLSCREEN(flags)) {
@@ -859,7 +863,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
         #endif
     }
 
-    NewtDisplay_displayDispatchErrorHandlerEnable(0, env);
+    NewtDisplay_x11ErrorHandlerEnable(env, dpy, 0, 0, 1);
 
     DBG_PRINT( "X11: reconfigureWindow0 X\n");
 }

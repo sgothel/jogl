@@ -1,5 +1,6 @@
 
 #include "NativewindowCommon.h"
+#include <string.h>
 
 static const char * const ClazzNameRuntimeException = "java/lang/RuntimeException";
 static jclass    runtimeExceptionClz=NULL;
@@ -43,6 +44,24 @@ int NativewindowCommon_init(JNIEnv *env) {
         return 1;
     }
     return 0;
+}
+
+const char * NativewindowCommon_GetStaticStringMethod(JNIEnv *jniEnv, jclass clazz, jmethodID jGetStrID, char *dest, int destSize, const char *altText) {
+    if(NULL != jniEnv && NULL != clazz && NULL != jGetStrID) {
+        jstring jstr = (jstring) (*jniEnv)->CallStaticObjectMethod(jniEnv, clazz, jGetStrID);
+        if(NULL != jstr) {
+            const char * str = (*jniEnv)->GetStringUTFChars(jniEnv, jstr, NULL);
+            if( NULL != str) {
+                strncpy(dest, str, destSize-1);
+                dest[destSize-1] = 0; // EOS
+                (*jniEnv)->ReleaseStringUTFChars(jniEnv, jstr, str);
+                return dest;
+            }
+        }
+    }
+    strncpy(dest, altText, destSize-1);
+    dest[destSize-1] = 0; // EOS
+    return dest;
 }
 
 jchar* NativewindowCommon_GetNullTerminatedStringChars(JNIEnv* env, jstring str)

@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 JogAmp Community. All rights reserved.
+ * Copyright 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -26,55 +26,19 @@
  * or implied, of JogAmp Community.
  */
 
-#ifndef _X11COMMON_H_
-#define _X11COMMON_H_
+#ifndef Xmisc_h
+#define Xmisc_h
 
+#include <jni.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
-
-#include <gluegen_stdint.h>
-
 #include <unistd.h>
 #include <errno.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <X11/keysym.h>
-#include <X11/Xatom.h>
 
-#include <X11/extensions/Xrandr.h>
+void NativewindowCommon_x11ErrorHandlerEnable(JNIEnv * env, Display *dpy, int onoff, int quiet, int sync);
 
-#include "jogamp_newt_driver_x11_X11Screen.h"
-#include "jogamp_newt_driver_x11_X11Display.h"
-#include "jogamp_newt_driver_x11_X11Window.h"
-
-#include "Window.h"
-#include "MouseEvent.h"
-#include "InputEvent.h"
-#include "KeyEvent.h"
-#include "WindowEvent.h"
-#include "ScreenMode.h"
-
-#include "NewtCommon.h"
-
-// #define VERBOSE_ON 1
-
-#ifdef VERBOSE_ON
-    #define DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr) 
-#else
-    #define DBG_PRINT(...)
-#endif
-
-extern jclass X11NewtWindowClazz;
-extern jmethodID insetsChangedID;
-extern jmethodID visibleChangedID;
-
-void NewtDisplay_x11ErrorHandlerEnable(JNIEnv * env, Display *dpy, int onoff, int quiet, int sync);
-jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong javaObjectAtom, Bool showWarning);
-
-Status NewtWindows_getRootAndParent (Display *dpy, Window w, Window * root_return, Window * parent_return);
-Status NewtWindows_updateInsets(JNIEnv *env, jobject jwindow, Display *dpy, Window window, int *left, int *right, int *top, int *bottom);
-
-#endif /* _X11COMMON_H_ */
-
+#endif /* Xmisc_h */

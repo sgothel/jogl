@@ -34,6 +34,7 @@
 
 void NewtCommon_init(JNIEnv *env);
 
+const char * NewtCommon_GetStaticStringMethod(JNIEnv *jniEnv, jclass clazz, jmethodID jGetStrID, char *dest, int destSize, const char *altText);
 jchar* NewtCommon_GetNullTerminatedStringChars(JNIEnv* env, jstring str);
 
 void NewtCommon_FatalError(JNIEnv *env, const char* msg, ...);

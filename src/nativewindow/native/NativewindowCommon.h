@@ -7,6 +7,7 @@
 
 int NativewindowCommon_init(JNIEnv *env);
 
+const char * NativewindowCommon_GetStaticStringMethod(JNIEnv *jniEnv, jclass clazz, jmethodID jGetStrID, char *dest, int destSize, const char *altText);
 jchar* NativewindowCommon_GetNullTerminatedStringChars(JNIEnv* env, jstring str);
 
 void NativewindowCommon_FatalError(JNIEnv *env, const char* msg, ...);
