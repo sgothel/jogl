@@ -37,7 +37,7 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestWindows01NE
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot %*
+REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.nativewindow.TestRecursiveToolkitLockCORE
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT %*
@@ -52,7 +52,7 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestScreenMode0
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.ManualScreenMode03NEWT
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple %*
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.TexCubeES2 %*
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
@@ -71,7 +71,8 @@ REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestWindowClosingPr
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn %*
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn %*
+scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn %*
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT -time 5000
 
