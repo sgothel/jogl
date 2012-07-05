@@ -42,6 +42,7 @@
 #include <gluegen_stdint.h>
 
 #include <KD/kd.h>
+#include <EGL/egl.h>
 
 #include "jogamp_newt_driver_kd_KDWindow.h"
 
@@ -208,11 +209,10 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_kd_KDWindow_initIDs
 }
 
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_kd_KDWindow_CreateWindow
-  (JNIEnv *env, jobject obj, jlong display, jintArray jAttrs)
+  (JNIEnv *env, jobject obj, jlong display, jlong jeglConfig)
 {
-    jint * attrs = NULL;
-    jsize attrsLen;
     EGLDisplay dpy  = (EGLDisplay)(intptr_t)display;
+    EGLConfig eglConfig = (EGLConfig)(intptr_t)jeglConfig;
     KDWindow *window = 0;
 
     if(dpy==NULL) {
@@ -220,22 +220,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_kd_KDWindow_CreateWindow
         return 0;
     }
 
-    attrsLen = (*env)->GetArrayLength(env, jAttrs);
-    if(0==attrsLen) {
-        fprintf(stderr, "[CreateWindow] attribute array size 0..\n");
-        return 0;
-    }
-    attrs = (*env)->GetIntArrayElements(env, jAttrs, 0);
-    if(NULL==attrs) {
-        fprintf(stderr, "[CreateWindow] attribute array NULL..\n");
-        return 0;
-    }
-
     JOGLKDUserdata * userData = kdMalloc(sizeof(JOGLKDUserdata));
     userData->magic = JOGL_KD_USERDATA_MAGIC;
-    window = kdCreateWindow(dpy, attrs, (void *)userData);
-
-    (*env)->ReleaseIntArrayElements(env, jAttrs, attrs, 0);
+    window = kdCreateWindow(dpy, eglConfig, (void *)userData);
 
     if(NULL==window) {
         kdFree(userData);

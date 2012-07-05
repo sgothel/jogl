@@ -37,6 +37,7 @@ package jogamp.newt.driver.kd;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.VisualIDHolder.VIDType;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -66,11 +67,12 @@ public class KDWindow extends WindowImpl {
         setGraphicsConfiguration(cfg);
 
         GLCapabilitiesImmutable eglCaps = (GLCapabilitiesImmutable) cfg.getChosenCapabilities();
-        int[] eglAttribs = EGLGraphicsConfiguration.GLCapabilities2AttribList(eglCaps);
+        int eglConfigID = eglCaps.getVisualID(VIDType.EGL_CONFIG);
+        long eglConfig = EGLGraphicsConfiguration.EGLConfigId2EGLConfig(getDisplayHandle(), eglConfigID);
 
-        eglWindowHandle = CreateWindow(getDisplayHandle(), eglAttribs);
+        eglWindowHandle = CreateWindow(getDisplayHandle(), eglConfig);
         if (eglWindowHandle == 0) {
-            throw new NativeWindowException("Error creating egl window: "+cfg);
+            throw new NativeWindowException("Error creating egl window: "+cfg+", eglConfigID "+eglConfigID+", eglConfig 0x"+Long.toHexString(eglConfig));
         }
         setVisible0(eglWindowHandle, false);
         setWindowHandle(RealizeWindow(eglWindowHandle));
@@ -135,7 +137,7 @@ public class KDWindow extends WindowImpl {
     //
 
     protected static native boolean initIDs();
-    private        native long CreateWindow(long displayHandle, int[] attributes);
+    private        native long CreateWindow(long displayHandle, long eglConfig);
     private        native long RealizeWindow(long eglWindowHandle);
     private        native int  CloseWindow(long eglWindowHandle, long userData);
     private        native void setVisible0(long eglWindowHandle, boolean visible);
