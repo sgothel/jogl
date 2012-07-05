@@ -64,6 +64,7 @@ public class GearsES2 implements GLEventListener {
     private KeyListener gearsKeys = new GearsKeyAdapter();
 
     private int prevMouseX, prevMouseY;
+    private boolean isInitialized = false;
 
     public GearsES2(int swapInterval) {
         this.swapInterval = swapInterval;
@@ -100,6 +101,11 @@ public class GearsES2 implements GLEventListener {
 
 
     public void init(GLAutoDrawable drawable) {
+        if(isInitialized) {
+            System.err.println(Thread.currentThread()+" GearsES2.init skipped!");
+            return; 
+        }
+        isInitialized = true;
         System.err.println(Thread.currentThread()+" GearsES2.init ...");
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -174,15 +180,15 @@ public class GearsES2 implements GLEventListener {
         }
         st.useProgram(gl, false);
         
-        gl.setSwapInterval(swapInterval);
-        
         System.err.println(Thread.currentThread()+" GearsES2.init FIN");
     }
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        // System.err.println(Thread.currentThread()+" GearsES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
+        System.err.println(Thread.currentThread()+" GearsES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
+        gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
+        
         st.useProgram(gl, true);
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
         pmvMatrix.glLoadIdentity();
@@ -206,6 +212,11 @@ public class GearsES2 implements GLEventListener {
     // private boolean useAndroidDebug = false;
 
     public void dispose(GLAutoDrawable drawable) {
+        if(!isInitialized) {
+            System.err.println(Thread.currentThread()+" GearsES2.dispose skipped!");
+            return; 
+        }
+        isInitialized = false;
         System.err.println(Thread.currentThread()+" GearsES2.dispose ... ");
         if (drawable.getNativeSurface() instanceof Window) {
             Window window = (Window) drawable.getNativeSurface();

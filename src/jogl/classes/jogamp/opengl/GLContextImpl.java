@@ -161,23 +161,49 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   @Override
-  public final void setGLReadDrawable(GLDrawable read) {
-    if(null!=read && drawable!=read && !isGLReadDrawableAvailable()) {
-        throw new GLException("GL Read Drawable not available");
+  public final GLDrawable setGLReadDrawable(GLDrawable read) {
+    if(!isGLReadDrawableAvailable()) { 
+        throw new GLException("Setting read drawable feature not available");
     }
     final boolean lockHeld = lock.isOwner(Thread.currentThread());
     if(lockHeld) {
         release();
+    } else if(lock.isLockedByOtherThread()) { // still could glitch ..
+        throw new GLException("GLContext current by other thread ("+lock.getOwner()+"), operation not allowed.");
     }
+    final GLDrawable old = drawableRead;
     drawableRead = ( null != read ) ? (GLDrawableImpl) read : drawable;
     if(lockHeld) {
         makeCurrent();
     }
+    return old;
   }
 
   @Override
   public final GLDrawable getGLReadDrawable() {
     return drawableRead;
+  }
+
+  @Override
+  public final GLDrawable setGLDrawable(GLDrawable readWrite, boolean setWriteOnly) {
+    if(null==readWrite) {
+        throw new GLException("Null read/write drawable not allowed");
+    }
+    final boolean lockHeld = lock.isOwner(Thread.currentThread());
+    if(lockHeld) {
+        release();
+    } else if(lock.isLockedByOtherThread()) { // still could glitch ..
+        throw new GLException("GLContext current by other thread ("+lock.getOwner()+"), operation not allowed.");
+    }    
+    if(!setWriteOnly || drawableRead==drawable) { // if !setWriteOnly || !explicitReadDrawable
+        drawableRead = (GLDrawableImpl) readWrite;
+    }
+    final GLDrawable old = drawable;
+    drawable = ( null != readWrite ) ? (GLDrawableImpl) readWrite : null;
+    if(lockHeld) {
+        makeCurrent();
+    }
+    return old;
   }
 
   @Override
@@ -630,13 +656,10 @@ public abstract class GLContextImpl extends GLContext {
    * @see #createContextARBImpl
    * @see #destroyContextARBImpl
    */
-  protected final long createContextARB(long share, boolean direct)
+  protected final long createContextARB(final long share, final boolean direct)
   {
-    AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
-    AbstractGraphicsDevice device = config.getScreen().getDevice();
-    GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
-    GLProfile glp = glCaps.getGLProfile();
-    GLProfile glpImpl = glp.getImpl();
+    final AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
+    final AbstractGraphicsDevice device = config.getScreen().getDevice();
 
     if (DEBUG) {
       System.err.println(getThreadName() + ": createContextARB: mappedVersionsAvailableSet("+device.getConnection()+"): "+
@@ -650,22 +673,15 @@ public abstract class GLContextImpl extends GLContext {
         }
     }
 
-    int reqMajor;
-    if(glpImpl.isGL4()) {
-        reqMajor=4;
-    } else if (glpImpl.isGL3()) {
-        reqMajor=3;
-    } else /* if (glpImpl.isGL2()) */ {
-        reqMajor=2;
-    }
-
-    boolean compat = glpImpl.isGL2(); // incl GL3bc and GL4bc
+    final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+    final int[] reqMajorCTP = new int[] { 0, 0 };
+    getRequestMajorAndCompat(glCaps.getGLProfile(), reqMajorCTP);
+    
     int _major[] = { 0 };
     int _minor[] = { 0 };
     int _ctp[] = { 0 };
     long _ctx = 0;
-
-    if( GLContext.getAvailableGLVersion(device, reqMajor, compat?CTX_PROFILE_COMPAT:CTX_PROFILE_CORE,
+    if( GLContext.getAvailableGLVersion(device, reqMajorCTP[0], reqMajorCTP[1],
                                         _major, _minor, _ctp)) {
         _ctp[0] |= additionalCtxCreationFlags;
         _ctx = createContextARBImpl(share, direct, _ctp[0], _major[0], _minor[0]);
@@ -675,7 +691,7 @@ public abstract class GLContextImpl extends GLContext {
     }
     return _ctx;
   }
-
+  
   private final boolean mapGLVersions(AbstractGraphicsDevice device) {
     synchronized (GLContext.deviceVersionAvailable) {
         boolean success = false;
@@ -698,10 +714,11 @@ public abstract class GLContextImpl extends GLContext {
   private final boolean createContextARBMapVersionsAvailable(int reqMajor, boolean compat) {
     long _context;
     int reqProfile = compat ? CTX_PROFILE_COMPAT : CTX_PROFILE_CORE ;
-    int ctp = CTX_IS_ARB_CREATED | CTX_PROFILE_CORE; // default
+    int ctp = CTX_IS_ARB_CREATED;
     if(compat) {
-        ctp &= ~CTX_PROFILE_CORE ;
-        ctp |=  CTX_PROFILE_COMPAT ;
+        ctp |= CTX_PROFILE_COMPAT ;
+    } else {
+        ctp |= CTX_PROFILE_CORE ;
     }
 
     // To ensure GL profile compatibility within the JOGL application
@@ -1070,10 +1087,15 @@ public abstract class GLContextImpl extends GLContext {
             }
         }
     }
-    if( isExtensionAvailable("GL_ARB_ES2_compatibility") ) {
+    
+    if( 0 != ( CTX_PROFILE_ES & ctxProfileBits ) && ctxMajorVersion >= 2 ||
+        isExtensionAvailable(GL_ARB_ES2_compatibility) ) {
         ctxProfileBits |= CTX_IMPL_ES2_COMPAT;
+        ctxProfileBits |= CTX_IMPL_FBO;
+    } else if( hasFBOImpl(ctxMajorVersion, ctxProfileBits, extensionAvailability) ) {
+        ctxProfileBits |= CTX_IMPL_FBO;
     }
-
+    
     //
     // Set GL Version (complete w/ version string)
     //
@@ -1081,7 +1103,24 @@ public abstract class GLContextImpl extends GLContext {
 
     setDefaultSwapInterval();
   }
-
+  
+  protected static final boolean hasFBOImpl(int ctxMajorVersion, int ctxProfileBits, ExtensionAvailabilityCache extCache) {
+    return ( ctxMajorVersion >= 3 ) ||                                               // any >= 3.0 GL ctx
+            
+           ( 0 != (ctxProfileBits & CTX_PROFILE_ES) && ctxMajorVersion >= 2 ) ||     // ES >= 2.0
+           
+           ( null != extCache &&
+           
+               ( extCache.isExtensionAvailable(GL_ARB_ES2_compatibility) ) ||        // ES 2.0 compatible
+               
+               ( extCache.isExtensionAvailable(GL_ARB_framebuffer_object) ) ||       // ARB_framebuffer_object
+               
+               ( extCache.isExtensionAvailable(GL_EXT_framebuffer_object) &&         // EXT_framebuffer_object*
+                 extCache.isExtensionAvailable(GL_EXT_framebuffer_multisample) &&
+                 extCache.isExtensionAvailable(GL_EXT_framebuffer_blit) &&
+                 extCache.isExtensionAvailable(GL_EXT_packed_depth_stencil) ) );           
+  }
+  
   protected final void removeCachedVersion(int major, int minor, int ctxProfileBits) {
     if(!isCurrentContextHardwareRasterizer()) {
         ctxProfileBits |= GLContext.CTX_IMPL_ACCEL_SOFT;
@@ -1212,7 +1251,7 @@ public abstract class GLContextImpl extends GLContext {
 
   protected static String getContextFQN(AbstractGraphicsDevice device, int major, int minor, int ctxProfileBits) {
       // remove non-key values
-      ctxProfileBits &= ~( GLContext.CTX_OPTION_DEBUG | GLContext.CTX_IMPL_ES2_COMPAT ) ;
+      ctxProfileBits &= ~( GLContext.CTX_OPTION_DEBUG | GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ) ;
 
       return device.getUniqueID() + "-" + toHexString(composeBits(major, minor, ctxProfileBits));
   }

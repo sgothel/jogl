@@ -55,6 +55,7 @@ public class RedSquareES2 implements GLEventListener {
     GLWindow glWindow = null;
     float aspect = 1.0f;
     boolean doRotate = true;
+    boolean isInitialized = false;
 
     public RedSquareES2(int swapInterval) {
         this.swapInterval = swapInterval;
@@ -68,6 +69,11 @@ public class RedSquareES2 implements GLEventListener {
     public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
     
     public void init(GLAutoDrawable glad) {
+        if(isInitialized) {
+            System.err.println(Thread.currentThread()+" RedSquareES2.init skipped!");
+            return; 
+        }
+        isInitialized = true;
         System.err.println(Thread.currentThread()+" RedSquareES2.init ...");
         GL2ES2 gl = glad.getGL().getGL2ES2();
         
@@ -127,8 +133,6 @@ public class RedSquareES2 implements GLEventListener {
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         st.useProgram(gl, false);        
 
-        gl.setSwapInterval(swapInterval);
-        
         if (glad instanceof GLWindow) {
             glWindow = (GLWindow) glad;
             glWindow.addMouseListener(myMouse);
@@ -167,6 +171,8 @@ public class RedSquareES2 implements GLEventListener {
         System.err.println(Thread.currentThread()+" RedSquareES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);        
         GL2ES2 gl = glad.getGL().getGL2ES2();
         
+        gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
+        
         st.useProgram(gl, true);
         // Set location in front of camera
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
@@ -180,6 +186,11 @@ public class RedSquareES2 implements GLEventListener {
     }
 
     public void dispose(GLAutoDrawable glad) {
+        if(!isInitialized) {
+            System.err.println(Thread.currentThread()+" RedSquareES2.dispose skipped!");
+            return; 
+        }
+        isInitialized = false;
         System.err.println(Thread.currentThread()+" RedSquareES2.dispose ... ");
         if (null != glWindow) {
             glWindow.removeMouseListener(myMouse);

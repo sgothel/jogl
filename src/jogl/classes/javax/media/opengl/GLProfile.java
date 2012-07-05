@@ -113,9 +113,7 @@ public class GLProfile {
      * @param firstUIActionOnProcess Should be <code>true</code> if called before the first UI action of the running program,
      * otherwise <code>false</code>.
      * 
-     * @deprecated This method shall not need to be called for other reasons than having a defined initialization sequence.
-     *             To ensure homogeneous behavior with application not calling this method, you shall pass <code>firstUIActionOnProcess=false</code>.
-     *             This method is subject to be removed in future versions of JOGL. 
+     * @deprecated Use {@link #initSingleton()}. This method is subject to be removed in future versions of JOGL. 
      */
     public static void initSingleton(final boolean firstUIActionOnProcess) {
         initLock.lock();
@@ -1002,6 +1000,11 @@ public class GLProfile {
     /** Indicates whether this profile is capable of GLES2.  <p>Includes [ GLES2 ].</p> */
     public final boolean isGLES2() {
         return GLES2 == profile;
+    }
+    
+    /** Indicates whether this profile is capable of GLES.  <p>Includes [ GLES1, GLES2 ].</p> */
+    public final boolean isGLES() {
+        return GLES2 == profile || GLES1 == profile;
     }
 
     /** Indicates whether this profile is capable of GL2ES1. <p>Includes [ GL4bc, GL3bc, GL2, GLES1, GL2ES1 ].</p> */

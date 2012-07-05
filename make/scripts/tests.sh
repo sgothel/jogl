@@ -53,6 +53,10 @@ function jrun() {
     swton=$1
     shift
 
+    #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
+    #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
+    #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
+    #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL"
@@ -68,11 +72,8 @@ function jrun() {
     #D_ARGS="-Djogl.debug.EGL -Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.GLDrawable"
     #D_ARGS="-Dnewt.test.Screen.disableScreenMode -Dnewt.debug.Screen"
     #D_ARGS="-Djogl.debug.ExtensionAvailabilityCache -Djogl.debug=all -Dnativewindow.debug=all -Djogamp.debug.ProcAddressHelper=true -Djogamp.debug.NativeLibrary=true -Djogamp.debug.NativeLibrary.Lookup=true"
-    #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
-    #D_ARGS="-Djogl.debug=all -Djogamp.debug.Lock -Djogamp.common.utils.locks.Lock.timeout=600000"
     #D_ARGS="-Dnewt.debug.MainThread"
     #D_ARGS="-Dnewt.debug.Window"
-    #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
     #D_ARGS="-Dnativewindow.debug.GraphicsConfiguration -Dnativewindow.debug.NativeWindow"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.Animator -Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.ExtensionAvailabilityCache"
@@ -83,8 +84,10 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.NativeWindow"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.EDT -Dnewt.debug.Window -Djogl.debug.GLContext"
-    #D_ARGS="-Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.X11Util.TraceDisplayLifecycle=true -Dnativewindow.debug.X11Util"
+    #D_ARGS="-Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.X11Util.XErrorStackDump -Dnativewindow.debug.X11Util.TraceDisplayLifecycle -Dnativewindow.debug.X11Util"
     #D_ARGS="-Dnativewindow.debug.X11Util -Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnewt.debug=all"
+    #D_ARGS="-Dnativewindow.debug.X11Util -Dnativewindow.debug.X11Util.XSync"
+    #D_ARGS="-Dnativewindow.debug.X11Util.XSync -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug.GLDrawable -Djogl.debug.GLContext"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=3000 -Djogamp.debug.Lock -Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
@@ -100,9 +103,6 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Screen -Dnewt.debug.EDT -Djogamp.debug.Lock"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GraphicsConfiguration"
     #D_ARGS="-Dnewt.debug.EDT"
-    #D_ARGS="-Djogamp.debug=all -Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
-    #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
-    #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.debug.Window"
@@ -211,7 +211,6 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFloatUtil01MatrixMatrixMultNOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.glu.TestGluUnprojectFloatNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestNEWTCloseX11DisplayBug565 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
@@ -226,6 +225,15 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT2 $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitchNEWT $*
+
+#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cSwingAWT $*
+
+
+#testnoawt com.jogamp.opengl.test.junit.jogl.glu.TestGluUnprojectFloatNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteWindow01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteGLWindows01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
@@ -271,7 +279,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT02WindowClosing
 #testawt com.jogamp.opengl.test.junit.jogl.awt.text.TestAWTTextRendererUseVertexArrayBug464
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
-testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWTAnalyzeBug455 $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWTBug450 $*
@@ -384,8 +392,6 @@ testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
 
 #linux:
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cSwingAWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT $*
 
 # osx:
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*

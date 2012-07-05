@@ -492,6 +492,23 @@ public abstract class GLDrawableFactory {
                                             GLContext shareWith)
     throws GLException;
 
+  /**
+   * Returns true if it is possible to create an <i>framebuffer object</i> (FBO).
+   * <p>
+   * FBO feature is implemented in OpenGL, hence it is {@link GLProfile} dependent.
+   * </p> 
+   * <p>
+   * FBO support is queried as described in {@link GLContext#hasFBO()}.
+   * </p>
+   *
+   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param glp {@link GLProfile} to check for FBO capabilities
+   * @see GLContext#hasFBO()
+   */
+  public final boolean canCreateFBO(AbstractGraphicsDevice device, GLProfile glp) {
+      return 0 != ( GLContext.CTX_IMPL_FBO & GLContext.getAvailableContextProperties(device, glp) );
+  }
+
   //----------------------------------------------------------------------
   // Methods for interacting with third-party OpenGL libraries
 

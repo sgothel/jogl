@@ -531,7 +531,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
             return;
         }
 
-        window.lockWindow(); // sync: context/drawable could been recreated/destroyed while animating
+        window.lockWindow(); // sync: context/drawable could have been recreated/destroyed while animating
         try {
             if( null == context && 0<getWidth()*getHeight() ) {
                 // retry drawable and context creation

@@ -102,7 +102,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
             synchronized(this) {
                 isRunning = true;
                 this.notifyAll();
-                System.out.println("$");
+                System.err.println("$");
             }
             while(!shallStop) {
                try {
@@ -166,7 +166,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         jFrame1.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
         jFrame1.setContentPane(jPanel1);
         jFrame1.setSize(width, height);
-        System.out.println("Demos: 1 - Visible");
+        System.err.println("Demos: 1 - Visible");
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                jFrame1.setVisible(true);
@@ -181,27 +181,30 @@ public class TestParenting01cSwingAWT extends UITestCase {
         while(animator1.isAnimating() && animator1.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
         }
-        System.out.println("Demos: 2 - StopAnimator");
+        System.err.println("Demos: 2 - StopAnimator");
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    System.out.println("Demos: 3 - !Visible");
+                    System.err.println("Demos: 3 - !Visible");
                     jFrame1.setVisible(false);
                 } });
         Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, false));
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    System.out.println("Demos: 4 - Visible");
+                    System.err.println("Demos: 4 - Visible");
                     jFrame1.setVisible(true);
                 } });
         Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, true));
 
+        // Always recommended to remove our native parented Window
+        // from the AWT resources before destruction, since it could lead
+        // to a BadMatch X11 error w/o.
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    System.out.println("Demos: 5 - X Container");
+                    System.err.println("Demos: 5 - X Container");
                     jPanel1.remove(container1);
                     jFrame1.validate();
                 } });
@@ -209,13 +212,17 @@ public class TestParenting01cSwingAWT extends UITestCase {
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
+                    System.err.println("Demos: 6 - X Frame");
                     jFrame1.dispose();
                 } });
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
-        disturbanceAction.stopAndWaitUntilDone();
+        System.err.println("Demos: 7 - X GLWindow");        
         glWindow1.destroy();
         Assert.assertEquals(false, glWindow1.isNativeValid());
+        
+        System.err.println("Demos: 8 - X DisturbanceThread");        
+        disturbanceAction.stopAndWaitUntilDone();
     }
 
     @Test
@@ -344,24 +351,48 @@ public class TestParenting01cSwingAWT extends UITestCase {
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
 
-        disturbanceAction.stopAndWaitUntilDone();
-        
+        /*
+         * Always recommended to remove our native parented Window
+         * from the AWT resources before destruction, since it could lead
+         * to a BadMatch X11 error w/o (-> XAWT related).
+         * Or ensure old/new parent is visible, see below.
+         *
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
+                    System.err.println("Demos: 1 - X Container 1");
+                    container1.remove(newtCanvasAWT);
+                    jFrame1.validate();
+                    System.err.println("Demos: 1 - X Container 2");
+                    jPanel2.remove(newtCanvasAWT);
+                    jFrame2.validate();                                
+                } }); */
+        /*
+         * Invisible X11 windows may also case BadMatch (-> XAWT related)
+         */ 
+        SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    System.err.println("Demos: 2 - !visible");
                     jFrame1.setVisible(false);
+                    System.err.println("Demos: 3 - !visible");
                     jFrame2.setVisible(false);
                 } });
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
+                    System.err.println("Demos: 4 - X frame");
                     jFrame1.dispose();
+                    System.err.println("Demos: 5 - X frame");
                     jFrame2.dispose();
                 } });
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
+        System.err.println("Demos: 6 - X GLWindow");        
         glWindow1.destroy();
         Assert.assertEquals(false, glWindow1.isNativeValid());
+        
+        System.err.println("Demos: 7 - X DisturbanceThread");        
+        disturbanceAction.stopAndWaitUntilDone();        
     }
 
     public static void setDemoFields(GLEventListener demo, GLWindow glWindow, boolean debug) {
@@ -393,8 +424,10 @@ public class TestParenting01cSwingAWT extends UITestCase {
                 waitReparent = atoi(args[++i]);
             }
         }
-        System.out.println("durationPerTest "+durationPerTest);
-        System.out.println("waitReparent "+waitReparent);
+        System.err.println("durationPerTest "+durationPerTest);
+        System.err.println("waitReparent "+waitReparent);
+        org.junit.runner.JUnitCore.main(TestParenting01cSwingAWT.class.getName());
+        /**
         String tstname = TestParenting01cSwingAWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
@@ -406,7 +439,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
             "logfailedtests=true",
             "logtestlistenerevents=true",
             "formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter",
-            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } );
+            "formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,TEST-"+tstname+".xml" } ); */
     }
 
 }

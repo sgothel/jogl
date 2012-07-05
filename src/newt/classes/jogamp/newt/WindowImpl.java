@@ -1233,6 +1233,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         // This may run on the new Display/Screen connection, hence a new EDT task
                         runOnEDTIfAvail(true, reparentActionRecreate);
                         break;
+                        
+                    default:
                 }
             }
             if(DEBUG_IMPLEMENTATION) {
