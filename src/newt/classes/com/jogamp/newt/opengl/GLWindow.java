@@ -762,7 +762,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         System.err.println(GlueGenVersion.getInstance());
         System.err.println(JoglVersion.getInstance());
 
-        System.err.println(JoglVersion.getDefaultOpenGLInfo(null).toString());
+        System.err.println(JoglVersion.getDefaultOpenGLInfo(null, true).toString());
 
         final GLProfile glp = GLProfile.getDefault();
         final GLCapabilitiesImmutable caps = new GLCapabilities( glp );

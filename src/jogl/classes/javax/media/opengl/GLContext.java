@@ -43,12 +43,15 @@ package javax.media.opengl;
 import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
@@ -66,6 +69,32 @@ import com.jogamp.common.util.locks.RecursiveLock;
     abstraction provides a stable object which clients can use to
     refer to a given context. */
 public abstract class GLContext {
+  /** 
+   * If <code>true</code> (default), bootstrapping the available GL profiles 
+   * will use the highest compatible GL context for each profile, 
+   * hence skipping querying lower profiles if a compatible higher one is found:
+   * <ul>
+   *   <li>4.2-core -> 4.2-core, 3.3-core</li>
+   *   <li>4.2-comp -> 4.2-comp, 3.3-comp, 2</li>
+   * </ul>
+   * Otherwise the dedicated GL context would be queried and used:
+   * <ul>
+   *   <li>4.2-core -> 4.2-core</li>
+   *   <li>3.3-core -> 3.3-core</li>
+   *   <li>4.2-comp -> 4.2-comp</li>
+   *   <li>3.3-comp -> 3.3-comp</li>
+   *   <li>3.0-comp -> 2</li>
+   * </ul>
+   * Using aliasing speeds up initialization about:
+   * <ul>
+   *   <li>Linux x86_64 - Nvidia: 28%,  700ms down to 500ms</li> 
+   *   <li>Linux x86_64 - AMD   : 40%, 1500ms down to 900ms</li> 
+   * <p>
+   * Can be turned off with property <code>jogl.debug.GLContext.NoProfileAliasing</code>.
+   * </p>
+   */
+  public static final boolean PROFILE_ALIASING = !Debug.isPropertyDefined("jogl.debug.GLContext.NoProfileAliasing", true);
+  
   public static final boolean DEBUG = Debug.debug("GLContext");
   public static final boolean TRACE_SWITCH = Debug.isPropertyDefined("jogl.debug.GLContext.TraceSwitch", true);
 
@@ -981,12 +1010,40 @@ public abstract class GLContext {
     validateProfileBits(profile, "profile");
     validateProfileBits(resCtp, "resCtp");
 
-    String key = getDeviceVersionAvailableKey(device, reqMajor, profile);
-    Integer val = new Integer(composeBits(resMajor, resMinor, resCtp));
+    final String key = getDeviceVersionAvailableKey(device, reqMajor, profile);
+    final Integer val = new Integer(composeBits(resMajor, resMinor, resCtp));
     synchronized(deviceVersionAvailable) {
-        val = deviceVersionAvailable.put( key, val );
+        return deviceVersionAvailable.put( key, val );
     }
-    return val;
+  }
+
+  protected static StringBuffer dumpAvailableGLVersions(StringBuffer sb) {
+    if(null == sb) {
+        sb = new StringBuffer();
+    }
+    synchronized(deviceVersionAvailable) {
+        final Set<String> keys = deviceVersionAvailable.keySet();
+        boolean needsSeparator = false;
+        for(Iterator<String> i = keys.iterator(); i.hasNext(); ) {
+            if(needsSeparator) {
+                sb.append(Platform.getNewline());
+            }
+            final String key = i.next();
+            sb.append(key).append(": ");
+            final Integer valI = deviceVersionAvailable.get(key);
+            if(null != valI) {
+                final int bits32 = valI.intValue();
+                final int major = ( bits32 & 0xFF000000 ) >> 24 ;
+                final int minor = ( bits32 & 0x00FF0000 ) >> 16 ;
+                final int ctp   = ( bits32 & 0x0000FFFF )       ;
+                sb.append(GLContext.getGLVersion(major, minor, ctp, null));
+            } else {
+                sb.append("n/a");
+            }
+            needsSeparator = true;
+        }
+    }
+    return sb;
   }
 
   /**
@@ -1003,7 +1060,7 @@ public abstract class GLContext {
     }
     return val;
   }
-
+  
   /**
    * @param reqMajor Key Value either 1, 2, 3 or 4
    * @param reqProfile Key Value either {@link #CTX_PROFILE_COMPAT}, {@link #CTX_PROFILE_CORE} or {@link #CTX_PROFILE_ES}
@@ -1014,12 +1071,12 @@ public abstract class GLContext {
   protected static boolean getAvailableGLVersion(AbstractGraphicsDevice device, int reqMajor, int reqProfile,
                                                  int[] major, int minor[], int ctp[]) {
 
-    Integer valI = getAvailableGLVersion(device, reqMajor, reqProfile);
+    final Integer valI = getAvailableGLVersion(device, reqMajor, reqProfile);
     if(null==valI) {
         return false;
     }
 
-    int bits32 = valI.intValue();
+    final int bits32 = valI.intValue();
 
     if(null!=major) {
         major[0] = ( bits32 & 0xFF000000 ) >> 24 ;

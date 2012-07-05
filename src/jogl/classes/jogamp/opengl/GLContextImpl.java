@@ -529,7 +529,7 @@ public abstract class GLContextImpl extends GLContext {
         if (DEBUG || TRACE_SWITCH) {
             if(created) {
                 System.err.println(getThreadName() + ": Create GL context OK: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle) + " for " + getClass().getName()+" - "+getGLVersion());
-                Thread.dumpStack(); // JAU
+                // Thread.dumpStack();
             } else {
                 System.err.println(getThreadName() + ": Create GL context FAILED obj " + toHexString(hashCode()) + ", for " + getClass().getName());
             }
@@ -694,16 +694,80 @@ public abstract class GLContextImpl extends GLContext {
   
   private final boolean mapGLVersions(AbstractGraphicsDevice device) {
     synchronized (GLContext.deviceVersionAvailable) {
+        final long t0 = ( DEBUG ) ? System.nanoTime() : 0;
         boolean success = false;
         // Following GLProfile.GL_PROFILE_LIST_ALL order of profile detection { GL4bc, GL3bc, GL2, GL4, GL3, GL2GL3, GLES2, GL2ES2, GLES1, GL2ES1 }
-        success |= createContextARBMapVersionsAvailable(4, true  /* compat */);  // GL4bc
-        success |= createContextARBMapVersionsAvailable(3, true  /* compat */);  // GL3bc
-        success |= createContextARBMapVersionsAvailable(2, true  /* compat */);  // GL2
-        success |= createContextARBMapVersionsAvailable(4, false /* core   */);  // GL4
-        success |= createContextARBMapVersionsAvailable(3, false /* core   */);  // GL3
+        boolean hasGL4bc = false;
+        boolean hasGL3bc = false;
+        boolean hasGL2   = false;
+        boolean hasGL4   = false;
+        boolean hasGL3   = false;
+        if(!hasGL4bc) {
+            hasGL4bc = createContextARBMapVersionsAvailable(4, CTX_PROFILE_COMPAT);  // GL4bc
+            success |= hasGL4bc;
+            if(hasGL4bc) {
+                // Map all lower compatible profiles: GL3bc, GL2, GL4, GL3
+                GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_COMPAT, ctxMajorVersion, ctxMinorVersion, ctxOptions);
+                GLContext.mapAvailableGLVersion(device, 2, CTX_PROFILE_COMPAT, ctxMajorVersion, ctxMinorVersion, ctxOptions);
+                GLContext.mapAvailableGLVersion(device, 4, CTX_PROFILE_CORE,   ctxMajorVersion, ctxMinorVersion, ctxOptions);
+                GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE,   ctxMajorVersion, ctxMinorVersion, ctxOptions);
+                if(PROFILE_ALIASING) {
+                    hasGL3bc = true;
+                    hasGL2   = true;
+                    hasGL4   = true;
+                    hasGL3   = true;
+                }
+                resetStates(); // clean this context states, since creation was temporary
+            }
+        }
+        if(!hasGL3bc) {
+            hasGL3bc = createContextARBMapVersionsAvailable(3, CTX_PROFILE_COMPAT);  // GL3bc
+            success |= hasGL3bc;
+            if(hasGL3bc) {
+                // Map all lower compatible profiles: GL2 and GL3
+                GLContext.mapAvailableGLVersion(device, 2, CTX_PROFILE_COMPAT, ctxMajorVersion, ctxMinorVersion, ctxOptions);
+                GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE,   ctxMajorVersion, ctxMinorVersion, ctxOptions);
+                if(PROFILE_ALIASING) {
+                    hasGL2   = true;
+                    hasGL3   = true;
+                }
+                resetStates(); // clean this context states, since creation was temporary
+            }
+        }
+        if(!hasGL2) {
+            hasGL2   = createContextARBMapVersionsAvailable(2, CTX_PROFILE_COMPAT);  // GL2
+            success |= hasGL2;
+            if(hasGL2) {
+                resetStates(); // clean this context states, since creation was temporary                
+            }
+        }
+        if(!hasGL4) {
+            hasGL4   = createContextARBMapVersionsAvailable(4, CTX_PROFILE_CORE);    // GL4
+            success |= hasGL4;
+            if(hasGL4) {
+                // Map all lower compatible profiles: GL3
+                GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE,   ctxMajorVersion, ctxMinorVersion, ctxOptions);                
+                if(PROFILE_ALIASING) {
+                    hasGL3   = true;
+                }
+                resetStates(); // clean this context states, since creation was temporary
+            }
+        }
+        if(!hasGL3) {
+            hasGL3   = createContextARBMapVersionsAvailable(3, CTX_PROFILE_CORE);    // GL3
+            success |= hasGL3;
+            if(hasGL3) {
+                resetStates(); // clean this context states, since creation was temporary                
+            }
+        }
         if(success) {
             // only claim GL versions set [and hence detected] if ARB context creation was successful
             GLContext.setAvailableGLVersionsSet(device);
+            if(DEBUG) {
+                final long t1 = System.nanoTime();
+                System.err.println("GLContextImpl.mapGLVersions: "+device+", profileAliasing: "+PROFILE_ALIASING+", total "+(t1-t0)/1e6 +"ms");
+                System.err.println(GLContext.dumpAvailableGLVersions(null).toString());                
+            }
         } else if (DEBUG) {
             System.err.println(getThreadName() + ": createContextARB-MapVersions NONE for :"+device);
         }
@@ -711,11 +775,14 @@ public abstract class GLContextImpl extends GLContext {
     }
   }
 
-  private final boolean createContextARBMapVersionsAvailable(int reqMajor, boolean compat) {
+  /** 
+   * Note: Since context creation is temproary, caller need to issue {@link #resetStates()}, if creation was successful, i.e. returns true.
+   * This method does not reset the states, allowing the caller to utilize the state variables. 
+   **/
+  private final boolean createContextARBMapVersionsAvailable(int reqMajor, int reqProfile) {
     long _context;
-    int reqProfile = compat ? CTX_PROFILE_COMPAT : CTX_PROFILE_CORE ;
     int ctp = CTX_IS_ARB_CREATED;
-    if(compat) {
+    if(CTX_PROFILE_COMPAT == reqProfile) {
         ctp |= CTX_PROFILE_COMPAT ;
     } else {
         ctp |= CTX_PROFILE_CORE ;
@@ -745,7 +812,7 @@ public abstract class GLContextImpl extends GLContext {
                                         /* min */ majorMin, minorMin,
                                         /* res */ major, minor);
 
-    if(0==_context && !compat) {
+    if(0==_context && CTX_PROFILE_CORE == reqProfile) {
         // try w/ FORWARD instead of CORE
         ctp &= ~CTX_PROFILE_CORE ;
         ctp |=  CTX_OPTION_FORWARD ;
@@ -764,6 +831,7 @@ public abstract class GLContextImpl extends GLContext {
                                        /* res */ major, minor);
        }
     }
+    final boolean res;
     if(0!=_context) {
         AbstractGraphicsDevice device = drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
         // ctxMajorVersion, ctxMinorVersion, ctxOptions is being set by
@@ -773,15 +841,14 @@ public abstract class GLContextImpl extends GLContext {
         if (DEBUG) {
           System.err.println(getThreadName() + ": createContextARB-MapVersionsAvailable HAVE: " +reqMajor+"."+reqProfile+ " -> "+getGLVersion());
         }
-        // only reset [and hence modify] this context state if ARB context creation was successful
-        resetStates();
-        return true;
+        res = true;
     } else {
         if (DEBUG) {
           System.err.println(getThreadName() + ": createContextARB-MapVersionsAvailable NOPE: "+reqMajor+"."+reqProfile);
         }
-        return false;
+        res = false;
     }
+    return res;
   }
 
   private final long createContextARBVersions(long share, boolean direct, int ctxOptionFlags,
@@ -796,7 +863,6 @@ public abstract class GLContextImpl extends GLContext {
     while ( !ok &&
             GLContext.isValidGLVersion(major[0], minor[0]) &&
             ( major[0]>majorMin || major[0]==majorMin && minor[0] >=minorMin ) ) {
-
         if (DEBUG) {
             System.err.println(getThreadName() + ": createContextARBVersions: share "+share+", direct "+direct+", version "+major[0]+"."+minor[0]);
         }
@@ -900,7 +966,7 @@ public abstract class GLContextImpl extends GLContext {
 
   /** Create the GL for this context. */
   protected GL createGL(GLProfile glp) {
-    GL gl = (GL) createInstance(glp, "Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { glp, this } );
+    final GL gl = (GL) createInstance(glp, "Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { glp, this } );
 
     /* FIXME: refactor dependence on Java 2D / JOGL bridge
     if (tracker != null) {
@@ -1018,7 +1084,7 @@ public abstract class GLContextImpl extends GLContext {
     }
 
     if(null==this.gl || !verifyInstance(gl.getGLProfile(), "Impl", this.gl)) {
-        setGL(createGL(getGLDrawable().getGLProfile()));
+        setGL( createGL( getGLDrawable().getGLProfile() ) );
     }
     updateGLXProcAddressTable();
 

@@ -17,9 +17,15 @@ public void setObjectTracker(GLObjectTracker tracker) {
 
 public GL4bcImpl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
-  this.bufferSizeTracker  = context.getBufferSizeTracker();
-  this.bufferStateTracker = context.getBufferStateTracker();
-  this.glStateTracker     = context.getGLStateTracker();
+  if(null != context) {
+      this.bufferSizeTracker  = context.getBufferSizeTracker();
+      this.bufferStateTracker = context.getBufferStateTracker();
+      this.glStateTracker     = context.getGLStateTracker();
+  } else {
+      this.bufferSizeTracker  = null;
+      this.bufferStateTracker = null;
+      this.glStateTracker     = null;
+  }
   this.glProfile = glp;
 }
 
@@ -35,9 +41,9 @@ public java.nio.ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, 
 // Helpers for ensuring the correct amount of texture data
 //
 
-private GLBufferSizeTracker  bufferSizeTracker;
-private GLBufferStateTracker bufferStateTracker;
-private GLStateTracker       glStateTracker;
+private final GLBufferSizeTracker  bufferSizeTracker;
+private final GLBufferStateTracker bufferStateTracker;
+private final GLStateTracker       glStateTracker;
 
 private boolean bufferObjectExtensionsInitialized = false;
 private boolean haveARBPixelBufferObject;

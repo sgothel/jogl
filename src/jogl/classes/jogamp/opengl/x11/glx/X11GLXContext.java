@@ -275,10 +275,10 @@ public abstract class X11GLXContext extends GLContextImpl {
     boolean direct = true; // try direct always
     isDirect = false; // fall back
 
-    X11GLXDrawableFactory factory = (X11GLXDrawableFactory)drawable.getFactoryImpl();
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration();
-    AbstractGraphicsDevice device = config.getScreen().getDevice();
-    X11GLXContext sharedContext = (X11GLXContext) factory.getOrCreateSharedContextImpl(device);
+    final X11GLXDrawableFactory factory = (X11GLXDrawableFactory)drawable.getFactoryImpl();
+    final X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration();
+    final AbstractGraphicsDevice device = config.getScreen().getDevice();
+    final X11GLXContext sharedContext = (X11GLXContext) factory.getOrCreateSharedContextImpl(device);
     long display = device.getHandle();
 
     long share = 0;
@@ -337,7 +337,6 @@ public abstract class X11GLXContext extends GLContextImpl {
         }
         setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT); // use GL_VERSION
         glXMakeContextCurrent(display, 0, 0, 0); // release temp context
-
         if( !createContextARBTried ) {
             // is*Available calls are valid since setGLFunctionAvailability(..) was called
             final boolean isProcCreateContextAttribsARBAvailable = isFunctionAvailable("glXCreateContextAttribsARB");
@@ -393,6 +392,7 @@ public abstract class X11GLXContext extends GLContextImpl {
     if (DEBUG) {
         System.err.println(getThreadName() + ": createContextImpl: OK direct "+isDirect+"/"+direct);
     }
+
     return true;
   }
 

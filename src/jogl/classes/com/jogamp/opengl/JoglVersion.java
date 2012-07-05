@@ -93,22 +93,24 @@ public class JoglVersion extends JogampVersion {
         return sb;        
     }
     
-    public static StringBuilder getDefaultOpenGLInfo(StringBuilder sb) {
+    public static StringBuilder getDefaultOpenGLInfo(StringBuilder sb, boolean withCapabilitiesInfo) {
         if(null==sb) {
             sb = new StringBuilder();
         }
         final AbstractGraphicsDevice device = GLProfile.getDefaultDevice();
-        sb.append("Default Profiles     ").append(Platform.getNewline());
+        sb.append("Default Profiles on device ").append(device).append(Platform.getNewline());
         if(null!=device) {
             GLProfile.glAvailabilityToString(device, sb, "\t", 1);
         } else {
             sb.append("none");
         }
-        sb.append(Platform.getNewline()).append(Platform.getNewline());
-        sb.append("Desktop Capabilities: ").append(Platform.getNewline());
-        getAvailableCapabilitiesInfo(GLDrawableFactory.getDesktopFactory(), device, sb);
-        sb.append("EGL Capabilities: ").append(Platform.getNewline());
-        getAvailableCapabilitiesInfo(GLDrawableFactory.getEGLFactory(), device, sb);
+        if(withCapabilitiesInfo) {
+            sb.append(Platform.getNewline()).append(Platform.getNewline());
+            sb.append("Desktop Capabilities: ").append(Platform.getNewline());
+            getAvailableCapabilitiesInfo(GLDrawableFactory.getDesktopFactory(), device, sb);
+            sb.append("EGL Capabilities: ").append(Platform.getNewline());
+            getAvailableCapabilitiesInfo(GLDrawableFactory.getEGLFactory(), device, sb);
+        }
         return sb;
     }
     

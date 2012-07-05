@@ -4,9 +4,15 @@ private boolean inBeginEndPair;
 
 public GLES2Impl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
-  this.bufferSizeTracker  = context.getBufferSizeTracker();
-  this.bufferStateTracker = context.getBufferStateTracker();
-  this.glStateTracker     = context.getGLStateTracker();
+  if(null != context) {
+      this.bufferSizeTracker  = context.getBufferSizeTracker();
+      this.bufferStateTracker = context.getBufferStateTracker();
+      this.glStateTracker     = context.getGLStateTracker();
+  } else {
+      this.bufferSizeTracker  = null;
+      this.bufferStateTracker = null;
+      this.glStateTracker     = null;
+  }
   this.glProfile = glp;
 }
 
@@ -110,9 +116,9 @@ public final GL2GL3 getGL2GL3() throws GLException {
 // Helpers for ensuring the correct amount of texture data
 //
 
-private GLBufferSizeTracker  bufferSizeTracker;
-private GLBufferStateTracker bufferStateTracker;
-private GLStateTracker       glStateTracker;
+private final GLBufferSizeTracker  bufferSizeTracker;
+private final GLBufferStateTracker bufferStateTracker;
+private final GLStateTracker       glStateTracker;
 
 private boolean bufferObjectExtensionsInitialized = false;
 private boolean haveOESFramebufferObject;

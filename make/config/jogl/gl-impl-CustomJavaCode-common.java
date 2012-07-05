@@ -1,7 +1,7 @@
     public GLProfile getGLProfile() {
         return this.glProfile;
     }
-    private GLProfile glProfile;
+    private final GLProfile glProfile;
 
     public int glGetBoundBuffer(int target) {
         return bufferStateTracker.getBoundBufferObject(target, this);
@@ -46,7 +46,7 @@
       return _context;
     }
 
-    private GLContextImpl _context;
+    private final GLContextImpl _context;
 
     /**
      * @see javax.media.opengl.GLContext#setSwapInterval(int)

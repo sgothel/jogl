@@ -39,6 +39,7 @@ package javax.media.opengl;
 
 import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.opengl.Debug;
+import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
 
@@ -130,6 +131,23 @@ public class GLProfile {
                 AccessController.doPrivileged(new PrivilegedAction<Object>() {
                     public Object run() {
                         Platform.initSingleton();
+                        
+                        // Performance hack to trigger classloading of the GL classes impl, which makes up to 12%, 800ms down to 700ms
+                        new Thread(new Runnable() {
+                          public void run() {
+                              final ClassLoader cl = GLProfile.class.getClassLoader();
+                              try {
+                                  ReflectionUtil.createInstance(getGLImplBaseClassName(GL4bc)+"Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { null, null }, cl);
+                              } catch (Throwable t) {}
+                              try {
+                                  ReflectionUtil.createInstance(getGLImplBaseClassName(GLES2)+"Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { null, null }, cl);              
+                              } catch (Throwable t) {}
+                              try {
+                                  ReflectionUtil.createInstance(getGLImplBaseClassName(GLES1)+"Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { null, null }, cl);              
+                              } catch (Throwable t) {}
+                          }
+                        }, "GLProfile-GL_Bootstrapping").start();      
+
                         
                         if(TempJarCache.isInitialized()) {
                            final ClassLoader cl = GLProfile.class.getClassLoader();
@@ -914,6 +932,22 @@ public class GLProfile {
         return getGLImplBaseClassName(getImplName());
     }
 
+    private static final String getGLImplBaseClassName(String profileImpl) {
+        if( GLES2 == profileImpl ) {
+            return "jogamp.opengl.es2.GLES2";
+        } else if( GLES1 == profileImpl ) {
+            return "jogamp.opengl.es1.GLES1";
+        } else if ( GL4bc == profileImpl ||
+                    GL4   == profileImpl ||
+                    GL3bc == profileImpl ||
+                    GL3   == profileImpl ||
+                    GL2   == profileImpl ) {
+            return "jogamp.opengl.gl4.GL4bc";
+        } else {
+            throw new GLException("unsupported profile \"" + profileImpl + "\"");
+        }
+    }
+    
     /**
      * @param o GLProfile object to compare with
      * @return true if given Object is a GLProfile and
@@ -922,8 +956,8 @@ public class GLProfile {
     public final boolean equals(Object o) {
         if(this==o) { return true; }
         if(o instanceof GLProfile) {
-            GLProfile glp = (GLProfile)o;
-            return getName().equals(glp.getName()) && getImplName().equals(glp.getImplName()) ;
+            final GLProfile glp = (GLProfile)o;
+            return getName() == glp.getName() && getImplName() == glp.getImplName() ;
         }
         return false;
     }
@@ -1363,7 +1397,6 @@ public class GLProfile {
      */
     private static void initProfilesForDefaultDevices(boolean firstUIActionOnProcess) {
         NativeWindowFactory.initSingleton(firstUIActionOnProcess);
-
         if(DEBUG) {
             System.err.println("GLProfile.init firstUIActionOnProcess: "+ firstUIActionOnProcess
                                + ", thread: " + Thread.currentThread().getName());
@@ -1509,7 +1542,7 @@ public class GLProfile {
             System.err.println("GLProfile.init defaultDevice        "+defaultDevice);
             System.err.println("GLProfile.init profile order        "+array2String(GL_PROFILE_LIST_ALL));
             if(hasGL234Impl || hasGLES1Impl || hasGLES2Impl) { // avoid deadlock
-                System.err.println(JoglVersion.getDefaultOpenGLInfo(null));
+                System.err.println(JoglVersion.getDefaultOpenGLInfo(null, true));
             }
         }
     }
@@ -1553,9 +1586,9 @@ public class GLProfile {
 
         boolean addedDesktopProfile = false;
         boolean addedEGLProfile = false;
-        
-        final boolean deviceIsDesktopCompatible = hasDesktopGLFactory && desktopFactory.getIsDeviceCompatible(device);
-        
+
+        final boolean deviceIsDesktopCompatible = hasDesktopGLFactory && desktopFactory.getIsDeviceCompatible(device);        
+                
         if( deviceIsDesktopCompatible ) {
             // 1st pretend we have all Desktop and EGL profiles ..
             computeProfileMap(device, true /* desktopCtxUndef*/, true  /* esCtxUndef */);
@@ -1628,8 +1661,8 @@ public class GLProfile {
                 }
             }
             addedEGLProfile = computeProfileMap(device, false /* desktopCtxUndef*/, false /* esCtxUndef */);
-        } 
-        
+        }
+
         if( !addedDesktopProfile && !addedEGLProfile ) {
             setProfileMap(device, new HashMap<String /*GLProfile_name*/, GLProfile>()); // empty
             if(DEBUG) {
@@ -1858,40 +1891,10 @@ public class GLProfile {
             return GL2;
         } else if(GLES2.equals(profile) && hasGLES2Impl && ( esCtxUndef || GLContext.isGLES2Available(device, isHardwareRasterizer))) {
             return GLES2;
-        /**
-         * TODO: GLES2_TRUE_DESKTOP (see: GLContextImpl, GLProfile)
-         * Hack to enable GLES2 for desktop profiles w/ ES2 compatibility,
-         * however .. a consequent implementation would need to have all GL2ES2
-         * implementing profile to also implement GLES2!
-         * Let's rely on GL2ES2 and let the user/impl. query isGLES2Compatible()
-        } else if(GLES2.equals(profile)) {
-            if(hasGL234Impl || hasGLES2Impl) {
-                if(esCtxUndef) {
-                    return GLES2;
-                }
-                return GLContext.getAvailableGLProfile(device, 2, GLContext.CTX_PROFILE_ES);
-            }
-          */
         } else if(GLES1.equals(profile) && hasGLES1Impl && ( esCtxUndef || GLContext.isGLES1Available(device, isHardwareRasterizer))) {
             return GLES1;
         }
         return null;
-    }
-
-    private static String getGLImplBaseClassName(String profileImpl) {
-        if ( GL4bc.equals(profileImpl) ||
-             GL4.equals(profileImpl)   ||
-             GL3bc.equals(profileImpl) ||
-             GL3.equals(profileImpl)   ||
-             GL2.equals(profileImpl) ) {
-            return "jogamp.opengl.gl4.GL4bc";
-        } else if(GLES1.equals(profileImpl) || GL2ES1.equals(profileImpl)) {
-            return "jogamp.opengl.es1.GLES1";
-        } else if(GLES2.equals(profileImpl) || GL2ES2.equals(profileImpl)) {
-            return "jogamp.opengl.es2.GLES2";
-        } else {
-            throw new GLException("unsupported profile \"" + profileImpl + "\"");
-        }
     }
 
     private static /*final*/ HashMap<String /*device_connection*/, HashMap<String /*GLProfile_name*/, GLProfile>> deviceConn2ProfileMap = 

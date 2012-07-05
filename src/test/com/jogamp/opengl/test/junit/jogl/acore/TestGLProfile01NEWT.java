@@ -54,7 +54,7 @@ public class TestGLProfile01NEWT extends UITestCase {
         System.err.println(JoglVersion.getInstance());
         System.err.println(NewtVersion.getInstance());
 
-        System.err.println(JoglVersion.getDefaultOpenGLInfo(null).toString());        
+        System.err.println(JoglVersion.getDefaultOpenGLInfo(null, true).toString());        
     }
 
     @Test

@@ -43,7 +43,7 @@ public class MD {
               .append(JoglVersion.getInstance()).append(Platform.NEWLINE)
               .append(Platform.NEWLINE);
               
-        JoglVersion.getDefaultOpenGLInfo(sb);
+        JoglVersion.getDefaultOpenGLInfo(sb, true);
 
         return sb.toString();       
    }

@@ -39,6 +39,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
@@ -73,7 +74,7 @@ public class TestShutdownCompleteNEWT extends UITestCase {
         glWindow.destroy();
     }
 
-    protected void oneLife() throws InterruptedException {
+    protected void oneLife(boolean glInfo) throws InterruptedException {
         if(waitForEach) {
             waitForEnter();
         }
@@ -84,28 +85,32 @@ public class TestShutdownCompleteNEWT extends UITestCase {
             runTestGL();
         }
         long t2 = System.nanoTime();
+        if(glInfo) {
+            System.err.println(JoglVersion.getDefaultOpenGLInfo(null, false).toString());
+        }
+        long t3 = System.nanoTime();        
         GLProfile.shutdown(GLProfile.ShutdownType.COMPLETE);        
-        long t3 = System.nanoTime();
+        long t4 = System.nanoTime();
         System.err.println("Total:                          "+ (t3-t0)/1e6 +"ms"); 
         System.err.println("  GLProfile.initSingleton():    "+ (t1-t0)/1e6 +"ms"); 
         System.err.println("  Demo Code:                    "+ (t2-t1)/1e6 +"ms"); 
-        System.err.println("  GLProfile.shutdown(COMPLETE): "+ (t3-t2)/1e6 +"ms"); 
+        System.err.println("  GLProfile.shutdown(COMPLETE): "+ (t4-t3)/1e6 +"ms"); 
     }
     
     @Test
     public void test01OneLife() throws InterruptedException {
-        oneLife();
+        oneLife(true);
     }
 
     @Test
     public void test01AnotherLife() throws InterruptedException {
-        oneLife();
+        oneLife(false);
     }
     
     @Test
     public void test01TwoLifes() throws InterruptedException {
-        oneLife();
-        oneLife();
+        oneLife(false);
+        oneLife(false);
     }
     
     static boolean initOnly = false;

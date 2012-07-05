@@ -1070,7 +1070,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     // System.err.println(NativeWindowVersion.getInstance());
     System.err.println(JoglVersion.getInstance());
 
-    System.err.println(JoglVersion.getDefaultOpenGLInfo(null).toString());
+    System.err.println(JoglVersion.getDefaultOpenGLInfo(null, true).toString());
 
     final GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault(GLProfile.getDefaultDevice()) );
     final Frame frame = new Frame("JOGL AWT Test");
