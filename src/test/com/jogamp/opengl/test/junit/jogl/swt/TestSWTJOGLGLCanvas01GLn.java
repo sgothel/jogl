@@ -34,6 +34,8 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
+import jogamp.nativewindow.macosx.OSXUtil;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -47,6 +49,8 @@ import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
 
+import com.jogamp.common.os.Platform;
+import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.swt.GLCanvas;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.OneTriangle;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -57,10 +61,10 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * Uses JOGL's new SWT GLCanvas.
  * </p>
  * <p>
- * Holds AWT in it's test name, since our impl. still needs the AWT threading, 
- * see {@link GLCanvas}.
+ * Note that {@link SWTAccessor#invoke(boolean, Runnable)} is still used to comply w/ 
+ * SWT running on Mac OSX, i.e. to enforce UI action on the main thread.
  * </p>
- * @author Wade Walker, et.al.
+ * @author Wade Walker, et al.
  */
 public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
 
@@ -76,18 +80,24 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
     @BeforeClass
     public static void startup() {
         System.out.println( "GLProfile " + GLProfile.glAvailabilityToString() );
+        if( Platform.OS_TYPE == Platform.OSType.MACOS ) {
+            System.err.println("OSXUtil.isAWTEDTMainThread: "+ OSXUtil.isAWTEDTMainThread() );
+        }        
     }
 
     @Before
     public void init() {
-        display = new Display();
-        Assert.assertNotNull( display );
-        shell = new Shell( display );
-        Assert.assertNotNull( shell );
-        shell.setLayout( new FillLayout() );
-        composite = new Composite( shell, SWT.NONE );
-        composite.setLayout( new FillLayout() );
-        Assert.assertNotNull( composite );
+        SWTAccessor.invoke(true, new Runnable() {
+            public void run() {        
+                display = new Display();
+                Assert.assertNotNull( display );
+                shell = new Shell( display );
+                Assert.assertNotNull( shell );
+                shell.setLayout( new FillLayout() );
+                composite = new Composite( shell, SWT.NONE );
+                composite.setLayout( new FillLayout() );
+                Assert.assertNotNull( composite );
+            }});
     }
 
     @After
@@ -96,9 +106,12 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
         Assert.assertNotNull( shell );
         Assert.assertNotNull( composite );
         try {
-            composite.dispose();
-            shell.dispose();
-            display.dispose();
+            SWTAccessor.invoke(true, new Runnable() {
+               public void run() {
+                composite.dispose();
+                shell.dispose();
+                display.dispose();
+               }});
         }
         catch( Throwable throwable ) {
             throwable.printStackTrace();
@@ -118,14 +131,19 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
         Assert.assertNotNull( canvas );
 
         canvas.addGLEventListener(new GLEventListener() {
-           public void init(final GLAutoDrawable drawable) { }
+           public void init(final GLAutoDrawable drawable) { 
+               System.err.println(Thread.currentThread().getName()+" - SWT Canvas - GLEventListener - init()");
+           }
            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
-                OneTriangle.setup( drawable.getGL().getGL2(), width, height );
+               System.err.println(Thread.currentThread().getName()+" - SWT Canvas - GLEventListener - reshape()");
+               OneTriangle.setup( drawable.getGL().getGL2(), width, height );
            }                 
            public void display(final GLAutoDrawable drawable) {
                 OneTriangle.render( drawable.getGL().getGL2(), drawable.getWidth(), drawable.getHeight());
            }
-           public void dispose(final GLAutoDrawable drawable) {}         
+           public void dispose(final GLAutoDrawable drawable) {
+               System.err.println(Thread.currentThread().getName()+" - SWT Canvas - GLEventListener - dispose()");
+           }         
         });
        
         shell.setText( getClass().getName() );

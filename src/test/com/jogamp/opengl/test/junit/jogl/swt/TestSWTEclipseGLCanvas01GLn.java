@@ -53,6 +53,7 @@ import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
 
+import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.OneTriangle;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
@@ -81,14 +82,17 @@ public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
 
     @Before
     public void init() {
-        display = new Display();
-        Assert.assertNotNull( display );
-        shell = new Shell( display );
-        Assert.assertNotNull( shell );
-        shell.setLayout( new FillLayout() );
-        composite = new Composite( shell, SWT.NONE );
-        composite.setLayout( new FillLayout() );
-        Assert.assertNotNull( composite );
+        SWTAccessor.invoke(true, new Runnable() {
+            public void run() {        
+                display = new Display();
+                Assert.assertNotNull( display );
+                shell = new Shell( display );
+                Assert.assertNotNull( shell );
+                shell.setLayout( new FillLayout() );
+                composite = new Composite( shell, SWT.NONE );
+                composite.setLayout( new FillLayout() );
+                Assert.assertNotNull( composite );
+            }});
     }
 
     @After
@@ -97,9 +101,12 @@ public class TestSWTEclipseGLCanvas01GLn extends UITestCase {
         Assert.assertNotNull( shell );
         Assert.assertNotNull( composite );
         try {
-            composite.dispose();
-            shell.dispose();
-            display.dispose();
+            SWTAccessor.invoke(true, new Runnable() {
+               public void run() {
+                composite.dispose();
+                shell.dispose();
+                display.dispose();
+               }});
         }
         catch( Throwable throwable ) {
             throwable.printStackTrace();

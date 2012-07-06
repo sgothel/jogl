@@ -85,26 +85,17 @@ public class TestSWTAccessor02GLn extends UITestCase {
 
     @Before
     public void init() {
-        final Display[] r = new Display[1];
-        final Shell[] s = new Shell[1];
         SWTAccessor.invoke(true, new Runnable() {
-           public void run() {
-               r[0] = new Display();
-               s[0] = new Shell();
-           }
-        });
-        display = r[0];
-        shell = s[0];        
-        Assert.assertNotNull( display );        
-        Assert.assertNotNull( shell );
-        
-        SWTAccessor.invoke(true, new Runnable() {
-           public void run() {
-            shell.setLayout( new FillLayout() );
-            composite = new Composite( shell, SWT.NONE );
-            Assert.assertNotNull( composite );
-            composite.setLayout( new FillLayout() );
-           }});
+            public void run() {        
+                display = new Display();
+                Assert.assertNotNull( display );
+                shell = new Shell( display );
+                Assert.assertNotNull( shell );
+                shell.setLayout( new FillLayout() );
+                composite = new Composite( shell, SWT.NONE );
+                composite.setLayout( new FillLayout() );
+                Assert.assertNotNull( composite );
+            }});        
     }
 
     @After

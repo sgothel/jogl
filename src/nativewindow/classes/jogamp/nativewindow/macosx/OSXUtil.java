@@ -30,6 +30,7 @@ package jogamp.nativewindow.macosx;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Point;
 
+import jogamp.common.awt.AWTEDTExecutor;
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NWJNILibLoader;
 
@@ -110,6 +111,27 @@ public class OSXUtil {
     public static boolean IsMainThread() {
         return IsMainThread0();
     }
+    
+    /***
+    private static boolean  isAWTEDTMainThreadInit = false;
+    private static boolean  isAWTEDTMainThread;
+    
+    public synchronized static boolean isAWTEDTMainThread() {
+        if(!isAWTEDTMainThreadInit) {
+            isAWTEDTMainThreadInit = true;
+            if(Platform.AWT_AVAILABLE) {
+                AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+                   public void run() {
+                       isAWTEDTMainThread = IsMainThread();
+                       System.err.println("XXX: "+Thread.currentThread().getName()+" - isAWTEDTMainThread "+isAWTEDTMainThread);
+                   }
+                });
+            } else {
+                isAWTEDTMainThread = false;
+            }
+        }        
+        return isAWTEDTMainThread;
+    } */
     
     private static native boolean initIDs0();
     private static native Object GetLocationOnScreen0(long windowOrView, int src_x, int src_y);

@@ -47,7 +47,6 @@ import javax.media.opengl.Threading;
 
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableHelper;
-import jogamp.opengl.ThreadingImpl;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
@@ -62,16 +61,13 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.JoglVersion;
 
 /**
  * Native SWT Canvas implementing GLAutoDrawable
- * <p>
- * FIXME: Still needs AWT for threading impl.,
- *        ie. will issue a 'wrong thread' error if runs in headless mode!
- * </p>
  * <p>
  * FIXME: If this instance runs in multithreading mode, see {@link Threading#isSingleThreaded()} (impossible), 
  *        proper recursive locking is required for drawable/context @ destroy and display. 
@@ -85,12 +81,6 @@ import com.jogamp.opengl.JoglVersion;
          extra care should be added. Maybe we shall expose locking facilities to the user.
          However, since the user shall stick to the GLEventListener model while utilizing
          GLAutoDrawable implementations, she is safe due to the implicit locked state.
- * </p>
- * <p>
- * FIXME: [MT-2] Revise threading code
-          The logic whether to spawn off the GL task and 
-          determination which thread to use is too complex and redundant.
-          (See isRenderThread(), runInGLThread() and runInDesignatedGLThread())
  * </p>
  */
 public class GLCanvas extends Canvas implements GLAutoDrawable {
@@ -307,7 +297,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    @Override
    public void display() {
-      runInGLThread(makeCurrentAndDisplayAction, displayAction);
+      runInGLThread(makeCurrentAndDisplayAction);
    }
 
    @Override
@@ -458,7 +448,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    @Override
    public void swapBuffers() throws GLException {
-      runInGLThread(makeCurrentAndSwapBuffersAction, swapBuffersAction);
+      runInGLThread(makeCurrentAndSwapBuffersAction);
    }
 
    // FIXME: API of update() method ?
@@ -478,11 +468,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
         }
 
         if(context.isCreated()) {
-            if (Threading.isSingleThreaded() && !Threading.isOpenGLThread()) {
-               runInDesignatedGLThread(disposeOnEDTGLAction);
-            } else if (context.isCreated()) {
-               helper.disposeGL(GLCanvas.this, drawable, context, postDisposeGLAction);
-            }
+            runInGLThread(disposeOnEDTGLAction);
         }
 
         if (animatorPaused) {
@@ -500,69 +486,28 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    }
 
    /**
-    * Determines whether the current thread is the appropriate thread to use the GLContext in. If we are using one of
-    * the single-threaded policies in {@link Threading}, than this is either the SWT event dispatch thread, or the
-    * OpenGL worker thread depending on the state of {@link #useSWTThread}. Otherwise this always returns true because
-    * the threading model is user defined.
-    * <p>
-    * FIXME: Redundant .. remove! Merge isRenderThread, runInGLThread and runInDesignatedGLThread
-    *
-    * @return true if the calling thread is the correct thread to execute OpenGL calls in, false otherwise.
+    * Runs the specified action in an SWT compatible thread, which is:
+    * <ul>
+    *   <li>Mac OSX
+    *   <ul>
+    *     <!--li>AWT EDT: In case AWT is available, the AWT EDT is the OSX UI main thread</li-->
+    *     <li><i>Main Thread</i>: Run on OSX UI main thread.</li>
+    *   </ul></li>
+    *   <li>Linux, Windows, ..
+    *   <ul>
+    *     <li>Use {@link Threading#invokeOnOpenGLThread(boolean, Runnable)}</li>
+    *   </ul></li>  
+    * </ul>
+    * @see Platform#AWT_AVAILABLE
+    * @see Platform#getOSType()
     */
-   protected boolean isRenderThread() {
-      if (Threading.isSingleThreaded()) {
-         if (ThreadingImpl.getMode() != ThreadingImpl.Mode.ST_WORKER) {
-            final Display display = getDisplay();
-            return display != null && display.getThread() == Thread.currentThread();
-         }
-         return Threading.isOpenGLThread();
-      }
-      /*
-       * For multi-threaded rendering, the render thread is not defined...
-       */
-      return true;
-   }
-
-   /**
-    * Runs the specified action in the designated OpenGL thread. If the current thread is designated, then the
-    * syncAction is run synchronously, otherwise the asyncAction is dispatched to the appropriate worker thread.
-    *
-    * @param asyncAction
-    *           The non-null action to dispatch to an OpenGL worker thread. This action should not assume that a
-    *           GLContext is current when invoked.
-    * @param syncAction
-    *           The non-null action to run synchronously if the current thread is designated to handle OpenGL calls.
-    *           This action may assume the GLContext is current.
-    * FIXME: Redundant .. remove! Merge isRenderThread, runInGLThread and runInDesignatedGLThread
-    */
-   private void runInGLThread(final Runnable asyncAction, final Runnable syncAction) {
-      if (Threading.isSingleThreaded() && !isRenderThread()) {
-         /* Run in designated GL thread */
-         runInDesignatedGLThread(asyncAction);
+   private void runInGLThread(final Runnable action) {
+      if(Platform.OSType.MACOS == Platform.OS_TYPE) {
+          SWTAccessor.invoke(true, action);
       } else {
-         /* Run in current thread... */
-         helper.invokeGL(drawable, context, syncAction, initAction);
+          Threading.invokeOnOpenGLThread(true, action);
       }
    }
-
-   /**
-    * Dispatches the specified runnable to the appropriate OpenGL worker thread (either the SWT event dispatch thread,
-    * or the OpenGL worker thread depending on the state of {@link #useSWTThread}).
-    *
-    * @param makeCurrentAndRunAction
-    *           The non-null action to dispatch.
-    * FIXME: Redundant .. remove! Merge isRenderThread, runInGLThread and runInDesignatedGLThread
-    */
-   private void runInDesignatedGLThread(final Runnable makeCurrentAndRunAction) {
-      if (ThreadingImpl.getMode() != ThreadingImpl.Mode.ST_WORKER) {
-         final Display display = getDisplay();
-         assert display.getThread() != Thread.currentThread() : "Incorrect use of thread dispatching.";
-         display.syncExec(makeCurrentAndRunAction);
-      } else {
-         Threading.invokeOnOpenGLThread(true, makeCurrentAndRunAction);
-      }
-   }
-
 
    public static void main(final String[] args) {
        System.err.println(VersionUtil.getPlatformInfo());

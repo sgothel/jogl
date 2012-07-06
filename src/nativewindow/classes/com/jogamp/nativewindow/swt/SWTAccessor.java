@@ -37,11 +37,13 @@ import org.eclipse.swt.widgets.Control;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowFactory;
+
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
 import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 
+import jogamp.common.awt.AWTEDTExecutor;
 import jogamp.nativewindow.macosx.OSXUtil;
 
 public class SWTAccessor {
@@ -254,8 +256,25 @@ public class SWTAccessor {
         });
     }
     
+   /**
+    * Runs the specified action in an SWT compatible thread, which is:
+    * <ul>
+    *   <li>Mac OSX
+    *   <ul>
+    *     <!--li>AWT EDT: In case AWT is available, the AWT EDT is the OSX UI main thread</li-->
+    *     <li><i>Main Thread</i>: Run on OSX UI main thread.</li>
+    *   </ul></li>
+    *   <li>Linux, Windows, ..
+    *   <ul>
+    *     <li>Current thread.</li>
+    *   </ul></li>  
+    * </ul>
+    * @see Platform#AWT_AVAILABLE
+    * @see Platform#getOSType()
+    */
     public static void invoke(boolean wait, Runnable runnable) {
-        if(Platform.OS_TYPE == Platform.OSType.MACOS) {
+        if( Platform.OS_TYPE == Platform.OSType.MACOS ) {
+            // Use SWT main thread! Only reliable config w/ -XStartOnMainThread !?
             OSXUtil.RunOnMainThread(wait, runnable);
         } else {
             runnable.run();

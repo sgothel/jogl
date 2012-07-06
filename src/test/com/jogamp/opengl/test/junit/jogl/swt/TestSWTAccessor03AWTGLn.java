@@ -75,7 +75,11 @@ public class TestSWTAccessor03AWTGLn extends UITestCase {
 
     @BeforeClass
     public static void startup() {
-        System.out.println( "GLProfile " + GLProfile.glAvailabilityToString() );        
+        System.out.println( "GLProfile " + GLProfile.glAvailabilityToString() ); 
+        Frame f0 = new Frame("Test - AWT 1st");
+        f0.add(new java.awt.Label("AWT was here 1st"));
+        f0.pack();
+        f0.setVisible(true);
         if(!GLProfile.isAvailable(GLProfile.GL2)) {
             setTestSupported(false);
         }
