@@ -30,7 +30,6 @@ package jogamp.nativewindow.macosx;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Point;
 
-import jogamp.common.awt.AWTEDTExecutor;
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NWJNILibLoader;
 

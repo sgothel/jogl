@@ -293,12 +293,13 @@ function testawtswt() {
 #
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
 testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
-#testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02GLn $*
+#testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
+#testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02GLn $*
 
 #
 # awtswt (testawtswt)
 #
-#testawt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor03AWTGLn $*
+#testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor03AWTGLn $*
 
 #
 # newt.awt (testawt)

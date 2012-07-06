@@ -34,8 +34,6 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
-import jogamp.nativewindow.macosx.OSXUtil;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -80,9 +78,6 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
     @BeforeClass
     public static void startup() {
         System.out.println( "GLProfile " + GLProfile.glAvailabilityToString() );
-        if( Platform.OS_TYPE == Platform.OSType.MACOS ) {
-            System.err.println("OSXUtil.isAWTEDTMainThread: "+ OSXUtil.isAWTEDTMainThread() );
-        }        
     }
 
     @Before
