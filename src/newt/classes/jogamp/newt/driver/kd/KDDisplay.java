@@ -42,8 +42,6 @@ import jogamp.newt.NEWTJNILibLoader;
 import jogamp.opengl.egl.EGL;
 import jogamp.opengl.egl.EGLDisplayUtil;
 
-import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
-
 public class KDDisplay extends DisplayImpl {
 
     static {
@@ -64,20 +62,11 @@ public class KDDisplay extends DisplayImpl {
 
     protected void createNativeImpl() {
         // FIXME: map name to EGL_*_DISPLAY
-        long handle = EGLDisplayUtil.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
-        if (handle == EGL.EGL_NO_DISPLAY) {
-            throw new NativeWindowException("eglGetDisplay failed");
-        }
-        if (!EGLDisplayUtil.eglInitialize(handle, null, null)) {
-            throw new NativeWindowException("eglInitialize failed");
-        }
-        aDevice = new EGLGraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+        aDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
     protected void closeNativeImpl() {
-        if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
-            EGLDisplayUtil.eglTerminate(aDevice.getHandle());
-        }
+        aDevice.close();
     }
 
     protected void dispatchMessagesNative() {

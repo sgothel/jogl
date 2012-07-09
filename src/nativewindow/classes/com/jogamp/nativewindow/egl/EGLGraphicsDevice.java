@@ -36,25 +36,60 @@ import javax.media.nativewindow.*;
 
 /** Encapsulates a graphics device on EGL platforms.
  */
-
 public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
-    boolean closeDisplay = false;
+    final long nativeDisplayID;
+    final EGLTerminateCallback eglTerminateCallback;
 
+    /**
+     * Hack to allow inject a EGL termination call.
+     * <p>
+     * FIXME: This shall be removed when relocated EGL to the nativewindow package,
+     * since then it can be utilized directly.
+     * </p> 
+     */
+    public interface EGLTerminateCallback {
+        /**
+         * Implementation should issue an <code>EGL.eglTerminate(eglDisplayHandle)</code> call.
+         * @param eglDisplayHandle
+         */
+        void eglTerminate(long eglDisplayHandle);
+    }
+    
     /**
      * Note that this is not an open connection, ie no native display handle exist.
      * This constructor exist to setup a default device connection/unit.<br>
      */
     public EGLGraphicsDevice(String connection, int unitID) {
         super(NativeWindowFactory.TYPE_EGL, connection, unitID);
+        this.nativeDisplayID = 0;
+        this.eglTerminateCallback = null;
     }
 
-    /** Constructs a new EGLGraphicsDevice corresponding to the given EGL display handle. */
-    public EGLGraphicsDevice(long eglDisplay, String connection, int unitID) {
+    public EGLGraphicsDevice(long nativeDisplayID, long eglDisplay, String connection, int unitID, EGLTerminateCallback eglTerminateCallback) {
         super(NativeWindowFactory.TYPE_EGL, connection, unitID, eglDisplay);
+        this.nativeDisplayID = nativeDisplayID;
+        this.eglTerminateCallback = eglTerminateCallback;
     }
+    
+    public long getNativeDisplayID() { return nativeDisplayID; }
     
     public Object clone() {
       return super.clone();
+    }
+    
+    public boolean close() {
+        if(null != eglTerminateCallback) {
+            if(DEBUG) {
+                System.err.println(Thread.currentThread().getName() + " - eglTerminate: "+this);
+            }
+            eglTerminateCallback.eglTerminate(handle);
+        }
+        return super.close();
+    }
+    
+    @Override
+    public String toString() {
+        return "EGLGraphicsDevice[type EGL, connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+", nativeDisplayID 0x"+Long.toHexString(nativeDisplayID)+"]";
     }
 }
 

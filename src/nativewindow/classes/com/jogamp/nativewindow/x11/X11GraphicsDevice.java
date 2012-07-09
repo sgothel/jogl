@@ -46,7 +46,6 @@ import javax.media.nativewindow.ToolkitLock;
  */
 
 public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
-    public static final boolean DEBUG = Debug.debug("GraphicsDevice");
     final boolean closeDisplay;
 
     /** Constructs a new X11GraphicsDevice corresponding to the given connection and default

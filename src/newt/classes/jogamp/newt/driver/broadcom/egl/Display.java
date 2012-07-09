@@ -61,11 +61,11 @@ public class Display extends jogamp.newt.DisplayImpl {
     }
 
     protected void createNativeImpl() {
-        long handle = CreateDisplay(Screen.fixedWidth, Screen.fixedHeight);
+        final long handle = CreateDisplay(Screen.fixedWidth, Screen.fixedHeight);
         if (handle == EGL.EGL_NO_DISPLAY) {
             throw new NativeWindowException("BC EGL CreateDisplay failed");
         }
-        aDevice = new EGLGraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+        aDevice = new EGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, handle, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT, null);
     }
 
     protected void closeNativeImpl() {

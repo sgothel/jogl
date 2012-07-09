@@ -223,23 +223,17 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             throw new GLException("Null AbstractGraphicsDevice");
         }
         
-        final long eglDisplay;
+        final EGLGraphicsDevice eglDevice;
         final boolean ownEGLDisplay;
-        if( !(absDevice instanceof EGLGraphicsDevice) ) {
-            eglDisplay = EGLDisplayUtil.eglGetDisplay(absDevice.getHandle());
-            if (eglDisplay == EGL.EGL_NO_DISPLAY) {
-                throw new GLException("Could not get EGL display from: "+absDevice);
-            }
-            if (!EGLDisplayUtil.eglInitialize(eglDisplay, null, null)) {
-                throw new GLException("eglInitialize failed eglDisplay 0x"+Long.toHexString(eglDisplay)+", "+absDevice+", error 0x"+Integer.toHexString(EGL.eglGetError()));
-            }
-            ownEGLDisplay = true;
-        } else {
-            eglDisplay = absDevice.getHandle();
-            if (eglDisplay == EGL.EGL_NO_DISPLAY) {
-                throw new GLException("Invalid EGL display: "+absDevice);
+        if( absDevice instanceof EGLGraphicsDevice ) {
+            eglDevice = (EGLGraphicsDevice) absDevice;
+            if (eglDevice.getHandle() == EGL.EGL_NO_DISPLAY) {
+                throw new GLException("Invalid EGL display: "+eglDevice);
             }
             ownEGLDisplay = false;
+        } else {
+            eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(absDevice.getHandle(), absDevice.getConnection(), absDevice.getUnitID());
+            ownEGLDisplay = true;
         }
 
         EGLDrawableFactory factory = (EGLDrawableFactory) GLDrawableFactory.getEGLFactory();
@@ -248,7 +242,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         GLProfile glp = capsChosen.getGLProfile();
         GLCapabilities fixedCaps;
 
-        EGLGraphicsConfiguration res = eglChooseConfig(eglDisplay, capsChosen, capsReq, chooser, absScreen, nativeVisualID, forceTransparentFlag);
+        EGLGraphicsConfiguration res = eglChooseConfig(eglDevice.getHandle(), capsChosen, capsReq, chooser, absScreen, nativeVisualID, forceTransparentFlag);
         if(null==res) {
             if(DEBUG) {
                 System.err.println("eglChooseConfig failed with given capabilities "+capsChosen);
@@ -267,7 +261,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             if(DEBUG) {
                 System.err.println("trying fixed caps (1): "+fixedCaps);
             }
-            res = eglChooseConfig(eglDisplay, fixedCaps, capsReq, chooser, absScreen, nativeVisualID, false);
+            res = eglChooseConfig(eglDevice.getHandle(), fixedCaps, capsReq, chooser, absScreen, nativeVisualID, false);
         }
         if(null==res) {
             //
@@ -280,7 +274,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             if(DEBUG) {
                 System.err.println("trying fixed caps (2): "+fixedCaps);
             }
-            res = eglChooseConfig(eglDisplay, fixedCaps, capsReq, chooser, absScreen, nativeVisualID, false);
+            res = eglChooseConfig(eglDevice.getHandle(), fixedCaps, capsReq, chooser, absScreen, nativeVisualID, false);
         }
         if(null==res) {
             //
@@ -295,14 +289,14 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             if(DEBUG) {
                 System.err.println("trying fixed caps (3): "+fixedCaps);
             }
-            res = eglChooseConfig(eglDisplay, fixedCaps, capsReq, chooser, absScreen, nativeVisualID, false);
+            res = eglChooseConfig(eglDevice.getHandle(), fixedCaps, capsReq, chooser, absScreen, nativeVisualID, false);
         }
         if(null==res) {
             throw new GLException("Graphics configuration failed [direct caps, eglGetConfig/chooser and fixed-caps(1-3)]");
         }
         if(ownEGLDisplay) {
-            ((EGLGLCapabilities) res.getChosenCapabilities()).setEGLConfig(0); // eglDisplay: EOL 
-            EGLDisplayUtil.eglTerminate(eglDisplay);
+            ((EGLGLCapabilities) res.getChosenCapabilities()).setEGLConfig(0); // eglDisplay: EOL
+            eglDevice.close();
         }
         return res;
     }

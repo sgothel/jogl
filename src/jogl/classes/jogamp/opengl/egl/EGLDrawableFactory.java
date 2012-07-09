@@ -184,10 +184,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 if(DEBUG) {
                     System.err.println("EGLDrawableFactory.destroy("+shutdownType+"): "+sr.device.toString());
                 }
-                final long eglDisplay = sr.device.getHandle();
-                if(EGL.EGL_NO_DISPLAY != eglDisplay) {
-                    EGLDisplayUtil.eglTerminate(eglDisplay);
-                }
+                sr.device.close();
             }
             sharedMap.clear();
             sharedMap = null;
@@ -282,22 +279,14 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         if(null == eglES1DynamicLookupHelper && null == eglES2DynamicLookupHelper) {
             return null;
         }
-        String connection = adevice.getConnection();
+        final String connection = adevice.getConnection();
         SharedResource sr;
         synchronized(sharedMap) {
             sr = sharedMap.get(connection);
         }
         if(null==sr) {
-            long eglDisplay = EGLDisplayUtil.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
-            if (eglDisplay == EGL.EGL_NO_DISPLAY) {
-                throw new GLException("Failed to created EGL default display: error 0x"+Integer.toHexString(EGL.eglGetError()));
-            } else if(DEBUG) {
-                System.err.println("EGLDrawableFactory.createShared: eglDisplay(EGL_DEFAULT_DISPLAY): 0x"+Long.toHexString(eglDisplay));
-            }
-            if (!EGLDisplayUtil.eglInitialize(eglDisplay, null, null)) {
-                throw new GLException("eglInitialize failed"+", error 0x"+Integer.toHexString(EGL.eglGetError()));
-            }
-            final EGLGraphicsDevice sharedDevice = new EGLGraphicsDevice(eglDisplay, connection, adevice.getUnitID());
+            final EGLGraphicsDevice sharedDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, connection, adevice.getUnitID());
+            
             // final boolean madeCurrentES1 = isEGLContextAvailable(sharedDevice, GLProfile.GLES1);
             // final boolean madeCurrentES2 = isEGLContextAvailable(sharedDevice, GLProfile.GLES2);
             final boolean madeCurrentES1 = true; // FIXME
@@ -401,7 +390,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    protected NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice device, GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
+    protected NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice deviceReq, GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
+        final EGLGraphicsDevice eglDeviceReq = (EGLGraphicsDevice) deviceReq;
+        final EGLGraphicsDevice device = EGLDisplayUtil.eglCreateEGLGraphicsDevice(eglDeviceReq.getNativeDisplayID(), deviceReq.getConnection(), deviceReq.getUnitID());
         WrappedSurface ns = new WrappedSurface(EGLGraphicsConfigurationFactory.createOffscreenGraphicsConfiguration(device, capsChosen, capsRequested, chooser));
         ns.surfaceSizeChanged(width, height);
         return ns;

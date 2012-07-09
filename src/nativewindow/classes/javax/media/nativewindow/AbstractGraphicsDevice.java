@@ -40,11 +40,15 @@
 
 package javax.media.nativewindow;
 
+import jogamp.nativewindow.Debug;
+
 /** A interface describing a graphics device in a
     toolkit-independent manner.
  */
 
 public interface AbstractGraphicsDevice extends Cloneable {
+    public static final boolean DEBUG = Debug.debug("GraphicsDevice");
+    
     /** Dummy connection value for a default connection where no native support for multiple devices is available */
     public static String DEFAULT_CONNECTION = "decon";
 
