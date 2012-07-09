@@ -148,6 +148,11 @@ public interface GLCapabilitiesImmutable extends CapabilitiesImmutable {
      */
     boolean isPBuffer();
 
+    /**
+     * Indicates whether FBO is used/requested.
+     */
+    boolean isFBO();
+
     @Override
     boolean equals(Object obj);
 
