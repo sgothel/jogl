@@ -34,56 +34,42 @@
 
 package jogamp.newt.driver.kd;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.DefaultGraphicsScreen;
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.Point;
 
-import jogamp.newt.DisplayImpl;
-import jogamp.newt.NEWTJNILibLoader;
-import jogamp.opengl.egl.EGL;
-import jogamp.opengl.egl.EGLDisplayUtil;
+import jogamp.newt.ScreenImpl;
 
-import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
-
-public class KDDisplay extends DisplayImpl {
-
+public class Screen extends ScreenImpl {
     static {
-        NEWTJNILibLoader.loadNEWT();
-
-        if (!KDWindow.initIDs()) {
-            throw new NativeWindowException("Failed to initialize KDWindow jmethodIDs");
-        }
+        Display.initSingleton();
     }
 
-    public static void initSingleton() {
-        // just exist to ensure static init has been run
-    }
-
-
-    public KDDisplay() {
+    public Screen() {
     }
 
     protected void createNativeImpl() {
-        // FIXME: map name to EGL_*_DISPLAY
-        long handle = EGLDisplayUtil.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
-        if (handle == EGL.EGL_NO_DISPLAY) {
-            throw new NativeWindowException("eglGetDisplay failed");
-        }
-        if (!EGLDisplayUtil.eglInitialize(handle, null, null)) {
-            throw new NativeWindowException("eglInitialize failed");
-        }
-        aDevice = new EGLGraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
     }
 
-    protected void closeNativeImpl() {
-        if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
-            EGLDisplayUtil.eglTerminate(aDevice.getHandle());
-        }
-    }
+    protected void closeNativeImpl() { }
 
-    protected void dispatchMessagesNative() {
-        DispatchMessages();
+    protected int validateScreenIndex(int idx) {
+        return 0; // only one screen available 
+    }       
+    
+    protected void getVirtualScreenOriginAndSize(Point virtualOrigin, Dimension virtualSize) {
+        virtualOrigin.setX(0);
+        virtualOrigin.setY(0);
+        virtualSize.setWidth(cachedWidth);
+        virtualSize.setHeight(cachedHeight);
     }
-
-    private native void DispatchMessages();
+    
+    protected void sizeChanged(int w, int h) {
+        cachedWidth = w;
+        cachedHeight = h;
+    }
+    
+    private static int cachedWidth = 0;
+    private static int cachedHeight = 0;    
 }
-
