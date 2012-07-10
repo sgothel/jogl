@@ -44,13 +44,13 @@ import jogamp.opengl.egl.EGLDisplayUtil;
 
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
-public class KDDisplay extends DisplayImpl {
+public class Display extends DisplayImpl {
 
     static {
         NEWTJNILibLoader.loadNEWT();
 
-        if (!KDWindow.initIDs()) {
-            throw new NativeWindowException("Failed to initialize KDWindow jmethodIDs");
+        if (!Window.initIDs()) {
+            throw new NativeWindowException("Failed to initialize kd.Window jmethodIDs");
         }
     }
 
@@ -59,7 +59,7 @@ public class KDDisplay extends DisplayImpl {
     }
 
 
-    public KDDisplay() {
+    public Display() {
     }
 
     protected void createNativeImpl() {

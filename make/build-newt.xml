@@ -640,7 +640,7 @@
     </macrodef>
 
     <target name="c.build.newt.prepare">
-      <javah destdir="${src.generated.c}/KD"          classpath="${javah.classpath}" class="jogamp.newt.driver.kd.KDWindow" />
+      <javah destdir="${src.generated.c}/KD"          classpath="${javah.classpath}" class="jogamp.newt.driver.kd.Window" />
 
       <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.Display" />
       <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.Screen" />

@@ -157,7 +157,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if (NativeWindowFactory.TYPE_ANDROID == type) {
                 windowClass = Class.forName("jogamp.newt.driver.android.AndroidWindow");
             } else if (NativeWindowFactory.TYPE_EGL == type) {
-                windowClass = Class.forName("jogamp.newt.driver.kd.KDWindow");
+                windowClass = Class.forName("jogamp.newt.driver.kd.Window");
             } else if (NativeWindowFactory.TYPE_WINDOWS == type) {
                 windowClass = Class.forName("jogamp.newt.driver.windows.WindowsWindow");
             } else if (NativeWindowFactory.TYPE_MACOSX == type) {

@@ -45,14 +45,14 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import jogamp.newt.WindowImpl;
 import jogamp.opengl.egl.EGLGraphicsConfiguration;
 
-public class KDWindow extends WindowImpl {
+public class Window extends WindowImpl {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
 
     static {
-        KDDisplay.initSingleton();
+        Display.initSingleton();
     }
 
-    public KDWindow() {
+    public Window() {
     }
 
     protected void createNativeImpl() {
@@ -151,7 +151,7 @@ public class KDWindow extends WindowImpl {
     @Override
     protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
         if(isFullscreen()) {
-            ((KDScreen)getScreen()).sizeChanged(getWidth(), getHeight());
+            ((Screen)getScreen()).sizeChanged(getWidth(), getHeight());
         }
         super.sizeChanged(defer, newWidth, newHeight, force);
     }

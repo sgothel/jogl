@@ -40,12 +40,12 @@ import javax.media.nativewindow.util.Point;
 
 import jogamp.newt.ScreenImpl;
 
-public class KDScreen extends ScreenImpl {
+public class Screen extends ScreenImpl {
     static {
-        KDDisplay.initSingleton();
+        Display.initSingleton();
     }
 
-    public KDScreen() {
+    public Screen() {
     }
 
     protected void createNativeImpl() {
