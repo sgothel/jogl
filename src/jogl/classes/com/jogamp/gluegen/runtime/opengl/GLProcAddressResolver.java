@@ -45,10 +45,10 @@ public class GLProcAddressResolver implements FunctionAddressResolver {
     public long resolve(String name, DynamicLookupHelper lookup) {
 
         long newProcAddress = 0;
-        int permutations = GLExtensionNames.getFuncNamePermutationNumber(name);
+        int permutations = GLNameResolver.getFuncNamePermutationNumber(name);
 
         for (int i = 0; 0 == newProcAddress && i < permutations; i++) {
-            String funcName = GLExtensionNames.getFuncNamePermutation(name, i);
+            String funcName = GLNameResolver.getFuncNamePermutation(name, i);
             try {
                 newProcAddress = lookup.dynamicLookupFunction(funcName);
             } catch (Exception e) {

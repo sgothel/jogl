@@ -124,14 +124,15 @@ public class Gears implements GLEventListener {
             
     gl.glEnable(GL2.GL_NORMALIZE);
                 
-    if (GLProfile.isAWTAvailable() && drawable instanceof java.awt.Component) {
-        java.awt.Component comp = (java.awt.Component) drawable;
-        new AWTMouseAdapter(gearsMouse).addTo(comp);
-        new AWTKeyAdapter(gearsKeys).addTo(comp);    
-    } else if (drawable.getNativeSurface() instanceof Window) {
-        Window window = (Window) drawable.getNativeSurface();
+    final Object upstreamWidget = drawable.getUpstreamWidget();
+    if (upstreamWidget instanceof Window) {            
+        final Window window = (Window) upstreamWidget;
         window.addMouseListener(gearsMouse);
         window.addKeyListener(gearsKeys);
+    } else if (GLProfile.isAWTAvailable() && upstreamWidget instanceof java.awt.Component) {
+        final java.awt.Component comp = (java.awt.Component) upstreamWidget;
+        new AWTMouseAdapter(gearsMouse).addTo(comp);
+        new AWTKeyAdapter(gearsKeys).addTo(comp);    
     }
   }
     
@@ -159,8 +160,9 @@ public class Gears implements GLEventListener {
   public void dispose(GLAutoDrawable drawable) {
     System.err.println("Gears: Dispose");
     try {
-        if (drawable.getNativeSurface() instanceof Window) {
-            Window window = (Window) drawable.getNativeSurface();
+        final Object upstreamWidget = drawable.getUpstreamWidget();
+        if (upstreamWidget instanceof Window) {            
+            final Window window = (Window) upstreamWidget;
             window.removeMouseListener(gearsMouse);
             window.removeKeyListener(gearsKeys);
         }

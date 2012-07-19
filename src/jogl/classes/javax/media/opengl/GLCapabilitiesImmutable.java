@@ -111,7 +111,7 @@ public interface GLCapabilitiesImmutable extends CapabilitiesImmutable {
 
     /**
      * Returns the number of sample buffers to be allocated if sample
-     * buffers are enabled. Defaults to 2.
+     * buffers are enabled, otherwise returns 0. Defaults to 2.
      */
     int getNumSamples();
 
@@ -144,12 +144,12 @@ public interface GLCapabilitiesImmutable extends CapabilitiesImmutable {
     boolean getStereo();
 
     /**
-     * Indicates whether pbuffer is used/requested.
+     * Indicates whether pbuffer offscreen is used/requested.
      */
     boolean isPBuffer();
 
     /**
-     * Indicates whether FBO is used/requested.
+     * Indicates whether FBO offscreen is used/requested.
      */
     boolean isFBO();
 

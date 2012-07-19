@@ -56,8 +56,14 @@ import jogamp.opengl.GLDrawableImpl;
 public class GLAutoDrawableDelegate extends GLAutoDrawableBase {
     public static final boolean DEBUG = Debug.debug("GLAutoDrawableDelegate");
     
-    public GLAutoDrawableDelegate(GLDrawable drawable, GLContext context) {
+    /**
+     * @param drawable
+     * @param context
+     * @param upstreamWidget optional UI element holding this instance, see {@link #getUpstreamWidget()}.
+     */
+    public GLAutoDrawableDelegate(GLDrawable drawable, GLContext context, Object upstreamWidget) {
         super((GLDrawableImpl)drawable, (GLContextImpl)context);
+        this.upstreamWidget = null;
     }
     
     //
@@ -80,8 +86,14 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase {
     // Complete GLAutoDrawable
     //
     
-    private RecursiveLock lock = LockFactory.createRecursiveLock();  // instance wide lock
-
+    private final RecursiveLock lock = LockFactory.createRecursiveLock();  // instance wide lock
+    private final Object upstreamWidget;
+    
+    @Override
+    public final Object getUpstreamWidget() {
+        return upstreamWidget;
+    }
+    
     /**
      * {@inheritDoc}
      * <p>

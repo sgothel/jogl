@@ -85,9 +85,7 @@ public class ReadBufferBase implements GLEventListener {
     }
 
     public void display(GLAutoDrawable drawable) {
-        GL gl = drawable.getGL();
-
-        readBufferUtil.readPixels(gl, drawable, false);
+        readBufferUtil.readPixels(drawable.getGL(), false);
     }
 
 }

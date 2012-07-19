@@ -38,7 +38,7 @@ import javax.media.nativewindow.*;
  */
 public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
     final long nativeDisplayID;
-    final EGLTerminateCallback eglTerminateCallback;
+    final EGLDisplayLifecycleCallback eglLifecycleCallback;
 
     /**
      * Hack to allow inject a EGL termination call.
@@ -47,7 +47,14 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      * since then it can be utilized directly.
      * </p> 
      */
-    public interface EGLTerminateCallback {
+    public interface EGLDisplayLifecycleCallback {
+        /**
+         * Implementation should issue an <code>EGL.eglGetDisplay(nativeDisplayID)</code>
+         * inclusive <code>EGL.eglInitialize(eglDisplayHandle, ..)</code> call.
+         * @param eglDisplayHandle
+         */
+        public long eglGetAndInitDisplay(long nativeDisplayID);
+        
         /**
          * Implementation should issue an <code>EGL.eglTerminate(eglDisplayHandle)</code> call.
          * @param eglDisplayHandle
@@ -61,28 +68,45 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      */
     public EGLGraphicsDevice(String connection, int unitID) {
         super(NativeWindowFactory.TYPE_EGL, connection, unitID);
-        this.nativeDisplayID = 0;
-        this.eglTerminateCallback = null;
+        this.nativeDisplayID = 0 ; // EGL.EGL_DEFAULT_DISPLAY
+        this.eglLifecycleCallback = null;
     }
 
-    public EGLGraphicsDevice(long nativeDisplayID, long eglDisplay, String connection, int unitID, EGLTerminateCallback eglTerminateCallback) {
+    public EGLGraphicsDevice(long nativeDisplayID, long eglDisplay, String connection, int unitID, EGLDisplayLifecycleCallback eglLifecycleCallback) {
         super(NativeWindowFactory.TYPE_EGL, connection, unitID, eglDisplay);
         this.nativeDisplayID = nativeDisplayID;
-        this.eglTerminateCallback = eglTerminateCallback;
+        this.eglLifecycleCallback = eglLifecycleCallback;
     }
     
     public long getNativeDisplayID() { return nativeDisplayID; }
     
+    @Override
     public Object clone() {
       return super.clone();
     }
-    
-    public boolean close() {
-        if(null != eglTerminateCallback) {
+
+    @Override
+    public boolean open() {
+        if(null != eglLifecycleCallback && 0 == handle) {
             if(DEBUG) {
-                System.err.println(Thread.currentThread().getName() + " - eglTerminate: "+this);
+                System.err.println(Thread.currentThread().getName() + " - EGLGraphicsDevice.open(): "+this);
             }
-            eglTerminateCallback.eglTerminate(handle);
+            handle = eglLifecycleCallback.eglGetAndInitDisplay(nativeDisplayID);
+            if(0 == handle) {
+                throw new NativeWindowException("EGLGraphicsDevice.open() failed: "+this);
+            }
+            return true;
+        }
+        return false;
+    }
+    
+    @Override
+    public boolean close() {
+        if(null != eglLifecycleCallback && 0 != handle) {
+            if(DEBUG) {
+                System.err.println(Thread.currentThread().getName() + " - EGLGraphicsDevice.close(): "+this);
+            }
+            eglLifecycleCallback.eglTerminate(handle);
         }
         return super.close();
     }

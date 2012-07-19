@@ -32,7 +32,6 @@
     int texWidth;
     int texHeight;
     GLuint textureID;
-    struct timespec lastWaitTime;
 #ifdef HAS_CADisplayLink
     CADisplayLink* displayLink;
 #else
@@ -41,6 +40,7 @@
     int tc;
     struct timespec t0;
 @public
+    struct timespec lastWaitTime;
     GLint swapInterval;
     GLint swapIntervalCounter;
     pthread_mutex_t renderLock;

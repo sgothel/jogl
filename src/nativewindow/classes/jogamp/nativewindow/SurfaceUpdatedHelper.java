@@ -34,8 +34,8 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 
 public class SurfaceUpdatedHelper implements SurfaceUpdatedListener {
-    private Object surfaceUpdatedListenersLock = new Object();
-    private ArrayList<SurfaceUpdatedListener> surfaceUpdatedListeners = new ArrayList<SurfaceUpdatedListener>();
+    private final Object surfaceUpdatedListenersLock = new Object();
+    private final ArrayList<SurfaceUpdatedListener> surfaceUpdatedListeners = new ArrayList<SurfaceUpdatedListener>();
 
     //
     // Management Utils

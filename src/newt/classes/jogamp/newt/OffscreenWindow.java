@@ -34,15 +34,24 @@
 
 package jogamp.newt;
 
-import javax.media.nativewindow.*;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.nativewindow.MutableSurface;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 
-public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
+public class OffscreenWindow extends WindowImpl implements MutableSurface {
 
     long surfaceHandle = 0;
-
+    ProxySurface.UpstreamSurfaceHook upstreamHook;
+    ProxySurface dummySurface;
+    
     public OffscreenWindow() {
+        upstreamHook = null;
+        dummySurface = null;
     }
 
     static long nextWindowHandle = 0x100; // start here - a marker
@@ -52,6 +61,17 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
             throw new NativeWindowException("Capabilities is onscreen");
         }
         final AbstractGraphicsScreen aScreen = getScreen().getGraphicsScreen();
+        /** Cannot use OpenGL here ..
+        if(capsRequested instanceof GLCapabilitiesImmutable) {
+            final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) capsRequested;
+            if(caps.isFBO() && GLContext.isFBOAvailable(aScreen.getDevice(), caps.getGLProfile()) ) {
+                final GLDrawableFactoryImpl factory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactory(caps.getGLProfile());
+                final GLCapabilitiesImmutable dummyCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(caps);
+                final ProxySurface dummySurface = factory.createDummySurfaceImpl(aScreen.getDevice(), false, dummyCaps, null, 64, 64);
+                upstreamHook = dummySurface.getUpstreamSurfaceHook();
+                dummySurface.createNotify();
+            }
+        } */
         final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(aScreen.getDevice()).chooseGraphicsConfiguration(
                                                          capsRequested, capsRequested, capabilitiesChooser, aScreen);
         if (null == cfg) {
@@ -68,13 +88,14 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
         // nop
     }
 
-    public void surfaceSizeChanged(int width, int height) {
-         sizeChanged(false, width, height, false);
-    }
-    
     @Override
     public synchronized void destroy() {
         super.destroy();
+        if(null != dummySurface) {
+            dummySurface.destroyNotify();
+            dummySurface = null;
+            upstreamHook = null;
+        }
         surfaceHandle = 0;
     }
 
@@ -84,8 +105,12 @@ public class OffscreenWindow extends WindowImpl implements SurfaceChangeable {
 
     @Override
     public long getSurfaceHandle() {
+        if(null != dummySurface) {
+            return dummySurface.getSurfaceHandle();
+            // return upstreamHook.getWidth();
+        }
         return surfaceHandle;
-    }
+    }        
 
     protected void requestFocusImpl(boolean reparented) {
     }

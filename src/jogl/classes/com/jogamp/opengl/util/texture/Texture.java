@@ -44,6 +44,7 @@ import javax.media.nativewindow.NativeWindowFactory;
 
 import jogamp.opengl.*;
 
+import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.util.texture.spi.*;
 
 /**
@@ -262,8 +263,8 @@ public class Texture {
      *
      * See the <a href="#perftips">performance tips</a> above for hints
      * on how to maximize performance when using many Texture objects.
-     * @param gl TODO
-     *
+     * 
+     * @param gl the current GL context
      * @throws GLException if no OpenGL context was current or if any
      * OpenGL-related errors occurred
      */
@@ -448,12 +449,12 @@ public class Texture {
 
         // See whether we have automatic mipmap generation support
         boolean haveAutoMipmapGeneration =
-            (gl.isExtensionAvailable("GL_VERSION_1_4") ||
-             gl.isExtensionAvailable("GL_SGIS_generate_mipmap"));
+            (gl.isExtensionAvailable(GLExtensions.VERSION_1_4) ||
+             gl.isExtensionAvailable(GLExtensions.SGIS_generate_mipmap));
 
         // Indicate to the TextureData what functionality is available
-        data.setHaveEXTABGR(gl.isExtensionAvailable("GL_EXT_abgr"));
-        data.setHaveGL12(gl.isExtensionAvailable("GL_VERSION_1_2"));
+        data.setHaveEXTABGR(gl.isExtensionAvailable(GLExtensions.EXT_abgr));
+        data.setHaveGL12(gl.isExtensionAvailable(GLExtensions.VERSION_1_2));
 
         // Indicates whether both width and height are power of two
         boolean isPOT = isPowerOfTwo(imgWidth) && isPowerOfTwo(imgHeight);
@@ -646,7 +647,7 @@ public class Texture {
 
         int minFilter = (data.getMipmap() ? GL.GL_LINEAR_MIPMAP_LINEAR : GL.GL_LINEAR);
         int magFilter = GL.GL_LINEAR;
-        int wrapMode = (gl.isExtensionAvailable("GL_VERSION_1_2") || !gl.isGL2()) ? GL.GL_CLAMP_TO_EDGE : GL2.GL_CLAMP;
+        int wrapMode = (gl.isExtensionAvailable(GLExtensions.VERSION_1_2) || !gl.isGL2()) ? GL.GL_CLAMP_TO_EDGE : GL2.GL_CLAMP;
 
         // REMIND: figure out what to do for GL_TEXTURE_RECTANGLE_ARB
         if (texTarget != GL2.GL_TEXTURE_RECTANGLE_ARB) {
@@ -925,8 +926,8 @@ public class Texture {
     private void updateSubImageImpl(GL gl, TextureData data, int newTarget, int mipmapLevel,
                                     int dstx, int dsty,
                                     int srcx, int srcy, int width, int height) throws GLException {
-        data.setHaveEXTABGR(gl.isExtensionAvailable("GL_EXT_abgr"));
-        data.setHaveGL12(gl.isExtensionAvailable("GL_VERSION_1_2"));
+        data.setHaveEXTABGR(gl.isExtensionAvailable(GLExtensions.EXT_abgr));
+        data.setHaveGL12(gl.isExtensionAvailable(GLExtensions.VERSION_1_2));
 
         Buffer buffer = data.getBuffer();
         if (buffer == null && data.getMipmapData() == null) {
@@ -1044,8 +1045,8 @@ public class Texture {
             case GL.GL_COMPRESSED_RGBA_S3TC_DXT1_EXT:
             case GL.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT:
             case GL.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT:
-                if (!gl.isExtensionAvailable("GL_EXT_texture_compression_s3tc") &&
-                    !gl.isExtensionAvailable("GL_NV_texture_compression_vtc")) {
+                if (!gl.isExtensionAvailable(GLExtensions.EXT_texture_compression_s3tc) &&
+                    !gl.isExtensionAvailable(GLExtensions.NV_texture_compression_vtc)) {
                     throw new GLException("DXTn compressed textures not supported by this graphics card");
                 }
                 break;
@@ -1081,7 +1082,7 @@ public class Texture {
     private static boolean haveTexRect(GL gl) {
         return (!disableTexRect &&
                 TextureIO.isTexRectEnabled() &&
-                gl.isExtensionAvailable("GL_ARB_texture_rectangle"));
+                gl.isExtensionAvailable(GLExtensions.ARB_texture_rectangle));
     }
 
     private static boolean preferTexRect(GL gl) {

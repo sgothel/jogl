@@ -113,16 +113,33 @@ public interface AbstractGraphicsDevice extends Cloneable {
      */
     public void unlock();
 
+    /** 
+     * Optionally [re]opening the device if handle is <code>null</code>.
+     * <p>
+     * The default implementation is a <code>NOP</code>.
+     * </p>
+     * <p>
+     * Example implementations like {@link com.jogamp.nativewindow.x11.X11GraphicsDevice} 
+     * or {@link com.jogamp.nativewindow.egl.EGLGraphicsDevice} 
+     * issue the native open operation in case handle is <code>null</code>.
+     * </p> 
+     *
+     * @return true if the handle was <code>null</code> and opening was successful, otherwise false.
+     */
+    public boolean open();
+
     /**
-     * Optionally closing the device.
+     * Optionally closing the device if handle is not <code>null</code>.
      * <p>
      * The default implementation is a <code>NOP</code>, just setting the handle to <code>null</code>.
      * </p>
-     * The specific implementing, ie {@link com.jogamp.nativewindow.x11.X11GraphicsDevice},
-     * shall have a enable/disable like {@link com.jogamp.nativewindow.x11.X11GraphicsDevice#setCloseDisplay(boolean, boolean)},<br>
-     * which shall be invoked at creation time to determine ownership/role of freeing the resource.<br>
+     * <p>
+     * Example implementations like {@link com.jogamp.nativewindow.x11.X11GraphicsDevice} 
+     * or {@link com.jogamp.nativewindow.egl.EGLGraphicsDevice} 
+     * issue the native close operation or skip it depending on the handles's ownership.
+     * </p> 
      *
-     * @return true if the handle was not <code>null</code>, otherwise false.
+     * @return true if the handle was not <code>null</code> and closing was successful, otherwise false.
      */
     public boolean close();
 }

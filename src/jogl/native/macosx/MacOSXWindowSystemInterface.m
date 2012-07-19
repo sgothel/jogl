@@ -503,7 +503,7 @@ NSView* getNSView(NSOpenGLContext* ctx) {
 
 NSOpenGLContext* createContext(NSOpenGLContext* share,
                     NSView* view,
-                    Bool isBackingLayerView,
+                    Bool allowIncompleteView,
                     NSOpenGLPixelFormat* fmt,
                     Bool opaque,
                     int* viewNotReady)
@@ -512,13 +512,13 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
 
     getRendererInfo();
     
-    DBG_PRINT("createContext.0: share %p, view %p, isBackingLayer %d, pixfmt %p, opaque %d\n",
-        share, view, (int)isBackingLayerView, fmt, opaque);
+    DBG_PRINT("createContext.0: share %p, view %p, allowIncompleteView %d, pixfmt %p, opaque %d\n",
+        share, view, (int)allowIncompleteView, fmt, opaque);
 
     if (view != NULL) {
         Bool viewReady = true;
 
-        if(!isBackingLayerView) {
+        if(!allowIncompleteView) {
             if ([view lockFocusIfCanDraw] == NO) {
                 DBG_PRINT("createContext.1 [view lockFocusIfCanDraw] failed\n");
                 viewReady = false;
@@ -527,7 +527,7 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
         if(viewReady) {
             NSRect frame = [view frame];
             if ((frame.size.width == 0) || (frame.size.height == 0)) {
-                if(!isBackingLayerView) {
+                if(!allowIncompleteView) {
                     [view unlockFocus];
                 }
                 DBG_PRINT("createContext.2 view.frame size %dx%d\n", (int)frame.size.width, (int)frame.size.height);
@@ -558,7 +558,7 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
             [ctx setValues:&zeroOpacity forParameter:NSOpenGLCPSurfaceOpacity];
         }
         [ctx setView:view];
-        if(!isBackingLayerView) {
+        if(!allowIncompleteView) {
             [view unlockFocus];        
         }
       }

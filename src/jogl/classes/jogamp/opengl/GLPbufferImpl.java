@@ -54,8 +54,7 @@ import javax.media.opengl.GLPbuffer;
 public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
   private int floatMode;
 
-  public GLPbufferImpl(GLDrawableImpl pbufferDrawable,
-                       GLContext sharedContext) {
+  public GLPbufferImpl(GLDrawableImpl pbufferDrawable, GLContext sharedContext) {
     super(pbufferDrawable, null); // drawable := pbufferDrawable 
     
     GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)
@@ -110,6 +109,11 @@ public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
   //
   // GLAutoDrawable completion
   //
+  
+  @Override
+  public final Object getUpstreamWidget() {
+    return null;
+  }
   
   @Override
   public void destroy() {

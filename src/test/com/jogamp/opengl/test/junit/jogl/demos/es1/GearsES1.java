@@ -129,12 +129,13 @@ public class GearsES1 implements GLEventListener {
             
     gl.glEnable(GL2ES1.GL_NORMALIZE);
                 
-    if (drawable.getNativeSurface() instanceof Window) {
-        Window window = (Window) drawable.getNativeSurface();
+    final Object upstreamWidget = drawable.getUpstreamWidget();
+    if (upstreamWidget instanceof Window) {            
+        final Window window = (Window) upstreamWidget;
         window.addMouseListener(gearsMouse);
         window.addKeyListener(gearsKeys);
-    } else if (GLProfile.isAWTAvailable() && drawable instanceof java.awt.Component) {
-        java.awt.Component comp = (java.awt.Component) drawable;
+    } else if (GLProfile.isAWTAvailable() && upstreamWidget instanceof java.awt.Component) {
+        final java.awt.Component comp = (java.awt.Component) upstreamWidget;
         new com.jogamp.newt.event.awt.AWTMouseAdapter(gearsMouse).addTo(comp);
         new com.jogamp.newt.event.awt.AWTKeyAdapter(gearsKeys).addTo(comp);
     }
@@ -165,8 +166,9 @@ public class GearsES1 implements GLEventListener {
 
   public void dispose(GLAutoDrawable drawable) {
     System.err.println(Thread.currentThread()+" GearsES1.dispose ... ");
-    if (drawable.getNativeSurface() instanceof Window) {
-        Window window = (Window) drawable.getNativeSurface();
+    final Object upstreamWidget = drawable.getUpstreamWidget();
+    if (upstreamWidget instanceof Window) {            
+        final Window window = (Window) upstreamWidget;
         window.removeMouseListener(gearsMouse);
         window.removeKeyListener(gearsKeys);
     }
@@ -188,8 +190,9 @@ public class GearsES1 implements GLEventListener {
     GL2ES1 gl = drawable.getGL().getGL2ES1();
 
     final boolean hasFocus;
-    if(drawable.getNativeSurface() instanceof NativeWindow) {
-      hasFocus = ((NativeWindow)drawable.getNativeSurface()).hasFocus();
+    final Object upstreamWidget = drawable.getUpstreamWidget();
+    if(upstreamWidget instanceof NativeWindow) {
+      hasFocus = ((NativeWindow)upstreamWidget).hasFocus();
     } else {
       hasFocus = true;
     }

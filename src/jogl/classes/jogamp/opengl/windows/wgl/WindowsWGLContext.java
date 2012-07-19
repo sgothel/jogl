@@ -53,6 +53,8 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
+import com.jogamp.opengl.GLExtensions;
+
 import jogamp.nativewindow.windows.GDI;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
@@ -77,8 +79,8 @@ public class WindowsWGLContext extends GLContextImpl {
     functionNameMap.put("glFreeMemoryNV", "wglFreeMemoryNV");
 
     extensionNameMap = new HashMap<String, String>();
-    extensionNameMap.put("GL_ARB_pbuffer", "WGL_ARB_pbuffer");
-    extensionNameMap.put("GL_ARB_pixel_format", "WGL_ARB_pixel_format");
+    extensionNameMap.put(GLExtensions.ARB_pbuffer, WindowsWGLDrawableFactory.WGL_ARB_pbuffer);
+    extensionNameMap.put(GLExtensions.ARB_pixel_format, WindowsWGLDrawableFactory.WGL_ARB_pixel_format);
   }
 
   // FIXME: figure out how to hook back in the Java 2D / JOGL bridge

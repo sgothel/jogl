@@ -972,7 +972,7 @@ static jint mods2JavaMods(NSUInteger mods)
 
     NSView* nsview = [self contentView];
     if( ! [nsview isMemberOfClass:[NewtView class]] ) {
-        return;
+        return NO;
     }
     NewtView* view = (NewtView *) nsview;
 
@@ -981,14 +981,14 @@ static jint mods2JavaMods(NSUInteger mods)
         DBG_PRINT( "*************** windowWillClose.0: %p\n", (void *)(intptr_t)javaWindowObject);
         if (javaWindowObject == NULL) {
             DBG_PRINT("windowWillClose: null javaWindowObject\n");
-            return;
+            return NO;
         }
         int shallBeDetached = 0;
         JavaVM *jvmHandle = [view getJVMHandle];
         JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
         if(NULL==env) {
             DBG_PRINT("windowWillClose: null JNIEnv\n");
-            return;
+            return NO;
         }
 
         [view setDestroyNotifySent: true]; // earmark assumption of being closed

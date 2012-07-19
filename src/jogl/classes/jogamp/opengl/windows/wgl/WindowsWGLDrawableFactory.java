@@ -51,9 +51,10 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ProxySurface;
+import javax.media.nativewindow.ProxySurface.UpstreamSurfaceHook;
 import javax.media.opengl.GL;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
@@ -67,9 +68,11 @@ import jogamp.nativewindow.windows.GDISurface;
 import jogamp.nativewindow.windows.GDIUtil;
 import jogamp.nativewindow.windows.RegisteredClassFactory;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
+import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
+import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.SharedResourceRunner;
 
 import com.jogamp.common.JogampRuntimeException;
@@ -79,6 +82,7 @@ import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.nativewindow.WrappedSurface;
 import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
+import com.jogamp.opengl.GLExtensions;
 
 public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   private static DesktopGLDynamicLookupHelper windowsWGLDynamicLookupHelper = null;
@@ -203,8 +207,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   static class SharedResource implements SharedResourceRunner.Resource {
       private WindowsGraphicsDevice device;
       private AbstractGraphicsScreen screen;
-      private WindowsDummyWGLDrawable drawable;
-      private WindowsWGLContext context;
+      private GLDrawableImpl drawable;
+      private GLContextImpl context;
       private boolean hasARBPixelFormat;
       private boolean hasARBMultisample;
       private boolean hasARBPBuffer;
@@ -214,7 +218,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       private boolean isVendorNVIDIA;
       private boolean needsCurrenContext4ARBPFDQueries;
 
-      SharedResource(WindowsGraphicsDevice dev, AbstractGraphicsScreen scrn, WindowsDummyWGLDrawable draw, WindowsWGLContext ctx,
+      SharedResource(WindowsGraphicsDevice dev, AbstractGraphicsScreen scrn, GLDrawableImpl draw, GLContextImpl ctx,
                      boolean arbPixelFormat, boolean arbMultisample, boolean arbPBuffer, boolean arbReadDrawable, String glVendor) {
           device = dev;
           screen = scrn;
@@ -250,9 +254,9 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       @Override
       final public AbstractGraphicsScreen getScreen() { return screen; }
       @Override
-      final public WindowsWGLDrawable getDrawable() { return drawable; }
+      final public GLDrawableImpl getDrawable() { return drawable; }
       @Override
-      final public WindowsWGLContext getContext() { return context; }
+      final public GLContextImpl getContext() { return context; }
 
       final boolean hasARBPixelFormat() { return hasARBPixelFormat; }
       final boolean hasARBMultisample() { return hasARBMultisample; }
@@ -302,21 +306,18 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
 
         @Override
         public SharedResourceRunner.Resource createSharedResource(String connection) {
-            WindowsGraphicsDevice sharedDevice = new WindowsGraphicsDevice(connection, AbstractGraphicsDevice.DEFAULT_UNIT);
+            final WindowsGraphicsDevice sharedDevice = new WindowsGraphicsDevice(connection, AbstractGraphicsDevice.DEFAULT_UNIT);
             sharedDevice.lock();
             try {
-                AbstractGraphicsScreen absScreen = new DefaultGraphicsScreen(sharedDevice, 0);
-                GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP, false);
+                final AbstractGraphicsScreen absScreen = new DefaultGraphicsScreen(sharedDevice, 0);
+                final GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP, false);
                 if (null == glp) {
                     throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
                 }
-                final int f_dim = 64;
-                long hwnd = GDIUtil.CreateDummyWindow(0, 0, f_dim, f_dim);
-                WindowsDummyWGLDrawable sharedDrawable = WindowsDummyWGLDrawable.create(WindowsWGLDrawableFactory.this, glp, absScreen, hwnd, f_dim, f_dim, true);
-                if (null == sharedDrawable) {
-                    throw new GLException("Couldn't create shared drawable for screen: "+absScreen+", "+glp);
-                }
-                WindowsWGLContext sharedContext  = (WindowsWGLContext) sharedDrawable.createContext(null);
+                final GLDrawableImpl sharedDrawable = createOnscreenDrawableImpl(createDummySurfaceImpl(sharedDevice, false, new GLCapabilities(glp), null, 64, 64));
+                sharedDrawable.setRealized(true);
+                                
+                final GLContextImpl sharedContext  = (GLContextImpl) sharedDrawable.createContext(null);
                 if (null == sharedContext) {
                     throw new GLException("Couldn't create shared context for drawable: "+sharedDrawable);
                 }
@@ -329,7 +330,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                 try {
                     hasARBPixelFormat = sharedContext.isExtensionAvailable(WGL_ARB_pixel_format);
                     hasARBMultisample = sharedContext.isExtensionAvailable(WGL_ARB_multisample);
-                    hasARBPBuffer = sharedContext.isExtensionAvailable(GL_ARB_pbuffer);
+                    hasARBPBuffer = sharedContext.isExtensionAvailable(GLExtensions.ARB_pbuffer);
                     hasARBReadDrawableAvailable = sharedContext.isExtensionAvailable(WGL_ARB_make_current_read) &&
                                             sharedContext.isFunctionAvailable(wglMakeContextCurrent);
                     vendor = sharedContext.getGL().glGetString(GL.GL_VENDOR);
@@ -401,7 +402,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       return false;
   }
 
-  final static String GL_ARB_pbuffer = "GL_ARB_pbuffer";
+  final static String WGL_ARB_pbuffer      = "WGL_ARB_pbuffer";
   final static String WGL_ARB_pixel_format = "WGL_ARB_pixel_format";
   final static String WGL_ARB_multisample = "WGL_ARB_multisample";
   final static String WGL_NV_float_buffer = "WGL_NV_float_buffer";
@@ -534,22 +535,89 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected final NativeSurface createOffscreenSurfaceImpl(AbstractGraphicsDevice device, GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, int width, int height) {
-    AbstractGraphicsScreen screen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
-    WrappedSurface ns = new WrappedSurface(WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
-                                     capsChosen, capsRequested, chooser, screen) );
-    ns.surfaceSizeChanged(width, height);
-    return ns;
+  protected final ProxySurface createMutableSurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice, 
+                                                        GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, 
+                                                        GLCapabilitiesChooser chooser, int width, int height, UpstreamSurfaceHook lifecycleHook) {
+    final WindowsGraphicsDevice device;
+    if(createNewDevice) {
+        device = new WindowsGraphicsDevice(deviceReq.getConnection(), deviceReq.getUnitID());
+    } else {
+        device = (WindowsGraphicsDevice)deviceReq;
+    }
+    final AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);
+    final WindowsWGLGraphicsConfiguration config = WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen);
+    if(null == config) {
+        throw new GLException("Choosing GraphicsConfiguration failed w/ "+capsChosen+" on "+screen); 
+    }    
+    return new WrappedSurface(config, 0, width, height, lifecycleHook);
   }
 
   @Override
-  protected final ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice adevice, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
-    // FIXME device/windowHandle -> screen ?!
-    WindowsGraphicsDevice device = (WindowsGraphicsDevice) adevice;
-    AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);
-    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen);
-    GDISurface ns = new GDISurface(cfg, windowHandle);
-    return ns;
+  public final ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice, 
+                                                   GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
+    final WindowsGraphicsDevice device;
+    if(createNewDevice) {
+        device = new WindowsGraphicsDevice(deviceReq.getConnection(), deviceReq.getUnitID());
+    } else {
+        device = (WindowsGraphicsDevice)deviceReq;
+    }
+    final AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);
+    final GLCapabilitiesImmutable chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(requestedCaps);
+    final WindowsWGLGraphicsConfiguration config = WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(chosenCaps, requestedCaps, chooser, screen);
+    if(null == config) { 
+        throw new GLException("Choosing GraphicsConfiguration failed w/ "+requestedCaps+" on "+screen);
+    }    
+    return new GDISurface(config, 0, width, height, dummySurfaceLifecycleHook);
+  }  
+  private static final ProxySurface.UpstreamSurfaceHook dummySurfaceLifecycleHook = new ProxySurface.UpstreamSurfaceHook() {
+    @Override
+    public final void create(ProxySurface s) {
+        final GDISurface ms = (GDISurface)s;
+        if(0 == ms.getWindowHandle()) {            
+            final long windowHandle = GDIUtil.CreateDummyWindow(0, 0, s.getWidth(), s.getHeight());
+            if(0 == windowHandle) {
+                throw new GLException("Error windowHandle 0, werr: "+GDI.GetLastError());
+            }    
+            ms.setWindowHandle(windowHandle);
+            if(DEBUG) {
+                System.err.println("WindowsWGLDrawableFactory.dummySurfaceLifecycleHook.create: "+ms);
+            }
+        }
+    }
+    @Override
+    public final void destroy(ProxySurface s) {
+        final GDISurface ms = (GDISurface)s;
+        if(0 != ms.getWindowHandle()) {
+            GDI.ShowWindow(ms.getWindowHandle(), GDI.SW_HIDE);
+            GDIUtil.DestroyDummyWindow(ms.getWindowHandle());
+            ms.setWindowHandle(0);
+            if(DEBUG) {
+                System.err.println("WindowsWGLDrawableFactory.dummySurfaceLifecycleHook.destroy: "+ms);
+            }
+        }
+    }
+    @Override
+    public final int getWidth(ProxySurface s) {
+        return s.initialWidth;
+    }
+    @Override
+    public final int getHeight(ProxySurface s) {
+        return s.initialHeight;
+    }
+    
+    @Override
+    public String toString() {
+       return "GDISurfaceLifecycleHook[]";
+    }
+  };
+  
+  
+  @Override
+  protected final ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream) {
+    final WindowsGraphicsDevice device = new WindowsGraphicsDevice(deviceReq.getConnection(), deviceReq.getUnitID());
+    final AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, screenIdx);
+    final WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen);
+    return new GDISurface(cfg, windowHandle, 0, 0, upstream);
   }
 
   @Override

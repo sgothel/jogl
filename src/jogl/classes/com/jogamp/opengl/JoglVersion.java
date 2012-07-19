@@ -93,11 +93,13 @@ public class JoglVersion extends JogampVersion {
         return sb;        
     }
     
-    public static StringBuilder getDefaultOpenGLInfo(StringBuilder sb, boolean withCapabilitiesInfo) {
+    public static StringBuilder getDefaultOpenGLInfo(AbstractGraphicsDevice device, StringBuilder sb, boolean withCapabilitiesInfo) {
         if(null==sb) {
             sb = new StringBuilder();
         }
-        final AbstractGraphicsDevice device = GLProfile.getDefaultDevice();
+        if(null == device) {
+            device = GLProfile.getDefaultDevice();
+        }
         sb.append("Default Profiles on device ").append(device).append(Platform.getNewline());
         if(null!=device) {
             GLProfile.glAvailabilityToString(device, sb, "\t", 1);
@@ -120,13 +122,21 @@ public class JoglVersion extends JogampVersion {
         if(null==sb) {
             sb = new StringBuilder();
         }
-        GLContext ctx = gl.getContext();
-
+        
         sb.append(VersionUtil.SEPERATOR).append(Platform.getNewline());
         sb.append(device.getClass().getSimpleName()).append("[type ")
                 .append(device.getType()).append(", connection ").append(device.getConnection()).append("]: ").append(Platform.getNewline());
         GLProfile.glAvailabilityToString(device, sb, "\t", 1);        
         sb.append(Platform.getNewline());
+
+        return getGLStrings(gl, sb);
+    }
+    
+    public static StringBuilder getGLStrings(GL gl, StringBuilder sb) {        
+        if(null==sb) {
+            sb = new StringBuilder();
+        }
+        final GLContext ctx = gl.getContext();
         sb.append("Swap Interval  ").append(gl.getSwapInterval());
         sb.append(Platform.getNewline());
         sb.append("GL Profile     ").append(gl.getGLProfile());

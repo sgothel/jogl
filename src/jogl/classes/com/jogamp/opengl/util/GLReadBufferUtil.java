@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.nio.*;
 import javax.media.opengl.*;
 
+import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
@@ -66,6 +67,10 @@ public class GLReadBufferUtil {
     public boolean isValid() {
       return null!=readTextureData && null!=readPixelBuffer ;
     }
+    
+    public boolean hasAlpha() { return 4 == components ? true : false ; }
+    
+    public GLPixelStorageModes getGLPixelStorageModes() { return psm; }
     
     /**
      * @return the raw pixel ByteBuffer, filled by {@link #readPixels(GLAutoDrawable, boolean)}
@@ -104,13 +109,14 @@ public class GLReadBufferUtil {
     /**
      * Read the drawable's pixels to TextureData and Texture, if requested at construction
      * 
-     * @param gl the current GL object
+     * @param gl the current GL context object. It's read drawable is being used as the pixel source.
      * @param drawable the drawable to read from
      * @param flip weather to flip the data vertically or not
      * 
      * @see #GLReadBufferUtil(boolean, boolean)
      */
-    public boolean readPixels(GL gl, GLDrawable drawable, boolean flip) {
+    public boolean readPixels(GL gl, boolean flip) {
+        final GLDrawable drawable = gl.getContext().getGLReadDrawable();
         final int textureInternalFormat, textureDataFormat, textureDataType;
         final int[] glImplColorReadVals = new int[] { 0, 0 };
         
@@ -118,7 +124,7 @@ public class GLReadBufferUtil {
             textureInternalFormat=GL.GL_RGB;
             textureDataFormat=GL.GL_RGB;
             textureDataType = GL.GL_UNSIGNED_BYTE;            
-        } else if(gl.isGLES2Compatible() || gl.isExtensionAvailable("GL_OES_read_format")) {
+        } else if(gl.isGLES2Compatible() || gl.isExtensionAvailable(GLExtensions.OES_read_format)) {
             gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_FORMAT, glImplColorReadVals, 0);
             gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_TYPE, glImplColorReadVals, 1);            
             textureInternalFormat = (4 == components) ? GL.GL_RGBA : GL.GL_RGB;

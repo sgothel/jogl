@@ -262,6 +262,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
+  public final Object getUpstreamWidget() {
+    return this;
+  }
+     
+  @Override
   public void setShallUseOffscreenLayer(boolean v) {
       shallUseOffscreenLayer = v;
   }
@@ -1070,7 +1075,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     // System.err.println(NativeWindowVersion.getInstance());
     System.err.println(JoglVersion.getInstance());
 
-    System.err.println(JoglVersion.getDefaultOpenGLInfo(null, true).toString());
+    System.err.println(JoglVersion.getDefaultOpenGLInfo(null, null, true).toString());
 
     final GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault(GLProfile.getDefaultDevice()) );
     final Frame frame = new Frame("JOGL AWT Test");

@@ -340,5 +340,60 @@ public interface GLBase {
     * completeness.
     */
    public Object getExtension(String extensionName);
+
+   /** Aliased entrypoint of <code> void {@native glClearDepth}(GLclampd depth); </code> and <code> void {@native glClearDepthf}(GLclampf depth); </code>. */  
+   public void glClearDepth( double depth );
+
+   /** Aliased entrypoint of <code> void {@native glDepthRange}(GLclampd depth); </code> and <code> void {@native glDepthRangef}(GLclampf depth); </code>. */  
+   public void glDepthRange(double zNear, double zFar);
+
+   /**
+    * @param target a GL buffer (VBO) target as used in {@link GL#glBindBuffer(int, int)}, ie {@link GL#GL_ELEMENT_ARRAY_BUFFER}, {@link GL#GL_ARRAY_BUFFER}, ..
+    * @return the GL buffer (VBO) name bound to a target via {@link GL#glBindBuffer(int, int)} or 0 if unbound.
+    */
+   public int glGetBoundBuffer(int target);
+
+   /**
+    * @param buffer a GL buffer name, generated with {@link GL#glGenBuffers(int, int[], int)} and used in {@link GL#glBindBuffer(int, int)}, {@link GL#glBufferData(int, long, java.nio.Buffer, int)} or {@link GL2#glNamedBufferDataEXT(int, long, java.nio.Buffer, int)} for example.
+    * @return the size of the given GL buffer
+    */
+   public long glGetBufferSize(int buffer);
+
+   /**
+    * @return true if a VBO is bound to {@link GL.GL_ARRAY_BUFFER} via {@link GL#glBindBuffer(int, int)}, otherwise false
+    */
+   public boolean glIsVBOArrayEnabled();
+
+   /**
+    * @return true if a VBO is bound to {@link GL.GL_ELEMENT_ARRAY_BUFFER} via {@link GL#glBindBuffer(int, int)}, otherwise false
+    */
+   public boolean glIsVBOElementArrayEnabled();
+
+   /** 
+    * Return the framebuffer name bound to this context, 
+    * see {@link GL#glBindFramebuffer(int, int)}.
+    */
+   public int getBoundFramebuffer(int target);
+
+   /** 
+    * Return the default draw framebuffer name.
+    * <p> 
+    * May differ from it's default <code>zero</code>
+    * in case an framebuffer object ({@link FBObject}) based drawable
+    * is being used.
+    * </p> 
+    */
+   public int getDefaultDrawFramebuffer();
+
+   /** 
+    * Return the default read framebuffer name.
+    * <p> 
+    * May differ from it's default <code>zero</code>
+    * in case an framebuffer object ({@link FBObject}) based drawable
+    * is being used.
+    * </p> 
+    */
+   public int getDefaultReadFramebuffer();
+
 }
 

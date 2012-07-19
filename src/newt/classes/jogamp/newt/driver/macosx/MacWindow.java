@@ -38,7 +38,7 @@ import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.SurfaceChangeable;
+import javax.media.nativewindow.MutableSurface;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
@@ -50,7 +50,7 @@ import jogamp.newt.driver.DriverUpdatePosition;
 
 import com.jogamp.newt.event.KeyEvent;
 
-public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverClearFocus, DriverUpdatePosition {
+public class MacWindow extends WindowImpl implements MutableSurface, DriverClearFocus, DriverUpdatePosition {
     
     static {
         MacDisplay.initSingleton();
@@ -131,10 +131,6 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
         }        
     }
 
-    public void surfaceSizeChanged(int width, int height) {
-        sizeChanged(false, width, height, false);
-    }
-    
     @Override
     protected void setTitleImpl(final String title) {
         setTitle0(getWindowHandle(), title);

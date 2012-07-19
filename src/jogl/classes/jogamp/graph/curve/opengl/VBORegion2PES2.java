@@ -32,7 +32,6 @@ import java.nio.FloatBuffer;
 import javax.media.opengl.GL2ES2;
 // FIXME: Subsume GL2GL3.GL_DRAW_FRAMEBUFFER -> GL2ES2.GL_DRAW_FRAMEBUFFER ! 
 import javax.media.opengl.GL;
-import javax.media.opengl.GLException;
 import javax.media.opengl.GLUniformData;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
@@ -45,7 +44,9 @@ import com.jogamp.graph.geom.Vertex;
 
 import com.jogamp.graph.curve.opengl.GLRegion;
 import com.jogamp.graph.curve.opengl.RenderState;
-import com.jogamp.opengl.util.FBObject;
+import com.jogamp.opengl.FBObject;
+import com.jogamp.opengl.FBObject.Attachment;
+import com.jogamp.opengl.FBObject.TextureAttachment;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderState;
@@ -60,6 +61,7 @@ public class VBORegion2PES2  extends GLRegion {
     
     
     private FBObject fbo;
+    private TextureAttachment texA;
     private PMVMatrix fboPMVMatrix;
     GLUniformData mgl_fboPMVMatrix;
     
@@ -72,7 +74,7 @@ public class VBORegion2PES2  extends GLRegion {
         super(renderModes);
         fboPMVMatrix = new PMVMatrix();
         mgl_fboPMVMatrix = new GLUniformData(UniformNames.gcu_PMVMatrix, 4, 4, fboPMVMatrix.glGetPMvMatrixf());        
-        mgl_ActiveTexture = new GLUniformData(UniformNames.gcu_TextureUnit, textureEngine);        
+        mgl_ActiveTexture = new GLUniformData(UniformNames.gcu_TextureUnit, textureEngine);    
     }
     
     public void update(GL2ES2 gl, RenderState rs) {
@@ -214,8 +216,9 @@ public class VBORegion2PES2  extends GLRegion {
         final ShaderState st = rs.getShaderState();
         
         gl.glViewport(0, 0, width, hight);        
-        st.uniform(gl, mgl_ActiveTexture);        
-        fbo.use(gl, 0);                        
+        st.uniform(gl, mgl_ActiveTexture);    
+        gl.glActiveTexture(GL.GL_TEXTURE0 + mgl_ActiveTexture.intValue());
+        fbo.use(gl, texA);                        
         verticeFboAttr.enableBuffer(gl, true);       
         texCoordFboAttr.enableBuffer(gl, true);
         indicesFbo.enableBuffer(gl, true);
@@ -244,20 +247,16 @@ public class VBORegion2PES2  extends GLRegion {
         // System.out.println("FBO Scale: " + m.glGetMatrixf().get(0) +" " + m.glGetMatrixf().get(5));
         
         if(null != fbo && fbo.getWidth() != tex_width_c && fbo.getHeight() != tex_height_c ) {
-            fbo.destroy(gl);
-            fbo = null;
+            fbo.reset(gl, tex_width_c, tex_height_c);
         }
         
-        if(null == fbo) {        
-            fbo = new FBObject(tex_width_c, tex_height_c);
-            fbo.init(gl); 
+        if(null == fbo) {  
+            fbo = new FBObject();
+            fbo.reset(gl, tex_width_c, tex_height_c); 
             // FIXME: shall not use bilinear, due to own AA ? However, w/o bilinear result is not smooth
-            fbo.attachTexture2D(gl, mgl_ActiveTexture.intValue(), GL2ES2.GL_LINEAR, GL2ES2.GL_LINEAR, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
-            // fbo.attachTexture2D(gl, mgl_ActiveTexture.intValue(), GL2ES2.GL_NEAREST, GL2ES2.GL_NEAREST, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
-            fbo.attachDepthBuffer(gl, GL.GL_DEPTH_COMPONENT16); // FIXME: or shall we use 24 or 32 bit depth ?
-            if(!fbo.isStatusValid()) {
-                throw new GLException("FBO invalid: "+fbo);
-            }
+            texA = fbo.attachTexture2D(gl, 0, true, GL2ES2.GL_LINEAR, GL2ES2.GL_LINEAR, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+            // texA = fbo.attachTexture2D(gl, 0, GL2ES2.GL_NEAREST, GL2ES2.GL_NEAREST, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE);
+            fbo.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
         } else {
             fbo.bind(gl);
         }
@@ -305,6 +304,7 @@ public class VBORegion2PES2  extends GLRegion {
         if(null != fbo) {
             fbo.destroy(gl);
             fbo = null;
+            texA = null;
         }        
         if(null != verticeTxtAttr) {
             st.ownAttribute(verticeTxtAttr, false);

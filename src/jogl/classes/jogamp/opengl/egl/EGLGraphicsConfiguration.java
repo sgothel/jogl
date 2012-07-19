@@ -151,7 +151,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
     public static EGLGLCapabilities EGLConfig2Capabilities(GLProfile glp, long display, long config,
                                                            boolean relaxed, boolean onscreen, boolean usePBuffer, boolean forceTransparentFlag) {
         List<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>();
-        final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer);
+        final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer, false);
         if( EGLConfig2Capabilities(bucket, glp, display, config, winattrmask, forceTransparentFlag) ) {
             return (EGLGLCapabilities) bucket.get(0);
         } else if ( relaxed && EGLConfig2Capabilities(bucket, glp, display, config, GLGraphicsConfigurationUtil.ALL_BITS, forceTransparentFlag) ) {

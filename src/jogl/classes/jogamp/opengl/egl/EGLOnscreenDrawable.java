@@ -54,8 +54,8 @@ public class EGLOnscreenDrawable extends EGLDrawable {
     }
 
     @Override
-    protected long createSurface(long eglDpy, long eglNativeCfg, long surfaceHandle) {
-        return EGL.eglCreateWindowSurface(eglDpy, eglNativeCfg, surfaceHandle, null);
+    protected long createSurface(EGLGraphicsConfiguration config, long nativeSurfaceHandle) {
+        return EGL.eglCreateWindowSurface(config.getScreen().getDevice().getHandle(), config.getNativeConfig(), nativeSurfaceHandle, null);
     }
 }
 

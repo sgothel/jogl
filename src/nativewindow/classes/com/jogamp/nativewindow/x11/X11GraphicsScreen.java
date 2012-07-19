@@ -56,13 +56,11 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
         return new X11GraphicsScreen(new X11GraphicsDevice(display, AbstractGraphicsDevice.DEFAULT_UNIT, owner), screenIdx);
     }
 
-    public long getDefaultVisualID() {
+    public int getVisualID() {
         // It still could be an AWT hold handle ..
-        long display = getDevice().getHandle();
-        int scrnIdx = X11Lib.DefaultScreen(display);
-        return X11Lib.DefaultVisualID(display, scrnIdx);
+        return (int) X11Lib.DefaultVisualID(getDevice().getHandle(), getIndex());
     }
-
+    
     private static int fetchScreen(X11GraphicsDevice device, int screen) {
         // It still could be an AWT hold handle ..
         if(X11Util.XineramaIsEnabled(device.getHandle())) {

@@ -34,6 +34,8 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLProfile;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Rectangle;
@@ -146,9 +148,9 @@ public class TestSWTAccessor02GLn extends UITestCase {
         System.err.println("*** device: " + device);
         System.err.println("*** window handle: 0x" + Long.toHexString(nativeWindowHandle));
         
-        ProxySurface proxySurface = factory.createProxySurface(device, nativeWindowHandle, caps, null);
+        final SWTUpstreamHook swtUpstreamHook = new SWTUpstreamHook(canvas);
+        final ProxySurface proxySurface = factory.createProxySurface(device, 0, nativeWindowHandle, caps, null, swtUpstreamHook);
         Assert.assertNotNull( proxySurface );        
-        proxySurface.surfaceSizeChanged( 640, 480 );
         System.err.println("*** ProxySurface: " + proxySurface);
         final GLDrawable drawable = factory.createGLDrawable(proxySurface);
         Assert.assertNotNull( drawable );
@@ -221,6 +223,41 @@ public class TestSWTAccessor02GLn extends UITestCase {
         drawable.setRealized(false);
         canvas.dispose();
     }
+    private static class SWTUpstreamHook implements ProxySurface.UpstreamSurfaceHook, ControlListener {
+        private Canvas c;
+        Rectangle clientArea;
+        public SWTUpstreamHook(Canvas c) {
+            this.c = c ;
+            this.clientArea = c.getClientArea();
+        }
+        @Override
+        public final void create(ProxySurface s) { /* nop */ }
+    
+        @Override
+        public final void destroy(ProxySurface s) { /* nop */ }
+    
+        @Override
+        public final int getWidth(ProxySurface s) {
+            return clientArea.width;
+        }    
+        @Override
+        public final int getHeight(ProxySurface s) {
+            return clientArea.width;
+        }
+        
+        @Override
+        public void controlResized(final ControlEvent arg0) {
+            clientArea = c.getClientArea();
+        }
+        @Override
+        public void controlMoved(ControlEvent e) {
+        }
+        @Override
+        public String toString() {
+            final String us_s = null != c ? c.toString() : "nil"; 
+            return "SETUpstreamSurfaceHook[upstream: "+us_s+"]";
+    }
+    };
 
     @Test
     public void test() throws InterruptedException {

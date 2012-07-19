@@ -154,7 +154,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
                 break;
 
               case CGL.NSOpenGLPFASamples:
-                ivalues[idx] = caps.getSampleBuffers() ? ivalues[idx] = caps.getNumSamples() : 0;
+                ivalues[idx] = caps.getNumSamples() ;
                 break;
 
               default:
@@ -233,7 +233,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
       return fmt.get(0);
     }
     
-    static GLCapabilitiesImmutable CGLPixelFormat2GLCapabilities(long pixelFormat) {
+    static GLCapabilitiesImmutable CGLPixelFormat2GLCapabilities(long pixelFormat) {        
         return PixelFormat2GLCapabilities(null, pixelFormat, false);
     }
 

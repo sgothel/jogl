@@ -231,6 +231,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
       /* Get the nativewindow-Graphics Device associated with this control (which is determined by the parent Composite) */
       device = SWTAccessor.getDevice(this);
+      /* Since we have no means of querying the screen index yet, assume 0. Good choice due to Xinerama alike settings anyways. */
+      final int screenIdx = 0;
       /* Native handle for the control, used to associate with GLContext */
       nativeWindowHandle = SWTAccessor.getWindowHandle(this);
 
@@ -243,7 +245,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       final GLDrawableFactory glFactory = GLDrawableFactory.getFactory(caps.getGLProfile());
 
       /* Create a NativeWindow proxy for the SWT canvas */
-      proxySurface = glFactory.createProxySurface(device, nativeWindowHandle, caps, chooser);
+      proxySurface = glFactory.createProxySurface(device, screenIdx, nativeWindowHandle, caps, chooser, swtCanvasUpStreamHook);
 
       /* Associate a GL surface with the proxy */
       drawable = glFactory.createGLDrawable(proxySurface);
@@ -265,11 +267,57 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       addControlListener(new ControlAdapter() {
          @Override
          public void controlResized(final ControlEvent arg0) {
-            clientArea = GLCanvas.this.getClientArea();
-            /* Mark for OpenGL reshape next time the control is painted */
-            sendReshape = true;
+            updateSizeCheck();
          }
       });
+   }
+   private final ProxySurface.UpstreamSurfaceHook swtCanvasUpStreamHook = new ProxySurface.UpstreamSurfaceHook() {
+    @Override
+    public final void create(ProxySurface s) { /* nop */ }
+
+    @Override
+    public final void destroy(ProxySurface s) { /* nop */ }
+
+    @Override
+    public final int getWidth(ProxySurface s) {
+        return clientArea.width;
+    }
+
+    @Override
+    public final int getHeight(ProxySurface s) {
+        return clientArea.height;
+    }
+    
+    @Override
+    public String toString() {
+        return "SETUpstreamSurfaceHook[upstream: "+GLCanvas.this.toString()+"]";
+    }
+
+   };
+
+   protected final void updateSizeCheck() {
+      clientArea = GLCanvas.this.getClientArea();
+      if (clientArea != null && 
+          proxySurface.getWidth() != clientArea.width && 
+          proxySurface.getHeight() != clientArea.height) {
+          sendReshape = true; // Mark for OpenGL reshape next time the control is painted
+      }
+      sendReshape = false;
+   }
+
+   @Override
+   public final Object getUpstreamWidget() {
+       return this;
+   }
+   
+   @Override
+   public int getWidth() {
+      return clientArea.width;
+   }
+
+   @Override
+   public int getHeight() {
+      return clientArea.height;
    }
 
    @Override
@@ -418,22 +466,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    }
 
    @Override
-   public int getHeight() {
-      final Rectangle clientArea = this.clientArea;
-      if (clientArea == null) return 0;
-      return clientArea.height;
-   }
-
-   @Override
    public NativeSurface getNativeSurface() {
       return (drawable != null) ? drawable.getNativeSurface() : null;
-   }
-
-   @Override
-   public int getWidth() {
-      final Rectangle clientArea = this.clientArea;
-      if (clientArea == null) return 0;
-      return clientArea.width;
    }
 
    @Override
@@ -515,7 +549,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
        // System.err.println(NativeWindowVersion.getInstance());
        System.err.println(JoglVersion.getInstance());
 
-       System.err.println(JoglVersion.getDefaultOpenGLInfo(null, true).toString());
+       System.err.println(JoglVersion.getDefaultOpenGLInfo(null, null, true).toString());
 
        final GLCapabilitiesImmutable caps = new GLCapabilities( GLProfile.getDefault(GLProfile.getDefaultDevice()) );
        final Display display = new Display();

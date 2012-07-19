@@ -40,15 +40,11 @@
 
 package jogamp.opengl.egl;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.SurfaceChangeable;
-import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.nativewindow.MutableSurface;
 import javax.media.opengl.GLContext;
-import javax.media.opengl.GLException;
 
 public class EGLPbufferDrawable extends EGLDrawable {
-    private int texFormat;
     protected static final boolean useTexture = false; // No yet ..
 
     protected EGLPbufferDrawable(EGLDrawableFactory factory, NativeSurface target) {
@@ -56,30 +52,12 @@ public class EGLPbufferDrawable extends EGLDrawable {
     }
 
     @Override
-    protected long createSurface(long eglDpy, long eglNativeCfg, long surfaceHandle) {
-        final AbstractGraphicsConfiguration config = getNativeSurface().getGraphicsConfiguration();
-        final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
-
-        if(useTexture) {
-            texFormat = caps.getAlphaBits() > 0 ? EGL.EGL_TEXTURE_RGBA : EGL.EGL_TEXTURE_RGB ;
-        } else {
-            texFormat = EGL.EGL_NO_TEXTURE;
+    protected long createSurface(EGLGraphicsConfiguration config, long nativeSurfaceHandle) {
+        final MutableSurface ms = (MutableSurface)getNativeSurface();
+        if(config != ms.getGraphicsConfiguration()) {
+            throw new InternalError("Not same: "+config.hashCode()+", "+ms.getGraphicsConfiguration()+": "+config+", "+ms.getGraphicsConfiguration());
         }
-
-        if (DEBUG) {
-          System.out.println("Pbuffer config: " + config);
-        }
-
-        NativeSurface nw = getNativeSurface();
-        int[] attrs = EGLGraphicsConfiguration.CreatePBufferSurfaceAttribList(nw.getWidth(), nw.getHeight(), texFormat);
-        long surf = EGL.eglCreatePbufferSurface(eglDpy, eglNativeCfg, attrs, 0);
-        if (EGL.EGL_NO_SURFACE==surf) {
-            throw new GLException("Creation of window surface (eglCreatePbufferSurface) failed, dim "+nw.getWidth()+"x"+nw.getHeight()+", error 0x"+Integer.toHexString(EGL.eglGetError()));
-        } else if(DEBUG) {
-            System.err.println("PBuffer setSurface result: eglSurface 0x"+Long.toHexString(surf));
-        }
-        ((SurfaceChangeable)nw).setSurfaceHandle(surf);
-        return surf;
+        return EGLDrawableFactory.createPBufferSurfaceImpl(ms, useTexture).getSurfaceHandle();
     }
 
     @Override

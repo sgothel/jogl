@@ -43,7 +43,7 @@ import com.jogamp.gluegen.GlueEmitterControls;
 import com.jogamp.gluegen.GlueGen;
 import com.jogamp.gluegen.MethodBinding;
 import com.jogamp.gluegen.procaddress.ProcAddressConfiguration;
-import com.jogamp.gluegen.runtime.opengl.GLExtensionNames;
+import com.jogamp.gluegen.runtime.opengl.GLNameResolver;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -224,11 +224,11 @@ public class GLConfiguration extends ProcAddressConfiguration {
                     }
                 }
             }
-            boolean isGLEnum = GLExtensionNames.isGLEnumeration(symbol);
-            boolean isGLFunc = GLExtensionNames.isGLFunction(symbol);
+            boolean isGLEnum = GLNameResolver.isGLEnumeration(symbol);
+            boolean isGLFunc = GLNameResolver.isGLFunction(symbol);
             if (isGLFunc || isGLEnum) {
-                if (GLExtensionNames.isExtensionVEN(symbol, isGLFunc)) {
-                    String extSuffix = GLExtensionNames.getExtensionSuffix(symbol, isGLFunc);
+                if (GLNameResolver.isExtensionVEN(symbol, isGLFunc)) {
+                    String extSuffix = GLNameResolver.getExtensionSuffix(symbol, isGLFunc);
                     if (getDropUniqVendorExtensions(extSuffix)) {
                         if (DEBUG_IGNORES) {
                             System.err.println("Ignore UniqVendorEXT: " + symbol + ", vendor " + extSuffix);

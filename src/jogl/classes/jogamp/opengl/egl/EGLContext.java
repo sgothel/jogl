@@ -110,14 +110,8 @@ public abstract class EGLContext extends GLContextImpl {
 
     @Override
     protected void makeCurrentImpl() throws GLException {
-        if(EGL.EGL_NO_DISPLAY==((EGLDrawable)drawable).getDisplay() ) {
-            throw new GLException("drawable not properly initialized, NO DISPLAY: "+drawable);
-        }
         if (EGL.eglGetCurrentContext() != contextHandle) {
-            if (!EGL.eglMakeCurrent(((EGLDrawable)drawable).getDisplay(),
-                                    drawable.getHandle(),
-                                    drawableRead.getHandle(),
-                                    contextHandle)) {
+            if (!EGL.eglMakeCurrent(drawable.getNativeSurface().getDisplayHandle(), drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
                 throw new GLException("Error making context 0x" +
                                       Long.toHexString(contextHandle) + " current: error code 0x" + Integer.toHexString(EGL.eglGetError()));
             }
@@ -126,10 +120,7 @@ public abstract class EGLContext extends GLContextImpl {
 
     @Override
     protected void releaseImpl() throws GLException {
-      if (!EGL.eglMakeCurrent(((EGLDrawable)drawable).getDisplay(),
-                              EGL.EGL_NO_SURFACE,
-                              EGL.EGL_NO_SURFACE,
-                              EGL.EGL_NO_CONTEXT)) {
+      if (!EGL.eglMakeCurrent(drawable.getNativeSurface().getDisplayHandle(), EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT)) {
             throw new GLException("Error freeing OpenGL context 0x" +
                                   Long.toHexString(contextHandle) + ": error code 0x" + Integer.toHexString(EGL.eglGetError()));
       }
@@ -137,7 +128,7 @@ public abstract class EGLContext extends GLContextImpl {
 
     @Override
     protected void destroyImpl() throws GLException {
-      if (!EGL.eglDestroyContext(((EGLDrawable)drawable).getDisplay(), contextHandle)) {
+      if (!EGL.eglDestroyContext(drawable.getNativeSurface().getDisplayHandle(), contextHandle)) {
           final int eglError = EGL.eglGetError();
           if(EGL.EGL_SUCCESS != eglError) { /* oops, Mesa EGL impl. may return false, but has no EGL error */
               throw new GLException("Error destroying OpenGL context 0x" +
@@ -158,16 +149,16 @@ public abstract class EGLContext extends GLContextImpl {
 
     @Override
     protected boolean createImpl(GLContextImpl shareWith) throws GLException {
-        long eglDisplay = ((EGLDrawable)drawable).getDisplay();
-        EGLGraphicsConfiguration config = ((EGLDrawable)drawable).getGraphicsConfiguration();
-        GLProfile glProfile = drawable.getGLProfile();
-        long eglConfig = config.getNativeConfig();
+        final EGLGraphicsConfiguration config = (EGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
+        final long eglDisplay = config.getScreen().getDevice().getHandle();
+        final GLProfile glProfile = drawable.getGLProfile();
+        final long eglConfig = config.getNativeConfig();
         long shareWithHandle = EGL.EGL_NO_CONTEXT;
 
-        if (eglDisplay == 0) {
+        if ( 0 == eglDisplay ) {
             throw new GLException("Error: attempted to create an OpenGL context without a display connection");
         }
-        if (eglConfig == 0) {
+        if ( 0 == eglConfig ) {
             throw new GLException("Error: attempted to create an OpenGL context without a graphics configuration");
         }
 
@@ -217,10 +208,7 @@ public abstract class EGLContext extends GLContextImpl {
                                ",\n\t"+this+
                                ",\n\tsharing with 0x" + Long.toHexString(shareWithHandle));
         }
-        if (!EGL.eglMakeCurrent(((EGLDrawable)drawable).getDisplay(),
-                                drawable.getHandle(),
-                                drawableRead.getHandle(),
-                                contextHandle)) {
+        if (!EGL.eglMakeCurrent(eglDisplay, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
             throw new GLException("Error making context 0x" +
                                   Long.toHexString(contextHandle) + " current: error code " + EGL.eglGetError());
         }
@@ -269,8 +257,7 @@ public abstract class EGLContext extends GLContextImpl {
           eglQueryStringInitialized = true;
         }
         if (eglQueryStringAvailable) {
-            final String ret = EGL.eglQueryString(((EGLDrawable)drawable).getDisplay(),
-                                                  EGL.EGL_EXTENSIONS);
+            final String ret = EGL.eglQueryString(drawable.getNativeSurface().getDisplayHandle(), EGL.EGL_EXTENSIONS);
             if (DEBUG) {
               System.err.println("EGL extensions: " + ret);
             }
@@ -291,7 +278,7 @@ public abstract class EGLContext extends GLContextImpl {
             }
             return false;
         }
-        return EGL.eglSwapInterval(((EGLDrawable)drawable).getDisplay(), interval);
+        return EGL.eglSwapInterval(drawable.getNativeSurface().getDisplayHandle(), interval);
     }
 
     @Override
@@ -300,6 +287,45 @@ public abstract class EGLContext extends GLContextImpl {
     @Override
     public abstract void releasePbufferFromTexture();
 
+    //
+    // Accessible ..
+    //
+    
+    /**
+     * If context is an ES profile, map it to the given device 
+     * via {@link GLContext#mapAvailableGLVersion(AbstractGraphicsDevice, int, int, int, int, int)}.
+     * <p>
+     * We intentionally override a non native EGL device ES profile mapping,
+     * i.e. this will override/modify an already 'set' X11/WGL/.. mapping.
+     * </p> 
+     * 
+     * @param device
+     */
+    protected void mapCurrentAvailableGLVersion(AbstractGraphicsDevice device) {
+        mapCurrentAvailableGLVersionImpl(device, ctxMajorVersion, ctxMinorVersion, ctxOptions);
+    }
+        
+    protected static void mapStaticGLESVersion(AbstractGraphicsDevice device, int major) {
+        int ctp = ( 2 == major ) ? ( GLContext.CTX_PROFILE_ES | GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ) : ( GLContext.CTX_PROFILE_ES );  
+        mapCurrentAvailableGLVersionImpl(device, major, 0, ctp);
+    }
+    private static void mapCurrentAvailableGLVersionImpl(AbstractGraphicsDevice device, int major, int minor, int ctp) {
+        if( 0 != ( ctp & GLContext.CTX_PROFILE_ES) ) {
+            // ES1 or ES2
+            final int reqMajor = major;
+            final int reqProfile = GLContext.CTX_PROFILE_ES;
+            GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile,
+                                            major, minor, ctp);
+        }
+    }
+    
+    protected static boolean getAvailableGLVersionsSet(AbstractGraphicsDevice device) {
+        return GLContext.getAvailableGLVersionsSet(device);
+    }
+    protected static void setAvailableGLVersionsSet(AbstractGraphicsDevice device) {
+        GLContext.setAvailableGLVersionsSet(device);
+    }
+    
     protected static String toHexString(int hex) {
         return GLContext.toHexString(hex);
     }

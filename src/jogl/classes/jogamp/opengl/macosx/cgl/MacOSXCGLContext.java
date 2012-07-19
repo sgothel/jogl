@@ -48,6 +48,7 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.OffscreenLayerSurface;
+import javax.media.nativewindow.ProxySurface;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
@@ -63,6 +64,7 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
+import com.jogamp.opengl.GLExtensions;
 
 public abstract class MacOSXCGLContext extends GLContextImpl
 {
@@ -252,9 +254,11 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
   @Override
   protected void makeCurrentImpl() throws GLException {
+    /** FIXME: won't work w/ special drawables (like FBO) - check for CGL mode regressions!
+     *  
     if (getOpenGLMode() != ((MacOSXCGLDrawable)drawable).getOpenGLMode()) {
       setOpenGLMode(((MacOSXCGLDrawable)drawable).getOpenGLMode());
-    }
+    } */
     if (!impl.makeCurrent(contextHandle)) {
       throw new GLException("Error making Context current: "+this);
     }
@@ -338,8 +342,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
   @Override
   public boolean isExtensionAvailable(String glExtensionName) {
-    if (glExtensionName.equals("GL_ARB_pbuffer") ||
-        glExtensionName.equals("GL_ARB_pixel_format")) {
+    if (glExtensionName.equals(GLExtensions.ARB_pbuffer) ||
+        glExtensionName.equals(GLExtensions.ARB_pixel_format)) {
       return true;
     }
     return super.isExtensionAvailable(glExtensionName);
@@ -426,10 +430,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     @Override
     public long create(long share, int ctp, int major, int minor) {
         long ctx = 0;
-        final MacOSXCGLDrawable drawable = (MacOSXCGLDrawable) MacOSXCGLContext.this.drawable;
         final NativeSurface surface = drawable.getNativeSurface();
         final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) surface.getGraphicsConfiguration();
         final OffscreenLayerSurface backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(surface, true);
+        boolean allowIncompleteView = null != backingLayerHost;
+        if( !allowIncompleteView && surface instanceof ProxySurface ) {
+            allowIncompleteView = 0 != ( ProxySurface.INVISIBLE_WINDOW & ((ProxySurface)surface).getImplBitfield() ) ;
+        }
         final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         long pixelFormat = MacOSXCGLGraphicsConfiguration.GLCapabilities2NSPixelFormat(chosenCaps, ctp, major, minor);
         if (pixelFormat == 0) {
@@ -443,13 +450,12 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         screenVSyncTimeout = 1000000f / sRefreshRate;
         if(DEBUG) {
             System.err.println("NS create OSX>=lion "+isLionOrLater);
-            System.err.println("NS create backendType: "+drawable.getOpenGLMode());
+            System.err.println("NS create allowIncompleteView: "+allowIncompleteView);
             System.err.println("NS create backingLayerHost: "+backingLayerHost);
             System.err.println("NS create share: "+share);
             System.err.println("NS create chosenCaps: "+chosenCaps);
             System.err.println("NS create pixelFormat: "+toHexString(pixelFormat));
             System.err.println("NS create drawable native-handle: "+toHexString(drawable.getHandle()));
-            System.err.println("NS create drawable NSView-handle: "+toHexString(drawable.getNSViewHandle()));
             System.err.println("NS create screen refresh-rate: "+sRefreshRate+" hz, "+screenVSyncTimeout+" micros");
             // Thread.dumpStack();
         }
@@ -457,7 +463,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           int[] viewNotReady = new int[1];
           // Try to allocate a context with this
           ctx = CGL.createContext(share,
-                                  drawable.getNSViewHandle(), null!=backingLayerHost,
+                                  drawable.getHandle(), allowIncompleteView,
                                   pixelFormat,
                                   chosenCaps.isBackgroundOpaque(),
                                   viewNotReady, 0);
@@ -473,10 +479,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               CGL.setContextOpacity(ctx, 0);
           }
 
-          if(DEBUG) {
-              GLCapabilitiesImmutable caps0 = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(null, pixelFormat);
-              System.err.println("NS create pixelformat2GLCaps: "+caps0);
-          }
           GLCapabilitiesImmutable fixedCaps = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(chosenCaps.getGLProfile(), pixelFormat);
           fixedCaps = GLGraphicsConfigurationUtil.fixOpaqueGLCapabilities(fixedCaps, chosenCaps.isBackgroundOpaque());
           config.setChosenCapabilities(fixedCaps);

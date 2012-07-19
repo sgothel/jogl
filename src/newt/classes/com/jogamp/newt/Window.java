@@ -40,8 +40,20 @@ import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.WindowClosingProtocol;
 
 /**
- * Specifying the public Window functionality for the
- * using a Window and for shadowing one like {@link com.jogamp.newt.opengl.GLWindow}.
+ * Specifying NEWT's Window functionality:
+ * <ul>
+ *   <li>On- and offscreen windows</li>
+ *   <li>Keyboard and multi-pointer input</li>
+ *   <li>Native reparenting</li>
+ *   <li>Toggable fullscreen and decoration mode</li>
+ *   <li>Transparency</li>
+ *   <li>... and more</li>
+ * </ul>
+ * <p>
+ * One use case is {@link com.jogamp.newt.opengl.GLWindow}, which delegates 
+ * window operation to an instance of this interface while providing OpenGL 
+ * functionality.
+ * </p>
  */
 public interface Window extends NativeWindow, WindowClosingProtocol {
     public static final boolean DEBUG_MOUSE_EVENT = Debug.debug("Window.MouseEvent");

@@ -42,7 +42,7 @@ package jogamp.opengl.windows.wgl;
 
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.SurfaceChangeable;
+import javax.media.nativewindow.MutableSurface;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
@@ -92,7 +92,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
           if (wglExt.wglReleasePbufferDCARB(buffer, ns.getSurfaceHandle()) == 0) {
             throw new GLException("Error releasing pbuffer device context: error code " + GDI.GetLastError());
           }
-          ((SurfaceChangeable)ns).setSurfaceHandle(0);
+          ((MutableSurface)ns).setSurfaceHandle(0);
         }
         if (!wglExt.wglDestroyPbufferARB(buffer)) {
             throw new GLException("Error destroying pbuffer: error code " + GDI.GetLastError());
@@ -121,7 +121,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     }
     try {
         long sharedHdc = sharedSurface.getSurfaceHandle();
-        WGLExt wglExt = sharedResource.getContext().getWGLExt();
+        WGLExt wglExt = ((WindowsWGLContext)sharedResource.getContext()).getWGLExt();
 
         if (DEBUG) {
             System.out.println("Pbuffer config: " + config);
@@ -131,7 +131,6 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         float[] fattributes = new float[1];
         int[]   floatModeTmp = new int[1];
         int     niattribs   = 0;
-        int     width, height;
 
         GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
         GLProfile glProfile = chosenCaps.getGLProfile();
@@ -206,7 +205,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
                 iattributes[niattribs++] = WGLExt.WGL_MIPMAP_TEXTURE_ARB;
                 iattributes[niattribs++] = GL.GL_FALSE;
 
-                iattributes[niattribs++] = WGLExt.WGL_PBUFFER_LARGEST_ARB;
+                iattributes[niattribs++] = WGLExt.WGL_PBUFFER_LARGEST_ARB; // exact
                 iattributes[niattribs++] = GL.GL_FALSE;
               }
 
@@ -235,7 +234,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         NativeSurface ns = getNativeSurface();
         // Set up instance variables
         buffer = tmpBuffer;
-        ((SurfaceChangeable)ns).setSurfaceHandle(tmpHdc);
+        ((MutableSurface)ns).setSurfaceHandle(tmpHdc);
         cachedWGLExt = wglExt;
 
         // Re-query chosen pixel format
@@ -249,14 +248,6 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
           }
           config.setCapsPFD(newCaps);
         }
-
-        // Determine the actual width and height we were able to create.
-        int[] tmp = new int[1];
-        wglExt.wglQueryPbufferARB( buffer, WGLExt.WGL_PBUFFER_WIDTH_ARB,  tmp, 0 );
-        width = tmp[0];
-        wglExt.wglQueryPbufferARB( buffer, WGLExt.WGL_PBUFFER_HEIGHT_ARB, tmp, 0 );
-        height = tmp[0];
-        ((SurfaceChangeable)ns).surfaceSizeChanged(width, height);
     } finally {
         sharedSurface.unlockSurface();
     }

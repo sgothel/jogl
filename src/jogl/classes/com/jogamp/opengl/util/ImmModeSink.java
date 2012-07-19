@@ -1,15 +1,20 @@
 
 package com.jogamp.opengl.util;
 
-import com.jogamp.common.util.*;
-import com.jogamp.opengl.util.glsl.ShaderState;
-
-import javax.media.opengl.*;
-import javax.media.opengl.fixedfunc.*;
-
-import java.nio.*;
-import java.util.Iterator;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.ShortBuffer;
 import java.util.ArrayList;
+import java.util.Iterator;
+
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES1;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLException;
+import javax.media.opengl.fixedfunc.GLPointerFunc;
+
+import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.opengl.util.glsl.ShaderState;
 
 public class ImmModeSink {
 
@@ -337,10 +342,8 @@ public class ImmModeSink {
         enableBuffer(gl, true);
 
         if (buffer!=null) {
-            GL2ES1 glf = gl.getGL2ES1();
-
             if(null==indices) {
-                glf.glDrawArrays(mode, 0, count);
+                gl.glDrawArrays(mode, 0, count);
             } else {
                 Class<?> clazz = indices.getClass();
                 int type=-1;
@@ -352,7 +355,7 @@ public class ImmModeSink {
                 if(0>type) {
                     throw new GLException("Given Buffer Class not supported: "+clazz+", should be ubyte or ushort:\n\t"+this);
                 }
-                glf.glDrawElements(mode, indices.remaining(), type, indices);
+                gl.glDrawElements(mode, indices.remaining(), type, indices);
                 // GL2: gl.glDrawRangeElements(mode, 0, indices.remaining()-1, indices.remaining(), type, indices);
             }
         }

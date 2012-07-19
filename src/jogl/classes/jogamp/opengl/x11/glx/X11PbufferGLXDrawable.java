@@ -43,7 +43,7 @@ package jogamp.opengl.x11.glx;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.SurfaceChangeable;
+import javax.media.nativewindow.MutableSurface;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
@@ -77,7 +77,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
     if (ns.getSurfaceHandle() != 0) {
       GLX.glXDestroyPbuffer(ns.getDisplayHandle(), ns.getSurfaceHandle());
     }
-    ((SurfaceChangeable)ns).setSurfaceHandle(0);
+    ((MutableSurface)ns).setSurfaceHandle(0);
   }
 
   private void createPbuffer() {
@@ -108,12 +108,14 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
 
       // Create the p-buffer.
       int niattribs = 0;
-      int[] iattributes = new int[5];
+      int[] iattributes = new int[7];
 
       iattributes[niattribs++] = GLX.GLX_PBUFFER_WIDTH;
       iattributes[niattribs++] = ns.getWidth();
       iattributes[niattribs++] = GLX.GLX_PBUFFER_HEIGHT;
       iattributes[niattribs++] = ns.getHeight();
+      iattributes[niattribs++] = GLX.GLX_LARGEST_PBUFFER; // exact
+      iattributes[niattribs++] = 0;
       iattributes[niattribs++] = 0;
 
       long pbuffer = GLX.glXCreatePbuffer(display, config.getFBConfig(), iattributes, 0);
@@ -123,15 +125,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       }
 
       // Set up instance variables
-      ((SurfaceChangeable)ns).setSurfaceHandle(pbuffer);
-
-      // Determine the actual width and height we were able to create.
-      int[] tmp = new int[1];
-      GLX.glXQueryDrawable(display, pbuffer, GLX.GLX_WIDTH, tmp, 0);
-      int width = tmp[0];
-      GLX.glXQueryDrawable(display, pbuffer, GLX.GLX_HEIGHT, tmp, 0);
-      int height = tmp[0];
-      ((SurfaceChangeable)ns).surfaceSizeChanged(width, height);
+      ((MutableSurface)ns).setSurfaceHandle(pbuffer);
 
       if (DEBUG) {
         System.err.println("Created pbuffer " + this);

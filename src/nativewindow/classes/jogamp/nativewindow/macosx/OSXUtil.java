@@ -63,18 +63,14 @@ public class OSXUtil {
       return (Point) GetLocationOnScreen0(windowOrView, src_x, src_y);
     }
     
-    public static long CreateNSView(int x, int y, int width, int height) {
-      return CreateNSView0(x, y, width, height);
-    }
-    public static void DestroyNSView(long nsView) {
-        DestroyNSView0(nsView);
-    }
-
     public static long CreateNSWindow(int x, int y, int width, int height) {
       return CreateNSWindow0(x, y, width, height);
     }
     public static void DestroyNSWindow(long nsWindow) {
         DestroyNSWindow0(nsWindow);
+    }
+    public static long GetNSView(long nsWindow) {
+      return GetNSView0(nsWindow);
     }
     
     public static long CreateCALayer(int x, int y, int width, int height) {
@@ -134,10 +130,9 @@ public class OSXUtil {
     
     private static native boolean initIDs0();
     private static native Object GetLocationOnScreen0(long windowOrView, int src_x, int src_y);
-    private static native long CreateNSView0(int x, int y, int width, int height);
-    private static native void DestroyNSView0(long nsView);
     private static native long CreateNSWindow0(int x, int y, int width, int height);
     private static native void DestroyNSWindow0(long nsWindow);
+    private static native long GetNSView0(long nsWindow);
     private static native long CreateCALayer0(int x, int y, int width, int height);
     private static native void AddCASublayer0(long rootCALayer, long subCALayer);
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);

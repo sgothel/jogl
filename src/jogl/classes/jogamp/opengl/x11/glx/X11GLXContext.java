@@ -61,6 +61,7 @@ import jogamp.opengl.GLDrawableImpl;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
+import com.jogamp.opengl.GLExtensions;
 
 public abstract class X11GLXContext extends GLContextImpl {
   private static final Map<String, String> functionNameMap;
@@ -83,8 +84,8 @@ public abstract class X11GLXContext extends GLContextImpl {
     functionNameMap.put("glFreeMemoryNV", "glXFreeMemoryNV");
 
     extensionNameMap = new HashMap<String, String>();
-    extensionNameMap.put("GL_ARB_pbuffer",      "GLX_SGIX_pbuffer");
-    extensionNameMap.put("GL_ARB_pixel_format", "GLX_SGIX_pbuffer"); // good enough
+    extensionNameMap.put(GLExtensions.ARB_pbuffer,      X11GLXDrawableFactory.GLX_SGIX_pbuffer);
+    extensionNameMap.put(GLExtensions.ARB_pixel_format, X11GLXDrawableFactory.GLX_SGIX_pbuffer); // good enough
   }
 
   X11GLXContext(GLDrawableImpl drawable,
@@ -508,8 +509,8 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   @Override
   public boolean isExtensionAvailable(String glExtensionName) {
-    if (glExtensionName.equals("GL_ARB_pbuffer") ||
-        glExtensionName.equals("GL_ARB_pixel_format")) {
+    if (glExtensionName.equals(GLExtensions.ARB_pbuffer) ||
+        glExtensionName.equals(GLExtensions.ARB_pixel_format)) {
       return getGLDrawable().getFactory().canCreateGLPbuffer(
           drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice() );
     }

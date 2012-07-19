@@ -28,10 +28,6 @@
  
 package com.jogamp.opengl.test.junit.jogl.util.texture;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 import com.jogamp.newt.opengl.GLWindow;
 
 import javax.media.opengl.GLAutoDrawable;
@@ -41,6 +37,7 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
+import com.jogamp.opengl.util.texture.TextureIO;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -66,19 +63,6 @@ public class TestGLReadBufferUtilTextureIOWrite02NEWT extends UITestCase {
         height = 64;
     }
 
-    protected void snapshot(GLAutoDrawable drawable, GLReadBufferUtil screenshot, int i) {
-        final StringWriter filename = new StringWriter();
-        {
-            final PrintWriter pw = new PrintWriter(filename);
-            final String pfmt = drawable.getChosenGLCapabilities().getAlphaBits() > 0 ? "rgba" : "rgb_";
-            pw.printf("%s-F_rgba-I_%s-%s-n%03d-%04dx%04d.png", 
-                    getSimpleTestName("."), pfmt, drawable.getGLProfile().getName(), i, drawable.getWidth(), drawable.getHeight());
-        }
-        if(screenshot.readPixels(drawable.getGL(), drawable, false)) {
-            screenshot.write(new File(filename.toString()));
-        }                
-    }
-    
     private void testWritePNGWithResizeImpl(boolean offscreen) throws InterruptedException {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
         final GLCapabilities caps2 = offscreen ? WindowUtilNEWT.fixCaps(caps, false, true, false) : caps;
@@ -110,7 +94,7 @@ public class TestGLReadBufferUtilTextureIOWrite02NEWT extends UITestCase {
                 if(snap) {
                     System.err.println("XXX: ["+dw_old+"], "+dw+"x"+dh+", sz_changed "+sz_changed+", snap "+snap);
                     c=0;
-                    snapshot(drawable, screenshot, i++);
+                    snapshot(getSimpleTestName("."), i++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
                     dw_old = dw;
                     new Thread() { 
                         @Override

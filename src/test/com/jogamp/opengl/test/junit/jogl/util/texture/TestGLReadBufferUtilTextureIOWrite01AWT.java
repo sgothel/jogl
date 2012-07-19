@@ -30,7 +30,6 @@ package com.jogamp.opengl.test.junit.jogl.util.texture;
 
 import java.awt.Dimension;
 import java.awt.Frame;
-import java.io.File;
 
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -42,6 +41,7 @@ import jogamp.nativewindow.jawt.JAWTUtil;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
+import com.jogamp.opengl.util.texture.TextureIO;
 
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -68,14 +68,10 @@ public class TestGLReadBufferUtilTextureIOWrite01AWT extends UITestCase {
         height = 256;
     }
 
-    protected void snapshot(GLAutoDrawable drawable, boolean alpha, boolean flip, String filename) {
-        GLReadBufferUtil screenshot = new GLReadBufferUtil(alpha, false);
-        if(screenshot.readPixels(drawable.getGL(), drawable, flip)) {
-            screenshot.write(new File(filename));
-        }                
-    }
-    
     protected void testWritePNG_Impl(boolean offscreenLayer) throws InterruptedException {
+        final GLReadBufferUtil screenshotRGB = new GLReadBufferUtil(false, false);
+        final GLReadBufferUtil screenshotRGBA = new GLReadBufferUtil(true, false);
+        
         if(!offscreenLayer && JAWTUtil.isOffscreenLayerRequired()) {
             System.err.println("onscreen layer n/a");
             return;
@@ -96,12 +92,13 @@ public class TestGLReadBufferUtilTextureIOWrite01AWT extends UITestCase {
         glc.setSize(width, height);
         glc.addGLEventListener(new GearsES2(1));
         glc.addGLEventListener(new GLEventListener() {
+            int f = 0;
             public void init(GLAutoDrawable drawable) {}
             public void dispose(GLAutoDrawable drawable) {}
             public void display(GLAutoDrawable drawable) {
-                final String pfmt = drawable.getChosenGLCapabilities().getAlphaBits() > 0 ? "rgba" : "rgb_";
-                snapshot(drawable, true,  false, getSimpleTestName(".")+"-F_rgba-I_"+pfmt+"-"+drawable.getGLProfile().getName()+".png");
-                snapshot(drawable, false, false, getSimpleTestName(".")+"-F_rgb_-I_"+pfmt+"-"+drawable.getGLProfile().getName()+".png");
+                snapshot(getSimpleTestName("."), f, null, drawable.getGL(), screenshotRGBA, TextureIO.PNG, null);
+                snapshot(getSimpleTestName("."), f, null,  drawable.getGL(), screenshotRGB, TextureIO.PNG, null);
+                f++;
             }
             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
         });

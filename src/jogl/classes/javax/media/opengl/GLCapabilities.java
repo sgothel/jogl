@@ -183,8 +183,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
         return -1;
     }
 
-    final int ms = sampleBuffers ? numSamples : 0;
-    final int xms = caps.getSampleBuffers() ? caps.getNumSamples() : 0;
+    final int ms = getNumSamples();
+    final int xms = caps.getNumSamples() ;
 
     if(ms > xms) {
         return 1;
@@ -231,15 +231,13 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   /**
    * Enables or disables pbuffer usage.
    * <p>
-   * If enabled this method also invokes {@link #setOnscreen(int) setOnscreen(false)}
-   * and {@link #setFBO(int) setFBO(false)}<br>
+   * If enabled this method also invokes {@link #setOnscreen(int) setOnscreen(false)}.
    * </p>
    * Defaults to false.
    */
   public void setPBuffer(boolean enable) {
     if(enable) {
       setOnscreen(false);
-      setFBO(false);
     }
     isPBuffer = enable;
   }
@@ -252,28 +250,28 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   /**
    * Enables or disables FBO usage.
    * <p>
-   * If enabled this method also invokes {@link #setOnscreen(int) setOnscreen(false)}
-   * and {@link #setPBuffer(int) setPBuffer(false)}<br>
+   * If enabled this method also invokes {@link #setOnscreen(int) setOnscreen(false)}.
    * </p>
    * Defaults to false.
    */
   public void setFBO(boolean enable) {
     if(enable) {
       setOnscreen(false);
-      setPBuffer(false);
     }
     isFBO = enable;
   }
 
   /**
    * Sets whether the drawable surface supports onscreen.<br>
-   * If enabled this method also invokes {@link #setPBuffer(int) setPBuffer(false)}<br>
+   * If enabled this method also invokes {@link #setPBuffer(int) setPBuffer(false)}
+   * and {@link #setFBO(int) setFBO(false)}<br>
    * Defaults to true.
   */
   @Override
   public void setOnscreen(boolean onscreen) {
     if(onscreen) {
         setPBuffer(false);
+        setFBO(false);
     }
     super.setOnscreen(onscreen);
   }
@@ -413,15 +411,18 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     return sampleBuffers;
   }
 
-  /** If sample buffers are enabled, indicates the number of buffers
-      to be allocated. Defaults to 2. */
+  /** 
+   * If sample buffers are enabled, indicates the number of buffers
+   * to be allocated. Defaults to 2.
+   * @see #getNumSamples()
+   */
   public void setNumSamples(int numSamples) {
     this.numSamples = numSamples;
   }
 
   @Override
   public final int getNumSamples() {
-    return numSamples;
+    return sampleBuffers ? numSamples : 0;
   }
 
   /** For pbuffers only, indicates whether floating-point buffers
@@ -492,12 +493,14 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     if(!isOnscreen()) {
         if(isFBO) {
             sink.append(", fbo");
-        } else if(isPBuffer) {
+        } 
+        if(isPBuffer) {
             sink.append(", pbuffer [r2t ").append(pbufferRenderToTexture?1:0)
                 .append(", r2tr ").append(pbufferRenderToTextureRectangle?1:0)
                 .append(", float ").append(pbufferFloatingPointBuffers?1:0)
                 .append("]");
-        } else {
+        } 
+        if(!isFBO && !isPBuffer) {
             sink.append(", pixmap");
         }
     }

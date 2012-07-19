@@ -43,7 +43,6 @@ import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
 import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 
-import jogamp.common.awt.AWTEDTExecutor;
 import jogamp.nativewindow.macosx.OSXUtil;
 
 public class SWTAccessor {
@@ -204,8 +203,6 @@ public class SWTAccessor {
         if( null != OS_gtk_class ) {
             long widgedHandle = callStaticMethodL2L(OS_GTK_WIDGET_WINDOW, handle);
             long displayHandle = callStaticMethodL2L(OS_gdk_x11_drawable_get_xdisplay, widgedHandle);
-            // FIXME: May think about creating a private non-shared X11 Display handle, like we use to for AWT
-            //        to avoid locking problems !
             return new X11GraphicsDevice(displayHandle, AbstractGraphicsDevice.DEFAULT_UNIT, false);
         }
         if( NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false) ) {

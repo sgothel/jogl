@@ -27,9 +27,9 @@
  */
 package com.jogamp.opengl.test.junit.jogl.demos.es2;
 
+import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
-import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -37,10 +37,8 @@ import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLRunnable;
 import javax.media.opengl.GLUniformData;
 
 public class RedSquareES2 implements GLEventListener {
@@ -52,10 +50,11 @@ public class RedSquareES2 implements GLEventListener {
     long t0;
     private int swapInterval = 0;
     MyMouseAdapter myMouse = new MyMouseAdapter();
-    GLWindow glWindow = null;
+    Window window = null;
     float aspect = 1.0f;
     boolean doRotate = true;
     boolean isInitialized = false;
+    boolean isFBOSlave = false;
 
     public RedSquareES2(int swapInterval) {
         this.swapInterval = swapInterval;
@@ -65,6 +64,7 @@ public class RedSquareES2 implements GLEventListener {
         this.swapInterval = 1;
     }
         
+    public void setIsFBOSlave(boolean v) { isFBOSlave = v; }
     public void setAspect(float aspect) { this.aspect = aspect; }
     public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
     
@@ -129,13 +129,13 @@ public class RedSquareES2 implements GLEventListener {
         colors.enableBuffer(gl, false);
         
         // OpenGL Render Settings
-        gl.glClearColor(0, 0, 0, 0);
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         st.useProgram(gl, false);        
 
-        if (glad instanceof GLWindow) {
-            glWindow = (GLWindow) glad;
-            glWindow.addMouseListener(myMouse);
+        final Object upstreamWidget = glad.getUpstreamWidget();
+        if (!isFBOSlave && upstreamWidget instanceof Window) {
+            window = (Window) upstreamWidget;
+            window.addMouseListener(myMouse);
         }
         t0 = System.currentTimeMillis();
         System.err.println(Thread.currentThread()+" RedSquareES2.init FIN");
@@ -145,6 +145,7 @@ public class RedSquareES2 implements GLEventListener {
         long t1 = System.currentTimeMillis();
 
         GL2ES2 gl = glad.getGL().getGL2ES2();
+        gl.glClearColor(0, 0, 0, 0);
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         st.useProgram(gl, true);
         // One rotation every four seconds
@@ -171,7 +172,9 @@ public class RedSquareES2 implements GLEventListener {
         System.err.println(Thread.currentThread()+" RedSquareES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);        
         GL2ES2 gl = glad.getGL().getGL2ES2();
         
-        gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
+        if(-1 != swapInterval) {        
+            gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
+        }
         
         st.useProgram(gl, true);
         // Set location in front of camera
@@ -192,9 +195,9 @@ public class RedSquareES2 implements GLEventListener {
         }
         isInitialized = false;
         System.err.println(Thread.currentThread()+" RedSquareES2.dispose ... ");
-        if (null != glWindow) {
-            glWindow.removeMouseListener(myMouse);
-            glWindow = null;            
+        if (null != window) {
+            window.removeMouseListener(myMouse);
+            window = null;            
         }
         GL2ES2 gl = glad.getGL().getGL2ES2();
         st.destroy(gl);
@@ -207,24 +210,9 @@ public class RedSquareES2 implements GLEventListener {
     class MyMouseAdapter extends MouseAdapter {
         public void mouseClicked(MouseEvent e) {
             System.err.println(e);
-            if(null != glWindow && e.getSource() == glWindow.getDelegatedWindow()) {
-                if(e.getX() < glWindow.getWidth()/2) {
-                    glWindow.setFullscreen(!glWindow.isFullscreen());
-                    System.err.println("setFullscreen: "+glWindow.isFullscreen());
-                } else { 
-                    glWindow.invoke(false, new GLRunnable() {
-                        public boolean run(GLAutoDrawable drawable) {
-                            GL gl = drawable.getGL();
-                            gl.setSwapInterval(gl.getSwapInterval()<=0?1:0);
-                            System.err.println("setSwapInterval: "+gl.getSwapInterval());
-                            final GLAnimatorControl a = drawable.getAnimator();
-                            if( null != a ) {
-                                a.resetFPSCounter();
-                            }
-                            return true;
-                        }
-                    });
-                }                
+            if(null != window && e.getSource() == window) {
+                window.setFullscreen(!window.isFullscreen());
+                System.err.println("setFullscreen: "+window.isFullscreen());
             }
         }
      }

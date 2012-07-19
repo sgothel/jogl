@@ -76,8 +76,15 @@ public class X11ExternalGLXContext extends X11GLXContext {
     long drawable = GLX.glXGetCurrentDrawable();
     if (drawable == 0) {
       throw new GLException("Error: attempted to make an external GLDrawable without a drawable/context current");
-    }
+    }    
     int[] val = new int[1];
+    
+    int w, h;
+    GLX.glXQueryDrawable(display, drawable, GLX.GLX_WIDTH, val, 0);
+    w=val[0];
+    GLX.glXQueryDrawable(display, drawable, GLX.GLX_HEIGHT, val, 0);
+    h=val[0];
+    
     GLX.glXQueryContext(display, ctx, GLX.GLX_SCREEN, val, 0);
     X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val[0], false);
 
@@ -97,8 +104,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
         cfg = X11GLXGraphicsConfiguration.create(glp, x11Screen, val[0]);
     }
 
-    WrappedSurface ns = new WrappedSurface(cfg);
-    ns.setSurfaceHandle(drawable);
+    final WrappedSurface ns = new WrappedSurface(cfg, drawable, w, h, null);
     return new X11ExternalGLXContext(new Drawable(factory, ns), ctx);
   }
 

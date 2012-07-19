@@ -136,7 +136,17 @@ public class EGLDisplayUtil {
         return res;
     }
     
-    public static final EGLGraphicsDevice.EGLTerminateCallback eglTerminateCallback = new EGLGraphicsDevice.EGLTerminateCallback() {
+    public static final EGLGraphicsDevice.EGLDisplayLifecycleCallback eglLifecycleCallback = new EGLGraphicsDevice.EGLDisplayLifecycleCallback() {
+        public long eglGetAndInitDisplay(long nativeDisplayID) {
+            long eglDisplay = EGLDisplayUtil.eglGetDisplay(nativeDisplayID);
+            if (eglDisplay == EGL.EGL_NO_DISPLAY) {
+                throw new GLException("Failed to created EGL display: 0x"+Long.toHexString(nativeDisplayID)+", error 0x"+Integer.toHexString(EGL.eglGetError()));
+            }
+            if (!EGLDisplayUtil.eglInitialize(eglDisplay, null, null)) {
+                throw new GLException("eglInitialize failed"+", error 0x"+Integer.toHexString(EGL.eglGetError()));
+            }
+            return eglDisplay;
+        }
         public void eglTerminate(long eglDisplayHandle) {
             EGLDisplayUtil.eglTerminate(eglDisplayHandle);
         }
@@ -148,17 +158,12 @@ public class EGLDisplayUtil {
      * @param unitID
      * @return an initialized EGLGraphicsDevice 
      * @throws GLException if {@link EGL#eglGetDisplay(long)} or {@link EGL#eglInitialize(long, int[], int, int[], int)} fails
-     * @see EGLGraphicsDevice#EGLGraphicsDevice(long, long, String, int, com.jogamp.nativewindow.egl.EGLGraphicsDevice.EGLTerminateCallback) 
+     * @see EGLGraphicsDevice#EGLGraphicsDevice(long, long, String, int, com.jogamp.nativewindow.egl.EGLGraphicsDevice.EGLDisplayLifecycleCallback) 
      */
     public static EGLGraphicsDevice eglCreateEGLGraphicsDevice(long nativeDisplayID, String connection, int unitID)  {
-        long eglDisplay = EGLDisplayUtil.eglGetDisplay(nativeDisplayID);
-        if (eglDisplay == EGL.EGL_NO_DISPLAY) {
-            throw new GLException("Failed to created EGL display: 0x"+Long.toHexString(nativeDisplayID)+", error 0x"+Integer.toHexString(EGL.eglGetError()));
-        }
-        if (!EGLDisplayUtil.eglInitialize(eglDisplay, null, null)) {
-            throw new GLException("eglInitialize failed"+", error 0x"+Integer.toHexString(EGL.eglGetError()));
-        }
-        return new EGLGraphicsDevice(nativeDisplayID, eglDisplay, connection, unitID, eglTerminateCallback);
+        final EGLGraphicsDevice eglDisplay = new EGLGraphicsDevice(nativeDisplayID, 0, connection, unitID, eglLifecycleCallback);
+        eglDisplay.open();
+        return eglDisplay;
     }
     
     /**
@@ -189,6 +194,6 @@ public class EGLDisplayUtil {
             throw new GLException("eglInitialize failed"+", error 0x"+Integer.toHexString(EGL.eglGetError()));
         }
         final AbstractGraphicsDevice adevice = surface.getGraphicsConfiguration().getScreen().getDevice();
-        return new EGLGraphicsDevice(nativeDisplayID, eglDisplay, adevice.getConnection(), adevice.getUnitID(), eglTerminateCallback);                                            
+        return new EGLGraphicsDevice(nativeDisplayID, eglDisplay, adevice.getConnection(), adevice.getUnitID(), eglLifecycleCallback);                                            
     }
 }

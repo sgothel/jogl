@@ -31,6 +31,7 @@ import javax.media.opengl.*;
 
 import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
+import com.jogamp.opengl.util.texture.TextureIO;
 
 import javax.media.opengl.awt.GLJPanel;
 import javax.media.opengl.glu.gl2.GLUgl2;
@@ -39,7 +40,6 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import java.awt.AWTException;
 import java.awt.BorderLayout;
-import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 
@@ -61,7 +61,7 @@ import org.junit.Test;
  *
  * @author Wade Walker (adapted from TestGearsGLJPanelAWT)
  */
-public class TestGearsGLJPanelAWTBug450 extends UITestCase {
+public class TestGLJPanelAWTBug450 extends UITestCase {
     static GLProfile glp;
     static int width, height;
     static int r_x, r_y;
@@ -83,16 +83,10 @@ public class TestGearsGLJPanelAWTBug450 extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void snapshot(GLAutoDrawable drawable, boolean alpha, boolean flip, String filename) {
-        GLReadBufferUtil screenshot = new GLReadBufferUtil(alpha, false);
-        if(screenshot.readPixels(drawable.getGL(), drawable, flip)) {
-            screenshot.write(new File(filename));
-        }                
-    }
-    
     protected void runTestGL(GLCapabilities caps)
             throws AWTException, InterruptedException, InvocationTargetException
     {
+        final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
         JFrame frame = new JFrame("Swing GLJPanel");
         Assert.assertNotNull(frame);
 
@@ -123,7 +117,7 @@ public class TestGearsGLJPanelAWTBug450 extends UITestCase {
                 }
                 if(0 == f) {
                     System.err.println("BGR ("+r_x+"/"+r_y+"): "+byte0+", "+byte1+", "+byte2+" - OK "+(!failed));
-                    snapshot(drawable, true,  false, getSimpleTestName(".")+".png");
+                    snapshot(getSimpleTestName("."), f, null, gl, screenshot, TextureIO.PNG, null);
                 }
                 f++;
             }
@@ -189,6 +183,6 @@ public class TestGearsGLJPanelAWTBug450 extends UITestCase {
                 } catch (Exception ex) { ex.printStackTrace(); }
             }
         }
-        org.junit.runner.JUnitCore.main(TestGearsGLJPanelAWTBug450.class.getName());
+        org.junit.runner.JUnitCore.main(TestGLJPanelAWTBug450.class.getName());
     }
 }

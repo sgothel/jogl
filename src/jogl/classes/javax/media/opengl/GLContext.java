@@ -55,6 +55,7 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
+import com.jogamp.opengl.GLExtensions;
 
 /** Abstraction for an OpenGL rendering context. In order to perform
     OpenGL rendering, a context must be "made current" on the current
@@ -69,6 +70,7 @@ import com.jogamp.common.util.locks.RecursiveLock;
     abstraction provides a stable object which clients can use to
     refer to a given context. */
 public abstract class GLContext {
+  
   /** 
    * If <code>true</code> (default), bootstrapping the available GL profiles 
    * will use the highest compatible GL context for each profile, 
@@ -120,13 +122,13 @@ public abstract class GLContext {
   protected static final int CTX_PROFILE_ES      = 1 <<  3;
   /** <code>ARB_create_context</code> related: flag forward compatible. Cache key value. See {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
   protected static final int CTX_OPTION_FORWARD  = 1 <<  4;
-  /** <code>ARB_create_context</code> related: flag debug. Not a cache key. See {@link #setContextCreationFlags(int)}, {@link GLAutoDrawable#setContextCreationFlags(int)}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
+  /** <code>ARB_create_context</code> related: flag debug. Cache key value. See {@link #setContextCreationFlags(int)}, {@link GLAutoDrawable#setContextCreationFlags(int)}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
   public static final int CTX_OPTION_DEBUG       = 1 <<  5;
 
   /** <code>GL_ARB_ES2_compatibility</code> implementation related: Context is compatible w/ ES2. Not a cache key. See {@link #isGLES2Compatible()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
   protected static final int CTX_IMPL_ES2_COMPAT = 1 <<  8;
 
-  /** Context supports FBO, details see {@link #hasFBO()}.
+  /** Context supports basic FBO, details see {@link #hasFBO()}.
    * Not a cache key.
    * @see #hasFBO()
    * @see #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)
@@ -136,16 +138,6 @@ public abstract class GLContext {
   /** Context uses software rasterizer, otherwise hardware rasterizer. Cache key value. See {@link #isHardwareRasterizer()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
   protected static final int CTX_IMPL_ACCEL_SOFT = 1 << 15;
 
-  protected static final String GL_ARB_ES2_compatibility           = "GL_ARB_ES2_compatibility";
-  protected static final String GL_ARB_framebuffer_object          = "GL_ARB_framebuffer_object";
-  protected static final String GL_EXT_framebuffer_object          = "GL_EXT_framebuffer_object";
-  protected static final String GL_EXT_framebuffer_blit            = "GL_EXT_framebuffer_blit";
-  protected static final String GL_EXT_framebuffer_multisample     = "GL_EXT_framebuffer_multisample";
-  protected static final String GL_EXT_packed_depth_stencil        = "GL_EXT_packed_depth_stencil";
-  protected static final String GL_ARB_texture_non_power_of_two    = "GL_ARB_texture_non_power_of_two";
-  protected static final String GL_EXT_texture_format_BGRA8888     = "GL_EXT_texture_format_BGRA8888";
-  protected static final String GL_IMG_texture_format_BGRA8888     = "GL_IMG_texture_format_BGRA8888";
-  
   private static final ThreadLocal<GLContext> currentContext = new ThreadLocal<GLContext>();
 
   private final HashMap<String, Object> attachedObjectsByString = new HashMap<String, Object>();
@@ -639,11 +631,19 @@ public abstract class GLContext {
       return 0 == ( ctxOptions & CTX_IMPL_ACCEL_SOFT ) ;
   }
   
-  /** Returns whether the context supports FBO, hence is either GL-ES >= 2.0, >= core GL 3.0 or implements the extensions
-   * <code>GL_ARB_ES2_compatibility</code>, <code>ARB_framebuffer_object</code> or all of
-   * <code>EXT_framebuffer_object</code>, <code>EXT_framebuffer_multisample</code>, 
-   * <code>EXT_framebuffer_blit</code>, <code>GL_EXT_packed_depth_stencil</code>.
+  /** 
+   * Returns <code>true</code> if basic FBO support is available, otherwise <code>false</code>.
+   * <p>
+   * Basic FBO is supported if the context is either GL-ES >= 2.0, GL >= core 3.0 or implements the extensions
+   * <code>GL_ARB_ES2_compatibility</code>, <code>GL_ARB_framebuffer_object</code>, <code>GL_EXT_framebuffer_object</code> or <code>GL_OES_framebuffer_object</code>.
+   * </p>
+   * <p>
+   * Basic FBO support may only include one color attachment and no multisampling,
+   * as well as limited internal formats for renderbuffer.
+   * </p>
    * @see #CTX_IMPL_FBO
+   * @see com.jogamp.opengl.FBObject#supportsBasicFBO(GL)
+   * @see com.jogamp.opengl.FBObject#supportsFullFBO(GL)
    */
   public final boolean hasFBO() {
       return 0 != ( ctxOptions & CTX_IMPL_FBO ) ;
@@ -659,13 +659,13 @@ public abstract class GLContext {
 
   /** Note: The GL impl. may return a const value, ie {@link GLES2#isNPOTTextureAvailable()} always returns <code>true</code>. */
   public boolean isNPOTTextureAvailable() {
-      return isGL3() || isGLES2Compatible() || isExtensionAvailable(GL_ARB_texture_non_power_of_two);
+      return isGL3() || isGLES2Compatible() || isExtensionAvailable(GLExtensions.ARB_texture_non_power_of_two);
   }
 
   public boolean isTextureFormatBGRA8888Available() {
       return isGL2GL3() ||
-             isExtensionAvailable(GL_EXT_texture_format_BGRA8888) ||
-             isExtensionAvailable(GL_IMG_texture_format_BGRA8888) ;
+             isExtensionAvailable(GLExtensions.EXT_texture_format_BGRA8888) ||
+             isExtensionAvailable(GLExtensions.IMG_texture_format_BGRA8888) ;
   }
 
   /** @see GLProfile#isGL4bc() */
@@ -798,7 +798,32 @@ public abstract class GLContext {
   }
   protected boolean bindSwapBarrierImpl(int group, int barrier) { /** nop per default .. **/  return false; }
 
-
+  /** 
+   * Return the framebuffer name bound to this context, 
+   * see {@link GL#glBindFramebuffer(int, int)}.
+   */
+  public abstract int getBoundFramebuffer(int target);
+  
+  /** 
+   * Return the default draw framebuffer name.
+   * <p> 
+   * May differ from it's default <code>zero</code>
+   * in case an framebuffer object ({@link FBObject}) based drawable
+   * is being used.
+   * </p> 
+   */
+  public abstract int getDefaultDrawFramebuffer();
+  
+  /** 
+   * Return the default read framebuffer name.
+   * <p> 
+   * May differ from it's default <code>zero</code>
+   * in case an framebuffer object ({@link FBObject}) based drawable
+   * is being used.
+   * </p> 
+   */
+  public abstract int getDefaultReadFramebuffer();
+  
   /**
    * @return The extension implementing the GLDebugOutput feature,
    *         either <i>GL_ARB_debug_output</i> or <i>GL_AMD_debug_output</i>.
@@ -984,6 +1009,7 @@ public abstract class GLContext {
           deviceVersionsAvailableSet.add(devKey);
           if (DEBUG) {
             System.err.println(getThreadName() + ": createContextARB: SET mappedVersionsAvailableSet "+devKey);
+            System.err.println(GLContext.dumpAvailableGLVersions(null).toString());            
           }
       }
   }
@@ -1010,6 +1036,10 @@ public abstract class GLContext {
     validateProfileBits(profile, "profile");
     validateProfileBits(resCtp, "resCtp");
 
+    if(DEBUG) {
+        System.err.println("GLContext.mapAvailableGLVersion: "+device+": "+getGLVersion(reqMajor, 0, profile, null)+" -> "+getGLVersion(resMajor, resMinor, resCtp, null));
+        // Thread.dumpStack();
+    }
     final String key = getDeviceVersionAvailableKey(device, reqMajor, profile);
     final Integer val = new Integer(composeBits(resMajor, resMinor, resCtp));
     synchronized(deviceVersionAvailable) {
@@ -1122,7 +1152,9 @@ public abstract class GLContext {
     } else /* if (glpImpl.isGL2()) */ {
         reqMajorCTP[0]=2;
     }
-    if( glpImpl.isGL2() ) { // incl GL3bc and GL4bc
+    if( glpImpl.isGLES() ) {
+        reqMajorCTP[1]=CTX_PROFILE_ES;
+    } else if( glpImpl.isGL2() ) { // incl GL3bc and GL4bc
         reqMajorCTP[1]=CTX_PROFILE_COMPAT;
     } else {
         reqMajorCTP[1]=CTX_PROFILE_CORE;
@@ -1141,8 +1173,7 @@ public abstract class GLContext {
     int _major[] = { 0 };
     int _minor[] = { 0 };
     int _ctp[] = { 0 };
-    if( GLContext.getAvailableGLVersion(device, reqMajorCTP[0], reqMajorCTP[1],
-                                        _major, _minor, _ctp)) {
+    if( GLContext.getAvailableGLVersion(device, reqMajorCTP[0], reqMajorCTP[1], _major, _minor, _ctp)) {
       return _ctp[0];
     }
     return 0; // n/a
@@ -1180,6 +1211,23 @@ public abstract class GLContext {
     return null;
   }
 
+  /**
+   * Returns true if it is possible to create an <i>framebuffer object</i> (FBO).
+   * <p>
+   * FBO feature is implemented in OpenGL, hence it is {@link GLProfile} dependent.
+   * </p> 
+   * <p>
+   * FBO support is queried as described in {@link #hasFBO()}.
+   * </p>
+   *
+   * @param device the device to request whether FBO is available for
+   * @param glp {@link GLProfile} to check for FBO capabilities
+   * @see GLContext#hasFBO()
+   */
+  public static final boolean isFBOAvailable(AbstractGraphicsDevice device, GLProfile glp) {
+      return 0 != ( CTX_IMPL_FBO & getAvailableContextProperties(device, glp) );
+  }
+  
   /**
    * @param device the device to request whether the profile is available for
    * @param reqMajor Key Value either 1, 2, 3 or 4

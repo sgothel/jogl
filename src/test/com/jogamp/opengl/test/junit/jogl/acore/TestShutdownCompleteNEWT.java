@@ -86,7 +86,7 @@ public class TestShutdownCompleteNEWT extends UITestCase {
         }
         long t2 = System.nanoTime();
         if(glInfo) {
-            System.err.println(JoglVersion.getDefaultOpenGLInfo(null, false).toString());
+            System.err.println(JoglVersion.getDefaultOpenGLInfo(null, null, false).toString());
         }
         long t3 = System.nanoTime();        
         GLProfile.shutdown(GLProfile.ShutdownType.COMPLETE);        

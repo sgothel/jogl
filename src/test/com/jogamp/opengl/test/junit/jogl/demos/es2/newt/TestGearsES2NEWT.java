@@ -258,7 +258,6 @@ public class TestGearsES2NEWT extends UITestCase {
 
     public static void main(String args[]) throws IOException {        
         int x=0, y=0, w=640, h=480;
-        boolean useSize = false;
         boolean usePos = false;
         
         for(int i=0; i<args.length; i++) {
@@ -291,11 +290,9 @@ public class TestGearsES2NEWT extends UITestCase {
             } else if(args[i].equals("-width")) {
                 i++;
                 w = MiscUtils.atoi(args[i], w);
-                useSize = true;
             } else if(args[i].equals("-height")) {
                 i++;
                 h = MiscUtils.atoi(args[i], h);
-                useSize = true;
             } else if(args[i].equals("-x")) {
                 i++;
                 x = MiscUtils.atoi(args[i], x);

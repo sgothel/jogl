@@ -85,7 +85,7 @@ public class TestGLAutoDrawableDelegateNEWT extends UITestCase {
         Assert.assertTrue(GLContext.CONTEXT_CURRENT_NEW==res || GLContext.CONTEXT_CURRENT==res);
         context.release();
         
-        final GLAutoDrawableDelegate glad = new GLAutoDrawableDelegate(drawable, context) {
+        final GLAutoDrawableDelegate glad = new GLAutoDrawableDelegate(drawable, context, window) {
             @Override
             public void destroy() {
                 super.destroy();  // destroys drawable/context

@@ -124,6 +124,11 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         this.window.setLifecycleHook(new GLLifecycleHook());
     }
 
+    @Override
+    public final Object getUpstreamWidget() {
+        return window;
+    }
+    
     /**
      * Creates a new GLWindow attaching a new Window referencing a
      * new default Screen and default Display with the given GLCapabilities.
@@ -762,7 +767,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         System.err.println(GlueGenVersion.getInstance());
         System.err.println(JoglVersion.getInstance());
 
-        System.err.println(JoglVersion.getDefaultOpenGLInfo(null, true).toString());
+        System.err.println(JoglVersion.getDefaultOpenGLInfo(null, null, true).toString());
 
         final GLProfile glp = GLProfile.getDefault();
         final GLCapabilitiesImmutable caps = new GLCapabilities( glp );

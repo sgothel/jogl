@@ -42,7 +42,7 @@ package jogamp.opengl.macosx.cgl;
 
 import javax.media.nativewindow.DefaultGraphicsConfiguration;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.SurfaceChangeable;
+import javax.media.nativewindow.MutableSurface;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2GL3;
@@ -96,12 +96,6 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   }
 
   @Override
-  protected long getNSViewHandle() {
-      // pbuffer handle is NSOpenGLPixelBuffer
-      return 0;
-  }
-
-  @Override
   public long getHandle() {
     return pBuffer;
   }
@@ -115,7 +109,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
       NativeSurface ns = getNativeSurface();
       impl.destroy(pBuffer);
       this.pBuffer = 0;
-      ((SurfaceChangeable)ns).setSurfaceHandle(0);
+      ((MutableSurface)ns).setSurfaceHandle(0);
     }
   }
 
@@ -174,7 +168,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
       throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");
     }
 
-    ((SurfaceChangeable)ns).setSurfaceHandle(pBuffer);
+    ((MutableSurface)ns).setSurfaceHandle(pBuffer);
   }
 
   @Override

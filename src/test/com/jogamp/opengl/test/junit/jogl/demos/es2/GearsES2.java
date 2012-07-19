@@ -65,6 +65,7 @@ public class GearsES2 implements GLEventListener {
 
     private int prevMouseX, prevMouseY;
     private boolean isInitialized = false;
+    boolean isFBOSlave = false;
 
     public GearsES2(int swapInterval) {
         this.swapInterval = swapInterval;
@@ -74,6 +75,8 @@ public class GearsES2 implements GLEventListener {
         this.swapInterval = 1;
     }
 
+    public void setIsFBOSlave(boolean v) { isFBOSlave = v; }
+    
     public void setPMVUseBackingArray(boolean pmvUseBackingArray) {
         this.pmvUseBackingArray = pmvUseBackingArray;
     }
@@ -115,7 +118,6 @@ public class GearsES2 implements GLEventListener {
         System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
         System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
 
-        gl.glEnable(GL.GL_CULL_FACE);
         gl.glEnable(GL.GL_DEPTH_TEST);
         
         st = new ShaderState();
@@ -168,13 +170,14 @@ public class GearsES2 implements GLEventListener {
             gear3 = new GearsObjectES2(gear3, pmvMatrix, pmvMatrixUniform, colorU);
             System.err.println("gear3 reused: "+gear3);
         }                
-        
-        if (drawable.getNativeSurface() instanceof Window) {
-            Window window = (Window) drawable.getNativeSurface();
+    
+        final Object upstreamWidget = drawable.getUpstreamWidget();
+        if (upstreamWidget instanceof Window) {
+            final Window window = (Window) upstreamWidget;
             window.addMouseListener(gearsMouse);
             window.addKeyListener(gearsKeys);
-        } else if (GLProfile.isAWTAvailable() && drawable instanceof java.awt.Component) {
-            java.awt.Component comp = (java.awt.Component) drawable;
+        } else if (GLProfile.isAWTAvailable() && upstreamWidget instanceof java.awt.Component) {
+            final java.awt.Component comp = (java.awt.Component) upstreamWidget;
             new com.jogamp.newt.event.awt.AWTMouseAdapter(gearsMouse).addTo(comp);
             new com.jogamp.newt.event.awt.AWTKeyAdapter(gearsKeys).addTo(comp);
         }
@@ -187,7 +190,9 @@ public class GearsES2 implements GLEventListener {
         System.err.println(Thread.currentThread()+" GearsES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval);
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
+        if(-1 != swapInterval) {
+            gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
+        }
         
         st.useProgram(gl, true);
         pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
@@ -218,8 +223,9 @@ public class GearsES2 implements GLEventListener {
         }
         isInitialized = false;
         System.err.println(Thread.currentThread()+" GearsES2.dispose ... ");
-        if (drawable.getNativeSurface() instanceof Window) {
-            Window window = (Window) drawable.getNativeSurface();
+        final Object upstreamWidget = drawable.getUpstreamWidget();
+        if (upstreamWidget instanceof Window) {            
+            final Window window = (Window) upstreamWidget;
             window.removeMouseListener(gearsMouse);
             window.removeKeyListener(gearsKeys);
         }
@@ -235,6 +241,7 @@ public class GearsES2 implements GLEventListener {
         colorU = null;        
         st.destroy(gl);
         st = null;
+
         System.err.println(Thread.currentThread()+" GearsES2.dispose FIN");
     }
 
@@ -246,12 +253,16 @@ public class GearsES2 implements GLEventListener {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         final boolean hasFocus;
-        if(drawable.getNativeSurface() instanceof NativeWindow) {
-          hasFocus = ((NativeWindow)drawable.getNativeSurface()).hasFocus();
+        final Object upstreamWidget = drawable.getUpstreamWidget();
+        if(upstreamWidget instanceof NativeWindow) {
+          hasFocus = ((NativeWindow)upstreamWidget).hasFocus();
         } else {
           hasFocus = true;
         }
-        if(hasFocus) {
+        
+        gl.glEnable(GL.GL_CULL_FACE);
+        
+        if( isFBOSlave || hasFocus ) {
           gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         } else {
           gl.glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
@@ -278,7 +289,9 @@ public class GearsES2 implements GLEventListener {
         gear2.draw(gl,  3.1f, -2.0f, -2f * angle -  9.0f, GearsObject.green);
         gear3.draw(gl, -3.1f,  4.2f, -2f * angle - 25.0f, GearsObject.blue);    
         pmvMatrix.glPopMatrix();
-        st.useProgram(gl, false);        
+        st.useProgram(gl, false);
+        
+        gl.glDisable(GL.GL_CULL_FACE);
     }
     
     boolean confinedFixedCenter = false;

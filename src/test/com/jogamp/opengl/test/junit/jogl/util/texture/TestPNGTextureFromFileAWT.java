@@ -52,7 +52,6 @@ import com.jogamp.opengl.util.GLReadBufferUtil;
 import java.awt.Dimension;
 import java.awt.Frame;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
@@ -96,16 +95,10 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
         testTextureStream = null;
     }
 
-    protected void snapshot(GLAutoDrawable drawable, String filename) {
-        GLReadBufferUtil screenshot = new GLReadBufferUtil(false, false);
-        if(screenshot.readPixels(drawable.getGL(), drawable, false)) {
-            screenshot.write(new File(filename));
-        }                
-    }
-    
     public void testImpl(boolean useFFP, final InputStream istream, final boolean useAWTIIOP) 
             throws InterruptedException, IOException 
     {
+        final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
         GLProfile glp;
         if(useFFP && GLProfile.isAvailable(GLProfile.GL2GL3)) {
             glp = GLProfile.getGL2GL3();
@@ -137,7 +130,7 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
         // the bug submitter was doing it
         final GLEventListener gle = useFFP ? new TextureDraw01GL2Listener( texData ) : new TextureDraw01ES2Listener( texData ) ;
         glc.addGLEventListener(gle);
-        glc.addGLEventListener(new GLEventListener() {
+        glc.addGLEventListener(new GLEventListener() {            
             boolean shot = false;
             
             @Override public void init(GLAutoDrawable drawable) {}
@@ -147,7 +140,7 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
                 // 1 snapshot
                 if(null!=((TextureDraw01Accessor)gle).getTexture() && !shot) {
                     shot = true;
-                    snapshot(drawable, getSimpleTestName(".")+".png");                            
+                    snapshot(getSimpleTestName("."), 0, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
                 }
             }
 

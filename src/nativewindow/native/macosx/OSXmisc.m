@@ -150,37 +150,6 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnS
 
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
- * Method:    CreateNSView0
- * Signature: (IIIIZ)J
- */
-JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateNSView0
-  (JNIEnv *env, jclass unused, jint x, jint y, jint width, jint height)
-{
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSRect rect = NSMakeRect(x, y, width, height);
-    NSView * view = [[NSView alloc] initWithFrame: rect] ;
-    [view setCanDrawConcurrently: YES];
-    [pool release];
-
-    return (jlong) (intptr_t) view;
-}
-
-/*
- * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
- * Method:    DestroyNSView0
- * Signature: (J)V
- */
-JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyNSView0
-  (JNIEnv *env, jclass unused, jlong nsView)
-{
-    NSView* view = (NSView*) (intptr_t) nsView;
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    [view release];
-    [pool release];
-}
-
-/*
- * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    CreateNSWindow0
  * Signature: (IIIIZ)J
  */
@@ -220,6 +189,27 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyNSWindow0
 
     [mWin close]; // performs release!
     [pool release];
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    GetNSView0
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSView0
+  (JNIEnv *env, jclass unused, jlong window)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSWindow* win = (NSWindow*) ((intptr_t) window);
+
+    DBG_PRINT( "contentView0 - window: %p (START)\n", win);
+
+    jlong res = (jlong) ((intptr_t) [win contentView]);
+
+    DBG_PRINT( "contentView0 - window: %p (END)\n", win);
+
+    [pool release];
+    return res;
 }
 
 /*

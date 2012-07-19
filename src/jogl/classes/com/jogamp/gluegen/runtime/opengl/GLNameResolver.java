@@ -37,7 +37,8 @@
  */
 package com.jogamp.gluegen.runtime.opengl;
 
-public class GLExtensionNames {
+/** Runtime utility identify and resolve extension names, which may be subsumed to core. */
+public class GLNameResolver {
     //GL_XYZ : GL_XYZ, GL_XYZ_GL2, GL_XYZ_ARB, GL_XYZ_OES, GL_XYZ_OML
     //GL_XYZ : GL_XYZ, GL_GL2_XYZ, GL_ARB_XYZ, GL_OES_XYZ, GL_OML_XYZ
     //

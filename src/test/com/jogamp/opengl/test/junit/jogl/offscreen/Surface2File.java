@@ -64,7 +64,7 @@ public class Surface2File implements SurfaceUpdatedListener {
                 GL gl = ctx.getGL();
                 // FIXME glFinish() is an expensive paranoia sync, should not be necessary due to spec
                 gl.glFinish();
-                if(readBufferUtil.readPixels(gl, drawable, false)) {
+                if(readBufferUtil.readPixels(gl, false)) {
                     gl.glFinish();
                     try {
                         surface2File();
