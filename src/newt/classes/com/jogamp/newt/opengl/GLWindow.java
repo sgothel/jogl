@@ -431,7 +431,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         @Override
         public synchronized void destroyActionInLock() {
             if(Window.DEBUG_IMPLEMENTATION) {
-                String msg = "GLWindow.destroy() "+Thread.currentThread()+", start";
+                String msg = "GLWindow.destroy() "+WindowImpl.getThreadName()+", start";
                 System.err.println(msg);
                 //Exception e1 = new Exception(msg);
                 //e1.printStackTrace();
@@ -440,14 +440,14 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
             defaultDestroyOp();
 
             if(Window.DEBUG_IMPLEMENTATION) {
-                System.err.println("GLWindow.destroy() "+Thread.currentThread()+", fin");
+                System.err.println("GLWindow.destroy() "+WindowImpl.getThreadName()+", fin");
             }
         }
 
         @Override
         public synchronized void resetCounter() {
             if(Window.DEBUG_IMPLEMENTATION) {
-                System.err.println("GLWindow.resetCounter() "+Thread.currentThread());
+                System.err.println("GLWindow.resetCounter() "+WindowImpl.getThreadName());
             }
             GLWindow.this.resetFPSCounter();
         }
@@ -457,7 +457,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
             long t0;
             if(Window.DEBUG_IMPLEMENTATION) {
                 t0 = System.nanoTime();
-                System.err.println("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", start");
+                System.err.println("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+WindowImpl.getThreadName()+", start");
             } else {
                 t0 = 0;
             }
@@ -484,7 +484,8 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 context.setContextCreationFlags(additionalCtxCreationFlags);
             }
             if(Window.DEBUG_IMPLEMENTATION) {
-                System.err.println("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", fin: dt "+ (System.nanoTime()-t0)/1e6 +"ms");
+                System.err.println("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+WindowImpl.getThreadName()+", fin: dt "+ (System.nanoTime()-t0)/1e6 +"ms");
+                Thread.dumpStack(); // JAU
             }
         }
 

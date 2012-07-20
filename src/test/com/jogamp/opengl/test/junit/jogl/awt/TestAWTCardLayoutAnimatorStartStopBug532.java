@@ -9,11 +9,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.reflect.InvocationTargetException;
 
-import javax.media.nativewindow.NativeWindow;
 import javax.media.opengl.GLAnimatorControl;
-import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 import javax.swing.JComboBox;
@@ -21,11 +18,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import jogamp.nativewindow.windows.GDI;
-
 import org.junit.Test;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -83,7 +77,7 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
       canvas.setPreferredSize(new Dimension(640, 480));
       
       final GLAnimatorControl animatorCtrl = useFPSAnimator ? new FPSAnimator(canvas, 60) : new Animator(canvas);
-      animatorCtrl.setUpdateFPSFrames(60, System.err);
+      animatorCtrl.setUpdateFPSFrames(60, null);// System.err);
       switch (animCtrl) {
           case PauseResume:
               animatorCtrl.start();
@@ -92,6 +86,7 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
           case Continue:
               animatorCtrl.start();
               break;
+          default:
       }
 
       canvas.addGLEventListener(new GearsES2(1));
@@ -141,6 +136,7 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
                        case PauseResume:
                            animatorCtrl.resume();
                            break;
+                       default:
                     }
                     selected = CANVAS;
                 } else if(newSelection.equals(LABEL)) {
@@ -151,6 +147,7 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
                        case PauseResume:
                            animatorCtrl.pause();
                            break;
+                       default:
                     }
                     cl.show(cards, LABEL); 
                     selected = LABEL;
