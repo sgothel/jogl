@@ -515,7 +515,7 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
     DBG_PRINT("createContext.0: share %p, view %p, allowIncompleteView %d, pixfmt %p, opaque %d\n",
         share, view, (int)allowIncompleteView, fmt, opaque);
 
-    if (view != NULL) {
+    if (view != nil) {
         Bool viewReady = true;
 
         if(!allowIncompleteView) {

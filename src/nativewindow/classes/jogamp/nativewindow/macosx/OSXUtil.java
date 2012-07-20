@@ -59,6 +59,10 @@ public class OSXUtil {
         return false;
     }
     
+    public static boolean isNSView(long object) {
+        return isNSView0(object);
+    }
+    
     public static Point GetLocationOnScreen(long windowOrView, int src_x, int src_y) {
       return (Point) GetLocationOnScreen0(windowOrView, src_x, src_y);
     }
@@ -129,6 +133,7 @@ public class OSXUtil {
     } */
     
     private static native boolean initIDs0();
+    private static native boolean isNSView0(long object);
     private static native Object GetLocationOnScreen0(long windowOrView, int src_x, int src_y);
     private static native long CreateNSWindow0(int x, int y, int width, int height);
     private static native void DestroyNSWindow0(long nsWindow);

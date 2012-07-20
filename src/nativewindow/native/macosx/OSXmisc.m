@@ -92,6 +92,12 @@ Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0(JNIEnv *env, jclass _unused) {
     return JNI_TRUE;
 }
 
+JNIEXPORT jboolean JNICALL 
+Java_jogamp_nativewindow_macosx_OSXUtil_isNSView0(JNIEnv *env, jclass _unused, jlong object) {
+    NSObject *nsObj = (NSObject*) (intptr_t) object;
+    return [nsObj isMemberOfClass:[NSView class]];
+}
+
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    getLocationOnScreen0
