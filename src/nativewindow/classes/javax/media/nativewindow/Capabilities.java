@@ -211,9 +211,18 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     return alphaBits;
   }
 
-  /** Sets the number of bits requested for the color buffer's alpha
-      component. On some systems only the color depth, which is the
-      sum of the red, green, and blue bits, is considered. */
+  /** 
+   * Sets the number of bits requested for the color buffer's alpha
+   * component. On some systems only the color depth, which is the
+   * sum of the red, green, and blue bits, is considered.
+   * <p>
+   * <b>Note:</b> If alpha bits are <code>zero</code>, they are set to <code>one</code> 
+   * by {@link #setBackgroundOpaque(boolean)} and it's OpenGL specialization <code>GLCapabilities::setSampleBuffers(boolean)</code>.<br/>
+   * Ensure to call this method after the above to ensure a <code>zero</code> value.</br>
+   * The above automated settings takes into account, that the user calls this method to <i>request</i> alpha bits,
+   * not to <i>reflect</i> a current state. Nevertheless if this is the case - call it at last.
+   * </p>  
+   */
   public void setAlphaBits(int alphaBits) {
     this.alphaBits = alphaBits;
   }

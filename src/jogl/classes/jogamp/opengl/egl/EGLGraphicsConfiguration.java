@@ -209,24 +209,6 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             return false;
         }        
                 
-        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_RED_SIZE, val)) {
-            caps.setRedBits(val.get(0));
-        }
-        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_GREEN_SIZE, val)) {
-            caps.setGreenBits(val.get(0));
-        }
-        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_BLUE_SIZE, val)) {
-            caps.setBlueBits(val.get(0));
-        }
-        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_ALPHA_SIZE, val)) {
-            caps.setAlphaBits(val.get(0));
-        }
-        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_STENCIL_SIZE, val)) {
-            caps.setStencilBits(val.get(0));
-        }
-        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_DEPTH_SIZE, val)) {
-            caps.setDepthBits(val.get(0));
-        }
         if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_SAMPLES, val)) {
             caps.setSampleBuffers(val.get(0)>0?true:false);
             caps.setNumSamples(val.get(0));
@@ -261,6 +243,25 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_TRANSPARENT_ALPHA_VALUE, val)) {
                 caps.setTransparentAlphaValue(val.get(0)==EGL.EGL_DONT_CARE?-1:val.get(0));
             } */
+        }
+        // ALPHA shall be set at last - due to it's auto setting by the above (!opaque / samples)
+        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_RED_SIZE, val)) {
+            caps.setRedBits(val.get(0));
+        }
+        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_GREEN_SIZE, val)) {
+            caps.setGreenBits(val.get(0));
+        }
+        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_BLUE_SIZE, val)) {
+            caps.setBlueBits(val.get(0));
+        }
+        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_ALPHA_SIZE, val)) {
+            caps.setAlphaBits(val.get(0));
+        }
+        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_STENCIL_SIZE, val)) {
+            caps.setStencilBits(val.get(0));
+        }
+        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_DEPTH_SIZE, val)) {
+            caps.setDepthBits(val.get(0));
         }
         return GLGraphicsConfigurationUtil.addGLCapabilitiesPermutations(capsBucket, caps, drawableTypeBits );
     }

@@ -281,6 +281,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
             glp = GLProfile.get(GLProfile.GL2);
         }
         GLCapabilities caps = new GLCapabilities(glp);
+        int alphaBits = 0;
         for (int i = 0; i < len; i++) {
           int attr = cglInternalAttributeToken[i+off];
           switch (attr) {
@@ -317,7 +318,8 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
                 break;
 
               case CGL.NSOpenGLPFAAlphaSize:
-                caps.setAlphaBits(ivalues[i]);
+                // ALPHA shall be set at last - due to it's auto setting by !opaque / samples
+                alphaBits = ivalues[i];
                 break;
 
               case CGL.NSOpenGLPFADepthSize:
@@ -350,6 +352,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
                 break;
           }
         }
+        caps.setAlphaBits(alphaBits);
 
         return caps;
       }

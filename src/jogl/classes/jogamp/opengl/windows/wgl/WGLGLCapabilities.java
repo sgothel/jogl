@@ -52,10 +52,11 @@ public class WGLGLCapabilities extends GLCapabilities {
   public boolean setValuesByGDI() {
       arb_pixelformat = -1;
 
+      // ALPHA shall be set at last - due to it's auto setting by !opaque / samples
       setRedBits(pfd.getCRedBits());
       setGreenBits(pfd.getCGreenBits());
       setBlueBits(pfd.getCBlueBits());
-      setAlphaBits(pfd.getCAlphaBits());
+      setAlphaBits(pfd.getCAlphaBits()); 
       setAccumRedBits(pfd.getCAccumRedBits());
       setAccumGreenBits(pfd.getCAccumGreenBits());
       setAccumBlueBits(pfd.getCAccumBlueBits());
@@ -77,6 +78,7 @@ public class WGLGLCapabilities extends GLCapabilities {
   public boolean setValuesByARB(final int[] iattribs, final int niattribs, final int[] iresults) {
       arb_pixelformat = 1;
 
+      int alphaBits = 0;
       for (int i = 0; i < niattribs; i++) {
           int attr = iattribs[i];
           switch (attr) {
@@ -143,7 +145,8 @@ public class WGLGLCapabilities extends GLCapabilities {
                   break;
 
               case WGLExt.WGL_ALPHA_BITS_ARB:
-                  setAlphaBits(iresults[i]);
+                  // ALPHA shall be set at last - due to it's auto setting by !opaque / samples
+                  alphaBits = iresults[i];
                   break;
 
               case WGLExt.WGL_ACCUM_RED_BITS_ARB:
@@ -174,6 +177,7 @@ public class WGLGLCapabilities extends GLCapabilities {
                   throw new GLException("Unknown pixel format attribute " + iattribs[i]);
           }
       }
+      setAlphaBits(alphaBits);
       return true;
   }
 

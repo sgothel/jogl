@@ -57,7 +57,6 @@ import com.jogamp.opengl.util.texture.TextureIO;
 
 public class TestMultisampleES2NEWT extends UITestCase {
   static long durationPerTest = 60; // ms
-  private GLWindow window;
 
   public static void main(String[] args) {
      for(int i=0; i<args.length; i++) {
@@ -70,17 +69,17 @@ public class TestMultisampleES2NEWT extends UITestCase {
      org.junit.runner.JUnitCore.main(tstname);
   }
 
-  @Test(timeout = 3000) // 3s timeout
+  @Test
   public void testOnscreenMultiSampleAA0() throws InterruptedException {
     testMultiSampleAAImpl(false, false, 0);
   }
 
-  @Test(timeout = 3000) // 3s timeout
+  @Test
   public void testOnscreenMultiSampleAA8() throws InterruptedException {
     testMultiSampleAAImpl(false, false, 8);
   }
 
-  @Test(timeout = 3000) // 3s timeout
+  @Test
   public void testOffscreenPBufferMultiSampleAA0() throws InterruptedException {
     testMultiSampleAAImpl(false, true, 0);
   }
@@ -119,7 +118,7 @@ public class TestMultisampleES2NEWT extends UITestCase {
         caps.setNumSamples(reqSamples);
     }
 
-    window = GLWindow.create(caps);
+    final GLWindow window = GLWindow.create(caps);
     window.setCapabilitiesChooser(chooser);
     window.addGLEventListener(new MultisampleDemoES2(reqSamples>0?true:false));
     window.addGLEventListener(new GLEventListener() {

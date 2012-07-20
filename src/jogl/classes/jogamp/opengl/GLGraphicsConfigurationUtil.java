@@ -177,14 +177,16 @@ public class GLGraphicsConfigurationUtil {
         return capsRequested;
     }
 
+    /** Fix opaque setting while preserve alpha bits */
     public static GLCapabilitiesImmutable fixOpaqueGLCapabilities(GLCapabilitiesImmutable capsRequested, boolean isOpaque)
     {
         GLCapabilities caps2 = null;
         
         if( capsRequested.isBackgroundOpaque() != isOpaque) {
-            // fix caps ..
+            final int alphaBits = capsRequested.getAlphaBits();
             caps2 = (GLCapabilities) capsRequested.cloneMutable();
             caps2.setBackgroundOpaque(isOpaque);
+            caps2.setAlphaBits(alphaBits);
             return caps2;
         }
         return capsRequested;

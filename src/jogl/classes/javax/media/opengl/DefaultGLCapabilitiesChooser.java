@@ -117,6 +117,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     final int availnum = available.size();
 
     if (DEBUG) {
+      Thread.dumpStack();
       System.err.println("Desired: " + gldes);
       System.err.println("Available: " + availnum);
       for (int i = 0; i < available.size(); i++) {
@@ -241,7 +242,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
         if (i > 0) {
           System.err.print(",");
         }
-        System.err.print(" " + scores[i]);
+        System.err.print(" " + i +": " + scores[i]);
       }
       System.err.println(" ]");
     }

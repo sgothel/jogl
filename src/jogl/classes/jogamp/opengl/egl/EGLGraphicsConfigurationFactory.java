@@ -253,12 +253,12 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             //
             // rgb888 - d16, s4
             final GLCapabilities fixedCaps = new GLCapabilities(glp);
+            fixedCaps.setSampleBuffers(true);
+            fixedCaps.setNumSamples(4);
             fixedCaps.setRedBits(8);
             fixedCaps.setGreenBits(8);
             fixedCaps.setBlueBits(8);
             fixedCaps.setDepthBits(16);
-            fixedCaps.setSampleBuffers(true);
-            fixedCaps.setNumSamples(4);
             if( !capsChosen.isOnscreen() ) {
                 fixedCaps.setOnscreen(false);
                 fixedCaps.setPBuffer(capsChosen.isPBuffer());
@@ -291,12 +291,12 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             //
             // rgb565 - d16, s4
             final GLCapabilities fixedCaps = new GLCapabilities(glp);
+            fixedCaps.setSampleBuffers(true);
+            fixedCaps.setNumSamples(4);
             fixedCaps.setRedBits(5);
             fixedCaps.setGreenBits(6);
             fixedCaps.setBlueBits(5);
             fixedCaps.setDepthBits(16);
-            fixedCaps.setSampleBuffers(true);
-            fixedCaps.setNumSamples(4);
             if( !capsChosen.isOnscreen() ) {
                 fixedCaps.setOnscreen(false);
                 fixedCaps.setPBuffer(capsChosen.isPBuffer());
