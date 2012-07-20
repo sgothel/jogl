@@ -42,7 +42,9 @@ import java.security.PrivilegedAction;
 import java.util.Set;
 
 import javax.media.nativewindow.NativeWindow;
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.OffscreenLayerOption;
+import javax.media.nativewindow.OffscreenLayerSurface;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.swing.MenuSelectionManager;
 
@@ -368,6 +370,10 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         if(DEBUG) {
             System.err.println("NewtCanvasAWT.removeNotify: "+newtChild+", from "+cont);
         }
+        final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(newtChild, true);
+        if(null != ols && ols.isSurfaceLayerAttached()) {
+            ols.detachSurfaceLayer();
+        }      
         reparentWindow(false, cont);
         super.removeNotify();
     }
@@ -413,7 +419,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
           // since this it is completely covered by the newtChild (z-order).
           setFocusable(true);        
       } else {
-          configureNewtChild(false);          
+          configureNewtChild(false);
           newtChild.setVisible(false);
           newtChild.reparentWindow(null);
           if(null != jawtWindow) {
@@ -445,7 +451,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 NewtFactoryAWT.destroyNativeWindow(jawtWindow);
                 jawtWindow=null;
             }
-            newtChild.setVisible(false);
+            newtChild.setVisible(false);            
             newtChild.reparentWindow(null);
             newtChild.destroy();
             newtChild=null;

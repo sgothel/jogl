@@ -143,9 +143,10 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
             // layered surface -> Offscreen/[FBO|PBuffer]
             final GLCapabilities chosenCapsMod = (GLCapabilities) chosenCaps.cloneMutable();
             chosenCapsMod.setOnscreen(false);
-            if( isFBOAvailable ) {
+            /* if( isFBOAvailable ) { // FIXME JAU: FBO n/a yet
                 chosenCapsMod.setFBO(true);
-            } else if(canCreateGLPbuffer(adevice)) {
+            } else */ 
+            if( canCreateGLPbuffer(adevice) ) {
                 chosenCapsMod.setPBuffer(true);
             } else {
                 chosenCapsMod.setFBO(false);

@@ -42,7 +42,12 @@ public interface OffscreenLayerSurface {
    * Detaches a previously attached offscreen layer from this offscreen layer surface.
    * @see #attachSurfaceLayer(long)
    * @see #isOffscreenLayerSurfaceEnabled()
-   * @throws NativeWindowException if {@link #isOffscreenLayerSurfaceEnabled()} == false
+   * @throws NativeWindowException if {@link #isOffscreenLayerSurfaceEnabled()} == false 
+   *                               or no surface layer is attached.
    */
-  public void detachSurfaceLayer(final long layerHandle) throws NativeWindowException;
+  public void detachSurfaceLayer() throws NativeWindowException;
+  
+  /** Returns true if a surface layer is attached, otherwise false. */
+  public boolean isSurfaceLayerAttached();
+  
 }

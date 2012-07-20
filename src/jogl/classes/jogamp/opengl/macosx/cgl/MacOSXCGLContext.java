@@ -444,9 +444,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                 throw new RuntimeException("Anonymous drawable instance's handle not of type NSView: "+drawable.getClass().getName()+", "+drawable);
             }
         }
-        final NativeSurface surface = drawable.getNativeSurface();
+        final NativeSurface surface = drawable.getNativeSurface();        
         final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) surface.getGraphicsConfiguration();
         final OffscreenLayerSurface backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(surface, true);
+        
         boolean allowIncompleteView = null != backingLayerHost;
         if( !allowIncompleteView && surface instanceof ProxySurface ) {
             allowIncompleteView = 0 != ( ProxySurface.INVISIBLE_WINDOW & ((ProxySurface)surface).getImplBitfield() ) ;
@@ -519,10 +520,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   texWidth = drawable.getWidth();
                   texHeight = drawable.getHeight();
               }
-              nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, nsOpenGLLayerPFmt, drawable.getHandle(), fixedCaps.isBackgroundOpaque(), texWidth, texHeight);
               if(0>=texWidth || 0>=texHeight || !drawable.isRealized()) {
                   throw new GLException("Drawable not realized yet or invalid texture size, texSize "+texWidth+"x"+texHeight+", "+drawable);
               }
+              nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, nsOpenGLLayerPFmt, drawable.getHandle(), fixedCaps.isBackgroundOpaque(), texWidth, texHeight);
               if (DEBUG) {
                   System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer)+", texSize "+texWidth+"x"+texHeight+", "+drawable);
               }
@@ -545,11 +546,11 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               System.err.println("NS destroy nsOpenGLLayer "+toHexString(nsOpenGLLayer));
           }
           final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(surface, true);
-          if(null == ols) {
-              throw new InternalError("XXX: "+ols);
+          if(null != ols && ols.isSurfaceLayerAttached()) {
+              // still having a valid OLS attached to surface (parent OLS could have been removed)
+              ols.detachSurfaceLayer();
           }
-          CGL.releaseNSOpenGLLayer(nsOpenGLLayer);
-          ols.detachSurfaceLayer(nsOpenGLLayer);
+          CGL.releaseNSOpenGLLayer(nsOpenGLLayer); 
           CGL.deletePixelFormat(nsOpenGLLayerPFmt);
           nsOpenGLLayerPFmt = 0;
           nsOpenGLLayer = 0;

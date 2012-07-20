@@ -407,10 +407,9 @@ function testawtswt() {
 # osx:
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer01GLCanvasAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer02NewtCanvasAWT $*
 
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES2NEWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer01GLCanvasAWT $*
+testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer02NewtCanvasAWT $*
 
 $spath/count-edt-start.sh java-run.log
 
