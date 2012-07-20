@@ -1805,8 +1805,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public boolean setFullscreen(boolean fullscreen) {
         synchronized(fullScreenAction) {
             if( fullScreenAction.init(fullscreen) ) {               
-                if(fullScreenAction.fsOn() && 
-                   isOffscreenInstance(WindowImpl.this, parentWindow)) { 
+                if(fullScreenAction.fsOn() && isOffscreenInstance(WindowImpl.this, parentWindow)) { 
                     // enable fullscreen on offscreen instance
                     if(null != parentWindow) {
                         nfs_parent = parentWindow;

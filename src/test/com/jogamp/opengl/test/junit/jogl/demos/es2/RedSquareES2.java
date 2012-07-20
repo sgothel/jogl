@@ -28,8 +28,6 @@
 package com.jogamp.opengl.test.junit.jogl.demos.es2;
 
 import com.jogamp.newt.Window;
-import com.jogamp.newt.event.MouseAdapter;
-import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -49,7 +47,6 @@ public class RedSquareES2 implements GLEventListener {
     GLArrayDataServer colors ;
     long t0;
     private int swapInterval = 0;
-    MyMouseAdapter myMouse = new MyMouseAdapter();
     Window window = null;
     float aspect = 1.0f;
     boolean doRotate = true;
@@ -132,11 +129,6 @@ public class RedSquareES2 implements GLEventListener {
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         st.useProgram(gl, false);        
 
-        final Object upstreamWidget = glad.getUpstreamWidget();
-        if (!isFBOSlave && upstreamWidget instanceof Window) {
-            window = (Window) upstreamWidget;
-            window.addMouseListener(myMouse);
-        }
         t0 = System.currentTimeMillis();
         System.err.println(Thread.currentThread()+" RedSquareES2.init FIN");
     }
@@ -195,25 +187,11 @@ public class RedSquareES2 implements GLEventListener {
         }
         isInitialized = false;
         System.err.println(Thread.currentThread()+" RedSquareES2.dispose ... ");
-        if (null != window) {
-            window.removeMouseListener(myMouse);
-            window = null;            
-        }
         GL2ES2 gl = glad.getGL().getGL2ES2();
         st.destroy(gl);
         st = null;
         pmvMatrix.destroy();
         pmvMatrix = null;
         System.err.println(Thread.currentThread()+" RedSquareES2.dispose FIN");
-    }
-    
-    class MyMouseAdapter extends MouseAdapter {
-        public void mouseClicked(MouseEvent e) {
-            System.err.println(e);
-            if(null != window && e.getSource() == window) {
-                window.setFullscreen(!window.isFullscreen());
-                System.err.println("setFullscreen: "+window.isFullscreen());
-            }
-        }
-     }
+    }    
 }
