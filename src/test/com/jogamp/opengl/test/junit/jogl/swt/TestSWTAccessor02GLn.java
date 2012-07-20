@@ -140,23 +140,27 @@ public class TestSWTAccessor02GLn extends UITestCase {
         
         SWTAccessor.invoke(true, canvasCstr);
         final Canvas canvas = canvasCstr.canvas;        
-        Assert.assertNotNull( canvas );
-        
+        Assert.assertNotNull( canvas );        
         SWTAccessor.setRealized(canvas, true);
+        
         AbstractGraphicsDevice device = SWTAccessor.getDevice(canvas);
         long nativeWindowHandle = SWTAccessor.getWindowHandle(canvas);
         System.err.println("*** device: " + device);
         System.err.println("*** window handle: 0x" + Long.toHexString(nativeWindowHandle));
         
         final SWTUpstreamHook swtUpstreamHook = new SWTUpstreamHook(canvas);
+        canvas.addControlListener(swtUpstreamHook);
+        
         final ProxySurface proxySurface = factory.createProxySurface(device, 0, nativeWindowHandle, caps, null, swtUpstreamHook);
-        Assert.assertNotNull( proxySurface );        
+        Assert.assertNotNull( proxySurface );              
         System.err.println("*** ProxySurface: " + proxySurface);
+        
         final GLDrawable drawable = factory.createGLDrawable(proxySurface);
         Assert.assertNotNull( drawable );
         drawable.setRealized(true);
         System.err.println("*** Drawable: " + drawable);
         Assert.assertTrue( drawable.isRealized() );
+        
         final GLContext glcontext = drawable.createContext(null);
         // trigger native creation ..
         if( GLContext.CONTEXT_NOT_CURRENT < glcontext.makeCurrent() ) {        

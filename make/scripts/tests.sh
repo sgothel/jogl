@@ -402,14 +402,14 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
 
 #linux:
-#testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02GLn $* # ??
+testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02GLn $* # ??
 
 # osx:
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer01GLCanvasAWT $*
 
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer01GLCanvasAWT $*
-testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer02NewtCanvasAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer02NewtCanvasAWT $*
 
 $spath/count-edt-start.sh java-run.log
 
