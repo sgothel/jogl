@@ -355,24 +355,39 @@ public abstract class DisplayImpl extends Display {
     DispatchMessagesRunnable dispatchMessagesRunnable = new DispatchMessagesRunnable();
 
     final void dispatchMessage(final NEWTEventTask eventTask) {
-        NEWTEvent event = eventTask.get();
-        if(null == event) {
-            // Ooops ?
-            System.err.println("Warning: event of eventTask is NULL");
-            Thread.dumpStack();
-            return;
-        }
-        Object source = event.getSource();
-        if(source instanceof NEWTEventConsumer) {
-            NEWTEventConsumer consumer = (NEWTEventConsumer) source ;
-            if(!consumer.consumeEvent(event)) {
-                // enqueue for later execution
-                enqueueEvent(false, event);
+        final NEWTEvent event = eventTask.get();
+        try { 
+            if(null == event) {
+                // Ooops ?
+                System.err.println("Warning: event of eventTask is NULL");
+                Thread.dumpStack();
+                return;
             }
-        } else {
-            throw new RuntimeException("Event source not NEWT: "+source.getClass().getName()+", "+source);
+            final Object source = event.getSource();        
+            if(source instanceof NEWTEventConsumer) {
+                final NEWTEventConsumer consumer = (NEWTEventConsumer) source ;
+                if(!consumer.consumeEvent(event)) {
+                    // enqueue for later execution
+                    enqueueEvent(false, event);
+                }
+            } else {
+                throw new RuntimeException("Event source not NEWT: "+source.getClass().getName()+", "+source);
+            }
+        } catch (Throwable t) {
+            final RuntimeException re;
+            if(t instanceof RuntimeException) {
+                re = (RuntimeException) t;
+            } else {
+                re = new RuntimeException(t);
+            }
+            if( eventTask.isCallerWaiting() ) {
+                // propagate exception to caller
+                eventTask.setException(re);
+            } else {
+                throw re;
+            }
         }
-        eventTask.notifyIssuer();        
+        eventTask.notifyCaller();        
     }
     
     public void dispatchMessages() {
@@ -423,8 +438,8 @@ public abstract class DisplayImpl extends Display {
             return;
         }
         
-        Object lock = new Object();
-        NEWTEventTask eTask = new NEWTEventTask(e, wait?lock:null);
+        final Object lock = new Object();
+        final NEWTEventTask eTask = new NEWTEventTask(e, wait?lock:null);
         synchronized(lock) {
             synchronized(eventsLock) {
                 events.add(eTask);
@@ -437,7 +452,10 @@ public abstract class DisplayImpl extends Display {
                 } catch (InterruptedException ie) {
                     throw new RuntimeException(ie);
                 }
-            }
+                if( null != eTask.getException() ) {
+                    throw eTask.getException();
+                }
+            }            
         }
     }
 

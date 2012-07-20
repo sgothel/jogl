@@ -340,7 +340,7 @@ public class DefaultEDTUtil implements EDTUtil {
                     }
                 }
                 if(DEBUG) {
-                    System.err.println(getName()+": EDT run() EXIT "+ getName()+", "+error);
+                    System.err.println(getName()+": EDT run() EXIT "+ getName()+", exception: "+error);
                 }
                 if(null!=error) {
                     throw error;
