@@ -189,8 +189,9 @@ public class GLDrawableHelper {
    */
   public final void dispose(GLAutoDrawable drawable) {
     synchronized(listenersLock) {
-        for (int i=0; i < listeners.size(); i++) {
-          listeners.get(i).dispose(drawable);
+        final ArrayList<GLEventListener> _listeners = listeners;
+        for (int i=0; i < _listeners.size(); i++) {
+          _listeners.get(i).dispose(drawable);
         }
     }
   }
@@ -209,8 +210,9 @@ public class GLDrawableHelper {
   /** The default init action to be called once after ctx is being created @ 1st makeCurrent(). */
   public final void init(GLAutoDrawable drawable) {
     synchronized(listenersLock) {
-        for (int i=0; i < listeners.size(); i++) {
-          final GLEventListener listener = listeners.get(i) ;
+        final ArrayList<GLEventListener> _listeners = listeners;
+        for (int i=0; i < _listeners.size(); i++) {
+          final GLEventListener listener = _listeners.get(i) ;
 
           // If make current ctx, invoked by invokGL(..), results in a new ctx, init gets called.
           // This may happen not just for initial setup, but for ctx recreation due to resource change (drawable/window),
@@ -232,8 +234,9 @@ public class GLDrawableHelper {
   }
   private final void displayImpl(GLAutoDrawable drawable) {
       synchronized(listenersLock) {
-          for (int i=0; i < listeners.size(); i++) {
-            final GLEventListener listener = listeners.get(i) ;
+          final ArrayList<GLEventListener> _listeners = listeners;
+          for (int i=0; i < _listeners.size(); i++) {
+            final GLEventListener listener = _listeners.get(i) ;
             // GLEventListener may need to be init, 
             // in case this one is added after the realization of the GLAutoDrawable
             init( listener, drawable, true /* sendReshape */) ; 
@@ -324,7 +327,7 @@ public class GLDrawableHelper {
     }
   }
 
-  public final boolean isExternalAnimatorRunning() {
+  public final boolean isAnimatorRunningOnOtherThread() {
     return ( null != animatorCtrl ) ? animatorCtrl.isStarted() && animatorCtrl.getThread() != Thread.currentThread() : false ;
   }
 

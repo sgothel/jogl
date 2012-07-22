@@ -42,9 +42,13 @@ package jogamp.opengl;
 
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLPbuffer;
+
+import com.jogamp.common.util.locks.LockFactory;
+import com.jogamp.common.util.locks.RecursiveLock;
 
 /** Platform-independent class exposing pbuffer functionality to
     applications. This class is not exposed in the public API as it
@@ -101,7 +105,7 @@ public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
   //
   // GLDrawable delegation
   // 
-  
+    
   @Override
   public final void setRealized(boolean realized) {
   }
@@ -109,6 +113,10 @@ public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
   //
   // GLAutoDrawable completion
   //
+  private final RecursiveLock lock = LockFactory.createRecursiveLock();  // instance wide lock
+  
+  @Override
+  protected final RecursiveLock getLock() { return lock; }
   
   @Override
   public final Object getUpstreamWidget() {
@@ -117,7 +125,7 @@ public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
   
   @Override
   public void destroy() {
-    defaultDestroyOp();
+    defaultDestroy();
   }
 
   @Override
@@ -126,12 +134,23 @@ public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
   }
 
   @Override
-  public void display() {
-    if( null != drawable && drawable.isRealized() && null != context ) {
-      helper.invokeGL(drawable, context, defaultDisplayAction, initAction);
+  public final void display() {
+    final RecursiveLock _lock = lock;        
+    _lock.lock(); // sync: context/drawable could been recreated/destroyed while animating
+    try {
+        if( null != context ) {
+          helper.invokeGL(drawable, context, defaultDisplayAction, initAction);
+        }
+    } finally {
+        _lock.unlock();
     }
   }
 
+  @Override
+  public final void swapBuffers() throws GLException {
+      defaultSwapBuffers();
+  }
+  
   //----------------------------------------------------------------------
   // Internals only below this point
   //

@@ -90,8 +90,8 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
         
         final GLAutoDrawableDelegate glad = new GLAutoDrawableDelegate(drawable, null, window) {
             @Override
-            public void destroy() {
-                super.destroy();  // destroys drawable/context
+            protected void destroyImplInLock() {
+                super.destroyImplInLock();
                 window.destroy(); // destroys the actual window
             }            
         };
@@ -100,15 +100,15 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
         window.addWindowListener(new WindowAdapter() {
             @Override
             public void windowRepaint(WindowUpdateEvent e) {
-                glad.defaultWindowRepaintOp();
+                glad.windowRepaintOp();
             }
             @Override
             public void windowResized(WindowEvent e) {
-                glad.defaultWindowResizedOp();
+                glad.windowResizedOp();
             }
             @Override
             public void windowDestroyNotify(WindowEvent e) {
-                glad.defaultWindowDestroyNotifyOp();
+                glad.windowDestroyNotifyOp();
             }
         });
         window.addWindowListener(wl);
