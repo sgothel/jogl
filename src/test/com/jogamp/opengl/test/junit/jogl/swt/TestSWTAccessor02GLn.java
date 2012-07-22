@@ -122,24 +122,13 @@ public class TestSWTAccessor02GLn extends UITestCase {
         composite = null;
     }
     
-    class CanvasCStr implements Runnable {
-           Canvas canvas;
-           
-           public void run() {
-               canvas = new Canvas( composite, SWT.NO_BACKGROUND);
-           }        
-    }
-    
     protected void runTestAGL( GLProfile glprofile ) throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glprofile);
         GLDrawableFactory factory = GLDrawableFactory.getFactory(glprofile);
         
         // need SWT.NO_BACKGROUND to prevent SWT from clearing the window
         // at the wrong times (we use glClear for this instead)
-        CanvasCStr canvasCstr = new CanvasCStr();
-        
-        SWTAccessor.invoke(true, canvasCstr);
-        final Canvas canvas = canvasCstr.canvas;        
+        final Canvas canvas = new Canvas( composite, SWT.NO_BACKGROUND);        
         Assert.assertNotNull( canvas );        
         SWTAccessor.setRealized(canvas, true);
         

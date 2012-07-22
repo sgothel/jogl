@@ -47,7 +47,6 @@ import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.swt.GLCanvas;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.OneTriangle;
@@ -122,7 +121,7 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
         // at the wrong times (we use glClear for this instead)
         final GLCapabilitiesImmutable caps = new GLCapabilities( glprofile );
         
-        final GLCanvas canvas = new GLCanvas( composite, SWT.NO_BACKGROUND, caps, null, null);
+        final GLCanvas canvas = new GLCanvas( composite, 0, caps, null, null);
         Assert.assertNotNull( canvas );
 
         canvas.addGLEventListener(new GLEventListener() {
