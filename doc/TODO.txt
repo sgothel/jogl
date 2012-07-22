@@ -5,6 +5,10 @@ WIP:
       GLOffscreenAutoDrawable GLDrawableFactory.createOffsceenAutoDrawable()
     - Mark both deprecated!
 
+- Optimize/Fix NIO caching of glMapBuffer/glUnmapBuffer
+  - optimize the NIO caching, i.e. memory range, incr. reference count
+  - _remove_ the cached object w/ decr. ref count, remove object
+
 Random, somewhat old to-do list:
 
 - Non-const array types must be properly released with JNI_COMMIT in
