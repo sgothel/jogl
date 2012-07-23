@@ -88,7 +88,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         // It still could be an AWT hold handle ..
         final long display = getHandle();
         final int scrnIdx = X11Lib.DefaultScreen(display);
-        return (int) X11Lib.DefaultVisualID(display, scrnIdx);
+        return X11Lib.DefaultVisualID(display, scrnIdx);
     }
     
     @Override

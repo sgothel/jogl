@@ -37,6 +37,7 @@ package jogamp.newt.driver.kd;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.VisualIDHolder;
 import javax.media.nativewindow.VisualIDHolder.VIDType;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
@@ -59,8 +60,8 @@ public class KDWindow extends WindowImpl {
         if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
         }
-        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(
-                capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen());
+        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice(), capsRequested).chooseGraphicsConfiguration(
+                capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen(), VisualIDHolder.VID_UNDEFINED);
         if (null == cfg) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }

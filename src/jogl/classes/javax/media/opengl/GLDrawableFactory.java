@@ -434,7 +434,8 @@ public abstract class GLDrawableFactory {
   /**
    * Creates a proxy {@link NativeSurface} w/ defined surface handle, i.e. a {@link WrappedSurface} or {@link GDISurface} instance. 
    * <p>
-   * It's {@link AbstractGraphicsConfiguration} is properly set according to the given {@link GLCapabilitiesImmutable}.
+   * It's {@link AbstractGraphicsConfiguration} is properly set according to the given 
+   * <code>windowHandle</code>'s native visualID if set or the given {@link GLCapabilitiesImmutable}.
    * </p>
    * <p>
    * Lifecycle (destruction) of the given surface handle shall be handled by the caller.

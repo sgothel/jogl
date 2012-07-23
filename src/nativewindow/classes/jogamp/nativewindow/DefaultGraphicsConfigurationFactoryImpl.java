@@ -37,7 +37,7 @@ import javax.media.nativewindow.*;
 
 public class DefaultGraphicsConfigurationFactoryImpl extends GraphicsConfigurationFactory {
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen screen) {
+            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen screen, int nativeVisualID) {
         return new DefaultGraphicsConfiguration(screen, capsChosen, capsRequested);
     }
 }

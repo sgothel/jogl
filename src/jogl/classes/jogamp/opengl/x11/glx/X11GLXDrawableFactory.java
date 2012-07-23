@@ -50,6 +50,7 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.ProxySurface.UpstreamSurfaceHook;
+import javax.media.nativewindow.VisualIDHolder;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -514,7 +515,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         device = (X11GraphicsDevice)deviceReq;
     }
     final X11GraphicsScreen screen = new X11GraphicsScreen(device, 0);
-    final X11GLXGraphicsConfiguration config = X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen);
+    final X11GLXGraphicsConfiguration config = X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen, VisualIDHolder.VID_UNDEFINED);
     if(null == config) {
         throw new GLException("Choosing GraphicsConfiguration failed w/ "+capsChosen+" on "+screen); 
     }
@@ -582,7 +583,17 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   protected final ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream) {
     final X11GraphicsDevice device = new X11GraphicsDevice(X11Util.openDisplay(deviceReq.getConnection()), deviceReq.getUnitID(), NativeWindowFactory.getNullToolkitLock(), true);
     final X11GraphicsScreen screen = new X11GraphicsScreen(device, screenIdx);
-    final X11GLXGraphicsConfiguration cfg = X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen);
+    final int xvisualID = X11Lib.GetVisualIDFromWindow(device.getHandle(), windowHandle);
+    if(VisualIDHolder.VID_UNDEFINED == xvisualID) {
+        throw new GLException("Undefined VisualID of window 0x"+Long.toHexString(windowHandle)+", window probably invalid");
+    }
+    if(DEBUG) {
+        System.err.println("X11GLXDrawableFactory.createProxySurfaceImpl 0x"+Long.toHexString(windowHandle)+": visualID 0x"+Integer.toHexString(xvisualID));
+    }
+    final X11GLXGraphicsConfiguration cfg = X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen, xvisualID);
+    if(DEBUG) {
+        System.err.println("X11GLXDrawableFactory.createProxySurfaceImpl 0x"+Long.toHexString(windowHandle)+": "+cfg);
+    }
     return new WrappedSurface(cfg, windowHandle, 0, 0, upstream);
   }
 

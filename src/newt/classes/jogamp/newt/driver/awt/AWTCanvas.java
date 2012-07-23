@@ -46,6 +46,7 @@ import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.VisualIDHolder;
 
 
 import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
@@ -53,6 +54,7 @@ import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
 import com.jogamp.newt.Window;
 
+@SuppressWarnings("serial")
 public class AWTCanvas extends Canvas {
   private GraphicsDevice device;
   private GraphicsConfiguration chosen;
@@ -252,9 +254,9 @@ public class AWTCanvas extends Canvas {
             AWTGraphicsScreen.createScreenDevice(device, AbstractGraphicsDevice.DEFAULT_UNIT):
             AWTGraphicsScreen.createDefault();
     AWTGraphicsConfiguration config = (AWTGraphicsConfiguration)
-      GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capsChosen,
+      GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class, capsChosen.getClass()).chooseGraphicsConfiguration(capsChosen,
                                                                                                    capsRequested,
-                                                                                                   chooser, aScreen);
+                                                                                                   chooser, aScreen, VisualIDHolder.VID_UNDEFINED);
     if (config == null) {
       throw new NativeWindowException("Error: Couldn't fetch AWTGraphicsConfiguration");
     }

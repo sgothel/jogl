@@ -69,13 +69,13 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
     static VisualIDHolder.VIDComparator PfdIDComparator = new VisualIDHolder.VIDComparator(VisualIDHolder.VIDType.WIN32_PFD);
 
     static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.windows.WindowsGraphicsDevice.class, new WindowsWGLGraphicsConfigurationFactory());
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.windows.WindowsGraphicsDevice.class, GLCapabilitiesImmutable.class, new WindowsWGLGraphicsConfigurationFactory());
     }
     private WindowsWGLGraphicsConfigurationFactory() {
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
+            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
 
         if (! (capsChosen instanceof GLCapabilitiesImmutable) ) {
             throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilities objects - chosen");

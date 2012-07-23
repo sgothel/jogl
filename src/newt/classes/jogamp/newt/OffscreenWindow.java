@@ -40,6 +40,7 @@ import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.MutableSurface;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.ProxySurface;
+import javax.media.nativewindow.VisualIDHolder;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 
@@ -72,8 +73,8 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
                 dummySurface.createNotify();
             }
         } */
-        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(aScreen.getDevice()).chooseGraphicsConfiguration(
-                                                         capsRequested, capsRequested, capabilitiesChooser, aScreen);
+        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(aScreen.getDevice(), capsRequested).chooseGraphicsConfiguration(
+                                                         capsRequested, capsRequested, capabilitiesChooser, aScreen, VisualIDHolder.VID_UNDEFINED);
         if (null == cfg) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }

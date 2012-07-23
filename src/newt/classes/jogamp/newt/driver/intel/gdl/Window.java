@@ -54,8 +54,8 @@ public class Window extends jogamp.newt.WindowImpl {
         final AbstractGraphicsScreen aScreen = getScreen().getGraphicsScreen();
         final AbstractGraphicsDevice aDevice = getScreen().getDisplay().getGraphicsDevice();
 
-        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(aDevice).chooseGraphicsConfiguration(
-                capsRequested, capsRequested, capabilitiesChooser, aScreen);
+        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(aDevice, capsRequested).chooseGraphicsConfiguration(
+                capsRequested, capsRequested, capabilitiesChooser, aScreen, VisualIDHolder.VID_UNDEFINED);
         if (null == cfg) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }

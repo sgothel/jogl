@@ -50,14 +50,14 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 
 public class MacOSXCGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice.class, new MacOSXCGLGraphicsConfigurationFactory());
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice.class, GLCapabilitiesImmutable.class, new MacOSXCGLGraphicsConfigurationFactory());
     }
     private MacOSXCGLGraphicsConfigurationFactory() {        
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
             CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
+            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
         return chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, absScreen, false);
     }
 

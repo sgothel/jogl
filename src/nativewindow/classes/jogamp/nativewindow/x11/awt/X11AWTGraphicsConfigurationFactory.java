@@ -61,14 +61,14 @@ import jogamp.nativewindow.x11.X11Util;
 public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFactory {
     
     public static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.awt.AWTGraphicsDevice.class, new X11AWTGraphicsConfigurationFactory());
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.awt.AWTGraphicsDevice.class, CapabilitiesImmutable.class, new X11AWTGraphicsConfigurationFactory());
     }    
     private X11AWTGraphicsConfigurationFactory() {
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
             CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {    
+            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {    
         if (absScreen != null &&
             !(absScreen instanceof AWTGraphicsScreen)) {
             throw new IllegalArgumentException("This GraphicsConfigurationFactory accepts only AWTGraphicsScreen objects");
@@ -77,18 +77,18 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
             absScreen = AWTGraphicsScreen.createDefault();
         }
 
-        return chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, (AWTGraphicsScreen)absScreen);
+        return chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, (AWTGraphicsScreen)absScreen, nativeVisualID);
     }
     
     public static AWTGraphicsConfiguration chooseGraphicsConfigurationStatic(
             CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-            CapabilitiesChooser chooser, AWTGraphicsScreen awtScreen) {
+            CapabilitiesChooser chooser, AWTGraphicsScreen awtScreen, int nativeVisualID) {
         if(DEBUG) {
             System.err.println("X11AWTGraphicsConfigurationFactory: got "+awtScreen);
         }
         
         final GraphicsDevice device = ((AWTGraphicsDevice)awtScreen.getDevice()).getGraphicsDevice();
-
+        
         final long displayHandleAWT = X11SunJDKReflection.graphicsDeviceGetDisplay(device);
         final long displayHandle;
         boolean owner = false;
@@ -121,8 +121,8 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
             System.err.println("X11AWTGraphicsConfigurationFactory: made "+x11Screen);
         }
         
-        final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(x11Device);
-        AbstractGraphicsConfiguration aConfig = factory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, x11Screen);
+        final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(x11Device, capsChosen);
+        AbstractGraphicsConfiguration aConfig = factory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, x11Screen, nativeVisualID);
         if (aConfig == null) {
             throw new NativeWindowException("Unable to choose a GraphicsConfiguration (1): "+capsChosen+",\n\t"+chooser+"\n\t"+x11Screen);
         }
@@ -160,7 +160,7 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
         // try again using an AWT Colormodel compatible configuration
         GraphicsConfiguration gc = device.getDefaultConfiguration();
         capsChosen = AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capsChosen, gc);
-        aConfig = factory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, x11Screen);
+        aConfig = factory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, x11Screen, nativeVisualID);
         if (aConfig == null) {
             throw new NativeWindowException("Unable to choose a GraphicsConfiguration (2): "+capsChosen+",\n\t"+chooser+"\n\t"+x11Screen);
         }

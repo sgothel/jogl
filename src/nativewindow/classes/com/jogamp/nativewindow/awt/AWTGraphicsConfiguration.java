@@ -95,8 +95,8 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
           GraphicsConfiguration gc = awtGraphicsDevice.getDefaultConfiguration();
           capsChosen = AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capsRequested, gc);
       }
-      final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(awtDevice);
-      final AbstractGraphicsConfiguration config = factory.chooseGraphicsConfiguration(capsChosen, capsRequested, null, awtScreen);
+      final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(awtDevice, capsChosen);
+      final AbstractGraphicsConfiguration config = factory.chooseGraphicsConfiguration(capsChosen, capsRequested, null, awtScreen, VisualIDHolder.VID_UNDEFINED);
       if(config instanceof AWTGraphicsConfiguration) {
           return (AWTGraphicsConfiguration) config;
       }

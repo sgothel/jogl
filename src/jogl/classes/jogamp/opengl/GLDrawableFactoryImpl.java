@@ -381,6 +381,9 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq);
     }
+    if(0 == windowHandle) {
+        throw new IllegalArgumentException("Null windowHandle");
+    }
 
     device.lock();
     try {

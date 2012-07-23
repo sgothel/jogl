@@ -362,14 +362,40 @@ Java_jogamp_nativewindow_x11_X11Lib_XGetVisualInfo1__JJLjava_nio_ByteBuffer_2Lja
   return jbyteCopy;
 }
 
-JNIEXPORT jlong JNICALL 
+JNIEXPORT jint JNICALL 
+Java_jogamp_nativewindow_x11_X11Lib_GetVisualIDFromWindow(JNIEnv *env, jclass _unused, jlong display, jlong window) {
+    Display * dpy = (Display *)(intptr_t)display;
+    Window      w = (Window) window;
+    XWindowAttributes xwa;
+    jlong r = 0; // undefinded
+
+    if(NULL==dpy) {
+        NativewindowCommon_throwNewRuntimeException(env, "invalid display connection..");
+        return;
+    }
+
+    NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 1, 0, 1);
+    memset(&xwa, 0, sizeof(XWindowAttributes));
+    XGetWindowAttributes(dpy, w, &xwa);
+    if(NULL != xwa.visual) {
+        r = (jint) XVisualIDFromVisual( xwa.visual );
+    } else {
+        r = 0;
+    }
+    NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, 1);
+
+    return r;
+}
+
+
+JNIEXPORT jint JNICALL 
 Java_jogamp_nativewindow_x11_X11Lib_DefaultVisualID(JNIEnv *env, jclass _unused, jlong display, jint screen) {
   jlong r;
     if(0==display) {
         NativewindowCommon_FatalError(env, "invalid display connection..");
     }
   NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) display, 1, 0, 0);
-  r = (jlong) XVisualIDFromVisual( DefaultVisual( (Display*) (intptr_t) display, screen ) );
+  r = (jint) XVisualIDFromVisual( DefaultVisual( (Display*) (intptr_t) display, screen ) );
   NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) display, 0, 0, 0);
   return r;
 }

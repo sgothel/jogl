@@ -60,6 +60,7 @@ import java.util.ArrayList;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.OffscreenLayerOption;
+import javax.media.nativewindow.VisualIDHolder;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
@@ -1062,9 +1063,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
     if( EventQueue.isDispatchThread() || Thread.holdsLock(getTreeLock()) ) {
         config = (AWTGraphicsConfiguration)
-                GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capsChosen,
+                GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class, GLCapabilitiesImmutable.class).chooseGraphicsConfiguration(capsChosen,
                                                                                                              capsRequested,
-                                                                                                             chooser, aScreen);
+                                                                                                             chooser, aScreen, VisualIDHolder.VID_UNDEFINED);
     } else {
         try {
             final ArrayList<AWTGraphicsConfiguration> bucket = new ArrayList<AWTGraphicsConfiguration>(1);
@@ -1072,9 +1073,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                 @Override
                 public void run() {
                     AWTGraphicsConfiguration c = (AWTGraphicsConfiguration)
-                            GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class).chooseGraphicsConfiguration(capsChosen,
+                            GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class, GLCapabilitiesImmutable.class).chooseGraphicsConfiguration(capsChosen,
                                                                                                                          capsRequested,
-                                                                                                                         chooser, aScreen);
+                                                                                                                         chooser, aScreen, VisualIDHolder.VID_UNDEFINED);
                     bucket.add(c);
                 }
             });

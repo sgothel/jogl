@@ -63,9 +63,9 @@ public class X11Window extends WindowImpl {
     protected void createNativeImpl() {
         final X11Screen screen = (X11Screen) getScreen();
         final X11Display display = (X11Display) screen.getDisplay();
-        final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice());
+        final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice(), capsRequested);
         final AbstractGraphicsConfiguration cfg = factory.chooseGraphicsConfiguration(
-                capsRequested, capsRequested, capabilitiesChooser, screen.getGraphicsScreen());
+                capsRequested, capsRequested, capabilitiesChooser, screen.getGraphicsScreen(), VisualIDHolder.VID_UNDEFINED);
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("X11Window.createNativeImpl() factory: "+factory+", chosen config: "+cfg);
         }        

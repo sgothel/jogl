@@ -42,6 +42,7 @@ import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.VisualIDHolder;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
@@ -96,9 +97,10 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
     }
         
     void updateGraphicsConfiguration() {
+        CapabilitiesImmutable capsChosen = getChosenCapabilities(); 
         EGLGraphicsConfiguration newConfig = (EGLGraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(getScreen().getDevice()).chooseGraphicsConfiguration(
-                getChosenCapabilities(), getRequestedCapabilities(), chooser, getScreen());
+            GraphicsConfigurationFactory.getFactory(getScreen().getDevice(), capsChosen).chooseGraphicsConfiguration(
+                capsChosen, getRequestedCapabilities(), chooser, getScreen(), VisualIDHolder.VID_UNDEFINED);
         if(null!=newConfig) {
             // FIXME: setScreen( ... );
             setChosenCapabilities(newConfig.getChosenCapabilities());

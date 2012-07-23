@@ -37,7 +37,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.nativewindow.VisualIDHolder;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
@@ -102,16 +104,25 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
 
     void updateGraphicsConfiguration() {
-        X11GLXGraphicsConfiguration newConfig = (X11GLXGraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(getScreen().getDevice()).chooseGraphicsConfiguration(
-                getChosenCapabilities(), getRequestedCapabilities(), chooser, getScreen());
-        if(null!=newConfig) {
-            // FIXME: setScreen( ... );
-            setXVisualInfo(newConfig.getXVisualInfo());
-            setChosenCapabilities(newConfig.getChosenCapabilities());
-            if(DEBUG) {
-                System.err.println("updateGraphicsConfiguration: "+this);
+        final CapabilitiesImmutable aChosenCaps = getChosenCapabilities();
+        if( !(aChosenCaps instanceof X11GLCapabilities) || VisualIDHolder.VID_UNDEFINED == aChosenCaps.getVisualID(VIDType.X11_XVISUAL) ) {
+            // This case is actually quite impossible, since on X11 the visualID and hence GraphicsConfiguration 
+            // must be determined _before_ window creation! 
+            final X11GLXGraphicsConfiguration newConfig = (X11GLXGraphicsConfiguration)
+                GraphicsConfigurationFactory.getFactory(getScreen().getDevice(), aChosenCaps).chooseGraphicsConfiguration(
+                    aChosenCaps, getRequestedCapabilities(), chooser, getScreen(), VisualIDHolder.VID_UNDEFINED);
+            if(null!=newConfig) {
+                // FIXME: setScreen( ... );
+                setXVisualInfo(newConfig.getXVisualInfo());
+                setChosenCapabilities(newConfig.getChosenCapabilities());
+                if(DEBUG) {
+                    System.err.println("X11GLXGraphicsConfiguration.updateGraphicsConfiguration updated:"+this);
+                }
+            } else {
+                throw new GLException("No native VisualID pre-chosen and update failed: "+this);
             }
+        } else if (DEBUG) {
+            System.err.println("X11GLXGraphicsConfiguration.updateGraphicsConfiguration kept:"+this);
         }
     }
 

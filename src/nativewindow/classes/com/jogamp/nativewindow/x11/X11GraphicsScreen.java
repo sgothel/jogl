@@ -58,7 +58,7 @@ public class X11GraphicsScreen extends DefaultGraphicsScreen implements Cloneabl
 
     public int getVisualID() {
         // It still could be an AWT hold handle ..
-        return (int) X11Lib.DefaultVisualID(getDevice().getHandle(), getIndex());
+        return X11Lib.DefaultVisualID(getDevice().getHandle(), getIndex());
     }
     
     private static int fetchScreen(X11GraphicsDevice device, int screen) {
