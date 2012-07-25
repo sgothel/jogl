@@ -86,7 +86,14 @@ public class GLProfile {
      * </p> 
      */
     private static final boolean enableANGLE = Debug.isPropertyDefined("jogl.enable.ANGLE", true);
-
+    
+    /** 
+     * In case no OpenGL ES implementation is required
+     * and if the running platform may have a buggy implementation,
+     * setting the property <code>jogl.disable.opengles</code> disables querying a possible existing OpenGL ES implementation. 
+     */
+    private static final boolean disableOpenGLES = Debug.isPropertyDefined("jogl.disable.opengles", true);
+    
     static {
         // Also initializes TempJarCache if shall be used.
         Platform.initSingleton();
@@ -1475,7 +1482,7 @@ public class GLProfile {
             }
         }
 
-        if ( ReflectionUtil.isClassAvailable("jogamp.opengl.egl.EGLDrawableFactory", classloader) ) {
+        if ( !disableOpenGLES && ReflectionUtil.isClassAvailable("jogamp.opengl.egl.EGLDrawableFactory", classloader) ) {
             t=null;
             try {
                 eglFactory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactoryImpl(GLES2);
