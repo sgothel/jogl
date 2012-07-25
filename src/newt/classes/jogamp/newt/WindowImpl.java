@@ -445,9 +445,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected abstract void closeNativeImpl();
 
     /** 
-     * The native implementation must invoke {@link #focusChanged(boolean, boolean)}
-     * to change the focus state, if <code>force == false</code>. 
-     * This may happen asynchronous within {@link #TIMEOUT_NATIVEWINDOW}.
+     * Async request which shall be performed within {@link #TIMEOUT_NATIVEWINDOW}.
+     * <p>
+     * If if <code>force == false</code> the native implementation 
+     * may only request focus if not yet owner.</p>
+     * <p>
+     * {@link #focusChanged(boolean, boolean)} should be called
+     * to notify about the focus traversal. 
+     * </p> 
      * 
      * @param force if true, bypass {@link #focusChanged(boolean, boolean)} and force focus request
      */

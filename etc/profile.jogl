@@ -25,6 +25,9 @@ function concat_jogl_list()
 
 ARCH=`uname -m`
 KERNEL=`uname -s | awk ' { printf "%s",tolower($0) ; } '`
+if [ "$KERNEL" = "sunos" ] ; then
+    KERNEL="solaris"
+fi
 
 uname -a | grep -i LINUX && OSS=x11
 uname -a | grep -i Darwin && OSS=osx
@@ -98,6 +101,8 @@ fi
 export JOGL_CLASSPATH
 
 if [ "$KERNEL" = "linux" ] ; then
+    SWT_SUB="gtk"
+elif [ "$KERNEL" = "solaris" ] ; then
     SWT_SUB="gtk"
 elif [ "$KERNEL" = "darwin" ] ; then
     SWT_SUB="cocoa"

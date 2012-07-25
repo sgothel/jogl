@@ -52,11 +52,17 @@
 static const char * const ClazzNameRunnable = "java/lang/Runnable";
 static jmethodID runnableRunID = NULL;
 
-static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
 static const char * const ClazzAnyCstrName = "<init>";
+
+static const char * const ClazzNamePoint = "javax/media/nativewindow/util/Point";
 static const char * const ClazzNamePointCstrSignature = "(II)V";
 static jclass pointClz = NULL;
 static jmethodID pointCstr = NULL;
+
+static const char * const ClazzNameInsets = "javax/media/nativewindow/util/Insets";
+static const char * const ClazzNameInsetsCstrSignature = "(IIII)V";
+static jclass insetsClz = NULL;
+static jmethodID insetsCstr = NULL;
 
 static int _initialized=0;
 
@@ -77,6 +83,21 @@ Java_jogamp_nativewindow_macosx_OSXUtil_initIDs0(JNIEnv *env, jclass _unused) {
         if(NULL==pointCstr) {
             NativewindowCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't fetch %s.%s %s",
                 ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
+        }
+
+        c = (*env)->FindClass(env, ClazzNameInsets);
+        if(NULL==c) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't find %s", ClazzNameInsets);
+        }
+        insetsClz = (jclass)(*env)->NewGlobalRef(env, c);
+        (*env)->DeleteLocalRef(env, c);
+        if(NULL==insetsClz) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't use %s", ClazzNameInsets);
+        }
+        insetsCstr = (*env)->GetMethodID(env, insetsClz, ClazzAnyCstrName, ClazzNameInsetsCstrSignature);
+        if(NULL==insetsCstr) {
+            NativewindowCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't fetch %s.%s %s",
+                ClazzNameInsets, ClazzAnyCstrName, ClazzNameInsetsCstrSignature);
         }
 
         c = (*env)->FindClass(env, ClazzNameRunnable);
@@ -156,6 +177,49 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetLocationOnS
 
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    getInsets0
+ * Signature: (J)Ljavax/media/nativewindow/util/Insets;
+ */
+JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetInsets0
+  (JNIEnv *env, jclass unused, jlong winOrView)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    NSObject *nsObj = (NSObject*) (intptr_t) winOrView;
+    NSWindow* win = NULL;
+    NSView* view = NULL;
+    jint il,ir,it,ib;
+
+    if( [nsObj isKindOfClass:[NSWindow class]] ) {
+        win = (NSWindow*) nsObj;
+        view = [win contentView];
+    } else if( nsObj != NULL && [nsObj isKindOfClass:[NSView class]] ) {
+        view = (NSView*) nsObj;
+        win = [view window];
+    } else {
+        NativewindowCommon_throwNewRuntimeException(env, "neither win not view %p\n", nsObj);
+    }
+
+    NSRect frameRect = [win frame];
+    NSRect contentRect = [win contentRectForFrameRect: frameRect];
+
+    // note: this is a simplistic implementation which doesn't take
+    // into account DPI and scaling factor
+    CGFloat l = contentRect.origin.x - frameRect.origin.x;
+    il = (jint)l;                                                     // l
+    ir = (jint)(frameRect.size.width - (contentRect.size.width + l)); // r
+    it = (jint)(frameRect.size.height - contentRect.size.height);     // t
+    ib = (jint)(contentRect.origin.y - frameRect.origin.y);           // b
+
+    jobject res = (*env)->NewObject(env, insetsClz, insetsCstr, il, ir, it, ib);
+
+    [pool release];
+
+    return res;
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    CreateNSWindow0
  * Signature: (IIIIZ)J
  */
@@ -172,6 +236,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateNSWindow0
                                            defer: YES];
     [myWindow setReleasedWhenClosed: YES]; // default
     [myWindow setPreservesContentDuringLiveResize: YES];
+    // Remove animations
+NS_DURING
+        // Available >= 10.7 - Removes default animations
+        [myWindow setAnimationBehavior: NSWindowAnimationBehaviorNone];
+NS_HANDLER
+NS_ENDHANDLER
 
     // invisible ..
     [myWindow setOpaque: NO];
@@ -229,7 +299,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
     CALayer* layer = [[CALayer alloc] init];
-    DBG_PRINT("CALayer::CreateCALayer.0: %p %d/%d %dx%d (refcnt %d)\n", layer, x, y, width, height, (int)[layer retainCount]);
+    DBG_PRINT("CALayer::CreateCALayer.0: %p %d/%d %dx%d (refcnt %d)\n", layer, (int)x, (int)y, (int)width, (int)height, (int)[layer retainCount]);
     // avoid zero size
     if(0 == width) { width = 32; }
     if(0 == height) { height = 32; }

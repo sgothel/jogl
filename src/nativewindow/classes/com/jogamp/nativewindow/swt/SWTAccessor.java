@@ -34,16 +34,21 @@ import java.lang.reflect.Method;
 import org.eclipse.swt.graphics.GCData;
 import org.eclipse.swt.widgets.Control;
 
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.VisualIDHolder;
 
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
 import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
+import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 import jogamp.nativewindow.macosx.OSXUtil;
+import jogamp.nativewindow.x11.X11Lib;
 
 public class SWTAccessor {
     static final Field swt_control_handle;
@@ -212,6 +217,26 @@ public class SWTAccessor {
             return new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         }
         throw new UnsupportedOperationException("n/a for this windowing system: "+NativeWindowFactory.getNativeWindowType(false));
+    }
+    public static AbstractGraphicsScreen getScreen(AbstractGraphicsDevice device, int screen) {
+        if( null != OS_gtk_class ) {
+            return new X11GraphicsScreen((X11GraphicsDevice)device, screen);
+        } 
+        if( NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false) ||
+            NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false) ) {
+            return new DefaultGraphicsScreen(device, screen);
+        }
+        throw new UnsupportedOperationException("n/a for this windowing system: "+NativeWindowFactory.getNativeWindowType(false));        
+    }
+    public static int getNativeVisualID(AbstractGraphicsDevice device, long windowHandle) {
+        if( null != OS_gtk_class ) {
+            return X11Lib.GetVisualIDFromWindow(device.getHandle(), windowHandle);
+        }
+        if( NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false) ||
+            NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false) ) {
+            return VisualIDHolder.VID_UNDEFINED;
+        }
+        throw new UnsupportedOperationException("n/a for this windowing system: "+NativeWindowFactory.getNativeWindowType(false));        
     }
     
     public static long getWindowHandle(Control swtControl) {

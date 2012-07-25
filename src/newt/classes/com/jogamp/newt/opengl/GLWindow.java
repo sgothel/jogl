@@ -480,7 +480,6 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
             }
             if(Window.DEBUG_IMPLEMENTATION) {
                 System.err.println("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+WindowImpl.getThreadName()+", fin: dt "+ (System.nanoTime()-t0)/1e6 +"ms");
-                Thread.dumpStack(); // JAU
             }
         }
 

@@ -599,6 +599,15 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
     }
     DBG_PRINT( "createWindow0 - is visible.1: %d\n", [myWindow isVisible]);
 
+    // Remove animations for child windows
+    if(NULL != parentWindow) {
+NS_DURING
+        // Available >= 10.7 - Removes default animations
+        [myWindow setAnimationBehavior: NSWindowAnimationBehaviorNone];
+NS_HANDLER
+NS_ENDHANDLER
+    }
+
 #ifdef VERBOSE_ON
     int dbgIdx = 1;
 #endif
@@ -734,7 +743,7 @@ NS_ENDHANDLER
     if(NULL!=pWin) {
         [mWin detachFromParent: pWin];
     }
-    [mWin orderOut: mWin];
+    [mWin performSelectorOnMainThread:@selector(orderOut:) withObject:mWin waitUntilDone:NO];
 
     DBG_PRINT( "windowClose.1 - %p,%d view %p,%d, parent %p\n", 
         mWin, getRetainCount(mWin), mView, getRetainCount(mView), pWin);
@@ -742,11 +751,6 @@ NS_ENDHANDLER
     // Only release window, if release is not yet in process.
     // E.g. destroyNotifySent:=true set by NewtMacWindow::windowWillClose(), i.e. window-close was clicked.
     if(!destroyNotifySent) { 
-        // '[mWin close]' causes a crash at exit.
-        // This probably happens b/c it sends events to the main loop
-        // but our resources are gone ?!
-        // However, issuing a simple release seems to work quite well.
-        // [mWin release];
         [mWin performSelectorOnMainThread:@selector(release) withObject:nil waitUntilDone:NO];
     }
 
@@ -806,11 +810,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_requestFocus0
     DBG_PRINT( "requestFocus - window: %p, force %d, hasFocus %d (START)\n", mWin, force, hasFocus);
 
     [mWin makeFirstResponder: nil];
-    [mWin performSelectorOnMainThread:@selector(orderFrontRegardless) withObject:nil waitUntilDone:YES];
-    [mWin performSelectorOnMainThread:@selector(makeKeyWindow) withObject:nil waitUntilDone:YES];
-    // This will occasionally cause a free of non allocated object crash:
-    // [mWin orderFrontRegardless];
-    // [mWin makeKeyWindow];
+    [mWin performSelectorOnMainThread:@selector(orderFrontRegardless) withObject:nil waitUntilDone:NO];
+    [mWin performSelectorOnMainThread:@selector(makeKeyWindow) withObject:nil waitUntilDone:NO];
 
     DBG_PRINT( "requestFocus - window: %p, force %d (END)\n", mWin, force);
 
@@ -819,26 +820,27 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_requestFocus0
 
 /*
  * Class:     jogamp_newt_driver_macosx_MacWindow
- * Method:    requestFocusParent0
+ * Method:    resignFocus0
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_requestFocusParent0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_resignFocus0
   (JNIEnv *env, jobject window, jlong w)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* mWin = (NSWindow*) ((intptr_t) w);
     NSWindow* pWin = [mWin parentWindow];
-#ifdef VERBOSE_ON
     BOOL hasFocus = [mWin isKeyWindow];
-#endif
 
-    DBG_PRINT( "requestFocusParent0 - window: %p, parent: %p, hasFocus %d (START)\n", mWin, pWin, hasFocus );
-    if(NULL != pWin) {
-        [pWin performSelectorOnMainThread:@selector(makeKeyWindow) withObject:nil waitUntilDone:YES];
-        // This will occasionally cause a free of non allocated object crash:
-        // [pWin makeKeyWindow];
+    DBG_PRINT( "requestFocusParent0 - window: %p, parent %p, hasFocus %d (START)\n", mWin, pWin, hasFocus );
+    if( hasFocus ) {
+        if(NULL != pWin) {
+            // [mWin performSelectorOnMainThread:@selector(makeFirstResponder:) withObject:pWin waitUntilDone:NO];
+            [pWin performSelectorOnMainThread:@selector(makeKeyWindow) withObject:nil waitUntilDone:NO];
+        } else {
+            [mWin performSelectorOnMainThread:@selector(resignKeyWindow) withObject:nil waitUntilDone:NO];
+        }
     }
-    DBG_PRINT( "requestFocusParent0 - window: %p, parent: %p (END)\n", mWin, pWin);
+    DBG_PRINT( "requestFocusParent0 - window: %p (END)\n", mWin);
 
     [pool release];
 }
@@ -856,9 +858,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_orderFront0
 
     DBG_PRINT( "orderFront0 - window: %p (START)\n", win);
 
-    [win performSelectorOnMainThread:@selector(orderFrontRegardless) withObject:nil waitUntilDone:YES];
-    // This will occasionally cause a free of non allocated object crash:
-    // [win orderFrontRegardless];
+    [win performSelectorOnMainThread:@selector(orderFrontRegardless) withObject:nil waitUntilDone:NO];
 
     DBG_PRINT( "orderFront0 - window: %p (END)\n", win);
 
@@ -880,13 +880,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_orderOut0
     DBG_PRINT( "orderOut0 - window: (parent %p) %p (START)\n", pWin, mWin);
 
     if(NULL == pWin) {
-        [mWin performSelectorOnMainThread:@selector(orderOut:) withObject:mWin waitUntilDone:YES];
-        // This will occasionally cause a free of non allocated object crash:
-        // [mWin orderOut: mWin];
+        [mWin performSelectorOnMainThread:@selector(orderOut:) withObject:mWin waitUntilDone:NO];
     } else {
-        [mWin performSelectorOnMainThread:@selector(orderBack:) withObject:mWin waitUntilDone:YES];
-        // This will occasionally cause a free of non allocated object crash:
-        // [mWin orderBack: mWin];
+        [mWin performSelectorOnMainThread:@selector(orderBack:) withObject:mWin waitUntilDone:NO];
     }
 
     DBG_PRINT( "orderOut0 - window: (parent %p) %p (END)\n", pWin, mWin);

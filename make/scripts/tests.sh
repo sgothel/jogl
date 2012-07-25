@@ -61,7 +61,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all -Djogamp.debug.Lock"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all"
-    #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
+    D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug.GLDrawable"
     #D_ARGS="-Djogl.debug.EGLDrawableFactory.DontQuery -Djogl.debug.GLDrawable"
     #D_ARGS="-Djogl.debug.EGLDrawableFactory.QueryNativeTK -Djogl.debug.GLDrawable"
@@ -145,7 +145,8 @@ function jrun() {
         echo CLASSPATH $CLASSPATH
         X_ARGS="-Djava.awt.headless=false $X_ARGS"
     else
-        export CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH
+        export CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
+        #export CLASSPATH=$JOGAMP_ALL_NOAWT_CLASSPATH
         #export CLASSPATH=$JOGAMP_MOBILE_CLASSPATH
         #export CLASSPATH=.:$GLUEGEN_JAR:$JOGL_BUILD_DIR/jar/atomic/jogl-core.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-gldesktop.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-os-x11.jar:$JOGL_BUILD_DIR/jar/atomic/jogl-util.jar:$JOGL_BUILD_DIR/jar/atomic/nativewindow-core.jar:$JOGL_BUILD_DIR/jar/atomic/nativewindow-os-x11.jar:$JOGL_BUILD_DIR/jar/atomic/newt-core.jar:$JOGL_BUILD_DIR/jar/atomic/newt-driver-x11.jar:$JOGL_BUILD_DIR/jar/atomic/newt-ogl.jar:$JOGL_BUILD_DIR/jar/jogl-test.jar:$SWT_CLASSPATH:$JUNIT_JAR:$ANT_JARS
         X_ARGS="-Djava.awt.headless=true $X_ARGS"
@@ -298,13 +299,17 @@ function testawtswt() {
 #
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
 #testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
-#testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
-#testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02GLn $*
+#testswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
 
 #
-# awtswt (testawtswt)
+# awtswt (testawtswt) 
+#   Per default (unit tests) all test are performed this way
+#   with OSX: -XstartOnFirstThread
 #
+#testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor03AWTGLn $*
+#testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
+#testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
 
 #
 # newt.awt (testawt)
@@ -321,6 +326,9 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cSwingAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04AWT $*
+#testawtswt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aSWT $*
+testawtswt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04SWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer01GLCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer02NewtCanvasAWT $*
@@ -402,7 +410,6 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
 
 #linux:
-testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor02GLn $* # ??
 
 # osx:
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*

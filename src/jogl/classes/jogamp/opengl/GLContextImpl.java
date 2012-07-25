@@ -338,7 +338,6 @@ public abstract class GLContextImpl extends GLContext {
                   if (TRACE_SWITCH) {
                       System.err.println(getThreadName() + ": GLContextImpl.destroy.X: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle) +
                               ", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
-                      Thread.dumpStack(); // JAU
                   }
               }
           } finally {

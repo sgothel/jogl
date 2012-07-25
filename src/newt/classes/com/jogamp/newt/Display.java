@@ -141,6 +141,23 @@ public abstract class Display {
      */
     public abstract String getType();
 
+    /**
+     * Sets a new {@link EDTUtil} and returns the previous one.
+     * <p>
+     * If <code>newEDTUtil</code> is <code>null</code>, 
+     * the device's default EDTUtil is created and used.
+     * </p>
+     * <p>
+     * If a previous one exists and it differs from the new one, 
+     * it's being stopped, wait-until-idle and reset to allow restart.
+     * </p>
+     * <p>
+     * If <code>newEDTUtil</code> is not null and equals the previous one,
+     * <code>null</code> is returned and no change is being made.
+     * </p>
+     */
+    public abstract EDTUtil setEDTUtil(EDTUtil newEDTUtil);
+    
     public abstract EDTUtil getEDTUtil();
 
     public abstract boolean isEDTRunning();

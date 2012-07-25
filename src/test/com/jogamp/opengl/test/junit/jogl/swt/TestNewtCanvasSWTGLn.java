@@ -48,27 +48,29 @@ import org.junit.After;
 import org.junit.Test;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
-import com.jogamp.opengl.swt.GLCanvas;
+import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.swt.NewtCanvasSWT;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.MultisampleDemoES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
 
 /**
- * Tests that a basic SWT app can open without crashing under different GL profiles.
+ * Tests that a basic SWT app can open without crashing under different GL profiles
+ * _and_ custom GLCapabilities. 
  * <p> 
- * Uses JOGL's new SWT GLCanvas.
- * </p>
- * <p>
- * Note: To employ custom GLCapabilities, NewtCanvasSWT shall be used.
+ * Uses JOGL's NewtCanvasSWT, which allows to be a native container of a NEWT Window.<br/>
+ * This method allows utilizing custom GLCapability settings,
+ * independent from the already instantiated SWT visual.
  * </p>
  * <p>
  * Note that {@link SWTAccessor#invoke(boolean, Runnable)} is still used to comply w/ 
  * SWT running on Mac OSX, i.e. to enforce UI action on the main thread.
  * </p>
- * @author Wade Walker, et al.
  */
-public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
+public class TestNewtCanvasSWTGLn extends UITestCase {
 
     static int duration = 250;
 
@@ -121,14 +123,17 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
         composite = null;
     }
 
-    protected void runTestAGL( GLCapabilitiesImmutable caps, GLEventListener demo ) throws InterruptedException {
+    protected void runTestAGL( GLCapabilitiesImmutable caps, GLEventListener demo, 
+                               boolean postAttach, boolean useAnimator ) throws InterruptedException {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(false, false);
         
-        final GLCanvas canvas = GLCanvas.create( composite, 0, caps, null, null);
-        Assert.assertNotNull( canvas );
-
-        canvas.addGLEventListener( demo );
-        canvas.addGLEventListener(new GLEventListener() {
+        final GLWindow glWindow1 = GLWindow.create(caps);
+        Assert.assertNotNull(glWindow1);
+        Assert.assertEquals(false, glWindow1.isVisible());
+        Assert.assertEquals(false, glWindow1.isNativeValid());
+        Assert.assertNull(glWindow1.getParent());
+        glWindow1.addGLEventListener(demo);
+        glWindow1.addGLEventListener(new GLEventListener() {
            int displayCount = 0;
            public void init(final GLAutoDrawable drawable) { } 
            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
@@ -139,18 +144,36 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
            }
            public void dispose(final GLAutoDrawable drawable) { }
         });       
-       
+        
+        final NewtCanvasSWT canvas1 = NewtCanvasSWT.create( composite, 0, postAttach ? null : glWindow1 );
+        Assert.assertNotNull( canvas1 );
+
         SWTAccessor.invoke(true, new Runnable() {
            public void run() {
-            shell.setText( getSimpleTestName(".") );
-            shell.setSize( 640, 480 );
-            shell.open();
-           } } );
+              shell.setText( getSimpleTestName(".") );
+              shell.setSize( 640, 480 );
+              shell.open();
+           }
+        });
+        
+        if(postAttach) {
+            canvas1.setNEWTChild(glWindow1);
+        }
+        
+        // canvas1.update();
+        
+        Animator anim;
+        if(useAnimator) {
+            anim = new Animator(glWindow1);
+            anim.start();
+        } else {
+            anim = null;
+        }
         
         long lStartTime = System.currentTimeMillis();
         long lEndTime = lStartTime + duration;
         try {
-            while( (System.currentTimeMillis() < lEndTime) && !canvas.isDisposed() ) {
+            while( (System.currentTimeMillis() < lEndTime) && !canvas1.isDisposed() ) {
                 if( !display.readAndDispatch() ) {
                     // blocks on linux .. display.sleep();
                     Thread.sleep(10);
@@ -160,15 +183,34 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
-        SWTAccessor.invoke(true, new Runnable() {
-           public void run() {
-               canvas.dispose();
-           } } );
+        if(null != anim) {
+            anim.stop();
+        }
+        
+        canvas1.dispose();
     }
 
     @Test
-    public void test() throws InterruptedException {
-        runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2() );
+    public void preAttach_WithAnimator() throws InterruptedException {
+        runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2(), false /* postAttach */, true /* animator */);
+    }
+
+    @Test
+    public void preAttach_NoAnimator() throws InterruptedException {
+        runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2(), false /* postAttach */, false /* animator */);
+    }
+
+    @Test
+    public void postAttach_WithAnimator() throws InterruptedException {
+        runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2(), true /* postAttach */, true /* animator */);
+    }
+    
+    @Test
+    public void test_MultisampleAndAlpha() throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
+        caps.setSampleBuffers(true);
+        caps.setNumSamples(2);
+        runTestAGL( caps, new MultisampleDemoES2(true), false /* postAttach */, false /* animator */);
     }
 
     static int atoi(String a) {
@@ -186,6 +228,6 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
             }
         }
         System.out.println("durationPerTest: "+duration);
-        org.junit.runner.JUnitCore.main(TestSWTJOGLGLCanvas01GLn.class.getName());
+        org.junit.runner.JUnitCore.main(TestNewtCanvasSWTGLn.class.getName());
     }
 }

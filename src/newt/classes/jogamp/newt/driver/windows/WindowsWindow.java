@@ -151,8 +151,8 @@ public class WindowsWindow extends WindowImpl {
     }
 
     protected void closeNativeImpl() {
-        if (hdc != 0) {
-            if(windowHandleClose != 0) {
+        if(windowHandleClose != 0) {
+            if (hdc != 0) {
                 try {
                     GDI.ReleaseDC(windowHandleClose, hdc);
                 } catch (Throwable t) {
@@ -162,11 +162,8 @@ public class WindowsWindow extends WindowImpl {
                     }
                 }
             }
-            hdc = 0;
-            hdc_old = 0;
-        }
-        if(windowHandleClose != 0) {
             try {
+                GDI.SetParent(windowHandleClose, 0); // detach first, experience hang w/ SWT parent
                 GDI.DestroyWindow(windowHandleClose);
             } catch (Throwable t) {
                 if(DEBUG_IMPLEMENTATION) {
@@ -177,6 +174,8 @@ public class WindowsWindow extends WindowImpl {
                 windowHandleClose = 0;
             }
         }
+        hdc = 0;
+        hdc_old = 0;
     }
 
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {

@@ -34,6 +34,7 @@ import javax.media.nativewindow.NativeWindow;
 
 import jogamp.newt.driver.DriverUpdatePosition;
 
+import com.jogamp.newt.Window;
 import com.jogamp.newt.event.awt.AWTAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
 
@@ -92,19 +93,20 @@ public class AWTParentWindowAdapter
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: componentResized: "+comp);
         }
-        getNewtWindow().runOnEDTIfAvail(false, new Runnable() {
+        final Window newtWindow = getNewtWindow();
+        newtWindow.runOnEDTIfAvail(false, new Runnable() {
             public void run() {
                 int cw = comp.getWidth();
                 int ch = comp.getHeight();
                 if( 0 < cw * ch ) {
-                    if( getNewtWindow().getWidth() != cw || getNewtWindow().getHeight() != ch ) {
-                        getNewtWindow().setSize(cw, ch);
-                        if(comp.isVisible() != getNewtWindow().isVisible()) {
-                            getNewtWindow().setVisible(comp.isVisible());
+                    if( newtWindow.getWidth() != cw || newtWindow.getHeight() != ch ) {
+                        newtWindow.setSize(cw, ch);
+                        if(comp.isVisible() != newtWindow.isVisible()) {
+                            newtWindow.setVisible(comp.isVisible());
                         }
                     }
-                } else if(getNewtWindow().isVisible()) {
-                    getNewtWindow().setVisible(false);
+                } else if(newtWindow.isVisible()) {
+                    newtWindow.setVisible(false);
                 }
             }});
     }
@@ -113,8 +115,9 @@ public class AWTParentWindowAdapter
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("AWT: componentMoved: "+e);            
         }
-        if(getNewtWindow().getDelegatedWindow() instanceof DriverUpdatePosition) {
-            ((DriverUpdatePosition)getNewtWindow().getDelegatedWindow()).updatePosition();
+        final Window newtWindow = getNewtWindow();
+        if(newtWindow.getDelegatedWindow() instanceof DriverUpdatePosition) {
+            ((DriverUpdatePosition)newtWindow.getDelegatedWindow()).updatePosition();
         }            
     }
 

@@ -45,6 +45,7 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.Threading;
 
+import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableHelper;
 
@@ -70,8 +71,12 @@ import com.jogamp.opengl.JoglVersion;
 
 /**
  * Native SWT Canvas implementing GLAutoDrawable
+ * 
+ * <p>Note: To employ custom GLCapabilities, NewtCanvasSWT shall be used instead.</p>
+ * 
  */
 public class GLCanvas extends Canvas implements GLAutoDrawable {
+  private static final boolean DEBUG = Debug.debug("GLCanvas");
 
    /*
     * Flag for whether the SWT thread should be used for OpenGL calls when in single-threaded mode. This is controlled
@@ -87,18 +92,20 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    /* GL Stuff */
    private final RecursiveLock lock = LockFactory.createRecursiveLock();
    private final GLDrawableHelper helper = new GLDrawableHelper();
+   
+   private final GLContext shareWith;
+   private final GLCapabilitiesImmutable capsRequested;
+   private final GLCapabilitiesChooser capsChooser; 
+   
    private volatile GLDrawable drawable; // volatile: avoid locking for read-only access
    private GLContext context;
 
    /* Native window surface */
    private AbstractGraphicsDevice device;
-   private final long nativeWindowHandle;
-   private final ProxySurface proxySurface;
 
    /* Construction parameters stored for GLAutoDrawable accessor methods */
    private int additionalCtxCreationFlags = 0;
 
-   private final GLCapabilitiesImmutable glCapsRequested;
 
    /* Flag indicating whether an unprocessed reshape is pending. */
    private volatile boolean sendReshape; // volatile: maybe written by WindowManager thread w/o locking
@@ -218,6 +225,37 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     */
    private volatile Rectangle clientArea;
 
+   /** 
+    * Creates an instance using {@link #GLCanvas(Composite, int, GLCapabilitiesImmutable, GLCapabilitiesChooser, GLContext)} 
+    * on the SWT thread.
+    * 
+    * @param parent
+    *           Required (non-null) parent Composite.
+    * @param style
+    *           Optional SWT style bit-field. The {@link SWT#NO_BACKGROUND} bit is set before passing this up to the
+    *           Canvas constructor, so OpenGL handles the background.
+    * @param caps
+    *           Optional GLCapabilities. If not provided, the default capabilities for the default GLProfile for the
+    *           graphics device determined by the parent Composite are used. Note that the GLCapabilities that are
+    *           actually used may differ based on the capabilities of the graphics device.
+    * @param chooser
+    *           Optional GLCapabilitiesChooser to customize the selection of the used GLCapabilities based on the
+    *           requested GLCapabilities, and the available capabilities of the graphics device.
+    * @param shareWith
+    *           Optional GLContext to share state (textures, vbos, shaders, etc.) with.
+    * @return a new instance
+    */
+   public static GLCanvas create(final Composite parent, final int style, final GLCapabilitiesImmutable caps,
+                                 final GLCapabilitiesChooser chooser, final GLContext shareWith) {
+       final GLCanvas[] res = new GLCanvas[] { null }; 
+       parent.getDisplay().syncExec(new Runnable() {
+           public void run() {
+               res[0] = new GLCanvas( parent, style, caps, chooser, shareWith );
+           }
+       });
+       return res[0];
+   }
+
    /**
     * Creates a new SWT GLCanvas.
     *
@@ -250,35 +288,26 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       /* Get the nativewindow-Graphics Device associated with this control (which is determined by the parent Composite). 
        * Note: SWT is owner of the native handle, hence no closing operation will be a NOP. */
       device = SWTAccessor.getDevice(this);
-      /* Since we have no means of querying the screen index yet, assume 0. Good choice due to Xinerama alike settings anyways. */
-      final int screenIdx = 0;
-      /* Native handle for the control, used to associate with GLContext */
-      nativeWindowHandle = SWTAccessor.getWindowHandle(this);
 
       /* Select default GLCapabilities if none was provided, otherwise clone provided caps to ensure safety */
       if(null == caps) {
           caps = new GLCapabilities(GLProfile.getDefault(device));
       }
-      glCapsRequested = caps;
+      this.capsRequested = caps;
+      this.capsChooser = chooser;
+      this.shareWith = shareWith;
 
-      final GLDrawableFactory glFactory = GLDrawableFactory.getFactory(caps.getGLProfile());
-
-      /* Create a NativeWindow proxy for the SWT canvas */
-      proxySurface = glFactory.createProxySurface(device, screenIdx, nativeWindowHandle, caps, chooser, swtCanvasUpStreamHook);
-
-      /* Associate a GL surface with the proxy */
-      drawable = glFactory.createGLDrawable(proxySurface);
-      drawable.setRealized(true);
-
-      context = drawable.createContext(shareWith);
-
+      // post create .. when ready
+      drawable = null;
+      context = null;
+      
       /* Register SWT listeners (e.g. PaintListener) to render/resize GL surface. */
       /* TODO: verify that these do not need to be manually de-registered when destroying the SWT component */
       addPaintListener(new PaintListener() {
          @Override
         public void paintControl(final PaintEvent arg0) {
-            if (!helper.isExternalAnimatorAnimating()) {
-               display();
+            if ( !helper.isExternalAnimatorAnimating() ) {                
+               display(); // checks: null != drawable
             }
          }
       });
@@ -291,39 +320,93 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       });
    }
    private final ProxySurface.UpstreamSurfaceHook swtCanvasUpStreamHook = new ProxySurface.UpstreamSurfaceHook() {
-    @Override
-    public final void create(ProxySurface s) { /* nop */ }
+       @Override
+       public final void create(ProxySurface s) { /* nop */ }
 
-    @Override
-    public final void destroy(ProxySurface s) { /* nop */ }
+       @Override
+       public final void destroy(ProxySurface s) { /* nop */ }
 
-    @Override
-    public final int getWidth(ProxySurface s) {
-        return clientArea.width;
-    }
+       @Override
+       public final int getWidth(ProxySurface s) {
+           return clientArea.width;
+       }
 
-    @Override
-    public final int getHeight(ProxySurface s) {
-        return clientArea.height;
-    }
-    
-    @Override
-    public String toString() {
-        return "SETUpstreamSurfaceHook[upstream: "+GLCanvas.this.toString()+"]";
-    }
+       @Override
+       public final int getHeight(ProxySurface s) {
+           return clientArea.height;
+       }
 
+       @Override
+       public String toString() {
+           return "SWTCanvasUpstreamSurfaceHook[upstream: "+GLCanvas.this.toString()+", "+clientArea.width+"x"+clientArea.height+"]";
+       }
    };
 
    protected final void updateSizeCheck() {
-      clientArea = GLCanvas.this.getClientArea();
-      if (clientArea != null && 
-          proxySurface.getWidth() != clientArea.width && 
-          proxySurface.getHeight() != clientArea.height) {
+      final Rectangle oClientArea = clientArea;
+      final Rectangle nClientArea = GLCanvas.this.getClientArea();
+      if ( nClientArea != null && 
+           ( nClientArea.width != oClientArea.width || nClientArea.height != oClientArea.height )
+         ) {
+          clientArea = nClientArea; // write back new value
           sendReshape = true; // Mark for OpenGL reshape next time the control is painted
       }
-      sendReshape = false;
+   }
+   
+   @Override
+   public void display() {
+      if( null != drawable || validateDrawableAndContext() ) {
+          runInGLThread(makeCurrentAndDisplayOnEDTAction);
+      }
    }
 
+   
+   /** assumes drawable == null ! */
+   protected final boolean validateDrawableAndContext() {
+      if( GLCanvas.this.isDisposed() ) {
+          return false;
+      }
+      final Rectangle nClientArea = clientArea;
+      if(0 == nClientArea.width * nClientArea.height) {
+          return false;
+      }
+               
+      final RecursiveLock _lock = lock;
+      _lock.lock();
+      try {
+          final GLDrawableFactory glFactory = GLDrawableFactory.getFactory(capsRequested.getGLProfile());
+    
+          /* Native handle for the control, used to associate with GLContext */
+          final long nativeWindowHandle = SWTAccessor.getWindowHandle(this);
+          
+          /* Create a NativeWindow proxy for the SWT canvas */
+          ProxySurface proxySurface = null;
+          try {
+              proxySurface = glFactory.createProxySurface(device, 0 /* screenIdx */, nativeWindowHandle, 
+                                                          capsRequested, capsChooser, swtCanvasUpStreamHook);
+          } catch (GLException gle) {
+              // not ready yet ..
+              if(DEBUG) { System.err.println(gle.getMessage()); }
+          }
+          
+          if(null != proxySurface) {
+              /* Associate a GL surface with the proxy */
+              drawable = glFactory.createGLDrawable(proxySurface);
+              drawable.setRealized(true);
+        
+              context = drawable.createContext(shareWith);
+          }
+      } finally {
+          _lock.unlock();
+      }
+      final boolean res = null != drawable;
+      if(DEBUG && res) {
+          System.err.println("SWT GLCanvas realized! "+this+", "+drawable);
+          Thread.dumpStack();
+      }
+      return res;
+   }
+   
    @Override
    public final Object getUpstreamWidget() {
        return this;
@@ -363,11 +446,6 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    }
 
    @Override
-   public void display() {
-      runInGLThread(makeCurrentAndDisplayOnEDTAction);
-   }
-
-   @Override
    public GLAnimatorControl getAnimator() {
       return helper.getAnimator();
    }
@@ -379,7 +457,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    @Override
    public GLContext getContext() {
-      return context;
+      return null != drawable ? context : null;
    }
 
    @Override
@@ -472,7 +550,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    @Override
    public GLCapabilitiesImmutable getChosenGLCapabilities() {
-      return (GLCapabilitiesImmutable)proxySurface.getGraphicsConfiguration().getChosenCapabilities();
+      final GLDrawable _drawable = drawable; 
+      return null != _drawable ? (GLCapabilitiesImmutable)_drawable.getChosenGLCapabilities() : null;
    }
 
    /**
@@ -481,7 +560,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     * @return Non-null GLCapabilities.
     */
    public GLCapabilitiesImmutable getRequestedGLCapabilities() {
-      return (GLCapabilitiesImmutable)proxySurface.getGraphicsConfiguration().getRequestedCapabilities();
+      final GLDrawable _drawable = drawable; 
+      return null != _drawable ? (GLCapabilitiesImmutable)_drawable.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities() : null;
    }
 
    @Override
@@ -492,7 +572,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    @Override
    public GLProfile getGLProfile() {
-      return glCapsRequested.getGLProfile();
+      return capsRequested.getGLProfile();
    }
 
    @Override
@@ -523,10 +603,9 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       runInGLThread(makeCurrentAndSwapBuffersOnEDTAction);
    }
 
-   // FIXME: API of update() method ?
    @Override
    public void update() {
-      // FIXME: display(); ?
+      // don't paint background etc .. nop avoids flickering
    }
 
    @Override
@@ -551,7 +630,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     * @see Platform#AWT_AVAILABLE
     * @see Platform#getOSType()
     */
-   private void runInGLThread(final Runnable action) {
+   private static void runInGLThread(final Runnable action) {
       if(Platform.OSType.MACOS == Platform.OS_TYPE) {
           SWTAccessor.invoke(true, action);
       } else {

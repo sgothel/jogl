@@ -150,7 +150,7 @@ public class MacWindow extends WindowImpl implements MutableSurface, DriverClear
             System.err.println("MacWindow: clearFocus() - requestFocusParent, isOffscreenInstance "+isOffscreenInstance);
         }
         if(!isOffscreenInstance) {
-            requestFocusParent0(getWindowHandle());
+            resignFocus0(getWindowHandle());
         } else {
             focusChanged(false, false);
         }
@@ -360,7 +360,6 @@ public class MacWindow extends WindowImpl implements MutableSurface, DriverClear
                 if(recreate && 0==surfaceHandle) {
                     throw new NativeWindowException("Internal Error - recreate, window but no view");
                 }
-                orderOut0(getWindowHandle());
                 close0(getWindowHandle());
                 setWindowHandle(0);
             } else {
@@ -397,7 +396,7 @@ public class MacWindow extends WindowImpl implements MutableSurface, DriverClear
     private native boolean lockSurface0(long window);
     private native void unlockSurface0(long window);
     private native void requestFocus0(long window, boolean force);
-    private native void requestFocusParent0(long window);
+    private native void resignFocus0(long window);
     /** in case of a child window, it actually only issues orderBack(..) */
     private native void orderOut0(long window);
     private native void orderFront0(long window);
