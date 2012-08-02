@@ -58,8 +58,8 @@ import com.jogamp.common.util.locks.RecursiveLock;
 public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
   private int floatMode;
 
-  public GLPbufferImpl(GLDrawableImpl pbufferDrawable, GLContext sharedContext) {
-    super(pbufferDrawable, null); // drawable := pbufferDrawable 
+  public GLPbufferImpl(GLDrawableImpl pbufferDrawable, GLContext sharedContext, boolean ownDevice) {
+    super(pbufferDrawable, null, ownDevice); // drawable := pbufferDrawable 
     
     GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)
          drawable.getNativeSurface().getGraphicsConfiguration().getChosenCapabilities();

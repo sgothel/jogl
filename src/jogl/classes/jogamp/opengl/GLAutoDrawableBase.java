@@ -30,6 +30,8 @@ package jogamp.opengl;
 
 import java.io.PrintStream;
 
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
@@ -66,13 +68,23 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     
     protected volatile GLDrawableImpl drawable; // volatile: avoid locking for read-only access
     protected GLContextImpl context;
+    protected final boolean ownDevice;
     protected int additionalCtxCreationFlags = 0;
     protected volatile boolean sendReshape = false; // volatile: maybe written by WindowManager thread w/o locking
     protected volatile boolean sendDestroy = false; // volatile: maybe written by WindowManager thread w/o locking
 
-    public GLAutoDrawableBase(GLDrawableImpl drawable, GLContextImpl context) {
+    /**
+     * @param drawable a valid {@link GLDrawableImpl}, may not be realized yet.
+     * @param context a valid {@link GLContextImpl}, may not be made current (created) yet.
+     * @param ownDevice pass <code>true</code> if {@link AbstractGraphicsDevice#close()} shall be issued,
+     *                  otherwise pass <code>false</code>. Closing the device is required in case
+     *                  the drawable is created w/ it's own new instance, e.g. offscreen drawables,
+     *                  and no further lifecycle handling is applied.
+     */
+    public GLAutoDrawableBase(GLDrawableImpl drawable, GLContextImpl context, boolean ownDevice) {
         this.drawable = drawable;
         this.context = context;
+        this.ownDevice = ownDevice;
         resetFPSCounter();        
     }
    
@@ -174,7 +186,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     }
     
     /**
-     * Calls {@link #destroyImplInLock()} while claiming the lock. 
+     * Calls {@link #destroyImplInLock()} while claiming the lock.
      */
     protected final void defaultDestroy() {
         final RecursiveLock lock = getLock();
@@ -200,17 +212,22 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     protected void destroyImplInLock() {
         final GLContext _context = context;
         final GLDrawable _drawable = drawable;
-        if( null != _drawable && _drawable.isRealized() ) {
-            if( null != _context && _context.isCreated() ) {
-                // Catch dispose GLExceptions by GLEventListener, just 'print' them
-                // so we can continue with the destruction.
-                try {
-                    helper.disposeGL(this, _drawable, _context, null);
-                } catch (GLException gle) {
-                    gle.printStackTrace();
+        if( null != _drawable ) {
+            if( _drawable.isRealized() ) {
+                if( null != _context && _context.isCreated() ) {
+                    // Catch dispose GLExceptions by GLEventListener, just 'print' them
+                    // so we can continue with the destruction.
+                    try {
+                        helper.disposeGL(this, _drawable, _context, null);
+                    } catch (GLException gle) {
+                        gle.printStackTrace();
+                    }
                 }
+                _drawable.setRealized(false);
             }
-            _drawable.setRealized(false);
+            if( ownDevice ) {
+                _drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice().close();
+            }
         }
         context = null;
         drawable = null;        

@@ -28,6 +28,8 @@
  
 package javax.media.opengl;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
+
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
@@ -57,12 +59,16 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase {
     public static final boolean DEBUG = Debug.debug("GLAutoDrawableDelegate");
     
     /**
-     * @param drawable
-     * @param context
+     * @param drawable a valid {@link GLDrawable}, may not be realized yet.
+     * @param context a valid {@link GLContext}, may not be made current (created) yet.
      * @param upstreamWidget optional UI element holding this instance, see {@link #getUpstreamWidget()}.
+     * @param ownDevice pass <code>true</code> if {@link AbstractGraphicsDevice#close()} shall be issued,
+     *                  otherwise pass <code>false</code>. Closing the device is required in case
+     *                  the drawable is created w/ it's own new instance, e.g. offscreen drawables,
+     *                  and no further lifecycle handling is applied.
      */
-    public GLAutoDrawableDelegate(GLDrawable drawable, GLContext context, Object upstreamWidget) {
-        super((GLDrawableImpl)drawable, (GLContextImpl)context);
+    public GLAutoDrawableDelegate(GLDrawable drawable, GLContext context, Object upstreamWidget, boolean ownDevice) {
+        super((GLDrawableImpl)drawable, (GLContextImpl)context, ownDevice);
         this.upstreamWidget = null;
     }
     

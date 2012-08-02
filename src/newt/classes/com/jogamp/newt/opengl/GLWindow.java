@@ -97,7 +97,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
      * Constructor. Do not call this directly -- use {@link #create()} instead.
      */
     protected GLWindow(Window window) {
-        super(null, null);
+        super(null, null, false);
         this.window = (WindowImpl) window;
         this.window.setHandleDestroyNotify(false);
         window.addWindowListener(new WindowAdapter() {

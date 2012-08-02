@@ -245,7 +245,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     if(null==drawable) {
         throw new GLException("Could not create Pbuffer drawable for: "+device+", "+capsChosen+", "+width+"x"+height);
     }
-    return new GLPbufferImpl( drawable, shareWith);
+    return new GLPbufferImpl( drawable, shareWith, true);
   }
 
   //---------------------------------------------------------------------------

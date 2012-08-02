@@ -167,7 +167,7 @@ public class TestFBODrawableNEWT extends UITestCase {
         final FBObject.RenderAttachment depthA = fbo.getDepthAttachment();
         Assert.assertNotNull(depthA);
         
-        final OffscreenAutoDrawable glad = new OffscreenAutoDrawable(fboDrawable, context, null);
+        final OffscreenAutoDrawable glad = new OffscreenAutoDrawable(fboDrawable, context, true);
 
         glad.addGLEventListener(demo);
         glad.addGLEventListener(new GLEventListener() {

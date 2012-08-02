@@ -88,7 +88,7 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
         drawable.setRealized(true);
         Assert.assertTrue(drawable.isRealized());
         
-        final GLAutoDrawableDelegate glad = new GLAutoDrawableDelegate(drawable, null, window) {
+        final GLAutoDrawableDelegate glad = new GLAutoDrawableDelegate(drawable, null, window, false) {
             @Override
             protected void destroyImplInLock() {
                 super.destroyImplInLock();

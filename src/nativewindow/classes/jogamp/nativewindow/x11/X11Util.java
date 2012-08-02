@@ -255,7 +255,7 @@ public class X11Util {
      */
     public static int shutdown(boolean realXCloseOpenAndPendingDisplays, boolean verbose) {
         int num=0;
-        if(DEBUG||verbose||pendingDisplayList.size() > 0) {
+        if(DEBUG || verbose || openDisplayMap.size() > 0 || pendingDisplayList.size() > 0) {
             System.err.println("X11Util.Display: Shutdown (close open / pending Displays: "+realXCloseOpenAndPendingDisplays+
                                ", open (no close attempt): "+openDisplayMap.size()+"/"+openDisplayList.size()+
                                ", pending (not closed, marked uncloseable): "+pendingDisplayList.size()+")");

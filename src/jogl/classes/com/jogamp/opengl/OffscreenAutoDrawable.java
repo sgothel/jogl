@@ -28,6 +28,7 @@
 
 package com.jogamp.opengl;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.GLAutoDrawableDelegate;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
@@ -45,8 +46,16 @@ import jogamp.opengl.GLFBODrawableImpl;
  */
 public class OffscreenAutoDrawable extends GLAutoDrawableDelegate {
   
-    public OffscreenAutoDrawable(GLDrawable drawable, GLContext context, Object upstreamWidget) {
-        super(drawable, context, upstreamWidget);
+    /**
+     * @param drawable a valid {@link GLDrawable}, may not be realized yet.
+     * @param context a valid {@link GLContext}, may not be made current (created) yet.
+     * @param ownDevice pass <code>true</code> if {@link AbstractGraphicsDevice#close()} shall be issued,
+     *                  otherwise pass <code>false</code>. Closing the device is required in case
+     *                  the drawable is created w/ it's own new instance, e.g. offscreen drawables,
+     *                  and no further lifecycle handling is applied.
+     */
+    public OffscreenAutoDrawable(GLDrawable drawable, GLContext context, boolean ownDevice) {
+        super(drawable, context, null, ownDevice);
     }
 
     /**
