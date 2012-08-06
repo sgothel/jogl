@@ -41,6 +41,7 @@ import jogamp.newt.WindowImpl;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.VisualIDHolder;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
@@ -119,8 +120,8 @@ public class WindowsWindow extends WindowImpl {
     protected void createNativeImpl() {
         final WindowsScreen  screen = (WindowsScreen) getScreen();
         final WindowsDisplay display = (WindowsDisplay) screen.getDisplay();
-        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice()).chooseGraphicsConfiguration(
-                capsRequested, capsRequested, capabilitiesChooser, screen.getGraphicsScreen());
+        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice(), capsRequested).chooseGraphicsConfiguration(
+                capsRequested, capsRequested, capabilitiesChooser, screen.getGraphicsScreen(), VisualIDHolder.VID_UNDEFINED);
         if (null == cfg) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
@@ -150,8 +151,8 @@ public class WindowsWindow extends WindowImpl {
     }
 
     protected void closeNativeImpl() {
-        if (hdc != 0) {
-            if(windowHandleClose != 0) {
+        if(windowHandleClose != 0) {
+            if (hdc != 0) {
                 try {
                     GDI.ReleaseDC(windowHandleClose, hdc);
                 } catch (Throwable t) {
@@ -161,11 +162,8 @@ public class WindowsWindow extends WindowImpl {
                     }
                 }
             }
-            hdc = 0;
-            hdc_old = 0;
-        }
-        if(windowHandleClose != 0) {
             try {
+                GDI.SetParent(windowHandleClose, 0); // detach first, experience hang w/ SWT parent
                 GDI.DestroyWindow(windowHandleClose);
             } catch (Throwable t) {
                 if(DEBUG_IMPLEMENTATION) {
@@ -176,6 +174,8 @@ public class WindowsWindow extends WindowImpl {
                 windowHandleClose = 0;
             }
         }
+        hdc = 0;
+        hdc_old = 0;
     }
 
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {

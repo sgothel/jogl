@@ -25,14 +25,18 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.test.junit.jogl.glsl;
+package com.jogamp.opengl.test.junit.jogl.acore;
 
-import com.jogamp.opengl.util.FBObject;
+import com.jogamp.opengl.FBObject;
+import com.jogamp.opengl.FBObject.TextureAttachment;
 import com.jogamp.opengl.util.GLArrayDataServer;
+import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 import com.jogamp.opengl.util.glsl.ShaderState;
+import com.jogamp.opengl.util.texture.TextureIO;
+import com.jogamp.opengl.FBObject.Attachment.Type;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.NEWTGLContext;
@@ -40,6 +44,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import java.io.IOException;
 
+import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
@@ -53,17 +58,20 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class TestFBOMRTNEWT01 extends UITestCase {
-    static long durationPerTest = 10; // ms
+    static long durationPerTest = 10*40*2; // ms
 
     @Test
     public void test01() throws InterruptedException {
+        final int step = 4;
+        final int width = 800;
+        final int height = 600;
         // preset ..
         if(!GLProfile.isAvailable(GLProfile.GL2GL3)) {
             System.err.println("Test requires GL2/GL3 profile.");
             return;
         }
         final NEWTGLContext.WindowContext winctx = NEWTGLContext.createOnscreenWindow(
-                new GLCapabilities(GLProfile.getGL2GL3()), 640, 480, true);        
+                new GLCapabilities(GLProfile.getGL2GL3()), width/step, height/step, true);        
         final GLDrawable drawable = winctx.context.getGLDrawable();
         GL2GL3 gl = winctx.context.getGL().getGL2GL3();
         gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, gl, null) ).getGL2GL3();
@@ -147,12 +155,15 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         texCoords0.enableBuffer(gl, false);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
+        final int texA0Point = 0; // attachment point for texA0
+        final int texA1Point = 1; // attachment point for texA1
+        
         // FBO w/ 2 texture2D color buffers
-        final FBObject fbo_mrt = new FBObject(drawable.getWidth(), drawable.getHeight());
-        fbo_mrt.init(gl);
-        Assert.assertTrue( 0 == fbo_mrt.attachTexture2D(gl, texUnit0.intValue(), GL.GL_NEAREST, GL.GL_NEAREST, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE) );
-        Assert.assertTrue( 1 == fbo_mrt.attachTexture2D(gl, texUnit1.intValue(), GL.GL_NEAREST, GL.GL_NEAREST, GL2ES2.GL_CLAMP_TO_EDGE, GL2ES2.GL_CLAMP_TO_EDGE) );
-        Assert.assertTrue( fbo_mrt.attachDepthBuffer(gl, GL.GL_DEPTH_COMPONENT16) );
+        final FBObject fbo_mrt = new FBObject();
+        fbo_mrt.reset(gl, drawable.getWidth(), drawable.getHeight());
+        final TextureAttachment texA0 = fbo_mrt.attachTexture2D(gl, texA0Point, true, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
+        final TextureAttachment texA1 = fbo_mrt.attachTexture2D(gl, texA1Point, true, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
+        fbo_mrt.attachRenderbuffer(gl, Type.DEPTH, 24);
         Assert.assertTrue( fbo_mrt.isStatusValid() ) ;
         fbo_mrt.unbind(gl);
         
@@ -170,8 +181,12 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         st.uniform(gl, pmvMatrixUniform);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
-        final int[] two_buffers = new int[] { GL.GL_COLOR_ATTACHMENT0, GL.GL_COLOR_ATTACHMENT0+1 };
+        final int[] two_buffers = new int[] { GL.GL_COLOR_ATTACHMENT0+texA0Point, GL.GL_COLOR_ATTACHMENT0+texA1Point };
         final int[] bck_buffers = new int[] { GL2GL3.GL_BACK_LEFT };
+        
+        final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
+        int step_i = 0;
+        int[] last_snap_size = new int[] { 0, 0 };
         
         for(int i=0; i<durationPerTest; i+=50) {
             // pass 1 - MRT: Red -> buffer0, Green -> buffer1
@@ -198,8 +213,11 @@ public class TestFBOMRTNEWT01 extends UITestCase {
             gl.glDrawBuffers(1, bck_buffers, 0);
             
             gl.glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
-            fbo_mrt.use(gl, 0);
-            fbo_mrt.use(gl, 1);
+            
+            gl.glActiveTexture(GL.GL_TEXTURE0 + texUnit0.intValue());            
+            fbo_mrt.use(gl, texA0);
+            gl.glActiveTexture(GL.GL_TEXTURE0 + texUnit1.intValue());
+            fbo_mrt.use(gl, texA1);
             gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
             gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
             fbo_mrt.unuse(gl);
@@ -207,8 +225,27 @@ public class TestFBOMRTNEWT01 extends UITestCase {
             colors0.enableBuffer(gl, false);
             texCoords0.enableBuffer(gl, false);
             
+            {
+                final NativeSurface ns = gl.getContext().getGLReadDrawable().getNativeSurface();
+                if(last_snap_size[0] != ns.getWidth() && last_snap_size[1] != ns.getHeight()) {
+                    gl.glFinish(); // sync .. no swap buffers yet!
+                    snapshot(getSimpleTestName("."), step_i, null, gl, screenshot, TextureIO.PNG, null); // overwrite ok
+                    last_snap_size[0] = ns.getWidth();
+                    last_snap_size[1] = ns.getHeight();
+                }
+            }
+            
             drawable.swapBuffers();
             Thread.sleep(50);
+            int j = (int) ( (long)i / (durationPerTest/(long)step) ) + 1;
+            if(j>step_i) {
+                int w = width/step * j;
+                int h = height/step * j;
+                System.err.println("resize: "+step_i+" -> "+j+" - "+w+"x"+h);
+                fbo_mrt.reset(gl, w, h);
+                winctx.window.setSize(w, h);
+                step_i = j;
+            }
         }
         
         NEWTGLContext.destroyWindow(winctx);

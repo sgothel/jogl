@@ -28,6 +28,7 @@
 package jogamp.nativewindow.macosx;
 
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 
 import jogamp.nativewindow.Debug;
@@ -59,22 +60,51 @@ public class OSXUtil {
         return false;
     }
     
-    public static Point GetLocationOnScreen(long windowOrView, int src_x, int src_y) {
-      return (Point) GetLocationOnScreen0(windowOrView, src_x, src_y);
+    public static boolean isNSView(long object) {
+        return isNSView0(object);
     }
     
-    public static long CreateNSView(int x, int y, int width, int height) {
-      return CreateNSView0(x, y, width, height);
+    /**
+     * In case the <code>windowOrView</code> is top-level,
+     * you shall set <code>topLevel</code> to true where
+     * insets gets into account to compute the client position as follows:
+     * <pre>
+      if(topLevel) {
+          // top-level position -> client window position
+          final Insets insets = GetInsets(windowOrView);
+          los.setX(los.getX() + insets.getLeftWidth());
+          los.setY(los.getY() + insets.getTopHeight());
+      }
+     * </pre>
+     * @param windowOrView
+     * @param topLevel
+     * @param src_x
+     * @param src_y
+     * @return the client position
+     */
+    public static Point GetLocationOnScreen(long windowOrView, boolean topLevel, int src_x, int src_y) {      
+      final Point los = (Point) GetLocationOnScreen0(windowOrView, src_x, src_y);
+      if(topLevel) {
+          // top-level position -> client window position
+          final Insets insets = GetInsets(windowOrView);
+          los.setX(los.getX() + insets.getLeftWidth());
+          los.setY(los.getY() + insets.getTopHeight());
+      }
+      return los;
     }
-    public static void DestroyNSView(long nsView) {
-        DestroyNSView0(nsView);
+    
+    public static Insets GetInsets(long windowOrView) {
+      return (Insets) GetInsets0(windowOrView);
     }
-
+    
     public static long CreateNSWindow(int x, int y, int width, int height) {
       return CreateNSWindow0(x, y, width, height);
     }
     public static void DestroyNSWindow(long nsWindow) {
         DestroyNSWindow0(nsWindow);
+    }
+    public static long GetNSView(long nsWindow) {
+      return GetNSView0(nsWindow);
     }
     
     public static long CreateCALayer(int x, int y, int width, int height) {
@@ -133,11 +163,12 @@ public class OSXUtil {
     } */
     
     private static native boolean initIDs0();
+    private static native boolean isNSView0(long object);
     private static native Object GetLocationOnScreen0(long windowOrView, int src_x, int src_y);
-    private static native long CreateNSView0(int x, int y, int width, int height);
-    private static native void DestroyNSView0(long nsView);
+    private static native Object GetInsets0(long windowOrView);
     private static native long CreateNSWindow0(int x, int y, int width, int height);
     private static native void DestroyNSWindow0(long nsWindow);
+    private static native long GetNSView0(long nsWindow);
     private static native long CreateCALayer0(int x, int y, int width, int height);
     private static native void AddCASublayer0(long rootCALayer, long subCALayer);
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);

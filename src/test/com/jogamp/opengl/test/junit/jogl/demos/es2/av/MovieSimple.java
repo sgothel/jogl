@@ -400,8 +400,9 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         
         startTime = System.currentTimeMillis();
         
-        if (drawable instanceof Window) {
-            Window window = (Window) drawable;
+        final Object upstreamWidget = drawable.getUpstreamWidget();
+        if (upstreamWidget instanceof Window) {            
+            final Window window = (Window) upstreamWidget;
             window.addMouseListener(mouseAction);
             winWidth = window.getWidth();
             winHeight = window.getHeight();

@@ -24,7 +24,9 @@
   /** Entry point to C language function: <code> XVisualInfo *  XGetVisualInfo(Display * , long, XVisualInfo * , int * ); </code>    */
   private static native java.nio.ByteBuffer XGetVisualInfo1(long arg0, long arg1, java.nio.ByteBuffer arg2, Object arg3, int arg3_byte_offset);
 
-  public static native long DefaultVisualID(long display, int screen);
+  public static native int GetVisualIDFromWindow(long display, long window);
+
+  public static native int DefaultVisualID(long display, int screen);
 
   public static native long CreateDummyWindow(long display, int screen_index, int visualID, int width, int height);
   public static native void DestroyDummyWindow(long display, long window);

@@ -38,7 +38,8 @@ import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.SurfaceChangeable;
+import javax.media.nativewindow.MutableSurface;
+import javax.media.nativewindow.VisualIDHolder;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
@@ -50,7 +51,7 @@ import jogamp.newt.driver.DriverUpdatePosition;
 
 import com.jogamp.newt.event.KeyEvent;
 
-public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverClearFocus, DriverUpdatePosition {
+public class MacWindow extends WindowImpl implements MutableSurface, DriverClearFocus, DriverUpdatePosition {
     
     static {
         MacDisplay.initSingleton();
@@ -61,8 +62,8 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
     
     @Override
     protected void createNativeImpl() {
-        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(
-                capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen());
+        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice(), capsRequested).chooseGraphicsConfiguration(
+                capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen(), VisualIDHolder.VID_UNDEFINED);
         if (null == cfg) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
@@ -131,10 +132,6 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
         }        
     }
 
-    public void surfaceSizeChanged(int width, int height) {
-        sizeChanged(false, width, height, false);
-    }
-    
     @Override
     protected void setTitleImpl(final String title) {
         setTitle0(getWindowHandle(), title);
@@ -153,7 +150,7 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
             System.err.println("MacWindow: clearFocus() - requestFocusParent, isOffscreenInstance "+isOffscreenInstance);
         }
         if(!isOffscreenInstance) {
-            requestFocusParent0(getWindowHandle());
+            resignFocus0(getWindowHandle());
         } else {
             focusChanged(false, false);
         }
@@ -363,7 +360,6 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
                 if(recreate && 0==surfaceHandle) {
                     throw new NativeWindowException("Internal Error - recreate, window but no view");
                 }
-                orderOut0(getWindowHandle());
                 close0(getWindowHandle());
                 setWindowHandle(0);
             } else {
@@ -400,7 +396,7 @@ public class MacWindow extends WindowImpl implements SurfaceChangeable, DriverCl
     private native boolean lockSurface0(long window);
     private native void unlockSurface0(long window);
     private native void requestFocus0(long window, boolean force);
-    private native void requestFocusParent0(long window);
+    private native void resignFocus0(long window);
     /** in case of a child window, it actually only issues orderBack(..) */
     private native void orderOut0(long window);
     private native void orderFront0(long window);

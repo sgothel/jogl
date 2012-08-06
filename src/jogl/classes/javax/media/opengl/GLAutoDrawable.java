@@ -51,8 +51,8 @@ import jogamp.opengl.Debug;
     calls to {@link GLContext#makeCurrent makeCurrent} will block if
     the context is current on another thread. This allows the internal
     GLContext for the GLAutoDrawable to be used both by the event
-    based rendering mechanism as well by end users directly.<P>
-
+    based rendering mechanism as well by end users directly.
+    <p>
     The implementation shall initialize itself as soon as possible,
     ie if the attached {@link javax.media.nativewindow.NativeSurface NativeSurface} becomes visible/realized.
     The following protocol shall be satisfied:
@@ -64,18 +64,18 @@ import jogamp.opengl.Debug;
              registered {@link GLEventListener}s. This can be done immediatly, or with the followup {@link #display display(..)} call.</li>
         <li> Send a reshape event by calling {@link GLEventListener#reshape reshape(..)} for all
              registered {@link GLEventListener}s. This shall be done after the {@link GLEventListener#init init(..)} calls.</li>
-    </ul><P>
-
+    </ul></P>
+    <p>
     Another implementation detail is the drawable reconfiguration. One use case is where a window is being
     dragged to another screen with a different pixel configuration, ie {@link GLCapabilities}. The implementation
-    shall be able to detect such cases in conjunction with the associated {@link javax.media.nativewindow.NativeSurface NativeSurface}.<br>
+    shall be able to detect such cases in conjunction with the associated {@link javax.media.nativewindow.NativeSurface NativeSurface}.<br/>
     For example, AWT's {@link java.awt.Canvas} 's {@link java.awt.Canvas#getGraphicsConfiguration getGraphicsConfiguration()}
     is capable to determine a display device change. This is demonstrated within {@link javax.media.opengl.awt.GLCanvas}'s
     and NEWT's <code>AWTCanvas</code> {@link javax.media.opengl.awt.GLCanvas#getGraphicsConfiguration getGraphicsConfiguration()}
     specialization. Another demonstration is NEWT's {@link javax.media.nativewindow.NativeWindow NativeWindow}
-    implementation on the Windows platform, which utilizes the native platform's <i>MonitorFromWindow(HWND)</i> function.<br>
+    implementation on the Windows platform, which utilizes the native platform's <i>MonitorFromWindow(HWND)</i> function.<br/>
     All OpenGL resources shall be regenerated, while the drawable's {@link GLCapabilities} has
-    to be choosen again. The following protocol shall be satisfied.
+    to be chosen again. The following protocol shall be satisfied.
     <ul>
         <li> Controlled disposal:</li>
         <ul>
@@ -97,16 +97,16 @@ import jogamp.opengl.Debug;
     </ul>
     Note: Current graphics driver keep the surface configuration for a given window, even if the window is moved to
     a monitor with a different pixel configuration, ie 32bpp to 16bpp. However, it is best to not assume such behavior
-    and make your application comply with the above protocol.<P>
-
-    However, to not introduce to much breakage with older applications and because of the situation
+    and make your application comply with the above protocol.
+    <p>
+    Avoiding breakage with older applications and because of the situation
     mentioned above, the <code>boolean</code> system property <code>jogl.screenchange.action</code> will control the
-    screen change action as follows:<br>
-
+    screen change action as follows:<br/>
     <PRE>
     -Djogl.screenchange.action=false Disable the drawable reconfiguration (the default)
     -Djogl.screenchange.action=true  Enable  the drawable reconfiguration
     </PRE>
+    </p>
   */
 public interface GLAutoDrawable extends GLDrawable {
   /** Flag reflecting wheather the drawable reconfiguration will be issued in
@@ -362,5 +362,29 @@ public interface GLAutoDrawable extends GLDrawable {
       demos for examples.
       @return the set GL pipeline or null if not successful */
   public GL setGL(GL gl);
+  
+  /**
+   * Method <i>may</i> return the upstream UI toolkit object
+   * holding this {@link GLAutoDrawable} instance, if exist.
+   * <p>
+   * Currently known Java UI toolkits and it's known return types are:
+   * 
+   * <table border="1">
+   *     <tr><td>Toolkit</td>  <td>GLAutoDrawable Implementation</td>            <td>~</td>      <td>Return Type of getUpstreamWidget()</td</tr>
+   *     <tr><td>NEWT</td>     <td>{@link com.jogamp.newt.opengl.GLWindow}</td>  <td>has a</td>  <td>{@link com.jogamp.newt.Window}</td</tr>
+   *     <tr><td>SWT</td>      <td>{@link com.jogamp.opengl.swt.GLCanvas}</td>   <td>is a</td>   <td>{@link org.eclipse.swt.widgets.Canvas}</td</tr>
+   *     <tr><td>AWT</td>      <td>{@link javax.media.opengl.awt.GLCanvas}</td>  <td>is a</td>   <td>{@link java.awt.Canvas}</td</tr>
+   *     <tr><td>AWT</td>      <td>{@link javax.media.opengl.awt.GLJPanel}</td>  <td>is a</td>   <td>{@link javax.swing.JPanel}</td</tr>
+   * </table>
+   * However, the result may be other object types than the listed above 
+   * due to new supported toolkits.
+   * </p>
+   * <p>
+   * This method may also return <code>null</code> if no UI toolkit is being used,
+   * as common for offscreen rendering.
+   * </p>
+   * @return
+   */
+  public Object getUpstreamWidget();
 
 }

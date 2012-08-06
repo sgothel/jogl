@@ -50,9 +50,11 @@ import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.util.ReflectionUtil;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ProxySurface;
+import javax.media.nativewindow.ProxySurface.UpstreamSurfaceHook;
 import javax.media.opengl.GLProfile.ShutdownType;
 
 import jogamp.opengl.Debug;
@@ -398,9 +400,18 @@ public abstract class GLDrawableFactory {
   /**
    * Creates a Offscreen GLDrawable incl it's offscreen {@link javax.media.nativewindow.NativeSurface} with the given capabilites and dimensions.
    * <p>
-   * A Pbuffer drawable/surface is created if both {@link javax.media.opengl.GLCapabilities#isPBuffer() caps.isPBuffer()}
-   * and {@link #canCreateGLPbuffer(javax.media.nativewindow.AbstractGraphicsDevice) canCreateGLPbuffer(device)} is true.<br>
-   * Otherwise a simple pixmap/bitmap drawable/surface is created, which is unlikely to be hardware accelerated.<br>
+   * It's {@link AbstractGraphicsConfiguration} is properly set according to the given {@link GLCapabilitiesImmutable}, see below.
+   * </p>
+   * <p>
+   * A FBO drawable is created if both {@link javax.media.opengl.GLCapabilities#isFBO() caps.isFBO()}
+   * and {@link GLContext#isFBOAvailable(AbstractGraphicsDevice, GLProfile) canCreateFBO(device, caps.getGLProfile())} is true.
+   * </p>
+   * <p>
+   * A Pbuffer drawable is created if both {@link javax.media.opengl.GLCapabilities#isPBuffer() caps.isPBuffer()}
+   * and {@link #canCreateGLPbuffer(javax.media.nativewindow.AbstractGraphicsDevice) canCreateGLPbuffer(device)} is true.
+   * </p>
+   * <p>
+   * If neither FBO nor Pbuffer is available, a simple pixmap/bitmap drawable/surface is created, which is unlikely to be hardware accelerated.
    * </p>
    *
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
@@ -421,42 +432,32 @@ public abstract class GLDrawableFactory {
     throws GLException;
 
   /**
-   * Creates an offscreen NativeSurface.<br>
-   * A Pbuffer surface is created if both {@link javax.media.opengl.GLCapabilities#isPBuffer() caps.isPBuffer()}
-   * and {@link #canCreateGLPbuffer(javax.media.nativewindow.AbstractGraphicsDevice) canCreateGLPbuffer(device)} is true.<br>
-   * Otherwise a simple pixmap/bitmap surface is created. The latter is unlikely to be hardware accelerated.<br>
-   *
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
-   * @param caps the requested GLCapabilties
-   * @param chooser the custom chooser, may be null for default
-   * @param width the requested offscreen width
-   * @param height the requested offscreen height
-   * @return the created offscreen native surface
-   *
-   * @throws GLException if any window system-specific errors caused
-   *         the creation of the GLDrawable to fail.
-   */
-  public abstract NativeSurface createOffscreenSurface(AbstractGraphicsDevice device,
-                                                       GLCapabilitiesImmutable caps,
-                                                       GLCapabilitiesChooser chooser,
-                                                       int width, int height);
-
-  /**
-   * Highly experimental API entry, allowing developer of new windowing system bindings 
-   * to leverage the native window handle to produce a NativeSurface implementation (ProxySurface), having the required GLCapabilities.<br>
-   * Such surface can be used to instantiate a GLDrawable and hence test your new binding w/o the 
-   * costs of providing a full set of abstraction like the AWT GLCanvas or even the native NEWT bindings.
+   * Creates a proxy {@link NativeSurface} w/ defined surface handle, i.e. a {@link WrappedSurface} or {@link GDISurface} instance. 
+   * <p>
+   * It's {@link AbstractGraphicsConfiguration} is properly set according to the given 
+   * <code>windowHandle</code>'s native visualID if set or the given {@link GLCapabilitiesImmutable}.
+   * </p>
+   * <p>
+   * Lifecycle (destruction) of the given surface handle shall be handled by the caller.
+   * </p>
+   * <p>
+   * Such surface can be used to instantiate a GLDrawable. With the help of {@link GLAutoDrawableDelegate}
+   * you will be able to implement a new native windowing system  binding almost on-the-fly, see {@link com.jogamp.opengl.swt.GLCanvas}. 
+   * </p>
    * 
-   * @param device the platform's target device, shall not be <code>null</code>
+   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   *        Caller has to ensure it is compatible w/ the given <code>windowHandle</code> 
+   * @param screenIdx matching screen index of given <code>windowHandle</code>
    * @param windowHandle the native window handle
    * @param caps the requested GLCapabilties
    * @param chooser the custom chooser, may be null for default
-   * @return The proxy surface wrapping the windowHandle on the device
+   * @param upstream optional {@link ProxySurface.UpstreamSurfaceHook} allowing control of the {@link ProxySurface}'s lifecycle and data it presents.
+   * @return the created {@link ProxySurface} instance w/ defined surface handle.
    */
-  public abstract ProxySurface createProxySurface(AbstractGraphicsDevice device, 
+  public abstract ProxySurface createProxySurface(AbstractGraphicsDevice device,
+                                                  int screenIdx, 
                                                   long windowHandle, 
-                                                  GLCapabilitiesImmutable caps, 
-                                                  GLCapabilitiesChooser chooser);
+                                                  GLCapabilitiesImmutable caps, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream);
 
   /**
    * Returns true if it is possible to create a GLPbuffer. Some older
@@ -492,23 +493,7 @@ public abstract class GLDrawableFactory {
                                             GLContext shareWith)
     throws GLException;
 
-  /**
-   * Returns true if it is possible to create an <i>framebuffer object</i> (FBO).
-   * <p>
-   * FBO feature is implemented in OpenGL, hence it is {@link GLProfile} dependent.
-   * </p> 
-   * <p>
-   * FBO support is queried as described in {@link GLContext#hasFBO()}.
-   * </p>
-   *
-   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
-   * @param glp {@link GLProfile} to check for FBO capabilities
-   * @see GLContext#hasFBO()
-   */
-  public final boolean canCreateFBO(AbstractGraphicsDevice device, GLProfile glp) {
-      return 0 != ( GLContext.CTX_IMPL_FBO & GLContext.getAvailableContextProperties(device, glp) );
-  }
-
+  
   //----------------------------------------------------------------------
   // Methods for interacting with third-party OpenGL libraries
 

@@ -48,11 +48,13 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.OffscreenLayerSurface;
+import javax.media.nativewindow.ProxySurface;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
@@ -63,6 +65,7 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
+import com.jogamp.opengl.GLExtensions;
 
 public abstract class MacOSXCGLContext extends GLContextImpl
 {
@@ -252,9 +255,11 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
   @Override
   protected void makeCurrentImpl() throws GLException {
+    /** FIXME: won't work w/ special drawables (like FBO) - check for CGL mode regressions!
+     *  
     if (getOpenGLMode() != ((MacOSXCGLDrawable)drawable).getOpenGLMode()) {
       setOpenGLMode(((MacOSXCGLDrawable)drawable).getOpenGLMode());
-    }
+    } */
     if (!impl.makeCurrent(contextHandle)) {
       throw new GLException("Error making Context current: "+this);
     }
@@ -338,8 +343,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
   @Override
   public boolean isExtensionAvailable(String glExtensionName) {
-    if (glExtensionName.equals("GL_ARB_pbuffer") ||
-        glExtensionName.equals("GL_ARB_pixel_format")) {
+    if (glExtensionName.equals(GLExtensions.ARB_pbuffer) ||
+        glExtensionName.equals(GLExtensions.ARB_pixel_format)) {
       return true;
     }
     return super.isExtensionAvailable(glExtensionName);
@@ -426,10 +431,27 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     @Override
     public long create(long share, int ctp, int major, int minor) {
         long ctx = 0;
-        final MacOSXCGLDrawable drawable = (MacOSXCGLDrawable) MacOSXCGLContext.this.drawable;
-        final NativeSurface surface = drawable.getNativeSurface();
+        final long nsViewHandle;
+        if(drawable instanceof MacOSXCGLDrawable) {
+            // we allow null here! (special pbuffer case)
+            nsViewHandle = ((MacOSXCGLDrawable)MacOSXCGLContext.this.drawable).getNSViewHandle();
+        } else {
+            // we only allow a valid NSView here
+            final long aHandle = drawable.getHandle();
+            if( OSXUtil.isNSView(aHandle) ) {
+                nsViewHandle = aHandle;
+            } else {
+                throw new RuntimeException("Anonymous drawable instance's handle not of type NSView: "+drawable.getClass().getName()+", "+drawable);
+            }
+        }
+        final NativeSurface surface = drawable.getNativeSurface();        
         final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) surface.getGraphicsConfiguration();
         final OffscreenLayerSurface backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(surface, true);
+        
+        boolean allowIncompleteView = null != backingLayerHost;
+        if( !allowIncompleteView && surface instanceof ProxySurface ) {
+            allowIncompleteView = 0 != ( ProxySurface.INVISIBLE_WINDOW & ((ProxySurface)surface).getImplBitfield() ) ;
+        }
         final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         long pixelFormat = MacOSXCGLGraphicsConfiguration.GLCapabilities2NSPixelFormat(chosenCaps, ctp, major, minor);
         if (pixelFormat == 0) {
@@ -443,13 +465,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
         screenVSyncTimeout = 1000000f / sRefreshRate;
         if(DEBUG) {
             System.err.println("NS create OSX>=lion "+isLionOrLater);
-            System.err.println("NS create backendType: "+drawable.getOpenGLMode());
+            System.err.println("NS create allowIncompleteView: "+allowIncompleteView);
             System.err.println("NS create backingLayerHost: "+backingLayerHost);
             System.err.println("NS create share: "+share);
             System.err.println("NS create chosenCaps: "+chosenCaps);
             System.err.println("NS create pixelFormat: "+toHexString(pixelFormat));
             System.err.println("NS create drawable native-handle: "+toHexString(drawable.getHandle()));
-            System.err.println("NS create drawable NSView-handle: "+toHexString(drawable.getNSViewHandle()));
+            System.err.println("NS create drawable NSView-handle: "+toHexString(nsViewHandle));
             System.err.println("NS create screen refresh-rate: "+sRefreshRate+" hz, "+screenVSyncTimeout+" micros");
             // Thread.dumpStack();
         }
@@ -457,7 +479,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           int[] viewNotReady = new int[1];
           // Try to allocate a context with this
           ctx = CGL.createContext(share,
-                                  drawable.getNSViewHandle(), null!=backingLayerHost,
+                                  nsViewHandle, allowIncompleteView,
                                   pixelFormat,
                                   chosenCaps.isBackgroundOpaque(),
                                   viewNotReady, 0);
@@ -473,10 +495,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               CGL.setContextOpacity(ctx, 0);
           }
 
-          if(DEBUG) {
-              GLCapabilitiesImmutable caps0 = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(null, pixelFormat);
-              System.err.println("NS create pixelformat2GLCaps: "+caps0);
-          }
           GLCapabilitiesImmutable fixedCaps = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(chosenCaps.getGLProfile(), pixelFormat);
           fixedCaps = GLGraphicsConfigurationUtil.fixOpaqueGLCapabilities(fixedCaps, chosenCaps.isBackgroundOpaque());
           config.setChosenCapabilities(fixedCaps);
@@ -502,10 +520,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   texWidth = drawable.getWidth();
                   texHeight = drawable.getHeight();
               }
-              nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, nsOpenGLLayerPFmt, drawable.getHandle(), fixedCaps.isBackgroundOpaque(), texWidth, texHeight);
               if(0>=texWidth || 0>=texHeight || !drawable.isRealized()) {
                   throw new GLException("Drawable not realized yet or invalid texture size, texSize "+texWidth+"x"+texHeight+", "+drawable);
               }
+              nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, nsOpenGLLayerPFmt, drawable.getHandle(), fixedCaps.isBackgroundOpaque(), texWidth, texHeight);
               if (DEBUG) {
                   System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer)+", texSize "+texWidth+"x"+texHeight+", "+drawable);
               }
@@ -528,11 +546,11 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               System.err.println("NS destroy nsOpenGLLayer "+toHexString(nsOpenGLLayer));
           }
           final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(surface, true);
-          if(null == ols) {
-              throw new InternalError("XXX: "+ols);
+          if(null != ols && ols.isSurfaceLayerAttached()) {
+              // still having a valid OLS attached to surface (parent OLS could have been removed)
+              ols.detachSurfaceLayer();
           }
-          CGL.releaseNSOpenGLLayer(nsOpenGLLayer);
-          ols.detachSurfaceLayer(nsOpenGLLayer);
+          CGL.releaseNSOpenGLLayer(nsOpenGLLayer); 
           CGL.deletePixelFormat(nsOpenGLLayerPFmt);
           nsOpenGLLayerPFmt = 0;
           nsOpenGLLayer = 0;

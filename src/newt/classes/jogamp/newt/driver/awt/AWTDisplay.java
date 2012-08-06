@@ -36,6 +36,7 @@ package jogamp.newt.driver.awt;
 
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.util.EDTUtil;
 
 import jogamp.newt.DisplayImpl;
 
@@ -54,13 +55,17 @@ public class AWTDisplay extends DisplayImpl {
     protected void closeNativeImpl() { }
 
     @Override
-    protected void createEDTUtil() {
+    protected EDTUtil createEDTUtil() {
+        final EDTUtil def;
         if(NewtFactory.useEDT()) {
-            edtUtil = AWTEDTUtil.getSingleton();
+            def = AWTEDTUtil.getSingleton();
             if(DEBUG) {
-                System.err.println("AWTDisplay.createNative("+getFQName()+") Create EDTUtil: "+edtUtil.getClass().getName());
+                System.err.println("AWTDisplay.createNative("+getFQName()+") Create EDTUtil: "+def.getClass().getName());
             }
+        } else {
+            def = null;
         }
+        return def;
     }
 
     protected void dispatchMessagesNative() { /* nop */ }

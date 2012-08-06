@@ -58,14 +58,14 @@ import jogamp.opengl.macosx.cgl.MacOSXCGLGraphicsConfiguration;
 
 public class MacOSXAWTCGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     public static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.awt.AWTGraphicsDevice.class, new MacOSXAWTCGLGraphicsConfigurationFactory());
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.awt.AWTGraphicsDevice.class, GLCapabilitiesImmutable.class, new MacOSXAWTCGLGraphicsConfigurationFactory());
     }    
     private MacOSXAWTCGLGraphicsConfigurationFactory() {
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
             CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
+            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
         GraphicsDevice device = null;
         if (absScreen != null &&
             !(absScreen instanceof AWTGraphicsScreen)) {
@@ -103,9 +103,9 @@ public class MacOSXAWTCGLGraphicsConfigurationFactory extends GLGraphicsConfigur
 
         GraphicsConfiguration gc = device.getDefaultConfiguration();
         MacOSXCGLGraphicsConfiguration macConfig = (MacOSXCGLGraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(macDevice).chooseGraphicsConfiguration(capsChosen,
+            GraphicsConfigurationFactory.getFactory(macDevice, capsChosen).chooseGraphicsConfiguration(capsChosen,
                                                                                            capsRequested,
-                                                                                           chooser, macScreen);
+                                                                                           chooser, macScreen, nativeVisualID);
 
         if (macConfig == null) {
             throw new GLException("Unable to choose a GraphicsConfiguration: "+capsChosen+",\n\t"+chooser+"\n\t"+macScreen);

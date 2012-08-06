@@ -85,10 +85,10 @@ public class TestGLAutoDrawableDelegateNEWT extends UITestCase {
         Assert.assertTrue(GLContext.CONTEXT_CURRENT_NEW==res || GLContext.CONTEXT_CURRENT==res);
         context.release();
         
-        final GLAutoDrawableDelegate glad = new GLAutoDrawableDelegate(drawable, context) {
+        final GLAutoDrawableDelegate glad = new GLAutoDrawableDelegate(drawable, context, window, false) {
             @Override
-            public void destroy() {
-                super.destroy();  // destroys drawable/context
+            protected void destroyImplInLock() {
+                super.destroyImplInLock();  // destroys drawable/context
                 window.destroy(); // destroys the actual window
             }            
         };
@@ -97,15 +97,15 @@ public class TestGLAutoDrawableDelegateNEWT extends UITestCase {
         window.addWindowListener(new WindowAdapter() {
             @Override
             public void windowRepaint(WindowUpdateEvent e) {
-                glad.defaultWindowRepaintOp();
+                glad.windowRepaintOp();
             }
             @Override
             public void windowResized(WindowEvent e) {
-                glad.defaultWindowResizedOp();
+                glad.windowResizedOp();
             }
             @Override
             public void windowDestroyNotify(WindowEvent e) {
-                glad.defaultWindowDestroyNotifyOp();
+                glad.windowDestroyNotifyOp();
             }
         });
         window.addWindowListener(wl);

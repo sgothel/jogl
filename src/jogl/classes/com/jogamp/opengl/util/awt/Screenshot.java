@@ -48,6 +48,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.glu.gl2.GLUgl2;
 
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.TGAWriter;
 
@@ -392,7 +393,7 @@ public class Screenshot {
 
   private static void checkExtABGR() {
     GL2 gl = GLUgl2.getCurrentGL2();
-    if (!gl.isExtensionAvailable("GL_EXT_abgr")) {
+    if (!gl.isExtensionAvailable(GLExtensions.EXT_abgr)) {
       throw new IllegalArgumentException("Saving alpha channel requires GL_EXT_abgr");
     }
   } 

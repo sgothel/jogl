@@ -265,11 +265,12 @@ public class TextureSequenceCubeES2 implements GLEventListener {
 
         st.useProgram(gl, false);
 
-        if (drawable instanceof Window) {
-            Window window = (Window) drawable;
+        final Object upstreamWidget = drawable.getUpstreamWidget();
+        if (upstreamWidget instanceof Window) {            
+            final Window window = (Window) upstreamWidget;
             window.addMouseListener(mouseAction);
-        } else if (GLProfile.isAWTAvailable() && drawable instanceof java.awt.Component) {
-            java.awt.Component comp = (java.awt.Component) drawable;
+        } else if (GLProfile.isAWTAvailable() && upstreamWidget instanceof java.awt.Component) {
+            final java.awt.Component comp = (java.awt.Component) upstreamWidget;
             new com.jogamp.newt.event.awt.AWTMouseAdapter(mouseAction).addTo(comp);
         }
         

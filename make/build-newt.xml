@@ -107,6 +107,9 @@
         <property name="java.part.awt"
                   value="com/jogamp/newt/awt/** com/jogamp/newt/event/awt/** jogamp/newt/awt/** ${java.part.driver.awt}"/>
 
+        <property name="java.part.swt"
+                  value="com/jogamp/newt/swt/**"/>
+
         <property name="java.part.driver.x11"
                   value="jogamp/newt/driver/x11/**"/>
 
@@ -135,11 +138,16 @@
            <isset property="setup.noAWT"/>
         </condition>
 
+        <condition property="java.excludes.swt"
+                   value="${java.part.swt}">
+           <isset property="setup.noSWT"/> 
+        </condition>
+
         <condition property="java.excludes.opengl" value="${java.part.opengl}">
            <isset property="setup.noOpenGL"/>
         </condition>
 
-        <property name="java.excludes.all" value="${java.excludes.awt}, ${java.excludes.opengl}" />
+        <property name="java.excludes.all" value="${java.excludes.awt}, ${java.excludes.swt}, ${java.excludes.opengl}" />
         <echo message="java.excludes.all: ${java.excludes.all}" />
 
     </target>
@@ -707,6 +715,13 @@
         </jar>
     </target>
 
+    <target name="build-jars-swt" depends="setup-manifestfile" unless="setup.noSWT">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-swt.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.swt}"/>
+        </jar>
+    </target>
+
     <target name="build-jars-opengl" depends="setup-manifestfile" unless="setup.noOpenGL">
         <jar manifest="${build.newt}/manifest.mf" destfile="${newt-ogl.jar}" filesonly="true">
             <fileset dir="${classes}"
@@ -741,7 +756,7 @@
         </jar>
     </target>
 
-    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-opengl,build-jars-awt,build-jars-driver">
+    <target name="build-jars-javase" depends="setup-manifestfile,build-jars-opengl,build-jars-awt,build-jars-swt,build-jars-driver">
         <jar manifest="${build.newt}/manifest.mf" destfile="${newt-core.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.core}"/>

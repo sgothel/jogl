@@ -33,7 +33,6 @@
 
 package com.jogamp.nativewindow.x11;
 
-import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 
@@ -46,8 +45,7 @@ import javax.media.nativewindow.ToolkitLock;
  */
 
 public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
-    public static final boolean DEBUG = Debug.debug("GraphicsDevice");
-    final boolean closeDisplay;
+    final boolean handleOwner;
 
     /** Constructs a new X11GraphicsDevice corresponding to the given connection and default
      *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#getDefaultToolkitLock(String)}.<br>
@@ -57,7 +55,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      */
     public X11GraphicsDevice(String connection, int unitID) {
         super(NativeWindowFactory.TYPE_X11, connection, unitID);
-        closeDisplay = false;
+        handleOwner = false;
     }
 
     /** Constructs a new X11GraphicsDevice corresponding to the given native display handle and default
@@ -70,7 +68,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         if(0==display) {
             throw new NativeWindowException("null display");
         }
-        closeDisplay = owner;
+        handleOwner = owner;
     }
 
     /**
@@ -83,16 +81,39 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         if(0==display) {
             throw new NativeWindowException("null display");
         }
-        closeDisplay = owner;
+        handleOwner = owner;
     }
 
+    public int getDefaultVisualID() {
+        // It still could be an AWT hold handle ..
+        final long display = getHandle();
+        final int scrnIdx = X11Lib.DefaultScreen(display);
+        return X11Lib.DefaultVisualID(display, scrnIdx);
+    }
+    
+    @Override
     public Object clone() {
       return super.clone();
     }
 
+    @Override
+    public boolean open() {
+        if(handleOwner && 0 == handle) {
+            if(DEBUG) {
+                System.err.println(Thread.currentThread().getName() + " - X11GraphicsDevice.open(): "+this);
+            }
+            handle = X11Util.openDisplay(connection);
+            if(0 == handle) {
+                throw new NativeWindowException("X11GraphicsDevice.open() failed: "+this);
+            }
+            return true;
+        }
+        return false;
+    }
+        
+    @Override
     public boolean close() {
-        // FIXME: shall we respect the unitID ?
-        if(closeDisplay && 0 != handle) {
+        if(handleOwner && 0 != handle) {
             if(DEBUG) {
                 System.err.println(Thread.currentThread().getName() + " - X11GraphicsDevice.close(): "+this);
             }

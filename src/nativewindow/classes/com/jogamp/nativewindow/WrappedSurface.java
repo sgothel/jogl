@@ -30,51 +30,49 @@ package com.jogamp.nativewindow;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.SurfaceChangeable;
 
+public class WrappedSurface extends ProxySurface {
+  protected long surfaceHandle;  
 
-public class WrappedSurface extends ProxySurface implements SurfaceChangeable {
-  protected long surfaceHandle;
-
-  public WrappedSurface(AbstractGraphicsConfiguration cfg) {
-      this(cfg, 0);
-  }
-
-  public WrappedSurface(AbstractGraphicsConfiguration cfg, long handle) {
-    super(cfg);
+  public WrappedSurface(AbstractGraphicsConfiguration cfg, long handle, int initialWidth, int initialHeight, UpstreamSurfaceHook upstream) {
+    super(cfg, initialWidth, initialHeight, upstream);
     surfaceHandle=handle;
   }
 
   @Override
-  protected final void invalidateImpl() {
+  protected void invalidateImpl() {    
     surfaceHandle = 0;
   }
 
   @Override
-  final public long getSurfaceHandle() {
+  public final long getSurfaceHandle() {
     return surfaceHandle;
   }
 
   @Override
-  final public void setSurfaceHandle(long surfaceHandle) {
+  public final void setSurfaceHandle(long surfaceHandle) {
     this.surfaceHandle=surfaceHandle;
   }
-
+  
   @Override
-  final protected int lockSurfaceImpl() {
-      return LOCK_SUCCESS;
+  protected final int lockSurfaceImpl() {
+    return LOCK_SUCCESS;
   }
 
   @Override
-  final protected void unlockSurfaceImpl() {
+  protected final void unlockSurfaceImpl() {
   }
 
   @Override
   public String toString() {
+    final UpstreamSurfaceHook ush = getUpstreamSurfaceHook();
+    final String ush_s = null != ush ? ( ush.getClass().getName() + ": " + ush ) : "nil"; 
+    
     return "WrappedSurface[config " + getPrivateGraphicsConfiguration()+
            ", displayHandle 0x" + Long.toHexString(getDisplayHandle()) +
            ", surfaceHandle 0x" + Long.toHexString(getSurfaceHandle()) +
            ", size " + getWidth() + "x" + getHeight() +
-           ", surfaceLock "+surfaceLock+"]";
+           ", surfaceLock "+surfaceLock+
+           ", upstreamSurfaceHook "+ush_s+"]";
   }
 }

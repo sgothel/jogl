@@ -28,38 +28,108 @@
 
 package javax.media.nativewindow;
 
-
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.SurfaceUpdatedHelper;
 
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
-public abstract class ProxySurface implements NativeSurface {
+public abstract class ProxySurface implements NativeSurface, MutableSurface {
     public static final boolean DEBUG = Debug.debug("ProxySurface");
+    
+    /** 
+     * Implementation specific bitvalue stating the upstream's {@link AbstractGraphicsDevice} is owned by this {@link ProxySurface}.
+     * @see #setImplBitfield(int)
+     * @see #getImplBitfield()
+     */ 
+    public static final int OWN_DEVICE = 1 << 7;
+    
+    /** 
+     * Implementation specific bitvalue stating the upstream's {@link NativeSurface} is an invisible window, i.e. maybe incomplete.
+     * @see #setImplBitfield(int)
+     * @see #getImplBitfield()
+     */ 
+    public static final int INVISIBLE_WINDOW = 1 << 8;
 
-    private SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
-    private AbstractGraphicsConfiguration config; // control access due to delegation
-    protected RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
+    /** Interface allowing upstream caller to pass lifecycle actions and size info to a {@link ProxySurface} instance. */ 
+    public interface UpstreamSurfaceHook {
+        /** called within {@link ProxySurface#createNotify()} within lock, before using surface. */
+        public void create(ProxySurface s);
+        /** called within {@link ProxySurface#destroyNotify()} within lock, before clearing fields. */
+        public void destroy(ProxySurface s);
+
+        /** Returns the width of the upstream surface */ 
+        public int getWidth(ProxySurface s);
+        /** Returns the height of the upstream surface */ 
+        public int getHeight(ProxySurface s);
+    }
+    
+    private final SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
+    private final AbstractGraphicsConfiguration config; // control access due to delegation
+    private final UpstreamSurfaceHook upstream;
+    public final int initialWidth;
+    public final int initialHeight;
     private long surfaceHandle_old;
+    protected RecursiveLock surfaceLock = LockFactory.createRecursiveLock();
     protected long displayHandle;
-    protected int height;
     protected int scrnIndex;
-    protected int width;
+    protected int implBitfield;
 
-    public ProxySurface(AbstractGraphicsConfiguration cfg) {
-        invalidate();
-        config = cfg;
-        displayHandle=cfg.getNativeGraphicsConfiguration().getScreen().getDevice().getHandle();
-        surfaceHandle_old = 0;
+    /**
+     * @param cfg the {@link AbstractGraphicsConfiguration} to be used
+     * @param initialWidth the initial width
+     * @param initialHeight the initial height
+     */
+    protected ProxySurface(AbstractGraphicsConfiguration cfg, int initialWidth, int initialHeight, UpstreamSurfaceHook upstream) {
+        if(null == cfg) {
+            throw new IllegalArgumentException("null config");
+        }
+        this.config = cfg;
+        this.upstream = upstream;
+        this.initialWidth = initialWidth;
+        this.initialHeight = initialHeight;
+        this.displayHandle=config.getNativeGraphicsConfiguration().getScreen().getDevice().getHandle();
+        this.surfaceHandle_old = 0;
+        this.implBitfield = 0;
     }
 
-    void invalidate() {
-        displayHandle = 0;
-        invalidateImpl();
+    public final UpstreamSurfaceHook getUpstreamSurfaceHook() { return upstream; }
+    
+    /** 
+     * If a valid {@link UpstreamSurfaceHook} instance is passed in the 
+     * {@link ProxySurface#ProxySurface(AbstractGraphicsConfiguration, int, int, UpstreamSurfaceHook) constructor}, 
+     * {@link UpstreamSurfaceHook#create(ProxySurface)} is being issued and the proxy surface/window handles shall be set.
+     */ 
+    public void createNotify() {
+        if(null != upstream) {
+            upstream.create(this);
+        }
+        this.displayHandle=config.getNativeGraphicsConfiguration().getScreen().getDevice().getHandle();
+        this.surfaceHandle_old = 0;
     }
-    protected abstract void invalidateImpl();
-
+    
+    /** 
+     * If a valid {@link UpstreamSurfaceHook} instance is passed in the 
+     * {@link ProxySurface#ProxySurface(AbstractGraphicsConfiguration, int, int, UpstreamSurfaceHook) constructor}, 
+     * {@link UpstreamSurfaceHook#destroy(ProxySurface)} is being issued and all fields are cleared.
+     */ 
+    public void destroyNotify() {
+        if(null != upstream) {
+            upstream.destroy(this);
+            invalidateImpl();
+        }
+        this.displayHandle = 0;
+        this.surfaceHandle_old = 0;
+    }
+    
+    /** 
+     * Must be overridden by implementations allowing having a {@link UpstreamSurfaceHook} being passed.
+     * @see #destroyNotify() 
+     */
+    protected void invalidateImpl() {
+        throw new InternalError("UpstreamSurfaceHook given, but required method not implemented.");        
+    }
+    
     @Override
     public final long getDisplayHandle() {
         return displayHandle;
@@ -83,18 +153,22 @@ public abstract class ProxySurface implements NativeSurface {
     public abstract long getSurfaceHandle();
 
     @Override
+    public abstract void setSurfaceHandle(long surfaceHandle);
+    
+    @Override
     public final int getWidth() {
-        return width;
+        if(null != upstream) {
+            return upstream.getWidth(this);
+        }
+        return initialWidth;
     }
 
     @Override
     public final int getHeight() {
-        return height;
-    }
-
-    public void surfaceSizeChanged(int width, int height) {
-        this.width = width;
-        this.height = height;
+        if(null != upstream) {
+            return upstream.getHeight(this);
+        }
+        return initialHeight;
     }
 
     @Override
@@ -187,7 +261,10 @@ public abstract class ProxySurface implements NativeSurface {
     public final Thread getSurfaceLockOwner() {
         return surfaceLock.getOwner();
     }
-
+    
     @Override
     public abstract String toString();
+    
+    public int getImplBitfield() { return implBitfield; }    
+    public void setImplBitfield(int v) { implBitfield=v; }
 }

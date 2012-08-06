@@ -1,6 +1,3 @@
-// Tracks glBegin/glEnd calls to determine whether it is legal to
-// query Vertex Buffer Object state
-private boolean inBeginEndPair;
 
 public GLES2Impl(GLProfile glp, GLContextImpl context) {
   this._context = context; 
@@ -16,18 +13,22 @@ public GLES2Impl(GLProfile glp, GLContextImpl context) {
   this.glProfile = glp;
 }
 
+@Override
 public final boolean isGL4bc() {
     return false;
 }
 
+@Override
 public final boolean isGL4() {
     return false;
 }
 
+@Override
 public final boolean isGL3bc() {
     return false;
 }
 
+@Override
 public final boolean isGL3() {
     return false;
 }
@@ -36,78 +37,97 @@ public final boolean isGL2() {
     return false;
 }
 
+@Override
 public final boolean isGLES1() {
     return false;
 }
 
+@Override
 public final boolean isGLES2() {
     return true;
 }
 
+@Override
 public final boolean isGLES() {
     return true;
 }
 
+@Override
 public final boolean isGL2ES1() {
     return false;
 }
 
+@Override
 public final boolean isGL2ES2() {
     return true;
 }
 
+@Override
 public final boolean isGLES2Compatible() {
     return true;
 }
 
+@Override
 public final boolean isGL2GL3() {
     return false;
 }
 
+@Override
 public final boolean hasGLSL() {
     return true;
 }
 
+@Override
 public boolean isNPOTTextureAvailable() {
   return true;
 }
 
+@Override
 public final GL4bc getGL4bc() throws GLException {
     throw new GLException("Not a GL4bc implementation");
 }
 
+@Override
 public final GL4 getGL4() throws GLException {
     throw new GLException("Not a GL4 implementation");
 }
 
+@Override
 public final GL3bc getGL3bc() throws GLException {
     throw new GLException("Not a GL3bc implementation");
 }
 
+@Override
 public final GL3 getGL3() throws GLException {
     throw new GLException("Not a GL3 implementation");
 }
 
+@Override
 public final GL2 getGL2() throws GLException {
     throw new GLException("Not a GL2 implementation");
 }
 
+@Override
 public final GLES1 getGLES1() throws GLException {
     throw new GLException("Not a GLES1 implementation");
 }
 
+@Override
 public final GLES2 getGLES2() throws GLException {
     return this;
 }
 
+@Override
 public final GL2ES1 getGL2ES1() throws GLException {
     throw new GLException("Not a GL2ES1 implementation");
 }
 
+@Override
 public final GL2ES2 getGL2ES2() throws GLException {
     return this;
 }
 
+@Override
 public final GL2GL3 getGL2GL3() throws GLException {
     throw new GLException("Not a GL2GL3 implementation");
 }
@@ -123,17 +143,17 @@ private final GLStateTracker       glStateTracker;
 private boolean bufferObjectExtensionsInitialized = false;
 private boolean haveOESFramebufferObject;
 
-private void initBufferObjectExtensionChecks() {
+private final void initBufferObjectExtensionChecks() {
   if (bufferObjectExtensionsInitialized)
     return;
   bufferObjectExtensionsInitialized = true;
   haveOESFramebufferObject  = isExtensionAvailable("GL_OES_framebuffer_object");
 }
 
-private boolean checkBufferObject(boolean avail,
-                                  boolean enabled,
-                                  int state,
-                                  String kind, boolean throwException) {
+private final boolean checkBufferObject(boolean avail,
+                                        boolean enabled,
+                                        int state,
+                                        String kind, boolean throwException) {
   if (!avail) {
     if (!enabled)
       return true;
@@ -161,7 +181,7 @@ private boolean checkBufferObject(boolean avail,
   return true;
 }  
 
-private boolean checkArrayVBODisabled(boolean throwException) { 
+private final boolean checkArrayVBODisabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
   return checkBufferObject(true,
                     false,
@@ -169,7 +189,7 @@ private boolean checkArrayVBODisabled(boolean throwException) {
                     "array vertex_buffer_object", throwException);
 }
 
-private boolean checkArrayVBOEnabled(boolean throwException) { 
+private final boolean checkArrayVBOEnabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
   return checkBufferObject(true,
                     true,
@@ -177,7 +197,7 @@ private boolean checkArrayVBOEnabled(boolean throwException) {
                     "array vertex_buffer_object", throwException);
 }
 
-private boolean checkElementVBODisabled(boolean throwException) { 
+private final boolean checkElementVBODisabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
   return checkBufferObject(true,
                     false,
@@ -185,7 +205,7 @@ private boolean checkElementVBODisabled(boolean throwException) {
                     "element vertex_buffer_object", throwException);
 }
 
-private boolean checkElementVBOEnabled(boolean throwException) { 
+private final boolean checkElementVBOEnabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
   return checkBufferObject(true,
                     true,
@@ -193,30 +213,31 @@ private boolean checkElementVBOEnabled(boolean throwException) {
                     "element vertex_buffer_object", throwException);
 }
 
-private boolean checkUnpackPBODisabled(boolean throwException) { 
+private final boolean checkUnpackPBODisabled(boolean throwException) { 
     // PBO n/a for ES 1.1 or ES 2.0
     return true;
 }
 
-private boolean checkUnpackPBOEnabled(boolean throwException) { 
+private final boolean checkUnpackPBOEnabled(boolean throwException) { 
     // PBO n/a for ES 1.1 or ES 2.0
     return false;
 }
 
-private boolean checkPackPBODisabled(boolean throwException) { 
+private final boolean checkPackPBODisabled(boolean throwException) { 
     // PBO n/a for ES 1.1 or ES 2.0
     return true;
 }
 
-private boolean checkPackPBOEnabled(boolean throwException) { 
+private final boolean checkPackPBOEnabled(boolean throwException) { 
     // PBO n/a for ES 1.1 or ES 2.0
     return false;
 }
 
-private HashMap<MemoryObject, MemoryObject> arbMemCache = new HashMap<MemoryObject, MemoryObject>();
+private final HashMap<MemoryObject, MemoryObject> arbMemCache = new HashMap<MemoryObject, MemoryObject>();
 
 /** Entry point to C language function: <br> <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
-public java.nio.ByteBuffer glMapBuffer(int target, int access) {
+@Override
+public final java.nio.ByteBuffer glMapBuffer(int target, int access) {
   final long __addr_ = ((GLES2ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer;
   if (__addr_ == 0) {
     throw new GLException("Method \"glMapBuffer\" not available");
@@ -256,11 +277,13 @@ native private long dispatch_glMapBuffer(int target, int access, long glProcAddr
 
 native private ByteBuffer newDirectByteBuffer(long addr, long capacity);
 
-public void glClearDepth(double depth) {
+@Override
+public final void glClearDepth(double depth) {
     glClearDepthf((float)depth); 
 }
 
-public void glDepthRange(double zNear, double zFar) {
+@Override
+public final void glDepthRange(double zNear, double zFar) {
     glDepthRangef((float)zNear, (float)zFar); 
 }
 

@@ -49,8 +49,9 @@ import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.gluegen.runtime.FunctionAddressResolver;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
-import com.jogamp.gluegen.runtime.opengl.GLExtensionNames;
+import com.jogamp.gluegen.runtime.opengl.GLNameResolver;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
+import com.jogamp.opengl.GLExtensions;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -88,13 +89,14 @@ public abstract class GLContextImpl extends GLContext {
   // Tracks creation and initialization of buffer objects to avoid
   // repeated glGet calls upon glMapBuffer operations
   private GLBufferSizeTracker bufferSizeTracker; // Singleton - Set by GLContextShareSet
-  private GLBufferStateTracker bufferStateTracker = new GLBufferStateTracker();
-  private GLStateTracker glStateTracker = new GLStateTracker();
+  private final GLBufferStateTracker bufferStateTracker = new GLBufferStateTracker();
+  private final GLStateTracker glStateTracker = new GLStateTracker();
   private GLDebugMessageHandler glDebugHandler = null;
+  private final int[] boundFBOTarget = new int[] { 0, 0 }; // { draw, read }
 
   protected GLDrawableImpl drawable;
   protected GLDrawableImpl drawableRead;
-
+  
   protected GL gl;
 
   protected static final Object mappedContextTypeObjectLock;
@@ -140,11 +142,11 @@ public abstract class GLContextImpl extends GLContext {
           bufferSizeTracker.clearCachedBufferSizes();
       }
 
-      if (bufferStateTracker != null) {
+      if (bufferStateTracker != null) { // <init>
           bufferStateTracker.clearBufferObjectState();
       }
 
-      if (glStateTracker != null) {
+      if (glStateTracker != null) { // <init>
           glStateTracker.clearStates(false);
       }
 
@@ -156,6 +158,11 @@ public abstract class GLContextImpl extends GLContext {
 
       glRenderer = "";
       glRendererLowerCase = glRenderer;
+      
+      if (boundFBOTarget != null) { // <init>
+          boundFBOTarget[0] = 0; // draw
+          boundFBOTarget[1] = 0; // read
+      }
 
       super.resetStates();
   }
@@ -199,7 +206,7 @@ public abstract class GLContextImpl extends GLContext {
         drawableRead = (GLDrawableImpl) readWrite;
     }
     final GLDrawable old = drawable;
-    drawable = ( null != readWrite ) ? (GLDrawableImpl) readWrite : null;
+    drawable = (GLDrawableImpl) readWrite ;
     if(lockHeld) {
         makeCurrent();
     }
@@ -252,16 +259,19 @@ public abstract class GLContextImpl extends GLContext {
   public void release() throws GLException {
     release(false);
   }
-  private void release(boolean force) throws GLException {
+  private void release(boolean inDestruction) throws GLException {
     if(TRACE_SWITCH) {
-        System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - release() - force: "+force+", "+lock);
+        System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - release() - force: "+inDestruction+", "+lock);
     }
     if ( !lock.isOwner(Thread.currentThread()) ) {
         throw new GLException("Context not current on current thread "+Thread.currentThread().getName()+": "+this);
     }
-    final boolean actualRelease = ( force || lock.getHoldCount() == 1 ) && 0 != contextHandle;
+    final boolean actualRelease = ( inDestruction || lock.getHoldCount() == 1 ) && 0 != contextHandle;
     try {
         if( actualRelease ) {
+            if( !inDestruction ) {
+                drawable.contextMadeCurrent(this, false);
+            }
             releaseImpl();
         }
     } finally {
@@ -306,13 +316,12 @@ public abstract class GLContextImpl extends GLContext {
               }
               try {
                   // release current context
-                  if(null != glDebugHandler) {
-                      if(lock.getHoldCount() == 1) {
-                          // needs current context to disable debug handler
-                          makeCurrent();
-                      }
-                      glDebugHandler.enable(false);
+                  if(lock.getHoldCount() == 1) {
+                      // needs current context to disable debug handler
+                      makeCurrent();
                   }
+                  drawable.contextRealized(this, false);
+                  glDebugHandler.enable(false);
                   if(lock.getHoldCount() > 1) {
                       // pending release() after makeCurrent()
                       release(true);
@@ -329,7 +338,6 @@ public abstract class GLContextImpl extends GLContext {
                   if (TRACE_SWITCH) {
                       System.err.println(getThreadName() + ": GLContextImpl.destroy.X: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle) +
                               ", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
-                      Thread.dumpStack(); // JAU
                   }
               }
           } finally {
@@ -488,11 +496,18 @@ public abstract class GLContextImpl extends GLContext {
         if(TRACE_GL) {
             gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) );
         }
+        
+        drawable.contextRealized(this, true);
+        
         if(DEBUG || TRACE_SWITCH) {
             System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - switch - CONTEXT_CURRENT_NEW - "+lock);
         }
-      } else if(TRACE_SWITCH) {
-        System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - switch - CONTEXT_CURRENT - "+lock);
+      } else {
+        drawable.contextMadeCurrent(this, true);
+        
+        if(TRACE_SWITCH) {
+            System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - switch - CONTEXT_CURRENT - "+lock);
+        }
       }
 
       /* FIXME: refactor dependence on Java 2D / JOGL bridge
@@ -543,14 +558,11 @@ public abstract class GLContextImpl extends GLContext {
             final AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
             final AbstractGraphicsDevice device = config.getScreen().getDevice();
 
-            if( !GLContext.getAvailableGLVersionsSet(device) ) {
-                final int reqMajor;
-                final int reqProfile;
-                if( 0 != ( ctxOptions & GLContext.CTX_PROFILE_ES) ) {
-                    // ES1 or ES2
-                    reqMajor = ctxMajorVersion;
-                    reqProfile = GLContext.CTX_PROFILE_ES;
-                } else {
+            // Non ARB desktop profiles may not have been registered 
+            if( !GLContext.getAvailableGLVersionsSet(device) ) {        // not yet set
+                if( 0 == ( ctxOptions & GLContext.CTX_PROFILE_ES) ) {   // not ES profile
+                    final int reqMajor;
+                    final int reqProfile;
                     if(ctxMajorVersion<3 || ctxMajorVersion==3 && ctxMinorVersion==0) {
                         reqMajor = 2;
                     } else {
@@ -561,12 +573,13 @@ public abstract class GLContextImpl extends GLContext {
                     } else {
                         reqProfile = GLContext.CTX_PROFILE_COMPAT;
                     }
-                }
-                GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile,
-                                                ctxMajorVersion, ctxMinorVersion, ctxOptions);
-                GLContext.setAvailableGLVersionsSet(device);
-                if (DEBUG) {
-                  System.err.println(getThreadName() + ": createContextOLD-MapVersionsAvailable HAVE: " + device+" -> "+reqMajor+"."+reqProfile+ " -> "+getGLVersion());
+                    GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile,
+                                                    ctxMajorVersion, ctxMinorVersion, ctxOptions);
+                    GLContext.setAvailableGLVersionsSet(device);
+                    
+                    if (DEBUG) {
+                      System.err.println(getThreadName() + ": createContextOLD-MapVersionsAvailable HAVE: " + device+" -> "+reqMajor+"."+reqProfile+ " -> "+getGLVersion());
+                    }                    
                 }
             }
         }
@@ -776,7 +789,7 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   /** 
-   * Note: Since context creation is temproary, caller need to issue {@link #resetStates()}, if creation was successful, i.e. returns true.
+   * Note: Since context creation is temporary, caller need to issue {@link #resetStates()}, if creation was successful, i.e. returns true.
    * This method does not reset the states, allowing the caller to utilize the state variables. 
    **/
   private final boolean createContextARBMapVersionsAvailable(int reqMajor, int reqProfile) {
@@ -1034,22 +1047,29 @@ public abstract class GLContextImpl extends GLContext {
     table.reset(getDrawableImpl().getGLDynamicLookupHelper() );
   }
 
-  private final void initGLRendererStrings()  {
+  private final boolean initGLRendererStrings()  {
     final GLDynamicLookupHelper glDynLookupHelper = getDrawableImpl().getGLDynamicLookupHelper();
     final long _glGetString = glDynLookupHelper.dynamicLookupFunction("glGetString");
     if(0 == _glGetString) {
         // FIXME
         System.err.println("Warning: Entry point to 'glGetString' is NULL.");
-        Thread.dumpStack();
+        if(DEBUG) {
+            Thread.dumpStack();
+        }
+        return false;
     } else {
         final String _glRenderer = glGetStringInt(GL.GL_RENDERER, _glGetString);
         if(null == _glRenderer) {
             // FIXME
-            System.err.println("Warning: GL_RENDERER is NULL.");
-            Thread.dumpStack();
+            if(DEBUG) {
+                System.err.println("Warning: GL_RENDERER is NULL.");
+                Thread.dumpStack();
+            }
+            return false;
         } else {
             glRenderer = _glRenderer;
             glRendererLowerCase = glRenderer.toLowerCase();
+            return true;
         }
     }
   }
@@ -1088,17 +1108,20 @@ public abstract class GLContextImpl extends GLContext {
     }
     updateGLXProcAddressTable();
 
-    initGLRendererStrings();
+    final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
+    final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
+    
+    if( !initGLRendererStrings() && DEBUG) {
+        System.err.println("Warning: intialization of GL renderer strings failed. "+adevice+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, null));
+    }
 
     if(!isCurrentContextHardwareRasterizer()) {
         ctxProfileBits |= GLContext.CTX_IMPL_ACCEL_SOFT;
     }
-    final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
-    final AbstractGraphicsDevice adevice = aconfig.getScreen().getDevice();
 
     contextFQN = getContextFQN(adevice, major, minor, ctxProfileBits);
     if (DEBUG) {
-      System.err.println(getThreadName() + ": Context FQN: "+contextFQN+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, null));
+      System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.0 FQN: "+contextFQN+" - "+GLContext.getGLVersion(major, minor, ctxProfileBits, null));
     }
 
     //
@@ -1154,11 +1177,10 @@ public abstract class GLContextImpl extends GLContext {
         }
     }
     
-    if( 0 != ( CTX_PROFILE_ES & ctxProfileBits ) && ctxMajorVersion >= 2 ||
-        isExtensionAvailable(GL_ARB_ES2_compatibility) ) {
+    if( ( 0 != ( CTX_PROFILE_ES & ctxProfileBits ) && major >= 2 ) || isExtensionAvailable(GLExtensions.ARB_ES2_compatibility) ) {
         ctxProfileBits |= CTX_IMPL_ES2_COMPAT;
         ctxProfileBits |= CTX_IMPL_FBO;
-    } else if( hasFBOImpl(ctxMajorVersion, ctxProfileBits, extensionAvailability) ) {
+    } else if( hasFBOImpl(major, ctxProfileBits, extensionAvailability) ) {
         ctxProfileBits |= CTX_IMPL_FBO;
     }
     
@@ -1168,23 +1190,26 @@ public abstract class GLContextImpl extends GLContext {
     setContextVersion(major, minor, ctxProfileBits, true);
 
     setDefaultSwapInterval();
+    
+    if(DEBUG) {
+        System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: "+contextFQN+" - "+GLContext.getGLVersion(ctxMajorVersion, ctxMinorVersion, ctxOptions, null));
+    }
   }
   
-  protected static final boolean hasFBOImpl(int ctxMajorVersion, int ctxProfileBits, ExtensionAvailabilityCache extCache) {
-    return ( ctxMajorVersion >= 3 ) ||                                               // any >= 3.0 GL ctx
+  protected static final boolean hasFBOImpl(int major, int ctp, ExtensionAvailabilityCache extCache) {
+    return ( 0 != (ctp & CTX_PROFILE_ES) && major >= 2 ) ||   // ES >= 2.0
             
-           ( 0 != (ctxProfileBits & CTX_PROFILE_ES) && ctxMajorVersion >= 2 ) ||     // ES >= 2.0
+           major >= 3 ||                                                 // any >= 3.0 GL ctx                       
            
            ( null != extCache &&
            
-               ( extCache.isExtensionAvailable(GL_ARB_ES2_compatibility) ) ||        // ES 2.0 compatible
+               extCache.isExtensionAvailable(GLExtensions.ARB_ES2_compatibility)  ||         // ES 2.0 compatible
                
-               ( extCache.isExtensionAvailable(GL_ARB_framebuffer_object) ) ||       // ARB_framebuffer_object
+               extCache.isExtensionAvailable(GLExtensions.ARB_framebuffer_object) ||         // ARB_framebuffer_object
                
-               ( extCache.isExtensionAvailable(GL_EXT_framebuffer_object) &&         // EXT_framebuffer_object*
-                 extCache.isExtensionAvailable(GL_EXT_framebuffer_multisample) &&
-                 extCache.isExtensionAvailable(GL_EXT_framebuffer_blit) &&
-                 extCache.isExtensionAvailable(GL_EXT_packed_depth_stencil) ) );           
+               extCache.isExtensionAvailable(GLExtensions.EXT_framebuffer_object) ||         // EXT_framebuffer_object
+               
+               extCache.isExtensionAvailable(GLExtensions.OES_framebuffer_object) ) ;        // OES_framebuffer_object excluded               
   }
   
   protected final void removeCachedVersion(int major, int minor, int ctxProfileBits) {
@@ -1259,11 +1284,11 @@ public abstract class GLContextImpl extends GLContext {
 
     // dynamic function lookup at last incl name aliasing (not cached)
     DynamicLookupHelper dynLookup = getDrawableImpl().getGLDynamicLookupHelper();
-    String tmpBase = GLExtensionNames.normalizeVEN(GLExtensionNames.normalizeARB(glFunctionName, true), true);
+    String tmpBase = GLNameResolver.normalizeVEN(GLNameResolver.normalizeARB(glFunctionName, true), true);
     long addr = 0;
-    int  variants = GLExtensionNames.getFuncNamePermutationNumber(tmpBase);
+    int  variants = GLNameResolver.getFuncNamePermutationNumber(tmpBase);
     for(int i = 0; 0==addr && i < variants; i++) {
-        String tmp = GLExtensionNames.getFuncNamePermutation(tmpBase, i);
+        String tmp = GLNameResolver.getFuncNamePermutation(tmpBase, i);
         try {
             addr = dynLookup.dynamicLookupFunction(tmp);
         } catch (Exception e) { }
@@ -1317,7 +1342,7 @@ public abstract class GLContextImpl extends GLContext {
 
   protected static String getContextFQN(AbstractGraphicsDevice device, int major, int minor, int ctxProfileBits) {
       // remove non-key values
-      ctxProfileBits &= ~( GLContext.CTX_OPTION_DEBUG | GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ) ;
+      ctxProfileBits &= ~( GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ) ;
 
       return device.getUniqueID() + "-" + toHexString(composeBits(major, minor, ctxProfileBits));
   }
@@ -1371,6 +1396,56 @@ public abstract class GLContextImpl extends GLContext {
     return lock.getQueueLength()>0;
   }
 
+  //---------------------------------------------------------------------------
+  // Special FBO hook
+  //
+  
+  /**
+   * Tracks {@link GL#GL_FRAMEBUFFER}, {@link GL2GL3#GL_DRAW_FRAMEBUFFER} and {@link GL2GL3#GL_READ_FRAMEBUFFER}
+   * to be returned via {@link #getBoundFramebuffer(int)}.
+   * 
+   * <p>Invoked by {@link GL#glBindFramebuffer(int, int)}. </p>
+   * 
+   * <p>Assumes valid <code>framebufferName</code> range of [0..{@link Integer#MAX_VALUE}]</p> 
+   * 
+   * <p>Does not throw an exception if <code>target</code> is unknown or <code>framebufferName</code> invalid.</p>
+   */
+  public final void setBoundFramebuffer(int target, int framebufferName) {
+      if(0 > framebufferName) {
+          return; // ignore invalid name
+      }
+      switch(target) {
+          case GL.GL_FRAMEBUFFER:
+              boundFBOTarget[0] = framebufferName; // draw
+              boundFBOTarget[1] = framebufferName; // read
+              break;
+          case GL2GL3.GL_DRAW_FRAMEBUFFER:
+              boundFBOTarget[0] = framebufferName; // draw
+              break;
+          case GL2GL3.GL_READ_FRAMEBUFFER:
+              boundFBOTarget[1] = framebufferName; // read
+              break;
+          default: // ignore untracked target
+      }
+  }
+  @Override
+  public final int getBoundFramebuffer(int target) {
+      switch(target) {
+          case GL.GL_FRAMEBUFFER:
+          case GL2GL3.GL_DRAW_FRAMEBUFFER:
+              return boundFBOTarget[0]; // draw
+          case GL2GL3.GL_READ_FRAMEBUFFER:
+              return boundFBOTarget[1]; // read
+          default:
+              throw new InternalError("Invalid FBO target name: "+toHexString(target));
+      }
+  }
+  
+  @Override
+  public final int getDefaultDrawFramebuffer() { return drawable.getDefaultDrawFramebuffer(); }  
+  @Override
+  public final int getDefaultReadFramebuffer() { return drawable.getDefaultReadFramebuffer(); }
+  
   //---------------------------------------------------------------------------
   // GL_ARB_debug_output, GL_AMD_debug_output helpers
   //

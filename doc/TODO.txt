@@ -1,15 +1,18 @@
 WIP:
 
+- GLPbuffer -> GLOffscreenAutoDrawable
+    - GLPbuffer GLDrawableFactory.createPbuffer() ->
+      GLOffscreenAutoDrawable GLDrawableFactory.createOffsceenAutoDrawable()
+    - Mark both deprecated!
+
+- Optimize/Fix NIO caching of glMapBuffer/glUnmapBuffer
+  - optimize the NIO caching, i.e. memory range, incr. reference count
+  - _remove_ the cached object w/ decr. ref count, remove object
+
 Random, somewhat old to-do list:
 
 - Non-const array types must be properly released with JNI_COMMIT in
   order to see side effects if the array was copied.
-
-- figure out how to deal with WGL entry points:
-    WINGDIAPI HGLRC WINAPI wglCreateLayerContext(HDC, int);
-    WINGDIAPI BOOL  WINAPI wglUseFontBitmapsA(HDC, DWORD, DWORD, DWORD);
-    WINGDIAPI BOOL  WINAPI wglUseFontBitmapsW(HDC, DWORD, DWORD, DWORD);
-  see commented-out section in make/stub_includes/win32/wingdi.h
 
 - Need a disciplined mechanism for converting char* argument types. For
   example, many C functions accept a "char*" argument with the semantic that

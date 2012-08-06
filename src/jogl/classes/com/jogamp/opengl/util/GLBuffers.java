@@ -39,6 +39,7 @@
 package com.jogamp.opengl.util;
 
 import com.jogamp.common.nio.Buffers;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
@@ -56,22 +57,32 @@ import java.nio.*;
 public class GLBuffers extends Buffers {
 
     /**
-     * @param glType shall be one of 
-     *              GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT, GL_SHORT,
-     *              GL_UNSIGNED_INT, GL_INT, GL_HALF_FLOAT, GL_FLOAT, GL_DOUBLE, 
-     *              GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV,
-     *              GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5_REV, 
-     *              GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV, 
-     *              GL_UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_1_5_5_5_REV,
-     *              GL_UNSIGNED_INT_8_8_8_8, GL_UNSIGNED_INT_8_8_8_8_REV, 
-     *              GL_UNSIGNED_INT_10_10_10_2, GL_UNSIGNED_INT_2_10_10_10_REV
-     *              GL_UNSIGNED_INT_24_8, GL_UNSIGNED_INT_10F_11F_11F_REV,
-     *              GL_UNSIGNED_INT_5_9_9_9_REV, GL_FLOAT_32_UNSIGNED_INT_24_8_REV,         
-     *              GL_HILO16_NV, GL_SIGNED_HILO16_NV (27)         
+     * @param glType shall be one of (29) <br/>
+     *              GL_BYTE, GL_UNSIGNED_BYTE, <br/>
+     *              GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV, <br/>
+     *              <br/>
+     *              GL_SHORT, GL_UNSIGNED_SHORT, <br/>
+     *              GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5_REV, <br/> 
+     *              GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV, <br/>
+     *              GL_UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_1_5_5_5_REV, <br/>
+     *              GL.GL_HALF_FLOAT, GLES2.GL_HALF_FLOAT_OES: <br/>
+     *              <br/>
+     *              GL_FIXED, GL_INT <br/>
+     *              GL_UNSIGNED_INT, GL_UNSIGNED_INT_8_8_8_8, <br/>
+     *              GL_UNSIGNED_INT_8_8_8_8_REV, GL_UNSIGNED_INT_10_10_10_2, <br/> 
+     *              GL_UNSIGNED_INT_2_10_10_10_REV, GL_UNSIGNED_INT_24_8, <br/>
+     *              GL_UNSIGNED_INT_10F_11F_11F_REV, GL_UNSIGNED_INT_5_9_9_9_REV <br/> 
+     *              GL_HILO16_NV, GL_SIGNED_HILO16_NV <br/>
+     *              <br/>
+     *              GL2GL3.GL_FLOAT_32_UNSIGNED_INT_24_8_REV <br/>
+     *              <br/>
+     *              GL_FLOAT, GL_DOUBLE <br/> 
+     *              
      * @return -1 if glType is unhandled, otherwise the actual value > 0 
      */
     public static final int sizeOfGLType(int glType) {
-        switch (glType) { // 25
+        switch (glType) { // 29
+            // case GL2.GL_BITMAP:
             case GL.GL_BYTE:
             case GL.GL_UNSIGNED_BYTE:
             case GL2GL3.GL_UNSIGNED_BYTE_3_3_2:
@@ -86,6 +97,8 @@ public class GLBuffers extends Buffers {
             case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV:
             case GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1:
             case GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV:
+            case GL.GL_HALF_FLOAT:
+            case GLES2.GL_HALF_FLOAT_OES:
                 return SIZEOF_SHORT;
                                 
             case GL.GL_FIXED:
@@ -108,29 +121,38 @@ public class GLBuffers extends Buffers {
             case GL.GL_FLOAT:
                 return SIZEOF_FLOAT;
                 
-            case GL2.GL_DOUBLE:
+            case GL2GL3.GL_DOUBLE:
                 return SIZEOF_DOUBLE;
         }
         return -1;
     }
     
     /**
-     * @param glType shall be one of 
-     *              GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT, GL_SHORT,
-     *              GL_UNSIGNED_INT, GL_INT, GL_HALF_FLOAT, GL_FLOAT, GL_DOUBLE, 
-     *              GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV,
-     *              GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5_REV, 
-     *              GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV, 
-     *              GL_UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_1_5_5_5_REV,
-     *              GL_UNSIGNED_INT_8_8_8_8, GL_UNSIGNED_INT_8_8_8_8_REV, 
-     *              GL_UNSIGNED_INT_10_10_10_2, GL_UNSIGNED_INT_2_10_10_10_REV
-     *              GL_UNSIGNED_INT_24_8, GL_UNSIGNED_INT_10F_11F_11F_REV,
-     *              GL_UNSIGNED_INT_5_9_9_9_REV, GL_FLOAT_32_UNSIGNED_INT_24_8_REV,         
-     *              GL_HILO16_NV, GL_SIGNED_HILO16_NV (27)         
+     * @param glType shall be one of (29) <br/>
+     *              GL_BYTE, GL_UNSIGNED_BYTE, <br/>
+     *              GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV, <br/>
+     *              <br/>
+     *              GL_SHORT, GL_UNSIGNED_SHORT, <br/>
+     *              GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5_REV, <br/> 
+     *              GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV, <br/>
+     *              GL_UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_1_5_5_5_REV, <br/>
+     *              GL_HALF_FLOAT, GL_HALF_FLOAT_OES <br/>
+     *              <br/>
+     *              GL_FIXED, GL_INT <br/>
+     *              GL_UNSIGNED_INT, GL_UNSIGNED_INT_8_8_8_8, <br/>
+     *              GL_UNSIGNED_INT_8_8_8_8_REV, GL_UNSIGNED_INT_10_10_10_2, <br/> 
+     *              GL_UNSIGNED_INT_2_10_10_10_REV, GL_UNSIGNED_INT_24_8, <br/>
+     *              GL_UNSIGNED_INT_10F_11F_11F_REV, GL_UNSIGNED_INT_5_9_9_9_REV <br/> 
+     *              GL_HILO16_NV, GL_SIGNED_HILO16_NV <br/>
+     *              <br/>
+     *              GL_FLOAT_32_UNSIGNED_INT_24_8_REV <br/>
+     *              <br/>
+     *              GL_FLOAT, GL_DOUBLE <br/> 
+     *              
      * @return null if glType is unhandled, otherwise the new Buffer object 
      */
     public static final Buffer newDirectGLBuffer(int glType, int numElements) {
-        switch (glType) {
+        switch (glType) { // 29
             case GL.GL_BYTE:
             case GL.GL_UNSIGNED_BYTE:
             case GL2GL3.GL_UNSIGNED_BYTE_3_3_2:
@@ -145,6 +167,8 @@ public class GLBuffers extends Buffers {
             case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV:
             case GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1:
             case GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV:
+            case GL.GL_HALF_FLOAT:
+            case GLES2.GL_HALF_FLOAT_OES:
                 return newDirectShortBuffer(numElements);
                 
             case GL.GL_FIXED:
@@ -174,18 +198,26 @@ public class GLBuffers extends Buffers {
     }
 
     /**
-     * @param glType shall be one of 
-     *              GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT, GL_SHORT,
-     *              GL_UNSIGNED_INT, GL_INT, GL_HALF_FLOAT, GL_FLOAT, GL_DOUBLE, 
-     *              GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV,
-     *              GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5_REV, 
-     *              GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV, 
-     *              GL_UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_1_5_5_5_REV,
-     *              GL_UNSIGNED_INT_8_8_8_8, GL_UNSIGNED_INT_8_8_8_8_REV, 
-     *              GL_UNSIGNED_INT_10_10_10_2, GL_UNSIGNED_INT_2_10_10_10_REV
-     *              GL_UNSIGNED_INT_24_8, GL_UNSIGNED_INT_10F_11F_11F_REV,
-     *              GL_UNSIGNED_INT_5_9_9_9_REV, GL_FLOAT_32_UNSIGNED_INT_24_8_REV,      
-     *              GL_HILO16_NV, GL_SIGNED_HILO16_NV (27)         
+     * @param glType shall be one of (29) <br/>
+     *              GL_BYTE, GL_UNSIGNED_BYTE, <br/>
+     *              GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV, <br/>
+     *              <br/>
+     *              GL_SHORT, GL_UNSIGNED_SHORT, <br/>
+     *              GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5_REV, <br/> 
+     *              GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV, <br/>
+     *              GL_UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_1_5_5_5_REV, <br/>
+     *              GL_HALF_FLOAT, GL_HALF_FLOAT_OES <br/>
+     *              <br/>
+     *              GL_FIXED, GL_INT <br/>
+     *              GL_UNSIGNED_INT, GL_UNSIGNED_INT_8_8_8_8, <br/>
+     *              GL_UNSIGNED_INT_8_8_8_8_REV, GL_UNSIGNED_INT_10_10_10_2, <br/> 
+     *              GL_UNSIGNED_INT_2_10_10_10_REV, GL_UNSIGNED_INT_24_8, <br/>
+     *              GL_UNSIGNED_INT_10F_11F_11F_REV, GL_UNSIGNED_INT_5_9_9_9_REV <br/> 
+     *              GL_HILO16_NV, GL_SIGNED_HILO16_NV <br/>
+     *              <br/>
+     *              GL_FLOAT_32_UNSIGNED_INT_24_8_REV <br/>
+     *              <br/>
+     *              GL_FLOAT, GL_DOUBLE <br/> 
      * @return null if glType is unhandled or parent is null or bufLen is 0, otherwise the new Buffer object 
      */
     public static final Buffer sliceGLBuffer(ByteBuffer parent, int bytePos, int byteLen, int glType) {
@@ -195,7 +227,7 @@ public class GLBuffers extends Buffers {
         parent.position(bytePos);
         parent.limit(bytePos + byteLen);
 
-        switch (glType) {
+        switch (glType) { // 29
             case GL.GL_BYTE:
             case GL.GL_UNSIGNED_BYTE:
             case GL2GL3.GL_UNSIGNED_BYTE_3_3_2:
@@ -210,6 +242,8 @@ public class GLBuffers extends Buffers {
             case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV:
             case GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1:
             case GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV:
+            case GL.GL_HALF_FLOAT:
+            case GLES2.GL_HALF_FLOAT_OES:
                 return parent.asShortBuffer();
                 
             case GL.GL_FIXED:
@@ -362,28 +396,46 @@ public class GLBuffers extends Buffers {
      * 
      * @param tmp a pass through integer array of size >= 1 used to store temp data (performance)
      * 
-     * @param format must be one of 
-     *              GL_COLOR_INDEX, GL_STENCIL_INDEX, GL_DEPTH_COMPONENT, GL_DEPTH_STENCIL,
-     *              GL_RED, GL_GREEN, GL_BLUE, GL_ALPHA, GL_LUMINANCE,
-     *              GL_RG, GL_LUMINANCE_ALPHA,
-     *              GL_RGB, GL_BGR, GL_RGBA, GL_BGRA, GL_ABGR_EXT,
-     *              GL_RED_INTEGER, GL_GREEN_INTEGER, GL_BLUE_INTEGER,
-     *              GL_RG_INTEGER, GL_RGB_INTEGER, GL_BGR_INTEGER, 
-     *              GL_RGBA_INTEGER, GL_BGRA_INTEGER, GL_HILO_NV, GL_SIGNED_HILO_NV (26)
+     * @param format must be one of (26) <br/> 
+     *              GL_COLOR_INDEX GL_STENCIL_INDEX <br/> 
+     *              GL_DEPTH_COMPONENT GL_DEPTH_STENCIL <br/> 
+     *              GL_RED GL_RED_INTEGER <br/> 
+     *              GL_GREEN GL_GREEN_INTEGER <br/> 
+     *              GL_BLUE GL_BLUE_INTEGER <br/> 
+     *              GL_ALPHA GL_LUMINANCE (12) <br/> 
+     *              <br/> 
+     *              GL_LUMINANCE_ALPHA GL_RG <br/>
+     *              GL_RG_INTEGER GL_HILO_NV <br/> 
+     *              GL_SIGNED_HILO_NV (5) <br/> 
+     *              <br/> 
+     *              GL_RGB GL_RGB_INTEGER <br/> 
+     *              GL_BGR GL_BGR_INTEGER (4)<br/>  
+     *              <br/> 
+     *              GL_RGBA GL_RGBA_INTEGER <br/> 
+     *              GL_BGRA GL_BGRA_INTEGER <br/>
+     *              GL_ABGR_EXT (5)<br/> 
      *           
-     * @param type must be one of 
-     *              GL_BITMAP, 
-     *              GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT, GL_SHORT,
-     *              GL_UNSIGNED_INT, GL_INT, GL_HALF_FLOAT, GL_FLOAT, GL_DOUBLE, 
-     *              GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV,
-     *              GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5_REV, 
-     *              GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV, 
-     *              GL_UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_1_5_5_5_REV,
-     *              GL_UNSIGNED_INT_8_8_8_8, GL_UNSIGNED_INT_8_8_8_8_REV, 
-     *              GL_UNSIGNED_INT_10_10_10_2, GL_UNSIGNED_INT_2_10_10_10_REV
-     *              GL_UNSIGNED_INT_24_8, GL_UNSIGNED_INT_10F_11F_11F_REV,
-     *              GL_UNSIGNED_INT_5_9_9_9_REV, GL_FLOAT_32_UNSIGNED_INT_24_8_REV,
-     *              GL_HILO16_NV, GL_SIGNED_HILO16_NV (28)         
+     * @param type must be one of (30) <br/>  
+     *              GL_BITMAP, <br/> 
+     *              GL_BYTE, GL_UNSIGNED_BYTE, <br/>
+     *              GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV, <br/>
+     *              <br/>
+     *              GL_SHORT, GL_UNSIGNED_SHORT, <br/>
+     *              GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5_REV, <br/> 
+     *              GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV, <br/>
+     *              GL_UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_1_5_5_5_REV, <br/>
+     *              GL_HALF_FLOAT, GL_HALF_FLOAT_OES <br/>
+     *              <br/>
+     *              GL_FIXED, GL_INT <br/>
+     *              GL_UNSIGNED_INT, GL_UNSIGNED_INT_8_8_8_8, <br/>
+     *              GL_UNSIGNED_INT_8_8_8_8_REV, GL_UNSIGNED_INT_10_10_10_2, <br/> 
+     *              GL_UNSIGNED_INT_2_10_10_10_REV, GL_UNSIGNED_INT_24_8, <br/>
+     *              GL_UNSIGNED_INT_10F_11F_11F_REV, GL_UNSIGNED_INT_5_9_9_9_REV <br/> 
+     *              GL_HILO16_NV, GL_SIGNED_HILO16_NV <br/>
+     *              <br/>
+     *              GL_FLOAT_32_UNSIGNED_INT_24_8_REV <br/>
+     *              <br/>
+     *              GL_FLOAT, GL_DOUBLE <br/> 
      * 
      * @param width in pixels
      * @param height in pixels
@@ -402,7 +454,7 @@ public class GLBuffers extends Buffers {
         if (height < 0) return 0;
         if (depth < 0) return 0;
         
-        switch (format) /* 24 */ {
+        switch (format) /* 26 */ {
             case GL2.GL_COLOR_INDEX:
             case GL2GL3.GL_STENCIL_INDEX:
             case GL2GL3.GL_DEPTH_COMPONENT:
@@ -445,7 +497,7 @@ public class GLBuffers extends Buffers {
               throw new GLException("format 0x"+Integer.toHexString(format)+" not supported [yet], pls notify the maintainer in case this is our bug.");
         }
                 
-        switch (type) /* 26 */ {
+        switch (type) /* 30 */ {
             case GL2.GL_BITMAP:
               if (GL2.GL_COLOR_INDEX == format || GL2GL3.GL_STENCIL_INDEX == format) {
                 return (depth * (height * ((width+7)/8)));
@@ -460,6 +512,7 @@ public class GLBuffers extends Buffers {
             case GLES2.GL_HALF_FLOAT_OES:
               esize = 2;
               break;
+            case GL.GL_FIXED:
             case GL2ES2.GL_INT:
             case GL.GL_UNSIGNED_INT:
             case GL.GL_FLOAT:

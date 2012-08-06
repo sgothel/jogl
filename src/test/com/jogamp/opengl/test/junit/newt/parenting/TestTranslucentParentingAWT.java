@@ -69,7 +69,6 @@ public class TestTranslucentParentingAWT extends UITestCase {
     public static void initClass() {
         size = new Dimension(400,200);
         glCaps = new GLCapabilities(null);
-        glCaps.setAlphaBits(8);
         glCaps.setBackgroundOpaque(false);
     }
 

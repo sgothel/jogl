@@ -194,7 +194,7 @@ public class TestTextRendererNEWT00 extends UITestCase {
             pw.printf("%s-%03dx%03d-T%04d", objName, drawable.getWidth(), drawable.getHeight(), texSize[0]);
             
             final String filename = dir + sw +".png";
-            if(screenshot.readPixels(drawable.getGL(), drawable, false)) {
+            if(screenshot.readPixels(drawable.getGL(), false)) {
                 screenshot.write(new File(filename));
             }
         }

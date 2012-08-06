@@ -48,7 +48,7 @@ import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.SurfaceChangeable;
+import javax.media.nativewindow.MutableSurface;
 import javax.media.nativewindow.util.Point;
 
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
@@ -62,7 +62,7 @@ import jogamp.nativewindow.jawt.JAWT_DrawingSurfaceInfo;
 import jogamp.nativewindow.jawt.macosx.JAWT_MacOSXDrawingSurfaceInfo;
 import jogamp.nativewindow.macosx.OSXUtil;
 
-public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
+public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   public MacOSXJAWTWindow(Object comp, AbstractGraphicsConfiguration config) {
     super(comp, config);
     if(DEBUG) {
@@ -103,22 +103,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
       if(DEBUG) {
         System.err.println("MacOSXJAWTWindow.setSurfaceHandle(): 0x"+Long.toHexString(surfaceHandle));
       }
-      sscSet &= 0 != surfaceHandle; // reset ssc flag if NULL surfaceHandle, ie. back to JAWT
       this.surfaceHandle = surfaceHandle;
-  }
-
-  public void surfaceSizeChanged(int width, int height) {
-      sscSet = true;
-      sscWidth = width;
-      sscHeight = height;
-  }
-
-  public int getWidth() {
-    return sscSet ? sscWidth : super.getWidth();
-  }
-
-  public int getHeight() {
-    return sscSet ? sscHeight: super.getHeight();
   }
 
   protected JAWT fetchJAWTImpl() throws NativeWindowException {
@@ -280,8 +265,6 @@ public class MacOSXJAWTWindow extends JAWTWindow implements SurfaceChangeable {
   private long rootSurfaceLayerHandle = 0; // attached to the JAWT_SurfaceLayer
   
   private long surfaceHandle = 0;
-  private int sscWidth, sscHeight;
-  private boolean sscSet = false;
    
   // Workaround for instance of 4796548
   private boolean firstLock = true;

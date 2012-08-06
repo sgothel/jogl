@@ -163,8 +163,9 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
         mPlayer.start();
 
         boolean added;
-        if (drawable instanceof Window) {
-            Window window = (Window) drawable;
+        final Object upstreamWidget = drawable.getUpstreamWidget();
+        if (upstreamWidget instanceof Window) {            
+            final Window window = (Window) upstreamWidget;
             window.addKeyListener(keyAction);
             added = true;
         } else { added = false; }       

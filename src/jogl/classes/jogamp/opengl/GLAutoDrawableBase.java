@@ -30,6 +30,8 @@ package jogamp.opengl;
 
 import java.io.PrintStream;
 
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
@@ -46,6 +48,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 
+import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.util.Animator;
 
 
@@ -63,43 +66,69 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     protected final GLDrawableHelper helper = new GLDrawableHelper();
     protected final FPSCounterImpl fpsCounter = new FPSCounterImpl();
     
-    protected GLDrawableImpl drawable;
+    protected volatile GLDrawableImpl drawable; // volatile: avoid locking for read-only access
     protected GLContextImpl context;
+    protected final boolean ownDevice;
     protected int additionalCtxCreationFlags = 0;
-    protected boolean sendReshape = false;
-    protected boolean sendDestroy = false;
+    protected volatile boolean sendReshape = false; // volatile: maybe written by WindowManager thread w/o locking
+    protected volatile boolean sendDestroy = false; // volatile: maybe written by WindowManager thread w/o locking
 
-    public GLAutoDrawableBase(GLDrawableImpl drawable, GLContextImpl context) {
+    /**
+     * @param drawable a valid {@link GLDrawableImpl}, may not be realized yet.
+     * @param context a valid {@link GLContextImpl}, may not be made current (created) yet.
+     * @param ownDevice pass <code>true</code> if {@link AbstractGraphicsDevice#close()} shall be issued,
+     *                  otherwise pass <code>false</code>. Closing the device is required in case
+     *                  the drawable is created w/ it's own new instance, e.g. offscreen drawables,
+     *                  and no further lifecycle handling is applied.
+     */
+    public GLAutoDrawableBase(GLDrawableImpl drawable, GLContextImpl context, boolean ownDevice) {
         this.drawable = drawable;
         this.context = context;
+        this.ownDevice = ownDevice;
         resetFPSCounter();        
     }
    
+    protected abstract RecursiveLock getLock();
+    
     /** Returns the delegated GLDrawable */
     public final GLDrawable getDelegatedDrawable() { return drawable; }
     
     /** Default implementation to handle repaint events from the windowing system */
-    protected void defaultWindowRepaintOp() {
-        if( null != drawable && drawable.isRealized() ) {
-            if( !drawable.getNativeSurface().isSurfaceLockedByOtherThread() && !helper.isAnimatorAnimating() ) {
+    protected final void defaultWindowRepaintOp() {
+        final GLDrawable _drawable = drawable;
+        if( null != _drawable && _drawable.isRealized() ) {
+            if( !_drawable.getNativeSurface().isSurfaceLockedByOtherThread() && !helper.isAnimatorAnimating() ) {
                 display();
             }
-        }        
+        }
     }
     
     /** Default implementation to handle resize events from the windowing system */
-    protected void defaultWindowResizedOp() {
-        if( null!=drawable ) {
+    protected final void defaultWindowResizedOp() {
+        final GLDrawable _drawable = drawable;
+        if( null!=_drawable ) {
             if(DEBUG) {
                 System.err.println("GLAutoDrawableBase.sizeChanged: ("+Thread.currentThread().getName()+"): "+getWidth()+"x"+getHeight()+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
             }
-            sendReshape = true;
-            defaultWindowRepaintOp();
+            sendReshape = true; // async if display() doesn't get called below, but avoiding deadlock
+            if( _drawable.isRealized() ) {
+                if( !_drawable.getNativeSurface().isSurfaceLockedByOtherThread() && !helper.isAnimatorAnimating() ) {
+                    display();
+                }
+            }        
         }
     }
 
-    /** Default implementation to handle destroy notifications from the windowing system */
-    protected void defaultWindowDestroyNotifyOp() {
+    /** 
+     * Default implementation to handle destroy notifications from the windowing system.
+     * 
+     * <p>
+     * If the {@link NativeSurface} does not implement {@link WindowClosingProtocol} 
+     * or {@link WindowClosingMode#DISPOSE_ON_CLOSE} is enabled (default),
+     * {@link #defaultDestroy()} is being called.
+     * </p> 
+     */
+    protected final void defaultWindowDestroyNotifyOp() {
         final NativeSurface ns = getNativeSurface();
         final boolean shallClose;
         if(ns instanceof WindowClosingProtocol) {
@@ -108,26 +137,65 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
             shallClose = true;
         }        
         if( shallClose ) {
-            // Is an animator thread perform rendering?
-            if (helper.isExternalAnimatorRunning()) {
-                // Pause animations before initiating safe destroy.
-                final GLAnimatorControl ctrl = helper.getAnimator();
-                final boolean isPaused = ctrl.pause();
-                destroy();
-                if(isPaused) {
-                    ctrl.resume();
-                }
-            } else if (null != ns && ns.isSurfaceLockedByOtherThread()) {
-                // surface is locked by another thread
-                // Flag that destroy should be performed on the next
-                // attempt to display.
-                sendDestroy = true;
-            } else {
-                // Without an external thread animating or locking the
-                // surface, we are safe.
-                destroy ();
-            }
+            destroyAvoidAwareOfLocking();
         }                
+    }
+
+    /**
+     * Calls {@link #destroy()} 
+     * directly if the following requirements are met:
+     * <ul>
+     *   <li>An {@link GLAnimatorControl} is bound (see {@link #getAnimator()}) and running on another thread. 
+     *       Here we pause the animation while issuing the destruction.</li>
+     *   <li>Surface is not locked by another thread (considered anonymous).</li>
+     * </ul>
+     * <p>
+     * Otherwise destroy is being flagged to be called within the next 
+     * call of display().
+     * </p>
+     * <p>
+     * This method is being used to avoid deadlock if
+     * destruction is desired by <i>other</i> threads, e.g. the window manager.
+     * </p>
+     * @see #defaultWindowDestroyNotifyOp()
+     * @see #defaultDisplay()
+     */
+    protected final void destroyAvoidAwareOfLocking() {
+        final NativeSurface ns = getNativeSurface();
+        
+        final GLAnimatorControl ctrl = helper.getAnimator();
+        
+        // Is an animator thread perform rendering?
+        if ( helper.isAnimatorRunningOnOtherThread() ) {
+            // Pause animations before initiating safe destroy.
+            final boolean isPaused = ctrl.pause();
+            destroy();
+            if(isPaused) {
+                ctrl.resume();
+            }
+        } else if (null != ns && ns.isSurfaceLockedByOtherThread()) {
+            // surface is locked by another thread
+            // Flag that destroy should be performed on the next
+            // attempt to display.
+            sendDestroy = true; // async, but avoiding deadlock
+        } else {
+            // Without an external thread animating or locking the
+            // surface, we are safe.
+            destroy();
+        }
+    }
+    
+    /**
+     * Calls {@link #destroyImplInLock()} while claiming the lock.
+     */
+    protected final void defaultDestroy() {
+        final RecursiveLock lock = getLock();
+        lock.lock();
+        try {
+            destroyImplInLock();
+        } finally {
+            lock.unlock();
+        }
     }
     
     /**
@@ -137,24 +205,47 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
      *   <li>destroys the GLContext, if valid</li>
      *   <li>destroys the GLDrawable, if valid</li>
      * </ul>
+     * <p>Method assumes the lock is being hold.</p>
+     * <p>Override it to extend it to destroy your resources, i.e. the actual window.
+     * In such case call <code>super.destroyImplInLock</code> first.</p>
      */
-    protected void defaultDestroyOp() {
-        if( null != drawable && drawable.isRealized() ) {
-            if( null != context && context.isCreated() ) {
-                // Catch dispose GLExceptions by GLEventListener, just 'print' them
-                // so we can continue with the destruction.
-                try {
-                    helper.disposeGL(this, drawable, context, null);
-                } catch (GLException gle) {
-                    gle.printStackTrace();
+    protected void destroyImplInLock() {
+        final GLContext _context = context;
+        final GLDrawable _drawable = drawable;
+        if( null != _drawable ) {
+            if( _drawable.isRealized() ) {
+                if( null != _context && _context.isCreated() ) {
+                    // Catch dispose GLExceptions by GLEventListener, just 'print' them
+                    // so we can continue with the destruction.
+                    try {
+                        helper.disposeGL(this, _drawable, _context, null);
+                    } catch (GLException gle) {
+                        gle.printStackTrace();
+                    }
                 }
+                _drawable.setRealized(false);
             }
-            drawable.setRealized(false);
+            if( ownDevice ) {
+                _drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice().close();
+            }
         }
         context = null;
         drawable = null;        
     }
     
+    public final void defaultSwapBuffers() throws GLException {
+        final RecursiveLock _lock = getLock();
+        _lock.lock();
+        try {            
+            if(drawable!=null && context != null) {
+                drawable.swapBuffers();
+                helper.invokeGL(drawable, context, defaultSwapAction, defaultInitAction);
+            }
+        } finally {
+            _lock.unlock();
+        }
+    }
+
     //
     // GLAutoDrawable
     //
@@ -179,6 +270,30 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
             fpsCounter.tickFPS();
         } };
 
+    protected final void defaultDisplay() {
+        if( sendDestroy ) {
+            sendDestroy=false;
+            destroy();
+            return;
+        }
+        final RecursiveLock _lock = getLock();        
+        _lock.lock();
+        try {
+            if( null != context ) {
+                // surface is locked/unlocked implicit by context's makeCurrent/release
+                helper.invokeGL(drawable, context, defaultDisplayAction, defaultInitAction);
+            }
+        } finally {
+            _lock.unlock();
+        }
+    }
+        
+    protected final Runnable defaultSwapAction = new Runnable() {
+        @Override
+        public final void run() {
+            drawable.swapBuffers();
+        } } ;
+        
     @Override
     public final GLContext getContext() {
         return context;
@@ -186,27 +301,35 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
 
     @Override
     public final GLContext setContext(GLContext newCtx) {
-        final GLContext oldCtx = context;
-        final boolean newCtxCurrent = helper.switchContext(drawable, oldCtx, newCtx, additionalCtxCreationFlags);
-        context=(GLContextImpl)newCtx;
-        if(newCtxCurrent) {
-            context.makeCurrent();
+        final RecursiveLock lock = getLock();
+        lock.lock();
+        try {
+            final GLContext oldCtx = context;
+            final boolean newCtxCurrent = helper.switchContext(drawable, oldCtx, newCtx, additionalCtxCreationFlags);
+            context=(GLContextImpl)newCtx;
+            if(newCtxCurrent) {
+                context.makeCurrent();
+            }
+            return oldCtx;
+        } finally {
+            lock.unlock();
         }
-        return oldCtx;
     }
 
     @Override
     public final GL getGL() {
-        if (context == null) {
+        final GLContext _context = context;
+        if (_context == null) {
             return null;
         }
-        return context.getGL();
+        return _context.getGL();
     }
 
     @Override
     public final GL setGL(GL gl) {
-        if (context != null) {
-            context.setGL(gl);
+        final GLContext _context = context;
+        if (_context != null) {
+            _context.setGL(gl);
             return gl;
         }
         return null;
@@ -261,8 +384,9 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     @Override
     public final void setContextCreationFlags(int flags) {
         additionalCtxCreationFlags = flags;        
-        if(null != context) {
-            context.setContextCreationFlags(additionalCtxCreationFlags);
+        final GLContext _context = context;
+        if(null != _context) {
+            _context.setContextCreationFlags(additionalCtxCreationFlags);
         }
     }
 
@@ -331,27 +455,36 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
         
     @Override
     public final GLContext createContext(final GLContext shareWith) {
-        if(drawable != null) {
-            final GLContext _ctx = drawable.createContext(shareWith);
-            _ctx.setContextCreationFlags(additionalCtxCreationFlags);
-            return _ctx;
+        final RecursiveLock lock = getLock();
+        lock.lock();
+        try {
+            if(drawable != null) {
+                final GLContext _ctx = drawable.createContext(shareWith);
+                _ctx.setContextCreationFlags(additionalCtxCreationFlags);
+                return _ctx;
+            }
+            return null;
+        } finally {
+            lock.unlock();
         }
-        return null;
     }
 
     @Override
     public final boolean isRealized() {
-        return null != drawable ? drawable.isRealized() : false;
+        final GLDrawable _drawable = drawable;
+        return null != _drawable ? _drawable.isRealized() : false;
     }
 
     @Override
     public int getWidth() {
-        return null != drawable ? drawable.getWidth() : 0;
+        final GLDrawable _drawable = drawable;
+        return null != _drawable ? _drawable.getWidth() : 0;
     }
 
     @Override
     public int getHeight() {
-        return null != drawable ? drawable.getHeight() : 0;
+        final GLDrawable _drawable = drawable;
+        return null != _drawable ? _drawable.getHeight() : 0;
     }
 
     /**
@@ -374,29 +507,26 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     }
 
     @Override
-    public final void swapBuffers() throws GLException {
-        if(drawable!=null && context != null) {
-            drawable.swapBuffers();
-        }
-    }
-
-    @Override
     public final GLCapabilitiesImmutable getChosenGLCapabilities() {
-        return null != drawable ? drawable.getChosenGLCapabilities() : null;
+        final GLDrawable _drawable = drawable;
+        return null != _drawable ? _drawable.getChosenGLCapabilities() : null;
     }
 
     @Override
     public final GLProfile getGLProfile() {
-        return null != drawable ? drawable.getGLProfile() : null;
+        final GLDrawable _drawable = drawable;
+        return null != _drawable ? _drawable.getGLProfile() : null;
     }
 
     @Override
     public final NativeSurface getNativeSurface() {
-        return null != drawable ? drawable.getNativeSurface() : null;
+        final GLDrawable _drawable = drawable;
+        return null != _drawable ? _drawable.getNativeSurface() : null;
     }
 
     @Override
     public final long getHandle() {
-        return null != drawable ? drawable.getHandle() : 0;
+        final GLDrawable _drawable = drawable;
+        return null != _drawable ? _drawable.getHandle() : 0;
     }
 }

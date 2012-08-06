@@ -9,7 +9,8 @@ set BLD_DIR=..\%BLD_SUB%
 
 set FFMPEG_LIB=%PROJECT_ROOT%\make\lib\ffmpeg\x64
 
-set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%FFMPEG_LIB%;%PATH%
+set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw\bin;%PATH%
+REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\external\PVRVFrame\OGLES-2.0\Windows_x86_64;%PATH%
 REM set LIB_DIR=%BLD_DIR%\lib;..\..\gluegen\%BLD_SUB%\obj
 set LIB_DIR=%FFMPEG_LIB%
 
@@ -17,7 +18,13 @@ set CP_ALL=.;%BLD_DIR%\jar\jogl-all.jar;%BLD_DIR%\jar\jogl-test.jar;..\..\gluege
 
 echo CP_ALL %CP_ALL%
 
-set D_ARGS="-Djogamp.debug.IOUtil" "-Djogl.debug.GLSLCode" "-Djogl.debug.GLMediaPlayer"
+REM set D_ARGS="-Djogl.debug.GLContext" "-Djogl.debug.FBObject"
+REM set D_ARGS="-Djogl.debug.GLDrawable" "-Djogl.debug.EGLDrawableFactory.DontQuery"
+REM set D_ARGS="-Djogl.debug.GLDrawable" "-Djogl.debug.EGLDrawableFactory.QueryNativeTK"
+REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all"
+REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug=all" "-Djogl.debug.EGLDrawableFactory.DontQuery"
+REM set D_ARGS="-Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.CapabilitiesChooser -Djogl.debug.GLProfile"
+REM set D_ARGS="-Djogamp.debug.IOUtil" "-Djogl.debug.GLSLCode" "-Djogl.debug.GLMediaPlayer"
 REM set D_ARGS="-Djogamp.debug.NativeLibrary=true" "-Djogamp.debug.NativeLibrary.Lookup=true" "-Djogl.debug.GLSLCode"
 REM set D_ARGS="-Djogl.debug.ExtensionAvailabilityCache" "-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug.ProcAddressHelper=true" "-Djogamp.debug.NativeLibrary=true" "-Djogamp.debug.NativeLibrary.Lookup=true"
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug.NativeLibrary=true"
@@ -30,10 +37,9 @@ REM set D_ARGS="-Djogl.debug=all"
 REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.Animator" "-Djogl.debug.GLContext" "-Djogl.debug.GLContext.TraceSwitch" "-Djogl.debug.DebugGL" "-Djogl.debug.TraceGL"
 REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.Animator" "-Djogl.debug.GLContext" "-Djogl.debug.GLContext.TraceSwitch" "-Djogl.windows.useWGLVersionOf5WGLGDIFuncSet"
 REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.Animator" "-Djogl.debug.GLContext" "-Djogl.debug.GLContext.TraceSwitch"
-REM set D_ARGS="-Dnewt.debug.Window"
+set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display"
 REM set D_ARGS="-Djogl.debug.GLDebugMessageHandler" "-Djogl.debug.DebugGL" "-Djogl.debug.TraceGL"
 REM set D_ARGS="-Djogl.debug.DebugGL" "-Djogl.debug.GLDebugMessageHandler" "-Djogl.debug.GLSLCode"
-REM set D_ARGS="-Djogl.debug.GraphicsConfiguration" "-Djogl.debug.CapabilitiesChooser"
 REM set D_ARGS="-Djogl.debug.GLContext" "-Dnewt.debug=all"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnativewindow.debug.TraceLock"
 REM set D_ARGS="-Dnativewindow.debug.TraceLock"

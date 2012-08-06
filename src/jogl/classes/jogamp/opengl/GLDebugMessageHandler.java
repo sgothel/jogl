@@ -37,6 +37,8 @@ import javax.media.opengl.GLException;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
+import com.jogamp.opengl.GLExtensions;
+
 import jogamp.opengl.gl4.GL4bcProcAddressTable;
 
 /**
@@ -54,12 +56,6 @@ import jogamp.opengl.gl4.GL4bcProcAddressTable;
  * the messages are translated to <i>ARB</i> {@link GLDebugMessage}, using {@link GLDebugMessage#translateAMDEvent(javax.media.opengl.GLContext, long, int, int, int, String)}.</p>
  */
 public class GLDebugMessageHandler {
-    /** Extension <i>GL_ARB_debug_output</i> implementing GLDebugMessage */
-    public static final String GL_ARB_debug_output = "GL_ARB_debug_output".intern();
-    
-    /** Extension <i>GL_AMD_debug_output</i> implementing GLDebugMessage */
-    public static final String GL_AMD_debug_output = "GL_AMD_debug_output".intern();
-    
     private static final boolean DEBUG = Debug.debug("GLDebugMessageHandler");
     
     private static final int EXT_ARB = 1;
@@ -131,11 +127,11 @@ public class GLDebugMessageHandler {
             }
             return;
         }
-        if( ctx.isExtensionAvailable(GL_ARB_debug_output) ) {
-            extName = GL_ARB_debug_output;
+        if( ctx.isExtensionAvailable(GLExtensions.ARB_debug_output) ) {
+            extName = GLExtensions.ARB_debug_output;
             extType = EXT_ARB;
-        } else if( ctx.isExtensionAvailable(GL_AMD_debug_output) ) {
-            extName = GL_AMD_debug_output;
+        } else if( ctx.isExtensionAvailable(GLExtensions.AMD_debug_output) ) {
+            extName = GLExtensions.AMD_debug_output;
             extType = EXT_AMD;
         }
         if(DEBUG) {
@@ -145,6 +141,8 @@ public class GLDebugMessageHandler {
         if(0 == extType) {
             if(DEBUG) {
                 System.err.println("GLDebugMessageHandler: No extension available! "+ctx.getGLVersion());
+                System.err.println("GL_EXTENSIONS  "+ctx.getGLExtensionCount());
+                System.err.println(ctx.getGLExtensionsString());                
             }
             return;
         }
@@ -190,11 +188,11 @@ public class GLDebugMessageHandler {
     }
     
     public final boolean isExtensionARB() {
-        return extName == GL_ARB_debug_output;
+        return extName == GLExtensions.ARB_debug_output;
     }
     
     public final boolean isExtensionAMD() {
-        return extName == GL_AMD_debug_output;
+        return extName == GLExtensions.AMD_debug_output;
     }
     
     /**

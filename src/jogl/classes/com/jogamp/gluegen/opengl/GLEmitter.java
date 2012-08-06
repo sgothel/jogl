@@ -51,7 +51,7 @@ import com.jogamp.gluegen.SymbolFilter;
 import com.jogamp.gluegen.cgram.types.FunctionSymbol;
 import com.jogamp.gluegen.procaddress.ProcAddressEmitter;
 import com.jogamp.gluegen.procaddress.ProcAddressJavaMethodBindingEmitter;
-import com.jogamp.gluegen.runtime.opengl.GLExtensionNames;
+import com.jogamp.gluegen.runtime.opengl.GLNameResolver;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -110,13 +110,13 @@ public class GLEmitter extends ProcAddressEmitter {
             if (declarations != null) {
                 for (Iterator<String> iterator = declarations.iterator(); iterator.hasNext();) {
                     String decl = iterator.next();
-                    boolean isGLFunction = GLExtensionNames.isGLFunction(decl);
+                    boolean isGLFunction = GLNameResolver.isGLFunction(decl);
                     boolean isGLEnumeration = false;
                     if (!isGLFunction) {
-                        isGLEnumeration = GLExtensionNames.isGLEnumeration(decl);
+                        isGLEnumeration = GLNameResolver.isGLEnumeration(decl);
                     }
                     if (isGLFunction || isGLEnumeration) {
-                        String renamed = GLExtensionNames.normalize(decl, isGLFunction);
+                        String renamed = GLNameResolver.normalize(decl, isGLFunction);
                         if (!renamed.equals(decl)) {
                             config.addJavaSymbolRename(decl, renamed);
                         }
@@ -181,7 +181,7 @@ public class GLEmitter extends ProcAddressEmitter {
                 String cause = null;
                 for (String decl : declarations) {
                     boolean isFunc = !decl.startsWith("GL_");
-                    if (!GLExtensionNames.isExtension(decl, isFunc)) {
+                    if (!GLNameResolver.isExtension(decl, isFunc)) {
                         isExtension = false;
                         break;
                     }
@@ -199,7 +199,7 @@ public class GLEmitter extends ProcAddressEmitter {
                         }
                     }
                     cause = decl;
-                    String unifiedName = GLExtensionNames.normalize(decl, isFunc);
+                    String unifiedName = GLNameResolver.normalize(decl, isFunc);
                     // NOTE that we look up the unified name in the
                     // BuildStaticGLInfo's notion of the APIs -- since
                     // we might not be emitting glue code for the
@@ -472,12 +472,12 @@ public class GLEmitter extends ProcAddressEmitter {
         w.println("   *   it was statically linked.");
         w.println("   */");
         w.println("  public long getAddressFor(String functionNameUsr) {");
-        w.println("    String functionNameBase = "+GLExtensionNames.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLExtensionNames.normalizeARB(functionNameUsr, true), true);");
+        w.println("    String functionNameBase = "+GLNameResolver.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);");
         w.println("    String addressFieldNameBase = PROCADDRESS_VAR_PREFIX + functionNameBase;");
         w.println("    java.lang.reflect.Field addressField = null;");
-        w.println("    int  funcNamePermNum = "+GLExtensionNames.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");
+        w.println("    int  funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");
         w.println("    for(int i = 0; null==addressField && i < funcNamePermNum; i++) {");
-        w.println("        String addressFieldName = "+GLExtensionNames.class.getName()+".getFuncNamePermutation(addressFieldNameBase, i);");
+        w.println("        String addressFieldName = "+GLNameResolver.class.getName()+".getFuncNamePermutation(addressFieldNameBase, i);");
         w.println("        try {");
         w.println("          addressField = getClass().getField(addressFieldName);");
         w.println("        } catch (Exception e) { }");

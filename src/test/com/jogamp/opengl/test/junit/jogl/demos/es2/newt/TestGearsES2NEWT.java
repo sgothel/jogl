@@ -37,6 +37,8 @@ import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.MouseAdapter;
+import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
@@ -220,6 +222,12 @@ public class TestGearsES2NEWT extends UITestCase {
                 }
             }
         });
+        glWindow.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                glWindow.setFullscreen(!glWindow.isFullscreen());
+                System.err.println("setFullscreen: "+glWindow.isFullscreen());
+            }
+         });
 
         animator.start();
         // glWindow.setSkipContextReleaseThread(animator.getThread());
@@ -258,7 +266,6 @@ public class TestGearsES2NEWT extends UITestCase {
 
     public static void main(String args[]) throws IOException {        
         int x=0, y=0, w=640, h=480;
-        boolean useSize = false;
         boolean usePos = false;
         
         for(int i=0; i<args.length; i++) {
@@ -291,11 +298,9 @@ public class TestGearsES2NEWT extends UITestCase {
             } else if(args[i].equals("-width")) {
                 i++;
                 w = MiscUtils.atoi(args[i], w);
-                useSize = true;
             } else if(args[i].equals("-height")) {
                 i++;
                 h = MiscUtils.atoi(args[i], h);
-                useSize = true;
             } else if(args[i].equals("-x")) {
                 i++;
                 x = MiscUtils.atoi(args[i], x);

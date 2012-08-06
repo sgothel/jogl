@@ -30,9 +30,6 @@ package com.jogamp.opengl.test.junit.jogl.util.texture;
 
 import java.awt.Dimension;
 import java.awt.Frame;
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -45,6 +42,7 @@ import jogamp.nativewindow.jawt.JAWTUtil;
 
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
+import com.jogamp.opengl.util.texture.TextureIO;
 
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -71,20 +69,6 @@ public class TestGLReadBufferUtilTextureIOWrite02AWT extends UITestCase {
         height = 64;
     }
 
-    protected void snapshot(GLAutoDrawable drawable, GLReadBufferUtil screenshot, int i) {
-        final StringWriter filename = new StringWriter();
-        {
-            final PrintWriter pw = new PrintWriter(filename);
-            final String pfmt = drawable.getChosenGLCapabilities().getAlphaBits() > 0 ? "rgba" : "rgb_";
-            pw.printf("%s-F_rgba-I_%s-%s-n%03d-%04dx%04d.png", 
-                    getSimpleTestName("."), pfmt, drawable.getGLProfile().getName(), i, drawable.getWidth(), drawable.getHeight());
-        }
-        drawable.getGL().glFinish(); // poor mans sync ..
-        if(screenshot.readPixels(drawable.getGL(), drawable, false)) {
-            screenshot.write(new File(filename.toString()));
-        }                
-    }
-    
     protected void testWritePNGWithResizeImpl(boolean offscreenLayer) throws InterruptedException {
         if(!offscreenLayer && JAWTUtil.isOffscreenLayerRequired()) {
             System.err.println("onscreen layer n/a");
@@ -127,7 +111,7 @@ public class TestGLReadBufferUtilTextureIOWrite02AWT extends UITestCase {
                 if(snap) {
                     System.err.println("XXX: ["+fw_old+", "+dw_old+"], "+fw+"x"+fh+", "+dw+"x"+dh+", sz_changed "+sz_changed+", snap "+snap);
                     c=0;
-                    snapshot(drawable, screenshot, i++);
+                    snapshot(getSimpleTestName("."), i++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
                     dw_old = dw;
                     fw_old = fw;
                     Threading.invoke(true, new Runnable() {

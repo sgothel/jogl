@@ -87,10 +87,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
         System.err.println("X11ExternalGLXDrawable: WARNING: forcing GLX_RGBA_TYPE for newly created contexts (current 0x"+Integer.toHexString(val[0])+")");
       }
     }
-    WrappedSurface ns = new WrappedSurface(cfg);
-    ns.setSurfaceHandle(drawable);
-    ns.surfaceSizeChanged(w, h);
-    return new X11ExternalGLXDrawable(factory, ns);
+    return new X11ExternalGLXDrawable(factory, new WrappedSurface(cfg, drawable, w, h, null));
   }
 
   @Override

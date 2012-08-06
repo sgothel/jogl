@@ -42,6 +42,7 @@ package jogamp.opengl;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.ProxySurface;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
@@ -75,7 +76,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
     if( !realized ) {
         return; // destroyed already
     }
-    GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)surface.getGraphicsConfiguration().getChosenCapabilities();
+    final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)surface.getGraphicsConfiguration().getChosenCapabilities();
     if ( caps.getDoubleBuffered() ) {
         if(!surface.surfaceSwap()) {
             int lockRes = lockSurface(); // it's recursive, so it's ok within [makeCurrent .. release]
@@ -149,6 +150,9 @@ public abstract class GLDrawableImpl implements GLDrawable {
         realized = realizedArg;
         AbstractGraphicsDevice aDevice = surface.getGraphicsConfiguration().getScreen().getDevice();
         if(realizedArg) {
+            if(surface instanceof ProxySurface) {
+                ((ProxySurface)surface).createNotify();
+            }
             if(NativeSurface.LOCK_SURFACE_NOT_READY >= lockSurface()) {
                 throw new GLException("GLDrawableImpl.setRealized(true): Surface not ready (lockSurface)");
             }
@@ -156,17 +160,21 @@ public abstract class GLDrawableImpl implements GLDrawable {
             aDevice.lock();
         }
         try {
-            setRealizedImpl();
             if(realizedArg) {
+                setRealizedImpl();
                 updateHandle();
             } else {
                 destroyHandle();
+                setRealizedImpl();
             }
         } finally {
             if(realizedArg) {
                 unlockSurface();
             } else {
                 aDevice.unlock();
+                if(surface instanceof ProxySurface) {
+                    ((ProxySurface)surface).destroyNotify();
+                }
             }
         }
     } else if(DEBUG) {
@@ -175,6 +183,39 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
   protected abstract void setRealizedImpl();
 
+  /** 
+   * Callback for special implementations, allowing GLContext to trigger GL related lifecycle: <code>construct</code>, <code>destroy</code>.
+   * <p>
+   * If <code>realized</code> is <code>true</code>, the context has just been created and made current.
+   * </p>
+   * <p>
+   * If <code>realized</code> is <code>false</code>, the context is still current and will be release and destroyed after this method returns.
+   * </p>
+   * <p>
+   * @see #contextMadeCurrent(GLContext, boolean)
+   */
+  protected void contextRealized(GLContext glc, boolean realized) {}
+  
+  /** 
+   * Callback for special implementations, allowing GLContext to trigger GL related lifecycle: <code>makeCurrent</code>, <code>release</code>.
+   * <p>
+   * Will not be called if {@link #contextRealized(GLContext, boolean)} has been triggered.
+   * </p>
+   * <p>
+   * If <code>current</code> is <code>true</code>, the context has just been made current.
+   * </p>
+   * <p>
+   * If <code>current</code> is <code>false</code>, the context is still current and will be release after this method returns.
+   * </p>
+   * @see #contextRealized(GLContext, boolean)
+   */ 
+  protected void contextMadeCurrent(GLContext glc, boolean current) { }
+
+  /** Callback for special implementations, allowing GLContext to fetch a custom default render framebuffer. Defaults to zero.*/
+  protected int getDefaultDrawFramebuffer() { return 0; }
+  /** Callback for special implementations, allowing GLContext to fetch a custom default read framebuffer. Defaults to zero. */
+  protected int getDefaultReadFramebuffer() { return 0; }
+  
   @Override
   public final synchronized boolean isRealized() {
     return realized;
@@ -190,10 +231,12 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return surface.getHeight();
   }
 
+  /** @see NativeSurface#lockSurface() */
   public final int lockSurface() throws GLException {
     return surface.lockSurface();
   }
 
+  /** @see NativeSurface#unlockSurface() */
   public final void unlockSurface() {
     surface.unlockSurface();
   }

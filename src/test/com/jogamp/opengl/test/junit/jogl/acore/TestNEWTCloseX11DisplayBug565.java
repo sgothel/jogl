@@ -43,10 +43,10 @@ public class TestNEWTCloseX11DisplayBug565 {
 
         if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false)) {
             final int openD = X11Util.getOpenDisplayConnectionNumber() - open0;
-            if(openD>1) {
+            if( openD > 0) {
                 X11Util.dumpOpenDisplayConnections();
                 X11Util.dumpPendingDisplayConnections();
-                Assert.assertTrue("More than 1 new open display connections", false);
+                Assert.assertEquals("New display connection didn't close", 0, openD);
             }
         }
       }
@@ -86,10 +86,10 @@ public class TestNEWTCloseX11DisplayBug565 {
 
         if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false)) {
             final int openD = X11Util.getOpenDisplayConnectionNumber() - open0;
-            if(openD>1) {
+            if(openD > 0) {
                 X11Util.dumpOpenDisplayConnections();
                 X11Util.dumpPendingDisplayConnections();
-                Assert.assertTrue("More than 1 new open display connections", false);
+                Assert.assertEquals("New display connection didn't close", 0, openD);
             }
         }
       }

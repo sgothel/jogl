@@ -77,8 +77,10 @@ public class NetPbmTextureWriter implements TextureWriter {
 
     public int getMagic() { return magic; }
 
-    public static final String PPM     = "ppm";
-    public static final String PAM     = "pam";
+    /** @see TextureIO#PPM */
+    public static final String PPM     = TextureIO.PPM;
+    /** @see TextureIO#PAM */
+    public static final String PAM     = TextureIO.PAM;
 
     public String getSuffix() { return (magic==6)?PPM:PAM; }
 

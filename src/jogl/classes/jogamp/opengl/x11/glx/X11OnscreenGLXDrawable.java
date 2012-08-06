@@ -51,10 +51,13 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
   long glXWindow; // GLXWindow, a GLXDrawable representation
   boolean useGLXWindow;
 
-  protected X11OnscreenGLXDrawable(GLDrawableFactory factory, NativeSurface component) {
-    super(factory, component, false);
+  protected X11OnscreenGLXDrawable(GLDrawableFactory factory, NativeSurface component, boolean realized) {
+    super(factory, component, realized);
     glXWindow=0;
     useGLXWindow=false;
+    if(realized) {
+        updateHandle();
+    }
   }
 
   @Override

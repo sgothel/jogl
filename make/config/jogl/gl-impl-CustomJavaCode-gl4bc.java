@@ -33,7 +33,7 @@ public GL4bcImpl(GLProfile glp, GLContextImpl context) {
  * Provides platform-independent access to the wglAllocateMemoryNV /
  * glXAllocateMemoryNV extension.
  */
-public java.nio.ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
+public final java.nio.ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
   return _context.glAllocateMemoryNV(arg0, arg1, arg2, arg3);
 }
 
@@ -52,7 +52,7 @@ private boolean haveGL15;
 private boolean haveGL21;
 private boolean haveARBVertexBufferObject;
 
-private void initBufferObjectExtensionChecks() {
+private final void initBufferObjectExtensionChecks() {
   if (bufferObjectExtensionsInitialized)
     return;
   bufferObjectExtensionsInitialized = true;
@@ -63,12 +63,12 @@ private void initBufferObjectExtensionChecks() {
   haveARBVertexBufferObject = isExtensionAvailable("GL_ARB_vertex_buffer_object");
 }
 
-private boolean checkBufferObject(boolean extension1,
-                                  boolean extension2,
-                                  boolean extension3,
-                                  boolean enabled,
-                                  int state,
-                                  String kind, boolean throwException) {
+private final boolean checkBufferObject(boolean extension1,
+                                        boolean extension2,
+                                        boolean extension3,
+                                        boolean enabled,
+                                        int state,
+                                        String kind, boolean throwException) {
   if (inBeginEndPair) {
     throw new GLException("May not call this between glBegin and glEnd");
   }
@@ -100,7 +100,7 @@ private boolean checkBufferObject(boolean extension1,
   return true;
 }  
 
-private boolean checkArrayVBODisabled(boolean throwException) { 
+private final boolean checkArrayVBODisabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
   return checkBufferObject(haveGL15,
                     haveARBVertexBufferObject,
@@ -110,7 +110,7 @@ private boolean checkArrayVBODisabled(boolean throwException) {
                     "array vertex_buffer_object", throwException);
 }
 
-private boolean checkArrayVBOEnabled(boolean throwException) { 
+private final boolean checkArrayVBOEnabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
   return checkBufferObject(haveGL15,
                     haveARBVertexBufferObject,
@@ -120,7 +120,7 @@ private boolean checkArrayVBOEnabled(boolean throwException) {
                     "array vertex_buffer_object", throwException);
 }
 
-private boolean checkElementVBODisabled(boolean throwException) { 
+private final boolean checkElementVBODisabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
   return checkBufferObject(haveGL15,
                     haveARBVertexBufferObject,
@@ -130,7 +130,7 @@ private boolean checkElementVBODisabled(boolean throwException) {
                     "element vertex_buffer_object", throwException);
 }
 
-private boolean checkElementVBOEnabled(boolean throwException) { 
+private final boolean checkElementVBOEnabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
   return checkBufferObject(haveGL15,
                     haveARBVertexBufferObject,
@@ -140,7 +140,7 @@ private boolean checkElementVBOEnabled(boolean throwException) {
                     "element vertex_buffer_object", throwException);
 }
 
-private boolean checkUnpackPBODisabled(boolean throwException) { 
+private final boolean checkUnpackPBODisabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
   return checkBufferObject(haveARBPixelBufferObject,
                     haveEXTPixelBufferObject,
@@ -150,7 +150,7 @@ private boolean checkUnpackPBODisabled(boolean throwException) {
                     "unpack pixel_buffer_object", throwException);
 }
 
-private boolean checkUnpackPBOEnabled(boolean throwException) { 
+private final boolean checkUnpackPBOEnabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
   return checkBufferObject(haveARBPixelBufferObject,
                     haveEXTPixelBufferObject,
@@ -160,7 +160,7 @@ private boolean checkUnpackPBOEnabled(boolean throwException) {
                     "unpack pixel_buffer_object", throwException);
 }
 
-private boolean checkPackPBODisabled(boolean throwException) { 
+private final boolean checkPackPBODisabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
   return checkBufferObject(haveARBPixelBufferObject,
                     haveEXTPixelBufferObject,
@@ -170,7 +170,7 @@ private boolean checkPackPBODisabled(boolean throwException) {
                     "pack pixel_buffer_object", throwException);
 }
 
-private boolean checkPackPBOEnabled(boolean throwException) { 
+private final boolean checkPackPBOEnabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
   return checkBufferObject(haveARBPixelBufferObject,
                     haveEXTPixelBufferObject,
@@ -180,18 +180,20 @@ private boolean checkPackPBOEnabled(boolean throwException) {
                     "pack pixel_buffer_object", throwException);
 }
 
-public boolean glIsPBOPackEnabled() {
+@Override
+public final boolean glIsPBOPackEnabled() {
     return checkPackPBOEnabled(false);
 }
 
-public boolean glIsPBOUnpackEnabled() {
+@Override
+public final boolean glIsPBOUnpackEnabled() {
     return checkUnpackPBOEnabled(false);
 }
 
-private HashMap<MemoryObject, MemoryObject> arbMemCache = new HashMap<MemoryObject, MemoryObject>();
+private final HashMap<MemoryObject, MemoryObject> arbMemCache = new HashMap<MemoryObject, MemoryObject>();
 
 /** Entry point to C language function: <br> <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
-public java.nio.ByteBuffer glMapBuffer(int target, int access) {
+public final java.nio.ByteBuffer glMapBuffer(int target, int access) {
   final long __addr_ = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer;
   if (__addr_ == 0) {
     throw new GLException("Method \"glMapBuffer\" not available");
@@ -230,7 +232,7 @@ public java.nio.ByteBuffer glMapBuffer(int target, int access) {
 native private long dispatch_glMapBuffer(int target, int access, long glProcAddress);
 
 /** Entry point to C language function: <code> GLvoid *  {@native glMapNamedBufferEXT}(GLuint buffer, GLenum access); </code> <br>Part of <code>GL_EXT_direct_state_access</code>   */
-public java.nio.ByteBuffer glMapNamedBufferEXT(int bufferName, int access)  {
+public final java.nio.ByteBuffer glMapNamedBufferEXT(int bufferName, int access)  {
   final long __addr_ = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapNamedBufferEXT;
   if (__addr_ == 0) {
     throw new GLException("Method \"glMapNamedBufferEXT\" not available");
@@ -269,7 +271,8 @@ private native long dispatch_glMapNamedBufferEXT(int buffer, int access, long pr
 
 native private ByteBuffer newDirectByteBuffer(long addr, long capacity);
 
-    public void glVertexPointer(GLArrayData array) {
+    @Override
+    public final void glVertexPointer(GLArrayData array) {
       if(array.getComponentCount()==0) return;
       if(array.isVBO()) {
           glVertexPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getVBOOffset());
@@ -277,7 +280,8 @@ native private ByteBuffer newDirectByteBuffer(long addr, long capacity);
           glVertexPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getBuffer());
       }
     }
-    public void glColorPointer(GLArrayData array) {
+    @Override
+    public final void glColorPointer(GLArrayData array) {
       if(array.getComponentCount()==0) return;
       if(array.isVBO()) {
           glColorPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getVBOOffset());
@@ -286,7 +290,8 @@ native private ByteBuffer newDirectByteBuffer(long addr, long capacity);
       }
 
     }
-    public void glNormalPointer(GLArrayData array) {
+    @Override
+    public final void glNormalPointer(GLArrayData array) {
       if(array.getComponentCount()==0) return;
       if(array.getComponentCount()!=3) {
         throw new GLException("Only 3 components per normal allowed");
@@ -297,7 +302,8 @@ native private ByteBuffer newDirectByteBuffer(long addr, long capacity);
           glNormalPointer(array.getComponentType(), array.getStride(), array.getBuffer());
       }
     }
-    public void glTexCoordPointer(GLArrayData array) {
+    @Override
+    public final void glTexCoordPointer(GLArrayData array) {
       if(array.getComponentCount()==0) return;
       if(array.isVBO()) {
           glTexCoordPointer(array.getComponentCount(), array.getComponentType(), array.getStride(), array.getVBOOffset());

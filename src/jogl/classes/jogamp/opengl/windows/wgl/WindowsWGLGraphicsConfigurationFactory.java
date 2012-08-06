@@ -52,6 +52,7 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
+import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLGraphicsConfigurationFactory;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
@@ -68,13 +69,13 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
     static VisualIDHolder.VIDComparator PfdIDComparator = new VisualIDHolder.VIDComparator(VisualIDHolder.VIDType.WIN32_PFD);
 
     static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.windows.WindowsGraphicsDevice.class, new WindowsWGLGraphicsConfigurationFactory());
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.windows.WindowsGraphicsDevice.class, GLCapabilitiesImmutable.class, new WindowsWGLGraphicsConfigurationFactory());
     }
     private WindowsWGLGraphicsConfigurationFactory() {
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
+            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
 
         if (! (capsChosen instanceof GLCapabilitiesImmutable) ) {
             throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilities objects - chosen");
@@ -99,10 +100,10 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         if(null==absScreen) {
             absScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
         }
-        AbstractGraphicsDevice absDevice = absScreen.getDevice();
-
+        final AbstractGraphicsDevice absDevice = absScreen.getDevice();
+        final GLDrawableFactory factory = GLDrawableFactory.getDesktopFactory();
         capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities(
-                capsChosen, GLDrawableFactory.getDesktopFactory().canCreateGLPbuffer(absDevice) );
+                capsChosen, GLContext.isFBOAvailable(absDevice, capsChosen.getGLProfile()), factory.canCreateGLPbuffer(absDevice) );
 
         return new WindowsWGLGraphicsConfiguration( absScreen, capsChosen, capsReq, (GLCapabilitiesChooser)chooser );
     }
@@ -112,9 +113,9 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         if(null == sharedResource) {
             throw new GLException("Shared resource for device n/a: "+device);
         }
-        WindowsWGLDrawable sharedDrawable = sharedResource.getDrawable();
+        GLDrawableImpl sharedDrawable = sharedResource.getDrawable();
         GLCapabilitiesImmutable capsChosen = sharedDrawable.getChosenGLCapabilities();
-        WindowsWGLContext sharedContext = sharedResource.getContext();
+        GLContext sharedContext = sharedResource.getContext();
         List<GLCapabilitiesImmutable> availableCaps = null;
         
         if ( sharedResource.needsCurrentContext4ARBPFDQueries() ) {
@@ -150,7 +151,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
     }
 
     static List<GLCapabilitiesImmutable> getAvailableGLCapabilitiesARB(long hdc, WindowsWGLDrawableFactory.SharedResource sharedResource, GLProfile glProfile) {
-        int[] pformats = WindowsWGLGraphicsConfiguration.wglAllARBPFIDs(sharedResource.getContext(), hdc);
+        int[] pformats = WindowsWGLGraphicsConfiguration.wglAllARBPFIDs((WindowsWGLContext)sharedResource.getContext(), hdc);
         return WindowsWGLGraphicsConfiguration.wglARBPFIDs2AllGLCapabilities(sharedResource, hdc, pformats, glProfile);
     }
 
@@ -265,7 +266,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         }
         AbstractGraphicsDevice device = config.getScreen().getDevice();
         WindowsWGLDrawableFactory.SharedResource sharedResource = ((WindowsWGLDrawableFactory)factory).getOrCreateSharedResource(device);
-        WindowsWGLContext sharedContext = null;
+        GLContext sharedContext = null;
         if (null != sharedResource && sharedResource.needsCurrentContext4ARBPFDQueries()) {
             sharedContext = sharedResource.getContext();
             if(GLContext.CONTEXT_NOT_CURRENT == sharedContext.makeCurrent()) {
@@ -355,7 +356,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                         System.err.println("updateGraphicsConfigurationARB: wglChoosePixelFormatARB failed with: "+capsChosen);
                     }
                     // 2nd choice: get all GLCapabilities available, no preferred recommendedIndex available
-                    pformats = WindowsWGLGraphicsConfiguration.wglAllARBPFIDs(sharedResource.getContext(), hdc);
+                    pformats = WindowsWGLGraphicsConfiguration.wglAllARBPFIDs((WindowsWGLContext)sharedResource.getContext(), hdc);
                     if (DEBUG) {
                         final int len = ( null != pformats ) ? pformats.length : 0;
                         System.err.println("updateGraphicsConfigurationARB: NumFormats (wglAllARBPFIDs) " + len);
@@ -451,7 +452,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             if(null == pformats) {
                 pformats = WindowsWGLGraphicsConfiguration.wglAllGDIPFIDs(hdc);
             }
-            final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, false);
+            final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, false, false);
 
             for (int i = 0; i < pformats.length; i++) {
                 WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(availableCaps, glProfile, hdc, pformats[i], winattrmask);

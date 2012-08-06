@@ -37,6 +37,7 @@ package jogamp.newt.driver.broadcom.egl;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.VisualIDHolder;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -57,8 +58,8 @@ public class Window extends jogamp.newt.WindowImpl {
         }
         // query a good configuration, however chose the final one by the native queried egl-cfg-id  
         // after creation at {@link #windowCreated(int, int, int)}.
-        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice()).chooseGraphicsConfiguration(
-                capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen());
+        final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice(), capsRequested).chooseGraphicsConfiguration(
+                capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen(), VisualIDHolder.VID_UNDEFINED);
         if (null == cfg) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }

@@ -47,7 +47,6 @@ import javax.media.opengl.GLUniformData;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.BeforeClass;
 
 /**
  * Testing different vertex attribute (VA) data sets on one shader

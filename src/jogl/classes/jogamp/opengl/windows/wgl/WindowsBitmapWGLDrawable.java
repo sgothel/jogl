@@ -41,7 +41,7 @@
 package jogamp.opengl.windows.wgl;
 
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.SurfaceChangeable;
+import javax.media.nativewindow.MutableSurface;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
@@ -139,7 +139,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
         hbitmap = 0;
       throw new GLException("Error creating device context for offscreen OpenGL context, werr "+werr);
     }
-    ((SurfaceChangeable)ns).setSurfaceHandle(hdc);
+    ((MutableSurface)ns).setSurfaceHandle(hdc);
     if(DEBUG) {
         System.err.println("WindowsBitmapWGLDrawable (2): "+ns);
     }
@@ -164,7 +164,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
       GDI.DeleteDC(ns.getSurfaceHandle());
       origbitmap = 0;
       hbitmap = 0;
-      ((SurfaceChangeable)ns).setSurfaceHandle(0);
+      ((MutableSurface)ns).setSurfaceHandle(0);
     }
   }
 }

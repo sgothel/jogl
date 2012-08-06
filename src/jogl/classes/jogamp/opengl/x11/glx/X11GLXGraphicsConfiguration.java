@@ -36,12 +36,16 @@ package jogamp.opengl.x11.glx;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.nativewindow.VisualIDHolder;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
@@ -67,7 +71,8 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
 
     static X11GLXGraphicsConfiguration create(GLProfile glp, X11GraphicsScreen x11Screen, int fbcfgID) {
-      final long display = x11Screen.getDevice().getHandle();
+      final AbstractGraphicsDevice device = x11Screen.getDevice();
+      final long display = device.getHandle();
       if(0==display) {
           throw new GLException("Display null of "+x11Screen);
       }
@@ -80,7 +85,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         glp = GLProfile.getDefault(x11Screen.getDevice());
       }
       final X11GLXDrawableFactory factory = (X11GLXDrawableFactory) GLDrawableFactory.getDesktopFactory();
-      final X11GLCapabilities caps = GLXFBConfig2GLCapabilities(glp, display, fbcfg, true, true, true, factory.isGLXMultisampleAvailable(x11Screen.getDevice()));
+      final X11GLCapabilities caps = GLXFBConfig2GLCapabilities(glp, device, fbcfg, true, true, true, factory.isGLXMultisampleAvailable(device));
       if(null==caps) {
           throw new GLException("GLCapabilities null of "+toHexString(fbcfg));
       }
@@ -99,16 +104,25 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
 
     void updateGraphicsConfiguration() {
-        X11GLXGraphicsConfiguration newConfig = (X11GLXGraphicsConfiguration)
-            GraphicsConfigurationFactory.getFactory(getScreen().getDevice()).chooseGraphicsConfiguration(
-                getChosenCapabilities(), getRequestedCapabilities(), chooser, getScreen());
-        if(null!=newConfig) {
-            // FIXME: setScreen( ... );
-            setXVisualInfo(newConfig.getXVisualInfo());
-            setChosenCapabilities(newConfig.getChosenCapabilities());
-            if(DEBUG) {
-                System.err.println("updateGraphicsConfiguration: "+this);
+        final CapabilitiesImmutable aChosenCaps = getChosenCapabilities();
+        if( !(aChosenCaps instanceof X11GLCapabilities) || VisualIDHolder.VID_UNDEFINED == aChosenCaps.getVisualID(VIDType.X11_XVISUAL) ) {
+            // This case is actually quite impossible, since on X11 the visualID and hence GraphicsConfiguration 
+            // must be determined _before_ window creation! 
+            final X11GLXGraphicsConfiguration newConfig = (X11GLXGraphicsConfiguration)
+                GraphicsConfigurationFactory.getFactory(getScreen().getDevice(), aChosenCaps).chooseGraphicsConfiguration(
+                    aChosenCaps, getRequestedCapabilities(), chooser, getScreen(), VisualIDHolder.VID_UNDEFINED);
+            if(null!=newConfig) {
+                // FIXME: setScreen( ... );
+                setXVisualInfo(newConfig.getXVisualInfo());
+                setChosenCapabilities(newConfig.getChosenCapabilities());
+                if(DEBUG) {
+                    System.err.println("X11GLXGraphicsConfiguration.updateGraphicsConfiguration updated:"+this);
+                }
+            } else {
+                throw new GLException("No native VisualID pre-chosen and update failed: "+this);
             }
+        } else if (DEBUG) {
+            System.err.println("X11GLXGraphicsConfiguration.updateGraphicsConfiguration kept:"+this);
         }
     }
 
@@ -233,11 +247,11 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return true;
   }
 
-  static int FBCfgDrawableTypeBits(final long display, final long fbcfg) {
+  static int FBCfgDrawableTypeBits(final AbstractGraphicsDevice device, GLProfile glp, final long fbcfg) {
     int val = 0;
 
     int[] tmp = new int[1];
-    int fbtype = glXGetFBConfig(display, fbcfg, GLX.GLX_DRAWABLE_TYPE, tmp, 0);
+    int fbtype = glXGetFBConfig(device.getHandle(), fbcfg, GLX.GLX_DRAWABLE_TYPE, tmp, 0);
 
     if ( 0 != ( fbtype & GLX.GLX_WINDOW_BIT ) ) {
         val |= GLGraphicsConfigurationUtil.WINDOW_BIT;
@@ -248,17 +262,20 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     if ( 0 != ( fbtype & GLX.GLX_PBUFFER_BIT ) ) {
         val |= GLGraphicsConfigurationUtil.PBUFFER_BIT;
     }
+    if ( GLContext.isFBOAvailable(device, glp) ) {
+        val |= GLGraphicsConfigurationUtil.FBO_BIT;
+    }
     return val;
   }
 
-  static X11GLCapabilities GLXFBConfig2GLCapabilities(GLProfile glp, long display, long fbcfg,
+  static X11GLCapabilities GLXFBConfig2GLCapabilities(GLProfile glp, AbstractGraphicsDevice device, long fbcfg,
                                                             boolean relaxed, boolean onscreen, boolean usePBuffer,
                                                             boolean isMultisampleAvailable) {
     ArrayList<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>();
-    final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer);
-    if( GLXFBConfig2GLCapabilities(bucket, glp, display, fbcfg, winattrmask, isMultisampleAvailable) ) {
+    final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer, false);
+    if( GLXFBConfig2GLCapabilities(bucket, glp, device, fbcfg, winattrmask, isMultisampleAvailable) ) {
         return (X11GLCapabilities) bucket.get(0);
-    } else if ( relaxed && GLXFBConfig2GLCapabilities(bucket, glp, display, fbcfg, GLGraphicsConfigurationUtil.ALL_BITS, isMultisampleAvailable) ) {
+    } else if ( relaxed && GLXFBConfig2GLCapabilities(bucket, glp, device, fbcfg, GLGraphicsConfigurationUtil.ALL_BITS, isMultisampleAvailable) ) {
         return (X11GLCapabilities) bucket.get(0);
     }
     return null;
@@ -273,11 +290,12 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
   }
 
   static boolean GLXFBConfig2GLCapabilities(List<GLCapabilitiesImmutable> capsBucket,
-                                            GLProfile glp, long display, long fbcfg,
+                                            GLProfile glp, AbstractGraphicsDevice device, long fbcfg,
                                             int winattrmask, boolean isMultisampleAvailable) {
-    final int allDrawableTypeBits = FBCfgDrawableTypeBits(display, fbcfg);
+    final int allDrawableTypeBits = FBCfgDrawableTypeBits(device, glp,  fbcfg);
     int drawableTypeBits = winattrmask & allDrawableTypeBits;
-
+    
+    final long display = device.getHandle(); 
     int fbcfgid = X11GLXGraphicsConfiguration.glXFBConfig2FBConfigID(display, fbcfg);
     XVisualInfo visualInfo = GLX.glXGetVisualFromFBConfig(display, fbcfg);
     if(null == visualInfo) {
@@ -301,19 +319,6 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
 
     GLCapabilities res = new X11GLCapabilities(visualInfo, fbcfg, fbcfgid, glp);
-    res.setDoubleBuffered(glXGetFBConfig(display, fbcfg, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);
-    res.setStereo        (glXGetFBConfig(display, fbcfg, GLX.GLX_STEREO,           tmp, 0) != 0);
-    res.setHardwareAccelerated(glXGetFBConfig(display, fbcfg, GLX.GLX_CONFIG_CAVEAT, tmp, 0) != GLX.GLX_SLOW_CONFIG);
-    res.setDepthBits     (glXGetFBConfig(display, fbcfg, GLX.GLX_DEPTH_SIZE,       tmp, 0));
-    res.setStencilBits   (glXGetFBConfig(display, fbcfg, GLX.GLX_STENCIL_SIZE,     tmp, 0));
-    res.setRedBits       (glXGetFBConfig(display, fbcfg, GLX.GLX_RED_SIZE,         tmp, 0));
-    res.setGreenBits     (glXGetFBConfig(display, fbcfg, GLX.GLX_GREEN_SIZE,       tmp, 0));
-    res.setBlueBits      (glXGetFBConfig(display, fbcfg, GLX.GLX_BLUE_SIZE,        tmp, 0));
-    res.setAlphaBits     (glXGetFBConfig(display, fbcfg, GLX.GLX_ALPHA_SIZE,       tmp, 0));
-    res.setAccumRedBits  (glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_RED_SIZE,   tmp, 0));
-    res.setAccumGreenBits(glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_GREEN_SIZE, tmp, 0));
-    res.setAccumBlueBits (glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_BLUE_SIZE,  tmp, 0));
-    res.setAccumAlphaBits(glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_ALPHA_SIZE, tmp, 0));
     if (isMultisampleAvailable) {
       res.setSampleBuffers(glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
       res.setNumSamples   (glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLES,        tmp, 0));
@@ -329,6 +334,20 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         res.setTransparentBlueValue(xrmask.getBlueMask());
         res.setTransparentAlphaValue(alphaMask);
     }
+    // ALPHA shall be set at last - due to it's auto setting by the above (!opaque / samples)    
+    res.setDoubleBuffered(glXGetFBConfig(display, fbcfg, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);
+    res.setStereo        (glXGetFBConfig(display, fbcfg, GLX.GLX_STEREO,           tmp, 0) != 0);
+    res.setHardwareAccelerated(glXGetFBConfig(display, fbcfg, GLX.GLX_CONFIG_CAVEAT, tmp, 0) != GLX.GLX_SLOW_CONFIG);
+    res.setRedBits       (glXGetFBConfig(display, fbcfg, GLX.GLX_RED_SIZE,         tmp, 0));
+    res.setGreenBits     (glXGetFBConfig(display, fbcfg, GLX.GLX_GREEN_SIZE,       tmp, 0));
+    res.setBlueBits      (glXGetFBConfig(display, fbcfg, GLX.GLX_BLUE_SIZE,        tmp, 0));
+    res.setAlphaBits     (glXGetFBConfig(display, fbcfg, GLX.GLX_ALPHA_SIZE,       tmp, 0));
+    res.setAccumRedBits  (glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_RED_SIZE,   tmp, 0));
+    res.setAccumGreenBits(glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_GREEN_SIZE, tmp, 0));
+    res.setAccumBlueBits (glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_BLUE_SIZE,  tmp, 0));
+    res.setAccumAlphaBits(glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_ALPHA_SIZE, tmp, 0));
+    res.setDepthBits     (glXGetFBConfig(display, fbcfg, GLX.GLX_DEPTH_SIZE,       tmp, 0));
+    res.setStencilBits   (glXGetFBConfig(display, fbcfg, GLX.GLX_STENCIL_SIZE,     tmp, 0));
     
     try { 
         res.setPbufferFloatingPointBuffers(glXGetFBConfig(display, fbcfg, GLXExt.GLX_FLOAT_COMPONENTS_NV, tmp, 0) != GL.GL_FALSE);
@@ -422,18 +441,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     // Note: use of hardware acceleration is determined by
     // glXCreateContext, not by the XVisualInfo. Optimistically claim
     // that all GLCapabilities have the capability to be hardware
-    // accelerated.
-    res.setHardwareAccelerated(true);
-    res.setDepthBits     (glXGetConfig(display, info, GLX.GLX_DEPTH_SIZE,       tmp, 0));
-    res.setStencilBits   (glXGetConfig(display, info, GLX.GLX_STENCIL_SIZE,     tmp, 0));
-    res.setRedBits       (glXGetConfig(display, info, GLX.GLX_RED_SIZE,         tmp, 0));
-    res.setGreenBits     (glXGetConfig(display, info, GLX.GLX_GREEN_SIZE,       tmp, 0));
-    res.setBlueBits      (glXGetConfig(display, info, GLX.GLX_BLUE_SIZE,        tmp, 0));
-    res.setAlphaBits     (glXGetConfig(display, info, GLX.GLX_ALPHA_SIZE,       tmp, 0));
-    res.setAccumRedBits  (glXGetConfig(display, info, GLX.GLX_ACCUM_RED_SIZE,   tmp, 0));
-    res.setAccumGreenBits(glXGetConfig(display, info, GLX.GLX_ACCUM_GREEN_SIZE, tmp, 0));
-    res.setAccumBlueBits (glXGetConfig(display, info, GLX.GLX_ACCUM_BLUE_SIZE,  tmp, 0));
-    res.setAccumAlphaBits(glXGetConfig(display, info, GLX.GLX_ACCUM_ALPHA_SIZE, tmp, 0));
+    // accelerated.    
     if (isMultisampleEnabled) {
       res.setSampleBuffers(glXGetConfig(display, info, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
       res.setNumSamples   (glXGetConfig(display, info, GLX.GLX_SAMPLES,        tmp, 0));
@@ -449,6 +457,18 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         res.setTransparentBlueValue(xrmask.getBlueMask());
         res.setTransparentAlphaValue(alphaMask);
     }
+    // ALPHA shall be set at last - due to it's auto setting by the above (!opaque / samples)
+    res.setHardwareAccelerated(true);
+    res.setDepthBits     (glXGetConfig(display, info, GLX.GLX_DEPTH_SIZE,       tmp, 0));
+    res.setStencilBits   (glXGetConfig(display, info, GLX.GLX_STENCIL_SIZE,     tmp, 0));
+    res.setRedBits       (glXGetConfig(display, info, GLX.GLX_RED_SIZE,         tmp, 0));
+    res.setGreenBits     (glXGetConfig(display, info, GLX.GLX_GREEN_SIZE,       tmp, 0));
+    res.setBlueBits      (glXGetConfig(display, info, GLX.GLX_BLUE_SIZE,        tmp, 0));
+    res.setAlphaBits     (glXGetConfig(display, info, GLX.GLX_ALPHA_SIZE,       tmp, 0));
+    res.setAccumRedBits  (glXGetConfig(display, info, GLX.GLX_ACCUM_RED_SIZE,   tmp, 0));
+    res.setAccumGreenBits(glXGetConfig(display, info, GLX.GLX_ACCUM_GREEN_SIZE, tmp, 0));
+    res.setAccumBlueBits (glXGetConfig(display, info, GLX.GLX_ACCUM_BLUE_SIZE,  tmp, 0));
+    res.setAccumAlphaBits(glXGetConfig(display, info, GLX.GLX_ACCUM_ALPHA_SIZE, tmp, 0));
 
     return GLGraphicsConfigurationUtil.addGLCapabilitiesPermutations(capsBucket, res, drawableTypeBits);
   }

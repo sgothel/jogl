@@ -50,6 +50,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.windows.GDI;
+import jogamp.nativewindow.windows.GDIUtil;
 
 import com.jogamp.nativewindow.WrappedSurface;
 
@@ -69,9 +70,9 @@ public class WindowsExternalWGLDrawable extends WindowsWGLDrawable {
       throw new GLException("Error: attempted to make an external GLContext without a valid pixelformat, werr " + GDI.GetLastError());
     }
 
-    AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
-    WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.createFromExternal(factory, hdc, pfdID, glp, aScreen, true);
-    return new WindowsExternalWGLDrawable(factory, new WrappedSurface(cfg, hdc));
+    final AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
+    final WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfiguration.createFromExternal(factory, hdc, pfdID, glp, aScreen, true);
+    return new WindowsExternalWGLDrawable(factory, new WrappedSurface(cfg, hdc, 64, 64, null));
   }
 
 

@@ -81,6 +81,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   protected long drawable;
   protected Rectangle bounds;
   protected Insets insets;
+  private long offscreenSurfaceLayer;
 
   private long drawable_old;
 
@@ -106,6 +107,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     invalidate();
     this.component = windowObject;
     this.isApplet = false;
+    this.offscreenSurfaceLayer = 0;
   }
 
   @Override
@@ -196,6 +198,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
             System.err.println("JAWTWindow.attachSurfaceHandle(): 0x"+Long.toHexString(layerHandle) + ", bounds "+bounds);
           }
           attachSurfaceLayerImpl(layerHandle);
+          offscreenSurfaceLayer = layerHandle;
       } finally {
           unlockSurface();
       }
@@ -206,9 +209,12 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    * {@inheritDoc}
    */
   @Override
-  public final void detachSurfaceLayer(final long layerHandle) throws NativeWindowException {
+  public final void detachSurfaceLayer() throws NativeWindowException {
       if( !isOffscreenLayerSurfaceEnabled() ) {
           throw new java.lang.UnsupportedOperationException("Not an offscreen layer surface");
+      }
+      if( 0 == offscreenSurfaceLayer) {
+          throw new NativeWindowException("No offscreen layer attached: "+this);
       }
       int lockRes = lockSurface();
       if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
@@ -216,15 +222,21 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       }
       try {
           if(DEBUG) {
-            System.err.println("JAWTWindow.detachSurfaceHandle(): 0x"+Long.toHexString(layerHandle));
+            System.err.println("JAWTWindow.detachSurfaceHandle(): 0x"+Long.toHexString(offscreenSurfaceLayer));
           }
-          detachSurfaceLayerImpl(layerHandle);
+          detachSurfaceLayerImpl(offscreenSurfaceLayer);
+          offscreenSurfaceLayer = 0;
       } finally {
           unlockSurface();
       }
   }
   protected abstract void detachSurfaceLayerImpl(final long layerHandle);
 
+  @Override
+  public final boolean isSurfaceLayerAttached() {
+      return 0 != offscreenSurfaceLayer;
+  }
+  
   //
   // SurfaceUpdateListener
   //

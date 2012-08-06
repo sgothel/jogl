@@ -38,24 +38,16 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.opengl.test.junit.jogl.caps;
+package com.jogamp.opengl.test.junit.jogl.demos.es1;
 
-import jogamp.opengl.x11.glx.GLX;
-import jogamp.opengl.x11.glx.X11GLXGraphicsConfiguration;
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLPipelineFactory;
 
 import com.jogamp.opengl.util.ImmModeSink;
 
-class MultisampleDemoES1 implements GLEventListener {
-
-    static boolean glDebug = false;
-    static boolean glTrace = false;
+public class MultisampleDemoES1 implements GLEventListener {
 
     boolean multisample;
     ImmModeSink immModeSink;
@@ -70,30 +62,7 @@ class MultisampleDemoES1 implements GLEventListener {
         System.err.println();
         System.err.println("Chosen   : " + drawable.getChosenGLCapabilities());
         System.err.println();
-        if (!drawable.getGL().isGLES() && NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(false))) {
-            AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
-            X11GLXGraphicsConfiguration x11config = (X11GLXGraphicsConfiguration) config;
-            long display = drawable.getNativeSurface().getDisplayHandle();
-            int[] foo = new int[1];
-            GLX.glXGetFBConfigAttrib(display, x11config.getFBConfig(), GLX.GLX_SAMPLES, foo, 0);
-            System.out.println("GLX_SAMPLES " + foo[0]);
-            GLX.glXGetFBConfigAttrib(display, x11config.getFBConfig(), GLX.GLX_SAMPLE_BUFFERS, foo, 0);
-            System.out.println("GLX_SAMPLE_BUFFERS " + foo[0]);
-        }
-        GL _gl = drawable.getGL();
-        if (glDebug) {
-            try {
-                // Debug ..
-                _gl = _gl.getContext().setGL(GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES1.class, _gl, null));
-                if (glTrace) {
-                    // Trace ..
-                    _gl = _gl.getContext().setGL(GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES1.class, _gl, new Object[]{System.err}));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        GL2ES1 gl = _gl.getGL2ES1();
+        GL2ES1 gl = drawable.getGL().getGL2ES1();
         if (multisample) {
             gl.glEnable(GL.GL_MULTISAMPLE);
         }

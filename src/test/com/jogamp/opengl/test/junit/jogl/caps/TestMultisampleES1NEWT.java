@@ -40,21 +40,20 @@
 
 package com.jogamp.opengl.test.junit.jogl.caps;
 
-import java.io.File;
-
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
-import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Test;
 
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.MultisampleDemoES1;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.GLReadBufferUtil;
+import com.jogamp.opengl.util.texture.TextureIO;
 
 public class TestMultisampleES1NEWT extends UITestCase {
   static long durationPerTest = 60; // ms
@@ -71,13 +70,6 @@ public class TestMultisampleES1NEWT extends UITestCase {
      org.junit.runner.JUnitCore.main(tstname);
   }
 
-  protected void snapshot(GLAutoDrawable drawable, boolean alpha, boolean flip, String filename) {
-    GLReadBufferUtil screenshot = new GLReadBufferUtil(alpha, false);
-    if(screenshot.readPixels(drawable.getGL(), drawable, flip)) {
-        screenshot.write(new File(filename));
-    }                
-  }
-    
   @Test
   public void testOnscreenMultiSampleAA0() throws InterruptedException {
     testMultiSampleAAImpl(true, 0);
@@ -119,6 +111,7 @@ public class TestMultisampleES1NEWT extends UITestCase {
   }
 
   private void testMultiSampleAAImpl(boolean onscreen, int reqSamples) throws InterruptedException {
+    final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
     GLProfile glp = GLProfile.getMaxFixedFunc(true);
     GLCapabilities caps = new GLCapabilities(glp);
     GLCapabilitiesChooser chooser = new MultisampleChooser01();
@@ -136,14 +129,11 @@ public class TestMultisampleES1NEWT extends UITestCase {
     window.setCapabilitiesChooser(chooser);
     window.addGLEventListener(new MultisampleDemoES1(reqSamples>0?true:false));
     window.addGLEventListener(new GLEventListener() {
+        int displayCount = 0;
         public void init(GLAutoDrawable drawable) {}
         public void dispose(GLAutoDrawable drawable) {}
         public void display(GLAutoDrawable drawable) {
-            final GLCapabilitiesImmutable caps = drawable.getChosenGLCapabilities();
-            final String pfmt = caps.getAlphaBits() > 0 ? "rgba" : "rgb_";
-            final String aaext = caps.getSampleExtension();
-            final int samples = caps.getSampleBuffers() ? caps.getNumSamples() : 0 ;
-            snapshot(drawable, false, false, getSimpleTestName(".")+"-F_rgb_-I_"+pfmt+"-S"+samples+"-"+aaext+"-"+drawable.getGLProfile().getName()+".png");
+            snapshot(getSimpleTestName("."), displayCount++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
         }
         public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
     });

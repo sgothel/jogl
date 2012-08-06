@@ -155,6 +155,14 @@ public class TextureIO {
         file. */
     public static final String TIFF    = "tiff";
 
+    /** Constant which can be used as a file suffix to indicate a PAM
+        file, NetPbm magic 7 - binary RGB and RGBA. Write support only. */
+    public static final String PAM     = "pam";
+    
+    /** Constant which can be used as a file suffix to indicate a PAM
+        file, NetPbm magic 6 - binary RGB. Write support only. */
+    public static final String PPM     = "ppm";
+    
     private static final boolean DEBUG = Debug.debug("TextureIO");
 
     // For manually disabling the use of the texture rectangle

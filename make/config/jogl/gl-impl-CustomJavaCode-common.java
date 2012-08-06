@@ -1,48 +1,57 @@
+    @Override
     public GLProfile getGLProfile() {
         return this.glProfile;
     }
     private final GLProfile glProfile;
 
-    public int glGetBoundBuffer(int target) {
+    @Override
+    public final int glGetBoundBuffer(int target) {
         return bufferStateTracker.getBoundBufferObject(target, this);
     }
 
-    public long glGetBufferSize(int buffer) {
+    @Override
+    public final long glGetBufferSize(int buffer) {
         return bufferSizeTracker.getDirectStateBufferSize(buffer, this);
     }
 
-    public boolean glIsVBOArrayEnabled() {
+    @Override
+    public final boolean glIsVBOArrayEnabled() {
         return checkArrayVBOEnabled(false);
     }
 
-    public boolean glIsVBOElementArrayEnabled() {
+    @Override
+    public final boolean glIsVBOElementArrayEnabled() {
         return checkElementVBOEnabled(false);
     }
 
+    @Override
     public final boolean isGL() {
         return true;
     }
       
+    @Override
     public final GL getGL() throws GLException {
         return this;
     }
 
-    public boolean isFunctionAvailable(String glFunctionName) {
+    @Override
+    public final boolean isFunctionAvailable(String glFunctionName) {
       return _context.isFunctionAvailable(glFunctionName);
     }
 
-    public boolean isExtensionAvailable(String glExtensionName) {
+    @Override
+    public final boolean isExtensionAvailable(String glExtensionName) {
       return _context.isExtensionAvailable(glExtensionName);
     }
 
-    public Object getExtension(String extensionName) {
+    @Override
+    public final Object getExtension(String extensionName) {
       // At this point we don't expose any extensions using this mechanism
       return null;
     }
 
-    /** Returns the context this GL object is associated with for better
-        error checking by DebugGL. */
-    public GLContext getContext() {
+    @Override
+    public final GLContext getContext() {
       return _context;
     }
 
@@ -51,18 +60,36 @@
     /**
      * @see javax.media.opengl.GLContext#setSwapInterval(int)
      */
-    public void setSwapInterval(int interval) {
+    @Override
+    public final void setSwapInterval(int interval) {
       _context.setSwapInterval(interval);
     }
 
     /**
      * @see javax.media.opengl.GLContext#getSwapInterval()
      */
-    public int getSwapInterval() {
+    @Override
+    public final int getSwapInterval() {
       return _context.getSwapInterval();
     }
 
-    public Object getPlatformGLExtensions() {
+    @Override
+    public final Object getPlatformGLExtensions() {
       return _context.getPlatformGLExtensions();
+    }
+
+    @Override
+    public final int getBoundFramebuffer(int target) {
+      return _context.getBoundFramebuffer(target);
+    }
+
+    @Override
+    public final int getDefaultDrawFramebuffer() {
+      return _context.getDefaultDrawFramebuffer();
+    }
+
+    @Override
+    public final int getDefaultReadFramebuffer() {
+      return _context.getDefaultReadFramebuffer();
     }
 

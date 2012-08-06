@@ -41,6 +41,7 @@ package com.jogamp.opengl.util.awt;
 
 import com.jogamp.common.nio.Buffers;
 
+import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.util.*;
 import com.jogamp.opengl.util.packrect.*;
 import com.jogamp.opengl.util.texture.*;
@@ -1976,7 +1977,7 @@ public class TextRenderer {
 
     private final boolean is15Available(GL gl) {
         if (!checkFor_isExtensionAvailable_GL_VERSION_1_5) {
-            isExtensionAvailable_GL_VERSION_1_5 = gl.isExtensionAvailable("GL_VERSION_1_5");
+            isExtensionAvailable_GL_VERSION_1_5 = gl.isExtensionAvailable(GLExtensions.VERSION_1_5);
             checkFor_isExtensionAvailable_GL_VERSION_1_5 = true;
         }
         return isExtensionAvailable_GL_VERSION_1_5;

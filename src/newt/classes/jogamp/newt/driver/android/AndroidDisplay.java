@@ -32,9 +32,6 @@ import jogamp.newt.*;
 import jogamp.opengl.egl.*;
 
 import javax.media.nativewindow.*;
-import javax.media.opengl.GLException;
-
-import com.jogamp.nativewindow.egl.*;
 
 public class AndroidDisplay extends jogamp.newt.DisplayImpl {
     static {
@@ -55,20 +52,11 @@ public class AndroidDisplay extends jogamp.newt.DisplayImpl {
 
     protected void createNativeImpl() {
         // EGL Device
-        final long eglDisplay = EGLDisplayUtil.eglGetDisplay(EGL.EGL_DEFAULT_DISPLAY);
-        if (eglDisplay == EGL.EGL_NO_DISPLAY) {
-            throw new GLException("Failed to created EGL default display: error 0x"+Integer.toHexString(EGL.eglGetError()));
-        }
-        if (!EGLDisplayUtil.eglInitialize(eglDisplay, null, null)) {
-            throw new GLException("eglInitialize failed eglDisplay 0x"+Long.toHexString(eglDisplay)+", error 0x"+Integer.toHexString(EGL.eglGetError()));
-        }
-        aDevice = new EGLGraphicsDevice(eglDisplay, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);        
+        aDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
     protected void closeNativeImpl() {
-        if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
-            EGLDisplayUtil.eglTerminate(aDevice.getHandle());
-        }
+        aDevice.close();
     }
 
     protected void dispatchMessagesNative() {

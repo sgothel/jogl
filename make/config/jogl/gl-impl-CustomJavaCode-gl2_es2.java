@@ -1,4 +1,5 @@
-  public void glVertexAttribPointer(GLArrayData array) {
+  @Override
+  public final void glVertexAttribPointer(GLArrayData array) {
     if(array.getComponentCount()==0) return;
     if(array.isVBO()) {
         glVertexAttribPointer(array.getLocation(), array.getComponentCount(), array.getComponentType(), 
@@ -9,7 +10,8 @@
     }
   }
 
-  public void glUniform(GLUniformData data) {
+  @Override
+  public final void glUniform(GLUniformData data) {
     boolean done=false;
     if(data.isBuffer()) {
         Buffer buffer = data.getBuffer();

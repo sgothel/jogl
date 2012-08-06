@@ -97,22 +97,27 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         }
     }
 
+    @Override
     public final String getType() {
         return type;
     }
 
+    @Override
     public final String getConnection() {
         return connection;
     }
 
+    @Override
     public final int getUnitID() {
         return unitID;
     }
 
+    @Override
     public final String getUniqueID() {
       return uniqueID;
     }
 
+    @Override
     public final long getHandle() {
         return handle;
     }
@@ -124,6 +129,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long)
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, javax.media.nativewindow.ToolkitLock)
      */
+    @Override
     public final void lock() {
         toolkitLock.lock();
     }
@@ -135,10 +141,17 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long)
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, javax.media.nativewindow.ToolkitLock)
      */
+    @Override
     public final void unlock() {
         toolkitLock.unlock();
     }
+    
+    @Override
+    public boolean open() {
+        return false;
+    }
 
+    @Override
     public boolean close() {
         if(0 != handle) {
             handle = 0;

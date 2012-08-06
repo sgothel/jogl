@@ -43,7 +43,7 @@ public class KeyEvent extends InputEvent
      this.keyChar=keyChar;
  }
 
- /** Only valid if delivered via {@link KeyListener#keyPressed(KeyEvent)} */
+ /** Only valid on all platforms at {@link KeyListener#keyTyped(KeyEvent)} */
  public char getKeyChar() {
     return keyChar;
  }

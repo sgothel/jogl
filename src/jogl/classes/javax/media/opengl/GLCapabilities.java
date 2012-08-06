@@ -55,8 +55,9 @@ import javax.media.nativewindow.CapabilitiesImmutable;
     It currently contains the minimal number of routines which allow
     configuration on all supported window systems. */
 public class GLCapabilities extends Capabilities implements Cloneable, GLCapabilitiesImmutable {
-  private GLProfile glProfile = null;
-  private boolean pbuffer = false;
+  private GLProfile glProfile    = null;
+  private boolean isPBuffer      = false;
+  private boolean isFBO          = false;
   private boolean doubleBuffered = true;
   private boolean stereo         = false;
   private boolean hardwareAccelerated = true;
@@ -105,7 +106,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   public int hashCode() {
     // 31 * x == (x << 5) - x
     int hash = 31 + this.glProfile.hashCode() ;
-    hash = ((hash << 5) - hash) + ( this.pbuffer ? 1 : 0 );
+    hash = ((hash << 5) - hash) + ( this.isFBO ? 1 : 0 );
+    hash = ((hash << 5) - hash) + ( this.isPBuffer ? 1 : 0 );
     hash = ((hash << 5) - hash) + ( this.stereo ? 1 : 0 );
     hash = ((hash << 5) - hash) + ( this.hardwareAccelerated ? 1 : 0 );
     hash = ((hash << 5) - hash) + this.depthBits;
@@ -132,7 +134,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     GLCapabilitiesImmutable other = (GLCapabilitiesImmutable)obj;
     boolean res = super.equals(obj) &&
                   other.getGLProfile()==glProfile &&
-                  other.isPBuffer()==pbuffer &&
+                  other.isPBuffer()==isPBuffer &&
+                  other.isFBO()==isFBO &&
                   other.getStereo()==stereo &&
                   other.getHardwareAccelerated()==hardwareAccelerated &&
                   other.getDepthBits()==depthBits &&
@@ -180,8 +183,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
         return -1;
     }
 
-    final int ms = sampleBuffers ? numSamples : 0;
-    final int xms = caps.getSampleBuffers() ? caps.getNumSamples() : 0;
+    final int ms = getNumSamples();
+    final int xms = caps.getNumSamples() ;
 
     if(ms > xms) {
         return 1;
@@ -222,30 +225,53 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
 
   @Override
   public final boolean isPBuffer() {
-    return pbuffer;
+    return isPBuffer;
   }
 
   /**
-   * Enables or disables pbuffer usage.<br>
-   * If enabled this method also invokes {@link #setOnscreen(int) setOnscreen(false)}<br>
+   * Enables or disables pbuffer usage.
+   * <p>
+   * If enabled this method also invokes {@link #setOnscreen(int) setOnscreen(false)}.
+   * </p>
    * Defaults to false.
    */
   public void setPBuffer(boolean enable) {
     if(enable) {
       setOnscreen(false);
     }
-    pbuffer = enable;
+    isPBuffer = enable;
+  }
+
+  @Override
+  public final boolean isFBO() {
+      return isFBO;
+  }
+  
+  /**
+   * Enables or disables FBO usage.
+   * <p>
+   * If enabled this method also invokes {@link #setOnscreen(int) setOnscreen(false)}.
+   * </p>
+   * Defaults to false.
+   */
+  public void setFBO(boolean enable) {
+    if(enable) {
+      setOnscreen(false);
+    }
+    isFBO = enable;
   }
 
   /**
    * Sets whether the drawable surface supports onscreen.<br>
-   * If enabled this method also invokes {@link #setPBuffer(int) setPBuffer(false)}<br>
+   * If enabled this method also invokes {@link #setPBuffer(int) setPBuffer(false)}
+   * and {@link #setFBO(int) setFBO(false)}<br>
    * Defaults to true.
   */
   @Override
   public void setOnscreen(boolean onscreen) {
     if(onscreen) {
         setPBuffer(false);
+        setFBO(false);
     }
     super.setOnscreen(onscreen);
   }
@@ -385,15 +411,18 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     return sampleBuffers;
   }
 
-  /** If sample buffers are enabled, indicates the number of buffers
-      to be allocated. Defaults to 2. */
+  /** 
+   * If sample buffers are enabled, indicates the number of buffers
+   * to be allocated. Defaults to 2.
+   * @see #getNumSamples()
+   */
   public void setNumSamples(int numSamples) {
     this.numSamples = numSamples;
   }
 
   @Override
   public final int getNumSamples() {
-    return numSamples;
+    return sampleBuffers ? numSamples : 0;
   }
 
   /** For pbuffers only, indicates whether floating-point buffers
@@ -462,12 +491,16 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     }
     sink.append(glProfile);
     if(!isOnscreen()) {
-        if(pbuffer) {
+        if(isFBO) {
+            sink.append(", fbo");
+        } 
+        if(isPBuffer) {
             sink.append(", pbuffer [r2t ").append(pbufferRenderToTexture?1:0)
                 .append(", r2tr ").append(pbufferRenderToTextureRectangle?1:0)
                 .append(", float ").append(pbufferFloatingPointBuffers?1:0)
                 .append("]");
-        } else {
+        } 
+        if(!isFBO && !isPBuffer) {
             sink.append(", pixmap");
         }
     }

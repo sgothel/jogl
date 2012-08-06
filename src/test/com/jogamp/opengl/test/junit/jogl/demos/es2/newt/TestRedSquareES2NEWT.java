@@ -54,6 +54,7 @@ public class TestRedSquareES2NEWT extends UITestCase {
     static GLProfile.ShutdownType loop_shutdown = null;
     static boolean vsync = false;
     static boolean forceES2 = false;
+    static boolean doRotate = true;
 
     @BeforeClass
     public static void initClass() {
@@ -72,7 +73,9 @@ public class TestRedSquareES2NEWT extends UITestCase {
         glWindow.setTitle("Gears NEWT Test");
         glWindow.setSize(width, height);
 
-        glWindow.addGLEventListener(new RedSquareES2(vsync ? 1 : -1));
+        final RedSquareES2 demo = new RedSquareES2(vsync ? 1 : -1);
+        demo.setDoRotation(doRotate);
+        glWindow.addGLEventListener(demo);
 
         Animator animator = new Animator(glWindow);
         QuitAdapter quitAdapter = new QuitAdapter();
@@ -143,6 +146,8 @@ public class TestRedSquareES2NEWT extends UITestCase {
                 } catch (Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
+            } else if(args[i].equals("-norotate")) {
+                doRotate = false;
             } else if(args[i].equals("-loops")) {
                 i++;
                 loops = MiscUtils.atoi(args[i], 1);

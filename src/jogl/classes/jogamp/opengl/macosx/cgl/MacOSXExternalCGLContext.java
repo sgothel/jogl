@@ -114,8 +114,7 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
         // set a fake marker stating a valid drawable
         currentDrawable = 1;
     }
-    WrappedSurface ns = new WrappedSurface(cfg);
-    ns.setSurfaceHandle(currentDrawable);
+    WrappedSurface ns = new WrappedSurface(cfg, currentDrawable, 64, 64, null);
     return new MacOSXExternalCGLContext(new Drawable(factory, ns), isNSContext, contextHandle);
   }
 

@@ -445,9 +445,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected abstract void closeNativeImpl();
 
     /** 
-     * The native implementation must invoke {@link #focusChanged(boolean, boolean)}
-     * to change the focus state, if <code>force == false</code>. 
-     * This may happen asynchronous within {@link #TIMEOUT_NATIVEWINDOW}.
+     * Async request which shall be performed within {@link #TIMEOUT_NATIVEWINDOW}.
+     * <p>
+     * If if <code>force == false</code> the native implementation 
+     * may only request focus if not yet owner.</p>
+     * <p>
+     * {@link #focusChanged(boolean, boolean)} should be called
+     * to notify about the focus traversal. 
+     * </p> 
      * 
      * @param force if true, bypass {@link #focusChanged(boolean, boolean)} and force focus request
      */
@@ -564,9 +569,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final int lockSurface() throws NativeWindowException, RuntimeException {
-        windowLock.lock();
-        surfaceLock.lock();
-        int res = surfaceLock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
+        final RecursiveLock _wlock = windowLock;
+        final RecursiveLock _slock = surfaceLock;
+        _wlock.lock();
+        _slock.lock();
+        int res = _slock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
 
         if ( LOCK_SURFACE_NOT_READY == res ) {
             try {
@@ -583,8 +590,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
             } finally {
                 if (LOCK_SURFACE_NOT_READY >= res) {
-                    surfaceLock.unlock();
-                    windowLock.unlock();
+                    _slock.unlock();
+                    _wlock.unlock();
                 }
             }
         }
@@ -593,10 +600,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final void unlockSurface() {
-        surfaceLock.validateLocked();
-        windowLock.validateLocked();
+        final RecursiveLock _slock = surfaceLock;
+        final RecursiveLock _wlock = windowLock;
+        _slock.validateLocked();
+        _wlock.validateLocked();
 
-        if (surfaceLock.getHoldCount() == 1) {
+        if (_slock.getHoldCount() == 1) {
             final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
             try {
                 unlockSurfaceImpl();
@@ -604,8 +613,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 adevice.unlock();
             }
         }
-        surfaceLock.unlock();
-        windowLock.unlock();
+        _slock.unlock();
+        _wlock.unlock();
     }
 
     @Override
@@ -618,21 +627,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return surfaceLock.getOwner();
     }
 
-    public final void lockWindow() {
-        windowLock.lock();        
-    }
-    public final void unlockWindow() {
-        windowLock.unlock();
+    public final RecursiveLock getLock() {
+        return windowLock;
     }
     
-    public final boolean isWindowLockedByOtherThread() {
-        return windowLock.isLockedByOtherThread();
-    }
-
-    public final Thread getWindowLockOwner() {
-        return windowLock.getOwner();
-    }
-
     public long getSurfaceHandle() {
         return windowHandle; // default: return window handle
     }
@@ -670,11 +668,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public Point getLocationOnScreen(Point storage) {
         if(isNativeValid()) {
             Point d;
-            windowLock.lock();
+            final RecursiveLock _lock = windowLock;
+            _lock.lock();
             try {
                 d = getLocationOnScreenImpl(0, 0);
             } finally {
-                windowLock.unlock();
+                _lock.unlock();
             }
             if(null!=d) {
                 if(null!=storage) {
@@ -717,7 +716,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         boolean nativeWindowCreated = false;
         boolean madeVisible = false;
         
-        windowLock.lock();
+        final RecursiveLock _lock = windowLock;
+        _lock.lock();
         try {
             if(null!=lifecycleHook) {
                 lifecycleHook.resetCounter();
@@ -739,7 +739,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     madeVisible = nativeWindowCreated;
                 }
                 // always flag visible, allowing a retry ..
-                WindowImpl.this.visible = true;                
+                WindowImpl.this.visible = true;      
             } else if(WindowImpl.this.visible != visible) {
                 if(isNativeValid()) {
                     setVisibleImpl(visible, getX(), getY(), getWidth(), getHeight());
@@ -766,7 +766,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 System.err.println("Window setVisible: END ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+", nativeWindowCreated: "+nativeWindowCreated+", madeVisible: "+madeVisible);
             }
         } finally {
-            windowLock.unlock();
+            _lock.unlock();
         }
         if( nativeWindowCreated || madeVisible ) {
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
@@ -801,7 +801,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
         public final void run() {
             boolean recreate = false;
-            windowLock.lock();
+            final RecursiveLock _lock = windowLock;
+            _lock.lock();
             try {
                 if ( !isFullscreen() && ( getWidth() != width || getHeight() != height ) ) {
                     recreate = isNativeValid() && !getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
@@ -842,7 +843,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if(recreate) {
                     screen.removeReference(); // bring back ref-count
                 }
-                windowLock.unlock();
+                _lock.unlock();
             }
         }
     }
@@ -863,7 +864,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(null!=lifecycleHook) {
                 lifecycleHook.destroyActionPreLock();
             }
-            windowLock.lock();
+            final RecursiveLock _lock = windowLock;
+            _lock.lock();
             try {
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window DestroyAction() "+getThreadName());
@@ -917,7 +919,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 hasFocus = false;
                 parentWindowHandle = 0;
 
-                windowLock.unlock();
+                _lock.unlock();
             }
             if(animatorPaused) {
                 lifecycleHook.resumeRenderingAction();
@@ -1002,8 +1004,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             int width = getWidth();
             int height = getHeight();
             boolean wasVisible;
-
-            windowLock.lock();
+            
+            final RecursiveLock _lock = windowLock;
+            _lock.lock();
             try {
                 if(isNativeValid()) {
                     // force recreation if offscreen, since it may become onscreen
@@ -1220,7 +1223,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     System.err.println("Window.reparentWindow: END-1 ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+x+"/"+y+" "+width+"x"+height);
                 }
             } finally {
-                windowLock.unlock();
+                _lock.unlock();
             }
             if(wasVisible) {
                 switch (operation) {
@@ -1245,7 +1248,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     private class ReparentActionRecreate implements Runnable {
         public final void run() {
-            windowLock.lock();
+            final RecursiveLock _lock = windowLock;
+            _lock.lock();
             try {
                 visible = true;
                 if(DEBUG_IMPLEMENTATION) {
@@ -1253,7 +1257,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
                 setVisible(true); // native creation
             } finally {
-                windowLock.unlock();
+                _lock.unlock();
             }
         }
     }
@@ -1291,7 +1295,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
 
         public final void run() {
-            windowLock.lock();
+            final RecursiveLock _lock = windowLock;
+            _lock.lock();
             try {
                 if(WindowImpl.this.undecorated != undecorated) {
                     // set current state
@@ -1311,7 +1316,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
                 }
             } finally {
-                windowLock.unlock();
+                _lock.unlock();
             }
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
@@ -1333,7 +1338,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
 
         public final void run() {
-            windowLock.lock();
+            final RecursiveLock _lock = windowLock;
+            _lock.lock();
             try {
                 if(WindowImpl.this.alwaysOnTop != alwaysOnTop) {
                     // set current state
@@ -1353,7 +1359,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
                 }
             } finally {
-                windowLock.unlock();
+                _lock.unlock();
             }
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
@@ -1545,7 +1551,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     "\n, ParentWindow "+parentWindow+
                     "\n, ParentWindowHandle "+toHexString(parentWindowHandle)+" ("+(0!=getParentWindowHandle())+")"+
                     "\n, WindowHandle "+toHexString(getWindowHandle())+
-                    "\n, SurfaceHandle "+toHexString(getSurfaceHandle())+ " (lockedExt window "+isWindowLockedByOtherThread()+", surface "+isSurfaceLockedByOtherThread()+")"+
+                    "\n, SurfaceHandle "+toHexString(getSurfaceHandle())+ " (lockedExt window "+windowLock.isLockedByOtherThread()+", surface "+isSurfaceLockedByOtherThread()+")"+
                     "\n, Pos "+getX()+"/"+getY()+" (auto "+autoPosition()+"), size "+getWidth()+"x"+getHeight()+
                     "\n, Visible "+isVisible()+", focus "+hasFocus()+
                     "\n, Undecorated "+undecorated+" ("+isUndecorated()+")"+
@@ -1675,7 +1681,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
 
         public final void run() {
-            windowLock.lock();
+            final RecursiveLock _lock = windowLock;
+            _lock.lock();
             try {
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window setPosition: "+getX()+"/"+getY()+" -> "+x+"/"+y+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle));
@@ -1689,7 +1696,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
                 }
             } finally {
-                windowLock.unlock();
+                _lock.unlock();
             }
         }
     }
@@ -1718,7 +1725,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         public boolean fsOn() { return fullscreen; }
 
         public final void run() {
-            windowLock.lock();
+            final RecursiveLock _lock = windowLock;
+            _lock.lock();
             try {
                 // set current state
                 WindowImpl.this.fullscreen = fullscreen;
@@ -1795,7 +1803,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
                 }
             } finally {
-                windowLock.unlock();
+                _lock.unlock();
             }
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
@@ -1805,8 +1813,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public boolean setFullscreen(boolean fullscreen) {
         synchronized(fullScreenAction) {
             if( fullScreenAction.init(fullscreen) ) {               
-                if(fullScreenAction.fsOn() && 
-                   isOffscreenInstance(WindowImpl.this, parentWindow)) { 
+                if(fullScreenAction.fsOn() && isOffscreenInstance(WindowImpl.this, parentWindow)) { 
                     // enable fullscreen on offscreen instance
                     if(null != parentWindow) {
                         nfs_parent = parentWindow;
@@ -1918,7 +1925,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             // special repaint treatment
             case WindowEvent.EVENT_WINDOW_REPAINT:
                 // queue repaint event in case window is locked, ie in operation
-                if( null != getWindowLockOwner() ) {
+                if( null != windowLock.getOwner() ) {
                     // make sure only one repaint event is queued
                     if(!repaintQueued) {
                         repaintQueued=true;
@@ -1937,7 +1944,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             // common treatment
             case WindowEvent.EVENT_WINDOW_RESIZED:
                 // queue event in case window is locked, ie in operation
-                if( null != getWindowLockOwner() ) {
+                if( null != windowLock.getOwner() ) {
                     final boolean discardTO = QUEUED_EVENT_TO <= System.currentTimeMillis()-e.getWhen();
                     if(DEBUG_IMPLEMENTATION) {
                         System.err.println("Window.consumeEvent: "+Thread.currentThread().getName()+" - queued "+e+", discard-to "+discardTO);

@@ -427,7 +427,7 @@
     </target>
 
     <target name="junit.run.swt.headless" depends="test.compile" description="Runs all pure SWT tests." if="isSWTRuntimeAvailable">
-        <!-- Test*SWT* 
+        <!-- Test*SWTHeadless* 
 
              Emulation of junit task.
 
@@ -436,10 +436,8 @@
         <for param="test.class.path.m" keepgoing="true">
             <!-- results in absolute path -->
             <fileset dir="${classes}">
-                <include name="${java.dir.junit}/**/Test*SWT*"/>
+                <include name="${java.dir.junit}/**/Test*SWTHeadless*"/>
                 <exclude name="**/*$$*"/>
-                <exclude name="**/*AWT*"/>
-                <exclude name="**/newt/**"/>
             </fileset>
           <sequential>
             <var name="test.class.path" unset="true"/>
@@ -491,40 +489,71 @@
         </for>
     </target>
 
-    <target name="junit.run.swt.awt" depends="test.compile" description="Runs all SWT AWT tests." if="isSWTRuntimeAvailable">
-      <!-- Test*SWT*AWT* -->
-      <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
-          <env key="${system.env.library.path}" path="${obj.all.paths}"/>
-          <jvmarg value="${junit.run.arg0}"/>
-          <jvmarg value="${junit.run.arg1}"/>
-          <jvmarg value="${jvmDataModel.arg}"/>
-          <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+    <target name="junit.run.swt.awt" depends="test.compile" description="Runs all pure SWT AWT tests." if="isSWTRuntimeAvailable">
+        <!-- Test*SWT* 
 
-          <!--
-          <jvmarg value="-Djogl.debug=all"/>
-          <jvmarg value="-Dgluegen.debug.NativeLibrary=true"/>
-          <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
-          <jvmarg value="-Djogl.debug.GLSLState"/>
-          <jvmarg value="-Dnativewindow.debug=all"/>
-          <jvmarg value="-verbose:jni"/> 
-          <jvmarg value="-client"/>
-          <jvmarg value="-d32"/>
-          -->
+             Emulation of junit task.
 
-          <formatter usefile="false" type="plain"/>
-          <formatter usefile="true" type="xml"/>
-          <classpath path="${junit_extra_classpath}${junit_jogl_swt.run.jars}"/>
-
-          <batchtest todir="${results.test}">
+             Utilizing Ant-1.8.0 and ant-contrib-1.0b3 (loops, mutable properties).
+          --> 
+        <for param="test.class.path.m" keepgoing="true">
+            <!-- results in absolute path -->
             <fileset dir="${classes}">
-                <include name="${java.dir.junit}/**/Test*SWT*AWT*"/>
+                <include name="${java.dir.junit}/**/Test*SWT*"/>
                 <exclude name="**/*$$*"/>
-                <exclude name="**/newt/**"/>
+                <exclude name="**/Test*SWTHeadless*"/>
             </fileset>
-            <formatter usefile="false" type="brief"/>
-            <formatter usefile="true" type="xml"/>
-          </batchtest>
-      </junit>
+          <sequential>
+            <var name="test.class.path" unset="true"/>
+            <property name="test.class.path" basedir="${classes}" relative="true" location="@{test.class.path.m}"/>
+            <var name="test.class.fqn" unset="true"/>
+            <pathconvert property="test.class.fqn">
+              <fileset file="${classes}${file.separator}${test.class.path}"/>
+              <chainedmapper>
+                  <globmapper    from="${classes.path}${file.separator}*" to="*"/> <!-- rel. -->
+                  <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
+              </chainedmapper>
+            </pathconvert>
+            <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
+            <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
+            <apply dir="." executable="${java.home}/bin/java" 
+                 parallel="false" 
+                 timeout="${batchtest.timeout}"
+                 vmlauncher="false"
+                 relative="true"
+                 failonerror="false">
+                <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+                <env key="CLASSPATH" value="${junit_extra_classpath}${junit_jogl_swt.run.jars}"/>
+                <arg line="${junit.run.arg0}"/>
+                <arg line="${junit.run.arg1}"/>
+                <arg line="${jvmDataModel.arg}"/>
+                <arg value="-Djava.library.path=${obj.all.paths}"/>
+                <arg line="${jvmarg.mainthrd}"/>
+                <!--
+                <arg line="-Dnewt.debug.EDT"/>
+                <arg line="-Dnativewindow.debug=all"/>
+                <arg line="-Djogl.debug=all"/>
+                <arg line="-Dnewt.debug=all"/>
+                -->
+                <!-- arg line="com.jogamp.newt.util.MainThread"/-->
+                <arg line="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner"/>
+                <srcfile/>
+                <arg line="filtertrace=true"/>
+                <arg line="haltOnError=false"/>
+                <arg line="haltOnFailure=false"/>
+                <arg line="showoutput=true"/>
+                <arg line="outputtoformatters=true"/>
+                <arg line="logfailedtests=true"/>
+                <arg line="logtestlistenerevents=true"/>
+                <arg line="formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter"/>
+                <arg line="formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,${test.class.result.file}"/>
+                <mappedresources>
+                    <fileset dir="${classes}" includes="${test.class.path}"/>
+                    <packagemapper from="*.class" to="*"/>
+                </mappedresources>
+            </apply>
+          </sequential>
+        </for>
     </target>
 
     <target name="junit.run.newt.awt" depends="test.compile">

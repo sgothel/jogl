@@ -117,6 +117,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     final int availnum = available.size();
 
     if (DEBUG) {
+      Thread.dumpStack();
       System.err.println("Desired: " + gldes);
       System.err.println("Available: " + availnum);
       for (int i = 0; i < available.size(); i++) {
@@ -141,7 +142,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
     for (int i = 0; i < scores.length; i++) {
       scores[i] = NO_SCORE;
     }
-    final int gldes_samples = gldes.getSampleBuffers() ? gldes.getNumSamples() : 0;
+    final int gldes_samples = gldes.getNumSamples();
     
     // Compute score for each
     for (int i = 0; i < availnum; i++) {
@@ -158,8 +159,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
       if (gldes.getStereo() != cur.getStereo()) {
         continue;
       }
-      final int cur_samples = 
-              cur.getSampleBuffers() ? cur.getNumSamples() : 0;
+      final int cur_samples = cur.getNumSamples() ;
       int score = 0;
               
       // Compute difference in color depth
@@ -242,7 +242,7 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
         if (i > 0) {
           System.err.print(",");
         }
-        System.err.print(" " + scores[i]);
+        System.err.print(" " + i +": " + scores[i]);
       }
       System.err.println(" ]");
     }

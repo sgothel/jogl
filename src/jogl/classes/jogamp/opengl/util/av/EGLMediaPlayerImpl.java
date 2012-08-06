@@ -113,7 +113,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
             // create EGLImage from texture
             clientBuffer = null; // FIXME
             nioTmp.put(0, EGL.EGL_NONE);
-            image =  eglExt.eglCreateImageKHR( eglDrawable.getDisplay(), eglCtx.getHandle(),
+            image =  eglExt.eglCreateImageKHR( eglDrawable.getNativeSurface().getDisplayHandle(), eglCtx.getHandle(),
                                                EGLExt.EGL_GL_TEXTURE_2D_KHR,
                                                clientBuffer, nioTmp);
             if (0==image) {
@@ -130,7 +130,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
             // rendering the EGLImage texture before we tell OpenMAX to fill
             // it with a new frame.
             tmp[0] = EGL.EGL_NONE;
-            sync = eglExt.eglCreateSyncKHR(eglDrawable.getDisplay(), EGLExt.EGL_SYNC_FENCE_KHR, tmp, 0);
+            sync = eglExt.eglCreateSyncKHR(eglDrawable.getNativeSurface().getDisplayHandle(), EGLExt.EGL_SYNC_FENCE_KHR, tmp, 0);
             if (0==sync) {
                 throw new RuntimeException("EGLSync creation failed: "+EGL.eglGetError()+", ctx "+eglCtx+", err "+toHexString(EGL.eglGetError()));
             }
@@ -159,10 +159,10 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
         final EGLTextureFrame eglTex = (EGLTextureFrame) imgTex;
         
         if(0!=eglTex.getImage()) {
-            eglExt.eglDestroyImageKHR(eglDrawable.getDisplay(), eglTex.getImage());
+            eglExt.eglDestroyImageKHR(eglDrawable.getNativeSurface().getDisplayHandle(), eglTex.getImage());
         }
         if(0!=eglTex.getSync()) {
-            eglExt.eglDestroySyncKHR(eglDrawable.getDisplay(), eglTex.getSync());
+            eglExt.eglDestroySyncKHR(eglDrawable.getNativeSurface().getDisplayHandle(), eglTex.getSync());
         }
         super.destroyTexImage(gl, imgTex);
     }

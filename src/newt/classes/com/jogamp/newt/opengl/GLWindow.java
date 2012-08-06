@@ -53,6 +53,7 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import jogamp.newt.WindowImpl;
@@ -62,6 +63,7 @@ import jogamp.opengl.GLDrawableImpl;
 
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.VersionUtil;
+import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
@@ -87,13 +89,6 @@ import com.jogamp.opengl.JoglVersion;
  * you can inject {@link javax.media.opengl.GLRunnable} objects
  * via {@link #invoke(boolean, javax.media.opengl.GLRunnable)} to the OpenGL command stream.<br>
  * </p>
- * <p>
- * NOTE: [MT-0] Methods utilizing [volatile] drawable/context are not synchronized.
-         In case any of the methods are called outside of a locked state
-         extra care should be added. Maybe we shall expose locking facilities to the user.
-         However, since the user shall stick to the GLEventListener model while utilizing
-         GLAutoDrawable implementations, she is safe due to the implicit locked state.
- * </p>    
  */
 public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Window, NEWTEventConsumer, FPSCounter {
     private final WindowImpl window;
@@ -102,7 +97,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
      * Constructor. Do not call this directly -- use {@link #create()} instead.
      */
     protected GLWindow(Window window) {
-        super(null, null);
+        super(null, null, false);
         this.window = (WindowImpl) window;
         this.window.setHandleDestroyNotify(false);
         window.addWindowListener(new WindowAdapter() {
@@ -124,6 +119,11 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         this.window.setLifecycleHook(new GLLifecycleHook());
     }
 
+    @Override
+    public final Object getUpstreamWidget() {
+        return window;
+    }
+    
     /**
      * Creates a new GLWindow attaching a new Window referencing a
      * new default Screen and default Display with the given GLCapabilities.
@@ -426,23 +426,23 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         @Override
         public synchronized void destroyActionInLock() {
             if(Window.DEBUG_IMPLEMENTATION) {
-                String msg = "GLWindow.destroy() "+Thread.currentThread()+", start";
+                String msg = "GLWindow.destroy() "+WindowImpl.getThreadName()+", start";
                 System.err.println(msg);
                 //Exception e1 = new Exception(msg);
                 //e1.printStackTrace();
             }
 
-            defaultDestroyOp();
+            destroyImplInLock();
 
             if(Window.DEBUG_IMPLEMENTATION) {
-                System.err.println("GLWindow.destroy() "+Thread.currentThread()+", fin");
+                System.err.println("GLWindow.destroy() "+WindowImpl.getThreadName()+", fin");
             }
         }
 
         @Override
         public synchronized void resetCounter() {
             if(Window.DEBUG_IMPLEMENTATION) {
-                System.err.println("GLWindow.resetCounter() "+Thread.currentThread());
+                System.err.println("GLWindow.resetCounter() "+WindowImpl.getThreadName());
             }
             GLWindow.this.resetFPSCounter();
         }
@@ -452,7 +452,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
             long t0;
             if(Window.DEBUG_IMPLEMENTATION) {
                 t0 = System.nanoTime();
-                System.err.println("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", start");
+                System.err.println("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+WindowImpl.getThreadName()+", start");
             } else {
                 t0 = 0;
             }
@@ -479,7 +479,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 context.setContextCreationFlags(additionalCtxCreationFlags);
             }
             if(Window.DEBUG_IMPLEMENTATION) {
-                System.err.println("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+Thread.currentThread()+", fin: dt "+ (System.nanoTime()-t0)/1e6 +"ms");
+                System.err.println("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+WindowImpl.getThreadName()+", fin: dt "+ (System.nanoTime()-t0)/1e6 +"ms");
             }
         }
 
@@ -509,6 +509,11 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
 
     private GLContext sharedContext = null;
 
+    @Override
+    protected final RecursiveLock getLock() {
+        return window.getLock();
+    }
+    
     /**
      * Specifies an {@link javax.media.opengl.GLContext OpenGL context} to share with.<br>
      * At native creation, {@link #setVisible(boolean) setVisible(true)},
@@ -531,19 +536,18 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
             return;
         }
 
-        window.lockWindow(); // sync: context/drawable could have been recreated/destroyed while animating
+        final RecursiveLock lock = window.getLock();
+        lock.lock(); // sync: context/drawable could have been recreated/destroyed while animating
         try {
-            if( null == context && 0<getWidth()*getHeight() ) {
-                // retry drawable and context creation
-                setVisible(true);
-            }
-
             if( null != context ) {
                 // surface is locked/unlocked implicit by context's makeCurrent/release
                 helper.invokeGL(drawable, context, defaultDisplayAction, defaultInitAction);
+            } else if( 0<getWidth()*getHeight() ) {
+                // retry drawable and context creation, will itself issue resize -> display
+                setVisible(true);
             }
         } finally {
-            window.unlockWindow();
+            lock.unlock();
         }
     }
 
@@ -553,7 +557,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     private GLDrawableFactory factory;
 
     @Override
-    public GLDrawableFactory getFactory() {
+    public final GLDrawableFactory getFactory() {
         return factory;
     }
 
@@ -561,6 +565,11 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     public final void setRealized(boolean realized) {
     }
 
+    @Override
+    public final void swapBuffers() throws GLException {
+         defaultSwapBuffers();
+    }
+    
     //----------------------------------------------------------------------
     // NEWTEventConsumer
     //
@@ -762,7 +771,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         System.err.println(GlueGenVersion.getInstance());
         System.err.println(JoglVersion.getInstance());
 
-        System.err.println(JoglVersion.getDefaultOpenGLInfo(null, true).toString());
+        System.err.println(JoglVersion.getDefaultOpenGLInfo(null, null, true).toString());
 
         final GLProfile glp = GLProfile.getDefault();
         final GLCapabilitiesImmutable caps = new GLCapabilities( glp );

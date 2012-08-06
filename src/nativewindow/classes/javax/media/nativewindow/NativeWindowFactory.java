@@ -561,4 +561,21 @@ public abstract class NativeWindowFactory {
         }
         return null;            
     }
+    
+    /**
+     * Returns true if the given visualID is valid for further processing, i.e. OpenGL usage,
+     * otherwise return false.
+     * <p>
+     * On certain platforms, i.e. X11, a valid visualID is required at window creation.
+     * Other platforms may determine it later on, e.g. OSX and Windows. </p>
+     * <p>
+     * If the visualID is {@link VisualIDHolder#VID_UNDEFINED} and the platform requires it
+     * at creation time (see above), it is not valid for further processing.
+     * </p>
+     */
+    public static boolean isNativeVisualIDValidForProcessing(int visualID) {
+        return NativeWindowFactory.TYPE_X11 != NativeWindowFactory.getNativeWindowType(false) || 
+               VisualIDHolder.VID_UNDEFINED != visualID ;
+    }
+        
 }

@@ -28,6 +28,8 @@
  
 package javax.media.opengl;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
+
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
@@ -56,23 +58,33 @@ import jogamp.opengl.GLDrawableImpl;
 public class GLAutoDrawableDelegate extends GLAutoDrawableBase {
     public static final boolean DEBUG = Debug.debug("GLAutoDrawableDelegate");
     
-    public GLAutoDrawableDelegate(GLDrawable drawable, GLContext context) {
-        super((GLDrawableImpl)drawable, (GLContextImpl)context);
+    /**
+     * @param drawable a valid {@link GLDrawable}, may not be realized yet.
+     * @param context a valid {@link GLContext}, may not be made current (created) yet.
+     * @param upstreamWidget optional UI element holding this instance, see {@link #getUpstreamWidget()}.
+     * @param ownDevice pass <code>true</code> if {@link AbstractGraphicsDevice#close()} shall be issued,
+     *                  otherwise pass <code>false</code>. Closing the device is required in case
+     *                  the drawable is created w/ it's own new instance, e.g. offscreen drawables,
+     *                  and no further lifecycle handling is applied.
+     */
+    public GLAutoDrawableDelegate(GLDrawable drawable, GLContext context, Object upstreamWidget, boolean ownDevice) {
+        super((GLDrawableImpl)drawable, (GLContextImpl)context, ownDevice);
+        this.upstreamWidget = null;
     }
     
     //
-    // make protected methods accessible
+    // expose default methods
     //
     
-    public void defaultWindowRepaintOp() {
+    public final void windowRepaintOp() {
         super.defaultWindowRepaintOp();
     }
     
-    public void defaultWindowResizedOp() {
+    public final void windowResizedOp() {
         super.defaultWindowResizedOp();
     }
     
-    public void defaultWindowDestroyNotifyOp() {
+    public final void windowDestroyNotifyOp() {
         super.defaultWindowDestroyNotifyOp();
     }
     
@@ -80,44 +92,35 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase {
     // Complete GLAutoDrawable
     //
     
-    private RecursiveLock lock = LockFactory.createRecursiveLock();  // instance wide lock
-
+    private final RecursiveLock lock = LockFactory.createRecursiveLock();  // instance wide lock
+    private final Object upstreamWidget;
+    
+    @Override
+    protected final RecursiveLock getLock() { return lock; }
+    
+    @Override
+    public final Object getUpstreamWidget() {
+        return upstreamWidget;
+    }
+    
     /**
      * {@inheritDoc}
      * <p>
-     * This implementation calls {@link #defaultDestroyOp()}.
+     * This implementation calls {@link #defaultDestroy()}.
      * </p>
      * <p>
      * User still needs to destroy the upstream window, which details are hidden from this aspect.
+     * This can be performed by overriding {@link #destroyImplInLock()}. 
      * </p>
      */
     @Override
-    public void destroy() {
-        lock.lock();
-        try {
-            defaultDestroyOp();
-        } finally {
-            lock.unlock();
-        }
+    public final void destroy() {
+        defaultDestroy();
     }
 
     @Override
     public void display() {
-        if( sendDestroy ) {
-            sendDestroy=false;
-            destroy();
-            return;
-        }
-        
-        lock.lock(); // sync: context/drawable could been recreated/destroyed while animating
-        try {
-            if( null != drawable && drawable.isRealized() && null != context ) {
-                // surface is locked/unlocked implicit by context's makeCurrent/release
-                helper.invokeGL(drawable, context, defaultDisplayAction, defaultInitAction);
-            }
-        } finally {
-            lock.unlock();
-        }
+        defaultDisplay();
     }
     
     //
@@ -133,4 +136,9 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase {
     public final void setRealized(boolean realized) {
     }
 
+    @Override
+    public final void swapBuffers() throws GLException {
+         defaultSwapBuffers();
+    }
+        
 }

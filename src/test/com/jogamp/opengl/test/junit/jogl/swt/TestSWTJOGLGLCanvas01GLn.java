@@ -47,16 +47,20 @@ import org.junit.BeforeClass;
 import org.junit.After;
 import org.junit.Test;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.swt.GLCanvas;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.OneTriangle;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.GLReadBufferUtil;
+import com.jogamp.opengl.util.texture.TextureIO;
 
 /**
  * Tests that a basic SWT app can open without crashing under different GL profiles.
  * <p> 
  * Uses JOGL's new SWT GLCanvas.
+ * </p>
+ * <p>
+ * Note: To employ custom GLCapabilities, NewtCanvasSWT shall be used.
  * </p>
  * <p>
  * Note that {@link SWTAccessor#invoke(boolean, Runnable)} is still used to comply w/ 
@@ -117,34 +121,32 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
         composite = null;
     }
 
-    protected void runTestAGL( GLProfile glprofile ) throws InterruptedException {
-        // need SWT.NO_BACKGROUND to prevent SWT from clearing the window
-        // at the wrong times (we use glClear for this instead)
-        final GLCapabilitiesImmutable caps = new GLCapabilities( glprofile );
+    protected void runTestAGL( GLCapabilitiesImmutable caps, GLEventListener demo ) throws InterruptedException {
+        final GLReadBufferUtil screenshot = new GLReadBufferUtil(false, false);
         
-        final GLCanvas canvas = new GLCanvas( composite, SWT.NO_BACKGROUND, caps, null, null);
+        final GLCanvas canvas = GLCanvas.create( composite, 0, caps, null, null);
         Assert.assertNotNull( canvas );
 
+        canvas.addGLEventListener( demo );
         canvas.addGLEventListener(new GLEventListener() {
-           public void init(final GLAutoDrawable drawable) { 
-               System.err.println(Thread.currentThread().getName()+" - SWT Canvas - GLEventListener - init()");
-           }
-           public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) {
-               System.err.println(Thread.currentThread().getName()+" - SWT Canvas - GLEventListener - reshape()");
-               OneTriangle.setup( drawable.getGL().getGL2(), width, height );
-           }                 
+           int displayCount = 0;
+           public void init(final GLAutoDrawable drawable) { } 
+           public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
            public void display(final GLAutoDrawable drawable) {
-                OneTriangle.render( drawable.getGL().getGL2(), drawable.getWidth(), drawable.getHeight());
+              if(displayCount < 3) {
+                  snapshot(getSimpleTestName("."), displayCount++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
+              }
            }
-           public void dispose(final GLAutoDrawable drawable) {
-               System.err.println(Thread.currentThread().getName()+" - SWT Canvas - GLEventListener - dispose()");
-           }         
-        });
+           public void dispose(final GLAutoDrawable drawable) { }
+        });       
        
-        shell.setText( getClass().getName() );
-        shell.setSize( 640, 480 );
-        shell.open();
-
+        SWTAccessor.invoke(true, new Runnable() {
+           public void run() {
+            shell.setText( getSimpleTestName(".") );
+            shell.setSize( 640, 480 );
+            shell.open();
+           } } );
+        
         long lStartTime = System.currentTimeMillis();
         long lEndTime = lStartTime + duration;
         try {
@@ -158,13 +160,15 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
-        canvas.dispose();
+        SWTAccessor.invoke(true, new Runnable() {
+           public void run() {
+               canvas.dispose();
+           } } );
     }
 
     @Test
     public void test() throws InterruptedException {
-        GLProfile glprofile = GLProfile.getGL2ES1();
-        runTestAGL( glprofile );
+        runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2() );
     }
 
     static int atoi(String a) {

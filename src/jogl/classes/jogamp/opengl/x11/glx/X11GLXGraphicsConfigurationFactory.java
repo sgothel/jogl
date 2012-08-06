@@ -40,10 +40,12 @@ import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.VisualIDHolder;
+import javax.media.nativewindow.VisualIDHolder.VIDType;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
@@ -73,20 +75,24 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
     static GraphicsConfigurationFactory fallbackX11GraphicsConfigurationFactory = null;
     static void registerFactory() {
         final GraphicsConfigurationFactory newFactory = new X11GLXGraphicsConfigurationFactory();
-        final GraphicsConfigurationFactory oldFactory = GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, newFactory);
+        final GraphicsConfigurationFactory oldFactory = GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, GLCapabilitiesImmutable.class, newFactory);
         if(oldFactory == newFactory) {
             throw new InternalError("GraphicsConfigurationFactory lifecycle impl. error");
         }
-        if(null == oldFactory) {
-            throw new InternalError("Missing fallback GraphicsConfigurationFactory");
+        if(null != oldFactory) {
+            fallbackX11GraphicsConfigurationFactory = oldFactory;
+        } else {
+            fallbackX11GraphicsConfigurationFactory = GraphicsConfigurationFactory.getFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, CapabilitiesImmutable.class);
+            if( null == fallbackX11GraphicsConfigurationFactory ) {
+                throw new InternalError("Missing fallback GraphicsConfigurationFactory");
+            }
         }
-        fallbackX11GraphicsConfigurationFactory = oldFactory;
     }
     private X11GLXGraphicsConfigurationFactory() {
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
-            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
+            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested, CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
         if (!(absScreen instanceof X11GraphicsScreen)) {
             throw new IllegalArgumentException("Only X11GraphicsScreen are allowed here");
         }
@@ -108,12 +114,12 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
                 if(DEBUG) {
                     System.err.println("No GLX available, fallback to "+fallbackX11GraphicsConfigurationFactory.getClass().getSimpleName()+" for: "+absScreen);
                 }
-                return fallbackX11GraphicsConfigurationFactory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, absScreen);
+                return fallbackX11GraphicsConfigurationFactory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, absScreen, VisualIDHolder.VID_UNDEFINED);
             }
             throw new InternalError("No GLX and no fallback GraphicsConfigurationFactory available for: "+absScreen);
         }        
         return chooseGraphicsConfigurationStatic((GLCapabilitiesImmutable)capsChosen, (GLCapabilitiesImmutable)capsRequested,
-                                                 (GLCapabilitiesChooser)chooser, (X11GraphicsScreen)absScreen);
+                                                 (GLCapabilitiesChooser)chooser, (X11GraphicsScreen)absScreen, nativeVisualID);
     }
 
     protected static List<GLCapabilitiesImmutable> getAvailableCapabilities(X11GLXDrawableFactory factory, AbstractGraphicsDevice device) {
@@ -161,7 +167,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
             return null;
         }
         for (int i = 0; i < fbcfgsL.limit(); i++) {
-            if( !X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(availableCaps, glProfile, display, fbcfgsL.get(i), GLGraphicsConfigurationUtil.ALL_BITS, isMultisampleAvailable) ) {
+            if( !X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(availableCaps, glProfile, absDevice, fbcfgsL.get(i), GLGraphicsConfigurationUtil.ALL_BITS, isMultisampleAvailable) ) {
                 if(DEBUG) {
                     System.err.println("X11GLXGraphicsConfiguration.getAvailableGLCapabilitiesFBConfig: FBConfig invalid (2): ("+x11Screen+"): fbcfg: "+toHexString(fbcfgsL.get(i)));
                 }
@@ -198,7 +204,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
     static X11GLXGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilitiesImmutable capsChosen,
                                                                          GLCapabilitiesImmutable capsReq,
                                                                          GLCapabilitiesChooser chooser,
-                                                                         X11GraphicsScreen x11Screen) {
+                                                                         X11GraphicsScreen x11Screen, int xvisualID) {
         if (x11Screen == null) {
             throw new IllegalArgumentException("AbstractGraphicsScreen is null");
         }
@@ -209,24 +215,24 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         X11GraphicsDevice x11Device = (X11GraphicsDevice) x11Screen.getDevice();        
         X11GLXDrawableFactory factory = (X11GLXDrawableFactory) GLDrawableFactory.getDesktopFactory();
 
-        capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities( capsChosen, factory.canCreateGLPbuffer(x11Device) );
+        capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities( capsChosen, GLContext.isFBOAvailable(x11Device, capsChosen.getGLProfile()), factory.canCreateGLPbuffer(x11Device) );
         boolean usePBuffer = capsChosen.isPBuffer();
     
         X11GLXGraphicsConfiguration res = null;
         if( factory.isGLXVersionGreaterEqualOneThree(x11Device) ) {
-            res = chooseGraphicsConfigurationFBConfig(capsChosen, capsReq, chooser, x11Screen);
+            res = chooseGraphicsConfigurationFBConfig(capsChosen, capsReq, chooser, x11Screen, xvisualID);
         }
         if(null==res) {
             if(usePBuffer) {
-                throw new GLException("Error: Couldn't create X11GLXGraphicsConfiguration based on FBConfig for "+capsChosen);
+                throw new GLException("Error: Couldn't create X11GLXGraphicsConfiguration based on FBConfig for visualID "+toHexString(xvisualID)+", "+capsChosen);
             }
-            res = chooseGraphicsConfigurationXVisual(capsChosen, capsReq, chooser, x11Screen);
+            res = chooseGraphicsConfigurationXVisual(capsChosen, capsReq, chooser, x11Screen, xvisualID);
         }
         if(null==res) {
-            throw new GLException("Error: Couldn't create X11GLXGraphicsConfiguration based on FBConfig and XVisual for "+capsChosen);
+            throw new GLException("Error: Couldn't create X11GLXGraphicsConfiguration based on FBConfig and XVisual for visualID "+toHexString(xvisualID)+", "+x11Screen+", "+capsChosen);
         }
         if(DEBUG) {
-            System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationStatic("+x11Screen+","+capsChosen+"): "+res);
+            System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationStatic(visualID "+toHexString(xvisualID)+", "+x11Screen+","+capsChosen+"): "+res);
         }
         return res;
     }
@@ -245,19 +251,20 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         }
         final X11GLXDrawableFactory factory = (X11GLXDrawableFactory) GLDrawableFactory.getDesktopFactory();
                
-        final X11GLCapabilities caps = X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(glp, display, fbcfg, true, true, true, factory.isGLXMultisampleAvailable(absDevice));
+        final X11GLCapabilities caps = X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(glp, absDevice, fbcfg, true, true, true, factory.isGLXMultisampleAvailable(absDevice));
         return new X11GLXGraphicsConfiguration(x11Screen, caps, caps, new DefaultGLCapabilitiesChooser());
     }
 
     private static X11GLXGraphicsConfiguration chooseGraphicsConfigurationFBConfig(GLCapabilitiesImmutable capsChosen,
                                                                                    GLCapabilitiesImmutable capsReq,
                                                                                    GLCapabilitiesChooser chooser,
-                                                                                   X11GraphicsScreen x11Screen) {
+                                                                                   X11GraphicsScreen x11Screen, int xvisualID) {
         int recommendedIndex = -1;
         PointerBuffer fbcfgsL = null;
         GLProfile glProfile = capsChosen.getGLProfile();
         boolean onscreen = capsChosen.isOnscreen();
         boolean usePBuffer = capsChosen.isPBuffer();
+        boolean useFBO = capsChosen.isFBO();
 
         // Utilizing FBConfig
         //
@@ -270,13 +277,15 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         int[] attribs = X11GLXGraphicsConfiguration.GLCapabilities2AttribList(capsChosen, true, isMultisampleAvailable, display, screen);
         int[] count = { -1 };
         List<GLCapabilitiesImmutable> availableCaps = new ArrayList<GLCapabilitiesImmutable>();
-        final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer);
-
-        // 1st choice: get GLCapabilities based on users GLCapabilities setting recommendedIndex as preferred choice
-        fbcfgsL = GLX.glXChooseFBConfig(display, screen, attribs, 0, count, 0);
+        final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer, useFBO);
+        // 1st choice: get GLCapabilities based on users GLCapabilities setting recommendedIndex as preferred choice,
+        // skipped if xvisualID is given
+        if( VisualIDHolder.VID_UNDEFINED == xvisualID ) {
+            fbcfgsL = GLX.glXChooseFBConfig(display, screen, attribs, 0, count, 0);
+        }
         if (fbcfgsL != null && fbcfgsL.limit()>0) {
             for (int i = 0; i < fbcfgsL.limit(); i++) {
-                if( !X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(availableCaps, glProfile, display, fbcfgsL.get(i), winattrmask, isMultisampleAvailable) ) {
+                if( !X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(availableCaps, glProfile, absDevice, fbcfgsL.get(i), winattrmask, isMultisampleAvailable) ) {
                     if(DEBUG) {
                         System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: FBConfig invalid (1): ("+x11Screen+","+capsChosen+"): fbcfg: "+toHexString(fbcfgsL.get(i)));
                     }
@@ -309,13 +318,40 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
             }
 
             for (int i = 0; i < fbcfgsL.limit(); i++) {
-                if( !X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(availableCaps, glProfile, display, fbcfgsL.get(i), winattrmask, isMultisampleAvailable) ) {
+                if( !X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities(availableCaps, glProfile, absDevice, fbcfgsL.get(i), winattrmask, isMultisampleAvailable) ) {
                     if(DEBUG) {
                         System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: FBConfig invalid (2): ("+x11Screen+"): fbcfg: "+toHexString(fbcfgsL.get(i)));
                     }
                 }
             }
         }
+        
+        if(DEBUG) {
+            System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: got configs: "+availableCaps.size());
+            for(int i=0; i<availableCaps.size(); i++) {
+                System.err.println(i+": "+availableCaps.get(i));
+            }
+        }
+        
+        if( VisualIDHolder.VID_UNDEFINED != xvisualID ) {
+            for(int i=0; i<availableCaps.size(); ) {
+                VisualIDHolder vidh = (VisualIDHolder) availableCaps.get(i);
+                if(vidh.getVisualID(VIDType.X11_XVISUAL) != xvisualID ) {
+                    availableCaps.remove(i);
+                } else {
+                    i++;
+                }
+            }
+            if(0==availableCaps.size()) {
+                if(DEBUG) {
+                    System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: post filter visualID "+toHexString(xvisualID )+" no config found, failed - return null");
+                }
+                return null;
+            } else if(DEBUG) {
+                System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationFBConfig: post filter visualID "+toHexString(xvisualID)+" got configs: "+availableCaps.size());
+            }
+        }
+        
         int chosenIndex = chooseCapabilities(chooser, capsChosen, availableCaps, recommendedIndex);
         if ( 0 > chosenIndex ) {
             if (DEBUG) {
@@ -332,13 +368,13 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
     private static X11GLXGraphicsConfiguration chooseGraphicsConfigurationXVisual(GLCapabilitiesImmutable capsChosen,
                                                                                   GLCapabilitiesImmutable capsReq,
                                                                                   GLCapabilitiesChooser chooser,
-                                                                                  X11GraphicsScreen x11Screen) {
+                                                                                  X11GraphicsScreen x11Screen, int xvisualID) {
         if (chooser == null) {
             chooser = new DefaultGLCapabilitiesChooser();
         }
 
         GLProfile glProfile = capsChosen.getGLProfile();
-        final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(capsChosen.isOnscreen(), false /* pbuffer */);
+        final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(capsChosen.isOnscreen(), false /* pbuffer */, false);
         List<GLCapabilitiesImmutable> availableCaps = new ArrayList<GLCapabilitiesImmutable>();
         int recommendedIndex = -1;
 
@@ -350,14 +386,18 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         final boolean isMultisampleAvailable = factory.isGLXMultisampleAvailable(absDevice);        
         int[] attribs = X11GLXGraphicsConfiguration.GLCapabilities2AttribList(capsChosen, false, isMultisampleAvailable, display, screen);
 
+        XVisualInfo recommendedVis = null;
         // 1st choice: get GLCapabilities based on users GLCapabilities setting recommendedIndex as preferred choice
-        XVisualInfo recommendedVis = GLX.glXChooseVisual(display, screen, attribs, 0);
-        if (DEBUG) {
-            System.err.print("glXChooseVisual recommended ");
-            if (recommendedVis == null) {
-                System.err.println("null visual");
-            } else {
-                System.err.println("visual id " + toHexString(recommendedVis.getVisualid()));
+        // skipped if xvisualID is given
+        if( VisualIDHolder.VID_UNDEFINED == xvisualID ) {  
+            recommendedVis = GLX.glXChooseVisual(display, screen, attribs, 0);
+            if (DEBUG) {
+                System.err.print("glXChooseVisual recommended ");
+                if (recommendedVis == null) {
+                    System.err.println("null visual");
+                } else {
+                    System.err.println("visual id " + toHexString(recommendedVis.getVisualid()));
+                }
             }
         }
 
@@ -383,6 +423,32 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
             }
         }
 
+        if(DEBUG) {
+            System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationXVisual: got configs: "+availableCaps.size());
+            for(int i=0; i<availableCaps.size(); i++) {
+                System.err.println(i+": "+availableCaps.get(i));
+            }
+        }
+        
+        if( VisualIDHolder.VID_UNDEFINED != xvisualID ) {
+            for(int i=0; i<availableCaps.size(); ) {
+                VisualIDHolder vidh = (VisualIDHolder) availableCaps.get(i);
+                if(vidh.getVisualID(VIDType.X11_XVISUAL) != xvisualID ) {
+                    availableCaps.remove(i);
+                } else {
+                    i++;
+                }
+            }
+            if(0==availableCaps.size()) {
+                if(DEBUG) {
+                    System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationXVisual: post filter visualID "+toHexString(xvisualID )+" no config found, failed - return null");                    
+                }
+                return null;
+            } else if(DEBUG) {
+                System.err.println("X11GLXGraphicsConfiguration.chooseGraphicsConfigurationXVisual: post filter visualID "+toHexString(xvisualID)+" got configs: "+availableCaps.size());
+            }
+        }
+        
         int chosenIndex = chooseCapabilities(chooser, capsChosen, availableCaps, recommendedIndex);
         if ( 0 > chosenIndex ) {
             if (DEBUG) {

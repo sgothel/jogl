@@ -86,7 +86,14 @@ public class GLProfile {
      * </p> 
      */
     private static final boolean enableANGLE = Debug.isPropertyDefined("jogl.enable.ANGLE", true);
-
+    
+    /** 
+     * In case no OpenGL ES implementation is required
+     * and if the running platform may have a buggy implementation,
+     * setting the property <code>jogl.disable.opengles</code> disables querying a possible existing OpenGL ES implementation. 
+     */
+    private static final boolean disableOpenGLES = Debug.isPropertyDefined("jogl.disable.opengles", true);
+    
     static {
         // Also initializes TempJarCache if shall be used.
         Platform.initSingleton();
@@ -117,10 +124,12 @@ public class GLProfile {
      * @deprecated Use {@link #initSingleton()}. This method is subject to be removed in future versions of JOGL. 
      */
     public static void initSingleton(final boolean firstUIActionOnProcess) {
+        final boolean justInitialized; 
         initLock.lock();
         try {
             if(!initialized) { // volatile: ok
                 initialized = true;
+                justInitialized = true;
                 if(DEBUG) {
                     System.err.println("GLProfile.initSingleton(firstUIActionOnProcess: "+firstUIActionOnProcess+") - thread "+Thread.currentThread().getName());
                     Thread.dumpStack();
@@ -166,10 +175,17 @@ public class GLProfile {
                         return null;
                     }
                 });
+            } else {
+                justInitialized = false;
             }
         } finally {
             initLock.unlock();
         }
+        if(DEBUG) {
+            if( justInitialized && ( hasGL234Impl || hasGLES1Impl || hasGLES2Impl ) ) {
+                System.err.println(JoglVersion.getDefaultOpenGLInfo(defaultDevice, null, true));
+            }
+        }        
     }
     
     /**
@@ -1466,7 +1482,7 @@ public class GLProfile {
             }
         }
 
-        if ( ReflectionUtil.isClassAvailable("jogamp.opengl.egl.EGLDrawableFactory", classloader) ) {
+        if ( !disableOpenGLES && ReflectionUtil.isClassAvailable("jogamp.opengl.egl.EGLDrawableFactory", classloader) ) {
             t=null;
             try {
                 eglFactory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactoryImpl(GLES2);
@@ -1532,18 +1548,17 @@ public class GLProfile {
 
         if(DEBUG) {
             // System.err.println("GLProfile.init addedAnyProfile      "+addedAnyProfile+" (desktop: "+addedDesktopProfile+", egl "+addedEGLProfile+")");
-            System.err.println("GLProfile.init addedAnyProfile      "+addedAnyProfile);
-            System.err.println("GLProfile.init isAWTAvailable       "+isAWTAvailable);
-            System.err.println("GLProfile.init hasDesktopGLFactory  "+hasDesktopGLFactory);
-            System.err.println("GLProfile.init hasGL234Impl         "+hasGL234Impl);
-            System.err.println("GLProfile.init hasEGLFactory        "+hasEGLFactory);
-            System.err.println("GLProfile.init hasGLES1Impl         "+hasGLES1Impl);
-            System.err.println("GLProfile.init hasGLES2Impl         "+hasGLES2Impl);
-            System.err.println("GLProfile.init defaultDevice        "+defaultDevice);
-            System.err.println("GLProfile.init profile order        "+array2String(GL_PROFILE_LIST_ALL));
-            if(hasGL234Impl || hasGLES1Impl || hasGLES2Impl) { // avoid deadlock
-                System.err.println(JoglVersion.getDefaultOpenGLInfo(null, true));
-            }
+            System.err.println("GLProfile.init addedAnyProfile       "+addedAnyProfile);
+            System.err.println("GLProfile.init isAWTAvailable        "+isAWTAvailable);
+            System.err.println("GLProfile.init hasDesktopGLFactory   "+hasDesktopGLFactory);
+            System.err.println("GLProfile.init hasGL234Impl          "+hasGL234Impl);
+            System.err.println("GLProfile.init hasEGLFactory         "+hasEGLFactory);
+            System.err.println("GLProfile.init hasGLES1Impl          "+hasGLES1Impl);
+            System.err.println("GLProfile.init hasGLES2Impl          "+hasGLES2Impl);
+            System.err.println("GLProfile.init defaultDevice         "+defaultDevice);
+            System.err.println("GLProfile.init defaultDevice Desktop "+defaultDesktopDevice);
+            System.err.println("GLProfile.init defaultDevice EGL     "+defaultEGLDevice);
+            System.err.println("GLProfile.init profile order         "+array2String(GL_PROFILE_LIST_ALL));
         }
     }
 
@@ -1641,24 +1656,6 @@ public class GLProfile {
             }
             if (DEBUG) {
                 System.err.println("GLProfile.initProfilesForDevice: "+device+": egl Shared Ctx "+eglSharedCtxAvail);
-            }
-            if( hasGLES2Impl ) {
-                // The native ES2 impl. overwrites a previous mapping using 'ES2 compatibility' by a desktop profile 
-                GLContext.mapAvailableGLVersion(device,
-                                                2, GLContext.CTX_PROFILE_ES,
-                                                2, 0, GLContext.CTX_PROFILE_ES|GLContext.CTX_IMPL_ES2_COMPAT);
-                if (DEBUG) {
-                  System.err.println(GLContext.getThreadName() + ": initProfilesForDeviceCritical-MapVersionsAvailable HAVE: ES2 -> ES 2.0");
-                }
-            }
-            if( hasGLES1Impl ) {
-                // Always favor the native ES1 impl.
-                GLContext.mapAvailableGLVersion(device,
-                                                1, GLContext.CTX_PROFILE_ES,
-                                                1, 0, GLContext.CTX_PROFILE_ES);
-                if (DEBUG) {
-                  System.err.println(GLContext.getThreadName() + ": initProfilesForDeviceCritical-MapVersionsAvailable HAVE: ES1 -> ES 1.0");
-                }
             }
             addedEGLProfile = computeProfileMap(device, false /* desktopCtxUndef*/, false /* esCtxUndef */);
         }
@@ -1767,7 +1764,7 @@ public class GLProfile {
                 }
                 _mappedProfiles.put(profile, glProfile);
                 if (DEBUG) {
-                    System.err.println("GLProfile.init map "+glProfile+" on devide "+device.getConnection());
+                    System.err.println("GLProfile.init map "+glProfile+" on device "+device.getConnection());
                 }
                 if(null==defaultGLProfileHW && isHardwareRasterizer[0]) {
                     defaultGLProfileHW=glProfile;

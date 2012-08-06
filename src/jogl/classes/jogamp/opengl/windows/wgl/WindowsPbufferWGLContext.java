@@ -42,6 +42,8 @@ package jogamp.opengl.windows.wgl;
 
 import javax.media.opengl.*;
 
+import com.jogamp.opengl.GLExtensions;
+
 import jogamp.opengl.GLContextImpl;
 
 public class WindowsPbufferWGLContext extends WindowsWGLContext {
@@ -112,7 +114,7 @@ public class WindowsPbufferWGLContext extends WindowsWGLContext {
         } else {
           hasRTT = true;
 
-          if (rect && !gl.isExtensionAvailable("GL_NV_texture_rectangle")) {
+          if (rect && !gl.isExtensionAvailable(GLExtensions.NV_texture_rectangle)) {
             System.err.println("WindowsPbufferWGLContext: WARNING: GL_NV_texture_rectangle extension not " +
                                "supported; skipping requested render_to_texture_rectangle support for pbuffer");
             rect = false;

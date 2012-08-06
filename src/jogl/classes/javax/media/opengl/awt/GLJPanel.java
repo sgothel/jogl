@@ -87,7 +87,7 @@ import jogamp.opengl.awt.Java2D;
 import jogamp.opengl.awt.Java2DGLContext;
 
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
-import com.jogamp.opengl.util.FBObject;
+import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.util.GLBuffers;
 
 // FIXME: Subclasses need to call resetGLFunctionAvailability() on their
@@ -250,6 +250,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     this.shareWith = shareWith;
   }
 
+  @Override
+  public final Object getUpstreamWidget() {
+    return this;
+  }
+  
   @Override
   public void display() {
     if (EventQueue.isDispatchThread()) {

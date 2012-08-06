@@ -63,14 +63,14 @@ import javax.media.opengl.GLDrawableFactory;
 
 public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFactory {
     public static void registerFactory() {
-        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.awt.AWTGraphicsDevice.class, new WindowsAWTWGLGraphicsConfigurationFactory());
+        GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.awt.AWTGraphicsDevice.class, GLCapabilitiesImmutable.class, new WindowsAWTWGLGraphicsConfigurationFactory());
     }
     private WindowsAWTWGLGraphicsConfigurationFactory() {        
     }
 
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
             CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
-            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen) {
+            CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
         GraphicsDevice device = null;
         if (absScreen != null &&
             !(absScreen instanceof AWTGraphicsScreen)) {
@@ -105,11 +105,11 @@ public class WindowsAWTWGLGraphicsConfigurationFactory extends GLGraphicsConfigu
 
         WindowsGraphicsDevice winDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         DefaultGraphicsScreen winScreen = new DefaultGraphicsScreen(winDevice, awtScreen.getIndex());
-        GraphicsConfigurationFactory configFactory = GraphicsConfigurationFactory.getFactory(winDevice);
+        GraphicsConfigurationFactory configFactory = GraphicsConfigurationFactory.getFactory(winDevice, capsChosen);
         WindowsWGLGraphicsConfiguration winConfig = (WindowsWGLGraphicsConfiguration)
                                                        configFactory.chooseGraphicsConfiguration(capsChosen,
                                                                                                  capsRequested,
-                                                                                                 chooser, winScreen);
+                                                                                                 chooser, winScreen, nativeVisualID);
         if (winConfig == null) {
             throw new GLException("Unable to choose a GraphicsConfiguration: "+capsChosen+",\n\t"+chooser+"\n\t"+winScreen);
         }

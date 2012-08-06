@@ -410,7 +410,7 @@ public class BuildComposablePipeline {
             output.flush();
             output.close();
 
-            System.out.println("wrote to file: " + file); // JAU
+            System.out.println("wrote to file: " + file);
         }
 
         /** Get the name of the object through which API calls should be routed. */

@@ -43,7 +43,7 @@ package jogamp.opengl.x11.glx;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.SurfaceChangeable;
+import javax.media.nativewindow.MutableSurface;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
@@ -93,7 +93,7 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
         pixmap = 0;
         throw new GLException("glXCreateGLXPixmap failed");
     }
-    ((SurfaceChangeable)ns).setSurfaceHandle(drawable);
+    ((MutableSurface)ns).setSurfaceHandle(drawable);
     if (DEBUG) {
         System.err.println("Created pixmap " + toHexString(pixmap) +
                            ", GLXPixmap " + toHexString(drawable) +
@@ -133,7 +133,7 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
     X11Lib.XFreePixmap(display, pixmap);
     drawable = 0;
     pixmap = 0;
-    ((SurfaceChangeable)ns).setSurfaceHandle(0);
+    ((MutableSurface)ns).setSurfaceHandle(0);
     display = 0;
   }
 }
