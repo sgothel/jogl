@@ -98,7 +98,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
             if (NativeWindowFactory.TYPE_ANDROID == type) {
                 screenClass = Class.forName("jogamp.newt.driver.android.AndroidScreen");
             } else if (NativeWindowFactory.TYPE_EGL == type) {
-                screenClass = Class.forName("jogamp.newt.driver.kd.KDScreen");
+                screenClass = Class.forName("jogamp.newt.driver.kd.Screen");
             } else if (NativeWindowFactory.TYPE_WINDOWS == type) {
                 screenClass = Class.forName("jogamp.newt.driver.windows.WindowsScreen");
             } else if (NativeWindowFactory.TYPE_MACOSX == type) {

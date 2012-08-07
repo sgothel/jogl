@@ -57,7 +57,7 @@ public abstract class DisplayImpl extends Display {
             if (NativeWindowFactory.TYPE_ANDROID == type) {
                 displayClass = Class.forName("jogamp.newt.driver.android.AndroidDisplay");
             } else if (NativeWindowFactory.TYPE_EGL == type) {
-                displayClass = Class.forName("jogamp.newt.driver.kd.KDDisplay");
+                displayClass = Class.forName("jogamp.newt.driver.kd.Display");
             } else if (NativeWindowFactory.TYPE_WINDOWS == type) {
                 displayClass = Class.forName("jogamp.newt.driver.windows.WindowsDisplay");
             } else if (NativeWindowFactory.TYPE_MACOSX == type) {
