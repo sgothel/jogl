@@ -48,7 +48,7 @@
        setup.noNativeDesktop
        setup.addNativeKD
        setup.addNativeIntelGDL
-       setup.addNativeBroadcom
+       setup.addNativeBroadcom  ( always true if 'isLinux' )
 
    - Internal settings, may not be necessary to set them manually,
      since all JAR archives are orthogonal.
@@ -70,6 +70,10 @@
        - Base initialization and detection of operating system.
       -->
     <target name="base.init" depends="common.init">
+
+        <condition property="setup.addNativeBroadcom">
+           <isset property="isLinux"/>
+        </condition>
 
         <condition property="setup.nonatives">
             <and>
@@ -110,6 +114,9 @@
         <property name="java.part.swt"
                   value="com/jogamp/newt/swt/**"/>
 
+        <property name="java.part.driver.linux"
+                  value="jogamp/newt/driver/linux/**"/>
+
         <property name="java.part.driver.x11"
                   value="jogamp/newt/driver/x11/**"/>
 
@@ -125,8 +132,11 @@
         <property name="java.part.driver.intelgdl"
                   value="jogamp/newt/driver/intel/gdl/**"/>
 
-        <property name="java.part.driver.bcm"
-                  value="jogamp/newt/driver/bcm/**"/>
+        <property name="java.part.driver.bcm.old"
+                  value="jogamp/newt/driver/bcm/egl/**"/>
+
+        <property name="java.part.driver.bcm.vc"
+                  value="jogamp/newt/driver/bcm/vc/**"/>
 
         <property name="java.part.driver.android"
                   value="jogamp/newt/driver/android/**"/>
@@ -745,6 +755,10 @@
     </target>
 
     <target name="build-jars-driver" depends="setup-manifestfile">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-linux.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.driver.linux}"/>
+        </jar>
         <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-x11.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.driver.x11}"/>
@@ -761,9 +775,13 @@
             <fileset dir="${classes}"
                      includes="${java.part.driver.kd}"/>
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-bcm.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-bcm-old.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.driver.bcm}"/>
+                     includes="${java.part.driver.bcm.old}"/>
+        </jar>
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-bcm-vc.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.driver.bcm.vc}"/>
         </jar>
         <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-intelgdl.jar}" filesonly="true">
             <fileset dir="${classes}"
