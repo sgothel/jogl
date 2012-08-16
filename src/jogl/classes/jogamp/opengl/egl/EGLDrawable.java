@@ -114,25 +114,30 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         }
     }
 
+    protected static boolean isValidEGLSurface(EGLGraphicsDevice eglDevice, NativeSurface surface) {
+        final long eglDisplayHandle = eglDevice.getHandle();
+        if (EGL.EGL_NO_DISPLAY == eglDisplayHandle) {
+            throw new GLException("Invalid EGL display in EGLGraphicsDevice "+eglDevice);
+        }
+        boolean eglSurfaceValid = 0 != surface.getSurfaceHandle();
+        if(eglSurfaceValid) {
+            int[] tmp = new int[1];
+            eglSurfaceValid = EGL.eglQuerySurface(eglDisplayHandle, surface.getSurfaceHandle(), EGL.EGL_CONFIG_ID, tmp, 0);
+            if(!eglSurfaceValid) {
+                if(DEBUG) {
+                    System.err.println(getThreadName() + ": EGLDrawable.isValidEGLSurface eglQuerySuface failed: "+toHexString(EGL.eglGetError())+", "+surface);
+                }
+            }
+        }
+        return eglSurfaceValid;
+    }
+    
     @Override
     protected final void setRealizedImpl() {
         final EGLGraphicsConfiguration eglConfig = (EGLGraphicsConfiguration) surface.getGraphicsConfiguration();
         final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) eglConfig.getScreen().getDevice();
         if (realized) {
-            final long eglDisplayHandle = eglDevice.getHandle();
-            if (EGL.EGL_NO_DISPLAY == eglDisplayHandle) {
-                throw new GLException("Invalid EGL display in EGLGraphicsDevice "+eglDevice);
-            }
-            int[] tmp = new int[1];
-            boolean eglSurfaceValid = 0 != surface.getSurfaceHandle();
-            if(eglSurfaceValid) {
-                eglSurfaceValid = EGL.eglQuerySurface(eglDisplayHandle, surface.getSurfaceHandle(), EGL.EGL_CONFIG_ID, tmp, 0);
-                if(!eglSurfaceValid) {
-                    if(DEBUG) {
-                        System.err.println(getThreadName() + ": EGLDrawable.setRealizedImpl eglQuerySuface failed: "+toHexString(EGL.eglGetError())+", "+surface);
-                    }                    
-                }
-            }
+            final boolean eglSurfaceValid = isValidEGLSurface(eglDevice, surface);
             if(eglSurfaceValid) {
                 // surface holds valid EGLSurface
                 if(DEBUG) {

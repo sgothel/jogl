@@ -37,7 +37,7 @@ import javax.media.nativewindow.*;
 /** Encapsulates a graphics device on EGL platforms.
  */
 public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
-    final long nativeDisplayID;
+    final long[] nativeDisplayID = new long[1];
     final EGLDisplayLifecycleCallback eglLifecycleCallback;
 
     /**
@@ -51,9 +51,10 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         /**
          * Implementation should issue an <code>EGL.eglGetDisplay(nativeDisplayID)</code>
          * inclusive <code>EGL.eglInitialize(eglDisplayHandle, ..)</code> call.
-         * @param eglDisplayHandle
+         * @param nativeDisplayID in/out array of size 1, passing the requested nativeVisualID, may return a different revised nativeVisualID handle
+         * @return the initialized EGL display ID, or <code>0</code> if not successful
          */
-        public long eglGetAndInitDisplay(long nativeDisplayID);
+        public long eglGetAndInitDisplay(long[] nativeDisplayID);
         
         /**
          * Implementation should issue an <code>EGL.eglTerminate(eglDisplayHandle)</code> call.
@@ -68,17 +69,17 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      */
     public EGLGraphicsDevice(String connection, int unitID) {
         super(NativeWindowFactory.TYPE_EGL, connection, unitID);
-        this.nativeDisplayID = 0 ; // EGL.EGL_DEFAULT_DISPLAY
+        this.nativeDisplayID[0] = 0 ; // EGL.EGL_DEFAULT_DISPLAY
         this.eglLifecycleCallback = null;
     }
 
     public EGLGraphicsDevice(long nativeDisplayID, long eglDisplay, String connection, int unitID, EGLDisplayLifecycleCallback eglLifecycleCallback) {
         super(NativeWindowFactory.TYPE_EGL, connection, unitID, eglDisplay);
-        this.nativeDisplayID = nativeDisplayID;
+        this.nativeDisplayID[0] = nativeDisplayID;
         this.eglLifecycleCallback = eglLifecycleCallback;
     }
     
-    public long getNativeDisplayID() { return nativeDisplayID; }
+    public long getNativeDisplayID() { return nativeDisplayID[0]; }
     
     @Override
     public Object clone() {
@@ -113,7 +114,7 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     
     @Override
     public String toString() {
-        return "EGLGraphicsDevice[type EGL, connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+", nativeDisplayID 0x"+Long.toHexString(nativeDisplayID)+"]";
+        return "EGLGraphicsDevice[type EGL, connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+", nativeDisplayID 0x"+Long.toHexString(nativeDisplayID[0])+", eglLifecycleCallback "+(null != eglLifecycleCallback)+"]";
     }
 }
 

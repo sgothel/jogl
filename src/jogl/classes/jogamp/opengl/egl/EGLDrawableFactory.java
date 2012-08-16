@@ -282,7 +282,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 if(null != upstreamSurface) {
                     upstreamSurface.createNotify();
                 }                    
-                eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(surface, true);
+                eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(surface);
                 deviceFromUpstreamSurface = true;
             }
             
@@ -471,14 +471,27 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         AbstractGraphicsConfiguration aConfig = surface.getGraphicsConfiguration();
         AbstractGraphicsDevice aDevice = aConfig.getScreen().getDevice();
         if( aDevice instanceof EGLGraphicsDevice && aConfig instanceof EGLGraphicsConfiguration ) {
-            // already in native EGL format
-            if(DEBUG) {
-                System.err.println(getThreadName() + ": getEGLSurface - already in EGL format - use as-is: "+aConfig);
+            if(EGLDrawable.isValidEGLSurface((EGLGraphicsDevice)aDevice, surface)) {                 
+                // already in native EGL format
+                if(DEBUG) {
+                    System.err.println(getThreadName() + ": getEGLSurface - already valid EGL surface - use as-is: "+aConfig);
+                }
+                return surface;
             }
-            return surface;
         }
         // create EGL instance out of platform native types
-        final EGLGraphicsDevice eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(surface, true);
+        final EGLGraphicsDevice eglDevice;
+        if( aDevice instanceof EGLGraphicsDevice ) {
+            eglDevice = (EGLGraphicsDevice) aDevice;
+            if(DEBUG) {
+                System.err.println(getThreadName() + ": getEGLSurface - Reusing eglDevice: "+eglDevice);
+            }
+            if(0 == eglDevice.getHandle()) {
+                eglDevice.open();
+            }
+        } else {
+            eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(surface);            
+        }
         final AbstractGraphicsScreen eglScreen = new DefaultGraphicsScreen(eglDevice, aConfig.getScreen().getIndex());
         final GLCapabilitiesImmutable capsRequested = (GLCapabilitiesImmutable) aConfig.getRequestedCapabilities();
         final EGLGraphicsConfiguration eglConfig;
@@ -489,7 +502,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 // 'refresh' the native EGLConfig handle
                 capsChosen.setEGLConfig(EGLGraphicsConfiguration.EGLConfigId2EGLConfig(eglDevice.getHandle(), capsChosen.getEGLConfigID()));
                 if( 0 == capsChosen.getEGLConfig() ) {
-                    throw new GLException("Refreshing native EGLConfig handle failed: "+capsChosen+" of "+aConfig);
+                    throw new GLException("Refreshing native EGLConfig handle failed with error "+EGLContext.toHexString(EGL.eglGetError())+": "+eglDevice+", "+capsChosen+" of "+aConfig);
                 }
             }
             eglConfig  = new EGLGraphicsConfiguration(eglScreen, capsChosen, capsRequested, null);

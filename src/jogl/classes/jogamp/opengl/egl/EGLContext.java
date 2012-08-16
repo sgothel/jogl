@@ -209,8 +209,8 @@ public abstract class EGLContext extends GLContextImpl {
                                ",\n\tsharing with 0x" + Long.toHexString(shareWithHandle));
         }
         if (!EGL.eglMakeCurrent(eglDisplay, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-            throw new GLException("Error making context 0x" +
-                                  Long.toHexString(contextHandle) + " current: error code " + EGL.eglGetError());
+            throw new GLException("Error making context " +
+                                  toHexString(contextHandle) + " current: error code " + toHexString(EGL.eglGetError()));
         }
         setGLFunctionAvailability(true, glProfile.usesNativeGLES2() ? 2 : 1, 0, CTX_PROFILE_ES);
         return true;
