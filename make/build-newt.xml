@@ -48,7 +48,7 @@
        setup.noNativeDesktop
        setup.addNativeKD
        setup.addNativeIntelGDL
-       setup.addNativeBroadcomEGL
+       setup.addNativeBroadcom
 
    - Internal settings, may not be necessary to set them manually,
      since all JAR archives are orthogonal.
@@ -79,7 +79,7 @@
                 <isfalse value="${isAndroid}" />
                 <isfalse value="${setup.addNativeKD}" />
                 <isfalse value="${setup.addNativeIntelGDL}" />
-                <isfalse value="${setup.addNativeBroadcomEGL}" />
+                <isfalse value="${setup.addNativeBroadcom}" />
             </and>
         </condition>
 
@@ -90,7 +90,7 @@
         <echo message="isAndroid: ${isAndroid}" />
         <echo message="setup.addNativeKD: ${setup.addNativeKD}" />
         <echo message="setup.addNativeIntelGDL: ${setup.addNativeIntelGDL}" />
-        <echo message="setup.addNativeBroadcomEGL: ${setup.addNativeBroadcomEGL}" />
+        <echo message="setup.addNativeBroadcom: ${setup.addNativeBroadcom}" />
         <echo message="setup.nonatives: ${setup.nonatives}" />
 
         <!-- partitioning -->
@@ -125,8 +125,8 @@
         <property name="java.part.driver.intelgdl"
                   value="jogamp/newt/driver/intel/gdl/**"/>
 
-        <property name="java.part.driver.broadcomegl"
-                  value="jogamp/newt/driver/broadcom/egl/**"/>
+        <property name="java.part.driver.bcm"
+                  value="jogamp/newt/driver/bcm/**"/>
 
         <property name="java.part.driver.android"
                   value="jogamp/newt/driver/android/**"/>
@@ -201,7 +201,8 @@
         <mkdir dir="${src.generated.c}/Windows" />
         <mkdir dir="${src.generated.c}/KD" />
         <mkdir dir="${src.generated.c}/IntelGDL" />
-        <mkdir dir="${src.generated.c}/BroadcomEGL" />
+        <mkdir dir="${src.generated.c}/bcm/egl" />
+        <mkdir dir="${src.generated.c}/bcm/vc/iv" />
         <mkdir dir="${classes}" />
         <mkdir dir="${obj.newt}" />
     </target>
@@ -254,7 +255,7 @@
         <includepath path="/usr/local/include" />
       </compiler>
 
-      <compiler id="compiler.cfg.linux.armv7.newt.x11" extends="compiler.cfg.linux.armv7">
+      <compiler id="compiler.cfg.linux.armv6.newt.x11" extends="compiler.cfg.linux.armv6">
         <!-- Need to force /usr/include headers on to include path (after all others), due to crosscompiler usage -->
         <compilerarg value="-idirafter" />
         <compilerarg value="/usr/include" />
@@ -274,7 +275,16 @@
         <syslibset libs="Xrandr"/>
       </linker>
 
-      <linker id="linker.cfg.linux.newt.broadcom_egl" extends="linker.cfg.linux">
+      <linker id="linker.cfg.linux.newt.bcm_egl" extends="linker.cfg.linux">
+        <syslibset libs="EGL"/>
+        <syslibset libs="GLES_CM"/>
+      </linker>
+
+      <linker id="linker.cfg.linux.newt.bcm_vc" extends="linker.cfg.linux">
+        <!-- syslibset libs="EGL"/ -->
+      </linker>
+
+      <linker id="linker.cfg.linux.newt.bcm_egl" extends="linker.cfg.linux">
         <syslibset libs="EGL"/>
         <syslibset libs="GLES_CM"/>
       </linker>
@@ -294,7 +304,7 @@
         <syslibset libs="Xrandr"/>
       </linker>
 
-      <linker id="linker.cfg.linux.armv7.newt.x11" extends="linker.cfg.linux.armv7">
+      <linker id="linker.cfg.linux.armv6.newt.x11" extends="linker.cfg.linux.armv6">
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11" />
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xrandr" />
       </linker>
@@ -384,11 +394,11 @@
       <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
     </target>
 
-    <target name="c.configure.linux.armv7" if="isLinuxARMv7">
-      <echo message="Linux.armv7" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv7.newt.x11" />
-      <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.armv7.newt.x11"
-                                                            else="linker.cfg.linux.armv7">
+    <target name="c.configure.linux.armv6" if="isLinuxARMv6">
+      <echo message="Linux.armv6" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv6.newt.x11" />
+      <condition property="linker.cfg.id.oswin"             value="linker.cfg.linux.armv6.newt.x11"
+                                                            else="linker.cfg.linux.armv6">
           <isset property="isX11" />
       </condition>
       <echo message="linker.cfg.id.oswin ${linker.cfg.id.oswin}" />
@@ -460,7 +470,7 @@
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.newt.x11" />
     </target>
 
-    <target name="c.configure.linux" depends="c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.armv7,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.s390,c.configure.linux.sparc,c.configure.linux.ia64,c.configure.x11" if="isLinux"/>
+    <target name="c.configure.linux" depends="c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.armv6,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.s390,c.configure.linux.sparc,c.configure.linux.ia64,c.configure.x11" if="isLinux"/>
 
     <target name="c.configure.android" if="isAndroid">
       <echo message="Android" />
@@ -564,7 +574,8 @@
           <include name="${rootrel.src.c}/X11Window.c"     if="isX11"/>
           <include name="${rootrel.src.c}/KDWindow.c"      if="setup.addNativeKD"/>
           <include name="${rootrel.src.c}/IntelGDL.c"      if="setup.addNativeIntelGDL"/>
-          <include name="${rootrel.src.c}/BroadcomEGL.c"   if="setup.addNativeBroadcomEGL"/>
+          <include name="${rootrel.src.c}/bcm_egl.c"       if="setup.addNativeBroadcom"/>
+          <include name="${rootrel.src.c}/bcm_vc_iv.c"     if="setup.addNativeBroadcom"/>
         </patternset>
 
         <echo message="Compiling @{output.lib.name}" />
@@ -609,7 +620,8 @@
                 <includepath path="${src.generated.c}/KD"           if="setup.addNativeKD" />
                 <includepath path="${src.generated.c}/IntelGDL"     if="setup.addNativeIntelGDL" />
                 <includepath path="stub_includes/embedded/IntelGDL" if="setup.addNativeIntelGDL" />
-                <includepath path="${src.generated.c}/BroadcomEGL"  if="setup.addNativeBroadcomEGL" />
+                <includepath path="${src.generated.c}/bcm/egl"      if="setup.addNativeBroadcom" />
+                <includepath path="${src.generated.c}/bcm/vc/iv"    if="setup.addNativeBroadcom" />
     
                 <!-- This must come last to not override real include paths -->
                 <!-- includepath path="stub_includes/macosx" if="isOSX" / -->
@@ -654,7 +666,10 @@
       <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.Screen" />
       <javah destdir="${src.generated.c}/IntelGDL"    classpath="${javah.classpath}" class="jogamp.newt.driver.intel.gdl.Window" />
 
-      <javah destdir="${src.generated.c}/BroadcomEGL" classpath="${javah.classpath}" class="jogamp.newt.driver.broadcom.egl.Window" />
+      <javah destdir="${src.generated.c}/bcm/egl"     classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.egl.Window" />
+      <javah destdir="${src.generated.c}/bcm/vc/iv"   classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.vc.iv.Display" />
+      <javah destdir="${src.generated.c}/bcm/vc/iv"   classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.vc.iv.Screen" />
+      <javah destdir="${src.generated.c}/bcm/vc/iv"   classpath="${javah.classpath}" class="jogamp.newt.driver.bcm.vc.iv.Window" />
 
       <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.WindowsWindow" />
       <javah destdir="${src.generated.c}/Windows"     classpath="${javah.classpath}" class="jogamp.newt.driver.windows.WindowsScreen" />
@@ -746,9 +761,9 @@
             <fileset dir="${classes}"
                      includes="${java.part.driver.kd}"/>
         </jar>
-        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-broadcomegl.jar}" filesonly="true">
+        <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-bcm.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.driver.broadcomegl}"/>
+                     includes="${java.part.driver.bcm}"/>
         </jar>
         <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-intelgdl.jar}" filesonly="true">
             <fileset dir="${classes}"

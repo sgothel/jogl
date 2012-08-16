@@ -12,7 +12,7 @@ export TARGET_IP=jautab01
 export TARGET_ADB_PORT=5555
 export TARGET_ROOT=/data/projects
 
-export BUILD_DIR=../build-android-armv7
+export BUILD_DIR=../build-android-armv6
 
 if [ -e /opt-linux-x86/android-sdk-linux_x86 ] ; then
     export ANDROID_SDK_HOME=/opt-linux-x86/android-sdk-linux_x86
@@ -61,9 +61,9 @@ am start -a android.intent.action.MAIN -n jogamp.android.launcher/jogamp.android
 # \
 #dalvikvm \
 #  -Xjnigreflimit:2000 \
-#  -cp ../../gluegen/make/$BUILD_DIR/jogamp.android-launcher.apk:../../gluegen/make/lib/ant-junit-all.apk:../../gluegen/make/$BUILD_DIR/gluegen-rt-android-armeabi-v7a.apk:$BUILD_DIR/jar/jogl.all-android-armeabi-v7a.apk:$BUILD_DIR/jar/jogl.test.apk \
+#  -cp ../../gluegen/make/$BUILD_DIR/jogamp.android-launcher.apk:../../gluegen/make/lib/ant-junit-all.apk:../../gluegen/make/$BUILD_DIR/gluegen-rt-android-armeabi.apk:$BUILD_DIR/jar/jogl.all-android-armeabi.apk:$BUILD_DIR/jar/jogl.test.apk \
 #  -Dgluegen.root=../../gluegen \
-#  -Drootrel.build=build-android-armv7 \
+#  -Drootrel.build=build-android-armv6 \
 #  com.android.internal.util.WithFramework \
 #  $TSTCLASS \
 " >> $BUILD_DIR/jogl-targetcommand.sh

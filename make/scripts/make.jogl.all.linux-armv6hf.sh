@@ -8,7 +8,7 @@ export PATH
 #    -Dgluegen.cpptasks.detected.os=true \
 #    -DisUnix=true \
 #    -DisLinux=true \
-#    -DisLinuxARMv7=true \
+#    -DisLinuxARMv6=true \
 #    -DisX11=false \
 
 export TARGET_PLATFORM_ROOT=/
@@ -18,10 +18,10 @@ export TARGET_JAVA_LIBS=/usr/lib/jvm/java-6-openjdk-armhf/jre/lib/arm
 export GLUEGEN_CPPTASKS_FILE="../../gluegen/make/lib/gluegen-cpptasks-linux-armv6hf.xml"
 
 ant \
-    -Drootrel.build=build-linux-armv7hf \
+    -Drootrel.build=build-linux-armv6hf \
     -Dsetup.addNativeKD=true \
     -Dsetup.addNativeOpenMAX=true \
-    -Dsetup.addNativeBroadcomEGL=true \
+    -Dsetup.addNativeBroadcom=true \
     -Djunit.run.arg0="-Dnewt.test.Screen.disableScreenMode" \
-    $* 2>&1 | tee make.jogl.all.linux-armv7hf.log
+    $* 2>&1 | tee make.jogl.all.linux-armv6hf.log
 

@@ -865,7 +865,7 @@ rsync:
     -rt 
 -->
 
-    <target name="junit.run.remote.adb" if="isAndroidARMv7">
+    <target name="junit.run.remote.adb" if="isAndroidARMv6">
         <echo message="#! /system/bin/sh${line.separator}" append="false" file="${build.test}/targetcommand.sh" />
         <echo message="${line.separator}
 rsync -rtv --delete --delete-after --delete-excluded \${line.separator}

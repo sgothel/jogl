@@ -342,7 +342,7 @@
         <includepath path="/usr/local/include" />
       </compiler>
 
-      <compiler id="compiler.cfg.linux.armv7.nativewindow.x11" extends="compiler.cfg.linux.armv7">
+      <compiler id="compiler.cfg.linux.armv6.nativewindow.x11" extends="compiler.cfg.linux.armv6">
         <!-- Need to force /usr/include headers on to include path (after all others), due to crosscompiler usage -->
         <compilerarg value="-idirafter" />
         <compilerarg value="/usr/include" />
@@ -396,7 +396,7 @@
         <syslibset libs="Xrender"/>
       </linker>
 
-      <linker id="linker.cfg.linux.armv7.nativewindow.x11" extends="linker.cfg.linux.armv7">
+      <linker id="linker.cfg.linux.armv6.nativewindow.x11" extends="linker.cfg.linux.armv6">
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="X11" />
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xxf86vm" />
         <syslibset dir="${env.TARGET_PLATFORM_ROOT}/usr/lib" libs="Xrender" />
@@ -487,10 +487,10 @@
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.amd64.nativewindow.x11" />
     </target>
     
-    <target name="c.configure.linux.armv7" if="isLinuxARMv7">
-      <echo message="Linux.armv7" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv7.nativewindow.x11" />
-      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.armv7.nativewindow.x11" />
+    <target name="c.configure.linux.armv6" if="isLinuxARMv6">
+      <echo message="Linux.armv6" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv6.nativewindow.x11" />
+      <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.armv6.nativewindow.x11" />
     </target>
     
     <target name="c.configure.linux.ia64" if="isLinuxIA64">
@@ -535,7 +535,7 @@
       <property name="linker.cfg.id.oswin"                  value="linker.cfg.linux.nativewindow.x11" />
     </target>
 
-    <target name="c.configure.linux" depends="c.configure.linux.armv7,c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.ia64,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.s390,c.configure.linux.sparc,c.configure.x11" if="isLinux" />
+    <target name="c.configure.linux" depends="c.configure.linux.armv6,c.configure.linux.x86,c.configure.linux.amd64,c.configure.linux.ia64,c.configure.linux.hppa,c.configure.linux.mips,c.configure.linux.mipsel,c.configure.linux.ppc,c.configure.linux.s390,c.configure.linux.sparc,c.configure.x11" if="isLinux" />
 
     <target name="c.configure.android" if="isAndroid">
       <echo message="Android" />

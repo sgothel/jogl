@@ -140,7 +140,7 @@
           <istrue value="${isLinuxX86}" />
         </condition>
         <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86/swt-debug.jar">
-          <istrue value="${isLinuxARMv7}" /> <!-- FIXME JAU .. hack -->
+          <istrue value="${isLinuxARMv6}" /> <!-- FIXME JAU .. hack -->
         </condition>
         <condition property="swt.jar" value="${project.root}/make/lib/swt/gtk-linux-x86/swt-debug.jar">
           <istrue value="${isAndroid}" /> <!-- FIXME JAU .. hack -->
@@ -370,7 +370,7 @@
         <property name="newt-driver-android.jar"        value="${build.newt}/newt-driver-android.jar" />     <!-- excluded from all -->
         <property name="newt-driver-kd.jar"             value="${build.newt}/newt-driver-kd.jar" />          <!-- excluded from all -->
         <property name="newt-driver-intelgdl.jar"       value="${build.newt}/newt-driver-intelgdl.jar" />    <!-- excluded from all -->
-        <property name="newt-driver-broadcomegl.jar"    value="${build.newt}/newt-driver-broadcomegl.jar" /> <!-- excluded from all -->
+        <property name="newt-driver-bcm.jar"            value="${build.newt}/newt-driver-bcm.jar" />         <!-- excluded from all -->
         <path id="newt_all_atoms.classpath">
             <pathelement location="${newt-core.jar}" />
             <pathelement location="${newt-ogl.jar}" />
