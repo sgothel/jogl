@@ -62,6 +62,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected int textureCount;
     protected int textureTarget;
     protected int textureFormat;
+    protected int textureInternalFormat; 
     protected int textureType;
     protected int texUnit;
     
@@ -104,6 +105,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
         this.textureCount=3;
         this.textureTarget=GL.GL_TEXTURE_2D;
         this.textureFormat = GL.GL_RGBA;
+        this.textureInternalFormat = GL.GL_RGBA;
         this.textureType = GL.GL_UNSIGNED_BYTE;        
         this.texUnit = 0;
         this.state = State.Uninitialized;
@@ -122,7 +124,10 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     public final int getTextureCount() { return textureCount; }
     
     protected final void setTextureTarget(int target) { textureTarget=target; }
-    protected final void setTextureFormat(int f) { textureFormat=f; }    
+    protected final void setTextureFormat(int internalFormat, int format) { 
+        textureInternalFormat=internalFormat; 
+        textureFormat=format; 
+    }    
     protected final void setTextureType(int t) { textureType=t; }
 
     public final void setTextureMinMagFilter(int[] minMagFilter) { texMinMagFilter[0] = minMagFilter[0]; texMinMagFilter[1] = minMagFilter[1];}
@@ -361,9 +366,9 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             gl.glTexImage2D(
                     textureTarget,    // target
                     0,                // level
-                    GL.GL_RGBA,       // internal format
-                    tWidth,            // width
-                    tHeight,           // height
+                    textureInternalFormat, // internal format
+                    tWidth,           // width
+                    tHeight,          // height
                     0,                // border
                     textureFormat,
                     textureType,

@@ -222,6 +222,11 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
 
         final List<String> avutil = new ArrayList<String>();
         avutil.add("avutil");        // default
+
+        avutil.add("libavutil.so.52");     // dummy future proof
+        avutil.add("libavutil.so.51");     // 0.8
+        avutil.add("libavutil.so.50");     // 0.7
+        
         avutil.add("avutil-52");     // dummy future proof
         avutil.add("avutil-51");     // 0.8
         avutil.add("avutil-50");     // 0.7
@@ -229,6 +234,12 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         
         final List<String> avformat = new ArrayList<String>();
         avformat.add("avformat");    // default
+
+        avformat.add("libavformat.so.55"); // dummy future proof
+        avformat.add("libavformat.so.54"); // 0.?
+        avformat.add("libavformat.so.53"); // 0.8
+        avformat.add("libavformat.so.52"); // 0.7
+        
         avformat.add("avformat-55"); // dummy future proof
         avformat.add("avformat-54"); // 0.?
         avformat.add("avformat-53"); // 0.8
@@ -237,6 +248,12 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         
         final List<String> avcodec = new ArrayList<String>();
         avcodec.add("avcodec");      // default
+
+        avcodec.add("libavcodec.so.55");   // dummy future proof
+        avcodec.add("libavcodec.so.54");   // 0.?
+        avcodec.add("libavcodec.so.53");   // 0.8
+        avcodec.add("libavcodec.so.52");   // 0.7        
+        
         avcodec.add("avcodec-55");   // dummy future proof
         avcodec.add("avcodec-54");   // 0.?
         avcodec.add("avcodec-53");   // 0.8

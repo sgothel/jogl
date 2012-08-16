@@ -192,14 +192,14 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
         System.out.println("setURL: p1 "+this);
         setStream0(moviePtr, urlS, -1, -1);
         System.out.println("setURL: p2 "+this);
-        int tf;
+        int tf, tif=GL.GL_RGBA; // texture format and internal format
         switch(vBytesPerPixelPerPlane) {
-            case 1: tf = GL2ES2.GL_RED; break;
-            case 3: tf = GL2ES2.GL_RGB; break;
-            case 4: tf = GL2ES2.GL_RGBA; break;
+            case 1: tf = GL2ES2.GL_ALPHA; tif=GL.GL_ALPHA; break;
+            case 3: tf = GL2ES2.GL_RGB;   tif=GL.GL_RGB;   break;
+            case 4: tf = GL2ES2.GL_RGBA;  tif=GL.GL_RGBA;  break;
             default: throw new RuntimeException("Unsupported bytes-per-pixel / plane "+vBytesPerPixelPerPlane);
         }        
-        setTextureFormat(tf);
+        setTextureFormat(tif, tf);
         setTextureType(GL.GL_UNSIGNED_BYTE);
         GLContextImpl ctx = (GLContextImpl)gl.getContext();
         ProcAddressTable pt = ctx.getGLProcAddressTable();
@@ -296,9 +296,9 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
               "  vec2 v_off = vec2("+tc_w_1+", 0.5);\n"+
               "  vec2 tc_half = texCoord*0.5;\n"+
               "  float y,u,v,r,g,b;\n"+
-              "  y = texture2D(image, texCoord).r;\n"+
-              "  u = texture2D(image, u_off+tc_half).r;\n"+
-              "  v = texture2D(image, v_off+tc_half).r;\n"+              
+              "  y = texture2D(image, texCoord).a;\n"+
+              "  u = texture2D(image, u_off+tc_half).a;\n"+
+              "  v = texture2D(image, v_off+tc_half).a;\n"+              
               "  y = 1.1643*(y-0.0625);\n"+
               "  u = u-0.5;\n"+
               "  v = v-0.5;\n"+
