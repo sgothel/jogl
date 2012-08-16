@@ -364,34 +364,42 @@
         <property name="newt-awt.jar"                   value="${build.newt}/newt-awt.jar" />
         <property name="newt-swt.jar"                   value="${build.newt}/newt-swt.jar" />
         <property name="newt-event.jar"                 value="${build.newt}/newt-event.jar" />              <!-- using NEWT events w/o NEWT -->
+        <property name="newt-driver-linux.jar"          value="${build.newt}/newt-driver-linux.jar" />
         <property name="newt-driver-x11.jar"            value="${build.newt}/newt-driver-x11.jar" />
         <property name="newt-driver-win.jar"            value="${build.newt}/newt-driver-win.jar" />
         <property name="newt-driver-osx.jar"            value="${build.newt}/newt-driver-osx.jar" />
         <property name="newt-driver-android.jar"        value="${build.newt}/newt-driver-android.jar" />     <!-- excluded from all -->
         <property name="newt-driver-kd.jar"             value="${build.newt}/newt-driver-kd.jar" />          <!-- excluded from all -->
         <property name="newt-driver-intelgdl.jar"       value="${build.newt}/newt-driver-intelgdl.jar" />    <!-- excluded from all -->
-        <property name="newt-driver-bcm.jar"            value="${build.newt}/newt-driver-bcm.jar" />         <!-- excluded from all -->
+        <property name="newt-driver-bcm-old.jar"        value="${build.newt}/newt-driver-bcm-old.jar" />     <!-- excluded from all -->
+        <property name="newt-driver-bcm-vc.jar"         value="${build.newt}/newt-driver-bcm-vc.jar" />
         <path id="newt_all_atoms.classpath">
             <pathelement location="${newt-core.jar}" />
             <pathelement location="${newt-ogl.jar}" />
             <pathelement location="${newt-awt.jar}" />
             <pathelement location="${newt-swt.jar}" />
+            <pathelement location="${newt-driver-linux.jar}" />
             <pathelement location="${newt-driver-x11.jar}" />
             <pathelement location="${newt-driver-win.jar}" />
             <pathelement location="${newt-driver-osx.jar}" />
+            <pathelement location="${newt-driver-bcm-vc.jar}" />
         </path>
         <path id="newt_all-noawt_atoms.classpath">
             <pathelement location="${newt-core.jar}" />
             <pathelement location="${newt-ogl.jar}" />
+            <pathelement location="${newt-driver-linux.jar}" />
             <pathelement location="${newt-driver-x11.jar}" />
             <pathelement location="${newt-driver-win.jar}" />
             <pathelement location="${newt-driver-osx.jar}" />
+            <pathelement location="${newt-driver-bcm-vc.jar}" />
         </path>
         <path id="newt_all-mobile_atoms.classpath">
             <pathelement location="${newt-core.jar}" />
             <pathelement location="${newt-ogl.jar}" />
+            <pathelement location="${newt-driver-linux.jar}" />
             <pathelement location="${newt-driver-x11.jar}" />
             <pathelement location="${newt-driver-win.jar}" />
+            <pathelement location="${newt-driver-bcm-vc.jar}" />
         </path>
         <path id="newt_all-android_atoms.classpath">
             <pathelement location="${newt-core.jar}" />

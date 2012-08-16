@@ -32,7 +32,7 @@
  * 
  */
 
-package jogamp.newt.driver.broadcom.egl;
+package jogamp.newt.driver.bcm.egl;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
