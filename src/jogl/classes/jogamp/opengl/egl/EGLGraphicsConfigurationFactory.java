@@ -74,6 +74,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
     static VisualIDHolder.VIDComparator EglCfgIDComparator = new VisualIDHolder.VIDComparator(VisualIDHolder.VIDType.EGL_CONFIG);
     static GraphicsConfigurationFactory nativeGraphicsConfigurationFactory = null;
     static GraphicsConfigurationFactory kdeglGraphicsConfigurationFactory = null;
+    static GraphicsConfigurationFactory fallbackGraphicsConfigurationFactory = null;
     
     static void registerFactory() {
         GraphicsConfigurationFactory eglFactory = new EGLGraphicsConfigurationFactory();
@@ -82,13 +83,18 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         final String nwType = NativeWindowFactory.getNativeWindowType(false);
         if(NativeWindowFactory.TYPE_X11 == nwType) {
             nativeGraphicsConfigurationFactory = GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, GLCapabilitiesImmutable.class, eglFactory);
+            if(null != nativeGraphicsConfigurationFactory) {
+                fallbackGraphicsConfigurationFactory = nativeGraphicsConfigurationFactory;
+            } else {
+                fallbackGraphicsConfigurationFactory = GraphicsConfigurationFactory.getFactory(com.jogamp.nativewindow.x11.X11GraphicsDevice.class, CapabilitiesImmutable.class);                
+            }
         } /* else if(NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false)) {
             nativeGraphicsConfigurationFactory = GraphicsConfigurationFactory.registerFactory(javax.media.nativewindow.windows.WindowsGraphicsDevice.class, eglFactory);
         } else if(NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false)) {            
         } */
         
         // become the selector for KD/EGL ..
-        kdeglGraphicsConfigurationFactory = GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.egl.EGLGraphicsDevice.class, GLCapabilitiesImmutable.class, eglFactory);
+        kdeglGraphicsConfigurationFactory = GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.egl.EGLGraphicsDevice.class, GLCapabilitiesImmutable.class, eglFactory);                
     }
     
     static void unregisterFactory() {
@@ -100,6 +106,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         } else if(NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false)) {            
         } */
         nativeGraphicsConfigurationFactory = null;
+        fallbackGraphicsConfigurationFactory = null;
         
         GraphicsConfigurationFactory.registerFactory(com.jogamp.nativewindow.egl.EGLGraphicsDevice.class, GLCapabilitiesImmutable.class, kdeglGraphicsConfigurationFactory);
         kdeglGraphicsConfigurationFactory = null;
@@ -143,8 +150,8 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
                                                     absScreen, nativeVisualID, false);            
         } else {
             // handle non native cases (X11, ..) 
-            if(null == nativeGraphicsConfigurationFactory) {
-                throw new InternalError("Native GraphicsConfigurationFactory is null, but call issued for device: "+absDevice+" of type "+absDevice.getClass().getSimpleName());
+            if(null == fallbackGraphicsConfigurationFactory) {
+                throw new InternalError("Native fallback GraphicsConfigurationFactory is null, but call issued for device: "+absDevice+" of type "+absDevice.getClass().getSimpleName());
             }
             
             if(glCapsChosen.getGLProfile().usesNativeGLES()) {
@@ -165,9 +172,9 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             if(null == cfg) {
                 // fwd to native config factory (only X11 for now)
                 if(DEBUG) {
-                    System.err.println("EGLGraphicsConfigurationFactory.choose..: Delegate to "+nativeGraphicsConfigurationFactory.getClass().getSimpleName());
+                    System.err.println("EGLGraphicsConfigurationFactory.choose..: Delegate to "+fallbackGraphicsConfigurationFactory.getClass().getSimpleName());
                 }
-                cfg = nativeGraphicsConfigurationFactory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, absScreen, nativeVisualID);
+                cfg = fallbackGraphicsConfigurationFactory.chooseGraphicsConfiguration(capsChosen, capsRequested, chooser, absScreen, nativeVisualID);
             }            
         }
         return cfg;
