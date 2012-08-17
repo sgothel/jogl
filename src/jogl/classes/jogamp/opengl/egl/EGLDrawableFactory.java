@@ -541,7 +541,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             throw new GLException("Non pbuffer not yet implemented");
         }
         // PBuffer GLDrawable Creation
-        return new EGLPbufferDrawable(this, target);
+        return new EGLPbufferDrawable(this, getEGLSurface(target));
     }
 
     @Override
