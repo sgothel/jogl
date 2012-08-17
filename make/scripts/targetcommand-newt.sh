@@ -30,7 +30,10 @@ export LD_LIBRARY_PATH=$THISDIR/PVRTrace/:$LD_LIBRARY_PATH
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT
+TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGLDrawable01NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestFBODrawableNEWT
+#TSTCLASS=com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT
 
 # Some Regressions (Panda, Omap4)
 #
@@ -45,8 +48,6 @@ export LD_LIBRARY_PATH=$THISDIR/PVRTrace/:$LD_LIBRARY_PATH
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT2
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedNEWT
-TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestFBODrawableNEWT
-#TSTCLASS=com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestRedSquareES1NEWT
@@ -55,7 +56,6 @@ TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestFBODrawableNEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestRedSquareES2NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT
-#TSTCLASS=com.jogamp.opengl.test.junit.jogl.drawable.TestDrawable01NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestFBOMix2DemosES2NEWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState01NEWT

@@ -234,7 +234,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT2 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitchNEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBODrawableNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBODrawableNEWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
@@ -411,6 +411,8 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBODrawableNEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
 
 #linux:
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDrawable01NEWT $*
 
 # osx:
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*

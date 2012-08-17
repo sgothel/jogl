@@ -143,6 +143,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
             // layered surface -> Offscreen/[FBO|PBuffer]
             final GLCapabilities chosenCapsMod = (GLCapabilities) chosenCaps.cloneMutable();
             chosenCapsMod.setOnscreen(false);
+            chosenCapsMod.setDoubleBuffered(false);
             /* if( isFBOAvailable ) { // FIXME JAU: FBO n/a yet
                 chosenCapsMod.setFBO(true);
             } else */ 
@@ -174,17 +175,21 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
             result = createOnscreenDrawableImpl(target);
         } else {
             // offscreen
+            final GLCapabilitiesImmutable reqCaps = (GLCapabilitiesImmutable)config.getRequestedCapabilities();
             if(DEBUG) {
-                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable, FBO-chosen(-avail)/PBuffer: "+chosenCaps.isFBO()+"("+isFBOAvailable+")/"+chosenCaps.isPBuffer()+": "+target);
+                System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OffScreenDrawable, FBO req / chosen - avail, PBuffer: "+reqCaps.isFBO()+" / "+chosenCaps.isFBO()+" - "+isFBOAvailable+", "+chosenCaps.isPBuffer()+": "+target);
             }
             if( ! ( target instanceof MutableSurface ) ) {
                 throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen: "+target);
             }
-            if( ((GLCapabilitiesImmutable)config.getRequestedCapabilities()).isFBO() && isFBOAvailable ) {
+            if( reqCaps.isFBO() && isFBOAvailable ) {
                 // FIXME JAU: Need to revise passed MutableSurface to work w/ FBO ..
                 final GLDrawableImpl dummyDrawable = createOnscreenDrawableImpl(target);                
                 result = new GLFBODrawableImpl(this, dummyDrawable, target, target.getWidth(), target.getHeight(), 0 /* textureUnit */);
             } else {
+                final GLCapabilities chosenCapsMod = (GLCapabilities) chosenCaps.cloneMutable();
+                chosenCapsMod.setDoubleBuffered(false);
+                config.setChosenCapabilities(chosenCapsMod);
                 result = createOffscreenDrawableImpl(target);
             }
         }
