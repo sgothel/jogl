@@ -266,11 +266,16 @@ public abstract class GLContextImpl extends GLContext {
     if ( !lock.isOwner(Thread.currentThread()) ) {
         throw new GLException("Context not current on current thread "+Thread.currentThread().getName()+": "+this);
     }
+    Throwable drawableContextMadeCurrentException = null;
     final boolean actualRelease = ( inDestruction || lock.getHoldCount() == 1 ) && 0 != contextHandle;
     try {
         if( actualRelease ) {
             if( !inDestruction ) {
-                drawable.contextMadeCurrent(this, false);
+                try {
+                    drawable.contextMadeCurrent(this, false);
+                } catch (Throwable t) {
+                    drawableContextMadeCurrentException = t;
+                }
             }
             releaseImpl();
         }
@@ -285,6 +290,10 @@ public abstract class GLContextImpl extends GLContext {
           System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - "+(actualRelease?"switch":"keep  ")+" - CONTEXT_RELEASE - "+lock);
       }
     }
+    if(null != drawableContextMadeCurrentException) {
+      throw new GLException("GLContext.release(false) during GLDrawableImpl.contextMadeCurrent(this, false)", drawableContextMadeCurrentException);
+    }
+    
   }
   protected abstract void releaseImpl() throws GLException;
 
@@ -300,6 +309,7 @@ public abstract class GLContextImpl extends GLContext {
                 // this would be odd ..
                 throw new GLException("Surface not ready to lock: "+drawable);
           }
+          Throwable drawableContextRealizedException = null;
           try {
               // Must hold the lock around the destroy operation to make sure we
               // don't destroy the context while another thread renders to it.
@@ -320,7 +330,11 @@ public abstract class GLContextImpl extends GLContext {
                       // needs current context to disable debug handler
                       makeCurrent();
                   }
-                  drawable.contextRealized(this, false);
+                  try {
+                      drawable.contextRealized(this, false);
+                  } catch (Throwable t) {
+                      drawableContextRealizedException = t;
+                  }
                   glDebugHandler.enable(false);
                   if(lock.getHoldCount() > 1) {
                       // pending release() after makeCurrent()
@@ -342,6 +356,9 @@ public abstract class GLContextImpl extends GLContext {
               }
           } finally {
               drawable.unlockSurface();
+          }
+          if(null != drawableContextRealizedException) {
+              throw new GLException("GLContext.destroy() during GLDrawableImpl.contextRealized(this, false)", drawableContextRealizedException);
           }
       }
       resetStates();

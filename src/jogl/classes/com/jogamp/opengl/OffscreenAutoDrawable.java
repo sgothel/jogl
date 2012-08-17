@@ -69,12 +69,26 @@ public class OffscreenAutoDrawable extends GLAutoDrawableDelegate {
     public boolean setSize(int newWidth, int newHeight) throws GLException {
         boolean done = false;
         if(drawable instanceof GLFBODrawableImpl) {
+            Throwable tFBO = null;
+            Throwable tGL = null;
             context.makeCurrent();
             try {                        
                 ((GLFBODrawableImpl)drawable).setSize(context.getGL(), newWidth, newHeight);
                 done = true;
+            } catch (Throwable t) {
+                tFBO = t;
             } finally {
-                context.release();
+                try {
+                    context.release();
+                } catch (Throwable t) {
+                    tGL = t;
+                }
+            }
+            if(null != tFBO) {
+                throw new GLException("OffscreenAutoDrawable.setSize(..) GLFBODrawableImpl.setSize(..) exception", tFBO);
+            }
+            if(null != tGL) {
+                throw new GLException("OffscreenAutoDrawable.setSize(..) GLContext.release() exception", tGL);
             }
         }
         if(done) {

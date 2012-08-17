@@ -69,8 +69,12 @@ public class GLFBODrawableImpl extends GLDrawableImpl {
             fbo.bind(gl);
         } else {
             fbo.unbind(gl);
+            final TextureAttachment attachment = samples > 0 ? fbo.getSamplingSink() : (TextureAttachment) fbo.getColorbuffer(0) ;
+            if(null == attachment) {
+                throw new GLException("Null texture colorbuffer, samples "+samples+", "+fbo.toString());
+            }
             gl.glActiveTexture(GL.GL_TEXTURE0 + texUnit);
-            fbo.use(gl, samples > 0 ? fbo.getSamplingSink() : (TextureAttachment) fbo.getColorbuffer(0) );
+            fbo.use(gl, attachment );
             if( samples > 0) {
                 gl.glBindFramebuffer(GL2GL3.GL_READ_FRAMEBUFFER, fbo.getReadFramebuffer());
             }
