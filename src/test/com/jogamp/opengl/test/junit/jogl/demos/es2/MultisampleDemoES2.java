@@ -74,12 +74,15 @@ public class MultisampleDemoES2 implements GLEventListener {
     
     public void init(GLAutoDrawable glad) {
         final GL2ES2 gl = glad.getGL().getGL2ES2();
+                
         System.err.println();
+        System.err.println("req. msaa: "+multisample);
         System.err.println("Requested: " + glad.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities());
-        System.err.println();
+        multisample = multisample & glad.getChosenGLCapabilities().getNumSamples() > 0 ;
         System.err.println("Chosen   : " + glad.getChosenGLCapabilities());
+        System.err.println("has  msaa: "+multisample);
         System.err.println();
-        
+                
         final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, MultisampleDemoES2.class, "shader",
                 "shader/bin", "mgl_default_xxx", true);
         final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, MultisampleDemoES2.class, "shader",

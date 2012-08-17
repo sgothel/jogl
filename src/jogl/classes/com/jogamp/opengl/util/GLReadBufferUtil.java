@@ -116,6 +116,10 @@ public class GLReadBufferUtil {
      * @see #GLReadBufferUtil(boolean, boolean)
      */
     public boolean readPixels(GL gl, boolean flip) {
+        final int glerr0 = gl.glGetError();
+        if(GL.GL_NO_ERROR != glerr0) {
+            System.err.println("Info: GLReadBufferUtil.readPixels: pre-exisiting GL error 0x"+Integer.toHexString(glerr0));
+        }
         final GLDrawable drawable = gl.getContext().getGLReadDrawable();
         final int textureInternalFormat, textureDataFormat, textureDataType;
         final int[] glImplColorReadVals = new int[] { 0, 0 };

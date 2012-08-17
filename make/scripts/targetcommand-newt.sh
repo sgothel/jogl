@@ -8,6 +8,7 @@ export LD_LIBRARY_PATH=$THISDIR/PVRTrace/:$LD_LIBRARY_PATH
 
 #XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode -Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext.TraceSwitch "
 #XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode -Djogl.debug.DebugGL -Djogl.debug.TraceGL"
+#XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode -Djogl.debug.DebugGL"
 #XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode -Djogl.debug.EGL -Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.GLDrawable"
 #XTRA_FLAGS="-Dnewt.debug.Screen"
 #XTRA_FLAGS="-Dnativewindow.debug.GraphicsConfiguration -Dnativewindow.debug.NativeWindow"

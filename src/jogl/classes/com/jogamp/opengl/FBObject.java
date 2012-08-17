@@ -725,7 +725,7 @@ public class FBObject {
         
         glerr = gl.glGetError();
         if(DEBUG && GL.GL_NO_ERROR != glerr) {
-            System.err.println("FBObject.init-preexisting.1 GL Error 0x"+Integer.toHexString(glerr));
+            System.err.println("Info: FBObject.init: pre-existing GL error 0x"+Integer.toHexString(glerr));
         }
         
         this.width = width;
@@ -1741,7 +1741,6 @@ public class FBObject {
                 gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, getWriteFramebuffer());                
             }
 
-            checkNoError(null, gl.glGetError(), "FBObject post-bind"); // throws GLException if error
             bound = true;
             samplesSinkDirty = true;
         }
@@ -1766,7 +1765,6 @@ public class FBObject {
             } else {
                 gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0); // default draw buffer                
             }
-            checkNoError(null, gl.glGetError(), "FBObject post-unbind"); // throws GLException if error
             bound = false;
         }
     }
