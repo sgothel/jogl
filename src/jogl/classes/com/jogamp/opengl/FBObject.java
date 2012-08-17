@@ -59,6 +59,7 @@ import com.jogamp.opengl.FBObject.Attachment.Type;
  */
 public class FBObject {
     protected static final boolean DEBUG = Debug.debug("FBObject");
+    private static final boolean forceMinimumFBOSupport = Debug.isPropertyDefined("jogl.fbo.force.min", true);
     
     /** 
      * Returns <code>true</code> if basic FBO support is available, otherwise <code>false</code>.
@@ -88,15 +89,17 @@ public class FBObject {
      * Full FBO support includes multiple color attachments and multisampling.
      * </p>
      */
-    public static final boolean supportsFullFBO(GL gl) {
-        return gl.isGL3() ||                                                         // GL >= 3.0
-                
-               gl.isExtensionAvailable(GLExtensions.ARB_framebuffer_object) ||       // ARB_framebuffer_object
+    public static final boolean supportsFullFBO(GL gl) {        
+        return !forceMinimumFBOSupport &&
+               ( gl.isGL3() ||                                                         // GL >= 3.0                
+                 gl.isExtensionAvailable(GLExtensions.ARB_framebuffer_object) ||       // ARB_framebuffer_object
                
-               ( gl.isExtensionAvailable(GLExtensions.EXT_framebuffer_object) &&     // All EXT_framebuffer_object*
-                 gl.isExtensionAvailable(GLExtensions.EXT_framebuffer_multisample) &&
-                 gl.isExtensionAvailable(GLExtensions.EXT_framebuffer_blit) &&
-                 gl.isExtensionAvailable(GLExtensions.EXT_packed_depth_stencil) ) ;
+                 ( gl.isExtensionAvailable(GLExtensions.EXT_framebuffer_object) &&     // All EXT_framebuffer_object*
+                   gl.isExtensionAvailable(GLExtensions.EXT_framebuffer_multisample) &&
+                   gl.isExtensionAvailable(GLExtensions.EXT_framebuffer_blit) &&
+                   gl.isExtensionAvailable(GLExtensions.EXT_packed_depth_stencil)
+                 )
+               ) ;               
     }
     
     public static final int getMaxSamples(GL gl) {
@@ -503,6 +506,7 @@ public class FBObject {
 
     private int width, height, samples;
     private int vStatus;
+    private boolean ignoreStatus;
     private int fbName;
     private boolean bound;
 
@@ -635,7 +639,8 @@ public class FBObject {
         this.width = 0;
         this.height = 0;
         this.samples = 0;
-        this.vStatus = -1;        
+        this.vStatus = -1;
+        this.ignoreStatus = false;
         this.fbName = 0;
         this.bound = false;
         
@@ -708,10 +713,15 @@ public class FBObject {
                 System.err.println("FBObject.init-GL_MAX_SAMPLES query GL Error 0x"+Integer.toHexString(glerr));
             }
         }
-        gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, val, 0);
-        maxTextureSize = val[0];
-        gl.glGetIntegerv(GL.GL_MAX_RENDERBUFFER_SIZE, val, 0);
-        this.maxRenderbufferSize = val[0];
+        if(!forceMinimumFBOSupport) {
+            gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, val, 0);
+            maxTextureSize = val[0];
+            gl.glGetIntegerv(GL.GL_MAX_RENDERBUFFER_SIZE, val, 0);
+            maxRenderbufferSize = val[0];
+        } else {
+            maxTextureSize = 2048;
+            maxRenderbufferSize = 2048;
+        }
         
         glerr = gl.glGetError();
         if(DEBUG && GL.GL_NO_ERROR != glerr) {
@@ -827,9 +837,15 @@ public class FBObject {
             init(gl, newWidth, newHeight, newSamples);
             return;
         }
+        
         newSamples = newSamples <= maxSamples ? newSamples : maxSamples; // clamp
         
         if( newWidth !=  width || newHeight !=  height || newSamples != samples ) {
+            if(newWidth > 2 + maxTextureSize  || newHeight> 2 + maxTextureSize ||
+               newWidth > maxRenderbufferSize || newHeight> maxRenderbufferSize  ) {
+                throw new GLException("size "+width+"x"+height+" exceeds on of the maxima [texture "+maxTextureSize+", renderbuffer "+maxRenderbufferSize+"]");
+            }
+        
             if(DEBUG) {
                 System.err.println("FBObject.reset - START - "+this);
             }        
@@ -1065,11 +1081,13 @@ public class FBObject {
         gl.glFramebufferTexture2D(GL.GL_FRAMEBUFFER,
                                   GL.GL_COLOR_ATTACHMENT0 + attachmentPoint,
                                   GL.GL_TEXTURE_2D, texA.getName(), 0);
-        updateStatus(gl);
         
-        if(!isStatusValid()) {
-            detachColorbuffer(gl, attachmentPoint);
-            throw new GLException("attachTexture2D "+texA+" at "+attachmentPoint+" failed "+getStatusString()+", "+this);
+        if(!ignoreStatus) {
+            updateStatus(gl);        
+            if(!isStatusValid()) {
+                detachColorbuffer(gl, attachmentPoint);
+                throw new GLException("attachTexture2D "+texA+" at "+attachmentPoint+" failed "+getStatusString()+", "+this);
+            }
         }
         if(DEBUG) {
             System.err.println("FBObject.attachTexture2D: "+this);
@@ -1144,10 +1162,12 @@ public class FBObject {
                                      GL.GL_COLOR_ATTACHMENT0 + attachmentPoint, 
                                      GL.GL_RENDERBUFFER, colA.getName());
 
-        updateStatus(gl);                
-        if(!isStatusValid()) {
-            detachColorbuffer(gl, attachmentPoint);
-            throw new GLException("attachColorbuffer "+colA+" at "+attachmentPoint+" failed "+getStatusString()+", "+this);
+        if(!ignoreStatus) {
+            updateStatus(gl);
+            if(!isStatusValid()) {
+                detachColorbuffer(gl, attachmentPoint);
+                throw new GLException("attachColorbuffer "+colA+" at "+attachmentPoint+" failed "+getStatusString()+", "+this);
+            }
         }
         if(DEBUG) {
             System.err.println("FBObject.attachColorbuffer: "+this);
@@ -1332,10 +1352,12 @@ public class FBObject {
             gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_STENCIL_ATTACHMENT, GL.GL_RENDERBUFFER, stencil.getName());
         }
         
-        updateStatus(gl);
-        if( !isStatusValid() ) {
-            detachRenderbuffer(gl, atype);
-            throw new GLException("renderbuffer attachment failed: "+this.getStatusString());
+        if(!ignoreStatus) {
+            updateStatus(gl);
+            if( !isStatusValid() ) {
+                detachRenderbuffer(gl, atype);
+                throw new GLException("renderbuffer attachment failed: "+this.getStatusString());
+            }
         }
 
         if(DEBUG) {
@@ -1354,7 +1376,7 @@ public class FBObject {
             throw new IllegalArgumentException("ColorAttachment at "+attachmentPoint+", not attached, "+this);            
         }
         if(DEBUG) {
-            System.err.println("FBObject.detachAll: "+this);
+            System.err.println("FBObject.detachColorbuffer: [attachmentPoint "+attachmentPoint+"]: "+this);
         }
     }
     
@@ -1557,17 +1579,27 @@ public class FBObject {
     }
     
     private final void detachAllImpl(GL gl, boolean detachNonColorbuffer, boolean recreate) {
-        for(int i=0; i<maxColorAttachments; i++) {
-            detachColorbufferImpl(gl, i, recreate);
+        ignoreStatus = recreate; // ignore status on single calls only if recreate -> reset
+        try {
+            for(int i=0; i<maxColorAttachments; i++) {
+                detachColorbufferImpl(gl, i, recreate);
+            }
+            if( !recreate && colorAttachmentCount>0 ) {
+                throw new InternalError("Non zero ColorAttachments "+this);
+            }
+            
+            if(detachNonColorbuffer) {
+                detachRenderbufferImpl(gl, Attachment.Type.DEPTH_STENCIL, recreate);
+            }
+            if(ignoreStatus) { // post validate
+                updateStatus(gl);        
+                if(!isStatusValid()) {
+                    throw new GLException("detachAllImpl failed "+getStatusString()+", "+this);
+                }
+            }
+        } finally {
+            ignoreStatus = false;
         }
-        if( !recreate && colorAttachmentCount>0 ) {
-            throw new InternalError("Non zero ColorAttachments "+this);
-        }
-        
-        if(detachNonColorbuffer) {
-            detachRenderbufferImpl(gl, Attachment.Type.DEPTH_STENCIL, recreate);
-        }
-        
         if(DEBUG) {
             System.err.println("FBObject.detachAll: [resetNonColorbuffer "+detachNonColorbuffer+", recreate "+recreate+"]: "+this);
         }
@@ -1806,7 +1838,7 @@ public class FBObject {
      * @throws IllegalArgumentException  
      */
     public final void use(GL gl, TextureAttachment ta) throws IllegalArgumentException {
-        if(null == ta) { throw new IllegalArgumentException("null TextureAttachment"); }
+        if(null == ta) { throw new IllegalArgumentException("null TextureAttachment, this: "+toString()); }
         if(samples > 0 && samplesSinkTexture == ta) {
             syncSamplingBuffer(gl);
         } else {
