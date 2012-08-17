@@ -471,10 +471,17 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         AbstractGraphicsConfiguration aConfig = surface.getGraphicsConfiguration();
         AbstractGraphicsDevice aDevice = aConfig.getScreen().getDevice();
         if( aDevice instanceof EGLGraphicsDevice && aConfig instanceof EGLGraphicsConfiguration ) {
+            if(surface instanceof WrappedSurface) {
+                // already wrapped surface - no wrapped recursion
+                if(DEBUG) {
+                    System.err.println(getThreadName() + ": getEGLSurface - already wrapped surface - use as-is: "+surface);
+                }
+                return surface;
+            }
             if(EGLDrawable.isValidEGLSurface((EGLGraphicsDevice)aDevice, surface)) {                 
                 // already in native EGL format
                 if(DEBUG) {
-                    System.err.println(getThreadName() + ": getEGLSurface - already valid EGL surface - use as-is: "+aConfig);
+                    System.err.println(getThreadName() + ": getEGLSurface - already valid EGL surface - use as-is: "+surface);
                 }
                 return surface;
             }
