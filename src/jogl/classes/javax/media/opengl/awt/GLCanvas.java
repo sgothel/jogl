@@ -146,6 +146,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   private final GLDrawableHelper helper = new GLDrawableHelper();
   private AWTGraphicsConfiguration awtConfig;
   private volatile GLDrawable drawable; // volatile: avoid locking for read-only access
+  private volatile JAWTWindow jawtWindow; // the JAWTWindow presentation of this AWT Canvas, bound to the 'drawable' lifecycle
   private GLContextImpl context;
   private volatile boolean sendReshape = false; // volatile: maybe written by EDT w/o locking
 
@@ -268,9 +269,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public final boolean isOffscreenLayerSurfaceEnabled() {
-      final GLDrawable _drawable = drawable;
-      if(null != _drawable) {
-          return ((JAWTWindow)_drawable.getNativeSurface()).isOffscreenLayerSurfaceEnabled();
+      final JAWTWindow _jawtWindow = jawtWindow;
+      if(null != _jawtWindow) {
+          return _jawtWindow.isOffscreenLayerSurfaceEnabled();
       }
       return false;
   }
@@ -539,7 +540,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   private void createDrawableAndContext() {
     // no lock required, since this resource ain't available yet
-    final JAWTWindow jawtWindow = (JAWTWindow) NativeWindowFactory.getNativeWindow(this, awtConfig);
+    jawtWindow = (JAWTWindow) NativeWindowFactory.getNativeWindow(this, awtConfig);
     jawtWindow.setShallUseOffscreenLayer(shallUseOffscreenLayer);
     jawtWindow.lockSurface();
     try {
@@ -811,11 +812,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     public void run() {
       context=null;
       if(null!=drawable) {
-          final JAWTWindow jawtWindow = (JAWTWindow)drawable.getNativeSurface();
           drawable.setRealized(false);
           drawable=null;
           if(null!=jawtWindow) {
             jawtWindow.destroy();
+            jawtWindow=null;
           }
       }
 

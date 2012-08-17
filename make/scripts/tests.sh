@@ -274,7 +274,7 @@ function testawtswt() {
 #testawt javax.media.opengl.awt.GLCanvas $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug551AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn $*
+testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestAWTCloseX11DisplayBug565 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextNewtAWTBug523 $*
@@ -411,8 +411,6 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
 
 #linux:
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGPUMemSec01NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDrawable01NEWT $*
 
 # osx:
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*

@@ -18,7 +18,7 @@ XTRA_FLAGS="-Dnewt.test.Screen.disableScreenMode -Djogl.debug.EGL -Dnativewindow
 
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT
 #TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT
-TSTCLASS=com.jogamp.opengl.test.junit.jogl.acore.TestGLDrawable01AWT
+TSTCLASS=com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn
  
  mkdir -p $THISDIR/projects-cross 
 
