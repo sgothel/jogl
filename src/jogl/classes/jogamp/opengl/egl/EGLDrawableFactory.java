@@ -103,7 +103,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         EGLGraphicsConfigurationFactory.registerFactory();
 
         // Check for other underlying stuff ..
-        if(NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(true))) {
+        if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true)) {
             try {
                 ReflectionUtil.createInstance("jogamp.opengl.x11.glx.X11GLXGraphicsConfigurationFactory", EGLDrawableFactory.class.getClassLoader());
             } catch (JogampRuntimeException jre) { /* n/a .. */ }

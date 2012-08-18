@@ -83,7 +83,9 @@ public class SWTAccessor {
     static {
         Field f = null;
         
-        if(NativeWindowFactory.TYPE_MACOSX != NativeWindowFactory.getNativeWindowType(false) ) {
+        final String nwt = NativeWindowFactory.getNativeWindowType(false);
+
+        if(NativeWindowFactory.TYPE_MACOSX != nwt ) {
             try {
                 f = Control.class.getField(str_handle);
             } catch (Exception ex) {
@@ -124,7 +126,7 @@ public class SWTAccessor {
         Class<?> c=null;                
         Method m1=null, m2=null, m3=null, m4=null, m5=null;
         Class<?> handleType = swt_uses_long_handles  ? long.class : int.class ;
-        if( NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false) ) {
+        if( NativeWindowFactory.TYPE_X11 == nwt ) {
             try {
                 c = ReflectionUtil.getClass(str_OS_gtk_class, false, SWTAccessor.class.getClassLoader());
                 m1 = c.getDeclaredMethod(str_gtk_widget_realize, handleType);        
@@ -210,33 +212,36 @@ public class SWTAccessor {
             long displayHandle = callStaticMethodL2L(OS_gdk_x11_drawable_get_xdisplay, widgedHandle);
             return new X11GraphicsDevice(displayHandle, AbstractGraphicsDevice.DEFAULT_UNIT, false);
         }
-        if( NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false) ) {
+        final String nwt = NativeWindowFactory.getNativeWindowType(false);
+        if( NativeWindowFactory.TYPE_WINDOWS == nwt ) {
             return new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
         }
-        if( NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false) ) {
+        if( NativeWindowFactory.TYPE_MACOSX == nwt ) {
             return new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
         }
-        throw new UnsupportedOperationException("n/a for this windowing system: "+NativeWindowFactory.getNativeWindowType(false));
+        throw new UnsupportedOperationException("n/a for this windowing system: "+nwt);
     }
     public static AbstractGraphicsScreen getScreen(AbstractGraphicsDevice device, int screen) {
         if( null != OS_gtk_class ) {
             return new X11GraphicsScreen((X11GraphicsDevice)device, screen);
-        } 
-        if( NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false) ||
-            NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false) ) {
+        }
+        final String nwt = NativeWindowFactory.getNativeWindowType(false);
+        if( NativeWindowFactory.TYPE_WINDOWS == nwt ||
+            NativeWindowFactory.TYPE_MACOSX == nwt ) {
             return new DefaultGraphicsScreen(device, screen);
         }
-        throw new UnsupportedOperationException("n/a for this windowing system: "+NativeWindowFactory.getNativeWindowType(false));        
+        throw new UnsupportedOperationException("n/a for this windowing system: "+nwt);        
     }
     public static int getNativeVisualID(AbstractGraphicsDevice device, long windowHandle) {
         if( null != OS_gtk_class ) {
             return X11Lib.GetVisualIDFromWindow(device.getHandle(), windowHandle);
         }
-        if( NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false) ||
-            NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false) ) {
+        final String nwt = NativeWindowFactory.getNativeWindowType(false);
+        if( NativeWindowFactory.TYPE_WINDOWS == nwt ||
+            NativeWindowFactory.TYPE_MACOSX == nwt ) {
             return VisualIDHolder.VID_UNDEFINED;
         }
-        throw new UnsupportedOperationException("n/a for this windowing system: "+NativeWindowFactory.getNativeWindowType(false));        
+        throw new UnsupportedOperationException("n/a for this windowing system: "+nwt);        
     }
     
     public static long getWindowHandle(Control swtControl) {
@@ -245,11 +250,12 @@ public class SWTAccessor {
             long widgedHandle = callStaticMethodL2L(OS_GTK_WIDGET_WINDOW, handle);
             return callStaticMethodL2L(OS_gdk_x11_drawable_get_xid, widgedHandle);
         }
-        if( NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false) ||
-            NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false) ) {
+        final String nwt = NativeWindowFactory.getNativeWindowType(false);
+        if( NativeWindowFactory.TYPE_WINDOWS == nwt ||
+            NativeWindowFactory.TYPE_MACOSX == nwt ) {
             return handle;
         }
-        throw new UnsupportedOperationException("n/a for this windowing system: "+NativeWindowFactory.getNativeWindowType(false));
+        throw new UnsupportedOperationException("n/a for this windowing system: "+nwt);
     }
     
     public static long newGC(final Control swtControl, final GCData gcData) {

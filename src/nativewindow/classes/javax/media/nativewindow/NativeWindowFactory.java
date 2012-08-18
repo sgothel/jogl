@@ -56,33 +56,34 @@ import com.jogamp.common.util.ReflectionUtil;
 public abstract class NativeWindowFactory {
     protected static final boolean DEBUG;
 
-    /** OpenKODE/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}*/
-    public static final String TYPE_EGL = "jogamp.newt.driver.kd";
+    /** OpenKODE/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}.*/
+    public static final String TYPE_EGL = "jogamp.newt.driver.kd".intern();
 
-    /** Microsoft Windows type, as retrieved with {@link #getNativeWindowType(boolean)} */
-    public static final String TYPE_WINDOWS = "jogamp.newt.driver.windows";
+    /** Microsoft Windows type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
+    public static final String TYPE_WINDOWS = "jogamp.newt.driver.windows".intern();
 
-    /** X11 type, as retrieved with {@link #getNativeWindowType(boolean)} */
-    public static final String TYPE_X11 = "jogamp.newt.driver.x11";
+    /** X11 type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
+    public static final String TYPE_X11 = "jogamp.newt.driver.x11".intern();
 
-    /** Android/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}*/
-    public static final String TYPE_ANDROID = "jogamp.newt.driver.android";
+    /** Android/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}.*/
+    public static final String TYPE_ANDROID = "jogamp.newt.driver.android".intern();
 
-    /** Mac OS X type, as retrieved with {@link #getNativeWindowType(boolean)} */
-    public static final String TYPE_MACOSX = "jogamp.newt.driver.macosx";
+    /** Mac OS X type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
+    public static final String TYPE_MACOSX = "jogamp.newt.driver.macosx".intern();
 
-    /** Generic AWT type, as retrieved with {@link #getNativeWindowType(boolean)} */
-    public static final String TYPE_AWT = "jogamp.newt.driver.awt";
+    /** Generic AWT type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
+    public static final String TYPE_AWT = "jogamp.newt.driver.awt".intern();
 
-    /** Generic DEFAULT type, where platform implementation don't care, as retrieved with {@link #getNativeWindowType(boolean)} */
-    public static final String TYPE_DEFAULT = "default";
+    /** Generic DEFAULT type, where platform implementation don't care, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
+    public static final String TYPE_DEFAULT = "default".intern();
 
+    private static final String nativeWindowingTypePure;   // canonical String via String.intern()
+    private static final String nativeWindowingTypeCustom; // canonical String via String.intern()
+    
     private static NativeWindowFactory defaultFactory;
     private static Map<Class<?>, NativeWindowFactory> registeredFactories;
     
     private static Class<?> nativeWindowClass;
-    private static String nativeWindowingTypePure;
-    private static String nativeWindowingTypeCustom;
     private static boolean isAWTAvailable;
     
     private static final String JAWTUtilClassName = "jogamp.nativewindow.jawt.JAWTUtil" ;
@@ -133,17 +134,26 @@ public abstract class NativeWindowFactory {
             System.err.println(Thread.currentThread().getName()+" - Info: NativeWindowFactory.<init>");
             // Thread.dumpStack();
         }
+        
+        // Gather the windowing TK first
+        nativeWindowingTypePure = _getNativeWindowingType();
+        final String tmp = Debug.getProperty("nativewindow.ws.name", true);
+        if(null==tmp || tmp.length()==0) {
+            nativeWindowingTypeCustom = nativeWindowingTypePure;
+        } else {
+            nativeWindowingTypeCustom = tmp.intern(); // canonical representation
+        }
     }
 
     static boolean initialized = false;
 
     private static void initSingletonNativeImpl(final ClassLoader cl) {
         final String clazzName;
-        if( TYPE_X11.equals(nativeWindowingTypePure) ) {
+        if( TYPE_X11 == nativeWindowingTypePure ) {
             clazzName = X11UtilClassName;
-        } else if( TYPE_WINDOWS.equals(nativeWindowingTypePure) ) {
+        } else if( TYPE_WINDOWS == nativeWindowingTypePure ) {
             clazzName = GDIClassName;
-        } else if( TYPE_MACOSX.equals(nativeWindowingTypePure) ) {
+        } else if( TYPE_MACOSX == nativeWindowingTypePure ) {
             clazzName = OSXUtilClassName;
         } else {
             clazzName = null;
@@ -171,15 +181,6 @@ public abstract class NativeWindowFactory {
             }
 
             final ClassLoader cl = NativeWindowFactory.class.getClassLoader();
-
-            // Gather the windowing OS first
-            nativeWindowingTypePure = _getNativeWindowingType();
-            String tmp = Debug.getProperty("nativewindow.ws.name", true);
-            if(null==tmp || tmp.length()==0) {
-                nativeWindowingTypeCustom = nativeWindowingTypePure;
-            } else {
-                nativeWindowingTypeCustom = tmp;
-            }
 
             isAWTAvailable = false; // may be set to true below
 
@@ -293,7 +294,8 @@ public abstract class NativeWindowFactory {
 
     /**
      * @param useCustom if false return the native value, if true return a custom value if set, otherwise fallback to the native value.
-     * @return a define native window type, like {@link #TYPE_X11}, ..
+     * @return the native window type, e.g. {@link #TYPE_X11}, which is canonical via {@link String#intern()}. 
+     *        Hence {@link String#equals(Object)} and <code>==</code> produce the same result.
      */
     public static String getNativeWindowType(boolean useCustom) {
         return useCustom?nativeWindowingTypeCustom:nativeWindowingTypePure;
@@ -301,13 +303,13 @@ public abstract class NativeWindowFactory {
 
     /** Don't know if we shall add this factory here .. 
     public static AbstractGraphicsDevice createGraphicsDevice(String type, String connection, int unitID, long handle, ToolkitLock locker) {
-        if(type.equals(TYPE_EGL)) {
+        if(TYPE_EGL == type) {
             return new
-        } else if(type.equals(TYPE_X11)) {
-        } else if(type.equals(TYPE_WINDOWS)) {
-        } else if(type.equals(TYPE_MACOSX)) {
-        } else if(type.equals(TYPE_AWT)) {
-        } else if(type.equals(TYPE_DEFAULT)) {
+        } else if(TYPE_X11 == type) {
+        } else if(TYPE_WINDOWS == type) {
+        } else if(TYPE_MACOSX == type)) {
+        } else if(TYPE_AWT == type) {
+        } else if(TYPE_DEFAULT == type) {
         }
     } */
 

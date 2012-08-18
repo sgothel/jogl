@@ -89,8 +89,7 @@ public class ThreadingImpl {
                         // problems.
                         hasAWT = GLProfile.isAWTAvailable();
 
-                        String osType = NativeWindowFactory.getNativeWindowType(false);
-                        _isX11 = NativeWindowFactory.TYPE_X11.equals(osType);
+                        _isX11 = NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false);
 
                         // default setting
                         singleThreaded = true;

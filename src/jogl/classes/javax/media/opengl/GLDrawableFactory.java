@@ -123,16 +123,16 @@ public abstract class GLDrawableFactory {
   private static final void initSingletonImpl() {
     registerFactoryShutdownHook();
     
-    final String nativeOSType = NativeWindowFactory.getNativeWindowType(true);
+    final String nwt = NativeWindowFactory.getNativeWindowType(true);
     GLDrawableFactory tmp = null;
     String factoryClassName = Debug.getProperty("jogl.gldrawablefactory.class.name", true);
     ClassLoader cl = GLDrawableFactory.class.getClassLoader();
     if (null == factoryClassName) {
-        if ( nativeOSType.equals(NativeWindowFactory.TYPE_X11) ) {
+        if ( nwt == NativeWindowFactory.TYPE_X11 ) {
           factoryClassName = "jogamp.opengl.x11.glx.X11GLXDrawableFactory";
-        } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_WINDOWS) ) {
+        } else if ( nwt == NativeWindowFactory.TYPE_WINDOWS ) {
           factoryClassName = "jogamp.opengl.windows.wgl.WindowsWGLDrawableFactory";
-        } else if ( nativeOSType.equals(NativeWindowFactory.TYPE_MACOSX) ) {
+        } else if ( nwt == NativeWindowFactory.TYPE_MACOSX ) {
             if(ReflectionUtil.isClassAvailable(macosxFactoryClassNameAWTCGL, cl)) {
                 factoryClassName = macosxFactoryClassNameAWTCGL;
             } else {
@@ -141,19 +141,19 @@ public abstract class GLDrawableFactory {
         } else {
           // may use egl*Factory ..
           if (GLProfile.DEBUG) {
-              System.err.println("GLDrawableFactory.static - No native OS Factory for: "+nativeOSType+"; May use EGLDrawableFactory, if available." );
+              System.err.println("GLDrawableFactory.static - No native Windowing Factory for: "+nwt+"; May use EGLDrawableFactory, if available." );
           }
         }
     }
     if (null != factoryClassName) {
       if (GLProfile.DEBUG) {
-          System.err.println("GLDrawableFactory.static - Native OS Factory for: "+nativeOSType+": "+factoryClassName);
+          System.err.println("GLDrawableFactory.static - Native OS Factory for: "+nwt+": "+factoryClassName);
       }
       try {
           tmp = (GLDrawableFactory) ReflectionUtil.createInstance(factoryClassName, cl);
       } catch (JogampRuntimeException jre) { 
           if (GLProfile.DEBUG) {
-              System.err.println("Info: GLDrawableFactory.static - Native Platform: "+nativeOSType+" - not available: "+factoryClassName);
+              System.err.println("Info: GLDrawableFactory.static - Native Platform: "+nwt+" - not available: "+factoryClassName);
               jre.printStackTrace();
           }
       }

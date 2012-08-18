@@ -129,7 +129,7 @@ public abstract class GraphicsConfigurationFactory {
             // well as X11GraphicsDevices in non-AWT situations)
             registerFactory(defaultDeviceCapsType.deviceType, defaultDeviceCapsType.capsType, new DefaultGraphicsConfigurationFactoryImpl());
             
-            if (NativeWindowFactory.TYPE_X11.equals(NativeWindowFactory.getNativeWindowType(true))) {
+            if (NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true)) {
                 try {
                     ReflectionUtil.callStaticMethod("jogamp.nativewindow.x11.X11GraphicsConfigurationFactory", 
                                                     "registerFactory", null, null, GraphicsConfigurationFactory.class.getClassLoader());                

@@ -60,7 +60,7 @@ public class JAWTJNILibLoader extends NWJNILibLoader {
         // ensure references from jogl_awt shared object
         // will succeed since JAWT shared object isn't in
         // default library path
-        if ( ! NativeWindowFactory.TYPE_MACOSX.equals( NativeWindowFactory.getNativeWindowType(false) ) ) {
+        if ( NativeWindowFactory.TYPE_MACOSX != NativeWindowFactory.getNativeWindowType(false) ) {
             try {
                 loadLibrary("jawt", null, true, JAWTJNILibLoader.class.getClassLoader());
             } catch (Throwable t) {

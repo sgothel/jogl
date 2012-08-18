@@ -228,7 +228,7 @@ public class EGLDisplayUtil {
      */
     public static EGLGraphicsDevice eglCreateEGLGraphicsDevice(NativeSurface surface)  {
         final long nativeDisplayID;
-        if( NativeWindowFactory.TYPE_WINDOWS.equals(NativeWindowFactory.getNativeWindowType(false)) ) {
+        if( NativeWindowFactory.TYPE_WINDOWS == NativeWindowFactory.getNativeWindowType(false) ) {
             nativeDisplayID = surface.getSurfaceHandle(); // don't even ask ..
         } else {
             nativeDisplayID = surface.getDisplayHandle(); // 0 == EGL.EGL_DEFAULT_DISPLAY

@@ -1089,7 +1089,7 @@ public class Texture {
         // Prefer GL_ARB_texture_rectangle on ATI hardware on Mac OS X
         // due to software fallbacks
 
-        if (NativeWindowFactory.TYPE_MACOSX.equals(NativeWindowFactory.getNativeWindowType(false))) {
+        if (NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false)) {
             String vendor = gl.glGetString(GL.GL_VENDOR);
             if (vendor != null && vendor.startsWith("ATI")) {
                 return true;
