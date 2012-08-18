@@ -150,8 +150,6 @@ typedef struct {
 } DISPMANX_CLAMP_T;
 
 
-typedef uint32_t DISPMANX_ELEMENT_HANDLE_T;
-
 typedef struct {
  DISPMANX_ELEMENT_HANDLE_T element;
  int width;   /* This is necessary because dispmanx elements are not queriable. */
