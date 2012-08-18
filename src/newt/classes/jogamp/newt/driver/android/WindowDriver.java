@@ -59,9 +59,9 @@ import android.view.inputmethod.InputMethodManager;
 import android.view.SurfaceView;
 import android.view.View;
 
-public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {    
+public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {    
     static {
-        AndroidDisplay.initSingleton();
+        DisplayDriver.initSingleton();
     }
 
     public static CapabilitiesImmutable fixCaps(boolean matchFormatPrecise, int format, CapabilitiesImmutable rCaps) {
@@ -142,11 +142,11 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
 
         @Override
         public boolean onTouch(View v, android.view.MotionEvent event) {
-            final com.jogamp.newt.event.MouseEvent[] newtEvents = AndroidNewtEventFactory.createMouseEvents(event, AndroidWindow.this);
+            final com.jogamp.newt.event.MouseEvent[] newtEvents = AndroidNewtEventFactory.createMouseEvents(event, WindowDriver.this);
             if(null != newtEvents) {
                 focusChanged(false, true);
                 for(int i=0; i<newtEvents.length; i++) {
-                    AndroidWindow.this.enqueueEvent(false, newtEvents[i]);
+                    WindowDriver.this.enqueueEvent(false, newtEvents[i]);
                 }
                 try { Thread.sleep((long) (1000.0F/30.0F)); }
                 catch(InterruptedException e) { }
@@ -157,10 +157,10 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
 
         @Override
         public boolean onKey(View v, int keyCode, android.view.KeyEvent event) {
-            final com.jogamp.newt.event.KeyEvent[] newtEvents = AndroidNewtEventFactory.createKeyEvents(keyCode, event, AndroidWindow.this);
+            final com.jogamp.newt.event.KeyEvent[] newtEvents = AndroidNewtEventFactory.createKeyEvents(keyCode, event, WindowDriver.this);
             if(null != newtEvents) {
                 for(int i=0; i<newtEvents.length; i++) {
-                    AndroidWindow.this.enqueueEvent(false, newtEvents[i]);
+                    WindowDriver.this.enqueueEvent(false, newtEvents[i]);
                 }
                 return true;
             }
@@ -169,7 +169,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         
         @Override
         public void onFocusChange(View v, boolean hasFocus) {
-            AndroidWindow.this.focusChanged(false, hasFocus);
+            WindowDriver.this.focusChanged(false, hasFocus);
         }
         
     }
@@ -178,7 +178,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         return new Class<?>[] { Context.class } ;
     }
     
-    public AndroidWindow() {
+    public WindowDriver() {
         reset();
     }
 
@@ -212,7 +212,7 @@ public class AndroidWindow extends jogamp.newt.WindowImpl implements Callback2 {
         androidView.setFocusableInTouchMode(true);
         
         final SurfaceHolder sh = androidView.getHolder();
-        sh.addCallback(AndroidWindow.this); 
+        sh.addCallback(WindowDriver.this); 
         sh.setFormat(getFormat(getRequestedCapabilities()));
         
         // default size -> TBD ! 

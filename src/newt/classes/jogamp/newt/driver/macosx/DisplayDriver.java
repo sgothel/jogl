@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2012 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -41,14 +42,14 @@ import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.NEWTJNILibLoader;
 
-public class MacDisplay extends DisplayImpl {
+public class DisplayDriver extends DisplayImpl {
     static {
         NEWTJNILibLoader.loadNEWT();
 
         if(!initNSApplication0()) {
             throw new NativeWindowException("Failed to initialize native Application hook");
         }
-        if(!MacWindow.initIDs0()) {
+        if(!WindowDriver.initIDs0()) {
             throw new NativeWindowException("Failed to initialize jmethodIDs");
         }
         if(DEBUG) {
@@ -60,7 +61,7 @@ public class MacDisplay extends DisplayImpl {
         // just exist to ensure static init has been run
     }
     
-    public MacDisplay() {
+    public DisplayDriver() {
     }
 
     protected void dispatchMessagesNative() {

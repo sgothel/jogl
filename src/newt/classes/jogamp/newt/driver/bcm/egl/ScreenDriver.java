@@ -34,52 +34,42 @@
 
 package jogamp.newt.driver.bcm.egl;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.DefaultGraphicsScreen;
+import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.Point;
 
-import jogamp.newt.NEWTJNILibLoader;
-import jogamp.opengl.egl.EGL;
-
-import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
-
-public class Display extends jogamp.newt.DisplayImpl {
+public class ScreenDriver extends jogamp.newt.ScreenImpl {
 
     static {
-        NEWTJNILibLoader.loadNEWT();
-
-        if (!Window.initIDs()) {
-            throw new NativeWindowException("Failed to initialize BCEGL Window jmethodIDs");
-        }
-    }
-
-    public static void initSingleton() {
-        // just exist to ensure static init has been run
+        DisplayDriver.initSingleton();
     }
 
 
-    public Display() {
+    public ScreenDriver() {
     }
 
     protected void createNativeImpl() {
-        final long handle = CreateDisplay(Screen.fixedWidth, Screen.fixedHeight);
-        if (handle == EGL.EGL_NO_DISPLAY) {
-            throw new NativeWindowException("BC EGL CreateDisplay failed");
-        }
-        aDevice = new EGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, handle, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT, null);
+        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
     }
 
-    protected void closeNativeImpl() {
-        if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
-            DestroyDisplay(aDevice.getHandle());
-        }
-    }
+    protected void closeNativeImpl() { }
 
-    protected void dispatchMessagesNative() {
-        // n/a .. DispatchMessages();
+    protected int validateScreenIndex(int idx) {
+        return 0; // only one screen available 
     }
+     
+    protected void getVirtualScreenOriginAndSize(Point virtualOrigin, Dimension virtualSize) {
+        virtualOrigin.setX(0);
+        virtualOrigin.setY(0);
+        virtualSize.setWidth(fixedWidth); // FIXME
+        virtualSize.setHeight(fixedHeight); // FIXME
+    }
+    
+    //----------------------------------------------------------------------
+    // Internals only
+    //
 
-    private native long CreateDisplay(int width, int height);
-    private native void DestroyDisplay(long dpy);
-    private native void DispatchMessages();
+    static final int fixedWidth = 1920;  // FIXME
+    static final int fixedHeight = 1080; // FIXME
 }
 

@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
+ * Copyright (c) 2012 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -32,42 +32,54 @@
  * 
  */
 
-package jogamp.newt.driver.awt;
+package jogamp.newt.driver.bcm.egl;
 
-import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
-import com.jogamp.newt.NewtFactory;
-import com.jogamp.newt.util.EDTUtil;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeWindowException;
 
-import jogamp.newt.DisplayImpl;
+import jogamp.newt.NEWTJNILibLoader;
+import jogamp.opengl.egl.EGL;
 
-public class AWTDisplay extends DisplayImpl {
-    public AWTDisplay() {
+import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+
+public class DisplayDriver extends jogamp.newt.DisplayImpl {
+
+    static {
+        NEWTJNILibLoader.loadNEWT();
+
+        if (!WindowDriver.initIDs()) {
+            throw new NativeWindowException("Failed to initialize BCEGL Window jmethodIDs");
+        }
+    }
+
+    public static void initSingleton() {
+        // just exist to ensure static init has been run
+    }
+
+
+    public DisplayDriver() {
     }
 
     protected void createNativeImpl() {
-        aDevice = AWTGraphicsDevice.createDefault();
-    }
-
-    protected void setAWTGraphicsDevice(AWTGraphicsDevice d) {
-        aDevice = d;
-    }
-
-    protected void closeNativeImpl() { }
-
-    @Override
-    protected EDTUtil createEDTUtil() {
-        final EDTUtil def;
-        if(NewtFactory.useEDT()) {
-            def = AWTEDTUtil.getSingleton();
-            if(DEBUG) {
-                System.err.println("AWTDisplay.createNative("+getFQName()+") Create EDTUtil: "+def.getClass().getName());
-            }
-        } else {
-            def = null;
+        final long handle = CreateDisplay(ScreenDriver.fixedWidth, ScreenDriver.fixedHeight);
+        if (handle == EGL.EGL_NO_DISPLAY) {
+            throw new NativeWindowException("BC EGL CreateDisplay failed");
         }
-        return def;
+        aDevice = new EGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, handle, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT, null);
     }
 
-    protected void dispatchMessagesNative() { /* nop */ }
+    protected void closeNativeImpl() {
+        if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
+            DestroyDisplay(aDevice.getHandle());
+        }
+    }
+
+    protected void dispatchMessagesNative() {
+        // n/a .. DispatchMessages();
+    }
+
+    private native long CreateDisplay(int width, int height);
+    private native void DestroyDisplay(long dpy);
+    private native void DispatchMessages();
 }
 

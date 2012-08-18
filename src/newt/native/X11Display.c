@@ -34,7 +34,7 @@ jclass X11NewtWindowClazz = NULL;
 jmethodID insetsChangedID = NULL;
 jmethodID visibleChangedID = NULL;
 
-static const char * const ClazzNameX11NewtWindow = "jogamp/newt/driver/x11/X11Window";
+static const char * const ClazzNameX11NewtWindow = "jogamp/newt/driver/x11/WindowDriver";
 
 static jmethodID displayCompletedID = NULL;
 
@@ -264,11 +264,11 @@ static jint X11InputState2NewtModifiers(unsigned int xstate) {
  */
 
 /*
- * Class:     jogamp_newt_driver_x11_X11Display
+ * Class:     jogamp_newt_driver_x11_DisplayDriver
  * Method:    initIDs
  * Signature: (Z)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Display_initIDs0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
   (JNIEnv *env, jclass clazz, jboolean debug)
 {
     jclass c;
@@ -281,12 +281,12 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Display_initIDs0
     if(NULL==X11NewtWindowClazz) {
         c = (*env)->FindClass(env, ClazzNameX11NewtWindow);
         if(NULL==c) {
-            NewtCommon_FatalError(env, "NEWT X11Window: can't find %s", ClazzNameX11NewtWindow);
+            NewtCommon_FatalError(env, "NEWT X11Display: can't find %s", ClazzNameX11NewtWindow);
         }
         X11NewtWindowClazz = (jclass)(*env)->NewGlobalRef(env, c);
         (*env)->DeleteLocalRef(env, c);
         if(NULL==X11NewtWindowClazz) {
-            NewtCommon_FatalError(env, "NEWT X11Window: can't use %s", ClazzNameX11NewtWindow);
+            NewtCommon_FatalError(env, "NEWT X11Display: can't use %s", ClazzNameX11NewtWindow);
         }
     }
 
@@ -331,11 +331,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Display_initIDs0
 }
 
 /*
- * Class:     jogamp_newt_driver_x11_X11Display
+ * Class:     jogamp_newt_driver_x11_DisplayDriver
  * Method:    CompleteDisplay
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_CompleteDisplay0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_CompleteDisplay0
   (JNIEnv *env, jobject obj, jlong display)
 {
     Display * dpy = (Display *)(intptr_t)display;
@@ -366,11 +366,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_CompleteDisplay0
 }
 
 /*
- * Class:     jogamp_newt_driver_x11_X11Display
+ * Class:     jogamp_newt_driver_x11_DisplayDriver
  * Method:    DisplayRelease0
  * Signature: (JJJ)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DisplayRelease0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DisplayRelease0
   (JNIEnv *env, jobject obj, jlong display, jlong javaObjectAtom, jlong windowDeleteAtom)
 {
     Display * dpy = (Display *)(intptr_t)display;
@@ -390,11 +390,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DisplayRelease0
 }
 
 /*
- * Class:     jogamp_newt_driver_x11_X11Display
+ * Class:     jogamp_newt_driver_x11_DisplayDriver
  * Method:    DispatchMessages
  * Signature: (JIJJ)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessages0
   (JNIEnv *env, jobject obj, jlong display, jlong javaObjectAtom, jlong windowDeleteAtom)
 {
     Display * dpy = (Display *) (intptr_t) display;

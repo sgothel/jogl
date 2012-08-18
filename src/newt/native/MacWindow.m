@@ -33,7 +33,7 @@
 
 #import <inttypes.h>
 
-#import "jogamp_newt_driver_macosx_MacWindow.h"
+#import "jogamp_newt_driver_macosx_WindowDriver.h"
 #import "NewtMacWindow.h"
 
 #import "MouseEvent.h"
@@ -155,11 +155,11 @@ NS_ENDHANDLER
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacDisplay
+ * Class:     jogamp_newt_driver_macosx_DisplayDriver
  * Method:    initIDs
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacDisplay_initNSApplication0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_initNSApplication0
   (JNIEnv *env, jclass clazz)
 {
     static int initialized = 0;
@@ -189,11 +189,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacDisplay_initNSAppli
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacDisplay
+ * Class:     jogamp_newt_driver_macosx_DisplayDriver
  * Method:    runNSApplication0
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacDisplay_runNSApplication0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_runNSApplication0
   (JNIEnv *env, jclass clazz)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -206,11 +206,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacDisplay_runNSApplicatio
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacDisplay
+ * Class:     jogamp_newt_driver_macosx_DisplayDriver
  * Method:    stopNSApplication0
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacDisplay_stopNSApplication0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_DisplayDriver_stopNSApplication0
   (JNIEnv *env, jclass clazz)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -250,11 +250,11 @@ static NSScreen * NewtScreen_getNSScreenByIndex(int screen_idx) {
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacScreen
+ * Class:     jogamp_newt_driver_macosx_ScreenDriver
  * Method:    getWidthImpl
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_macosx_MacScreen_getWidthImpl0
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_getWidthImpl0
   (JNIEnv *env, jclass clazz, jint screen_idx)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -268,11 +268,11 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_macosx_MacScreen_getWidthImpl0
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacScreen
+ * Class:     jogamp_newt_driver_macosx_ScreenDriver
  * Method:    getHeightImpl
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_macosx_MacScreen_getHeightImpl0
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_getHeightImpl0
   (JNIEnv *env, jclass clazz, jint screen_idx)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -318,11 +318,11 @@ static long GetDictionaryLong(CFDictionaryRef theDict, const void* key)
 #define ROTMODES_PER_REALMODE 4
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacScreen
+ * Class:     jogamp_newt_driver_macosx_ScreenDriver
  * Method:    getScreenSizeMM0
  * Signature: (I)[I
  */
-JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_MacScreen_getScreenSizeMM0
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_getScreenSizeMM0
   (JNIEnv *env, jobject obj, jint scrn_idx)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -367,11 +367,11 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_MacScreen_getScreenSi
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacScreen
+ * Class:     jogamp_newt_driver_macosx_ScreenDriver
  * Method:    getScreenMode0
  * Signature: (IIII)[I
  */
-JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_MacScreen_getScreenMode0
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_getScreenMode0
   (JNIEnv *env, jobject obj, jint scrn_idx, jint mode_idx, jint widthMM, jint heightMM)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -459,11 +459,11 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_MacScreen_getScreenMo
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacScreen
+ * Class:     jogamp_newt_driver_macosx_ScreenDriver
  * Method:    setScreenMode0
  * Signature: (II)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacScreen_setScreenMode0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_setScreenMode0
   (JNIEnv *env, jobject object, jint scrn_idx, jint mode_idx)
 {
     jboolean res = JNI_TRUE;
@@ -504,11 +504,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacScreen_setScreenMod
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    initIDs
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_initIDs0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_initIDs0
   (JNIEnv *env, jclass clazz)
 {
     static int initialized = 0;
@@ -519,16 +519,16 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_initIDs0
     jclass c;
     c = (*env)->FindClass(env, ClazzNamePoint);
     if(NULL==c) {
-        NewtCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't find %s", ClazzNamePoint);
+        NewtCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_WindowDriver_initIDs0: can't find %s", ClazzNamePoint);
     }
     pointClz = (jclass)(*env)->NewGlobalRef(env, c);
     (*env)->DeleteLocalRef(env, c);
     if(NULL==pointClz) {
-        NewtCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't use %s", ClazzNamePoint);
+        NewtCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_WindowDriver_initIDs0: can't use %s", ClazzNamePoint);
     }
     pointCstr = (*env)->GetMethodID(env, pointClz, ClazzAnyCstrName, ClazzNamePointCstrSignature);
     if(NULL==pointCstr) {
-        NewtCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_MacWindow_initIDs0: can't fetch %s.%s %s",
+        NewtCommon_FatalError(env, "FatalError Java_jogamp_newt_driver_macosx_WindowDriver_initIDs0: can't fetch %s.%s %s",
             ClazzNamePoint, ClazzAnyCstrName, ClazzNamePointCstrSignature);
     }
 
@@ -541,11 +541,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_initIDs0
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    createWindow0
  * Signature: (JIIIIZIIIJ)J
  */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_createWindow0
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_createWindow0
   (JNIEnv *env, jobject jthis, jlong parent, jint x, jint y, jint w, jint h, jboolean opaque, jboolean fullscreen, jint styleMask, 
    jint bufferingType, jint screen_idx, jlong jview)
 {
@@ -698,11 +698,11 @@ NS_ENDHANDLER
 
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    close0
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_close0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_close0
   (JNIEnv *env, jobject unused, jlong window)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -761,11 +761,11 @@ NS_ENDHANDLER
 }
 
 /*
- * Class:     Java_jogamp_newt_driver_macosx_MacWindow
+ * Class:     Java_jogamp_newt_driver_macosx_WindowDriver
  * Method:    lockSurface0
  * Signature: (J)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_lockSurface0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_lockSurface0
   (JNIEnv *env, jclass clazz, jlong window)
 {
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
@@ -779,11 +779,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_lockSurface0
 }
 
 /*
- * Class:     Java_jogamp_newt_driver_macosx_MacWindow
+ * Class:     Java_jogamp_newt_driver_macosx_WindowDriver
  * Method:    unlockSurface0
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_unlockSurface0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_unlockSurface0
   (JNIEnv *env, jclass clazz, jlong window)
 {
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
@@ -794,11 +794,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_unlockSurface0
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    requestFocus0
  * Signature: (JZ)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_requestFocus0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_requestFocus0
   (JNIEnv *env, jobject window, jlong w, jboolean force)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -819,11 +819,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_requestFocus0
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    resignFocus0
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_resignFocus0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_resignFocus0
   (JNIEnv *env, jobject window, jlong w)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -846,11 +846,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_resignFocus0
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    orderFront0
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_orderFront0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderFront0
   (JNIEnv *env, jobject unused, jlong window)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -866,11 +866,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_orderFront0
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    orderOut
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_orderOut0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderOut0
   (JNIEnv *env, jobject unused, jlong window)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -891,11 +891,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_orderOut0
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    setTitle0
  * Signature: (JLjava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setTitle0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setTitle0
   (JNIEnv *env, jobject unused, jlong window, jstring title)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -913,11 +913,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setTitle0
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    contentView
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_contentView0
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_contentView0
   (JNIEnv *env, jobject unused, jlong window)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -934,11 +934,11 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_contentView0
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    changeContentView
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_changeContentView0
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_changeContentView0
   (JNIEnv *env, jobject jthis, jlong parentWindowOrView, jlong window, jlong jview)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -977,11 +977,11 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_MacWindow_changeContentVi
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    setContentSize
  * Signature: (JII)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setContentSize0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setContentSize0
   (JNIEnv *env, jobject unused, jlong window, jint w, jint h)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -998,11 +998,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setContentSize0
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    setFrameTopLeftPoint
  * Signature: (JJII)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setFrameTopLeftPoint0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setFrameTopLeftPoint0
   (JNIEnv *env, jobject unused, jlong parent, jlong window, jint x, jint y)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -1027,11 +1027,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setFrameTopLeftP
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    setAlwaysOnTop0
  * Signature: (JZ)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setAlwaysOnTop0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setAlwaysOnTop0
   (JNIEnv *env, jobject unused, jlong window, jboolean atop)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -1051,11 +1051,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setAlwaysOnTop0
 }
 
 /*
- * Class:     jogamp_newt_driver_macosx_MacWindow
+ * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    getLocationOnScreen0
  * Signature: (JII)Ljavax/media/nativewindow/util/Point;
  */
-JNIEXPORT jobject JNICALL Java_jogamp_newt_driver_macosx_MacWindow_getLocationOnScreen0
+JNIEXPORT jobject JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_getLocationOnScreen0
   (JNIEnv *env, jclass unused, jlong win, jint src_x, jint src_y)
 {
     NSObject *nsObj = (NSObject*) ((intptr_t) win);
@@ -1072,11 +1072,11 @@ JNIEXPORT jobject JNICALL Java_jogamp_newt_driver_macosx_MacWindow_getLocationOn
 }
 
 /*
- * Class:     Java_jogamp_newt_driver_macosx_MacWindow
+ * Class:     Java_jogamp_newt_driver_macosx_WindowDriver
  * Method:    setPointerVisible0
  * Signature: (JZ)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setPointerVisible0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setPointerVisible0
   (JNIEnv *env, jclass clazz, jlong window, jboolean hasFocus, jboolean mouseVisible)
 {
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
@@ -1086,11 +1086,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_setPointerVi
 }
 
 /*
- * Class:     Java_jogamp_newt_driver_macosx_MacWindow
+ * Class:     Java_jogamp_newt_driver_macosx_WindowDriver
  * Method:    confinePointer0
  * Signature: (JZ)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_confinePointer0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_confinePointer0
   (JNIEnv *env, jclass clazz, jlong window, jboolean confine)
 {
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
@@ -1099,11 +1099,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_MacWindow_confinePoint
 }
 
 /*
- * Class:     Java_jogamp_newt_driver_macosx_MacWindow
+ * Class:     Java_jogamp_newt_driver_macosx_WindowDriver
  * Method:    warpPointer0
  * Signature: (JJII)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_MacWindow_warpPointer0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_warpPointer0
   (JNIEnv *env, jclass clazz, jlong window, jint x, jint y)
 {
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);

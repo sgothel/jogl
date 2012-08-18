@@ -46,7 +46,7 @@ import javax.media.nativewindow.util.Point;
 
 import com.jogamp.newt.event.MouseEvent;
 
-public class X11Window extends WindowImpl {
+public class WindowDriver extends WindowImpl {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
     private static final int X11_WHEEL_ONE_UP_BUTTON = 4;
     private static final int X11_WHEEL_ONE_DOWN_BUTTON = 5;
@@ -54,15 +54,15 @@ public class X11Window extends WindowImpl {
     private static final int X11_WHEEL_TWO_DOWN_BUTTON = 7;
     
     static {
-        X11Display.initSingleton();
+        DisplayDriver.initSingleton();
     }
 
-    public X11Window() {
+    public WindowDriver() {
     }
 
     protected void createNativeImpl() {
-        final X11Screen screen = (X11Screen) getScreen();
-        final X11Display display = (X11Display) screen.getDisplay();
+        final ScreenDriver screen = (ScreenDriver) getScreen();
+        final DisplayDriver display = (DisplayDriver) screen.getDisplay();
         final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice(), capsRequested);
         final AbstractGraphicsConfiguration cfg = factory.chooseGraphicsConfiguration(
                 capsRequested, capsRequested, capabilitiesChooser, screen.getGraphicsScreen(), VisualIDHolder.VID_UNDEFINED);
@@ -91,7 +91,7 @@ public class X11Window extends WindowImpl {
 
     protected void closeNativeImpl() {
         if(0!=windowHandleClose && null!=getScreen() ) {
-            X11Display display = (X11Display) getScreen().getDisplay();
+            DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
             try {
                 CloseWindow0(display.getEDTHandle(), windowHandleClose, 
                              display.getJavaObjectAtom(), display.getWindowDeleteAtom());
@@ -118,7 +118,7 @@ public class X11Window extends WindowImpl {
             x -= i.getLeftWidth() ;
             y -= i.getTopHeight() ;
         }
-        final X11Display display = (X11Display) getScreen().getDisplay();
+        final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
         reconfigureWindow0( getDisplayEDTHandle(), getScreenIndex(), 
                             getParentWindowHandle(), getWindowHandle(), display.getWindowDeleteAtom(),
                             x, y, width, height, flags);
@@ -234,7 +234,7 @@ public class X11Window extends WindowImpl {
     private static final void dumpStack() { Thread.dumpStack(); } // Callback for JNI
     
     private final long getDisplayEDTHandle() {
-        return ((X11Display) getScreen().getDisplay()).getEDTHandle();
+        return ((DisplayDriver) getScreen().getDisplay()).getEDTHandle();
     }
     private final <T> T runWithLockedDisplayHandle(DisplayRunnable<T> action) {
         return ((DisplayImpl) getScreen().getDisplay()).runWithLockedDisplayHandle(action);

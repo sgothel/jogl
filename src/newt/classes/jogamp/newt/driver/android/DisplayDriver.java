@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 JogAmp Community. All rights reserved.
+ * Copyright 2011 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -26,28 +26,19 @@
  * or implied, of JogAmp Community.
  */
 
-package jogamp.newt.driver.bcm.vc.iv;
+package jogamp.newt.driver.android;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeWindowException;
+import jogamp.newt.*;
+import jogamp.opengl.egl.*;
 
-import jogamp.newt.DisplayImpl;
-import jogamp.newt.NEWTJNILibLoader;
-import jogamp.opengl.egl.EGL;
-import jogamp.opengl.egl.EGLDisplayUtil;
+import javax.media.nativewindow.*;
 
-public class Display extends DisplayImpl {
+public class DisplayDriver extends jogamp.newt.DisplayImpl {
     static {
         NEWTJNILibLoader.loadNEWT();
 
-        if (!Display.initIDs()) {
-            throw new NativeWindowException("Failed to initialize bcm.vc.iv Display jmethodIDs");
-        }
-        if (!Screen.initIDs()) {
-            throw new NativeWindowException("Failed to initialize bcm.vc.iv Screen jmethodIDs");
-        }
-        if (!Window.initIDs()) {
-            throw new NativeWindowException("Failed to initialize bcm.vc.iv Window jmethodIDs");
+        if (!WindowDriver.initIDs0()) {
+            throw new NativeWindowException("Failed to initialize Android NEWT Windowing library");
         }
     }
 
@@ -56,11 +47,11 @@ public class Display extends DisplayImpl {
     }
 
 
-    public Display() {
+    public DisplayDriver() {
     }
 
     protected void createNativeImpl() {
-        // FIXME: map name to EGL_*_DISPLAY
+        // EGL Device
         aDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
@@ -69,10 +60,7 @@ public class Display extends DisplayImpl {
     }
 
     protected void dispatchMessagesNative() {
-        DispatchMessages();
-    }
-
-    protected static native boolean initIDs();    
-    private native void DispatchMessages();
+        // n/a .. DispatchMessages();
+    }    
 }
 

@@ -69,7 +69,7 @@ public class NewtVersionActivity extends NewtBaseActivity {
        glWindow.setUndecorated(true);
        glWindow.setSize(32, 32);
        glWindow.setPosition(0, 0);
-       final android.view.View androidGLView = ((AndroidWindow)glWindow.getDelegatedWindow()).getAndroidView();       
+       final android.view.View androidGLView = ((WindowDriver)glWindow.getDelegatedWindow()).getAndroidView();       
        viewGroup.addView(androidGLView, new android.widget.FrameLayout.LayoutParams(glWindow.getWidth(), glWindow.getHeight(), Gravity.BOTTOM|Gravity.RIGHT));
        registerNEWTWindow(glWindow);
        

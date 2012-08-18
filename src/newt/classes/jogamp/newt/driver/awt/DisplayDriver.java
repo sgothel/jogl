@@ -32,64 +32,42 @@
  * 
  */
 
-package jogamp.newt.driver.windows;
+package jogamp.newt.driver.awt;
 
-import jogamp.nativewindow.windows.RegisteredClass;
-import jogamp.nativewindow.windows.RegisteredClassFactory;
+import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.util.EDTUtil;
+
 import jogamp.newt.DisplayImpl;
-import jogamp.newt.NEWTJNILibLoader;
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeWindowException;
 
-import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
-
-public class WindowsDisplay extends DisplayImpl {
-
-    private static final String newtClassBaseName = "_newt_clazz" ;
-    private static RegisteredClassFactory sharedClassFactory;
-
-    static {
-        NEWTJNILibLoader.loadNEWT();
-
-        if (!WindowsWindow.initIDs0()) {
-            throw new NativeWindowException("Failed to initialize WindowsWindow jmethodIDs");
-        }        
-        sharedClassFactory = new RegisteredClassFactory(newtClassBaseName, WindowsWindow.getNewtWndProc0());
-    }
-
-    public static void initSingleton() {
-        // just exist to ensure static init has been run
-    }
-
-    private RegisteredClass sharedClass;
-
-    public WindowsDisplay() {
+public class DisplayDriver extends DisplayImpl {
+    public DisplayDriver() {
     }
 
     protected void createNativeImpl() {
-        sharedClass = sharedClassFactory.getSharedClass();
-        aDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
+        aDevice = AWTGraphicsDevice.createDefault();
     }
 
-    protected void closeNativeImpl() { 
-        sharedClassFactory.releaseSharedClass();
+    protected void setAWTGraphicsDevice(AWTGraphicsDevice d) {
+        aDevice = d;
     }
 
-    protected void dispatchMessagesNative() {
-        DispatchMessages0();
+    protected void closeNativeImpl() { }
+
+    @Override
+    protected EDTUtil createEDTUtil() {
+        final EDTUtil def;
+        if(NewtFactory.useEDT()) {
+            def = AWTEDTUtil.getSingleton();
+            if(DEBUG) {
+                System.err.println("AWTDisplay.createNative("+getFQName()+") Create EDTUtil: "+def.getClass().getName());
+            }
+        } else {
+            def = null;
+        }
+        return def;
     }
 
-    protected long getHInstance() {
-        return sharedClass.getHandle();
-    }
-
-    protected String getWindowClassName() {
-        return sharedClass.getName();
-    }
-
-    //----------------------------------------------------------------------
-    // Internals only
-    //
-    private static native void DispatchMessages0();
+    protected void dispatchMessagesNative() { /* nop */ }
 }
 

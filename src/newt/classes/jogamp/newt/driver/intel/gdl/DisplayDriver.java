@@ -32,22 +32,22 @@
  * 
  */
 
-package jogamp.newt.driver.kd;
+package jogamp.newt.driver.intel.gdl;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.NativeWindowException;
+import jogamp.newt.*;
+import javax.media.nativewindow.*;
 
-import jogamp.newt.DisplayImpl;
-import jogamp.newt.NEWTJNILibLoader;
-import jogamp.opengl.egl.EGL;
-import jogamp.opengl.egl.EGLDisplayUtil;
+public class DisplayDriver extends jogamp.newt.DisplayImpl {
+    static int initCounter = 0;
 
-public class Display extends DisplayImpl {
     static {
         NEWTJNILibLoader.loadNEWT();
 
-        if (!Window.initIDs()) {
-            throw new NativeWindowException("Failed to initialize kd.Window jmethodIDs");
+        if (!ScreenDriver.initIDs()) {
+            throw new NativeWindowException("Failed to initialize GDL Screen jmethodIDs");
+        }
+        if (!WindowDriver.initIDs()) {
+            throw new NativeWindowException("Failed to initialize GDL Window jmethodIDs");
         }
     }
 
@@ -56,22 +56,50 @@ public class Display extends DisplayImpl {
     }
 
 
-    public Display() {
+    public DisplayDriver() {
     }
 
     protected void createNativeImpl() {
-        // FIXME: map name to EGL_*_DISPLAY
-        aDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+        synchronized(DisplayDriver.class) {
+            if(0==initCounter) {
+                displayHandle = CreateDisplay();
+                if(0==displayHandle) {
+                    throw new NativeWindowException("Couldn't initialize GDL Display");
+                }
+            }
+            initCounter++;
+        }
+        aDevice = new DefaultGraphicsDevice(NativeWindowFactory.TYPE_DEFAULT, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT, displayHandle);
     }
 
     protected void closeNativeImpl() {
-        aDevice.close();
+        if(0==displayHandle) {
+            throw new NativeWindowException("displayHandle null; initCnt "+initCounter);
+        }
+        synchronized(DisplayDriver.class) {
+            if(initCounter>0) {
+                initCounter--;
+                if(0==initCounter) {
+                    DestroyDisplay(displayHandle);
+                }
+            }
+        }
     }
 
     protected void dispatchMessagesNative() {
-        DispatchMessages();
+        if(0!=displayHandle) {
+            DispatchMessages(displayHandle, focusedWindow);
+        }
     }
 
-    private native void DispatchMessages();
+    protected void setFocus(WindowDriver focus) {
+        focusedWindow = focus;
+    }
+
+    private long displayHandle = 0;
+    private WindowDriver focusedWindow = null;
+    private native long CreateDisplay();
+    private native void DestroyDisplay(long displayHandle);
+    private native void DispatchMessages(long displayHandle, WindowDriver focusedWindow);
 }
 

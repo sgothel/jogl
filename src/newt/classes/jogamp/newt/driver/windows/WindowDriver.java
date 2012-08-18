@@ -50,7 +50,7 @@ import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 
-public class WindowsWindow extends WindowImpl {
+public class WindowDriver extends WindowImpl {
 
     private long hmon;
     private long hdc;
@@ -58,10 +58,10 @@ public class WindowsWindow extends WindowImpl {
     private long windowHandleClose;
 
     static {
-        WindowsDisplay.initSingleton();
+        DisplayDriver.initSingleton();
     }
 
-    public WindowsWindow() {
+    public WindowDriver() {
     }
 
     @Override
@@ -118,8 +118,8 @@ public class WindowsWindow extends WindowImpl {
     }
 
     protected void createNativeImpl() {
-        final WindowsScreen  screen = (WindowsScreen) getScreen();
-        final WindowsDisplay display = (WindowsDisplay) screen.getDisplay();
+        final ScreenDriver  screen = (ScreenDriver) getScreen();
+        final DisplayDriver display = (DisplayDriver) screen.getDisplay();
         final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice(), capsRequested).chooseGraphicsConfiguration(
                 capsRequested, capsRequested, capabilitiesChooser, screen.getGraphicsScreen(), VisualIDHolder.VID_UNDEFINED);
         if (null == cfg) {
@@ -146,7 +146,7 @@ public class WindowsWindow extends WindowImpl {
     
     class MouseTracker extends MouseAdapter {
         public void mouseEntered(MouseEvent e) {
-            WindowsWindow.trackPointerLeave0(WindowsWindow.this.getWindowHandle());
+            WindowDriver.trackPointerLeave0(WindowDriver.this.getWindowHandle());
         }
     }
 

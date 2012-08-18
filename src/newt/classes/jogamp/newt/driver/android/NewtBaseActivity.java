@@ -36,7 +36,7 @@ import javax.media.opengl.FPSCounter;
 import com.jogamp.newt.Window;
 import com.jogamp.opengl.util.Animator;
 
-import jogamp.newt.driver.android.AndroidWindow;
+import jogamp.newt.driver.android.WindowDriver;
 
 import android.app.Activity;
 import android.content.Context;
@@ -83,10 +83,10 @@ public class NewtBaseActivity extends Activity {
     */
    public void setContentView(android.view.Window androidWindow, Window newtWindow) {
        newtWindow = newtWindow.getDelegatedWindow();
-       if(newtWindow instanceof AndroidWindow) {
+       if(newtWindow instanceof WindowDriver) {
            adaptTheme4Transparency(newtWindow.getRequestedCapabilities());
            layoutForNEWTWindow(androidWindow, newtWindow);
-           AndroidWindow newtAWindow = (AndroidWindow)newtWindow;
+           WindowDriver newtAWindow = (WindowDriver)newtWindow;
            androidWindow.setContentView(newtAWindow.getAndroidView());
            registerNEWTWindow(newtAWindow);
        } else {
@@ -107,8 +107,8 @@ public class NewtBaseActivity extends Activity {
     */
    public void addContentView(android.view.Window androidWindow, Window newtWindow, android.view.ViewGroup.LayoutParams params) {
        newtWindow = newtWindow.getDelegatedWindow();
-       if(newtWindow instanceof AndroidWindow) {
-           AndroidWindow newtAWindow = (AndroidWindow)newtWindow;
+       if(newtWindow instanceof WindowDriver) {
+           WindowDriver newtAWindow = (WindowDriver)newtWindow;
            androidWindow.addContentView(newtAWindow.getAndroidView(), params);
            registerNEWTWindow(newtAWindow);
        } else {

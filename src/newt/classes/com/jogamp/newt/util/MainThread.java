@@ -74,7 +74,7 @@ import jogamp.newt.NEWTJNILibLoader;
  *
  * To support your NEWT Window platform, 
  * you have to pass your <i>main thread</i> actions to {@link #invoke invoke(..)},
- * have a look at the {@link com.jogamp.newt.macosx.MacWindow MacWindow} implementation.<br>
+ * have a look at the {@link jogamp.newt.driver.macosx.WindowDriver NEWT Mac OSX Window} driver implementation.<br>
  * <i>TODO</i>: Some hardcoded dependencies exist in this implementation, 
  * where you have to patch this code or factor it out. <P>
  * 

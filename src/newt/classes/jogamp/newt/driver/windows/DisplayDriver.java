@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -31,74 +32,64 @@
  * 
  */
 
-package jogamp.newt.driver.intel.gdl;
+package jogamp.newt.driver.windows;
 
-import jogamp.newt.*;
-import javax.media.nativewindow.*;
+import jogamp.nativewindow.windows.RegisteredClass;
+import jogamp.nativewindow.windows.RegisteredClassFactory;
+import jogamp.newt.DisplayImpl;
+import jogamp.newt.NEWTJNILibLoader;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeWindowException;
 
-public class Display extends jogamp.newt.DisplayImpl {
-    static int initCounter = 0;
+import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
+
+public class DisplayDriver extends DisplayImpl {
+
+    private static final String newtClassBaseName = "_newt_clazz" ;
+    private static RegisteredClassFactory sharedClassFactory;
 
     static {
         NEWTJNILibLoader.loadNEWT();
 
-        if (!Screen.initIDs()) {
-            throw new NativeWindowException("Failed to initialize GDL Screen jmethodIDs");
-        }
-        if (!Window.initIDs()) {
-            throw new NativeWindowException("Failed to initialize GDL Window jmethodIDs");
-        }
+        if (!WindowDriver.initIDs0()) {
+            throw new NativeWindowException("Failed to initialize WindowsWindow jmethodIDs");
+        }        
+        sharedClassFactory = new RegisteredClassFactory(newtClassBaseName, WindowDriver.getNewtWndProc0());
     }
 
     public static void initSingleton() {
         // just exist to ensure static init has been run
     }
 
+    private RegisteredClass sharedClass;
 
-    public Display() {
+    public DisplayDriver() {
     }
 
     protected void createNativeImpl() {
-        synchronized(Display.class) {
-            if(0==initCounter) {
-                displayHandle = CreateDisplay();
-                if(0==displayHandle) {
-                    throw new NativeWindowException("Couldn't initialize GDL Display");
-                }
-            }
-            initCounter++;
-        }
-        aDevice = new DefaultGraphicsDevice(NativeWindowFactory.TYPE_DEFAULT, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT, displayHandle);
+        sharedClass = sharedClassFactory.getSharedClass();
+        aDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
-    protected void closeNativeImpl() {
-        if(0==displayHandle) {
-            throw new NativeWindowException("displayHandle null; initCnt "+initCounter);
-        }
-        synchronized(Display.class) {
-            if(initCounter>0) {
-                initCounter--;
-                if(0==initCounter) {
-                    DestroyDisplay(displayHandle);
-                }
-            }
-        }
+    protected void closeNativeImpl() { 
+        sharedClassFactory.releaseSharedClass();
     }
 
     protected void dispatchMessagesNative() {
-        if(0!=displayHandle) {
-            DispatchMessages(displayHandle, focusedWindow);
-        }
+        DispatchMessages0();
     }
 
-    protected void setFocus(Window focus) {
-        focusedWindow = focus;
+    protected long getHInstance() {
+        return sharedClass.getHandle();
     }
 
-    private long displayHandle = 0;
-    private Window focusedWindow = null;
-    private native long CreateDisplay();
-    private native void DestroyDisplay(long displayHandle);
-    private native void DispatchMessages(long displayHandle, Window focusedWindow);
+    protected String getWindowClassName() {
+        return sharedClass.getName();
+    }
+
+    //----------------------------------------------------------------------
+    // Internals only
+    //
+    private static native void DispatchMessages0();
 }
 

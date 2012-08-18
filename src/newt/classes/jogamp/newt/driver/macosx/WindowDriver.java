@@ -51,13 +51,13 @@ import jogamp.newt.driver.DriverUpdatePosition;
 
 import com.jogamp.newt.event.KeyEvent;
 
-public class MacWindow extends WindowImpl implements MutableSurface, DriverClearFocus, DriverUpdatePosition {
+public class WindowDriver extends WindowImpl implements MutableSurface, DriverClearFocus, DriverUpdatePosition {
     
     static {
-        MacDisplay.initSingleton();
+        DisplayDriver.initSingleton();
     }
 
-    public MacWindow() {
+    public WindowDriver() {
     }
     
     @Override

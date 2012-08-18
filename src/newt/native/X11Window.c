@@ -467,11 +467,11 @@ static void NewtWindows_requestFocus (JNIEnv *env, jobject window, Display *dpy,
  */
 
 /*
- * Class:     jogamp_newt_driver_x11_X11Window
+ * Class:     jogamp_newt_driver_x11_WindowDriver
  * Method:    initIDs
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_initIDs0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_WindowDriver_initIDs0
   (JNIEnv *env, jclass clazz)
 {
     return JNI_TRUE;
@@ -505,10 +505,10 @@ static void NewtWindows_setPosSize(Display *dpy, Window w, jint x, jint y, jint 
 }
 
 /*
- * Class:     jogamp_newt_driver_x11_X11Window
+ * Class:     jogamp_newt_driver_x11_WindowDriver
  * Method:    CreateWindow
  */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_CreateWindow0
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWindow0
   (JNIEnv *env, jobject obj, jlong parent, jlong display, jint screen_index, 
                              jint visualID, 
                              jlong javaObjectAtom, jlong windowDeleteAtom, 
@@ -666,11 +666,11 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_CreateWindow0
 }
 
 /*
- * Class:     jogamp_newt_driver_x11_X11Window
+ * Class:     jogamp_newt_driver_x11_WindowDriver
  * Method:    CloseWindow
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_CloseWindow0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CloseWindow0
   (JNIEnv *env, jobject obj, jlong display, jlong window, jlong javaObjectAtom, jlong windowDeleteAtom)
 {
     Display * dpy = (Display *) (intptr_t) display;
@@ -703,7 +703,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_CloseWindow0
     NewtDisplay_x11ErrorHandlerEnable(env, dpy, 0, 0, 1);
 
     // Drain all events related to this window ..
-    Java_jogamp_newt_driver_x11_X11Display_DispatchMessages0(env, obj, display, javaObjectAtom, windowDeleteAtom);
+    Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessages0(env, obj, display, javaObjectAtom, windowDeleteAtom);
 
     XDestroyWindow(dpy, w);
     XSync(dpy, False);
@@ -729,11 +729,11 @@ static Bool WaitForReparentNotify( Display *dpy, XEvent *event, XPointer arg ) {
  */
 
 /*
- * Class:     jogamp_newt_driver_x11_X11Window
+ * Class:     jogamp_newt_driver_x11_WindowDriver
  * Method:    reconfigureWindow0
  * Signature: (JIJJIIIII)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindow0
   (JNIEnv *env, jobject obj, jlong jdisplay, jint screen_index,
    jlong jparent, jlong jwindow, jlong windowDeleteAtom,
    jint x, jint y, jint width, jint height, jint flags)
@@ -869,33 +869,33 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_reconfigureWindow0
 }
 
 /*
- * Class:     jogamp_newt_driver_x11_X11Window
+ * Class:     jogamp_newt_driver_x11_WindowDriver
  * Method:    requestFocus0
  * Signature: (JJZ)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_requestFocus0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_requestFocus0
   (JNIEnv *env, jobject obj, jlong display, jlong window, jboolean force)
 {
     NewtWindows_requestFocus ( env, obj, (Display *) (intptr_t) display, (Window)window, force ) ;
 }
 
 /*
- * Class:     jogamp_newt_driver_x11_X11Window
+ * Class:     jogamp_newt_driver_x11_WindowDriver
  * Method:    getParentWindow0
  * Signature: (JJ)J
  */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_X11Window_getParentWindow0
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_WindowDriver_getParentWindow0
   (JNIEnv *env, jclass clazz, jlong display, jlong window)
 {
     return (jlong) NewtWindows_getParent ((Display *) (intptr_t) display, (Window)window);
 }
 
 /*
- * Class:     Java_jogamp_newt_driver_x11_X11Window
+ * Class:     Java_jogamp_newt_driver_x11_WindowDriver
  * Method:    setTitle0
  * Signature: (JJLjava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_setTitle0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_setTitle0
   (JNIEnv *env, jclass clazz, jlong display, jlong window, jstring title)
 {
     Display * dpy = (Display *) (intptr_t) display;
@@ -942,11 +942,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_setTitle0
 }
 
 /*
- * Class:     Java_jogamp_newt_driver_x11_X11Window
+ * Class:     Java_jogamp_newt_driver_x11_WindowDriver
  * Method:    setPointerVisible0
  * Signature: (JJZ)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_setPointerVisible0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_WindowDriver_setPointerVisible0
   (JNIEnv *env, jclass clazz, jlong display, jlong window, jboolean mouseVisible)
 {
     static char noData[] = { 0,0,0,0,0,0,0,0 };
@@ -976,11 +976,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_setPointerVisib
 }
 
 /*
- * Class:     Java_jogamp_newt_driver_x11_X11Window
+ * Class:     Java_jogamp_newt_driver_x11_WindowDriver
  * Method:    confinePointer0
  * Signature: (JJZ)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_confinePointer0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_WindowDriver_confinePointer0
   (JNIEnv *env, jclass clazz, jlong display, jlong window, jboolean confine)
 {
     Display * dpy = (Display *) (intptr_t) display;
@@ -999,11 +999,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_X11Window_confinePointer0
 }
 
 /*
- * Class:     Java_jogamp_newt_driver_x11_X11Window
+ * Class:     Java_jogamp_newt_driver_x11_WindowDriver
  * Method:    warpPointer0
  * Signature: (JJII)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_X11Window_warpPointer0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_warpPointer0
   (JNIEnv *env, jclass clazz, jlong display, jlong window, jint x, jint y)
 {
     Display * dpy = (Display *) (intptr_t) display;

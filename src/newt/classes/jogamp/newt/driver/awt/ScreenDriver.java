@@ -31,55 +31,51 @@
  * 
  */
 
-package jogamp.newt.driver.intel.gdl;
+package jogamp.newt.driver.awt;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.nativewindow.DefaultGraphicsScreen;
+import java.awt.DisplayMode;
+
+import jogamp.newt.ScreenImpl;
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.Point;
 
-public class Screen extends jogamp.newt.ScreenImpl {
+import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
+import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
 
-    static {
-        Display.initSingleton();
-    }
-
-    public Screen() {
+public class ScreenDriver extends ScreenImpl {
+    public ScreenDriver() {
     }
 
     protected void createNativeImpl() {
-        AbstractGraphicsDevice adevice = getDisplay().getGraphicsDevice();
-        GetScreenInfo(adevice.getHandle(), screen_idx);
-        aScreen = new DefaultGraphicsScreen(adevice, screen_idx);
+        aScreen = new AWTGraphicsScreen((AWTGraphicsDevice)display.getGraphicsDevice());
+    }
+
+    protected void setAWTGraphicsScreen(AWTGraphicsScreen s) {
+        aScreen = s;
+    }
+
+    /**
+     *  Used by AWTWindow ..
+     */
+    @Override
+    protected void updateVirtualScreenOriginAndSize() {
+        super.updateVirtualScreenOriginAndSize();
     }
 
     protected void closeNativeImpl() { }
-
+    
     protected int validateScreenIndex(int idx) {
-        return 0; // only one screen available 
-    }
-        
+        return idx; // pass through ... 
+    }    
+
     protected void getVirtualScreenOriginAndSize(Point virtualOrigin, Dimension virtualSize) {
-        virtualOrigin.setX(0);
-        virtualOrigin.setY(0);
-        virtualSize.setWidth(cachedWidth);
-        virtualSize.setHeight(cachedHeight);
+        final DisplayMode mode = ((AWTGraphicsDevice)getDisplay().getGraphicsDevice()).getGraphicsDevice().getDisplayMode();
+        if(null != mode) {
+            virtualOrigin.setX(0);
+            virtualOrigin.setY(0);
+            virtualSize.setWidth(mode.getWidth());
+            virtualSize.setHeight(mode.getHeight());
+        }
     }
     
-    //----------------------------------------------------------------------
-    // Internals only
-    //
-
-    protected static native boolean initIDs();
-    private          native void GetScreenInfo(long displayHandle, int screen_idx);
-
-    // called by GetScreenInfo() ..
-    private void screenCreated(int width, int height) {
-        cachedWidth = width;
-        cachedHeight = height;
-    }
-    
-    private static int cachedWidth = 0;
-    private static int cachedHeight = 0;
 }
-

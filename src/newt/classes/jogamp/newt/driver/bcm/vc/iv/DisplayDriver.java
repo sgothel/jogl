@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 JogAmp Community. All rights reserved.
+ * Copyright 2012 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -26,19 +26,28 @@
  * or implied, of JogAmp Community.
  */
 
-package jogamp.newt.driver.android;
+package jogamp.newt.driver.bcm.vc.iv;
 
-import jogamp.newt.*;
-import jogamp.opengl.egl.*;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeWindowException;
 
-import javax.media.nativewindow.*;
+import jogamp.newt.DisplayImpl;
+import jogamp.newt.NEWTJNILibLoader;
+import jogamp.opengl.egl.EGL;
+import jogamp.opengl.egl.EGLDisplayUtil;
 
-public class AndroidDisplay extends jogamp.newt.DisplayImpl {
+public class DisplayDriver extends DisplayImpl {
     static {
         NEWTJNILibLoader.loadNEWT();
 
-        if (!AndroidWindow.initIDs0()) {
-            throw new NativeWindowException("Failed to initialize Android NEWT Windowing library");
+        if (!DisplayDriver.initIDs()) {
+            throw new NativeWindowException("Failed to initialize bcm.vc.iv Display jmethodIDs");
+        }
+        if (!ScreenDriver.initIDs()) {
+            throw new NativeWindowException("Failed to initialize bcm.vc.iv Screen jmethodIDs");
+        }
+        if (!WindowDriver.initIDs()) {
+            throw new NativeWindowException("Failed to initialize bcm.vc.iv Window jmethodIDs");
         }
     }
 
@@ -47,11 +56,11 @@ public class AndroidDisplay extends jogamp.newt.DisplayImpl {
     }
 
 
-    public AndroidDisplay() {
+    public DisplayDriver() {
     }
 
     protected void createNativeImpl() {
-        // EGL Device
+        // FIXME: map name to EGL_*_DISPLAY
         aDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
@@ -60,7 +69,10 @@ public class AndroidDisplay extends jogamp.newt.DisplayImpl {
     }
 
     protected void dispatchMessagesNative() {
-        // n/a .. DispatchMessages();
-    }    
+        DispatchMessages();
+    }
+
+    protected static native boolean initIDs();    
+    private native void DispatchMessages();
 }
 

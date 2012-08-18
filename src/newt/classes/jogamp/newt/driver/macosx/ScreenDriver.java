@@ -47,18 +47,18 @@ import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.util.ScreenModeUtil;
 
-public class MacScreen extends ScreenImpl {
+public class ScreenDriver extends ScreenImpl {
     
     // caching native CGDisplayScreenSize() results, since it's ridiculous slow (~6 ms each call)
     private static IntObjectHashMap/*<int, DimensionImmutable>*/ scrnIdx2Dimension;
     
     static {
-        MacDisplay.initSingleton();
+        DisplayDriver.initSingleton();
         scrnIdx2Dimension = new IntObjectHashMap();
         scrnIdx2Dimension.setKeyNotFoundValue(null);
     }
 
-    public MacScreen() {
+    public ScreenDriver() {
     }
 
     protected void createNativeImpl() {

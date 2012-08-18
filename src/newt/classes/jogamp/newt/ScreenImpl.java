@@ -90,31 +90,13 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         });
     }
     
-    @SuppressWarnings("unchecked")
-    private static Class<? extends Screen> getScreenClass(String type) throws ClassNotFoundException 
+    private static Class<?> getScreenClass(String type) throws ClassNotFoundException 
     {
-        Class<?> screenClass = NewtFactory.getCustomClass(type, "Screen");
+        final Class<?> screenClass = NewtFactory.getCustomClass(type, "ScreenDriver");
         if(null==screenClass) {
-            if (NativeWindowFactory.TYPE_ANDROID == type) {
-                screenClass = Class.forName("jogamp.newt.driver.android.AndroidScreen");
-            } else if (NativeWindowFactory.TYPE_EGL == type) {
-                screenClass = Class.forName("jogamp.newt.driver.kd.Screen");
-            } else if (NativeWindowFactory.TYPE_WINDOWS == type) {
-                screenClass = Class.forName("jogamp.newt.driver.windows.WindowsScreen");
-            } else if (NativeWindowFactory.TYPE_MACOSX == type) {
-                screenClass = Class.forName("jogamp.newt.driver.macosx.MacScreen");
-            } else if (NativeWindowFactory.TYPE_X11 == type) {
-                screenClass = Class.forName("jogamp.newt.driver.x11.X11Screen");
-            } else if (NativeWindowFactory.TYPE_AWT == type) {
-                screenClass = Class.forName("jogamp.newt.driver.awt.AWTScreen");
-            } else {
-                throw new RuntimeException("Unknown window type \"" + type + "\"");
-            }
+            throw new ClassNotFoundException("Failed to find NEWT Screen Class <"+type+".ScreenDriver>");            
         }
-        if(null==screenClass) {
-            throw new ClassNotFoundException("Failed to find NEWT Screen Class <"+type+".Screen>");            
-        }
-        return (Class<? extends Screen>)screenClass;
+        return screenClass;
     }
 
     public static Screen create(Display display, int idx) {
@@ -133,7 +115,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 }
             }
             synchronized(screenList) {
-                Class<? extends Screen> screenClass = getScreenClass(display.getType());
+                Class<?> screenClass = getScreenClass(display.getType());
                 ScreenImpl screen  = (ScreenImpl) screenClass.newInstance();
                 screen.display = (DisplayImpl) display;
                 idx = screen.validateScreenIndex(idx);

@@ -32,44 +32,46 @@
  * 
  */
 
-package jogamp.newt.driver.bcm.egl;
+package jogamp.newt.driver.kd;
 
-import javax.media.nativewindow.DefaultGraphicsScreen;
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeWindowException;
 
-public class Screen extends jogamp.newt.ScreenImpl {
+import jogamp.newt.DisplayImpl;
+import jogamp.newt.NEWTJNILibLoader;
+import jogamp.opengl.egl.EGL;
+import jogamp.opengl.egl.EGLDisplayUtil;
 
+public class DisplayDriver extends DisplayImpl {
     static {
-        Display.initSingleton();
+        NEWTJNILibLoader.loadNEWT();
+
+        if (!WindowDriver.initIDs()) {
+            throw new NativeWindowException("Failed to initialize kd.Window jmethodIDs");
+        }
+    }
+
+    public static void initSingleton() {
+        // just exist to ensure static init has been run
     }
 
 
-    public Screen() {
+    public DisplayDriver() {
     }
 
     protected void createNativeImpl() {
-        aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
+        // FIXME: map name to EGL_*_DISPLAY
+        aDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
-    protected void closeNativeImpl() { }
-
-    protected int validateScreenIndex(int idx) {
-        return 0; // only one screen available 
+    protected void closeNativeImpl() {
+        aDevice.close();
     }
-     
-    protected void getVirtualScreenOriginAndSize(Point virtualOrigin, Dimension virtualSize) {
-        virtualOrigin.setX(0);
-        virtualOrigin.setY(0);
-        virtualSize.setWidth(fixedWidth); // FIXME
-        virtualSize.setHeight(fixedHeight); // FIXME
-    }
-    
-    //----------------------------------------------------------------------
-    // Internals only
-    //
 
-    static final int fixedWidth = 1920;  // FIXME
-    static final int fixedHeight = 1080; // FIXME
+    protected void dispatchMessagesNative() {
+        DispatchMessages();
+    }
+
+    private native void DispatchMessages();
 }
 

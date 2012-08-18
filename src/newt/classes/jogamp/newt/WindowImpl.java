@@ -152,26 +152,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private static Class<?> getWindowClass(String type)
         throws ClassNotFoundException
     {
-        Class<?> windowClass = NewtFactory.getCustomClass(type, "Window");
+        final Class<?> windowClass = NewtFactory.getCustomClass(type, "WindowDriver");
         if(null==windowClass) {
-            if (NativeWindowFactory.TYPE_ANDROID == type) {
-                windowClass = Class.forName("jogamp.newt.driver.android.AndroidWindow");
-            } else if (NativeWindowFactory.TYPE_EGL == type) {
-                windowClass = Class.forName("jogamp.newt.driver.kd.Window");
-            } else if (NativeWindowFactory.TYPE_WINDOWS == type) {
-                windowClass = Class.forName("jogamp.newt.driver.windows.WindowsWindow");
-            } else if (NativeWindowFactory.TYPE_MACOSX == type) {
-                windowClass = Class.forName("jogamp.newt.driver.macosx.MacWindow");
-            } else if (NativeWindowFactory.TYPE_X11 == type) {
-                windowClass = Class.forName("jogamp.newt.driver.x11.X11Window");
-            } else if (NativeWindowFactory.TYPE_AWT == type) {
-                windowClass = Class.forName("jogamp.newt.driver.awt.AWTWindow");
-            } else {
-                throw new NativeWindowException("Unknown window type \"" + type + "\"");
-            }
-        }
-        if(null==windowClass) {
-            throw new ClassNotFoundException("Failed to find NEWT Window Class <"+type+".Window>");            
+            throw new ClassNotFoundException("Failed to find NEWT Window Class <"+type+".WindowDriver>");            
         }
         return windowClass;
     }

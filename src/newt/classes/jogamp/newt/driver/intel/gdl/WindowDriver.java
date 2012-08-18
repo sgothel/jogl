@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2012 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,12 +38,12 @@ import javax.media.nativewindow.*;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 
-public class Window extends jogamp.newt.WindowImpl {
+public class WindowDriver extends jogamp.newt.WindowImpl {
     static {
-        Display.initSingleton();
+        DisplayDriver.initSingleton();
     }
 
-    public Window() {
+    public WindowDriver() {
     }
 
     static long nextWindowHandle = 1;
@@ -61,7 +62,7 @@ public class Window extends jogamp.newt.WindowImpl {
         }
         setGraphicsConfiguration(cfg);
 
-        synchronized(Window.class) {
+        synchronized(WindowDriver.class) {
             setWindowHandle(nextWindowHandle++); // just a marker
 
             surfaceHandle = CreateSurface(aDevice.getHandle(), getScreen().getWidth(), getScreen().getHeight(), getX(), getY(), getWidth(), getHeight());
@@ -73,16 +74,16 @@ public class Window extends jogamp.newt.WindowImpl {
 
     protected void closeNativeImpl() {
         if(0!=surfaceHandle) {
-            synchronized(Window.class) {
+            synchronized(WindowDriver.class) {
                 CloseSurface(getDisplayHandle(), surfaceHandle);
             }
             surfaceHandle = 0;
-            ((Display)getScreen().getDisplay()).setFocus(null);
+            ((DisplayDriver)getScreen().getDisplay()).setFocus(null);
         }
     }
 
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
-        Screen  screen = (Screen) getScreen();
+        ScreenDriver  screen = (ScreenDriver) getScreen();
 
         if(width>screen.getWidth()) {
             width=screen.getWidth();
@@ -103,7 +104,7 @@ public class Window extends jogamp.newt.WindowImpl {
 
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
             if(0 != ( FLAG_IS_VISIBLE & flags)) {
-                ((Display)getScreen().getDisplay()).setFocus(this);
+                ((DisplayDriver)getScreen().getDisplay()).setFocus(this);
             }
             visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
         }
@@ -112,7 +113,7 @@ public class Window extends jogamp.newt.WindowImpl {
     }
 
     protected void requestFocusImpl(boolean reparented) {
-        ((Display)getScreen().getDisplay()).setFocus(this);
+        ((DisplayDriver)getScreen().getDisplay()).setFocus(this);
     }
 
     @Override

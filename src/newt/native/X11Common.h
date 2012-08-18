@@ -45,9 +45,9 @@
 
 #include <X11/extensions/Xrandr.h>
 
-#include "jogamp_newt_driver_x11_X11Screen.h"
-#include "jogamp_newt_driver_x11_X11Display.h"
-#include "jogamp_newt_driver_x11_X11Window.h"
+#include "jogamp_newt_driver_x11_ScreenDriver.h"
+#include "jogamp_newt_driver_x11_DisplayDriver.h"
+#include "jogamp_newt_driver_x11_WindowDriver.h"
 
 #include "Window.h"
 #include "MouseEvent.h"

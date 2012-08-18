@@ -34,12 +34,12 @@ import javax.media.nativewindow.util.Point;
 
 import jogamp.newt.ScreenImpl;
 
-public class Screen extends ScreenImpl {
+public class ScreenDriver extends ScreenImpl {
     static {
-        Display.initSingleton();
+        DisplayDriver.initSingleton();
     }
 
-    public Screen() {
+    public ScreenDriver() {
     }
 
     protected void createNativeImpl() {

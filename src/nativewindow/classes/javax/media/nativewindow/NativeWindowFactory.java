@@ -57,22 +57,22 @@ public abstract class NativeWindowFactory {
     protected static final boolean DEBUG;
 
     /** OpenKODE/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}*/
-    public static final String TYPE_EGL = "EGL";
+    public static final String TYPE_EGL = "jogamp.newt.driver.kd";
 
     /** Microsoft Windows type, as retrieved with {@link #getNativeWindowType(boolean)} */
-    public static final String TYPE_WINDOWS = "Windows";
+    public static final String TYPE_WINDOWS = "jogamp.newt.driver.windows";
 
     /** X11 type, as retrieved with {@link #getNativeWindowType(boolean)} */
-    public static final String TYPE_X11 = "X11";
+    public static final String TYPE_X11 = "jogamp.newt.driver.x11";
 
     /** Android/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}*/
-    public static final String TYPE_ANDROID = "ANDROID";
+    public static final String TYPE_ANDROID = "jogamp.newt.driver.android";
 
     /** Mac OS X type, as retrieved with {@link #getNativeWindowType(boolean)} */
-    public static final String TYPE_MACOSX = "MacOSX";
+    public static final String TYPE_MACOSX = "jogamp.newt.driver.macosx";
 
     /** Generic AWT type, as retrieved with {@link #getNativeWindowType(boolean)} */
-    public static final String TYPE_AWT = "AWT";
+    public static final String TYPE_AWT = "jogamp.newt.driver.awt";
 
     /** Generic DEFAULT type, where platform implementation don't care, as retrieved with {@link #getNativeWindowType(boolean)} */
     public static final String TYPE_DEFAULT = "default";

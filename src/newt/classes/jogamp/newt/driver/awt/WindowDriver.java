@@ -55,9 +55,9 @@ import com.jogamp.newt.event.awt.AWTWindowAdapter;
     AWT. This is provided for convenience of porting to platforms
     supporting Java SE. */
 
-public class AWTWindow extends WindowImpl {
+public class WindowDriver extends WindowImpl {
 
-    public AWTWindow() {
+    public WindowDriver() {
         this(null);
     }
 
@@ -65,7 +65,7 @@ public class AWTWindow extends WindowImpl {
         return new Class<?>[] { Container.class } ;
     }
 
-    public AWTWindow(Container container) {
+    public WindowDriver(Container container) {
         super();
         this.container = container;
         if(container instanceof Frame) {
@@ -107,7 +107,7 @@ public class AWTWindow extends WindowImpl {
             frame.setTitle(getTitle());
         }
         container.setLayout(new BorderLayout());
-        canvas = new AWTCanvas(capsRequested, AWTWindow.this.capabilitiesChooser);
+        canvas = new AWTCanvas(capsRequested, WindowDriver.this.capabilitiesChooser);
 
         addWindowListener(new LocalWindowListener());
 
@@ -152,10 +152,10 @@ public class AWTWindow extends WindowImpl {
             setGraphicsConfiguration(cfg);
             
             // propagate new info ..
-            ((AWTScreen)getScreen()).setAWTGraphicsScreen((AWTGraphicsScreen)cfg.getScreen());
-            ((AWTDisplay)getScreen().getDisplay()).setAWTGraphicsDevice((AWTGraphicsDevice)cfg.getScreen().getDevice());
+            ((ScreenDriver)getScreen()).setAWTGraphicsScreen((AWTGraphicsScreen)cfg.getScreen());
+            ((DisplayDriver)getScreen().getDisplay()).setAWTGraphicsDevice((AWTGraphicsDevice)cfg.getScreen().getDevice());
     
-            ((AWTScreen)getScreen()).updateVirtualScreenOriginAndSize();
+            ((ScreenDriver)getScreen()).updateVirtualScreenOriginAndSize();
         }
         return res;
     }

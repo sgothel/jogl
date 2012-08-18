@@ -42,13 +42,13 @@ import jogamp.newt.ScreenImpl;
 import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.util.ScreenModeUtil;
 
-public class WindowsScreen extends ScreenImpl {
+public class ScreenDriver extends ScreenImpl {
 
     static {
-        WindowsDisplay.initSingleton();
+        DisplayDriver.initSingleton();
     }
 
-    public WindowsScreen() {
+    public ScreenDriver() {
     }
 
     protected void createNativeImpl() {

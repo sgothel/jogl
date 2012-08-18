@@ -41,13 +41,13 @@ import android.util.DisplayMetrics;
 import android.view.Surface;
 import android.view.WindowManager;
 
-public class AndroidScreen extends jogamp.newt.ScreenImpl {
+public class ScreenDriver extends jogamp.newt.ScreenImpl {
 
     static {
-        AndroidDisplay.initSingleton();
+        DisplayDriver.initSingleton();
     }
 
-    public AndroidScreen() {
+    public ScreenDriver() {
     }
 
     protected void createNativeImpl() {

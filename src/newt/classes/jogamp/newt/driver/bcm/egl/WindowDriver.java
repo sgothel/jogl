@@ -44,12 +44,12 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 
 import jogamp.opengl.egl.EGLGraphicsConfiguration;
 
-public class Window extends jogamp.newt.WindowImpl {
+public class WindowDriver extends jogamp.newt.WindowImpl {
     static {
-        Display.initSingleton();
+        DisplayDriver.initSingleton();
     }
 
-    public Window() {
+    public WindowDriver() {
     }
 
     protected void createNativeImpl() {

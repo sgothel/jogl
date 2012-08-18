@@ -46,14 +46,14 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import jogamp.newt.WindowImpl;
 import jogamp.opengl.egl.EGLGraphicsConfiguration;
 
-public class Window extends WindowImpl {
+public class WindowDriver extends WindowImpl {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
 
     static {
-        Display.initSingleton();
+        DisplayDriver.initSingleton();
     }
 
-    public Window() {
+    public WindowDriver() {
     }
 
     protected void createNativeImpl() {
@@ -152,7 +152,7 @@ public class Window extends WindowImpl {
     @Override
     protected void sizeChanged(boolean defer, int newWidth, int newHeight, boolean force) {
         if(isFullscreen()) {
-            ((Screen)getScreen()).sizeChanged(getWidth(), getHeight());
+            ((ScreenDriver)getScreen()).sizeChanged(getWidth(), getHeight());
         }
         super.sizeChanged(defer, newWidth, newHeight, force);
     }

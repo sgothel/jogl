@@ -32,9 +32,9 @@
 
 #include "bcm_vc_iv.h"
 
-#include "jogamp_newt_driver_bcm_vc_iv_Display.h"
-#include "jogamp_newt_driver_bcm_vc_iv_Screen.h"
-#include "jogamp_newt_driver_bcm_vc_iv_Window.h"
+#include "jogamp_newt_driver_bcm_vc_iv_DisplayDriver.h"
+#include "jogamp_newt_driver_bcm_vc_iv_ScreenDriver.h"
+#include "jogamp_newt_driver_bcm_vc_iv_WindowDriver.h"
 
 #define VERBOSE_ON 1
 
@@ -57,7 +57,7 @@ static jmethodID sendKeyEventID = NULL;
  * Display
  */
 
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Display_initIDs
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_bcm_vc_iv_DisplayDriver_initIDs
   (JNIEnv *env, jclass clazz)
 {
     bcm_host_init();
@@ -66,7 +66,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Display_initIDs
     return JNI_TRUE;
 }
 
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Display_DispatchMessages
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_DisplayDriver_DispatchMessages
   (JNIEnv *env, jobject obj)
 {
 }
@@ -75,7 +75,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Display_DispatchMessage
  * Screen
  */
 
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Screen_initIDs
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_bcm_vc_iv_ScreenDriver_initIDs
   (JNIEnv *env, jclass clazz)
 {
     uint32_t screen_width;
@@ -91,7 +91,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Screen_initIDs
     return JNI_TRUE;
 }
 
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Screen_initNative
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_ScreenDriver_initNative
   (JNIEnv *env, jobject obj)
 {
     uint32_t screen_width;
@@ -109,7 +109,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Screen_initNative
  * Window
  */
 
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Window_initIDs
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_initIDs
   (JNIEnv *env, jclass clazz)
 {
     windowCreatedID = (*env)->GetMethodID(env, clazz, "windowCreated", "(J)V");
@@ -131,7 +131,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Window_initIDs
     return JNI_TRUE;
 }
 
-JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Window_CreateWindow
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_CreateWindow
   (JNIEnv *env, jobject obj, jint width, jint height)
 {
    int32_t success = 0;
@@ -166,13 +166,13 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Window_CreateWindow
    return (jlong) (intptr_t) nativeWindowPtr;
 }
 
-JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Window_RealizeWindow
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_RealizeWindow
   (JNIEnv *env, jobject obj, jlong window)
 {
     return (jlong) (intptr_t) 0;
 }
 
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Window_CloseWindow
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_CloseWindow
   (JNIEnv *env, jobject obj, jlong window, jlong juserData)
 {
     EGL_DISPMANX_WINDOW_T * nativeWindowPtr = (EGL_DISPMANX_WINDOW_T *) (intptr_t) window ;
@@ -181,21 +181,21 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Window_CloseWindow
 }
 
 /*
- * Class:     jogamp_newt_driver_bcm_vc_iv_Window
+ * Class:     jogamp_newt_driver_bcm_vc_iv_WindowDriver
  * Method:    setVisible0
  * Signature: (JJZ)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Window_setVisible0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_setVisible0
   (JNIEnv *env, jobject obj, jlong window, jboolean visible)
 {
 }
 
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Window_setFullScreen0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_setFullScreen0
   (JNIEnv *env, jobject obj, jlong window, jboolean fullscreen)
 {
 }
 
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_Window_setSize0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_setSize0
   (JNIEnv *env, jobject obj, jlong window, jint width, jint height)
 {
     // FIXME RESIZE (*env)->CallVoidMethod(env, obj, sizeChangedID, JNI_FALSE, (jint) width, (jint) height, JNI_FALSE);

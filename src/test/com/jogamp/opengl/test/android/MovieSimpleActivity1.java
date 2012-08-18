@@ -36,11 +36,11 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 
-import jogamp.newt.driver.android.AndroidWindow;
 import jogamp.newt.driver.android.NewtBaseActivity;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -59,8 +59,8 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
    MouseAdapter toFrontMouseListener = new MouseAdapter() {
        public void mouseClicked(MouseEvent e) {
            Object src = e.getSource();
-           if(src instanceof AndroidWindow) {
-               ((AndroidWindow)src).requestFocus(false);
+           if(src instanceof Window) {
+               ((Window)src).requestFocus(false);
            }
        } };
    
@@ -121,7 +121,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
            final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);
            {
                final int padding = mPlayerHUD ? 32 : 0;
-               final android.view.View androidView = ((AndroidWindow)glWindowMain.getDelegatedWindow()).getAndroidView();
+               final android.view.View androidView = ((jogamp.newt.driver.android.WindowDriver)glWindowMain.getDelegatedWindow()).getAndroidView();
                glWindowMain.setSize(scrn.getWidth()-padding, scrn.getHeight()-padding);
                glWindowMain.setUndecorated(true);
                // setContentView(getWindow(), glWindowMain);
@@ -168,7 +168,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
 
                         viewGroup.post(new Runnable() {
                             public void run() {
-                                final android.view.View androidView = ((AndroidWindow)glWindowHUD.getDelegatedWindow()).getAndroidView();
+                                final android.view.View androidView = ((jogamp.newt.driver.android.WindowDriver)glWindowHUD.getDelegatedWindow()).getAndroidView();
                                 // addContentView(getWindow(), glWindowHUD, new android.view.ViewGroup.LayoutParams(glWindowHUD.getWidth(), glWindowHUD.getHeight()));
                                 viewGroup.addView(androidView, new android.widget.FrameLayout.LayoutParams(glWindowHUD.getWidth(), glWindowHUD.getHeight(), Gravity.TOP|Gravity.LEFT));
                                 registerNEWTWindow(glWindowHUD);  

@@ -81,9 +81,9 @@
 #define DISPLAY_DEVICE_ACTIVE 0x00000001
 #endif
 
-#include "jogamp_newt_driver_windows_WindowsDisplay.h"
-#include "jogamp_newt_driver_windows_WindowsScreen.h"
-#include "jogamp_newt_driver_windows_WindowsWindow.h"
+#include "jogamp_newt_driver_windows_DisplayDriver.h"
+#include "jogamp_newt_driver_windows_ScreenDriver.h"
+#include "jogamp_newt_driver_windows_WindowDriver.h"
 
 #include "Window.h"
 #include "MouseEvent.h"
@@ -1011,11 +1011,11 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
 }
 
 /*
- * Class:     jogamp_newt_driver_windows_WindowsDisplay
+ * Class:     jogamp_newt_driver_windows_DisplayDriver
  * Method:    DispatchMessages
  * Signature: ()V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsDisplay_DispatchMessages0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_DisplayDriver_DispatchMessages0
   (JNIEnv *env, jclass clazz)
 {
     int i = 0;
@@ -1040,11 +1040,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsDisplay_DispatchMe
 }
 
 /*
- * Class:     jogamp_newt_driver_windows_WindowsScreen
+ * Class:     jogamp_newt_driver_windows_ScreenDriver
  * Method:    getOriginX0
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getOriginX0
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getOriginX0
   (JNIEnv *env, jobject obj, jint scrn_idx)
 {
     if( GetSystemMetrics( SM_CMONITORS) > 1) {
@@ -1055,11 +1055,11 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getOriginX0
 }
 
 /*
- * Class:     jogamp_newt_driver_windows_WindowsScreen
+ * Class:     jogamp_newt_driver_windows_ScreenDriver
  * Method:    getOriginY0
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getOriginY0
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getOriginY0
   (JNIEnv *env, jobject obj, jint scrn_idx)
 {
     if( GetSystemMetrics( SM_CMONITORS ) > 1) {
@@ -1070,11 +1070,11 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getOriginY0
 }
 
 /*
- * Class:     jogamp_newt_driver_windows_WindowsScreen
+ * Class:     jogamp_newt_driver_windows_ScreenDriver
  * Method:    getWidthImpl
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getWidthImpl0
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getWidthImpl0
   (JNIEnv *env, jobject obj, jint scrn_idx)
 {
     if( GetSystemMetrics( SM_CMONITORS) > 1) {
@@ -1085,11 +1085,11 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getWidthImp
 }
 
 /*
- * Class:     jogamp_newt_driver_windows_WindowsScreen
+ * Class:     jogamp_newt_driver_windows_ScreenDriver
  * Method:    getHeightImpl
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getHeightImpl0
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getHeightImpl0
   (JNIEnv *env, jobject obj, jint scrn_idx)
 {
     if( GetSystemMetrics( SM_CMONITORS ) > 1) {
@@ -1173,11 +1173,11 @@ static HDC NewtScreen_createDisplayDC(LPCTSTR displayDeviceName) {
 }
 
 /*
- * Class:     jogamp_newt_driver_windows_WindowsScreen
+ * Class:     jogamp_newt_driver_windows_ScreenDriver
  * Method:    getScreenMode0
  * Signature: (II)[I
  */
-JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getScreenMode0
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getScreenMode0
   (JNIEnv *env, jobject obj, jint scrn_idx, jint mode_idx)
 {
     DISPLAY_DEVICE device;
@@ -1246,11 +1246,11 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_getScr
 }
 
 /*
- * Class:     jogamp_newt_driver_windows_WindowsScreen
+ * Class:     jogamp_newt_driver_windows_ScreenDriver
  * Method:    setScreenMode0
  * Signature: (IIIIII)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_setScreenMode0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_setScreenMode0
   (JNIEnv *env, jobject object, jint scrn_idx, jint width, jint height, jint bits, jint rate, jint rot)
 {
     DISPLAY_DEVICE device;
@@ -1283,11 +1283,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsScreen_setScre
 }
 
 /*
- * Class:     jogamp_newt_driver_windows_WindowsWindow
+ * Class:     jogamp_newt_driver_windows_WindowDriver
  * Method:    initIDs0
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_initIDs0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
   (JNIEnv *env, jclass clazz)
 {
     NewtCommon_init(env);
@@ -1324,11 +1324,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_initIDs
 }
 
 /*
- * Class:     jogamp_newt_driver_windows_WindowsWindow
+ * Class:     jogamp_newt_driver_windows_WindowDriver
  * Method:    getNewtWndProc0
  * Signature: ()J
  */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_getNewtWndProc0
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_getNewtWndProc0
   (JNIEnv *env, jclass clazz)
 {
     return (jlong) (intptr_t) wndProc;
@@ -1366,10 +1366,10 @@ static void NewtWindow_setVisiblePosSize(HWND hwnd, BOOL atop, BOOL visible,
 }
 
 /*
- * Class:     jogamp_newt_driver_windows_WindowsWindow
+ * Class:     jogamp_newt_driver_windows_WindowDriver
  * Method:    CreateWindow
  */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWindow0
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindow0
   (JNIEnv *env, jobject obj, 
    jlong hInstance, jstring jWndClassName, jstring jWndName, 
    jlong parent,
@@ -1473,11 +1473,11 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_CreateWind
 }
 
 /*
- * Class:     jogamp_newt_driver_windows_WindowsWindow
+ * Class:     jogamp_newt_driver_windows_WindowDriver
  * Method:    MonitorFromWindow
  * Signature: (J)J
  */
-JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_MonitorFromWindow0
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_MonitorFromWindow0
   (JNIEnv *env, jobject obj, jlong window)
 {
     #if (_WIN32_WINNT >= 0x0500 || _WIN32_WINDOWS >= 0x0410 || WINVER >= 0x0500) && !defined(_WIN32_WCE)
@@ -1506,11 +1506,11 @@ static jboolean NewtWindows_setFullScreen(jboolean fullscreen)
 }
 
 /*
- * Class:     jogamp_newt_driver_windows_WindowsWindow
+ * Class:     jogamp_newt_driver_windows_WindowDriver
  * Method:    reconfigureWindow0
  * Signature: (JJIIIII)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_reconfigureWindow0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureWindow0
   (JNIEnv *env, jobject obj, jlong parent, jlong window,
    jint x, jint y, jint width, jint height, jint flags)
 {
@@ -1591,11 +1591,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_reconfigure
 }
 
 /*
- * Class:     jogamp_newt_driver_windows_WindowsWindow
+ * Class:     jogamp_newt_driver_windows_WindowDriver
  * Method:    setTitle
  * Signature: (JLjava/lang/String;)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_setTitle0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_setTitle0
   (JNIEnv *env, jclass clazz, jlong window, jstring title)
 {
     HWND hwnd = (HWND) (intptr_t) window;
@@ -1609,11 +1609,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_setTitle0
 }
 
 /*
- * Class:     jogamp_newt_driver_windows_WindowsWindow
+ * Class:     jogamp_newt_driver_windows_WindowDriver
  * Method:    requestFocus
  * Signature: (JZ)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_requestFocus0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_requestFocus0
   (JNIEnv *env, jobject obj, jlong window, jboolean force)
 {
     DBG_PRINT("*** WindowsWindow: RequestFocus0\n");
@@ -1621,11 +1621,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_requestFocu
 }
 
 /*
- * Class:     Java_jogamp_newt_driver_windows_WindowsWindow
+ * Class:     Java_jogamp_newt_driver_windows_WindowDriver
  * Method:    setPointerVisible0
  * Signature: (JJZ)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_setPointerVisible0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_setPointerVisible0
   (JNIEnv *env, jclass clazz, jlong window, jboolean mouseVisible)
 {
     HWND hwnd = (HWND) (intptr_t) window;
@@ -1660,11 +1660,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_setPoin
 }
 
 /*
- * Class:     Java_jogamp_newt_driver_windows_WindowsWindow
+ * Class:     Java_jogamp_newt_driver_windows_WindowDriver
  * Method:    confinePointer0
  * Signature: (JJZIIII)Z
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_confinePointer0
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_confinePointer0
   (JNIEnv *env, jclass clazz, jlong window, jboolean confine, jint l, jint t, jint r, jint b)
 {
     HWND hwnd = (HWND) (intptr_t) window;
@@ -1686,11 +1686,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_confine
 }
 
 /*
- * Class:     Java_jogamp_newt_driver_windows_WindowsWindow
+ * Class:     Java_jogamp_newt_driver_windows_WindowDriver
  * Method:    warpPointer0
  * Signature: (JJII)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_warpPointer0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_warpPointer0
   (JNIEnv *env, jclass clazz, jlong window, jint x, jint y)
 {
     DBG_PRINT( "*** WindowsWindow: warpPointer0: %d/%d\n", x, y);
@@ -1698,11 +1698,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_warpPointer
 }
 
 /*
- * Class:     Java_jogamp_newt_driver_windows_WindowsWindow
+ * Class:     Java_jogamp_newt_driver_windows_WindowDriver
  * Method:    trackPointerLeave0
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowsWindow_trackPointerLeave0
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_trackPointerLeave0
   (JNIEnv *env, jclass clazz, jlong window)
 {
     HWND hwnd = (HWND) (intptr_t) window;

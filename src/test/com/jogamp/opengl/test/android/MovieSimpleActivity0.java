@@ -34,11 +34,11 @@ import java.util.Arrays;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
-import jogamp.newt.driver.android.AndroidWindow;
 import jogamp.newt.driver.android.NewtBaseActivity;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Window;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.opengl.GLWindow;
@@ -55,8 +55,8 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
    MouseAdapter toFrontMouseListener = new MouseAdapter() {
        public void mouseClicked(MouseEvent e) {
            Object src = e.getSource();
-           if(src instanceof AndroidWindow) {
-               ((AndroidWindow)src).requestFocus(false);
+           if(src instanceof Window) {
+               ((Window)src).requestFocus(false);
            }
        } };
    

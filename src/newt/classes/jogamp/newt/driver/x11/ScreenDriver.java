@@ -48,13 +48,13 @@ import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.util.ScreenModeUtil;
 
-public class X11Screen extends ScreenImpl {
+public class ScreenDriver extends ScreenImpl {
 
     static {
-        X11Display.initSingleton();
+        DisplayDriver.initSingleton();
     }
 
-    public X11Screen() {
+    public ScreenDriver() {
     }
 
     protected void createNativeImpl() {

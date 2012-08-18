@@ -44,7 +44,6 @@ import com.jogamp.newt.util.EDTUtil;
 import java.util.ArrayList;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.NativeWindowFactory;
 
 public abstract class DisplayImpl extends Display {
     private static int serialno = 1;
@@ -52,26 +51,9 @@ public abstract class DisplayImpl extends Display {
     private static Class<?> getDisplayClass(String type) 
         throws ClassNotFoundException 
     {
-        Class<?> displayClass = NewtFactory.getCustomClass(type, "Display");
+        final Class<?> displayClass = NewtFactory.getCustomClass(type, "DisplayDriver");
         if(null==displayClass) {
-            if (NativeWindowFactory.TYPE_ANDROID == type) {
-                displayClass = Class.forName("jogamp.newt.driver.android.AndroidDisplay");
-            } else if (NativeWindowFactory.TYPE_EGL == type) {
-                displayClass = Class.forName("jogamp.newt.driver.kd.Display");
-            } else if (NativeWindowFactory.TYPE_WINDOWS == type) {
-                displayClass = Class.forName("jogamp.newt.driver.windows.WindowsDisplay");
-            } else if (NativeWindowFactory.TYPE_MACOSX == type) {
-                displayClass = Class.forName("jogamp.newt.driver.macosx.MacDisplay");
-            } else if (NativeWindowFactory.TYPE_X11 == type) {
-                displayClass = Class.forName("jogamp.newt.driver.x11.X11Display");
-            } else if (NativeWindowFactory.TYPE_AWT == type) {
-                displayClass = Class.forName("jogamp.newt.driver.awt.AWTDisplay");
-            } else {
-                throw new RuntimeException("Unknown display type \"" + type + "\"");
-            }
-        }
-        if(null==displayClass) {
-            throw new ClassNotFoundException("Failed to find NEWT Display Class <"+type+".Display>");            
+            throw new ClassNotFoundException("Failed to find NEWT Display Class <"+type+".DisplayDriver>");            
         }
         return displayClass;
     }

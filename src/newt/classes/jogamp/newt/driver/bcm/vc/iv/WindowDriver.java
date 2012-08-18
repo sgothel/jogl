@@ -38,14 +38,14 @@ import javax.media.nativewindow.util.Point;
 import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.linux.LinuxMouseTracker;
 
-public class Window extends WindowImpl {
+public class WindowDriver extends WindowImpl {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
 
     static {
-        Display.initSingleton();
+        DisplayDriver.initSingleton();
     }
 
-    public Window() {
+    public WindowDriver() {
     }
 
     protected void createNativeImpl() {
