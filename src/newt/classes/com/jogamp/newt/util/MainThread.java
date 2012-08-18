@@ -92,7 +92,7 @@ import jogamp.newt.NEWTJNILibLoader;
  * Which starts 4 threads, each with a window and OpenGL rendering.<br>
  */
 public class MainThread {
-    private static final String MACOSXDisplayClassName = "jogamp.newt.driver.macosx.MacDisplay";
+    private static final String MACOSXDisplayClassName = "jogamp.newt.driver.macosx.DisplayDriver";
     private static final Platform.OSType osType;
     private static final boolean isMacOSX;
     private static final ThreadGroup rootThreadGroup;
