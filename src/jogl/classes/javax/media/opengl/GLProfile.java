@@ -101,29 +101,29 @@ public class GLProfile {
     
     /**
      * Static initialization of JOGL.
+     *
      * <p>
-     * The parameter <code>firstUIActionOnProcess</code> has an impact on concurrent locking,<br>
-     * see {@link javax.media.nativewindow.NativeWindowFactory#initSingleton(boolean) NativeWindowFactory.initSingleton(firstUIActionOnProcess)}.
+     * This method shall not need to be called for other reasons than having a defined initialization sequence.
      * </p>
-     * <p>
-     * Applications using this method may place it's call before any other UI invocation
-     * in the <code>main class</code>'s static block or within the <code>main function</code>.
-     * In such case, applications may pass <code>firstUIActionOnProcess=true</code> to use native toolkit locking.</P>
-     * <P>
-     * RCP Application (Applet's, Webstart, Netbeans, ..) using JOGL are not be able to initialize JOGL
-     * before the first UI action.
-     * In such case you shall pass <code>firstUIActionOnProcess=false</code>.</P>
+     * 
      * <P>
      * In case this method is not invoked, GLProfile is initialized implicit by
-     * the first call to {@link #getDefault()}, {@link #get(java.lang.String)} passing <code>firstUIActionOnProcess=false</code>.
+     * the first call to {@link #getDefault()}, {@link #get(java.lang.String)}.
      * <P>
-     *
-     * @param firstUIActionOnProcess Should be <code>true</code> if called before the first UI action of the running program,
-     * otherwise <code>false</code>.
      * 
-     * @deprecated Use {@link #initSingleton()}. This method is subject to be removed in future versions of JOGL. 
+     * <p>
+     * To initialize JOGL at startup ASAP, this method may be invoked in the <i>main class</i>'s 
+     * static initializer block, in the <i>static main() method</i> or in the <i>Applet init() method</i>.
+     * </p>
+     * 
+     * <p>
+     * Since JOGL's initialization is complex and involves multi threading, it is <b>not</b> recommended
+     * to be have it invoked on the AWT EDT thread. In case all JOGL usage is performed 
+     * on the AWT EDT, invoke this method outside the AWT EDT - see above.
+     * </p>
+     * 
      */
-    public static void initSingleton(final boolean firstUIActionOnProcess) {
+    public static void initSingleton() {
         final boolean justInitialized; 
         initLock.lock();
         try {
@@ -131,7 +131,7 @@ public class GLProfile {
                 initialized = true;
                 justInitialized = true;
                 if(DEBUG) {
-                    System.err.println("GLProfile.initSingleton(firstUIActionOnProcess: "+firstUIActionOnProcess+") - thread "+Thread.currentThread().getName());
+                    System.err.println("GLProfile.initSingleton() - thread "+Thread.currentThread().getName());
                     Thread.dumpStack();
                 }
     
@@ -171,7 +171,7 @@ public class GLProfile {
                            }
                            JNILibLoaderBase.addNativeJarLibs(classesFromJavaJars, "-all", new String[] { "-noawt", "-mobile", "-core" } );
                         }
-                        initProfilesForDefaultDevices(firstUIActionOnProcess);
+                        initProfilesForDefaultDevices();
                         return null;
                     }
                 });
@@ -188,17 +188,6 @@ public class GLProfile {
         }        
     }
     
-    /**
-     * Static initialization of JOGL.
-     *
-     * <p>
-     * This method shall not need to be called for other reasons than having a defined initialization sequence.
-     * </p>
-     */
-    public static void initSingleton() {
-        GLProfile.initSingleton(false);
-    }
-
     /**
      * Trigger eager initialization of GLProfiles for the given device,
      * in case it isn't done yet.
@@ -1411,11 +1400,10 @@ public class GLProfile {
     /**
      * Tries the profiles implementation and native libraries.
      */
-    private static void initProfilesForDefaultDevices(boolean firstUIActionOnProcess) {
-        NativeWindowFactory.initSingleton(firstUIActionOnProcess);
+    private static void initProfilesForDefaultDevices() {
+        NativeWindowFactory.initSingleton();
         if(DEBUG) {
-            System.err.println("GLProfile.init firstUIActionOnProcess: "+ firstUIActionOnProcess
-                               + ", thread: " + Thread.currentThread().getName());
+            System.err.println("GLProfile.init - thread: " + Thread.currentThread().getName());
             System.err.println(VersionUtil.getPlatformInfo());
             System.err.println(GlueGenVersion.getInstance());
             System.err.println(NativeWindowVersion.getInstance());

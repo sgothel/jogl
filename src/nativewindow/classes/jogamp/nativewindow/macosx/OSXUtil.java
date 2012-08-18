@@ -38,20 +38,18 @@ public class OSXUtil {
     private static boolean isInit = false;  
     private static final boolean DEBUG = Debug.debug("OSXUtil");
     
-    public static synchronized void initSingleton(boolean firstX11ActionOnProcess) {
+    public static synchronized void initSingleton() {
       if(!isInit) {
+          if(DEBUG) {
+              System.out.println("OSXUtil.initSingleton()");
+          }
           if(!NWJNILibLoader.loadNativeWindow("macosx")) {
               throw new NativeWindowException("NativeWindow MacOSX native library load error.");
           }
           
           if( !initIDs0() ) {
               throw new NativeWindowException("MacOSX: Could not initialized native stub");
-          }
-  
-          if(DEBUG) {
-              System.out.println("OSX.isFirstX11ActionOnProcess: "+firstX11ActionOnProcess);
-          }
-  
+          }  
           isInit = true;
       }
     }

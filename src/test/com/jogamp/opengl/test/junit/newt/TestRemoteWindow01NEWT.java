@@ -47,7 +47,7 @@ public class TestRemoteWindow01NEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        NativeWindowFactory.initSingleton(true);
+        NativeWindowFactory.initSingleton();
         width  = 640;
         height = 480;
     }

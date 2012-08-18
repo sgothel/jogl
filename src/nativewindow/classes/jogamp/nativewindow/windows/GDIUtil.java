@@ -41,24 +41,21 @@ public class GDIUtil {
     private static RegisteredClassFactory dummyWindowClassFactory;
     private static boolean isInit = false;
   
-    public static synchronized void initSingleton(boolean firstX11ActionOnProcess) {
+    public static synchronized void initSingleton() {
         if(!isInit) {
             synchronized(X11Util.class) {
                 if(!isInit) {
-                    isInit = true;
+                    if(DEBUG) {
+                        System.out.println("GDI.initSingleton()");
+                    }
                     if(!NWJNILibLoader.loadNativeWindow("win32")) {
                         throw new NativeWindowException("NativeWindow Windows native library load error.");
                     }
-
                     if( !initIDs0() ) {
                         throw new NativeWindowException("GDI: Could not initialized native stub");
                     }
-
-                    if(DEBUG) {
-                        System.out.println("GDI.isFirstX11ActionOnProcess: "+firstX11ActionOnProcess);
-                    }
-
-                    dummyWindowClassFactory = new RegisteredClassFactory(dummyWindowClassNameBase, getDummyWndProc0());
+                    dummyWindowClassFactory = new RegisteredClassFactory(dummyWindowClassNameBase, getDummyWndProc0());                    
+                    isInit = true;
                 }
             }
         }

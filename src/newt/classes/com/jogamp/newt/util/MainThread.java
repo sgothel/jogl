@@ -101,7 +101,7 @@ public class MainThread {
     public static final boolean  HINT_USE_MAIN_THREAD;
     
     static {
-        NativeWindowFactory.initSingleton(true);
+        NativeWindowFactory.initSingleton();
         NEWTJNILibLoader.loadNEWT();
         HINT_USE_MAIN_THREAD = !NativeWindowFactory.isAWTAvailable() || 
                                 Debug.getBooleanProperty("newt.MainThread.force", true);

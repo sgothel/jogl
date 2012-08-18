@@ -99,7 +99,6 @@ public abstract class NativeWindowFactory {
     private static Constructor<?> x11JAWTToolkitLockConstructor;
     private static Class<?>  x11ToolkitLockClass;
     private static Constructor<?> x11ToolkitLockConstructor;
-    private static boolean isFirstUIActionOnProcess;
     private static boolean requiresToolkitLock;
 
     /** Creates a new NativeWindowFactory instance. End users do not
@@ -138,9 +137,7 @@ public abstract class NativeWindowFactory {
 
     static boolean initialized = false;
 
-    private static void initSingletonNativeImpl(final boolean firstUIActionOnProcess, final ClassLoader cl) {
-        isFirstUIActionOnProcess = firstUIActionOnProcess;
-        
+    private static void initSingletonNativeImpl(final ClassLoader cl) {
         final String clazzName;
         if( TYPE_X11.equals(nativeWindowingTypePure) ) {
             clazzName = X11UtilClassName;
@@ -152,9 +149,7 @@ public abstract class NativeWindowFactory {
             clazzName = null;
         }
         if( null != clazzName ) {
-            ReflectionUtil.callStaticMethod(clazzName, "initSingleton",
-                                            new Class[] { boolean.class },
-                                            new Object[] { new Boolean(firstUIActionOnProcess) }, cl );
+            ReflectionUtil.callStaticMethod(clazzName, "initSingleton", null, null, cl );
             
             final Boolean res = (Boolean) ReflectionUtil.callStaticMethod(clazzName, "requiresToolkitLock", null, null, cl);
             requiresToolkitLock = res.booleanValue();             
@@ -166,24 +161,13 @@ public abstract class NativeWindowFactory {
     /**
      * Static one time initialization of this factory.<br>
      * This initialization method <b>must be called</b> once by the program or utilizing modules!
-     * <p>
-     * The parameter <code>firstUIActionOnProcess</code> has an impact on concurrent locking:
-     * <ul>
-     *   <li> {@link #getDefaultToolkitLock() getDefaultToolkitLock() }</li>
-     *   <li> {@link #getDefaultToolkitLock(java.lang.String) getDefaultToolkitLock(type) }</li>
-     *   <li> {@link #createDefaultToolkitLock(java.lang.String, long) createDefaultToolkitLock(type, dpyHandle) }</li>
-     *   <li> {@link #createDefaultToolkitLockNoAWT(java.lang.String, long) createDefaultToolkitLockNoAWT(type, dpyHandle) }</li>
-     * </ul>
-     * </p>
-     * @param firstUIActionOnProcess Should be <code>true</code> if called before the first UI action of the running program,
-     * otherwise <code>false</code>.
      */
-    public static synchronized void initSingleton(final boolean firstUIActionOnProcess) {
+    public static synchronized void initSingleton() {
         if(!initialized) {
             initialized = true;
 
             if(DEBUG) {
-                System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.initSingleton("+firstUIActionOnProcess+")");
+                System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.initSingleton()");
             }
 
             final ClassLoader cl = NativeWindowFactory.class.getClassLoader();
@@ -197,10 +181,6 @@ public abstract class NativeWindowFactory {
                 nativeWindowingTypeCustom = tmp;
             }
 
-            if(firstUIActionOnProcess) {
-                // X11 initialization before possible AWT initialization
-                initSingletonNativeImpl(true, cl);
-            }            
             isAWTAvailable = false; // may be set to true below
 
             if( Platform.AWT_AVAILABLE &&
@@ -248,10 +228,13 @@ public abstract class NativeWindowFactory {
                     }                    
                 }
             }
-            if(!firstUIActionOnProcess) {
-                // X11 initialization after possible AWT initialization
-                initSingletonNativeImpl(false, cl);
-            }
+            
+            // X11 initialization after possible AWT initialization
+            // This is performed post AWT initialization, allowing AWT to complete the same,
+            // which may have been triggered before NativeWindow initialization. 
+            // This way behavior is more uniforms across configurations (Applet/RCP, applications, ..). 
+            initSingletonNativeImpl(cl);
+            
             registeredFactories = Collections.synchronizedMap(new HashMap<Class<?>, NativeWindowFactory>());
 
             // register our default factory -> NativeWindow
@@ -276,7 +259,6 @@ public abstract class NativeWindowFactory {
             }
             
             if(DEBUG) {
-                System.err.println("NativeWindowFactory firstUIActionOnProcess "+firstUIActionOnProcess);
                 System.err.println("NativeWindowFactory requiresToolkitLock "+requiresToolkitLock);
                 System.err.println("NativeWindowFactory isAWTAvailable "+isAWTAvailable+", defaultFactory "+factory);
             }
@@ -301,12 +283,6 @@ public abstract class NativeWindowFactory {
         }
     }
     
-    /** @return true if initialized with <b>{@link #initSingleton(boolean) initSingleton(firstUIActionOnProcess==true)}</b>,
-        otherwise false. */
-    public static boolean isFirstUIActionOnProcess() {
-        return isFirstUIActionOnProcess;
-    }
-
     /** @return true if the underlying toolkit requires locking, otherwise false. */
     public static boolean requiresToolkitLock() {
         return requiresToolkitLock;

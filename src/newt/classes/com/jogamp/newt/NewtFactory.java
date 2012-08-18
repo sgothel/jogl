@@ -52,7 +52,7 @@ public class NewtFactory {
     // Work-around for initialization order problems on Mac OS X
     // between native Newt and (apparently) Fmod
     static {
-        NativeWindowFactory.initSingleton(false); // last resort ..
+        NativeWindowFactory.initSingleton(); // last resort ..
         WindowImpl.init(NativeWindowFactory.getNativeWindowType(true));
     }
 

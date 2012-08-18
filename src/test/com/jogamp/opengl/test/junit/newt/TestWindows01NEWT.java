@@ -45,7 +45,7 @@ public class TestWindows01NEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        NativeWindowFactory.initSingleton(true);
+        NativeWindowFactory.initSingleton();
         width  = 256;
         height = 256;
     }

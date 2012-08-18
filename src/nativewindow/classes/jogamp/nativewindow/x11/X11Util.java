@@ -95,18 +95,20 @@ public class X11Util {
     private static Object setX11ErrorHandlerLock = new Object();
 
     
-    @SuppressWarnings("unused")
-    public static void initSingleton(final boolean firstX11ActionOnProcess) {
+    public static void initSingleton() {
         if(!isInit) {
             synchronized(X11Util.class) {
                 if(!isInit) {
                     isInit = true;
+                    if(DEBUG) {
+                        System.out.println("X11UtilUtil.initSingleton()");
+                    }
                     if(!NWJNILibLoader.loadNativeWindow("x11")) {
                         throw new NativeWindowException("NativeWindow X11 native library load error.");
                     }
         
-                    final boolean callXInitThreads = XINITTHREADS_ALWAYS_ENABLED || firstX11ActionOnProcess;
-                    final boolean isXInitThreadsOK = initialize0( XINITTHREADS_ALWAYS_ENABLED || firstX11ActionOnProcess, XERROR_STACKDUMP);
+                    final boolean callXInitThreads = XINITTHREADS_ALWAYS_ENABLED ;
+                    final boolean isXInitThreadsOK = initialize0( callXInitThreads, XERROR_STACKDUMP);
                     isX11LockAvailable = isXInitThreadsOK && !HAS_XLOCKDISPLAY_BUG ;
         
                     final long dpy = X11Lib.XOpenDisplay(null);
@@ -124,8 +126,7 @@ public class X11Util {
                     }
                     
                     if(DEBUG) {
-                        System.err.println("X11Util firstX11ActionOnProcess: "+firstX11ActionOnProcess+
-                                           ", requiresX11Lock "+requiresX11Lock+
+                        System.err.println("X11Util requiresX11Lock "+requiresX11Lock+
                                            ", XInitThreads [called "+callXInitThreads+", OK "+isXInitThreadsOK+"]"+
                                            ", isX11LockAvailable "+isX11LockAvailable+
                                            ", X11 Display(NULL) <"+nullDisplayName+">"+
