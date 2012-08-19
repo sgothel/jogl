@@ -1,6 +1,7 @@
 REM scripts\java-win32-dbg.bat jogamp.newt.awt.opengl.VersionApplet
 REM scripts\java-win32-dbg.bat com.jogamp.newt.opengl.GLWindow
 REM scripts\java-win32-dbg.bat javax.media.opengl.awt.GLCanvas
+REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT %*
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT %*
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT -time 5000
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn
@@ -71,6 +72,10 @@ REM scripts\java-win32.bat com.jogamp.opengl.test.junit.newt.TestWindowClosingPr
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT01GLn %*
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWT02GLn %*
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT01GLn $*
+REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting04AWT $*
+REM scripts\java-win32.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aSWT $*
+REM scripts\java-win32.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting04SWT $*
+scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
 
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT -time 5000
 
@@ -94,7 +99,7 @@ REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGPUMe
 REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01NEWT
 
 REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01
-scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestFBODrawableNEWT %*
+REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestFBODrawableNEWT %*
 REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.glsl.TestFBOMRTNEWT01
 
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT %*

@@ -163,7 +163,6 @@ public class WindowDriver extends WindowImpl {
                 }
             }
             try {
-                GDI.SetParent(windowHandleClose, 0); // detach first, experience hang w/ SWT parent
                 GDI.DestroyWindow(windowHandleClose);
             } catch (Throwable t) {
                 if(DEBUG_IMPLEMENTATION) {

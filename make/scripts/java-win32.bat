@@ -7,9 +7,9 @@ set ANT_PATH=C:\apache-ant-1.8.2
 set PROJECT_ROOT=D:\projects\jogamp\jogl
 set BLD_DIR=..\%BLD_SUB%
 
-REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw\bin;%PATH%
+set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw\bin;%PATH%
 REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\angle\win32;%PATH%
-set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\PVRVFrame\OGLES-2.0\Windows_x86_32;%PATH%
+REM set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;%PROJECT_ROOT%\make\lib\PVRVFrame\OGLES-2.0\Windows_x86_32;%PATH%
 
 set BLD_DIR=..\%BLD_SUB%
 REM set LIB_DIR=..\..\gluegen\%BLD_SUB%\obj;%BLD_DIR%\lib
