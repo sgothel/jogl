@@ -158,7 +158,9 @@ public abstract class GLDrawableFactory {
           }
       }
     }
-    nativeOSFactory = tmp;
+    if(null != tmp && tmp.isComplete()) {
+        nativeOSFactory = tmp;
+    }
 
     tmp = null;
     try {
@@ -169,7 +171,9 @@ public abstract class GLDrawableFactory {
             jre.printStackTrace();
         }
     }
-    eglFactory = tmp;
+    if(null != tmp && tmp.isComplete()) {
+        eglFactory = tmp;
+    }
   }
 
   protected static void shutdown(ShutdownType shutdownType) {
@@ -233,6 +237,9 @@ public abstract class GLDrawableFactory {
         glDrawableFactories.add(this);
     }
   }
+  
+  /** Returns true if this factory is complete, i.e. ready to be used. Otherwise return false. */
+  protected abstract boolean isComplete();
 
   protected void enterThreadCriticalZone() {};
   protected void leaveThreadCriticalZone() {};

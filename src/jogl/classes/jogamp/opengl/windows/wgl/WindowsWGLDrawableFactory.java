@@ -130,6 +130,12 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
+  protected final boolean isComplete() {
+      return null != windowsWGLDynamicLookupHelper;
+  }
+  
+  
+  @Override
   protected final void destroy(ShutdownType shutdownType) {
     if(null != sharedResourceRunner) {
         sharedResourceRunner.stop();

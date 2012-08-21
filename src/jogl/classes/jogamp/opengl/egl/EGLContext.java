@@ -42,6 +42,7 @@ import java.util.Map;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
@@ -303,8 +304,19 @@ public abstract class EGLContext extends GLContextImpl {
      */
     protected void mapCurrentAvailableGLVersion(AbstractGraphicsDevice device) {
         mapCurrentAvailableGLVersionImpl(device, ctxMajorVersion, ctxMinorVersion, ctxOptions);
+    }        
+    protected static void mapStaticGLESVersion(AbstractGraphicsDevice device, GLCapabilitiesImmutable caps) {
+        final GLProfile glp = caps.getGLProfile();
+        final int[] reqMajorCTP = new int[2];
+        GLContext.getRequestMajorAndCompat(glp, reqMajorCTP);
+        if(glp.isGLES() && reqMajorCTP[0] >= 2) {
+            reqMajorCTP[1] |= GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ;
+        }
+        if(!caps.getHardwareAccelerated()) {
+            reqMajorCTP[1] |= GLContext.CTX_IMPL_ACCEL_SOFT;
+        }
+        mapCurrentAvailableGLVersionImpl(device, reqMajorCTP[0], 0, reqMajorCTP[1]);
     }
-        
     protected static void mapStaticGLESVersion(AbstractGraphicsDevice device, int major) {
         int ctp = ( 2 == major ) ? ( GLContext.CTX_PROFILE_ES | GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ) : ( GLContext.CTX_PROFILE_ES );  
         mapCurrentAvailableGLVersionImpl(device, major, 0, ctp);

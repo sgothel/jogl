@@ -1141,7 +1141,7 @@ public abstract class GLContext {
   }
 
   /**
-   * Returns the GLProfile's major version number and it's context property (CTP) for availability mapping request.
+   * Returns the GLProfile's major version number at reqMajorCTP[0] and it's context property (CTP) at reqMajorCTP[1] for availability mapping request.
    */
   protected static final void getRequestMajorAndCompat(final GLProfile glp, int[/*2*/] reqMajorCTP) {
     final GLProfile glpImpl = glp.getImpl();
@@ -1149,7 +1149,9 @@ public abstract class GLContext {
         reqMajorCTP[0]=4;
     } else if (glpImpl.isGL3()) {
         reqMajorCTP[0]=3;
-    } else /* if (glpImpl.isGL2()) */ {
+    } else if (glpImpl.isGLES1()) {
+        reqMajorCTP[0]=1;
+    } else /* if (glpImpl.isGL2() || glpImpl.isGLES2()) */ {
         reqMajorCTP[0]=2;
     }
     if( glpImpl.isGLES() ) {

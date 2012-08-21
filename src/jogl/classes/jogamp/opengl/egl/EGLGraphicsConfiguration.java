@@ -211,6 +211,11 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             return false;
         }        
                 
+        if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_CONFIG_CAVEAT, val)) {
+            if( EGL.EGL_SLOW_CONFIG == val.get(0) ) {
+                caps.setHardwareAccelerated(false);
+            }
+        }
         if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_SAMPLES, val)) {
             caps.setSampleBuffers(val.get(0)>0?true:false);
             caps.setNumSamples(val.get(0));

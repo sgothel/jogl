@@ -119,6 +119,11 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
+  protected final boolean isComplete() {
+      return null != macOSXCGLDynamicLookupHelper;
+  }
+    
+  @Override
   protected final void destroy(ShutdownType shutdownType) {
     if(null != sharedMap) {
         sharedMap.clear();

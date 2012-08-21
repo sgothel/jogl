@@ -124,6 +124,11 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
+  protected final boolean isComplete() {
+      return null != x11GLXDynamicLookupHelper;
+  }
+  
+  @Override
   protected final void destroy(ShutdownType shutdownType) {
     if(null != sharedResourceRunner) {
         sharedResourceRunner.stop();
