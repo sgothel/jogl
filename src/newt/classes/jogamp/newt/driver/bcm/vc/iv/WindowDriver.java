@@ -29,6 +29,7 @@
 package jogamp.newt.driver.bcm.vc.iv;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.VisualIDHolder;
@@ -52,8 +53,14 @@ public class WindowDriver extends WindowImpl {
         if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
         }
+        // FIXME: Hack - Native BCM_VC_IV code CreateWindow() uses the default alpha value setting,
+        // which is alpha:8 ! Hence we require to chose alpha from the egl configurations.
+        // TODO: Properly select the alpha mode in CreateWindow()! This will allow this hack. 
+        final Capabilities capsChosen = (Capabilities) capsRequested.cloneMutable();
+        capsChosen.setAlphaBits(1);
+        
         final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice(), capsRequested).chooseGraphicsConfiguration(
-                capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen(), VisualIDHolder.VID_UNDEFINED);
+                capsChosen, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen(), VisualIDHolder.VID_UNDEFINED);
         if (null == cfg) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
