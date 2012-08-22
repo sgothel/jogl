@@ -69,12 +69,16 @@
       <nativelib href = "jar/atomic/jogl-cg-natives-linux-amd64.jar" />
     </resources>
     <resources os="Linux" arch="arm">
-      <nativelib href = "jar/jogl-all-natives-linux-armv7.jar" />
-      <nativelib href = "jar/atomic/jogl-cg-natives-linux-armv7.jar" />
+      <nativelib href = "jar/jogl-all-natives-linux-armv6.jar" />
+      <nativelib href = "jar/jogl-all-natives-linux-armv6hf.jar" />
+      <nativelib href = "jar/atomic/jogl-cg-natives-linux-armv6.jar" />
+      <nativelib href = "jar/atomic/jogl-cg-natives-linux-armv6hf.jar" />
     </resources>
     <resources os="Linux" arch="armv7">
-      <nativelib href = "jar/jogl-all-natives-linux-armv7.jar" />
-      <nativelib href = "jar/atomic/jogl-cg-natives-linux-armv7.jar" />
+      <nativelib href = "jar/jogl-all-natives-linux-armv6.jar" />
+      <nativelib href = "jar/jogl-all-natives-linux-armv6hf.jar" />
+      <nativelib href = "jar/atomic/jogl-cg-natives-linux-armv6.jar" />
+      <nativelib href = "jar/atomic/jogl-cg-natives-linux-armv6hf.jar" />
     </resources>
     <resources os="Mac OS X" arch="i386">
       <nativelib href = "jar/jogl-all-natives-macosx-universal.jar" />
