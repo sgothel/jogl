@@ -52,7 +52,6 @@ import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 
 import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.GLExtensions;
@@ -140,8 +139,7 @@ public abstract class GLContext {
 
   private static final ThreadLocal<GLContext> currentContext = new ThreadLocal<GLContext>();
 
-  private final HashMap<String, Object> attachedObjectsByString = new HashMap<String, Object>();
-  private final IntObjectHashMap attachedObjectsByInt = new IntObjectHashMap();
+  private final HashMap<String, Object> attachedObjects = new HashMap<String, Object>();
 
   // RecursiveLock maintains a queue of waiting Threads, ensuring the longest waiting thread will be notified at unlock.
   protected final RecursiveLock lock = LockFactory.createRecursiveLock();
@@ -168,8 +166,7 @@ public abstract class GLContext {
       ctxMinorVersion=-1;
       ctxOptions=0;
       ctxVersionString=null;
-      attachedObjectsByString.clear();
-      attachedObjectsByInt.clear();
+      attachedObjects.clear();
       contextHandle=0;
       currentSwapInterval = -1;
   }
@@ -425,27 +422,8 @@ public abstract class GLContext {
   /**
    * Returns the attached user object for the given name to this GLContext.
    */
-  public final Object getAttachedObject(int name) {
-    return attachedObjectsByInt.get(name);
-  }
-
-  /**
-   * Returns the attached user object for the given name to this GLContext.
-   */
   public final Object getAttachedObject(String name) {
-    return attachedObjectsByString.get(name);
-  }
-
-  /**
-   * Sets the attached user object for the given name to this GLContext.
-   * Returns the previously set object or null.
-   */
-  public final Object attachObject(int name, Object obj) {
-    return attachedObjectsByInt.put(name, obj);
-  }
-
-  public final Object detachObject(int name) {
-      return attachedObjectsByInt.remove(name);
+    return attachedObjects.get(name);
   }
 
   /**
@@ -453,11 +431,11 @@ public abstract class GLContext {
    * Returns the previously set object or null.
    */
   public final Object attachObject(String name, Object obj) {
-    return attachedObjectsByString.put(name, obj);
+    return attachedObjects.put(name, obj);
   }
 
   public final Object detachObject(String name) {
-      return attachedObjectsByString.remove(name);
+      return attachedObjects.remove(name);
   }
 
   /**
