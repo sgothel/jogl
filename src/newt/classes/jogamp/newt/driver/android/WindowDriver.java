@@ -39,6 +39,7 @@ import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLException;
 
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
@@ -263,15 +264,24 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         setGraphicsConfiguration(eglConfig);
         setWindowHandle(surfaceHandle);
         focusChanged(false, true);
-        Log.d(MD.TAG, "createNativeImpl X");
+        Log.d(MD.TAG, "createNativeImpl X: eglSurfaceHandle 0x"+Long.toHexString(eglSurface));
     }
 
     @Override
     protected void closeNativeImpl() {
+        Log.d(MD.TAG, "closeNativeImpl 0 - surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
+                    ", eglSurfaceHandle 0x"+Long.toHexString(eglSurface)+
+                    ", format [a "+androidFormat+", n "+nativeFormat+"], "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" - "+Thread.currentThread().getName());
+        if(0 != eglSurface) {
+            final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getScreen().getDisplay().getGraphicsDevice();
+            if (!EGL.eglDestroySurface(eglDevice.getHandle(), eglSurface)) {
+                throw new GLException("Error destroying window surface (eglDestroySurface)");
+            }
+            eglSurface = 0;        
+        }        
         release0(surfaceHandle);
         surface = null;
         surfaceHandle = 0;
-        eglSurface = 0;        
     }
 
     @Override
@@ -291,25 +301,33 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         }
     }
 
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
+    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {        
+        boolean res = true;
+        
         if( 0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
             Log.d(MD.TAG, "reconfigureWindowImpl.setFullscreen post creation (setContentView()) n/a");
             return false;
         }
-        if(width>0 || height>0) {
+        if(getWidth() != width || getHeight() != height) {
             if(0!=getWindowHandle()) {
                 Log.d(MD.TAG, "reconfigureWindowImpl.setSize n/a");
-                return false;
+                res = false;
+            } else {
+                defineSize(width, height);
             }
         }
-        if(x>=0 || y>=0) {
-            Log.d(MD.TAG, "reconfigureWindowImpl.setPos n/a");
-            return false;
+        if(getX() != x || getY() != y) {
+            if(0!=getWindowHandle()) {
+                Log.d(MD.TAG, "reconfigureWindowImpl.setPos n/a");
+                res = false;
+            } else {
+                definePosition(x, y);
+            }
         }
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
             visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));            
         }
-        return true;
+        return res;
     }
 
     protected Point getLocationOnScreenImpl(int x, int y) {
