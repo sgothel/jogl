@@ -265,15 +265,16 @@ public class NewtBaseActivity extends Activity {
      if(!isDelegatedActivity()) {
          super.onResume();
      }
-     if(null != animator) {
-         animator.resume();
-         animator.resetFPSCounter();
-     }
-     for(int i=newtWindows.size()-1; i>=0; i--) {
+     for(int i=0; i<newtWindows.size(); i++) {
          final Window win = newtWindows.get(i);
+         win.setVisible(true);
          if(win instanceof FPSCounter) {
              ((FPSCounter)win).resetFPSCounter();
          }
+     }
+     if(null != animator) {
+         animator.resume();
+         animator.resetFPSCounter();
      }
    }
 
@@ -282,6 +283,10 @@ public class NewtBaseActivity extends Activity {
      Log.d(MD.TAG, "onPause");
      if(null != animator) {
          animator.pause();
+     }
+     for(int i=0; i<newtWindows.size(); i++) {
+         final Window win = newtWindows.get(i);
+         win.setVisible(false);
      }
      if(!isDelegatedActivity()) {
          super.onPause();
