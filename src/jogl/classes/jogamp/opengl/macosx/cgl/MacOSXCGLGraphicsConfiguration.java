@@ -176,7 +176,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         return CGL.createPixelFormat(cglInternalAttributeToken, off, len, ivalues, 0);
     }
 
-    static GLCapabilitiesImmutable NSPixelFormat2GLCapabilities(GLProfile glp, long pixelFormat) {
+    static GLCapabilities NSPixelFormat2GLCapabilities(GLProfile glp, long pixelFormat) {
         return PixelFormat2GLCapabilities(glp, pixelFormat, true);
     }
 
@@ -233,11 +233,11 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
       return fmt.get(0);
     }
     
-    static GLCapabilitiesImmutable CGLPixelFormat2GLCapabilities(long pixelFormat) {        
+    static GLCapabilities CGLPixelFormat2GLCapabilities(long pixelFormat) {        
         return PixelFormat2GLCapabilities(null, pixelFormat, false);
     }
 
-    private static GLCapabilitiesImmutable PixelFormat2GLCapabilities(GLProfile glp, long pixelFormat, boolean nsUsage) {
+    private static GLCapabilities PixelFormat2GLCapabilities(GLProfile glp, long pixelFormat, boolean nsUsage) {
         int len = cglInternalAttributeToken.length;
         int off = 0;
         if ( !MacOSXCGLContext.isLionOrLater ) {

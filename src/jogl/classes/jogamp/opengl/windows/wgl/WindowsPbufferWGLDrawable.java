@@ -40,6 +40,7 @@
 
 package jogamp.opengl.windows.wgl;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.MutableSurface;
@@ -52,6 +53,7 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.windows.GDI;
 import jogamp.opengl.GLDrawableImpl;
+import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.windows.wgl.WindowsWGLDrawableFactory.SharedResource;
 // import javax.media.opengl.GLPbuffer;
 
@@ -127,13 +129,16 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
             System.out.println("Pbuffer config: " + config);
         }
 
+        final int winattrPbuffer = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(false /* onscreen */, false /* fbo */, true /* pbuffer */, false /* bitmap */);
+        
         int[]   iattributes = new int  [2*WindowsWGLGraphicsConfiguration.MAX_ATTRIBS];
         float[] fattributes = new float[1];
         int[]   floatModeTmp = new int[1];
         int     niattribs   = 0;
 
-        GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
-        GLProfile glProfile = chosenCaps.getGLProfile();
+        final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
+        final GLProfile glProfile = chosenCaps.getGLProfile();
+        final AbstractGraphicsDevice device = config.getScreen().getDevice();
 
         if (DEBUG) {
           System.out.println("Pbuffer parentHdc = " + toHexString(sharedHdc));
@@ -175,7 +180,8 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         if (DEBUG) {
           System.err.println("" + nformats + " suitable pixel formats found");
           for (int i = 0; i < nformats; i++) {
-            WGLGLCapabilities dbgCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, sharedHdc, pformats[i], glProfile, false, true);
+            WGLGLCapabilities dbgCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, device, glProfile, 
+                                          sharedHdc, pformats[i], winattrPbuffer);
             System.err.println("pixel format " + pformats[i] + " (index " + i + "): " + dbgCaps);
           }
         }
@@ -239,7 +245,8 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
         // Re-query chosen pixel format
         {
-          WGLGLCapabilities newCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, sharedHdc, pfdid, glProfile, false, true);
+          WGLGLCapabilities newCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, device, glProfile, 
+                                          sharedHdc, pfdid, winattrPbuffer);
           if(null == newCaps) {
             throw new GLException("pbuffer creation error: unable to re-query chosen PFD ID: " + pfdid + ", hdc " + GLDrawableImpl.toHexString(tmpHdc));
           }

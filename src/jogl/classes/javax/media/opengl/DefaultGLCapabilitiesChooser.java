@@ -87,20 +87,20 @@ import jogamp.opengl.Debug;
 public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
   private static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.CapabilitiesChooser", true);
 
-  final static int NO_SCORE = -9999999;
-  final static int DOUBLE_BUFFER_MISMATCH_PENALTY = 1000;
-  final static int OPAQUE_MISMATCH_PENALTY = 750;
-  final static int STENCIL_MISMATCH_PENALTY = 500;
-  final static int MULTISAMPLE_MISMATCH_PENALTY = 500;
-  final static int MULTISAMPLE_EXTENSION_MISMATCH_PENALTY = 250; // just a little drop, no scale
+  private final static int NO_SCORE = -9999999;
+  private final static int DOUBLE_BUFFER_MISMATCH_PENALTY = 1000;
+  private final static int OPAQUE_MISMATCH_PENALTY = 750;
+  private final static int STENCIL_MISMATCH_PENALTY = 500;
+  private final static int MULTISAMPLE_MISMATCH_PENALTY = 500;
+  private final static int MULTISAMPLE_EXTENSION_MISMATCH_PENALTY = 250; // just a little drop, no scale
   // Pseudo attempt to keep equal rank penalties scale-equivalent
   // (e.g., stencil mismatch is 3 * accum because there are 3 accum
   // components)
-  final static int COLOR_MISMATCH_PENALTY_SCALE     = 36;
-  final static int DEPTH_MISMATCH_PENALTY_SCALE     = 6;
-  final static int ACCUM_MISMATCH_PENALTY_SCALE     = 1;
-  final static int STENCIL_MISMATCH_PENALTY_SCALE   = 3;
-  final static int MULTISAMPLE_MISMATCH_PENALTY_SCALE   = 3;
+  private final static int COLOR_MISMATCH_PENALTY_SCALE     = 36;
+  private final static int DEPTH_MISMATCH_PENALTY_SCALE     = 6;
+  private final static int ACCUM_MISMATCH_PENALTY_SCALE     = 1;
+  private final static int STENCIL_MISMATCH_PENALTY_SCALE   = 3;
+  private final static int MULTISAMPLE_MISMATCH_PENALTY_SCALE   = 3;
   
   @Override
   public int chooseCapabilities(final CapabilitiesImmutable desired,
@@ -150,11 +150,20 @@ public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
       if (cur == null) {
         continue;
       }
-      if (gldes.isOnscreen() != cur.isOnscreen()) {
-        continue;
+      if (gldes.isOnscreen() && !cur.isOnscreen()) {
+        continue; // requested onscreen, but n/a
       }
-      if (!gldes.isOnscreen() && gldes.isPBuffer() && !cur.isPBuffer()) {
-        continue; // only skip if requested Offscreen && PBuffer, but no PBuffer available
+      if (!gldes.isOnscreen()) {
+          /** FBO is generic ..
+          if (gldes.isFBO() && !cur.isFBO()) {
+            continue; // requested FBO, but n/a
+          }  */
+          if (gldes.isPBuffer() && !cur.isPBuffer()) {
+            continue; // requested pBuffer, but n/a
+          }          
+          if (gldes.isBitmap() && !cur.isBitmap()) {
+            continue; // requested pBuffer, but n/a
+          }          
       }
       if (gldes.getStereo() != cur.getStereo()) {
         continue;

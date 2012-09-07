@@ -271,7 +271,10 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         throw new GLException("No shared device for requested: "+deviceReq);
     }
     
-    if( capsRequested.isFBO() && GLContext.isFBOAvailable(device, capsRequested.getGLProfile()) ) {
+    final GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(capsRequested, 
+                                                        GLContext.isFBOAvailable(device, capsRequested.getGLProfile()), 
+                                                        canCreateGLPbuffer(device));    
+    if( capsChosen.isFBO() ) {
         device.lock();
         try {
             return createFBODrawableImpl(device, capsRequested, chooser, width, height);
@@ -280,7 +283,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         }
     }
     
-    final GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(capsRequested, false, canCreateGLPbuffer(device));
     device.lock();
     try {
         return createOffscreenDrawableImpl( createMutableSurfaceImpl(device, true, capsChosen, capsRequested, chooser, width, height, null) );

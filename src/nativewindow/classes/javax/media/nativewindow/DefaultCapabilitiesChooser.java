@@ -68,6 +68,9 @@ import jogamp.nativewindow.Debug;
 public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
   private static final boolean DEBUG = Debug.isPropertyDefined("nativewindow.debug.CapabilitiesChooser", true); 
 
+  private final static int NO_SCORE = -9999999;
+  private final static int COLOR_MISMATCH_PENALTY_SCALE     = 36;
+  
   public int chooseCapabilities(final CapabilitiesImmutable desired,
                                 final List<? extends CapabilitiesImmutable> available,
                                 final int windowSystemRecommendedChoice) {
@@ -92,8 +95,6 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
 
     // Create score array
     int[] scores = new int[availnum];
-    int NO_SCORE = -9999999;
-    int COLOR_MISMATCH_PENALTY_SCALE     = 36;
     for (int i = 0; i < availnum; i++) {
       scores[i] = NO_SCORE;
     }
@@ -103,6 +104,10 @@ public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
       if (cur == null) {
         continue;
       }
+      if (desired.isOnscreen() && !cur.isOnscreen()) {
+        continue; // requested onscreen, but n/a
+      }
+      
       int score = 0;
       // Compute difference in color depth
       score += (COLOR_MISMATCH_PENALTY_SCALE *

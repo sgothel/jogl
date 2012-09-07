@@ -33,10 +33,6 @@
 
 package jogamp.opengl.x11.glx;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.VisualIDHolder;
@@ -58,6 +54,7 @@ import jogamp.opengl.GLGraphicsConfigurationUtil;
 
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.nativewindow.x11.X11GraphicsConfiguration;
+import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implements Cloneable {
@@ -71,7 +68,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
 
     static X11GLXGraphicsConfiguration create(GLProfile glp, X11GraphicsScreen x11Screen, int fbcfgID) {
-      final AbstractGraphicsDevice device = x11Screen.getDevice();
+      final X11GraphicsDevice device = (X11GraphicsDevice) x11Screen.getDevice();
       final long display = device.getHandle();
       if(0==display) {
           throw new GLException("Display null of "+x11Screen);
@@ -85,7 +82,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         glp = GLProfile.getDefault(x11Screen.getDevice());
       }
       final X11GLXDrawableFactory factory = (X11GLXDrawableFactory) GLDrawableFactory.getDesktopFactory();
-      final X11GLCapabilities caps = GLXFBConfig2GLCapabilities(glp, device, fbcfg, true, true, true, factory.isGLXMultisampleAvailable(device));
+      final X11GLCapabilities caps = GLXFBConfig2GLCapabilities(device, glp, fbcfg, GLGraphicsConfigurationUtil.ALL_BITS, factory.isGLXMultisampleAvailable(device));      
       if(null==caps) {
           throw new GLException("GLCapabilities null of "+toHexString(fbcfg));
       }
@@ -247,7 +244,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return true;
   }
 
-  static int FBCfgDrawableTypeBits(final AbstractGraphicsDevice device, GLProfile glp, final long fbcfg) {
+  static int FBCfgDrawableTypeBits(final X11GraphicsDevice device, GLProfile glp, final long fbcfg) {
     int val = 0;
 
     int[] tmp = new int[1];
@@ -268,19 +265,6 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return val;
   }
 
-  static X11GLCapabilities GLXFBConfig2GLCapabilities(GLProfile glp, AbstractGraphicsDevice device, long fbcfg,
-                                                            boolean relaxed, boolean onscreen, boolean usePBuffer,
-                                                            boolean isMultisampleAvailable) {
-    ArrayList<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>();
-    final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer, false);
-    if( GLXFBConfig2GLCapabilities(bucket, glp, device, fbcfg, winattrmask, isMultisampleAvailable) ) {
-        return (X11GLCapabilities) bucket.get(0);
-    } else if ( relaxed && GLXFBConfig2GLCapabilities(bucket, glp, device, fbcfg, GLGraphicsConfigurationUtil.ALL_BITS, isMultisampleAvailable) ) {
-        return (X11GLCapabilities) bucket.get(0);
-    }
-    return null;
-  }
-
   static XRenderDirectFormat XVisual2XRenderMask(long dpy, long visual) {
     XRenderPictFormat renderPictFmt = X11Lib.XRenderFindVisualFormat(dpy, visual);
     if(null == renderPictFmt) {
@@ -289,9 +273,8 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return renderPictFmt.getDirect();
   }
 
-  static boolean GLXFBConfig2GLCapabilities(List<GLCapabilitiesImmutable> capsBucket,
-                                            GLProfile glp, AbstractGraphicsDevice device, long fbcfg,
-                                            int winattrmask, boolean isMultisampleAvailable) {
+  static X11GLCapabilities GLXFBConfig2GLCapabilities(X11GraphicsDevice device, GLProfile glp, long fbcfg,
+                                                      int winattrmask, boolean isMultisampleAvailable) {
     final int allDrawableTypeBits = FBCfgDrawableTypeBits(device, glp,  fbcfg);
     int drawableTypeBits = winattrmask & allDrawableTypeBits;
     
@@ -307,18 +290,18 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
 
     if( 0 == drawableTypeBits ) {
-        return false;
+        return null;
     }
 
     int[] tmp = new int[1];
     if(GLX.GLX_BAD_ATTRIBUTE == GLX.glXGetFBConfigAttrib(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp, 0)) {
-      return false;
+      return null;
     }
     if( 0 == ( GLX.GLX_RGBA_BIT & tmp[0] ) ) {
-      return false; // no RGBA -> color index not supported
+      return null; // no RGBA -> color index not supported
     }
 
-    GLCapabilities res = new X11GLCapabilities(visualInfo, fbcfg, fbcfgid, glp);
+    X11GLCapabilities res = new X11GLCapabilities(visualInfo, fbcfg, fbcfgid, glp);
     if (isMultisampleAvailable) {
       res.setSampleBuffers(glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
       res.setNumSamples   (glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLES,        tmp, 0));
@@ -353,7 +336,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         res.setPbufferFloatingPointBuffers(glXGetFBConfig(display, fbcfg, GLXExt.GLX_FLOAT_COMPONENTS_NV, tmp, 0) != GL.GL_FALSE);
     } catch (Exception e) {}
 
-    return GLGraphicsConfigurationUtil.addGLCapabilitiesPermutations(capsBucket, res, drawableTypeBits );
+    return (X11GLCapabilities) GLGraphicsConfigurationUtil.setWinAttributeBits(res, drawableTypeBits);
   }
 
   private static String glXGetFBConfigErrorCode(int err) {
@@ -408,30 +391,34 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       return res;
   }
 
-  static boolean XVisualInfo2GLCapabilities(List<GLCapabilitiesImmutable> capsBucket,
-                                            GLProfile glp, long display, XVisualInfo info,
-                                            final int winattrmask, boolean isMultisampleEnabled) {
-    final int allDrawableTypeBits = GLGraphicsConfigurationUtil.WINDOW_BIT | GLGraphicsConfigurationUtil.BITMAP_BIT ;
+  static X11GLCapabilities XVisualInfo2GLCapabilities(final X11GraphicsDevice device, GLProfile glp, XVisualInfo info,
+                                                      final int winattrmask, boolean isMultisampleEnabled) {
+    final int allDrawableTypeBits = GLGraphicsConfigurationUtil.WINDOW_BIT | 
+                                    GLGraphicsConfigurationUtil.BITMAP_BIT | 
+                                    ( GLContext.isFBOAvailable(device, glp) ? GLGraphicsConfigurationUtil.FBO_BIT : 0 )
+                                    ;
+
     final int drawableTypeBits = winattrmask & allDrawableTypeBits;
 
     if( 0 == drawableTypeBits ) {
-        return false;
+        return null;
     }
 
+    final long display = device.getHandle();
     int[] tmp = new int[1];
     int val = glXGetConfig(display, info, GLX.GLX_USE_GL, tmp, 0);
     if (val == 0) {
       if(DEBUG) {
         System.err.println("Visual ("+toHexString(info.getVisualid())+") does not support OpenGL");
       }
-      return false;
+      return null;
     }
     val = glXGetConfig(display, info, GLX.GLX_RGBA, tmp, 0);
     if (val == 0) {
       if(DEBUG) {
         System.err.println("Visual ("+toHexString(info.getVisualid())+") does not support RGBA");
       }
-      return false;
+      return null;
     }
 
     GLCapabilities res = new X11GLCapabilities(info, glp);
@@ -470,7 +457,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     res.setAccumBlueBits (glXGetConfig(display, info, GLX.GLX_ACCUM_BLUE_SIZE,  tmp, 0));
     res.setAccumAlphaBits(glXGetConfig(display, info, GLX.GLX_ACCUM_ALPHA_SIZE, tmp, 0));
 
-    return GLGraphicsConfigurationUtil.addGLCapabilitiesPermutations(capsBucket, res, drawableTypeBits);
+    return (X11GLCapabilities) GLGraphicsConfigurationUtil.setWinAttributeBits(res, drawableTypeBits);
   }
 
   private static String glXGetConfigErrorCode(int err) {

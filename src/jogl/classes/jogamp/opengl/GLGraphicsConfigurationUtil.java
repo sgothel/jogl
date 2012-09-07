@@ -28,7 +28,6 @@
 
 package jogamp.opengl;
 
-import java.util.List;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -74,56 +73,60 @@ public class GLGraphicsConfigurationUtil {
     }
 
     /**
-     * @param isFBO TODO
-     * @return bitmask representing the input boolean in exclusive or logic, ie only one bit will be set
-     */
-    public static final int getWinAttributeBits(boolean isOnscreen, boolean isPBuffer, boolean isFBO) {
+    public static final int getWinAttributeBits(boolean isOnscreen, boolean isFBO, boolean isPBuffer, boolean isBitmap) {
         int winattrbits = 0;
         if(isOnscreen) {
             winattrbits |= WINDOW_BIT;
-        } else {
-            if(isFBO) {
-                winattrbits |= FBO_BIT;
-            }
-            if (!isPBuffer) {
-                winattrbits |= BITMAP_BIT;
-            } else {
-                winattrbits |= PBUFFER_BIT;
-            }
+        }
+        if(isFBO) {
+            winattrbits |= FBO_BIT;
+        } 
+        if(isPBuffer ){
+            winattrbits |= PBUFFER_BIT;
+        } 
+        if(isBitmap) {
+            winattrbits |= BITMAP_BIT;                
+        }
+        return winattrbits;
+    }
+    public static final int getWinAttributeBits(GLCapabilitiesImmutable caps) {
+        return getWinAttributeBits(caps.isOnscreen(), caps.isFBO(), caps.isPBuffer(), caps.isBitmap());
+    } */
+
+    /**
+     * @return bitmask representing the input boolean in exclusive or logic, ie only one bit will be set.
+     */
+    public static final int getExclusiveWinAttributeBits(boolean isOnscreen, boolean isFBO, boolean isPBuffer, boolean isBitmap) {
+        int winattrbits = 0;
+        if(isOnscreen) {
+            winattrbits |= WINDOW_BIT;
+        } else if(isFBO) {
+            winattrbits |= FBO_BIT;
+        } else if(isPBuffer ){
+            winattrbits |= PBUFFER_BIT;
+        } else if(isBitmap) {
+            winattrbits |= BITMAP_BIT;                
+        }
+        if(0 == winattrbits) {
+            throw new InternalError("Empty bitmask");
         }
         return winattrbits;
     }
 
     /**
-     * @see #getWinAttributeBits(boolean, boolean, boolean)
+     * @see #getExclusiveWinAttributeBits(boolean, boolean, boolean, boolean)
      */
-    public static final int getWinAttributeBits(GLCapabilitiesImmutable caps) {
-        return getWinAttributeBits(caps.isOnscreen(), caps.isPBuffer(), false);
+    public static final int getExclusiveWinAttributeBits(GLCapabilitiesImmutable caps) {
+        return getExclusiveWinAttributeBits(caps.isOnscreen(), caps.isFBO(), caps.isPBuffer(), caps.isBitmap());
     }
 
-    public static final boolean addGLCapabilitiesPermutations(List<GLCapabilitiesImmutable> capsBucket, GLCapabilitiesImmutable temp, int winattrbits) {
-        int preSize = capsBucket.size();
-        if( 0 != ( WINDOW_BIT & winattrbits )  )  {
-            GLCapabilities cpy  = (GLCapabilities) temp.cloneMutable();
-            cpy.setOnscreen(true);
-            cpy.setPBuffer(false);
-            cpy.setFBO(false);
-            capsBucket.add(cpy);
-        }
-        if( 0 != ( PBUFFER_BIT & winattrbits ) || 0 != ( FBO_BIT & winattrbits )  )  {
-            GLCapabilities cpy  = (GLCapabilities) temp.cloneMutable();
-            cpy.setFBO(0 != ( FBO_BIT & winattrbits ));
-            cpy.setPBuffer(0 != ( PBUFFER_BIT & winattrbits ));
-            capsBucket.add(cpy);
-        }
-        if( 0 != ( BITMAP_BIT & winattrbits )  )  {
-            GLCapabilities cpy  = (GLCapabilities) temp.cloneMutable();
-            cpy.setOnscreen(false);
-            cpy.setPBuffer(false);
-            cpy.setFBO(false);
-            capsBucket.add(cpy);
-        }
-        return capsBucket.size() > preSize;
+    public static final GLCapabilities setWinAttributeBits(GLCapabilities caps, int winattrbits) {
+        caps.setBitmap  ( 0 != ( BITMAP_BIT  & winattrbits ) );
+        caps.setPBuffer ( 0 != ( PBUFFER_BIT & winattrbits ) );
+        caps.setFBO     ( 0 != ( FBO_BIT     & winattrbits ) );
+        // we reflect availability semantics, hence setting onscreen at last (maybe overwritten above)!
+        caps.setOnscreen( 0 != ( WINDOW_BIT  & winattrbits ) ); 
+        return caps;
     }
 
     public static GLCapabilitiesImmutable fixGLCapabilities(GLCapabilitiesImmutable capsRequested, boolean fboAvailable, boolean pbufferAvailable)
@@ -131,33 +134,46 @@ public class GLGraphicsConfigurationUtil {
         if( !capsRequested.isOnscreen() ) {
             return fixOffscreenGLCapabilities(capsRequested, fboAvailable, pbufferAvailable);
         }
-        return fixOnscreenGLCapabilities(capsRequested);
+        return capsRequested;
     }
 
     public static GLCapabilitiesImmutable fixOnscreenGLCapabilities(GLCapabilitiesImmutable capsRequested)
     {
         if( !capsRequested.isOnscreen() ) {
             // fix caps ..
-            GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
+            final GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
+            caps2.setBitmap  (false);
+            caps2.setPBuffer (false);
+            caps2.setFBO     (false);
             caps2.setOnscreen(true);
             return caps2;
         }
         return capsRequested;
     }
-    
-    public static GLCapabilitiesImmutable fixOffscreenGLCapabilities(GLCapabilitiesImmutable capsRequested, boolean fboAvailable, boolean pbufferAvailable)
-    {
-        if( capsRequested.getDoubleBuffered() ||
-            capsRequested.isOnscreen() ||
-            ( fboAvailable != capsRequested.isFBO() ) || 
-            ( pbufferAvailable != capsRequested.isPBuffer() ) )
+
+    public static boolean isGLCapabilitiesOffscreenAutoSelection(GLCapabilitiesImmutable capsRequested) {
+        return !capsRequested.isOnscreen() &&
+               !capsRequested.isFBO() && !capsRequested.isPBuffer() && !capsRequested.isBitmap() ;        
+    }
+
+    public static GLCapabilitiesImmutable fixOffscreenGLCapabilities(GLCapabilitiesImmutable capsRequested, boolean fboAvailable, boolean pbufferAvailable) {
+        final boolean auto = !capsRequested.isFBO() && !capsRequested.isPBuffer() && !capsRequested.isBitmap() ;
+        
+        final boolean useFBO     =                fboAvailable     && ( auto || capsRequested.isFBO()     ) ;
+        final boolean usePbuffer = !useFBO     && pbufferAvailable && ( auto || capsRequested.isPBuffer() ) ;
+        final boolean useBitmap  = !usePbuffer                     && ( auto || capsRequested.isBitmap()  ) ;
+        
+        if( capsRequested.isOnscreen() ||
+            useFBO != capsRequested.isFBO() || 
+            usePbuffer != capsRequested.isPBuffer() || 
+            useBitmap != capsRequested.isBitmap() )
         {
             // fix caps ..
-            GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
-            caps2.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN
+            final GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
             caps2.setOnscreen(false);
-            caps2.setFBO( fboAvailable ); 
-            caps2.setPBuffer( pbufferAvailable );
+            caps2.setFBO( useFBO ); 
+            caps2.setPBuffer( usePbuffer );
+            caps2.setBitmap( useBitmap );
             return caps2;
         }
         return capsRequested;
@@ -165,31 +181,40 @@ public class GLGraphicsConfigurationUtil {
 
     public static GLCapabilitiesImmutable fixGLPBufferGLCapabilities(GLCapabilitiesImmutable capsRequested)
     {
-        if( capsRequested.getDoubleBuffered() || capsRequested.isOnscreen() || !capsRequested.isPBuffer() || capsRequested.isFBO() ) {
+        if( capsRequested.isOnscreen() ||
+            !capsRequested.isPBuffer() || 
+            capsRequested.isFBO() ) 
+        {
             // fix caps ..
-            GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
-            caps2.setDoubleBuffered(false); // FIXME DBLBUFOFFSCRN - we don't need to be single buffered ..
+            final GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
             caps2.setOnscreen(false);
-            caps2.setPBuffer(true);
             caps2.setFBO(false);
+            caps2.setPBuffer(true);
+            caps2.setBitmap(false);
             return caps2;
         }
         return capsRequested;
     }
 
     /** Fix opaque setting while preserve alpha bits */
-    public static GLCapabilitiesImmutable fixOpaqueGLCapabilities(GLCapabilitiesImmutable capsRequested, boolean isOpaque)
+    public static GLCapabilities fixOpaqueGLCapabilities(GLCapabilities capsRequested, boolean isOpaque)
     {
-        GLCapabilities caps2 = null;
-        
         if( capsRequested.isBackgroundOpaque() != isOpaque) {
             final int alphaBits = capsRequested.getAlphaBits();
-            caps2 = (GLCapabilities) capsRequested.cloneMutable();
-            caps2.setBackgroundOpaque(isOpaque);
-            caps2.setAlphaBits(alphaBits);
-            return caps2;
+            capsRequested.setBackgroundOpaque(isOpaque);
+            capsRequested.setAlphaBits(alphaBits);
         }
         return capsRequested;
     }
     
+    /** Fix double buffered setting */
+    public static GLCapabilitiesImmutable fixDoubleBufferedGLCapabilities(GLCapabilitiesImmutable capsRequested, boolean doubleBuffered)
+    {
+        if( capsRequested.getDoubleBuffered() != doubleBuffered) {
+            final GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
+            caps2.setDoubleBuffered(doubleBuffered);
+            return caps2;
+        }
+        return capsRequested;
+    }
 }

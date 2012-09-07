@@ -61,6 +61,9 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
 
   // Switch for on- or offscreen
   private boolean onscreen  = true;
+  
+  // offscreen bitmap mode
+  private boolean isBitmap  = false;
 
   /** Creates a Capabilities object. All attributes are in a default
       state.
@@ -85,6 +88,8 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
   public int hashCode() {
     // 31 * x == (x << 5) - x
     int hash = 31 + this.redBits;
+    hash = ((hash << 5) - hash) + ( this.onscreen ? 1 : 0 );
+    hash = ((hash << 5) - hash) + ( this.isBitmap ? 1 : 0 );
     hash = ((hash << 5) - hash) + this.greenBits;
     hash = ((hash << 5) - hash) + this.blueBits;
     hash = ((hash << 5) - hash) + this.alphaBits;
@@ -93,7 +98,6 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     hash = ((hash << 5) - hash) + this.transparentValueGreen;
     hash = ((hash << 5) - hash) + this.transparentValueBlue;
     hash = ((hash << 5) - hash) + this.transparentValueAlpha;
-    hash = ((hash << 5) - hash) + ( this.onscreen ? 1 : 0 );
     return hash;
   }
 
@@ -109,12 +113,13 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
                   other.getBlueBits()==blueBits &&
                   other.getAlphaBits()==alphaBits &&
                   other.isBackgroundOpaque()==backgroundOpaque &&
-                  other.isOnscreen()==onscreen;
-    if(!backgroundOpaque) {
-     res = res && other.getTransparentRedValue()==transparentValueRed &&
-                  other.getTransparentGreenValue()==transparentValueGreen &&
-                  other.getTransparentBlueValue()==transparentValueBlue &&
-                  other.getTransparentAlphaValue()==transparentValueAlpha;
+                  other.isOnscreen()==onscreen &&
+                  other.isBitmap()==isBitmap;
+    if(res && !backgroundOpaque) {
+     res = other.getTransparentRedValue()==transparentValueRed &&
+           other.getTransparentGreenValue()==transparentValueGreen &&
+           other.getTransparentBlueValue()==transparentValueBlue &&
+           other.getTransparentAlphaValue()==transparentValueAlpha;
     }
 
     return res;
@@ -158,9 +163,6 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
       }
   }
 
-  /** Returns the number of bits requested for the color buffer's red
-      component. On some systems only the color depth, which is the
-      sum of the red, green, and blue bits, is considered. */
   @Override
   public final int getRedBits() {
     return redBits;
@@ -173,9 +175,6 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     this.redBits = redBits;
   }
 
-  /** Returns the number of bits requested for the color buffer's
-      green component. On some systems only the color depth, which is
-      the sum of the red, green, and blue bits, is considered. */
   @Override
   public final int getGreenBits() {
     return greenBits;
@@ -188,9 +187,6 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     this.greenBits = greenBits;
   }
 
-  /** Returns the number of bits requested for the color buffer's blue
-      component. On some systems only the color depth, which is the
-      sum of the red, green, and blue bits, is considered. */
   @Override
   public final int getBlueBits() {
     return blueBits;
@@ -203,9 +199,6 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     this.blueBits = blueBits;
   }
 
-  /** Returns the number of bits requested for the color buffer's
-      alpha component. On some systems only the color depth, which is
-      the sum of the red, green, and blue bits, is considered. */
   @Override
   public final int getAlphaBits() {
     return alphaBits;
@@ -228,10 +221,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
   }
 
   /**
-   * Defaults to true, ie. opaque surface.
-   * <p>
-   * On supported platforms, setting opaque to false may result in a translucent surface. </p>
-   *
+   * Sets whether the surface shall be opaque or translucent.
    * <p>
    * Platform implementations may need an alpha component in the surface (eg. Windows),
    * or expect pre-multiplied alpha values (eg. X11/XRender).<br>
@@ -240,16 +230,9 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
    * Please note that in case alpha is required on the platform the
    * clear color shall have an alpha lower than 1.0 to allow anything shining through.
    * </p>
-   *
    * <p>
    * Mind that translucency may cause a performance penalty
-   * due to the composite work required by the window manager.</p>
-   *
-   * <p>
-   * The platform implementation may utilize the transparency RGBA values.<br>
-   * This is true for the original GLX transparency specification, which is no more used today.<br>
-   * Actually these values are currently not used by any implementation,
-   * so we may mark them deprecated soon, if this doesn't change.<br>
+   * due to the composite work required by the window manager.
    * </p>
    */
   public void setBackgroundOpaque(boolean opaque) {
@@ -259,56 +242,65 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
       }
   }
 
-  /** Indicates whether the background of this OpenGL context should
-      be considered opaque. Defaults to true.
-
-      @see #setBackgroundOpaque
-  */
   @Override
   public final boolean isBackgroundOpaque() {
     return backgroundOpaque;
   }
 
-  /** Sets whether the drawable surface supports onscreen.
-      Defaults to true.
-  */
+  /**
+   * Sets whether the surface shall be on- or offscreen.
+   * <p>
+   * Defaults to true.
+   * </p>
+   * <p>
+   * If requesting an offscreen surface without further selection of it's mode, 
+   * e.g. FBO, Pbuffer or {@link #setBitmap(boolean) bitmap},
+   * the implementation will choose the best available offscreen mode.
+   * </p>
+   * @param onscreen
+   */
   public void setOnscreen(boolean onscreen) {
     this.onscreen=onscreen;
   }
 
-  /** Indicates whether the drawable surface is onscreen.
-      Defaults to true.
-  */
   @Override
   public final boolean isOnscreen() {
     return onscreen;
   }
 
-  /** Gets the transparent red value for the frame buffer configuration.
-    * This value is undefined if {@link #isBackgroundOpaque()} equals true.
-    * @see #setTransparentRedValue
-    */
+  /**
+   * Requesting offscreen bitmap mode.
+   * <p>
+   * If enabled this method also invokes {@link #setOnscreen(int) setOnscreen(false)}.
+   * </p>
+   * <p>
+   * Defaults to false.
+   * </p>
+   * <p>
+   * Requesting offscreen bitmap mode disables the offscreen auto selection.
+   * </p>
+   */
+  public void setBitmap(boolean enable) {
+    if(enable) {
+      setOnscreen(false);
+    }
+    isBitmap = enable;
+  }
+  
+  @Override
+  public boolean isBitmap() {
+    return isBitmap;      
+  }
+  
   @Override
   public final int getTransparentRedValue() { return transparentValueRed; }
 
-  /** Gets the transparent green value for the frame buffer configuration.
-    * This value is undefined if {@link #isBackgroundOpaque()} equals true.
-    * @see #setTransparentGreenValue
-    */
   @Override
   public final int getTransparentGreenValue() { return transparentValueGreen; }
 
-  /** Gets the transparent blue value for the frame buffer configuration.
-    * This value is undefined if {@link #isBackgroundOpaque()} equals true.
-    * @see #setTransparentBlueValue
-    */
   @Override
   public final int getTransparentBlueValue() { return transparentValueBlue; }
 
-  /** Gets the transparent alpha value for the frame buffer configuration.
-    * This value is undefined if {@link #isBackgroundOpaque()} equals true.
-    * @see #setTransparentAlphaValue
-    */
   @Override
   public final int getTransparentAlphaValue() { return transparentValueAlpha; }
 
@@ -342,24 +334,9 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
 
   @Override
   public StringBuilder toString(StringBuilder sink) {
-    if(null == sink) {
-        sink = new StringBuilder();
-    }
-    if(onscreen) {
-        sink.append("on-scr");
-    } else {
-        sink.append("offscr");
-    }
-    sink.append(", rgba 0x").append(toHexString(redBits)).append("/").append(toHexString(greenBits)).append("/").append(toHexString(blueBits)).append("/").append(toHexString(alphaBits));
-    if(backgroundOpaque) {
-        sink.append(", opaque");
-    } else {
-        sink.append(", trans-rgba 0x").append(toHexString(transparentValueRed)).append("/").append(toHexString(transparentValueGreen)).append("/").append(toHexString(transparentValueBlue)).append("/").append(toHexString(transparentValueAlpha));
-    }
-    return sink;
+      return toString(sink, true);
   }
-  protected final String toHexString(int val) { return Integer.toHexString(val); }
-
+  
   /** Returns a textual representation of this Capabilities
       object. */
   @Override
@@ -370,4 +347,45 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     msg.append("]");
     return msg.toString();
   }
+  
+  /** Return a textual representation of this object's on/off screen state. Use the given StringBuffer [optional]. */
+  protected StringBuilder onoffScreenToString(StringBuilder sink) {
+    if(null == sink) {
+        sink = new StringBuilder();
+    }
+    if(onscreen) {
+        sink.append("on-scr");
+    } else {
+        sink.append("offscr[");
+    }
+    if(isBitmap) {
+        sink.append("bitmap");
+    } else if(onscreen) {
+        sink.append(".");        // no additional off-screen modes besides on-screen
+    } else {
+        sink.append("auto-cfg"); // auto-config off-screen mode            
+    }
+    sink.append("]");    
+    
+    return sink;
+  }
+  
+  protected StringBuilder toString(StringBuilder sink, boolean withOnOffScreen) {  
+    if(null == sink) {
+        sink = new StringBuilder();
+    }
+    sink.append("rgba 0x").append(toHexString(redBits)).append("/").append(toHexString(greenBits)).append("/").append(toHexString(blueBits)).append("/").append(toHexString(alphaBits));
+    if(backgroundOpaque) {
+        sink.append(", opaque");
+    } else {
+        sink.append(", trans-rgba 0x").append(toHexString(transparentValueRed)).append("/").append(toHexString(transparentValueGreen)).append("/").append(toHexString(transparentValueBlue)).append("/").append(toHexString(transparentValueAlpha));
+    }
+    if(withOnOffScreen) {
+        sink.append(", ");
+        onoffScreenToString(sink);
+    }
+    return sink;
+  }
+  
+  protected final String toHexString(int val) { return Integer.toHexString(val); }
 }

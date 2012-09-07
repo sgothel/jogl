@@ -38,6 +38,7 @@ import java.awt.Robot;
 import java.awt.Toolkit;
 
 import javax.media.nativewindow.NativeWindow;
+import javax.media.opengl.GLDrawable;
 import javax.media.opengl.awt.GLCanvas;
 
 import org.junit.Assert;
@@ -490,6 +491,18 @@ public class AWTRobotUtil {
             }
         } else {
             throw new RuntimeException("Neither AWT nor NEWT: "+obj);
+        }
+        return wait<POLL_DIVIDER;
+    }
+
+    /**
+     *
+     * @return True if the GLDrawable recives the expected size within TIME_OUT
+     */
+    public static boolean waitForSize(GLDrawable drawable, int width, int height) throws InterruptedException {
+        int wait;
+        for (wait=0; wait<POLL_DIVIDER && ( width != drawable.getWidth() || height != drawable.getHeight() ) ; wait++) {
+            Thread.sleep(TIME_SLICE);
         }
         return wait<POLL_DIVIDER;
     }

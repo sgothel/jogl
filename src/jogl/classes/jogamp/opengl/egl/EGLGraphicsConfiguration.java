@@ -37,8 +37,6 @@
 package jogamp.opengl.egl;
 
 import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
@@ -48,6 +46,7 @@ import javax.media.nativewindow.VisualIDHolder;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
@@ -85,7 +84,8 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         }
         final long cfg = EGLConfigId2EGLConfig(dpy, cfgID);
         if(0 < cfg) {
-            final EGLGLCapabilities caps = EGLConfig2Capabilities(capsRequested.getGLProfile(), dpy, cfg, false, capsRequested.isOnscreen(), capsRequested.isPBuffer(), false);
+            final int winattrmask = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(capsRequested);
+            final EGLGLCapabilities caps = EGLConfig2Capabilities((EGLGraphicsDevice)absDevice, capsRequested.getGLProfile(), cfg, winattrmask, false);
             return new EGLGraphicsConfiguration(absScreen, caps, capsRequested, new DefaultGLCapabilitiesChooser());
         }
         return null;
@@ -129,9 +129,10 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         return configs.get(0);
     }
 
-    static int EGLConfigDrawableTypeBits(final long display, final long config) {
+    static int EGLConfigDrawableTypeBits(final EGLGraphicsDevice device, final GLProfile glp, final long config) {
         int val = 0;
 
+        final long display = device.getHandle();
         int[] stype = new int[1];
         if(! EGL.eglGetConfigAttrib(display, config, EGL.EGL_SURFACE_TYPE, stype, 0)) {
             throw new GLException("Could not determine EGL_SURFACE_TYPE");
@@ -146,32 +147,24 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         if ( 0 != ( stype[0] & EGL.EGL_PBUFFER_BIT ) ) {
             val |= GLGraphicsConfigurationUtil.PBUFFER_BIT;
         }
+        if ( GLContext.isFBOAvailable(device, glp) ) {
+            val |= GLGraphicsConfigurationUtil.FBO_BIT;
+        }
 
         return val;
     }
 
-    public static EGLGLCapabilities EGLConfig2Capabilities(GLProfile glp, long display, long config,
-                                                           boolean relaxed, boolean onscreen, boolean usePBuffer, boolean forceTransparentFlag) {
-        List<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>();
-        final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(onscreen, usePBuffer, false);
-        if( EGLConfig2Capabilities(bucket, glp, display, config, winattrmask, forceTransparentFlag) ) {
-            return (EGLGLCapabilities) bucket.get(0);
-        } else if ( relaxed && EGLConfig2Capabilities(bucket, glp, display, config, GLGraphicsConfigurationUtil.ALL_BITS, forceTransparentFlag) ) {
-            return (EGLGLCapabilities) bucket.get(0);
-        }
-        return null;
-    }
-
-    public static boolean EGLConfig2Capabilities(List<GLCapabilitiesImmutable> capsBucket,
-                                                 GLProfile glp, long display, long config,
-                                                 int winattrmask, boolean forceTransparentFlag) {
-        final int allDrawableTypeBits = EGLConfigDrawableTypeBits(display, config);
-        final int drawableTypeBits = winattrmask & allDrawableTypeBits;
-
-        if( 0 == drawableTypeBits ) {
-            return false;
-        }
-
+    /**
+     * @param device
+     * @param glp desired GLProfile, may be null
+     * @param config
+     * @param winattrmask
+     * @param forceTransparentFlag
+     * @return
+     */
+    public static EGLGLCapabilities EGLConfig2Capabilities(EGLGraphicsDevice device, GLProfile glp, long config,
+                                                           int winattrmask, boolean forceTransparentFlag) {
+        final long display = device.getHandle();
         final IntBuffer val = Buffers.newDirectIntBuffer(1);
         final int cfgID;
         final int rType;
@@ -183,7 +176,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
                 // FIXME: this happens on a ATI PC Emulation ..
                 System.err.println("EGL couldn't retrieve ConfigID for config "+toHexString(config)+", error "+toHexString(EGL.eglGetError()));
             }
-            return false;
+            return null;
         }
         cfgID = val.get(0);
         
@@ -191,10 +184,10 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             if(DEBUG) {
                 System.err.println("EGL couldn't retrieve EGL_RENDERABLE_TYPE for config "+toHexString(config)+", error "+toHexString(EGL.eglGetError()));
             }
-            return false;
+            return null;
         }
         rType = val.get(0);
-                       
+
         if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_NATIVE_VISUAL_ID, val)) {
             visualID = val.get(0);
         } else {
@@ -203,12 +196,15 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         
         EGLGLCapabilities caps = null;        
         try {
+            if(null == glp) {
+                glp = EGLGLCapabilities.getCompatible(device, rType);
+            }
             caps = new EGLGLCapabilities(config, cfgID, visualID, glp, rType);
         } catch (GLException gle) {
             if(DEBUG) {
                 System.err.println("config "+toHexString(config)+": "+gle);
             }
-            return false;
+            return null;
         }        
                 
         if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_CONFIG_CAVEAT, val)) {
@@ -270,7 +266,17 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         if(EGL.eglGetConfigAttrib(display, config, EGL.EGL_DEPTH_SIZE, val)) {
             caps.setDepthBits(val.get(0));
         }
-        return GLGraphicsConfigurationUtil.addGLCapabilitiesPermutations(capsBucket, caps, drawableTypeBits );
+
+        // Since the passed GLProfile may be null, 
+        // we use EGL_RENDERABLE_TYPE derived profile as created in the EGLGLCapabilities constructor.
+        final int allDrawableTypeBits = EGLConfigDrawableTypeBits(device, caps.getGLProfile(), config);
+        final int drawableTypeBits = winattrmask & allDrawableTypeBits;
+
+        if( 0 == drawableTypeBits ) {
+            return null;
+        }
+        
+        return (EGLGLCapabilities) GLGraphicsConfigurationUtil.setWinAttributeBits(caps, drawableTypeBits);
     }
 
     public static int[] GLCapabilities2AttribList(GLCapabilitiesImmutable caps) {

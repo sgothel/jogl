@@ -33,6 +33,8 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+
 
 public class EGLGLCapabilities extends GLCapabilities {
   private long eglcfg;
@@ -45,13 +47,13 @@ public class EGLGLCapabilities extends GLCapabilities {
    * @param eglcfg
    * @param eglcfgid
    * @param visualID native visualID if valid, otherwise VisualIDHolder.VID_UNDEFINED
-   * @param glp desired GLProfile, or null if determined by renderableType
+   * @param glp desired GLProfile
    * @param renderableType actual EGL renderableType
    *
    * May throw GLException if given GLProfile is not compatible w/ renderableType
    */
   public EGLGLCapabilities(long eglcfg, int eglcfgid, int visualID, GLProfile glp, int renderableType) {
-      super( ( null != glp ) ? glp : getCompatible(renderableType) );
+      super( glp );
       this.eglcfg = eglcfg;
       this.eglcfgid = eglcfgid;
       if(!isCompatible(glp, renderableType)) {
@@ -111,15 +113,15 @@ public class EGLGLCapabilities extends GLCapabilities {
     return false;
   }
 
-  public static GLProfile getCompatible(int renderableType) {
-    if(0 != (renderableType & EGL.EGL_OPENGL_ES2_BIT) && GLProfile.isAvailable(GLProfile.GLES2)) {
-        return GLProfile.get(GLProfile.GLES2);
+  public static GLProfile getCompatible(EGLGraphicsDevice device, int renderableType) {
+    if(0 != (renderableType & EGL.EGL_OPENGL_ES2_BIT) && GLProfile.isAvailable(device, GLProfile.GLES2)) {
+        return GLProfile.get(device, GLProfile.GLES2);
     }
-    if(0 != (renderableType & EGL.EGL_OPENGL_ES_BIT) && GLProfile.isAvailable(GLProfile.GLES1)) {
-        return GLProfile.get(GLProfile.GLES1);
+    if(0 != (renderableType & EGL.EGL_OPENGL_ES_BIT) && GLProfile.isAvailable(device, GLProfile.GLES1)) {
+        return GLProfile.get(device, GLProfile.GLES1);
     }
     if(0 != (renderableType & EGL.EGL_OPENGL_BIT)) {
-        return GLProfile.getDefault();
+        return GLProfile.getDefault(device);
     }
     return null;
   }

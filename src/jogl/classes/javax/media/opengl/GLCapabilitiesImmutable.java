@@ -50,7 +50,7 @@ public interface GLCapabilitiesImmutable extends CapabilitiesImmutable {
     GLProfile getGLProfile();
 
     /**
-     * Returns the number of bits requested for the accumulation
+     * Returns the number of bits for the accumulation
      * buffer's alpha component. On some systems only the accumulation
      * buffer depth, which is the sum of the red, green, and blue bits,
      * is considered.
@@ -58,7 +58,7 @@ public interface GLCapabilitiesImmutable extends CapabilitiesImmutable {
     int getAccumAlphaBits();
 
     /**
-     * Returns the number of bits requested for the accumulation
+     * Returns the number of bits for the accumulation
      * buffer's blue component. On some systems only the accumulation
      * buffer depth, which is the sum of the red, green, and blue bits,
      * is considered.
@@ -66,7 +66,7 @@ public interface GLCapabilitiesImmutable extends CapabilitiesImmutable {
     int getAccumBlueBits();
 
     /**
-     * Returns the number of bits requested for the accumulation
+     * Returns the number of bits for the accumulation
      * buffer's green component. On some systems only the accumulation
      * buffer depth, which is the sum of the red, green, and blue bits,
      * is considered.
@@ -74,7 +74,7 @@ public interface GLCapabilitiesImmutable extends CapabilitiesImmutable {
     int getAccumGreenBits();
 
     /**
-     * Returns the number of bits requested for the accumulation
+     * Returns the number of bits for the accumulation
      * buffer's red component. On some systems only the accumulation
      * buffer depth, which is the sum of the red, green, and blue bits,
      * is considered.
@@ -82,74 +82,115 @@ public interface GLCapabilitiesImmutable extends CapabilitiesImmutable {
     int getAccumRedBits();
 
     /**
-     * Returns the number of bits requested for the depth buffer.
+     * Returns the number of depth buffer bits.
      */
     int getDepthBits();
 
     /**
-     * Indicates whether double-buffering is enabled.
+     * Returns whether double-buffering is requested, available or chosen.
+     * <p>
+     * Default is true.
+     * </p>
      */
     boolean getDoubleBuffered();
 
     /**
-     * Indicates whether hardware acceleration is enabled.
+     * Returns whether hardware acceleration is requested, available or chosen.
+     * <p>
+     * Default is true.
+     * </p>
      */
     boolean getHardwareAccelerated();
 
     /**
-     * Returns the used extension for full-scene antialiasing
-     * (FSAA), default is {@link #DEFAULT_SAMPLE_EXTENSION}.
+     * Returns the extension for full-scene antialiasing
+     * (FSAA).
+     * <p>
+     * Default is {@link #DEFAULT_SAMPLE_EXTENSION}.
+     * </p>
      */
     String getSampleExtension();
     
     /**
      * Returns whether sample buffers for full-scene antialiasing
-     * (FSAA) should be allocated for this drawable. Defaults to
-     * false.
+     * (FSAA) should be allocated for this drawable. 
+     * <p>
+     * Default is false.
+     * </p>
      */
     boolean getSampleBuffers();
 
     /**
      * Returns the number of sample buffers to be allocated if sample
-     * buffers are enabled, otherwise returns 0. Defaults to 2.
+     * buffers are enabled, otherwise returns 0.
+     * <p>
+     * Default is 0 due to disable sample buffers per default.
+     * </p>
      */
     int getNumSamples();
 
     /**
      * For pbuffers only, returns whether floating-point buffers should
-     * be used if available. Defaults to false.
+     * be used if available. 
+     * <p>
+     * Default is false.
+     * </p>
      */
     boolean getPbufferFloatingPointBuffers();
 
     /**
      * For pbuffers only, returns whether the render-to-texture
-     * extension should be used if available.  Defaults to false.
+     * extension should be used if available.  
+     * <p>
+     * Default is false.
+     * </p>
      */
     boolean getPbufferRenderToTexture();
 
     /**
      * For pbuffers only, returns whether the render-to-texture
-     * extension should be used. Defaults to false.
+     * extension should be used. 
+     * <p>
+     * Default is false.
+     * </p>
      */
     boolean getPbufferRenderToTextureRectangle();
 
     /**
-     * Returns the number of bits requested for the stencil buffer.
+     * Returns the number of stencil buffer bits.
+     * <p>
+     * Default is 0.
+     * </p>
      */
     int getStencilBits();
 
     /**
-     * Indicates whether stereo is enabled.
+     * Returns whether stereo is requested, available or chosen.
+     * <p>
+     * Default is false.
+     * </p>
      */
     boolean getStereo();
 
     /**
-     * Indicates whether pbuffer offscreen is used/requested.
+     * Returns whether pbuffer offscreen mode is requested, available or chosen.
+     * <p>
+     * Default is false.
+     * </p>
+     * <p>
+     * For chosen capabilities, only the selected offscreen surface is set to <code>true</code>.
+     * </p>
      */
     boolean isPBuffer();
 
     /**
-     * Indicates whether FBO offscreen is used/requested.
+     * Returns whether FBO offscreen mode is requested, available or chosen.
+     * <p>
+     * Default is false.
+     * </p>
+     * <p>
+     * For chosen capabilities, only the selected offscreen surface is set to <code>true</code>.
+     * </p>
      */
     boolean isFBO();
 

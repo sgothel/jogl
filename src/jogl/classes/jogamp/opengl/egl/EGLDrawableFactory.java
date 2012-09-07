@@ -290,9 +290,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         if(0 < numConfigs.get(0)) {
             final PointerBuffer configs = PointerBuffer.allocateDirect(numConfigs.get(0));
             final IntBuffer attrs = Buffers.newDirectIntBuffer(EGLGraphicsConfiguration.GLCapabilities2AttribList(caps));
-            final int winattrmask = GLGraphicsConfigurationUtil.getWinAttributeBits(true, true, true);
+            final int winattrmask = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(caps);
             if( EGL.eglChooseConfig(eglDisplay.getHandle(), attrs, configs, configs.capacity(), numConfigs) && numConfigs.get(0) > 0) {
-                return EGLGraphicsConfigurationFactory.eglConfigs2GLCaps(caps.getGLProfile(), eglDisplay.getHandle(), configs, numConfigs.get(0), winattrmask, false /* forceTransparentFlag */);
+                return EGLGraphicsConfigurationFactory.eglConfigs2GLCaps(eglDisplay, caps.getGLProfile(), configs, numConfigs.get(0), winattrmask, false /* forceTransparentFlag */);
             }
         }
         return new ArrayList<GLCapabilitiesImmutable>(0);
@@ -649,7 +649,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     @Override
     public final ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice, 
                                                      GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
-        final GLCapabilitiesImmutable chosenCaps = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(requestedCaps, false, canCreateGLPbuffer(deviceReq));        
+        final GLCapabilitiesImmutable chosenCaps =
+                GLGraphicsConfigurationUtil.fixDoubleBufferedGLCapabilities(
+                        GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(requestedCaps, false, canCreateGLPbuffer(deviceReq)), 
+                        false);        
         return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, width, height, dummySurfaceLifecycleHook);
     }
     private static final ProxySurface.UpstreamSurfaceHook dummySurfaceLifecycleHook = new ProxySurface.UpstreamSurfaceHook() {

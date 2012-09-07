@@ -105,20 +105,21 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   @Override
   public int hashCode() {
     // 31 * x == (x << 5) - x
-    int hash = 31 + this.glProfile.hashCode() ;
+    int hash = super.hashCode(); 
+    hash = ((hash << 5) - hash) + this.glProfile.hashCode() ;
+    hash = ((hash << 5) - hash) + ( this.hardwareAccelerated ? 1 : 0 );
+    hash = ((hash << 5) - hash) + ( this.stereo ? 1 : 0 );
     hash = ((hash << 5) - hash) + ( this.isFBO ? 1 : 0 );
     hash = ((hash << 5) - hash) + ( this.isPBuffer ? 1 : 0 );
-    hash = ((hash << 5) - hash) + ( this.stereo ? 1 : 0 );
-    hash = ((hash << 5) - hash) + ( this.hardwareAccelerated ? 1 : 0 );
+    hash = ((hash << 5) - hash) + ( this.sampleBuffers ? 1 : 0 );
+    hash = ((hash << 5) - hash) + this.getNumSamples();
+    hash = ((hash << 5) - hash) + this.sampleExtension.hashCode();
     hash = ((hash << 5) - hash) + this.depthBits;
     hash = ((hash << 5) - hash) + this.stencilBits;
     hash = ((hash << 5) - hash) + this.accumRedBits;
     hash = ((hash << 5) - hash) + this.accumGreenBits;
     hash = ((hash << 5) - hash) + this.accumBlueBits;
     hash = ((hash << 5) - hash) + this.accumAlphaBits;
-    hash = ((hash << 5) - hash) + ( this.sampleBuffers ? 1 : 0 );
-    hash = ((hash << 5) - hash) + this.numSamples;
-    hash = ((hash << 5) - hash) + this.sampleExtension.hashCode();
     hash = ((hash << 5) - hash) + ( this.pbufferFloatingPointBuffers ? 1 : 0 );
     hash = ((hash << 5) - hash) + ( this.pbufferRenderToTexture ? 1 : 0 );
     hash = ((hash << 5) - hash) + ( this.pbufferRenderToTextureRectangle ? 1 : 0 );
@@ -148,9 +149,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
                   other.getPbufferFloatingPointBuffers()==pbufferFloatingPointBuffers &&
                   other.getPbufferRenderToTexture()==pbufferRenderToTexture &&
                   other.getPbufferRenderToTextureRectangle()==pbufferRenderToTextureRectangle;
-    if(sampleBuffers) {
-        res = res &&
-              other.getNumSamples()==numSamples &&
+    if(res && sampleBuffers) {
+        res = other.getNumSamples()==getNumSamples() &&
               other.getSampleExtension().equals(sampleExtension) ;
     }
     return res;
@@ -222,19 +222,24 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   public void setGLProfile(GLProfile profile) {
     glProfile=profile;
   }
-
+  
   @Override
   public final boolean isPBuffer() {
     return isPBuffer;
   }
 
   /**
-   * Enables or disables pbuffer usage.
+   * Requesting offscreen pbuffer mode.
    * <p>
    * If enabled this method also invokes {@link #setOnscreen(int) setOnscreen(false)}.
    * </p>
+   * <p>
    * Defaults to false.
-   */
+   * </p>
+   * <p>
+   * Requesting offscreen pbuffer mode disables the offscreen auto selection.
+   * </p>
+   */  
   public void setPBuffer(boolean enable) {
     if(enable) {
       setOnscreen(false);
@@ -248,32 +253,22 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   }
   
   /**
-   * Enables or disables FBO usage.
+   * Requesting offscreen FBO mode.
    * <p>
    * If enabled this method also invokes {@link #setOnscreen(int) setOnscreen(false)}.
    * </p>
+   * <p>
    * Defaults to false.
+   * </p>
+   * <p>
+   * Requesting offscreen FBO mode disables the offscreen auto selection.
+   * </p>
    */
   public void setFBO(boolean enable) {
     if(enable) {
       setOnscreen(false);
     }
     isFBO = enable;
-  }
-
-  /**
-   * Sets whether the drawable surface supports onscreen.<br>
-   * If enabled this method also invokes {@link #setPBuffer(int) setPBuffer(false)}
-   * and {@link #setFBO(int) setFBO(false)}<br>
-   * Defaults to true.
-  */
-  @Override
-  public void setOnscreen(boolean onscreen) {
-    if(onscreen) {
-        setPBuffer(false);
-        setFBO(false);
-    }
-    super.setOnscreen(onscreen);
   }
 
   @Override
@@ -465,9 +460,9 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
         sink = new StringBuilder();
     }
 
-    int samples = sampleBuffers ? numSamples : 0 ;
+    final int samples = sampleBuffers ? numSamples : 0 ;
 
-    super.toString(sink);
+    super.toString(sink, false);
 
     sink.append(", accum-rgba ").append(accumRedBits).append("/").append(accumGreenBits).append("/").append(accumBlueBits).append("/").append(accumAlphaBits);
     sink.append(", dp/st/ms: ").append(depthBits).append("/").append(stencilBits).append("/").append(samples);
@@ -490,20 +485,37 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
         sink.append(", sw, ");
     }
     sink.append(glProfile);
-    if(!isOnscreen()) {
-        if(isFBO) {
-            sink.append(", fbo");
-        } 
-        if(isPBuffer) {
-            sink.append(", pbuffer [r2t ").append(pbufferRenderToTexture?1:0)
-                .append(", r2tr ").append(pbufferRenderToTextureRectangle?1:0)
-                .append(", float ").append(pbufferFloatingPointBuffers?1:0)
-                .append("]");
-        } 
-        if(!isFBO && !isPBuffer) {
-            sink.append(", pixmap");
+    if(isOnscreen()) {
+        sink.append(", on-scr[");
+    } else {
+        sink.append(", offscr[");
+    }
+    boolean ns=false;
+    if(isFBO()) {
+        sink.append("fbo");
+        ns = true;
+    }
+    if(isPBuffer()) {
+        if(ns) { sink.append(", "); }
+        sink.append("pbuffer [r2t ").append(pbufferRenderToTexture?1:0)
+            .append(", r2tr ").append(pbufferRenderToTextureRectangle?1:0)
+            .append(", float ").append(pbufferFloatingPointBuffers?1:0)
+            .append("]");                
+        ns = true;
+    }
+    if(isBitmap()) {
+        if(ns) { sink.append(", "); }
+        sink.append("bitmap");
+        ns = true;
+    }
+    if(!ns) { // !FBO !PBuffer !Bitmap
+        if(isOnscreen()) {
+            sink.append(".");        // no additional off-screen modes besides on-screen
+        } else {
+            sink.append("auto-cfg"); // auto-config off-screen mode            
         }
     }
+    sink.append("]");
 
     return sink;
   }

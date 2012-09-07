@@ -49,6 +49,7 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.OffscreenLayerSurface;
 import javax.media.nativewindow.ProxySurface;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
@@ -495,8 +496,14 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               CGL.setContextOpacity(ctx, 0);
           }
 
-          GLCapabilitiesImmutable fixedCaps = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(chosenCaps.getGLProfile(), pixelFormat);
+          GLCapabilities fixedCaps = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(chosenCaps.getGLProfile(), pixelFormat);
           fixedCaps = GLGraphicsConfigurationUtil.fixOpaqueGLCapabilities(fixedCaps, chosenCaps.isBackgroundOpaque());
+          if(!fixedCaps.isPBuffer()) {
+              // not handled, so copy them
+              fixedCaps.setFBO(chosenCaps.isFBO());
+              fixedCaps.setBitmap(chosenCaps.isBitmap());
+              fixedCaps.setOnscreen(chosenCaps.isOnscreen());
+          }
           config.setChosenCapabilities(fixedCaps);
           if(DEBUG) {
               System.err.println("NS create fixedCaps: "+fixedCaps);
