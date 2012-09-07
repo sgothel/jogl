@@ -1,7 +1,7 @@
 
 set BLD_SUB=build-win64
-set J2RE_HOME=c:\jre1.6.0_30_x64
-set JAVA_HOME=c:\jdk1.6.0_30_x64
+set J2RE_HOME=c:\jre1.6.0_35_x64
+set JAVA_HOME=c:\jdk1.6.0_35_x64
 set ANT_PATH=C:\apache-ant-1.8.2
 
 set PROJECT_ROOT=D:\projects\jogamp\jogl
@@ -32,12 +32,12 @@ REM set D_ARGS="-Djogl.debug.GLContext" "-Djogl.debug.ExtensionAvailabilityCache
 REM set D_ARGS="-Djogl.debug.GraphicsConfiguration"
 REM set D_ARGS="-Djogamp.debug.JNILibLoader=true" "-Djogamp.debug.NativeLibrary=true" "-Djogamp.debug.NativeLibrary.Lookup=true" "-Djogl.debug.GLProfile=true"
 REM set D_ARGS="-Djogl.debug=all" "-Dnewt.debug=all" "-Dnativewindow.debug=all" "-Djogamp.debug.Lock" "-Djogamp.debug.Lock.TraceLock"
-REM set D_ARGS="-Djogl.debug=all" "-Dnativewindow.debug=all"
+set D_ARGS="-Djogl.debug=all" "-Dnativewindow.debug=all"
 REM set D_ARGS="-Djogl.debug=all"
 REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.Animator" "-Djogl.debug.GLContext" "-Djogl.debug.GLContext.TraceSwitch" "-Djogl.debug.DebugGL" "-Djogl.debug.TraceGL"
 REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.Animator" "-Djogl.debug.GLContext" "-Djogl.debug.GLContext.TraceSwitch" "-Djogl.windows.useWGLVersionOf5WGLGDIFuncSet"
 REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.Animator" "-Djogl.debug.GLContext" "-Djogl.debug.GLContext.TraceSwitch"
-set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display"
+REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display"
 REM set D_ARGS="-Djogl.debug.GLDebugMessageHandler" "-Djogl.debug.DebugGL" "-Djogl.debug.TraceGL"
 REM set D_ARGS="-Djogl.debug.DebugGL" "-Djogl.debug.GLDebugMessageHandler" "-Djogl.debug.GLSLCode"
 REM set D_ARGS="-Djogl.debug.GLContext" "-Dnewt.debug=all"
