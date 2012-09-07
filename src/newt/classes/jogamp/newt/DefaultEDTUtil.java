@@ -49,12 +49,12 @@ import com.jogamp.newt.util.EDTUtil;
 public class DefaultEDTUtil implements EDTUtil {
     public static final boolean DEBUG = Debug.debug("EDT");
 
-    private ThreadGroup threadGroup; 
+    private final Object edtLock = new Object(); // locking the EDT start/stop state
+    private final ThreadGroup threadGroup; 
+    private final String name;
+    private final Runnable dispatchMessages;
     private EventDispatchThread edt = null;
-    private Object edtLock = new Object(); // locking the EDT start/stop state
-    private String name;
-    int start_iter=0;
-    private Runnable dispatchMessages;
+    private int start_iter=0;
     private static long pollPeriod = EDTUtil.defaultEDTPollPeriod;
 
     public DefaultEDTUtil(ThreadGroup tg, String name, Runnable dispatchMessages) {
@@ -65,14 +65,17 @@ public class DefaultEDTUtil implements EDTUtil {
         this.edt.setDaemon(true); // don't stop JVM from shutdown ..
     }
 
+    @Override
     final public long getPollPeriod() {
         return pollPeriod;
     }
 
+    @Override
     final public void setPollPeriod(long ms) {
         pollPeriod = ms;
     }
     
+    @Override
     public final void reset() {
         synchronized(edtLock) { 
             waitUntilStopped();
@@ -88,36 +91,46 @@ public class DefaultEDTUtil implements EDTUtil {
         }
     }
 
-    public final void start() {
-        synchronized(edtLock) { 
-            if(!edt.isRunning() && !edt.shouldStop) {
-                if(edt.isAlive()) {
-                    throw new RuntimeException("EDT Thread.isAlive(): true, isRunning: "+edt.isRunning()+", edt: "+edt+", tasks: "+edt.tasks.size());
-                }
-                start_iter++;
-                edt.setName(name+start_iter);
-                edt.shouldStop = false;
-                if(DEBUG) {
-                    System.err.println(Thread.currentThread()+": EDT START - edt: "+edt);
-                    // Thread.dumpStack();
-                }
-                edt.start();
-            }
+    private final void startImpl() {
+        if(edt.isAlive()) {
+            throw new RuntimeException("EDT Thread.isAlive(): true, isRunning: "+edt.isRunning()+", edt: "+edt+", tasks: "+edt.tasks.size());
         }
+        start_iter++;
+        edt.setName(name+start_iter);
+        edt.shouldStop = false;
+        if(DEBUG) {
+            System.err.println(Thread.currentThread()+": EDT START - edt: "+edt);
+            // Thread.dumpStack();
+        }
+        edt.start();
     }
 
+    @Override
     public final boolean isCurrentThreadEDT() {
-        return edt == Thread.currentThread();
+        return edt == Thread.currentThread(); // EDT == NEDT
+    }
+    
+    @Override
+    public final boolean isCurrentThreadNEDT() {
+        return edt == Thread.currentThread(); // EDT == NEDT
     }
 
+    @Override
+    public final boolean isCurrentThreadEDTorNEDT() {
+        return edt == Thread.currentThread(); // EDT == NEDT
+    }    
+    
+    @Override
     public final boolean isRunning() {
         return edt.isRunning() ;
     }
 
+    @Override
     public final void invokeStop(Runnable task) {
         invokeImpl(true, task, true);
     }
 
+    @Override
     public final void invoke(boolean wait, Runnable task) {
         invokeImpl(wait, task, false);
     }
@@ -158,8 +171,11 @@ public class DefaultEDTUtil implements EDTUtil {
                         }
                     }
                 } else {
+                    // start if should not stop && not started yet                    
+                    if( !stop && !edt.isRunning() ) {
+                        startImpl();
+                    }
                     synchronized(edt.tasks) {
-                        start(); // start if not started yet and !shouldStop
                         wait = wait && edt.isRunning();
                         rTask = new RunnableTask(task,
                                                  wait ? rTaskLock : null,
@@ -195,6 +211,7 @@ public class DefaultEDTUtil implements EDTUtil {
         }
     }
 
+    @Override
     final public void waitUntilIdle() {
         final EventDispatchThread _edt;
         synchronized(edtLock) {
@@ -215,6 +232,7 @@ public class DefaultEDTUtil implements EDTUtil {
         }
     }
 
+    @Override
     final public void waitUntilStopped() {
         synchronized(edtLock) {
             if(edt.isRunning() && edt != Thread.currentThread() ) {

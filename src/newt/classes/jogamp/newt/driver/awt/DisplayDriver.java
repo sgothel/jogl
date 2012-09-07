@@ -38,6 +38,7 @@ import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.util.EDTUtil;
 
+import jogamp.newt.DefaultEDTUtil;
 import jogamp.newt.DisplayImpl;
 
 public class DisplayDriver extends DisplayImpl {
@@ -52,21 +53,20 @@ public class DisplayDriver extends DisplayImpl {
         aDevice = d;
     }
 
-    protected void closeNativeImpl() { }
-
-    @Override
     protected EDTUtil createEDTUtil() {
         final EDTUtil def;
         if(NewtFactory.useEDT()) {
-            def = AWTEDTUtil.getSingleton();
+            def = new AWTEDTUtil(Thread.currentThread().getThreadGroup(), "AWTDisplay-"+getFQName(), dispatchMessagesRunnable);            
             if(DEBUG) {
-                System.err.println("AWTDisplay.createNative("+getFQName()+") Create EDTUtil: "+def.getClass().getName());
+                System.err.println("Display.createNative("+getFQName()+") Create EDTUtil: "+def.getClass().getName());
             }
         } else {
             def = null;
         }
         return def;
     }
+
+    protected void closeNativeImpl() { }
 
     protected void dispatchMessagesNative() { /* nop */ }
 }

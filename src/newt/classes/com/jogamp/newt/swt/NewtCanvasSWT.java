@@ -67,9 +67,6 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
     private static final boolean DEBUG = Debug.debug("Window");
     private static final boolean isOSX = NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false);
     
-    /** SWT EDTUtil associated w/ parent's SWT Display */
-    private final EDTUtil swtEDTUtil;
-    
     private final AbstractGraphicsScreen screen;     
     
     private WindowClosingMode newtChildCloseOp = WindowClosingMode.DISPOSE_ON_CLOSE;
@@ -117,8 +114,6 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
     public NewtCanvasSWT(final Composite parent, final int style, Window child) {
         super(parent, style | SWT.NO_BACKGROUND);
         
-        swtEDTUtil = new SWTEDTUtil(parent.getDisplay());
-
         SWTAccessor.setRealized(this, true);
 
         clientArea = getClientArea();
@@ -326,8 +321,9 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
             updateSizeCheck();
             final int w = clientArea.width;
             final int h = clientArea.height;
-            
-            newtChild.getScreen().getDisplay().setEDTUtil(swtEDTUtil);
+
+            final Display newtDisplay = newtChild.getScreen().getDisplay();
+            newtDisplay.setEDTUtil(new SWTEDTUtil(newtDisplay, getDisplay()));
             
             newtChild.setSize(w, h);
             newtChild.reparentWindow(nativeWindow);

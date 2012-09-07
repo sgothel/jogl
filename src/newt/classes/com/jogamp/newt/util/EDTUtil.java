@@ -28,6 +28,9 @@
 
 package com.jogamp.newt.util;
 
+import jogamp.newt.DisplayImpl;
+import com.jogamp.newt.event.NEWTEvent;
+
 /**
  * EDT stands for Event Dispatch Thread.
  * <p>
@@ -63,25 +66,46 @@ public interface EDTUtil {
     
     /**
      * Create a new EDT. One should invoke <code>reset()</code><br>
-     * after <code>invokeStop(..)</code> in case another <code>start()</code> or <code>invoke(..)</code>
+     * after <code>invokeStop(..)</code> in case another start via <code>invoke(..)</code>
      * is expected.
      *
-     * @see #start()
      * @see #invoke(boolean, java.lang.Runnable)
      * @see #invokeStop(java.lang.Runnable)
      */
     public void reset();
 
     /**
-     * Start the EDT
-     */
-    public void start();
-
-    /**
-     * @return True if the current thread is the EDT thread
+     * Returns true if the current thread is the event dispatch thread (EDT).
+     * <p>
+     * The EDT is the platform specific thread dispatching toolkit-events 
+     * and executing toolkit-tasks enqueued via {@link #invoke(boolean, Runnable)}.
+     * </p>
+     * <p>
+     * Usually it is the same thread as used to dequeue informal {@link NEWTEvent}s (NEDT), see {@link #isCurrentThreadNEDT()}, 
+     * however, this may differ, e.g. SWT and AWT implementation.
+     * </p>
      */
     public boolean isCurrentThreadEDT();
 
+    /**
+     * Returns true if the current thread is the internal NEWT event dequeue thread (NEDT).
+     * <p>
+     * The NEDT is the NEWT thread used to dequeue informal {@link NEWTEvent}s enqueued internally 
+     * via {@link DisplayImpl#enqueueEvent(boolean, NEWTEvent)}.
+     * </p>
+     * <p>
+     * Usually it is the same thread as the EDT, see {@link #isCurrentThreadEDT()}, 
+     * however, this may differ, e.g. SWT and AWT implementation.
+     * </p>
+     */
+    public boolean isCurrentThreadNEDT();
+    
+    /**
+     * Returns <code>true</code> if either {@link #isCurrentThreadEDT()} or {@link #isCurrentThreadNEDT()} is <code>true</code>,
+     * otherwise <code>false</code>.
+     */
+    public boolean isCurrentThreadEDTorNEDT();
+    
     /**
      * @return True if EDT is running
      */
@@ -101,9 +125,9 @@ public interface EDTUtil {
     public void invokeStop(Runnable finalTask);
 
     /** 
+     * Shall start the thread if not running.<br>
      * Append task to the EDT task queue.<br>
      * Wait until execution is finished if <code>wait == true</code>.<br>
-     * Shall start the thread if not running.<br>
      * Can be issued from within EDT, ie from within an enqueued task.<br>
      *
      * @throws RuntimeException in case EDT is stopped and not {@link #reset()}

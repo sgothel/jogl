@@ -169,8 +169,7 @@ public abstract class DisplayImpl extends Display {
     public EDTUtil setEDTUtil(EDTUtil newEDTUtil) {        
         if(null == newEDTUtil) {
             newEDTUtil = createEDTUtil();
-        }
-        if( newEDTUtil == edtUtil ) {
+        } else if( newEDTUtil == edtUtil ) {
             if(DEBUG) {
                 System.err.println("Display.setEDTUtil: "+newEDTUtil+" - keep!");
             }
@@ -366,7 +365,7 @@ public abstract class DisplayImpl extends Display {
             DisplayImpl.this.dispatchMessages();
         }
     }
-    DispatchMessagesRunnable dispatchMessagesRunnable = new DispatchMessagesRunnable();
+    protected DispatchMessagesRunnable dispatchMessagesRunnable = new DispatchMessagesRunnable();
 
     final void dispatchMessage(final NEWTEventTask eventTask) {
         final NEWTEvent event = eventTask.get();
@@ -446,8 +445,8 @@ public abstract class DisplayImpl extends Display {
             return;
         }
         
-        // can't wait if we are on EDT -> consume right away
-        if(wait && edtUtil.isCurrentThreadEDT()) {
+        // can't wait if we are on EDT or NEDT -> consume right away
+        if(wait && edtUtil.isCurrentThreadEDTorNEDT() ) {
             dispatchMessage(new NEWTEventTask(e, null));
             return;
         }
