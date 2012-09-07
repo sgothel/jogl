@@ -60,7 +60,6 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLProfile.ShutdownType;
 
 import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
@@ -124,7 +123,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
     
   @Override
-  protected final void destroy(ShutdownType shutdownType) {
+  protected final void destroy() {
     if(null != sharedMap) {
         sharedMap.clear();
         sharedMap = null;
@@ -133,10 +132,9 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     /**
      * Pulling away the native library may cause havoc ..
      *
-    if(ShutdownType.COMPLETE == shutdownType && null != macOSXCGLDynamicLookupHelper) {
-        macOSXCGLDynamicLookupHelper.destroy();
-        macOSXCGLDynamicLookupHelper = null;
-    } */
+      macOSXCGLDynamicLookupHelper.destroy();
+     */
+    macOSXCGLDynamicLookupHelper = null;
   }
 
   @Override

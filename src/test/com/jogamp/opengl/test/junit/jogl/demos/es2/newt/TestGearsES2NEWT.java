@@ -85,7 +85,7 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean mouseConfined = false;
     static boolean showFPS = false;
     static int loops = 1;
-    static GLProfile.ShutdownType loop_shutdown = null;
+    static boolean loop_shutdown = false;
     static boolean forceES2 = false;
     
     @BeforeClass
@@ -258,8 +258,8 @@ public class TestGearsES2NEWT extends UITestCase {
             GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2());
             caps.setBackgroundOpaque(opaque);
             runTestGL(caps, undecorated);
-            if(null != loop_shutdown) {
-                GLProfile.shutdown(loop_shutdown);
+            if(loop_shutdown) {
+                GLProfile.shutdown();
             }
         }
     }
@@ -316,12 +316,7 @@ public class TestGearsES2NEWT extends UITestCase {
                 i++;
                 loops = MiscUtils.atoi(args[i], 1);
             } else if(args[i].equals("-loop-shutdown")) {
-                i++;
-                switch(MiscUtils.atoi(args[i], 0)) {
-                    case 1: loop_shutdown = GLProfile.ShutdownType.SHARED_ONLY; break; 
-                    case 2: loop_shutdown = GLProfile.ShutdownType.COMPLETE; break;
-                    default: throw new IllegalArgumentException("should be [0..2], 0-off, 1-shared, 2-complete");
-                }
+                loop_shutdown = true;
             }
         }
         wsize = new Dimension(w, h);

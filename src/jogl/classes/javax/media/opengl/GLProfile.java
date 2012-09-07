@@ -198,44 +198,25 @@ public class GLProfile {
         getProfileMap(device, true);
     }
 
-    /** 
-     * Shutdown type for {@link GLProfile#shutdown(ShutdownType)}.
-     * <p>
-     * {@link #SHARED_ONLY} For thread based resources only, suitable for eg. {@link java.applet.Applet Applet} restart.<br>
-     * {@link #COMPLETE} Everything.<br>
-     * </p>
-     */ 
-    public enum ShutdownType {
-        /* Shared thread based resources only, eg. for Applets */ 
-        SHARED_ONLY,
-        /* Everything */
-        COMPLETE;
-    }
-    
     /**
      * Manual shutdown method, may be called after your last JOGL use
      * within the running JVM.<br>
      * It releases all temporary created resources, ie issues {@link javax.media.opengl.GLDrawableFactory#shutdown()}.<br>
      * The shutdown implementation is called via the JVM shutdown hook, if not manually invoked.<br>
      * <p>
-     * This method shall not need to be called for other reasons than issuing a proper shutdown of resources.
+     * This method shall not need to be called for other reasons than issuing a proper shutdown of resources at a defined time.
      * </p>
-     * @param type the shutdown type, see {@link ShutdownType}.
      */
-    public static void shutdown(ShutdownType type) {
+    public static void shutdown() {
         initLock.lock();
         try {
             if(initialized) { // volatile: ok
                 initialized = false;
                 if(DEBUG) {
-                    System.err.println("GLProfile.shutdown(type: "+type+") - thread "+Thread.currentThread().getName());
+                    System.err.println("GLProfile.shutdown() - thread "+Thread.currentThread().getName());
                     Thread.dumpStack();
                 }                    
-                GLDrawableFactory.shutdown(type);
-                if(ShutdownType.COMPLETE == type) {
-                    GLContext.shutdown();
-                }
-                NativeWindowFactory.shutdown();
+                GLDrawableFactory.shutdown();
             }
         } finally {
             initLock.unlock();
@@ -1480,7 +1461,7 @@ public class GLProfile {
                         if(DEBUG) {
                             System.err.println("Info: GLProfile.init - EGL/ES2 ANGLE disabled");
                         }
-                        eglFactory.destroy(ShutdownType.COMPLETE);
+                        eglFactory.destroy();
                         eglFactory    = null;
                         hasEGLFactory = false;
                     } else {

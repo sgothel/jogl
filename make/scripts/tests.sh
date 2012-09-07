@@ -53,6 +53,7 @@ function jrun() {
     swton=$1
     shift
 
+    #D_ARGS="-Djogl.disable.opengles"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.GLSLCode -Dnewt.debug.Window.MouseEvent"
     #D_ARGS="-Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.FBObject"
@@ -217,12 +218,12 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLCapabilities01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFloatUtil01MatrixMatrixMultNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestNEWTCloseX11DisplayBug565 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextSurfaceLockNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
@@ -260,7 +261,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00bNEWT
-#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
+testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01bNEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.ManualScreenMode03NEWT
@@ -281,7 +282,6 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableDeadlockAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestPBufferDeadlockAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.x11.TestGLXCallsOnAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestSwingAWT01GLn
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 $*
@@ -379,7 +379,6 @@ function testawtswt() {
 #
 # FBO / ..
 #
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLCapabilities01NEWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBODrawableNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDrawable00NEWT $*
@@ -429,11 +428,6 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLCapabilities01NEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
 
 #linux:
-# EARMARK removal of shutdown mode!
-#testawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedAWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownSharedNEWT $*
 
 # osx:
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDrawable02NEWT $*

@@ -102,6 +102,8 @@ public abstract class NativeWindowFactory {
     private static Constructor<?> x11ToolkitLockConstructor;
     private static boolean requiresToolkitLock;
 
+    private static volatile boolean isJVMShuttingDown = false;
+    
     /** Creates a new NativeWindowFactory instance. End users do not
         need to call this method. */
     protected NativeWindowFactory() {
@@ -168,6 +170,22 @@ public abstract class NativeWindowFactory {
         }        
     }
 
+    private static void shutdownNativeImpl(final ClassLoader cl) {
+        final String clazzName;
+        if( TYPE_X11 == nativeWindowingTypePure ) {
+            clazzName = X11UtilClassName;
+        } else if( TYPE_WINDOWS == nativeWindowingTypePure ) {
+            clazzName = GDIClassName;
+        } else if( TYPE_MACOSX == nativeWindowingTypePure ) {
+            clazzName = OSXUtilClassName;
+        } else {
+            clazzName = null;
+        }
+        if( null != clazzName ) {
+            ReflectionUtil.callStaticMethod(clazzName, "shutdown", null, null, cl );
+        }        
+    }
+    
     /**
      * Static one time initialization of this factory.<br>
      * This initialization method <b>must be called</b> once by the program or utilizing modules!
@@ -268,21 +286,27 @@ public abstract class NativeWindowFactory {
         }
     }
 
-    public static synchronized void shutdown() {
+    public static synchronized void shutdown(boolean _isJVMShuttingDown) {
+        isJVMShuttingDown = _isJVMShuttingDown;
+        if(DEBUG) {
+            System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.shutdown() START: JVM Shutdown "+isJVMShuttingDown);                
+        }
         if(initialized) {
             initialized = false;
-            if(DEBUG) {
-                System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.shutdown() START");                
+            if(null != registeredFactories) {
+                registeredFactories.clear();
+                registeredFactories = null;
             }
-            registeredFactories.clear();
-            registeredFactories = null;
             GraphicsConfigurationFactory.shutdown();
-            // X11Util.shutdown(..) already called via GLDrawableFactory.shutdown() ..
-            if(DEBUG) {
-                System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.shutdown() END");                
-            }
+        }
+        shutdownNativeImpl(NativeWindowFactory.class.getClassLoader()); // always re-shutdown
+        if(DEBUG) {
+            System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.shutdown() END JVM Shutdown "+isJVMShuttingDown);
         }
     }
+    
+    /** Returns true if the JVM is shutting down, otherwise false. */ 
+    public static final boolean isJVMShuttingDown() { return isJVMShuttingDown; }
     
     /** @return true if the underlying toolkit requires locking, otherwise false. */
     public static boolean requiresToolkitLock() {

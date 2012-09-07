@@ -29,6 +29,7 @@ package jogamp.nativewindow.windows;
 
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.NativeWindowFactory;
 
 import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.nativewindow.Debug;
@@ -41,6 +42,9 @@ public class GDIUtil {
     private static RegisteredClassFactory dummyWindowClassFactory;
     private static boolean isInit = false;
   
+    /**
+     * Called by {@link NativeWindowFactory#initSingleton()}
+     */
     public static synchronized void initSingleton() {
         if(!isInit) {
             synchronized(X11Util.class) {
@@ -61,6 +65,12 @@ public class GDIUtil {
         }
     }
   
+    /**
+     * Called by {@link NativeWindowFactory#shutdown()}
+     */
+    public static void shutdown() {      
+    }
+    
     public static boolean requiresToolkitLock() { return false; }
   
     private static RegisteredClass dummyWindowClass = null;

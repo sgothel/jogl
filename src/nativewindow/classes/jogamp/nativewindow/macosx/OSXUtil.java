@@ -28,6 +28,7 @@
 package jogamp.nativewindow.macosx;
 
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 
@@ -38,6 +39,9 @@ public class OSXUtil {
     private static boolean isInit = false;  
     private static final boolean DEBUG = Debug.debug("OSXUtil");
     
+    /**
+     * Called by {@link NativeWindowFactory#initSingleton()}
+     */
     public static synchronized void initSingleton() {
       if(!isInit) {
           if(DEBUG) {
@@ -54,6 +58,12 @@ public class OSXUtil {
       }
     }
 
+    /**
+     * Called by {@link NativeWindowFactory#shutdown()}
+     */
+    public static void shutdown() {      
+    }
+    
     public static boolean requiresToolkitLock() {
         return false;
     }

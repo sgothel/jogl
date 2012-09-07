@@ -29,6 +29,7 @@
 package jogamp.opengl.egl;
 
 import java.nio.IntBuffer;
+import java.util.Iterator;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
@@ -51,7 +52,7 @@ import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
  * </p>
  */
 public class EGLDisplayUtil {
-    protected static final boolean DEBUG = Debug.debug("EGL");
+    protected static final boolean DEBUG = Debug.debug("EGLDisplayUtil");
     
     static LongIntHashMap eglDisplayCounter;
     
@@ -60,6 +61,32 @@ public class EGLDisplayUtil {
         eglDisplayCounter.setKeyNotFoundValue(0);
     }
 
+    /** 
+     * @return number of unclosed EGL Displays.<br>
+     */
+    public static int shutdown(boolean verbose) {
+        if(DEBUG || verbose || eglDisplayCounter.size() > 0 ) {
+            System.err.println("EGLDisplayUtil.EGLDisplays: Shutdown (open: "+eglDisplayCounter.size()+")");
+            if(DEBUG) {
+                Thread.dumpStack();
+            }
+            if( eglDisplayCounter.size() > 0) {
+                EGLDisplayUtil.dumpOpenDisplayConnections();
+            }
+        }
+
+        return eglDisplayCounter.size();
+    }
+    
+    public static void dumpOpenDisplayConnections() {
+        System.err.println("EGLDisplayUtil: Open EGL Display Connections: "+eglDisplayCounter.size());
+        int i=0;
+        for(Iterator<LongIntHashMap.Entry> iter = eglDisplayCounter.iterator(); iter.hasNext(); i++) {
+            final LongIntHashMap.Entry e = iter.next();
+            System.err.println("EGLDisplayUtil: Open["+i+"]: 0x"+Long.toHexString(e.key)+": refCnt "+e.value);
+        }
+    }
+    
     public static long eglGetDisplay(long nativeDisplay_id)  {
         final long eglDisplay = EGL.eglGetDisplay(nativeDisplay_id);
         if(DEBUG) {
@@ -89,6 +116,7 @@ public class EGLDisplayUtil {
         eglDisplayCounter.put(eglDisplay, refCnt);
         if(DEBUG) {
             System.err.println("EGLDisplayUtil.eglInitialize1("+EGLContext.toHexString(eglDisplay)+" ...): #"+refCnt+" = "+res);
+            // Thread.dumpStack();
         }
         return res;
     }
@@ -117,6 +145,7 @@ public class EGLDisplayUtil {
         }
         if(DEBUG) {
             System.err.println("EGLDisplayUtil.eglInitialize2("+EGLContext.toHexString(eglDisplay)+" ...): #"+refCnt+" = "+res);
+            // Thread.dumpStack();
         }
         return res;
     }
@@ -185,11 +214,12 @@ public class EGLDisplayUtil {
         final int refCnt = eglDisplayCounter.get(eglDisplay) - 1; // 1 - 1 = 0 -> final terminate
         if(0==refCnt) { // no terminate if still in use or already terminated
             res = EGL.eglTerminate(eglDisplay);
+            eglDisplayCounter.remove(eglDisplay);
         } else {
+            if(0 < refCnt) { // no negative refCount
+                eglDisplayCounter.put(eglDisplay, refCnt);
+            } 
             res = true;
-        }
-        if(0<=refCnt) { // no negative refCount
-            eglDisplayCounter.put(eglDisplay, refCnt);
         }
         if(DEBUG) {
             System.err.println("EGLDisplayUtil.eglTerminate("+EGLContext.toHexString(eglDisplay)+" ...): #"+refCnt+" = "+res);

@@ -67,13 +67,13 @@ public class X11Util {
      * </p>
      * <p>
      * You may test this, ie just reverse the destroy order below.
-     * See also native test: jogl/test/native/displayMultiple02.c
+     * See also native test: jogl/test-native/displayMultiple02.c
      * </p>
      * <p>
      * Workaround is to not close them at all if driver vendor is ATI.
      * </p>
      */
-    public static final boolean ATI_HAS_XCLOSEDISPLAY_BUG = true;
+    public static final boolean ATI_HAS_XCLOSEDISPLAY_BUG = !Debug.isPropertyDefined("nativewindow.debug.X11Util.ATI_HAS_NO_XCLOSEDISPLAY_BUG", true);
 
     /** Value is <code>true</code>, best 'stable' results if always using XInitThreads(). */
     public static final boolean XINITTHREADS_ALWAYS_ENABLED = true;
@@ -95,6 +95,9 @@ public class X11Util {
     private static Object setX11ErrorHandlerLock = new Object();
 
     
+    /**
+     * Called by {@link NativeWindowFactory#initSingleton()}
+     */
     public static void initSingleton() {
         if(!isInit) {
             synchronized(X11Util.class) {
@@ -138,6 +141,52 @@ public class X11Util {
         }
     }
     
+    /** 
+     * Cleanup resources.
+     * <p>
+     * Called by {@link NativeWindowFactory#shutdown()}
+     * </p>
+     */
+    public static void shutdown() {
+        if(isInit) {
+            synchronized(X11Util.class) {
+                if(isInit) {                    
+                    final boolean isJVMShuttingDown = NativeWindowFactory.isJVMShuttingDown() ;
+                    if(DEBUG || openDisplayMap.size() > 0 || reusableDisplayList.size() > 0 || pendingDisplayList.size() > 0) {
+                        System.err.println("X11Util.Display: Shutdown (JVM shutdown: "+isJVMShuttingDown+
+                                           ", open (no close attempt): "+openDisplayMap.size()+"/"+openDisplayList.size()+
+                                           ", reusable (open, marked uncloseable): "+reusableDisplayList.size()+
+                                           ", pending (post closing): "+pendingDisplayList.size()+
+                                           ")");
+                        if(DEBUG) {
+                            Thread.dumpStack();
+                        }
+                        if( openDisplayList.size() > 0) {
+                            X11Util.dumpOpenDisplayConnections();
+                        }
+                        if( reusableDisplayList.size() > 0 || pendingDisplayList.size() > 0 ) {
+                            X11Util.dumpPendingDisplayConnections();
+                        }
+                    }
+            
+                    synchronized(globalLock) {
+                        // Only at JVM shutdown time, since AWT impl. seems to 
+                        // dislike closing of X11 Display's (w/ ATI driver). 
+                        if( isJVMShuttingDown ) {
+                            isInit = false;                            
+                            closePendingDisplayConnections();    
+                            openDisplayList.clear();
+                            reusableDisplayList.clear();
+                            pendingDisplayList.clear();
+                            openDisplayMap.clear();
+                            shutdown0();
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     public static synchronized boolean isNativeLockAvailable() {
         return isX11LockAvailable;
     }
@@ -183,6 +232,7 @@ public class X11Util {
     private static Object globalLock = new Object(); 
     private static LongObjectHashMap openDisplayMap = new LongObjectHashMap(); // handle -> name
     private static List<NamedDisplay> openDisplayList = new ArrayList<NamedDisplay>();
+    private static List<NamedDisplay> reusableDisplayList = new ArrayList<NamedDisplay>();
     private static List<NamedDisplay> pendingDisplayList = new ArrayList<NamedDisplay>();
 
     public static class NamedDisplay {
@@ -218,8 +268,7 @@ public class X11Util {
         public final boolean equals(Object obj) {
             if(this == obj) { return true; }
             if(obj instanceof NamedDisplay) {
-                NamedDisplay n = (NamedDisplay) obj;
-                return handle == n.handle;
+                return handle == ((NamedDisplay) obj).handle;
             }
             return false;
         }
@@ -246,43 +295,6 @@ public class X11Util {
         }
     }
 
-    /** 
-     * Cleanup resources. 
-     * If <code>realXCloseOpenAndPendingDisplays</code> is <code>false</code>, 
-     * keep alive all references (open display connection) for restart on same ClassLoader.
-     * 
-     * @return number of unclosed X11 Displays.<br>
-     * @param realXCloseOpenAndPendingDisplays if true, {@link #closePendingDisplayConnections()} is called.
-     */
-    public static int shutdown(boolean realXCloseOpenAndPendingDisplays, boolean verbose) {
-        int num=0;
-        if(DEBUG || verbose || openDisplayMap.size() > 0 || pendingDisplayList.size() > 0) {
-            System.err.println("X11Util.Display: Shutdown (close open / pending Displays: "+realXCloseOpenAndPendingDisplays+
-                               ", open (no close attempt): "+openDisplayMap.size()+"/"+openDisplayList.size()+
-                               ", pending (not closed, marked uncloseable): "+pendingDisplayList.size()+")");
-            if(DEBUG) {
-                Thread.dumpStack();
-            }
-            if( openDisplayList.size() > 0) {
-                X11Util.dumpOpenDisplayConnections();
-            }
-            if( pendingDisplayList.size() > 0 ) {
-                X11Util.dumpPendingDisplayConnections();
-            }
-        }
-
-        synchronized(globalLock) {
-            if(realXCloseOpenAndPendingDisplays) {
-                closePendingDisplayConnections();    
-                openDisplayList.clear();
-                pendingDisplayList.clear();
-                openDisplayMap.clear();
-                shutdown0();
-            }
-        }
-        return num;
-    }
-
     /**
      * Closing pending Display connections in reverse order.
      *
@@ -292,9 +304,9 @@ public class X11Util {
         int num=0;
         synchronized(globalLock) {
             if(DEBUG) {
-                System.err.println("X11Util: Closing Pending X11 Display Connections: "+pendingDisplayList.size());
+                System.err.println("X11Util: Closing Pending X11 Display Connections in order of their creation: "+pendingDisplayList.size());
             }
-            for(int i=pendingDisplayList.size()-1; i>=0; i--) {
+            for(int i=0; i<pendingDisplayList.size(); i++) {
                 NamedDisplay ndpy = (NamedDisplay) pendingDisplayList.get(i);
                 if(DEBUG) {
                     System.err.println("X11Util.closePendingDisplayConnections(): Closing ["+i+"]: "+ndpy);
@@ -328,6 +340,12 @@ public class X11Util {
         }
     }
     
+    public static int getReusableDisplayConnectionNumber() {
+        synchronized(globalLock) {
+            return reusableDisplayList.size();
+        }
+    }
+
     public static int getPendingDisplayConnectionNumber() {
         synchronized(globalLock) {
             return pendingDisplayList.size();
@@ -336,7 +354,18 @@ public class X11Util {
 
     public static void dumpPendingDisplayConnections() {
         synchronized(globalLock) {
-            System.err.println("X11Util: Pending X11 Display Connections: "+pendingDisplayList.size());
+            System.err.println("X11Util: Reusable X11 Display Connections: "+reusableDisplayList.size());
+            for(int i=0; i<reusableDisplayList.size(); i++) {
+                NamedDisplay ndpy = (NamedDisplay) reusableDisplayList.get(i);
+                System.err.println("X11Util: Reusable["+i+"]: "+ndpy);
+                if(null!=ndpy) {
+                    Throwable t = ndpy.getCreationStack();
+                    if(null!=t) {
+                        t.printStackTrace();
+                    }
+                }
+            }
+            System.err.println("X11Util: Pending X11 Display Connections (creation order): "+pendingDisplayList.size());
             for(int i=0; i<pendingDisplayList.size(); i++) {
                 NamedDisplay ndpy = (NamedDisplay) pendingDisplayList.get(i);
                 System.err.println("X11Util: Pending["+i+"]: "+ndpy);
@@ -370,9 +399,9 @@ public class X11Util {
         boolean reused = false;
         
         synchronized(globalLock) {            
-            for(int i=0; i<pendingDisplayList.size(); i++) {
-                if(pendingDisplayList.get(i).getName().equals(name)) {
-                    namedDpy = pendingDisplayList.remove(i);
+            for(int i=0; i<reusableDisplayList.size(); i++) {
+                if(reusableDisplayList.get(i).getName().equals(name)) {
+                    namedDpy = reusableDisplayList.remove(i);
                     dpy = namedDpy.getHandle();
                     reused = true;
                     break;
@@ -386,6 +415,7 @@ public class X11Util {
                 // if you like to debug and synchronize X11 commands ..
                 // setSynchronizeDisplay(dpy, true);
                 namedDpy = new NamedDisplay(name, dpy);
+                pendingDisplayList.add(namedDpy);
             }
             namedDpy.addRef();
             openDisplayMap.put(dpy, namedDpy);
@@ -420,9 +450,10 @@ public class X11Util {
             
             if(!namedDpy.isUncloseable()) {
                 XCloseDisplay(namedDpy.getHandle());
+                pendingDisplayList.remove(namedDpy);
             } else {
                 // for reuse
-                pendingDisplayList.add(namedDpy);
+                reusableDisplayList.add(namedDpy);
             }
             
             if(DEBUG) {

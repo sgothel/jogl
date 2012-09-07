@@ -93,12 +93,12 @@ public class TestShutdownCompleteAWT extends UITestCase {
         long t1 = System.nanoTime();
         runTestGL();        
         long t2 = System.nanoTime();
-        GLProfile.shutdown(GLProfile.ShutdownType.COMPLETE);        
+        GLProfile.shutdown();        
         long t3 = System.nanoTime();
         System.err.println("Total:                          "+ (t3-t0)/1e6 +"ms"); 
         System.err.println("  GLProfile.initSingleton():    "+ (t1-t0)/1e6 +"ms"); 
         System.err.println("  Demo Code:                    "+ (t2-t1)/1e6 +"ms"); 
-        System.err.println("  GLProfile.shutdown(COMPLETE): "+ (t3-t2)/1e6 +"ms"); 
+        System.err.println("  GLProfile.shutdown():         "+ (t3-t2)/1e6 +"ms"); 
     }
     
     @Test

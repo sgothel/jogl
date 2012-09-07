@@ -64,7 +64,6 @@ import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLProfile.ShutdownType;
 
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLDrawableFactoryImpl;
@@ -201,13 +200,13 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
   
     
     @Override
-    protected final void destroy(ShutdownType shutdownType) {
+    protected final void destroy() {
         if(null != sharedMap) {
             Collection<SharedResource> srl = sharedMap.values();
             for(Iterator<SharedResource> sri = srl.iterator(); sri.hasNext(); ) {
                 SharedResource sr = sri.next();
                 if(DEBUG) {
-                    System.err.println("EGLDrawableFactory.destroy("+shutdownType+"): "+sr.device.toString());
+                    System.err.println("EGLDrawableFactory.destroy(): "+sr.device.toString());
                 }
                 sr.device.close();
             }
@@ -220,17 +219,16 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         /**
          * Pulling away the native library may cause havoc ..
          */
-        if(ShutdownType.COMPLETE == shutdownType) {
-            if(null != eglES1DynamicLookupHelper) {
-                // eglES1DynamicLookupHelper.destroy();
-                eglES1DynamicLookupHelper = null;
-            }
-            if(null != eglES2DynamicLookupHelper) {
-                // eglES2DynamicLookupHelper.destroy();
-                eglES2DynamicLookupHelper = null;
-            }
+        if(null != eglES1DynamicLookupHelper) {
+            // eglES1DynamicLookupHelper.destroy();
+            eglES1DynamicLookupHelper = null;
+        }
+        if(null != eglES2DynamicLookupHelper) {
+            // eglES2DynamicLookupHelper.destroy();
+            eglES2DynamicLookupHelper = null;
         }
         EGLGraphicsConfigurationFactory.unregisterFactory();
+        EGLDisplayUtil.shutdown(DEBUG);
     }
 
     private HashMap<String /*connection*/, SharedResource> sharedMap = null;

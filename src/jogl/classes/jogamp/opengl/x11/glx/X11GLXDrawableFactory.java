@@ -58,7 +58,6 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLProfile.ShutdownType;
 
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
@@ -129,7 +128,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
   
   @Override
-  protected final void destroy(ShutdownType shutdownType) {
+  protected final void destroy() {
     if(null != sharedResourceRunner) {
         sharedResourceRunner.stop();
         sharedResourceRunner = null;
@@ -142,14 +141,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     /**
      * Pulling away the native library may cause havoc ..
      *
-    if(ShutdownType.COMPLETE == shutdownType && null != x11GLXDynamicLookupHelper) {
-        x11GLXDynamicLookupHelper.destroy();
-        x11GLXDynamicLookupHelper = null;
-    } */
-
-    // Don't really close pending Display connections,
-    // since this may trigger a JVM exception
-    X11Util.shutdown( false, DEBUG );
+       x11GLXDynamicLookupHelper.destroy();
+     */
+    x11GLXDynamicLookupHelper = null;
   }
 
   @Override

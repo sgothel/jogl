@@ -55,7 +55,6 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.ProxySurface.UpstreamSurfaceHook;
-import javax.media.opengl.GLProfile.ShutdownType;
 
 import jogamp.opengl.Debug;
 
@@ -106,6 +105,7 @@ public abstract class GLDrawableFactory {
   // Shutdown hook mechanism for the factory
   private static boolean factoryShutdownHookRegistered = false;
   private static Thread factoryShutdownHook = null;
+  private static volatile boolean isJVMShuttingDown = false;
 
   /**
    * Instantiate singleton factories if available, EGLES1, EGLES2 and the OS native ones.
@@ -176,21 +176,24 @@ public abstract class GLDrawableFactory {
     }
   }
 
-  protected static void shutdown(ShutdownType shutdownType) {
+  protected static void shutdown() {
     if (isInit) { // volatile: ok
       synchronized (GLDrawableFactory.class) {
           if (isInit) {
               isInit=false;
-              unregisterFactoryShutdownHook();
-              shutdownImpl(shutdownType);
+              shutdownImpl();
           }
       }
     }
   }
-  private static void shutdownImpl(ShutdownType shutdownType) {
+  
+  private static void shutdownImpl() {
+    // Following code will _always_ remain in shutdown hook
+    // due to special semantics of native utils, i.e. X11Utils.
+    // The latter requires shutdown at JVM-Shutdown only.
     synchronized(glDrawableFactories) {
         for(int i=0; i<glDrawableFactories.size(); i++) {
-            glDrawableFactories.get(i).destroy(shutdownType);
+            glDrawableFactories.get(i).destroy();
         }
         glDrawableFactories.clear();
         
@@ -198,6 +201,8 @@ public abstract class GLDrawableFactory {
         nativeOSFactory = null;
         eglFactory = null;
     }
+    GLContext.shutdown();
+    NativeWindowFactory.shutdown(isJVMShuttingDown);
   }
   
   private static synchronized void registerFactoryShutdownHook() {
@@ -206,7 +211,8 @@ public abstract class GLDrawableFactory {
     }
     factoryShutdownHook = new Thread(new Runnable() {
         public void run() {
-            GLDrawableFactory.shutdownImpl(GLProfile.ShutdownType.COMPLETE);
+            isJVMShuttingDown = true;
+            GLDrawableFactory.shutdownImpl();
         }
     });
     AccessController.doPrivileged(new PrivilegedAction<Object>() {
@@ -217,20 +223,6 @@ public abstract class GLDrawableFactory {
     });
     factoryShutdownHookRegistered = true;
   }
-
-  private static synchronized void unregisterFactoryShutdownHook() {
-    if (!factoryShutdownHookRegistered) {
-        return;
-    }
-    AccessController.doPrivileged(new PrivilegedAction<Object>() {
-        public Object run() {
-            Runtime.getRuntime().removeShutdownHook(factoryShutdownHook);
-            return null;
-        }
-    });
-    factoryShutdownHookRegistered = false;
-  }
-
 
   protected GLDrawableFactory() {
     synchronized(glDrawableFactories) {
@@ -244,7 +236,7 @@ public abstract class GLDrawableFactory {
   protected void enterThreadCriticalZone() {};
   protected void leaveThreadCriticalZone() {};
 
-  protected abstract void destroy(ShutdownType shutdownType);
+  protected abstract void destroy();
 
   /**
    * Retrieve the default <code>device</code> {@link AbstractGraphicsDevice#getConnection() connection},

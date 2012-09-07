@@ -48,8 +48,12 @@ public class TestShutdownCompleteNEWT extends UITestCase {
 
     static long duration = 300; // ms
     
-    protected void runTestGL() throws InterruptedException {
-        GLWindow glWindow = GLWindow.create(new GLCapabilities(GLProfile.getGL2ES2()));
+    protected void runTestGL(boolean onscreen) throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
+        caps.setOnscreen(onscreen);
+        caps.setPBuffer(!onscreen);
+        
+        GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test");
 
@@ -82,19 +86,19 @@ public class TestShutdownCompleteNEWT extends UITestCase {
         GLProfile.initSingleton();
         long t1 = System.nanoTime();
         if(!initOnly) {
-            runTestGL();
+            runTestGL(true);
         }
         long t2 = System.nanoTime();
         if(glInfo) {
             System.err.println(JoglVersion.getDefaultOpenGLInfo(null, null, false).toString());
         }
         long t3 = System.nanoTime();        
-        GLProfile.shutdown(GLProfile.ShutdownType.COMPLETE);        
+        GLProfile.shutdown();        
         long t4 = System.nanoTime();
         System.err.println("Total:                          "+ (t3-t0)/1e6 +"ms"); 
         System.err.println("  GLProfile.initSingleton():    "+ (t1-t0)/1e6 +"ms"); 
         System.err.println("  Demo Code:                    "+ (t2-t1)/1e6 +"ms"); 
-        System.err.println("  GLProfile.shutdown(COMPLETE): "+ (t4-t3)/1e6 +"ms"); 
+        System.err.println("  GLProfile.shutdown():         "+ (t4-t3)/1e6 +"ms"); 
     }
     
     @Test

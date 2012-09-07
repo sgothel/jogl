@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ToolkitLock;
 
 import jogamp.nativewindow.Debug;
@@ -271,10 +272,18 @@ public class JAWTUtil {
     }
   }
 
+  /**
+   * Called by {@link NativeWindowFactory#initSingleton()}
+   */
   public static void initSingleton() {
       // just exist to ensure static init has been run
   }
-
+  
+  /**
+   * Called by {@link NativeWindowFactory#shutdown()}
+   */
+  public static void shutdown() {      
+  }
 
   public static boolean hasJava2D() {
     return j2dExist;

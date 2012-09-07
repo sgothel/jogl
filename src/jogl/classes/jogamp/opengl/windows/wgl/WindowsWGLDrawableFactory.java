@@ -61,7 +61,6 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
-import javax.media.opengl.GLProfile.ShutdownType;
 
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.GDISurface;
@@ -136,7 +135,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   
   
   @Override
-  protected final void destroy(ShutdownType shutdownType) {
+  protected final void destroy() {
     if(null != sharedResourceRunner) {
         sharedResourceRunner.stop();
         sharedResourceRunner = null;
@@ -149,10 +148,9 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     /**
      * Pulling away the native library may cause havoc ..
      *
-    if(ShutdownType.COMPLETE == shutdownType && null != windowsWGLDynamicLookupHelper) {
-        windowsWGLDynamicLookupHelper.destroy();
-        windowsWGLDynamicLookupHelper = null;
-    } */
+       windowsWGLDynamicLookupHelper.destroy();
+     */
+    windowsWGLDynamicLookupHelper = null;
 
     RegisteredClassFactory.shutdownSharedClasses();
   }
