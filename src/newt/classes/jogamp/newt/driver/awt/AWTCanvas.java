@@ -35,6 +35,7 @@
 package jogamp.newt.driver.awt;
 
 import java.awt.Canvas;
+import java.awt.Graphics;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsConfiguration;
 import java.lang.reflect.Method;
@@ -61,14 +62,16 @@ public class AWTCanvas extends Canvas {
   private GraphicsConfiguration chosen;
   private AWTGraphicsConfiguration awtConfig;
 
+  private WindowDriver newtWindowImpl;
   private CapabilitiesChooser chooser=null;
   private CapabilitiesImmutable capabilities;
 
   private boolean displayConfigChanged=false;
 
-  public AWTCanvas(CapabilitiesImmutable capabilities, CapabilitiesChooser chooser) {
+  public AWTCanvas(WindowDriver newtWindowImpl, CapabilitiesImmutable capabilities, CapabilitiesChooser chooser) {
     super();
 
+    this.newtWindowImpl = newtWindowImpl;
     if(null==capabilities) {
         throw new NativeWindowException("Capabilities null");
     }
@@ -80,6 +83,25 @@ public class AWTCanvas extends Canvas {
     return awtConfig;
   }
 
+  /**
+   * Overridden from Canvas to prevent the AWT's clearing of the
+   * canvas from interfering with the OpenGL rendering.
+   */
+  @Override
+  public void update(Graphics g) {
+    paint(g);
+  }
+
+  /** Overridden to cause OpenGL rendering to be performed during
+      repaint cycles. Subclasses which override this method must call
+      super.paint() in their paint() method in order to function
+      properly.
+   */
+  @Override
+  public void paint(Graphics g) {
+    newtWindowImpl.windowRepaint(0, 0, getWidth(), getHeight());
+  }
+  
   public boolean hasDeviceChanged() {
     boolean res = displayConfigChanged;
     displayConfigChanged=false;
@@ -275,10 +297,10 @@ public class AWTCanvas extends Canvas {
   private void disableBackgroundErase() {
     if (!disableBackgroundEraseInitialized) {
       try {
-        AccessController.doPrivileged(new PrivilegedAction() {
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
               try {
-                Class clazz = getToolkit().getClass();
+                Class<?> clazz = getToolkit().getClass();
                 while (clazz != null && disableBackgroundEraseMethod == null) {
                   try {
                     disableBackgroundEraseMethod =

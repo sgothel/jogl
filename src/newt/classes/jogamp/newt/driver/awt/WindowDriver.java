@@ -36,6 +36,7 @@ package jogamp.newt.driver.awt;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Insets;
 
@@ -47,6 +48,8 @@ import jogamp.newt.WindowImpl;
 import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
+import com.jogamp.newt.event.WindowEvent;
+import com.jogamp.newt.event.WindowUpdateEvent;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTMouseAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
@@ -107,18 +110,18 @@ public class WindowDriver extends WindowImpl {
             frame.setTitle(getTitle());
         }
         container.setLayout(new BorderLayout());
-        canvas = new AWTCanvas(capsRequested, WindowDriver.this.capabilitiesChooser);
-
-        addWindowListener(new LocalWindowListener());
-
-        new AWTMouseAdapter(this).addTo(canvas); // fwd all AWT Mouse events to here
-        new AWTKeyAdapter(this).addTo(canvas); // fwd all AWT Key events to here
+        
+        canvas = new AWTCanvas(this, capsRequested, WindowDriver.this.capabilitiesChooser);
 
         // canvas.addComponentListener(listener);
         container.add(canvas, BorderLayout.CENTER);
-        container.setSize(getWidth(), getHeight());
-        container.setLocation(getX(), getY());
-        new AWTWindowAdapter(this).addTo(container); // fwd all AWT Window events to here
+        
+        // via EDT ..
+        new AWTMouseAdapter(this).addTo(canvas); // fwd all AWT Mouse events to here
+        new AWTKeyAdapter(this).addTo(canvas); // fwd all AWT Key events to here
+        
+        // direct w/o EDT
+        new AWTWindowAdapter(new LocalWindowListener(), this).addTo(canvas); // fwd all AWT Window events to here
 
         reconfigureWindowImpl(getX(), getY(), getWidth(), getHeight(), getReconfigureFlags(FLAG_CHANGE_VISIBILITY | FLAG_CHANGE_DECORATION, true));
         // throws exception if failed ..
@@ -174,20 +177,32 @@ public class WindowDriver extends WindowImpl {
                 frame.setUndecorated(isUndecorated());
             } else {
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("AWTWindow can't undecorate already created frame");
+                    System.err.println(getThreadName()+": AWTWindow can't undecorate already created frame");
                 }
             }
         }
         
+        final Dimension szClient = new Dimension(width, height);
+        canvas.setMinimumSize(szClient);
+        canvas.setPreferredSize(szClient);
+        canvas.setSize(szClient);
+        if(DEBUG_IMPLEMENTATION) {
+            final Insets insets = container.getInsets();
+            final Dimension szContainer = new Dimension(width + insets.left + insets.right,
+                                                        height + insets.top + insets.bottom);
+            System.err.println(getThreadName()+": AWTWindow new size: szClient "+szClient+", szCont "+szContainer+", insets "+insets);
+        }
+        
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
+            if(null != frame) {
+                frame.pack();
+            }
+            container.validate();            
             container.setVisible(0 != ( FLAG_IS_VISIBLE & flags));
         }
         
         container.setLocation(x, y);
-        Insets insets = container.getInsets();
-        container.setSize(width + insets.left + insets.right,
-                          height + insets.top + insets.bottom);
-
+        
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
             if( 0 != ( FLAG_IS_VISIBLE & flags ) ) {
                 if( !hasDeviceChanged() ) {
@@ -200,6 +215,12 @@ public class WindowDriver extends WindowImpl {
                 }
             }
             visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
+        } else {
+            container.invalidate();
+            if(null != frame) {
+                frame.pack();
+            }
+            container.validate();            
         }
         
         return true;
@@ -216,18 +237,41 @@ public class WindowDriver extends WindowImpl {
         return canvas;
     }
 
-    class LocalWindowListener extends com.jogamp.newt.event.WindowAdapter { 
+    class LocalWindowListener implements com.jogamp.newt.event.WindowListener { 
         @Override
         public void windowMoved(com.jogamp.newt.event.WindowEvent e) {
             if(null!=container) {
-                definePosition(container.getX(), container.getY());
+                WindowDriver.this.positionChanged(false, container.getX(), container.getY());
             }
         }
         @Override
         public void windowResized(com.jogamp.newt.event.WindowEvent e) {
             if(null!=canvas) {
-                defineSize(canvas.getWidth(), canvas.getHeight());
+                WindowDriver.this.sizeChanged(false, canvas.getWidth(), canvas.getHeight(), false);
             }
+        }
+        @Override
+        public void windowDestroyNotify(WindowEvent e) {
+            WindowDriver.this.windowDestroyNotify(false);
+        }
+        @Override
+        public void windowDestroyed(WindowEvent e) {
+            if(isNativeValid()) {
+                WindowDriver.this.windowDestroyNotify(true);
+            }
+            
+        }
+        @Override
+        public void windowGainedFocus(WindowEvent e) {
+            WindowDriver.this.focusChanged(false, true);            
+        }
+        @Override
+        public void windowLostFocus(WindowEvent e) {
+            WindowDriver.this.focusChanged(false, false);            
+        }
+        @Override
+        public void windowRepaint(WindowUpdateEvent e) {
+            WindowDriver.this.windowRepaint(false, 0, 0, getWidth(), getHeight());            
         }
     }
 }

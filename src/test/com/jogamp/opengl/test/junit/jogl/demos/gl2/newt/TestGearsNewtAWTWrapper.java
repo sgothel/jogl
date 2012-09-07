@@ -33,6 +33,7 @@ import javax.media.opengl.*;
 
 import com.jogamp.opengl.util.Animator;
 
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -78,8 +79,25 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
         glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
 
-        glWindow.setSize(width, height);
+        int div = 3;
+        glWindow.setSize(width/div, height/div);
         glWindow.setVisible(true);
+        glWindow.display();
+        Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getWidth()+"x"+glWindow.getHeight(), 
+                          AWTRobotUtil.waitForSize(glWindow, width/div, height/div));
+        
+        div = 2;
+        glWindow.setSize(width/div, height/div);
+        glWindow.display();
+        Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getWidth()+"x"+glWindow.getHeight(), 
+                          AWTRobotUtil.waitForSize(glWindow, width/div, height/div));
+
+        div = 1;
+        glWindow.setSize(width/div, height/div);
+        glWindow.display();
+        Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getWidth()+"x"+glWindow.getHeight(), 
+                          AWTRobotUtil.waitForSize(glWindow, width/div, height/div));
+
         animator.setUpdateFPSFrames(1, null);        
         animator.start();
 

@@ -28,6 +28,8 @@
  
 package com.jogamp.newt.event.awt;
 
+import java.awt.Dimension;
+
 import jogamp.newt.awt.event.AWTNewtEventFactory;
 
 public class AWTWindowAdapter 
@@ -61,9 +63,9 @@ public class AWTWindowAdapter
         if(awtComponent instanceof java.awt.Window) {
             ((java.awt.Window)awtComponent).addWindowListener(this);
         }
-        return this;
+        return this;        
     }
-
+    
     public AWTAdapter removeFrom(java.awt.Component awtComponent) {
         awtComponent.removeFocusListener(this);
         awtComponent.removeComponentListener(this);
@@ -89,6 +91,9 @@ public class AWTWindowAdapter
 
     public void focusGained(java.awt.event.FocusEvent e) {
         com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("AWT: focusGained: "+e+" -> "+event);
+        }
         if(null!=newtListener) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowGainedFocus(event);
         } else {
@@ -98,6 +103,9 @@ public class AWTWindowAdapter
 
     public void focusLost(java.awt.event.FocusEvent e) {
         com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("AWT: focusLost: "+e+" -> "+event);
+        }
         if(null!=newtListener) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowLostFocus(event);
         } else {
@@ -108,7 +116,19 @@ public class AWTWindowAdapter
     public void componentResized(java.awt.event.ComponentEvent e) {
         com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("AWT: componentResized: "+event);
+            final java.awt.Component c = e.getComponent();
+            final java.awt.Dimension sz = c.getSize();
+            final java.awt.Insets insets;
+            final java.awt.Dimension sz2;
+            if(c instanceof java.awt.Container) {
+                insets = ((java.awt.Container)c).getInsets();
+                sz2 = new Dimension(sz.width - insets.left - insets.right,
+                                    sz.height - insets.top - insets.bottom);
+            } else {
+                insets = null;
+                sz2 = sz;
+            }
+            System.err.println("AWT: componentResized: "+sz+" ( "+insets+", "+sz2+" ), "+e+" -> "+event);
         }
         if(null!=newtListener) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowResized(event);
@@ -120,7 +140,7 @@ public class AWTWindowAdapter
     public void componentMoved(java.awt.event.ComponentEvent e) {
         com.jogamp.newt.event.WindowEvent event = AWTNewtEventFactory.createWindowEvent(e, newtWindow);
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("AWT: componentMoved: "+event);
+            System.err.println("AWT: componentMoved: "+e+" -> "+event);
         }
         if(null!=newtListener) {
             ((com.jogamp.newt.event.WindowListener)newtListener).windowMoved(event);
