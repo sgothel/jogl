@@ -210,7 +210,6 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         if (x11Screen == null) {
             throw new IllegalArgumentException("AbstractGraphicsScreen is null");
         }
-
         if (capsChosen == null) {
             capsChosen = new GLCapabilities(null);
         }

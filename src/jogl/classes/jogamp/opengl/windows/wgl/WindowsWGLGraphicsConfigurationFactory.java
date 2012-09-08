@@ -85,7 +85,11 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilities objects - requested");
         }
 
-        return chooseGraphicsConfigurationStatic((GLCapabilitiesImmutable)capsChosen, (GLCapabilitiesImmutable)capsRequested, chooser, absScreen);
+        if (chooser != null && !(chooser instanceof GLCapabilitiesChooser)) {
+            throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilitiesChooser objects");
+        }
+        
+        return chooseGraphicsConfigurationStatic((GLCapabilitiesImmutable)capsChosen, (GLCapabilitiesImmutable)capsRequested, (GLCapabilitiesChooser)chooser, absScreen);
     }
 
     static WindowsWGLGraphicsConfiguration createDefaultGraphicsConfiguration(GLCapabilitiesImmutable caps,
@@ -95,7 +99,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
 
     static WindowsWGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilitiesImmutable capsChosen,
                                                                              GLCapabilitiesImmutable capsReq,
-                                                                             CapabilitiesChooser chooser,
+                                                                             GLCapabilitiesChooser chooser,
                                                                              AbstractGraphicsScreen absScreen) {
         if(null==absScreen) {
             absScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
@@ -151,8 +155,9 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
     }
 
     static List<GLCapabilitiesImmutable> getAvailableGLCapabilitiesARB(WindowsWGLDrawableFactory.SharedResource sharedResource, AbstractGraphicsDevice device, GLProfile glProfile, long hdc) {
-        int[] pformats = WindowsWGLGraphicsConfiguration.wglAllARBPFIDs((WindowsWGLContext)sharedResource.getContext(), hdc);
-        return WindowsWGLGraphicsConfiguration.wglARBPFIDs2AllGLCapabilities(sharedResource, device, glProfile, hdc, pformats);
+        final int pfdIDCount = WindowsWGLGraphicsConfiguration.wglARBPFDIDCount((WindowsWGLContext)sharedResource.getContext(), hdc);
+        final int[] pformats = WindowsWGLGraphicsConfiguration.wglAllARBPFDIDs(pfdIDCount);
+        return WindowsWGLGraphicsConfiguration.wglARBPFIDs2GLCapabilities(sharedResource, device, glProfile, hdc, pformats, GLGraphicsConfigurationUtil.ALL_BITS);
     }
 
     static List<GLCapabilitiesImmutable> getAvailableGLCapabilitiesGDI(AbstractGraphicsDevice device, GLProfile glProfile, long hdc) {
@@ -160,7 +165,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         int numFormats = pformats.length;
         List<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>(numFormats);
         for (int i = 0; i < numFormats; i++) {
-            final GLCapabilitiesImmutable caps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(device, glProfile, hdc, pformats[i], GLGraphicsConfigurationUtil.ALL_BITS);
+            final GLCapabilitiesImmutable caps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, hdc, pformats[i], GLGraphicsConfigurationUtil.ALL_BITS);
             if(null != caps) {
                 bucket.add(caps);
             }
@@ -310,10 +315,20 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         final int winattrbits = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(capsChosen);
         final GLProfile glProfile = capsChosen.getGLProfile();
         
+        final int pfdIDCount = WindowsWGLGraphicsConfiguration.wglARBPFDIDCount((WindowsWGLContext)sharedResource.getContext(), hdc);
+        
         if(DEBUG) {
-            System.err.println("translucency requested: "+(!capsChosen.isBackgroundOpaque())+", compositioning enabled: "+GDI.DwmIsCompositionEnabled()+" -> translucency "+(!isOpaque));
+            System.err.println("updateGraphicsConfigurationARB: hdc "+toHexString(hdc)+", pfdIDCount(hdc) "+pfdIDCount+", capsChosen "+capsChosen+", "+GLGraphicsConfigurationUtil.winAttributeBits2String(null, winattrbits).toString());
+            System.err.println("isOpaque "+isOpaque+" (translucency requested: "+(!capsChosen.isBackgroundOpaque())+", compositioning enabled: "+GDI.DwmIsCompositionEnabled()+")");
         }
 
+        if(0 >= pfdIDCount) {
+            if (DEBUG) {
+                System.err.println("updateGraphicsConfigurationARB: failed due to 0 pfdIDs for hdc "+toHexString(hdc)+" - hdc incompatible w/ ARB ext.");
+            }
+            return false;
+        }
+        
         WGLGLCapabilities pixelFormatCaps = null; // chosen or preset PFD ID's caps
         boolean pixelFormatSet = false; // indicates a preset PFD ID [caps]
         final int presetPFDID = extHDC ? -1 : WGLUtil.GetPixelFormat(hdc) ;
@@ -358,7 +373,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                         System.err.println("updateGraphicsConfigurationARB: wglChoosePixelFormatARB failed with: "+capsChosen);
                     }
                     // 2nd choice: get all GLCapabilities available, no preferred recommendedIndex available
-                    pformats = WindowsWGLGraphicsConfiguration.wglAllARBPFIDs((WindowsWGLContext)sharedResource.getContext(), hdc);
+                    pformats = WindowsWGLGraphicsConfiguration.wglAllARBPFDIDs(pfdIDCount);
                     if (DEBUG) {
                         final int len = ( null != pformats ) ? pformats.length : 0;
                         System.err.println("updateGraphicsConfigurationARB: NumFormats (wglAllARBPFIDs) " + len);
@@ -378,8 +393,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             
             if( null == availableCaps || 0 == availableCaps.size() ) {
                 if (DEBUG) {
-                    System.err.println("updateGraphicsConfigurationARB: wglARBPFIDs2GLCapabilities failed with " + pformats.length +
-                                       " pfd ids, " + GLGraphicsConfigurationUtil.winAttributeBits2String(null, winattrbits).toString());
+                    System.err.println("updateGraphicsConfigurationARB: wglARBPFIDs2GLCapabilities failed with " + pformats.length + " pfd ids");
                     Thread.dumpStack();
                 }
                 return false;
@@ -436,7 +450,10 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         final GLProfile glProfile = capsChosen.getGLProfile();
         final int winattrmask = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(capsChosen);
         
-        List<GLCapabilitiesImmutable> availableCaps = new ArrayList<GLCapabilitiesImmutable>();
+        if(DEBUG) {
+            System.err.println("updateGraphicsConfigurationGDI: capsChosen "+capsChosen+", "+GLGraphicsConfigurationUtil.winAttributeBits2String(null, winattrmask).toString());
+        }
+        
         int pfdID; // chosen or preset PFD ID
         WGLGLCapabilities pixelFormatCaps = null; // chosen or preset PFD ID's caps
         boolean pixelFormatSet = false; // indicates a preset PFD ID [caps]
@@ -451,17 +468,29 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                         + ", pixelformat " + pfdID);
             }
             pixelFormatSet = true;
-            pixelFormatCaps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(config.getScreen().getDevice(), glProfile, hdc, pfdID, winattrmask);
+            pixelFormatCaps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, hdc, pfdID, winattrmask);
+            if(null == pixelFormatCaps) {
+                throw new GLException("Could not map PFD2GLCaps w/ already chosen pfdID "+pfdID);
+            }
         } else {
-            if(null == pformats) {
+            final boolean givenPFormats = null != pformats;
+            if( !givenPFormats ) {
                 pformats = WindowsWGLGraphicsConfiguration.wglAllGDIPFIDs(hdc);
             }
 
+            List<GLCapabilitiesImmutable> availableCaps = new ArrayList<GLCapabilitiesImmutable>();
             for (int i = 0; i < pformats.length; i++) {
-                final GLCapabilitiesImmutable caps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(config.getScreen().getDevice(), glProfile, hdc, pformats[i], winattrmask);
+                final GLCapabilitiesImmutable caps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, hdc, pformats[i], winattrmask);
                 if(null != caps) {
                     availableCaps.add(caps);
-                }                
+                    if(DEBUG) {
+                        final int j = availableCaps.size() - 1; 
+                        System.err.println("updateGraphicsConfigurationGDI: availableCaps["+i+" -> "+j+"]: "+caps);
+                    }
+                } else if(DEBUG) {
+                    GLCapabilitiesImmutable skipped = WindowsWGLGraphicsConfiguration.PFD2GLCapabilitiesNoCheck(glProfile, hdc, pformats[i]);
+                    System.err.println("updateGraphicsConfigurationGDI: availableCaps["+i+" -> skip]: pfdID "+pformats[i]+", "+skipped);
+                }
             }
 
             // 1st choice: get GLCapabilities based on users GLCapabilities setting recommendedIndex as preferred choice
@@ -470,16 +499,21 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             pfdID = WGLUtil.ChoosePixelFormat(hdc, pfd);
             int recommendedIndex = -1 ;
             if( 1 <= pfdID ) {
-                // seek index ..
+                // seek index .. in all formats _or_ in given formats!
                 for (recommendedIndex = availableCaps.size() - 1 ;
                      0 <= recommendedIndex && pfdID != ((WGLGLCapabilities) availableCaps.get(recommendedIndex)).getPFDID();
                      recommendedIndex--)
                 { /* nop */ }
+                if(DEBUG && 0 > recommendedIndex) {
+                    final GLCapabilitiesImmutable reqPFDCaps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilitiesNoCheck(glProfile, pfd, pfdID);
+                    final GLCapabilitiesImmutable chosenCaps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(glProfile, hdc, pfdID, winattrmask);
+                    System.err.println("Chosen PFDID "+pfdID+", but not found in available caps (use given pfdIDs "+givenPFormats+", reqPFDCaps "+reqPFDCaps+", chosenCaps: "+chosenCaps);
+                }
+            }
+            if (DEBUG) {
+                System.err.println("updateGraphicsConfigurationGDI: ChoosePixelFormat(HDC " + toHexString(hdc) + ") = pfdID " + pfdID + ", idx " + recommendedIndex + " (LastError: " + GDI.GetLastError() + ")");
             }
             // 2nd choice: if no preferred recommendedIndex available
-            if (DEBUG) {
-                System.err.println("updateGraphicsConfigurationGDI: ChoosePixelFormat(HDC " + toHexString(hdc) + ") = " + pfdID + ", idx " + recommendedIndex + " (LastError: " + GDI.GetLastError() + ")");
-            }
             int chosenIndex = chooseCapabilities(chooser, capsChosen, availableCaps, recommendedIndex);
             if ( 0 > chosenIndex ) {
                 if (DEBUG) {
@@ -490,8 +524,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             }
             pixelFormatCaps = (WGLGLCapabilities) availableCaps.get(chosenIndex);
             if (DEBUG) {
-                System.err.println("chosen pfdID (GDI): native recommended "+ (recommendedIndex+1) +
-                                   ", caps " + pixelFormatCaps);
+                System.err.println("chosen pfdID (GDI): chosenIndex "+ chosenIndex + ", caps " + pixelFormatCaps);
             }
         }
 

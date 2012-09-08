@@ -74,7 +74,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
   public Object cloneMutable() {
     return clone();
   }
-
+  
   @Override
   public Object clone() {
     try {
@@ -84,6 +84,26 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     }
   }
 
+  /**
+   * Copies all {@link Capabilities} values 
+   * from <code>source</code> into this instance.
+   * @return this instance
+   */
+  public Capabilities copyFrom(CapabilitiesImmutable other) {
+    redBits = other.getRedBits();
+    greenBits = other.getGreenBits();
+    blueBits = other.getBlueBits();
+    alphaBits = other.getAlphaBits();
+    backgroundOpaque = other.isBackgroundOpaque();
+    onscreen = other.isOnscreen();
+    isBitmap = other.isBitmap();
+    transparentValueRed = other.getTransparentRedValue();
+    transparentValueGreen = other.getTransparentGreenValue();
+    transparentValueBlue = other.getTransparentBlueValue();
+    transparentValueAlpha = other.getTransparentAlphaValue();
+    return this;
+  }
+  
   @Override
   public int hashCode() {
     // 31 * x == (x << 5) - x

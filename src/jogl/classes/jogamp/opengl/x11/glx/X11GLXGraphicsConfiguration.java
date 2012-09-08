@@ -41,7 +41,6 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
@@ -65,28 +64,6 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
                                 X11GLCapabilities capsChosen, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser) {
         super(screen, capsChosen, capsRequested, capsChosen.getXVisualInfo());
         this.chooser=chooser;
-    }
-
-    static X11GLXGraphicsConfiguration create(GLProfile glp, X11GraphicsScreen x11Screen, int fbcfgID) {
-      final X11GraphicsDevice device = (X11GraphicsDevice) x11Screen.getDevice();
-      final long display = device.getHandle();
-      if(0==display) {
-          throw new GLException("Display null of "+x11Screen);
-      }
-      final int screen = x11Screen.getIndex();
-      final long fbcfg = glXFBConfigID2FBConfig(display, screen, fbcfgID);
-      if(0==fbcfg) {
-          throw new GLException("FBConfig null of "+toHexString(fbcfgID));
-      }
-      if(null==glp) {
-        glp = GLProfile.getDefault(x11Screen.getDevice());
-      }
-      final X11GLXDrawableFactory factory = (X11GLXDrawableFactory) GLDrawableFactory.getDesktopFactory();
-      final X11GLCapabilities caps = GLXFBConfig2GLCapabilities(device, glp, fbcfg, GLGraphicsConfigurationUtil.ALL_BITS, factory.isGLXMultisampleAvailable(device));      
-      if(null==caps) {
-          throw new GLException("GLCapabilities null of "+toHexString(fbcfg));
-      }
-      return new X11GLXGraphicsConfiguration(x11Screen, caps, caps, new DefaultGLCapabilitiesChooser());
     }
 
     public Object clone() {
@@ -123,11 +100,31 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         }
     }
 
+    static X11GLXGraphicsConfiguration create(GLProfile glp, X11GraphicsScreen x11Screen, int fbcfgID) {
+      final X11GraphicsDevice device = (X11GraphicsDevice) x11Screen.getDevice();
+      final long display = device.getHandle();
+      if(0==display) {
+          throw new GLException("Display null of "+x11Screen);
+      }
+      final int screen = x11Screen.getIndex();
+      final long fbcfg = glXFBConfigID2FBConfig(display, screen, fbcfgID);
+      if(0==fbcfg) {
+          throw new GLException("FBConfig null of "+toHexString(fbcfgID));
+      }
+      if(null==glp) {
+        glp = GLProfile.getDefault(x11Screen.getDevice());
+      }
+      final X11GLXDrawableFactory factory = (X11GLXDrawableFactory) GLDrawableFactory.getDesktopFactory();
+      final X11GLCapabilities caps = GLXFBConfig2GLCapabilities(device, glp, fbcfg, GLGraphicsConfigurationUtil.ALL_BITS, factory.isGLXMultisampleAvailable(device));      
+      if(null==caps) {
+          throw new GLException("GLCapabilities null of "+toHexString(fbcfg));
+      }
+      return new X11GLXGraphicsConfiguration(x11Screen, caps, caps, new DefaultGLCapabilitiesChooser());
+    }
+
     static int[] GLCapabilities2AttribList(GLCapabilitiesImmutable caps,
-                                           boolean forFBAttr,
-                                           boolean isMultisampleAvailable,
-                                           long display,
-                                           int screen) 
+                                           boolean forFBAttr, boolean isMultisampleAvailable,
+                                           long display, int screen) 
     {
         int colorDepth = (caps.getRedBits() +
                           caps.getGreenBits() +
@@ -140,10 +137,21 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
 
         if (forFBAttr) {
           res[idx++] = GLX.GLX_DRAWABLE_TYPE;
-          res[idx++] = caps.isOnscreen() ? ( GLX.GLX_WINDOW_BIT ) : ( caps.isPBuffer() ? GLX.GLX_PBUFFER_BIT : GLX.GLX_PIXMAP_BIT ) ;
-        }
-
-        if (forFBAttr) {
+          
+          final int surfaceType;
+          if( caps.isOnscreen() ) {
+              surfaceType = GLX.GLX_WINDOW_BIT;
+          } else if( caps.isFBO() ) {
+              surfaceType = GLX.GLX_WINDOW_BIT;  // native replacement!
+          } else if( caps.isPBuffer() ) {
+              surfaceType = GLX.GLX_PBUFFER_BIT;
+          } else if( caps.isBitmap() ) {
+              surfaceType = GLX.GLX_PIXMAP_BIT;
+          } else {
+              throw new GLException("no surface type set in caps: "+caps);
+          }
+          res[idx++] = surfaceType;
+          
           res[idx++] = GLX.GLX_RENDER_TYPE;
           res[idx++] = GLX.GLX_RGBA_BIT;
         } else {
@@ -244,23 +252,21 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     return true;
   }
 
-  static int FBCfgDrawableTypeBits(final X11GraphicsDevice device, GLProfile glp, final long fbcfg) {
+  static int FBCfgDrawableTypeBits(final X11GraphicsDevice device, final long fbcfg) {
     int val = 0;
 
     int[] tmp = new int[1];
     int fbtype = glXGetFBConfig(device.getHandle(), fbcfg, GLX.GLX_DRAWABLE_TYPE, tmp, 0);
 
     if ( 0 != ( fbtype & GLX.GLX_WINDOW_BIT ) ) {
-        val |= GLGraphicsConfigurationUtil.WINDOW_BIT;
+        val |= GLGraphicsConfigurationUtil.WINDOW_BIT |
+               GLGraphicsConfigurationUtil.FBO_BIT;
     }
     if ( 0 != ( fbtype & GLX.GLX_PIXMAP_BIT ) ) {
         val |= GLGraphicsConfigurationUtil.BITMAP_BIT;
     }
     if ( 0 != ( fbtype & GLX.GLX_PBUFFER_BIT ) ) {
         val |= GLGraphicsConfigurationUtil.PBUFFER_BIT;
-    }
-    if ( GLContext.isFBOAvailable(device, glp) ) {
-        val |= GLGraphicsConfigurationUtil.FBO_BIT;
     }
     return val;
   }
@@ -275,7 +281,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
 
   static X11GLCapabilities GLXFBConfig2GLCapabilities(X11GraphicsDevice device, GLProfile glp, long fbcfg,
                                                       int winattrmask, boolean isMultisampleAvailable) {
-    final int allDrawableTypeBits = FBCfgDrawableTypeBits(device, glp,  fbcfg);
+    final int allDrawableTypeBits = FBCfgDrawableTypeBits(device, fbcfg);
     int drawableTypeBits = winattrmask & allDrawableTypeBits;
     
     final long display = device.getHandle(); 
@@ -286,7 +292,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
             System.err.println("X11GLXGraphicsConfiguration.GLXFBConfig2GLCapabilities: Null XVisualInfo for FBConfigID 0x" + Integer.toHexString(fbcfgid));
         }
         // onscreen must have an XVisualInfo
-        drawableTypeBits = drawableTypeBits & ~GLGraphicsConfigurationUtil.WINDOW_BIT;
+        drawableTypeBits &= ~(GLGraphicsConfigurationUtil.WINDOW_BIT | GLGraphicsConfigurationUtil.FBO_BIT);
     }
 
     if( 0 == drawableTypeBits ) {
@@ -394,10 +400,9 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
   static X11GLCapabilities XVisualInfo2GLCapabilities(final X11GraphicsDevice device, GLProfile glp, XVisualInfo info,
                                                       final int winattrmask, boolean isMultisampleEnabled) {
     final int allDrawableTypeBits = GLGraphicsConfigurationUtil.WINDOW_BIT | 
-                                    GLGraphicsConfigurationUtil.BITMAP_BIT | 
-                                    ( GLContext.isFBOAvailable(device, glp) ? GLGraphicsConfigurationUtil.FBO_BIT : 0 )
-                                    ;
-
+                                    GLGraphicsConfigurationUtil.BITMAP_BIT |
+                                    GLGraphicsConfigurationUtil.FBO_BIT ;
+    
     final int drawableTypeBits = winattrmask & allDrawableTypeBits;
 
     if( 0 == drawableTypeBits ) {

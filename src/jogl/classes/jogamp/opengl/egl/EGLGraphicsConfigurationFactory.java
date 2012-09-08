@@ -324,6 +324,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         return res;
     }
 
+    
     static EGLGraphicsConfiguration eglChooseConfig(EGLGraphicsDevice device, 
                                                     GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
                                                     GLCapabilitiesChooser chooser,
@@ -344,7 +345,12 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             throw new GLException("EGLGraphicsConfiguration.eglChooseConfig: Get maxConfigs (eglGetConfigs) no configs");
         }
         if (DEBUG) {
-            System.err.println("EGLGraphicsConfiguration.eglChooseConfig: eglChooseConfig eglDisplay "+toHexString(eglDisplay)+", nativeVisualID "+toHexString(nativeVisualID)+", "+capsChosen+", numConfigs "+numConfigs.get(0));
+            System.err.println("EGLGraphicsConfiguration.eglChooseConfig: eglChooseConfig eglDisplay "+toHexString(eglDisplay)+
+                               ", nativeVisualID "+toHexString(nativeVisualID)+
+                               ", capsChosen "+capsChosen+", winbits "+GLGraphicsConfigurationUtil.winAttributeBits2String(null, winattrmask).toString()+
+                               ", fboAvail "+GLContext.isFBOAvailable(device, glp)+
+                               ", device "+device+", "+device.getUniqueID()+
+                               ", numConfigs "+numConfigs.get(0));
         }
 
         final IntBuffer attrs = Buffers.newDirectIntBuffer(EGLGraphicsConfiguration.GLCapabilities2AttribList(capsChosen));
@@ -432,10 +438,11 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
             return null;
         }
         final EGLGLCapabilities chosenCaps = (EGLGLCapabilities) availableCaps.get(chosenIndex);
+        final EGLGraphicsConfiguration res = new EGLGraphicsConfiguration(absScreen, chosenCaps, capsRequested, chooser);
         if (DEBUG) {
-            System.err.println("EGLGraphicsConfiguration.eglChooseConfig: X chosen :"+chosenIndex+", eglConfig: "+toHexString(chosenCaps.getEGLConfig())+", "+chosenCaps);
+            System.err.println("EGLGraphicsConfiguration.eglChooseConfig: X chosen :"+chosenIndex+", eglConfig: "+toHexString(chosenCaps.getEGLConfig())+": "+res);
         }
-        return new EGLGraphicsConfiguration(absScreen, chosenCaps, capsRequested, chooser);
+        return res;
     }
 
     static List<GLCapabilitiesImmutable> eglConfigs2GLCaps(EGLGraphicsDevice device, GLProfile glp, PointerBuffer configs, int num, int winattrmask, boolean forceTransparentFlag) {

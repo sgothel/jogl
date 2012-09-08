@@ -42,7 +42,6 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLCapabilitiesChooser;
-import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLPbuffer;
@@ -58,6 +57,7 @@ import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
+@SuppressWarnings("deprecation")
 public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {    
     protected static final int MAX_PFORMATS = 256;
     protected static final int MAX_ATTRIBS  = 256;
@@ -107,7 +107,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         if(hasARB) {
             caps = wglARBPFID2GLCapabilities(sharedResource, device, glp, hdc, pfdID, GLGraphicsConfigurationUtil.ALL_BITS);
         } else {
-            caps = PFD2GLCapabilities(device, glp, hdc, pfdID, GLGraphicsConfigurationUtil.ALL_BITS);
+            caps = PFD2GLCapabilities(glp, hdc, pfdID, GLGraphicsConfigurationUtil.ALL_BITS);
         }
         if(null==caps) {
             throw new GLException("Couldn't choose Capabilities by: HDC 0x"+Long.toHexString(hdc)+
@@ -186,7 +186,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
             }
         }
         if (DEBUG) {
-            System.err.println("setPixelFormat (ARB): hdc "+toHexString(hdc) +", "+caps);
+            System.err.println("setPixelFormat: hdc "+toHexString(hdc) +", "+caps);
         }
         setCapsPFD(caps);
     }
@@ -274,36 +274,41 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return true;
     }
 
-    static int[] wglAllARBPFIDs(WindowsWGLContext sharedCtx, long hdc) {
+    static int wglARBPFDIDCount(WindowsWGLContext sharedCtx, long hdc) {
         int[] iattributes = new int[1];
         int[] iresults = new int[1];
 
         WGLExt wglExt = sharedCtx.getWGLExt();
-        iattributes[0] = WGLExt.WGL_NUMBER_PIXEL_FORMATS_ARB;
-        if (!wglExt.wglGetPixelFormatAttribivARB(hdc, 0, 0, 1, iattributes, 0, iresults, 0)) {
+        iattributes[0] = WGLExt.WGL_NUMBER_PIXEL_FORMATS_ARB; 
+        // pfdID shall be ignored here (spec), however, pass a valid pdf index '1' below (possible driver bug)
+        if (!wglExt.wglGetPixelFormatAttribivARB(hdc, 1 /* pfdID */, 0, 1, iattributes, 0, iresults, 0)) {
             if(DEBUG) {
                 System.err.println("GetPixelFormatAttribivARB: Failed - HDC 0x" + Long.toHexString(hdc) +
+                                  ", value "+iresults[0]+
                                   ", LastError: " + GDI.GetLastError());
                 Thread.dumpStack();
             }
-            return null;
+            return 0;
         }
-        int numFormats = iresults[0];
-        if(0 == numFormats) {
+        final int pfdIDCount = iresults[0];
+        if(0 == pfdIDCount) {
             if(DEBUG) {
                 System.err.println("GetPixelFormatAttribivARB: No formats - HDC 0x" + Long.toHexString(hdc) +
                                   ", LastError: " + GDI.GetLastError());
                 Thread.dumpStack();
             }
-            return null;
         }
-        int[] pfdIDs = new int[numFormats];
-        for (int i = 0; i < numFormats; i++) {
+        return pfdIDCount;
+    }
+    
+    static int[] wglAllARBPFDIDs(int pfdIDCount) {
+        int[] pfdIDs = new int[pfdIDCount];
+        for (int i = 0; i < pfdIDCount; i++) {
             pfdIDs[i] = 1 + i;
         }
         return pfdIDs;
     }
-
+    
     static WGLGLCapabilities wglARBPFID2GLCapabilities(WindowsWGLDrawableFactory.SharedResource sharedResource,
                                                        AbstractGraphicsDevice device, GLProfile glp,
                                                        long hdc, int pfdID, int winattrbits) {
@@ -320,7 +325,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
             throw new GLException("wglARBPFID2GLCapabilities: Error getting pixel format attributes for pixel format " + pfdID + 
                                   " of device context " + toHexString(hdc) + ", werr " + GDI.GetLastError());
         }
-        return AttribList2GLCapabilities(device, glp, hdc, pfdID, iattributes, niattribs, iresults, winattrbits);
+        return AttribList2GLCapabilities(glp, hdc, pfdID, iattributes, niattribs, iresults, winattrbits);
     }
 
     static int[] wglChoosePixelFormatARB(WindowsWGLDrawableFactory.SharedResource sharedResource, AbstractGraphicsDevice device,
@@ -369,11 +374,6 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return pformats;
     }
 
-    static List <GLCapabilitiesImmutable> wglARBPFIDs2AllGLCapabilities(WindowsWGLDrawableFactory.SharedResource sharedResource,
-                                                                        AbstractGraphicsDevice device, GLProfile glp, long hdc, int[] pfdIDs) {
-        return wglARBPFIDs2GLCapabilities(sharedResource, device, glp, hdc, pfdIDs, GLGraphicsConfigurationUtil.ALL_BITS);
-    }
-    
     static List <GLCapabilitiesImmutable> wglARBPFIDs2GLCapabilities(WindowsWGLDrawableFactory.SharedResource sharedResource,
                                                                      AbstractGraphicsDevice device, GLProfile glp, long hdc, int[] pfdIDs, int winattrbits) {
         if (!sharedResource.hasARBPixelFormat()) {
@@ -390,14 +390,24 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         for(int i = 0; i<numFormats; i++) {
             if ( pfdIDs[i] >= 1 &&
                  ((WindowsWGLContext)sharedResource.getContext()).getWGLExt().wglGetPixelFormatAttribivARB(hdc, pfdIDs[i], 0, niattribs, iattributes, 0, iresults, 0) ) {
-                final GLCapabilitiesImmutable caps = AttribList2GLCapabilities(device, glp, hdc, pfdIDs[i], iattributes, niattribs, iresults, winattrbits);
+                final GLCapabilitiesImmutable caps = AttribList2GLCapabilities(glp, hdc, pfdIDs[i], iattributes, niattribs, iresults, winattrbits);
                 if(null != caps) {
                     bucket.add(caps);
+                    if(DEBUG) {
+                        final int j = bucket.size() - 1; 
+                        System.err.println("wglARBPFIDs2GLCapabilities: bucket["+i+" -> "+j+"]: "+caps);
+                    }
+                } else if(DEBUG) {
+                    GLCapabilitiesImmutable skipped = AttribList2GLCapabilities(glp, hdc, pfdIDs[i], iattributes, niattribs, iresults, GLGraphicsConfigurationUtil.ALL_BITS);
+                    System.err.println("wglARBPFIDs2GLCapabilities: bucket["+i+" -> skip]: pfdID "+pfdIDs[i]+", "+skipped+", winattr "+GLGraphicsConfigurationUtil.winAttributeBits2String(null, winattrbits).toString());
                 }
             } else if (DEBUG) {
-                System.err.println("wglARBPFIDs2GLCapabilities: Cannot get pixel format attributes for pixel format " +
-                                   i + "/" + numFormats + ": " + pfdIDs[i] + ", " +
-                                   GLGraphicsConfigurationUtil.winAttributeBits2String(null, winattrbits).toString());
+                if( 1 > pfdIDs[i] ) {
+                    System.err.println("wglARBPFIDs2GLCapabilities: Invalid pfdID " + i + "/" + numFormats + ": " + pfdIDs[i]);
+                } else {
+                    System.err.println("wglARBPFIDs2GLCapabilities: Cannot get pixel format attributes for pixel format " +
+                                       i + "/" + numFormats + ": " + pfdIDs[i] + ", hdc " + toHexString(hdc));
+                }
             }
         }
         return bucket;
@@ -412,9 +422,6 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
           return false;
         }
 
-        boolean onscreen = caps.isOnscreen();
-        boolean pbuffer = caps.isPBuffer();
-
         int niattribs = 0;
 
         iattributes[niattribs++] = WGLExt.WGL_SUPPORT_OPENGL_ARB;
@@ -423,17 +430,24 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
             iattributes[niattribs++] = WGLExt.WGL_ACCELERATION_ARB;
             iattributes[niattribs++] = accelerationValue;
         }
-        if (onscreen) {
-          iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_WINDOW_ARB;
-          iattributes[niattribs++] = GL.GL_TRUE;
-        } else if (pbuffer && sharedResource.hasARBPBuffer()) {
-          iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
-          iattributes[niattribs++] = GL.GL_TRUE;
-        } else {
-          iattributes[niattribs++] = WGLExt.WGL_DRAW_TO_BITMAP_ARB;
-          iattributes[niattribs++] = GL.GL_TRUE;
-        }
 
+        final boolean usePBuffer = caps.isPBuffer() && sharedResource.hasARBPBuffer() ;
+        
+        final int surfaceType;
+        if( caps.isOnscreen() ) {
+            surfaceType = WGLExt.WGL_DRAW_TO_WINDOW_ARB;            
+        } else if( caps.isFBO() ) {
+            surfaceType = WGLExt.WGL_DRAW_TO_WINDOW_ARB;  // native replacement!
+        } else if( usePBuffer ) {
+            surfaceType = WGLExt.WGL_DRAW_TO_PBUFFER_ARB;
+        } else if( caps.isBitmap() ) {
+            surfaceType = WGLExt.WGL_DRAW_TO_BITMAP_ARB;
+        } else {
+            throw new GLException("no surface type set in caps: "+caps);
+        }
+        iattributes[niattribs++] = surfaceType;
+        iattributes[niattribs++] = GL.GL_TRUE;
+        
         iattributes[niattribs++] = WGLExt.WGL_DOUBLE_BUFFER_ARB;
         if (caps.getDoubleBuffered()) {
           iattributes[niattribs++] = GL.GL_TRUE;
@@ -495,7 +509,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         boolean useFloat = caps.getPbufferFloatingPointBuffers();
         boolean ati      = false;
         boolean nvidia   = false;
-        if (pbuffer && sharedResource.hasARBPBuffer()) {
+        if ( usePBuffer ) {
           // Check some invariants and set up some state
           if (rect && !rtt) {
             throw new GLException("Render-to-texture-rectangle requires render-to-texture to be specified");
@@ -574,33 +588,38 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return true;
     }
 
-    static int AttribList2DrawableTypeBits(AbstractGraphicsDevice device, GLProfile glp, final int[] iattribs, final int niattribs, final int[] iresults) {
+    static int AttribList2DrawableTypeBits(final int[] iattribs, 
+                                           final int niattribs, final int[] iresults) {
         int val = 0;
 
         for (int i = 0; i < niattribs; i++) {
           int attr = iattribs[i];
           switch (attr) {
             case WGLExt.WGL_DRAW_TO_WINDOW_ARB:
-                if(iresults[i] == GL.GL_TRUE) val |= GLGraphicsConfigurationUtil.WINDOW_BIT;
+                if(iresults[i] == GL.GL_TRUE) {
+                    val |= GLGraphicsConfigurationUtil.WINDOW_BIT |
+                           GLGraphicsConfigurationUtil.FBO_BIT;
+                }
                 break;
             case WGLExt.WGL_DRAW_TO_BITMAP_ARB:
-                if(iresults[i] == GL.GL_TRUE) val |= GLGraphicsConfigurationUtil.BITMAP_BIT;
+                if(iresults[i] == GL.GL_TRUE) {
+                    val |= GLGraphicsConfigurationUtil.BITMAP_BIT;
+                }
                 break;
             case WGLExt.WGL_DRAW_TO_PBUFFER_ARB:
-                if(iresults[i] == GL.GL_TRUE) val |= GLGraphicsConfigurationUtil.PBUFFER_BIT;
+                if(iresults[i] == GL.GL_TRUE) {
+                    val |= GLGraphicsConfigurationUtil.PBUFFER_BIT;
+                }
                 break;
             }
         }
-        if ( GLContext.isFBOAvailable(device, glp) ) {
-            val |= GLGraphicsConfigurationUtil.FBO_BIT;
-        }        
         return val;
     }
 
-    static WGLGLCapabilities AttribList2GLCapabilities(final AbstractGraphicsDevice device, 
-                                                       final GLProfile glp, final long hdc, final int pfdID,
-                                                       final int[] iattribs, final int niattribs, final int[] iresults, final int winattrmask) {
-        final int allDrawableTypeBits = AttribList2DrawableTypeBits(device, glp, iattribs, niattribs, iresults);
+    static WGLGLCapabilities AttribList2GLCapabilities(final GLProfile glp, 
+                                                       final long hdc, final int pfdID, final int[] iattribs,
+                                                       final int niattribs, final int[] iresults, final int winattrmask) {
+        final int allDrawableTypeBits = AttribList2DrawableTypeBits(iattribs, niattribs, iresults);
         int drawableTypeBits = winattrmask & allDrawableTypeBits;
 
         if( 0 == drawableTypeBits ) {
@@ -610,7 +629,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
 
         if (WGLUtil.DescribePixelFormat(hdc, pfdID, PIXELFORMATDESCRIPTOR.size(), pfd) == 0) {
             // remove displayable bits, since pfdID is non displayable
-            drawableTypeBits = drawableTypeBits & ~(GLGraphicsConfigurationUtil.WINDOW_BIT | GLGraphicsConfigurationUtil.BITMAP_BIT);
+            drawableTypeBits = drawableTypeBits & ~(GLGraphicsConfigurationUtil.WINDOW_BIT | GLGraphicsConfigurationUtil.BITMAP_BIT | GLGraphicsConfigurationUtil.FBO_BIT );
             if( 0 == drawableTypeBits ) {
                 return null;
             }
@@ -638,32 +657,30 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         return pfdIDs;
     }
 
-    static int PFD2DrawableTypeBits(AbstractGraphicsDevice device, GLProfile glp, PIXELFORMATDESCRIPTOR pfd) {
+    static int PFD2DrawableTypeBits(PIXELFORMATDESCRIPTOR pfd) {
         int val = 0;
 
         int dwFlags = pfd.getDwFlags();
 
         if( 0 != (GDI.PFD_DRAW_TO_WINDOW & dwFlags ) ) {
-            val |= GLGraphicsConfigurationUtil.WINDOW_BIT;
+            val |= GLGraphicsConfigurationUtil.WINDOW_BIT |
+                   GLGraphicsConfigurationUtil.FBO_BIT;
         }
         if( 0 != (GDI.PFD_DRAW_TO_BITMAP & dwFlags ) ) {
             val |= GLGraphicsConfigurationUtil.BITMAP_BIT;
         }
-        if ( GLContext.isFBOAvailable(device, glp) ) {
-            val |= GLGraphicsConfigurationUtil.FBO_BIT;
-        }                
         return val;
     }
 
-    static WGLGLCapabilities PFD2GLCapabilities(AbstractGraphicsDevice device, final GLProfile glp, final long hdc, final int pfdID, final int winattrmask) {
+    static WGLGLCapabilities PFD2GLCapabilities(final GLProfile glp, final long hdc, final int pfdID, final int winattrmask) {
         PIXELFORMATDESCRIPTOR pfd = createPixelFormatDescriptor(hdc, pfdID);
         if(null == pfd) {
             return null;
         }
         if ((pfd.getDwFlags() & GDI.PFD_SUPPORT_OPENGL) == 0) {
-          return null;
+            return null;
         }
-        final int allDrawableTypeBits = PFD2DrawableTypeBits(device, glp, pfd);
+        final int allDrawableTypeBits = PFD2DrawableTypeBits(pfd);
         final int drawableTypeBits = winattrmask & allDrawableTypeBits;
 
         if( 0 == drawableTypeBits ) {
@@ -673,79 +690,105 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         final WGLGLCapabilities res = new WGLGLCapabilities(pfd, pfdID, glp);
         res.setValuesByGDI();
         return (WGLGLCapabilities) GLGraphicsConfigurationUtil.setWinAttributeBits(res, drawableTypeBits );
-  }
+   }
 
-  static PIXELFORMATDESCRIPTOR GLCapabilities2PFD(GLCapabilitiesImmutable caps, PIXELFORMATDESCRIPTOR pfd) {
-    int colorDepth = (caps.getRedBits() +
-                      caps.getGreenBits() +
-                      caps.getBlueBits());
-    if (colorDepth < 15) {
-      throw new GLException("Bit depths < 15 (i.e., non-true-color) not supported");
-    }
-    int pfdFlags = (GDI.PFD_SUPPORT_OPENGL |
-                    GDI.PFD_GENERIC_ACCELERATED);
-    if (caps.getDoubleBuffered()) {
-      pfdFlags |= GDI.PFD_DOUBLEBUFFER;
-    }
-    if (caps.isOnscreen()) {
-      pfdFlags |= GDI.PFD_DRAW_TO_WINDOW;
-    } else {
-      pfdFlags |= GDI.PFD_DRAW_TO_BITMAP;
-    }
-    if (caps.getStereo()) {
-      pfdFlags |= GDI.PFD_STEREO;
-    }
-    pfd.setDwFlags(pfdFlags);
-    pfd.setIPixelType((byte) GDI.PFD_TYPE_RGBA);
-    pfd.setCColorBits((byte) colorDepth);
-    pfd.setCRedBits  ((byte) caps.getRedBits());
-    pfd.setCGreenBits((byte) caps.getGreenBits());
-    pfd.setCBlueBits ((byte) caps.getBlueBits());
-    pfd.setCAlphaBits((byte) caps.getAlphaBits());
-    int accumDepth = (caps.getAccumRedBits() +
-                      caps.getAccumGreenBits() +
-                      caps.getAccumBlueBits());
-    pfd.setCAccumBits     ((byte) accumDepth);
-    pfd.setCAccumRedBits  ((byte) caps.getAccumRedBits());
-    pfd.setCAccumGreenBits((byte) caps.getAccumGreenBits());
-    pfd.setCAccumBlueBits ((byte) caps.getAccumBlueBits());
-    pfd.setCAccumAlphaBits((byte) caps.getAccumAlphaBits());
-    pfd.setCDepthBits((byte) caps.getDepthBits());
-    pfd.setCStencilBits((byte) caps.getStencilBits());
-    pfd.setILayerType((byte) GDI.PFD_MAIN_PLANE);
-
-    // n/a with non ARB/GDI method:
-    //       multisample
-    //       opaque
-    //       pbuffer
-    return pfd;
-  }
-
-  static PIXELFORMATDESCRIPTOR createPixelFormatDescriptor(long hdc, int pfdID) {
-    PIXELFORMATDESCRIPTOR pfd = PIXELFORMATDESCRIPTOR.create();
-    pfd.setNSize((short) PIXELFORMATDESCRIPTOR.size());
-    pfd.setNVersion((short) 1);
-    if(0 != hdc && 1 <= pfdID) {
-        if (WGLUtil.DescribePixelFormat(hdc, pfdID, PIXELFORMATDESCRIPTOR.size(), pfd) == 0) {
-            // Accelerated pixel formats that are non displayable
-            if(DEBUG) {
-                System.err.println("Info: Non displayable pixel format " + pfdID + " of device context: error code " + GDI.GetLastError());
-            }
+    static WGLGLCapabilities PFD2GLCapabilitiesNoCheck(final GLProfile glp, final long hdc, final int pfdID) {
+        PIXELFORMATDESCRIPTOR pfd = createPixelFormatDescriptor(hdc, pfdID);
+        return PFD2GLCapabilitiesNoCheck(glp, pfd, pfdID);
+   }
+    
+   static WGLGLCapabilities PFD2GLCapabilitiesNoCheck(GLProfile glp, PIXELFORMATDESCRIPTOR pfd, int pfdID) {
+        if(null == pfd) {
             return null;
         }
-    }
-    return pfd;
-  }
+        final WGLGLCapabilities res = new WGLGLCapabilities(pfd, pfdID, glp);
+        res.setValuesByGDI();
+        return (WGLGLCapabilities) GLGraphicsConfigurationUtil.setWinAttributeBits(res, PFD2DrawableTypeBits(pfd));
+   }
+    
+   static PIXELFORMATDESCRIPTOR GLCapabilities2PFD(GLCapabilitiesImmutable caps, PIXELFORMATDESCRIPTOR pfd) {
+       int colorDepth = (caps.getRedBits() +
+               caps.getGreenBits() +
+               caps.getBlueBits());
+       if (colorDepth < 15) {
+           throw new GLException("Bit depths < 15 (i.e., non-true-color) not supported");
+       }
+       int pfdFlags = ( GDI.PFD_SUPPORT_OPENGL | GDI.PFD_GENERIC_ACCELERATED );
 
-  static PIXELFORMATDESCRIPTOR createPixelFormatDescriptor() {
-    return createPixelFormatDescriptor(0, 0);
-  }
-  
-  public String toString() {
-    return "WindowsWGLGraphicsConfiguration["+getScreen()+", pfdID " + getPixelFormatID() + ", ARB-Choosen " + isChoosenByARB() +
-                                            ",\n\trequested " + getRequestedCapabilities() +
-                                            ",\n\tchosen    " + getChosenCapabilities() +
-                                            "]";
-  }
+       if( caps.isOnscreen() ) {
+           pfdFlags |= GDI.PFD_DRAW_TO_WINDOW;
+       } else if( caps.isFBO() ) {
+           pfdFlags |= GDI.PFD_DRAW_TO_WINDOW; // native replacement!
+       } else if( caps.isPBuffer() ) {
+           pfdFlags |= GDI.PFD_DRAW_TO_BITMAP; // pbuffer n/a, use bitmap
+       } else if( caps.isBitmap() ) {
+           pfdFlags |= GDI.PFD_DRAW_TO_BITMAP;
+       } else {
+           throw new GLException("no surface type set in caps: "+caps);
+       }
+
+       if ( caps.getDoubleBuffered() ) {
+           if( caps.isBitmap() || caps.isPBuffer() ) {
+               pfdFlags |= GDI.PFD_DOUBLEBUFFER_DONTCARE; // bitmaps probably don't have dbl buffering
+           } else {
+               pfdFlags |= GDI.PFD_DOUBLEBUFFER;
+           }
+       }
+       
+       if (caps.getStereo()) {
+           pfdFlags |= GDI.PFD_STEREO;
+       }
+       pfd.setDwFlags(pfdFlags);
+       pfd.setIPixelType((byte) GDI.PFD_TYPE_RGBA);
+       pfd.setCColorBits((byte) colorDepth);
+       pfd.setCRedBits  ((byte) caps.getRedBits());
+       pfd.setCGreenBits((byte) caps.getGreenBits());
+       pfd.setCBlueBits ((byte) caps.getBlueBits());
+       pfd.setCAlphaBits((byte) caps.getAlphaBits());
+       int accumDepth = (caps.getAccumRedBits() +
+               caps.getAccumGreenBits() +
+               caps.getAccumBlueBits());
+       pfd.setCAccumBits     ((byte) accumDepth);
+       pfd.setCAccumRedBits  ((byte) caps.getAccumRedBits());
+       pfd.setCAccumGreenBits((byte) caps.getAccumGreenBits());
+       pfd.setCAccumBlueBits ((byte) caps.getAccumBlueBits());
+       pfd.setCAccumAlphaBits((byte) caps.getAccumAlphaBits());
+       pfd.setCDepthBits((byte) caps.getDepthBits());
+       pfd.setCStencilBits((byte) caps.getStencilBits());
+       pfd.setILayerType((byte) GDI.PFD_MAIN_PLANE);
+
+       // n/a with non ARB/GDI method:
+       //       multisample
+       //       opaque
+       //       pbuffer
+       return pfd;
+   }
+
+   static PIXELFORMATDESCRIPTOR createPixelFormatDescriptor(long hdc, int pfdID) {
+       PIXELFORMATDESCRIPTOR pfd = PIXELFORMATDESCRIPTOR.create();
+       pfd.setNSize((short) PIXELFORMATDESCRIPTOR.size());
+       pfd.setNVersion((short) 1);
+       if(0 != hdc && 1 <= pfdID) {
+           if (WGLUtil.DescribePixelFormat(hdc, pfdID, PIXELFORMATDESCRIPTOR.size(), pfd) == 0) {
+               // Accelerated pixel formats that are non displayable
+               if(DEBUG) {
+                   System.err.println("Info: Non displayable pixel format " + pfdID + " of device context: error code " + GDI.GetLastError());
+               }
+               return null;
+           }
+       }
+       return pfd;
+   }
+
+   static PIXELFORMATDESCRIPTOR createPixelFormatDescriptor() {
+       return createPixelFormatDescriptor(0, 0);
+   }
+
+   public String toString() {
+       return "WindowsWGLGraphicsConfiguration["+getScreen()+", pfdID " + getPixelFormatID() + ", ARB-Choosen " + isChoosenByARB() +
+               ",\n\trequested " + getRequestedCapabilities() +
+               ",\n\tchosen    " + getChosenCapabilities() +
+               "]";
+   }
 }
 

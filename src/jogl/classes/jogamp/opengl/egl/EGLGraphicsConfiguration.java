@@ -46,7 +46,6 @@ import javax.media.nativewindow.VisualIDHolder;
 import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
@@ -129,12 +128,28 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         return configs.get(0);
     }
 
-    static int EGLConfigDrawableTypeBits(final EGLGraphicsDevice device, final GLProfile glp, final long config) {
+    public static boolean isEGLConfigValid(long display, long config) {
+        if(0 == config) {
+            return false;
+        }
+        final IntBuffer val = Buffers.newDirectIntBuffer(1);
+        
+        // get the configID
+        if(!EGL.eglGetConfigAttrib(display, config, EGL.EGL_CONFIG_ID, val)) {
+            final int eglErr = EGL.eglGetError();
+            if(DEBUG) {
+                System.err.println("Info: Couldn't retrieve EGL ConfigID for config "+toHexString(config)+", error "+toHexString(eglErr));
+            }
+            return false;
+        }
+        return true;
+    }
+
+    static int EGLConfigDrawableTypeBits(final EGLGraphicsDevice device, final long config) {
         int val = 0;
 
-        final long display = device.getHandle();
         int[] stype = new int[1];
-        if(! EGL.eglGetConfigAttrib(display, config, EGL.EGL_SURFACE_TYPE, stype, 0)) {
+        if(! EGL.eglGetConfigAttrib(device.getHandle(), config, EGL.EGL_SURFACE_TYPE, stype, 0)) {
             throw new GLException("Could not determine EGL_SURFACE_TYPE");
         }
 
@@ -145,12 +160,9 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             val |= GLGraphicsConfigurationUtil.BITMAP_BIT;
         }
         if ( 0 != ( stype[0] & EGL.EGL_PBUFFER_BIT ) ) {
-            val |= GLGraphicsConfigurationUtil.PBUFFER_BIT;
+            val |= GLGraphicsConfigurationUtil.PBUFFER_BIT |
+                   GLGraphicsConfigurationUtil.FBO_BIT;     
         }
-        if ( GLContext.isFBOAvailable(device, glp) ) {
-            val |= GLGraphicsConfigurationUtil.FBO_BIT;
-        }
-
         return val;
     }
 
@@ -269,8 +281,8 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
 
         // Since the passed GLProfile may be null, 
         // we use EGL_RENDERABLE_TYPE derived profile as created in the EGLGLCapabilities constructor.
-        final int allDrawableTypeBits = EGLConfigDrawableTypeBits(device, caps.getGLProfile(), config);
-        final int drawableTypeBits = winattrmask & allDrawableTypeBits;
+        final int availableTypeBits = EGLConfigDrawableTypeBits(device, config);        
+        final int drawableTypeBits = winattrmask & availableTypeBits;
 
         if( 0 == drawableTypeBits ) {
             return null;
@@ -284,7 +296,19 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         int idx=0;
 
         attrs[idx++] = EGL.EGL_SURFACE_TYPE;
-        attrs[idx++] = caps.isOnscreen() ? ( EGL.EGL_WINDOW_BIT ) : ( caps.isPBuffer() ? EGL.EGL_PBUFFER_BIT : EGL.EGL_PIXMAP_BIT ) ;
+        final int surfaceType;
+        if( caps.isOnscreen() ) {
+            surfaceType = EGL.EGL_WINDOW_BIT;            
+        } else if( caps.isFBO() ) {
+            surfaceType = EGL.EGL_PBUFFER_BIT;  // native replacement!
+        } else if( caps.isPBuffer() ) {
+            surfaceType = EGL.EGL_PBUFFER_BIT;
+        } else if( caps.isBitmap() ) {
+            surfaceType = EGL.EGL_PIXMAP_BIT;
+        } else {
+            throw new GLException("no surface type set in caps: "+caps);
+        }
+        attrs[idx++] = surfaceType;
 
         attrs[idx++] = EGL.EGL_RED_SIZE;
         attrs[idx++] = caps.getRedBits();

@@ -102,6 +102,34 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     }
   }
 
+  /**
+   * Copies all {@link GLCapabilities} and {@link Capabilities} values 
+   * from <code>source</code> into this instance.
+   * @return this instance
+   */
+  public GLCapabilities copyFrom(GLCapabilitiesImmutable source) {
+    super.copyFrom(source);
+    glProfile = source.getGLProfile();
+    isPBuffer = source.isPBuffer();
+    isFBO = source.isFBO();
+    doubleBuffered = source.getDoubleBuffered();
+    stereo = source.getStereo();
+    hardwareAccelerated = source.getHardwareAccelerated();
+    depthBits = source.getDepthBits();
+    stencilBits = source.getStencilBits();
+    accumRedBits = source.getAccumRedBits();
+    accumGreenBits = source.getAccumGreenBits();
+    accumBlueBits = source.getAccumBlueBits();
+    accumAlphaBits = source.getAccumAlphaBits();
+    sampleBuffers = source.getSampleBuffers();
+    pbufferFloatingPointBuffers = source.getPbufferFloatingPointBuffers();
+    pbufferRenderToTexture = source.getPbufferRenderToTexture();
+    pbufferRenderToTextureRectangle = source.getPbufferRenderToTextureRectangle();
+    numSamples = source.getNumSamples();
+    sampleExtension = source.getSampleExtension();
+    return this;
+  }
+  
   @Override
   public int hashCode() {
     // 31 * x == (x << 5) - x
@@ -137,6 +165,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
                   other.getGLProfile()==glProfile &&
                   other.isPBuffer()==isPBuffer &&
                   other.isFBO()==isFBO &&
+                  other.getDoubleBuffered() == doubleBuffered &&
                   other.getStereo()==stereo &&
                   other.getHardwareAccelerated()==hardwareAccelerated &&
                   other.getDepthBits()==depthBits &&

@@ -34,13 +34,19 @@
 package jogamp.opengl.macosx.cgl;
 
 import jogamp.opengl.GLGraphicsConfigurationFactory;
+import jogamp.opengl.GLGraphicsConfigurationUtil;
+import jogamp.opengl.x11.glx.X11GLXDrawableFactory;
+
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
 
 
 /** Subclass of GraphicsConfigurationFactory used when non-AWT tookits
@@ -58,13 +64,7 @@ public class MacOSXCGLGraphicsConfigurationFactory extends GLGraphicsConfigurati
     protected AbstractGraphicsConfiguration chooseGraphicsConfigurationImpl(
             CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested,
             CapabilitiesChooser chooser, AbstractGraphicsScreen absScreen, int nativeVisualID) {
-        return chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, absScreen, false);
-    }
-
-    static MacOSXCGLGraphicsConfiguration chooseGraphicsConfigurationStatic(CapabilitiesImmutable capsChosen,
-                                                                            CapabilitiesImmutable capsRequested,
-                                                                            CapabilitiesChooser chooser,
-                                                                            AbstractGraphicsScreen absScreen, boolean usePBuffer) {
+        
         if (absScreen == null) {
             throw new IllegalArgumentException("AbstractGraphicsScreen is null");
         }
@@ -77,11 +77,25 @@ public class MacOSXCGLGraphicsConfigurationFactory extends GLGraphicsConfigurati
             throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilities objects - requested");
         }
 
-        if (chooser != null &&
-            !(chooser instanceof GLCapabilitiesChooser)) {
+        if (chooser != null && !(chooser instanceof GLCapabilitiesChooser)) {
             throw new IllegalArgumentException("This NativeWindowFactory accepts only GLCapabilitiesChooser objects");
         }
+        
+        return chooseGraphicsConfigurationStatic((GLCapabilitiesImmutable)capsChosen, (GLCapabilitiesImmutable)capsRequested, (GLCapabilitiesChooser)chooser, absScreen, false);
+    }
 
+    static MacOSXCGLGraphicsConfiguration chooseGraphicsConfigurationStatic(GLCapabilitiesImmutable capsChosen,
+                                                                            GLCapabilitiesImmutable capsRequested,
+                                                                            GLCapabilitiesChooser chooser,
+                                                                            AbstractGraphicsScreen absScreen, boolean usePBuffer) {
+        if (absScreen == null) {
+            throw new IllegalArgumentException("AbstractGraphicsScreen is null");
+        }
+        final MacOSXCGLDrawableFactory factory = (MacOSXCGLDrawableFactory) GLDrawableFactory.getDesktopFactory();
+        final AbstractGraphicsDevice device = absScreen.getDevice();
+
+        capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities( capsChosen, GLContext.isFBOAvailable(device, capsChosen.getGLProfile()), factory.canCreateGLPbuffer(device) );
+        
         return new MacOSXCGLGraphicsConfiguration(absScreen, (GLCapabilitiesImmutable)capsChosen, (GLCapabilitiesImmutable)capsRequested, 0);
     }
 }

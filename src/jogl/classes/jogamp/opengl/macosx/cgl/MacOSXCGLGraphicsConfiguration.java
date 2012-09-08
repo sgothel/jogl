@@ -280,7 +280,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         if(null == glp) {
             glp = GLProfile.get(GLProfile.GL2);
         }
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         int alphaBits = 0;
         for (int i = 0; i < len; i++) {
           int attr = cglInternalAttributeToken[i+off];
@@ -353,7 +353,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
           }
         }
         caps.setAlphaBits(alphaBits);
-
+        
         return caps;
       }
 }

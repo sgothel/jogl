@@ -28,7 +28,6 @@
 
 package jogamp.opengl;
 
-
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
@@ -37,7 +36,7 @@ public class GLGraphicsConfigurationUtil {
     public static final int WINDOW_BIT  = 1 << 0;
     public static final int BITMAP_BIT  = 1 << 1;
     public static final int PBUFFER_BIT = 1 << 2;
-    public static final int FBO_BIT     = 1 << 3;
+    public static final int FBO_BIT     = 1 << 3; // generic bit must be mapped to native one at impl. level
     public static final int ALL_BITS    = WINDOW_BIT | BITMAP_BIT | PBUFFER_BIT | FBO_BIT ;
 
     public static final StringBuilder winAttributeBits2String(StringBuilder sb, int winattrbits) {
@@ -161,7 +160,7 @@ public class GLGraphicsConfigurationUtil {
         
         final boolean useFBO     =                fboAvailable     && ( auto || capsRequested.isFBO()     ) ;
         final boolean usePbuffer = !useFBO     && pbufferAvailable && ( auto || capsRequested.isPBuffer() ) ;
-        final boolean useBitmap  = !usePbuffer                     && ( auto || capsRequested.isBitmap()  ) ;
+        final boolean useBitmap  = !useFBO     && !usePbuffer      && ( auto || capsRequested.isBitmap()  ) ;
         
         if( capsRequested.isOnscreen() ||
             useFBO != capsRequested.isFBO() || 

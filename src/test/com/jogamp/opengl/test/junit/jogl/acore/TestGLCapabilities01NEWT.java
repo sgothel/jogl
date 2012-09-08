@@ -39,6 +39,8 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
+import jogamp.opengl.GLGraphicsConfigurationUtil;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -61,9 +63,19 @@ public class TestGLCapabilities01NEWT extends UITestCase {
         return true;
     }
     
-    void doTest(GLCapabilities reqGLCaps, GLEventListener demo) throws InterruptedException {
+    void doTest(GLCapabilitiesImmutable reqGLCaps, GLEventListener demo) throws InterruptedException {
         System.out.println("Requested  GL Caps: "+reqGLCaps);
-
+        
+        final GLCapabilitiesImmutable expGLCaps;
+        if( GLGraphicsConfigurationUtil.isGLCapabilitiesOffscreenAutoSelection(reqGLCaps) ) {
+            final GLDrawableFactory f = GLDrawableFactory.getFactory(reqGLCaps.getGLProfile());
+            final boolean fboAvailable = true ; // f.canCreateFBO(null, reqGLCaps.getGLProfile());
+            final boolean pbufferAvailable = f.canCreateGLPbuffer(null);            
+            expGLCaps = GLGraphicsConfigurationUtil.fixGLCapabilities(reqGLCaps, fboAvailable, pbufferAvailable);
+        } else {
+            expGLCaps = reqGLCaps;
+        }
+        System.out.println("Expected   GL Caps: "+expGLCaps);
         //
         // Create native windowing resources .. X11/Win/OSX
         // 
@@ -108,13 +120,13 @@ public class TestGLCapabilities01NEWT extends UITestCase {
         Assert.assertTrue(chosenGLCaps.getBlueBits()>5);
         Assert.assertTrue(chosenGLCaps.getRedBits()>5);
         Assert.assertTrue(chosenGLCaps.getDepthBits()>4);
-        Assert.assertEquals(reqGLCaps.isOnscreen(), chosenGLCaps.isOnscreen());
-        Assert.assertEquals(reqGLCaps.isFBO(), chosenGLCaps.isFBO());
-        Assert.assertEquals(reqGLCaps.isPBuffer(), chosenGLCaps.isPBuffer());
-        Assert.assertEquals(reqGLCaps.isBitmap(), chosenGLCaps.isBitmap());
+        Assert.assertEquals(expGLCaps.isOnscreen(), chosenGLCaps.isOnscreen());
+        Assert.assertEquals(expGLCaps.isFBO(), chosenGLCaps.isFBO());
+        Assert.assertEquals(expGLCaps.isPBuffer(), chosenGLCaps.isPBuffer());
+        Assert.assertEquals(expGLCaps.isBitmap(), chosenGLCaps.isBitmap());
         if(chosenGLCaps.isOnscreen() || chosenGLCaps.isFBO()) {
             // dbl buffer may be disabled w/ offscreen pbuffer and bitmap
-            Assert.assertEquals(reqGLCaps.getDoubleBuffered(), chosenGLCaps.getDoubleBuffered());
+            Assert.assertEquals(expGLCaps.getDoubleBuffered(), chosenGLCaps.getDoubleBuffered());
         }
 
         GLContext context = drawable.createContext(null);
@@ -142,7 +154,16 @@ public class TestGLCapabilities01NEWT extends UITestCase {
         }
     }
     
-    //@Test
+    @Test
+    public void testGL2OnScreenDblBuf() throws InterruptedException {
+        if(!checkProfile(GLProfile.GL2)) {
+            return;
+        }
+        final GLCapabilities reqGLCaps = new GLCapabilities(GLProfile.get(GLProfile.GL2));        
+        doTest(reqGLCaps, new GearsES2(1));
+    }
+    
+    @Test
     public void testGL2OffScreenAutoDblBuf() throws InterruptedException {
         if(!checkProfile(GLProfile.GL2)) {
             return;
@@ -152,7 +173,7 @@ public class TestGLCapabilities01NEWT extends UITestCase {
         doTest(reqGLCaps, new GearsES2(1));
     }
 
-    // @Test
+    @Test
     public void testGL2OffScreenFBODblBuf() throws InterruptedException {
         if(!checkProfile(GLProfile.GL2)) {
             return;
@@ -160,15 +181,6 @@ public class TestGLCapabilities01NEWT extends UITestCase {
         final GLCapabilities reqGLCaps = new GLCapabilities(GLProfile.get(GLProfile.GL2));        
         reqGLCaps.setOnscreen(false);
         reqGLCaps.setFBO(true);
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-    
-    @Test
-    public void testGL2OnScreenDblBuf() throws InterruptedException {
-        if(!checkProfile(GLProfile.GL2)) {
-            return;
-        }
-        final GLCapabilities reqGLCaps = new GLCapabilities(GLProfile.get(GLProfile.GL2));        
         doTest(reqGLCaps, new GearsES2(1));
     }
     
@@ -200,6 +212,27 @@ public class TestGLCapabilities01NEWT extends UITestCase {
             return;
         }
         final GLCapabilities reqGLCaps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));        
+        doTest(reqGLCaps, new GearsES2(1));
+    }
+    
+    @Test
+    public void testES2OffScreenAutoDblBuf() throws InterruptedException {
+        if(!checkProfile(GLProfile.GLES2)) {
+            return;
+        }
+        final GLCapabilities reqGLCaps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));        
+        reqGLCaps.setOnscreen(false);
+        doTest(reqGLCaps, new GearsES2(1));
+    }
+
+    @Test
+    public void testES2OffScreenFBODblBuf() throws InterruptedException {
+        if(!checkProfile(GLProfile.GLES2)) {
+            return;
+        }
+        final GLCapabilities reqGLCaps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));        
+        reqGLCaps.setOnscreen(false);
+        reqGLCaps.setFBO(true);
         doTest(reqGLCaps, new GearsES2(1));
     }
     
