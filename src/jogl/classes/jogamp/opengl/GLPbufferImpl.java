@@ -40,9 +40,6 @@
 
 package jogamp.opengl;
 
-import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
-import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLPbuffer;
@@ -50,36 +47,18 @@ import javax.media.opengl.GLPbuffer;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
-/** Platform-independent class exposing pbuffer functionality to
-    applications. This class is not exposed in the public API as it
-    would probably add no value; however it implements the GLDrawable
-    interface so can be interacted with via its display() method. */
-
+@SuppressWarnings("deprecation")
 public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
   private int floatMode;
 
-  public GLPbufferImpl(GLDrawableImpl pbufferDrawable, GLContext sharedContext, boolean ownDevice) {
-    super(pbufferDrawable, null, ownDevice); // drawable := pbufferDrawable 
-    
-    GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)
-         drawable.getNativeSurface().getGraphicsConfiguration().getChosenCapabilities();
-    if(caps.isOnscreen()) {
-        if(caps.isPBuffer()) {
-            throw new IllegalArgumentException("Error: Given drawable is Onscreen and Pbuffer: "+pbufferDrawable);
-        }
-        throw new IllegalArgumentException("Error: Given drawable is Onscreen: "+pbufferDrawable);
-    } else {
-        if(!caps.isPBuffer()) {
-            throw new IllegalArgumentException("Error: Given drawable is not Pbuffer: "+pbufferDrawable);
-        }
-    }
-    context = (GLContextImpl) drawable.createContext(sharedContext);
+  public GLPbufferImpl(GLDrawableImpl pbufferDrawable, GLContextImpl pbufferContext) {
+    super(pbufferDrawable, pbufferContext, true); // drawable := pbufferDrawable, context := pbufferContext  
   }
 
   //
   // pbuffer specifics
-  // 
-  
+  //
+
   @Override
   public void bindTexture() {
     // Doesn't make much sense to try to do this on the event dispatch

@@ -35,6 +35,7 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GL3;
 import javax.media.opengl.GLBase;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
@@ -61,55 +62,33 @@ public class FBObject {
     protected static final boolean DEBUG = Debug.debug("FBObject");
     private static final boolean forceMinimumFBOSupport = Debug.isPropertyDefined("jogl.fbo.force.min", true);
     
-    /** 
-     * Returns <code>true</code> if basic FBO support is available, otherwise <code>false</code>.
-     * <p>
-     * Basic FBO is supported if the context is either GL-ES >= 2.0, GL >= core 3.0 or implements the extensions
-     * <code>ARB_ES2_compatibility</code>, <code>ARB_framebuffer_object</code>, <code>EXT_framebuffer_object</code> or <code>OES_framebuffer_object</code>.
-     * </p>
-     * <p>
-     * Basic FBO support may only include one color attachment and no multisampling,
-     * as well as limited internal formats for renderbuffer.
-     * </p>
-     * @see GLContext#hasFBO()
-     */
-    public static final boolean supportsBasicFBO(GL gl) {
-        return gl.getContext().hasFBO();
-    }
-  
-    /** 
-     * Returns <code>true</code> if full FBO support is available, otherwise <code>false</code>.
-     * <p>
-     * Full FBO is supported if the context is either GL >= core 3.0 or implements the extensions
-     * <code>ARB_framebuffer_object</code>, or all of
-     * <code>EXT_framebuffer_object</code>, <code>EXT_framebuffer_multisample</code>, 
-     * <code>EXT_framebuffer_blit</code>, <code>GL_EXT_packed_depth_stencil</code>.
-     * </p>
-     * <p>
-     * Full FBO support includes multiple color attachments and multisampling.
-     * </p>
-     */
-    public static final boolean supportsFullFBO(GL gl) {        
-        return !forceMinimumFBOSupport &&
-               ( gl.isGL3() ||                                                         // GL >= 3.0                
-                 gl.isExtensionAvailable(GLExtensions.ARB_framebuffer_object) ||       // ARB_framebuffer_object
-               
-                 ( gl.isExtensionAvailable(GLExtensions.EXT_framebuffer_object) &&     // All EXT_framebuffer_object*
-                   gl.isExtensionAvailable(GLExtensions.EXT_framebuffer_multisample) &&
-                   gl.isExtensionAvailable(GLExtensions.EXT_framebuffer_blit) &&
-                   gl.isExtensionAvailable(GLExtensions.EXT_packed_depth_stencil)
-                 )
-               ) ;               
-    }
+    private static enum DetachAction { NONE, DISPOSE, RECREATE };
     
-    public static final int getMaxSamples(GL gl) {
-        if( supportsFullFBO(gl) ) {
-            int[] val = new int[] { 0 } ;
-            gl.glGetIntegerv(GL2GL3.GL_MAX_SAMPLES, val, 0);
-            return val[0];
-        } else {
-            return 0;
-        }
+    /** 
+     * Marker interface, denotes a color buffer attachment.
+     * <p>Always an instance of {@link Attachment}.</p>
+     * <p>Either an instance of {@link ColorAttachment} or {@link TextureAttachment}.</b> 
+     */
+    public static interface Colorbuffer {        
+        /** 
+         * Initializes the color buffer and set it's parameter, if uninitialized, i.e. name is <code>zero</code>.
+         * @return <code>true</code> if newly initialized, otherwise <code>false</code>.
+         * @throws GLException if buffer generation or setup fails. The just created buffer name will be deleted in this case. 
+         */
+        public boolean initialize(GL gl) throws GLException;
+        
+        /** 
+         * Releases the color buffer if initialized, i.e. name is not <code>zero</code>.
+         * @throws GLException if buffer release fails. 
+         */
+        public void free(GL gl) throws GLException;
+        
+        /**
+         * Writes the internal format to the given GLCapabilities object.
+         * @param caps the destination for format bits
+         * @param rgba8Avail whether rgba8 is available
+         */
+        public void formatToGLCapabilities(GLCapabilities caps, boolean rgba8Avail);        
     }
     
     /** Common super class of all attachments */
@@ -155,21 +134,89 @@ public class FBObject {
         
         private int name;
         
-        /** <code>true</code> if resource is initialized by {@link #initialize(GL)}, hence {@link #free(GL)} is allowed to free the GL resources. */
-        protected boolean resourceOwner;
-        
-        private int initCounter;
-        
         protected Attachment(Type type, int iFormat, int width, int height, int name) {
             this.type = type;
             this.format = iFormat;
             this.width = width;
             this.height = height;
             this.name = name;
-            this.resourceOwner = false;
-            this.initCounter = 0;
         }
         
+        /**
+         * Writes the internal format to the given GLCapabilities object.
+         * @param caps the destination for format bits
+         * @param rgba8Avail whether rgba8 is available
+         */
+        public final void formatToGLCapabilities(GLCapabilities caps, boolean rgba8Avail) {        
+            final int _format;
+            switch(format) {
+                case GL.GL_RGBA:
+                    _format = rgba8Avail ? GL.GL_RGBA8 : GL.GL_RGBA4;  
+                    break;
+                case GL.GL_RGB:
+                    _format = rgba8Avail ? GL.GL_RGB8 : GL.GL_RGB565;
+                    break;
+                default:
+                    _format = format;
+            }
+            switch(_format) {
+                case GL.GL_RGBA4:
+                    caps.setRedBits(4);
+                    caps.setGreenBits(4);
+                    caps.setBlueBits(4);
+                    caps.setAlphaBits(4);
+                    break;
+                case GL.GL_RGB5_A1:
+                    caps.setRedBits(5);
+                    caps.setGreenBits(5);
+                    caps.setBlueBits(5);
+                    caps.setAlphaBits(1);
+                    break;
+                case GL.GL_RGB565:
+                    caps.setRedBits(5);
+                    caps.setGreenBits(6);
+                    caps.setBlueBits(5);
+                    caps.setAlphaBits(0);
+                    break;
+                case GL.GL_RGB8:
+                    caps.setRedBits(8);
+                    caps.setGreenBits(8);
+                    caps.setBlueBits(8);
+                    caps.setAlphaBits(0);
+                    break;
+                case GL.GL_RGBA8:
+                    caps.setRedBits(8);
+                    caps.setGreenBits(8);
+                    caps.setBlueBits(8);
+                    caps.setAlphaBits(8);
+                    break;                    
+                case GL.GL_DEPTH_COMPONENT16:
+                    caps.setDepthBits(16);
+                    break;
+                case GL.GL_DEPTH_COMPONENT24:
+                    caps.setDepthBits(24);
+                    break;
+                case GL.GL_DEPTH_COMPONENT32:
+                    caps.setDepthBits(32);
+                    break;
+                case GL.GL_STENCIL_INDEX1:
+                    caps.setStencilBits(1);
+                    break;
+                case GL.GL_STENCIL_INDEX4:
+                    caps.setStencilBits(4);
+                    break;
+                case GL.GL_STENCIL_INDEX8:
+                    caps.setStencilBits(8);
+                    break;
+                case GL.GL_DEPTH24_STENCIL8:
+                    caps.setDepthBits(24);
+                    caps.setStencilBits(8);
+                    break;
+                default:
+                    throw new IllegalArgumentException("format invalid: 0x"+Integer.toHexString(format));
+            }
+        }
+                
         /** width of attachment */
         public final int getWidth() { return width; }
         /** height of attachment */
@@ -180,45 +227,31 @@ public class FBObject {
         public final int getName() { return name; }        
         /* pp */ final void setName(int n) { name = n; }
         
-        public final int getInitCounter() { return initCounter; }
-        
         /** 
-         * Initializes the attachment buffer and set it's parameter, if uninitialized, i.e. name is <code>zero</code>.
-         * <p>Implementation employs an initialization counter, hence it can be paired recursively with {@link #free(GL)}.</p>
+         * Initializes the attachment and set it's parameter, if uninitialized, i.e. name is <code>zero</code>.
+         * <pre>
+            final boolean init = 0 == name;
+            if( init ) {
+                do init ..
+            }
+            return init;
+         * </pre>
+         * @return <code>true</code> if newly initialized, otherwise <code>false</code>.
          * @throws GLException if buffer generation or setup fails. The just created buffer name will be deleted in this case. 
          */
-        public void initialize(GL gl) throws GLException {
-            initCounter++;
-            /*
-            super.initialize(gl);
-            if(1 == getInitCounter() && 0 == getName()  ) {
-                do init ..
-                freeResources = true; // if all OK
-            }
-            */
-        }
+        public abstract boolean initialize(GL gl) throws GLException;
         
         /** 
-         * Releases the attachment buffer if initialized, i.e. name is <code>zero</code>.
-         * <p>Implementation employs an initialization counter, hence it can be paired recursively with {@link #initialize(GL)}.</p>
-         * @throws GLException if buffer release fails. 
-         */
-        public void free(GL gl) throws GLException {
-            /*
-            if(1 == getInitCounter() && freeResources && .. ) {
+         * Releases the attachment if initialized, i.e. name is not <code>zero</code>.
+         * <pre>
+            if(0 != name) {
                 do free ..
-            }
-            super.free(gl);
-            */
-            initCounter--;
-            if(0 == initCounter) {
-                resourceOwner = false;
                 name = 0;
             }
-            if(DEBUG) {
-                System.err.println("Attachment.free: "+this);
-            }
-        }
+         * </pre>
+         * @throws GLException if buffer release fails. 
+         */
+        public abstract void free(GL gl) throws GLException;
         
         /**
          * <p>
@@ -232,9 +265,9 @@ public class FBObject {
             if( ! ( o instanceof Attachment ) ) return false;
             final Attachment a = (Attachment)o;
             return type == a.type &&
-                   format == a.format ||
-                   width == a.width   ||
-                   height== a.height  ||
+                   format == a.format &&
+                   width == a.width   &&
+                   height== a.height  &&
                    name == a.name     ;
         }
         
@@ -259,8 +292,7 @@ public class FBObject {
         
         public String toString() {
             return getClass().getSimpleName()+"[type "+type+", format 0x"+Integer.toHexString(format)+", "+width+"x"+height+
-                   ", name 0x"+Integer.toHexString(name)+", obj 0x"+Integer.toHexString(objectHashCode())+
-                   ", resOwner "+resourceOwner+", initCount "+initCounter+"]";
+                   ", name 0x"+Integer.toHexString(name)+", obj 0x"+Integer.toHexString(objectHashCode())+"]";
         }
         
         public static Type getType(int attachmentPoint, int maxColorAttachments) {
@@ -277,7 +309,7 @@ public class FBObject {
             }
         }
     }
-    
+
     /** Other renderbuffer attachment which maybe a colorbuffer, depth or stencil. */
     public static class RenderAttachment extends Attachment {
         private int samples;
@@ -339,14 +371,13 @@ public class FBObject {
         }
 
         @Override
-        public void initialize(GL gl) throws GLException {
-            super.initialize(gl);
-            if( 1 == getInitCounter() && 0 == getName() ) {
+        public boolean initialize(GL gl) throws GLException {
+            final boolean init = 0 == getName();
+            if( init ) {
+                int glerr = checkPreGLError(gl);
+                
                 final int[] name = new int[] { -1 };
                 gl.glGenRenderbuffers(1, name, 0);
-                if( 0 == name[0] ) {
-                    throw new GLException("null renderbuffer, "+this);
-                }
                 setName(name[0]);
                 
                 gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, getName());
@@ -355,41 +386,35 @@ public class FBObject {
                 } else {
                     gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, format, getWidth(), getHeight());
                 }
-                int glerr = gl.glGetError();
+                glerr = gl.glGetError();
                 if(GL.GL_NO_ERROR != glerr) {
                     gl.glDeleteRenderbuffers(1, name, 0);
                     setName(0);
                     throw new GLException("GL Error 0x"+Integer.toHexString(glerr)+" while creating "+this);
                 }
-                resourceOwner = true;
                 if(DEBUG) {
                     System.err.println("Attachment.init: "+this);
                 }
             }
+            return init;
         }
         
         @Override
         public void free(GL gl) {
-            if(1 == getInitCounter() && resourceOwner && 0 != getName() ) {
-                final int[] name = new int[] { getName() };
+            final int[] name = new int[] { getName() };
+            if( 0 != name[0] ) {
                 gl.glDeleteRenderbuffers(1, name, 0);
+                setName(0);
+                if(DEBUG) {
+                    System.err.println("Attachment.free: "+this);
+                }
             }
-            super.free(gl);
         }
         
         public String toString() {
             return getClass().getSimpleName()+"[type "+type+", format 0x"+Integer.toHexString(format)+", samples "+samples+", "+getWidth()+"x"+getHeight()+
-                   ", name 0x"+Integer.toHexString(getName())+", obj 0x"+Integer.toHexString(objectHashCode())+
-                   ", resOwner "+resourceOwner+", initCount "+getInitCounter()+"]";
+                   ", name 0x"+Integer.toHexString(getName())+", obj 0x"+Integer.toHexString(objectHashCode())+"]";
         }
-    }
-    
-    /** 
-     * Marker interface, denotes a color buffer attachment.
-     * <p>Always an instance of {@link Attachment}.</p>
-     * <p>Either an instance of {@link ColorAttachment} or {@link TextureAttachment}.</b> 
-     */
-    public static interface Colorbuffer {        
     }
     
     /** Color render buffer attachment  */
@@ -444,9 +469,11 @@ public class FBObject {
          * @throws GLException if texture generation and setup fails. The just created texture name will be deleted in this case. 
          */
         @Override
-        public void initialize(GL gl) throws GLException {
-            super.initialize(gl);
-            if( 1 == getInitCounter() && 0 == getName() ) {
+        public boolean initialize(GL gl) throws GLException {
+            final boolean init = 0 == getName();
+            if( init ) {
+                int glerr = checkPreGLError(gl);
+                
                 final int[] name = new int[] { -1 };            
                 gl.glGenTextures(1, name, 0);
                 if(0 == name[0]) {
@@ -468,31 +495,111 @@ public class FBObject {
                 if( 0 < wrapT ) {
                     gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, wrapT);            
                 }        
-                int glerr = gl.glGetError();
+                glerr = gl.glGetError();
                 if(GL.GL_NO_ERROR != glerr) {
                     gl.glDeleteTextures(1, name, 0);
                     setName(0);
                     throw new GLException("GL Error 0x"+Integer.toHexString(glerr)+" while creating "+this);
                 }
-                resourceOwner = true;
+                if(DEBUG) {
+                    System.err.println("Attachment.init: "+this);
+                }
             }
-            if(DEBUG) {
-                System.err.println("Attachment.init: "+this);
-            }
+            return init;
         }
 
         @Override
         public void free(GL gl) {
-            if(1 == getInitCounter() && resourceOwner && 0 != getName() ) {
-                final int[] name = new int[] { getName() };
+            final int[] name = new int[] { getName() };
+            if( 0 != name[0] ) {
                 gl.glDeleteTextures(1, name, 0);
+                setName(0);
+                if(DEBUG) {
+                    System.err.println("Attachment.free: "+this);
+                }
             }
-            super.free(gl);
+        }
+    }
+    
+    /**
+     * Creates a color {@link TextureAttachment}, i.e. type {@link Type#COLOR_TEXTURE}, 
+     * selecting the texture data type and format automatically.
+     * 
+     * <p>Using default min/mag filter {@link GL#GL_NEAREST} and default wrapS/wrapT {@link GL#GL_CLAMP_TO_EDGE}.</p>
+     * 
+     * @param glp the chosen {@link GLProfile}
+     * @param alpha set to <code>true</code> if you request alpha channel, otherwise <code>false</code>;
+     * @param width texture width 
+     * @param height texture height
+     * @return the created and uninitialized color {@link TextureAttachment}
+     */
+    public static final TextureAttachment createColorTextureAttachment(GLProfile glp, boolean alpha, int width, int height) {
+        return createColorTextureAttachment(glp, alpha, width, height, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
+    }
+    
+    /**
+     * Creates a color {@link TextureAttachment}, i.e. type {@link Type#COLOR_TEXTURE}, 
+     * selecting the texture data type and format automatically.
+     * 
+     * @param glp the chosen {@link GLProfile}
+     * @param alpha set to <code>true</code> if you request alpha channel, otherwise <code>false</code>;
+     * @param width texture width 
+     * @param height texture height
+     * @param magFilter if > 0 value for {@link GL#GL_TEXTURE_MAG_FILTER}
+     * @param minFilter if > 0 value for {@link GL#GL_TEXTURE_MIN_FILTER} 
+     * @param wrapS if > 0 value for {@link GL#GL_TEXTURE_WRAP_S}
+     * @param wrapT if > 0 value for {@link GL#GL_TEXTURE_WRAP_T}
+     * @return the created and uninitialized color {@link TextureAttachment}
+     */
+    public static final TextureAttachment createColorTextureAttachment(GLProfile glp, boolean alpha, int width, int height, 
+                                                                       int magFilter, int minFilter, int wrapS, int wrapT) {
+        final int textureInternalFormat, textureDataFormat, textureDataType;
+        if(glp.isGLES()) { 
+            textureInternalFormat = alpha ? GL.GL_RGBA : GL.GL_RGB;
+            textureDataFormat = alpha ? GL.GL_RGBA : GL.GL_RGB;
+            textureDataType = GL.GL_UNSIGNED_BYTE;
+        } else { 
+            textureInternalFormat = alpha ? GL.GL_RGBA8 : GL.GL_RGB8;
+            textureDataFormat = alpha ? GL.GL_BGRA : GL.GL_RGB;
+            textureDataType = alpha ? GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV : GL.GL_UNSIGNED_BYTE;
+        }
+        return createColorTextureAttachment(textureInternalFormat, width, height, textureDataFormat, textureDataType, magFilter, minFilter, wrapS, wrapT);
+    }
+    
+    /**
+     * Creates a color {@link TextureAttachment}, i.e. type {@link Type#COLOR_TEXTURE}. 
+     *
+     * @param internalFormat internalFormat parameter to {@link GL#glTexImage2D(int, int, int, int, int, int, int, int, long)}
+     * @param width texture width 
+     * @param height texture height
+     * @param dataFormat format parameter to {@link GL#glTexImage2D(int, int, int, int, int, int, int, int, long)}
+     * @param dataType type parameter to {@link GL#glTexImage2D(int, int, int, int, int, int, int, int, long)}
+     * @param magFilter if > 0 value for {@link GL#GL_TEXTURE_MAG_FILTER}
+     * @param minFilter if > 0 value for {@link GL#GL_TEXTURE_MIN_FILTER} 
+     * @param wrapS if > 0 value for {@link GL#GL_TEXTURE_WRAP_S}
+     * @param wrapT if > 0 value for {@link GL#GL_TEXTURE_WRAP_T}
+     * @return the created and uninitialized color {@link TextureAttachment}
+     */
+    public static final TextureAttachment createColorTextureAttachment(int internalFormat, int width, int height, int dataFormat, int dataType,
+                                                                       int magFilter, int minFilter, int wrapS, int wrapT) {
+        return new TextureAttachment(Type.COLOR_TEXTURE, internalFormat, width, height, dataFormat, dataType, 
+                                     magFilter, minFilter, wrapS, wrapT, 0 /* name */);
+    }
+    
+    private static boolean hasAlpha(int format) {
+        switch(format) {
+            case GL.GL_RGBA8:
+            case GL.GL_RGBA4:
+            case GL.GL_RGBA:
+            case GL.GL_BGRA:
+            case 4:
+                return true;
+            default:
+                return false;
         }
     }
     
     private boolean initialized;
-    private boolean basicFBOSupport;
     private boolean fullFBOSupport;
     private boolean rgba8Avail;
     private boolean depth24Avail;
@@ -523,6 +630,9 @@ public class FBObject {
     //
     
     private final void validateColorAttachmentPointRange(int point) {
+        if(!initialized) {
+            throw new GLException("FBO not initialized");
+        }                
         if(maxColorAttachments != colorAttachmentPoints.length) {
             throw new InternalError("maxColorAttachments "+maxColorAttachments+", array.lenght "+colorAttachmentPoints);
         }
@@ -621,7 +731,6 @@ public class FBObject {
         this.initialized = false;
         
         // TBD @ init
-        this.basicFBOSupport = false;
         this.fullFBOSupport = false;
         this.rgba8Avail = false;
         this.depth24Avail = false;
@@ -657,14 +766,11 @@ public class FBObject {
     private void init(GL gl, int width, int height, int samples) throws GLException {
         if(initialized) {
             throw new GLException("FBO already initialized");
-        }        
-        fullFBOSupport = supportsFullFBO(gl);
-        
-        if( !fullFBOSupport && !supportsBasicFBO(gl) ) {
+        }
+        if( !gl.hasBasicFBOSupport() ) {
             throw new GLException("FBO not supported w/ context: "+gl.getContext()+", "+this);
         }
-        
-        basicFBOSupport = true;
+        fullFBOSupport = gl.hasFullFBOSupport();        
         
         rgba8Avail = gl.isGL2GL3() || gl.isExtensionAvailable(GLExtensions.OES_rgb8_rgba8);
         depth24Avail = fullFBOSupport || gl.isExtensionAvailable(GLExtensions.OES_depth24);
@@ -680,10 +786,7 @@ public class FBObject {
                                 
         int val[] = new int[1];
         
-        int glerr = gl.glGetError();
-        if(DEBUG && GL.GL_NO_ERROR != glerr) {
-            System.err.println("FBObject.init-preexisting.0 GL Error 0x"+Integer.toHexString(glerr));
-        }
+        int glerr = checkPreGLError(gl);
 
         int realMaxColorAttachments = 1;
         maxColorAttachments = 1;
@@ -703,16 +806,7 @@ public class FBObject {
         colorAttachmentPoints = new Colorbuffer[maxColorAttachments];
         colorAttachmentCount = 0;
         
-        maxSamples = 0;
-        if(fullFBOSupport) {
-            gl.glGetIntegerv(GL2GL3.GL_MAX_SAMPLES, val, 0);
-            glerr = gl.glGetError();
-            if(GL.GL_NO_ERROR == glerr) {
-                maxSamples = val[0];
-            } else if(DEBUG) {
-                System.err.println("FBObject.init-GL_MAX_SAMPLES query GL Error 0x"+Integer.toHexString(glerr));
-            }
-        }
+        maxSamples = gl.getMaxRenderbufferSamples();
         if(!forceMinimumFBOSupport) {
             gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, val, 0);
             maxTextureSize = val[0];
@@ -733,10 +827,9 @@ public class FBObject {
         this.samples = samples <= maxSamples ? samples : maxSamples;
         
         if(DEBUG) {
-            System.err.println("FBObject "+width+"x"+height+", "+samples+" -> "+samples+" samples");
-            System.err.println("basicFBOSupport:          "+basicFBOSupport);
+            System.err.println("FBObject "+width+"x"+height+", "+samples+" -> "+this.samples+" samples");
             System.err.println("fullFBOSupport:           "+fullFBOSupport);
-            System.err.println("maxColorAttachments:      "+maxColorAttachments+"/"+realMaxColorAttachments);
+            System.err.println("maxColorAttachments:      "+maxColorAttachments+"/"+realMaxColorAttachments+" [capped/real]");
             System.err.println("maxSamples:               "+maxSamples);
             System.err.println("maxTextureSize:           "+maxTextureSize);
             System.err.println("maxRenderbufferSize:      "+maxRenderbufferSize);
@@ -761,12 +854,8 @@ public class FBObject {
             throw new GLException("size "+width+"x"+height+" exceeds on of the maxima [texture "+maxTextureSize+", renderbuffer "+maxRenderbufferSize+"]");
         }
 
-        if(null != samplesSink) {        
-            // init sampling sink
-            samplesSink.reset(gl, width, height);
-            resetMSAATexture2DSink(gl);
-        }
-
+        resetMSAATexture2DSink(gl);
+        
         // generate fbo ..
         gl.glGenFramebuffers(1, val, 0);
         fbName = val[0];
@@ -780,7 +869,8 @@ public class FBObject {
         if(!gl.glIsFramebuffer(fbName)) {
             checkNoError(gl, GL.GL_INVALID_VALUE, "FBObject Init.isFB"); // throws GLException
         }
-        bound = true;        
+        bound = true;
+        samplesSinkDirty = true;
         initialized = true;
         
         updateStatus(gl);
@@ -797,7 +887,7 @@ public class FBObject {
      * to match the new given parameters.
      * </p>
      * <p>
-     * Currently incompatibility and hence recreation is given if
+     * Incompatibility and hence recreation is forced if
      * the size or sample count doesn't match for subsequent calls.
      * </p>
      * 
@@ -820,17 +910,17 @@ public class FBObject {
      * to match the new given parameters.
      * </p>
      * <p>
-     * Currently incompatibility and hence recreation is given if
-     * the size or sample count doesn't match for subsequent calls.
+     * Currently incompatibility and hence recreation of the attachments will be performed 
+     * if the size or sample count doesn't match for subsequent calls.
      * </p>
      * 
      * <p>Leaves the FBO bound state untouched</p>
      * 
      * @param gl the current GL context
-     * @param newWidth
-     * @param newHeight
+     * @param newWidth the new width, it's minimum is capped to 1
+     * @param newHeight the new height, it's minimum is capped to 1
      * @param newSamples if > 0, MSAA will be used, otherwise no multisampling. Will be capped to {@link #getMaxSamples()}.
-     * @throws GLException in case of an error
+     * @throws GLException in case of an error, i.e. size too big, etc ..
      */
     public final void reset(GL gl, int newWidth, int newHeight, int newSamples) {
         if(!initialized) {
@@ -841,13 +931,15 @@ public class FBObject {
         newSamples = newSamples <= maxSamples ? newSamples : maxSamples; // clamp
         
         if( newWidth !=  width || newHeight !=  height || newSamples != samples ) {
+            if(0>=newWidth)  { newWidth = 1; }
+            if(0>=newHeight) { newHeight = 1; }
             if(newWidth > 2 + maxTextureSize  || newHeight> 2 + maxTextureSize ||
                newWidth > maxRenderbufferSize || newHeight> maxRenderbufferSize  ) {
                 throw new GLException("size "+width+"x"+height+" exceeds on of the maxima [texture "+maxTextureSize+", renderbuffer "+maxRenderbufferSize+"]");
             }
         
             if(DEBUG) {
-                System.err.println("FBObject.reset - START - "+this);
+                System.err.println("FBObject.reset - START - "+width+"x"+height+", "+samples+" -> "+newWidth+"x"+newHeight+", "+newSamples+"; "+this);
             }        
             
             final boolean wasBound = isBound();
@@ -856,11 +948,18 @@ public class FBObject {
             height = newHeight;
             samples = newSamples;
             detachAllImpl(gl, true , true);
-            resetMSAATexture2DSink(gl);
             
-            if(wasBound) {
-                bind(gl);
-            } else {
+            /** 
+             * Postpone reset of samplesSink until syncFramebuffer,
+             * issued at use(..) method (swapBuffer usually initiates it).
+             * This allows another thread to still use the 'samplesSinkTexture'
+             * until swapBuffer happens and does not invalidate the GL_FRONT
+             * FBO (framebuffer & texture). 
+               resetMSAATexture2DSink(gl);
+            */ 
+            samplesSinkDirty = true;
+
+            if(!wasBound) {
                 unbind(gl);
             }
             
@@ -870,6 +969,28 @@ public class FBObject {
         }        
     }
             
+    /**
+     * Writes the internal format of the attachments to the given GLCapabilities object.
+     * @param caps the destination for format bits
+     */
+    public final void formatToGLCapabilities(GLCapabilities caps) {
+        caps.setSampleBuffers(samples > 0);
+        caps.setNumSamples(samples);
+        caps.setDepthBits(0);
+        caps.setStencilBits(0);
+        
+        final Colorbuffer cb = samples > 0 ? getSamplingSink() : getColorbuffer(0);
+        if(null != cb) {
+            cb.formatToGLCapabilities(caps, rgba8Avail);
+        }        
+        if(null != depth) {
+            depth.formatToGLCapabilities(caps, rgba8Avail);
+        }
+        if(null != stencil && stencil != depth) {
+            stencil.formatToGLCapabilities(caps, rgba8Avail);
+        }
+    }
+    
     /** 
      * Note that the status may reflect an incomplete state during transition of attachments.
      * @return The FB status. {@link GL.GL_FRAMEBUFFER_COMPLETE} if ok, otherwise return GL FBO error state or -1
@@ -954,6 +1075,15 @@ public class FBObject {
         }
     }
         
+    private static int checkPreGLError(GL gl) {
+        int glerr = gl.glGetError();
+        if(DEBUG && GL.GL_NO_ERROR != glerr) {
+            System.err.println("Pre-existing GL error: 0x"+Integer.toHexString(glerr));
+            Thread.dumpStack();
+        }
+        return glerr;        
+    }
+    
     private final boolean checkNoError(GL gl, int err, String exceptionMessage) throws GLException {
         if(GL.GL_NO_ERROR != err) {
             if(null != gl) {
@@ -974,7 +1104,7 @@ public class FBObject {
     }
     
     /**
-     * Attaches a Texture2D Color Buffer to this FBO's instance at the given attachment point,
+     * Attaches a {@link Colorbuffer}, i.e. {@link TextureAttachment}, to this FBO's instance at the given attachment point,
      * selecting the texture data type and format automatically.
      * 
      * <p>Using default min/mag filter {@link GL#GL_NEAREST} and default wrapS/wrapT {@link GL#GL_CLAMP_TO_EDGE}.</p>
@@ -986,13 +1116,15 @@ public class FBObject {
      * @param alpha set to <code>true</code> if you request alpha channel, otherwise <code>false</code>;
      * @return TextureAttachment instance describing the new attached texture colorbuffer if bound and configured successfully, otherwise GLException is thrown
      * @throws GLException in case the texture colorbuffer couldn't be allocated or MSAA has been chosen
+     * @see #createColorTextureAttachment(GLProfile, boolean, int, int)
      */
     public final TextureAttachment attachTexture2D(GL gl, int attachmentPoint, boolean alpha) throws GLException {
-        return attachTexture2D(gl, attachmentPoint, alpha, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
+        return (TextureAttachment)attachColorbuffer(gl, attachmentPoint,
+                     createColorTextureAttachment(gl.getGLProfile(), alpha, width, height));
     }
     
     /**
-     * Attaches a Texture2D Color Buffer to this FBO's instance at the given attachment point,
+     * Attaches a {@link Colorbuffer}, i.e. {@link TextureAttachment}, to this FBO's instance at the given attachment point,
      * selecting the texture data type and format automatically.
      * 
      * <p>Leaves the FBO bound.</p>
@@ -1006,23 +1138,15 @@ public class FBObject {
      * @param wrapT if > 0 value for {@link GL#GL_TEXTURE_WRAP_T}
      * @return TextureAttachment instance describing the new attached texture colorbuffer if bound and configured successfully, otherwise GLException is thrown
      * @throws GLException in case the texture colorbuffer couldn't be allocated or MSAA has been chosen
+     * @see #createColorTextureAttachment(GLProfile, boolean, int, int, int, int, int, int)
      */
     public final TextureAttachment attachTexture2D(GL gl, int attachmentPoint, boolean alpha, int magFilter, int minFilter, int wrapS, int wrapT) throws GLException {
-        final int textureInternalFormat, textureDataFormat, textureDataType;
-        if(gl.isGLES()) { 
-            textureInternalFormat = alpha ? GL.GL_RGBA : GL.GL_RGB;
-            textureDataFormat = alpha ? GL.GL_RGBA : GL.GL_RGB;
-            textureDataType = GL.GL_UNSIGNED_BYTE;
-        } else { 
-            textureInternalFormat = alpha ? GL.GL_RGBA8 : GL.GL_RGB8;
-            textureDataFormat = alpha ? GL.GL_BGRA : GL.GL_RGB;
-            textureDataType = alpha ? GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV : GL.GL_UNSIGNED_BYTE;
-        }
-        return attachTexture2D(gl, attachmentPoint, textureInternalFormat, textureDataFormat, textureDataType, magFilter, minFilter, wrapS, wrapT);
+        return (TextureAttachment)attachColorbuffer(gl, attachmentPoint,
+                     createColorTextureAttachment(gl.getGLProfile(), alpha, width, height, magFilter, minFilter, wrapS, wrapT));
     }
     
     /**
-     * Attaches a Texture2D Color Buffer to this FBO's instance at the given attachment point.
+     * Attaches a {@link Colorbuffer}, i.e. {@link TextureAttachment}, to this FBO's instance at the given attachment point.
      * 
      * <p>Leaves the FBO bound.</p>
      * 
@@ -1037,66 +1161,33 @@ public class FBObject {
      * @param wrapT if > 0 value for {@link GL#GL_TEXTURE_WRAP_T}
      * @return TextureAttachment instance describing the new attached texture colorbuffer if bound and configured successfully, otherwise GLException is thrown
      * @throws GLException in case the texture colorbuffer couldn't be allocated or MSAA has been chosen
+     * @see #createColorTextureAttachment(int, int, int, int, int, int, int, int, int)
      */
     public final TextureAttachment attachTexture2D(GL gl, int attachmentPoint,
                                                    int internalFormat, int dataFormat, int dataType,
                                                    int magFilter, int minFilter, int wrapS, int wrapT) throws GLException {
-        return attachTexture2D(gl, attachmentPoint, 
-                               new TextureAttachment(Type.COLOR_TEXTURE, internalFormat, width, height, dataFormat, dataType, 
-                                                     magFilter, minFilter, wrapS, wrapT, 0 /* name */));
+        return (TextureAttachment)attachColorbuffer(gl, attachmentPoint,
+                     createColorTextureAttachment(internalFormat, width, height, dataFormat, dataType, magFilter, minFilter, wrapS, wrapT));
     }
     
     /**
-     * Attaches a Texture2D Color Buffer to this FBO's instance at the given attachment point.
+     * Creates a {@link ColorAttachment}, selecting the format automatically.
      *  
-     * <p>
-     * In case the passed TextureAttachment <code>texA</code> is uninitialized, i.e. it's texture name is <code>zero</code>,
-     * a new texture name is generated and setup w/ the texture parameter.<br/>
-     * Otherwise, i.e. texture name is not <code>zero</code>, the passed TextureAttachment <code>texA</code> is
-     * considered complete and assumed matching this FBO requirement. A GL error may occur is the latter is untrue. 
-     * </p>
-     *    
-     * <p>Leaves the FBO bound.</p>
-     * 
-     * @param gl the current GL context
-     * @param attachmentPoint the color attachment point ranging from [0..{@link #getMaxColorAttachments()}-1]
-     * @param texA the to be attached {@link TextureAttachment}. Maybe complete or uninitialized, see above. 
-     * @return the passed TextureAttachment <code>texA</code> instance describing the new attached texture colorbuffer if bound and configured successfully, otherwise GLException is thrown
-     * @throws GLException in case the texture colorbuffer couldn't be allocated or MSAA has been chosen
+     * @param alpha set to <code>true</code> if you request alpha channel, otherwise <code>false</code>;
+     * @return uninitialized ColorAttachment instance describing the new attached colorbuffer
      */
-    public final TextureAttachment attachTexture2D(GL gl, int attachmentPoint, TextureAttachment texA) throws GLException {
-        validateAddColorAttachment(attachmentPoint, texA);
-        
-        if(samples>0) {
-            removeColorAttachment(attachmentPoint, texA);
-            throw new GLException("Texture2D not supported w/ MSAA. If you have enabled MSAA with exisiting texture attachments, you may want to detach them via detachAllTexturebuffer(gl).");
+    public final ColorAttachment createColorAttachment(boolean alpha) {
+        final int internalFormat;
+        if( rgba8Avail ) {
+            internalFormat = alpha ? GL.GL_RGBA8 : GL.GL_RGB8 ;
+        } else {
+            internalFormat = alpha ? GL.GL_RGBA4 : GL.GL_RGB565;
         }
-        
-        texA.initialize(gl);
-        addColorAttachment(attachmentPoint, texA);
-                
-        bind(gl);
-
-        // Set up the color buffer for use as a renderable texture:
-        gl.glFramebufferTexture2D(GL.GL_FRAMEBUFFER,
-                                  GL.GL_COLOR_ATTACHMENT0 + attachmentPoint,
-                                  GL.GL_TEXTURE_2D, texA.getName(), 0);
-        
-        if(!ignoreStatus) {
-            updateStatus(gl);        
-            if(!isStatusValid()) {
-                detachColorbuffer(gl, attachmentPoint);
-                throw new GLException("attachTexture2D "+texA+" at "+attachmentPoint+" failed "+getStatusString()+", "+this);
-            }
-        }
-        if(DEBUG) {
-            System.err.println("FBObject.attachTexture2D: "+this);
-        }
-        return texA;
+        return new ColorAttachment(internalFormat, samples, width, height, 0);
     }
-    
+        
     /**
-     * Attaches a Color Buffer to this FBO's instance at the given attachment point,
+     * Attaches a {@link Colorbuffer}, i.e. {@link ColorAttachment}, to this FBO's instance at the given attachment point,
      * selecting the format automatically.
      *  
      * <p>Leaves the FBO bound.</p>
@@ -1106,19 +1197,14 @@ public class FBObject {
      * @param alpha set to <code>true</code> if you request alpha channel, otherwise <code>false</code>;
      * @return ColorAttachment instance describing the new attached colorbuffer if bound and configured successfully, otherwise GLException is thrown
      * @throws GLException in case the colorbuffer couldn't be allocated
+     * @see #createColorAttachment(boolean)
      */
     public final ColorAttachment attachColorbuffer(GL gl, int attachmentPoint, boolean alpha) throws GLException {
-        final int internalFormat;
-        if( rgba8Avail ) {
-            internalFormat = alpha ? GL.GL_RGBA8 : GL.GL_RGB8 ;
-        } else {
-            internalFormat = alpha ? GL.GL_RGBA4 : GL.GL_RGB565;
-        }
-        return attachColorbuffer(gl, attachmentPoint, internalFormat);
+        return (ColorAttachment) attachColorbuffer(gl, attachmentPoint, createColorAttachment(alpha));
     }
     
     /**
-     * Attaches a Color Buffer to this FBO's instance at the given attachment point.
+     * Attaches a {@link Colorbuffer}, i.e. {@link ColorAttachment}, to this FBO's instance at the given attachment point.
      *  
      * <p>Leaves the FBO bound.</p>
      * 
@@ -1135,46 +1221,80 @@ public class FBObject {
             throw new IllegalArgumentException("colorformat invalid: 0x"+Integer.toHexString(internalFormat)+", "+this);
         }
         
-        return attachColorbuffer(gl, attachmentPoint, new ColorAttachment(internalFormat, samples, width, height, 0));
+        return (ColorAttachment) attachColorbuffer(gl, attachmentPoint, new ColorAttachment(internalFormat, samples, width, height, 0));
     }
     
     /**
-     * Attaches a Color Buffer to this FBO's instance at the given attachment point.
+     * Attaches a {@link Colorbuffer}, i.e. {@link ColorAttachment} or {@link TextureAttachment},  
+     * to this FBO's instance at the given attachment point.
      *  
+     * <p>
+     * If {@link Colorbuffer} is a {@link TextureAttachment} and is uninitialized, i.e. it's texture name is <code>zero</code>,
+     * a new texture name is generated and setup w/ the texture parameter.<br/>
+     * Otherwise, i.e. texture name is not <code>zero</code>, the passed TextureAttachment <code>texA</code> is
+     * considered complete and assumed matching this FBO requirement. A GL error may occur is the latter is untrue. 
+     * </p>
+     * 
      * <p>Leaves the FBO bound.</p>
      * 
      * @param gl
      * @param attachmentPoint the color attachment point ranging from [0..{@link #getMaxColorAttachments()}-1]
-     * @param colA the template for the new {@link ColorAttachment}   
-     * @return ColorAttachment instance describing the new attached colorbuffer if bound and configured successfully, otherwise GLException is thrown
-     * @throws GLException in case the colorbuffer couldn't be allocated
+     * @param colbuf the to be attached {@link Colorbuffer}   
+     * @return newly attached {@link Colorbuffer} instance if bound and configured successfully, otherwise GLException is thrown
+     * @throws GLException in case the colorbuffer couldn't be allocated or MSAA has been chosen in case of a {@link TextureAttachment} 
      */
-    public final ColorAttachment attachColorbuffer(GL gl, int attachmentPoint, ColorAttachment colA) throws GLException {
-        validateAddColorAttachment(attachmentPoint, colA);
+    public final Colorbuffer attachColorbuffer(GL gl, int attachmentPoint, Colorbuffer colbuf) throws GLException {
+        validateAddColorAttachment(attachmentPoint, colbuf);
         
-        colA.initialize(gl);        
-        addColorAttachment(attachmentPoint, colA);
-        
-        bind(gl);
+        final boolean initializedColorbuf = colbuf.initialize(gl);
+        addColorAttachment(attachmentPoint, colbuf);
                 
-        // Attach the color buffer
-        gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, 
-                                     GL.GL_COLOR_ATTACHMENT0 + attachmentPoint, 
-                                     GL.GL_RENDERBUFFER, colA.getName());
+        bind(gl);
 
-        if(!ignoreStatus) {
-            updateStatus(gl);
-            if(!isStatusValid()) {
-                detachColorbuffer(gl, attachmentPoint);
-                throw new GLException("attachColorbuffer "+colA+" at "+attachmentPoint+" failed "+getStatusString()+", "+this);
+        if(colbuf instanceof TextureAttachment) {
+            final TextureAttachment texA = (TextureAttachment) colbuf;
+            
+            if(samples>0) {
+                removeColorAttachment(attachmentPoint, texA);
+                if(initializedColorbuf) {
+                    texA.free(gl);
+                }
+                throw new GLException("Texture2D not supported w/ MSAA. If you have enabled MSAA with exisiting texture attachments, you may want to detach them via detachAllTexturebuffer(gl).");
+            }
+            
+            // Set up the color buffer for use as a renderable texture:
+            gl.glFramebufferTexture2D(GL.GL_FRAMEBUFFER,
+                                      GL.GL_COLOR_ATTACHMENT0 + attachmentPoint,
+                                      GL.GL_TEXTURE_2D, texA.getName(), 0);
+            
+            if(!ignoreStatus) {
+                updateStatus(gl);        
+                if(!isStatusValid()) {
+                    detachColorbuffer(gl, attachmentPoint, true);
+                    throw new GLException("attachTexture2D "+texA+" at "+attachmentPoint+" failed "+getStatusString()+", "+this);
+                }
+            }
+        } else if(colbuf instanceof ColorAttachment) {
+            final ColorAttachment colA = (ColorAttachment) colbuf;
+            
+            // Attach the color buffer
+            gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, 
+                                         GL.GL_COLOR_ATTACHMENT0 + attachmentPoint, 
+                                         GL.GL_RENDERBUFFER, colA.getName());
+    
+            if(!ignoreStatus) {
+                updateStatus(gl);
+                if(!isStatusValid()) {
+                    detachColorbuffer(gl, attachmentPoint, true);
+                    throw new GLException("attachColorbuffer "+colA+" at "+attachmentPoint+" failed "+getStatusString()+", "+this);
+                }
             }
         }
         if(DEBUG) {
-            System.err.println("FBObject.attachColorbuffer: "+this);
+            System.err.println("FBObject.attachColorbuffer: [attachmentPoint "+attachmentPoint+", colbuf "+colbuf+"]: "+this);
         }
-        return colA;
+        return colbuf;
     }
-
     
     /**
      * Attaches one depth, stencil or packed-depth-stencil buffer to this FBO's instance,
@@ -1355,39 +1475,47 @@ public class FBObject {
         if(!ignoreStatus) {
             updateStatus(gl);
             if( !isStatusValid() ) {
-                detachRenderbuffer(gl, atype);
+                detachRenderbuffer(gl, atype, true);
                 throw new GLException("renderbuffer attachment failed: "+this.getStatusString());
             }
         }
 
         if(DEBUG) {
-            System.err.println("FBObject.attachRenderbuffer: "+this);
-        }
+            System.err.println("FBObject.attachRenderbuffer: [attachmentType "+atype+"]: "+this);
+        }        
     }
     
     /**
+     * Detaches a {@link Colorbuffer}, i.e. {@link ColorAttachment} or {@link TextureAttachment}. 
      * <p>Leaves the FBO bound!</p>
+     * 
      * @param gl
-     * @param ca
+     * @param attachmentPoint
+     * @param dispose true if the Colorbuffer shall be disposed
+     * @return the detached Colorbuffer
      * @throws IllegalArgumentException
      */
-    public final void detachColorbuffer(GL gl, int attachmentPoint) throws IllegalArgumentException {
-        if(null == detachColorbufferImpl(gl, attachmentPoint, false)) {
+    public final Colorbuffer detachColorbuffer(GL gl, int attachmentPoint, boolean dispose) throws IllegalArgumentException {
+        final Colorbuffer res = detachColorbufferImpl(gl, attachmentPoint, dispose ? DetachAction.DISPOSE : DetachAction.NONE);
+        if(null == res) {
             throw new IllegalArgumentException("ColorAttachment at "+attachmentPoint+", not attached, "+this);            
         }
         if(DEBUG) {
-            System.err.println("FBObject.detachColorbuffer: [attachmentPoint "+attachmentPoint+"]: "+this);
+            System.err.println("FBObject.detachColorbuffer: [attachmentPoint "+attachmentPoint+", dispose "+dispose+"]: "+res+", "+this);
         }
+        return res;
     }
     
-    private final Colorbuffer detachColorbufferImpl(GL gl, int attachmentPoint, boolean recreate) {
-        final Colorbuffer colbuf = colorAttachmentPoints[attachmentPoint]; // shortcut, don't validate here
+    private final Colorbuffer detachColorbufferImpl(GL gl, int attachmentPoint, DetachAction detachAction) {
+        Colorbuffer colbuf = colorAttachmentPoints[attachmentPoint]; // shortcut, don't validate here
         
         if(null == colbuf) {
             return null;
         }
         
         bind(gl);
+        
+        removeColorAttachment(attachmentPoint, colbuf);
         
         if(colbuf instanceof TextureAttachment) {
             final TextureAttachment texA = (TextureAttachment) colbuf;
@@ -1397,11 +1525,22 @@ public class FBObject {
                               GL.GL_TEXTURE_2D, 0, 0);
                 gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
             }
-            texA.free(gl);
-            removeColorAttachment(attachmentPoint, texA);                
-            if(recreate) {
-                texA.setSize(width, height);
-                attachTexture2D(gl, attachmentPoint, texA);
+            switch(detachAction) {
+                case DISPOSE:
+                    texA.free(gl);
+                    break;
+                case RECREATE:
+                    texA.free(gl);
+                    if(samples == 0) {
+                        // stay non MSAA
+                        texA.setSize(width, height);                        
+                    } else {
+                        // switch to MSAA
+                        colbuf = createColorAttachment(hasAlpha(texA.format));
+                    }
+                    attachColorbuffer(gl, attachmentPoint, colbuf);
+                    break;
+                default:
             }
         } else if(colbuf instanceof ColorAttachment) {
             final ColorAttachment colA = (ColorAttachment) colbuf;
@@ -1410,12 +1549,30 @@ public class FBObject {
                                              GL.GL_COLOR_ATTACHMENT0+attachmentPoint, 
                                              GL.GL_RENDERBUFFER, 0);
             }
-            colA.free(gl);
-            removeColorAttachment(attachmentPoint, colbuf);
-            if(recreate) {
-                colA.setSize(width, height);
-                colA.setSamples(samples);
-                attachColorbuffer(gl, attachmentPoint, colA);
+            switch(detachAction) {
+                case DISPOSE:
+                    colA.free(gl);
+                    break;
+                case RECREATE:
+                    colA.free(gl);
+                    if(samples > 0) {
+                        // stay MSAA
+                        colA.setSize(width, height);
+                        colA.setSamples(samples);
+                    } else {
+                        // switch to non MSAA
+                        if(null != samplesSinkTexture) {
+                            colbuf = createColorTextureAttachment(samplesSinkTexture.format, width, height, 
+                                                                  samplesSinkTexture.dataFormat, samplesSinkTexture.dataType, 
+                                                                  samplesSinkTexture.magFilter, samplesSinkTexture.minFilter, 
+                                                                  samplesSinkTexture.wrapS, samplesSinkTexture.wrapT);
+                        } else {
+                            colbuf = createColorTextureAttachment(gl.getGLProfile(), true, width, height);
+                        }
+                    }
+                    attachColorbuffer(gl, attachmentPoint, colbuf);
+                    break;
+                default:
             }
         }
         return colbuf;
@@ -1424,10 +1581,14 @@ public class FBObject {
     /**
      * 
      * @param gl
+     * @param dispose true if the Colorbuffer shall be disposed
      * @param reqAType {@link Type#DEPTH}, {@link Type#DEPTH} or {@link Type#DEPTH_STENCIL} 
      */
-    public final void detachRenderbuffer(GL gl, Attachment.Type atype) throws IllegalArgumentException {
-        detachRenderbufferImpl(gl, atype, false);
+    public final void detachRenderbuffer(GL gl, Attachment.Type atype, boolean dispose) throws IllegalArgumentException {
+        detachRenderbufferImpl(gl, atype, dispose ? DetachAction.DISPOSE : DetachAction.NONE);
+        if(DEBUG) {
+            System.err.println("FBObject.detachRenderbuffer: [attachmentType "+atype+", dispose "+dispose+"]: "+this);
+        }        
     }
     
     public final boolean isDepthStencilPackedFormat() {
@@ -1439,7 +1600,7 @@ public class FBObject {
         return res;
     }
         
-    private final void detachRenderbufferImpl(GL gl, Attachment.Type atype, boolean recreate) throws IllegalArgumentException {
+    private final void detachRenderbufferImpl(GL gl, Attachment.Type atype, DetachAction detachAction) throws IllegalArgumentException {
         switch ( atype ) {
             case DEPTH:
             case STENCIL:
@@ -1485,8 +1646,14 @@ public class FBObject {
                     if( 0 != depth.getName() ) {
                         gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER, 0);
                     }
-                    depth.free(gl);
-                    if(!recreate) {
+                    switch(detachAction) {
+                        case DISPOSE:
+                        case RECREATE:
+                            depth.free(gl);
+                            break;
+                        default:
+                    }
+                    if(DetachAction.RECREATE != detachAction) {
                         depth = null;
                     }
                     break;
@@ -1495,8 +1662,14 @@ public class FBObject {
                     if(0 != stencil.getName()) {
                         gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_STENCIL_ATTACHMENT, GL.GL_RENDERBUFFER, 0);
                     }
-                    stencil.free(gl);
-                    if(!recreate) {
+                    switch(detachAction) {
+                        case DISPOSE:
+                        case RECREATE:
+                            stencil.free(gl);
+                            break;
+                        default:
+                    }
+                    if(DetachAction.RECREATE != detachAction) {
                         stencil = null;
                     }
                     break;
@@ -1506,9 +1679,15 @@ public class FBObject {
                         gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER, 0);
                         gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_STENCIL_ATTACHMENT, GL.GL_RENDERBUFFER, 0);
                     }
-                    depth.free(gl);
-                    stencil.free(gl);
-                    if(!recreate) {
+                    switch(detachAction) {
+                        case DISPOSE:
+                        case RECREATE:
+                            depth.free(gl);
+                            stencil.free(gl);
+                            break;
+                        default:
+                    }
+                    if(DetachAction.RECREATE != detachAction) {
                         depth = null;
                         stencil = null;
                     }
@@ -1516,14 +1695,15 @@ public class FBObject {
                  default:
                     throw new InternalError("XXX");
             }
-            if(recreate) {
+            if(DetachAction.RECREATE == detachAction) {
                 attachRenderbufferImpl2(gl, action, format);
             }
         }        
     }
         
     /** 
-     * Detaches all {@link ColorAttachment}s, {@link TextureAttachment}s and {@link RenderAttachment}s.
+     * Detaches all {@link ColorAttachment}s, {@link TextureAttachment}s and {@link RenderAttachment}s
+     * and disposes them.
      * <p>Leaves the FBO bound!</p>
      * <p>
      * An attached sampling sink texture will be detached as well, see {@link #getSamplingSink()}.
@@ -1538,7 +1718,8 @@ public class FBObject {
     }
     
     /** 
-     * Detaches all {@link ColorAttachment}s and {@link TextureAttachment}s.
+     * Detaches all {@link ColorAttachment}s and {@link TextureAttachment}s 
+     * and disposes them.
      * <p>Leaves the FBO bound!</p>
      * <p>
      * An attached sampling sink texture will be detached as well, see {@link #getSamplingSink()}.
@@ -1553,7 +1734,7 @@ public class FBObject {
     }
     
     /** 
-     * Detaches all {@link TextureAttachment}s 
+     * Detaches all {@link TextureAttachment}s and disposes them. 
      * <p>Leaves the FBO bound!</p>
      * <p>
      * An attached sampling sink texture will be detached as well, see {@link #getSamplingSink()}.
@@ -1566,8 +1747,11 @@ public class FBObject {
         }
         for(int i=0; i<maxColorAttachments; i++) {
             if(colorAttachmentPoints[i] instanceof TextureAttachment) {
-                detachColorbufferImpl(gl, i, false);
+                detachColorbufferImpl(gl, i, DetachAction.DISPOSE);
             }
+        }
+        if(DEBUG) {
+            System.err.println("FBObject.detachAllTexturebuffer: "+this);
         }
     }
     
@@ -1575,21 +1759,21 @@ public class FBObject {
         if(null != samplesSink) {
             samplesSink.detachAllRenderbuffer(gl);
         }
-        detachRenderbufferImpl(gl, Attachment.Type.DEPTH_STENCIL, false);
+        detachRenderbufferImpl(gl, Attachment.Type.DEPTH_STENCIL, DetachAction.DISPOSE);
     }
     
     private final void detachAllImpl(GL gl, boolean detachNonColorbuffer, boolean recreate) {
         ignoreStatus = recreate; // ignore status on single calls only if recreate -> reset
         try {
             for(int i=0; i<maxColorAttachments; i++) {
-                detachColorbufferImpl(gl, i, recreate);
+                detachColorbufferImpl(gl, i, recreate ? DetachAction.RECREATE : DetachAction.DISPOSE);
             }
             if( !recreate && colorAttachmentCount>0 ) {
                 throw new InternalError("Non zero ColorAttachments "+this);
             }
             
             if(detachNonColorbuffer) {
-                detachRenderbufferImpl(gl, Attachment.Type.DEPTH_STENCIL, recreate);
+                detachRenderbufferImpl(gl, Attachment.Type.DEPTH_STENCIL, recreate ? DetachAction.RECREATE : DetachAction.DISPOSE);
             }
             if(ignoreStatus) { // post validate
                 updateStatus(gl);        
@@ -1651,12 +1835,20 @@ public class FBObject {
     }
         
     private final void resetMSAATexture2DSink(GL gl) throws GLException {
+        if(null == samplesSink ) {
+            return; // this is the sample sink!
+        }
         if(0 == samples) {
             // MSAA off
-            if(null != samplesSink) {
+            if(samplesSink.initialized) {
+                // cleanup
                 samplesSink.detachAll(gl);
             }
             return;
+        }
+        
+        if(!samplesSink.initialized) {
+            samplesSink.init(gl, width, height, 0);
         }
         
         boolean sampleSinkSizeMismatch = sampleSinkSizeMismatch();
@@ -1692,7 +1884,7 @@ public class FBObject {
             samplesSinkTexture = samplesSink.attachTexture2D(gl, 0, true);
         } else if( 0 == samplesSinkTexture.getName() ) {
             samplesSinkTexture.setSize(width, height);
-            samplesSink.attachTexture2D(gl, 0, samplesSinkTexture);
+            samplesSink.attachColorbuffer(gl, 0, samplesSinkTexture);
         }
         
         if( sampleSinkDepthStencilMismatch ) {
@@ -1768,6 +1960,17 @@ public class FBObject {
             bound = false;
         }
     }
+    
+    /**
+     * Method simply marks this FBO unbound w/o interfering w/ the bound framebuffer as perfomed by {@link #unbind(GL)}.
+     * <p>
+     * Only use this method if a subsequent {@link #unbind(GL)}, {@link #use(GL, TextureAttachment)} or {@link #bind(GL)}
+     * follows on <i>any</i> FBO.
+     * </p>
+     */
+    public final void markUnbound() {
+        bound = false;
+    }
 
     /** 
      * Returns <code>true</code> if framebuffer object is bound via {@link #bind(GL)}, otherwise <code>false</code>.
@@ -1785,49 +1988,54 @@ public class FBObject {
     public final boolean isBound() { return bound; }
     
     /** 
-     * Samples the multisampling colorbuffer (msaa-buffer) to it's sink {@link #getSamplingSink()}.
-     *
-     * <p>The operation is skipped, if no multisampling is used or 
-     * the msaa-buffer has not been flagged dirty by a previous call of {@link #bind(GL)},
-     * see {@link #isSamplingBufferDirty()} </p>
-     * 
-     * <p>If full FBO is supported, sets the read and write framebuffer individually to default after sampling, hence not disturbing 
-     * an optional operating MSAA FBO, see {@link GLBase#getDefaultReadFramebuffer()} and {@link GLBase#getDefaultDrawFramebuffer()}</p>
-     * 
-     * <p>In case you intend to employ {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer) glReadPixels(..)}
+     * If multisampling is being used and flagged dirty by a previous call of {@link #bind(GL)} or after initialization,
+     * the msaa-buffers are sampled to it's sink {@link #getSamplingSink()}.
+     * <p>
+     * Method also updates the sampling sink configuration (if used). Hence it is recommended to call this 
+     * method after your have initialized the FBO and attached renderbuffer etc for the 1st time.
+     * Method is called automatically by {@link #use(GL, TextureAttachment)}.
+     * </p>
+     * <p>
+     * Methos always resets the framebuffer binding to default in the end.
+     * If full FBO is supported, sets the read and write framebuffer individually to default after sampling, hence not disturbing 
+     * an optional operating MSAA FBO, see {@link GLBase#getDefaultReadFramebuffer()} and {@link GLBase#getDefaultDrawFramebuffer()}
+     * </p>
+     * <p>
+     * In case you use this FBO w/o the {@link GLFBODrawable} and intend to employ {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer) glReadPixels(..)}
      * you may want to call {@link GL#glBindFramebuffer(int, int) glBindFramebuffer}({@link GL2GL3#GL_READ_FRAMEBUFFER}, {@link #getReadFramebuffer()});
      * </p>
-     * 
      * <p>Leaves the FBO unbound.</p>
      * 
      * @param gl the current GL context
      * @param ta {@link TextureAttachment} to use, prev. attached w/  {@link #attachTexture2D(GL, int, boolean, int, int, int, int) attachTexture2D(..)}
      * @throws IllegalArgumentException  
      */
-    public final void syncSamplingBuffer(GL gl) {
-        unbind(gl);
+    public final void syncFramebuffer(GL gl) {
+        markUnbound();
         if(samples>0 && samplesSinkDirty) {
             samplesSinkDirty = false;
             resetMSAATexture2DSink(gl);
             gl.glBindFramebuffer(GL2GL3.GL_READ_FRAMEBUFFER, fbName);
             gl.glBindFramebuffer(GL2GL3.GL_DRAW_FRAMEBUFFER, samplesSink.getWriteFramebuffer());
-            ((GL2GL3)gl).glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, // since MSAA is supported, ugly cast is OK
+            ((GL2GL3)gl).glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, // since MSAA is supported, casting to GL2GL3 is OK
                                            GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
-            if(fullFBOSupport) {
-                // default read/draw buffers, may utilize GLContext/GLDrawable override of 
-                // GLContext.getDefaultDrawFramebuffer() and GLContext.getDefaultReadFramebuffer()
-                gl.glBindFramebuffer(GL2GL3.GL_DRAW_FRAMEBUFFER, 0);
-                gl.glBindFramebuffer(GL2GL3.GL_READ_FRAMEBUFFER, 0);
-            } else {
-                gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0); // default draw buffer                
-            }
+        }
+        if(fullFBOSupport) {
+            // default read/draw buffers, may utilize GLContext/GLDrawable override of 
+            // GLContext.getDefaultDrawFramebuffer() and GLContext.getDefaultReadFramebuffer()
+            gl.glBindFramebuffer(GL2GL3.GL_DRAW_FRAMEBUFFER, 0);
+            gl.glBindFramebuffer(GL2GL3.GL_READ_FRAMEBUFFER, 0);
+        } else {
+            gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0); // default draw buffer                
         }
     }
     
     /** 
      * Bind the given texture colorbuffer.
      * 
-     * <p>If multisampling is being used, {@link #syncSamplingBuffer(GL)} is being called.</p>
+     * <p>If using multiple texture units, ensure you call {@link GL#glActiveTexture(int)} first!</p>
+     * 
+     * <p>{@link #syncFramebuffer(GL)} is being called</p>
      *  
      * <p>Leaves the FBO unbound!</p>
      * 
@@ -1837,11 +2045,7 @@ public class FBObject {
      */
     public final void use(GL gl, TextureAttachment ta) throws IllegalArgumentException {
         if(null == ta) { throw new IllegalArgumentException("null TextureAttachment, this: "+toString()); }
-        if(samples > 0 && samplesSinkTexture == ta) {
-            syncSamplingBuffer(gl);
-        } else {
-            unbind(gl);            
-        }
+        syncFramebuffer(gl);
         gl.glBindTexture(GL.GL_TEXTURE_2D, ta.getName()); // use it ..
     }
 
@@ -1855,14 +2059,8 @@ public class FBObject {
         gl.glBindTexture(GL.GL_TEXTURE_2D, 0); // don't use it
     }
 
-    /** 
-     * Returns <code>true</code> if <i>basic</i> or <i>full</i> FBO is supported, otherwise <code>false</code>.
-     * @param full <code>true</code> for <i>full</i> FBO supported query, otherwise <code>false</code> for <i>basic</i> FBO support query.
-     * @see #supportsFullFBO(GL)
-     * @see #supportsBasicFBO(GL)
-     * @throws GLException if {@link #init(GL)} hasn't been called.
-     */
-    public final boolean supportsFBO(boolean full) throws GLException { checkInitialized(); return full ? fullFBOSupport : basicFBOSupport; }
+    /** @see GL#hasFullFBOSupport() */    
+    public final boolean hasFullFBOSupport() throws GLException { checkInitialized(); return this.fullFBOSupport; }
     
     /** 
      * Returns <code>true</code> if renderbuffer accepts internal format {@link GL#GL_RGB8} and {@link GL#GL_RGBA8}, otherwise <code>false</code>.
@@ -1878,7 +2076,7 @@ public class FBObject {
     public final boolean supportsDepth(int bits) throws GLException {
         checkInitialized();
         switch(bits) {
-            case 16: return basicFBOSupport; 
+            case 16: return true; 
             case 24: return depth24Avail;
             case 32: return depth32Avail;
             default: return false;            
@@ -1913,11 +2111,11 @@ public class FBObject {
      */
     public final int getMaxColorAttachments() throws GLException { checkInitialized(); return maxColorAttachments; }
     
-    /**
-     * Returns the maximum number of samples for multisampling. Maybe zero if multisampling is not supported. 
-     * @throws GLException if {@link #init(GL)} hasn't been called.
-     */
-    public final int getMaxSamples() throws GLException { checkInitialized(); return maxSamples; }
+    public final int getMaxTextureSize() throws GLException { checkInitialized(); return this.maxTextureSize; }
+    public final int getMaxRenderbufferSize() throws GLException { checkInitialized(); return this.maxRenderbufferSize; }
+    
+    /** @see GL#getMaxRenderbufferSamples() */
+    public final int getMaxSamples() throws GLException { checkInitialized(); return this.maxSamples; }
     
     /**
      * Returns <code>true</code> if this instance has been initialized with {@link #reset(GL, int, int)} 

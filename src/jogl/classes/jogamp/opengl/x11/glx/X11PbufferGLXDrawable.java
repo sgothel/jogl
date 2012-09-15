@@ -81,10 +81,11 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
   }
 
   private void createPbuffer() {
-      X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration();
-      AbstractGraphicsScreen aScreen = config.getScreen();
-      AbstractGraphicsDevice aDevice = aScreen.getDevice();
-      long display = aDevice.getHandle();
+      final MutableSurface ms = (MutableSurface) getNativeSurface();
+      final X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) ms.getGraphicsConfiguration();
+      final AbstractGraphicsScreen aScreen = config.getScreen();
+      final AbstractGraphicsDevice aDevice = aScreen.getDevice();
+      final long display = aDevice.getHandle();
 
       if (DEBUG) {
         System.out.println("Pbuffer config: " + config);
@@ -93,8 +94,6 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       if (display==0) {
         throw new GLException("Null display");
       }
-
-      NativeSurface ns = getNativeSurface();
 
       GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
 
@@ -111,9 +110,9 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       int[] iattributes = new int[7];
 
       iattributes[niattribs++] = GLX.GLX_PBUFFER_WIDTH;
-      iattributes[niattribs++] = ns.getWidth();
+      iattributes[niattribs++] = ms.getWidth();
       iattributes[niattribs++] = GLX.GLX_PBUFFER_HEIGHT;
-      iattributes[niattribs++] = ns.getHeight();
+      iattributes[niattribs++] = ms.getHeight();
       iattributes[niattribs++] = GLX.GLX_LARGEST_PBUFFER; // exact
       iattributes[niattribs++] = 0;
       iattributes[niattribs++] = 0;
@@ -125,7 +124,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       }
 
       // Set up instance variables
-      ((MutableSurface)ns).setSurfaceHandle(pbuffer);
+      ms.setSurfaceHandle(pbuffer);
 
       if (DEBUG) {
         System.err.println("Created pbuffer " + this);

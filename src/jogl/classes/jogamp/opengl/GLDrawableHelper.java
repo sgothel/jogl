@@ -43,12 +43,19 @@ package jogamp.opengl;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.ProxySurface;
+import javax.media.nativewindow.UpstreamSurfaceHook;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
+import javax.media.opengl.GLFBODrawable;
 import javax.media.opengl.GLRunnable;
 
 import com.jogamp.opengl.util.Animator;
@@ -108,24 +115,27 @@ public class GLDrawableHelper {
   /**
    * Associate a new context to the drawable and also propagates the context/drawable switch by 
    * calling {@link GLContext#setGLDrawable(GLDrawable, boolean) newCtx.setGLDrawable(drawable, true);}.
-   * <p>
-   * If the old context's drawable was an {@link GLAutoDrawable}, it's reference to the given drawable
-   * is being cleared by calling 
-   * {@link GLAutoDrawable#setContext(GLContext) ((GLAutoDrawable)oldCtx.getGLDrawable()).setContext(null)}.
-   * </p>
    * <p> 
    * If the old or new context was current on this thread, it is being released before switching the drawable.
    * </p>
+   * <p>
+   * Be aware that the old context is still bound to the drawable, 
+   * and that one context can only bound to one drawable at one time! 
+   * </p>
+   * <p>
+   * No locking is being performed on the drawable, caller is required to take care of it.
+   * </p>
    * 
    * @param drawable the drawable which context is changed
-   * @param newCtx the new context
    * @param oldCtx the old context
-   * @return true if the newt context was current, otherwise false
+   * @param newCtx the new context
+   * @param newCtxCreationFlags additional creation flags if newCtx is not null and not been created yet, see {@link GLContext#setContextCreationFlags(int)}
+   * @return true if the new context was current, otherwise false
    *  
    * @see GLAutoDrawable#setContext(GLContext)
    */
-  public final boolean switchContext(GLDrawable drawable, GLContext oldCtx, GLContext newCtx, int additionalCtxCreationFlags) {
-      if(null != oldCtx && oldCtx.isCurrent()) {
+  public static final boolean switchContext(GLDrawable drawable, GLContext oldCtx, GLContext newCtx, int newCtxCreationFlags) {
+      if( null != oldCtx && oldCtx.isCurrent() ) {
           oldCtx.release();
       }
       final boolean newCtxCurrent;
@@ -134,17 +144,135 @@ public class GLDrawableHelper {
           if(newCtxCurrent) {
               newCtx.release();
           }
-          newCtx.setContextCreationFlags(additionalCtxCreationFlags);
+          newCtx.setContextCreationFlags(newCtxCreationFlags);
           newCtx.setGLDrawable(drawable, true); // propagate context/drawable switch
       } else {
           newCtxCurrent = false;
       }
-      if(null!=oldCtx && oldCtx.getGLDrawable() instanceof GLAutoDrawable) {
-          ((GLAutoDrawable)oldCtx.getGLDrawable()).setContext(null);
-      }
       return newCtxCurrent;
   }
   
+  /**
+   * If the drawable is not realized, OP is a NOP.
+   * <ul> 
+   *  <li>release context if current</li>
+   *  <li>destroy old drawable</li>
+   *  <li>create new drawable</li>
+   *  <li>attach new drawable to context</li>
+   *  <li>make context current, if it was current</li>
+   * </ul>
+   * <p>
+   * No locking is being performed, caller is required to take care of it.
+   * </p>
+   * 
+   * @param drawable
+   * @param context maybe null
+   * @return the new drawable
+   */
+  public static final GLDrawableImpl recreateGLDrawable(GLDrawableImpl drawable, GLContext context) {      
+      if( ! drawable.isRealized() ) {
+          return drawable;
+      }
+      final boolean contextCurrent = null != context && context.isCurrent();
+      final GLDrawableFactory factory = drawable.getFactory();
+      final NativeSurface surface = drawable.getNativeSurface();
+      final ProxySurface proxySurface = (surface instanceof ProxySurface) ? (ProxySurface)surface : null;
+      
+      if(contextCurrent) {
+          context.release();
+      }
+      
+      if(null != proxySurface) {
+          proxySurface.enableUpstreamSurfaceHookLifecycle(false);
+      }
+      try {
+          drawable.setRealized(false);
+          drawable = (GLDrawableImpl) factory.createGLDrawable(surface); // [2]
+          drawable.setRealized(true);
+      } finally {
+          if(null != proxySurface) {
+              proxySurface.enableUpstreamSurfaceHookLifecycle(true);
+          }
+      }
+
+      if(null != context) {
+          context.setGLDrawable(drawable, true); // re-association
+      }
+      
+      if(contextCurrent) {
+          context.makeCurrent();
+      }
+      return drawable;
+  }
+   
+  /**
+   * Performs resize operation on the given drawable, assuming it is offscreen.
+   * <p>
+   * The {@link GLDrawableImpl}'s {@link NativeSurface} is being locked during operation.
+   * In case the holder is an auto drawable or similar, it's lock shall be claimed by the caller. 
+   * </p>
+   * <p>
+   * May recreate the drawable via {@link #recreateGLDrawable(GLDrawableImpl, GLContext)}
+   * in case of a a pbuffer- or pixmap-drawable.
+   * </p>
+   * <p>
+   * FBO drawables are resized w/o drawable destruction.
+   * </p>
+   * <p>
+   * Offscreen resize operation is validated w/ drawable size in the end. 
+   * An exception is thrown if not successful.
+   * </p>
+   * 
+   * @param drawable
+   * @param context
+   * @param newWidth the new width, it's minimum is capped to 1
+   * @param newHeight the new height, it's minimum is capped to 1
+   * @return the new drawable in case of an pbuffer/pixmap drawable, otherwise the passed drawable is being returned.
+   * @throws NativeWindowException is drawable is not offscreen or it's surface lock couldn't be claimed
+   * @throws GLException may be thrown a resize operation
+   */
+  public static final GLDrawableImpl resizeOffscreenDrawable(GLDrawableImpl drawable, GLContext context, int newWidth, int newHeight)
+          throws NativeWindowException, GLException 
+  {
+      if(drawable.getChosenGLCapabilities().isOnscreen()) {
+          throw new NativeWindowException("Drawable is not offscreen: "+drawable);
+      }
+      final NativeSurface ns = drawable.getNativeSurface();
+      final int lockRes = ns.lockSurface();
+      if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
+          throw new NativeWindowException("Could not lock surface of drawable: "+drawable);
+      }
+      try {
+          if(0>=newWidth)  { newWidth = 1; }
+          if(0>=newHeight) { newHeight = 1; }
+          // propagate new size 
+          if(ns instanceof ProxySurface) {
+              final ProxySurface ps = (ProxySurface) ns;
+              final UpstreamSurfaceHook ush = ps.getUpstreamSurfaceHook();
+              if(ush instanceof UpstreamSurfaceHook.MutableSize) {
+                  ((UpstreamSurfaceHook.MutableSize)ush).setSize(newWidth, newHeight);
+              } else if(DEBUG) { // we have to assume UpstreamSurfaceHook contains the new size already, hence size check @ bottom
+                  System.err.println("GLDrawableHelper.resizeOffscreenDrawable: Drawable's offscreen ProxySurface n.a. UpstreamSurfaceHook.MutableSize, but "+ush.getClass().getName()+": "+ush);
+              }
+          } else if(DEBUG) { // we have to assume surface contains the new size already, hence size check @ bottom
+              System.err.println("GLDrawableHelper.resizeOffscreenDrawable: Drawable's offscreen surface n.a. ProxySurface, but "+ns.getClass().getName()+": "+ns);
+          }
+          if(drawable instanceof GLFBODrawable) {
+              if( null != context && context.isCreated() ) {                      
+                  ((GLFBODrawable) drawable).resetSize(context.getGL());
+              }
+          } else {
+              drawable = GLDrawableHelper.recreateGLDrawable(drawable, context);
+          }
+      } finally {
+          ns.unlockSurface();
+      }
+      if(drawable.getWidth() != newWidth || drawable.getHeight() != newHeight) {
+          throw new InternalError("Incomplete resize operation: expected "+newWidth+"x"+newHeight+", has: "+drawable);
+      }
+      return drawable;
+  }
+    
   public final void addGLEventListener(GLEventListener listener) {
     addGLEventListener(-1, listener);
   }
@@ -196,15 +324,11 @@ public class GLDrawableHelper {
     }
   }
 
-  private final boolean init(GLEventListener l, GLAutoDrawable drawable, boolean sendReshape) {
-      if(listenersToBeInit.remove(l)) {
-          l.init(drawable);
-          if(sendReshape) {
-              reshape(l, drawable, 0, 0, drawable.getWidth(), drawable.getHeight(), true /* setViewport */, false /* checkInit */);
-          }
-          return true;
+  private final void init(GLEventListener l, GLAutoDrawable drawable, boolean sendReshape) {
+      l.init(drawable);
+      if(sendReshape) {
+          reshape(l, drawable, 0, 0, drawable.getWidth(), drawable.getHeight(), true /* setViewport */, false /* checkInit */);
       }
-      return false;
   }
 
   /** The default init action to be called once after ctx is being created @ 1st makeCurrent(). */
@@ -214,14 +338,11 @@ public class GLDrawableHelper {
         for (int i=0; i < _listeners.size(); i++) {
           final GLEventListener listener = _listeners.get(i) ;
 
-          // If make current ctx, invoked by invokGL(..), results in a new ctx, init gets called.
+          // If make ctx current, invoked by invokGL(..), results in a new ctx, init gets called.
           // This may happen not just for initial setup, but for ctx recreation due to resource change (drawable/window),
-          // hence the must always be initialized unconditional.
-          listenersToBeInit.add(listener);
-
-          if ( ! init( listener, drawable, true /* sendReshape */) ) {
-            throw new GLException("GLEventListener "+listener+" already initialized: "+drawable);
-          }
+          // hence it must be called unconditional, always.
+          listenersToBeInit.remove(listener); // remove if exist, avoiding dbl init
+          init( listener, drawable, true /* sendReshape */);
         }
     }
   }
@@ -239,7 +360,9 @@ public class GLDrawableHelper {
             final GLEventListener listener = _listeners.get(i) ;
             // GLEventListener may need to be init, 
             // in case this one is added after the realization of the GLAutoDrawable
-            init( listener, drawable, true /* sendReshape */) ; 
+            if( listenersToBeInit.remove(listener) ) {
+                init( listener, drawable, true /* sendReshape */) ;
+            }
             listener.display(drawable);
           }
       }
@@ -251,7 +374,9 @@ public class GLDrawableHelper {
         // GLEventListener may need to be init, 
         // in case this one is added after the realization of the GLAutoDrawable
         synchronized(listenersLock) {
-            init( listener, drawable, false /* sendReshape */) ;
+            if( listenersToBeInit.remove(listener) ) {
+                init( listener, drawable, false /* sendReshape */) ;
+            }
         }
     }
     if(setViewport) {

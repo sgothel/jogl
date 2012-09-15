@@ -275,23 +275,28 @@ public class AWTRobotUtil {
      *
      * @return True if the Window became the global focused Window within TIME_OUT
      */
-    public static boolean waitForFocus(Object obj, FocusEventCountAdapter gain, 
-                                                   FocusEventCountAdapter lost) throws InterruptedException {
-        if(!waitForFocus(obj)) {
-            return false;
-        }
-        if(null == gain) {
-            return true;
-        }
-        
+    public static boolean waitForFocus(FocusEventCountAdapter gain, 
+                                       FocusEventCountAdapter lost) throws InterruptedException {
         int wait;
         for (wait=0; wait<POLL_DIVIDER; wait++) {
-            if( ( null == lost || lost.focusLost() ) && gain.focusGained() ) {
+            if( ( null == lost || lost.focusLost() ) && ( null == gain || gain.focusGained() ) ) {
                 return true;
             }
             Thread.sleep(TIME_SLICE);
         }
         return false;
+    }
+        
+    /**
+     *
+     * @return True if the Window became the global focused Window within TIME_OUT
+     */
+    public static boolean waitForFocus(Object obj, FocusEventCountAdapter gain, 
+                                                   FocusEventCountAdapter lost) throws InterruptedException {
+        if(!waitForFocus(obj)) {
+            return false;
+        }
+        return waitForFocus(gain, lost);
     }
 
     public static void assertRequestFocusAndWait(Robot robot, Object requestFocus, Object waitForFocus, 
@@ -457,20 +462,6 @@ public class AWTRobotUtil {
 
         if(DEBUG) { System.err.println("MC3.0: "+counter); }
         Assert.assertEquals("Wrong mouse click count", clickCount, counter.getCount() - c0);
-    }
-
-    /**
-     *
-     * @return True if the FocusEventCountAdapter became the desired value within TIME_OUT
-     */
-    public static boolean waitForFocusCount(boolean desired, FocusEventCountAdapter eca) throws InterruptedException {
-        for (int wait=0; wait<POLL_DIVIDER; wait++) {
-            if( desired && eca.focusGained() || !desired && eca.focusLost() ) {
-                return true;
-            }
-            Thread.sleep(TIME_SLICE);
-        }
-        return false;
     }
 
     /**

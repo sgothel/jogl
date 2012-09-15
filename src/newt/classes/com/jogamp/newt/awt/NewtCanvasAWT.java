@@ -68,6 +68,15 @@ import com.jogamp.newt.event.awt.AWTAdapter;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTMouseAdapter;
 
+/**
+ * AWT {@link java.awt.Canvas Canvas} containing a NEWT {@link Window} using native parenting.
+ *  
+ * <h5><A NAME="java2dgl">Offscreen Layer Remarks</A></h5>
+ * 
+ * {@link OffscreenLayerOption#setShallUseOffscreenLayer(boolean) setShallUseOffscreenLayer(true)}
+ * maybe called to use an offscreen drawable (FBO or PBuffer) allowing 
+ * the underlying JAWT mechanism to composite the image, if supported.
+ */
 @SuppressWarnings("serial")
 public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProtocol, OffscreenLayerOption {
     public static final boolean DEBUG = Debug.debug("Window");

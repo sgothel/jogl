@@ -11,12 +11,14 @@ import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 
 /**
  * Tests the closing the device of GLWindow and GLPBuffer in JOGL
  */
+@SuppressWarnings("deprecation")
 public class TestNEWTCloseX11DisplayBug565 {
 
   @Test
@@ -59,7 +61,7 @@ public class TestNEWTCloseX11DisplayBug565 {
 
 
   @Test
-  public void testX11WindowMemoryLeakOffscreenWindow() throws Exception {
+  public void testX11WindowMemoryLeakGLPbuffer() throws Exception {
     GLProfile.initSingleton(); // ensure shared resource runner is done
     try {
       for ( int j = 0; j < 10; j++ ) {
@@ -100,6 +102,48 @@ public class TestNEWTCloseX11DisplayBug565 {
     }
   }
 
+  @Test
+  public void testX11WindowMemoryLeakFBOAutoDrawable() throws Exception {
+    GLProfile.initSingleton(); // ensure shared resource runner is done
+    try {
+      for ( int j = 0; j < 10; j++ ) {
+        final int open0;
+        if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false)) {        
+            open0 = X11Util.getOpenDisplayConnectionNumber();
+        } else {
+            open0 = 0;
+        }
+        final GLProfile glp = GLProfile.getDefault( );
+        GLCapabilitiesImmutable caps = new GLCapabilities( glp );
+
+
+        GLOffscreenAutoDrawable buffer = GLDrawableFactory.getFactory( glp ).createOffscreenAutoDrawable(
+            null,
+            caps,
+            new DefaultGLCapabilitiesChooser(),
+            256,
+            256,
+            null
+        );
+        buffer.display();
+        buffer.destroy();
+
+        if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(false)) {
+            final int openD = X11Util.getOpenDisplayConnectionNumber() - open0;
+            if(openD > 0) {
+                X11Util.dumpOpenDisplayConnections();
+                X11Util.dumpPendingDisplayConnections();
+                Assert.assertEquals("New display connection didn't close", 0, openD);
+            }
+        }
+      }
+    }
+    catch ( Exception e ) {
+      e.printStackTrace();
+      Assert.fail(e.getMessage());
+    }
+  }
+  
   public static void main(String args[]) {
     org.junit.runner.JUnitCore.main(TestNEWTCloseX11DisplayBug565.class.getName());
   }

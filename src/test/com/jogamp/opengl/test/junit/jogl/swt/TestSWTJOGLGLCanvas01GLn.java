@@ -134,7 +134,7 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
            public void reshape(final GLAutoDrawable drawable, final int x, final int y, final int width, final int height) { }
            public void display(final GLAutoDrawable drawable) {
               if(displayCount < 3) {
-                  snapshot(getSimpleTestName("."), displayCount++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
+                  snapshot(displayCount++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
               }
            }
            public void dispose(final GLAutoDrawable drawable) { }

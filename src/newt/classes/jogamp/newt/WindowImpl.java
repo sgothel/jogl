@@ -767,11 +767,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-    public void setVisible(boolean visible) {
+    protected void setVisible(boolean wait, boolean visible) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("Window setVisible: START ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+this.visible+" -> "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+(null!=parentWindow));
         }
-        runOnEDTIfAvail(true, new VisibleAction(visible));
+        runOnEDTIfAvail(wait, new VisibleAction(visible));        
+    }
+    
+    public void setVisible(boolean visible) {
+        setVisible(true, visible);
     }
     
     private class SetSizeAction implements Runnable {
@@ -783,21 +787,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
 
         public final void run() {
-            boolean recreate = false;
             final RecursiveLock _lock = windowLock;
             _lock.lock();
             try {
                 if ( !isFullscreen() && ( getWidth() != width || getHeight() != height ) ) {
-                    recreate = isNativeValid() && !getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
                     if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window setSize: START "+getWidth()+"x"+getHeight()+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible+", recreate "+recreate);
-                    }
-                    if(recreate) {
-                        // will trigger visibleAction:=2 -> create if wasVisible
-                        final boolean wasVisible = WindowImpl.this.visible;
-                        screen.addReference(); // retain screen
-                        destroyAction.run();
-                        WindowImpl.this.visible = wasVisible;
+                        System.err.println("Window setSize: START "+getWidth()+"x"+getHeight()+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible);
                     }
                     int visibleAction; // 0 nop, 1 invisible, 2 visible (create)
                     if ( isNativeValid() && 0>=width*height && visible ) {
@@ -823,9 +818,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
                 }
             } finally {
-                if(recreate) {
-                    screen.removeReference(); // bring back ref-count
-                }
                 _lock.unlock();
             }
         }
@@ -940,11 +932,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      */
     protected static boolean isOffscreenInstance(NativeWindow cWin, NativeWindow pWin) {
         boolean ofs = false;
-        if( null != cWin.getGraphicsConfiguration() ) {
-            ofs = !cWin.getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
+        final AbstractGraphicsConfiguration cWinCfg = cWin.getGraphicsConfiguration(); 
+        if( null != cWinCfg ) {
+            ofs = !cWinCfg.getChosenCapabilities().isOnscreen();
         }
-        if( !ofs && null != pWin && null != pWin.getGraphicsConfiguration() ) {
-            ofs |= !pWin.getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
+        if( !ofs && null != pWin ) {
+            final AbstractGraphicsConfiguration pWinCfg = pWin.getGraphicsConfiguration();
+            if( null != pWinCfg ) {
+                ofs = !pWinCfg.getChosenCapabilities().isOnscreen();
+            }
         }
         return ofs;
     }

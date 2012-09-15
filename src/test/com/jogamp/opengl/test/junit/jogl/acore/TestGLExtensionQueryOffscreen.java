@@ -32,14 +32,11 @@ import java.util.Collections;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
-import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GL;
-import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
-import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 
 import jogamp.opengl.GLDrawableFactoryImpl;
@@ -77,13 +74,11 @@ public class TestGLExtensionQueryOffscreen {
     
     @Test
     public void testJogl2ExtensionCheck2() {
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
-        GLDrawableFactory factory = GLDrawableFactory.getDesktopFactory();
-        GLCapabilitiesChooser glCapsChooser = new DefaultGLCapabilitiesChooser();
-        AbstractGraphicsDevice agd = factory.getDefaultDevice();
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());        
+        final GLOffscreenAutoDrawable drawable = factory.createOffscreenAutoDrawable(null, caps, null, 256, 256, null);
         
-        GLAutoDrawable drawable = factory.createGLPbuffer(agd, caps, glCapsChooser, 256, 256, null);
-        GLContext context = drawable.getContext();
+        final GLContext context = drawable.getContext();
         context.makeCurrent();
         String extensions;
         try {
@@ -94,8 +89,8 @@ public class TestGLExtensionQueryOffscreen {
         String[] tabExtensions = extensions.split(" ");
         SortedSet<String> setExtensions = new TreeSet<String>();
         Collections.addAll(setExtensions, tabExtensions);
-        System.out.println("DefaulContext: "+context);
-        System.out.println("DefaulContext: "+setExtensions);
+        System.out.println("DefaultContext: "+context);
+        System.out.println("DefaultContext: "+setExtensions);
     }
 }
 

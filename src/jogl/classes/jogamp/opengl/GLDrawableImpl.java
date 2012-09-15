@@ -43,6 +43,7 @@ package jogamp.opengl;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.ProxySurface;
+import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
@@ -76,31 +77,46 @@ public abstract class GLDrawableImpl implements GLDrawable {
     if( !realized ) {
         return; // destroyed already
     }
-    final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)surface.getGraphicsConfiguration().getChosenCapabilities();
-    if ( caps.getDoubleBuffered() ) {
-        if(!surface.surfaceSwap()) {
-            int lockRes = lockSurface(); // it's recursive, so it's ok within [makeCurrent .. release]
-            if (NativeSurface.LOCK_SURFACE_NOT_READY == lockRes) {
-                return;
-            }
-            try {
-                if (NativeSurface.LOCK_SURFACE_CHANGED == lockRes) {
-                    updateHandle();
-                }
-                swapBuffersImpl();
-            } finally {
-                unlockSurface();
-            }
-        }
-    } else {
-        GLContext ctx = GLContext.getCurrent();
-        if(null!=ctx && ctx.getGLDrawable()==this) {
-            ctx.getGL().glFinish();
-        }
+    int lockRes = lockSurface(); // it's recursive, so it's ok within [makeCurrent .. release]
+    if (NativeSurface.LOCK_SURFACE_NOT_READY == lockRes) {
+        return;
     }
+    try {
+        if (NativeSurface.LOCK_SURFACE_CHANGED == lockRes) {
+            updateHandle();
+        }
+        final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)surface.getGraphicsConfiguration().getChosenCapabilities();
+        if ( caps.getDoubleBuffered() ) {
+            if(!surface.surfaceSwap()) {
+                swapBuffersImpl(true);
+            }
+        } else {
+            final GLContext ctx = GLContext.getCurrent();
+            if(null!=ctx && ctx.getGLDrawable()==this) {
+                ctx.getGL().glFlush();
+            }
+            swapBuffersImpl(false);
+        }
+    } finally {
+        unlockSurface();
+    }        
     surface.surfaceUpdated(this, surface, System.currentTimeMillis());
   }
-  protected abstract void swapBuffersImpl();
+  
+  /**
+   * Platform and implementation depending surface swap.
+   * <p>The surface is locked.</p>
+   * <p>
+   * If <code>doubleBuffered</code> is <code>true</code>, 
+   * an actual platform dependent surface swap shall be executed.
+   * </p>
+   * <p>
+   * If <code>doubleBuffered</code> is <code>false</code>, 
+   * {@link GL#glFlush()} has been called already and 
+   * the implementation may execute implementation specific code.
+   * </p>
+   */
+  protected abstract void swapBuffersImpl(boolean doubleBuffered);
 
   public final static String toHexString(long hex) {
     return "0x" + Long.toHexString(hex);
@@ -181,6 +197,9 @@ public abstract class GLDrawableImpl implements GLDrawable {
         System.err.println(getThreadName() + ": setRealized: "+getClass().getName()+" "+this.realized+" == "+realizedArg);
     }
   }
+  /**
+   * Platform specific realization of drawable 
+   */
   protected abstract void setRealizedImpl();
 
   /** 
@@ -189,7 +208,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
    * If <code>realized</code> is <code>true</code>, the context has just been created and made current.
    * </p>
    * <p>
-   * If <code>realized</code> is <code>false</code>, the context is still current and will be release and destroyed after this method returns.
+   * If <code>realized</code> is <code>false</code>, the context is still current and will be released and destroyed after this method returns.
    * </p>
    * <p>
    * @see #contextMadeCurrent(GLContext, boolean)
@@ -199,18 +218,27 @@ public abstract class GLDrawableImpl implements GLDrawable {
   /** 
    * Callback for special implementations, allowing GLContext to trigger GL related lifecycle: <code>makeCurrent</code>, <code>release</code>.
    * <p>
-   * Will not be called if {@link #contextRealized(GLContext, boolean)} has been triggered.
-   * </p>
-   * <p>
    * If <code>current</code> is <code>true</code>, the context has just been made current.
    * </p>
    * <p>
    * If <code>current</code> is <code>false</code>, the context is still current and will be release after this method returns.
    * </p>
+   * <p>
+   * Note: Will also be called after {@link #contextRealized(GLContext, boolean) contextRealized(ctx, true)}
+   * but not at context destruction, i.e. {@link #contextRealized(GLContext, boolean) contextRealized(ctx, false)}.
+   * </p>
    * @see #contextRealized(GLContext, boolean)
    */ 
   protected void contextMadeCurrent(GLContext glc, boolean current) { }
 
+  /**
+   * Callback for special implementations, allowing to associate bound context to this drawable (bound == true) 
+   * or to remove such association (bound == false).
+   * @param ctx the just bounded or unbounded context
+   * @param bound if <code>true</code> create an association, otherwise remove it
+   */
+  protected void associateContext(GLContext ctx, boolean bound) { }
+  
   /** Callback for special implementations, allowing GLContext to fetch a custom default render framebuffer. Defaults to zero.*/
   protected int getDefaultDrawFramebuffer() { return 0; }
   /** Callback for special implementations, allowing GLContext to fetch a custom default read framebuffer. Defaults to zero. */
@@ -245,8 +273,8 @@ public abstract class GLDrawableImpl implements GLDrawable {
   public String toString() {
     return getClass().getSimpleName()+"[Realized "+isRealized()+
                 ",\n\tFactory   "+getFactory()+
-                ",\n\thandle    "+toHexString(getHandle())+
-                ",\n\tWindow    "+getNativeSurface()+"]";
+                ",\n\tHandle    "+toHexString(getHandle())+
+                ",\n\tSurface   "+getNativeSurface()+"]";
   }
 
   protected static String getThreadName() {

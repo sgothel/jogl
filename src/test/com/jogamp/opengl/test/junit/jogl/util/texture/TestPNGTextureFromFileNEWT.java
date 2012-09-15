@@ -112,7 +112,7 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
                 // 1 snapshot
                 if(null!=((TextureDraw01Accessor)gle).getTexture() && !shot) {
                     shot = true;
-                    snapshot(getSimpleTestName("."), 0, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
+                    snapshot(0, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
                 }
             }
             

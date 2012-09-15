@@ -45,6 +45,7 @@ import org.junit.Test;
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
+@SuppressWarnings("deprecation")
 public class TestPBufferDeadlockAWT extends UITestCase {
   static GLProfile glp;
   static int width, height;
@@ -100,6 +101,7 @@ public class TestPBufferDeadlockAWT extends UITestCase {
         }        
     });
     Assert.assertTrue(done[0]);
+    pbuffer.destroy();
   }
 
   @Test(timeout = 2000) // 2s timeout

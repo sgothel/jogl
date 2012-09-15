@@ -129,9 +129,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         }
         final X11GraphicsScreen sharedScreen = (X11GraphicsScreen) sharedResource.getScreen();
         final boolean isMultisampleAvailable = factory.isGLXMultisampleAvailable(sharedScreen.getDevice());
-        final X11GLXDrawable sharedDrawable = (X11GLXDrawable) sharedResource.getDrawable();
-        final GLCapabilitiesImmutable capsChosen = sharedDrawable.getChosenGLCapabilities();
-        final GLProfile glp = capsChosen.getGLProfile();
+        final GLProfile glp = GLProfile.getDefault(device);
 
         List<GLCapabilitiesImmutable> availableCaps = null;
 
@@ -217,7 +215,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         X11GLXDrawableFactory factory = (X11GLXDrawableFactory) GLDrawableFactory.getDesktopFactory();
 
         capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities( capsChosen, GLContext.isFBOAvailable(x11Device, capsChosen.getGLProfile()), factory.canCreateGLPbuffer(x11Device) );
-        boolean usePBuffer = capsChosen.isPBuffer();
+        boolean usePBuffer = !capsChosen.isOnscreen() && capsChosen.isPBuffer();
     
         X11GLXGraphicsConfiguration res = null;
         if( factory.isGLXVersionGreaterEqualOneThree(x11Device) ) {

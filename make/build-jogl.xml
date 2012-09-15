@@ -1375,7 +1375,7 @@
           <include name="${rootrel.src.c}/timespec.c" if="isOSX"/> <!-- currently only used for OSX -->
           <include name="${rootrel.src.c}/macosx/MacOSXCustomCGLCode.c" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/MacOSXWindowSystemInterface.m" if="isOSX"/>
-          <include name="${rootrel.src.c}/macosx/MacOSXWindowSystemInterface-pbuffer.m" if="isOSX"/>
+          <include name="${rootrel.src.c}/macosx/MacOSXWindowSystemInterface-calayer.m" if="isOSX"/>
           <include name="${rootrel.src.c}/macosx/ContextUpdater.m" if="isOSX"/>
           <include name="${rootrel.src.c}/GLXGetProcAddressARB.c" if="isX11"/>
           <!-- FIXME: the Mixer should be moved to another library -->

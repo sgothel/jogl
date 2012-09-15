@@ -33,7 +33,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.media.nativewindow.*;
-import javax.media.nativewindow.util.Point;
 
 import com.jogamp.newt.*;
 import java.io.IOException;

@@ -108,7 +108,7 @@ public class TestMultisampleES1AWT extends UITestCase {
         public void init(GLAutoDrawable drawable) {}
         public void dispose(GLAutoDrawable drawable) {}
         public void display(GLAutoDrawable drawable) {
-            snapshot(getSimpleTestName("."), displayCount++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
+            snapshot(displayCount++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
         }
         public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
     });

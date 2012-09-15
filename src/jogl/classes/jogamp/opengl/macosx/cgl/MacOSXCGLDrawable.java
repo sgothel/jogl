@@ -42,10 +42,10 @@ package jogamp.opengl.macosx.cgl;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.media.nativewindow.NativeSurface;
+import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 
@@ -92,7 +92,7 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
         this.id = id;
     }
   }
-  private List<WeakReference<MacOSXCGLContext>> createdContexts = new ArrayList<WeakReference<MacOSXCGLContext>>();
+  /* pp */ List<WeakReference<MacOSXCGLContext>> createdContexts = new ArrayList<WeakReference<MacOSXCGLContext>>();
 
   private boolean haveSetOpenGLMode = false;
   private GLBackendType openGLMode = GLBackendType.NSOPENGL;
@@ -110,26 +110,42 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
       return GLBackendType.NSOPENGL == openGLMode ? getHandle() : 0;
   }
 
-  protected void registerContext(MacOSXCGLContext ctx) {
+  @Override
+  protected void associateContext(GLContext ctx, boolean bound) {
     // NOTE: we need to keep track of the created contexts in order to
     // implement swapBuffers() because of how Mac OS X implements its
     // OpenGL window interface
     synchronized (createdContexts) {
-      createdContexts.add(new WeakReference<MacOSXCGLContext>(ctx));
-    }
+        if(bound) {
+            createdContexts.add(new WeakReference<MacOSXCGLContext>((MacOSXCGLContext)ctx));
+        } else {
+            for(int i=0; i<createdContexts.size(); ) {
+                final WeakReference<MacOSXCGLContext> ref = createdContexts.get(i); 
+                final MacOSXCGLContext _ctx = ref.get();
+                if( _ctx == null || _ctx == ctx) {
+                    createdContexts.remove(i);
+                } else {
+                    i++;
+                }
+            }            
+        }
+    }      
   }
+  
   @Override
-  protected final void swapBuffersImpl() {
-    // single-buffer is already filtered out @ GLDrawableImpl#swapBuffers()
-    synchronized (createdContexts) {
-        for (Iterator<WeakReference<MacOSXCGLContext>> iter = createdContexts.iterator(); iter.hasNext(); ) {
-          WeakReference<MacOSXCGLContext> ref = iter.next();
-          MacOSXCGLContext ctx = ref.get();
-          if (ctx != null) {
-            ctx.swapBuffers();
-          } else {
-            iter.remove();
-          }
+  protected final void swapBuffersImpl(boolean doubleBuffered) {
+    if(doubleBuffered) { 
+        synchronized (createdContexts) {
+            for(int i=0; i<createdContexts.size(); ) {
+                final WeakReference<MacOSXCGLContext> ref = createdContexts.get(i); 
+                final MacOSXCGLContext ctx = ref.get();
+                if (ctx != null) {
+                    ctx.swapBuffers();
+                    i++;
+                } else {
+                    createdContexts.remove(i);
+                }
+            }
         }
     }
   }

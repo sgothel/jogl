@@ -51,6 +51,26 @@
     }
 
     @Override
+    public final boolean hasBasicFBOSupport() {
+      return _context.hasBasicFBOSupport();
+    }
+
+    @Override
+    public final boolean hasFullFBOSupport() {
+      return _context.hasFullFBOSupport();
+    }
+
+    @Override
+    public final int getMaxRenderbufferSamples() {
+      return _context.getMaxRenderbufferSamples();
+    }
+
+    @Override
+    public final boolean isTextureFormatBGRA8888Available() {
+      return _context.isTextureFormatBGRA8888Available();
+    }
+
+    @Override
     public final GLContext getContext() {
       return _context;
     }

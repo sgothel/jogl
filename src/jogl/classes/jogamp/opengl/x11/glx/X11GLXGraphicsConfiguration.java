@@ -307,7 +307,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       return null; // no RGBA -> color index not supported
     }
 
-    X11GLCapabilities res = new X11GLCapabilities(visualInfo, fbcfg, fbcfgid, glp);
+    final X11GLCapabilities res = new X11GLCapabilities(visualInfo, fbcfg, fbcfgid, glp);
     if (isMultisampleAvailable) {
       res.setSampleBuffers(glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
       res.setNumSamples   (glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLES,        tmp, 0));
@@ -342,7 +342,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         res.setPbufferFloatingPointBuffers(glXGetFBConfig(display, fbcfg, GLXExt.GLX_FLOAT_COMPONENTS_NV, tmp, 0) != GL.GL_FALSE);
     } catch (Exception e) {}
 
-    return (X11GLCapabilities) GLGraphicsConfigurationUtil.setWinAttributeBits(res, drawableTypeBits);
+    return (X11GLCapabilities) GLGraphicsConfigurationUtil.fixWinAttribBitsAndHwAccel(device, drawableTypeBits, res); 
   }
 
   private static String glXGetFBConfigErrorCode(int err) {
@@ -462,7 +462,7 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     res.setAccumBlueBits (glXGetConfig(display, info, GLX.GLX_ACCUM_BLUE_SIZE,  tmp, 0));
     res.setAccumAlphaBits(glXGetConfig(display, info, GLX.GLX_ACCUM_ALPHA_SIZE, tmp, 0));
 
-    return (X11GLCapabilities) GLGraphicsConfigurationUtil.setWinAttributeBits(res, drawableTypeBits);
+    return (X11GLCapabilities) GLGraphicsConfigurationUtil.fixWinAttribBitsAndHwAccel(device, drawableTypeBits, res); 
   }
 
   private static String glXGetConfigErrorCode(int err) {

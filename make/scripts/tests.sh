@@ -32,7 +32,7 @@ MOSX=0
 MOSX_MT=0
 uname -a | grep -i Darwin && MOSX=1
 if [ $MOSX -eq 1 ] ; then
-    #export NSZombieEnabled=YES
+    export NSZombieEnabled=YES
     MOSX_MT=1
 fi
 
@@ -56,11 +56,13 @@ function jrun() {
     #D_ARGS="-Djogl.disable.opengles"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.GLSLCode -Dnewt.debug.Window.MouseEvent"
     #D_ARGS="-Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode"
+    #D_ARGS="-Djogl.debug.FBObject -Djogl.debug.GLContext -Djogl.debug.GLDrawable -Djogl.debug.GLCanvas -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug.FBObject"
     #D_ARGS="-Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.FBObject"
     #D_ARGS="-Djogl.debug.GLContext.NoProfileAliasing"
     #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
-    #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all"
+    #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
+    #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnativewindow.debug.GraphicsConfiguration"
     #D_ARGS="-Djogl.fbo.force.none"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all -Djogamp.debug.Lock"
     #D_ARGS="-Djogl.debug=all"
@@ -208,7 +210,7 @@ function testawtswt() {
 }
 
 #
-# newt (testnoawt and testawt)
+# core/newt (testnoawt and testawt)
 #
 #testnoawt com.jogamp.nativewindow.NativeWindowVersion $*
 #testnoawt com.jogamp.opengl.JoglVersion $*
@@ -236,6 +238,26 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitchNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBODrawableNEWT $*
+
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOffscrnCapsNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryOffscrnCapsNEWT $*
+
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer01GLCanvasAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer02NewtCanvasAWT $*
+
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableFactoryNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOOffThreadSharedContextMix2DemosES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOOnThreadSharedContext1DemoES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMix2DemosES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMRTNEWT01 $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableDeadlockAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461FBOSupersamplingSwingAWT
+
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
@@ -331,10 +353,8 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04AWT $*
 #testawtswt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aSWT $*
-testawtswt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04SWT $*
+#testawtswt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04SWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer01GLCanvasAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingOffscreenLayer02NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentParentingAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1AWT $*
@@ -375,24 +395,6 @@ testawtswt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04SWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
-
-#
-# FBO / ..
-#
-
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBODrawableNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDrawable00NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDrawable01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDrawable01bNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDrawable02NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMix2DemosES2NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBODrawableMix2DemosES2NEWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableDeadlockAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461FBOSupersamplingSwingAWT
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMRTNEWT01 $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitchNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 
 #
 # Graph

@@ -106,7 +106,7 @@ public class TestFBOMix2DemosES2NEWT extends UITestCase {
                 if(dw<800) {
                     System.err.println("XXX: "+dw+"x"+dh+", c "+c);
                     if(0 == c%3) {
-                        snapshot(getSimpleTestName("."), i++, "msaa"+demo.getMSAA(), drawable.getGL(), screenshot, TextureIO.PNG, null);                        
+                        snapshot(i++, "msaa"+demo.getMSAA(), drawable.getGL(), screenshot, TextureIO.PNG, null);                        
                     }
                     if( 3 == c ) {
                         new Thread() { 

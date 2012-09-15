@@ -51,7 +51,6 @@ public class RedSquareES2 implements GLEventListener {
     float aspect = 1.0f;
     boolean doRotate = true;
     boolean isInitialized = false;
-    boolean isFBOSlave = false;
 
     public RedSquareES2(int swapInterval) {
         this.swapInterval = swapInterval;
@@ -61,7 +60,6 @@ public class RedSquareES2 implements GLEventListener {
         this.swapInterval = 1;
     }
         
-    public void setIsFBOSlave(boolean v) { isFBOSlave = v; }
     public void setAspect(float aspect) { this.aspect = aspect; }
     public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
     
@@ -74,15 +72,16 @@ public class RedSquareES2 implements GLEventListener {
         System.err.println(Thread.currentThread()+" RedSquareES2.init ...");
         GL2ES2 gl = glad.getGL().getGL2ES2();
         
-        System.err.println(Thread.currentThread()+"Chosen GLCapabilities: " + glad.getChosenGLCapabilities());
-        System.err.println(Thread.currentThread()+"INIT GL IS: " + gl.getClass().getName());
-        System.err.println(Thread.currentThread()+"GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
-        System.err.println(Thread.currentThread()+"GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
-        System.err.println(Thread.currentThread()+"GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
-        
-        System.err.println(Thread.currentThread()+" GL Profile: "+gl.getGLProfile());
-        System.err.println(Thread.currentThread()+" GL:" + gl);
-        System.err.println(Thread.currentThread()+" GL_VERSION=" + gl.glGetString(GL.GL_VERSION));
+        System.err.println("RedSquareES2 init on "+Thread.currentThread());
+        System.err.println("Chosen GLCapabilities: " + glad.getChosenGLCapabilities());
+        System.err.println("INIT GL IS: " + gl.getClass().getName());
+        System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
+        System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
+        System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
+        System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none"));
+        System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
+        System.err.println("GL Profile: "+gl.getGLProfile());
+        System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
         
         st = new ShaderState();
         st.setVerbose(true);

@@ -52,12 +52,8 @@ public class EGLPbufferDrawable extends EGLDrawable {
     }
 
     @Override
-    protected long createSurface(EGLGraphicsConfiguration config, long nativeSurfaceHandle) {
-        final MutableSurface ms = (MutableSurface)getNativeSurface();
-        if(config != ms.getGraphicsConfiguration()) {
-            throw new InternalError("Not same: "+config.hashCode()+", "+ms.getGraphicsConfiguration()+": "+config+", "+ms.getGraphicsConfiguration());
-        }
-        return EGLDrawableFactory.createPBufferSurfaceImpl(ms, useTexture).getSurfaceHandle();
+    protected long createSurface(EGLGraphicsConfiguration config, int width, int height, long nativeSurfaceHandle) {
+        return EGLDrawableFactory.createPBufferSurfaceImpl(config, width, height, false);
     }
 
     @Override

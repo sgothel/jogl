@@ -28,8 +28,12 @@
 
 package jogamp.opengl;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLContext;
+
+import com.jogamp.common.os.Platform;
 
 public class GLGraphicsConfigurationUtil {
     public static final String NV_coverage_sample = "NV_coverage_sample";
@@ -119,26 +123,34 @@ public class GLGraphicsConfigurationUtil {
         return getExclusiveWinAttributeBits(caps.isOnscreen(), caps.isFBO(), caps.isPBuffer(), caps.isBitmap());
     }
 
-    public static final GLCapabilities setWinAttributeBits(GLCapabilities caps, int winattrbits) {
+    public static final GLCapabilities fixWinAttribBitsAndHwAccel(AbstractGraphicsDevice device, int winattrbits, GLCapabilities caps) {
         caps.setBitmap  ( 0 != ( BITMAP_BIT  & winattrbits ) );
         caps.setPBuffer ( 0 != ( PBUFFER_BIT & winattrbits ) );
         caps.setFBO     ( 0 != ( FBO_BIT     & winattrbits ) );
         // we reflect availability semantics, hence setting onscreen at last (maybe overwritten above)!
-        caps.setOnscreen( 0 != ( WINDOW_BIT  & winattrbits ) ); 
-        return caps;
-    }
+        caps.setOnscreen( 0 != ( WINDOW_BIT  & winattrbits ) );
 
+        final int accel = GLContext.isHardwareRasterizer( device, caps.getGLProfile() );
+        if(0 == accel && caps.getHardwareAccelerated() ) {
+            caps.setHardwareAccelerated(false);
+        }
+
+        return caps;        
+    }
+    
     public static GLCapabilitiesImmutable fixGLCapabilities(GLCapabilitiesImmutable capsRequested, boolean fboAvailable, boolean pbufferAvailable)
     {
         if( !capsRequested.isOnscreen() ) {
             return fixOffscreenGLCapabilities(capsRequested, fboAvailable, pbufferAvailable);
-        }
+        } /* we maintain the offscreen mode flags in onscreen mode - else { 
+            return fixOnscreenGLCapabilities(capsRequested);
+        } */
         return capsRequested;
     }
 
     public static GLCapabilitiesImmutable fixOnscreenGLCapabilities(GLCapabilitiesImmutable capsRequested)
     {
-        if( !capsRequested.isOnscreen() ) {
+        if( !capsRequested.isOnscreen() || capsRequested.isFBO() || capsRequested.isPBuffer() || capsRequested.isBitmap() ) { 
             // fix caps ..
             final GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
             caps2.setBitmap  (false);
@@ -157,9 +169,11 @@ public class GLGraphicsConfigurationUtil {
 
     public static GLCapabilitiesImmutable fixOffscreenGLCapabilities(GLCapabilitiesImmutable capsRequested, boolean fboAvailable, boolean pbufferAvailable) {
         final boolean auto = !capsRequested.isFBO() && !capsRequested.isPBuffer() && !capsRequested.isBitmap() ;
+
+        final boolean requestedPBuffer = capsRequested.isPBuffer() || Platform.getOSType() == Platform.OSType.MACOS ; // no native bitmap for OSX
         
         final boolean useFBO     =                fboAvailable     && ( auto || capsRequested.isFBO()     ) ;
-        final boolean usePbuffer = !useFBO     && pbufferAvailable && ( auto || capsRequested.isPBuffer() ) ;
+        final boolean usePbuffer = !useFBO     && pbufferAvailable && ( auto || requestedPBuffer          ) ;
         final boolean useBitmap  = !useFBO     && !usePbuffer      && ( auto || capsRequested.isBitmap()  ) ;
         
         if( capsRequested.isOnscreen() ||

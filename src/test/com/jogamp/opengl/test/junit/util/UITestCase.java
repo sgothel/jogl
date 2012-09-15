@@ -29,12 +29,14 @@
 package com.jogamp.opengl.test.junit.util;
 
 import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLEventListener;
 
 import com.jogamp.common.util.locks.SingletonInstance;
 import com.jogamp.opengl.util.GLReadBufferUtil;
@@ -47,6 +49,8 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.rules.TestName;
+import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.TestClass;
 
 
 public abstract class UITestCase {
@@ -58,9 +62,11 @@ public abstract class UITestCase {
     public static final long SINGLE_INSTANCE_LOCK_TO   = 3*60*1000; // wait up to 3 min
     public static final long SINGLE_INSTANCE_LOCK_POLL =      1000; // poll every 1s
 
-    static volatile SingletonInstance singletonInstance;
+    private static volatile SingletonInstance singletonInstance;
     
-    static volatile boolean testSupported = true;
+    private static volatile boolean testSupported = true;
+    
+    private static volatile int maxMethodNameLen = 0;
 
     private static final synchronized void initSingletonInstance() {
         if( null == singletonInstance )  {
@@ -77,6 +83,20 @@ public abstract class UITestCase {
         testSupported = v;
     }
 
+    public int getMaxTestNameLen() {
+        if(0 == maxMethodNameLen) {
+            int ml = 0;
+            final TestClass tc = new TestClass(getClass());
+            final List<FrameworkMethod> testMethods = tc.getAnnotatedMethods(org.junit.Test.class);
+            for(Iterator<FrameworkMethod> iter=testMethods.iterator(); iter.hasNext(); ) {
+                final int l = iter.next().getName().length();
+                if( ml < l ) { ml = l; }
+            }
+            maxMethodNameLen = ml;
+        }
+        return maxMethodNameLen; 
+    }
+    
     public final String getTestMethodName() {
         return _unitTestName.getMethodName();
     }
@@ -120,13 +140,12 @@ public abstract class UITestCase {
     static final String unsupportedTestMsg = "Test not supported on this platform.";
     
     /**
-     * Takes a snapshot of the drawable's current framebuffer. Example filenames: 
+     * Takes a snapshot of the drawable's current front framebuffer. Example filenames: 
      * <pre>
-     * TestFBODrawableNEWT.test01-F_rgba-I_rgba-S0_default-GL2-n0004-0800x0600.png
-     * TestFBODrawableNEWT.test01-F_rgba-I_rgba-S0_default-GL2-n0005-0800x0600.png
+     * TestGLDrawableAutoDelegateOnOffscrnCapsNEWT.testES2OffScreenFBOSglBuf____-n0001-msaa0-GLES2_-sw-fbobject-Bdbl-Frgb__Irgb_-S00_default-0400x0300.png
+     * TestGLDrawableAutoDelegateOnOffscrnCapsNEWT.testES2OffScreenPbufferDblBuf-n0003-msaa0-GLES2_-sw-pbuffer_-Bdbl-Frgb__Irgb_-S00_default-0200x0150.png
+     * TestGLDrawableAutoDelegateOnOffscrnCapsNEWT.testGL2OffScreenPbufferSglBuf-n0003-msaa0-GL2___-hw-pbuffer_-Bone-Frgb__Irgb_-S00_default-0200x0150.png
      * </pre>
-     * 
-     * @param simpleTestName will be used as the filename prefix
      * @param sn sequential number 
      * @param postSNDetail optional detail to be added to the filename after <code>sn</code>
      * @param gl the current GL context object. It's read drawable is being used as the pixel source and to gather some details which will end up in the filename.
@@ -137,30 +156,80 @@ public abstract class UITestCase {
      *                 It shall not end with a directory separator, {@link File#separatorChar}.
      *                 If <code>null</code> the current working directory is being used.  
      */
-    public static void snapshot(String simpleTestName, int sn, String postSNDetail, GL gl, GLReadBufferUtil readBufferUtil, String fileSuffix, String destPath) {
+    public void snapshot(int sn, String postSNDetail, GL gl, GLReadBufferUtil readBufferUtil, String fileSuffix, String destPath) {
         if(null == fileSuffix) {
             fileSuffix = TextureIO.PNG;
         }
-        final StringWriter filenameSW = new StringWriter();
-        {
+        final int maxSimpleTestNameLen = getMaxTestNameLen()+getClass().getSimpleName().length()+1;
+        final String simpleTestName = this.getSimpleTestName(".");
+        final String filenameBaseName;
+        {            
             final GLDrawable drawable = gl.getContext().getGLReadDrawable();
             final GLCapabilitiesImmutable caps = drawable.getChosenGLCapabilities();
+            final String accel = caps.getHardwareAccelerated() ? "hw" : "sw" ;
+            final String scrnm;
+            if(caps.isOnscreen()) {
+                scrnm = "onscreen";
+            } else if(caps.isFBO()) {
+                scrnm = "fbobject";
+            } else if(caps.isPBuffer()) {
+                scrnm = "pbuffer_";
+            } else if(caps.isBitmap()) {
+                scrnm = "bitmap__";
+            } else {
+                scrnm = "unknown_";
+            }
+            final String dblb = caps.getDoubleBuffered() ? "dbl" : "one";
             final String F_pfmt = readBufferUtil.hasAlpha() ? "rgba" : "rgb_";
             final String pfmt = caps.getAlphaBits() > 0 ? "rgba" : "rgb_";
-            final String aaext = caps.getSampleExtension();
             final int samples = caps.getNumSamples() ;
+            final String aaext = caps.getSampleExtension();
             postSNDetail = null != postSNDetail ? "-"+postSNDetail : "";
-            final PrintWriter pw = new PrintWriter(filenameSW);
-            pw.printf("%s-n%04d%s-F_%s-I_%s-S%d_%s-%s-%04dx%04d.%s", 
-                    simpleTestName, sn, postSNDetail, F_pfmt, pfmt, samples, aaext, drawable.getGLProfile().getName(), 
-                    drawable.getWidth(), drawable.getHeight(), fileSuffix);
+
+            filenameBaseName = String.format("%-"+maxSimpleTestNameLen+"s-n%04d%s-%-6s-%s-%s-B%s-F%s_I%s-S%02d_%s-%04dx%04d.%s", 
+                    simpleTestName, sn, postSNDetail, drawable.getGLProfile().getName(), accel, 
+                    scrnm, dblb, F_pfmt, pfmt, samples, aaext,  
+                    drawable.getWidth(), drawable.getHeight(), fileSuffix).replace(' ', '_');
         }
-        final String filename = null != destPath ? destPath + File.separator + filenameSW.toString() : filenameSW.toString();
-        System.err.println(Thread.currentThread().getName()+": ** screenshot: "+filename);
+        final String filename = null != destPath ? destPath + File.separator + filenameBaseName : filenameBaseName;
+        System.err.println(Thread.currentThread().getName()+": ** screenshot: "+filename+", maxTestNameLen "+maxSimpleTestNameLen+", <"+simpleTestName+">");
         gl.glFinish(); // just make sure rendering finished ..
         if(readBufferUtil.readPixels(gl, false)) {
             readBufferUtil.write(new File(filename));
         }                
-    }    
+    }
+    
+    public class SnapshotGLEventListener implements GLEventListener {
+        private final GLReadBufferUtil screenshot;
+        private volatile boolean makeShot = false;
+        private volatile int displayCount=0;
+        private volatile int reshapeCount=0;
+        public SnapshotGLEventListener(GLReadBufferUtil screenshot) {
+            this.screenshot = screenshot;
+        }
+        public SnapshotGLEventListener() {
+            this.screenshot = new GLReadBufferUtil(false, false);
+        }
+
+        public void init(GLAutoDrawable drawable) {}
+        public void dispose(GLAutoDrawable drawable) {}
+        public void display(GLAutoDrawable drawable) {
+            final GL gl = drawable.getGL();
+            System.err.println(Thread.currentThread().getName()+": ** display: "+displayCount+": "+drawable.getWidth()+"x"+drawable.getHeight()+", makeShot "+makeShot);
+            if(makeShot) {
+                makeShot=false;
+                snapshot(displayCount, null, gl, screenshot, TextureIO.PNG, null);
+            }
+            displayCount++;
+        }
+        public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+            System.err.println(Thread.currentThread().getName()+": ** reshape: "+reshapeCount+": "+width+"x"+height+" - "+drawable.getWidth()+"x"+drawable.getHeight());
+            reshapeCount++;
+        }
+        public void setMakeSnapshot() {
+            makeShot=true;
+        }
+    };
+    
 }
 

@@ -63,6 +63,9 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.util.EDTUtil;
 
+/**
+ * SWT {@link Canvas} containing a NEWT {@link Window} using native parenting.
+ */
 public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
     private static final boolean DEBUG = Debug.debug("Window");
     private static final boolean isOSX = NativeWindowFactory.TYPE_MACOSX == NativeWindowFactory.getNativeWindowType(false);

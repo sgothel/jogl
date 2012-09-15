@@ -273,6 +273,42 @@ public interface GLBase {
     */
    public boolean isExtensionAvailable(String glExtensionName);
 
+   /** 
+    * Returns <code>true</code> if basic FBO support is available, otherwise <code>false</code>.
+    * <p>
+    * Basic FBO is supported if the context is either GL-ES >= 2.0, GL >= core 3.0 or implements the extensions
+    * <code>GL_ARB_ES2_compatibility</code>, <code>GL_ARB_framebuffer_object</code>, <code>GL_EXT_framebuffer_object</code> or <code>GL_OES_framebuffer_object</code>.
+    * </p>
+    * <p>
+    * Basic FBO support may only include one color attachment and no multisampling,
+    * as well as limited internal formats for renderbuffer.
+    * </p>
+    * @see GLContext#hasBasicFBOSupport()
+    */
+   public boolean hasBasicFBOSupport();
+
+   /** 
+    * Returns <code>true</code> if full FBO support is available, otherwise <code>false</code>.
+    * <p>
+    * Full FBO is supported if the context is either GL >= core 3.0 or implements the extensions
+    * <code>ARB_framebuffer_object</code>, or all of
+    * <code>EXT_framebuffer_object</code>, <code>EXT_framebuffer_multisample</code>, 
+    * <code>EXT_framebuffer_blit</code>, <code>GL_EXT_packed_depth_stencil</code>.
+    * </p>
+    * <p>
+    * Full FBO support includes multiple color attachments and multisampling.
+    * </p>
+    * @see GLContext#hasFullFBOSupport()
+    */
+   public boolean hasFullFBOSupport();
+
+   /**
+    * Returns the maximum number of FBO RENDERBUFFER samples
+    * if {@link #hasFullFBOSupport() full FBO is supported}, otherwise false. 
+    * @see GLContext#getMaxRenderbufferSamples()
+    */
+   public int getMaxRenderbufferSamples();
+
    /**
     * Returns true if the GL context supports non power of two (NPOT) textures,
     * otherwise false.
@@ -284,6 +320,8 @@ public interface GLBase {
     */
    public boolean isNPOTTextureAvailable();
 
+   public boolean isTextureFormatBGRA8888Available();
+   
    /** Provides a platform-independent way to specify the minimum swap
        interval for buffer swaps. An argument of 0 disables
        sync-to-vertical-refresh completely, while an argument of 1

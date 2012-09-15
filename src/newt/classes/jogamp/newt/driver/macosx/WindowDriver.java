@@ -117,6 +117,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         return 0 != sscSurfaceHandle ? sscSurfaceHandle : surfaceHandle;
     }
 
+    @Override
     public void setSurfaceHandle(long surfaceHandle) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("MacWindow.setSurfaceHandle(): 0x"+Long.toHexString(surfaceHandle));
@@ -170,13 +171,22 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     
     
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
-        final Point pS = getTopLevelLocationOnScreen(x, y);
-        isOffscreenInstance = 0 != sscSurfaceHandle || isOffscreenInstance(this, this.getParent());
+        final boolean _isOffscreenInstance = isOffscreenInstance(this, this.getParent());
+        isOffscreenInstance = 0 != sscSurfaceHandle || _isOffscreenInstance;
+        final PointImmutable pS = isOffscreenInstance ? new Point(0, 0) : getTopLevelLocationOnScreen(x, y);
         
         if(DEBUG_IMPLEMENTATION) {
+            final AbstractGraphicsConfiguration cWinCfg = this.getGraphicsConfiguration();
+            final NativeWindow pWin = getParent();
+            final AbstractGraphicsConfiguration pWinCfg = null != pWin ? pWin.getGraphicsConfiguration() : null;
             System.err.println("MacWindow reconfig: "+x+"/"+y+" -> "+pS+" - "+width+"x"+height+
-                               ", offscreenInstance "+isOffscreenInstance+
-                               ", "+getReconfigureFlagsAsString(null, flags));
+                               ",\n\t parent type "+(null != pWin ? pWin.getClass().getName() : null)+
+                               ",\n\t   this-chosenCaps "+(null != cWinCfg ? cWinCfg.getChosenCapabilities() : null)+
+                               ",\n\t parent-chosenCaps "+(null != pWinCfg ? pWinCfg.getChosenCapabilities() : null)+
+                               ", isOffscreenInstance(sscSurfaceHandle "+toHexString(sscSurfaceHandle)+
+                               ", ioi: "+_isOffscreenInstance+
+                               ") -> "+isOffscreenInstance+
+                               "\n\t, "+getReconfigureFlagsAsString(null, flags));
         }
         
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 == ( FLAG_IS_VISIBLE & flags) ) {
@@ -190,7 +200,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             0 != ( FLAG_CHANGE_DECORATION & flags) ||
             0 != ( FLAG_CHANGE_PARENTING & flags) ||
             0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
-            createWindow(isOffscreenInstance, 0 != getWindowHandle(), pS, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
+            if(isOffscreenInstance) {
+                createWindow(true, 0 != getWindowHandle(), pS, 64, 64, false);
+            } else {
+                createWindow(false, 0 != getWindowHandle(), pS, width, height, 0 != ( FLAG_IS_FULLSCREEN & flags));
+            }
             if(isVisible()) { flags |= FLAG_CHANGE_VISIBILITY; } 
         }
         if(x>=0 && y>=0) {

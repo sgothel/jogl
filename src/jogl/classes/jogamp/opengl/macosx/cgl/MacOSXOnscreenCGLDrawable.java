@@ -52,9 +52,7 @@ public class MacOSXOnscreenCGLDrawable extends MacOSXCGLDrawable {
 
   @Override
   public GLContext createContext(GLContext shareWith) {
-    final MacOSXOnscreenCGLContext ctx= new MacOSXOnscreenCGLContext(this, shareWith);
-    registerContext(ctx);
-    return ctx;
+    return new MacOSXOnscreenCGLContext(this, shareWith);
   }
 
 }

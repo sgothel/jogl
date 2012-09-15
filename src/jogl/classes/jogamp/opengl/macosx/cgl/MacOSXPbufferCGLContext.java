@@ -39,6 +39,7 @@ import javax.media.opengl.GLPbuffer;
 
 import jogamp.opengl.GLContextImpl;
 
+@SuppressWarnings("deprecation")
 public class MacOSXPbufferCGLContext extends MacOSXCGLContext {
 
   // State for render-to-texture and render-to-texture-rectangle support

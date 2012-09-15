@@ -229,7 +229,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
                 final NativeSurface ns = gl.getContext().getGLReadDrawable().getNativeSurface();
                 if(last_snap_size[0] != ns.getWidth() && last_snap_size[1] != ns.getHeight()) {
                     gl.glFinish(); // sync .. no swap buffers yet!
-                    snapshot(getSimpleTestName("."), step_i, null, gl, screenshot, TextureIO.PNG, null); // overwrite ok
+                    snapshot(step_i, null, gl, screenshot, TextureIO.PNG, null); // overwrite ok
                     last_snap_size[0] = ns.getWidth();
                     last_snap_size[1] = ns.getHeight();
                 }

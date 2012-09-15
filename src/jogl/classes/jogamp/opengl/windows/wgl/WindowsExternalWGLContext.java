@@ -50,8 +50,8 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-import com.jogamp.nativewindow.WrappedSurface;
 
+import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.windows.GDI;
 import jogamp.opengl.GLContextShareSet;
 
@@ -102,7 +102,7 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
             System.err.println("WindowsExternalWGLContext valid hdc/pfd, retrieved cfg: " + cfg);
         }
     }
-    return new WindowsExternalWGLContext(new Drawable(factory, new WrappedSurface(cfg, hdc, 64, 64, null)), ctx, cfg);
+    return new WindowsExternalWGLContext(new Drawable(factory, new WrappedSurface(cfg, hdc, 64, 64, true)), ctx, cfg);
   }
 
   @Override

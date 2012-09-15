@@ -51,6 +51,7 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
@@ -97,7 +98,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
      * Constructor. Do not call this directly -- use {@link #create()} instead.
      */
     protected GLWindow(Window window) {
-        super(null, null, false);
+        super(null, null, false /* always handle device lifecycle ourselves */);
         this.window = (WindowImpl) window;
         this.window.setHandleDestroyNotify(false);
         window.addWindowListener(new WindowAdapter() {
@@ -107,8 +108,8 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 }
 
                 @Override
-                public void windowResized(WindowEvent e) {
-                    defaultWindowResizedOp();
+                public void windowResized(WindowEvent e) {                    
+                    defaultWindowResizedOp(getWidth(), getHeight());
                 }
 
                 @Override
@@ -201,11 +202,8 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
 
     @Override
     public final CapabilitiesImmutable getChosenCapabilities() {
-        if (drawable == null) {
-            return window.getChosenCapabilities();
-        }
-
-        return drawable.getChosenGLCapabilities();
+        final GLDrawable _drawable = drawable;
+        return null != _drawable ? _drawable.getChosenGLCapabilities() : window.getChosenCapabilities();        
     }
 
     @Override
@@ -536,18 +534,23 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
             return;
         }
 
+        final boolean done;
         final RecursiveLock lock = window.getLock();
         lock.lock(); // sync: context/drawable could have been recreated/destroyed while animating
         try {
             if( null != context ) {
                 // surface is locked/unlocked implicit by context's makeCurrent/release
                 helper.invokeGL(drawable, context, defaultDisplayAction, defaultInitAction);
-            } else if( 0<getWidth()*getHeight() ) {
-                // retry drawable and context creation, will itself issue resize -> display
-                setVisible(true);
+                done = true;
+            } else {
+                done = false;
             }
         } finally {
             lock.unlock();
+        }
+        if( !done && 0<getWidth()*getHeight() ) {
+            // retry drawable and context creation, will itself issue resize -> display
+            setVisible(true);
         }
     }
 

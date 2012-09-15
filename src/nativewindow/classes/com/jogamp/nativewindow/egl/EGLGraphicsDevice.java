@@ -67,8 +67,8 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
      * Note that this is not an open connection, ie no native display handle exist.
      * This constructor exist to setup a default device connection/unit.<br>
      */
-    public EGLGraphicsDevice(String connection, int unitID) {
-        super(NativeWindowFactory.TYPE_EGL, connection, unitID);
+    public EGLGraphicsDevice() {
+        super(NativeWindowFactory.TYPE_EGL, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
         this.nativeDisplayID[0] = 0 ; // EGL.EGL_DEFAULT_DISPLAY
         this.eglLifecycleCallback = null;
     }

@@ -36,7 +36,8 @@
 
 package jogamp.opengl.egl;
 
-import javax.media.nativewindow.MutableSurface;
+import java.nio.IntBuffer;
+
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.ProxySurface;
@@ -46,10 +47,10 @@ import javax.media.opengl.GLException;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
 public abstract class EGLDrawable extends GLDrawableImpl {
-    private boolean ownEGLSurface = false; // for destruction
 
     protected EGLDrawable(EGLDrawableFactory factory, NativeSurface component) throws GLException {
         super(factory, component, false);
@@ -58,21 +59,14 @@ public abstract class EGLDrawable extends GLDrawableImpl {
     @Override
     public abstract GLContext createContext(GLContext shareWith);
 
-    protected abstract long createSurface(EGLGraphicsConfiguration config, long nativeSurfaceHandle);
+    protected abstract long createSurface(EGLGraphicsConfiguration config, int width, int height, long nativeSurfaceHandle);    
 
-    private final void recreateSurface() {
-        final EGLGraphicsConfiguration eglConfig = (EGLGraphicsConfiguration) surface.getGraphicsConfiguration();
-        final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) eglConfig.getScreen().getDevice();
-        if(DEBUG) {
-            System.err.println(getThreadName() + ": createSurface using "+eglConfig);
-        }        
-        if( EGL.EGL_NO_SURFACE != surface.getSurfaceHandle() ) {
-            EGL.eglDestroySurface(eglDevice.getHandle(), surface.getSurfaceHandle());
-        }
+    private final long createEGLSurface() {
+        final EGLWrappedSurface eglws = (EGLWrappedSurface) surface;
+        final EGLGraphicsConfiguration eglConfig = (EGLGraphicsConfiguration) eglws.getGraphicsConfiguration();        
+        final NativeSurface upstreamSurface = eglws.getUpstreamSurface();
         
-        final EGLUpstreamSurfaceHook upstreamHook = (EGLUpstreamSurfaceHook) ((ProxySurface)surface).getUpstreamSurfaceHook();
-        final NativeSurface upstreamSurface = upstreamHook.getUpstreamSurface();
-        long eglSurface = createSurface(eglConfig, upstreamSurface.getSurfaceHandle());
+        long eglSurface = createSurface(eglConfig, eglws.getWidth(), eglws.getHeight(), upstreamSurface.getSurfaceHandle());
         
         int eglError0;
         if (EGL.EGL_NO_SURFACE == eglSurface) {
@@ -86,7 +80,7 @@ public abstract class EGLDrawable extends GLDrawableImpl {
                         if(DEBUG) {
                             System.err.println(getThreadName() + ": Info: Creation of window surface w/ surface handle failed: "+eglConfig+", error "+toHexString(eglError0)+", retry w/ windowHandle");
                         }
-                        eglSurface = createSurface(eglConfig, nw.getWindowHandle());
+                        eglSurface = createSurface(eglConfig, eglws.getWidth(), eglws.getHeight(), nw.getWindowHandle());
                         if (EGL.EGL_NO_SURFACE == eglSurface) {
                             eglError0 = EGL.eglGetError();
                         }
@@ -99,34 +93,53 @@ public abstract class EGLDrawable extends GLDrawableImpl {
         if (EGL.EGL_NO_SURFACE == eglSurface) {
             throw new GLException("Creation of window surface failed: "+eglConfig+", "+surface+", error "+toHexString(eglError0));
         }
-
         if(DEBUG) {
-            System.err.println(getThreadName() + ": setSurface using component: handle "+toHexString(surface.getSurfaceHandle())+" -> "+toHexString(eglSurface));
+            System.err.println(getThreadName() + ": createEGLSurface handle "+toHexString(eglSurface));
         }
-        
-        ((MutableSurface)surface).setSurfaceHandle(eglSurface);
+        return eglSurface;
     }
 
     @Override
     protected final void updateHandle() {
-        if(ownEGLSurface) {
-            recreateSurface();
+        final EGLWrappedSurface eglws = (EGLWrappedSurface) surface;
+        if(DEBUG) {
+            System.err.println(getThreadName() + ": updateHandle of "+eglws);
+        }        
+        if( eglws.containsUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE ) ) {
+            if( EGL.EGL_NO_SURFACE != eglws.getSurfaceHandle() ) {
+                throw new InternalError("Set surface but claimed to be invalid: "+eglws);
+            }
+            eglws.setSurfaceHandle( createEGLSurface() );
+        } else if( EGL.EGL_NO_SURFACE == eglws.getSurfaceHandle() ) {
+            throw new InternalError("Nil surface but claimed to be valid: "+eglws);
+        }
+    }
+    
+    protected void destroyHandle() {    
+        final EGLWrappedSurface eglws = (EGLWrappedSurface) surface;
+        if(DEBUG) {
+            System.err.println(getThreadName() + ": destroyHandle of "+eglws);
+        }        
+        if( EGL.EGL_NO_SURFACE == eglws.getSurfaceHandle() ) {
+            throw new InternalError("Nil surface but claimed to be valid: "+eglws);
+        }
+        final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) eglws.getGraphicsConfiguration().getScreen().getDevice();
+        if( eglws.containsUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE ) ) {
+            EGL.eglDestroySurface(eglDevice.getHandle(), eglws.getSurfaceHandle());
+            eglws.setSurfaceHandle(EGL.EGL_NO_SURFACE);
         }
     }
 
-    protected static boolean isValidEGLSurface(EGLGraphicsDevice eglDevice, NativeSurface surface) {
-        final long eglDisplayHandle = eglDevice.getHandle();
-        if (EGL.EGL_NO_DISPLAY == eglDisplayHandle) {
-            throw new GLException("Invalid EGL display in EGLGraphicsDevice "+eglDevice);
+    protected static boolean isValidEGLSurface(long eglDisplayHandle, long surfaceHandle) {
+        if( 0 == surfaceHandle ) {
+            return false;
         }
-        boolean eglSurfaceValid = 0 != surface.getSurfaceHandle();
-        if(eglSurfaceValid) {
-            int[] tmp = new int[1];
-            eglSurfaceValid = EGL.eglQuerySurface(eglDisplayHandle, surface.getSurfaceHandle(), EGL.EGL_CONFIG_ID, tmp, 0);
-            if(!eglSurfaceValid) {
-                if(DEBUG) {
-                    System.err.println(getThreadName() + ": EGLDrawable.isValidEGLSurface eglQuerySuface failed: "+toHexString(EGL.eglGetError())+", "+surface);
-                }
+        final IntBuffer val = Buffers.newDirectIntBuffer(1);        
+        final boolean eglSurfaceValid = EGL.eglQuerySurface(eglDisplayHandle, surfaceHandle, EGL.EGL_CONFIG_ID, val);
+        if( !eglSurfaceValid ) {
+            final int eglErr = EGL.eglGetError();
+            if(DEBUG) {
+                System.err.println(getThreadName() + ": EGLDrawable.isValidEGLSurface eglQuerySuface failed: error "+toHexString(eglErr)+", "+toHexString(surfaceHandle));
             }
         }
         return eglSurfaceValid;
@@ -134,55 +147,19 @@ public abstract class EGLDrawable extends GLDrawableImpl {
     
     @Override
     protected final void setRealizedImpl() {
-        final EGLGraphicsConfiguration eglConfig = (EGLGraphicsConfiguration) surface.getGraphicsConfiguration();
-        final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) eglConfig.getScreen().getDevice();
-        if (realized) {
-            final boolean eglSurfaceValid = isValidEGLSurface(eglDevice, surface);
-            if(eglSurfaceValid) {
-                // surface holds valid EGLSurface
-                if(DEBUG) {
-                    System.err.println(getThreadName() + ": EGLDrawable.setRealizedImpl re-using component's EGLSurface: handle "+toHexString(surface.getSurfaceHandle()));
-                }
-                ownEGLSurface=false;
-            } else {
-                // EGLSurface is ours - subsequent updateHandle() will issue recreateSurface();
-                // However .. let's validate the surface object first
-                if( ! (surface instanceof ProxySurface) ) {
-                    throw new InternalError("surface not ProxySurface: "+surface.getClass().getName()+", "+surface);
-                }
-                final ProxySurface.UpstreamSurfaceHook upstreamHook = ((ProxySurface)surface).getUpstreamSurfaceHook();
-                if( null == upstreamHook ) {
-                    throw new InternalError("null upstreamHook of: "+surface);
-                }
-                if( ! (upstreamHook instanceof EGLUpstreamSurfaceHook) ) {
-                    throw new InternalError("upstreamHook not EGLUpstreamSurfaceHook: Surface: "+surface.getClass().getName()+", "+surface+"; UpstreamHook: "+upstreamHook.getClass().getName()+", "+upstreamHook);
-                }
-                if( null == ((EGLUpstreamSurfaceHook)upstreamHook).getUpstreamSurface() ) {
-                    throw new InternalError("null upstream surface");
-                }
-                ownEGLSurface=true;
-                if(DEBUG) {
-                    System.err.println(getThreadName() + ": EGLDrawable.setRealizedImpl owning EGLSurface");
-                }
-            }
-        } else if (ownEGLSurface && surface.getSurfaceHandle() != EGL.EGL_NO_SURFACE) {
-            if(DEBUG) {
-                System.err.println(getThreadName() + ": EGLDrawable.setRealized(false): ownSurface "+ownEGLSurface+", "+eglDevice+", eglSurface: "+toHexString(surface.getSurfaceHandle()));
-            }
-            // Destroy the window surface
-            if (!EGL.eglDestroySurface(eglDevice.getHandle(), surface.getSurfaceHandle())) {
-                throw new GLException("Error destroying window surface (eglDestroySurface)");
-            }
-            ((MutableSurface)surface).setSurfaceHandle(EGL.EGL_NO_SURFACE);
+        if(DEBUG) {
+            System.err.println(getThreadName() + ": EGLDrawable.setRealized("+realized+"): NOP - "+surface);
         }
     }
 
     @Override
-    protected final void swapBuffersImpl() {
-        final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) surface.getGraphicsConfiguration().getScreen().getDevice();
-        // single-buffer is already filtered out @ GLDrawableImpl#swapBuffers()
-        if(!EGL.eglSwapBuffers(eglDevice.getHandle(), surface.getSurfaceHandle())) {
-            throw new GLException("Error swapping buffers, eglError "+toHexString(EGL.eglGetError())+", "+this);
+    protected final void swapBuffersImpl(boolean doubleBuffered) {
+        if(doubleBuffered) {
+            final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) surface.getGraphicsConfiguration().getScreen().getDevice();
+            // single-buffer is already filtered out @ GLDrawableImpl#swapBuffers()
+            if(!EGL.eglSwapBuffers(eglDevice.getHandle(), surface.getSurfaceHandle())) {
+                throw new GLException("Error swapping buffers, eglError "+toHexString(EGL.eglGetError())+", "+this);
+            }
         }
     }
 

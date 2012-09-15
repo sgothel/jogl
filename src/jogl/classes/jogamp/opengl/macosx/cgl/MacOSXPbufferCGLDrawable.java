@@ -40,6 +40,8 @@
 
 package jogamp.opengl.macosx.cgl;
 
+import java.lang.ref.WeakReference;
+
 import javax.media.nativewindow.DefaultGraphicsConfiguration;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.MutableSurface;
@@ -70,9 +72,6 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
   // private int textureTarget; // e.g. GL_TEXTURE_2D, GL_TEXTURE_RECTANGLE_NV
   // private int texture;       // actual texture object
 
-  // Note that we can not store this in the NativeSurface because the
-  // semantic is that contains an NSView
-  protected long pBuffer;
   protected int pBufferTexTarget, pBufferTexWidth, pBufferTexHeight;
 
   public MacOSXPbufferCGLDrawable(GLDrawableFactory factory, NativeSurface target) {
@@ -90,9 +89,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
 
   @Override
   public GLContext createContext(GLContext shareWith) {
-    final MacOSXPbufferCGLContext ctx = new MacOSXPbufferCGLContext(this, shareWith);
-    registerContext(ctx);
-    return ctx;
+    return new MacOSXPbufferCGLContext(this, shareWith);
   }
   
   @Override
@@ -101,27 +98,34 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     return 0;
   }
 
-  @Override
-  public long getHandle() {
-    return pBuffer;
-  }
-
   protected int getTextureTarget() { return pBufferTexTarget;  }
   protected int getTextureWidth() { return pBufferTexWidth; }
   protected int getTextureHeight() { return pBufferTexHeight; }
 
   protected void destroyPbuffer() {
-    if (this.pBuffer != 0) {
-      NativeSurface ns = getNativeSurface();
+    final MutableSurface ms = (MutableSurface) getNativeSurface();
+    final long pBuffer = ms.getSurfaceHandle();
+    if (0 != pBuffer) {
+      synchronized (createdContexts) {
+        for(int i=0; i<createdContexts.size(); ) {
+          final WeakReference<MacOSXCGLContext> ref = createdContexts.get(i); 
+          final MacOSXCGLContext ctx = ref.get();
+          if (ctx != null) {
+            ctx.detachPBuffer();
+            i++;
+          } else {
+            createdContexts.remove(i);
+          }
+        }
+      }
       impl.destroy(pBuffer);
-      this.pBuffer = 0;
-      ((MutableSurface)ns).setSurfaceHandle(0);
+      ms.setSurfaceHandle(0);
     }
   }
 
   private void createPbuffer() {
-    final NativeSurface ns = getNativeSurface();
-    final DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) ns.getGraphicsConfiguration();
+    final MutableSurface ms = (MutableSurface) getNativeSurface();
+    final DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) ms.getGraphicsConfiguration();
     final GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
     final GLProfile glProfile = capabilities.getGLProfile();
     MacOSXCGLDrawableFactory.SharedResource sr = ((MacOSXCGLDrawableFactory)factory).getOrCreateOSXSharedResource(config.getScreen().getDevice());
@@ -161,7 +165,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
       }
     }
 
-    pBuffer = impl.create(pBufferTexTarget, internalFormat, getWidth(), getHeight());
+    final long pBuffer = impl.create(pBufferTexTarget, internalFormat, getWidth(), getHeight());
     if(DEBUG) {
         System.err.println("MacOSXPbufferCGLDrawable tex: target "+toHexString(pBufferTexTarget)+
                             ", pbufferSize "+getWidth()+"x"+getHeight()+
@@ -174,7 +178,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
       throw new GLException("pbuffer creation error: CGL.createPBuffer() failed");
     }
 
-    ((MutableSurface)ns).setSurfaceHandle(pBuffer);
+    ms.setSurfaceHandle(pBuffer);
   }
 
   @Override

@@ -63,9 +63,8 @@ public class FBOMix2DemosES2 implements GLEventListener {
     
     public FBOMix2DemosES2(int swapInterval) {
         demo0 = new GearsES2(-1);
-        demo0.setIsFBOSlave(true);
+        demo0.setIgnoreFocus(true);
         demo1 = new RedSquareES2(-1);
-        demo1.setIsFBOSlave(true);
         this.swapInterval = swapInterval;
         
         st = new ShaderState();
@@ -244,6 +243,8 @@ public class FBOMix2DemosES2 implements GLEventListener {
             fbo1.use(gl, fbo1Tex);
         }
         interleavedVBO.enableBuffer(gl, true);
+        
+        gl.glEnable(GL.GL_TEXTURE_2D);
         
         gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
         

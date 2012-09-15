@@ -57,8 +57,8 @@ public class EGLGLCapabilities extends GLCapabilities {
       this.eglcfg = eglcfg;
       this.eglcfgid = eglcfgid;
       if(!isCompatible(glp, renderableType)) {
-          throw new GLException("Incompatible "+glp+
-                                " with EGL-RenderableType["+renderableTypeToString(null, renderableType)+"]");
+          throw new GLException("Requested GLProfile "+glp+
+                                " not compatible with EGL-RenderableType["+renderableTypeToString(null, renderableType)+"]");
       }
       this.renderableType = renderableType;
       this.nativeVisualID = visualID;
@@ -131,6 +131,7 @@ public class EGLGLCapabilities extends GLCapabilities {
         sink = new StringBuilder();
     }
     boolean first=true;
+    sink.append("0x").append(Integer.toHexString(renderableType)).append(": ");
     if(0 != (renderableType & EGL.EGL_OPENGL_BIT)) {
         sink.append("GL"); first=false;
     }

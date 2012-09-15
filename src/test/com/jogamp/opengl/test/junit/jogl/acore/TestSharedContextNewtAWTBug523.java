@@ -45,7 +45,7 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLPbuffer;
+import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 import javax.media.opengl.glu.GLU;
@@ -64,7 +64,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.common.os.Platform;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
@@ -118,26 +117,20 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        if(Platform.CPUFamily.X86 != Platform.CPU_ARCH.family) { // FIXME
-            // FIXME: Turns out on some mobile GL drivers and platforms 
-            // using shared context is instable, Linux ARM (Omap4, Tegra2, Mesa3d, ..)
-            setTestSupported(false);
-            return;
-        }
         if(!GLProfile.isAvailable(GLProfile.GL2)) {
             setTestSupported(false);
         }
     }
     
-    static private GLPbuffer initShared(GLCapabilities caps) {
-        GLPbuffer sharedDrawable = GLDrawableFactory.getFactory(caps.getGLProfile()).createGLPbuffer(null, caps, null, 64, 64, null);
+    static private GLOffscreenAutoDrawable initShared(GLCapabilities caps) {
+        final GLOffscreenAutoDrawable sharedDrawable = GLDrawableFactory.getFactory(caps.getGLProfile()).createOffscreenAutoDrawable(null, caps, null, 64, 64, null);        
         Assert.assertNotNull(sharedDrawable);
         // init and render one frame, which will setup the Gears display lists
         sharedDrawable.display();
         return sharedDrawable;
     }
 
-    static private void releaseShared(GLPbuffer sharedDrawable) {
+    static private void releaseShared(GLOffscreenAutoDrawable sharedDrawable) {
         if(null != sharedDrawable) {
             sharedDrawable.destroy();
         }
@@ -522,7 +515,7 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
         glCapabilities.setSampleBuffers(true);
         glCapabilities.setNumSamples(4);
 
-        final GLPbuffer sharedDrawable;
+        final GLOffscreenAutoDrawable sharedDrawable;
         final GLContext sharedContext; 
         if(shareContext) {
             sharedDrawable = initShared(glCapabilities);

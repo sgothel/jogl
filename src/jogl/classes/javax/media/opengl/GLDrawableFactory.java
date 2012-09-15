@@ -48,13 +48,16 @@ import java.util.List;
 import com.jogamp.common.JogampRuntimeException;
 
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.opengl.GLAutoDrawableDelegate;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.ProxySurface.UpstreamSurfaceHook;
+import javax.media.nativewindow.UpstreamSurfaceHook;
 
 import jogamp.opengl.Debug;
 
@@ -373,44 +376,100 @@ public abstract class GLDrawableFactory {
   // Methods to create high-level objects
 
   /**
-   * Returns a GLDrawable according to it's chosen Capabilities,<br>
+   * Returns a GLDrawable according to it's chosen {@link GLCapabilitiesImmutable},<br>
    * which determines pixel format, on- and offscreen incl. PBuffer type.
    * <p>
-   * The native platform's chosen Capabilties are referenced within the target
-   * NativeSurface's AbstractGraphicsConfiguration.<p>
-   *
-   * In case target's {@link javax.media.nativewindow.Capabilities#isOnscreen()} is true,<br>
-   * an onscreen GLDrawable will be realized.
+   * The chosen {@link GLCapabilitiesImmutable} are referenced within the target
+   * {@link NativeSurface}'s {@link AbstractGraphicsConfiguration}.<p>
+   * </p>
    * <p>
-   * In case target's {@link javax.media.nativewindow.Capabilities#isOnscreen()} is false,<br>
-   * either a Pbuffer drawable is created if target's {@link javax.media.opengl.GLCapabilities#isPBuffer()} is true,<br>
-   * or a simple pixmap/bitmap drawable is created. The latter is unlikely to be hardware accelerated.<br>
+   * An onscreen GLDrawable is created if {@link CapabilitiesImmutable#isOnscreen() caps.isOnscreen()} is true.
+   * </p>
    * <p>
-   *
+   * A FBO drawable is created if both {@link GLCapabilitiesImmutable#isFBO() caps.isFBO()}
+   * and {@link GLContext#isFBOAvailable(AbstractGraphicsDevice, GLProfile) canCreateFBO(device, caps.getGLProfile())} is true.
+   * </p>
+   * <p>
+   * A Pbuffer drawable is created if both {@link GLCapabilitiesImmutable#isPBuffer() caps.isPBuffer()}
+   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice) canCreateGLPbuffer(device)} is true.
+   * </p>
+   * <p>
+   * If not onscreen and neither FBO nor Pbuffer is available, 
+   * a simple pixmap/bitmap drawable/surface is created, which is unlikely to be hardware accelerated.
+   * </p>
+   * 
    * @throws IllegalArgumentException if the passed target is null
    * @throws GLException if any window system-specific errors caused
    *         the creation of the GLDrawable to fail.
    *
+   * @see #canCreateGLPbuffer(AbstractGraphicsDevice)
+   * @see GLContext#isFBOAvailable(AbstractGraphicsDevice, GLProfile)
+   * @see javax.media.opengl.GLCapabilities#isOnscreen()
+   * @see javax.media.opengl.GLCapabilities#isFBO()
+   * @see javax.media.opengl.GLCapabilities#isPBuffer()
    * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
    */
   public abstract GLDrawable createGLDrawable(NativeSurface target)
     throws IllegalArgumentException, GLException;
-
+  
   /**
-   * Creates a Offscreen GLDrawable incl it's offscreen {@link javax.media.nativewindow.NativeSurface} with the given capabilites and dimensions.
+   * Creates an {@link GLOffscreenAutoDrawable} incl it's offscreen {@link javax.media.nativewindow.NativeSurface} with the given capabilites and dimensions.
    * <p>
-   * It's {@link AbstractGraphicsConfiguration} is properly set according to the given {@link GLCapabilitiesImmutable}, see below.
+   * The {@link GLOffscreenAutoDrawable}'s {@link GLDrawable} is realized and it's {@link GLContext} assigned but not yet made current.
    * </p>
    * <p>
-   * A FBO drawable is created if both {@link javax.media.opengl.GLCapabilities#isFBO() caps.isFBO()}
+   * In case the passed {@link GLCapabilitiesImmutable} contains default values, i.e.
+   * {@link GLCapabilitiesImmutable#isOnscreen() caps.isOnscreen()} <code> == true</code>,
+   * it is auto-configured. The latter will set offscreen and also FBO <i>or</i> Pbuffer, whichever is available in that order.
+   * </p>
+   * <p>
+   * A FBO based auto drawable, {@link GLOffscreenAutoDrawable.FBO}, is created if both {@link GLCapabilitiesImmutable#isFBO() caps.isFBO()}
    * and {@link GLContext#isFBOAvailable(AbstractGraphicsDevice, GLProfile) canCreateFBO(device, caps.getGLProfile())} is true.
    * </p>
    * <p>
-   * A Pbuffer drawable is created if both {@link javax.media.opengl.GLCapabilities#isPBuffer() caps.isPBuffer()}
-   * and {@link #canCreateGLPbuffer(javax.media.nativewindow.AbstractGraphicsDevice) canCreateGLPbuffer(device)} is true.
+   * A Pbuffer based auto drawable is created if both {@link GLCapabilitiesImmutable#isPBuffer() caps.isPBuffer()}
+   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice) canCreateGLPbuffer(device)} is true.
    * </p>
    * <p>
-   * If neither FBO nor Pbuffer is available, a simple pixmap/bitmap drawable/surface is created, which is unlikely to be hardware accelerated.
+   * If neither FBO nor Pbuffer is available, 
+   * a simple pixmap/bitmap auto drawable is created, which is unlikely to be hardware accelerated.
+   * </p>
+   *
+   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
+   * @param caps the requested GLCapabilties
+   * @param chooser the custom chooser, may be null for default
+   * @param width the requested offscreen width
+   * @param height the requested offscreen height
+   * @return the created and initialized offscreen {@link GLOffscreenAutoDrawable} instance
+   *
+   * @throws GLException if any window system-specific errors caused
+   *         the creation of the Offscreen to fail.
+   *         
+   * @see #createOffscreenDrawable(AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int)
+   */
+  public abstract GLOffscreenAutoDrawable createOffscreenAutoDrawable(AbstractGraphicsDevice device,
+                                                                      GLCapabilitiesImmutable caps,
+                                                                      GLCapabilitiesChooser chooser,
+                                                                      int width, int height,
+                                                                      GLContext shareWith) throws GLException;
+  /**
+   * Creates a offscreen {@link GLDrawable} incl it's offscreen {@link javax.media.nativewindow.NativeSurface} with the given capabilites and dimensions.
+   * <p>
+   * In case the passed {@link GLCapabilitiesImmutable} contains default values, i.e.
+   * {@link GLCapabilitiesImmutable#isOnscreen() caps.isOnscreen()} <code> == true</code>,
+   * it is auto-configured. The latter will set offscreen and also FBO <i>or</i> Pbuffer, whichever is available in that order.
+   * </p>
+   * <p>
+   * A resizeable FBO drawable, {@link GLFBODrawable.Resizeable}, is created if both {@link GLCapabilitiesImmutable#isFBO() caps.isFBO()}
+   * and {@link GLContext#isFBOAvailable(AbstractGraphicsDevice, GLProfile) canCreateFBO(device, caps.getGLProfile())} is true.
+   * </p>
+   * <p>
+   * A Pbuffer drawable is created if both {@link GLCapabilitiesImmutable#isPBuffer() caps.isPBuffer()}
+   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice) canCreateGLPbuffer(device)} is true.
+   * </p>
+   * <p>
+   * If neither FBO nor Pbuffer is available, 
+   * a simple pixmap/bitmap drawable is created, which is unlikely to be hardware accelerated.
    * </p>
    *
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
@@ -419,16 +478,17 @@ public abstract class GLDrawableFactory {
    * @param width the requested offscreen width
    * @param height the requested offscreen height
    *
-   * @return the created offscreen GLDrawable
+   * @return the created offscreen {@link GLDrawable}
    *
    * @throws GLException if any window system-specific errors caused
    *         the creation of the Offscreen to fail.
+   *         
+   * @see #createOffscreenAutoDrawable(AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int, GLContext)
    */
   public abstract GLDrawable createOffscreenDrawable(AbstractGraphicsDevice device,
-                                                     GLCapabilitiesImmutable capabilities,
+                                                     GLCapabilitiesImmutable caps,
                                                      GLCapabilitiesChooser chooser,
-                                                     int width, int height)
-    throws GLException;
+                                                     int width, int height) throws GLException;
 
   /**
    * Creates a proxy {@link NativeSurface} w/ defined surface handle, i.e. a {@link WrappedSurface} or {@link GDISurface} instance. 
@@ -459,6 +519,21 @@ public abstract class GLDrawableFactory {
                                                   GLCapabilitiesImmutable caps, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream);
 
   /**
+   * Returns true if it is possible to create an <i>framebuffer object</i> (FBO).
+   * <p>
+   * FBO feature is implemented in OpenGL, hence it is {@link GLProfile} dependent.
+   * </p> 
+   * <p>
+   * FBO support is queried as described in {@link GLContext#hasBasicFBOSupport()}.
+   * </p>
+   *
+   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param glp {@link GLProfile} to check for FBO capabilities
+   * @see GLContext#hasBasicFBOSupport()
+   */
+  public abstract boolean canCreateFBO(AbstractGraphicsDevice device, GLProfile glp);
+
+  /**
    * Returns true if it is possible to create a GLPbuffer. Some older
    * graphics cards do not have this capability.
    *
@@ -467,7 +542,10 @@ public abstract class GLDrawableFactory {
   public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device);
 
   /**
-   * Creates a GLPbuffer with the given capabilites and dimensions. <P>
+   * Creates a GLPbuffer {@link GLAutoDrawable} with the given capabilites and dimensions.
+   * <p>
+   * The GLPbuffer drawable is realized and initialized eagerly.
+   * </p>
    *
    * See the note in the overview documentation on
    * <a href="../../../overview-summary.html#SHARING">context sharing</a>.
@@ -479,10 +557,12 @@ public abstract class GLDrawableFactory {
    * @param initialHeight initial height of pbuffer
    * @param shareWith a shared GLContext this GLPbuffer shall use
    *
-   * @return the new {@link GLPbuffer} specific {@link GLAutoDrawable}
+   * @return the created and initialized {@link GLPbuffer} instance
    *
    * @throws GLException if any window system-specific errors caused
    *         the creation of the GLPbuffer to fail.
+   *         
+   * @deprecated {@link GLPbuffer} is deprecated, use {@link #createOffscreenAutoDrawable(AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int, GLContext)}
    */
   public abstract GLPbuffer createGLPbuffer(AbstractGraphicsDevice device,
                                             GLCapabilitiesImmutable capabilities,

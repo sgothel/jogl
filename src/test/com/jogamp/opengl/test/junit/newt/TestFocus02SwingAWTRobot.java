@@ -56,6 +56,15 @@ import java.io.IOException;
 import com.jogamp.opengl.test.junit.util.*;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
+/**
+ * Testing focus traversal of an AWT component tree with {@link NewtCanvasAWT} attached.
+ * <p> 
+ * {@link JFrame} . {@link JPanel}+ . {@link Container} . {@link NewtCanvasAWT} . {@link GLWindow}
+ * </p>
+ * <p>
+ * <i>+ JPanel is set as JFrame's root content pane</i><br/> 
+ * </p>
+ */
 public class TestFocus02SwingAWTRobot extends UITestCase {
     static int width, height;
     static long durationPerTest = 10;
@@ -85,9 +94,6 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
 
         ArrayList<EventCountAdapter> eventCountAdapters = new ArrayList<EventCountAdapter>();
 
-        /**
-         * JFrame . JPanel . Container . NewtCanvasAWT . GLWindow
-         */
         GLWindow glWindow1 = GLWindow.create(glCaps);
         glWindow1.setTitle("testWindowParenting01CreateVisibleDestroy");
         GLEventListener demo1 = new GearsES2();
@@ -225,7 +231,9 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         System.err.println("FOCUS NEWT Canvas/GLWindow request");
         EventCountAdapterUtil.reset(eventCountAdapters);
         AWTRobotUtil.assertRequestFocusAndWait(robot, newtCanvasAWT, newtCanvasAWT.getNEWTChild(), glWindow1FA, buttonNorthInnerFA);
-        Assert.assertTrue(AWTRobotUtil.waitForFocusCount(false, newtCanvasAWTFA));
+        Assert.assertTrue("Focus prev. gained, but NewtCanvasAWT didn't loose it. Gainer: "+glWindow1FA+"; Looser "+newtCanvasAWTFA, 
+                AWTRobotUtil.waitForFocus(glWindow1FA, newtCanvasAWTFA));
+        
         Assert.assertEquals(false, newtCanvasAWTFA.focusGained());
         Assert.assertEquals(false, buttonNorthOuterFA.focusGained());
         Assert.assertEquals(false, jFrame1FA.focusGained());

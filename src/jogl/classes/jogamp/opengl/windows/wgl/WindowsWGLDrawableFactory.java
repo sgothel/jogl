@@ -52,7 +52,7 @@ import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.ProxySurface.UpstreamSurfaceHook;
+import javax.media.nativewindow.UpstreamSurfaceHook;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
@@ -62,9 +62,10 @@ import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.windows.GDI;
+import jogamp.nativewindow.windows.GDIDummyUpstreamSurfaceHook;
 import jogamp.nativewindow.windows.GDISurface;
-import jogamp.nativewindow.windows.GDIUtil;
 import jogamp.nativewindow.windows.RegisteredClassFactory;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
 import jogamp.opengl.GLContextImpl;
@@ -79,7 +80,6 @@ import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
-import com.jogamp.nativewindow.WrappedSurface;
 import com.jogamp.nativewindow.windows.WindowsGraphicsDevice;
 import com.jogamp.opengl.GLExtensions;
 
@@ -541,7 +541,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   @Override
   protected final ProxySurface createMutableSurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice, 
                                                         GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, 
-                                                        GLCapabilitiesChooser chooser, int width, int height, UpstreamSurfaceHook lifecycleHook) {
+                                                        GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook) {
     final WindowsGraphicsDevice device;
     if(createNewDevice) {
         device = new WindowsGraphicsDevice(deviceReq.getConnection(), deviceReq.getUnitID());
@@ -553,7 +553,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     if(null == config) {
         throw new GLException("Choosing GraphicsConfiguration failed w/ "+capsChosen+" on "+screen); 
     }    
-    return new WrappedSurface(config, 0, width, height, lifecycleHook);
+    return new WrappedSurface(config, 0, upstreamHook, createNewDevice);
   }
 
   @Override
@@ -571,57 +571,15 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     if(null == config) { 
         throw new GLException("Choosing GraphicsConfiguration failed w/ "+requestedCaps+" on "+screen);
     }    
-    return new GDISurface(config, 0, width, height, dummySurfaceLifecycleHook);
-  }  
-  private static final ProxySurface.UpstreamSurfaceHook dummySurfaceLifecycleHook = new ProxySurface.UpstreamSurfaceHook() {
-    @Override
-    public final void create(ProxySurface s) {
-        final GDISurface ms = (GDISurface)s;
-        if(0 == ms.getWindowHandle()) {            
-            final long windowHandle = GDIUtil.CreateDummyWindow(0, 0, s.getWidth(), s.getHeight());
-            if(0 == windowHandle) {
-                throw new GLException("Error windowHandle 0, werr: "+GDI.GetLastError());
-            }    
-            ms.setWindowHandle(windowHandle);
-            if(DEBUG) {
-                System.err.println("WindowsWGLDrawableFactory.dummySurfaceLifecycleHook.create: "+ms);
-            }
-        }
-    }
-    @Override
-    public final void destroy(ProxySurface s) {
-        final GDISurface ms = (GDISurface)s;
-        if(0 != ms.getWindowHandle()) {
-            GDI.ShowWindow(ms.getWindowHandle(), GDI.SW_HIDE);
-            GDIUtil.DestroyDummyWindow(ms.getWindowHandle());
-            ms.setWindowHandle(0);
-            if(DEBUG) {
-                System.err.println("WindowsWGLDrawableFactory.dummySurfaceLifecycleHook.destroy: "+ms);
-            }
-        }
-    }
-    @Override
-    public final int getWidth(ProxySurface s) {
-        return s.initialWidth;
-    }
-    @Override
-    public final int getHeight(ProxySurface s) {
-        return s.initialHeight;
-    }
-    
-    @Override
-    public String toString() {
-       return "GDISurfaceLifecycleHook[]";
-    }
-  };
-  
+    return new GDISurface(config, 0, new GDIDummyUpstreamSurfaceHook(width, height), createNewDevice);
+  }    
   
   @Override
   protected final ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream) {
     final WindowsGraphicsDevice device = new WindowsGraphicsDevice(deviceReq.getConnection(), deviceReq.getUnitID());
     final AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, screenIdx);
     final WindowsWGLGraphicsConfiguration cfg = WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsRequested, capsRequested, chooser, screen);
-    return new GDISurface(cfg, windowHandle, 0, 0, upstream);
+    return new GDISurface(cfg, windowHandle, upstream, true);
   }
 
   @Override

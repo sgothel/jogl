@@ -211,6 +211,13 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             if(null == glp) {
                 glp = EGLGLCapabilities.getCompatible(device, rType);
             }
+            if(!EGLGLCapabilities.isCompatible(glp, rType)) {
+                if(DEBUG) {
+                    System.err.println("config "+toHexString(config)+": Requested GLProfile "+glp+
+                                " not compatible with EGL-RenderableType["+EGLGLCapabilities.renderableTypeToString(null, rType)+"]");
+                }
+                return null;
+            }
             caps = new EGLGLCapabilities(config, cfgID, visualID, glp, rType);
         } catch (GLException gle) {
             if(DEBUG) {
@@ -288,7 +295,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
             return null;
         }
         
-        return (EGLGLCapabilities) GLGraphicsConfigurationUtil.setWinAttributeBits(caps, drawableTypeBits);
+        return (EGLGLCapabilities) GLGraphicsConfigurationUtil.fixWinAttribBitsAndHwAccel(device, drawableTypeBits, caps); 
     }
 
     public static int[] GLCapabilities2AttribList(GLCapabilitiesImmutable caps) {

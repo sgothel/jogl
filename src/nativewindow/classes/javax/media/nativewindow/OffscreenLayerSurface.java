@@ -50,4 +50,7 @@ public interface OffscreenLayerSurface {
   /** Returns true if a surface layer is attached, otherwise false. */
   public boolean isSurfaceLayerAttached();
   
+  /** Sets the capabilities of this instance, allowing upstream API's to refine it, i.e. OpenGL related settings. */
+  public void setChosenCapabilities(CapabilitiesImmutable caps);
+  
 }

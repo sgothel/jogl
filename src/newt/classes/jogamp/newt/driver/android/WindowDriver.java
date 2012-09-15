@@ -428,7 +428,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
                           getX()+"/"+getY()+" "+nWidth+"x"+nHeight+", visible: "+isVisible());
     
             if(isVisible()) {
-               setVisible(true);
+               setVisible(false, true);
             }
         }
         sizeChanged(false, aWidth, aHeight, false);

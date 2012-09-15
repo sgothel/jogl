@@ -75,12 +75,12 @@ public class TestGLReadBufferUtilTextureIOWrite01NEWT extends UITestCase {
             public void init(GLAutoDrawable drawable) {}
             public void dispose(GLAutoDrawable drawable) {}
             public void display(GLAutoDrawable drawable) {
-                snapshot(getSimpleTestName("."), f++, null, drawable.getGL(), screenshotRGBA, TextureIO.PNG, null);
-                snapshot(getSimpleTestName("."), f++, null,  drawable.getGL(), screenshotRGB, TextureIO.PNG, null);                
-                snapshot(getSimpleTestName("."), f++, null, drawable.getGL(), screenshotRGBA, TextureIO.TGA, null);
-                snapshot(getSimpleTestName("."), f++, null,  drawable.getGL(), screenshotRGB, TextureIO.TGA, null);                
-                snapshot(getSimpleTestName("."), f++, null, drawable.getGL(), screenshotRGBA, TextureIO.PAM, null);
-                snapshot(getSimpleTestName("."), f++, null,  drawable.getGL(), screenshotRGB, TextureIO.PAM, null);                
+                snapshot(f++, null, drawable.getGL(), screenshotRGBA, TextureIO.PNG, null);
+                snapshot(f++, null, drawable.getGL(),  screenshotRGB, TextureIO.PNG, null);                
+                snapshot(f++, null, drawable.getGL(), screenshotRGBA, TextureIO.TGA, null);
+                snapshot(f++, null, drawable.getGL(),  screenshotRGB, TextureIO.TGA, null);                
+                snapshot(f++, null, drawable.getGL(), screenshotRGBA, TextureIO.PAM, null);
+                snapshot(f++, null, drawable.getGL(),  screenshotRGB, TextureIO.PAM, null);                
             }
             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }
         });
@@ -103,8 +103,8 @@ public class TestGLReadBufferUtilTextureIOWrite01NEWT extends UITestCase {
             public void init(GLAutoDrawable drawable) {}
             public void dispose(GLAutoDrawable drawable) {}
             public void display(GLAutoDrawable drawable) {
-                snapshot(getSimpleTestName("."), f, null, drawable.getGL(), screenshotRGBA, TextureIO.PNG, null);
-                snapshot(getSimpleTestName("."), f, null,  drawable.getGL(), screenshotRGB, TextureIO.PNG, null);
+                snapshot(f, null, drawable.getGL(), screenshotRGBA, TextureIO.PNG, null);
+                snapshot(f, null, drawable.getGL(),  screenshotRGB, TextureIO.PNG, null);
                 f++;
             }
             public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }

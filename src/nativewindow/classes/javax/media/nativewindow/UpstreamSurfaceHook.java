@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2012 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -26,53 +26,27 @@
  * or implied, of JogAmp Community.
  */
 
-package com.jogamp.nativewindow;
+package javax.media.nativewindow;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
-import javax.media.nativewindow.ProxySurface;
+/** 
+ * Interface allowing upstream caller to pass lifecycle actions and size info 
+ * to a {@link ProxySurface} instance. 
+ */ 
+public interface UpstreamSurfaceHook {
+    /** called within {@link ProxySurface#createNotify()} within lock, before using surface. */
+    public void create(ProxySurface s);
+    /** called within {@link ProxySurface#destroyNotify()} within lock, before clearing fields. */
+    public void destroy(ProxySurface s);
 
-public class WrappedSurface extends ProxySurface {
-  protected long surfaceHandle;  
-
-  public WrappedSurface(AbstractGraphicsConfiguration cfg, long handle, int initialWidth, int initialHeight, UpstreamSurfaceHook upstream) {
-    super(cfg, initialWidth, initialHeight, upstream);
-    surfaceHandle=handle;
-  }
-
-  @Override
-  protected void invalidateImpl() {    
-    surfaceHandle = 0;
-  }
-
-  @Override
-  public final long getSurfaceHandle() {
-    return surfaceHandle;
-  }
-
-  @Override
-  public final void setSurfaceHandle(long surfaceHandle) {
-    this.surfaceHandle=surfaceHandle;
-  }
-  
-  @Override
-  protected final int lockSurfaceImpl() {
-    return LOCK_SUCCESS;
-  }
-
-  @Override
-  protected final void unlockSurfaceImpl() {
-  }
-
-  @Override
-  public String toString() {
-    final UpstreamSurfaceHook ush = getUpstreamSurfaceHook();
-    final String ush_s = null != ush ? ( ush.getClass().getName() + ": " + ush ) : "nil"; 
+    /** Returns the width of the upstream surface, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */ 
+    public int getWidth(ProxySurface s);
+    /** Returns the height of the upstream surface, used if {@link ProxySurface#UPSTREAM_PROVIDES_SIZE} is set. */ 
+    public int getHeight(ProxySurface s);
     
-    return "WrappedSurface[config " + getPrivateGraphicsConfiguration()+
-           ", displayHandle 0x" + Long.toHexString(getDisplayHandle()) +
-           ", surfaceHandle 0x" + Long.toHexString(getSurfaceHandle()) +
-           ", size " + getWidth() + "x" + getHeight() +
-           ", surfaceLock "+surfaceLock+
-           ", upstreamSurfaceHook "+ush_s+"]";
-  }
+    /**
+     * {@link UpstreamSurfaceHook} w/ mutable size, allowing it's {@link ProxySurface} user to resize.  
+     */ 
+    public interface MutableSize extends UpstreamSurfaceHook {
+        public void setSize(int width, int height);
+    }
 }

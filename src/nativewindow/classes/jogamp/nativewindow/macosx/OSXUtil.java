@@ -72,6 +72,10 @@ public class OSXUtil {
         return isNSView0(object);
     }
     
+    public static boolean isNSWindow(long object) {
+        return isNSWindow0(object);
+    }
+    
     /**
      * In case the <code>windowOrView</code> is top-level,
      * you shall set <code>topLevel</code> to true where
@@ -114,6 +118,9 @@ public class OSXUtil {
     public static long GetNSView(long nsWindow) {
       return GetNSView0(nsWindow);
     }
+    public static long GetNSWindow(long nsView) {
+      return GetNSWindow0(nsView);
+    }
     
     public static long CreateCALayer(int x, int y, int width, int height) {
         return CreateCALayer0(x, y, width, height);
@@ -149,6 +156,11 @@ public class OSXUtil {
         return IsMainThread0();
     }
     
+    /** Returns the screen refresh rate in Hz. If unavailable, returns 60Hz. */
+    public static int GetScreenRefreshRate(int scrn_idx) {
+        return GetScreenRefreshRate0(scrn_idx);
+    }
+    
     /***
     private static boolean  isAWTEDTMainThreadInit = false;
     private static boolean  isAWTEDTMainThread;
@@ -172,15 +184,18 @@ public class OSXUtil {
     
     private static native boolean initIDs0();
     private static native boolean isNSView0(long object);
+    private static native boolean isNSWindow0(long object);
     private static native Object GetLocationOnScreen0(long windowOrView, int src_x, int src_y);
     private static native Object GetInsets0(long windowOrView);
     private static native long CreateNSWindow0(int x, int y, int width, int height);
     private static native void DestroyNSWindow0(long nsWindow);
     private static native long GetNSView0(long nsWindow);
+    private static native long GetNSWindow0(long nsView);
     private static native long CreateCALayer0(int x, int y, int width, int height);
     private static native void AddCASublayer0(long rootCALayer, long subCALayer);
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
     private static native void DestroyCALayer0(long caLayer);
     private static native void RunOnMainThread0(boolean waitUntilDone, Runnable runnable);
     private static native boolean IsMainThread0();
+    private static native int GetScreenRefreshRate0(int scrn_idx);
 }

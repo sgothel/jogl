@@ -29,9 +29,13 @@
 package jogamp.nativewindow.windows;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.ProxySurface.UpstreamSurfaceHook;
+import javax.media.nativewindow.UpstreamSurfaceHook;
+
+import jogamp.nativewindow.ProxySurfaceImpl;
+import jogamp.nativewindow.windows.GDI;
 
 
 /**
@@ -40,12 +44,20 @@ import javax.media.nativewindow.ProxySurface.UpstreamSurfaceHook;
  * The latter will get and release the HDC.
  * The size via getWidth()/getHeight() is invalid.
  */
-public class GDISurface extends ProxySurface {
+public class GDISurface extends ProxySurfaceImpl {
   protected long windowHandle;
   protected long surfaceHandle;
 
-  public GDISurface(AbstractGraphicsConfiguration cfg, long windowHandle, int initialWidth, int initialHeight, UpstreamSurfaceHook upstream) {
-    super(cfg, initialWidth, initialHeight, upstream);
+  /**
+   * @param cfg the {@link AbstractGraphicsConfiguration} to be used
+   * @param windowHandle the wrapped pre-existing native window handle, maybe 0 if not yet determined
+   * @param upstream the {@link UpstreamSurfaceHook} to be used
+   * @param ownsDevice <code>true</code> if this {@link ProxySurface} instance
+   *                  owns the {@link AbstractGraphicsConfiguration}'s {@link AbstractGraphicsDevice},
+   *                  otherwise <code>false</code>. Owning the device implies closing it at {@link #destroyNotify()}.
+   */
+  public GDISurface(AbstractGraphicsConfiguration cfg, long windowHandle, UpstreamSurfaceHook upstream, boolean ownsDevice) {
+    super(cfg, upstream, ownsDevice);
     this.windowHandle=windowHandle;
     this.surfaceHandle=0;
   }
@@ -114,18 +126,4 @@ public class GDISurface extends ProxySurface {
   final public long getSurfaceHandle() {
     return surfaceHandle;
   }
-
-  @Override
-  final public String toString() {
-    final UpstreamSurfaceHook ush = getUpstreamSurfaceHook();
-    final String ush_s = null != ush ? ( ush.getClass().getName() + ": " + ush ) : "nil";       
-    return getClass().getSimpleName()+"[config "+getPrivateGraphicsConfiguration()+
-                ", displayHandle 0x"+Long.toHexString(getDisplayHandle())+
-                ", windowHandle 0x"+Long.toHexString(windowHandle)+
-                ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+
-                ", size "+getWidth()+"x"+getHeight()+
-                ", surfaceLock "+surfaceLock+
-                ", upstreamSurfaceHook "+ush_s+"]";
-  }
-
 }

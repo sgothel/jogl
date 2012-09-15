@@ -79,15 +79,4 @@ public class EGLExternalContext extends EGLContext {
     @Override
     protected void destroyImpl() throws GLException {
     }
-
-    @Override
-    public void bindPbufferToTexture() {
-        throw new GLException("Should not call this");
-    }
-
-    @Override
-    public void releasePbufferFromTexture() {
-        throw new GLException("Should not call this");
-    }
-
 }

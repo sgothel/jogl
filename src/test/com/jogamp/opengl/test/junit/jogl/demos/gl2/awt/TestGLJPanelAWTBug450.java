@@ -117,7 +117,7 @@ public class TestGLJPanelAWTBug450 extends UITestCase {
                 }
                 if(0 == f) {
                     System.err.println("BGR ("+r_x+"/"+r_y+"): "+byte0+", "+byte1+", "+byte2+" - OK "+(!failed));
-                    snapshot(getSimpleTestName("."), f, null, gl, screenshot, TextureIO.PNG, null);
+                    snapshot(f, null, gl, screenshot, TextureIO.PNG, null);
                 }
                 f++;
             }

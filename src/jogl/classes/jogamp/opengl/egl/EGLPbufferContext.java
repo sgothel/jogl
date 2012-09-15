@@ -46,15 +46,5 @@ public class EGLPbufferContext extends EGLContext {
     public int getFloatingPointMode() {
         return 0; // FIXME ??
     }
-
-    @Override
-    public void bindPbufferToTexture() {
-        throw new GLException("Not yet implemented");
-    }
-
-    @Override
-    public void releasePbufferFromTexture() {
-        throw new GLException("Not yet implemented");
-    }
 }
 

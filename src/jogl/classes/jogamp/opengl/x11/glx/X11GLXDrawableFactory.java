@@ -49,7 +49,7 @@ import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ProxySurface;
-import javax.media.nativewindow.ProxySurface.UpstreamSurfaceHook;
+import javax.media.nativewindow.UpstreamSurfaceHook;
 import javax.media.nativewindow.VisualIDHolder;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
@@ -59,6 +59,8 @@ import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import jogamp.nativewindow.WrappedSurface;
+import jogamp.nativewindow.x11.X11DummyUpstreamSurfaceHook;
 import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
@@ -70,7 +72,6 @@ import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.SharedResourceRunner;
 
 import com.jogamp.common.util.VersionNumber;
-import com.jogamp.nativewindow.WrappedSurface;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
@@ -505,7 +506,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   protected final ProxySurface createMutableSurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice, 
                                                         GLCapabilitiesImmutable capsChosen,
                                                         GLCapabilitiesImmutable capsRequested,
-                                                        GLCapabilitiesChooser chooser, int width, int height, UpstreamSurfaceHook lifecycleHook) {
+                                                        GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook) {
     final X11GraphicsDevice device;
     if(createNewDevice) {
         // Null X11 locking, due to private non-shared Display handle
@@ -518,65 +519,15 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     if(null == config) {
         throw new GLException("Choosing GraphicsConfiguration failed w/ "+capsChosen+" on "+screen); 
     }
-    return new WrappedSurface( config, 0, width, height, lifecycleHook);
+    return new WrappedSurface(config, 0, upstreamHook, createNewDevice);
   }
 
   @Override
   public final ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice, 
                                                    GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
     final GLCapabilitiesImmutable chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(requestedCaps);
-    return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, width, height, dummySurfaceLifecycleHook); 
+    return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, new X11DummyUpstreamSurfaceHook(width, height)); 
   }  
-  private static final ProxySurface.UpstreamSurfaceHook dummySurfaceLifecycleHook = new ProxySurface.UpstreamSurfaceHook() {
-    @Override
-    public final void create(ProxySurface s) {
-        if( 0 == s.getSurfaceHandle() ) {
-            final X11GLXGraphicsConfiguration cfg = (X11GLXGraphicsConfiguration) s.getGraphicsConfiguration();
-            final X11GraphicsScreen screen = (X11GraphicsScreen) cfg.getScreen();
-            final X11GraphicsDevice device = (X11GraphicsDevice) screen.getDevice();
-            if(0 == device.getHandle()) {
-                device.open();
-                s.setImplBitfield(ProxySurface.OWN_DEVICE);
-            }
-            final long windowHandle = X11Lib.CreateDummyWindow(device.getHandle(), screen.getIndex(), cfg.getXVisualID(), s.getWidth(), s.getHeight());
-            if(0 == windowHandle) {
-                throw new GLException("Creating dummy window failed w/ "+cfg+", "+s.getWidth()+"x"+s.getHeight());
-            }
-            s.setSurfaceHandle(windowHandle);
-            if(DEBUG) {
-                System.err.println("X11GLXDrawableFactory.dummySurfaceLifecycleHook.create: "+s);
-            }
-        }
-    }
-    @Override
-    public final void destroy(ProxySurface s) {
-        if(0 != s.getSurfaceHandle()) {
-            final X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration) s.getGraphicsConfiguration();
-            final X11GraphicsDevice device = (X11GraphicsDevice) config.getScreen().getDevice();
-            X11Lib.DestroyDummyWindow(device.getHandle(), s.getSurfaceHandle());            
-            s.setSurfaceHandle(0);
-            if( 0 != ( ProxySurface.OWN_DEVICE & s.getImplBitfield() ) ) {
-                device.close();
-            }
-            if(DEBUG) {
-                System.err.println("X11GLXDrawableFactory.dummySurfaceLifecycleHook.destroy: "+s);
-            }
-        }
-    }
-    @Override
-    public final int getWidth(ProxySurface s) {
-        return s.initialWidth;
-    }
-    @Override
-    public final int getHeight(ProxySurface s) {
-        return s.initialHeight;
-    }
-    @Override
-    public String toString() {
-       return "X11SurfaceLifecycleHook[]";
-    }
-  };
-  
   
   @Override
   protected final ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream) {
@@ -593,7 +544,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     if(DEBUG) {
         System.err.println("X11GLXDrawableFactory.createProxySurfaceImpl 0x"+Long.toHexString(windowHandle)+": "+cfg);
     }
-    return new WrappedSurface(cfg, windowHandle, 0, 0, upstream);
+    return new WrappedSurface(cfg, windowHandle, upstream, true);
   }
 
   @Override

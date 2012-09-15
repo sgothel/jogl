@@ -96,6 +96,6 @@ public class MacOSXCGLGraphicsConfigurationFactory extends GLGraphicsConfigurati
 
         capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities( capsChosen, GLContext.isFBOAvailable(device, capsChosen.getGLProfile()), factory.canCreateGLPbuffer(device) );
         
-        return new MacOSXCGLGraphicsConfiguration(absScreen, (GLCapabilitiesImmutable)capsChosen, (GLCapabilitiesImmutable)capsRequested, 0);
+        return new MacOSXCGLGraphicsConfiguration(absScreen, (GLCapabilitiesImmutable)capsChosen, (GLCapabilitiesImmutable)capsRequested);
     }
 }

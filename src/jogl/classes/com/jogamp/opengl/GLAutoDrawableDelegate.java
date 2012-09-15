@@ -26,14 +26,21 @@
  * or implied, of JogAmp Community.
  */
  
-package javax.media.opengl;
+package com.jogamp.opengl;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.nativewindow.WindowClosingProtocol.WindowClosingMode;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawable;
+import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLException;
 
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
-import jogamp.opengl.Debug;
 import jogamp.opengl.GLAutoDrawableBase;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
@@ -46,44 +53,64 @@ import jogamp.opengl.GLDrawableImpl;
  * Since no native windowing system events are being processed, it is recommended
  * to handle at least:
  * <ul>
- *   <li>{@link com.jogamp.newt.event.WindowListener#windowRepaint(com.jogamp.newt.event.WindowUpdateEvent) repaint} using {@link #defaultWindowRepaintOp()}</li>
- *   <li>{@link com.jogamp.newt.event.WindowListener#windowResized(com.jogamp.newt.event.WindowEvent) resize} using {@link #defaultWindowResizedOp()}</li>
- *   <li>{@link com.jogamp.newt.event.WindowListener#windowDestroyNotify(com.jogamp.newt.event.WindowEvent) destroy-notify}  using {@link #defaultWindowDestroyNotifyOp()}</li> 
+ *   <li>{@link com.jogamp.newt.event.WindowListener#windowRepaint(com.jogamp.newt.event.WindowUpdateEvent) repaint} using {@link #windowRepaintOp()}</li>
+ *   <li>{@link com.jogamp.newt.event.WindowListener#windowResized(com.jogamp.newt.event.WindowEvent) resize} using {@link #windowResizedOp()}</li>
+ *   <li>{@link com.jogamp.newt.event.WindowListener#windowDestroyNotify(com.jogamp.newt.event.WindowEvent) destroy-notify}  using {@link #windowDestroyNotifyOp()}</li> 
  * </ul> 
  * </p>
  * <p> 
  * See example {@link com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateNEWT TestGLAutoDrawableDelegateNEWT}.
  * </p>
  */
-public class GLAutoDrawableDelegate extends GLAutoDrawableBase {
-    public static final boolean DEBUG = Debug.debug("GLAutoDrawableDelegate");
-    
+public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAutoDrawable {
     /**
-     * @param drawable a valid {@link GLDrawable}, may not be realized yet.
+     * @param drawable a valid and already realized {@link GLDrawable}
      * @param context a valid {@link GLContext}, may not be made current (created) yet.
      * @param upstreamWidget optional UI element holding this instance, see {@link #getUpstreamWidget()}.
      * @param ownDevice pass <code>true</code> if {@link AbstractGraphicsDevice#close()} shall be issued,
      *                  otherwise pass <code>false</code>. Closing the device is required in case
      *                  the drawable is created w/ it's own new instance, e.g. offscreen drawables,
      *                  and no further lifecycle handling is applied.
+     * @param lock optional custom {@link RecursiveLock}.
      */
-    public GLAutoDrawableDelegate(GLDrawable drawable, GLContext context, Object upstreamWidget, boolean ownDevice) {
+    public GLAutoDrawableDelegate(GLDrawable drawable, GLContext context, Object upstreamWidget, boolean ownDevice, RecursiveLock lock) {
         super((GLDrawableImpl)drawable, (GLContextImpl)context, ownDevice);
-        this.upstreamWidget = null;
+        if(null == drawable) {
+            throw new IllegalArgumentException("null drawable");
+        }
+        if(null == context) {
+            throw new IllegalArgumentException("null context");
+        }        
+        if(!drawable.isRealized()) {
+            throw new IllegalArgumentException("drawable not realized");
+        }
+        this.upstreamWidget = upstreamWidget;
+        this.lock = ( null != lock ) ? lock : LockFactory.createRecursiveLock() ;
     }
     
     //
     // expose default methods
     //
-    
+
+    /** Default implementation to handle repaint events from the windowing system */
     public final void windowRepaintOp() {
         super.defaultWindowRepaintOp();
     }
     
-    public final void windowResizedOp() {
-        super.defaultWindowResizedOp();
+    /** Implementation to handle resize events from the windowing system. All required locks are being claimed. */
+    public final void windowResizedOp(int newWidth, int newHeight) {
+        super.defaultWindowResizedOp(newWidth, newHeight);
     }
     
+    /** 
+     * Implementation to handle destroy notifications from the windowing system.
+     * 
+     * <p>
+     * If the {@link NativeSurface} does not implement {@link WindowClosingProtocol} 
+     * or {@link WindowClosingMode#DISPOSE_ON_CLOSE} is enabled (default),
+     * a thread safe destruction is being induced.
+     * </p> 
+     */
     public final void windowDestroyNotifyOp() {
         super.defaultWindowDestroyNotifyOp();
     }
@@ -92,8 +119,8 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase {
     // Complete GLAutoDrawable
     //
     
-    private final RecursiveLock lock = LockFactory.createRecursiveLock();  // instance wide lock
-    private final Object upstreamWidget;
+    private Object upstreamWidget;
+    private final RecursiveLock lock;
     
     @Override
     protected final RecursiveLock getLock() { return lock; }
@@ -101,6 +128,14 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase {
     @Override
     public final Object getUpstreamWidget() {
         return upstreamWidget;
+    }
+    
+    /**
+     * Set the upstream UI toolkit object.
+     * @see #getUpstreamWidget()
+     */
+    public final void setUpstreamWidget(Object newUpstreamWidget) {
+        upstreamWidget = newUpstreamWidget;
     }
     
     /**
@@ -119,7 +154,12 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase {
     }
 
     @Override
-    public void display() {
+    protected void destroyImplInLock() {
+        super.destroyImplInLock();
+    }
+    
+    @Override
+    public void display() {        
         defaultDisplay();
     }
     
@@ -140,5 +180,10 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase {
     public final void swapBuffers() throws GLException {
          defaultSwapBuffers();
     }
-        
+     
+    @Override
+    public String toString() {
+        return getClass().getSimpleName()+"[ \n\tHelper: " + helper + ", \n\tDrawable: " + drawable +
+               ", \n\tContext: " + context + ", \n\tUpstreamWidget: "+upstreamWidget+ /** ", \n\tFactory: "+factory+ */ "]";
+    }    
 }

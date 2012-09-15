@@ -51,21 +51,14 @@ import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 
 public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {
-    long pixelformat;
 
     MacOSXCGLGraphicsConfiguration(AbstractGraphicsScreen screen, 
-                                   GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested,
-                                   long pixelformat) {
+                                   GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested) {
         super(screen, capsChosen, capsRequested);
-        this.pixelformat=pixelformat;
     }
 
     public Object clone() {
         return super.clone();
-    }
-
-    void setChosenPixelFormat(long pixelformat) {
-        this.pixelformat=pixelformat;
     }
 
     protected static List<GLCapabilitiesImmutable> getAvailableCapabilities(MacOSXCGLDrawableFactory factory, AbstractGraphicsDevice device) {
@@ -114,11 +107,11 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
                 break;
                   
               case CGL.kCGLPFAColorFloat:
-                ivalues[idx] = caps.getPbufferFloatingPointBuffers() ? 1 : 0;
+                ivalues[idx] = ( !caps.isOnscreen() && caps.isPBuffer() && caps.getPbufferFloatingPointBuffers() ) ? 1 : 0;
                 break;
 
               case CGL.NSOpenGLPFAPixelBuffer:
-                ivalues[idx] = caps.isPBuffer() ? 1 : 0;
+                ivalues[idx] = ( !caps.isOnscreen() && caps.isPBuffer() ) ? 1 : 0;
                 break;
 
               case CGL.NSOpenGLPFADoubleBuffer:
@@ -188,11 +181,11 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
           attrs[i++] = CGL.kCGLPFAOpenGLProfile; 
           attrs[i++] = MacOSXCGLContext.GLProfile2CGLOGLProfileValue(ctp, major, minor);
       }
-      if(caps.isPBuffer()) {
+      if(!caps.isOnscreen() && caps.isPBuffer()) {
         attrs[i++] = CGL.kCGLPFAPBuffer;
-      }
-      if (caps.getPbufferFloatingPointBuffers()) {
-        attrs[i++] = CGL.kCGLPFAColorFloat;
+        if (caps.getPbufferFloatingPointBuffers()) {
+          attrs[i++] = CGL.kCGLPFAColorFloat;
+        }
       }
       if (caps.getDoubleBuffered()) {
         attrs[i++] = CGL.kCGLPFADoubleBuffer;

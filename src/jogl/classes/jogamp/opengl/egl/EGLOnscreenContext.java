@@ -41,16 +41,5 @@ public class EGLOnscreenContext extends EGLContext {
     public EGLOnscreenContext(EGLOnscreenDrawable drawable, GLContext shareWith) {
         super(drawable, shareWith);
     }
-
-    @Override
-    public void bindPbufferToTexture() {
-        throw new GLException("Should not call this");
-    }
-
-    @Override
-    public void releasePbufferFromTexture() {
-        throw new GLException("Should not call this");
-    }
-
 }
 

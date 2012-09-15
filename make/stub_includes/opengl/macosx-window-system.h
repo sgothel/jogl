@@ -13,6 +13,7 @@
 #include <AppKit/NSOpenGLLayer.h>
 #include <OpenGL/CGLDevice.h>
 #include <OpenGL/OpenGL.h>
+#include <gluegen_stdint.h>
 
 typedef int Bool;
 
@@ -51,12 +52,13 @@ NSOpenGLPixelBuffer* createPBuffer(int renderTarget, int internalFormat, int wid
 Bool destroyPBuffer(NSOpenGLPixelBuffer* pBuffer);
 void setContextPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* pBuffer);
 void setContextTextureImageToPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* pBuffer, GLenum colorBuffer);
+Bool isNSOpenGLPixelBuffer(uint64_t object);
 
-// NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, NSOpenGLPixelFormat* fmt, NSView* view, Bool opaque);
-NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, NSOpenGLPixelFormat* fmt, NSOpenGLPixelBuffer* pbuffer, Bool opaque, int texWidth, int texHeight);
+NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, NSOpenGLPixelFormat* fmt, NSOpenGLPixelBuffer* p, uint32_t texID, Bool opaque, int texWidth, int texHeight);
 void setNSOpenGLLayerSwapInterval(NSOpenGLLayer* layer, int interval);
 void waitUntilNSOpenGLLayerIsReady(NSOpenGLLayer* layer, long to_micros);
-void setNSOpenGLLayerNeedsDisplay(NSOpenGLLayer* glLayer);
+void flushNSOpenGLLayerPBuffer(NSOpenGLLayer* layer);
+void setNSOpenGLLayerNeedsDisplay(NSOpenGLLayer* layer, NSOpenGLPixelBuffer* p, uint32_t texID, int texWidth, int texHeight);
 void releaseNSOpenGLLayer(NSOpenGLLayer *glLayer);
 
 void* getProcAddress(const char *procName);
@@ -66,7 +68,4 @@ void setSwapInterval(NSOpenGLContext* ctx, int interval);
 /* Gamma-related functionality */
 Bool setGammaRamp(int tableSize, float* redRamp, float* greenRamp, float* blueRamp);
 void resetGammaRamp();
-
-/* returns the screen refresh rate in Hz */
-int getScreenRefreshRate(int scrn_idx);
 

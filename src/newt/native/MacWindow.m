@@ -94,7 +94,13 @@ static void changeContentView(JNIEnv *env, jobject javaWindowObject, NSView *pvi
     if(NULL!=oldNSView) {
 NS_DURING
         // Available >= 10.5 - Makes the menubar disapear
-        if([oldNSView isInFullScreenMode]) {
+        BOOL iifs;
+        if ( [oldNSView respondsToSelector:@selector(isInFullScreenMode)] ) {
+            iifs = [oldNSView isInFullScreenMode];
+        } else {
+            iifs = NO;
+        }
+        if(iifs && [oldNSView respondsToSelector:@selector(exitFullScreenModeWithOptions:)] ) {
             [oldNSView exitFullScreenModeWithOptions: NULL];
         }
 NS_HANDLER
@@ -430,6 +436,8 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_getScree
     if( -1 < mode_idx ) {
         prop[propIndex++] = mode_idx;
     }
+    int refreshRate = CGDDGetModeRefreshRate(mode);
+    int fRefreshRate = ( 0 < refreshRate ) ? refreshRate : 60; // default .. (experienced on OSX 10.6.8)
     prop[propIndex++] = 0; // set later for verification of iterator
     propIndexRes = propIndex;
     prop[propIndex++] = mWidth;
@@ -437,14 +445,14 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_macosx_ScreenDriver_getScree
     prop[propIndex++] = CGDDGetModeBitsPerPixel(mode);
     prop[propIndex++] = widthMM;
     prop[propIndex++] = heightMM;
-    prop[propIndex++] = CGDDGetModeRefreshRate(mode);
+    prop[propIndex++] = fRefreshRate;
     prop[propIndex++] = ccwRot;
     prop[propIndex - NUM_SCREEN_MODE_PROPERTIES_ALL] = ( -1 < mode_idx ) ? propIndex-1 : propIndex ; // count == NUM_SCREEN_MODE_PROPERTIES_ALL
 
-    DBG_PRINT( "getScreenMode0: Mode %d/%d (%d): %dx%d, %d bpp, %dx%d mm, %d Hz, rot %d ccw\n",
+    DBG_PRINT( "getScreenMode0: Mode %d/%d (%d): %dx%d, %d bpp, %dx%d mm, %d / %d Hz, rot %d ccw\n",
         (int)mode_idx, (int)numberOfAvailableModesRots, (int)numberOfAvailableModes, 
         (int)prop[propIndexRes+0], (int)prop[propIndexRes+1], (int)prop[propIndexRes+2], 
-        (int)prop[propIndexRes+3], (int)prop[propIndexRes+4], (int)prop[propIndexRes+5], (int)prop[propIndexRes+6]);
+        (int)prop[propIndexRes+3], (int)prop[propIndexRes+4], (int)prop[propIndexRes+5], refreshRate, (int)prop[propIndexRes+6]);
 
     jintArray properties = (*env)->NewIntArray(env, prop_num);
     if (properties == NULL) {
@@ -516,6 +524,8 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_initIDs0
     if(initialized) return JNI_TRUE;
     initialized = 1;
 
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
     jclass c;
     c = (*env)->FindClass(env, ClazzNamePoint);
     if(NULL==c) {
@@ -537,7 +547,10 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_initIDs0
     //    printf("Going to sleep for 10 seconds\n");
     //    sleep(10);
 
-    return (jboolean) [NewtMacWindow initNatives: env forClass: clazz];
+    BOOL res =  [NewtMacWindow initNatives: env forClass: clazz];
+    [pool release];
+
+    return (jboolean) res;
 }
 
 /*
@@ -602,8 +615,10 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_createWindow
     // Remove animations for child windows
     if(NULL != parentWindow) {
 NS_DURING
-        // Available >= 10.7 - Removes default animations
-        [myWindow setAnimationBehavior: NSWindowAnimationBehaviorNone];
+        if ( [myWindow respondsToSelector:@selector(setAnimationBehavior:)] ) {
+            // Available >= 10.7 - Removes default animations
+            [myWindow setAnimationBehavior: NSWindowAnimationBehaviorNone];
+        }
 NS_HANDLER
 NS_ENDHANDLER
     }
@@ -658,8 +673,12 @@ NS_ENDHANDLER
 NS_DURING
     // concurrent view rendering
     // Available >= 10.6 - Makes the menubar disapear
-    [myWindow setAllowsConcurrentViewDrawing: YES];
-    [myView setCanDrawConcurrently: YES];
+    if ( [myWindow respondsToSelector:@selector(setAllowsConcurrentViewDrawing:)] ) {
+        [myWindow setAllowsConcurrentViewDrawing: YES];
+    }
+    if ( [myView respondsToSelector:@selector(setCanDrawConcurrently:)] ) {
+        [myView setCanDrawConcurrently: YES];
+    }
 NS_HANDLER
 NS_ENDHANDLER
 
@@ -669,7 +688,9 @@ NS_ENDHANDLER
 NS_DURING
     // Available >= 10.5 - Makes the menubar disapear
     if(fullscreen) {
-         [myView enterFullScreenMode: myScreen withOptions:NULL];
+        if ( [myView respondsToSelector:@selector(enterFullScreenMode:withOptions:)] ) {
+            [myView enterFullScreenMode: myScreen withOptions:NULL];
+        }
     }
 NS_HANDLER
 NS_ENDHANDLER
@@ -730,7 +751,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_close0
 NS_DURING
     if(NULL!=mView) {
         // Available >= 10.5 - Makes the menubar disapear
-        if([mView isInFullScreenMode]) {
+        BOOL iifs;
+        if ( [mView respondsToSelector:@selector(isInFullScreenMode)] ) {
+            iifs = [mView isInFullScreenMode];
+        } else {
+            iifs = NO;
+        }
+        if(iifs && [mView respondsToSelector:@selector(exitFullScreenModeWithOptions:)] ) {
             [mView exitFullScreenModeWithOptions: NULL];
         }
         // Note: mWin's release will also release it's mView!

@@ -49,8 +49,8 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 
-import com.jogamp.nativewindow.WrappedSurface;
 
+import jogamp.nativewindow.WrappedSurface;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLContextShareSet;
 import jogamp.opengl.macosx.cgl.MacOSXCGLDrawable.GLBackendType;
@@ -62,7 +62,6 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
   private MacOSXExternalCGLContext(Drawable drawable, boolean isNSContext, long handle) {
     super(drawable, null);
     setOpenGLMode(isNSContext ? GLBackendType.NSOPENGL : GLBackendType.CGL );
-    drawable.registerContext(this);
     this.contextHandle = handle;
     GLContextShareSet.contextCreated(this);
     setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_COMPAT);
@@ -108,13 +107,13 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
     }
 
     AbstractGraphicsScreen aScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_MACOSX);
-    MacOSXCGLGraphicsConfiguration cfg = new MacOSXCGLGraphicsConfiguration(aScreen, caps, caps, pixelFormat);
+    MacOSXCGLGraphicsConfiguration cfg = new MacOSXCGLGraphicsConfiguration(aScreen, caps, caps);
 
     if(0 == currentDrawable) {
         // set a fake marker stating a valid drawable
         currentDrawable = 1;
     }
-    WrappedSurface ns = new WrappedSurface(cfg, currentDrawable, 64, 64, null);
+    WrappedSurface ns = new WrappedSurface(cfg, currentDrawable, 64, 64, true);
     return new MacOSXExternalCGLContext(new Drawable(factory, ns), isNSContext, contextHandle);
   }
 

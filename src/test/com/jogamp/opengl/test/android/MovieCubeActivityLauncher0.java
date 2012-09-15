@@ -50,6 +50,8 @@ public class MovieCubeActivityLauncher0 extends LauncherUtil.BaseActivityLaunche
        // props.setProperty("jogamp.debug.NativeLibrary", "true");
        // props.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
        // props.setProperty("jogamp.debug.IOUtil", "true");       
+       // props.setProperty("jogamp.debug.Lock", "true");
+       // props.setProperty("jogamp.debug.Lock.TraceLock", "true");
        // props.setProperty("nativewindow.debug", "all");
        props.setProperty("nativewindow.debug.GraphicsConfiguration", "true");
        // props.setProperty("jogl.debug", "all");

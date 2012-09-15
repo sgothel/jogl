@@ -48,10 +48,10 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import jogamp.nativewindow.WrappedSurface;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLContextShareSet;
 
-import com.jogamp.nativewindow.WrappedSurface;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 public class X11ExternalGLXContext extends X11GLXContext {
@@ -105,7 +105,7 @@ public class X11ExternalGLXContext extends X11GLXContext {
         cfg = X11GLXGraphicsConfiguration.create(glp, x11Screen, val[0]);
     }
 
-    final WrappedSurface ns = new WrappedSurface(cfg, drawable, w, h, null);
+    final WrappedSurface ns = new WrappedSurface(cfg, drawable, w, h, true);
     return new X11ExternalGLXContext(new Drawable(factory, ns), ctx);
   }
 

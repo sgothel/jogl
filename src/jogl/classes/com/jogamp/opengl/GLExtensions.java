@@ -72,6 +72,9 @@ public class GLExtensions {
   
   public static final String OES_EGL_image_external          = "GL_OES_EGL_image_external";
   
+  public static final String ARB_gpu_shader_fp64             = "GL_ARB_gpu_shader_fp64";
+  public static final String ARB_shader_objects              = "GL_ARB_shader_objects";
+   
   //
   // Aliased GLX/WGL/.. extensions
   //

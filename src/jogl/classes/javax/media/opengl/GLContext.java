@@ -96,6 +96,9 @@ public abstract class GLContext {
    */
   public static final boolean PROFILE_ALIASING = !Debug.isPropertyDefined("jogl.debug.GLContext.NoProfileAliasing", true);
   
+  protected static final boolean FORCE_NO_FBO_SUPPORT = Debug.isPropertyDefined("jogl.fbo.force.none", true);
+  protected static final boolean FORCE_MIN_FBO_SUPPORT = Debug.isPropertyDefined("jogl.fbo.force.min", true);
+  
   public static final boolean DEBUG = Debug.debug("GLContext");
   public static final boolean TRACE_SWITCH = Debug.isPropertyDefined("jogl.debug.GLContext.TraceSwitch", true);
 
@@ -127,9 +130,9 @@ public abstract class GLContext {
   /** <code>GL_ARB_ES2_compatibility</code> implementation related: Context is compatible w/ ES2. Not a cache key. See {@link #isGLES2Compatible()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
   protected static final int CTX_IMPL_ES2_COMPAT = 1 <<  8;
 
-  /** Context supports basic FBO, details see {@link #hasFBO()}.
+  /** Context supports basic FBO, details see {@link #hasBasicFBOSupport()}.
    * Not a cache key.
-   * @see #hasFBO()
+   * @see #hasBasicFBOSupport()
    * @see #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)
    */
   protected static final int CTX_IMPL_FBO        = 1 <<  9;
@@ -177,11 +180,6 @@ public abstract class GLContext {
    * If the context was current on this thread, it is being released before switching the drawable
    * and made current afterwards. However the user shall take extra care that not other thread
    * attempts to make this context current. Otherwise a race condition may happen.
-   * </p>
-   * <p>
-   * <b>Disclaimer</b>: Even though the API may allows this functionality in theory, your mileage may vary 
-   * switching the drawable of an already established GLContext, i.e. which is already made current once.
-   * FIXME: Validate functionality! 
    * </p>
    * @param readWrite the read/write drawable for framebuffer operations.
    * @param setWriteOnly if <code>true</code> and if the current read-drawable differs 
@@ -603,12 +601,23 @@ public abstract class GLContext {
 
   /** 
    * @return true if impl. is a hardware rasterizer, otherwise false.
+   * @see #isHardwareRasterizer(AbstractGraphicsDevice, GLProfile)
    * @see GLProfile#isHardwareRasterizer() 
    */
   public final boolean isHardwareRasterizer() {
       return 0 == ( ctxOptions & CTX_IMPL_ACCEL_SOFT ) ;
   }
   
+  /**
+   * @return true if context supports GLSL, i.e. is either {@link #isGLES2()}, {@link #isGL3()} or {@link #isGL2()} <i>and</i> major-version > 1.
+   * @see GLProfile#hasGLSL() 
+   */
+  public final boolean hasGLSL() {
+      return isGLES2() ||
+             isGL3() ||
+             isGL2() && ctxMajorVersion>1 ;
+  }
+
   /** 
    * Returns <code>true</code> if basic FBO support is available, otherwise <code>false</code>.
    * <p>
@@ -620,21 +629,54 @@ public abstract class GLContext {
    * as well as limited internal formats for renderbuffer.
    * </p>
    * @see #CTX_IMPL_FBO
-   * @see com.jogamp.opengl.FBObject#supportsBasicFBO(GL)
-   * @see com.jogamp.opengl.FBObject#supportsFullFBO(GL)
    */
-  public final boolean hasFBO() {
+  public final boolean hasBasicFBOSupport() {
       return 0 != ( ctxOptions & CTX_IMPL_FBO ) ;
   }
 
-  /**
-   * @return true if context supports GLSL
-   * @see GLProfile#hasGLSL() 
+  /** 
+   * Returns <code>true</code> if full FBO support is available, otherwise <code>false</code>.
+   * <p>
+   * Full FBO is supported if the context is either GL >= core 3.0 or implements the extensions
+   * <code>ARB_framebuffer_object</code>, or all of
+   * <code>EXT_framebuffer_object</code>, <code>EXT_framebuffer_multisample</code>, 
+   * <code>EXT_framebuffer_blit</code>, <code>GL_EXT_packed_depth_stencil</code>.
+   * </p>
+   * <p>
+   * Full FBO support includes multiple color attachments and multisampling.
+   * </p>
    */
-  public final boolean hasGLSL() {
-      return isGL2ES2() ;
+  public final boolean hasFullFBOSupport() {        
+      return !FORCE_MIN_FBO_SUPPORT && hasBasicFBOSupport() &&
+              ( isGL3() ||                                                         // GL >= 3.0                
+                isExtensionAvailable(GLExtensions.ARB_framebuffer_object) ||       // ARB_framebuffer_object
+                ( isExtensionAvailable(GLExtensions.EXT_framebuffer_object) &&     // All EXT_framebuffer_object*
+                  isExtensionAvailable(GLExtensions.EXT_framebuffer_multisample) &&
+                  isExtensionAvailable(GLExtensions.EXT_framebuffer_blit) &&
+                  isExtensionAvailable(GLExtensions.EXT_packed_depth_stencil)
+                )
+              ) ;               
   }
-
+  
+  /**
+   * Returns the maximum number of FBO RENDERBUFFER samples
+   * if {@link #hasFullFBOSupport() full FBO is supported}, otherwise false. 
+   */
+  public final int getMaxRenderbufferSamples() {
+      if( hasFullFBOSupport() ) {
+          final GL gl = getGL();
+          final int[] val = new int[] { 0 } ;
+          gl.glGetIntegerv(GL2GL3.GL_MAX_SAMPLES, val, 0);
+          final int glerr = gl.glGetError();
+          if(GL.GL_NO_ERROR == glerr) {
+              return val[0];
+          } else if(DEBUG) {
+              System.err.println("GLContext.getMaxRenderbufferSamples: GL_MAX_SAMPLES query GL Error 0x"+Integer.toHexString(glerr));
+          }
+      }
+      return 0;
+  }
+  
   /** Note: The GL impl. may return a const value, ie {@link GLES2#isNPOTTextureAvailable()} always returns <code>true</code>. */
   public boolean isNPOTTextureAvailable() {
       return isGL3() || isGLES2Compatible() || isExtensionAvailable(GLExtensions.ARB_texture_non_power_of_two);
@@ -1014,6 +1056,9 @@ public abstract class GLContext {
     validateProfileBits(profile, "profile");
     validateProfileBits(resCtp, "resCtp");
 
+    if(FORCE_NO_FBO_SUPPORT) {
+        resCtp &= ~CTX_IMPL_FBO ;
+    }
     if(DEBUG) {
         System.err.println("GLContext.mapAvailableGLVersion: "+device+": "+getGLVersion(reqMajor, 0, profile, null)+" -> "+getGLVersion(resMajor, resMinor, resCtp, null));
         // Thread.dumpStack();
@@ -1197,15 +1242,33 @@ public abstract class GLContext {
    * FBO feature is implemented in OpenGL, hence it is {@link GLProfile} dependent.
    * </p> 
    * <p>
-   * FBO support is queried as described in {@link #hasFBO()}.
+   * FBO support is queried as described in {@link #hasBasicFBOSupport()}.
    * </p>
    *
    * @param device the device to request whether FBO is available for
    * @param glp {@link GLProfile} to check for FBO capabilities
-   * @see GLContext#hasFBO()
+   * @see GLContext#hasBasicFBOSupport()
    */
   public static final boolean isFBOAvailable(AbstractGraphicsDevice device, GLProfile glp) {
       return 0 != ( CTX_IMPL_FBO & getAvailableContextProperties(device, glp) );
+  }
+  
+  /**
+   * @return <code>1</code> if using a hardware rasterizer, <code>0</code> if using a software rasterizer and <code>-1</code> if not determined yet. 
+   * @see GLContext#isHardwareRasterizer()
+   * @see GLProfile#isHardwareRasterizer() 
+   */
+  public static final int isHardwareRasterizer(AbstractGraphicsDevice device, GLProfile glp) {
+      final int r;
+      final int ctp = getAvailableContextProperties(device, glp);
+      if(0 == ctp) { 
+          r = -1;
+      } else if( 0 == ( CTX_IMPL_ACCEL_SOFT & ctp ) ) {
+          r = 1;
+      } else {
+          r = 0;
+      }
+      return r;
   }
   
   /**

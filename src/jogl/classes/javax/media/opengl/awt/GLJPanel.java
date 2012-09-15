@@ -121,7 +121,7 @@ import com.jogamp.opengl.util.GLBuffers;
  *  </P>
 */
 
-@SuppressWarnings("serial")
+@SuppressWarnings({ "serial", "deprecation" })
 public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosingProtocol {
   private static final boolean DEBUG = Debug.debug("GLJPanel");
 
@@ -396,7 +396,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       their reshape() method in order to function properly. <P>
 
       <DL><DD><CODE>reshape</CODE> in class <CODE>java.awt.Component</CODE></DD></DL> */
-  @SuppressWarnings("deprecation")
   @Override
   public void reshape(int x, int y, int width, int height) {
     super.reshape(x, y, width, height);
@@ -471,7 +470,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           return null;
       }
       final GLContext oldCtx = backend.getContext();
-      final boolean newCtxCurrent = helper.switchContext(backend.getDrawable(), oldCtx, newCtx, additionalCtxCreationFlags);
+      final boolean newCtxCurrent = GLDrawableHelper.switchContext(backend.getDrawable(), oldCtx, newCtx, additionalCtxCreationFlags);
       backend.setContext(newCtx);
       if(newCtxCurrent) {
           newCtx.makeCurrent();
@@ -480,6 +479,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
 
+  @Override
+  public final GLDrawable getDelegatedDrawable() {
+    if (backend == null) {
+      return null;
+    }
+    return backend.getDrawable();
+  }
+  
   @Override
   public GLContext getContext() {
     if (backend == null) {

@@ -69,9 +69,10 @@ public abstract class X11GLXDrawable extends GLDrawableImpl {
   }
 
   @Override
-  protected final void swapBuffersImpl() {
-    // single-buffer is already filtered out @ GLDrawableImpl#swapBuffers()
-    GLX.glXSwapBuffers(getNativeSurface().getDisplayHandle(), getHandle());
+  protected final void swapBuffersImpl(boolean doubleBuffered) {
+    if(doubleBuffered) {
+        GLX.glXSwapBuffers(getNativeSurface().getDisplayHandle(), getHandle());
+    }
   }
 
   //---------------------------------------------------------------------------

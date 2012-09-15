@@ -45,7 +45,8 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-import com.jogamp.nativewindow.WrappedSurface;
+import jogamp.nativewindow.WrappedSurface;
+
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 
@@ -87,7 +88,7 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
         System.err.println("X11ExternalGLXDrawable: WARNING: forcing GLX_RGBA_TYPE for newly created contexts (current 0x"+Integer.toHexString(val[0])+")");
       }
     }
-    return new X11ExternalGLXDrawable(factory, new WrappedSurface(cfg, drawable, w, h, null));
+    return new X11ExternalGLXDrawable(factory, new WrappedSurface(cfg, drawable, w, h, true));
   }
 
   @Override

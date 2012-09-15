@@ -40,7 +40,7 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLPbuffer;
+import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -57,9 +57,10 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  *
  * @author Wade Walker (from code sample provided by Owen Dimond)
  */
-public class TestBug461OffscreenSupersamplingSwingAWT extends UITestCase implements GLEventListener {
+@SuppressWarnings("deprecation")
+public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GLEventListener {
     JFrame jframe;
-    GLPbuffer offScreenBuffer;
+    GLOffscreenAutoDrawable offScreenBuffer;
     
     private void render(GLAutoDrawable drawable) {
         GL2 gl = drawable.getGL().getGL2();
@@ -140,7 +141,7 @@ public class TestBug461OffscreenSupersamplingSwingAWT extends UITestCase impleme
         glCap.setStencilBits(1);
 
         //makes a new buffer
-        offScreenBuffer = fac.createGLPbuffer(GLProfile.getDefaultDevice(), glCap, null, 200, 200, null);
+        offScreenBuffer = fac.createOffscreenAutoDrawable(GLProfile.getDefaultDevice(), glCap, null, 200, 200, null);
         Assert.assertNotNull(offScreenBuffer);
         offScreenBuffer.addGLEventListener(this);        
         offScreenBuffer.display();
@@ -148,10 +149,11 @@ public class TestBug461OffscreenSupersamplingSwingAWT extends UITestCase impleme
             public void run() {
                 jframe.setVisible(true);
             }});
+        offScreenBuffer.destroy();
     }
 
     public static void main(String args[]) {
-        org.junit.runner.JUnitCore.main(TestBug461OffscreenSupersamplingSwingAWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestBug461FBOSupersamplingSwingAWT.class.getName());
     }
 }
 

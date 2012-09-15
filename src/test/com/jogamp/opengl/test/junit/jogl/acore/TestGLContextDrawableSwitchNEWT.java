@@ -39,13 +39,14 @@ import com.jogamp.newt.event.WindowUpdateEvent;
 import com.jogamp.newt.opengl.GLWindow;
 
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLAutoDrawableDelegate;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
+
+import com.jogamp.opengl.GLAutoDrawableDelegate;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -81,14 +82,17 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
         Assert.assertTrue(AWTRobotUtil.waitForVisible(window, true));
         Assert.assertTrue(AWTRobotUtil.waitForRealized(window, true));
             
-        GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
-        GLDrawable drawable = factory.createGLDrawable(window);
+        final GLDrawableFactory factory = GLDrawableFactory.getFactory(caps.getGLProfile());
+        final GLDrawable drawable = factory.createGLDrawable(window);
         Assert.assertNotNull(drawable);
         
         drawable.setRealized(true);
         Assert.assertTrue(drawable.isRealized());
         
-        final GLAutoDrawableDelegate glad = new GLAutoDrawableDelegate(drawable, null, window, false) {
+        final GLContext context = drawable.createContext(null);
+        Assert.assertNotNull(context);
+        
+        final GLAutoDrawableDelegate glad = new GLAutoDrawableDelegate(drawable, context, window, false, null) {
             @Override
             protected void destroyImplInLock() {
                 super.destroyImplInLock();
@@ -104,7 +108,7 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
             }
             @Override
             public void windowResized(WindowEvent e) {
-                glad.windowResizedOp();
+                glad.windowResizedOp(window.getWidth(), window.getHeight());
             }
             @Override
             public void windowDestroyNotify(WindowEvent e) {
@@ -123,9 +127,13 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
         GLAutoDrawable glad1 = createGLAutoDrawable(caps,         64, 64,     width,     height, quitAdapter); // no GLContext!
         GLAutoDrawable glad2 = createGLAutoDrawable(caps, 2*64+width, 64, width+100, height+100, quitAdapter); // no GLContext!
         
-        // create single context using glad1 and assign it to glad1 
+        // create single context using glad1 and assign it to glad1,
+        // after destroying the prev. context!
         {
-            GLContext singleCtx = glad1.createContext(null);
+            final GLContext oldCtx = glad1.getContext();
+            Assert.assertNotNull(oldCtx);
+            oldCtx.destroy();
+            final GLContext singleCtx = glad1.createContext(null);
             Assert.assertNotNull(singleCtx);        
             int res = singleCtx.makeCurrent();
             Assert.assertTrue(GLContext.CONTEXT_CURRENT_NEW==res || GLContext.CONTEXT_CURRENT==res);

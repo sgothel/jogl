@@ -124,8 +124,11 @@ public interface NativeSurface extends SurfaceUpdatedListener {
   /**
    * Provide a mechanism to utilize custom (pre-) swap surface
    * code. This method is called before the render toolkit (e.g. JOGL) 
-   * swaps the buffer/surface. The implementation may itself apply the swapping,
+   * swaps the buffer/surface if double buffering is enabled.
+   * <p> 
+   * The implementation may itself apply the swapping,
    * in which case true shall be returned.
+   * </p>
    *
    * @return true if this method completed swapping the surface,
    *         otherwise false, in which case eg the GLDrawable 

@@ -111,7 +111,7 @@ public class TestGLReadBufferUtilTextureIOWrite02AWT extends UITestCase {
                 if(snap) {
                     System.err.println("XXX: ["+fw_old+", "+dw_old+"], "+fw+"x"+fh+", "+dw+"x"+dh+", sz_changed "+sz_changed+", snap "+snap);
                     c=0;
-                    snapshot(getSimpleTestName("."), i++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
+                    snapshot(i++, null, drawable.getGL(), screenshot, TextureIO.PNG, null);
                     dw_old = dw;
                     fw_old = fw;
                     Threading.invoke(true, new Runnable() {

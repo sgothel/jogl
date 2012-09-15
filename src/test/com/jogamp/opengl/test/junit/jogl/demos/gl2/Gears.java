@@ -1,7 +1,9 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.gl2;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
@@ -71,11 +73,16 @@ public class Gears implements GLEventListener {
 
     GL2 gl = drawable.getGL().getGL2();
 
+    System.err.println("Gears (GL2) init on "+Thread.currentThread());
     System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
     System.err.println("INIT GL IS: " + gl.getClass().getName());
-    System.err.println("GL_VENDOR: " + gl.glGetString(GL2.GL_VENDOR));
-    System.err.println("GL_RENDERER: " + gl.glGetString(GL2.GL_RENDERER));
-    System.err.println("GL_VERSION: " + gl.glGetString(GL2.GL_VERSION));
+    System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
+    System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
+    System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
+    System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none"));
+    System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
+    System.err.println("GL Profile: "+gl.getGLProfile());
+    System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
 
     float pos[] = { 5.0f, 5.0f, 10.0f, 0.0f };
     float red[] = { 0.8f, 0.1f, 0.0f, 0.7f };

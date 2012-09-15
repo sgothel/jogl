@@ -64,8 +64,9 @@ public class GearsES2 implements GLEventListener {
     private KeyListener gearsKeys = new GearsKeyAdapter();
 
     private int prevMouseX, prevMouseY;
+    private boolean doRotate = true;
     private boolean isInitialized = false;
-    boolean isFBOSlave = false;
+    boolean ignoreFocus = false;
 
     public GearsES2(int swapInterval) {
         this.swapInterval = swapInterval;
@@ -75,7 +76,8 @@ public class GearsES2 implements GLEventListener {
         this.swapInterval = 1;
     }
 
-    public void setIsFBOSlave(boolean v) { isFBOSlave = v; }
+    public void setIgnoreFocus(boolean v) { ignoreFocus = v; }
+    public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
     
     public void setPMVUseBackingArray(boolean pmvUseBackingArray) {
         this.pmvUseBackingArray = pmvUseBackingArray;
@@ -112,11 +114,16 @@ public class GearsES2 implements GLEventListener {
         System.err.println(Thread.currentThread()+" GearsES2.init ...");
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
+        System.err.println("GearsES2 init on "+Thread.currentThread());
         System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
         System.err.println("INIT GL IS: " + gl.getClass().getName());
         System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
         System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
         System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
+        System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none"));
+        System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
+        System.err.println("GL Profile: "+gl.getGLProfile());
+        System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
 
         gl.glEnable(GL.GL_DEPTH_TEST);
         
@@ -247,7 +254,9 @@ public class GearsES2 implements GLEventListener {
 
     public void display(GLAutoDrawable drawable) {
         // Turn the gears' teeth
-        angle += 2.0f;
+        if(doRotate) {
+            angle += 2.0f;
+        }
 
         // Get the GL corresponding to the drawable we are animating
         GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -262,7 +271,7 @@ public class GearsES2 implements GLEventListener {
         
         gl.glEnable(GL.GL_CULL_FACE);
         
-        if( isFBOSlave || hasFocus ) {
+        if( ignoreFocus || hasFocus ) {
           gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         } else {
           gl.glClearColor(0.2f, 0.2f, 0.2f, 0.0f);

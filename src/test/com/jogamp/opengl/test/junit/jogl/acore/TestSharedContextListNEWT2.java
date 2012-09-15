@@ -30,7 +30,6 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.newt.opengl.GLWindow;
 
 import javax.media.nativewindow.util.InsetsImmutable;
@@ -55,12 +54,6 @@ public class TestSharedContextListNEWT2 extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        if(Platform.CPUFamily.X86 != Platform.CPU_ARCH.family) { // FIXME
-            // FIXME: Turns out on some mobile GL drivers and platforms 
-            // using shared context is instable, Linux ARM (Omap4, Tegra2, Mesa3d, ..)
-            setTestSupported(false);
-            return;
-        }
         if(GLProfile.isAvailable(GLProfile.GL2)) {
             glp = GLProfile.get(GLProfile.GL2);
             Assert.assertNotNull(glp);
@@ -135,16 +128,11 @@ public class TestSharedContextListNEWT2 extends UITestCase {
 			e.printStackTrace();
 		}
 
-        // here we go again: On AMD/X11 the create/destroy sequence must be the same
-        // even though this is against the chicken/egg logic here ..
-        releaseShared();
-
         f1.destroy();
         f2.destroy();
         f3.destroy();
 
-        // see above ..
-        // releaseShared();
+        releaseShared();
     }
 
     static long duration = 2000; // ms

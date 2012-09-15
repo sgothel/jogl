@@ -36,7 +36,7 @@ import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
 
-class NewtAWTReparentingKeyAdapter extends KeyAdapter {
+public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
     Frame frame;
     NewtCanvasAWT newtCanvasAWT;
     GLWindow glWindow;

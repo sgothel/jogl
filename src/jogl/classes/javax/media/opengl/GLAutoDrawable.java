@@ -115,6 +115,12 @@ public interface GLAutoDrawable extends GLDrawable {
   public static final boolean SCREEN_CHANGE_ACTION_ENABLED = Debug.getBooleanProperty("jogl.screenchange.action", true);
 
   /**
+   * If the implementation uses delegation, return the delegated {@link GLDrawable} instance,
+   * otherwise return <code>this</code> instance.
+   */
+  public GLDrawable getDelegatedDrawable();
+  
+  /**
    * Returns the context associated with this drawable. The returned
    * context will be synchronized.
    * Don't rely on it's identity, the context may change.
@@ -124,23 +130,31 @@ public interface GLAutoDrawable extends GLDrawable {
   /**
    * Associate a new context to this drawable and also propagates the context/drawable switch by 
    * calling {@link GLContext#setGLDrawable(GLDrawable, boolean) newCtx.setGLDrawable(drawable, true);}.
-   * <code>drawable</code> might be an inner GLDrawable instance if using such a delegation pattern,
-   * or this GLAutoDrawable itself. 
-   * <p>
-   * If the old context's drawable was an {@link GLAutoDrawable}, it's reference to the given drawable
-   * is being cleared by calling 
-   * {@link GLAutoDrawable#setContext(GLContext) ((GLAutoDrawable)oldCtx.getGLDrawable()).setContext(null)}.
-   * </p>
+   * <code>drawable</code> might be an inner GLDrawable instance if using a delegation pattern,
+   * or this GLAutoDrawable instance.
    * <p>
    * If the old or new context was current on this thread, it is being released before switching the drawable.
    * The new context will be made current afterwards, if it was current before. 
-   * However the user shall take extra care that not other thread
-   * attempts to make this context current. Otherwise a race condition may happen.
+   * However the user shall take extra care that no other thread
+   * attempts to make this context current.
    * </p>
    * <p>
-   * <b>Disclaimer</b>: Even though the API may allows this functionality in theory, your mileage may vary 
-   * switching the drawable of an already established GLContext, i.e. which is already made current once.
-   * FIXME: Validate functionality! 
+   * Be aware that the old context is still bound to the drawable, 
+   * and that one context can only be bound to one drawable at one time!
+   * </p>
+   * <p>
+   * In case you do not intend to use the old context anymore, i.e. 
+   * not assigning it to another drawable, it shall be 
+   * destroyed before setting the new context, i.e.:
+   * <pre>
+            GLContext oldCtx = glad.getContext();
+            if(null != oldCtx) {
+                oldCtx.destroy();
+            }
+            glad.setContext(newCtx);            
+   * </pre> 
+   * This is required, since a context must have a valid drawable at all times
+   * and this API shall not restrict the user in any way. 
    * </p>
    * 
    * @param newCtx the new context

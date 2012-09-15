@@ -119,6 +119,12 @@ Java_jogamp_nativewindow_macosx_OSXUtil_isNSView0(JNIEnv *env, jclass _unused, j
     return [nsObj isMemberOfClass:[NSView class]];
 }
 
+JNIEXPORT jboolean JNICALL 
+Java_jogamp_nativewindow_macosx_OSXUtil_isNSWindow0(JNIEnv *env, jclass _unused, jlong object) {
+    NSObject *nsObj = (NSObject*) (intptr_t) object;
+    return [nsObj isMemberOfClass:[NSWindow class]];
+}
+
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    getLocationOnScreen0
@@ -238,8 +244,10 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateNSWindow0
     [myWindow setPreservesContentDuringLiveResize: YES];
     // Remove animations
 NS_DURING
+    if ( [myWindow respondsToSelector:@selector(setAnimationBehavior:)] ) {
         // Available >= 10.7 - Removes default animations
         [myWindow setAnimationBehavior: NSWindowAnimationBehaviorNone];
+    }
 NS_HANDLER
 NS_ENDHANDLER
 
@@ -278,11 +286,28 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSView0
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSWindow* win = (NSWindow*) ((intptr_t) window);
 
-    DBG_PRINT( "contentView0 - window: %p (START)\n", win);
-
     jlong res = (jlong) ((intptr_t) [win contentView]);
 
-    DBG_PRINT( "contentView0 - window: %p (END)\n", win);
+    DBG_PRINT( "GetNSView(window: %p): %p\n", win, (void*) (intptr_t) res);
+
+    [pool release];
+    return res;
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    GetNSWindow0
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
+  (JNIEnv *env, jclass unused, jlong view)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSView* v = (NSView*) ((intptr_t) view);
+
+    jlong res = (jlong) ((intptr_t) [v window]);
+
+    DBG_PRINT( "GetNSWindow(view: %p): %p\n", v, (void*) (intptr_t) res);
 
     [pool release];
     return res;
@@ -314,6 +339,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
     // no animations for add/remove/swap sublayers etc 
     // doesn't work: [layer removeAnimationForKey: kCAOnOrderIn, kCAOnOrderOut, kCATransition]
     [layer removeAllAnimations];
+    [layer setAutoresizingMask: (kCALayerWidthSizable|kCALayerHeightSizable)];
+    [layer setNeedsDisplayOnBoundsChange: YES];
     DBG_PRINT("CALayer::CreateCALayer.1: %p %lf/%lf %lfx%lf\n", layer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
     DBG_PRINT("CALayer::CreateCALayer.X: %p (refcnt %d)\n", layer, (int)[layer retainCount]);
 
@@ -357,7 +384,11 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
         // no animations for add/remove/swap sublayers etc 
         // doesn't work: [layer removeAnimationForKey: kCAOnOrderIn, kCAOnOrderOut, kCATransition]
         [rootLayer removeAllAnimations];
+        [rootLayer setAutoresizingMask: (kCALayerWidthSizable|kCALayerHeightSizable)];
+        [rootLayer setNeedsDisplayOnBoundsChange: YES];
         [subLayer removeAllAnimations];
+        [subLayer setAutoresizingMask: (kCALayerWidthSizable|kCALayerHeightSizable)];
+        [subLayer setNeedsDisplayOnBoundsChange: YES];
     }];
     DBG_PRINT("CALayer::AddCASublayer0.X: %p . %p (refcnt %d)\n", rootLayer, subLayer, (int)[subLayer retainCount]);
     JNF_COCOA_EXIT(env);
@@ -403,6 +434,63 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyCALayer0
     DBG_PRINT("CALayer::DestroyCALayer0.X: %p\n", layer);
     JNF_COCOA_EXIT(env);
 }
+
+/*
+ * Class:     Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
+ * Method:    SetJAWTRootSurfaceLayer0
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_SetJAWTRootSurfaceLayer0
+  (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
+{
+    JNF_COCOA_ENTER(env);
+    JAWT_DrawingSurfaceInfo* dsi = (JAWT_DrawingSurfaceInfo*) (*env)->GetDirectBufferAddress(env, jawtDrawingSurfaceInfoBuffer);
+    if (NULL == dsi) {
+        NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
+        return JNI_FALSE;
+    }
+    CALayer* layer = (CALayer*) (intptr_t) caLayer;
+    [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
+        id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
+        DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.0: %p -> %p (refcnt %d)\n", surfaceLayers.layer, layer, (int)[layer retainCount]);
+        surfaceLayers.layer = layer; // already incr. retain count
+        DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.X: %p (refcnt %d)\n", layer, (int)[layer retainCount]);
+    }];
+    JNF_COCOA_EXIT(env);
+    return JNI_TRUE;
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
+ * Method:    UnsetJAWTRootSurfaceLayer0
+ * Signature: (JJ)Z
+JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_UnsetJAWTRootSurfaceLayer0
+  (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
+{
+    JNF_COCOA_ENTER(env);
+    JAWT_DrawingSurfaceInfo* dsi = (JAWT_DrawingSurfaceInfo*) (*env)->GetDirectBufferAddress(env, jawtDrawingSurfaceInfoBuffer);
+    if (NULL == dsi) {
+        NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
+        return JNI_FALSE;
+    }
+    CALayer* layer = (CALayer*) (intptr_t) caLayer;
+    {
+        id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
+        if(layer != surfaceLayers.layer) {
+            NativewindowCommon_throwNewRuntimeException(env, "Attached layer %p doesn't match given layer %p\n", surfaceLayers.layer, layer);
+            return JNI_FALSE;
+        }
+    }
+    // [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
+        id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
+        DBG_PRINT("CALayer::detachJAWTSurfaceLayer: (%p) %p -> NULL\n", layer, surfaceLayers.layer);
+        surfaceLayers.layer = NULL;
+        [layer release];
+    // }];
+    JNF_COCOA_EXIT(env);
+    return JNI_TRUE;
+}
+ */
 
 @interface MainRunnable : NSObject
 
@@ -489,60 +577,65 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_IsMainThread0
     return ( [NSThread isMainThread] == YES ) ? JNI_TRUE : JNI_FALSE ;
 }
 
-/*
- * Class:     Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
- * Method:    SetJAWTRootSurfaceLayer0
- * Signature: (JJ)Z
+/***
+ * The following static functions are copied out of NEWT's OSX impl. <src/newt/native/MacWindow.m>
+ * May need to push code to NativeWindow, to remove duplication.
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_SetJAWTRootSurfaceLayer0
-  (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
-{
-    JNF_COCOA_ENTER(env);
-    JAWT_DrawingSurfaceInfo* dsi = (JAWT_DrawingSurfaceInfo*) (*env)->GetDirectBufferAddress(env, jawtDrawingSurfaceInfoBuffer);
-    if (NULL == dsi) {
-        NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
-        return JNI_FALSE;
-    }
-    CALayer* layer = (CALayer*) (intptr_t) caLayer;
-    [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
-        id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
-        DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.0: %p -> %p (refcnt %d)\n", surfaceLayers.layer, layer, (int)[layer retainCount]);
-        surfaceLayers.layer = layer; // already incr. retain count
-        DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.X: %p (refcnt %d)\n", layer, (int)[layer retainCount]);
-    }];
-    JNF_COCOA_EXIT(env);
-    return JNI_TRUE;
+static NSScreen * NewtScreen_getNSScreenByIndex(int screen_idx) {
+    NSArray *screens = [NSScreen screens];
+    if(screen_idx<0) screen_idx=0;
+    if(screen_idx>=[screens count]) screen_idx=0;
+    return (NSScreen *) [screens objectAtIndex: screen_idx];
 }
+static CGDirectDisplayID NewtScreen_getCGDirectDisplayIDByNSScreen(NSScreen *screen) {
+    // Mind: typedef uint32_t CGDirectDisplayID; - however, we assume it's 64bit on 64bit ?!
+    NSDictionary * dict = [screen deviceDescription];
+    NSNumber * val = (NSNumber *) [dict objectForKey: @"NSScreenNumber"];
+    // [NSNumber integerValue] returns NSInteger which is 32 or 64 bit native size
+    return (CGDirectDisplayID) [val integerValue];
+}
+static long GetDictionaryLong(CFDictionaryRef theDict, const void* key) 
+{
+    long value = 0;
+    CFNumberRef numRef;
+    numRef = (CFNumberRef)CFDictionaryGetValue(theDict, key); 
+    if (numRef != NULL)
+        CFNumberGetValue(numRef, kCFNumberLongType, &value);    
+    return value;
+}
+#define CGDDGetModeRefreshRate(mode) GetDictionaryLong((mode), kCGDisplayRefreshRate)
 
 /*
- * Class:     Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
- * Method:    UnsetJAWTRootSurfaceLayer0
- * Signature: (JJ)Z
-JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_UnsetJAWTRootSurfaceLayer0
-  (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    GetScreenRefreshRate
+ * Signature: (I)I
+ */
+JNIEXPORT jint JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetScreenRefreshRate0
+  (JNIEnv *env, jclass unused, jint scrn_idx)
 {
+    int res = 0;
     JNF_COCOA_ENTER(env);
-    JAWT_DrawingSurfaceInfo* dsi = (JAWT_DrawingSurfaceInfo*) (*env)->GetDirectBufferAddress(env, jawtDrawingSurfaceInfoBuffer);
-    if (NULL == dsi) {
-        NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
-        return JNI_FALSE;
-    }
-    CALayer* layer = (CALayer*) (intptr_t) caLayer;
-    {
-        id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
-        if(layer != surfaceLayers.layer) {
-            NativewindowCommon_throwNewRuntimeException(env, "Attached layer %p doesn't match given layer %p\n", surfaceLayers.layer, layer);
-            return JNI_FALSE;
+    // NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSScreen *screen = NewtScreen_getNSScreenByIndex((int)scrn_idx);
+    DBG_PRINT("GetScreenRefreshRate.0: screen %p\n", (void *)screen);
+    if(NULL != screen) {
+        CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
+        DBG_PRINT("GetScreenRefreshRate.1: display %p\n", (void *)display);
+        if(0 != display) {
+            CFDictionaryRef mode = CGDisplayCurrentMode(display);
+            DBG_PRINT("GetScreenRefreshRate.2: mode %p\n", (void *)mode);
+            if(NULL != mode) {
+                res = CGDDGetModeRefreshRate(mode);
+                DBG_PRINT("GetScreenRefreshRate.3: res %d\n", res);
+            }
         }
     }
-    // [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
-        id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
-        DBG_PRINT("CALayer::detachJAWTSurfaceLayer: (%p) %p -> NULL\n", layer, surfaceLayers.layer);
-        surfaceLayers.layer = NULL;
-        [layer release];
-    // }];
+    if(0 == res) {
+        res = 60; // default .. (experienced on OSX 10.6.8)
+    }
+    fprintf(stderr, "GetScreenRefreshRate.X: %d\n", res);
+    // [pool release];
     JNF_COCOA_EXIT(env);
-    return JNI_TRUE;
+    return res;
 }
- */
 

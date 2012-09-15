@@ -282,12 +282,6 @@ public abstract class EGLContext extends GLContextImpl {
         return EGL.eglSwapInterval(drawable.getNativeSurface().getDisplayHandle(), interval);
     }
 
-    @Override
-    public abstract void bindPbufferToTexture();
-
-    @Override
-    public abstract void releasePbufferFromTexture();
-
     //
     // Accessible ..
     //

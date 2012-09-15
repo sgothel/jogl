@@ -60,12 +60,12 @@ import org.junit.Test;
 
 public class TestGearsES2AWT extends UITestCase {
     static int width, height;
-    static boolean firstUIActionOnProcess = false;
     static boolean forceES2 = false;
     static boolean shallUseOffscreenLayer = false;
+    static boolean shallUseOffscreenPBufferLayer = false;
+    static boolean useMSAA = false;
     static boolean addComp = true;
     static int swapInterval = 1;
-    static boolean showFPS = false;    
 
     @BeforeClass
     public static void initClass() {
@@ -83,7 +83,6 @@ public class TestGearsES2AWT extends UITestCase {
 
         final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
-        glCanvas.setShallUseOffscreenLayer(shallUseOffscreenLayer);
         Dimension glc_sz = new Dimension(width, height);
         glCanvas.setMinimumSize(glc_sz);
         glCanvas.setPreferredSize(glc_sz);
@@ -112,8 +111,8 @@ public class TestGearsES2AWT extends UITestCase {
                 frame.pack();
                 frame.setVisible(true);
             }});
-        animator.setUpdateFPSFrames(60, System.err);
         animator.start();
+        animator.setUpdateFPSFrames(60, System.err);
 
         while(!quitAdapter.shouldQuit() /* && animator.isAnimating() */ && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
@@ -136,7 +135,17 @@ public class TestGearsES2AWT extends UITestCase {
 
     @Test
     public void test01() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2());        
+        GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2());
+        if(useMSAA) {
+            caps.setNumSamples(4);
+            caps.setSampleBuffers(true);
+        }
+        if(shallUseOffscreenLayer) {
+            caps.setOnscreen(false);
+        }
+        if(shallUseOffscreenPBufferLayer) {
+            caps.setPBuffer(true);
+        }
         runTestGL(caps);
     }
 
@@ -158,10 +167,10 @@ public class TestGearsES2AWT extends UITestCase {
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);
             } else if(args[i].equals("-layered")) {
                 shallUseOffscreenLayer = true;
-            } else if(args[i].equals("-showFPS")) {
-                showFPS = true;
-            } else if(args[i].equals("-firstUIAction")) {
-                firstUIActionOnProcess = true;
+            } else if(args[i].equals("-layeredPBuffer")) {
+                shallUseOffscreenPBufferLayer = true;
+            } else if(args[i].equals("-msaa")) {
+                useMSAA = true;
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
             } else if(args[i].equals("-justGears")) {

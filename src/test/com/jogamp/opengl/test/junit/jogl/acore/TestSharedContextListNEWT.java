@@ -30,13 +30,12 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.io.IOException;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.newt.opengl.GLWindow;
 
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLPbuffer;
+import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 import com.jogamp.opengl.util.Animator;
 
@@ -52,17 +51,11 @@ public class TestSharedContextListNEWT extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
     static int width, height;
-    GLPbuffer sharedDrawable;
+    GLOffscreenAutoDrawable sharedDrawable;
     Gears sharedGears;
 
     @BeforeClass
     public static void initClass() {
-        if(Platform.CPUFamily.X86 != Platform.CPU_ARCH.family) { // FIXME
-            // FIXME: Turns out on some mobile GL drivers and platforms 
-            // using shared context is instable, Linux ARM (Omap4, Tegra2, Mesa3d, ..)
-            setTestSupported(false);
-            return;
-        }
         if(GLProfile.isAvailable(GLProfile.GL2)) {
             glp = GLProfile.get(GLProfile.GL2);
             Assert.assertNotNull(glp);
@@ -76,7 +69,7 @@ public class TestSharedContextListNEWT extends UITestCase {
     }
 
     private void initShared() {
-        sharedDrawable = GLDrawableFactory.getFactory(glp).createGLPbuffer(null, caps, null, width, height, null);
+        sharedDrawable = GLDrawableFactory.getFactory(glp).createOffscreenAutoDrawable(null, caps, null, width, height, null);
         Assert.assertNotNull(sharedDrawable);
         sharedGears = new Gears();
         Assert.assertNotNull(sharedGears);
@@ -134,16 +127,11 @@ public class TestSharedContextListNEWT extends UITestCase {
         }
         animator.stop();
 
-        // here we go again: On AMD/X11 the create/destroy sequence must be the same
-        // even though this is against the chicken/egg logic here ..
-        releaseShared();
-
         f1.destroy();
         f2.destroy();
         f3.destroy();
 
-        // see above ..
-        // releaseShared();
+        releaseShared();
     }
 
     static long duration = 500; // ms

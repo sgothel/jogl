@@ -30,6 +30,7 @@ package com.jogamp.opengl.swt;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.ProxySurface;
+import javax.media.nativewindow.UpstreamSurfaceHook;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
@@ -48,6 +49,7 @@ import javax.media.opengl.Threading;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableHelper;
+import jogamp.opengl.GLDrawableImpl;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
@@ -97,8 +99,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    private final GLCapabilitiesImmutable capsRequested;
    private final GLCapabilitiesChooser capsChooser; 
    
-   private volatile GLDrawable drawable; // volatile: avoid locking for read-only access
-   private GLContext context;
+   private volatile GLDrawableImpl drawable; // volatile: avoid locking for read-only access
+   private GLContextImpl context;
 
    /* Native window surface */
    private AbstractGraphicsDevice device;
@@ -319,7 +321,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
          }
       });
    }
-   private final ProxySurface.UpstreamSurfaceHook swtCanvasUpStreamHook = new ProxySurface.UpstreamSurfaceHook() {
+   private final UpstreamSurfaceHook swtCanvasUpStreamHook = new UpstreamSurfaceHook() {
        @Override
        public final void create(ProxySurface s) { /* nop */ }
 
@@ -349,7 +351,27 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
            ( nClientArea.width != oClientArea.width || nClientArea.height != oClientArea.height )
          ) {
           clientArea = nClientArea; // write back new value
-          sendReshape = true; // Mark for OpenGL reshape next time the control is painted
+          
+          GLDrawableImpl _drawable = drawable;
+          if( null != _drawable ) {
+              if(DEBUG) {
+                  System.err.println("GLCanvas.sizeChanged: ("+Thread.currentThread().getName()+"): "+nClientArea.width+"x"+nClientArea.height+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
+              }
+              if( ! _drawable.getChosenGLCapabilities().isOnscreen() ) {
+                  final RecursiveLock _lock = lock;
+                  _lock.lock();
+                  try {
+                      final GLDrawableImpl _drawableNew = GLDrawableHelper.resizeOffscreenDrawable(_drawable, context, nClientArea.width, nClientArea.height);
+                      if(_drawable != _drawableNew) {
+                          // write back 
+                          drawable = _drawableNew;
+                      }
+                  } finally {
+                      _lock.unlock();
+                  }
+                  sendReshape = true; // async if display() doesn't get called below, but avoiding deadlock
+              }
+          }          
       }
    }
    
@@ -391,10 +413,10 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
           
           if(null != proxySurface) {
               /* Associate a GL surface with the proxy */
-              drawable = glFactory.createGLDrawable(proxySurface);
+              drawable = (GLDrawableImpl) glFactory.createGLDrawable(proxySurface);
               drawable.setRealized(true);
         
-              context = drawable.createContext(shareWith);
+              context = (GLContextImpl) drawable.createContext(shareWith);
           }
       } finally {
           _lock.unlock();
@@ -456,6 +478,11 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    }
 
    @Override
+   public final GLDrawable getDelegatedDrawable() {
+      return drawable;
+   }
+   
+   @Override
    public GLContext getContext() {
       return null != drawable ? context : null;
    }
@@ -502,7 +529,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       _lock.lock();
       try {            
           final GLContext oldCtx = context;
-          final boolean newCtxCurrent = helper.switchContext(drawable, oldCtx, newCtx, additionalCtxCreationFlags);
+          final boolean newCtxCurrent = GLDrawableHelper.switchContext(drawable, oldCtx, newCtx, additionalCtxCreationFlags);
           context=(GLContextImpl)newCtx;
           if(newCtxCurrent) {
               context.makeCurrent();

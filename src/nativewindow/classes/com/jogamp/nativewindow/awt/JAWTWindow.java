@@ -39,12 +39,14 @@ package com.jogamp.nativewindow.awt;
 
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
+import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 
 import java.awt.Component;
 import java.awt.Container;
 import java.applet.Applet;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
@@ -110,21 +112,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     this.offscreenSurfaceLayer = 0;
   }
 
-  @Override
-  public void setShallUseOffscreenLayer(boolean v) {
-      shallUseOffscreenLayer = v;
-  }
-
-  @Override
-  public final boolean getShallUseOffscreenLayer() {
-      return shallUseOffscreenLayer;
-  }
-
-  @Override
-  public final boolean isOffscreenLayerSurfaceEnabled() {
-      return isOffscreenLayerSurface;
-  }
-
   protected synchronized void invalidate() {
     invalidateNative();
     jawt = null;
@@ -136,26 +123,29 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
   protected abstract void invalidateNative();
 
-  protected final void updateBounds(JAWT_Rectangle jawtBounds) {
-    if(DEBUG) {
-        final Rectangle jb = new Rectangle(jawtBounds.getX(), jawtBounds.getY(), jawtBounds.getWidth(), jawtBounds.getHeight());
-        if(!bounds.equals(jb)) {
+  protected final boolean updateBounds(JAWT_Rectangle jawtBounds) {
+    final Rectangle jb = new Rectangle(jawtBounds.getX(), jawtBounds.getY(), jawtBounds.getWidth(), jawtBounds.getHeight());
+    final boolean changed = !bounds.equals(jb);
+    
+    if(changed) {
+        if(DEBUG) {
             System.err.println("JAWTWindow.updateBounds: "+bounds+" -> "+jb);
             Thread.dumpStack();
         }
+        bounds.setX(jawtBounds.getX());
+        bounds.setY(jawtBounds.getY());
+        bounds.setWidth(jawtBounds.getWidth());
+        bounds.setHeight(jawtBounds.getHeight());
+    
+        if(component instanceof Container) {
+            java.awt.Insets contInsets = ((Container)component).getInsets();
+            insets.setLeftWidth(contInsets.left);
+            insets.setRightWidth(contInsets.right);
+            insets.setTopHeight(contInsets.top);
+            insets.setBottomHeight(contInsets.bottom);
+        }
     }
-    bounds.setX(jawtBounds.getX());
-    bounds.setY(jawtBounds.getY());
-    bounds.setWidth(jawtBounds.getWidth());
-    bounds.setHeight(jawtBounds.getHeight());
-
-    if(component instanceof Container) {
-        java.awt.Insets contInsets = ((Container)component).getInsets();
-        insets.setLeftWidth(contInsets.left);
-        insets.setRightWidth(contInsets.right);
-        insets.setTopHeight(contInsets.top);
-        insets.setBottomHeight(contInsets.bottom);
-    }
+    return changed;
   }
 
   /** @return the JAWT_DrawingSurfaceInfo's (JAWT_Rectangle) bounds, updated with lock */
@@ -181,9 +171,29 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       return jawt;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  //
+  // OffscreenLayerOption
+  //
+  
+  @Override
+  public void setShallUseOffscreenLayer(boolean v) {
+      shallUseOffscreenLayer = v;
+  }
+
+  @Override
+  public final boolean getShallUseOffscreenLayer() {
+      return shallUseOffscreenLayer;
+  }
+
+  @Override
+  public final boolean isOffscreenLayerSurfaceEnabled() {
+      return isOffscreenLayerSurface;
+  }
+
+  //
+  // OffscreenLayerSurface
+  //
+
   @Override
   public final void attachSurfaceLayer(final long layerHandle) throws NativeWindowException {
       if( !isOffscreenLayerSurfaceEnabled() ) {
@@ -205,9 +215,6 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
   protected abstract void attachSurfaceLayerImpl(final long layerHandle);
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public final void detachSurfaceLayer() throws NativeWindowException {
       if( !isOffscreenLayerSurfaceEnabled() ) {
@@ -232,9 +239,19 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
   protected abstract void detachSurfaceLayerImpl(final long layerHandle);
 
+  protected final long getAttachedSurfaceLayer() {
+      return offscreenSurfaceLayer;
+  }
+  
   @Override
   public final boolean isSurfaceLayerAttached() {
       return 0 != offscreenSurfaceLayer;
+  }
+  
+  @Override
+  public final void setChosenCapabilities(CapabilitiesImmutable caps) {
+      ((MutableGraphicsConfiguration)getGraphicsConfiguration()).setChosenCapabilities(caps);
+      getPrivateGraphicsConfiguration().setChosenCapabilities(caps);      
   }
   
   //
@@ -381,7 +398,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
     return config.getNativeGraphicsConfiguration();
   }
-
+  
   @Override
   public final long getDisplayHandle() {
     return getGraphicsConfiguration().getScreen().getDevice().getHandle();
@@ -393,13 +410,13 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
 
   @Override
-  public int getWidth() {
+  public final int getWidth() {
     return component.getWidth();
   }
 
   @Override
-  public int getHeight() {
-    return component.getHeight();
+  public final int getHeight() {
+    return component.getHeight();    
   }
 
   //

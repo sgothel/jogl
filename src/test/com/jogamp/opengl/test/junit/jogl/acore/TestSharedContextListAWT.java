@@ -30,11 +30,10 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLPbuffer;
+import javax.media.opengl.GLOffscreenAutoDrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -53,17 +52,11 @@ public class TestSharedContextListAWT extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
     static int width, height;
-    GLPbuffer sharedDrawable;
+    GLOffscreenAutoDrawable sharedDrawable;
     Gears sharedGears;
 
     @BeforeClass
     public static void initClass() {
-        if(Platform.CPUFamily.X86 != Platform.CPU_ARCH.family) { // FIXME
-            // FIXME: Turns out on some mobile GL drivers and platforms 
-            // using shared context is instable, Linux ARM (Omap4, Tegra2, Mesa3d, ..)
-            setTestSupported(false);
-            return;
-        }
         if(GLProfile.isAvailable(GLProfile.GL2)) {
             glp = GLProfile.get(GLProfile.GL2);
             Assert.assertNotNull(glp);
@@ -77,7 +70,7 @@ public class TestSharedContextListAWT extends UITestCase {
     }
 
     private void initShared() {
-        sharedDrawable = GLDrawableFactory.getFactory(glp).createGLPbuffer(null, caps, null, width, height, null);
+        sharedDrawable = GLDrawableFactory.getFactory(glp).createOffscreenAutoDrawable(null, caps, null, width, height, null);
         Assert.assertNotNull(sharedDrawable);
         sharedGears = new Gears();
         Assert.assertNotNull(sharedGears);
@@ -159,10 +152,6 @@ public class TestSharedContextListAWT extends UITestCase {
         }
         animator.stop();
 
-        // here we go again: On AMD/X11 the create/destroy sequence must be the same
-        // even though this is agains the chicken/egg logic
-        releaseShared();
-
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -182,8 +171,7 @@ public class TestSharedContextListAWT extends UITestCase {
             Assume.assumeNoException( throwable );
         }                
         
-        // see above ..
-        //releaseShared();
+        releaseShared();
     }
 
     static long duration = 500; // ms
