@@ -33,7 +33,9 @@ import java.awt.Button;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Frame;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.media.opengl.GLAnimatorControl;
@@ -203,6 +205,7 @@ public class TestOffscreenLayer01GLCanvasAWT extends UITestCase {
     }
 
     public static void main(String args[]) throws IOException {
+        boolean waitForKey = false;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
@@ -215,7 +218,16 @@ public class TestOffscreenLayer01GLCanvasAWT extends UITestCase {
                 useMSAA = true;
             } else if(args[i].equals("-still")) {
                 noAnimation = true;
+            } else if(args[i].equals("-wait")) {
+                waitForKey = true;
             }
+        }
+        if(waitForKey) {
+            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+            System.err.println("Press enter to continue");
+            try {
+                System.err.println(stdin.readLine());
+            } catch (IOException e) { }
         }
         String tstname = TestOffscreenLayer01GLCanvasAWT.class.getName();
         /*

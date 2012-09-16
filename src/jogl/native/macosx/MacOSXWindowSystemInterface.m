@@ -446,7 +446,7 @@ NSOpenGLPixelFormat* createPixelFormat(int* iattrs, int niattrs, int* ivalues) {
 
   NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
   // if(fmt == nil) { fallback to a [NSOpenGLView defaultPixelFormat] crashed (SIGSEGV) on 10.6.7/NV }
-  DBG_PRINT("createPixelFormat.X: pfmt %p\n", fmt);
+  DBG_PRINT("\ncreatePixelFormat.X: pfmt %p\n", fmt);
 
   [pool release];
   return fmt;
@@ -503,7 +503,7 @@ NSView* getNSView(NSOpenGLContext* ctx) {
 
 NSOpenGLContext* createContext(NSOpenGLContext* share,
                     NSView* view,
-                    Bool allowIncompleteView,
+                    Bool incompleteView,
                     NSOpenGLPixelFormat* fmt,
                     Bool opaque,
                     int* viewNotReady)
@@ -512,13 +512,13 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
 
     getRendererInfo();
     
-    DBG_PRINT("createContext.0: share %p, view %p, allowIncompleteView %d, pixfmt %p, opaque %d\n",
-        share, view, (int)allowIncompleteView, fmt, opaque);
+    DBG_PRINT("createContext.0: share %p, view %p, incompleteView %d, pixfmt %p, opaque %d\n",
+        share, view, (int)incompleteView, fmt, opaque);
 
     if (view != nil) {
         Bool viewReady = true;
 
-        if(!allowIncompleteView) {
+        if(!incompleteView) {
             if ([view lockFocusIfCanDraw] == NO) {
                 DBG_PRINT("createContext.1 [view lockFocusIfCanDraw] failed\n");
                 viewReady = false;
@@ -527,7 +527,7 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
         if(viewReady) {
             NSRect frame = [view frame];
             if ((frame.size.width == 0) || (frame.size.height == 0)) {
-                if(!allowIncompleteView) {
+                if(!incompleteView) {
                     [view unlockFocus];
                 }
                 DBG_PRINT("createContext.2 view.frame size %dx%d\n", (int)frame.size.width, (int)frame.size.height);
@@ -557,8 +557,10 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
             GLint zeroOpacity = 0;
             [ctx setValues:&zeroOpacity forParameter:NSOpenGLCPSurfaceOpacity];
         }
-        [ctx setView:view];
-        if(!allowIncompleteView) {
+        if(!incompleteView) {
+            DBG_PRINT("createContext.3.0: setView\n");
+            [ctx setView:view];
+            DBG_PRINT("createContext.3.X: setView\n");
             [view unlockFocus];        
         }
       }
@@ -628,7 +630,12 @@ void setContextOpacity(NSOpenGLContext* ctx, int opacity) {
 
 void updateContext(NSOpenGLContext* ctx) {
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-  [ctx update];
+  NSView *nsView = [ctx view];
+  if(NULL != nsView) {
+      DBG_PRINT("updateContext.0: ctx %p, ctx.view %p\n", ctx, nsView);
+      [ctx update];
+      DBG_PRINT("updateContext.X\n");
+  }
   [pool release];
 }
 
@@ -638,7 +645,10 @@ void copyContext(NSOpenGLContext* dest, NSOpenGLContext* src, int mask) {
 
 void* updateContextRegister(NSOpenGLContext* ctx, NSView* view) {
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+  DBG_PRINT("updateContextRegister.0: ctx %p, view %p\n", ctx, view);
   ContextUpdater *contextUpdater = [[ContextUpdater alloc] initWithContext: ctx view: view];
+  DBG_PRINT("updateContextRegister.X: ctxupd %p\n", contextUpdater);
   [pool release];
   return contextUpdater;
 }
@@ -658,47 +668,60 @@ void updateContextUnregister(void* updater) {
   ContextUpdater *contextUpdater = (ContextUpdater *)updater;
     
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  DBG_PRINT("updateContextUnregister.0: ctxupd %p\n", contextUpdater);
   [contextUpdater release];
+  DBG_PRINT("updateContextUnregister.X\n");
   [pool release];
 }
 
 NSOpenGLPixelBuffer* createPBuffer(int renderTarget, int internalFormat, int width, int height) {
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  DBG_PRINT("createPBuffer.0: renderTarget 0x%x, ifmt 0x%x, %dx%d: \n", renderTarget, internalFormat, width, height);
   NSOpenGLPixelBuffer* pBuffer = [[NSOpenGLPixelBuffer alloc]
                                    initWithTextureTarget:renderTarget
                                    textureInternalFormat:internalFormat
                                    textureMaxMipMapLevel:0
                                    pixelsWide:width
                                    pixelsHigh:height];
+  DBG_PRINT("createPBuffer.X: res %p\n", pBuffer);
   [pool release];
   return pBuffer;
 }
 
 Bool destroyPBuffer(NSOpenGLPixelBuffer* pBuffer) {
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  DBG_PRINT("destroyPBuffer.0: pbuffer %p\n", pBuffer);
   [pBuffer release];
+  DBG_PRINT("destroyPBuffer.X\n");
   [pool release];
   return true;
 }
 
 void setContextPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* pBuffer) {
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  DBG_PRINT("setContextPBuffer.0: ctx %p, pbuffer %p\n", ctx, pBuffer);
   [ctx setPixelBuffer: pBuffer
              cubeMapFace: 0
              mipMapLevel: 0
              currentVirtualScreen: [ctx currentVirtualScreen]];
+  DBG_PRINT("setContextPBuffer.X\n");
   [pool release];
 }
 
 void setContextTextureImageToPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* pBuffer, GLenum colorBuffer) {
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  DBG_PRINT("setContextTextureImageToPBuffer.0: ctx %p, pbuffer %p, colorBuffer 0x%x\n", ctx, pBuffer, (int)colorBuffer);
   [ctx setTextureImageToPixelBuffer: pBuffer colorBuffer: colorBuffer];
+  DBG_PRINT("setContextTextureImageToPBuffer.X\n");
   [pool release];
 }
 
 Bool isNSOpenGLPixelBuffer(uint64_t object) {
   NSObject *nsObj = (NSObject*) (intptr_t) object;
-  return [nsObj isMemberOfClass:[NSOpenGLPixelBuffer class]];
+  DBG_PRINT("isNSOpenGLPixelBuffer.0: obj %p\n", object);
+  Bool res = [nsObj isMemberOfClass:[NSOpenGLPixelBuffer class]];
+  DBG_PRINT("isNSOpenGLPixelBuffer.X: res %d\n", (int)res);
+  return res;
 }
 
 #include <mach-o/dyld.h>

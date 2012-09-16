@@ -633,7 +633,7 @@ JNIEXPORT jint JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetScreenRefreshR
     if(0 == res) {
         res = 60; // default .. (experienced on OSX 10.6.8)
     }
-    fprintf(stderr, "GetScreenRefreshRate.X: %d\n", res);
+    DBG_PRINT(stderr, "GetScreenRefreshRate.X: %d\n", res);
     // [pool release];
     JNF_COCOA_EXIT(env);
     return res;

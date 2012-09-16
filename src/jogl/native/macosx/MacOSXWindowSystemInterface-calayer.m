@@ -25,6 +25,56 @@
 //
 // #define DBG_PERF 1
 
+/**
+ * Capture setView(NULL), which produces a 'invalid drawable' message
+ *
+ * Also track lifecycle via DBG_PRINT messages, if VERBOSE is enabled!
+ */
+@interface MyNSOpenGLContext: NSOpenGLContext
+{
+}
+- (id)initWithFormat:(NSOpenGLPixelFormat *)format shareContext:(NSOpenGLContext *)share;
+- (void)setView:(NSView *)view;
+- (void)update;
+- (void)dealloc;
+
+@end
+
+@implementation MyNSOpenGLContext
+
+- (id)initWithFormat:(NSOpenGLPixelFormat *)format shareContext:(NSOpenGLContext *)share
+{
+    DBG_PRINT("MyNSOpenGLContext.initWithFormat.0: format %p, share %p\n", format, share);
+    MyNSOpenGLContext * o = [super initWithFormat:format shareContext:share];
+    DBG_PRINT("MyNSOpenGLContext.initWithFormat.X: new %p\n", o);
+    return o;
+}
+
+- (void)setView:(NSView *)view
+{
+    DBG_PRINT("MyNSOpenGLContext.setView: this.0 %p, view %p\n", self, view);
+    if(NULL != view) {
+        [super setView:view];
+    }
+    DBG_PRINT("MyNSOpenGLContext.setView.X\n");
+}
+
+- (void)update
+{
+    DBG_PRINT("MyNSOpenGLContext.update: this.0 %p, view %p\n", self, [self view]);
+    [super update];
+    DBG_PRINT("MyNSOpenGLContext.update.X\n");
+}
+
+- (void)dealloc
+{
+    DBG_PRINT("MyNSOpenGLContext.dealloc: this.0 %p\n", self);
+    [super dealloc];
+    DBG_PRINT("MyNSOpenGLContext.dealloc.X: %p\n", self);
+}
+
+@end
+
 @interface MyNSOpenGLLayer: NSOpenGLLayer
 {
 @private
@@ -204,6 +254,8 @@ static const GLfloat gl_verts[] = {
 
     [self setOpaque: opaque ? YES : NO];
 
+#ifdef VERBOSE_ON
+    CGRect lRect = [self bounds];
     if(NULL != pbuffer) {
         DBG_PRINT("MyNSOpenGLLayer::init (pbuffer) %p, ctx %p, pfmt %p, pbuffer %p, opaque %d, pbuffer %dx%d -> tex %dx%d, bounds: %lf/%lf %lfx%lf (refcnt %d)\n", 
             self, parentCtx, parentPixelFmt, pbuffer, opaque, [pbuffer pixelsWide], [pbuffer pixelsHigh], texWidth, texHeight,
@@ -213,6 +265,7 @@ static const GLfloat gl_verts[] = {
             self, parentCtx, parentPixelFmt, opaque, (int)textureID, texWidth, texHeight,
             lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height, (int)[self retainCount]);
     }
+#endif
     return self;
 }
 
@@ -293,9 +346,10 @@ static const GLfloat gl_verts[] = {
 
 - (NSOpenGLContext *)openGLContextForPixelFormat:(NSOpenGLPixelFormat *)pixelFormat
 {
-    NSOpenGLContext * nctx = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:parentCtx];
-    DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat: %p (refcnt %d) - pfmt %p, parent %p -> new-ctx %p\n", 
-        self, (int)[self retainCount], pixelFormat, parentCtx, nctx);
+    DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.0: %p (refcnt %d) - pfmt %p, parent %p\n",
+        self, (int)[self retainCount], pixelFormat, parentCtx);
+    NSOpenGLContext * nctx = [[MyNSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:parentCtx];
+    DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.X: new-ctx %p\n", nctx);
     return nctx;
 }
 
@@ -324,7 +378,7 @@ static const GLfloat gl_verts[] = {
         if(NULL!=context) {
             [context makeCurrentContext];
 
-            DBG_PRINT("MyNSOpenGLLayer::deallocPBuffer (with ctx) %p (refcnt %d) - context %p, pbuffer %p, texID %d\n", self, (int)[self retainCount], context, pbuffer, (int)texureID);
+            DBG_PRINT("MyNSOpenGLLayer::deallocPBuffer (with ctx) %p (refcnt %d) - context %p, pbuffer %p, texID %d\n", self, (int)[self retainCount], context, pbuffer, (int)textureID);
 
             if( 0 != textureID ) {
                 glDeleteTextures(1, &textureID);
@@ -333,7 +387,7 @@ static const GLfloat gl_verts[] = {
 
             [context clearDrawable];
         } else {
-            DBG_PRINT("MyNSOpenGLLayer::deallocPBuffer (w/o ctx) %p (refcnt %d) - context %p, pbuffer %p, texID %d\n", self, (int)[self retainCount], context, pbuffer, (int)texureID);
+            DBG_PRINT("MyNSOpenGLLayer::deallocPBuffer (w/o ctx) %p (refcnt %d) - context %p, pbuffer %p, texID %d\n", self, (int)[self retainCount], context, pbuffer, (int)textureID);
         }
         pbuffer = NULL;
         [self setTextureID: 0];
@@ -346,6 +400,7 @@ static const GLfloat gl_verts[] = {
     pthread_mutex_lock(&renderLock);
     [self disableAnimation];
     [self deallocPBuffer];
+    [[self openGLContext] release];
     [self release];
     DBG_PRINT("MyNSOpenGLLayer::releaseLayer.X: %p (refcnt %d)\n", self, (int)[self retainCount]);
     pthread_mutex_unlock(&renderLock);

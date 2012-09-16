@@ -39,6 +39,8 @@
 
 package jogamp.opengl.macosx.cgl;
 
+import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.ProxySurface;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 
@@ -60,7 +62,7 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
   @Override
   protected void drawableUpdatedNotify() throws GLException {
     final int w = drawable.getWidth();
-    final int h = drawable.getHeight();
+    final int h = drawable.getHeight();    
     final boolean updateContext = ( 0!=updateHandle && CGL.updateContextNeedsUpdate(updateHandle) ) ||
                                   w != lastWidth || h != lastHeight;
     if(updateContext) {
@@ -82,9 +84,18 @@ public class MacOSXOnscreenCGLContext extends MacOSXCGLContext {
         if(0 != updateHandle) {
             throw new InternalError("XXX1");
         }
-        updateHandle = CGL.updateContextRegister(contextHandle, drawable.getHandle());
-        if(0 == updateHandle) {
-            throw new InternalError("XXX2");
+        final boolean incompleteView;
+        final NativeSurface surface = drawable.getNativeSurface();
+        if( surface instanceof ProxySurface ) {
+          incompleteView = ((ProxySurface)surface).containsUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE );
+        } else {
+          incompleteView = false;
+        }
+        if(!incompleteView) {        
+            updateHandle = CGL.updateContextRegister(contextHandle, drawable.getHandle());
+            if(0 == updateHandle) {
+                throw new InternalError("XXX2");
+            }
         }
     }
     return res;

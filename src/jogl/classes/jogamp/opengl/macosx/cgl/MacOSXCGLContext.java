@@ -490,9 +490,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           }
           backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(surface, true);
 
-          boolean allowIncompleteView = null != backingLayerHost;
-          if( !allowIncompleteView && surface instanceof ProxySurface ) {
-              allowIncompleteView = ((ProxySurface)surface).containsUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE );
+          boolean incompleteView = null != backingLayerHost;
+          if( !incompleteView && surface instanceof ProxySurface ) {
+              incompleteView = ((ProxySurface)surface).containsUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE );
           }
           long pixelFormat = MacOSXCGLGraphicsConfiguration.GLCapabilities2NSPixelFormat(chosenCaps, ctp, major, minor);
           if (pixelFormat == 0) {
@@ -514,7 +514,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           screenVSyncTimeout = 1000000f / sRefreshRate;
           if(DEBUG) {
               System.err.println("NS create OSX>=lion "+isLionOrLater);
-              System.err.println("NS create allowIncompleteView: "+allowIncompleteView);
+              System.err.println("NS create incompleteView: "+incompleteView);
               System.err.println("NS create backingLayerHost: "+backingLayerHost);
               System.err.println("NS create share: "+share);
               System.err.println("NS create drawable type: "+drawable.getClass().getName());
@@ -546,7 +546,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               int[] viewNotReady = new int[1];
               // Try to allocate a context with this
               ctx = CGL.createContext(share,
-                      nsViewHandle, allowIncompleteView,
+                      nsViewHandle, incompleteView,
                       pixelFormat,
                       chosenCaps.isBackgroundOpaque(),
                       viewNotReady, 0);
@@ -603,6 +603,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   } else if( chosenCaps.isPBuffer() && CGL.isNSOpenGLPixelBuffer(drawableHandle) ) {
                       texID = 0;
                       lastPBufferHandle = drawableHandle;
+                      if(0 != drawableHandle) { // complete 'validatePBufferConfig(..)' procedure
+                          CGL.setContextPBuffer(ctx, drawableHandle);
+                      }
                   } else {
                       throw new GLException("BackingLayerHost w/ unknown handle (!FBO, !PBuffer): "+drawable);
                   }
@@ -648,7 +651,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       private final void validatePBufferConfig(long ctx) {
           final GLCapabilitiesImmutable chosenCaps = drawable.getChosenGLCapabilities();
           final long drawableHandle = drawable.getHandle();
-          if(chosenCaps.isPBuffer() && CGL.isNSOpenGLPixelBuffer(drawableHandle) && lastPBufferHandle != drawableHandle) {
+          if( chosenCaps.isPBuffer() && lastPBufferHandle != drawableHandle && CGL.isNSOpenGLPixelBuffer(drawableHandle) ) {
               // Must associate the pbuffer with our newly-created context
               lastPBufferHandle = drawableHandle;
               if(0 != drawableHandle) {

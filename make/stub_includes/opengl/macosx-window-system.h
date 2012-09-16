@@ -32,7 +32,7 @@ NSView* getNSView(NSOpenGLContext* ctx);
 
 NSOpenGLContext* createContext(NSOpenGLContext* shareContext,
                     NSView* nsView,
-                    Bool allowIncompleteView,
+                    Bool incompleteView,
                     NSOpenGLPixelFormat* pixelFormat,
                     Bool opaque,
                     int* viewNotReady);
