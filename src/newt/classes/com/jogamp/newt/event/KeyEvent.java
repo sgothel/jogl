@@ -45,7 +45,7 @@ package com.jogamp.newt.event;
  * deliver keyboard events in the above order or skip events, 
  * the NEWT driver will reorder and inject synthetic events if required. 
  * <p>
- * Besides regular modifiers like {@link InputEvent##SHIFT_MASK} etc., 
+ * Besides regular modifiers like {@link InputEvent#SHIFT_MASK} etc., 
  * the {@link InputEvent#AUTOREPEAT_MASK} bit is added if repetition is detected.
  * </p>
  */
