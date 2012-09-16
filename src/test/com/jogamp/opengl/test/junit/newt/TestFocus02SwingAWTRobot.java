@@ -183,12 +183,12 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         Thread.sleep(100); // allow event sync
         System.err.println("FOCUS AWT  Button Outer request");
         EventCountAdapterUtil.reset(eventCountAdapters);
-        AWTRobotUtil.assertRequestFocusAndWait(robot, buttonNorthOuter, buttonNorthOuter, buttonNorthOuterFA, jFrame1FA);
+        AWTRobotUtil.assertRequestFocusAndWait(robot, buttonNorthOuter, buttonNorthOuter, buttonNorthOuterFA, jFrame1FA); // OSX sporadically buttonNorthOuter did not gain - major UI failure
         Assert.assertEquals(false, glWindow1FA.focusGained());
         Assert.assertEquals(false, newtCanvasAWTFA.focusGained());
         Assert.assertEquals(false, buttonNorthInnerFA.focusGained());
         System.err.println("FOCUS AWT  Button Outer sync");
-        AWTRobotUtil.assertKeyType(robot, java.awt.event.KeyEvent.VK_A, 2, buttonNorthOuter, buttonNorthOuterKA);
+        AWTRobotUtil.assertKeyType(robot, java.awt.event.KeyEvent.VK_A, 2, buttonNorthOuter, buttonNorthOuterKA); // OSX sporadically won't receive the keyboard input - major UI failure
         AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 1, 
                                       buttonNorthOuter, buttonNorthOuterMA);
         AWTRobotUtil.assertMouseClick(robot, java.awt.event.InputEvent.BUTTON1_MASK, 2, 

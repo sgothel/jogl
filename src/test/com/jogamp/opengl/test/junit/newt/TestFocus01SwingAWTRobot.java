@@ -163,11 +163,11 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         animator.start();
 
         // Button Focus
-        Thread.sleep(100); // allow event sync
+        Thread.sleep(200); // allow event sync
         
         System.err.println("FOCUS AWT  Button request");
         EventCountAdapterUtil.reset(eventCountAdapters);
-        AWTRobotUtil.assertRequestFocusAndWait(robot, button, button, buttonFA, frame1FA);
+        AWTRobotUtil.assertRequestFocusAndWait(robot, button, button, buttonFA, frame1FA); // OSX sporadically button did not gain - major UI failure
         Assert.assertEquals(false, glWindow1FA.focusGained());
         Assert.assertEquals(false, newtCanvasAWTFA.focusGained());
         System.err.println("FOCUS AWT  Button sync");
@@ -181,7 +181,7 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
         Thread.sleep(100); // allow event sync
         System.err.println("FOCUS NEWT Canvas/GLWindow request");
         EventCountAdapterUtil.reset(eventCountAdapters);
-        AWTRobotUtil.assertRequestFocusAndWait(robot, newtCanvasAWT, newtCanvasAWT.getNEWTChild(), glWindow1FA, buttonFA);
+        AWTRobotUtil.assertRequestFocusAndWait(robot, newtCanvasAWT, newtCanvasAWT.getNEWTChild(), glWindow1FA, buttonFA); // OSX sporadically button did not loose - minor UI failure
         Assert.assertTrue("Focus prev. gained, but NewtCanvasAWT didn't loose it. Gainer: "+glWindow1FA+"; Looser "+newtCanvasAWTFA, 
                 AWTRobotUtil.waitForFocus(glWindow1FA, newtCanvasAWTFA));
         System.err.println("FOCUS NEWT Canvas/GLWindow sync");
