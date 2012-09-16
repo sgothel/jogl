@@ -35,10 +35,10 @@ if [ $MOSX -eq 1 ] ; then
     echo setup OSX environment vars
     export NSZombieEnabled=YES
     export NSTraceEvents=YES
-    export OBJC_PRINT_EXCEPTIONS=YES
-    echo NSZombieEnabled $NSZombieEnabled
-    echo NSTraceEvents $NSTraceEvents 
-    echo OBJC_PRINT_EXCEPTIONS $OBJC_PRINT_EXCEPTIONS 
+    #export OBJC_PRINT_EXCEPTIONS=YES
+    echo NSZombieEnabled $NSZombieEnabled 2>&1 | tee -a java-run.log
+    echo NSTraceEvents $NSTraceEvents  2>&1 | tee -a java-run.log
+    echo OBJC_PRINT_EXCEPTIONS $OBJC_PRINT_EXCEPTIONS  2>&1 | tee -a java-run.log
     MOSX_MT=1
 fi
 
@@ -253,7 +253,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryOffscrnCapsNEWT $*
 
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer01GLCanvasAWT $*
-testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer02NewtCanvasAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer02NewtCanvasAWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableFactoryNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOOffThreadSharedContextMix2DemosES2NEWT $*
@@ -304,6 +304,7 @@ testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer02NewtCanvasAW
 #testawt javax.media.opengl.awt.GLCanvas $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug551AWT $*
+testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug611AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestAWTCloseX11DisplayBug565 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*
