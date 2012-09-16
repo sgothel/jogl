@@ -179,7 +179,8 @@ public class GLGraphicsConfigurationUtil {
         if( capsRequested.isOnscreen() ||
             useFBO != capsRequested.isFBO() || 
             usePbuffer != capsRequested.isPBuffer() || 
-            useBitmap != capsRequested.isBitmap() )
+            useBitmap != capsRequested.isBitmap() ||
+            useBitmap && capsRequested.getDoubleBuffered() )
         {
             // fix caps ..
             final GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
@@ -187,6 +188,9 @@ public class GLGraphicsConfigurationUtil {
             caps2.setFBO( useFBO ); 
             caps2.setPBuffer( usePbuffer );
             caps2.setBitmap( useBitmap );
+            if( useBitmap ) {
+                caps2.setDoubleBuffered(false);
+            }
             return caps2;
         }
         return capsRequested;

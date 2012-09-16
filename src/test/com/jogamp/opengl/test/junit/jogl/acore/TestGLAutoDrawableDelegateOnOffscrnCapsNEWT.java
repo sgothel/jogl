@@ -286,15 +286,6 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
     }
     
     @Test
-    public void testGL2OffScreenBitmapDblBuf() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
-        if(null == reqGLCaps) return;
-        reqGLCaps.setOnscreen(false);
-        reqGLCaps.setBitmap(true);
-        doTest(reqGLCaps, new Gears(1));
-    }
-    
-    @Test
     public void testGL2OffScreenBitmapSglBuf() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
         if(null == reqGLCaps) return;
