@@ -151,7 +151,14 @@ public class NEWTEvent extends java.util.EventObject {
     }
 
     public String toString() {
-        return "NEWTEvent[sys:"+isSystemEvent()+", source:"+getSource().getClass().getName()+", when:"+getWhen()+" d "+(System.currentTimeMillis()-getWhen())+"ms]";
+        return toString(null).toString();
+    }
+
+    public StringBuilder toString(StringBuilder sb) {
+        if(null == sb) {
+            sb = new StringBuilder();
+        }
+        return sb.append("NEWTEvent[sys:").append(isSystemEvent()).append(", source:").append(getSource().getClass().getName()).append(", when:").append(getWhen()).append(" d ").append((System.currentTimeMillis()-getWhen())).append("ms]");
     }
 
     public static String toHexString(int hex) {
@@ -161,5 +168,4 @@ public class NEWTEvent extends java.util.EventObject {
     public static String toHexString(long hex) {
         return "0x" + Long.toHexString(hex);
     }
-
 }

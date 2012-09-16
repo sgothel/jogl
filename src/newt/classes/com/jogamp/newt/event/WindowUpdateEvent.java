@@ -30,6 +30,7 @@ package com.jogamp.newt.event;
 
 import javax.media.nativewindow.util.Rectangle;
 
+@SuppressWarnings("serial")
 public class WindowUpdateEvent extends WindowEvent {
     final Rectangle bounds;
 
@@ -44,6 +45,14 @@ public class WindowUpdateEvent extends WindowEvent {
     }
 
     public String toString() {
-        return "WindowUpdateEvent["+super.toString()+", "+bounds+"]";
+        return toString(null).toString();
+    }
+
+    public StringBuilder toString(StringBuilder sb) {
+        if(null == sb) {
+            sb = new StringBuilder();
+        }
+        sb.append("WindowUpdateEvent[").append(bounds).append(", ");
+        return super.toString(sb).append("]");
     }
 }

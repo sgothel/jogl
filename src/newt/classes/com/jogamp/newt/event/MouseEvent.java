@@ -165,7 +165,13 @@ public class MouseEvent extends InputEvent
     }
 
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        return toString(null).toString();
+    }
+
+    public StringBuilder toString(StringBuilder sb) {
+        if(null == sb) {
+            sb = new StringBuilder();
+        }
         sb.append("MouseEvent[").append(getEventTypeString(getEventType()))
         .append(", ").append(x).append("/").append(y)
         .append(", button ").append(button).append(", count ")
@@ -182,8 +188,8 @@ public class MouseEvent extends InputEvent
             }
             sb.append("]");
         }        
-        sb.append(", ").append(super.toString()).append("]");
-        return sb.toString();
+        sb.append(", ");
+        return super.toString(sb).append("]");
     }
 
     public static String getEventTypeString(int type) {

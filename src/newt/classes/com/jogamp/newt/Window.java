@@ -245,6 +245,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
 
     String getTitle();
 
+    /** @see #setPointerVisible(boolean) */
     boolean isPointerVisible();
 
     /**
@@ -256,6 +257,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      */
     void setPointerVisible(boolean pointerVisible);
 
+    /** @see #confinePointer(boolean) */
     boolean isPointerConfined();
 
     /**

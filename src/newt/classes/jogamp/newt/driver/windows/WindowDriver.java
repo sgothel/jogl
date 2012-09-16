@@ -46,6 +46,7 @@ import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
+import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
@@ -258,9 +259,14 @@ public class WindowDriver extends WindowImpl {
         // nop - using event driven insetsChange(..)         
     }
     
-    private final int validateKeyCode(int eventType, int keyCode) {
+    private final int validateKeyCode(int eventType, int modifiers, int keyCode, char keyChar) {
         switch(eventType) {
+            case KeyEvent.EVENT_KEY_RELEASED:
+                pressedKeyBalance--;
+                lastPressedKeyCode = keyCode;
+                break;
             case KeyEvent.EVENT_KEY_PRESSED:
+                pressedKeyBalance++;
                 lastPressedKeyCode = keyCode;
                 break;
             case KeyEvent.EVENT_KEY_TYPED:
@@ -273,18 +279,40 @@ public class WindowDriver extends WindowImpl {
         return keyCode;
     }
     private int lastPressedKeyCode = 0;
+    private int pressedKeyBalance = 0;
+    private int autoRepeat = 0;
     
     @Override
     public void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
         // Note that we have to regenerate the keyCode for EVENT_KEY_TYPED on this platform
-        keyCode = validateKeyCode(eventType, keyCode);
-        super.sendKeyEvent(eventType, modifiers, keyCode, keyChar);        
+        keyCode = validateKeyCode(eventType, modifiers, keyCode, keyChar);
+        switch(eventType) {
+            case KeyEvent.EVENT_KEY_RELEASED:
+                // reorder: WINDOWS delivery order is PRESSED, TYPED and RELEASED -> NEWT order: PRESSED, RELEASED and TYPED
+                break;
+            case KeyEvent.EVENT_KEY_PRESSED:
+                if(pressedKeyBalance > 1) {
+                    // Auto-Repeat: WINDOWS delivers only PRESSED and TYPED.
+                    // Since reordering already injects RELEASE, we only need to set the AUTOREPEAT_MASK.
+                    pressedKeyBalance--;
+                    autoRepeat |= InputEvent.AUTOREPEAT_MASK;
+                } else {
+                    autoRepeat &= ~InputEvent.AUTOREPEAT_MASK;
+                }
+                super.sendKeyEvent(eventType, modifiers | autoRepeat, keyCode, (char)-1);
+                break;
+            case KeyEvent.EVENT_KEY_TYPED:
+                modifiers |= autoRepeat;
+                super.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, (char)-1);
+                super.sendKeyEvent(eventType, modifiers, keyCode, keyChar);
+                break;
+        }
     }
     
     @Override
     public void enqueueKeyEvent(boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
         // Note that we have to regenerate the keyCode for EVENT_KEY_TYPED on this platform
-        keyCode = validateKeyCode(eventType, keyCode);
+        keyCode = validateKeyCode(eventType, modifiers, keyCode, keyChar);
         super.enqueueKeyEvent(wait, eventType, modifiers, keyCode, keyChar);
     }
     

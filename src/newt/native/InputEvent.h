@@ -34,13 +34,19 @@
 #ifndef _INPUT_EVENT_H_
 #define _INPUT_EVENT_H_
 
-#define EVENT_SHIFT_MASK      1
-#define EVENT_CTRL_MASK       2
-#define EVENT_META_MASK       4
-#define EVENT_ALT_MASK        8
-#define EVENT_ALT_GRAPH_MASK 32
-#define EVENT_BUTTON1_MASK   (1<<6)
-#define EVENT_BUTTON2_MASK   (1<<7)
-#define EVENT_BUTTON3_MASK   (1<<8)
+#define EVENT_SHIFT_MASK      (1 <<  0)
+#define EVENT_CTRL_MASK       (1 <<  1)
+#define EVENT_META_MASK       (1 <<  2)
+#define EVENT_ALT_MASK        (1 <<  3)
+#define EVENT_ALT_GRAPH_MASK  (1 <<  5)
+#define EVENT_BUTTON1_MASK    (1 <<  6)
+#define EVENT_BUTTON2_MASK    (1 <<  7)
+#define EVENT_BUTTON3_MASK    (1 <<  8)
+#define EVENT_BUTTON4_MASK    (1 <<  9)
+#define EVENT_BUTTON5_MASK    (1 << 10)
+#define EVENT_BUTTON6_MASK    (1 << 11)
+#define EVENT_AUTOREPEAT_MASK (1 << 15)
+#define EVENT_CONFINED_MASK   (1 << 16)
+#define EVENT_INVISIBLE_MASK  (1 << 17)
 
 #endif

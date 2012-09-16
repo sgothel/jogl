@@ -34,22 +34,31 @@
 
 package com.jogamp.newt.event;
 
+import com.jogamp.newt.Window;
+
 @SuppressWarnings("serial")
 public abstract class InputEvent extends NEWTEvent
 {
- public static final int  SHIFT_MASK     = 1 <<  0;
- public static final int  CTRL_MASK      = 1 <<  1;
- public static final int  META_MASK      = 1 <<  2;
- public static final int  ALT_MASK       = 1 <<  3;
- public static final int  ALT_GRAPH_MASK = 1 <<  5;
- public static final int  BUTTON1_MASK   = 1 <<  6;
- public static final int  BUTTON2_MASK   = 1 <<  7;
- public static final int  BUTTON3_MASK   = 1 <<  8;
- public static final int  BUTTON4_MASK   = 1 <<  9;
- public static final int  BUTTON5_MASK   = 1 << 10;
- public static final int  BUTTON6_MASK   = 1 << 11;
- public static final int  CONFINED_MASK  = 1 << 16;
- public static final int  INVISIBLE_MASK = 1 << 17;
+ public static final int  SHIFT_MASK       = 1 <<  0;
+ public static final int  CTRL_MASK        = 1 <<  1;
+ public static final int  META_MASK        = 1 <<  2;
+ public static final int  ALT_MASK         = 1 <<  3;
+ public static final int  ALT_GRAPH_MASK   = 1 <<  5;
+ public static final int  BUTTON1_MASK     = 1 <<  6;
+ public static final int  BUTTON2_MASK     = 1 <<  7;
+ public static final int  BUTTON3_MASK     = 1 <<  8;
+ public static final int  BUTTON4_MASK     = 1 <<  9;
+ public static final int  BUTTON5_MASK     = 1 << 10;
+ public static final int  BUTTON6_MASK     = 1 << 11;
+ 
+ /** Event is caused by auto-repeat. */
+ public static final int  AUTOREPEAT_MASK  = 1 << 15;
+ 
+ /** Pointer is confined, see {@link Window#confinePointer(boolean)}. */
+ public static final int  CONFINED_MASK    = 1 << 16;
+ 
+ /** Pointer is invisible, see {@link Window#setPointerVisible(boolean)}. */
+ public static final int  INVISIBLE_MASK   = 1 << 17;
 
  /** 
   * Returns the corresponding button mask for the given button.
@@ -76,29 +85,63 @@ public abstract class InputEvent extends NEWTEvent
     this.modifiers=modifiers;
  }
 
+ /** Return the modifier bits of this event, e.g. see {@link #SHIFT_MASK} .. etc. */
  public int getModifiers() {
     return modifiers;
  }
+ /** {@link #getModifiers()} contains {@link #ALT_MASK}. */
  public boolean isAltDown() {
     return (modifiers&ALT_MASK)!=0;
  }
+ /** {@link #getModifiers()} contains {@link #ALT_GRAPH_MASK}. */
  public boolean isAltGraphDown() {
     return (modifiers&ALT_GRAPH_MASK)!=0;
  }
+ /** {@link #getModifiers()} contains {@link #CTRL_MASK}. */
  public boolean isControlDown() {
     return (modifiers&CTRL_MASK)!=0;
  }
+ /** {@link #getModifiers()} contains {@link #META_MASK}. */
  public boolean isMetaDown() {
     return (modifiers&META_MASK)!=0;
  }
+ /** {@link #getModifiers()} contains {@link #SHIFT_MASK}. */
  public boolean isShiftDown()  {
     return (modifiers&SHIFT_MASK)!=0;
  }
+ /** {@link #getModifiers()} contains {@link #AUTOREPEAT_MASK}. */
+ public boolean isAutoRepeat()  {
+    return (modifiers&AUTOREPEAT_MASK)!=0;
+ }
+ /** {@link #getModifiers()} contains {@link #CONFINED_MASK}. Pointer is confined, see {@link Window#confinePointer(boolean)}. */
  public boolean isConfined()  {
     return (modifiers&CONFINED_MASK)!=0;
  }
+ /** {@link #getModifiers()} contains {@link #INVISIBLE_MASK}. Pointer is invisible, see {@link Window#setPointerVisible(boolean)}. */ 
  public boolean isInvisible()  {
     return (modifiers&INVISIBLE_MASK)!=0;
+ }
+ 
+ public StringBuilder getModifiersString(StringBuilder sb) {
+    if(null == sb) {
+        sb = new StringBuilder();
+    }
+    sb.append("[");
+    boolean isFirst = true;
+    if(isShiftDown()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("shift"); }
+    if(isControlDown()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("ctrl"); }
+    if(isMetaDown()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("meta"); }    
+    if(isAltDown()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("alt"); }
+    if(isAltGraphDown()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("altg"); }
+    if(isAutoRepeat()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("repeat"); }
+    for(int i=1; i<=MouseEvent.BUTTON_NUMBER; i++) {
+        if(isButtonDown(i)) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("button").append(i); }
+    }
+    if(isConfined()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("confined"); }
+    if(isInvisible()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("invisible"); }
+    sb.append("]");
+    
+    return sb;
  }
 
  /**
@@ -124,7 +167,18 @@ public abstract class InputEvent extends NEWTEvent
  }
  
  public String toString() {
-     return "InputEvent[modifiers: 0x"+Integer.toHexString(modifiers)+", "+super.toString()+"]";
+     return toString(null).toString();
+ }
+ 
+ public StringBuilder toString(StringBuilder sb) {
+     if(null == sb) {
+         sb = new StringBuilder();
+     }
+     sb.append("InputEvent[modifiers: ");
+     getModifiersString(sb);
+     sb.append(", ");
+     super.toString(sb).append("]");
+     return sb;
  }
 
  private final int modifiers;

@@ -400,6 +400,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
     Display * dpy = (Display *) (intptr_t) display;
     Atom wm_delete_atom = (Atom)windowDeleteAtom;
     int num_events = 100;
+    int autoRepeatModifiers = 0;
 
     if ( NULL == dpy ) {
         return;
@@ -458,6 +459,19 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
  
         switch(evt.type) {
             case KeyRelease:
+                if (XEventsQueued(dpy, QueuedAfterReading)) {
+                  XEvent nevt;
+                  XPeekEvent(dpy, &nevt);
+
+                  if (nevt.type == KeyPress && nevt.xkey.time == evt.xkey.time &&
+                      nevt.xkey.keycode == evt.xkey.keycode)
+                  {
+                    autoRepeatModifiers |= EVENT_AUTOREPEAT_MASK;
+                  } else {
+                    autoRepeatModifiers &= ~EVENT_AUTOREPEAT_MASK;
+                  }
+                }
+                // fall through intended
             case KeyPress:
                 if(XLookupString(&evt.xkey,text,255,&keySym,0)==1) {
                     KeySym lower_return = 0, upper_return = 0;
@@ -469,13 +483,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     keyChar=0;
                     keySym = X11KeySym2NewtVKey(keySym);
                 }
-                modifiers = X11InputState2NewtModifiers(evt.xkey.state);
+                modifiers |= X11InputState2NewtModifiers(evt.xkey.state) | autoRepeatModifiers;
                 break;
 
             case ButtonPress:
             case ButtonRelease:
             case MotionNotify:
-                modifiers = X11InputState2NewtModifiers(evt.xbutton.state);
+                modifiers |= X11InputState2NewtModifiers(evt.xbutton.state);
                 break;
 
             default:

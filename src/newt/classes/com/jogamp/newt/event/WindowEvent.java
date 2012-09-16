@@ -39,6 +39,7 @@ package com.jogamp.newt.event;
  * NEWT will automatically handle component moves and resizes internally, regardless of whether a program is receiving these events or not. <br>
  * The actual event semantic, here move and resize, is processed before the event is send.<br>
  */
+@SuppressWarnings("serial")
 public class WindowEvent extends NEWTEvent {
     public static final int EVENT_WINDOW_RESIZED = 100;
     public static final int EVENT_WINDOW_MOVED   = 101; 
@@ -64,8 +65,16 @@ public class WindowEvent extends NEWTEvent {
             default: return "unknown (" + type + ")";
         }
     }
+    
     public String toString() {
-        return "WindowEvent["+getEventTypeString(getEventType()) +
-            ", " + super.toString() + "]";
+        return toString(null).toString();
+    }
+
+    public StringBuilder toString(StringBuilder sb) {
+        if(null == sb) {
+            sb = new StringBuilder();
+        }
+        sb.append("WindowEvent[").append(getEventTypeString(getEventType())).append(", ");
+        return super.toString(sb).append("]");
     }
 }

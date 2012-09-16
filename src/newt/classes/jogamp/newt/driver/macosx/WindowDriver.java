@@ -49,6 +49,7 @@ import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.DriverClearFocus;
 import jogamp.newt.driver.DriverUpdatePosition;
 
+import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
 
 public class WindowDriver extends WindowImpl implements MutableSurface, DriverClearFocus, DriverUpdatePosition {
@@ -313,6 +314,14 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         final boolean valid = validateKeyEvent(eventType, modifiers, keyCode);
         if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.sendKeyEvent "+Thread.currentThread().getName()+" char: 0x"+Integer.toHexString(keyChar)+", code 0x"+Integer.toHexString(keyCode)+" -> 0x"+Integer.toHexString(keyCode2)+", valid "+valid);
         if(valid) {
+            if(pressedKeyBalance > 1) {
+                // Auto-Repeat: OSX delivers only PRESSED
+                // inject auto-repeat RELEASE and TYPED keys _before_
+                pressedKeyBalance--;
+                modifiers |= InputEvent.AUTOREPEAT_MASK;
+                super.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, (char)-1); // RELEASED
+                super.sendKeyEvent(KeyEvent.EVENT_KEY_TYPED, modifiers, keyCode, keyChar); // TYPED
+            }       
             // only deliver keyChar on key Typed events, harmonizing platform behavior
             keyChar = KeyEvent.EVENT_KEY_TYPED == eventType ? keyChar : (char)-1;
             super.sendKeyEvent(eventType, modifiers, keyCode2, keyChar);
@@ -327,6 +336,14 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         final boolean valid = validateKeyEvent(eventType, modifiers, keyCode);
         if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.enqueueKeyEvent "+Thread.currentThread().getName()+" char: 0x"+Integer.toHexString(keyChar)+", code 0x"+Integer.toHexString(keyCode)+" -> 0x"+Integer.toHexString(keyCode2)+", valid "+valid);
         if(valid) {
+            if(pressedKeyBalance > 1) {
+                // Auto-Repeat: OSX delivers only PRESSED
+                // inject auto-repeat RELEASE and TYPED keys _before_
+                pressedKeyBalance--;
+                modifiers |= InputEvent.AUTOREPEAT_MASK;
+                super.enqueueKeyEvent(wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, (char)-1); // RELEASED
+                super.enqueueKeyEvent(wait, KeyEvent.EVENT_KEY_TYPED, modifiers, keyCode, keyChar); // TYPED
+            }       
             // only deliver keyChar on key Typed events, harmonizing platform behavior
             keyChar = KeyEvent.EVENT_KEY_TYPED == eventType ? keyChar : (char)-1;
             super.enqueueKeyEvent(wait, eventType, modifiers, keyCode2, keyChar);
@@ -335,14 +352,17 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
 
     private int keyDownModifiers = 0;
     private int keyDownCode = 0;
+    private int pressedKeyBalance = 0;
     
     private boolean validateKeyEvent(int eventType, int modifiers, int keyCode) {
         switch(eventType) {
             case KeyEvent.EVENT_KEY_PRESSED:
+                pressedKeyBalance++;
                 keyDownModifiers = modifiers;
                 keyDownCode = keyCode;
                 return true;
             case KeyEvent.EVENT_KEY_RELEASED:
+                pressedKeyBalance--;
                 return keyDownModifiers == modifiers && keyDownCode == keyCode;
             case KeyEvent.EVENT_KEY_TYPED:
                 final boolean matchKeyDown = keyDownModifiers == modifiers && keyDownCode == keyCode;

@@ -34,6 +34,21 @@
 
 package com.jogamp.newt.event;
 
+/**
+ * Key events are delivered in the following order:
+ * <ol>
+ *   <li>{@link #EVENT_KEY_PRESSED}</li>
+ *   <li>{@link #EVENT_KEY_RELEASED}</li>
+ *   <li>{@link #EVENT_KEY_TYPED}</li>
+ * </ol>
+ * In case the native platform does not
+ * deliver keyboard events in the above order or skip events, 
+ * the NEWT driver will reorder and inject synthetic events if required. 
+ * <p>
+ * Besides regular modifiers like {@link InputEvent##SHIFT_MASK} etc., 
+ * the {@link InputEvent#AUTOREPEAT_MASK} bit is added if repetition is detected.
+ * </p>
+ */
 @SuppressWarnings("serial")
 public class KeyEvent extends InputEvent
 {
@@ -54,8 +69,15 @@ public class KeyEvent extends InputEvent
  }
 
  public String toString() {
-    return "KeyEvent["+getEventTypeString(getEventType())+
-                     ", code "+keyCode+"("+toHexString(keyCode)+"), char '"+keyChar+"' ("+toHexString((int)keyChar)+"), isActionKey "+isActionKey()+", "+super.toString()+"]";
+     return toString(null).toString();
+ }
+ 
+ public StringBuilder toString(StringBuilder sb) {
+     if(null == sb) {
+         sb = new StringBuilder();
+     }
+     sb.append("KeyEvent[").append(getEventTypeString(getEventType())).append(", code ").append(keyCode).append("(").append(toHexString(keyCode)).append("), char '").append(keyChar).append("' (").append(toHexString((int)keyChar)).append("), isActionKey ").append(isActionKey()).append(", ");
+     return super.toString(sb).append("]");
  }
 
  public static String getEventTypeString(int type) {
