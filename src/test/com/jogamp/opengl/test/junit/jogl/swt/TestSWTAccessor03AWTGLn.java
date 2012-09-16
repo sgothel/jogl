@@ -49,11 +49,10 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.junit.Assert;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.After;
 import org.junit.Test;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.OneTriangle;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -75,6 +74,13 @@ public class TestSWTAccessor03AWTGLn extends UITestCase {
 
     @BeforeClass
     public static void startup() {
+        if( Platform.getOSType() == Platform.OSType.MACOS ) {
+            // NSLocking issues on OSX and AWT, able to freeze whole test suite!
+            // Since this test is merely a technical nature to validate the accessor w/ SWT
+            // we can drop it w/o bothering.
+            UITestCase.setTestSupported(false);
+            return;
+        }
         System.out.println( "GLProfile " + GLProfile.glAvailabilityToString() ); 
         Frame f0 = new Frame("Test - AWT 1st");
         f0.add(new java.awt.Label("AWT was here 1st"));
@@ -85,8 +91,7 @@ public class TestSWTAccessor03AWTGLn extends UITestCase {
         }
     }
 
-    @Before
-    public void init() throws InterruptedException, InvocationTargetException {
+    protected void init() throws InterruptedException, InvocationTargetException {
         SWTAccessor.invoke(true, new Runnable() {
             public void run() {        
                 display = new Display();
@@ -102,8 +107,7 @@ public class TestSWTAccessor03AWTGLn extends UITestCase {
             }});
     }
 
-    @After
-    public void release() throws InterruptedException, InvocationTargetException {
+    protected void release() throws InterruptedException, InvocationTargetException {
         Assert.assertNotNull( display );
         Assert.assertNotNull( shell );
         Assert.assertNotNull( composite );
@@ -129,66 +133,71 @@ public class TestSWTAccessor03AWTGLn extends UITestCase {
             }});
     }
 
-    protected void runTestGL( GLProfile glprofile ) throws InterruptedException {
-        GLCapabilities glcapabilities = new GLCapabilities( glprofile );
-        glcanvas = new GLCanvas( glcapabilities );
-        Assert.assertNotNull( glcanvas );
-        frame.add( glcanvas );
-
-        glcanvas.addGLEventListener( new GLEventListener() {
-            /* @Override */
-            public void init( GLAutoDrawable glautodrawable ) {
-            }
-
-            /* @Override */
-            public void dispose( GLAutoDrawable glautodrawable ) {
-            }
-
-            /* @Override */
-            public void display( GLAutoDrawable glautodrawable ) {
-                Rectangle rectangle = new Rectangle( 0, 0, glautodrawable.getWidth(), glautodrawable.getHeight() );
-                GL2ES1 gl = glautodrawable.getGL().getGL2ES1();
-                OneTriangle.render( gl, rectangle.width, rectangle.height );
-            }
-
-            /* @Override */
-            public void reshape( GLAutoDrawable glautodrawable, int x, int y, int width, int height ) {
-                Rectangle rectangle = new Rectangle( 0, 0, glautodrawable.getWidth(), glautodrawable.getHeight() );
-                GL2ES1 gl = glautodrawable.getGL().getGL2ES1();
-                OneTriangle.setup( gl, rectangle.width, rectangle.height );
-            }
-        });
-
-        SWTAccessor.invoke(true, new Runnable() {
-            public void run() {
-                shell.setText( getClass().getName() );
-                shell.setSize( 640, 480 );
-                shell.open();
-            }});
-
-        long lStartTime = System.currentTimeMillis();
-        long lEndTime = lStartTime + duration;
+    protected void runTestGL( GLProfile glprofile ) throws InterruptedException, InvocationTargetException {
+        init();
         try {
-            while( (System.currentTimeMillis() < lEndTime) && !composite.isDisposed() ) {
-                SWTAccessor.invoke(true, new Runnable() {
-                    public void run() {
-                        if( !display.readAndDispatch() ) {
-                            // blocks on linux .. display.sleep();
-                            try {
-                                Thread.sleep(10);
-                            } catch (InterruptedException e) { }
-                        }
-                    }});
+            GLCapabilities glcapabilities = new GLCapabilities( glprofile );
+            glcanvas = new GLCanvas( glcapabilities );
+            Assert.assertNotNull( glcanvas );
+            frame.add( glcanvas );
+    
+            glcanvas.addGLEventListener( new GLEventListener() {
+                /* @Override */
+                public void init( GLAutoDrawable glautodrawable ) {
+                }
+    
+                /* @Override */
+                public void dispose( GLAutoDrawable glautodrawable ) {
+                }
+    
+                /* @Override */
+                public void display( GLAutoDrawable glautodrawable ) {
+                    Rectangle rectangle = new Rectangle( 0, 0, glautodrawable.getWidth(), glautodrawable.getHeight() );
+                    GL2ES1 gl = glautodrawable.getGL().getGL2ES1();
+                    OneTriangle.render( gl, rectangle.width, rectangle.height );
+                }
+    
+                /* @Override */
+                public void reshape( GLAutoDrawable glautodrawable, int x, int y, int width, int height ) {
+                    Rectangle rectangle = new Rectangle( 0, 0, glautodrawable.getWidth(), glautodrawable.getHeight() );
+                    GL2ES1 gl = glautodrawable.getGL().getGL2ES1();
+                    OneTriangle.setup( gl, rectangle.width, rectangle.height );
+                }
+            });
+    
+            SWTAccessor.invoke(true, new Runnable() {
+                public void run() {
+                    shell.setText( getClass().getName() );
+                    shell.setSize( 640, 480 );
+                    shell.open();
+                }});
+    
+            long lStartTime = System.currentTimeMillis();
+            long lEndTime = lStartTime + duration;
+            try {
+                while( (System.currentTimeMillis() < lEndTime) && !composite.isDisposed() ) {
+                    SWTAccessor.invoke(true, new Runnable() {
+                        public void run() {
+                            if( !display.readAndDispatch() ) {
+                                // blocks on linux .. display.sleep();
+                                try {
+                                    Thread.sleep(10);
+                                } catch (InterruptedException e) { }
+                            }
+                        }});
+                }
             }
-        }
-        catch( Throwable throwable ) {
-            throwable.printStackTrace();
-            Assume.assumeNoException( throwable );
+            catch( Throwable throwable ) {
+                throwable.printStackTrace();
+                Assume.assumeNoException( throwable );
+            }
+        } finally {
+            release();
         }
     }
 
     @Test
-    public void test() throws InterruptedException {
+    public void test() throws InterruptedException, InvocationTargetException {
         GLProfile glprofile = GLProfile.getGL2ES1();
         runTestGL( glprofile );
     }

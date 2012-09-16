@@ -78,6 +78,10 @@ public abstract class UITestCase {
         }
     }
     
+    public static boolean isTestSupported() {
+        return testSupported;
+    }
+    
     public static void setTestSupported(boolean v) {
         System.err.println("setTestSupported: "+v);
         testSupported = v;
@@ -127,7 +131,7 @@ public abstract class UITestCase {
         System.err.print("++++ UITestCase.setUp: "+getFullTestName(" - "));
         if(!testSupported) {
             System.err.println(" - "+unsupportedTestMsg);
-            Assume.assumeTrue(testSupported);
+            Assume.assumeTrue(testSupported); // abort
         }
         System.err.println();      
     }
