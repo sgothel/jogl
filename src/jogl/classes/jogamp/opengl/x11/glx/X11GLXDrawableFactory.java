@@ -237,7 +237,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                     //                       NativeWindowFactory.getNullToolkitLock(), true); // own non-shared display connection, w/o locking
             sharedDevice.lock();
             try {
-                final X11GraphicsScreen sharedScreen = new X11GraphicsScreen(sharedDevice, 0);
+                final X11GraphicsScreen sharedScreen = new X11GraphicsScreen(sharedDevice, sharedDevice.getDefaultScreen());
                 
                 if(!GLXUtil.isGLXAvailableOnServer(sharedDevice)) {
                     throw new GLException("GLX not available on device/server: "+sharedDevice);
@@ -514,7 +514,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     } else {
         device = (X11GraphicsDevice)deviceReq;
     }
-    final X11GraphicsScreen screen = new X11GraphicsScreen(device, 0);
+    final X11GraphicsScreen screen = new X11GraphicsScreen(device, device.getDefaultScreen());
     final X11GLXGraphicsConfiguration config = X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen, VisualIDHolder.VID_UNDEFINED);
     if(null == config) {
         throw new GLException("Choosing GraphicsConfiguration failed w/ "+capsChosen+" on "+screen); 

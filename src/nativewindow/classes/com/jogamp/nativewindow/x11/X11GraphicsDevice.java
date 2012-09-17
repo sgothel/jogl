@@ -84,11 +84,34 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         handleOwner = owner;
     }
 
-    public int getDefaultVisualID() {
-        // It still could be an AWT hold handle ..
+    private static int getDefaultScreenImpl(long dpy) {
+        return X11Lib.DefaultScreen(dpy);
+    }
+    
+    /**
+     * Returns the default screen number as referenced by the display connection, i.e. 'somewhere:0.1' -> 1
+     * <p>
+     * Implementation uses the XLib macro <code>DefaultScreen(display)</code>.
+     * </p>
+     */
+    public int getDefaultScreen() {
         final long display = getHandle();
-        final int scrnIdx = X11Lib.DefaultScreen(display);
-        return X11Lib.DefaultVisualID(display, scrnIdx);
+        if(0==display) {
+            throw new NativeWindowException("null display");
+        }
+        final int ds = getDefaultScreenImpl(display);
+        if(DEBUG) {
+            System.err.println(Thread.currentThread().getName() + " - X11GraphicsDevice.getDefaultDisplay() of "+this+": "+ds+", count "+X11Lib.ScreenCount(display));
+        }
+        return ds;
+    }
+    
+    public int getDefaultVisualID() {
+        final long display = getHandle();
+        if(0==display) {
+            throw new NativeWindowException("null display");
+        }
+        return X11Lib.DefaultVisualID(display, getDefaultScreenImpl(display));
     }
     
     @Override

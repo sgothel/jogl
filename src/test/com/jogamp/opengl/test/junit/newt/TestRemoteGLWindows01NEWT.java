@@ -30,7 +30,6 @@ package com.jogamp.opengl.test.junit.newt;
 
 import org.junit.Assert;
 import org.junit.Assume;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.media.opengl.*;
