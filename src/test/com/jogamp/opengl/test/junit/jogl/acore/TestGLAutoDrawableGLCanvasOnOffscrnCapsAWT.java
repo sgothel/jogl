@@ -50,14 +50,13 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 
-import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
- * Tests using a NEWT {@link GLWindow} {@link GLAutoDrawable auto drawable} for on- and offscreen cases.
+ * Tests using an AWT {@link GLCanvas} {@link GLAutoDrawable auto drawable} for on- and offscreen cases.
  * <p>
  * The NEWT  {@link GLAutoDrawable} is being used to run the {@link GLEventListener}.  
  * </p> 
