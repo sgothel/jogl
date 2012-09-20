@@ -45,7 +45,6 @@ import javax.media.opengl.DefaultGLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
@@ -213,9 +212,9 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         }
         X11GraphicsDevice x11Device = (X11GraphicsDevice) x11Screen.getDevice();        
         X11GLXDrawableFactory factory = (X11GLXDrawableFactory) GLDrawableFactory.getDesktopFactory();
-
-        capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities( capsChosen, GLContext.isFBOAvailable(x11Device, capsChosen.getGLProfile()), factory.canCreateGLPbuffer(x11Device) );
-        boolean usePBuffer = !capsChosen.isOnscreen() && capsChosen.isPBuffer();
+        
+        capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities( capsChosen, factory, x11Device);
+        final boolean usePBuffer = !capsChosen.isOnscreen() && capsChosen.isPBuffer();
     
         X11GLXGraphicsConfiguration res = null;
         if( factory.isGLXVersionGreaterEqualOneThree(x11Device) ) {

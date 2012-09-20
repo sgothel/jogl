@@ -32,8 +32,9 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawableFactory;
 
-import com.jogamp.common.os.Platform;
+import com.jogamp.opengl.GLRendererQuirks;
 
 public class GLGraphicsConfigurationUtil {
     public static final String NV_coverage_sample = "NV_coverage_sample";
@@ -138,16 +139,25 @@ public class GLGraphicsConfigurationUtil {
         return caps;        
     }
     
-    public static GLCapabilitiesImmutable fixGLCapabilities(GLCapabilitiesImmutable capsRequested, boolean fboAvailable, boolean pbufferAvailable)
-    {
+    /**
+     * Fixes the requested  {@link GLCapabilitiesImmutable} according to on- and offscreen usage.
+     * <p>
+     * No modification will be made for onscreen usage, for offscreen usage see
+     * {@link #fixOffscreenGLCapabilities(GLCapabilitiesImmutable, GLDrawableFactory, AbstractGraphicsDevice)}.
+     * </p>
+     * @param capsRequested the requested {@link GLCapabilitiesImmutable}
+     * @param factory the {@link GLDrawableFactory} used to validate the requested capabilities and later used to create the drawable.
+     * @param device the device on which the drawable will be created, maybe null for the {@link GLDrawableFactory#getDefaultDevice() default device}.
+     * @return either the given requested {@link GLCapabilitiesImmutable} instance if no modifications were required, or a modified {@link GLCapabilitiesImmutable} instance.
+     */
+    public static GLCapabilitiesImmutable fixGLCapabilities(GLCapabilitiesImmutable capsRequested, 
+                                                            GLDrawableFactory factory, AbstractGraphicsDevice device) {
         if( !capsRequested.isOnscreen() ) {
-            return fixOffscreenGLCapabilities(capsRequested, fboAvailable, pbufferAvailable);
-        } /* we maintain the offscreen mode flags in onscreen mode - else { 
-            return fixOnscreenGLCapabilities(capsRequested);
-        } */
+            return fixOffscreenGLCapabilities(capsRequested, factory, device);
+        }
         return capsRequested;
     }
-
+    
     public static GLCapabilitiesImmutable fixOnscreenGLCapabilities(GLCapabilitiesImmutable capsRequested)
     {
         if( !capsRequested.isOnscreen() || capsRequested.isFBO() || capsRequested.isPBuffer() || capsRequested.isBitmap() ) { 
@@ -162,25 +172,68 @@ public class GLGraphicsConfigurationUtil {
         return capsRequested;
     }
 
-    public static boolean isGLCapabilitiesOffscreenAutoSelection(GLCapabilitiesImmutable capsRequested) {
-        return !capsRequested.isOnscreen() &&
-               !capsRequested.isFBO() && !capsRequested.isPBuffer() && !capsRequested.isBitmap() ;        
+    public static GLCapabilitiesImmutable fixOffscreenBitOnly(GLCapabilitiesImmutable capsRequested)
+    {
+        if( capsRequested.isOnscreen() ) { 
+            // fix caps ..
+            final GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
+            caps2.setOnscreen(false);
+            return caps2;
+        }
+        return capsRequested;
     }
-
-    public static GLCapabilitiesImmutable fixOffscreenGLCapabilities(GLCapabilitiesImmutable capsRequested, boolean fboAvailable, boolean pbufferAvailable) {
-        final boolean auto = !capsRequested.isFBO() && !capsRequested.isPBuffer() && !capsRequested.isBitmap() ;
-
-        final boolean requestedPBuffer = capsRequested.isPBuffer() || Platform.getOSType() == Platform.OSType.MACOS ; // no native bitmap for OSX
+    
+    /**
+     * Fixes the requested  {@link GLCapabilitiesImmutable} according to:
+     * <ul>
+     *   <li>offscreen usage</li>
+     *   <li>availability of FBO, PBuffer, Bitmap</li>
+     *   <li>{@link GLRendererQuirks}</li>
+     * </ul>
+     * @param capsRequested the requested {@link GLCapabilitiesImmutable}
+     * @param factory the {@link GLDrawableFactory} used to validate the requested capabilities and later used to create the drawable.
+     * @param device the device on which the drawable will be created, maybe null for the {@link GLDrawableFactory#getDefaultDevice() default device}.
+     * @return either the given requested {@link GLCapabilitiesImmutable} instance if no modifications were required, or a modified {@link GLCapabilitiesImmutable} instance.
+     */
+    public static GLCapabilitiesImmutable fixOffscreenGLCapabilities(GLCapabilitiesImmutable capsRequested,
+                                                                     GLDrawableFactory factory, AbstractGraphicsDevice device) {
+        if(null == device) {
+            device = factory.getDefaultDevice();
+        }
+        final boolean fboAvailable = GLContext.isFBOAvailable(device, capsRequested.getGLProfile());
+        final boolean pbufferAvailable = factory.canCreateGLPbuffer(device);
         
-        final boolean useFBO     =                fboAvailable     && ( auto || capsRequested.isFBO()     ) ;
-        final boolean usePbuffer = !useFBO     && pbufferAvailable && ( auto || requestedPBuffer          ) ;
-        final boolean useBitmap  = !useFBO     && !usePbuffer      && ( auto || capsRequested.isBitmap()  ) ;
+        final GLRendererQuirks glrq = factory.getRendererQuirks(device);
+        final boolean bitmapAvailable;
+        final boolean doubleBufferAvailable;
+        
+        if(null != glrq) {
+            bitmapAvailable = !glrq.exist(GLRendererQuirks.NoOffscreenBitmap);
+            if( capsRequested.getDoubleBuffered() &&
+                ( capsRequested.isPBuffer() && glrq.exist(GLRendererQuirks.NoDoubleBufferedPBuffer) ) || 
+                ( capsRequested.isBitmap() && glrq.exist(GLRendererQuirks.NoDoubleBufferedBitmap) ) ) {
+                doubleBufferAvailable = false;
+            } else {
+                doubleBufferAvailable = true;
+            }
+        } else {
+            bitmapAvailable = true;
+            doubleBufferAvailable = true;
+        }
+        
+        final boolean auto = !( fboAvailable     && capsRequested.isFBO()     ) && 
+                             !( pbufferAvailable && capsRequested.isPBuffer() ) && 
+                             !( bitmapAvailable  && capsRequested.isBitmap()  ) ;
+
+        final boolean useFBO     =                           fboAvailable     && ( auto || capsRequested.isFBO()     ) ;
+        final boolean usePbuffer = !useFBO                && pbufferAvailable && ( auto || capsRequested.isPBuffer() ) ;
+        final boolean useBitmap  = !useFBO && !usePbuffer && bitmapAvailable  && ( auto || capsRequested.isBitmap()  ) ;
         
         if( capsRequested.isOnscreen() ||
             useFBO != capsRequested.isFBO() || 
             usePbuffer != capsRequested.isPBuffer() || 
             useBitmap != capsRequested.isBitmap() ||
-            useBitmap && capsRequested.getDoubleBuffered() )
+            !doubleBufferAvailable && capsRequested.getDoubleBuffered() )
         {
             // fix caps ..
             final GLCapabilities caps2 = (GLCapabilities) capsRequested.cloneMutable();
@@ -188,7 +241,7 @@ public class GLGraphicsConfigurationUtil {
             caps2.setFBO( useFBO ); 
             caps2.setPBuffer( usePbuffer );
             caps2.setBitmap( useBitmap );
-            if( useBitmap ) {
+            if( !doubleBufferAvailable ) {
                 caps2.setDoubleBuffered(false);
             }
             return caps2;

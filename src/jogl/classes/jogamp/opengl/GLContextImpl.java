@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.jogamp.common.os.DynamicLookupHelper;
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.FunctionAddressResolver;
@@ -53,6 +54,7 @@ import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLNameResolver;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import com.jogamp.opengl.GLExtensions;
+import com.jogamp.opengl.GLRendererQuirks;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -162,7 +164,7 @@ public abstract class GLContextImpl extends GLContext {
       additionalCtxCreationFlags = 0;
 
       glRenderer = "";
-      glRendererLowerCase = glRenderer;
+      glRendererLowerCase = glRenderer;       
       
       if (boundFBOTarget != null) { // <init>
           boundFBOTarget[0] = 0; // draw
@@ -1116,13 +1118,6 @@ public abstract class GLContextImpl extends GLContext {
     }
   }
 
-  protected final String getGLVersionString() {
-      return glVersion;
-  }
-  protected final String getGLRendererString(boolean lowerCase) {
-      return lowerCase ? glRendererLowerCase : glRenderer;
-  }
-
   /**
    * Sets the OpenGL implementation class and
    * the cache of which GL functions are available for calling through this
@@ -1264,6 +1259,8 @@ public abstract class GLContextImpl extends GLContext {
     // Set GL Version (complete w/ version string)
     //
     setContextVersion(major, minor, ctxProfileBits, true);
+    
+    setRendererQuirks();
 
     setDefaultSwapInterval();
     
@@ -1272,7 +1269,45 @@ public abstract class GLContextImpl extends GLContext {
     }
   }
   
-  protected static final boolean hasFBOImpl(int major, int ctp, ExtensionAvailabilityCache extCache) {
+  private final void setRendererQuirks() {
+    int[] quirks = new int[GLRendererQuirks.COUNT];
+    int i = 0;
+    
+    // OS related quirks
+    if( Platform.getOSType() == Platform.OSType.MACOS ) {
+        final int quirk = GLRendererQuirks.NoOffscreenBitmap;
+        if(DEBUG) {
+            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType());
+        }
+        quirks[i++] = quirk;
+    } else if( Platform.getOSType() == Platform.OSType.WINDOWS ) {
+        final int quirk = GLRendererQuirks.NoDoubleBufferedBitmap;
+        if(DEBUG) {
+            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType());
+        }
+        quirks[i++] = quirk;
+    }
+    
+    // Renderer related quirks, may also involve OS
+    if( Platform.OSType.ANDROID == Platform.getOSType() && glRendererLowerCase.contains("powervr") ) {
+        final int quirk = GLRendererQuirks.NoSetSwapInterval;
+        if(DEBUG) {
+            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType() + " / Renderer " + glRenderer);
+        }
+        quirks[i++] = quirk;
+    }
+    if( glRendererLowerCase.contains("intel(r)") && glRendererLowerCase.contains("mesa") ) {
+        final int quirk = GLRendererQuirks.NoDoubleBufferedPBuffer;
+        if(DEBUG) {
+            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);
+        }
+        quirks[i++] = quirk;
+    }
+    glRendererQuirks = new GLRendererQuirks(quirks, 0, i);
+  }
+  
+  
+  private static final boolean hasFBOImpl(int major, int ctp, ExtensionAvailabilityCache extCache) {
     return ( 0 != (ctp & CTX_PROFILE_ES) && major >= 2 ) ||   // ES >= 2.0
             
            major >= 3 ||                                                 // any >= 3.0 GL ctx                       
@@ -1288,7 +1323,7 @@ public abstract class GLContextImpl extends GLContext {
                extCache.isExtensionAvailable(GLExtensions.OES_framebuffer_object) ) ;        // OES_framebuffer_object excluded               
   }
   
-  protected final void removeCachedVersion(int major, int minor, int ctxProfileBits) {
+  private final void removeCachedVersion(int major, int minor, int ctxProfileBits) {
     if(!isCurrentContextHardwareRasterizer()) {
         ctxProfileBits |= GLContext.CTX_IMPL_ACCEL_SOFT;
     }

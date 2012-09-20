@@ -84,10 +84,7 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
     void doTest(GLCapabilitiesImmutable reqGLCaps, GLEventListener demo) throws InterruptedException {
         System.out.println("Requested  GL Caps: "+reqGLCaps);
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(reqGLCaps.getGLProfile());
-        
-        final boolean fboAvailable = factory.canCreateFBO(null, reqGLCaps.getGLProfile());
-        final boolean pbufferAvailable = factory.canCreateGLPbuffer(null);            
-        final GLCapabilitiesImmutable expGLCaps = GLGraphicsConfigurationUtil.fixGLCapabilities(reqGLCaps, fboAvailable, pbufferAvailable);
+        final GLCapabilitiesImmutable expGLCaps = GLGraphicsConfigurationUtil.fixGLCapabilities(reqGLCaps, factory, null);
         System.out.println("Expected   GL Caps: "+expGLCaps);
         //
         // Create native windowing resources .. X11/Win/OSX
@@ -238,7 +235,7 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
         reqGLCaps.setDoubleBuffered(false);
         doTest(reqGLCaps, new GearsES2(1));
     }
-    
+  
     @Test
     public void testGL2OffScreenAutoDblBuf() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);

@@ -49,6 +49,7 @@ import com.jogamp.common.JogampRuntimeException;
 
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.opengl.GLAutoDrawableDelegate;
+import com.jogamp.opengl.GLRendererQuirks;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
@@ -306,6 +307,42 @@ public abstract class GLDrawableFactory {
    * @return true if a shared resource could been created, otherwise false. 
    */
   protected abstract boolean createSharedResource(AbstractGraphicsDevice device);
+  
+  /**
+   * Returns true if the <code>quirk</code> exist in the shared resource's context {@link GLRendererQuirks}.
+   * <p>
+   * Convenience method for:
+   * <pre>
+      final GLRendererQuirks glrq = factory.getRendererQuirks(device);
+      return null != glrq ? glrq.exist(quirk) : false;
+   * </pre>
+   * </p>
+   * 
+   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param quirk the quirk to be tested, e.g. {@link GLRendererQuirks#NoDoubleBufferedPBuffer}.
+   * @throws IllegalArgumentException if the quirk is out of range
+   * @see #getRendererQuirks()
+   * @see GLRendererQuirks
+   */
+  public final boolean hasRendererQuirk(AbstractGraphicsDevice device, int quirk) {
+      final GLRendererQuirks glrq = getRendererQuirks(device);
+      return null != glrq ? glrq.exist(quirk) : false;
+  }
+  
+  /**
+   * Returns the shared resource's context {@link GLRendererQuirks}.
+   * <p>
+   * Implementation calls {@link GLContext#getRendererQuirks()} on the shared resource context.
+   * </p>
+   * <p>
+   * In case no shared device exist yet or the implementation doesn't support tracking quirks,
+   * the result is always <code>null</code>.
+   * </p>
+   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @see GLContext#getRendererQuirks()
+   * @see GLRendererQuirks
+   */
+  public abstract GLRendererQuirks getRendererQuirks(AbstractGraphicsDevice device);
   
   /**
    * Returns the sole GLDrawableFactory instance for the desktop (X11, WGL, ..) if exist or null

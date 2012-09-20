@@ -55,6 +55,7 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.GLExtensions;
+import com.jogamp.opengl.GLRendererQuirks;
 
 /** Abstraction for an OpenGL rendering context. In order to perform
     OpenGL rendering, a context must be "made current" on the current
@@ -159,6 +160,7 @@ public abstract class GLContext {
   protected int ctxOptions;
   protected String ctxVersionString;
   private int currentSwapInterval;
+  protected GLRendererQuirks glRendererQuirks;
 
   protected void resetStates() {
       if (DEBUG) {
@@ -172,8 +174,31 @@ public abstract class GLContext {
       attachedObjects.clear();
       contextHandle=0;
       currentSwapInterval = -1;
+      glRendererQuirks = null;
   }
 
+  /** 
+   * Returns the instance of {@link GLRendererQuirks}, allowing one to determine workarounds.
+   * @return instance of {@link GLRendererQuirks} if context was made current once, otherwise <code>null</code>.
+   */
+  public final GLRendererQuirks getRendererQuirks() { return glRendererQuirks; }
+  
+  /**
+   * Returns true if the <code>quirk</code> exist in {@link #getRendererQuirks()}, otherwise false.
+   * <p>
+   * Convenience method for:
+   * <pre>
+   *    final GLRendererQuirks glrq = ctx.getRendererQuirks();
+   *    boolean hasQuirk = null != glrq ? glrq.exist(quirk) : false ;
+   * </pre>
+   * </p>
+   * @param quirk the quirk to be tested, e.g. {@link GLRendererQuirks#NoDoubleBufferedPBuffer}.
+   * @throws IllegalArgumentException if the quirk is out of range
+   */
+  public final boolean hasRendererQuirk(int quirk) throws IllegalArgumentException { 
+      return null != glRendererQuirks ? glRendererQuirks.exist(quirk) : false ; 
+  }
+  
   /**
    * Sets the read/write drawable for framebuffer operations.
    * <p>
@@ -464,6 +489,12 @@ public abstract class GLContext {
     sb.append(toHexString(contextHandle));
     sb.append(", ");
     sb.append(getGL());
+    sb.append(",\n\t quirks: ");
+    if(null != glRendererQuirks) {
+        glRendererQuirks.toString(sb);
+    } else {
+        sb.append("n/a");
+    }
     if(getGLDrawable()!=getGLReadDrawable()) {
         sb.append(",\n\tRead Drawable : ");
         sb.append(getGLReadDrawable());
@@ -473,8 +504,6 @@ public abstract class GLContext {
         sb.append(",\n\tDrawable: ");
         sb.append(getGLDrawable());
     }
-    sb.append(", lock ");
-    sb.append(lock.toString());
     return sb;
   }
 
@@ -666,13 +695,15 @@ public abstract class GLContext {
       if( hasFullFBOSupport() ) {
           final GL gl = getGL();
           final int[] val = new int[] { 0 } ;
-          gl.glGetIntegerv(GL2GL3.GL_MAX_SAMPLES, val, 0);
-          final int glerr = gl.glGetError();
-          if(GL.GL_NO_ERROR == glerr) {
-              return val[0];
-          } else if(DEBUG) {
-              System.err.println("GLContext.getMaxRenderbufferSamples: GL_MAX_SAMPLES query GL Error 0x"+Integer.toHexString(glerr));
-          }
+          try {
+              gl.glGetIntegerv(GL2GL3.GL_MAX_SAMPLES, val, 0);
+              final int glerr = gl.glGetError();
+              if(GL.GL_NO_ERROR == glerr) {
+                  return val[0];
+              } else if(DEBUG) {
+                  System.err.println("GLContext.getMaxRenderbufferSamples: GL_MAX_SAMPLES query GL Error 0x"+Integer.toHexString(glerr));
+              }
+          } catch (GLException gle) { gle.printStackTrace(); }
       }
       return 0;
   }
@@ -1369,6 +1400,6 @@ public abstract class GLContext {
   protected static String getThreadName() {
     return Thread.currentThread().getName();
   }
-
+  
 }
 

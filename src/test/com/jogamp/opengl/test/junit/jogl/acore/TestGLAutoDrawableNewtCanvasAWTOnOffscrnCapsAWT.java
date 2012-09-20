@@ -33,6 +33,7 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.io.IOException;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -108,12 +109,10 @@ public class TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT extends UITestCase 
         }
         System.out.println("Requested  GL Caps: "+reqGLCaps);
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(reqGLCaps.getGLProfile());
-        
-        final boolean fboAvailable = factory.canCreateFBO(null, reqGLCaps.getGLProfile());
-        final boolean pbufferAvailable = factory.canCreateGLPbuffer(null);            
+        final AbstractGraphicsDevice device = factory.getDefaultDevice();        
         final GLCapabilitiesImmutable expGLCaps = offscreenLayer ?
-                            GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(reqGLCaps, fboAvailable, pbufferAvailable) :
-                            GLGraphicsConfigurationUtil.fixGLCapabilities(reqGLCaps, fboAvailable, pbufferAvailable);
+                            GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(reqGLCaps, factory, device) :
+                            GLGraphicsConfigurationUtil.fixGLCapabilities(reqGLCaps, factory, device);
         System.out.println("Expected   GL Caps: "+expGLCaps);
         
         final GLWindow glad = GLWindow.create(reqGLCaps);

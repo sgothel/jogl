@@ -51,9 +51,10 @@ import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.common.os.Platform;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
+import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+import com.jogamp.opengl.GLRendererQuirks;
 
 public abstract class EGLContext extends GLContextImpl {
     private boolean eglQueryStringInitialized;
@@ -269,14 +270,7 @@ public abstract class EGLContext extends GLContextImpl {
 
     @Override
     protected boolean setSwapIntervalImpl(int interval) {
-        // FIXME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // eglSwapInterval(..) issued:
-        //   Android 4.0.3 / Pandaboard ES / PowerVR SGX 540: crashes
-        // FIXME !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if( Platform.OSType.ANDROID == Platform.getOSType() && getGLRendererString(true).contains("powervr") ) {
-            if(DEBUG) {
-                System.err.println("Ignored: eglSwapInterval("+interval+") - cause: OS "+Platform.getOSType() + " / Renderer " + getGLRendererString(false));
-            }
+        if( hasRendererQuirk(GLRendererQuirks.NoSetSwapInterval) ) {
             return false;
         }
         return EGL.eglSwapInterval(drawable.getNativeSurface().getDisplayHandle(), interval);
@@ -286,20 +280,11 @@ public abstract class EGLContext extends GLContextImpl {
     // Accessible ..
     //
     
-    /**
-     * If context is an ES profile, map it to the given device 
-     * via {@link GLContext#mapAvailableGLVersion(AbstractGraphicsDevice, int, int, int, int, int)}.
-     * <p>
-     * We intentionally override a non native EGL device ES profile mapping,
-     * i.e. this will override/modify an already 'set' X11/WGL/.. mapping.
-     * </p> 
-     * 
-     * @param device
-     */
-    protected void mapCurrentAvailableGLVersion(AbstractGraphicsDevice device) {
-        mapCurrentAvailableGLVersionImpl(device, ctxMajorVersion, ctxMinorVersion, ctxOptions);
-    }        
-    protected static void mapStaticGLESVersion(AbstractGraphicsDevice device, GLCapabilitiesImmutable caps) {
+    /* pp */ void mapCurrentAvailableGLVersion(AbstractGraphicsDevice device) {
+        mapStaticGLVersion(device, ctxMajorVersion, ctxMinorVersion, ctxOptions);
+    }
+    /* pp */ int getContextOptions() { return ctxOptions; }    
+    /* pp */ static void mapStaticGLESVersion(AbstractGraphicsDevice device, GLCapabilitiesImmutable caps) {
         final GLProfile glp = caps.getGLProfile();
         final int[] reqMajorCTP = new int[2];
         GLContext.getRequestMajorAndCompat(glp, reqMajorCTP);
@@ -309,20 +294,26 @@ public abstract class EGLContext extends GLContextImpl {
         if(!caps.getHardwareAccelerated()) {
             reqMajorCTP[1] |= GLContext.CTX_IMPL_ACCEL_SOFT;
         }
-        mapCurrentAvailableGLVersionImpl(device, reqMajorCTP[0], 0, reqMajorCTP[1]);
-    }
-    protected static void mapStaticGLESVersion(AbstractGraphicsDevice device, int major) {
+        mapStaticGLVersion(device, reqMajorCTP[0], 0, reqMajorCTP[1]);
+    }    
+    /* pp */ static void mapStaticGLESVersion(AbstractGraphicsDevice device, int major) {
         int ctp = ( 2 == major ) ? ( GLContext.CTX_PROFILE_ES | GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ) : ( GLContext.CTX_PROFILE_ES );  
-        mapCurrentAvailableGLVersionImpl(device, major, 0, ctp);
+        mapStaticGLVersion(device, major, 0, ctp);
     }
-    private static void mapCurrentAvailableGLVersionImpl(AbstractGraphicsDevice device, int major, int minor, int ctp) {
+    /* pp */ static void mapStaticGLVersion(AbstractGraphicsDevice device, int major, int minor, int ctp) {
         if( 0 != ( ctp & GLContext.CTX_PROFILE_ES) ) {
             // ES1 or ES2
             final int reqMajor = major;
             final int reqProfile = GLContext.CTX_PROFILE_ES;
-            GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile,
-                                            major, minor, ctp);
+            GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile, major, minor, ctp);
+            if(! ( device instanceof EGLGraphicsDevice ) ) {
+                final EGLGraphicsDevice eglDevice = new EGLGraphicsDevice(device.getHandle(), EGL.EGL_NO_DISPLAY, device.getConnection(), device.getUnitID(), null);
+                GLContext.mapAvailableGLVersion(eglDevice, reqMajor, reqProfile, major, minor, ctp);
+            }            
         }
+    }
+    protected static String getGLVersion(int major, int minor, int ctp, String gl_version) {
+        return GLContext.getGLVersion(major, minor, ctp, gl_version);
     }
     
     protected static boolean getAvailableGLVersionsSet(AbstractGraphicsDevice device) {

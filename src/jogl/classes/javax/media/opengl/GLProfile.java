@@ -1445,10 +1445,6 @@ public class GLProfile {
             }
         } else {
             defaultDesktopDevice = desktopFactory.getDefaultDevice();
-            defaultDevice        = defaultDesktopDevice; 
-            if(DEBUG) {
-                System.err.println("Info: GLProfile.init - Default device is desktop derived: "+defaultDevice);
-            }
         }
 
         if ( !disableOpenGLES && ReflectionUtil.isClassAvailable("jogamp.opengl.egl.EGLDrawableFactory", classloader) ) {
@@ -1490,7 +1486,7 @@ public class GLProfile {
             }
         }
 
-        final AbstractGraphicsDevice defaultEGLDevice;        
+        final AbstractGraphicsDevice defaultEGLDevice;
         if(null == eglFactory) {
             hasGLES2Impl     = false;
             hasGLES1Impl     = false;
@@ -1499,25 +1495,33 @@ public class GLProfile {
                 System.err.println("Info: GLProfile.init - EGL GLDrawable factory not available");
             }
         } else {
-            defaultEGLDevice = eglFactory.getDefaultDevice();
-            if(null == defaultDevice) {
-                defaultDevice = defaultEGLDevice;
-                if(DEBUG) {
-                    System.err.println("Info: GLProfile.init - Default device is EGL derived: "+defaultDevice);
-                }
-            }
+            defaultEGLDevice = eglFactory.getDefaultDevice();            
         }
 
-        /** Should not be required .. but keep it here if simple probe on defaultDevice ain't enough. 
-        final boolean addedDesktopProfile = initProfilesForDevice(defaultDesktopDevice); 
-        final boolean addedEGLProfile     = initProfilesForDevice(defaultEGLDevice); 
-        final boolean addedAnyProfile =  addedDesktopProfile || addedEGLProfile ;
-         */
-        final boolean addedAnyProfile =  initProfilesForDevice(defaultDevice);
-
+        if( null != defaultDesktopDevice ) {
+            defaultDevice = defaultDesktopDevice;
+            if(DEBUG) {
+                System.err.println("Info: GLProfile.init - Default device is desktop derived: "+defaultDevice);
+            }            
+        } else if ( null != defaultEGLDevice ) {
+            defaultDevice = defaultEGLDevice;
+            if(DEBUG) {
+                System.err.println("Info: GLProfile.init - Default device is EGL derived: "+defaultDevice);
+            }
+        } else {
+            if(DEBUG) {
+                System.err.println("Info: GLProfile.init - Default device not available");
+            }
+            defaultDevice = null;
+        }
+                
+        // we require to initialize the EGL device 1st, if available
+        final boolean addedEGLProfile     = null != defaultEGLDevice     ? initProfilesForDevice(defaultEGLDevice)     : false;
+        final boolean addedDesktopProfile = null != defaultDesktopDevice ? initProfilesForDevice(defaultDesktopDevice) : false;        
+        final boolean addedAnyProfile     = addedEGLProfile || addedDesktopProfile ;
+            
         if(DEBUG) {
-            // System.err.println("GLProfile.init addedAnyProfile      "+addedAnyProfile+" (desktop: "+addedDesktopProfile+", egl "+addedEGLProfile+")");
-            System.err.println("GLProfile.init addedAnyProfile       "+addedAnyProfile);
+            System.err.println("GLProfile.init addedAnyProfile       "+addedAnyProfile+" (desktop: "+addedDesktopProfile+", egl "+addedEGLProfile+")");
             System.err.println("GLProfile.init isAWTAvailable        "+isAWTAvailable);
             System.err.println("GLProfile.init hasDesktopGLFactory   "+hasDesktopGLFactory);
             System.err.println("GLProfile.init hasGL234Impl          "+hasGL234Impl);

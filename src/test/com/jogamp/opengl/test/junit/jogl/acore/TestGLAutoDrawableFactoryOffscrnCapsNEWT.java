@@ -73,10 +73,7 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
     void doTest(GLCapabilitiesImmutable reqGLCaps, GLEventListener demo) throws InterruptedException {
         System.out.println("Requested  GL Caps: "+reqGLCaps);
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(reqGLCaps.getGLProfile());
-        
-        final boolean fboAvailable = factory.canCreateFBO(null, reqGLCaps.getGLProfile());
-        final boolean pbufferAvailable = factory.canCreateGLPbuffer(null);            
-        final GLCapabilitiesImmutable expGLCaps = GLGraphicsConfigurationUtil.fixGLCapabilities(reqGLCaps, fboAvailable, pbufferAvailable);
+        final GLCapabilitiesImmutable expGLCaps = GLGraphicsConfigurationUtil.fixGLCapabilities(reqGLCaps, factory, null);
         System.out.println("Expected   GL Caps: "+expGLCaps);
 
         //
@@ -212,8 +209,8 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
         reqGLCaps.setStencilBits(1);
         reqGLCaps.setSampleBuffers(true);
         doTest(reqGLCaps, new GearsES2(1));
-    }
-    
+    }    
+        
     @Test
     public void testGL2OffScreenPbufferDblBuf() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
@@ -221,7 +218,7 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
         reqGLCaps.setOnscreen(false);
         reqGLCaps.setPBuffer(true);
         doTest(reqGLCaps, new GearsES2(1));
-    }
+    }    
     
     @Test
     public void testGL2OffScreenPbufferSglBuf() throws InterruptedException {

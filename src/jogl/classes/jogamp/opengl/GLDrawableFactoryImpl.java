@@ -63,6 +63,7 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.nativewindow.DelegatedUpstreamSurfaceHookWithSurfaceSize;
 import com.jogamp.nativewindow.UpstreamSurfaceHookMutableSize;
+import com.jogamp.opengl.GLRendererQuirks;
 
 
 /** Extends GLDrawableFactory with a few methods for handling
@@ -76,6 +77,15 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
 
   protected GLDrawableFactoryImpl() {
     super();
+  }
+
+  @Override
+  public GLRendererQuirks getRendererQuirks(AbstractGraphicsDevice device) {
+      final GLContext ctx = getOrCreateSharedContextImpl(device);
+      if(null != ctx) {
+          return ctx.getRendererQuirks();
+      }
+      return null;
   }
 
   /**
@@ -102,24 +112,15 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    */
   protected final AbstractGraphicsDevice getOrCreateSharedDevice(AbstractGraphicsDevice device) {
-      if(null==device) {
-          device = getDefaultDevice();
-          if(null==device) {
-              throw new InternalError("no default device");
-          }
-          if (GLProfile.DEBUG) {
-              System.err.println("Info: GLDrawableFactoryImpl.getOrCreateSharedContext: using default device : "+device);
-          }
-      } else if( !getIsDeviceCompatible(device) ) {
-          if (GLProfile.DEBUG) {
-              System.err.println("Info: GLDrawableFactoryImpl.getOrCreateSharedContext: device not compatible : "+device);
-          }
-          return null;
+      device = validateDevice(device);
+      if( null != device) {
+          return getOrCreateSharedDeviceImpl(device);
       }
-      return getOrCreateSharedDeviceImpl(device);
+      return null;
   }
   protected abstract AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device);
 
+  
   /**
    * Returns the GLDynamicLookupHelper
    * @param profile if EGL/ES, profile <code>1</code> refers to ES1 and <code>2</code> to ES2,
@@ -144,12 +145,11 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     try {
         final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(target, true);
         if(null != ols) {
+            final GLCapabilitiesImmutable chosenCapsMod = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(chosenCaps, this, adevice);
             // layered surface -> Offscreen/[FBO|PBuffer]
-            final boolean isPbufferAvailable = canCreateGLPbuffer(adevice) ;
-            if(!isPbufferAvailable && !isFBOAvailable) {
-                throw new GLException("Neither FBO nor Pbuffer is available for "+target);
+            if( !chosenCapsMod.isFBO() && !chosenCapsMod.isPBuffer() ) {
+                throw new GLException("Neither FBO nor Pbuffer is available for "+chosenCapsMod+", "+target);
             }
-            final GLCapabilitiesImmutable chosenCapsMod = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(chosenCaps, isFBOAvailable, isPbufferAvailable);
             config.setChosenCapabilities(chosenCapsMod);
             ols.setChosenCapabilities(chosenCapsMod);
             if(DEBUG) {
@@ -163,7 +163,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
             if( ! ( target instanceof MutableSurface ) ) {
                 throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen layered surface: "+target);
             }            
-            if( chosenCapsMod.isFBO() && isFBOAvailable ) {
+            if( chosenCapsMod.isFBO() ) {
                 // target surface is already a native one
                 result = createFBODrawableImpl(target, chosenCapsMod, 0);
             } else {            
@@ -294,9 +294,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         throw new GLException("No shared device for requested: "+deviceReq);
     }
     
-    final GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(capsRequested, 
-                                                        GLContext.isFBOAvailable(device, capsRequested.getGLProfile()), 
-                                                        canCreateGLPbuffer(device));    
+    final GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(capsRequested, this, device);
 
     if( capsChosen.isFBO() ) {
         device.lock();

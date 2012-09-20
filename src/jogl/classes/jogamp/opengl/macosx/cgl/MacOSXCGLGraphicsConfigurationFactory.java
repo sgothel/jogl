@@ -35,7 +35,6 @@ package jogamp.opengl.macosx.cgl;
 
 import jogamp.opengl.GLGraphicsConfigurationFactory;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
-import jogamp.opengl.x11.glx.X11GLXDrawableFactory;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -45,7 +44,6 @@ import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
-import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 
 
@@ -91,10 +89,8 @@ public class MacOSXCGLGraphicsConfigurationFactory extends GLGraphicsConfigurati
         if (absScreen == null) {
             throw new IllegalArgumentException("AbstractGraphicsScreen is null");
         }
-        final MacOSXCGLDrawableFactory factory = (MacOSXCGLDrawableFactory) GLDrawableFactory.getDesktopFactory();
         final AbstractGraphicsDevice device = absScreen.getDevice();
-
-        capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities( capsChosen, GLContext.isFBOAvailable(device, capsChosen.getGLProfile()), factory.canCreateGLPbuffer(device) );
+        capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities( capsChosen, GLDrawableFactory.getDesktopFactory(), device);
         
         return new MacOSXCGLGraphicsConfiguration(absScreen, (GLCapabilitiesImmutable)capsChosen, (GLCapabilitiesImmutable)capsRequested);
     }

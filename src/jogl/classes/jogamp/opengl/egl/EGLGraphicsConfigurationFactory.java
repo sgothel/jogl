@@ -247,9 +247,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         }
 
         final GLProfile glp = capsChosen.getGLProfile();
-        final EGLDrawableFactory factory = (EGLDrawableFactory) GLDrawableFactory.getEGLFactory();
-        capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities( capsChosen, GLContext.isFBOAvailable(absDevice, glp), factory.canCreateGLPbuffer(absDevice) );
-
+        capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities( capsChosen, GLDrawableFactory.getEGLFactory(), absDevice);
         EGLGraphicsConfiguration res = eglChooseConfig(eglDevice, capsChosen, capsReq, chooser, absScreen, nativeVisualID, forceTransparentFlag);
         if(null==res) {
             if(DEBUG) {

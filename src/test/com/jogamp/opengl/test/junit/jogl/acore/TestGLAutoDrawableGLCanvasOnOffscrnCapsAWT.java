@@ -106,10 +106,7 @@ public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
         }
         System.out.println("Requested  GL Caps: "+reqGLCaps);
         final GLDrawableFactory factory = GLDrawableFactory.getFactory(reqGLCaps.getGLProfile());
-        
-        final boolean fboAvailable = factory.canCreateFBO(null, reqGLCaps.getGLProfile());
-        final boolean pbufferAvailable = factory.canCreateGLPbuffer(null);            
-        final GLCapabilitiesImmutable expGLCaps = GLGraphicsConfigurationUtil.fixGLCapabilities(reqGLCaps, fboAvailable, pbufferAvailable);
+        final GLCapabilitiesImmutable expGLCaps = GLGraphicsConfigurationUtil.fixGLCapabilities(reqGLCaps, factory, null);
         System.out.println("Expected   GL Caps: "+expGLCaps);
         //
         // Create native windowing resources .. X11/Win/OSX

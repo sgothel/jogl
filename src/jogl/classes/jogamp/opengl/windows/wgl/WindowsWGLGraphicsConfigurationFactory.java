@@ -105,10 +105,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             absScreen = DefaultGraphicsScreen.createDefault(NativeWindowFactory.TYPE_WINDOWS);
         }
         final AbstractGraphicsDevice absDevice = absScreen.getDevice();
-        final GLDrawableFactory factory = GLDrawableFactory.getDesktopFactory();
-        capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities(
-                capsChosen, GLContext.isFBOAvailable(absDevice, capsChosen.getGLProfile()), factory.canCreateGLPbuffer(absDevice) );
-
+        capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities( capsChosen, GLDrawableFactory.getDesktopFactory(), absDevice);
         return new WindowsWGLGraphicsConfiguration( absScreen, capsChosen, capsReq, (GLCapabilitiesChooser)chooser );
     }
 

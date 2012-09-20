@@ -45,7 +45,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.DefaultGraphicsScreen;
@@ -64,7 +63,6 @@ import javax.media.opengl.GLProfile;
 import jogamp.nativewindow.WrappedSurface;
 import jogamp.nativewindow.macosx.OSXDummyUpstreamSurfaceHook;
 import jogamp.opengl.DesktopGLDynamicLookupHelper;
-import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
@@ -148,7 +146,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
 
   static class SharedResource {
       // private MacOSXCGLDrawable drawable;
-      // private MacOSXCGLContext context;
+      private MacOSXCGLContext context;
       MacOSXGraphicsDevice device;
       boolean wasContextCreated;
       boolean hasNPOTTextures;
@@ -157,9 +155,9 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
 
       SharedResource(MacOSXGraphicsDevice device, boolean wasContextCreated,
                      boolean hasNPOTTextures, boolean hasRECTTextures, boolean hasAppletFloatPixels
-                     /* MacOSXCGLDrawable draw, MacOSXCGLContext ctx */) {
+                     /* MacOSXCGLDrawable draw */, MacOSXCGLContext ctx) {
           // drawable = draw;
-          // context = ctx;
+          this.context = ctx;
           this.device = device;
           this.wasContextCreated = wasContextCreated;
           this.hasNPOTTextures = hasNPOTTextures;
@@ -167,6 +165,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
           this.hasAppleFloatPixels = hasAppletFloatPixels;
       }
       final MacOSXGraphicsDevice getDevice() { return device; }
+      final MacOSXCGLContext getContext() { return context; }
       final boolean wasContextAvailable() { return wasContextCreated; }
       final boolean isNPOTTextureAvailable() { return hasNPOTTextures; }
       final boolean isRECTTextureAvailable() { return hasRECTTextures; }
@@ -213,6 +212,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     if(null==sr && !getDeviceTried(connection)) {
         addDeviceTried(connection);
         final MacOSXGraphicsDevice sharedDevice = new MacOSXGraphicsDevice(adevice.getUnitID());
+        final MacOSXCGLContext sharedContext;
         boolean madeCurrent = false;
         boolean hasNPOTTextures = false;
         boolean hasRECTTextures = false;
@@ -225,7 +225,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
             final GLDrawableImpl sharedDrawable = createOnscreenDrawableImpl(createDummySurfaceImpl(sharedDevice, false, new GLCapabilities(glp), null, 64, 64));
             sharedDrawable.setRealized(true);
             
-            final GLContextImpl sharedContext  = (GLContextImpl) sharedDrawable.createContext(null);
+            sharedContext  = (MacOSXCGLContext) sharedDrawable.createContext(null);
             if (null == sharedContext) {
                 throw new GLException("Couldn't create shared context for drawable: "+sharedDrawable);
             }
@@ -256,7 +256,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
             }
             sharedDrawable.setRealized(false);
         }
-        sr = new SharedResource(sharedDevice, madeCurrent, hasNPOTTextures, hasRECTTextures, hasAppleFloatPixels);
+        sr = new SharedResource(sharedDevice, madeCurrent, hasNPOTTextures, hasRECTTextures, hasAppleFloatPixels, sharedContext);
         synchronized(sharedMap) {
             sharedMap.put(connection, sr);
         }
@@ -293,7 +293,10 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
 
   @Override
   protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
-      // FIXME: not implemented .. needs a dummy OSX surface
+      SharedResource sr = getOrCreateOSXSharedResource(device);
+      if(null!=sr) {
+          return sr.getContext();
+      }
       return null;
   }
 
