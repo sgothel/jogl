@@ -179,7 +179,9 @@ public class GLReadBufferUtil {
         if(res) {
             psm.setAlignment(gl, alignment, alignment);
             readPixelBuffer.clear();
-            gl.glReadPixels(0, 0, drawable.getWidth(), drawable.getHeight(), textureDataFormat, textureDataType, readPixelBuffer);
+            try {
+                gl.glReadPixels(0, 0, drawable.getWidth(), drawable.getHeight(), textureDataFormat, textureDataType, readPixelBuffer);
+            } catch(GLException gle) { res = false; gle.printStackTrace(); }
             readPixelBuffer.position(readPixelSize);
             readPixelBuffer.flip();
             final int glerr1 = gl.glGetError();

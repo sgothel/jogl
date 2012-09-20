@@ -159,16 +159,18 @@ public class ShaderUtil {
         if(null == info.shaderBinaryFormats) {
             info.shaderBinaryFormats = new HashSet<Integer>();
             if (gl.isGLES2Compatible()) {
-                final int[] param = new int[1];
-                gl.glGetIntegerv(GL2ES2.GL_NUM_SHADER_BINARY_FORMATS, param, 0);
-                int numFormats = param[0];
-                if(numFormats>0) {
-                    int[] formats = new int[numFormats];
-                    gl.glGetIntegerv(GL2ES2.GL_SHADER_BINARY_FORMATS, formats, 0);
-                    for(int i=0; i<numFormats; i++) {
-                        info.shaderBinaryFormats.add(new Integer(formats[i]));
+                try {
+                    final int[] param = new int[1];
+                    gl.glGetIntegerv(GL2ES2.GL_NUM_SHADER_BINARY_FORMATS, param, 0);
+                    int numFormats = param[0];
+                    if(numFormats>0) {
+                        int[] formats = new int[numFormats];
+                        gl.glGetIntegerv(GL2ES2.GL_SHADER_BINARY_FORMATS, formats, 0);
+                        for(int i=0; i<numFormats; i++) {
+                            info.shaderBinaryFormats.add(new Integer(formats[i]));
+                        }
                     }
-                }
+                } catch (GLException gle) { gle.printStackTrace(); }                    
             }
         }
         return info.shaderBinaryFormats;
@@ -180,17 +182,24 @@ public class ShaderUtil {
         final ProfileInformation info = getProfileInformation(gl);
         if(null==info.shaderCompilerAvailable) {
             if(gl.isGLES2()) {
-                final byte[] param = new byte[1];
-                gl.glGetBooleanv(GL2ES2.GL_SHADER_COMPILER, param, 0);
-                boolean v = param[0]!=(byte)0x00;
-                if(!v) {
-                    final Set<Integer> bfs = getShaderBinaryFormats(gl);
-                    if(bfs.size()==0) {
-                        // no supported binary formats, hence a compiler must be available!
-                        v = true;
+                boolean queryOK = false;
+                try {
+                    final byte[] param = new byte[1];
+                    gl.glGetBooleanv(GL2ES2.GL_SHADER_COMPILER, param, 0);
+                    boolean v = param[0]!=(byte)0x00;
+                    if(!v) {
+                        final Set<Integer> bfs = getShaderBinaryFormats(gl);
+                        if(bfs.size()==0) {
+                            // no supported binary formats, hence a compiler must be available!
+                            v = true;
+                        }
                     }
-                }
-                info.shaderCompilerAvailable = new Boolean(v);
+                    info.shaderCompilerAvailable = new Boolean(v);
+                    queryOK = true;
+                } catch (GLException gle) { gle.printStackTrace(); }
+                if(!queryOK) {
+                    info.shaderCompilerAvailable = new Boolean(true);
+                }                
             } else if( gl.isGL2ES2() ) {
                 info.shaderCompilerAvailable = new Boolean(true);
             } else {
