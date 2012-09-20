@@ -100,7 +100,6 @@ public class GLBufferStateTracker {
   public final void setBoundBufferObject(int target, int value) {
     bindingMap.put(target, value);
     if (DEBUG) {
-      System.err.println();
       System.err.println("GLBufferStateTracker.setBoundBufferObject() target 0x" + 
                          Integer.toHexString(target) + " -> mapped bound buffer 0x" +
                          Integer.toHexString(value));
@@ -128,11 +127,16 @@ public class GLBufferStateTracker {
         default:                          gotQueryTarget = false; break;
       }
       if (gotQueryTarget) {
+        final int glerrPre = caller.glGetError(); // clear
         caller.glGetIntegerv(queryTarget, bufTmp, 0);
-        value = bufTmp[0];
+        final int glerrPost = caller.glGetError(); // be safe, e.g. GL '3.0 Mesa 8.0.4' may produce an error querying GL_PIXEL_UNPACK_BUFFER_BINDING, ignore value
+        if(GL.GL_NO_ERROR == glerrPost) {
+            value = bufTmp[0];
+        } else {
+            value = 0;
+        }
         if (DEBUG) {
-          System.err.println();
-          System.err.println("GLBufferStateTracker.getBoundBufferObject() [queried value]: target 0x" + 
+          System.err.println("GLBufferStateTracker.getBoundBufferObject() glerr[pre 0x"+Integer.toHexString(glerrPre)+", post 0x"+Integer.toHexString(glerrPost)+"], [queried value]: target 0x" + 
                              Integer.toHexString(target) + " / query 0x"+Integer.toHexString(queryTarget)+
                              " -> mapped bound buffer 0x" + Integer.toHexString(value));
         }
@@ -142,7 +146,6 @@ public class GLBufferStateTracker {
       return 0;
     }
     if (DEBUG) {
-      System.err.println();
       System.err.println("GLBufferStateTracker.getBoundBufferObject() [mapped value]: target 0x" + 
                          Integer.toHexString(target) + " -> mapped bound buffer 0x" +
                          Integer.toHexString(value));
@@ -160,7 +163,6 @@ public class GLBufferStateTracker {
   public final void clearBufferObjectState() {
     bindingMap.clear();
         if (DEBUG) {
-          System.err.println();
           System.err.println("GLBufferStateTracker.clearBufferObjectState()");
           //Thread.dumpStack();
         }
