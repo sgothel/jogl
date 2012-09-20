@@ -46,7 +46,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     private FBObject[] fbos;
     private int fboIBack;  // points to GL_BACK buffer
     private int fboIFront; // points to GL_FRONT buffer
-    private FBObject pendingFBOReset = null;
+    private int pendingFBOReset = -1;
     private boolean fboBound;
     private static final int bufferCount = 2; // number of FBOs for double buffering. TODO: Possible to configure!
     
@@ -132,7 +132,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
             }
             fbos=null;
             fboBound = false;   
-            pendingFBOReset = null;
+            pendingFBOReset = -1;
         }
         if(DEBUG) {
             System.err.println("GLFBODrawableImpl.initialize("+realize+"): "+this);
@@ -144,13 +144,34 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         swapBufferContext = sbc;
     }
 
-    private static final void reset(GL gl, FBObject fbo, int fboIdx, int width, int height, int samples) {
-        fbo.reset(gl, width, height, samples); // implicit glClear(..)
-        if(fbo.getNumSamples() != samples) {
-            throw new InternalError("Sample number mismatch: "+samples+", fbos["+fboIdx+"] "+fbo);
-        }        
-    }
+    static final boolean FBOResetQuirk = false;
     
+    private final void reset(GL gl, int idx, int width, int height, int samples, int alphaBits, int stencilBits) {
+        if( !FBOResetQuirk ) {
+            fbos[idx].reset(gl, width, height, samples); // implicit glClear(..)
+            if(fbos[idx].getNumSamples() != samples) {
+                throw new InternalError("Sample number mismatch: "+samples+", fbos["+idx+"] "+fbos[idx]);
+            }
+        } else {
+            fbos[idx].destroy(gl);
+            fbos[idx] = new FBObject();
+            fbos[idx].reset(gl, getWidth(), getHeight(), samples);
+            if(fbos[idx].getNumSamples() != samples) {
+                throw new InternalError("Sample number mismatch: "+samples+", fbos["+idx+"] "+fbos[idx]);
+            }
+            if(samples > 0) {
+                fbos[idx].attachColorbuffer(gl, 0, alphaBits>0);
+            } else {
+                fbos[idx].attachTexture2D(gl, 0, alphaBits>0);
+            }
+            if( stencilBits > 0 ) {
+                fbos[idx].attachRenderbuffer(gl, Attachment.Type.DEPTH_STENCIL, 24);
+            } else {
+                fbos[idx].attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
+            }
+        }
+    }
+        
     private final void reset(GL gl, int newSamples) throws GLException {
         if(!initialized) {
             // NOP if not yet initializes
@@ -187,10 +208,11 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 final int nWidth = getWidth();
                 final int nHeight = getHeight();
                 samples = newSamples;
-                pendingFBOReset = ( 1 < fbos.length ) ? fbos[fboIFront] : null; // pending-front reset only w/ double buffering (or zero samples)
+                pendingFBOReset = ( 1 < fbos.length ) ? fboIFront : -1; // pending-front reset only w/ double buffering (or zero samples)
+                final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getChosenCapabilities();
                 for(int i=0; i<fbos.length; i++) {
-                    if(1 == fbos.length || fboIFront != i) {
-                        reset(gl, fbos[i], i, nWidth, nHeight, samples);
+                    if( pendingFBOReset != i ) {
+                        reset(gl, i, nWidth, nHeight, samples, caps.getAlphaBits(), caps.getStencilBits());
                     }
                 }
                 final GLCapabilities fboCapsNative = (GLCapabilities) surface.getGraphicsConfiguration().getChosenCapabilities();
@@ -264,6 +286,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         } else {
             if(fboBound) {
                 swapFBOImpl(glc);
+                swapFBOImplPost(glc);
                 fboBound=false;
                 if(DEBUG) {
                     System.err.println("Post FBO swap(@release): done");
@@ -275,9 +298,11 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     @Override
     protected void swapBuffersImpl(boolean doubleBuffered) {
         final GLContext ctx = GLContext.getCurrent();
+        boolean doPostSwap = false;
         if(null!=ctx && ctx.getGLDrawable()==this) {
             if(fboBound) {
                 swapFBOImpl(ctx);
+                doPostSwap = true;
                 fboBound=false;
                 if(DEBUG) {
                     System.err.println("Post FBO swap(@swap): done");
@@ -287,17 +312,23 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         if(null != swapBufferContext) {
             swapBufferContext.swapBuffers(doubleBuffered);
         }
+        if(doPostSwap) {
+            swapFBOImplPost(ctx);
+        }
+    }
+    
+    private final void swapFBOImplPost(GLContext glc) {
+        // Safely reset the previous front FBO - after completing propagating swap
+        if(0 <= pendingFBOReset) {
+            final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getChosenCapabilities();
+            reset(glc.getGL(), pendingFBOReset, getWidth(), getHeight(), samples, caps.getAlphaBits(), caps.getStencilBits());
+            pendingFBOReset = -1;
+        }
     }
     
     private final void swapFBOImpl(GLContext glc) {
         final GL gl = glc.getGL();
         fbos[fboIBack].markUnbound(); // fast path, use(gl,..) is called below
-
-        // Safely reset the previous front FBO
-        if(null != pendingFBOReset) {
-            reset(gl, pendingFBOReset, fboIFront, getWidth(), getHeight(), samples);
-            pendingFBOReset = null;
-        }
         
         if(DEBUG) {
             int _fboIFront = ( fboIFront + 1 ) % fbos.length;
