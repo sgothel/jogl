@@ -49,6 +49,8 @@ import jogamp.newt.WindowImpl;
 public class NewtFactory {
     public static final boolean DEBUG_IMPLEMENTATION = Debug.debug("Window");
 
+    public static final String DRIVER_DEFAULT_ROOT_PACKAGE = "jogamp.newt.driver";
+    
     // Work-around for initialization order problems on Mac OS X
     // between native Newt and (apparently) Fmod
     static {
@@ -59,7 +61,12 @@ public class NewtFactory {
     public static Class<?> getCustomClass(String packageName, String classBaseName) {
         Class<?> clazz = null;
         if(packageName!=null && classBaseName!=null) {
-            final String clazzName = packageName + "." + classBaseName ;
+            final String clazzName;
+            if( packageName.startsWith(".") ) {
+                clazzName = DRIVER_DEFAULT_ROOT_PACKAGE + packageName + "." + classBaseName ;
+            } else {
+                clazzName = packageName + "." + classBaseName ;
+            }            
             try {
                 clazz = Class.forName(clazzName);
             } catch (Throwable t) {

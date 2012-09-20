@@ -57,25 +57,25 @@ public abstract class NativeWindowFactory {
     protected static final boolean DEBUG;
 
     /** OpenKODE/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}.*/
-    public static final String TYPE_EGL = "jogamp.newt.driver.kd".intern();
+    public static final String TYPE_EGL = ".egl".intern();
 
     /** Microsoft Windows type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
-    public static final String TYPE_WINDOWS = "jogamp.newt.driver.windows".intern();
+    public static final String TYPE_WINDOWS = ".windows".intern();
 
     /** X11 type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
-    public static final String TYPE_X11 = "jogamp.newt.driver.x11".intern();
+    public static final String TYPE_X11 = ".x11".intern();
 
     /** Android/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}.*/
-    public static final String TYPE_ANDROID = "jogamp.newt.driver.android".intern();
+    public static final String TYPE_ANDROID = ".android".intern();
 
     /** Mac OS X type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
-    public static final String TYPE_MACOSX = "jogamp.newt.driver.macosx".intern();
+    public static final String TYPE_MACOSX = ".macosx".intern();
 
     /** Generic AWT type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
-    public static final String TYPE_AWT = "jogamp.newt.driver.awt".intern();
+    public static final String TYPE_AWT = ".awt".intern();
 
     /** Generic DEFAULT type, where platform implementation don't care, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
-    public static final String TYPE_DEFAULT = "default".intern();
+    public static final String TYPE_DEFAULT = ".default".intern();
 
     private static final String nativeWindowingTypePure;   // canonical String via String.intern()
     private static final String nativeWindowingTypeCustom; // canonical String via String.intern()
