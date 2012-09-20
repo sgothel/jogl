@@ -59,6 +59,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
 public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
+    static boolean singleBuffer = false;
     static boolean useMSAA = false;
     static boolean addComp = true;
     static int swapInterval = 1;
@@ -129,6 +130,9 @@ public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
         final Frame frame1 = new Frame("AWT Parent Frame");
         
         GLCapabilities caps = new GLCapabilities(null);
+        if(singleBuffer) {
+            caps.setDoubleBuffered(false);
+        }
         if(useMSAA) {
             caps.setNumSamples(4);
             caps.setSampleBuffers(true);
@@ -213,6 +217,8 @@ public class TestOffscreenLayer02NewtCanvasAWT extends UITestCase {
                 shallUseOffscreenPBufferLayer = true;
             } else if(args[i].equals("-msaa")) {
                 useMSAA = true;
+            } else if(args[i].equals("-single")) {
+                singleBuffer = true;
             } else if(args[i].equals("-still")) {
                 noAnimation = true;
             } else if(args[i].equals("-wait")) {

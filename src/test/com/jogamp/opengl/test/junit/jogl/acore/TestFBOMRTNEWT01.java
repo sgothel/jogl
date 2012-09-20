@@ -50,7 +50,6 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDrawable;
-import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLUniformData;
 
@@ -74,7 +73,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
                 new GLCapabilities(GLProfile.getGL2GL3()), width/step, height/step, true);        
         final GLDrawable drawable = winctx.context.getGLDrawable();
         GL2GL3 gl = winctx.context.getGL().getGL2GL3();
-        gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, gl, null) ).getGL2GL3();
+        // gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", null, gl, null) ).getGL2GL3();
         System.err.println(winctx.context);
 
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
@@ -162,7 +161,13 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         final FBObject fbo_mrt = new FBObject();
         fbo_mrt.reset(gl, drawable.getWidth(), drawable.getHeight());
         final TextureAttachment texA0 = fbo_mrt.attachTexture2D(gl, texA0Point, true, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
-        final TextureAttachment texA1 = fbo_mrt.attachTexture2D(gl, texA1Point, true, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
+        final TextureAttachment texA1;
+        if(fbo_mrt.getMaxColorAttachments() > 1) {
+            texA1 = fbo_mrt.attachTexture2D(gl, texA1Point, true, GL.GL_NEAREST, GL.GL_NEAREST, GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE);
+        } else {
+            texA1 = null;
+            System.err.println("FBO supports only one attachment, no MRT available!");
+        }
         fbo_mrt.attachRenderbuffer(gl, Type.DEPTH, 24);
         Assert.assertTrue( fbo_mrt.isStatusValid() ) ;
         fbo_mrt.unbind(gl);
@@ -216,8 +221,10 @@ public class TestFBOMRTNEWT01 extends UITestCase {
             
             gl.glActiveTexture(GL.GL_TEXTURE0 + texUnit0.intValue());            
             fbo_mrt.use(gl, texA0);
-            gl.glActiveTexture(GL.GL_TEXTURE0 + texUnit1.intValue());
-            fbo_mrt.use(gl, texA1);
+            if(null != texA1) {
+                gl.glActiveTexture(GL.GL_TEXTURE0 + texUnit1.intValue());
+                fbo_mrt.use(gl, texA1);
+            }
             gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
             gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
             fbo_mrt.unuse(gl);
