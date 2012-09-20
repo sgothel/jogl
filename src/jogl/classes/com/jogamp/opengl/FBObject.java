@@ -28,7 +28,6 @@
 
 package com.jogamp.opengl;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.media.opengl.GL;
@@ -119,7 +118,7 @@ public class FBObject {
                     case GL.GL_DEPTH24_STENCIL8:
                         return Type.DEPTH_STENCIL;
                     default:
-                        throw new IllegalArgumentException("format invalid: 0x"+Integer.toHexString(format));
+                        throw new IllegalArgumentException("format invalid: "+toHexString(format));
                 }        
             }
         };
@@ -151,9 +150,11 @@ public class FBObject {
             final int _format;
             switch(format) {
                 case GL.GL_RGBA:
+                case 4:
                     _format = rgba8Avail ? GL.GL_RGBA8 : GL.GL_RGBA4;  
                     break;
                 case GL.GL_RGB:
+                case 3:
                     _format = rgba8Avail ? GL.GL_RGB8 : GL.GL_RGB565;
                     break;
                 default:
@@ -213,7 +214,7 @@ public class FBObject {
                     caps.setStencilBits(8);
                     break;
                 default:
-                    throw new IllegalArgumentException("format invalid: 0x"+Integer.toHexString(format));
+                    throw new IllegalArgumentException("format invalid: "+toHexString(format));
             }
         }
                 
@@ -291,8 +292,8 @@ public class FBObject {
         int objectHashCode() { return super.hashCode(); }
         
         public String toString() {
-            return getClass().getSimpleName()+"[type "+type+", format 0x"+Integer.toHexString(format)+", "+width+"x"+height+
-                   ", name 0x"+Integer.toHexString(name)+", obj 0x"+Integer.toHexString(objectHashCode())+"]";
+            return getClass().getSimpleName()+"[type "+type+", format "+toHexString(format)+", "+width+"x"+height+
+                   "; name "+toHexString(name)+", obj "+toHexString(objectHashCode())+"]";
         }
         
         public static Type getType(int attachmentPoint, int maxColorAttachments) {
@@ -305,7 +306,7 @@ public class FBObject {
                 case GL.GL_STENCIL_ATTACHMENT:            
                     return Type.STENCIL;
                 default: 
-                    throw new IllegalArgumentException("Invalid attachment point 0x"+Integer.toHexString(attachmentPoint));
+                    throw new IllegalArgumentException("Invalid attachment point "+toHexString(attachmentPoint));
             }
         }
     }
@@ -390,7 +391,7 @@ public class FBObject {
                 if(GL.GL_NO_ERROR != glerr) {
                     gl.glDeleteRenderbuffers(1, name, 0);
                     setName(0);
-                    throw new GLException("GL Error 0x"+Integer.toHexString(glerr)+" while creating "+this);
+                    throw new GLException("GL Error "+toHexString(glerr)+" while creating "+this);
                 }
                 if(DEBUG) {
                     System.err.println("Attachment.init: "+this);
@@ -404,16 +405,16 @@ public class FBObject {
             final int[] name = new int[] { getName() };
             if( 0 != name[0] ) {
                 gl.glDeleteRenderbuffers(1, name, 0);
-                setName(0);
                 if(DEBUG) {
                     System.err.println("Attachment.free: "+this);
                 }
+                setName(0);
             }
         }
         
         public String toString() {
-            return getClass().getSimpleName()+"[type "+type+", format 0x"+Integer.toHexString(format)+", samples "+samples+", "+getWidth()+"x"+getHeight()+
-                   ", name 0x"+Integer.toHexString(getName())+", obj 0x"+Integer.toHexString(objectHashCode())+"]";
+            return getClass().getSimpleName()+"[type "+type+", format "+toHexString(format)+", samples "+samples+", "+getWidth()+"x"+getHeight()+
+                   ", name "+toHexString(getName())+", obj "+toHexString(objectHashCode())+"]";
         }
     }
     
@@ -482,7 +483,6 @@ public class FBObject {
                 setName(name[0]);
                 
                 gl.glBindTexture(GL.GL_TEXTURE_2D, name[0]);
-                gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, format, getWidth(), getHeight(), 0, dataFormat, dataType, null);
                 if( 0 < magFilter ) {
                     gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, magFilter);
                 }
@@ -494,12 +494,18 @@ public class FBObject {
                 }
                 if( 0 < wrapT ) {
                     gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, wrapT);            
-                }        
+                }
+                boolean preTexImage2D = true;
                 glerr = gl.glGetError();
+                if(GL.GL_NO_ERROR == glerr) {
+                    preTexImage2D = false;
+                    gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, format, getWidth(), getHeight(), 0, dataFormat, dataType, null);
+                    glerr = gl.glGetError();
+                }
                 if(GL.GL_NO_ERROR != glerr) {
                     gl.glDeleteTextures(1, name, 0);
                     setName(0);
-                    throw new GLException("GL Error 0x"+Integer.toHexString(glerr)+" while creating "+this);
+                    throw new GLException("GL Error "+toHexString(glerr)+" while creating (pre TexImage2D "+preTexImage2D+") "+this);
                 }
                 if(DEBUG) {
                     System.err.println("Attachment.init: "+this);
@@ -513,12 +519,23 @@ public class FBObject {
             final int[] name = new int[] { getName() };
             if( 0 != name[0] ) {
                 gl.glDeleteTextures(1, name, 0);
-                setName(0);
                 if(DEBUG) {
                     System.err.println("Attachment.free: "+this);
                 }
+                setName(0);
             }
         }
+        public String toString() {
+            return getClass().getSimpleName()+"[type "+type+", target GL_TEXTURE_2D, level 0, format "+toHexString(format)+
+                                              ", "+getWidth()+"x"+getHeight()+", border 0, dataFormat "+toHexString(dataFormat)+
+                                              ", dataType "+toHexString(dataType)+
+                                              "; min/mag "+toHexString(minFilter)+"/"+toHexString(magFilter)+
+                                              ", wrap S/T "+toHexString(wrapS)+"/"+toHexString(wrapT)+
+                                              "; name "+toHexString(getName())+", obj "+toHexString(objectHashCode())+"]";
+        }               
+    }
+    static String toHexString(int v) {
+        return "0x"+Integer.toHexString(v);
     }
     
     /**
@@ -560,6 +577,8 @@ public class FBObject {
             textureDataType = GL.GL_UNSIGNED_BYTE;
         } else { 
             textureInternalFormat = alpha ? GL.GL_RGBA8 : GL.GL_RGB8;
+            // textureInternalFormat = alpha ? GL.GL_RGBA : GL.GL_RGB;
+            // textureInternalFormat = alpha ? 4 : 3;
             textureDataFormat = alpha ? GL.GL_BGRA : GL.GL_RGB;
             textureDataType = alpha ? GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV : GL.GL_UNSIGNED_BYTE;
         }
@@ -637,14 +656,14 @@ public class FBObject {
             throw new InternalError("maxColorAttachments "+maxColorAttachments+", array.lenght "+colorAttachmentPoints);
         }
         if(0 > point || point >= maxColorAttachments) {
-            throw new IllegalArgumentException("attachment point out of range: "+point+", should be within [0.."+(maxColorAttachments-1)+"]");
+            throw new IllegalArgumentException("attachment point out of range: "+point+", should be within [0.."+(maxColorAttachments-1)+"], "+this);
         }
     }
     
     private final void validateAddColorAttachment(int point, Colorbuffer ca) {
         validateColorAttachmentPointRange(point);
         if( null != colorAttachmentPoints[point] ) {
-            throw new IllegalArgumentException("Cannot attach "+ca+", attachment point already in use by "+colorAttachmentPoints[point]);
+            throw new IllegalArgumentException("Cannot attach "+ca+", attachment point already in use by "+colorAttachmentPoints[point]+", "+this);
         }        
     }
     
@@ -786,20 +805,15 @@ public class FBObject {
                                 
         int val[] = new int[1];
         
-        int glerr = checkPreGLError(gl);
+        checkPreGLError(gl);
 
         int realMaxColorAttachments = 1;
         maxColorAttachments = 1;
         if( null != samplesSink && fullFBOSupport || NV_fbo_color_attachments ) {
             try {
                 gl.glGetIntegerv(GL2GL3.GL_MAX_COLOR_ATTACHMENTS, val, 0);
-                glerr = gl.glGetError();
-                if(GL.GL_NO_ERROR == glerr) {
-                    realMaxColorAttachments = 1 <= val[0] ? val[0] : 1; // cap minimum to 1
-                } else if(DEBUG) {
-                    System.err.println("FBObject.init-GL_MAX_COLOR_ATTACHMENTS query GL Error 0x"+Integer.toHexString(glerr));
-                }
-            } catch (GLException gle) {}
+                realMaxColorAttachments = 1 <= val[0] ? val[0] : 1; // cap minimum to 1
+            } catch (GLException gle) { gle.printStackTrace(); }
         }
         maxColorAttachments = realMaxColorAttachments <= 8 ? realMaxColorAttachments : 8; // cap to limit array size
         
@@ -817,10 +831,7 @@ public class FBObject {
             maxRenderbufferSize = 2048;
         }
         
-        glerr = gl.glGetError();
-        if(DEBUG && GL.GL_NO_ERROR != glerr) {
-            System.err.println("Info: FBObject.init: pre-existing GL error 0x"+Integer.toHexString(glerr));
-        }
+        checkPreGLError(gl);
         
         this.width = width;
         this.height = height;
@@ -873,7 +884,7 @@ public class FBObject {
         samplesSinkDirty = true;
         initialized = true;
         
-        updateStatus(gl);
+        vStatus = GL.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT; // always incomplete w/o attachments!
         if(DEBUG) {
             System.err.println("FBObject.init(): "+this);
         }
@@ -1014,31 +1025,31 @@ public class FBObject {
                 return "OK";
                 
             case GL.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-                return("GL FBO: incomplete, incomplete attachment\n");
+                return("FBO incomplete attachment\n");
             case GL.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-                return("GL FBO: incomplete, missing attachment");
+                return("FBO missing attachment");
             case GL.GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
-                return("GL FBO: incomplete, attached images must have same dimensions");
+                return("FBO attached images must have same dimensions");
             case GL.GL_FRAMEBUFFER_INCOMPLETE_FORMATS:
-                 return("GL FBO: incomplete, attached images must have same format");
+                 return("FBO attached images must have same format");
             case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-                return("GL FBO: incomplete, missing draw buffer");
+                return("FBO missing draw buffer");
             case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-                return("GL FBO: incomplete, missing read buffer");
+                return("FBO missing read buffer");
             case GL2GL3.GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-                return("GL FBO: incomplete, missing multisample buffer");
+                return("FBO missing multisample buffer");
             case GL3.GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:                
-                return("GL FBO: incomplete, layer targets");
+                return("FBO missing layer targets");
                 
             case GL.GL_FRAMEBUFFER_UNSUPPORTED:
-                return("GL FBO: Unsupported framebuffer format");
+                return("Unsupported FBO format");
             case GL2GL3.GL_FRAMEBUFFER_UNDEFINED:
-                 return("GL FBO: framebuffer undefined");
+                 return("FBO undefined");
                  
             case 0:
-                return("GL FBO: incomplete, implementation fault");
+                return("FBO implementation fault");
             default:
-                return("GL FBO: incomplete, implementation ERROR 0x"+Integer.toHexString(fbStatus));
+                return("FBO incomplete, implementation ERROR "+toHexString(fbStatus));
         }
     }
     
@@ -1069,7 +1080,7 @@ public class FBObject {
                 
             case 0:                
             default:
-                System.out.println("Framebuffer " + fbName + " is incomplete: status = 0x" + Integer.toHexString(vStatus) + 
+                System.out.println("Framebuffer " + fbName + " is incomplete: status = " + toHexString(vStatus) + 
                         " : " + getStatusString(vStatus));
                 return false;
         }
@@ -1078,7 +1089,7 @@ public class FBObject {
     private static int checkPreGLError(GL gl) {
         int glerr = gl.glGetError();
         if(DEBUG && GL.GL_NO_ERROR != glerr) {
-            System.err.println("Pre-existing GL error: 0x"+Integer.toHexString(glerr));
+            System.err.println("Pre-existing GL error: "+toHexString(glerr));
             Thread.dumpStack();
         }
         return glerr;        
@@ -1090,7 +1101,7 @@ public class FBObject {
                 destroy(gl);
             }
             if(null != exceptionMessage) {
-                throw new GLException(exceptionMessage+" GL Error 0x"+Integer.toHexString(err));
+                throw new GLException(exceptionMessage+" GL Error "+toHexString(err));
             }
             return false;
         }
@@ -1218,7 +1229,7 @@ public class FBObject {
     public final ColorAttachment attachColorbuffer(GL gl, int attachmentPoint, int internalFormat) throws GLException, IllegalArgumentException {
         final Attachment.Type atype = Attachment.Type.determine(internalFormat);
         if( Attachment.Type.COLOR != atype ) {
-            throw new IllegalArgumentException("colorformat invalid: 0x"+Integer.toHexString(internalFormat)+", "+this);
+            throw new IllegalArgumentException("colorformat invalid: "+toHexString(internalFormat)+", "+this);
         }
         
         return (ColorAttachment) attachColorbuffer(gl, attachmentPoint, new ColorAttachment(internalFormat, samples, width, height, 0));
@@ -1244,13 +1255,16 @@ public class FBObject {
      * @throws GLException in case the colorbuffer couldn't be allocated or MSAA has been chosen in case of a {@link TextureAttachment} 
      */
     public final Colorbuffer attachColorbuffer(GL gl, int attachmentPoint, Colorbuffer colbuf) throws GLException {
+        bind(gl);
+        return attachColorbufferImpl(gl, attachmentPoint, colbuf);
+    }
+
+    private final Colorbuffer attachColorbufferImpl(GL gl, int attachmentPoint, Colorbuffer colbuf) throws GLException {
         validateAddColorAttachment(attachmentPoint, colbuf);
         
         final boolean initializedColorbuf = colbuf.initialize(gl);
         addColorAttachment(attachmentPoint, colbuf);
                 
-        bind(gl);
-
         if(colbuf instanceof TextureAttachment) {
             final TextureAttachment texA = (TextureAttachment) colbuf;
             
@@ -1410,18 +1424,20 @@ public class FBObject {
     public final void attachRenderbuffer(GL gl, int internalFormat) throws GLException, IllegalArgumentException {
         final Attachment.Type atype = Attachment.Type.determine(internalFormat);
         if( Attachment.Type.DEPTH != atype && Attachment.Type.STENCIL != atype && Attachment.Type.DEPTH_STENCIL != atype ) {
-            throw new IllegalArgumentException("renderformat invalid: 0x"+Integer.toHexString(internalFormat)+", "+this);
+            throw new IllegalArgumentException("renderformat invalid: "+toHexString(internalFormat)+", "+this);
         }
         attachRenderbufferImpl(gl, atype, internalFormat);
     }
     
     protected final void attachRenderbufferImpl(GL gl, Attachment.Type atype, int internalFormat) throws GLException {
         if( null != depth && ( Attachment.Type.DEPTH == atype || Attachment.Type.DEPTH_STENCIL == atype ) ) {
-            throw new GLException("FBO depth buffer already attached (rb "+depth+"), type is "+atype+", 0x"+Integer.toHexString(internalFormat)+", "+this);
+            throw new GLException("FBO depth buffer already attached (rb "+depth+"), type is "+atype+", "+toHexString(internalFormat)+", "+this);
         }        
         if( null != stencil && ( Attachment.Type.STENCIL== atype || Attachment.Type.DEPTH_STENCIL == atype ) ) {
-            throw new GLException("FBO stencil buffer already attached (rb "+stencil+"), type is "+atype+", 0x"+Integer.toHexString(internalFormat)+", "+this);
+            throw new GLException("FBO stencil buffer already attached (rb "+stencil+"), type is "+atype+", "+toHexString(internalFormat)+", "+this);
         }
+        bind(gl);
+        
         attachRenderbufferImpl2(gl, atype, internalFormat);
     }
         
@@ -1460,8 +1476,6 @@ public class FBObject {
             stencil.initialize(gl);
         }
 
-        bind(gl);
-        
         // Attach the buffer
         if( Attachment.Type.DEPTH == atype ) {
             gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER, depth.getName());
@@ -1496,6 +1510,8 @@ public class FBObject {
      * @throws IllegalArgumentException
      */
     public final Colorbuffer detachColorbuffer(GL gl, int attachmentPoint, boolean dispose) throws IllegalArgumentException {
+        bind(gl);
+        
         final Colorbuffer res = detachColorbufferImpl(gl, attachmentPoint, dispose ? DetachAction.DISPOSE : DetachAction.NONE);
         if(null == res) {
             throw new IllegalArgumentException("ColorAttachment at "+attachmentPoint+", not attached, "+this);            
@@ -1513,8 +1529,6 @@ public class FBObject {
             return null;
         }
         
-        bind(gl);
-        
         removeColorAttachment(attachmentPoint, colbuf);
         
         if(colbuf instanceof TextureAttachment) {
@@ -1524,23 +1538,23 @@ public class FBObject {
                               GL.GL_COLOR_ATTACHMENT0 + attachmentPoint,
                               GL.GL_TEXTURE_2D, 0, 0);
                 gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+                switch(detachAction) {
+                    case DISPOSE:
+                    case RECREATE:
+                        texA.free(gl);
+                        break;
+                    default:
+                }
             }
-            switch(detachAction) {
-                case DISPOSE:
-                    texA.free(gl);
-                    break;
-                case RECREATE:
-                    texA.free(gl);
-                    if(samples == 0) {
-                        // stay non MSAA
-                        texA.setSize(width, height);                        
-                    } else {
-                        // switch to MSAA
-                        colbuf = createColorAttachment(hasAlpha(texA.format));
-                    }
-                    attachColorbuffer(gl, attachmentPoint, colbuf);
-                    break;
-                default:
+            if(DetachAction.RECREATE == detachAction) {
+                if(samples == 0) {
+                    // stay non MSAA
+                    texA.setSize(width, height);                        
+                } else {
+                    // switch to MSAA
+                    colbuf = createColorAttachment(hasAlpha(texA.format));
+                }
+                attachColorbufferImpl(gl, attachmentPoint, colbuf);
             }
         } else if(colbuf instanceof ColorAttachment) {
             final ColorAttachment colA = (ColorAttachment) colbuf;
@@ -1548,34 +1562,61 @@ public class FBObject {
                 gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, 
                                              GL.GL_COLOR_ATTACHMENT0+attachmentPoint, 
                                              GL.GL_RENDERBUFFER, 0);
+                switch(detachAction) {
+                    case DISPOSE:
+                    case RECREATE:
+                        colA.free(gl);
+                        break;
+                    default:
+                }
             }
-            switch(detachAction) {
-                case DISPOSE:
-                    colA.free(gl);
-                    break;
-                case RECREATE:
-                    colA.free(gl);
-                    if(samples > 0) {
-                        // stay MSAA
-                        colA.setSize(width, height);
-                        colA.setSamples(samples);
+            if(DetachAction.RECREATE == detachAction) {
+                if(samples > 0) {
+                    // stay MSAA
+                    colA.setSize(width, height);
+                    colA.setSamples(samples);
+                } else {
+                    // switch to non MSAA
+                    if(null != samplesSinkTexture) {
+                        colbuf = createColorTextureAttachment(samplesSinkTexture.format, width, height, 
+                                                              samplesSinkTexture.dataFormat, samplesSinkTexture.dataType, 
+                                                              samplesSinkTexture.magFilter, samplesSinkTexture.minFilter, 
+                                                              samplesSinkTexture.wrapS, samplesSinkTexture.wrapT);
                     } else {
-                        // switch to non MSAA
-                        if(null != samplesSinkTexture) {
-                            colbuf = createColorTextureAttachment(samplesSinkTexture.format, width, height, 
-                                                                  samplesSinkTexture.dataFormat, samplesSinkTexture.dataType, 
-                                                                  samplesSinkTexture.magFilter, samplesSinkTexture.minFilter, 
-                                                                  samplesSinkTexture.wrapS, samplesSinkTexture.wrapT);
-                        } else {
-                            colbuf = createColorTextureAttachment(gl.getGLProfile(), true, width, height);
-                        }
+                        colbuf = createColorTextureAttachment(gl.getGLProfile(), true, width, height);
                     }
-                    attachColorbuffer(gl, attachmentPoint, colbuf);
-                    break;
-                default:
+                }
+                attachColorbuffer(gl, attachmentPoint, colbuf);
             }
         }
         return colbuf;
+    }
+    
+    private final void freeColorbufferImpl(GL gl, int attachmentPoint) {
+        Colorbuffer colbuf = colorAttachmentPoints[attachmentPoint]; // shortcut, don't validate here
+        
+        if(null == colbuf) {
+            return;
+        }
+        
+        if(colbuf instanceof TextureAttachment) {
+            final TextureAttachment texA = (TextureAttachment) colbuf;
+            if( 0 != texA.getName() ) {
+                gl.glFramebufferTexture2D(GL.GL_FRAMEBUFFER,
+                              GL.GL_COLOR_ATTACHMENT0 + attachmentPoint,
+                              GL.GL_TEXTURE_2D, 0, 0);
+                gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+            }
+            texA.free(gl);
+        } else if(colbuf instanceof ColorAttachment) {
+            final ColorAttachment colA = (ColorAttachment) colbuf;
+            if( 0 != colA.getName() ) {
+                gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, 
+                                             GL.GL_COLOR_ATTACHMENT0+attachmentPoint, 
+                                             GL.GL_RENDERBUFFER, 0);
+            }
+            colA.free(gl);
+        }
     }
     
     /**
@@ -1585,6 +1626,7 @@ public class FBObject {
      * @param reqAType {@link Type#DEPTH}, {@link Type#DEPTH} or {@link Type#DEPTH_STENCIL} 
      */
     public final void detachRenderbuffer(GL gl, Attachment.Type atype, boolean dispose) throws IllegalArgumentException {
+        bind(gl);        
         detachRenderbufferImpl(gl, atype, dispose ? DetachAction.DISPOSE : DetachAction.NONE);
         if(DEBUG) {
             System.err.println("FBObject.detachRenderbuffer: [attachmentType "+atype+", dispose "+dispose+"]: "+this);
@@ -1612,99 +1654,119 @@ public class FBObject {
         if( null == depth && null == stencil ) {
             return ; // nop
         } 
-        // reduction of possible combinations, create unique atype command(s)
-        final ArrayList<Attachment.Type> actions = new ArrayList<Attachment.Type>(2);  
-        if( isDepthStencilPackedFormat() ) {
+        final boolean packed = isDepthStencilPackedFormat();
+        if( packed ) {
             // packed
-            actions.add(Attachment.Type.DEPTH_STENCIL);
-        } else {
-            // individual
-            switch ( atype ) {
-                case DEPTH:
-                    if( null != depth ) { actions.add(Attachment.Type.DEPTH); }
-                    break;
-                case STENCIL:
-                    if( null != stencil ) { actions.add(Attachment.Type.STENCIL); }
-                    break;
-                case DEPTH_STENCIL:
-                    if( null != depth ) { actions.add(Attachment.Type.DEPTH); }
-                    if( null != stencil ) { actions.add(Attachment.Type.STENCIL); }
-                    break;
-                 default: // handled
-            }
+            atype = Attachment.Type.DEPTH_STENCIL;
         }
-        
-        bind(gl);        
-        
-        for(int i = 0; i < actions.size(); i++) {
-            final int format;
-            
-            Attachment.Type action = actions.get(i);
-            switch ( action ) {
-                case DEPTH:
-                    format = depth.format;
+        switch ( atype ) {
+            case DEPTH:
+                if( null != depth ) {
+                    final int format = depth.format;
                     if( 0 != depth.getName() ) {
                         gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER, 0);
+                        switch(detachAction) {
+                            case DISPOSE:
+                            case RECREATE:
+                                depth.free(gl);
+                                break;
+                            default:
+                        }
                     }
-                    switch(detachAction) {
-                        case DISPOSE:
-                        case RECREATE:
-                            depth.free(gl);
-                            break;
-                        default:
-                    }
-                    if(DetachAction.RECREATE != detachAction) {
+                    if(DetachAction.RECREATE == detachAction) {
+                        attachRenderbufferImpl2(gl, atype, format);
+                    } else {
                         depth = null;
                     }
-                    break;
-                case STENCIL:
-                    format = stencil.format;
+                }
+                break;
+            case STENCIL:
+                if( null != stencil ) {
+                    final int format = stencil.format;
                     if(0 != stencil.getName()) {
                         gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_STENCIL_ATTACHMENT, GL.GL_RENDERBUFFER, 0);
+                        switch(detachAction) {
+                            case DISPOSE:
+                            case RECREATE:
+                                stencil.free(gl);
+                                break;
+                            default:
+                        }
                     }
-                    switch(detachAction) {
-                        case DISPOSE:
-                        case RECREATE:
-                            stencil.free(gl);
-                            break;
-                        default:
-                    }
-                    if(DetachAction.RECREATE != detachAction) {
+                    if(DetachAction.RECREATE == detachAction) {
+                        attachRenderbufferImpl2(gl, atype, format);
+                    } else {
                         stencil = null;
                     }
-                    break;
-                case DEPTH_STENCIL:
-                    format = depth.format;
+                }
+                break;
+            case DEPTH_STENCIL:
+                if( null != depth ) {
+                    final int format = depth.format;
                     if(0 != depth.getName()) {
                         gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER, 0);
-                        gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_STENCIL_ATTACHMENT, GL.GL_RENDERBUFFER, 0);
+                        switch(detachAction) {
+                            case DISPOSE:
+                            case RECREATE:
+                                depth.free(gl);
+                                break;
+                            default:
+                        }
                     }
-                    switch(detachAction) {
-                        case DISPOSE:
-                        case RECREATE:
-                            depth.free(gl);
-                            stencil.free(gl);
-                            break;
-                        default:
-                    }
-                    if(DetachAction.RECREATE != detachAction) {
+                    if(DetachAction.RECREATE == detachAction) {
+                        attachRenderbufferImpl2(gl, Attachment.Type.DEPTH, format);
+                    } else if(!packed) {
                         depth = null;
+                    }                    
+                }
+                if( null != stencil ) {
+                    final int format = stencil.format;
+                    if(0 != stencil.getName()) {
+                        gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_STENCIL_ATTACHMENT, GL.GL_RENDERBUFFER, 0);
+                        switch(detachAction) {
+                            case DISPOSE:
+                            case RECREATE:
+                                stencil.free(gl);
+                                break;
+                            default:
+                        }
+                    }
+                    if(DetachAction.RECREATE == detachAction) {
+                        if(packed) {
+                            // packed
+                            attachRenderbufferImpl2(gl, Attachment.Type.DEPTH_STENCIL, format);
+                        } else {
+                            // single
+                            attachRenderbufferImpl2(gl, Attachment.Type.STENCIL, format);
+                        }
+                    } else {
                         stencil = null;
                     }
-                    break;
-                 default:
-                    throw new InternalError("XXX");
-            }
-            if(DetachAction.RECREATE == detachAction) {
-                attachRenderbufferImpl2(gl, action, format);
-            }
+                }
+                break;
+             default: // handled
         }        
     }
         
+    private final void freeAllRenderbufferImpl(GL gl) throws IllegalArgumentException {
+        if( null != depth ) { 
+            if(0 != depth.getName()) {
+                gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER, 0);
+                depth.free(gl);
+            }
+        }
+        if( null != stencil ) {
+            if(0 != stencil.getName()) {
+                gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_STENCIL_ATTACHMENT, GL.GL_RENDERBUFFER, 0);
+                stencil.free(gl);                    
+            }
+        }
+    }
+    
     /** 
      * Detaches all {@link ColorAttachment}s, {@link TextureAttachment}s and {@link RenderAttachment}s
      * and disposes them.
-     * <p>Leaves the FBO bound!</p>
+     * <p>Leaves the FBO bound, if initialized!</p>
      * <p>
      * An attached sampling sink texture will be detached as well, see {@link #getSamplingSink()}.
      * </p> 
@@ -1720,7 +1782,7 @@ public class FBObject {
     /** 
      * Detaches all {@link ColorAttachment}s and {@link TextureAttachment}s 
      * and disposes them.
-     * <p>Leaves the FBO bound!</p>
+     * <p>Leaves the FBO bound, if initialized!</p>
      * <p>
      * An attached sampling sink texture will be detached as well, see {@link #getSamplingSink()}.
      * </p> 
@@ -1734,17 +1796,21 @@ public class FBObject {
     }
     
     /** 
-     * Detaches all {@link TextureAttachment}s and disposes them. 
-     * <p>Leaves the FBO bound!</p>
+     * Detaches all {@link TextureAttachment}s and disposes them.
+     * <p>Leaves the FBO bound, if initialized!</p>
      * <p>
      * An attached sampling sink texture will be detached as well, see {@link #getSamplingSink()}.
      * </p> 
      * @param gl the current GL context
      */
     public final void detachAllTexturebuffer(GL gl) {
+        if( !isInitialized() ) {
+            return;
+        }
         if(null != samplesSink) {
             samplesSink.detachAllTexturebuffer(gl);
         }
+        bind(gl);        
         for(int i=0; i<maxColorAttachments; i++) {
             if(colorAttachmentPoints[i] instanceof TextureAttachment) {
                 detachColorbufferImpl(gl, i, DetachAction.DISPOSE);
@@ -1756,15 +1822,34 @@ public class FBObject {
     }
     
     public final void detachAllRenderbuffer(GL gl) {
+        if( !isInitialized() ) {
+            return;
+        }
         if(null != samplesSink) {
             samplesSink.detachAllRenderbuffer(gl);
         }
+        bind(gl);        
         detachRenderbufferImpl(gl, Attachment.Type.DEPTH_STENCIL, DetachAction.DISPOSE);
     }
     
+    static final boolean FBOResizeQuirk = false;
+    
     private final void detachAllImpl(GL gl, boolean detachNonColorbuffer, boolean recreate) {
+        if( !isInitialized() ) {
+            return;
+        }
         ignoreStatus = recreate; // ignore status on single calls only if recreate -> reset
         try {
+            bind(gl);
+            if(FBOResizeQuirk) {
+                if(detachNonColorbuffer && recreate) {
+                    // free all colorbuffer & renderbuffer 1st
+                    for(int i=0; i<maxColorAttachments; i++) {
+                        freeColorbufferImpl(gl, i);
+                    }         
+                    freeAllRenderbufferImpl(gl);
+                }
+            }
             for(int i=0; i<maxColorAttachments; i++) {
                 detachColorbufferImpl(gl, i, recreate ? DetachAction.RECREATE : DetachAction.DISPOSE);
             }
@@ -1793,7 +1878,14 @@ public class FBObject {
      * @param gl the current GL context
      */
     public final void destroy(GL gl) {
-        if(null != samplesSink) {
+        if(!initialized) {
+            return;
+        }
+        if(DEBUG) {
+            System.err.println("FBObject.destroy.0: "+this);
+            // Thread.dumpStack();
+        }
+        if( null != samplesSink && samplesSink.isInitialized() ) {
             samplesSink.destroy(gl);
         }
         
@@ -1812,7 +1904,7 @@ public class FBObject {
         initialized = false;
         bound = false;
         if(DEBUG) {
-            System.err.println("FBObject.destroy: "+this);
+            System.err.println("FBObject.destroy.X: "+this);
         }
     }
 
@@ -2155,10 +2247,11 @@ public class FBObject {
     
     public final String toString() {
         final String caps = null != colorAttachmentPoints ? Arrays.asList(colorAttachmentPoints).toString() : null ; 
-        return "FBO[name r/w "+fbName+"/"+getReadFramebuffer()+", init "+initialized+", bound "+bound+", size "+width+"x"+height+", samples "+samples+"/"+maxSamples+
-               ", depth "+depth+", stencil "+stencil+", color attachments: "+colorAttachmentCount+"/"+maxColorAttachments+
+        return "FBO[name r/w "+fbName+"/"+getReadFramebuffer()+", init "+initialized+", bound "+bound+", size "+width+"x"+height+
+               ", samples "+samples+"/"+maxSamples+", depth "+depth+", stencil "+stencil+
+               ", color attachments: "+colorAttachmentCount+"/"+maxColorAttachments+
                ": "+caps+", msaa-sink "+samplesSinkTexture+", isSamplesSink "+(null == samplesSink)+
-               ", obj 0x"+Integer.toHexString(objectHashCode())+"]";
+               ", state "+getStatusString()+", obj "+toHexString(objectHashCode())+"]";
     }
     
     private final void updateStatus(GL gl) {
