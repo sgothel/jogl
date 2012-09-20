@@ -87,6 +87,7 @@
     volatile GLuint textureID;
     volatile int texWidth;
     volatile int texHeight;
+    volatile NSOpenGLPixelBuffer* newPBuffer;
 #ifdef HAS_CADisplayLink
     CADisplayLink* displayLink;
 #else
@@ -117,7 +118,9 @@
 - (Bool) validateTexSize: (int) _texWidth texHeight: (int) _texHeight;
 - (void) setTextureID: (int) _texID;
 
-- (void) validatePBuffer: (NSOpenGLPixelBuffer*) p;
+- (Bool) isSamePBuffer: (NSOpenGLPixelBuffer*) p;
+- (void) setNewPBuffer: (NSOpenGLPixelBuffer*)p;
+- (void) applyNewPBuffer;
 
 - (NSOpenGLContext *)openGLContextForPixelFormat:(NSOpenGLPixelFormat *)pixelFormat;
 - (void)disableAnimation;
@@ -199,6 +202,7 @@ static const GLfloat gl_verts[] = {
     [self validateTexSizeWithNewSize];
     [self setTextureID: texID];
 
+    newPBuffer = NULL;
     pbuffer = p;
     if(NULL != pbuffer) {
         [pbuffer retain];
@@ -317,22 +321,60 @@ static const GLfloat gl_verts[] = {
     textureID = _texID;
 }
 
-- (void) validatePBuffer: (NSOpenGLPixelBuffer*) p
+- (Bool) isSamePBuffer: (NSOpenGLPixelBuffer*) p
 {
-    if( pbuffer != p ) {
-        DBG_PRINT("MyNSOpenGLLayer::validatePBuffer.0 %p, pbuffer %p, (refcnt %d)\n", self, p, (int)[self retainCount]);
+    return pbuffer == p || newPBuffer == p;
+}
 
-        SYNC_PRINT("{PB-nil}");
+- (void)setNewPBuffer: (NSOpenGLPixelBuffer*)p
+{
+    SYNC_PRINT("<NP-S %p -> %p>", pbuffer, p);
+    newPBuffer = p;
+    [newPBuffer retain];
+}
 
-        [self deallocPBuffer];
+- (void) applyNewPBuffer
+{
+    if( NULL != newPBuffer ) { // volatile OK
+        SYNC_PRINT("<NP-A %p -> %p>", pbuffer, newPBuffer);
 
-        pbuffer = p;
-        if(NULL != pbuffer) {
-            [pbuffer retain];
+        if( 0 != textureID ) {
+            glDeleteTextures(1, &textureID);
+            [self setTextureID: 0];
         }
-        [self setTextureID: 0];
+        [pbuffer release];
 
-        shallDraw = NO;
+        pbuffer = newPBuffer;
+        newPBuffer = NULL;
+    }
+}
+
+- (void)deallocPBuffer
+{
+    if(NULL != pbuffer) {
+        NSOpenGLContext* context = [self openGLContext];
+        if(NULL!=context) {
+            [context makeCurrentContext];
+
+            DBG_PRINT("MyNSOpenGLLayer::deallocPBuffer (with ctx) %p (refcnt %d) - context %p, pbuffer %p, texID %d\n", self, (int)[self retainCount], context, pbuffer, (int)textureID);
+
+            if( 0 != textureID ) {
+                glDeleteTextures(1, &textureID);
+                [self setTextureID: 0];
+            }
+            if(NULL != pbuffer) {
+                [pbuffer release];
+                pbuffer = NULL;
+            }
+            if(NULL != newPBuffer) {
+                [newPBuffer release];
+                newPBuffer = NULL;
+            }
+
+            [context clearDrawable];
+        } else {
+            DBG_PRINT("MyNSOpenGLLayer::deallocPBuffer (w/o ctx) %p (refcnt %d) - context %p, pbuffer %p, texID %d\n", self, (int)[self retainCount], context, pbuffer, (int)textureID);
+        }
     }
 }
 
@@ -371,29 +413,6 @@ static const GLfloat gl_verts[] = {
     pthread_mutex_unlock(&renderLock);
 }
 
-- (void)deallocPBuffer
-{
-    if(NULL != pbuffer) {
-        NSOpenGLContext* context = [self openGLContext];
-        if(NULL!=context) {
-            [context makeCurrentContext];
-
-            DBG_PRINT("MyNSOpenGLLayer::deallocPBuffer (with ctx) %p (refcnt %d) - context %p, pbuffer %p, texID %d\n", self, (int)[self retainCount], context, pbuffer, (int)textureID);
-
-            if( 0 != textureID ) {
-                glDeleteTextures(1, &textureID);
-            }
-            [pbuffer release];
-
-            [context clearDrawable];
-        } else {
-            DBG_PRINT("MyNSOpenGLLayer::deallocPBuffer (w/o ctx) %p (refcnt %d) - context %p, pbuffer %p, texID %d\n", self, (int)[self retainCount], context, pbuffer, (int)textureID);
-        }
-        pbuffer = NULL;
-        [self setTextureID: 0];
-    }
-}
-
 - (void)releaseLayer
 {
     DBG_PRINT("MyNSOpenGLLayer::releaseLayer.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
@@ -423,7 +442,7 @@ static const GLfloat gl_verts[] = {
 
 - (Bool)isGLSourceValid
 {
-    return NULL != pbuffer || 0 != textureID ;
+    return NULL != pbuffer || NULL != newPBuffer || 0 != textureID ;
 }
 
 - (void)resizeWithOldSuperlayerSize:(CGSize)size
@@ -435,7 +454,7 @@ static const GLfloat gl_verts[] = {
 
     newTexWidth = lRectS.size.width;
     newTexHeight = lRectS.size.height;
-    shallDraw = YES;
+    shallDraw = [self isGLSourceValid];
     SYNC_PRINT("<SZ %dx%d>", newTexWidth, newTexHeight);
 
     [super resizeWithOldSuperlayerSize: size];
@@ -455,8 +474,12 @@ static const GLfloat gl_verts[] = {
     SYNC_PRINT("<* ");
     // NSLog(@"MyNSOpenGLLayer::DRAW: %@",[NSThread callStackSymbols]);
 
-    if( shallDraw && ( NULL != pbuffer || 0 != textureID ) ) {
+    if( shallDraw && ( NULL != pbuffer || NULL != newPBuffer || 0 != textureID ) ) {
         [context makeCurrentContext];
+
+        if( NULL != newPBuffer ) { // volatile OK
+            [self applyNewPBuffer];
+        }
 
         GLenum textureTarget;
 
@@ -665,30 +688,41 @@ void waitUntilNSOpenGLLayerIsReady(NSOpenGLLayer* layer, long to_micros) {
     [pool release];
 }
 
-void flushNSOpenGLLayerPBuffer(NSOpenGLLayer* layer) {
-    MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-
-    pthread_mutex_lock(&l->renderLock);
-    [l validatePBuffer:0];
-    pthread_mutex_unlock(&l->renderLock);
-
-    [pool release];
-}
-
-void setNSOpenGLLayerNeedsDisplay(NSOpenGLLayer* layer, NSOpenGLPixelBuffer* p, uint32_t texID, int texWidth, int texHeight) {
+void setNSOpenGLLayerNeedsDisplayFBO(NSOpenGLLayer* layer, uint32_t texID, int texWidth, int texHeight) {
     MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     Bool shallDraw;
 
-    pthread_mutex_lock(&l->renderLock);
-    [l validatePBuffer:p];
-    // l->newTexWidth = texWidth;
-    // l->newTexHeight = texHeight;
+    // volatile OK
     [l setTextureID: texID];
     shallDraw = [l isGLSourceValid];
     l->shallDraw = shallDraw;
-    pthread_mutex_unlock(&l->renderLock);
+
+    SYNC_PRINT("<! T%dx%d O%dx%d %d>", texWidth, texHeight, l->newTexWidth, l->newTexHeight, (int)shallDraw);
+    if(shallDraw) {
+        if ( [NSThread isMainThread] == YES ) {
+          [l setNeedsDisplay];
+        } else {
+          // don't wait - using doublebuffering
+          [l performSelectorOnMainThread:@selector(setNeedsDisplay) withObject:nil waitUntilDone:NO];
+        }
+    }
+    // DBG_PRINT("MyNSOpenGLLayer::setNSOpenGLLayerNeedsDisplay %p\n", l);
+    [pool release];
+}
+
+void setNSOpenGLLayerNeedsDisplayPBuffer(NSOpenGLLayer* layer, NSOpenGLPixelBuffer* p, int texWidth, int texHeight) {
+    MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    Bool shallDraw;
+
+    if( NO == [l isSamePBuffer: p] ) {
+        [l setNewPBuffer: p];
+    }
+
+    // volatile OK
+    shallDraw = [l isGLSourceValid];
+    l->shallDraw = shallDraw;
 
     SYNC_PRINT("<! T%dx%d O%dx%d %d>", texWidth, texHeight, l->newTexWidth, l->newTexHeight, (int)shallDraw);
     if(shallDraw) {

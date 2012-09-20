@@ -57,8 +57,8 @@ Bool isNSOpenGLPixelBuffer(uint64_t object);
 NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, NSOpenGLPixelFormat* fmt, NSOpenGLPixelBuffer* p, uint32_t texID, Bool opaque, int texWidth, int texHeight);
 void setNSOpenGLLayerSwapInterval(NSOpenGLLayer* layer, int interval);
 void waitUntilNSOpenGLLayerIsReady(NSOpenGLLayer* layer, long to_micros);
-void flushNSOpenGLLayerPBuffer(NSOpenGLLayer* layer);
-void setNSOpenGLLayerNeedsDisplay(NSOpenGLLayer* layer, NSOpenGLPixelBuffer* p, uint32_t texID, int texWidth, int texHeight);
+void setNSOpenGLLayerNeedsDisplayFBO(NSOpenGLLayer* layer, uint32_t texID, int texWidth, int texHeight);
+void setNSOpenGLLayerNeedsDisplayPBuffer(NSOpenGLLayer* layer, NSOpenGLPixelBuffer* p, int texWidth, int texHeight);
 void releaseNSOpenGLLayer(NSOpenGLLayer *glLayer);
 
 void* getProcAddress(const char *procName);

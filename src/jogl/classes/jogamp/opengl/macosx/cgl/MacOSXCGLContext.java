@@ -438,7 +438,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       private float screenVSyncTimeout; // microSec
       private int vsyncTimeout;    // microSec - for nsOpenGLLayer mode
       private int lastWidth=0, lastHeight=0; // allowing to detect size change
-      private long lastPBufferHandle = 0; // allowing to detect pbuffer recreation
+      private boolean needsSetContextPBuffer = false;
 
       @Override
       public boolean isNSContext() { return true; }
@@ -577,7 +577,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
       @Override
       public boolean destroy(long ctx) {
-          lastPBufferHandle = 0;
           return CGL.deleteContext(ctx, true);
       }
 
@@ -592,19 +591,20 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   final long ctx = MacOSXCGLContext.this.getHandle();
                   final int texID;
                   final long drawableHandle = drawable.getHandle();
+                  final long pbufferHandle;
                   if(drawable instanceof GLFBODrawableImpl) {
                       final GLFBODrawableImpl fbod = (GLFBODrawableImpl)drawable;
-                      texID = fbod.getTextureBuffer(GL.GL_FRONT).getName();                    
+                      texID = fbod.getTextureBuffer(GL.GL_FRONT).getName();
+                      pbufferHandle = 0;
                       fbod.setSwapBufferContext(new GLFBODrawableImpl.SwapBufferContext() {
                           public void swapBuffers(boolean doubleBuffered) {
                               MacOSXCGLContext.NSOpenGLImpl.this.swapBuffers();                            
                           } } ) ;                    
-                      lastPBufferHandle = 0;
                   } else if( chosenCaps.isPBuffer() && CGL.isNSOpenGLPixelBuffer(drawableHandle) ) {
                       texID = 0;
-                      lastPBufferHandle = drawableHandle;
+                      pbufferHandle = drawableHandle;
                       if(0 != drawableHandle) { // complete 'validatePBufferConfig(..)' procedure
-                          CGL.setContextPBuffer(ctx, drawableHandle);
+                          CGL.setContextPBuffer(ctx, pbufferHandle);
                       }
                   } else {
                       throw new GLException("BackingLayerHost w/ unknown handle (!FBO, !PBuffer): "+drawable);
@@ -614,9 +614,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   if(0>=lastWidth || 0>=lastHeight || !drawable.isRealized()) {
                       throw new GLException("Drawable not realized yet or invalid texture size, texSize "+lastWidth+"x"+lastHeight+", "+drawable);
                   }
-                  nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, nsOpenGLLayerPFmt, lastPBufferHandle, texID, chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight);
+                  nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, nsOpenGLLayerPFmt, pbufferHandle, texID, chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight);
                   if (DEBUG) {
-                      System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer)+" w/ pbuffer "+toHexString(lastPBufferHandle)+", texID "+texID+", texSize "+lastWidth+"x"+lastHeight+", "+drawable);
+                      System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer)+" w/ pbuffer "+toHexString(pbufferHandle)+", texID "+texID+", texSize "+lastWidth+"x"+lastHeight+", "+drawable);
                   }
                   backingLayerHost.attachSurfaceLayer(nsOpenGLLayer);
                   setSwapInterval(1); // enabled per default in layered surface                
@@ -642,18 +642,16 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   CGL.deletePixelFormat(nsOpenGLLayerPFmt);
                   nsOpenGLLayerPFmt = 0;
               }
-              lastPBufferHandle = 0;
           }
           backingLayerHost = null;
           return true;
       }
 
       private final void validatePBufferConfig(long ctx) {
-          final GLCapabilitiesImmutable chosenCaps = drawable.getChosenGLCapabilities();
           final long drawableHandle = drawable.getHandle();
-          if( chosenCaps.isPBuffer() && lastPBufferHandle != drawableHandle && CGL.isNSOpenGLPixelBuffer(drawableHandle) ) {
+          if( needsSetContextPBuffer && 0 != drawableHandle && CGL.isNSOpenGLPixelBuffer(drawableHandle) ) {
               // Must associate the pbuffer with our newly-created context
-              lastPBufferHandle = drawableHandle;
+              needsSetContextPBuffer = false;
               if(0 != drawableHandle) {
                   CGL.setContextPBuffer(ctx, drawableHandle);
               }
@@ -724,13 +722,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
       @Override
       public boolean detachPBuffer() {
-          if(0 != lastPBufferHandle) {
-              lastPBufferHandle = 0;
-              if(0 != nsOpenGLLayer) {
-                  CGL.flushNSOpenGLLayerPBuffer(nsOpenGLLayer); // notify invalid pbuffer
-              }
-              // CGL.setContextPBuffer(contextHandle, 0); // doesn't work, i.e. not taking nil
-          }
+          needsSetContextPBuffer = true;
+          // CGL.setContextPBuffer(contextHandle, 0); // doesn't work, i.e. not taking nil
           return true;
       }
       
@@ -759,12 +752,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               
               final int texID;
               final boolean valid;
-              if(drawable instanceof GLFBODrawableImpl) {
+              final boolean isFBO = drawable instanceof GLFBODrawableImpl;
+              if( isFBO ){
                   texID = ((GLFBODrawableImpl)drawable).getTextureBuffer(GL.GL_FRONT).getName();
                   valid = 0 != texID;
               } else {
                   texID = 0;
-                  valid = 0 != lastPBufferHandle;
+                  valid = 0 != drawable.getHandle();
               }
               if(valid) {
                   if(0 == skipSync) {
@@ -776,8 +770,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   }
                   res = CGL.flushBuffer(contextHandle);
                   if(res) {
-                      // trigger CALayer to update incl. possible surface change
-                      CGL.setNSOpenGLLayerNeedsDisplay(nsOpenGLLayer, lastPBufferHandle, texID, lastWidth, lastHeight);
+                      if(isFBO) {
+                          // trigger CALayer to update incl. possible surface change (texture)
+                          CGL.setNSOpenGLLayerNeedsDisplayFBO(nsOpenGLLayer, texID, lastWidth, lastHeight);                          
+                      } else {
+                          // trigger CALayer to update incl. possible surface change (new pbuffer handle)
+                          CGL.setNSOpenGLLayerNeedsDisplayPBuffer(nsOpenGLLayer, drawable.getHandle(), lastWidth, lastHeight);                          
+                      }
                   }
               } else {
                   res = true;
