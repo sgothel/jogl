@@ -70,7 +70,12 @@ public class X11Util {
      * See also native test: jogl/test-native/displayMultiple02.c
      * </p>
      * <p>
-     * Workaround is to not close them at all if driver vendor is ATI.
+     * Workaround is to not close them at all if driver vendor is ATI
+     * during operation.
+     * </p>
+     * <p>
+     * With ATI X11 drivers all connections must be closed at JVM shutdown,
+     * otherwise a SIGSEGV (after JVM safepoint) will be caused. 
      * </p>
      */
     public static final boolean ATI_HAS_XCLOSEDISPLAY_BUG = !Debug.isPropertyDefined("nativewindow.debug.X11Util.ATI_HAS_NO_XCLOSEDISPLAY_BUG", true);
@@ -141,6 +146,14 @@ public class X11Util {
         }
     }
     
+    // not exactly thread safe, but good enough for our purpose,
+    // which is to tag a NamedDisplay uncloseable after creation.
+    private static Object globalLock = new Object(); 
+    private static LongObjectHashMap openDisplayMap = new LongObjectHashMap(); // handle -> name
+    private static List<NamedDisplay> openDisplayList = new ArrayList<NamedDisplay>();     // open, no close attempt
+    private static List<NamedDisplay> reusableDisplayList = new ArrayList<NamedDisplay>(); // close attempt, marked uncloseable, for reuse
+    private static List<NamedDisplay> pendingDisplayList = new ArrayList<NamedDisplay>();  // all open (close attempt or reusable) in creation order
+    
     /** 
      * Cleanup resources.
      * <p>
@@ -156,7 +169,7 @@ public class X11Util {
                         System.err.println("X11Util.Display: Shutdown (JVM shutdown: "+isJVMShuttingDown+
                                            ", open (no close attempt): "+openDisplayMap.size()+"/"+openDisplayList.size()+
                                            ", reusable (open, marked uncloseable): "+reusableDisplayList.size()+
-                                           ", pending (post closing): "+pendingDisplayList.size()+
+                                           ", pending (open in creation order): "+pendingDisplayList.size()+
                                            ")");
                         if(DEBUG) {
                             Thread.dumpStack();
@@ -227,14 +240,6 @@ public class X11Util {
     
     private X11Util() {}
 
-    // not exactly thread safe, but good enough for our purpose,
-    // which is to tag a NamedDisplay uncloseable after creation.
-    private static Object globalLock = new Object(); 
-    private static LongObjectHashMap openDisplayMap = new LongObjectHashMap(); // handle -> name
-    private static List<NamedDisplay> openDisplayList = new ArrayList<NamedDisplay>();
-    private static List<NamedDisplay> reusableDisplayList = new ArrayList<NamedDisplay>();
-    private static List<NamedDisplay> pendingDisplayList = new ArrayList<NamedDisplay>();
-
     public static class NamedDisplay {
         final String name;
         final long   handle;
@@ -296,23 +301,21 @@ public class X11Util {
     }
 
     /**
-     * Closing pending Display connections in reverse order.
+     * Closing pending Display connections in original creation order, if {@link #getMarkAllDisplaysUnclosable()} is true.
      *
      * @return number of closed Display connections
      */
-    public static int closePendingDisplayConnections() {
+    private static int closePendingDisplayConnections() {
         int num=0;
         synchronized(globalLock) {
-            if(DEBUG) {
-                System.err.println("X11Util: Closing Pending X11 Display Connections in order of their creation: "+pendingDisplayList.size());
-            }
-            for(int i=0; i<pendingDisplayList.size(); i++) {
-                NamedDisplay ndpy = (NamedDisplay) pendingDisplayList.get(i);
-                if(DEBUG) {
-                    System.err.println("X11Util.closePendingDisplayConnections(): Closing ["+i+"]: "+ndpy);
+            if( getMarkAllDisplaysUnclosable() ) {
+                for(int i=0; i<pendingDisplayList.size(); i++) {
+                    final NamedDisplay ndpy = (NamedDisplay) pendingDisplayList.get(i);
+                    final boolean closeAttempted = !openDisplayMap.containsKey(ndpy.getHandle());
+                    System.err.println("X11Util.closePendingDisplayConnections(): Closing ["+i+"]: "+ndpy+" - closeAttempted "+closeAttempted);
+                    XCloseDisplay(ndpy.getHandle());
+                    num++;
                 }
-                XCloseDisplay(ndpy.getHandle());
-                num++;
             }
         }
         return num;

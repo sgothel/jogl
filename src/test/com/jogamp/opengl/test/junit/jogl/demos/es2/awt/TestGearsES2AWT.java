@@ -65,6 +65,9 @@ public class TestGearsES2AWT extends UITestCase {
     static boolean shallUseOffscreenPBufferLayer = false;
     static boolean useMSAA = false;
     static boolean addComp = true;
+    static boolean shutdownRemoveGLCanvas = true;
+    static boolean shutdownDisposeFrame = true;
+    static boolean shutdownSystemExit = false;
     static int swapInterval = 1;
 
     @BeforeClass
@@ -128,8 +131,15 @@ public class TestGearsES2AWT extends UITestCase {
         Assert.assertEquals(false, frame.isVisible());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-                frame.remove(glCanvas);
-                frame.dispose();
+                if(shutdownRemoveGLCanvas) {
+                    frame.remove(glCanvas);
+                }
+                if(shutdownDisposeFrame) {
+                    frame.dispose();
+                }
+                if(shutdownSystemExit) {
+                    System.exit(0);
+                }
             }});
     }
 
@@ -175,6 +185,15 @@ public class TestGearsES2AWT extends UITestCase {
                 waitForKey = true;
             } else if(args[i].equals("-justGears")) {
                 addComp = false;
+            } else if(args[i].equals("-shutdownKeepGLCanvas")) {
+                shutdownRemoveGLCanvas = false;
+            } else if(args[i].equals("-shutdownKeepFrame")) {
+                shutdownDisposeFrame = false;
+            } else if(args[i].equals("-shutdownKeepAll")) {
+                shutdownRemoveGLCanvas = false;
+                shutdownDisposeFrame = false;
+            } else if(args[i].equals("-shutdownSystemExit")) {
+                shutdownSystemExit = true;
             }
         }
         System.err.println("forceES2 "+forceES2);
