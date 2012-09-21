@@ -60,6 +60,7 @@ import com.jogamp.opengl.FBObject.Attachment.Type;
 public class FBObject {
     protected static final boolean DEBUG = Debug.debug("FBObject");
     private static final boolean forceMinimumFBOSupport = Debug.isPropertyDefined("jogl.fbo.force.min", true);
+    private static final boolean FBOResizeQuirk = false;
     
     private static enum DetachAction { NONE, DISPOSE, RECREATE };
     
@@ -1592,30 +1593,32 @@ public class FBObject {
         return colbuf;
     }
     
-    private final void freeColorbufferImpl(GL gl, int attachmentPoint) {
-        Colorbuffer colbuf = colorAttachmentPoints[attachmentPoint]; // shortcut, don't validate here
-        
-        if(null == colbuf) {
-            return;
-        }
-        
-        if(colbuf instanceof TextureAttachment) {
-            final TextureAttachment texA = (TextureAttachment) colbuf;
-            if( 0 != texA.getName() ) {
-                gl.glFramebufferTexture2D(GL.GL_FRAMEBUFFER,
-                              GL.GL_COLOR_ATTACHMENT0 + attachmentPoint,
-                              GL.GL_TEXTURE_2D, 0, 0);
-                gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+    private final void freeAllColorbufferImpl(GL gl) {
+        for(int i=0; i<maxColorAttachments; i++) {
+            final Colorbuffer colbuf = colorAttachmentPoints[i]; // shortcut, don't validate here
+            
+            if(null == colbuf) {
+                return;
             }
-            texA.free(gl);
-        } else if(colbuf instanceof ColorAttachment) {
-            final ColorAttachment colA = (ColorAttachment) colbuf;
-            if( 0 != colA.getName() ) {
-                gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, 
-                                             GL.GL_COLOR_ATTACHMENT0+attachmentPoint, 
-                                             GL.GL_RENDERBUFFER, 0);
+            
+            if(colbuf instanceof TextureAttachment) {
+                final TextureAttachment texA = (TextureAttachment) colbuf;
+                if( 0 != texA.getName() ) {
+                    gl.glFramebufferTexture2D(GL.GL_FRAMEBUFFER,
+                                  GL.GL_COLOR_ATTACHMENT0 + i,
+                                  GL.GL_TEXTURE_2D, 0, 0);
+                    gl.glBindTexture(GL.GL_TEXTURE_2D, 0);
+                }
+                texA.free(gl);
+            } else if(colbuf instanceof ColorAttachment) {
+                final ColorAttachment colA = (ColorAttachment) colbuf;
+                if( 0 != colA.getName() ) {
+                    gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, 
+                                                 GL.GL_COLOR_ATTACHMENT0 + i, 
+                                                 GL.GL_RENDERBUFFER, 0);
+                }
+                colA.free(gl);
             }
-            colA.free(gl);
         }
     }
     
@@ -1832,8 +1835,6 @@ public class FBObject {
         detachRenderbufferImpl(gl, Attachment.Type.DEPTH_STENCIL, DetachAction.DISPOSE);
     }
     
-    static final boolean FBOResizeQuirk = false;
-    
     private final void detachAllImpl(GL gl, boolean detachNonColorbuffer, boolean recreate) {
         if( !isInitialized() ) {
             return;
@@ -1844,9 +1845,7 @@ public class FBObject {
             if(FBOResizeQuirk) {
                 if(detachNonColorbuffer && recreate) {
                     // free all colorbuffer & renderbuffer 1st
-                    for(int i=0; i<maxColorAttachments; i++) {
-                        freeColorbufferImpl(gl, i);
-                    }         
+                    freeAllColorbufferImpl(gl);
                     freeAllRenderbufferImpl(gl);
                 }
             }
