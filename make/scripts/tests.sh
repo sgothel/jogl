@@ -250,13 +250,13 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitchNEWT $*
 
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOffscrnCapsNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOffscrnCapsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryOffscrnCapsNEWT $*
 
-testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer01GLCanvasAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer01GLCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer02NewtCanvasAWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableFactoryNEWT $*

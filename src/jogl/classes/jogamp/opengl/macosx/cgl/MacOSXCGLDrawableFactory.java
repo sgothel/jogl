@@ -73,6 +73,7 @@ import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
 import com.jogamp.opengl.GLExtensions;
+import com.jogamp.opengl.GLRendererQuirks;
 
 public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   private static DesktopGLDynamicLookupHelper macOSXCGLDynamicLookupHelper = null;
@@ -146,7 +147,8 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
 
   static class SharedResource {
       // private MacOSXCGLDrawable drawable;
-      private MacOSXCGLContext context;
+      // private MacOSXCGLContext context;
+      private GLRendererQuirks glRendererQuirks;
       MacOSXGraphicsDevice device;
       boolean wasContextCreated;
       boolean hasNPOTTextures;
@@ -155,9 +157,10 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
 
       SharedResource(MacOSXGraphicsDevice device, boolean wasContextCreated,
                      boolean hasNPOTTextures, boolean hasRECTTextures, boolean hasAppletFloatPixels
-                     /* MacOSXCGLDrawable draw */, MacOSXCGLContext ctx) {
+                     /* MacOSXCGLDrawable draw, MacOSXCGLContext ctx */, GLRendererQuirks glRendererQuirks) {
           // drawable = draw;
-          this.context = ctx;
+          // this.context = ctx;
+          this.glRendererQuirks = glRendererQuirks;
           this.device = device;
           this.wasContextCreated = wasContextCreated;
           this.hasNPOTTextures = hasNPOTTextures;
@@ -165,7 +168,8 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
           this.hasAppleFloatPixels = hasAppletFloatPixels;
       }
       final MacOSXGraphicsDevice getDevice() { return device; }
-      final MacOSXCGLContext getContext() { return context; }
+      // final MacOSXCGLContext getContext() { return context; }
+      final GLRendererQuirks getGLRendererQuirks() { return glRendererQuirks; }
       final boolean wasContextAvailable() { return wasContextCreated; }
       final boolean isNPOTTextureAvailable() { return hasNPOTTextures; }
       final boolean isRECTTextureAvailable() { return hasRECTTextures; }
@@ -212,7 +216,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     if(null==sr && !getDeviceTried(connection)) {
         addDeviceTried(connection);
         final MacOSXGraphicsDevice sharedDevice = new MacOSXGraphicsDevice(adevice.getUnitID());
-        final MacOSXCGLContext sharedContext;
+        GLRendererQuirks glRendererQuirks = null;
         boolean madeCurrent = false;
         boolean hasNPOTTextures = false;
         boolean hasRECTTextures = false;
@@ -225,7 +229,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
             final GLDrawableImpl sharedDrawable = createOnscreenDrawableImpl(createDummySurfaceImpl(sharedDevice, false, new GLCapabilities(glp), null, 64, 64));
             sharedDrawable.setRealized(true);
             
-            sharedContext  = (MacOSXCGLContext) sharedDrawable.createContext(null);
+            final MacOSXCGLContext sharedContext = (MacOSXCGLContext) sharedDrawable.createContext(null);
             if (null == sharedContext) {
                 throw new GLException("Couldn't create shared context for drawable: "+sharedDrawable);
             }
@@ -238,6 +242,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
                     hasNPOTTextures = gl.isNPOTTextureAvailable();
                     hasRECTTextures = gl.isExtensionAvailable(GLExtensions.EXT_texture_rectangle);
                     hasAppleFloatPixels = gl.isExtensionAvailable(GLExtensions.APPLE_float_pixels);
+                    glRendererQuirks = sharedContext.getRendererQuirks();
                 }
             } catch (GLException gle) {
                 if (DEBUG) {
@@ -256,7 +261,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
             }
             sharedDrawable.setRealized(false);
         }
-        sr = new SharedResource(sharedDevice, madeCurrent, hasNPOTTextures, hasRECTTextures, hasAppleFloatPixels, sharedContext);
+        sr = new SharedResource(sharedDevice, madeCurrent, hasNPOTTextures, hasRECTTextures, hasAppleFloatPixels, glRendererQuirks);
         synchronized(sharedMap) {
             sharedMap.put(connection, sr);
         }
@@ -264,7 +269,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
         if (DEBUG) {
             System.err.println("MacOSXCGLDrawableFactory.createShared: device:  " + sharedDevice);
             System.err.println("MacOSXCGLDrawableFactory.createShared: context: madeCurrent " + madeCurrent + ", NPOT "+hasNPOTTextures+
-                               ", RECT "+hasRECTTextures+", FloatPixels "+hasAppleFloatPixels);
+                               ", RECT "+hasRECTTextures+", FloatPixels "+hasAppleFloatPixels+", "+glRendererQuirks);
         }
     }
     return sr;
@@ -293,13 +298,19 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
 
   @Override
   protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
-      SharedResource sr = getOrCreateOSXSharedResource(device);
-      if(null!=sr) {
-          return sr.getContext();
-      }
+      // FIXME: no more available
       return null;
   }
 
+  @Override
+  public GLRendererQuirks getRendererQuirks(AbstractGraphicsDevice device) {
+      SharedResource sr = getOrCreateOSXSharedResource(device);
+      if(null!=sr) {
+          return sr.getGLRendererQuirks(); 
+      }
+      return null;
+  }
+  
   @Override
   protected AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device) {
       SharedResource sr = getOrCreateOSXSharedResource(device);
