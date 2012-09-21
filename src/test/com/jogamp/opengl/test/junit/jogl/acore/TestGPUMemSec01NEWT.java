@@ -61,6 +61,8 @@ public class TestGPUMemSec01NEWT extends UITestCase {
                 new GLCapabilities(glp), width, height, true);
         final GL gl = winctx.context.getGL();
 
+        // System.err.println("Pre GL Error: 0x"+Integer.toHexString(gl.glGetError()));
+        // System.err.println(winctx.drawable);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
         // misc GL setup
@@ -249,7 +251,7 @@ public class TestGPUMemSec01NEWT extends UITestCase {
         
         NEWTGLContext.destroyWindow(winctx);
     }
-    
+
     @Test
     public void testReadPixelsGL_99x100xRGBxUB() throws InterruptedException {
         GLProfile glp = GLProfile.getGL2ES2();

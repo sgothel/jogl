@@ -488,6 +488,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   throw new RuntimeException("Anonymous drawable instance's handle neither NSView, NSWindow nor PBuffer: "+toHexString(drawableHandle)+", "+drawable.getClass().getName()+",\n\t"+drawable);
               }
           }
+          needsSetContextPBuffer = isPBuffer;
           backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(surface, true);
 
           boolean incompleteView = null != backingLayerHost;
@@ -600,11 +601,12 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                           public void swapBuffers(boolean doubleBuffered) {
                               MacOSXCGLContext.NSOpenGLImpl.this.swapBuffers();                            
                           } } ) ;                    
-                  } else if( chosenCaps.isPBuffer() && CGL.isNSOpenGLPixelBuffer(drawableHandle) ) {
+                  } else if( CGL.isNSOpenGLPixelBuffer(drawableHandle) ) {
                       texID = 0;
                       pbufferHandle = drawableHandle;
                       if(0 != drawableHandle) { // complete 'validatePBufferConfig(..)' procedure
                           CGL.setContextPBuffer(ctx, pbufferHandle);
+                          needsSetContextPBuffer = false;
                       }
                   } else {
                       throw new GLException("BackingLayerHost w/ unknown handle (!FBO, !PBuffer): "+drawable);
@@ -652,9 +654,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           if( needsSetContextPBuffer && 0 != drawableHandle && CGL.isNSOpenGLPixelBuffer(drawableHandle) ) {
               // Must associate the pbuffer with our newly-created context
               needsSetContextPBuffer = false;
-              if(0 != drawableHandle) {
-                  CGL.setContextPBuffer(ctx, drawableHandle);
-              }
+              CGL.setContextPBuffer(ctx, drawableHandle);
               if(DEBUG) {
                   System.err.println("NS.validateDrawableConfig bind pbuffer "+toHexString(drawableHandle)+" -> ctx "+toHexString(ctx)); 
               }
