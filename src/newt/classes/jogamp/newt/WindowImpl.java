@@ -85,7 +85,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private volatile long windowHandle = 0; // lifecycle critical
     private volatile boolean visible = false; // lifecycle critical
     private RecursiveLock windowLock = LockFactory.createRecursiveLock();  // Window instance wide lock
-    private RecursiveLock surfaceLock = LockFactory.createRecursiveLock(); // Surface only lock
+    private int surfaceLockCount = 0; // surface lock recursion count
     
     private ScreenImpl screen; // never null after create - may change reference though (reparent)
     private boolean screenReferenceAdded = false;
@@ -553,10 +553,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     @Override
     public final int lockSurface() throws NativeWindowException, RuntimeException {
         final RecursiveLock _wlock = windowLock;
-        final RecursiveLock _slock = surfaceLock;
         _wlock.lock();
-        _slock.lock();
-        int res = _slock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
+        surfaceLockCount++;
+        int res = ( 1 == surfaceLockCount ) ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
 
         if ( LOCK_SURFACE_NOT_READY == res ) {
             try {
@@ -573,7 +572,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
             } finally {
                 if (LOCK_SURFACE_NOT_READY >= res) {
-                    _slock.unlock();
                     _wlock.unlock();
                 }
             }
@@ -583,12 +581,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public final void unlockSurface() {
-        final RecursiveLock _slock = surfaceLock;
         final RecursiveLock _wlock = windowLock;
-        _slock.validateLocked();
         _wlock.validateLocked();
 
-        if (_slock.getHoldCount() == 1) {
+        if ( 1 == surfaceLockCount ) {
             final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
             try {
                 unlockSurfaceImpl();
@@ -596,42 +592,48 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 adevice.unlock();
             }
         }
-        _slock.unlock();
+        surfaceLockCount--;
         _wlock.unlock();
     }
 
     @Override
     public final boolean isSurfaceLockedByOtherThread() {
-        return surfaceLock.isLockedByOtherThread();
+        return windowLock.isLockedByOtherThread();
     }
 
     @Override
     public final Thread getSurfaceLockOwner() {
-        return surfaceLock.getOwner();
+        return windowLock.getOwner();
     }
 
     public final RecursiveLock getLock() {
         return windowLock;
     }
     
+    @Override
     public long getSurfaceHandle() {
         return windowHandle; // default: return window handle
     }
 
+    @Override
     public boolean surfaceSwap() {
         return false;
     }
 
+    @Override
     public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
         return config.getNativeGraphicsConfiguration();
     }
 
-    public final long getDisplayHandle() {
-        return getScreen().getDisplay().getHandle();
+    @Override
+    public long getDisplayHandle() {
+        // Actually: return getGraphicsConfiguration().getScreen().getDevice().getHandle();
+        return screen.getDisplay().getHandle(); // shortcut
     }
 
+    @Override
     public final int  getScreenIndex() {
-        return getScreen().getIndex();
+        return screen.getIndex();
     }
 
     //----------------------------------------------------------------------
@@ -1554,8 +1556,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         for (int i = 0; i < keyListeners.size(); i++ ) {
           sb.append(keyListeners.get(i)+", ");
         }
-        sb.append("], surfaceLock "+surfaceLock);
-        sb.append(", windowLock "+windowLock+"]");
+        sb.append("], windowLock "+windowLock+"]");
         return sb.toString();
     }
 

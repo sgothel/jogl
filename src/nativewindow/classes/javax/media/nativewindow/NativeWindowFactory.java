@@ -33,7 +33,6 @@
 
 package javax.media.nativewindow;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -43,6 +42,7 @@ import java.util.Map;
 
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NativeWindowFactoryImpl;
+import jogamp.nativewindow.ResourceToolkitLock;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
@@ -93,13 +93,6 @@ public abstract class NativeWindowFactory {
     
     private static ToolkitLock jawtUtilJAWTToolkitLock;
     
-    public static final String X11JAWTToolkitLockClassName = "jogamp.nativewindow.jawt.x11.X11JAWTToolkitLock" ;
-    public static final String X11ToolkitLockClassName = "jogamp.nativewindow.x11.X11ToolkitLock" ;
-    
-    private static Class<?>  x11JAWTToolkitLockClass;
-    private static Constructor<?> x11JAWTToolkitLockConstructor;
-    private static Class<?>  x11ToolkitLockClass;
-    private static Constructor<?> x11ToolkitLockConstructor;
     private static boolean requiresToolkitLock;
 
     private static volatile boolean isJVMShuttingDown = false;
@@ -266,16 +259,6 @@ public abstract class NativeWindowFactory {
                 // register either our default factory or (if exist) the X11/AWT one -> AWT Component
                 registerFactory(ReflectionUtil.getClass(ReflectionUtil.AWTNames.ComponentClass, false, cl), factory);
             }
-
-            if( TYPE_X11 == nativeWindowingTypePure ) {
-                // passing through RuntimeException if not exists intended
-                x11ToolkitLockClass = ReflectionUtil.getClass(X11ToolkitLockClassName, false, cl);
-                x11ToolkitLockConstructor = ReflectionUtil.getConstructor(x11ToolkitLockClass, new Class[] { long.class } );
-                if( isAWTAvailable() ) {
-                    x11JAWTToolkitLockClass = ReflectionUtil.getClass(X11JAWTToolkitLockClassName, false, cl);
-                    x11JAWTToolkitLockConstructor = ReflectionUtil.getConstructor(x11JAWTToolkitLockClass, new Class[] { long.class } );
-                }
-            }
             
             if(DEBUG) {
                 System.err.println("NativeWindowFactory requiresToolkitLock "+requiresToolkitLock);
@@ -300,6 +283,7 @@ public abstract class NativeWindowFactory {
             GraphicsConfigurationFactory.shutdown();
         }
         shutdownNativeImpl(NativeWindowFactory.class.getClassLoader()); // always re-shutdown
+        // SharedResourceToolkitLock.shutdown(DEBUG); // not used yet
         if(DEBUG) {
             System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.shutdown() END JVM Shutdown "+isJVMShuttingDown);
         }
@@ -358,16 +342,9 @@ public abstract class NativeWindowFactory {
 
     /**
      * Provides the default {@link ToolkitLock} for <code>type</code>, a singleton instance.
-     * <br>
      * <ul>
-     *   <li> If {@link #initSingleton(boolean) initSingleton( <b>firstUIActionOnProcess := false</b> )} </li>
-     *   <ul>
-     *     <li>If <b>AWT-type</b> and <b>native-X11-type</b> and <b>AWT-available</b></li>
-     *       <ul>
-     *         <li> return {@link #getAWTToolkitLock()} </li>
-     *       </ul>
-     *   </ul>
-     *   <li> Otherwise return {@link #getNullToolkitLock()} </li>
+     *   <li> JAWT {@link ToolkitLock} if required and AWT available, otherwise</li>
+     *   <li> {@link jogamp.nativewindow.NullToolkitLock} </li>
      * </ul>
      */
     public static ToolkitLock getDefaultToolkitLock(String type) {
@@ -390,84 +367,36 @@ public abstract class NativeWindowFactory {
 
     /**
      * Creates the default {@link ToolkitLock} for <code>type</code> and <code>deviceHandle</code>.
-     * <br>
      * <ul>
-     *   <li> If {@link #initSingleton(boolean) initSingleton( <b>firstUIActionOnProcess := false</b> )} </li>
-     *   <ul>
-     *     <li>If <b>X11 type</b> </li>
-     *     <ul>
-     *       <li> return {@link jogamp.nativewindow.x11.X11ToolkitLock} </li>
-     *     </ul>
-     *   </ul>
-     *   <li> Otherwise return {@link jogamp.nativewindow.NullToolkitLock} </li>
+     *   <li> {@link jogamp.nativewindow.ResourceToolkitLock} if required, otherwise</li>
+     *   <li> {@link jogamp.nativewindow.NullToolkitLock} </li>
      * </ul>
      */
     public static ToolkitLock createDefaultToolkitLock(String type, long deviceHandle) {
         if( requiresToolkitLock() ) {
-            if( TYPE_X11 == type ) {
-                if( 0== deviceHandle ) {
-                    throw new RuntimeException("JAWTUtil.createDefaultToolkitLock() called with NULL device but on X11");
-                }
-                return createX11ToolkitLock(deviceHandle);
-            }
+            return ResourceToolkitLock.create();
         }
         return NativeWindowFactoryImpl.getNullToolkitLock();
     }
     
     /**
      * Creates the default {@link ToolkitLock} for <code>type</code> and <code>deviceHandle</code>.
-     * <br>
      * <ul>
-     *   <li> If {@link #initSingleton(boolean) initSingleton( <b>firstUIActionOnProcess := false</b> )} </li>
-     *   <ul>
-     *     <li>If <b>X11 type</b> </li>
-     *     <ul>
-     *       <li> If <b>shared-AWT-type</b> and <b>AWT available</b> </li>
-     *       <ul>
-     *         <li> return {@link jogamp.nativewindow.jawt.x11.X11JAWTToolkitLock} </li>
-     *       </ul>
-     *       <li> else return {@link jogamp.nativewindow.x11.X11ToolkitLock} </li>
-     *     </ul>
-     *   </ul>
-     *   <li> Otherwise return {@link jogamp.nativewindow.NullToolkitLock} </li>
+     *   <li> JAWT {@link ToolkitLock} if required and AWT available,</li>
+     *   <li> {@link jogamp.nativewindow.ResourceToolkitLock} if required, otherwise</li>
+     *   <li> {@link jogamp.nativewindow.NullToolkitLock} </li>
      * </ul>
      */
     public static ToolkitLock createDefaultToolkitLock(String type, String sharedType, long deviceHandle) {
         if( requiresToolkitLock() ) {
-            if( TYPE_X11 == type ) {
-                if( 0== deviceHandle ) {
-                    throw new RuntimeException("JAWTUtil.createDefaultToolkitLock() called with NULL device but on X11");
-                }
-                if( TYPE_AWT == sharedType && isAWTAvailable() ) {
-                    return createX11AWTToolkitLock(deviceHandle);
-                }
-                return createX11ToolkitLock(deviceHandle);
+            if( TYPE_AWT == sharedType && isAWTAvailable() ) {
+                return getAWTToolkitLock();
             }
+            return ResourceToolkitLock.create();
         }
         return NativeWindowFactoryImpl.getNullToolkitLock();
     }
-
-    protected static ToolkitLock createX11AWTToolkitLock(long deviceHandle) {
-        try {
-            if(DEBUG) {
-                System.err.println("NativeWindowFactory.createX11AWTToolkitLock(0x"+Long.toHexString(deviceHandle)+")");
-                // Thread.dumpStack();
-            }            
-            return (ToolkitLock) x11JAWTToolkitLockConstructor.newInstance(new Object[]{new Long(deviceHandle)});
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-    protected static ToolkitLock createX11ToolkitLock(long deviceHandle) {
-        try {
-            return (ToolkitLock) x11ToolkitLockConstructor.newInstance(new Object[]{new Long(deviceHandle)});
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-
-
+    
     /** Returns the appropriate NativeWindowFactory to handle window
         objects of the given type. The windowClass might be {@link
         NativeWindow NativeWindow}, in which case the client has

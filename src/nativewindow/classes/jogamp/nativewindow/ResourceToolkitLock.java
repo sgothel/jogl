@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2012 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -25,52 +25,50 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.nativewindow.jawt.x11;
 
-import jogamp.nativewindow.jawt.*;
-import jogamp.nativewindow.x11.X11Lib;
-import jogamp.nativewindow.x11.X11Util;
+package jogamp.nativewindow;
+
 import javax.media.nativewindow.ToolkitLock;
 
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 
 /**
- * Implementing a recursive {@link javax.media.nativewindow.ToolkitLock}
- * utilizing JAWT's AWT lock via {@link JAWTUtil#lockToolkit()} and {@link X11Util#XLockDisplay(long)}.
- * <br>
- * This strategy should only be used if AWT is using the underlying native windowing toolkit
- * in a not intrinsic thread safe manner, e.g. under X11 where no XInitThreads() call
- * is issued before any other X11 usage. This is the current situation for e.g. Webstart or Applets.
+ * Implementing a resource based recursive {@link javax.media.nativewindow.ToolkitLock}.
+ * <p>
+ * A resource handle maybe used within a unique object
+ * and can be synchronized across threads via an instance of ResourceToolkitLock.
+ * </p>
  */
-public class X11JAWTToolkitLock implements ToolkitLock {
-    long displayHandle;
-    RecursiveLock lock;
-
-    public X11JAWTToolkitLock(long displayHandle) {
-        this.displayHandle = displayHandle;
-        if(!X11Util.isNativeLockAvailable()) {
-            lock = LockFactory.createRecursiveLock();
-        }
+public class ResourceToolkitLock implements ToolkitLock {
+    public static final boolean DEBUG = Debug.debug("ToolkitLock");
+    
+    public static final ResourceToolkitLock create() {
+        return new ResourceToolkitLock();
     }
 
+    private final RecursiveLock lock;
+
+    private ResourceToolkitLock() {
+        this.lock = LockFactory.createRecursiveLock();
+    }
+    
+    
     public final void lock() {
-        if(TRACE_LOCK) { System.err.println("X11JAWTToolkitLock.lock() - native: "+(null==lock)); }
-        JAWTUtil.lockToolkit();
-        if(null == lock) {
-            X11Lib.XLockDisplay(displayHandle);
-        } else {
-            lock.lock();
-        }
+        if(TRACE_LOCK) { System.err.println("ResourceToolkitLock.lock()"); }
+        lock.lock();
     }
 
     public final void unlock() {
-        if(TRACE_LOCK) { System.err.println("X11JAWTToolkitLock.unlock() - native: "+(null==lock)); }
-        if(null == lock) {
-            X11Lib.XUnlockDisplay(displayHandle);
-        } else {
-            lock.unlock();
-        }
-        JAWTUtil.unlockToolkit();
+        if(TRACE_LOCK) { System.err.println("ResourceToolkitLock.unlock()"); }
+        lock.unlock();
+    }
+    
+    public final void dispose() {
+        // nop
+    }
+    
+    public String toString() {
+        return "ResourceToolkitLock[obj 0x"+Integer.toHexString(hashCode())+", isOwner "+lock.isOwner(Thread.currentThread())+", "+lock.toString()+"]";
     }
 }

@@ -42,8 +42,8 @@ import javax.media.nativewindow.NativeWindowFactory;
 
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NWJNILibLoader;
-
 import com.jogamp.common.util.LongObjectHashMap;
+import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 
 /**
  * Contains a thread safe X11 utility to retrieve display connections.
@@ -80,25 +80,15 @@ public class X11Util {
      */
     public static final boolean ATI_HAS_XCLOSEDISPLAY_BUG = !Debug.isPropertyDefined("nativewindow.debug.X11Util.ATI_HAS_NO_XCLOSEDISPLAY_BUG", true);
 
-    /** Value is <code>true</code>, best 'stable' results if always using XInitThreads(). */
-    public static final boolean XINITTHREADS_ALWAYS_ENABLED = true;
-    
-    /** Value is <code>true</code>, best 'stable' results if not using XLockDisplay/XUnlockDisplay at all. */
-    public static final boolean HAS_XLOCKDISPLAY_BUG = true;
-    
     public static final boolean DEBUG = Debug.debug("X11Util");
     public static final boolean XSYNC_ENABLED = Debug.isPropertyDefined("nativewindow.debug.X11Util.XSync", true);
     public static final boolean XERROR_STACKDUMP = DEBUG || Debug.isPropertyDefined("nativewindow.debug.X11Util.XErrorStackDump", true);
     private static final boolean TRACE_DISPLAY_LIFECYCLE = Debug.isPropertyDefined("nativewindow.debug.X11Util.TraceDisplayLifecycle", true);
     private static String nullDisplayName = null;
-    private static boolean isX11LockAvailable = false;
-    private static boolean requiresX11Lock = true;
     private static volatile boolean isInit = false;
     private static boolean markAllDisplaysUnclosable = false; // ATI/AMD X11 driver issues
 
-    private static int setX11ErrorHandlerRecCount = 0;
     private static Object setX11ErrorHandlerLock = new Object();
-
     
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
@@ -115,9 +105,7 @@ public class X11Util {
                         throw new NativeWindowException("NativeWindow X11 native library load error.");
                     }
         
-                    final boolean callXInitThreads = XINITTHREADS_ALWAYS_ENABLED ;
-                    final boolean isXInitThreadsOK = initialize0( callXInitThreads, XERROR_STACKDUMP);
-                    isX11LockAvailable = isXInitThreadsOK && !HAS_XLOCKDISPLAY_BUG ;
+                    final boolean isInitOK = initialize0( XERROR_STACKDUMP );
         
                     final long dpy = X11Lib.XOpenDisplay(null);
                     if(0 != dpy) {
@@ -134,9 +122,7 @@ public class X11Util {
                     }
                     
                     if(DEBUG) {
-                        System.err.println("X11Util requiresX11Lock "+requiresX11Lock+
-                                           ", XInitThreads [called "+callXInitThreads+", OK "+isXInitThreadsOK+"]"+
-                                           ", isX11LockAvailable "+isX11LockAvailable+
+                        System.err.println("X11Util init OK "+isInitOK+"]"+
                                            ", X11 Display(NULL) <"+nullDisplayName+">"+
                                            ", XSynchronize Enabled: "+XSYNC_ENABLED);
                         // Thread.dumpStack();
@@ -199,31 +185,14 @@ public class X11Util {
             }
         }
     }
-
-    public static synchronized boolean isNativeLockAvailable() {
-        return isX11LockAvailable;
+    
+    public static boolean requiresToolkitLock() {
+        return true; // JAWT locking: yes, instead of native X11 locking w use a recursive lock.
     }
-
-    public static synchronized boolean requiresToolkitLock() {
-        return requiresX11Lock;
-    }
-
+    
     public static void setX11ErrorHandler(boolean onoff, boolean quiet) {
         synchronized(setX11ErrorHandlerLock) {
-            if(onoff) {
-                if(0==setX11ErrorHandlerRecCount) {
-                    setX11ErrorHandler0(true, quiet);
-                }
-                setX11ErrorHandlerRecCount++;
-            } else {
-                if(0 >= setX11ErrorHandlerRecCount) {
-                    throw new InternalError();
-                }
-                setX11ErrorHandlerRecCount--;
-                if(0==setX11ErrorHandlerRecCount) {
-                    setX11ErrorHandler0(false, false);
-                }
-            }
+            setX11ErrorHandler0(onoff, quiet);
         }
     }
 
@@ -492,52 +461,50 @@ public class X11Util {
      *******************************/
 
     public static long XOpenDisplay(String arg0) {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
-        try {
-            long handle = X11Lib.XOpenDisplay(arg0);
-            if(XSYNC_ENABLED && 0 != handle) {
-                X11Lib.XSynchronize(handle, true);
-            }                    
-            if(TRACE_DISPLAY_LIFECYCLE) {
-                System.err.println(Thread.currentThread()+" - X11Util.XOpenDisplay("+arg0+") 0x"+Long.toHexString(handle));
-                // Thread.dumpStack();
-            }
-            return handle;
-        } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
+        long handle = X11Lib.XOpenDisplay(arg0);
+        if(XSYNC_ENABLED && 0 != handle) {
+            X11Lib.XSynchronize(handle, true);
+        }                    
+        if(TRACE_DISPLAY_LIFECYCLE) {
+            System.err.println(Thread.currentThread()+" - X11Util.XOpenDisplay("+arg0+") 0x"+Long.toHexString(handle));
+            // Thread.dumpStack();
         }
+        return handle;
     }
 
     public static int XCloseDisplay(long display) {
-        NativeWindowFactory.getDefaultToolkitLock().lock();
-        try {
-            if(TRACE_DISPLAY_LIFECYCLE) {
-                System.err.println(Thread.currentThread()+" - X11Util.XCloseDisplay() 0x"+Long.toHexString(display));
-                // Thread.dumpStack();
-            }
-            int res = -1;            
-            X11Util.setX11ErrorHandler(true, DEBUG ? false : true);
-            try {
-                res = X11Lib.XCloseDisplay(display);
-            } catch (Exception ex) {
-                System.err.println("X11Util: Catched Exception:");
-                ex.printStackTrace();
-            } finally {
-                X11Util.setX11ErrorHandler(false, false);                    
-            }
-            return res;            
-        } finally {
-            NativeWindowFactory.getDefaultToolkitLock().unlock();
+        if(TRACE_DISPLAY_LIFECYCLE) {
+            System.err.println(Thread.currentThread()+" - X11Util.XCloseDisplay() 0x"+Long.toHexString(display));
+            // Thread.dumpStack();
         }
+        int res = -1;
+        try {
+            res = X11Lib.XCloseDisplay(display);
+        } catch (Exception ex) {
+            System.err.println("X11Util: Catched Exception:");
+            ex.printStackTrace();
+        }
+        return res;            
     }
 
     static volatile boolean XineramaFetched = false;
     static long XineramaLibHandle = 0;
     static long XineramaQueryFunc = 0;
     
-    public static boolean XineramaIsEnabled(long display) {
-        if(0==display) {
-            throw new IllegalArgumentException("Display NULL");
+    public static boolean XineramaIsEnabled(X11GraphicsDevice device) {
+        if(null == device) {
+            throw new IllegalArgumentException("X11 Display device is NULL");
+        }
+        device.lock();
+        try {
+            return XineramaIsEnabled(device.getHandle());
+        } finally {
+            device.unlock();
+        }        
+    }
+    public static boolean XineramaIsEnabled(long displayHandle) {
+        if( 0 == displayHandle ) {
+            throw new IllegalArgumentException("X11 Display handle is NULL");
         }
         if(!XineramaFetched) { // volatile: ok
             synchronized(X11Util.class) {
@@ -551,9 +518,9 @@ public class X11Util {
             }
         }
         if(0!=XineramaQueryFunc) {
-            final boolean res = X11Lib.XineramaIsEnabled(XineramaQueryFunc, display);
+            final boolean res = X11Lib.XineramaIsEnabled(XineramaQueryFunc, displayHandle);
             if(DEBUG) {
-                System.err.println("XineramaIsEnabled: "+res);
+                System.err.println("XineramaIsEnabled: 0x"+Long.toHexString(displayHandle)+": "+res);
             }
             return res;
         } else if(DEBUG) {
@@ -566,7 +533,7 @@ public class X11Util {
     private static final String getCurrentThreadName() { return Thread.currentThread().getName(); } // Callback for JNI
     private static final void dumpStack() { Thread.dumpStack(); } // Callback for JNI
     
-    private static native boolean initialize0(boolean firstUIActionOnProcess, boolean debug);
+    private static native boolean initialize0(boolean debug);
     private static native void shutdown0();
     private static native void setX11ErrorHandler0(boolean onoff, boolean quiet);
 }

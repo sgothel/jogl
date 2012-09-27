@@ -50,4 +50,13 @@ public class NullToolkitLock implements ToolkitLock {
     public final void unlock() {
         if(TRACE_LOCK) { System.err.println("NullToolkitLock.unlock()"); }
     }
+    
+    public final void dispose() {
+        // nop
+    }
+    
+    public String toString() {
+        return "NullToolkitLock[]";
+    }
+    
 }

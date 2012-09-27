@@ -59,7 +59,7 @@ public class ScreenDriver extends ScreenImpl {
 
     protected void createNativeImpl() {
         // validate screen index
-        Long handle = display.runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Long>() {
+        Long handle = runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Long>() {
             public Long run(long dpy) {        
                 return new Long(GetScreen0(dpy, screen_idx));
             } } );        
@@ -81,7 +81,7 @@ public class ScreenDriver extends ScreenImpl {
     private int nmode_number;
 
     protected int[] getScreenModeFirstImpl() {
-        return runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<int[]>() {
+        return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<int[]>() {
             public int[] run(long dpy) {
                 // initialize iterators and static data
                 nrotations = getAvailableScreenModeRotations0(dpy, screen_idx);
@@ -110,7 +110,7 @@ public class ScreenDriver extends ScreenImpl {
 
     protected int[] getScreenModeNextImpl() {
         // assemble: w x h x bpp x f x r        
-        return runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<int[]>() {
+        return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<int[]>() {
             public int[] run(long dpy) {
                 /**
                 System.err.println("******** mode: "+nmode_number);
@@ -176,7 +176,7 @@ public class ScreenDriver extends ScreenImpl {
     }
 
     protected ScreenMode getCurrentScreenModeImpl() {
-        return runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<ScreenMode>() {
+        return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<ScreenMode>() {
             public ScreenMode run(long dpy) {
                 long screenConfigHandle = getScreenConfiguration0(dpy, screen_idx);
                 if(0 == screenConfigHandle) {
@@ -237,7 +237,7 @@ public class ScreenDriver extends ScreenImpl {
             throw new RuntimeException("ScreenMode not element of ScreenMode list: "+screenMode);
         }
         final long t0 = System.currentTimeMillis();
-        boolean done = runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
+        boolean done = runWithTempDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
             public Boolean run(long dpy) {
                 boolean done = false;
                 long screenConfigHandle = getScreenConfiguration0(dpy, screen_idx);
@@ -276,23 +276,21 @@ public class ScreenDriver extends ScreenImpl {
         return done;
     }
 
-    private class XineramaEnabledQuery implements DisplayImpl.DisplayRunnable<Boolean> {
+    private DisplayImpl.DisplayRunnable<Boolean> xineramaEnabledQueryWithTemp = new DisplayImpl.DisplayRunnable<Boolean>() {
         public Boolean run(long dpy) {        
             return new Boolean(X11Util.XineramaIsEnabled(dpy)); 
-        }        
-    }
-    private XineramaEnabledQuery xineramaEnabledQuery = new XineramaEnabledQuery();
+        } };
     
     protected int validateScreenIndex(final int idx) {
         if(getDisplay().isNativeValid()) {
-            return runWithLockedDisplayHandle( xineramaEnabledQuery ).booleanValue() ? 0 : idx;
+            return X11Util.XineramaIsEnabled((X11GraphicsDevice)getDisplay().getGraphicsDevice()) ? 0 : idx;
         } else {
-            return runWithTempDisplayHandle( xineramaEnabledQuery ).booleanValue() ? 0 : idx;
+            return runWithTempDisplayHandle( xineramaEnabledQueryWithTemp ).booleanValue() ? 0 : idx;
         }
     }
         
     protected void getVirtualScreenOriginAndSize(final Point virtualOrigin, final Dimension virtualSize) {
-        display.runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Object>() {
+        runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             public Object run(long dpy) {
                 virtualOrigin.setX(0);
                 virtualOrigin.setY(0);
@@ -305,10 +303,8 @@ public class ScreenDriver extends ScreenImpl {
     //----------------------------------------------------------------------
     // Internals only
     //    
-    private final <T> T runWithLockedDisplayHandle(DisplayRunnable<T> action) {
-        return display.runWithLockedDisplayHandle(action);
-        // return runWithTempDisplayHandle(action);
-        // return runWithoutLock(action);
+    private final <T> T runWithLockedDisplayDevice(DisplayRunnable<T> action) {
+        return display.runWithLockedDisplayDevice(action);
     }
     
     private final <T> T runWithTempDisplayHandle(DisplayRunnable<T> action) {
@@ -323,9 +319,6 @@ public class ScreenDriver extends ScreenImpl {
             X11Util.closeDisplay(displayHandle);
         }
         return res;
-    }
-    private final <T> T runWithoutLock(DisplayRunnable<T> action) {
-        return action.run(display.getHandle());
     }
     
     private static native long GetScreen0(long dpy, int scrn_idx);

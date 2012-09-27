@@ -70,7 +70,6 @@ extern jclass X11NewtWindowClazz;
 extern jmethodID insetsChangedID;
 extern jmethodID visibleChangedID;
 
-void NewtDisplay_x11ErrorHandlerEnable(JNIEnv * env, Display *dpy, int onoff, int quiet, int sync);
 jobject getJavaWindowProperty(JNIEnv *env, Display *dpy, Window window, jlong javaObjectAtom, Bool showWarning);
 
 Status NewtWindows_getRootAndParent (Display *dpy, Window w, Window * root_return, Window * parent_return);

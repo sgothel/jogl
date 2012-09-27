@@ -47,7 +47,6 @@ import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.UpstreamSurfaceHook;
 import javax.media.nativewindow.VisualIDHolder;
@@ -230,11 +229,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
         @Override
         public SharedResourceRunner.Resource createSharedResource(String connection) {
-            final X11GraphicsDevice sharedDevice =
-                    new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT,
-                                          true); // own non-shared display connection, w/ locking
-                    // new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT,
-                    //                       NativeWindowFactory.getNullToolkitLock(), true); // own non-shared display connection, w/o locking
+            final X11GraphicsDevice sharedDevice = new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT, true);
             sharedDevice.lock();
             try {
                 final X11GraphicsScreen sharedScreen = new X11GraphicsScreen(sharedDevice, sharedDevice.getDefaultScreen());
@@ -509,8 +504,8 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                                                         GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook) {
     final X11GraphicsDevice device;
     if(createNewDevice) {
-        // Null X11 locking, due to private non-shared Display handle
-        device = new X11GraphicsDevice(X11Util.openDisplay(deviceReq.getConnection()), deviceReq.getUnitID(), NativeWindowFactory.getNullToolkitLock(), true);
+        // Null X11 resource locking, due to private non-shared Display handle
+        device = new X11GraphicsDevice(X11Util.openDisplay(deviceReq.getConnection()), deviceReq.getUnitID(), true);
     } else {
         device = (X11GraphicsDevice)deviceReq;
     }
@@ -531,7 +526,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   
   @Override
   protected final ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream) {
-    final X11GraphicsDevice device = new X11GraphicsDevice(X11Util.openDisplay(deviceReq.getConnection()), deviceReq.getUnitID(), NativeWindowFactory.getNullToolkitLock(), true);
+    final X11GraphicsDevice device = new X11GraphicsDevice(X11Util.openDisplay(deviceReq.getConnection()), deviceReq.getUnitID(), true);
     final X11GraphicsScreen screen = new X11GraphicsScreen(device, screenIdx);
     final int xvisualID = X11Lib.GetVisualIDFromWindow(device.getHandle(), windowHandle);
     if(VisualIDHolder.VID_UNDEFINED == xvisualID) {

@@ -153,6 +153,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
 
     @Override
     public boolean close() {
+        toolkitLock.dispose();
         if(0 != handle) {
             handle = 0;
             return true;
@@ -162,7 +163,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
 
     @Override
     public String toString() {
-        return getClass().getSimpleName()+"[type "+getType()+", connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+"]";
+        return getClass().getSimpleName()+"[type "+getType()+", connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+", "+toolkitLock+"]";
     }
 
     /**

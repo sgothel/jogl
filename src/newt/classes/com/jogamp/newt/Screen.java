@@ -145,7 +145,7 @@ public abstract class Screen {
     public abstract Display getDisplay();
 
     /** 
-     * @return the screen fully qualified Screen name,
+     * @return The screen fully qualified Screen name,
      * which is a key of {@link com.jogamp.newt.Display#getFQName()} + {@link #getIndex()}.
      */
     public abstract String getFQName();

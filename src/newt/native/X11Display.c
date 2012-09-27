@@ -52,90 +52,6 @@ static jmethodID enqueueKeyEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
 static jmethodID requestFocusID = NULL;
 
-static JavaVM *jvmHandle = NULL;
-static int jvmVersion = 0;
-
-static void setupJVMVars(JNIEnv * env) {
-    if(0 != (*env)->GetJavaVM(env, &jvmHandle)) {
-        jvmHandle = NULL;
-    }
-    jvmVersion = (*env)->GetVersion(env);
-}
-
-static XErrorHandler origErrorHandler = NULL ;
-static int errorHandlerQuiet = 0 ;
-static int errorHandlerDebug = 0 ;
-static int errorHandlerThrowException = 0;
-
-static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
-{
-    if(!errorHandlerQuiet) {
-        const char * errnoStr = strerror(errno);
-        char threadName[80];
-        char errCodeStr[80];
-        char reqCodeStr[80];
-
-        int shallBeDetached = 0;
-        JNIEnv *jniEnv = NewtCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
-
-        (void) NewtCommon_GetStaticStringMethod(jniEnv, X11NewtWindowClazz, getCurrentThreadNameID, threadName, sizeof(threadName), "n/a");
-        snprintf(errCodeStr, sizeof(errCodeStr), "%d", e->request_code);
-        XGetErrorDatabaseText(dpy, "XRequest", errCodeStr, "Unknown", reqCodeStr, sizeof(reqCodeStr));
-        XGetErrorText(dpy, e->error_code, errCodeStr, sizeof(errCodeStr));
-
-        fprintf(stderr, "Info: Newt X11 Error (Thread: %s): %d - %s, dpy %p, id %x, # %d: %d:%d %s\n",
-            threadName, e->error_code, errCodeStr, e->display, (int)e->resourceid, (int)e->serial,
-            (int)e->request_code, (int)e->minor_code, reqCodeStr);
-
-        if( errorHandlerDebug ) {
-            (*jniEnv)->CallStaticVoidMethod(jniEnv, X11NewtWindowClazz, dumpStackID);
-        }
-
-        if(errorHandlerThrowException) {
-            if(NULL != jniEnv) {
-                NewtCommon_throwNewRuntimeException(jniEnv, "Newt X11 Error (Thread: %s): %d - %s, dpy %p, id %x, # %d: %d:%d %s\n",
-                                                    threadName, e->error_code, errCodeStr, e->display, (int)e->resourceid, (int)e->serial,
-                                                    (int)e->request_code, (int)e->minor_code, reqCodeStr);
-            } else {
-                fprintf(stderr, "Nativewindow X11 Error: null JNIEnv");
-                #if 0
-                    if(NULL!=origErrorHandler) {
-                        origErrorHandler(dpy, e);
-                    }
-                #endif
-            }
-        }
-        fflush(stderr);
-
-        if (NULL != jniEnv && shallBeDetached) {
-            (*jvmHandle)->DetachCurrentThread(jvmHandle);
-        }
-    }
-
-    return 0;
-}
-
-void NewtDisplay_x11ErrorHandlerEnable(JNIEnv * env, Display *dpy, int onoff, int quiet, int sync) {
-    errorHandlerQuiet = quiet;
-    if(onoff) {
-        if(NULL==origErrorHandler) {
-            setupJVMVars(env);
-            origErrorHandler = XSetErrorHandler(x11ErrorHandler);
-            if(sync && NULL!=dpy) {
-                XSync(dpy, False);
-            }
-        }
-    } else {
-        if(NULL!=origErrorHandler) {
-            if(sync && NULL!=dpy) {
-                XSync(dpy, False);
-            }
-            XSetErrorHandler(origErrorHandler);
-            origErrorHandler = NULL;
-        }
-    }
-}
-
 /**
  * Keycode
  */
@@ -273,9 +189,6 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
 {
     jclass c;
 
-    if(debug) {
-        errorHandlerDebug = 1 ;
-    }
     NewtCommon_init(env);
 
     if(NULL==X11NewtWindowClazz) {
@@ -439,8 +352,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
 
         // DBG_PRINT( "X11: DispatchMessages dpy %p, win %p, Event %d\n", (void*)dpy, (void*)evt.xany.window, (int)evt.type);
 
-        NewtDisplay_x11ErrorHandlerEnable(env, dpy, 1, 0, 0);
-
         jwindow = getJavaWindowProperty(env, dpy, evt.xany.window, javaObjectAtom,
         #ifdef VERBOSE_ON
                 True
@@ -448,8 +359,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 False
         #endif
             );
-
-        NewtDisplay_x11ErrorHandlerEnable(env, dpy, 0, 0, 1);
 
         if(NULL==jwindow) {
             fprintf(stderr, "Warning: NEWT X11 DisplayDispatch %p, Couldn't handle event %d for X11 window %p\n", 

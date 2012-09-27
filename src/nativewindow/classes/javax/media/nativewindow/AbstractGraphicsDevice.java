@@ -131,7 +131,7 @@ public interface AbstractGraphicsDevice extends Cloneable {
     /**
      * Optionally closing the device if handle is not <code>null</code>.
      * <p>
-     * The default implementation is a <code>NOP</code>, just setting the handle to <code>null</code>.
+     * The default implementation {@link ToolkitLock#dispose() dispose} it's {@link ToolkitLock} and sets the handle to <code>null</code>.
      * </p>
      * <p>
      * Example implementations like {@link com.jogamp.nativewindow.x11.X11GraphicsDevice} 

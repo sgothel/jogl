@@ -66,7 +66,9 @@ public class DisplayDriver extends DisplayImpl {
         return def;
     }
 
-    protected void closeNativeImpl() { }
+    protected void closeNativeImpl() { 
+        aDevice.close();
+    }
 
     protected void dispatchMessagesNative() { /* nop */ }
 }

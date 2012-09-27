@@ -237,6 +237,9 @@ public class JAWTUtil {
           public final void unlock() {
               JAWTUtil.unlockToolkit();
           }
+          public final void dispose() {
+              // nop
+          }          
       };  
 
     // trigger native AWT toolkit / properties initialization

@@ -91,7 +91,7 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
         
         final long displayHandleAWT = X11SunJDKReflection.graphicsDeviceGetDisplay(device);
         final long displayHandle;
-        boolean owner = false;
+        final boolean owner;
         if(0==displayHandleAWT) {
             displayHandle = X11Util.openDisplay(null);
             owner = true;
@@ -112,9 +112,8 @@ public class X11AWTGraphicsConfigurationFactory extends GraphicsConfigurationFac
                 System.err.println(getThreadName()+" - X11AWTGraphicsConfigurationFactory: AWT dpy "+displayName+" / "+toHexString(displayHandleAWT)+", create X11 display "+toHexString(displayHandle));
             }
         }
-        final ToolkitLock lock = owner ? 
-                NativeWindowFactory.getDefaultToolkitLock(NativeWindowFactory.TYPE_AWT) : // own non-shared X11 display connection, no X11 lock
-                NativeWindowFactory.createDefaultToolkitLock(NativeWindowFactory.TYPE_X11, NativeWindowFactory.TYPE_AWT, displayHandle);
+        // Global JAWT lock required - No X11 resource locking due to private display connection
+        final ToolkitLock lock = NativeWindowFactory.getDefaultToolkitLock(NativeWindowFactory.TYPE_AWT); 
         final X11GraphicsDevice x11Device = new X11GraphicsDevice(displayHandle, AbstractGraphicsDevice.DEFAULT_UNIT, lock, owner); 
         final X11GraphicsScreen x11Screen = new X11GraphicsScreen(x11Device, awtScreen.getIndex());
         if(DEBUG) {

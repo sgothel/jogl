@@ -84,6 +84,7 @@ public class DisplayDriver extends jogamp.newt.DisplayImpl {
                 }
             }
         }
+        aDevice.close();
     }
 
     protected void dispatchMessagesNative() {

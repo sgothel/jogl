@@ -113,15 +113,21 @@ public abstract class Display {
      */
     public abstract int removeReference();
 
+    /** 
+     * Return the {@link AbstractGraphicsDevice} used for depending resources lifecycle, 
+     * i.e. {@link Screen} and {@link Window}, as well as the event dispatching (EDT). */ 
     public abstract AbstractGraphicsDevice getGraphicsDevice();
 
     /**
-     * @return the fully qualified Display name,
-     * which is a key of {@link #getType()} + {@link #getName()} + {@link #getId()}
+     * Return the handle of the {@link AbstractGraphicsDevice} as returned by {@link #getGraphicsDevice()}.
+     */
+    public abstract long getHandle();
+
+    /**
+     * @return The fully qualified Display name,
+     * which is a key of {@link #getType()} + {@link #getName()} + {@link #getId()}.
      */
     public abstract String getFQName();
-
-    public abstract long getHandle();
 
     /**
      * @return this display internal serial id
@@ -140,6 +146,9 @@ public abstract class Display {
      * @return the native display type, ie {@link javax.media.nativewindow.NativeWindowFactory#getNativeWindowType(boolean)}
      */
     public abstract String getType();
+
+    /** Return true if this instance is exclusive, i.e. will not be shared. */
+    public abstract boolean isExclusive();
 
     /**
      * Sets a new {@link EDTUtil} and returns the previous one.
@@ -183,11 +192,12 @@ public abstract class Display {
      * 
      * @param type
      * @param name
-     * @param fromIndex start index, then increasing until found or end of list     * 
+     * @param fromIndex start index, then increasing until found or end of list
+     * @paran shared if true, only shared instances are found, otherwise also exclusive 
      * @return 
      */
-    public static Display getFirstDisplayOf(String type, String name, int fromIndex) {
-        return getDisplayOfImpl(type, name, fromIndex, 1);
+    public static Display getFirstDisplayOf(String type, String name, int fromIndex, boolean shared) {
+        return getDisplayOfImpl(type, name, fromIndex, 1, shared);
     }
 
     /**
@@ -195,19 +205,22 @@ public abstract class Display {
      * @param type
      * @param name
      * @param fromIndex start index, then decreasing until found or end of list. -1 is interpreted as size - 1.
+     * @paran shared if true, only shared instances are found, otherwise also exclusive 
      * @return
      */
-    public static Display getLastDisplayOf(String type, String name, int fromIndex) {
-        return getDisplayOfImpl(type, name, fromIndex, -1);
+    public static Display getLastDisplayOf(String type, String name, int fromIndex, boolean shared) {
+        return getDisplayOfImpl(type, name, fromIndex, -1, shared);
     }
 
-    private static Display getDisplayOfImpl(String type, String name, int fromIndex, int incr) {
+    private static Display getDisplayOfImpl(String type, String name, int fromIndex, int incr, boolean shared) {
         synchronized(displayList) {
             int i = fromIndex >= 0 ? fromIndex : displayList.size() - 1 ;
             while( ( incr > 0 ) ? i < displayList.size() : i >= 0 ) {
                 Display display = (Display) displayList.get(i);
                 if( display.getType().equals(type) &&
-                    display.getName().equals(name) ) {
+                    display.getName().equals(name) &&
+                    ( !shared || shared && !display.isExclusive() ) 
+                  ) {
                     return display;
                 }
                 i+=incr;

@@ -35,6 +35,7 @@
 package jogamp.newt.driver.x11;
 
 import jogamp.nativewindow.x11.X11Lib;
+import jogamp.nativewindow.x11.X11Util;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.DisplayImpl.DisplayRunnable;
 import jogamp.newt.WindowImpl;
@@ -44,6 +45,8 @@ import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
+import com.jogamp.nativewindow.x11.X11GraphicsDevice;
+import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 import com.jogamp.newt.event.MouseEvent;
 
 public class WindowDriver extends WindowImpl {
@@ -63,9 +66,19 @@ public class WindowDriver extends WindowImpl {
     protected void createNativeImpl() {
         final ScreenDriver screen = (ScreenDriver) getScreen();
         final DisplayDriver display = (DisplayDriver) screen.getDisplay();
+        final AbstractGraphicsDevice edtDevice = display.getGraphicsDevice();
+        
+        // Decoupled X11 Device/Screen allowing X11 display lock-free off-thread rendering 
+        final long renderDeviceHandle = X11Util.openDisplay(edtDevice.getConnection());
+        if( 0 == renderDeviceHandle ) {
+            throw new RuntimeException("Error creating display(EDT): "+edtDevice.getConnection());
+        }
+        renderDevice = new X11GraphicsDevice(renderDeviceHandle, AbstractGraphicsDevice.DEFAULT_UNIT, true);
+        AbstractGraphicsScreen renderScreen = new X11GraphicsScreen((X11GraphicsDevice) renderDevice, screen.getIndex());
+        
         final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice(), capsRequested);
         final AbstractGraphicsConfiguration cfg = factory.chooseGraphicsConfiguration(
-                capsRequested, capsRequested, capabilitiesChooser, screen.getGraphicsScreen(), VisualIDHolder.VID_UNDEFINED);
+                capsRequested, capsRequested, capabilitiesChooser, renderScreen, VisualIDHolder.VID_UNDEFINED);
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("X11Window.createNativeImpl() factory: "+factory+", chosen config: "+cfg);
         }        
@@ -78,11 +91,16 @@ public class WindowDriver extends WindowImpl {
         }
         setGraphicsConfiguration(cfg);
         final int flags = getReconfigureFlags(0, true) & 
-                          ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;        
-        setWindowHandle(CreateWindow0(getParentWindowHandle(),
-                               display.getEDTHandle(), screen.getIndex(), visualID, 
-                               display.getJavaObjectAtom(), display.getWindowDeleteAtom(), 
-                               getX(), getY(), getWidth(), getHeight(), autoPosition(), flags));
+                          ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;
+        edtDevice.lock();
+        try {        
+            setWindowHandle(CreateWindow0(getParentWindowHandle(),
+                                   edtDevice.getHandle(), screen.getIndex(), visualID, 
+                                   display.getJavaObjectAtom(), display.getWindowDeleteAtom(), 
+                                   getX(), getY(), getWidth(), getHeight(), autoPosition(), flags));
+        } finally {
+            edtDevice.unlock();
+        }
         windowHandleClose = getWindowHandle();
         if (0 == windowHandleClose) {
             throw new NativeWindowException("Error creating window");
@@ -92,8 +110,10 @@ public class WindowDriver extends WindowImpl {
     protected void closeNativeImpl() {
         if(0!=windowHandleClose && null!=getScreen() ) {
             DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
+            final AbstractGraphicsDevice edtDevice = display.getGraphicsDevice();
+            edtDevice.lock();
             try {
-                CloseWindow0(display.getEDTHandle(), windowHandleClose, 
+                CloseWindow0(edtDevice.getHandle(), windowHandleClose, 
                              display.getJavaObjectAtom(), display.getWindowDeleteAtom());
             } catch (Throwable t) {
                 if(DEBUG_IMPLEMENTATION) { 
@@ -101,28 +121,47 @@ public class WindowDriver extends WindowImpl {
                     e.printStackTrace();
                 }
             } finally {
+                edtDevice.unlock();
                 windowHandleClose = 0;
             }
         }
+        if(null != renderDevice) {
+            renderDevice.close(); // closes X11 display
+            renderDevice = null;
+        }
     }
 
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) { 
+    @Override
+    public long getDisplayHandle() {
+        // Actually: return getGraphicsConfiguration().getScreen().getDevice().getHandle();
+        return renderDevice.getHandle(); // shortcut
+    }
+    
+    protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) { 
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("X11Window reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
                                getReconfigureFlagsAsString(null, flags));
         }
+        final int _x, _y;
         if(0 == ( FLAG_IS_UNDECORATED & flags)) {
             final InsetsImmutable i = getInsets();         
             
             // client position -> top-level window position
-            x -= i.getLeftWidth() ;
-            y -= i.getTopHeight() ;
+            _x = x - i.getLeftWidth() ;
+            _y = y - i.getTopHeight() ;
+        } else {
+            _x = x;
+            _y = y;
         }
         final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
-        reconfigureWindow0( getDisplayEDTHandle(), getScreenIndex(), 
-                            getParentWindowHandle(), getWindowHandle(), display.getWindowDeleteAtom(),
-                            x, y, width, height, flags);
-
+        runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
+            public Object run(long dpy) {
+                reconfigureWindow0( dpy, getScreenIndex(), 
+                                    getParentWindowHandle(), getWindowHandle(), display.getWindowDeleteAtom(),
+                                    _x, _y, width, height, flags);
+                return null;
+            }
+        });
         return true;
     }
 
@@ -133,13 +172,18 @@ public class WindowDriver extends WindowImpl {
         }
     }
     
-    protected void requestFocusImpl(boolean force) {
-        requestFocus0(getDisplayEDTHandle(), getWindowHandle(), force);
+    protected void requestFocusImpl(final boolean force) {        
+        runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
+            public Object run(long dpy) {
+                requestFocus0(dpy, getWindowHandle(), force);
+                return null;
+            }
+        });
     }
 
     @Override
     protected void setTitleImpl(final String title) {
-        runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Object>() {
+        runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             public Object run(long dpy) {
                 setTitle0(dpy, getWindowHandle(), title);
                 return null;
@@ -149,35 +193,38 @@ public class WindowDriver extends WindowImpl {
     
     @Override
     protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
-        return runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
+        return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Boolean>() {
             public Boolean run(long dpy) {
-                return Boolean.valueOf(setPointerVisible0(getDisplayEDTHandle(), getWindowHandle(), pointerVisible));
+                return Boolean.valueOf(setPointerVisible0(dpy, getWindowHandle(), pointerVisible));
             }
         }).booleanValue();
     }
 
     @Override
     protected boolean confinePointerImpl(final boolean confine) {
-        return runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
+        return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Boolean>() {
             public Boolean run(long dpy) {
-                return Boolean.valueOf(confinePointer0(getDisplayEDTHandle(), getWindowHandle(), confine));
+                return Boolean.valueOf(confinePointer0(dpy, getWindowHandle(), confine));
             }
         }).booleanValue();
     }
     
     @Override
     protected void warpPointerImpl(final int x, final int y) {
-        runWithLockedDisplayHandle( new DisplayImpl.DisplayRunnable<Object>() {
+        runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             public Object run(long dpy) {
-                warpPointer0(getDisplayEDTHandle(), getWindowHandle(), x, y);
+                warpPointer0(dpy, getWindowHandle(), x, y);
                 return null;
             }
         });
     }
     
     protected Point getLocationOnScreenImpl(final int x, final int y) {
-        // X11Util.GetRelativeLocation: locks display already !
-        return X11Lib.GetRelativeLocation( getScreen().getDisplay().getHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
+        return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Point>() {
+            public Point run(long dpy) {
+                return X11Lib.GetRelativeLocation(dpy, getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
+            }
+        } );
     }
 
     protected void updateInsetsImpl(Insets insets) {
@@ -229,16 +276,11 @@ public class WindowDriver extends WindowImpl {
     //----------------------------------------------------------------------
     // Internals only
     //
-    
     private static final String getCurrentThreadName() { return Thread.currentThread().getName(); } // Callback for JNI
     private static final void dumpStack() { Thread.dumpStack(); } // Callback for JNI
     
-    private final long getDisplayEDTHandle() {
-        return ((DisplayDriver) getScreen().getDisplay()).getEDTHandle();
-    }
-    private final <T> T runWithLockedDisplayHandle(DisplayRunnable<T> action) {
-        return ((DisplayImpl) getScreen().getDisplay()).runWithLockedDisplayHandle(action);
-        // return runWithTempDisplayHandle(action);
+    private final <T> T runWithLockedDisplayDevice(DisplayRunnable<T> action) {
+        return ((DisplayDriver) getScreen().getDisplay()).runWithLockedDisplayDevice(action);
     }
 
     protected static native boolean initIDs0();
@@ -258,4 +300,5 @@ public class WindowDriver extends WindowImpl {
     private static native void warpPointer0(long display, long windowHandle, int x, int y);
     
     private long   windowHandleClose;
+    private AbstractGraphicsDevice renderDevice;    
 }

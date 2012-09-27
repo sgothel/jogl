@@ -305,7 +305,7 @@ public class NewtFactory {
      * Instantiate a Display entity using the native handle.
      */
     public static Display createDisplay(String type, long handle, boolean reuse) {
-      return DisplayImpl.create(type, null, handle, false);
+      return DisplayImpl.create(type, null, handle, reuse);
     }
 
     public static boolean isScreenCompatible(NativeWindow parent, Screen childScreen) {

@@ -81,6 +81,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode -Djogl.debug.GLSLState"
     #D_ARGS="-Djogl.debug.GLDebugMessageHandler -Djogl.debug.DebugGL -Djogl.debug.TraceGL"
     #D_ARGS="-Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.UseCurrentThreadLibLoader"
+    #D_ARGS="-Djogamp.debug.NativeLibrary"
     #D_ARGS="-Djogl.1thread=false -Djogl.debug.Threading"
     #D_ARGS="-Djogl.1thread=true -Djogl.debug.Threading"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext.TraceSwitch -Djogl.debug=all"
@@ -100,7 +101,6 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile -Djogl.debug.GLDrawable"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.GLProfile"
-    #D_ARGS="-Dnewt.debug.EDT -Dnativewindow.debug.ToolkitLock.TraceLock -Dnativewindow.debug.NativeWindow"
     #D_ARGS="-Dnativewindow.debug.NativeWindow"
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.EDT -Dnewt.debug.Window -Djogl.debug.GLContext"
@@ -109,6 +109,7 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug.X11Util -Dnativewindow.debug.X11Util.XSync"
     #D_ARGS="-Dnativewindow.debug.X11Util.XSync -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug.GLDrawable -Djogl.debug.GLContext"
+    #D_ARGS="-Dnativewindow.debug.NativeWindow -Dnativewindow.debug.X11Util"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=3000 -Djogamp.debug.Lock -Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
     #D_ARGS="-Djogamp.common.utils.locks.Lock.timeout=600000 -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock -Dnativewindow.debug.ToolkitLock.TraceLock"
@@ -135,7 +136,9 @@ function jrun() {
     #D_ARGS="-Djogl.debug.Animator"
     #D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug.GLCanvas"
-    #D_ARGS="-Dnativewindow.debug.ToolkitLock.TraceLock"
+    #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.X11Util.XSync"
+    #D_ARGS="-Dnativewindow.debug.X11Util.XSync"
+    #D_ARGS="-Dnativewindow.debug.ToolkitLock"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLState"
     #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil"
@@ -187,6 +190,8 @@ function jrun() {
     #export LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64:$LD_LIBRARY_PATH
     #export LD_LIBRARY_PATH=/usr/lib/mesa:/usr/lib32/mesa:$LD_LIBRARY_PATH
     #export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/mesa:/usr/lib/i386-linux-gnu/mesa:$LD_LIBRARY_PATH
+    #export LD_LIBRARY_PATH=`pwd`/lib/external/mesa/x86_64-linux-gnu:$LD_LIBRARY_PATH
+    #export LD_LIBRARY_PATH=`pwd`/lib/external/mesa/x86_64-linux-gnu/gallium:$LD_LIBRARY_PATH
     echo
     echo "Test Start: $*"
     echo
@@ -194,10 +199,10 @@ function jrun() {
     echo
     echo $javaexe $javaxargs $X_ARGS $D_ARGS $C_ARG $*
     #LIBGL_DRIVERS_PATH=/usr/lib/mesa:/usr/lib32/mesa \
-    #gdb --args $javaexe $javaxargs $X_ARGS $D_ARGS $C_ARG $*
     #LIBGL_DEBUG=verbose INTEL_STRICT_CONFORMANCE=1 INTEL_DEBUG="buf bat" \
     #LIBGL_DEBUG=verbose MESA_DEBUG=true INTEL_STRICT_CONFORMANCE=1 \
-    #LIBGL_DEBUG=verbose MESA_DEBUG=true LIBGL_ALWAYS_SOFTWARE=true \
+    #export LIBGL_DEBUG=verbose MESA_DEBUG=true LIBGL_ALWAYS_SOFTWARE=true
+    #gdb --args $javaexe $javaxargs $X_ARGS $D_ARGS $C_ARG $*
     $javaexe $javaxargs $X_ARGS $D_ARGS $C_ARG $*
     echo
     echo "Test End: $*"
@@ -239,7 +244,8 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextSurfaceLockNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
@@ -249,6 +255,38 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitchNEWT $*
+
+# x11 no XinitThreads() specific tests (regressions, concurrent behavior) !
+# Deadlock:
+# com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2 - test01
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2 $*
+# com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT - testEachWithAnimatorSharedOffscreen
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT $*
+#
+# XCB:
+#
+# com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT - testShaderState01PerformanceDouble
+#testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT $*
+# com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT - testWindowParenting02ReparentTop2WinReparentRecreate
+#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
+# com.jogamp.opengl.test.junit.newt.parenting.TestParenting04SWT - winHopFrame2FrameDirectHop
+#testawtswt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04SWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04AWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOOffThreadSharedContextMix2DemosES2NEWT $*
+
+#testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
+#testnoawt com.jogamp.opengl.test.junit.newt.TestWindows01NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent01NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent02NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMix2DemosES2NEWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04AWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteGLWindows01NEWT $*
+#testswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2 $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOOffThreadSharedContextMix2DemosES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOOnThreadSharedContext1DemoES2NEWT $*
+
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOffscrnCapsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT $*
@@ -322,7 +360,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT02WindowClosing
 #testawt com.jogamp.opengl.test.junit.jogl.awt.text.TestAWTTextRendererUseVertexArrayBug464
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
-testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWTAnalyzeBug455 $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWTBug450 $*

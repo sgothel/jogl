@@ -73,7 +73,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
 
     /**
      * @param display the Display connection
-     * @param locker custom {@link javax.media.nativewindow.ToolkitLock}, eg to force null locking in NEWT
+     * @param locker custom {@link javax.media.nativewindow.ToolkitLock}, eg to force null locking w/ private connection
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(String, String, int, long, ToolkitLock)
      */
     public X11GraphicsDevice(long display, int unitID, ToolkitLock locker, boolean owner) {

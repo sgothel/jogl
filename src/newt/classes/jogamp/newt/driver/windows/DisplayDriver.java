@@ -73,6 +73,7 @@ public class DisplayDriver extends DisplayImpl {
 
     protected void closeNativeImpl() { 
         sharedClassFactory.releaseSharedClass();
+        aDevice.close();
     }
 
     protected void dispatchMessagesNative() {

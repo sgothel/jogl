@@ -127,7 +127,8 @@ public class X11JAWTWindow extends JAWTWindow {
   }
 
   protected Point getLocationOnScreenNativeImpl(int x, int y) {
-    return X11Lib.GetRelativeLocation( getDisplayHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
+    // surface is locked and hence the device
+    return X11Lib.GetRelativeLocation(getDisplayHandle(), getScreenIndex(), getWindowHandle(), 0 /*root win*/, x, y);
   }
   
   // Variables for lockSurface/unlockSurface

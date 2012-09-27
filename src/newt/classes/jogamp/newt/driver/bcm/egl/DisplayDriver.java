@@ -39,6 +39,7 @@ import javax.media.nativewindow.NativeWindowException;
 
 import jogamp.newt.NEWTJNILibLoader;
 import jogamp.opengl.egl.EGL;
+import jogamp.opengl.egl.EGLDisplayUtil;
 
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
@@ -72,6 +73,7 @@ public class DisplayDriver extends jogamp.newt.DisplayImpl {
         if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
             DestroyDisplay(aDevice.getHandle());
         }
+        aDevice.close();
     }
 
     protected void dispatchMessagesNative() {

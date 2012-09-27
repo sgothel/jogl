@@ -71,10 +71,9 @@ public class EGLDisplayUtil {
                 Thread.dumpStack();
             }
             if( eglDisplayCounter.size() > 0) {
-                EGLDisplayUtil.dumpOpenDisplayConnections();
+                dumpOpenDisplayConnections();
             }
         }
-
         return eglDisplayCounter.size();
     }
     

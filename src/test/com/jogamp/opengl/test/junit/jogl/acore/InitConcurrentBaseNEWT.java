@@ -28,8 +28,6 @@
  
 package com.jogamp.opengl.test.junit.jogl.acore;
 
-import java.io.IOException;
-
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.opengl.GLCapabilities;
@@ -37,17 +35,24 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.Test;
 
-import com.jogamp.common.os.Platform;
+import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
-public class TestInitConcurrentNEWT extends UITestCase {
+/**
+ * Concurrent and lock-free initialization and rendering using exclusive NEWT Display EDT instances, or
+ * concurrent locked initialization and lock-free rendering using a shared NEWT Display EDT instances.
+ * <p>
+ * Rendering is always lock-free and independent of the EDT.
+ * </p>
+ */
+public class InitConcurrentBaseNEWT extends UITestCase {
 
     static final int demoSize = 128;
     
@@ -73,20 +78,24 @@ public class TestInitConcurrentNEWT extends UITestCase {
     }
     
     public class JOGLTask implements Runnable {
-        private int id;
-        private Object postSync;
+        private final int id;
+        private final Object postSync;
+        private final boolean reuse;
         private boolean done = false;
         
-        public JOGLTask(Object postSync, int id) {
+        public JOGLTask(Object postSync, int id, boolean reuse) {
             this.postSync = postSync;
             this.id = id;
+            this.reuse = reuse;
         }
         public void run() {
             int x = (  id          % num_x ) * ( demoSize + insets.getTotalHeight() );
             int y = ( (id / num_x) % num_y ) * ( demoSize + insets.getTotalHeight() );
             
-            System.err.println("JOGLTask "+id+": START: "+x+"/"+y+" - "+Thread.currentThread().getName());
-            GLWindow glWindow = GLWindow.create(new GLCapabilities(GLProfile.getDefault()));
+            System.err.println("JOGLTask "+id+": START: "+x+"/"+y+", reuse "+reuse+" - "+Thread.currentThread().getName());
+            final Display display = NewtFactory.createDisplay(null, reuse);
+            final Screen screen = NewtFactory.createScreen(display, 0);
+            final GLWindow glWindow = GLWindow.create(screen, new GLCapabilities(GLProfile.getDefault()));
             Assert.assertNotNull(glWindow);
             glWindow.setTitle("Task "+id);
             glWindow.setPosition(x + insets.getLeftWidth(), y + insets.getTopHeight() );
@@ -98,6 +107,9 @@ public class TestInitConcurrentNEWT extends UITestCase {
             glWindow.setSize(demoSize, demoSize);
             glWindow.setVisible(true);
             animator.setUpdateFPSFrames(60, null);
+            
+            System.err.println("JOGLTask "+id+": INITIALIZED: "+", "+display+" - "+Thread.currentThread().getName());
+            
             animator.start();
             Assert.assertEquals(true, animator.isAnimating());
             Assert.assertEquals(true, glWindow.isVisible());
@@ -169,67 +181,39 @@ public class TestInitConcurrentNEWT extends UITestCase {
         return sb.toString();
     }
     
-    protected void runJOGLTasks(int num) throws InterruptedException {
+    protected void runJOGLTasks(int num, boolean reuse) throws InterruptedException {
         final String currentThreadName = Thread.currentThread().getName();
-        final Object sync = new Object();
+        final Object syncDone = new Object();
         final JOGLTask[] tasks = new JOGLTask[num];
         final Thread[] threads = new Thread[num];
         int i;
         for(i=0; i<num; i++) {
-            tasks[i] = new JOGLTask(sync, i);
+            tasks[i] = new JOGLTask(syncDone, i, reuse);
             threads[i] = new Thread(tasks[i], currentThreadName+"-jt"+i);
         }
+        final long t0 = System.currentTimeMillis(); 
+        
         for(i=0; i<num; i++) {
             threads[i].start();
         }
-        synchronized (sync) {
+        synchronized (syncDone) {
             while(!done(tasks)) {
                 try {
-                    sync.wait();
+                    syncDone.wait();
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
             }
         }
+        final long t1 = System.currentTimeMillis();
+        System.err.println("total: "+(t1-t0)/1000.0+"s");
+        
         Assert.assertTrue("Tasks are incomplete. Complete: "+doneDump(tasks), done(tasks));
         i=0;
         while(i<30 && !isDead(threads)) {
             Thread.sleep(100);
             i++;
         }
-        Assert.assertTrue("Threads are still alive after 3s. Alive: "+isAliveDump(threads), isDead(threads));
-    }
-    
-    @Test
-    public void test01OneThread() throws InterruptedException {
-        runJOGLTasks(1);
-    }
-
-    @Test
-    public void test02TwoThreads() throws InterruptedException {
-        runJOGLTasks(2);
-    }
-    
-    @Test
-    public void test16SixteenThreads() throws InterruptedException {
-        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
-            runJOGLTasks(8);
-        } else {
-            runJOGLTasks(16);
-        }
-    }
-    
-    public static void main(String args[]) throws IOException {
-        for(int i=0; i<args.length; i++) {
-            if(args[i].equals("-time")) {
-                i++;
-                try {
-                    duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
-            }
-        }
-        String tstname = TestInitConcurrentNEWT.class.getName();
-        org.junit.runner.JUnitCore.main(tstname);
-    }
-
+        Assert.assertTrue("Threads are still alive after 3s. Alive: "+isAliveDump(threads), isDead(threads));        
+    }    
 }

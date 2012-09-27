@@ -42,7 +42,6 @@ import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.Point;
@@ -130,7 +129,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                     }
                 }
                 screen.screen_idx = idx;
-                screen.fqname = (display.getFQName()+idx).intern();
+                screen.fqname = display.getFQName()+"-s"+idx;
                 screen.hashCode = screen.fqname.hashCode();
                 screenList.add(screen);
                 if(DEBUG) {
