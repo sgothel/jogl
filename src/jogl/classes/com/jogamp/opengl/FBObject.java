@@ -47,7 +47,7 @@ import com.jogamp.opengl.FBObject.Attachment.Type;
  * Core utility class simplifying usage of framebuffer objects (FBO)
  * with all {@link GLProfile}s. 
  * <p>
- * Supports on-the-fly reconfiguration of dimension and multisample buffers via {@link #reset(GL, int, int, int)}
+ * Supports on-the-fly reconfiguration of dimension and multisample buffers via {@link #reset(GL, int, int, int, boolean)}
  * while preserving the {@link Attachment} references.
  * </p>
  * <p>
@@ -866,7 +866,7 @@ public class FBObject {
             throw new GLException("size "+width+"x"+height+" exceeds on of the maxima [texture "+maxTextureSize+", renderbuffer "+maxRenderbufferSize+"]");
         }
 
-        resetMSAATexture2DSink(gl);
+        resetSamplingSink(gl);
         
         // generate fbo ..
         gl.glGenFramebuffers(1, val, 0);
@@ -911,7 +911,7 @@ public class FBObject {
      * @throws GLException in case of an error
      */
     public final void reset(GL gl, int newWidth, int newHeight) {
-        reset(gl, newWidth, newHeight, 0);
+        reset(gl, newWidth, newHeight, 0, false);
     }
     
     /**
@@ -932,9 +932,14 @@ public class FBObject {
      * @param newWidth the new width, it's minimum is capped to 1
      * @param newHeight the new height, it's minimum is capped to 1
      * @param newSamples if > 0, MSAA will be used, otherwise no multisampling. Will be capped to {@link #getMaxSamples()}.
+     * @param resetSamplingSink <code>true</code> calls {@link #resetSamplingSink(GL)} immediatly. 
+     *                          <code>false</code> postpones resetting the sampling sink until {@link #use(GL, TextureAttachment)} or {@link #syncSamplingSink(GL)},
+     *                          allowing to use the samples sink's FBO and texture until then. The latter is useful to benefit 
+     *                          from implicit double buffering while resetting the sink just before it's being used, eg. at swap-buffer. 
+     *                          
      * @throws GLException in case of an error, i.e. size too big, etc ..
      */
-    public final void reset(GL gl, int newWidth, int newHeight, int newSamples) {
+    public final void reset(GL gl, int newWidth, int newHeight, int newSamples, boolean resetSamplingSink) {
         if(!initialized) {
             init(gl, newWidth, newHeight, newSamples);
             return;
@@ -959,16 +964,11 @@ public class FBObject {
             width = newWidth;
             height = newHeight;
             samples = newSamples;
-            detachAllImpl(gl, true , true);
+            detachAllImpl(gl, true , true);            
+            if(resetSamplingSink) {
+                resetSamplingSink(gl);
+            }
             
-            /** 
-             * Postpone reset of samplesSink until syncFramebuffer,
-             * issued at use(..) method (swapBuffer usually initiates it).
-             * This allows another thread to still use the 'samplesSinkTexture'
-             * until swapBuffer happens and does not invalidate the GL_FRONT
-             * FBO (framebuffer & texture). 
-               resetMSAATexture2DSink(gl);
-            */ 
             samplesSinkDirty = true;
 
             if(!wasBound) {
@@ -1925,7 +1925,20 @@ public class FBObject {
         return depthMismatch || stencilMismatch;                
     }
         
-    private final void resetMSAATexture2DSink(GL gl) throws GLException {
+    /**
+     * Manually reset the MSAA sampling sink, if used.
+     * <p>
+     * Automatically called by {@link #reset(GL, int, int, int, boolean)} 
+     * and {@link #syncSamplingSink(GL)}.
+     * </p>
+     * <p>
+     * It is recommended to call this method after initializing the FBO and attaching renderbuffer etc for the 1st time
+     * if access to sampling sink resources is required.
+     * </p>
+     * @param gl the current GL context
+     * @throws GLException in case of an error, i.e. size too big, etc ..
+     */
+    public final void resetSamplingSink(GL gl) throws GLException {
         if(null == samplesSink ) {
             return; // this is the sample sink!
         }
@@ -2082,12 +2095,13 @@ public class FBObject {
      * If multisampling is being used and flagged dirty by a previous call of {@link #bind(GL)} or after initialization,
      * the msaa-buffers are sampled to it's sink {@link #getSamplingSink()}.
      * <p>
-     * Method also updates the sampling sink configuration (if used). Hence it is recommended to call this 
-     * method after your have initialized the FBO and attached renderbuffer etc for the 1st time.
+     * Method also resets the sampling sink configuration via {@link #resetSamplingSink(GL)} if used and required.
+     * </p>
+     * <p>
      * Method is called automatically by {@link #use(GL, TextureAttachment)}.
      * </p>
      * <p>
-     * Methos always resets the framebuffer binding to default in the end.
+     * Method always resets the framebuffer binding to default in the end.
      * If full FBO is supported, sets the read and write framebuffer individually to default after sampling, hence not disturbing 
      * an optional operating MSAA FBO, see {@link GLBase#getDefaultReadFramebuffer()} and {@link GLBase#getDefaultDrawFramebuffer()}
      * </p>
@@ -2101,11 +2115,11 @@ public class FBObject {
      * @param ta {@link TextureAttachment} to use, prev. attached w/  {@link #attachTexture2D(GL, int, boolean, int, int, int, int) attachTexture2D(..)}
      * @throws IllegalArgumentException  
      */
-    public final void syncFramebuffer(GL gl) {
+    public final void syncSamplingSink(GL gl) {
         markUnbound();
         if(samples>0 && samplesSinkDirty) {
             samplesSinkDirty = false;
-            resetMSAATexture2DSink(gl);
+            resetSamplingSink(gl);
             gl.glBindFramebuffer(GL2GL3.GL_READ_FRAMEBUFFER, fbName);
             gl.glBindFramebuffer(GL2GL3.GL_DRAW_FRAMEBUFFER, samplesSink.getWriteFramebuffer());
             ((GL2GL3)gl).glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, // since MSAA is supported, casting to GL2GL3 is OK
@@ -2126,7 +2140,7 @@ public class FBObject {
      * 
      * <p>If using multiple texture units, ensure you call {@link GL#glActiveTexture(int)} first!</p>
      * 
-     * <p>{@link #syncFramebuffer(GL)} is being called</p>
+     * <p>{@link #syncSamplingSink(GL)} is being called</p>
      *  
      * <p>Leaves the FBO unbound!</p>
      * 
@@ -2135,8 +2149,8 @@ public class FBObject {
      * @throws IllegalArgumentException  
      */
     public final void use(GL gl, TextureAttachment ta) throws IllegalArgumentException {
-        if(null == ta) { throw new IllegalArgumentException("null TextureAttachment, this: "+toString()); }
-        syncFramebuffer(gl);
+        if(null == ta) { throw new IllegalArgumentException("Null TextureAttachment, this: "+toString()); }
+        syncSamplingSink(gl);
         gl.glBindTexture(GL.GL_TEXTURE_2D, ta.getName()); // use it ..
     }
 
@@ -2210,7 +2224,7 @@ public class FBObject {
     
     /**
      * Returns <code>true</code> if this instance has been initialized with {@link #reset(GL, int, int)} 
-     * or {@link #reset(GL, int, int, int)}, otherwise <code>false</code>
+     * or {@link #reset(GL, int, int, int, boolean)}, otherwise <code>false</code>
      */
     public final boolean isInitialized() { return initialized; }
     /** Returns the width */

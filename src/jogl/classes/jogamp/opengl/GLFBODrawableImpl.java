@@ -102,7 +102,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
             
             for(int i=0; i<fbosN; i++) {
                 fbos[i] = new FBObject();
-                fbos[i].reset(gl, getWidth(), getHeight(), samples);
+                fbos[i].reset(gl, getWidth(), getHeight(), samples, false);
                 if(fbos[i].getNumSamples() != samples) {
                     throw new InternalError("Sample number mismatch: "+samples+", fbos["+i+"] "+fbos[i]);
                 }
@@ -117,7 +117,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                     fbos[i].attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
                 }
             }
-            fbos[fboIFront].syncFramebuffer(gl);
+            fbos[fboIFront].resetSamplingSink(gl);
             fboBound = false;
             final GLCapabilities fboCapsNative = (GLCapabilities) surface.getGraphicsConfiguration().getChosenCapabilities();
             fbos[0].formatToGLCapabilities(fboCapsNative);
@@ -148,14 +148,14 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     
     private final void reset(GL gl, int idx, int width, int height, int samples, int alphaBits, int stencilBits) {
         if( !FBOResetQuirk ) {
-            fbos[idx].reset(gl, width, height, samples); // implicit glClear(..)
+            fbos[idx].reset(gl, width, height, samples, false);
             if(fbos[idx].getNumSamples() != samples) {
                 throw new InternalError("Sample number mismatch: "+samples+", fbos["+idx+"] "+fbos[idx]);
             }
         } else {
             fbos[idx].destroy(gl);
             fbos[idx] = new FBObject();
-            fbos[idx].reset(gl, getWidth(), getHeight(), samples);
+            fbos[idx].reset(gl, getWidth(), getHeight(), samples, false);
             if(fbos[idx].getNumSamples() != samples) {
                 throw new InternalError("Sample number mismatch: "+samples+", fbos["+idx+"] "+fbos[idx]);
             }

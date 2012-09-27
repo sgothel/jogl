@@ -157,26 +157,19 @@ public class FBOMix2DemosES2 implements GLEventListener {
         st.useProgram(gl, false);
         
         System.err.println("**** Init");
-        resetFBOs(gl, drawable);
+        initFBOs(gl, drawable);
         
-        fbo0.attachRenderbuffer(gl, Type.DEPTH, 24);
-        fbo0.unbind(gl);
-        fbo1.attachRenderbuffer(gl, Type.DEPTH, 24);
-        fbo1.unbind(gl);
-        gl.glEnable(GL2ES2.GL_DEPTH_TEST);
-        
-        numSamples=fbo0.getNumSamples();
+        gl.glEnable(GL2ES2.GL_DEPTH_TEST);        
     }
     
-    /** Since we switch MSAA and non-MSAA we need to take extra care, i.e. sync msaa for both FBOs ..*/
-    private void resetFBOs(GL gl, GLAutoDrawable drawable) {
+    private void initFBOs(GL gl, GLAutoDrawable drawable) {
         // remove all texture attachments, since MSAA uses just color-render-buffer
         // and non-MSAA uses texture2d-buffer
         fbo0.detachAllColorbuffer(gl);
         fbo1.detachAllColorbuffer(gl);
             
-        fbo0.reset(gl, drawable.getWidth(), drawable.getHeight(), numSamples);
-        fbo1.reset(gl, drawable.getWidth(), drawable.getHeight(), numSamples);
+        fbo0.reset(gl, drawable.getWidth(), drawable.getHeight(), numSamples, false);
+        fbo1.reset(gl, drawable.getWidth(), drawable.getHeight(), numSamples, false);
         if(fbo0.getNumSamples() != fbo1.getNumSamples()) {
             throw new InternalError("sample size mismatch: \n\t0: "+fbo0+"\n\t1: "+fbo1);
         }        
@@ -184,15 +177,38 @@ public class FBOMix2DemosES2 implements GLEventListener {
         
         if(numSamples>0) {
             fbo0.attachColorbuffer(gl, 0, true);
+            fbo0.resetSamplingSink(gl);
             fbo1.attachColorbuffer(gl, 0, true);
+            fbo1.resetSamplingSink(gl);
             fbo0Tex = fbo0.getSamplingSink();
             fbo1Tex = fbo1.getSamplingSink();
         } else {
             fbo0Tex = fbo0.attachTexture2D(gl, 0, true);
             fbo1Tex = fbo1.attachTexture2D(gl, 0, true);
         }        
+        numSamples=fbo0.getNumSamples();
+        fbo0.attachRenderbuffer(gl, Type.DEPTH, 24);
+        fbo0.unbind(gl);
+        fbo1.attachRenderbuffer(gl, Type.DEPTH, 24);
+        fbo1.unbind(gl);
     }
 
+    private void resetFBOs(GL gl, GLAutoDrawable drawable) {
+        fbo0.reset(gl, drawable.getWidth(), drawable.getHeight(), numSamples, true);
+        fbo1.reset(gl, drawable.getWidth(), drawable.getHeight(), numSamples, true);
+        if(fbo0.getNumSamples() != fbo1.getNumSamples()) {
+            throw new InternalError("sample size mismatch: \n\t0: "+fbo0+"\n\t1: "+fbo1);
+        }        
+        numSamples = fbo0.getNumSamples();
+        if(numSamples>0) {
+            fbo0Tex = fbo0.getSamplingSink();
+            fbo1Tex = fbo1.getSamplingSink();
+        } else {
+            fbo0Tex = (TextureAttachment) fbo0.getColorbuffer(0);
+            fbo1Tex = (TextureAttachment) fbo1.getColorbuffer(0);
+        }        
+    }
+    
     @Override
     public void dispose(GLAutoDrawable drawable) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -265,10 +281,8 @@ public class FBOMix2DemosES2 implements GLEventListener {
             gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
         }
         
-        // if(drawable.getWidth() == fbo0.getWidth() && drawable.getHeight() == fbo0.getHeight() ) {
-            System.err.println("**** Reshape: "+width+"x"+height);
-            resetFBOs(gl, drawable);            
-        //}        
+        System.err.println("**** Reshape: "+width+"x"+height);
+        resetFBOs(gl, drawable);            
         
         fbo0.bind(gl);
         demo0.reshape(drawable, x, y, width, height);
