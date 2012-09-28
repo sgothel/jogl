@@ -49,7 +49,6 @@ import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.UpstreamSurfaceHook;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
-import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;

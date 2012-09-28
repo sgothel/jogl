@@ -239,7 +239,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 }
                 GLXUtil.initGLXClientDataSingleton(sharedDevice);
                 final String glXServerVendorName = GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_VENDOR);
-                final VersionNumber glXServerVersion = GLXUtil.getGLXServerVersionNumber(sharedDevice.getHandle());
+                final VersionNumber glXServerVersion = GLXUtil.getGLXServerVersionNumber(sharedDevice);
                 final boolean glXServerMultisampleAvailable = GLXUtil.isMultisampleAvailable(GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_EXTENSIONS));
                 if(X11Util.ATI_HAS_XCLOSEDISPLAY_BUG && GLXUtil.isVendorATI(glXServerVendorName)) {
                     X11Util.setMarkAllDisplaysUnclosable(true);
@@ -452,7 +452,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
           return sr.getGLXVersion();
         }
         if( device instanceof X11GraphicsDevice ) {
-          return GLXUtil.getGLXServerVersionNumber(device.getHandle());
+          return GLXUtil.getGLXServerVersionNumber((X11GraphicsDevice)device);
         }
     }
     return null;
@@ -465,7 +465,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
           return sr.isGLXVersionGreaterEqualOneOne();
         }
         if( device instanceof X11GraphicsDevice ) {
-          final VersionNumber glXServerVersion = GLXUtil.getGLXServerVersionNumber(device.getHandle());
+          final VersionNumber glXServerVersion = GLXUtil.getGLXServerVersionNumber((X11GraphicsDevice)device);
           return glXServerVersion.compareTo(versionOneOne) >= 0;
         }
     }
@@ -479,7 +479,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
           return sr.isGLXVersionGreaterEqualOneThree();
         }
         if( device instanceof X11GraphicsDevice ) {
-          final VersionNumber glXServerVersion = GLXUtil.getGLXServerVersionNumber(device.getHandle());
+          final VersionNumber glXServerVersion = GLXUtil.getGLXServerVersionNumber((X11GraphicsDevice)device);
           return glXServerVersion.compareTo(versionOneThree) >= 0;
         }
     }

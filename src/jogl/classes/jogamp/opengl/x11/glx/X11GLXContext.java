@@ -59,8 +59,10 @@ import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
+import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.opengl.GLExtensions;
 
 public abstract class X11GLXContext extends GLContextImpl {
@@ -77,6 +79,8 @@ public abstract class X11GLXContext extends GLContextImpl {
   // and therefore requires the toolkit to be locked around all GL
   // calls rather than just all GLX calls
   protected boolean isDirect;
+  protected volatile VersionNumber glXServerVersion;
+  protected volatile boolean isGLXVersionGreaterEqualOneThree;
 
   static {
     functionNameMap = new HashMap<String, String>();
@@ -100,6 +104,8 @@ public abstract class X11GLXContext extends GLContextImpl {
     hasSwapIntervalSGI = 0;
     hasSwapGroupNV = 0;
     isDirect = false;
+    glXServerVersion = null;
+    isGLXVersionGreaterEqualOneThree = false;
     super.resetStates();
   }
 
@@ -130,8 +136,13 @@ public abstract class X11GLXContext extends GLContextImpl {
   @Override
   protected Map<String, String> getExtensionNameMap() { return extensionNameMap; }
 
-  protected final boolean isGLXVersionGreaterEqualOneThree() {
-    return ((X11GLXDrawableFactory)drawable.getFactoryImpl()).isGLXVersionGreaterEqualOneThree(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice());
+  protected final boolean isGLXVersionGreaterEqualOneThree() { // fast-path: use cached boolean
+    if(null != glXServerVersion) {
+        return isGLXVersionGreaterEqualOneThree;
+    }
+    glXServerVersion = ((X11GLXDrawableFactory)drawable.getFactoryImpl()).getGLXVersionNumber(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice()); 
+    isGLXVersionGreaterEqualOneThree = null != glXServerVersion ? glXServerVersion.compareTo(X11GLXDrawableFactory.versionOneThree) >= 0 : false;
+    return isGLXVersionGreaterEqualOneThree;
   }
 
   @Override
@@ -453,35 +464,40 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   @Override
   protected final StringBuilder getPlatformExtensionsStringImpl() {
-    StringBuilder sb = new StringBuilder();
-    if (DEBUG) {
-      System.err.println("GLX Version client version "+ GLXUtil.getClientVersionNumber()+
-                         ", server: "+
-        ((X11GLXDrawableFactory)drawable.getFactoryImpl()).getGLXVersionNumber(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice()));
-    }
     final NativeSurface ns = drawable.getNativeSurface();
-    if(((X11GLXDrawableFactory)drawable.getFactoryImpl()).isGLXVersionGreaterEqualOneOne(ns.getGraphicsConfiguration().getScreen().getDevice())) {
-        {
-            final String ret = GLX.glXGetClientString(ns.getDisplayHandle(), GLX.GLX_EXTENSIONS);
-            if (DEBUG) {
-              System.err.println("GLX extensions (glXGetClientString): " + ret);
-            }
-            sb.append(ret).append(" ");
+    final X11GraphicsDevice x11Device = (X11GraphicsDevice) ns.getGraphicsConfiguration().getScreen().getDevice();
+    StringBuilder sb = new StringBuilder();
+    x11Device.lock();
+    try{
+        if (DEBUG) {
+          System.err.println("GLX Version client version "+ GLXUtil.getClientVersionNumber()+
+                             ", server: "+ GLXUtil.getGLXServerVersionNumber(x11Device));
         }
-        {
-            final String ret = GLX.glXQueryExtensionsString(ns.getDisplayHandle(), ns.getScreenIndex());
-            if (DEBUG) {
-              System.err.println("GLX extensions (glXQueryExtensionsString): " + ret);
+        if(((X11GLXDrawableFactory)drawable.getFactoryImpl()).isGLXVersionGreaterEqualOneOne(x11Device)) {
+            {
+                final String ret = GLX.glXGetClientString(x11Device.getHandle(), GLX.GLX_EXTENSIONS);
+                if (DEBUG) {
+                  System.err.println("GLX extensions (glXGetClientString): " + ret);
+                }
+                sb.append(ret).append(" ");
             }
-            sb.append(ret).append(" ");
-        }
-        {
-            final String ret = GLX.glXQueryServerString(ns.getDisplayHandle(), ns.getScreenIndex(), GLX.GLX_EXTENSIONS);
-            if (DEBUG) {
-              System.err.println("GLX extensions (glXQueryServerString): " + ret);
+            {
+                final String ret = GLX.glXQueryExtensionsString(x11Device.getHandle(), ns.getScreenIndex());
+                if (DEBUG) {
+                  System.err.println("GLX extensions (glXQueryExtensionsString): " + ret);
+                }
+                sb.append(ret).append(" ");
             }
-            sb.append(ret).append(" ");
+            {
+                final String ret = GLX.glXQueryServerString(x11Device.getHandle(), ns.getScreenIndex(), GLX.GLX_EXTENSIONS);
+                if (DEBUG) {
+                  System.err.println("GLX extensions (glXQueryServerString): " + ret);
+                }
+                sb.append(ret).append(" ");
+            }
         }
+    } finally {
+        x11Device.unlock();
     }
     return sb;
   }
