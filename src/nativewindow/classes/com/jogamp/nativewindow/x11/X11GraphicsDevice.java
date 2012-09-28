@@ -46,6 +46,7 @@ import javax.media.nativewindow.ToolkitLock;
 
 public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
     final boolean handleOwner;
+    final boolean isXineramaEnabled;
 
     /** Constructs a new X11GraphicsDevice corresponding to the given connection and default
      *  {@link javax.media.nativewindow.ToolkitLock} via {@link NativeWindowFactory#getDefaultToolkitLock(String)}.<br>
@@ -56,6 +57,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     public X11GraphicsDevice(String connection, int unitID) {
         super(NativeWindowFactory.TYPE_X11, connection, unitID);
         handleOwner = false;
+        isXineramaEnabled = false;
     }
 
     /** Constructs a new X11GraphicsDevice corresponding to the given native display handle and default
@@ -69,6 +71,7 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
             throw new NativeWindowException("null display");
         }
         handleOwner = owner;
+        isXineramaEnabled = X11Util.XineramaIsEnabled(this);
     }
 
     /**
@@ -82,7 +85,9 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
             throw new NativeWindowException("null display");
         }
         handleOwner = owner;
+        isXineramaEnabled = X11Util.XineramaIsEnabled(this);
     }
+    
 
     private static int getDefaultScreenImpl(long dpy) {
         return X11Lib.DefaultScreen(dpy);
@@ -112,6 +117,10 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
             throw new NativeWindowException("null display");
         }
         return X11Lib.DefaultVisualID(display, getDefaultScreenImpl(display));
+    }
+    
+    public final boolean isXineramaEnabled() {
+        return isXineramaEnabled;
     }
     
     @Override

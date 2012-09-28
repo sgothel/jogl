@@ -74,7 +74,7 @@ public class WindowDriver extends WindowImpl {
             throw new RuntimeException("Error creating display(EDT): "+edtDevice.getConnection());
         }
         renderDevice = new X11GraphicsDevice(renderDeviceHandle, AbstractGraphicsDevice.DEFAULT_UNIT, true);
-        AbstractGraphicsScreen renderScreen = new X11GraphicsScreen((X11GraphicsDevice) renderDevice, screen.getIndex());
+        final AbstractGraphicsScreen renderScreen = new X11GraphicsScreen(renderDevice, screen.getIndex());
         
         final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice(), capsRequested);
         final AbstractGraphicsConfiguration cfg = factory.chooseGraphicsConfiguration(
@@ -300,5 +300,5 @@ public class WindowDriver extends WindowImpl {
     private static native void warpPointer0(long display, long windowHandle, int x, int y);
     
     private long   windowHandleClose;
-    private AbstractGraphicsDevice renderDevice;    
+    private X11GraphicsDevice renderDevice;    
 }

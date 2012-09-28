@@ -282,8 +282,10 @@ public class ScreenDriver extends ScreenImpl {
         } };
     
     protected int validateScreenIndex(final int idx) {
-        if(getDisplay().isNativeValid()) {
-            return X11Util.XineramaIsEnabled((X11GraphicsDevice)getDisplay().getGraphicsDevice()) ? 0 : idx;
+        final DisplayDriver x11Display = (DisplayDriver) getDisplay();
+        final Boolean r = x11Display.isXineramaEnabled();
+        if( null != r ) {
+            return r.booleanValue() ? 0 : idx;
         } else {
             return runWithTempDisplayHandle( xineramaEnabledQueryWithTemp ).booleanValue() ? 0 : idx;
         }

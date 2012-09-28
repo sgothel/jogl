@@ -85,8 +85,8 @@ public class DisplayDriver extends DisplayImpl {
             CompleteDisplay0(aDevice.getHandle());
         } catch(RuntimeException e) {
             closeNativeImpl();
-            throw e;
-        }        
+            throw e;                
+        }
     }
 
     protected void closeNativeImpl() {
@@ -111,6 +111,9 @@ public class DisplayDriver extends DisplayImpl {
     protected long getJavaObjectAtom() { return javaObjectAtom; }
     protected long getWindowDeleteAtom() { return windowDeleteAtom; }
     
+    /** Returns <code>null</code> if !{@link #isNativeValid()}, otherwise the Boolean value of {@link X11GraphicsDevice#isXineramaEnabled()}. */ 
+    protected Boolean isXineramaEnabled() { return isNativeValid() ? Boolean.valueOf(((X11GraphicsDevice)aDevice).isXineramaEnabled()) : null; }
+    
     //----------------------------------------------------------------------
     // Internals only
     //
@@ -131,6 +134,6 @@ public class DisplayDriver extends DisplayImpl {
     private long windowDeleteAtom;
     
     /** X11 Window java object property used on EDT */
-    private long javaObjectAtom;
+    private long javaObjectAtom;    
 }
 
