@@ -48,12 +48,15 @@ public class GLRendererQuirks {
     /** No offscreen bitmap available, currently true for JOGL's OSX implementation. */
     public static final int NoOffscreenBitmap       = 3;
     
+    /** SIGSEGV on setSwapInterval() after changing the context's drawable w/ 'Mesa 8.0.4' dri2SetSwapInterval/DRI2 (soft & intel) */
+    public static final int NoSetSwapIntervalPostRetarget = 4;
+    
     /** Number of quirks known. */
-    public static final int COUNT                   = 4;
+    public static final int COUNT                   = 5;
     
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
-                                                          "NoOffscreenBitmap" 
-                                                        };    
+                                                          "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget" 
+                                                        };
 
     private final int _bitmask;
 

@@ -245,7 +245,6 @@ public abstract class X11GLXContext extends GLContextImpl {
         // hence we need to catch the X11 Error within this block.
         X11Util.setX11ErrorHandler(true, DEBUG ? false : true); // make sure X11 error handler is set
         ctx = _glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs);
-        if(DEBUG) { X11Lib.XSync(display, false); }
     } catch (RuntimeException re) {
         if(DEBUG) {
           Throwable t = new Throwable(getThreadName()+": Info: X11GLXContext.createContextARBImpl glXCreateContextAttribsARB failed with "+getGLVersion(major, minor, ctp, "@creation"), re);

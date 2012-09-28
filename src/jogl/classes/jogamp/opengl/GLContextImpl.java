@@ -214,6 +214,7 @@ public abstract class GLContextImpl extends GLContext {
     }
     final GLDrawableImpl old = drawable;
     old.associateContext(this, false);
+    drawableRetargeted = null != drawable;
     drawable = (GLDrawableImpl) readWrite ;
     drawable.associateContext(this, true);
     if(lockHeld) {
@@ -270,7 +271,7 @@ public abstract class GLContextImpl extends GLContext {
   }
   private void release(boolean inDestruction) throws GLException {
     if(TRACE_SWITCH) {
-        System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - release() - force: "+inDestruction+", "+lock);
+        System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - release() - force: "+inDestruction+", "+lock);
     }
     if ( !lock.isOwner(Thread.currentThread()) ) {
         throw new GLException("Context not current on current thread "+Thread.currentThread().getName()+": "+this);
@@ -296,7 +297,7 @@ public abstract class GLContextImpl extends GLContext {
       drawable.unlockSurface();
       lock.unlock();
       if(TRACE_SWITCH) {
-          System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - "+(actualRelease?"switch":"keep  ")+" - CONTEXT_RELEASE - "+lock);
+          System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - "+(actualRelease?"switch":"keep  ")+" - CONTEXT_RELEASE - "+lock);
       }
     }
     if(null != drawableContextMadeCurrentException) {
@@ -310,7 +311,7 @@ public abstract class GLContextImpl extends GLContext {
   public final void destroy() {
       if (DEBUG || TRACE_SWITCH) {
           System.err.println(getThreadName() + ": GLContextImpl.destroy.0: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle) +
-                  ", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
+                  ", surf "+toHexString(drawable.getHandle())+", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
       }
       if (contextHandle != 0) {
           int lockRes = drawable.lockSurface();
@@ -463,7 +464,7 @@ public abstract class GLContextImpl extends GLContext {
                     // For Mac OS X, however, we need to update the context to track resizes
                     drawableUpdatedNotify();
                     if(TRACE_SWITCH) {
-                        System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - keep   - CONTEXT_CURRENT - "+lock);                        
+                        System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - keep   - CONTEXT_CURRENT - "+lock);                        
                     }
                     return CONTEXT_CURRENT;
                 } else {
@@ -503,7 +504,7 @@ public abstract class GLContextImpl extends GLContext {
 
     if (res == CONTEXT_NOT_CURRENT) {
       if(TRACE_SWITCH) {
-          System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - switch - CONTEXT_NOT_CURRENT - "+lock);
+          System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - switch - CONTEXT_NOT_CURRENT - "+lock);
       }
     } else {
       setCurrent(this);
@@ -527,10 +528,10 @@ public abstract class GLContextImpl extends GLContext {
         contextRealized(true);
         
         if(DEBUG || TRACE_SWITCH) {
-            System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - switch - CONTEXT_CURRENT_NEW - "+lock);
+            System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - switch - CONTEXT_CURRENT_NEW - "+lock);
         }
       } else if(TRACE_SWITCH) {
-         System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+" - switch - CONTEXT_CURRENT - "+lock);
+         System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - switch - CONTEXT_CURRENT - "+lock);
       }
 
       contextMadeCurrent(true);
@@ -568,10 +569,10 @@ public abstract class GLContextImpl extends GLContext {
         }
         if (DEBUG || TRACE_SWITCH) {
             if(created) {
-                System.err.println(getThreadName() + ": Create GL context OK: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle) + " for " + getClass().getName()+" - "+getGLVersion());
+                System.err.println(getThreadName() + ": Create GL context OK: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle) + ", surf "+toHexString(drawable.getHandle())+" for " + getClass().getName()+" - "+getGLVersion());
                 // Thread.dumpStack();
             } else {
-                System.err.println(getThreadName() + ": Create GL context FAILED obj " + toHexString(hashCode()) + ", for " + getClass().getName());
+                System.err.println(getThreadName() + ": Create GL context FAILED obj " + toHexString(hashCode()) + ", surf "+toHexString(drawable.getHandle())+" for " + getClass().getName());
             }
         }
         if(!created) {
@@ -1296,12 +1297,21 @@ public abstract class GLContextImpl extends GLContext {
         }
         quirks[i++] = quirk;
     }
-    if( glRendererLowerCase.contains("intel(r)") && glRendererLowerCase.contains("mesa") ) {
-        final int quirk = GLRendererQuirks.NoDoubleBufferedPBuffer;
-        if(DEBUG) {
-            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);
+    if( glRendererLowerCase.contains("mesa") ) {
+        {
+            final int quirk = GLRendererQuirks.NoSetSwapIntervalPostRetarget;
+            if(DEBUG) {
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);
+            }
+            quirks[i++] = quirk;            
         }
-        quirks[i++] = quirk;
+        if( glRendererLowerCase.contains("intel(r)") ) {
+            final int quirk = GLRendererQuirks.NoDoubleBufferedPBuffer;
+            if(DEBUG) {
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);
+            }
+            quirks[i++] = quirk;
+        }
     }
     glRendererQuirks = new GLRendererQuirks(quirks, 0, i);
   }

@@ -162,6 +162,9 @@ public abstract class GLContext {
   private int currentSwapInterval;
   protected GLRendererQuirks glRendererQuirks;
 
+  /** Did the drawable association changed ? see {@link GLRendererQuirks#NoSetSwapIntervalPostRetarget} */ 
+  protected boolean drawableRetargeted; 
+    
   protected void resetStates() {
       if (DEBUG) {
         System.err.println(getThreadName() + ": GLContext.resetStates()");
@@ -175,6 +178,7 @@ public abstract class GLContext {
       contextHandle=0;
       currentSwapInterval = -1;
       glRendererQuirks = null;
+      drawableRetargeted = false;
   }
 
   /** 
@@ -781,8 +785,8 @@ public abstract class GLContext {
   }
 
   /**
-   * Set the swap interval if the current context.
-   * @param interval Should be &ge; 0. 0 Disables the vertical synchronisation,
+   * Set the swap interval of the current context and attached drawable.
+   * @param interval Should be &ge; 0. 0 disables the vertical synchronization,
    *                 where &ge; 1 is the number of vertical refreshes before a swap buffer occurs.
    *                 A value &lt; 0 is ignored.
    * @return true if the operation was successful, otherwise false
@@ -792,9 +796,11 @@ public abstract class GLContext {
   public final boolean setSwapInterval(int interval) throws GLException {
     validateCurrent();
     if(0<=interval) {
-        if( setSwapIntervalImpl(interval) ) {
-            currentSwapInterval = interval;
-            return true;
+        if( !drawableRetargeted || !hasRendererQuirk(GLRendererQuirks.NoSetSwapIntervalPostRetarget) ) {
+            if( setSwapIntervalImpl(interval) ) {
+                currentSwapInterval = interval;
+                return true;
+            }
         }
     }
     return false;
@@ -808,15 +814,12 @@ public abstract class GLContext {
    * the default value <code>-1</code> is returned.
    * </p>
    * <p>
-   * The default value for a valid context is <code>1</code> for
-   * an EGL based profile (ES1 or ES2) and <code>-1</code> (undefined)
-   * for desktop.
+   * For a valid context the default value is <code>1</code>
+   * in case of an EGL based profile (ES1 or ES2) and <code>-1</code> 
+   * (undefined) for desktop.
    * </p>
    */
   public final int getSwapInterval() {
-    if(-1 == currentSwapInterval && this.isGLES()) {
-        currentSwapInterval = 1;
-    }
     return currentSwapInterval;
   }
   protected final void setDefaultSwapInterval() {

@@ -124,8 +124,8 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
     public void testSwitch2WindowSingleContext() throws InterruptedException {
         final QuitAdapter quitAdapter = new QuitAdapter();
         
-        GLAutoDrawable glad1 = createGLAutoDrawable(caps,         64, 64,     width,     height, quitAdapter); // no GLContext!
-        GLAutoDrawable glad2 = createGLAutoDrawable(caps, 2*64+width, 64, width+100, height+100, quitAdapter); // no GLContext!
+        GLAutoDrawable glad1 = createGLAutoDrawable(caps,         64, 64,     width,     height, quitAdapter);
+        GLAutoDrawable glad2 = createGLAutoDrawable(caps, 2*64+width, 64, width+100, height+100, quitAdapter);
         
         // create single context using glad1 and assign it to glad1,
         // after destroying the prev. context!
@@ -159,15 +159,22 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
                 System.err.println(s+" - switch - START "+ ( t1 - t0 ));
                 animator.pause();
 
+                // switch context _and_ the demo synchronously
                 if(0 == s%2) {
-                    glad1.addGLEventListener(0, glad2.removeGLEventListener(0));
+                    final GLEventListener demo = glad2.removeGLEventListener(0);
                     GLContext ctx1 = glad1.setContext(glad2.getContext());
                     glad2.setContext(ctx1);
+                    glad1.addGLEventListener(0, demo);
                 } else {
-                    glad2.addGLEventListener(0, glad1.removeGLEventListener(0));
+                    final GLEventListener demo = glad1.removeGLEventListener(0);
                     GLContext ctx2 = glad2.setContext(glad1.getContext());                    
                     glad1.setContext(ctx2);
+                    glad2.addGLEventListener(0, demo);
                 }
+                System.err.println(s+" - switch - display-1");
+                glad1.display();
+                System.err.println(s+" - switch - display-2");
+                glad2.display();
                 
                 System.err.println(s+" - switch - END "+ ( t1 - t0 ));
                 
@@ -218,13 +225,16 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
                 System.err.println(s+" - switch - START "+ ( t1 - t0 ));
                 animator.pause();
 
+                // switch context _and_ the demo synchronously
                 if(0 == s%2) {
-                    glWindow1.addGLEventListener(0, glWindow2.removeGLEventListener(0));
+                    final GLEventListener demo = glWindow2.removeGLEventListener(0);
                     GLContext ctx1 = glWindow1.setContext(glWindow2.getContext());
+                    glWindow1.addGLEventListener(0, demo);
                     glWindow2.setContext(ctx1);
                 } else {
-                    glWindow2.addGLEventListener(0, glWindow1.removeGLEventListener(0));
+                    final GLEventListener demo = glWindow1.removeGLEventListener(0);
                     GLContext ctx2 = glWindow2.setContext(glWindow1.getContext());                    
+                    glWindow2.addGLEventListener(0, demo);
                     glWindow1.setContext(ctx2);
                 }
                 
