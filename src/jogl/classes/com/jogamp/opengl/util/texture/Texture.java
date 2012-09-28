@@ -833,9 +833,14 @@ public class Texture {
     }
 
     /**
-     * Returns the underlying OpenGL texture object for this texture.
+     * Returns the underlying OpenGL texture object for this texture
+     * and generates it if not done yet.
+     * <p>
      * Most applications will not need to access this, since it is
      * handled automatically by the bind(GL) and destroy(GL) APIs.
+     * </p>
+     * @param gl required to be valid and current in case the texture object has not been generated yet,
+     *           otherwise it may be <code>null</code>.
      */
     public int getTextureObject(GL gl) {
         validateTexID(gl, false);
