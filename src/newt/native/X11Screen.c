@@ -469,15 +469,22 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_ScreenDriver_setCurrentSc
 
         switch (evt.type - randr_event_base) {
             case RRScreenChangeNotify:
-                rot = NewtScreen_XRotation2Degree(env, (int)scn_event->rotation);
-                DBG_PRINT( "XRANDR: event . RRScreenChangeNotify call %p (root %p) resIdx %d rot %d %dx%d\n", 
-                            (void*)scn_event->window, (void*)scn_event->root, 
-                            (int)scn_event->size_index, rot, 
-                            scn_event->width, scn_event->height);
-                // done = scn_event->size_index == resMode_idx; // not reliable ..
-                done = rot == rotation && 
-                       scn_event->width == xrrs[resMode_idx].width && 
-                       scn_event->height == xrrs[resMode_idx].height;
+                if(0 < scn_event->rotation ) {
+                    rot = NewtScreen_XRotation2Degree(env, (int)scn_event->rotation);
+                    DBG_PRINT( "XRANDR: event . RRScreenChangeNotify call(1) %p (root %p) resIdx %d rot %d %dx%d\n", 
+                                (void*)scn_event->window, (void*)scn_event->root, 
+                                (int)scn_event->size_index, rot, 
+                                scn_event->width, scn_event->height);
+                    // done = scn_event->size_index == resMode_idx; // not reliable ..
+                    done = rot == rotation && 
+                           scn_event->width == xrrs[resMode_idx].width && 
+                           scn_event->height == xrrs[resMode_idx].height;
+                } else {
+                    DBG_PRINT( "XRANDR: event . RRScreenChangeNotify call(0) %p (root %p) resIdx %d %dx%d\n", 
+                                (void*)scn_event->window, (void*)scn_event->root, 
+                                (int)scn_event->size_index,
+                                scn_event->width, scn_event->height);
+                }
                 break;
             default:
                 DBG_PRINT("RANDR: event . unhandled %d 0x%X call %p\n", (int)evt.type, (int)evt.type, (void*)evt.xany.window);

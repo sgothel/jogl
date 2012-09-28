@@ -34,7 +34,6 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.opengl.util.Animator;
 
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -48,6 +47,7 @@ import com.jogamp.newt.ScreenMode;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.util.ScreenModeUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import java.util.List;
@@ -109,10 +109,12 @@ public class TestScreenMode01NEWT extends UITestCase {
      * Remedy B) is shown in {@link TestScreenMode01bNEWT}
      * </pre>
      */
-    @After
-    public void cleanupGL() throws InterruptedException {
+    private void cleanupGL() throws InterruptedException {
+        System.err.println("*** cleanupGL.shutdown");
         GLProfile.shutdown();
+        System.err.println("*** cleanupGL.initSingleton");
         GLProfile.initSingleton();
+        System.err.println("*** cleanupGL.DONE");
     }
     
     static GLWindow createWindow(Screen screen, GLCapabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
@@ -166,7 +168,15 @@ public class TestScreenMode01NEWT extends UITestCase {
         Thread.sleep(waitTimeShort);
 
         animator.stop();
-        destroyWindow(window);        
+        Assert.assertEquals(false, animator.isAnimating());
+        Assert.assertEquals(false, animator.isStarted());
+        
+        destroyWindow(window);
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));
+        Assert.assertEquals(false, window.isRealized());
+        Assert.assertEquals(false, window.isNativeValid());
+        
+        cleanupGL();
     }
 
     @Test
@@ -230,11 +240,15 @@ public class TestScreenMode01NEWT extends UITestCase {
         Assert.assertEquals(true,window.isNativeValid());
         Assert.assertEquals(true,window.isVisible());
 
-        animator.stop();
+        animator.stop();        
+        Assert.assertEquals(false, animator.isAnimating());
+        Assert.assertEquals(false, animator.isStarted());
+        
         destroyWindow(window);
-        Thread.sleep(waitTimeShort);
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));
 
         Assert.assertEquals(false,window.isVisible());
+        Assert.assertEquals(false,window.isRealized());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,display.isNativeValid());
@@ -246,14 +260,15 @@ public class TestScreenMode01NEWT extends UITestCase {
 
         smCurrent = screen.getCurrentScreenMode();
         System.err.println("[1] current/orig: "+smCurrent);
+        screen.destroy();
+        Assert.assertEquals(false,screen.isNativeValid());
+        Assert.assertEquals(false,display.isNativeValid());
 
         Assert.assertNotNull(smCurrent);
         Assert.assertEquals(smCurrent, smOrig);
 
-        screen.destroy();
-
-        Assert.assertEquals(false,screen.isNativeValid());
-        Assert.assertEquals(false,display.isNativeValid());
+        
+        cleanupGL();
     }
 
     @Test
@@ -326,10 +341,14 @@ public class TestScreenMode01NEWT extends UITestCase {
         Assert.assertEquals(true,window.isVisible());
 
         animator.stop();
+        Assert.assertEquals(false, animator.isAnimating());
+        Assert.assertEquals(false, animator.isStarted());
+        
         destroyWindow(window);
-        Thread.sleep(waitTimeShort);
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));
 
         Assert.assertEquals(false,window.isVisible());
+        Assert.assertEquals(false,window.isRealized());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,display.isNativeValid());
@@ -341,11 +360,14 @@ public class TestScreenMode01NEWT extends UITestCase {
         
         smCurrent = screen.getCurrentScreenMode();
         System.err.println("[1] current/orig: "+smCurrent);
+        screen.destroy();
+        Assert.assertEquals(false,screen.isNativeValid());
+        Assert.assertEquals(false,display.isNativeValid());
 
         Assert.assertNotNull(smCurrent);
         Assert.assertEquals(smCurrent, smOrig);
-
-        screen.destroy();
+        
+        cleanupGL();
     }
 
     public static void main(String args[]) throws IOException {
