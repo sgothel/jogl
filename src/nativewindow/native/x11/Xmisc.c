@@ -160,10 +160,12 @@ static JavaVM *jvmHandle = NULL;
 static int jvmVersion = 0;
 
 static void setupJVMVars(JNIEnv * env) {
-    if(0 != (*env)->GetJavaVM(env, &jvmHandle)) {
-        jvmHandle = NULL;
+    if( NULL != env && NULL == jvmHandle ) {
+        if(0 != (*env)->GetJavaVM(env, &jvmHandle)) {
+            jvmHandle = NULL;
+        }
+        jvmVersion = (*env)->GetVersion(env);
     }
-    jvmVersion = (*env)->GetVersion(env);
 }
 
 static XErrorHandler origErrorHandler = NULL ;
@@ -175,47 +177,42 @@ static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
 {
     if(!errorHandlerQuiet) {
         const char * errnoStr = strerror(errno);
-        char threadName[80];
         char errCodeStr[80];
         char reqCodeStr[80];
         int shallBeDetached = 0;
         JNIEnv *jniEnv = NULL;
 
-        if( errorHandlerDebug || errorHandlerThrowException ) {
-            jniEnv = NativewindowCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
-        }
-        (void) NativewindowCommon_GetStaticStringMethod(jniEnv, X11UtilClazz, getCurrentThreadNameID, threadName, sizeof(threadName), "n/a");
-
         snprintf(errCodeStr, sizeof(errCodeStr), "%d", e->request_code);
         XGetErrorDatabaseText(dpy, "XRequest", errCodeStr, "Unknown", reqCodeStr, sizeof(reqCodeStr));
         XGetErrorText(dpy, e->error_code, errCodeStr, sizeof(errCodeStr));
 
-        fprintf(stderr, "Info: Nativewindow X11 Error (Thread: %s): %d - %s, dpy %p, id %x, # %d: %d:%d %s\n",
-            threadName, e->error_code, errCodeStr, e->display, (int)e->resourceid, (int)e->serial,
+        fprintf(stderr, "Info: Nativewindow X11 Error: %d - %s, dpy %p, id %x, # %d: %d:%d %s\n",
+            e->error_code, errCodeStr, e->display, (int)e->resourceid, (int)e->serial,
             (int)e->request_code, (int)e->minor_code, reqCodeStr);
-
-        if( errorHandlerDebug && NULL != jniEnv ) {
-            (*jniEnv)->CallStaticVoidMethod(jniEnv, X11UtilClazz, dumpStackID);
-        }
-
-        if(errorHandlerThrowException) {
-            if(NULL != jniEnv) {
-                NativewindowCommon_throwNewRuntimeException(jniEnv, "Nativewindow X11 Error (Thread: %s): %d - %s, dpy %p, id %x, # %d: %d:%d %s\n",
-                                                            threadName, e->error_code, errCodeStr, e->display, (int)e->resourceid, (int)e->serial,
-                                                            (int)e->request_code, (int)e->minor_code, reqCodeStr);
-            } else {
-                fprintf(stderr, "Nativewindow X11 Error: null JNIEnv");
-                #if 0
-                    if(NULL!=origErrorHandler) {
-                        origErrorHandler(dpy, e);
-                    }
-                #endif
-            }
-        }
         fflush(stderr);
 
-        if (NULL != jniEnv && shallBeDetached) {
-            (*jvmHandle)->DetachCurrentThread(jvmHandle);
+        if( NULL != jvmHandle && ( errorHandlerDebug || errorHandlerThrowException ) ) {
+            jniEnv = NativewindowCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
+            if(NULL == jniEnv) {
+                fprintf(stderr, "Nativewindow X11 Error: null JNIEnv");
+                fflush(stderr);
+            }
+        }
+
+        if( NULL != jniEnv ) {
+            if( errorHandlerDebug ) {
+                (*jniEnv)->CallStaticVoidMethod(jniEnv, X11UtilClazz, dumpStackID);
+            }
+
+            if(errorHandlerThrowException) {
+                NativewindowCommon_throwNewRuntimeException(jniEnv, "Nativewindow X11 Error: %d - %s, dpy %p, id %x, # %d: %d:%d %s\n",
+                                                            e->error_code, errCodeStr, e->display, (int)e->resourceid, (int)e->serial,
+                                                            (int)e->request_code, (int)e->minor_code, reqCodeStr);
+            }
+
+            if (shallBeDetached) {
+                (*jvmHandle)->DetachCurrentThread(jvmHandle);
+            }
         }
     }
 
@@ -253,17 +250,15 @@ static int x11IOErrorHandler(Display *dpy)
     JNIEnv *jniEnv = NULL;
 
     fprintf(stderr, "Nativewindow X11 IOError: Display %p (%s): %s\n", dpy, dpyName, errnoStr);
-    (*jniEnv)->CallStaticVoidMethod(jniEnv, X11UtilClazz, dumpStackID);
+    fflush(stderr);
 
-    jniEnv = NativewindowCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
-    if (NULL != jniEnv) {
-        char threadName[80];
-        (void) NativewindowCommon_GetStaticStringMethod(jniEnv, X11UtilClazz, getCurrentThreadNameID, threadName, sizeof(threadName), "n/a");
-
-        NativewindowCommon_FatalError(jniEnv, "Nativewindow X11 IOError (Thread %s): Display %p (%s): %s", threadName, dpy, dpyName, errnoStr);
-
-        if (shallBeDetached) {
-            (*jvmHandle)->DetachCurrentThread(jvmHandle);
+    if( NULL != jvmHandle ) {
+        jniEnv = NativewindowCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
+        if (NULL != jniEnv) {
+            NativewindowCommon_FatalError(jniEnv, "Nativewindow X11 IOError: Display %p (%s): %s", dpy, dpyName, errnoStr);
+            if (shallBeDetached) {
+                (*jvmHandle)->DetachCurrentThread(jvmHandle);
+            }
         }
     }
     if(NULL!=origIOErrorHandler) {

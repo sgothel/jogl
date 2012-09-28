@@ -425,6 +425,7 @@ public class X11Util {
                 pendingDisplayList.remove(namedDpy);
             } else {
                 // for reuse
+                X11Lib.XSync(namedDpy.getHandle(), true); // flush output buffer and discard all events                
                 reusableDisplayList.add(namedDpy);
             }
             
