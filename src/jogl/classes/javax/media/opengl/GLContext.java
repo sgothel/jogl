@@ -274,19 +274,23 @@ public abstract class GLContext {
    * Makes this GLContext current on the calling thread.
    * <p>
    * There are two return values that indicate success and one that
-   * indicates failure. A return value of CONTEXT_CURRENT_NEW
-   * indicates that that context has been made current, and that
-   * this is the first time this context has been made current, or
-   * that the state of the underlying context or drawable may have
-   * changed since the last time this context was made current. In
-   * this case, the application may wish to initialize the state.  A
-   * return value of CONTEXT_CURRENT indicates that the context has
+   * indicates failure.
+   * </p>
+   * <p>
+   * A return value of {@link #CONTEXT_CURRENT_NEW}
+   * indicates that that context has been made current for the 1st time, 
+   * or that the state of the underlying context or drawable has
+   * changed since the last time this context was current. 
+   * In this case, the application may wish to initialize the render state.
+   * </p>
+   * <p>
+   * A return value of {@link #CONTEXT_CURRENT} indicates that the context has
    * been made currrent, with its previous state restored.
    * </p>
    * <p>
    * If the context could not be made current (for example, because
    * the underlying drawable has not ben realized on the display) ,
-   * a value of CONTEXT_NOT_CURRENT is returned.
+   * a value of {@link #CONTEXT_NOT_CURRENT} is returned.
    * </p>
    * <p>
    * This method is blocking, i.e. waits until another thread has
@@ -297,11 +301,11 @@ public abstract class GLContext {
    * and unlocked at {@link #release()}
    * </p>
    *
-   * @return CONTEXT_CURRENT if the context was successfully made current
-   * @return CONTEXT_CURRENT_NEW if the context was successfully made
-   * current, but need to be initialized.
-   *
-   * @return CONTEXT_NOT_CURRENT if the context could not be made current.
+   * @return <ul>
+   *           <li>{@link #CONTEXT_CURRENT_NEW} if the context was successfully made current the 1st time,</li> 
+   *           <li>{@link #CONTEXT_CURRENT} if the context was successfully made current,</li>
+   *           <li>{@link #CONTEXT_NOT_CURRENT} if the context could not be made current.</li>
+   *         </ul>
    *
    * @throws GLException if synchronization is disabled and the
    * context is current on another thread, or because the context
