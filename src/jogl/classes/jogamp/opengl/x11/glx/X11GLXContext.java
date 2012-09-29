@@ -53,10 +53,10 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
-import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
+import jogamp.opengl.GLXExtensions;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.VersionNumber;
@@ -72,7 +72,8 @@ public abstract class X11GLXContext extends GLContextImpl {
   // Table that holds the addresses of the native C-language entry points for
   // GLX extension functions.
   private GLXExtProcAddressTable glXExtProcAddressTable;
-  private int hasSwapIntervalSGI = 0;
+  /** 1 MESA, 2 SGI, 0 undefined, -1 none */
+  private int hasSwapInterval = 0;
   private int hasSwapGroupNV = 0;
 
   // This indicates whether the context we have created is indirect
@@ -101,7 +102,7 @@ public abstract class X11GLXContext extends GLContextImpl {
   protected void resetStates() {
     // no inner state _glXExt=null;
     glXExtProcAddressTable = null;
-    hasSwapIntervalSGI = 0;
+    hasSwapInterval = 0;
     hasSwapGroupNV = 0;
     isDirect = false;
     glXServerVersion = null;
@@ -155,8 +156,10 @@ public abstract class X11GLXContext extends GLContextImpl {
 
     try {
         if ( isGLXVersionGreaterEqualOneThree() ) {
+            // System.err.println(getThreadName() +": X11GLXContext.makeCurrent: obj " + toHexString(hashCode()) + " / ctx "+toHexString(contextHandle)+": ctx "+toHexString(ctx)+", [write "+toHexString(writeDrawable)+", read "+toHexString(readDrawable)+"] - switch");
             res = GLX.glXMakeContextCurrent(dpy, writeDrawable, readDrawable, ctx);
         } else if ( writeDrawable == readDrawable ) {
+            // System.err.println(getThreadName() +": X11GLXContext.makeCurrent: obj " + toHexString(hashCode()) + " / ctx "+toHexString(contextHandle)+": ctx "+toHexString(ctx)+", [write "+toHexString(writeDrawable)+"] - switch");
             res = GLX.glXMakeCurrent(dpy, writeDrawable, ctx);
         } else {
             // should not happen due to 'isGLReadDrawableAvailable()' query in GLContextImpl
@@ -513,20 +516,36 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   @Override
   protected boolean setSwapIntervalImpl(int interval) {
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration();
-    GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
-    if(!glCaps.isOnscreen()) { return false; }
+    if( !drawable.getChosenGLCapabilities().isOnscreen() ) { return false; } 
 
-    GLXExt glXExt = getGLXExt();
-    if(0==hasSwapIntervalSGI) {
+    final GLXExt glXExt = getGLXExt();
+    if(0==hasSwapInterval) {
         try {
-            hasSwapIntervalSGI = glXExt.isExtensionAvailable("GLX_SGI_swap_control")?1:-1;
-        } catch (Throwable t) { hasSwapIntervalSGI=1; }
-    }
-    if (hasSwapIntervalSGI>0) {
+            /** Same impl. ..
+            if( glXExt.isExtensionAvailable(GLXExtensions.GLX_MESA_swap_control) ) {
+                if(DEBUG) { System.err.println("X11GLXContext.setSwapInterval using: "+GLXExtensions.GLX_MESA_swap_control); }
+                hasSwapInterval =  1;
+            } else */ 
+            if ( glXExt.isExtensionAvailable(GLXExtensions.GLX_SGI_swap_control) ) {
+                if(DEBUG) { System.err.println("X11GLXContext.setSwapInterval using: "+GLXExtensions.GLX_SGI_swap_control); }
+                hasSwapInterval =  2;
+            } else {
+                hasSwapInterval = -1;
+            }
+        } catch (Throwable t) { hasSwapInterval=-1; }
+    } 
+    /* try {
+        switch( hasSwapInterval ) {
+            case 1:
+                return 0 == glXExt.glXSwapIntervalMESA(interval);
+            case 2:
+                return 0 == glXExt.glXSwapIntervalSGI(interval);
+        }
+    } catch (Throwable t) { hasSwapInterval = -1; } */
+    if (2 == hasSwapInterval) {
         try {
             return 0 == glXExt.glXSwapIntervalSGI(interval);
-        } catch (Throwable t) { hasSwapIntervalSGI=-1; }
+        } catch (Throwable t) { hasSwapInterval=-1; }
     }
     return false;
   }
@@ -534,10 +553,10 @@ public abstract class X11GLXContext extends GLContextImpl {
   private final int initSwapGroupImpl(GLXExt glXExt) {
       if(0==hasSwapGroupNV) {
         try {
-            hasSwapGroupNV = glXExt.isExtensionAvailable("GLX_NV_swap_group")?1:-1;
+            hasSwapGroupNV = glXExt.isExtensionAvailable(GLXExtensions.GLX_NV_swap_group)?1:-1;
         } catch (Throwable t) { hasSwapGroupNV=1; }
         if(DEBUG) {
-            System.err.println("initSwapGroupImpl: hasSwapGroupNV: "+hasSwapGroupNV);
+            System.err.println("initSwapGroupImpl: "+GLXExtensions.GLX_NV_swap_group+": "+hasSwapGroupNV);
         }
       }
       return hasSwapGroupNV;

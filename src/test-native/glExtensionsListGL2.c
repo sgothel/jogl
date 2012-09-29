@@ -77,6 +77,8 @@ void useGL(Display *dpy, Window win, GLXContext ctx, int width, int height)
     glXMakeCurrent(dpy, win, ctx);
 
     fprintf(stderr, "GL_VENDOR: %s\n", glGetString(GL_VENDOR));
+    fprintf(stderr, "GL_VERSION: %s\n", glGetString(GL_VERSION));
+    fprintf(stderr, "GL_RENDERER: %s\n", glGetString(GL_RENDERER));
 
     glGetIntegerv(GL_NUM_EXTENSIONS, &n);
     fprintf(stderr, "GL_NUM_EXTENSIONS: %d\n", n);

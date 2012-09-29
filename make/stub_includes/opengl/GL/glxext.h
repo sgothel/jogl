@@ -439,6 +439,16 @@ typedef GLXContext ( * PFNGLXCREATECONTEXTATTRIBSARBPROC) (Display *dpy, GLXFBCo
 #define GLX_EXT_visual_info 1
 #endif
 
+#ifndef GLX_MESA_swap_control
+#define GLX_MESA_swap_control 1
+#ifdef GLX_GLXEXT_PROTOTYPES
+extern int glXSwapIntervalMESA(unsigned int interval);
+extern int glXGetSwapIntervalMESA(void);
+#endif /* GLX_GLXEXT_PROTOTYPES */
+typedef int ( * PFNGLXSWAPINTERVALMESAPROC)(unsigned int interval);
+typedef int ( * PFNGLXGETSWAPINTERVALMESAPROC)(void);
+#endif
+
 #ifndef GLX_SGI_swap_control
 #define GLX_SGI_swap_control 1
 #ifdef GLX_GLXEXT_PROTOTYPES
