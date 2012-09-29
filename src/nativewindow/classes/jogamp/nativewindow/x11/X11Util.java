@@ -34,6 +34,7 @@
 package jogamp.nativewindow.x11;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -139,6 +140,7 @@ public class X11Util {
     private static List<NamedDisplay> openDisplayList = new ArrayList<NamedDisplay>();     // open, no close attempt
     private static List<NamedDisplay> reusableDisplayList = new ArrayList<NamedDisplay>(); // close attempt, marked uncloseable, for reuse
     private static List<NamedDisplay> pendingDisplayList = new ArrayList<NamedDisplay>();  // all open (close attempt or reusable) in creation order
+    private static final HashMap<String /* displayName */, Boolean> displayXineramaEnabledMap = new HashMap<String, Boolean>();
     
     /** 
      * Cleanup resources.
@@ -178,6 +180,7 @@ public class X11Util {
                             reusableDisplayList.clear();
                             pendingDisplayList.clear();
                             openDisplayMap.clear();
+                            displayXineramaEnabledMap.clear();
                             shutdown0();
                         }
                     }
@@ -503,10 +506,19 @@ public class X11Util {
             device.unlock();
         }        
     }
+    
     public static boolean XineramaIsEnabled(long displayHandle) {
         if( 0 == displayHandle ) {
             throw new IllegalArgumentException("X11 Display handle is NULL");
         }
+        final String displayName = X11Lib.XDisplayString(displayHandle);
+        synchronized(displayXineramaEnabledMap) {
+            final Boolean b = displayXineramaEnabledMap.get(displayName);
+            if(null != b) {
+                return b.booleanValue();
+            }
+        }
+        final boolean res;
         if(!XineramaFetched) { // volatile: ok
             synchronized(X11Util.class) {
                 if( !XineramaFetched ) {
@@ -519,16 +531,21 @@ public class X11Util {
             }
         }
         if(0!=XineramaQueryFunc) {
-            final boolean res = X11Lib.XineramaIsEnabled(XineramaQueryFunc, displayHandle);
+            res = X11Lib.XineramaIsEnabled(XineramaQueryFunc, displayHandle);
+        } else {
             if(DEBUG) {
-                System.err.println("XineramaIsEnabled: 0x"+Long.toHexString(displayHandle)+": "+res);
+                System.err.println("XineramaIsEnabled: Couldn't bind to Xinerama - lib 0x"+Long.toHexString(XineramaLibHandle)+
+                                   "query 0x"+Long.toHexString(XineramaQueryFunc));
             }
-            return res;
-        } else if(DEBUG) {
-            System.err.println("XineramaIsEnabled: Couldn't bind to Xinerama - lib 0x"+Long.toHexString(XineramaLibHandle)+
-                               "query 0x"+Long.toHexString(XineramaQueryFunc));
+            res = false;
         }
-        return false;
+        synchronized(displayXineramaEnabledMap) {
+            if(DEBUG) {
+                System.err.println("XineramaIsEnabled Cache: Display "+displayName+" (0x"+Long.toHexString(displayHandle)+") -> "+res);
+            }
+            displayXineramaEnabledMap.put(displayName, Boolean.valueOf(res));
+        }
+        return res;
     }
     
     private static final String getCurrentThreadName() { return Thread.currentThread().getName(); } // Callback for JNI

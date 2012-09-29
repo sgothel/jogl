@@ -137,7 +137,6 @@ function jrun() {
     #D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug.GLCanvas"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.X11Util.XSync"
-    D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.X11Util.XSync"
     #D_ARGS="-Dnativewindow.debug.X11Util.XSync"
     #D_ARGS="-Dnativewindow.debug.ToolkitLock"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
