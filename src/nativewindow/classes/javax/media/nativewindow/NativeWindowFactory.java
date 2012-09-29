@@ -115,7 +115,8 @@ public abstract class NativeWindowFactory {
                         return new Boolean(true);
                     }
                     return new Boolean(false);
-                } } ).booleanValue();
+                }
+        } ).booleanValue();
     }
 
     private static String _getNativeWindowingType() {
@@ -134,8 +135,9 @@ public abstract class NativeWindowFactory {
             case SUNOS:
             case HPUX:
             default:
-              if(guessBroadcomVCIV())
+              if( guessBroadcomVCIV() ) {
                 return TYPE_BCM_VC_IV;
+              }
               return TYPE_X11;
         }
     }
