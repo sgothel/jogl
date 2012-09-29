@@ -33,6 +33,7 @@
 
 package javax.media.nativewindow;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -64,6 +65,9 @@ public abstract class NativeWindowFactory {
 
     /** X11 type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
     public static final String TYPE_X11 = ".x11".intern();
+
+    /** Broadcom VC IV/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
+    public static final String TYPE_BCM_VC_IV = ".bcm.vc.iv".intern();
 
     /** Android/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}.*/
     public static final String TYPE_ANDROID = ".android".intern();
@@ -102,6 +106,19 @@ public abstract class NativeWindowFactory {
     protected NativeWindowFactory() {
     }
 
+    private static final boolean guessBroadcomVCIV() {
+        return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+            private final File vcliblocation = new File(
+                    "/opt/vc/lib/libbcm_host.so");
+                public Boolean run() {
+                    if ( vcliblocation.isFile() ) {
+                        return new Boolean(true);
+                    }
+                    return new Boolean(false);
+                }
+        } ).booleanValue();
+    }
+
     private static String _getNativeWindowingType() {
         switch(Platform.OS_TYPE) {
             case ANDROID:
@@ -118,6 +135,9 @@ public abstract class NativeWindowFactory {
             case SUNOS:
             case HPUX:
             default:
+              if( guessBroadcomVCIV() ) {
+                return TYPE_BCM_VC_IV;
+              }
               return TYPE_X11;
         }
     }
