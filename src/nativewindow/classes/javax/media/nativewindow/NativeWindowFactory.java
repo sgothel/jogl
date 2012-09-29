@@ -67,7 +67,7 @@ public abstract class NativeWindowFactory {
     public static final String TYPE_X11 = ".x11".intern();
 
     /** Broadcom VC IV/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}. */
-    public static final String TYPE_BCM_VC_IV = "jogamp.newt.driver.bcm.vc.iv".intern();
+    public static final String TYPE_BCM_VC_IV = ".bcm.vc.iv".intern();
 
     /** Android/EGL type, as retrieved with {@link #getNativeWindowType(boolean)}. String is canonical via {@link String#intern()}.*/
     public static final String TYPE_ANDROID = ".android".intern();
