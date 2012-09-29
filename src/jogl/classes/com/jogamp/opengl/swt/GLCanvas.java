@@ -118,7 +118,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    private final Runnable initAction = new Runnable() {
       @Override
       public void run() {
-         helper.init(GLCanvas.this);
+         helper.init(GLCanvas.this, !sendReshape);
       }
    };
 

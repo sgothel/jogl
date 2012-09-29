@@ -679,7 +679,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       if (!backend.preGL(g)) {
         return;
       }
-      helper.init(GLJPanel.this);
+      helper.init(GLJPanel.this, !sendReshape);
       backend.postGL(g, false);
     }
 

@@ -330,8 +330,11 @@ public class GLDrawableHelper {
       }
   }
 
-  /** The default init action to be called once after ctx is being created @ 1st makeCurrent(). */
-  public final void init(GLAutoDrawable drawable) {
+  /** 
+   * The default init action to be called once after ctx is being created @ 1st makeCurrent(). 
+   * @param sendReshape set to true if the subsequent display call won't reshape, otherwise false to avoid double reshape.
+   **/
+  public final void init(GLAutoDrawable drawable, boolean sendReshape) {
     synchronized(listenersLock) {
         final ArrayList<GLEventListener> _listeners = listeners;
         for (int i=0; i < _listeners.size(); i++) {
@@ -341,7 +344,7 @@ public class GLDrawableHelper {
           // This may happen not just for initial setup, but for ctx recreation due to resource change (drawable/window),
           // hence it must be called unconditional, always.
           listenersToBeInit.remove(listener); // remove if exist, avoiding dbl init
-          init( listener, drawable, true /* sendReshape */);
+          init( listener, drawable, sendReshape);
         }
     }
   }

@@ -265,7 +265,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
         @Override
         public final void run() {
             // Lock: Locked Surface/Window by MakeCurrent/Release
-            helper.init(GLAutoDrawableBase.this);
+            helper.init(GLAutoDrawableBase.this, !sendReshape);
             resetFPSCounter();
         } };
 
