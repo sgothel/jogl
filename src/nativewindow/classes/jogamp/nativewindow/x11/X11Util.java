@@ -190,8 +190,10 @@ public class X11Util implements ToolkitProperties {
                         if( openDisplayList.size() > 0) {
                             X11Util.dumpOpenDisplayConnections();
                         }
-                        if( reusableDisplayList.size() > 0 || pendingDisplayList.size() > 0 ) {
-                            X11Util.dumpPendingDisplayConnections();
+                        if(DEBUG) {
+                            if( reusableDisplayList.size() > 0 || pendingDisplayList.size() > 0 ) {
+                                X11Util.dumpPendingDisplayConnections();
+                            }
                         }
                     }
             
@@ -317,11 +319,14 @@ public class X11Util implements ToolkitProperties {
             if( getMarkAllDisplaysUnclosable() ) {
                 for(int i=0; i<pendingDisplayList.size(); i++) {
                     final NamedDisplay ndpy = (NamedDisplay) pendingDisplayList.get(i);
-                    final boolean closeAttempted = !openDisplayMap.containsKey(ndpy.getHandle());
-                    System.err.println("X11Util.closePendingDisplayConnections(): Closing ["+i+"]: "+ndpy+" - closeAttempted "+closeAttempted);
+                    if(DEBUG) {
+                        final boolean closeAttempted = !openDisplayMap.containsKey(ndpy.getHandle());
+                        System.err.println("X11Util.closePendingDisplayConnections(): Closing ["+i+"]: "+ndpy+" - closeAttempted "+closeAttempted);
+                    }
                     XCloseDisplay(ndpy.getHandle());
                     num++;
                 }
+                System.err.println("X11Util.closePendingDisplayConnections(): Closed "+num+" pending display connections");
             }
         }
         return num;
