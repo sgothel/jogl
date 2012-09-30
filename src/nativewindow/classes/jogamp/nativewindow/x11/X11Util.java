@@ -83,6 +83,11 @@ public class X11Util implements ToolkitProperties {
      */
     public static final boolean ATI_HAS_XCLOSEDISPLAY_BUG = !Debug.isPropertyDefined("nativewindow.debug.X11Util.ATI_HAS_NO_XCLOSEDISPLAY_BUG", true);
 
+    /**
+     * See Bug 623 - https://jogamp.org/bugzilla/show_bug.cgi?id=623
+     */
+    public static final boolean ATI_HAS_MULTITHREADING_BUG = !Debug.isPropertyDefined("nativewindow.debug.X11Util.ATI_HAS_NO_MULTITHREADING_BUG", true);
+
     public static final boolean DEBUG = Debug.debug("X11Util");
     public static final boolean XSYNC_ENABLED = Debug.isPropertyDefined("nativewindow.debug.X11Util.XSync", true);
     public static final boolean XERROR_STACKDUMP = DEBUG || Debug.isPropertyDefined("nativewindow.debug.X11Util.XErrorStackDump", true);
@@ -132,7 +137,7 @@ public class X11Util implements ToolkitProperties {
                         hasX11_EXTENSION_ATIFGLRXDRI = false;
                         hasX11_EXTENSION_ATIFGLEXTENSION = false;
                     }
-                    requiresGlobalToolkitLock = hasX11_EXTENSION_ATIFGLRXDRI || hasX11_EXTENSION_ATIFGLEXTENSION;
+                    requiresGlobalToolkitLock = ATI_HAS_MULTITHREADING_BUG && ( hasX11_EXTENSION_ATIFGLRXDRI || hasX11_EXTENSION_ATIFGLEXTENSION );
                     markAllDisplaysUnclosable = ATI_HAS_XCLOSEDISPLAY_BUG && ( hasX11_EXTENSION_ATIFGLRXDRI || hasX11_EXTENSION_ATIFGLEXTENSION );
                     
                     if(DEBUG) {
