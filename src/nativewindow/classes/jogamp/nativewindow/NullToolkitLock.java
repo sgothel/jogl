@@ -28,6 +28,7 @@
 
 package jogamp.nativewindow;
 
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.ToolkitLock;
 
 /**
@@ -35,8 +36,6 @@ import javax.media.nativewindow.ToolkitLock;
  * without any locking. Since there is no locking it all, it is intrinsically recursive.
  */
 public class NullToolkitLock implements ToolkitLock {
-    public static final boolean INVALID_LOCKED = Debug.isPropertyDefined("nativewindow.debug.NullToolkitLock.InvalidLocked", true);
-    
     /** Singleton via {@link NativeWindowFactoryImpl#getNullToolkitLock()} */
     protected NullToolkitLock() { }
     
@@ -55,9 +54,8 @@ public class NullToolkitLock implements ToolkitLock {
     
     @Override
     public final void validateLocked() throws RuntimeException {
-        /* nop */
-        if(INVALID_LOCKED) {
-            throw new RuntimeException("NullToolkitLock does not lock");
+        if( NativeWindowFactory.requiresToolkitLock() ) {
+            throw new RuntimeException("NullToolkitLock does not lock, but locking is required.");
         }
     }
     

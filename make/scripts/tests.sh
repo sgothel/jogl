@@ -138,7 +138,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLCanvas"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.X11Util.XSync"
     #D_ARGS="-Dnativewindow.debug.X11Util.XSync -Dnativewindow.debug.ToolkitLock.TraceLock"
-    D_ARGS="-Dnativewindow.debug.X11Util -Dnativewindow.debug.X11Util.XSync -Dnativewindow.debug.NullToolkitLock.InvalidLocked -Dnativewindow.debug.NativeWindow"
+    D_ARGS="-Dnativewindow.debug.NativeWindow"
     #D_ARGS="-Dnativewindow.debug.ToolkitLock"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLState"
