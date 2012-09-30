@@ -60,7 +60,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
 
     /**
      * Create an instance with the system default {@link ToolkitLock}.
-     * gathered via {@link NativeWindowFactory#createDefaultToolkitLock(String, long)}.
+     * gathered via {@link NativeWindowFactory#getDefaultToolkitLock(String, long)}.
      * @param type
      * @param handle
      */
@@ -70,7 +70,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         this.unitID = unitID;
         this.uniqueID = getUniqueID(type, connection, unitID);
         this.handle = handle;
-        this.toolkitLock = NativeWindowFactory.createDefaultToolkitLock(type, handle);
+        this.toolkitLock = NativeWindowFactory.getDefaultToolkitLock(type, handle);
     }
 
     /**
@@ -123,8 +123,10 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
     }
 
     /**
-     * No lock is performed on the graphics device per default,
-     * instead the aggregated recursive {@link ToolkitLock#lock()} is invoked.
+     * {@inheritDoc}
+     * <p>
+     * Locking is perfomed via delegation to {@link ToolkitLock#lock()}, {@link ToolkitLock#unlock()}.
+     * </p>
      *
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long)
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, javax.media.nativewindow.ToolkitLock)
@@ -134,9 +136,16 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         toolkitLock.lock();
     }
 
+    @Override
+    public final void validateLocked() throws RuntimeException {
+        toolkitLock.validateLocked();
+    }
+    
     /** 
-     * No lock is performed on the graphics device per default,
-     * instead the aggregated recursive {@link ToolkitLock#unlock()} is invoked.
+     * {@inheritDoc}
+     * <p>
+     * Locking is perfomed via delegation to {@link ToolkitLock#lock()}, {@link ToolkitLock#unlock()}.
+     * </p>
      *
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long)
      * @see DefaultGraphicsDevice#DefaultGraphicsDevice(java.lang.String, long, javax.media.nativewindow.ToolkitLock)

@@ -49,7 +49,6 @@ import com.jogamp.common.util.locks.RecursiveLock;
  * </p>
  */
 public class SharedResourceToolkitLock implements ToolkitLock {
-    public static final boolean DEBUG = Debug.debug("ToolkitLock");
     private static final LongObjectHashMap handle2Lock;
     static {
         handle2Lock = new LongObjectHashMap();
@@ -109,16 +108,24 @@ public class SharedResourceToolkitLock implements ToolkitLock {
     }
     
     
+    @Override
     public final void lock() {
-        if(TRACE_LOCK) { System.err.println("SharedResourceToolkitLock.lock()"); }
         lock.lock();
+        if(TRACE_LOCK) { System.err.println("SharedResourceToolkitLock.lock()"); }
     }
 
+    @Override
     public final void unlock() {
         if(TRACE_LOCK) { System.err.println("SharedResourceToolkitLock.unlock()"); }
         lock.unlock();
     }
     
+    @Override
+    public final void validateLocked() throws RuntimeException {
+        lock.validateLocked();
+    }
+    
+    @Override
     public final void dispose() {
         if(0 < refCount) { // volatile OK
             synchronized(handle2Lock) {

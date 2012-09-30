@@ -43,6 +43,7 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.test.junit.util.ValidateLockListener;
 import com.jogamp.opengl.util.Animator;
 
 /**
@@ -100,6 +101,7 @@ public class InitConcurrentBaseNEWT extends UITestCase {
             glWindow.setTitle("Task "+id);
             glWindow.setPosition(x + insets.getLeftWidth(), y + insets.getTopHeight() );
     
+            glWindow.addGLEventListener(new ValidateLockListener());
             glWindow.addGLEventListener(new GearsES2(0));
     
             Animator animator = new Animator(glWindow);

@@ -36,6 +36,11 @@
   }
   private static native Object GetRelativeLocation0(long display, int screen_index, long src_win, long dest_win, int src_x, int src_y);
 
+  public static boolean QueryExtension(long display, String extensionName) {
+    return QueryExtension0(display, extensionName);
+  }
+  private static native boolean QueryExtension0(long display, String extensionName);
+
   public static native int XCloseDisplay(long display);
   public static native void XUnlockDisplay(long display);
   public static native void XLockDisplay(long display);

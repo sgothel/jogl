@@ -44,9 +44,14 @@ import com.jogamp.common.util.ReflectionUtil.AWTNames;
 
 public class NativeWindowFactoryImpl extends NativeWindowFactory {
     private static final ToolkitLock nullToolkitLock = new NullToolkitLock();
+    private static final ToolkitLock globalToolkitLock = new GlobalToolkitLock();
 
     public static ToolkitLock getNullToolkitLock() {
-            return nullToolkitLock;
+        return nullToolkitLock;
+    }
+    
+    public static ToolkitLock getGlobalToolkitLock() {
+        return globalToolkitLock;
     }
     
     // This subclass of NativeWindowFactory handles the case of

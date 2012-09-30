@@ -606,3 +606,38 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_x11_X11Lib_GetRelativeLocatio
     return (*env)->NewObject(env, pointClz, pointCstr, (jint)dest_x, (jint)dest_y);
 }
 
+/*
+ * Class:     jogamp_nativewindow_x11_X11Lib
+ * Method:    QueryExtension0
+ * Signature: (JLjava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_x11_X11Lib_QueryExtension0
+  (JNIEnv *env, jclass unused, jlong jdisplay, jstring jextensionName)
+{
+    int32_t major_opcode, first_event, first_error;
+    jboolean res = JNI_FALSE;
+    Display * display = (Display *) (intptr_t) jdisplay;
+    const char* extensionName = NULL;
+
+    if(NULL==display) {
+        NativewindowCommon_throwNewRuntimeException(env, "NULL argument \"display\"");
+        return res;
+    }
+    if ( NULL == jextensionName ) {
+        NativewindowCommon_throwNewRuntimeException(env, "NULL argument \"extensionName\"");
+        return res;
+    }
+    extensionName = (*env)->GetStringUTFChars(env, jextensionName, (jboolean*)NULL);
+    if ( NULL == extensionName ) {
+        NativewindowCommon_throwNewRuntimeException(env, "Failed to get UTF-8 chars for argument \"extensionName\"");
+        return res;
+    }
+
+    res = True == XQueryExtension(display, extensionName, &major_opcode, &first_event, &first_error) ? JNI_TRUE : JNI_FALSE;
+
+    if ( NULL != jextensionName ) {
+        (*env)->ReleaseStringUTFChars(env, jextensionName, extensionName);
+    }
+    return res;
+}
+

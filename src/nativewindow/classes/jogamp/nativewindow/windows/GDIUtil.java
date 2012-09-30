@@ -33,9 +33,10 @@ import javax.media.nativewindow.NativeWindowFactory;
 
 import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.nativewindow.Debug;
+import jogamp.nativewindow.ToolkitProperties;
 import jogamp.nativewindow.x11.X11Util;
 
-public class GDIUtil {
+public class GDIUtil implements ToolkitProperties {
     private static final boolean DEBUG = Debug.debug("GDIUtil");
   
     private static final String dummyWindowClassNameBase = "_dummyWindow_clazz" ;
@@ -44,6 +45,7 @@ public class GDIUtil {
   
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
+     * @see ToolkitProperties
      */
     public static synchronized void initSingleton() {
         if(!isInit) {
@@ -67,12 +69,23 @@ public class GDIUtil {
   
     /**
      * Called by {@link NativeWindowFactory#shutdown()}
+     * @see ToolkitProperties
      */
     public static void shutdown() {      
     }
     
+    /**
+     * Called by {@link NativeWindowFactory#initSingleton()}
+     * @see ToolkitProperties
+     */
     public static boolean requiresToolkitLock() { return false; }
   
+    /**
+     * Called by {@link NativeWindowFactory#initSingleton()}
+     * @see ToolkitProperties
+     */
+    public static final boolean requiresGlobalToolkitLock() { return false; }
+    
     private static RegisteredClass dummyWindowClass = null;
     private static Object dummyWindowSync = new Object();
   

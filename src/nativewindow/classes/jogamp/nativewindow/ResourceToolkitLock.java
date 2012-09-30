@@ -41,8 +41,6 @@ import com.jogamp.common.util.locks.RecursiveLock;
  * </p>
  */
 public class ResourceToolkitLock implements ToolkitLock {
-    public static final boolean DEBUG = Debug.debug("ToolkitLock");
-    
     public static final ResourceToolkitLock create() {
         return new ResourceToolkitLock();
     }
@@ -53,17 +51,24 @@ public class ResourceToolkitLock implements ToolkitLock {
         this.lock = LockFactory.createRecursiveLock();
     }
     
-    
+    @Override
     public final void lock() {
-        if(TRACE_LOCK) { System.err.println("ResourceToolkitLock.lock()"); }
         lock.lock();
+        if(TRACE_LOCK) { System.err.println("ResourceToolkitLock.lock()"); }
     }
 
+    @Override
     public final void unlock() {
         if(TRACE_LOCK) { System.err.println("ResourceToolkitLock.unlock()"); }
-        lock.unlock();
+        lock.unlock(); // implicit lock validation
     }
     
+    @Override
+    public final void validateLocked() throws RuntimeException {
+        lock.validateLocked();
+    }
+    
+    @Override
     public final void dispose() {
         // nop
     }

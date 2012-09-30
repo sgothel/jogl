@@ -42,6 +42,7 @@ import java.util.Map;
 
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NativeWindowFactoryImpl;
+import jogamp.nativewindow.ToolkitProperties;
 import jogamp.nativewindow.ResourceToolkitLock;
 
 import com.jogamp.common.os.Platform;
@@ -87,13 +88,17 @@ public abstract class NativeWindowFactory {
     private static boolean isAWTAvailable;
     
     private static final String JAWTUtilClassName = "jogamp.nativewindow.jawt.JAWTUtil" ;
+    /** {@link jogamp.nativewindow.x11.X11Util} implements {@link ToolkitProperties}. */
     private static final String X11UtilClassName = "jogamp.nativewindow.x11.X11Util";
+    /** {@link jogamp.nativewindow.macosx.OSXUtil} implements {@link ToolkitProperties}. */
     private static final String OSXUtilClassName = "jogamp.nativewindow.macosx.OSXUtil";
+    /** {@link jogamp.nativewindow.windows.GDIUtil} implements {@link ToolkitProperties}. */
     private static final String GDIClassName = "jogamp.nativewindow.windows.GDIUtil";
     
     private static ToolkitLock jawtUtilJAWTToolkitLock;
     
     private static boolean requiresToolkitLock;
+    private static boolean requiresGlobalToolkitLock;
 
     private static volatile boolean isJVMShuttingDown = false;
     
@@ -156,11 +161,18 @@ public abstract class NativeWindowFactory {
         if( null != clazzName ) {
             ReflectionUtil.callStaticMethod(clazzName, "initSingleton", null, null, cl );
             
-            final Boolean res = (Boolean) ReflectionUtil.callStaticMethod(clazzName, "requiresToolkitLock", null, null, cl);
-            requiresToolkitLock = res.booleanValue();             
+            final Boolean res1 = (Boolean) ReflectionUtil.callStaticMethod(clazzName, "requiresToolkitLock", null, null, cl);
+            requiresToolkitLock = res1.booleanValue();
+            if(requiresToolkitLock) {
+                final Boolean res2 = (Boolean) ReflectionUtil.callStaticMethod(clazzName, "requiresGlobalToolkitLock", null, null, cl);
+                requiresGlobalToolkitLock = res2.booleanValue();
+            } else {
+                requiresGlobalToolkitLock = false;
+            }
         } else {            
             requiresToolkitLock = false;
-        }        
+            requiresGlobalToolkitLock = false;
+        }
     }
 
     private static void shutdownNativeImpl(final ClassLoader cl) {
@@ -261,7 +273,7 @@ public abstract class NativeWindowFactory {
             }
             
             if(DEBUG) {
-                System.err.println("NativeWindowFactory requiresToolkitLock "+requiresToolkitLock);
+                System.err.println("NativeWindowFactory requiresToolkitLock "+requiresToolkitLock+", requiresGlobalToolkitLock "+requiresGlobalToolkitLock);
                 System.err.println("NativeWindowFactory isAWTAvailable "+isAWTAvailable+", defaultFactory "+factory);
             }
             
@@ -295,7 +307,12 @@ public abstract class NativeWindowFactory {
     /** @return true if the underlying toolkit requires locking, otherwise false. */
     public static boolean requiresToolkitLock() {
         return requiresToolkitLock;
-    }    
+    }
+    
+    /** @return true if the underlying toolkit requires global locking, otherwise false. */
+    public static boolean requiresGlobalToolkitLock() {
+        return requiresGlobalToolkitLock;
+    }
     
     /** @return true if not headless, AWT Component and NativeWindow's AWT part available */
     public static boolean isAWTAvailable() { return isAWTAvailable; }
@@ -331,32 +348,13 @@ public abstract class NativeWindowFactory {
         return defaultFactory;
     }
 
-    /**
-     * Provides the system default {@link ToolkitLock}, a singleton instance.
-     * <br>
-     * @see #getDefaultToolkitLock(java.lang.String)
-     */
-    public static ToolkitLock getDefaultToolkitLock() {
-        return getDefaultToolkitLock(getNativeWindowType(false));
-    }
-
-    /**
-     * Provides the default {@link ToolkitLock} for <code>type</code>, a singleton instance.
-     * <ul>
-     *   <li> JAWT {@link ToolkitLock} if required and AWT available, otherwise</li>
-     *   <li> {@link jogamp.nativewindow.NullToolkitLock} </li>
-     * </ul>
-     */
-    public static ToolkitLock getDefaultToolkitLock(String type) {
-        if( requiresToolkitLock() ) {
-            if( TYPE_AWT == type && TYPE_X11 == getNativeWindowType(false) && isAWTAvailable() ) {
-                return getAWTToolkitLock();
-            }
-        }
-        return NativeWindowFactoryImpl.getNullToolkitLock();
-    }
-
-    /** Returns the AWT Toolkit (JAWT based) if {@link #isAWTAvailable}, otherwise null. */ 
+    /** 
+     * Returns the AWT {@link ToolkitLock} (JAWT based) if {@link #isAWTAvailable}, otherwise null.
+     * <p>
+     * The JAWT based {@link ToolkitLock} also locks the global lock,
+     * which matters if the latter is required.
+     * </p> 
+     */ 
     public static ToolkitLock getAWTToolkitLock() {
         return jawtUtilJAWTToolkitLock;
     }
@@ -365,32 +363,57 @@ public abstract class NativeWindowFactory {
         return NativeWindowFactoryImpl.getNullToolkitLock();
     }
 
+    public static ToolkitLock getGlobalToolkitLock() {
+        return NativeWindowFactoryImpl.getGlobalToolkitLock();
+    }
+    
     /**
-     * Creates the default {@link ToolkitLock} for <code>type</code> and <code>deviceHandle</code>.
+     * Provides the system default {@link ToolkitLock} for the default system windowing type.
+     * @see #getNativeWindowType(boolean)
+     * @see #getDefaultToolkitLock(java.lang.String)
+     */
+    public static ToolkitLock getDefaultToolkitLock() {
+        return getDefaultToolkitLock(getNativeWindowType(false));
+    }
+
+    /**
+     * Provides the default {@link ToolkitLock} for <code>type</code>.
      * <ul>
+     *   <li> JAWT {@link ToolkitLock} if required and <code>type</code> is of {@link #TYPE_AWT} and AWT available,</li>
+     *   <li> {@link jogamp.nativewindow.GlobalToolkitLock} if required, otherwise</li>
      *   <li> {@link jogamp.nativewindow.ResourceToolkitLock} if required, otherwise</li>
      *   <li> {@link jogamp.nativewindow.NullToolkitLock} </li>
      * </ul>
      */
-    public static ToolkitLock createDefaultToolkitLock(String type, long deviceHandle) {
-        if( requiresToolkitLock() ) {
+    public static ToolkitLock getDefaultToolkitLock(String type) {
+        if( requiresToolkitLock ) {
+            if( TYPE_AWT == type && isAWTAvailable() ) {
+                return getAWTToolkitLock();
+            }
+            if( requiresGlobalToolkitLock ) {
+                return NativeWindowFactoryImpl.getGlobalToolkitLock();
+            }
             return ResourceToolkitLock.create();
         }
         return NativeWindowFactoryImpl.getNullToolkitLock();
     }
-    
+
     /**
-     * Creates the default {@link ToolkitLock} for <code>type</code> and <code>deviceHandle</code>.
+     * Provides the default {@link ToolkitLock} for <code>type</code> and <code>deviceHandle</code>.
      * <ul>
-     *   <li> JAWT {@link ToolkitLock} if required and AWT available,</li>
+     *   <li> JAWT {@link ToolkitLock} if required and <code>type</code> is of {@link #TYPE_AWT} and AWT available,</li>
+     *   <li> {@link jogamp.nativewindow.GlobalToolkitLock} if required, otherwise</li>
      *   <li> {@link jogamp.nativewindow.ResourceToolkitLock} if required, otherwise</li>
      *   <li> {@link jogamp.nativewindow.NullToolkitLock} </li>
      * </ul>
      */
-    public static ToolkitLock createDefaultToolkitLock(String type, String sharedType, long deviceHandle) {
-        if( requiresToolkitLock() ) {
-            if( TYPE_AWT == sharedType && isAWTAvailable() ) {
+    public static ToolkitLock getDefaultToolkitLock(String type, long deviceHandle) {
+        if( requiresToolkitLock ) {
+            if( TYPE_AWT == type && isAWTAvailable() ) {
                 return getAWTToolkitLock();
+            }
+            if( requiresGlobalToolkitLock ) {
+                return NativeWindowFactoryImpl.getGlobalToolkitLock();
             }
             return ResourceToolkitLock.create();
         }

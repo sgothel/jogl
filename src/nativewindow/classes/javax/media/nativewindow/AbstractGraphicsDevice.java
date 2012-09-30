@@ -102,17 +102,24 @@ public interface AbstractGraphicsDevice extends Cloneable {
     public long getHandle();
 
     /**
-     * Optionally locking the device, utilizing eg {@link javax.media.nativewindow.ToolkitLock}.
+     * Optionally locking the device, utilizing eg {@link javax.media.nativewindow.ToolkitLock#lock()}.
      * The lock implementation must be recursive.
      */
     public void lock();
 
     /** 
-     * Optionally unlocking the device, utilizing eg {@link javax.media.nativewindow.ToolkitLock}.
+     * Optionally unlocking the device, utilizing eg {@link javax.media.nativewindow.ToolkitLock#unlock()}.
      * The lock implementation must be recursive.
+     * 
+     * @throws RuntimeException in case the lock is not acquired by this thread.
      */
     public void unlock();
 
+    /**
+     * @throws RuntimeException if current thread does not hold the lock 
+     */
+    public void validateLocked() throws RuntimeException;
+    
     /** 
      * Optionally [re]opening the device if handle is <code>null</code>.
      * <p>

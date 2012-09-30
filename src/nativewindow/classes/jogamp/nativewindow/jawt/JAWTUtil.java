@@ -79,6 +79,8 @@ public class JAWTUtil {
   private static final Method  sunToolkitAWTLockMethod;
   private static final Method  sunToolkitAWTUnlockMethod;
   private static final boolean hasSunToolkitAWTLock;
+  
+  private static volatile Thread exclusiveOwnerThread;
 
   private static final ToolkitLock jawtToolkitLock;
 
@@ -229,13 +231,23 @@ public class JAWTUtil {
     }
     hasSunToolkitAWTLock = _hasSunToolkitAWTLock;
     // hasSunToolkitAWTLock = false;
+    exclusiveOwnerThread = null;
 
     jawtToolkitLock = new ToolkitLock() {
           public final void lock() {
+              NativeWindowFactory.getGlobalToolkitLock().lock();
               JAWTUtil.lockToolkit();
+              if(TRACE_LOCK) { System.err.println("JAWTToolkitLock.lock()"); }
           }    
           public final void unlock() {
+              if(TRACE_LOCK) { System.err.println("JAWTToolkitLock.unlock()"); }
               JAWTUtil.unlockToolkit();
+              NativeWindowFactory.getGlobalToolkitLock().unlock();
+          }
+          @Override
+          public final void validateLocked() throws RuntimeException {
+              NativeWindowFactory.getGlobalToolkitLock().validateLocked();
+              JAWTUtil.validateLocked();
           }
           public final void dispose() {
               // nop
@@ -312,7 +324,7 @@ public class JAWTUtil {
    * JAWT's native Lock() function calls SunToolkit.awtLock(),
    * which just uses AWT's global ReentrantLock.<br>
    */
-  private static void awtLock() {
+  private static final void awtLock() {
     if(hasSunToolkitAWTLock) {
         try {
             sunToolkitAWTLockMethod.invoke(null, (Object[])null);
@@ -322,6 +334,7 @@ public class JAWTUtil {
     } else {
         jawtLockObject.Lock();
     }
+    exclusiveOwnerThread = Thread.currentThread();
   }
 
   /**
@@ -330,7 +343,9 @@ public class JAWTUtil {
    * JAWT's native Unlock() function calls SunToolkit.awtUnlock(),
    * which just uses AWT's global ReentrantLock.<br>
    */
-  private static void awtUnlock() {
+  private static final void awtUnlock() {
+    awtValidateLocked();
+    exclusiveOwnerThread = null;    
     if(hasSunToolkitAWTLock) {
         try {
             sunToolkitAWTUnlockMethod.invoke(null, (Object[])null);
@@ -342,6 +357,16 @@ public class JAWTUtil {
     }
   }
 
+  private static final void awtValidateLocked() throws RuntimeException {
+    final Thread ct = Thread.currentThread();
+    if( ct != exclusiveOwnerThread ) {
+        if ( null == exclusiveOwnerThread ) {
+            throw new RuntimeException(ct.getName()+": JAWT-ToolkitLock not locked");
+        }
+        throw new RuntimeException(ct.getName()+": Not JAWT-ToolkitLock owner. Owner is "+exclusiveOwnerThread.getName());
+    }
+  }
+  
   public static void lockToolkit() throws NativeWindowException {
     if(ToolkitLock.TRACE_LOCK) { System.err.println("JAWTUtil-ToolkitLock.lock()"); }
     if(!headlessMode && !isJava2DQueueFlusherThread()) {
@@ -355,6 +380,13 @@ public class JAWTUtil {
         awtUnlock();
     }
   }
+  
+  public static final void validateLocked() throws RuntimeException {
+    if(!headlessMode && !isJava2DQueueFlusherThread()) {
+        awtValidateLocked();
+    }
+  }
+  
 
   public static ToolkitLock getJAWTToolkitLock() {
     return jawtToolkitLock;

@@ -43,13 +43,15 @@ import javax.media.nativewindow.NativeWindowFactory;
 
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NWJNILibLoader;
+import jogamp.nativewindow.ToolkitProperties;
+
 import com.jogamp.common.util.LongObjectHashMap;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 
 /**
  * Contains a thread safe X11 utility to retrieve display connections.
  */
-public class X11Util {
+public class X11Util implements ToolkitProperties {
     /** 
      * See Bug 515 - https://jogamp.org/bugzilla/show_bug.cgi?id=515
      * <p> 
@@ -88,11 +90,15 @@ public class X11Util {
     private static String nullDisplayName = null;
     private static volatile boolean isInit = false;
     private static boolean markAllDisplaysUnclosable = false; // ATI/AMD X11 driver issues
+    private static boolean requiresGlobalToolkitLock = false; // ATI/AMD X11 driver issues
 
     private static Object setX11ErrorHandlerLock = new Object();
+    private static final String X11_EXTENSION_ATIFGLRXDRI     = "ATIFGLRXDRI";
+    private static final String X11_EXTENSION_ATIFGLEXTENSION = "ATIFGLEXTENSION";
     
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
+     * @see ToolkitProperties
      */
     public static void initSingleton() {
         if(!isInit) {
@@ -100,7 +106,7 @@ public class X11Util {
                 if(!isInit) {
                     isInit = true;
                     if(DEBUG) {
-                        System.out.println("X11UtilUtil.initSingleton()");
+                        System.out.println("X11Util.initSingleton()");
                     }
                     if(!NWJNILibLoader.loadNativeWindow("x11")) {
                         throw new NativeWindowException("NativeWindow X11 native library load error.");
@@ -108,6 +114,7 @@ public class X11Util {
         
                     final boolean isInitOK = initialize0( XERROR_STACKDUMP );
         
+                    final boolean hasX11_EXTENSION_ATIFGLRXDRI, hasX11_EXTENSION_ATIFGLEXTENSION;
                     final long dpy = X11Lib.XOpenDisplay(null);
                     if(0 != dpy) {
                         if(XSYNC_ENABLED) {
@@ -115,17 +122,29 @@ public class X11Util {
                         }                    
                         try {
                             nullDisplayName = X11Lib.XDisplayString(dpy);
+                            hasX11_EXTENSION_ATIFGLRXDRI = X11Lib.QueryExtension(dpy, X11_EXTENSION_ATIFGLRXDRI);
+                            hasX11_EXTENSION_ATIFGLEXTENSION = X11Lib.QueryExtension(dpy, X11_EXTENSION_ATIFGLEXTENSION);
                         } finally {
                             X11Lib.XCloseDisplay(dpy);
                         }
                     } else {
                         nullDisplayName = "nil";
+                        hasX11_EXTENSION_ATIFGLRXDRI = false;
+                        hasX11_EXTENSION_ATIFGLEXTENSION = false;
                     }
+                    requiresGlobalToolkitLock = hasX11_EXTENSION_ATIFGLRXDRI || hasX11_EXTENSION_ATIFGLEXTENSION;
+                    markAllDisplaysUnclosable = ATI_HAS_XCLOSEDISPLAY_BUG && ( hasX11_EXTENSION_ATIFGLRXDRI || hasX11_EXTENSION_ATIFGLEXTENSION );
                     
                     if(DEBUG) {
-                        System.err.println("X11Util init OK "+isInitOK+"]"+
-                                           ", X11 Display(NULL) <"+nullDisplayName+">"+
-                                           ", XSynchronize Enabled: "+XSYNC_ENABLED);
+                        System.err.println("X11Util.initSingleton(): OK "+isInitOK+"]"+
+                                           ",\n\t X11 Display(NULL) <"+nullDisplayName+">"+
+                                           ",\n\t XSynchronize Enabled: " + XSYNC_ENABLED+
+                                           ",\n\t X11_EXTENSION_ATIFGLRXDRI " + hasX11_EXTENSION_ATIFGLRXDRI+
+                                           ",\n\t X11_EXTENSION_ATIFGLEXTENSION " + hasX11_EXTENSION_ATIFGLEXTENSION+
+                                           ",\n\t requiresToolkitLock "+requiresToolkitLock()+
+                                           ",\n\t requiresGlobalToolkitLock "+requiresGlobalToolkitLock()+
+                                           ",\n\t markAllDisplaysUnclosable "+getMarkAllDisplaysUnclosable()
+                                           );
                         // Thread.dumpStack();
                     }
                 }
@@ -147,6 +166,7 @@ public class X11Util {
      * <p>
      * Called by {@link NativeWindowFactory#shutdown()}
      * </p>
+     * @see ToolkitProperties
      */
     public static void shutdown() {
         if(isInit) {
@@ -189,8 +209,20 @@ public class X11Util {
         }
     }
     
-    public static boolean requiresToolkitLock() {
-        return true; // JAWT locking: yes, instead of native X11 locking w use a recursive lock.
+    /**
+     * Called by {@link NativeWindowFactory#initSingleton()}
+     * @see ToolkitProperties
+     */
+    public static final boolean requiresToolkitLock() {
+        return true; // JAWT locking: yes, instead of native X11 locking w use a recursive lock per display connection.
+    }
+    
+    /**
+     * Called by {@link NativeWindowFactory#initSingleton()}
+     * @see ToolkitProperties
+     */
+    public static final boolean requiresGlobalToolkitLock() {
+        return requiresGlobalToolkitLock; // JAWT locking: yes, instead of native X11 locking w use a global lock.
     }
     
     public static void setX11ErrorHandler(boolean onoff, boolean quiet) {
@@ -205,9 +237,6 @@ public class X11Util {
     
     public static boolean getMarkAllDisplaysUnclosable() {
         return markAllDisplaysUnclosable;
-    }
-    public static void setMarkAllDisplaysUnclosable(boolean v) {
-        markAllDisplaysUnclosable = v;
     }
     
     private X11Util() {}
@@ -373,7 +402,7 @@ public class X11Util {
         name = validateDisplayName(name);
         boolean reused = false;
         
-        synchronized(globalLock) {            
+        synchronized(globalLock) {
             for(int i=0; i<reusableDisplayList.size(); i++) {
                 if(reusableDisplayList.get(i).getName().equals(name)) {
                     namedDpy = reusableDisplayList.remove(i);

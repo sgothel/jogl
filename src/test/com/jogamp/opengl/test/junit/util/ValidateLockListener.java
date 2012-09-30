@@ -1,16 +1,16 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2012 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- *
+ * 
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- *
+ * 
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,54 +20,52 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
+ 
+package com.jogamp.opengl.test.junit.util;
 
-package jogamp.nativewindow;
 
-import javax.media.nativewindow.ToolkitLock;
+import javax.media.nativewindow.NativeSurface;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLEventListener;
 
-/**
- * Implementing a singleton global NOP {@link javax.media.nativewindow.ToolkitLock}
- * without any locking. Since there is no locking it all, it is intrinsically recursive.
- */
-public class NullToolkitLock implements ToolkitLock {
-    public static final boolean INVALID_LOCKED = Debug.isPropertyDefined("nativewindow.debug.NullToolkitLock.InvalidLocked", true);
-    
-    /** Singleton via {@link NativeWindowFactoryImpl#getNullToolkitLock()} */
-    protected NullToolkitLock() { }
-    
-    @Override
-    public final void lock() {
-        if(TRACE_LOCK) {
-            System.err.println("NullToolkitLock.lock()");
-            // Thread.dumpStack();
+
+public class ValidateLockListener implements GLEventListener {
+
+    private void validateLock(GLAutoDrawable drawable) {
+        final NativeSurface ns = drawable.getNativeSurface();
+        ns.getGraphicsConfiguration().getScreen().getDevice().validateLocked();
+        
+        final Thread current = Thread.currentThread();
+        final Thread owner = ns.getSurfaceLockOwner();
+        if( ns.isSurfaceLockedByOtherThread() ) {
+            throw new RuntimeException(current.getName()+": Locked by another thread(1), owner "+owner+", "+ns);
         }
-    }
-
-    @Override
-    public final void unlock() {
-        if(TRACE_LOCK) { System.err.println("NullToolkitLock.unlock()"); }
-    }
-    
-    @Override
-    public final void validateLocked() throws RuntimeException {
-        /* nop */
-        if(INVALID_LOCKED) {
-            throw new RuntimeException("NullToolkitLock does not lock");
+        if( current != owner ) {
+            if( null == owner ) {
+                throw new RuntimeException(current.getName()+": Not locked: "+ns);
+            }
+            throw new RuntimeException(current.getName()+": Locked by another thread(2), owner "+owner+", "+ns);            
         }
     }
     
-    @Override
-    public final void dispose() {
-        // nop
+    public void init(GLAutoDrawable drawable) {
+        validateLock(drawable);
     }
-    
-    public String toString() {
-        return "NullToolkitLock[]";
+
+    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+        validateLock(drawable);
     }
-    
+
+    public void display(GLAutoDrawable drawable) {
+        validateLock(drawable);
+    }
+
+    public void dispose(GLAutoDrawable drawable) {
+        validateLock(drawable);
+    }
 }

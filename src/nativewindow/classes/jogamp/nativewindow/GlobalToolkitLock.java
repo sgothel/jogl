@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2012 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -30,35 +30,38 @@ package jogamp.nativewindow;
 
 import javax.media.nativewindow.ToolkitLock;
 
+import com.jogamp.common.util.locks.LockFactory;
+import com.jogamp.common.util.locks.RecursiveLock;
+
 /**
- * Implementing a singleton global NOP {@link javax.media.nativewindow.ToolkitLock}
- * without any locking. Since there is no locking it all, it is intrinsically recursive.
+ * Implementing a global recursive {@link javax.media.nativewindow.ToolkitLock}.
+ * <p>
+ * This is the last resort for unstable driver, e.g. proprietary ATI/X11 12.8 and 12.9,
+ * where multiple X11 display connections to the same connection name are not treated
+ * thread safe within the GL/X11 driver.
+ * </p>
  */
-public class NullToolkitLock implements ToolkitLock {
-    public static final boolean INVALID_LOCKED = Debug.isPropertyDefined("nativewindow.debug.NullToolkitLock.InvalidLocked", true);
+public class GlobalToolkitLock implements ToolkitLock {
+    private static final RecursiveLock globalLock = LockFactory.createRecursiveLock();
     
-    /** Singleton via {@link NativeWindowFactoryImpl#getNullToolkitLock()} */
-    protected NullToolkitLock() { }
+    /** Singleton via {@link NativeWindowFactoryImpl#getGlobalToolkitLock()} */
+    protected GlobalToolkitLock() { }
     
     @Override
     public final void lock() {
-        if(TRACE_LOCK) {
-            System.err.println("NullToolkitLock.lock()");
-            // Thread.dumpStack();
-        }
+        globalLock.lock();
+        if(TRACE_LOCK) { System.err.println("GlobalToolkitLock.lock()"); }
     }
 
     @Override
     public final void unlock() {
-        if(TRACE_LOCK) { System.err.println("NullToolkitLock.unlock()"); }
+        if(TRACE_LOCK) { System.err.println("GlobalToolkitLock.unlock()"); }
+        globalLock.unlock(); // implicit lock validation
     }
     
     @Override
     public final void validateLocked() throws RuntimeException {
-        /* nop */
-        if(INVALID_LOCKED) {
-            throw new RuntimeException("NullToolkitLock does not lock");
-        }
+        globalLock.validateLocked();
     }
     
     @Override
@@ -67,7 +70,6 @@ public class NullToolkitLock implements ToolkitLock {
     }
     
     public String toString() {
-        return "NullToolkitLock[]";
+        return "GlobalToolkitLock[obj 0x"+Integer.toHexString(hashCode())+", isOwner "+globalLock.isOwner(Thread.currentThread())+", "+globalLock.toString()+"]";
     }
-    
 }

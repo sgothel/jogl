@@ -34,13 +34,15 @@ import javax.media.nativewindow.util.Point;
 
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NWJNILibLoader;
+import jogamp.nativewindow.ToolkitProperties;
 
-public class OSXUtil {
+public class OSXUtil implements ToolkitProperties {
     private static boolean isInit = false;  
     private static final boolean DEBUG = Debug.debug("OSXUtil");
     
     /**
      * Called by {@link NativeWindowFactory#initSingleton()}
+     * @see ToolkitProperties
      */
     public static synchronized void initSingleton() {
       if(!isInit) {
@@ -60,13 +62,21 @@ public class OSXUtil {
 
     /**
      * Called by {@link NativeWindowFactory#shutdown()}
+     * @see ToolkitProperties
      */
-    public static void shutdown() {      
-    }
+    public static void shutdown() { }
     
-    public static boolean requiresToolkitLock() {
-        return false;
-    }
+    /**
+     * Called by {@link NativeWindowFactory#initSingleton()}
+     * @see ToolkitProperties
+     */
+    public static boolean requiresToolkitLock() { return false; }
+    
+    /**
+     * Called by {@link NativeWindowFactory#initSingleton()}
+     * @see ToolkitProperties
+     */
+    public static final boolean requiresGlobalToolkitLock() { return false; }
     
     public static boolean isNSView(long object) {
         return isNSView0(object);

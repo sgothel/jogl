@@ -241,10 +241,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 final String glXServerVendorName = GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_VENDOR);
                 final VersionNumber glXServerVersion = GLXUtil.getGLXServerVersionNumber(sharedDevice);
                 final boolean glXServerMultisampleAvailable = GLXUtil.isMultisampleAvailable(GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_EXTENSIONS));
-                if(X11Util.ATI_HAS_XCLOSEDISPLAY_BUG && GLXUtil.isVendorATI(glXServerVendorName)) {
-                    X11Util.setMarkAllDisplaysUnclosable(true);
-                    X11Util.markDisplayUncloseable(sharedDevice.getHandle());
-                }
                 
                 final GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP, false);
                 if (null == glp) {
