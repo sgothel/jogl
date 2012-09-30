@@ -81,6 +81,7 @@ public class JAWTUtil {
   private static final boolean hasSunToolkitAWTLock;
   
   private static volatile Thread exclusiveOwnerThread;
+  private static int lockCounter;
 
   private static final ToolkitLock jawtToolkitLock;
 
@@ -232,6 +233,7 @@ public class JAWTUtil {
     hasSunToolkitAWTLock = _hasSunToolkitAWTLock;
     // hasSunToolkitAWTLock = false;
     exclusiveOwnerThread = null;
+    lockCounter = 0;
 
     jawtToolkitLock = new ToolkitLock() {
           public final void lock() {
@@ -334,7 +336,10 @@ public class JAWTUtil {
     } else {
         jawtLockObject.Lock();
     }
-    exclusiveOwnerThread = Thread.currentThread();
+    if(0 == lockCounter) {
+        exclusiveOwnerThread = Thread.currentThread();
+    }
+    lockCounter++;
   }
 
   /**
@@ -345,7 +350,10 @@ public class JAWTUtil {
    */
   private static final void awtUnlock() {
     awtValidateLocked();
-    exclusiveOwnerThread = null;    
+    lockCounter--;
+    if(0 == lockCounter) {
+        exclusiveOwnerThread = null;
+    }
     if(hasSunToolkitAWTLock) {
         try {
             sunToolkitAWTUnlockMethod.invoke(null, (Object[])null);
