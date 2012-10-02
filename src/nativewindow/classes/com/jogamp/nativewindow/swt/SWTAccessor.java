@@ -210,7 +210,7 @@ public class SWTAccessor {
         if( null != OS_gtk_class ) {
             long widgedHandle = callStaticMethodL2L(OS_GTK_WIDGET_WINDOW, handle);
             long displayHandle = callStaticMethodL2L(OS_gdk_x11_drawable_get_xdisplay, widgedHandle);
-            return new X11GraphicsDevice(displayHandle, AbstractGraphicsDevice.DEFAULT_UNIT, false);
+            return new X11GraphicsDevice(displayHandle, AbstractGraphicsDevice.DEFAULT_UNIT, false /* owner */);
         }
         final String nwt = NativeWindowFactory.getNativeWindowType(false);
         if( NativeWindowFactory.TYPE_WINDOWS == nwt ) {

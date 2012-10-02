@@ -237,18 +237,15 @@ public class JAWTUtil {
 
     jawtToolkitLock = new ToolkitLock() {
           public final void lock() {
-              NativeWindowFactory.getGlobalToolkitLock().lock();
               JAWTUtil.lockToolkit();
               if(TRACE_LOCK) { System.err.println("JAWTToolkitLock.lock()"); }
           }    
           public final void unlock() {
               if(TRACE_LOCK) { System.err.println("JAWTToolkitLock.unlock()"); }
               JAWTUtil.unlockToolkit();
-              NativeWindowFactory.getGlobalToolkitLock().unlock();
           }
           @Override
           public final void validateLocked() throws RuntimeException {
-              NativeWindowFactory.getGlobalToolkitLock().validateLocked();
               JAWTUtil.validateLocked();
           }
           public final void dispose() {

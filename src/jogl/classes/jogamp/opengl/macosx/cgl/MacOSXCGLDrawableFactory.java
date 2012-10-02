@@ -226,7 +226,8 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
             if (null == glp) {
                 throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
             }
-            final GLDrawableImpl sharedDrawable = createOnscreenDrawableImpl(createDummySurfaceImpl(sharedDevice, false, new GLCapabilities(glp), null, 64, 64));
+            final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+            final GLDrawableImpl sharedDrawable = createOnscreenDrawableImpl(createDummySurfaceImpl(sharedDevice, false, caps, caps, null, 64, 64));
             sharedDrawable.setRealized(true);
             
             final MacOSXCGLContext sharedContext = (MacOSXCGLContext) sharedDrawable.createContext(null);
@@ -358,7 +359,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
                                                   GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, 
                                                   GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook) {
     final MacOSXGraphicsDevice device;
-    if(createNewDevice) {
+    if( createNewDevice || !(deviceReq instanceof MacOSXGraphicsDevice) ) {
         device = new MacOSXGraphicsDevice(deviceReq.getUnitID());
     } else {
         device = (MacOSXGraphicsDevice)deviceReq;
@@ -373,8 +374,8 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
 
   @Override
   public final ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice, 
-                                                   GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
-    final GLCapabilitiesImmutable chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(requestedCaps);
+                                                   GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
+    chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
     return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, 
                                     new OSXDummyUpstreamSurfaceHook(width, height)); 
   }  

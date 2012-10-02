@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import jogamp.nativewindow.Debug;
+import jogamp.nativewindow.GlobalToolkitLock;
 import jogamp.nativewindow.NativeWindowFactoryImpl;
 import jogamp.nativewindow.ToolkitProperties;
 import jogamp.nativewindow.ResourceToolkitLock;
@@ -102,7 +103,7 @@ public abstract class NativeWindowFactory {
     private static ToolkitLock jawtUtilJAWTToolkitLock;
     
     private static boolean requiresToolkitLock;
-    private static boolean requiresGlobalToolkitLock;
+    private static boolean desktopHasThreadingIssues;
 
     private static volatile boolean isJVMShuttingDown = false;
     
@@ -183,15 +184,11 @@ public abstract class NativeWindowFactory {
             
             final Boolean res1 = (Boolean) ReflectionUtil.callStaticMethod(clazzName, "requiresToolkitLock", null, null, cl);
             requiresToolkitLock = res1.booleanValue();
-            if(requiresToolkitLock) {
-                final Boolean res2 = (Boolean) ReflectionUtil.callStaticMethod(clazzName, "requiresGlobalToolkitLock", null, null, cl);
-                requiresGlobalToolkitLock = res2.booleanValue();
-            } else {
-                requiresGlobalToolkitLock = false;
-            }
+            final Boolean res2 = (Boolean) ReflectionUtil.callStaticMethod(clazzName, "hasThreadingIssues", null, null, cl);
+            desktopHasThreadingIssues = res2.booleanValue();
         } else {            
             requiresToolkitLock = false;
-            requiresGlobalToolkitLock = false;
+            desktopHasThreadingIssues = false;
         }
     }
 
@@ -293,7 +290,7 @@ public abstract class NativeWindowFactory {
             }
             
             if(DEBUG) {
-                System.err.println("NativeWindowFactory requiresToolkitLock "+requiresToolkitLock+", requiresGlobalToolkitLock "+requiresGlobalToolkitLock);
+                System.err.println("NativeWindowFactory requiresToolkitLock "+requiresToolkitLock+", desktopHasThreadingIssues "+desktopHasThreadingIssues);
                 System.err.println("NativeWindowFactory isAWTAvailable "+isAWTAvailable+", defaultFactory "+factory);
             }
             
@@ -327,11 +324,6 @@ public abstract class NativeWindowFactory {
     /** @return true if the underlying toolkit requires locking, otherwise false. */
     public static boolean requiresToolkitLock() {
         return requiresToolkitLock;
-    }
-    
-    /** @return true if the underlying toolkit requires global locking, otherwise false. */
-    public static boolean requiresGlobalToolkitLock() {
-        return requiresGlobalToolkitLock;
     }
     
     /** @return true if not headless, AWT Component and NativeWindow's AWT part available */
@@ -382,11 +374,15 @@ public abstract class NativeWindowFactory {
     public static ToolkitLock getNullToolkitLock() {
         return NativeWindowFactoryImpl.getNullToolkitLock();
     }
-
-    public static ToolkitLock getGlobalToolkitLock() {
-        return NativeWindowFactoryImpl.getGlobalToolkitLock();
-    }
     
+    /**
+     * Ony call this for small code segments for desktop w/ threading issues.
+     * @return {@link GlobalToolkitLock} if desktop has threading issues, otherwise {@link #getNullToolkitLock()}
+     */
+    public static ToolkitLock getGlobalToolkitLockIfRequired() {
+        return desktopHasThreadingIssues ? GlobalToolkitLock.getSingleton() : getNullToolkitLock();
+    }
+
     /**
      * Provides the system default {@link ToolkitLock} for the default system windowing type.
      * @see #getNativeWindowType(boolean)
@@ -400,7 +396,6 @@ public abstract class NativeWindowFactory {
      * Provides the default {@link ToolkitLock} for <code>type</code>.
      * <ul>
      *   <li> JAWT {@link ToolkitLock} if required and <code>type</code> is of {@link #TYPE_AWT} and AWT available,</li>
-     *   <li> {@link jogamp.nativewindow.GlobalToolkitLock} if required, otherwise</li>
      *   <li> {@link jogamp.nativewindow.ResourceToolkitLock} if required, otherwise</li>
      *   <li> {@link jogamp.nativewindow.NullToolkitLock} </li>
      * </ul>
@@ -409,9 +404,6 @@ public abstract class NativeWindowFactory {
         if( requiresToolkitLock ) {
             if( TYPE_AWT == type && isAWTAvailable() ) {
                 return getAWTToolkitLock();
-            }
-            if( requiresGlobalToolkitLock ) {
-                return NativeWindowFactoryImpl.getGlobalToolkitLock();
             }
             return ResourceToolkitLock.create();
         }
@@ -422,7 +414,6 @@ public abstract class NativeWindowFactory {
      * Provides the default {@link ToolkitLock} for <code>type</code> and <code>deviceHandle</code>.
      * <ul>
      *   <li> JAWT {@link ToolkitLock} if required and <code>type</code> is of {@link #TYPE_AWT} and AWT available,</li>
-     *   <li> {@link jogamp.nativewindow.GlobalToolkitLock} if required, otherwise</li>
      *   <li> {@link jogamp.nativewindow.ResourceToolkitLock} if required, otherwise</li>
      *   <li> {@link jogamp.nativewindow.NullToolkitLock} </li>
      * </ul>
@@ -431,9 +422,6 @@ public abstract class NativeWindowFactory {
         if( requiresToolkitLock ) {
             if( TYPE_AWT == type && isAWTAvailable() ) {
                 return getAWTToolkitLock();
-            }
-            if( requiresGlobalToolkitLock ) {
-                return NativeWindowFactoryImpl.getGlobalToolkitLock();
             }
             return ResourceToolkitLock.create();
         }

@@ -76,7 +76,7 @@ public class OSXUtil implements ToolkitProperties {
      * Called by {@link NativeWindowFactory#initSingleton()}
      * @see ToolkitProperties
      */
-    public static final boolean requiresGlobalToolkitLock() { return false; }
+    public static final boolean hasThreadingIssues() { return false; }
     
     public static boolean isNSView(long object) {
         return isNSView0(object);

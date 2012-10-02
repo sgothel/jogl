@@ -36,16 +36,19 @@ import com.jogamp.common.util.locks.RecursiveLock;
 /**
  * Implementing a global recursive {@link javax.media.nativewindow.ToolkitLock}.
  * <p>
- * This is the last resort for unstable driver, e.g. proprietary ATI/X11 12.8 and 12.9,
- * where multiple X11 display connections to the same connection name are not treated
- * thread safe within the GL/X11 driver.
+ * This is the last resort for unstable driver where multiple X11 display connections 
+ * to the same connection name are not treated thread safe within the GL/X11 driver.
  * </p>
  */
 public class GlobalToolkitLock implements ToolkitLock {
     private static final RecursiveLock globalLock = LockFactory.createRecursiveLock();
+    private static GlobalToolkitLock singleton = new GlobalToolkitLock();
     
-    /** Singleton via {@link NativeWindowFactoryImpl#getGlobalToolkitLock()} */
-    protected GlobalToolkitLock() { }
+    public static final GlobalToolkitLock getSingleton() {
+        return singleton;
+    }
+    
+    private GlobalToolkitLock() { }
     
     @Override
     public final void lock() {

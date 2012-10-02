@@ -701,7 +701,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CloseWindow0
     Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessages0(env, obj, display, javaObjectAtom, windowDeleteAtom);
 
     XDestroyWindow(dpy, w);
-    XSync(dpy, False);
+    XSync(dpy, True); // discard all events now, no more handler
 
     (*env)->DeleteGlobalRef(env, jwindow);
 

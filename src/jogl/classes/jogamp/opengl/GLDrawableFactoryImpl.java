@@ -188,7 +188,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
             }
             if( chosenCaps.isFBO() && isFBOAvailable ) {
                 // need to hook-up a native dummy surface since source may not have
-                final ProxySurface dummySurface = createDummySurfaceImpl(adevice, true, chosenCaps, null, 64, 64);
+                final ProxySurface dummySurface = createDummySurfaceImpl(adevice, false, chosenCaps, (GLCapabilitiesImmutable)config.getRequestedCapabilities(), null, 64, 64);
                 dummySurface.setUpstreamSurfaceHook(new DelegatedUpstreamSurfaceHookWithSurfaceSize(dummySurface.getUpstreamSurfaceHook(), target));
                 result = createFBODrawableImpl(dummySurface, chosenCaps, 0);
             } else {
@@ -299,7 +299,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     if( capsChosen.isFBO() ) {
         device.lock();
         try {
-            final ProxySurface dummySurface = createDummySurfaceImpl(device, true, capsRequested, null, width, height);
+            final ProxySurface dummySurface = createDummySurfaceImpl(device, true, capsChosen, capsRequested, null, width, height);
             final GLDrawableImpl dummyDrawable = createOnscreenDrawableImpl(dummySurface);    
             return new GLFBODrawableImpl.ResizeableImpl(this, dummyDrawable, dummySurface, capsChosen, 0);
         } finally {
@@ -370,7 +370,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     }
     device.lock();
     try {
-        return createDummySurfaceImpl(device, true, requestedCaps, chooser, width, height);
+        return createDummySurfaceImpl(device, true, requestedCaps, requestedCaps, chooser, width, height);
     } finally {
         device.unlock();
     }
@@ -386,6 +386,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * @param device a valid platform dependent target device.
    * @param createNewDevice if <code>true</code> a new device instance is created using <code>device</code> details,
    *                        otherwise <code>device</code> instance is used as-is.
+   * @param chosenCaps
    * @param requestedCaps
    * @param chooser the custom chooser, may be null for default
    * @param width the initial width as returned by {@link NativeSurface#getWidth()}, not the actual dummy surface width. 
@@ -395,7 +396,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * @return the created {@link ProxySurface} instance w/o defined surface handle but platform specific {@link UpstreamSurfaceHook}.
    */
   public abstract ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice device, boolean createNewDevice, 
-                                                      GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height);
+                                                      GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height);
 
   //---------------------------------------------------------------------------
   //

@@ -229,7 +229,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
         @Override
         public SharedResourceRunner.Resource createSharedResource(String connection) {
-            final X11GraphicsDevice sharedDevice = new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT, true);
+            final X11GraphicsDevice sharedDevice = new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT, true /* owner */);
             sharedDevice.lock();
             try {
                 final X11GraphicsScreen sharedScreen = new X11GraphicsScreen(sharedDevice, sharedDevice.getDefaultScreen());
@@ -246,8 +246,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 if (null == glp) {
                     throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
                 }
-                
-                final GLDrawableImpl sharedDrawable = createOnscreenDrawableImpl(createDummySurfaceImpl(sharedDevice, false, new GLCapabilities(glp), null, 64, 64));
+
+                final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+                final GLDrawableImpl sharedDrawable = createOnscreenDrawableImpl(createDummySurfaceImpl(sharedDevice, false, caps, caps, null, 64, 64));
                 sharedDrawable.setRealized(true);
                 
                 final GLContextImpl sharedContext = (GLContextImpl) sharedDrawable.createContext(null);
@@ -499,11 +500,10 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                                                         GLCapabilitiesImmutable capsRequested,
                                                         GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook) {
     final X11GraphicsDevice device;
-    if(createNewDevice) {
-        // Null X11 resource locking, due to private non-shared Display handle
-        device = new X11GraphicsDevice(X11Util.openDisplay(deviceReq.getConnection()), deviceReq.getUnitID(), true);
+    if( createNewDevice || !(deviceReq instanceof X11GraphicsDevice) ) { 
+        device = new X11GraphicsDevice(X11Util.openDisplay(deviceReq.getConnection()), deviceReq.getUnitID(), true /* owner */);
     } else {
-        device = (X11GraphicsDevice)deviceReq;
+        device = (X11GraphicsDevice) deviceReq;
     }
     final X11GraphicsScreen screen = new X11GraphicsScreen(device, device.getDefaultScreen());
     final X11GLXGraphicsConfiguration config = X11GLXGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(capsChosen, capsRequested, chooser, screen, VisualIDHolder.VID_UNDEFINED);
@@ -512,17 +512,17 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     }
     return new WrappedSurface(config, 0, upstreamHook, createNewDevice);
   }
-
+  
   @Override
   public final ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice, 
-                                                   GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
-    final GLCapabilitiesImmutable chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(requestedCaps);
+                                                   GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
+    chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
     return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, new X11DummyUpstreamSurfaceHook(width, height)); 
   }  
   
   @Override
   protected final ProxySurface createProxySurfaceImpl(AbstractGraphicsDevice deviceReq, int screenIdx, long windowHandle, GLCapabilitiesImmutable capsRequested, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream) {
-    final X11GraphicsDevice device = new X11GraphicsDevice(X11Util.openDisplay(deviceReq.getConnection()), deviceReq.getUnitID(), true);
+    final X11GraphicsDevice device = new X11GraphicsDevice(X11Util.openDisplay(deviceReq.getConnection()), deviceReq.getUnitID(), true /* owner */);
     final X11GraphicsScreen screen = new X11GraphicsScreen(device, screenIdx);
     final int xvisualID = X11Lib.GetVisualIDFromWindow(device.getHandle(), windowHandle);
     if(VisualIDHolder.VID_UNDEFINED == xvisualID) {

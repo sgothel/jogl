@@ -367,7 +367,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 
                 if( hasPBuffer[0] ) {
                     // 2nd case create defaultDevice shared resource using pbuffer surface
-                    surface = createDummySurfaceImpl(eglDevice, false, reqCapsPBuffer, null, 64, 64); // egl pbuffer offscreen
+                    surface = createDummySurfaceImpl(eglDevice, false, reqCapsPBuffer, reqCapsPBuffer, null, 64, 64); // egl pbuffer offscreen
                     upstreamSurface = (ProxySurface)surface;
                     upstreamSurface.createNotify();
                     deviceFromUpstreamSurface = false;
@@ -664,7 +664,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                                                     GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook) {
         final boolean ownDevice;
         final EGLGraphicsDevice device;
-        if(createNewDevice || ! ( deviceReq instanceof EGLGraphicsDevice ) ) {
+        if( createNewDevice || ! (deviceReq instanceof EGLGraphicsDevice) ) {
             final long nativeDisplayID = ( deviceReq instanceof EGLGraphicsDevice) ?
                     ( (EGLGraphicsDevice) deviceReq ).getNativeDisplayID() : deviceReq.getHandle() ;
             device = EGLDisplayUtil.eglCreateEGLGraphicsDevice(nativeDisplayID, deviceReq.getConnection(), deviceReq.getUnitID());
@@ -683,8 +683,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     
     @Override
     public final ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice, 
-                                                     GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
-        final GLCapabilitiesImmutable chosenCaps = GLGraphicsConfigurationUtil.fixOffscreenBitOnly(requestedCaps); // complete validation in EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(..) above         
+                                                     GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
+        chosenCaps = GLGraphicsConfigurationUtil.fixOffscreenBitOnly(chosenCaps); // complete validation in EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(..) above         
         return createMutableSurfaceImpl(deviceReq, createNewDevice, chosenCaps, requestedCaps, chooser, new EGLDummyUpstreamSurfaceHook(width, height));
     }
     

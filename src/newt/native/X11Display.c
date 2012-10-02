@@ -329,10 +329,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
         char text[255];
 
         // XEventsQueued(dpy, X):
-        //   QueuedAlready                 : No I/O Flush or system call  doesn't work on some cards (eg ATI) ?) 
+        //   QueuedAlready    == XQLength(): No I/O Flush or system call  doesn't work on some cards (eg ATI) ?) 
         //   QueuedAfterFlush == XPending(): I/O Flush only if no already queued events are available
         //   QueuedAfterReading            : QueuedAlready + if queue==0, attempt to read more ..
-        if ( 0 >= XPending(dpy) ) {
+        if ( 0 >= XEventsQueued(dpy, QueuedAfterFlush) ) {
             // DBG_PRINT( "X11: DispatchMessages 0x%X - Leave 1\n", dpy); 
             return;
         }

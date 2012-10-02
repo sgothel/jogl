@@ -80,7 +80,7 @@ public class DisplayDriver extends DisplayImpl {
         if( 0 == handle ) {
             throw new RuntimeException("Error creating display(Win): "+name);
         }
-        aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, true);
+        aDevice = new X11GraphicsDevice(handle, AbstractGraphicsDevice.DEFAULT_UNIT, true /* owner */);
         try {
             CompleteDisplay0(aDevice.getHandle());
         } catch(RuntimeException e) {

@@ -48,6 +48,8 @@ import java.util.Map;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.ToolkitLock;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
@@ -180,11 +182,16 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   @Override
   protected void destroyContextARBImpl(long ctx) {
-    X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration();
-    long display = config.getScreen().getDevice().getHandle();
-
-    glXMakeContextCurrent(display, 0, 0, 0);
-    GLX.glXDestroyContext(display, ctx);
+    final ToolkitLock tkLock = NativeWindowFactory.getGlobalToolkitLockIfRequired();
+    tkLock.lock();
+    try {
+        long display = drawable.getNativeSurface().getDisplayHandle();
+    
+        glXMakeContextCurrent(display, 0, 0, 0);
+        GLX.glXDestroyContext(display, ctx);
+    } finally {
+        tkLock.unlock();
+    }
   }
   private static final int ctx_arb_attribs_idx_major = 0;
   private static final int ctx_arb_attribs_idx_minor = 2;
@@ -243,6 +250,8 @@ public abstract class X11GLXContext extends GLContextImpl {
     AbstractGraphicsDevice device = config.getScreen().getDevice();
     final long display = device.getHandle();
 
+    final ToolkitLock tkLock = NativeWindowFactory.getGlobalToolkitLockIfRequired();
+    tkLock.lock();
     try {
         // critical path, a remote display might not support this command,
         // hence we need to catch the X11 Error within this block.
@@ -253,7 +262,10 @@ public abstract class X11GLXContext extends GLContextImpl {
           Throwable t = new Throwable(getThreadName()+": Info: X11GLXContext.createContextARBImpl glXCreateContextAttribsARB failed with "+getGLVersion(major, minor, ctp, "@creation"), re);
           t.printStackTrace();
         }
+    } finally {
+        tkLock.unlock();
     }
+    
     if(0!=ctx) {
         if (!glXMakeContextCurrent(display, drawable.getHandle(), drawableRead.getHandle(), ctx)) {
             if(DEBUG) {
@@ -420,7 +432,7 @@ public abstract class X11GLXContext extends GLContextImpl {
 
   @Override
   protected void destroyImpl() throws GLException {
-    GLX.glXDestroyContext(drawable.getNativeSurface().getDisplayHandle(), contextHandle);
+    destroyContextARBImpl(contextHandle);
   }
 
   @Override

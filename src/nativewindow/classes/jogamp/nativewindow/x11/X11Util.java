@@ -95,7 +95,7 @@ public class X11Util implements ToolkitProperties {
     private static String nullDisplayName = null;
     private static volatile boolean isInit = false;
     private static boolean markAllDisplaysUnclosable = false; // ATI/AMD X11 driver issues
-    private static boolean requiresGlobalToolkitLock = false; // ATI/AMD X11 driver issues
+    private static boolean hasThreadingIssues = false; // ATI/AMD X11 driver issues
 
     private static Object setX11ErrorHandlerLock = new Object();
     private static final String X11_EXTENSION_ATIFGLRXDRI     = "ATIFGLRXDRI";
@@ -137,7 +137,7 @@ public class X11Util implements ToolkitProperties {
                         hasX11_EXTENSION_ATIFGLRXDRI = false;
                         hasX11_EXTENSION_ATIFGLEXTENSION = false;
                     }
-                    requiresGlobalToolkitLock = ATI_HAS_MULTITHREADING_BUG && ( hasX11_EXTENSION_ATIFGLRXDRI || hasX11_EXTENSION_ATIFGLEXTENSION );
+                    hasThreadingIssues = ATI_HAS_MULTITHREADING_BUG && ( hasX11_EXTENSION_ATIFGLRXDRI || hasX11_EXTENSION_ATIFGLEXTENSION );
                     markAllDisplaysUnclosable = ATI_HAS_XCLOSEDISPLAY_BUG && ( hasX11_EXTENSION_ATIFGLRXDRI || hasX11_EXTENSION_ATIFGLEXTENSION );
                     
                     if(DEBUG) {
@@ -147,7 +147,7 @@ public class X11Util implements ToolkitProperties {
                                            ",\n\t X11_EXTENSION_ATIFGLRXDRI " + hasX11_EXTENSION_ATIFGLRXDRI+
                                            ",\n\t X11_EXTENSION_ATIFGLEXTENSION " + hasX11_EXTENSION_ATIFGLEXTENSION+
                                            ",\n\t requiresToolkitLock "+requiresToolkitLock()+
-                                           ",\n\t requiresGlobalToolkitLock "+requiresGlobalToolkitLock()+
+                                           ",\n\t hasThreadingIssues "+hasThreadingIssues()+
                                            ",\n\t markAllDisplaysUnclosable "+getMarkAllDisplaysUnclosable()
                                            );
                         // Thread.dumpStack();
@@ -228,8 +228,8 @@ public class X11Util implements ToolkitProperties {
      * Called by {@link NativeWindowFactory#initSingleton()}
      * @see ToolkitProperties
      */
-    public static final boolean requiresGlobalToolkitLock() {
-        return requiresGlobalToolkitLock; // JAWT locking: yes, instead of native X11 locking w use a global lock.
+    public static final boolean hasThreadingIssues() {
+        return hasThreadingIssues; // JOGL impl. may utilize special locking "somewhere" 
     }
     
     public static void setX11ErrorHandler(boolean onoff, boolean quiet) {

@@ -84,7 +84,7 @@ public class GDIUtil implements ToolkitProperties {
      * Called by {@link NativeWindowFactory#initSingleton()}
      * @see ToolkitProperties
      */
-    public static final boolean requiresGlobalToolkitLock() { return false; }
+    public static final boolean hasThreadingIssues() { return false; }
     
     private static RegisteredClass dummyWindowClass = null;
     private static Object dummyWindowSync = new Object();

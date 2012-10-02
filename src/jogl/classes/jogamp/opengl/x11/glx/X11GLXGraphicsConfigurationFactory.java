@@ -127,16 +127,22 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
             throw new GLException("Shared resource for device n/a: "+device);
         }
         final X11GraphicsScreen sharedScreen = (X11GraphicsScreen) sharedResource.getScreen();
-        final boolean isMultisampleAvailable = factory.isGLXMultisampleAvailable(sharedScreen.getDevice());
+        final X11GraphicsDevice sharedDevice = (X11GraphicsDevice) sharedScreen.getDevice();
+        final boolean isMultisampleAvailable = sharedResource.isGLXMultisampleAvailable();
         final GLProfile glp = GLProfile.getDefault(device);
 
         List<GLCapabilitiesImmutable> availableCaps = null;
-
-        if( sharedResource.isGLXVersionGreaterEqualOneThree() ) {
-            availableCaps = getAvailableGLCapabilitiesFBConfig(sharedScreen, glp, isMultisampleAvailable);
-        }
-        if( null == availableCaps || availableCaps.isEmpty() ) {
-            availableCaps = getAvailableGLCapabilitiesXVisual(sharedScreen, glp, isMultisampleAvailable);
+        
+        sharedDevice.lock();
+        try {
+            if( sharedResource.isGLXVersionGreaterEqualOneThree() ) {
+                availableCaps = getAvailableGLCapabilitiesFBConfig(sharedScreen, glp, isMultisampleAvailable);
+            }
+            if( null == availableCaps || availableCaps.isEmpty() ) {
+                availableCaps = getAvailableGLCapabilitiesXVisual(sharedScreen, glp, isMultisampleAvailable);
+            }
+        } finally {
+            sharedDevice.unlock();
         }
         if( null != availableCaps && availableCaps.size() > 1 ) {
             Collections.sort(availableCaps, XVisualIDComparator);
@@ -215,16 +221,21 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
         
         capsChosen = GLGraphicsConfigurationUtil.fixGLCapabilities( capsChosen, factory, x11Device);
         final boolean usePBuffer = !capsChosen.isOnscreen() && capsChosen.isPBuffer();
-    
+
         X11GLXGraphicsConfiguration res = null;
-        if( factory.isGLXVersionGreaterEqualOneThree(x11Device) ) {
-            res = chooseGraphicsConfigurationFBConfig(capsChosen, capsReq, chooser, x11Screen, xvisualID);
-        }
-        if(null==res) {
-            if(usePBuffer) {
-                throw new GLException("Error: Couldn't create X11GLXGraphicsConfiguration based on FBConfig for visualID "+toHexString(xvisualID)+", "+capsChosen);
+        x11Device.lock();
+        try {
+            if( factory.isGLXVersionGreaterEqualOneThree(x11Device) ) {
+                res = chooseGraphicsConfigurationFBConfig(capsChosen, capsReq, chooser, x11Screen, xvisualID);
             }
-            res = chooseGraphicsConfigurationXVisual(capsChosen, capsReq, chooser, x11Screen, xvisualID);
+            if(null==res) {
+                if(usePBuffer) {
+                    throw new GLException("Error: Couldn't create X11GLXGraphicsConfiguration based on FBConfig for visualID "+toHexString(xvisualID)+", "+capsChosen);
+                }
+                res = chooseGraphicsConfigurationXVisual(capsChosen, capsReq, chooser, x11Screen, xvisualID);
+            }
+        } finally {
+            x11Device.unlock();
         }
         if(null==res) {
             throw new GLException("Error: Couldn't create X11GLXGraphicsConfiguration based on FBConfig and XVisual for visualID "+toHexString(xvisualID)+", "+x11Screen+", "+capsChosen);

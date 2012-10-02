@@ -73,7 +73,7 @@ public class WindowDriver extends WindowImpl {
         if( 0 == renderDeviceHandle ) {
             throw new RuntimeException("Error creating display(EDT): "+edtDevice.getConnection());
         }
-        renderDevice = new X11GraphicsDevice(renderDeviceHandle, AbstractGraphicsDevice.DEFAULT_UNIT, true);
+        renderDevice = new X11GraphicsDevice(renderDeviceHandle, AbstractGraphicsDevice.DEFAULT_UNIT, true /* owner */);
         final AbstractGraphicsScreen renderScreen = new X11GraphicsScreen(renderDevice, screen.getIndex());
         
         final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(display.getGraphicsDevice(), capsRequested);

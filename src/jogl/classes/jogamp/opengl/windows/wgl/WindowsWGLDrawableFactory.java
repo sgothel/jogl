@@ -318,7 +318,8 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                 if (null == glp) {
                     throw new GLException("Couldn't get default GLProfile for device: "+sharedDevice);
                 }
-                final GLDrawableImpl sharedDrawable = createOnscreenDrawableImpl(createDummySurfaceImpl(sharedDevice, false, new GLCapabilities(glp), null, 64, 64));
+                final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
+                final GLDrawableImpl sharedDrawable = createOnscreenDrawableImpl(createDummySurfaceImpl(sharedDevice, false, caps, caps, null, 64, 64));
                 sharedDrawable.setRealized(true);
                                 
                 final GLContextImpl sharedContext  = (GLContextImpl) sharedDrawable.createContext(null);
@@ -543,7 +544,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                                                         GLCapabilitiesImmutable capsChosen, GLCapabilitiesImmutable capsRequested, 
                                                         GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstreamHook) {
     final WindowsGraphicsDevice device;
-    if(createNewDevice) {
+    if(createNewDevice || !(deviceReq instanceof WindowsGraphicsDevice)) {
         device = new WindowsGraphicsDevice(deviceReq.getConnection(), deviceReq.getUnitID());
     } else {
         device = (WindowsGraphicsDevice)deviceReq;
@@ -558,18 +559,18 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
 
   @Override
   public final ProxySurface createDummySurfaceImpl(AbstractGraphicsDevice deviceReq, boolean createNewDevice, 
-                                                   GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
+                                                   GLCapabilitiesImmutable chosenCaps, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser, int width, int height) {
     final WindowsGraphicsDevice device;
-    if(createNewDevice) {
+    if( createNewDevice || !(deviceReq instanceof WindowsGraphicsDevice) ) {
         device = new WindowsGraphicsDevice(deviceReq.getConnection(), deviceReq.getUnitID());
     } else {
         device = (WindowsGraphicsDevice)deviceReq;
     }
     final AbstractGraphicsScreen screen = new DefaultGraphicsScreen(device, 0);
-    final GLCapabilitiesImmutable chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(requestedCaps);
+    chosenCaps = GLGraphicsConfigurationUtil.fixOnscreenGLCapabilities(chosenCaps);
     final WindowsWGLGraphicsConfiguration config = WindowsWGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(chosenCaps, requestedCaps, chooser, screen);
     if(null == config) { 
-        throw new GLException("Choosing GraphicsConfiguration failed w/ "+requestedCaps+" on "+screen);
+        throw new GLException("Choosing GraphicsConfiguration failed w/ "+chosenCaps+" on "+screen);
     }    
     return new GDISurface(config, 0, new GDIDummyUpstreamSurfaceHook(width, height), createNewDevice);
   }    
