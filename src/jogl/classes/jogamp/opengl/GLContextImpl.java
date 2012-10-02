@@ -1261,7 +1261,7 @@ public abstract class GLContextImpl extends GLContext {
     //
     setContextVersion(major, minor, ctxProfileBits, true);
     
-    setRendererQuirks();
+    setRendererQuirks( 0 == ( ctxProfileBits & GLContext.CTX_IMPL_ACCEL_SOFT ) );
 
     setDefaultSwapInterval();
     
@@ -1270,7 +1270,7 @@ public abstract class GLContextImpl extends GLContext {
     }
   }
   
-  private final void setRendererQuirks() {
+  private final void setRendererQuirks(boolean hwAccel) {
     int[] quirks = new int[GLRendererQuirks.COUNT];
     int i = 0;
     
@@ -1297,7 +1297,7 @@ public abstract class GLContextImpl extends GLContext {
         }
         quirks[i++] = quirk;
     }
-    if( glRendererLowerCase.contains("mesa") ) {
+    if( glRendererLowerCase.contains("mesa") || glRendererLowerCase.contains("gallium") ) {
         {
             final int quirk = GLRendererQuirks.NoSetSwapIntervalPostRetarget;
             if(DEBUG) {
@@ -1305,7 +1305,8 @@ public abstract class GLContextImpl extends GLContext {
             }
             quirks[i++] = quirk;            
         }
-        if( glRendererLowerCase.contains("intel(r)") ) {
+        if( hwAccel /* glRendererLowerCase.contains("intel(r)") || glRendererLowerCase.contains("amd") */ )
+        {
             final int quirk = GLRendererQuirks.NoDoubleBufferedPBuffer;
             if(DEBUG) {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);

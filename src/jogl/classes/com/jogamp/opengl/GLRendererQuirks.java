@@ -36,7 +36,15 @@ package com.jogamp.opengl;
  * </p>
  */
 public class GLRendererQuirks {
-    /** Crashes XServer when using double buffered PBuffer with 'Mesa DRI Intel(R) Sandybridge Desktop' & 'Mesa DRI Intel(R) Ivybridge Mobile - 3.0 Mesa 8.0.4' */
+    /** 
+     * Crashes XServer when using double buffered PBuffer with:
+     * <ul>
+     *  <li>Mesa DRI Intel(R) Sandybridge Desktop</li>
+     *  <li>Mesa DRI Intel(R) Ivybridge Mobile - 3.0 Mesa 8.0.4</li>
+     *  <li>Gallium 0.4 on AMD CYPRESS</li>
+     * </ul>
+     * For now, it is safe to disable it w/ hw-acceleration.
+     */
     public static final int NoDoubleBufferedPBuffer = 0;
     
     /** On Windows no double buffered bitmaps are guaranteed to be available. */
