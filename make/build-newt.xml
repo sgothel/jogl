@@ -302,16 +302,22 @@
       <linker id="linker.cfg.linux.newt.x11" extends="linker.cfg.linux">
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <!--syslibset libs="xcb" /-->
+        <!--syslibset libs="X11-xcb" /-->
       </linker>
 
       <linker id="linker.cfg.linux.x86.newt.x11" extends="linker.cfg.linux.x86">
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <!--syslibset libs="xcb" /-->
+        <!--syslibset libs="X11-xcb" /-->
       </linker>
 
       <linker id="linker.cfg.linux.amd64.newt.x11" extends="linker.cfg.linux.amd64">
         <syslibset libs="X11"/>
         <syslibset libs="Xrandr"/>
+        <!--syslibset libs="xcb" /-->
+        <!--syslibset libs="X11-xcb" /-->
       </linker>
 
       <linker id="linker.cfg.linux.armv6.newt.x11" extends="linker.cfg.linux.armv6">
@@ -580,6 +586,8 @@
           <include name="${rootrel.src.c}/*.m"             if="isOSX"/>
           <include name="${rootrel.src.c}/AndroidWindow.c" if="isAndroid"/>
           <include name="${rootrel.src.c}/X11Display.c"    if="isX11"/>
+          <!-- include name="${rootrel.src.c}/X11Event.c"      if="isX11"/-->
+          <!-- include name="${rootrel.src.c}/XCBEvent.c"      if="isX11"/-->
           <include name="${rootrel.src.c}/X11Screen.c"     if="isX11"/>
           <include name="${rootrel.src.c}/X11Window.c"     if="isX11"/>
           <include name="${rootrel.src.c}/KDWindow.c"      if="setup.addNativeKD"/>

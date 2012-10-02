@@ -288,7 +288,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       clientArea = GLCanvas.this.getClientArea();
 
       /* Get the nativewindow-Graphics Device associated with this control (which is determined by the parent Composite). 
-       * Note: SWT is owner of the native handle, hence no closing operation will be a NOP. */
+       * Note: SWT is owner of the native handle, hence closing operation will be a NOP. */
       device = SWTAccessor.getDevice(this);
 
       /* Select default GLCapabilities if none was provided, otherwise clone provided caps to ensure safety */
