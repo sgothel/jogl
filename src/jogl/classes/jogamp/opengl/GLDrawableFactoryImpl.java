@@ -441,24 +441,14 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
 
   @Override
   public GLContext createExternalGLContext() {
-    NativeWindowFactory.getDefaultToolkitLock().lock();
-    try {
-        return createExternalGLContextImpl();
-    } finally {
-        NativeWindowFactory.getDefaultToolkitLock().unlock();
-    }
+    return createExternalGLContextImpl();
   }
 
   protected abstract GLDrawable createExternalGLDrawableImpl();
 
   @Override
   public GLDrawable createExternalGLDrawable() {
-    NativeWindowFactory.getDefaultToolkitLock().lock();
-    try {
-        return createExternalGLDrawableImpl();
-    } finally {
-        NativeWindowFactory.getDefaultToolkitLock().unlock();
-    }
+    return createExternalGLDrawableImpl();
   }
 
 

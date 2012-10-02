@@ -247,7 +247,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent01NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent02NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextSurfaceLockNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
@@ -351,7 +351,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent02NEWT $*
 #   Per default (unit tests) all test are performed this way
 #   with OSX: -XstartOnFirstThread
 #
-#testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
+testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor03AWTGLn $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
