@@ -42,7 +42,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import jogamp.nativewindow.Debug;
-import jogamp.nativewindow.GlobalToolkitLock;
 import jogamp.nativewindow.NativeWindowFactoryImpl;
 import jogamp.nativewindow.ToolkitProperties;
 import jogamp.nativewindow.ResourceToolkitLock;
@@ -375,14 +374,6 @@ public abstract class NativeWindowFactory {
         return NativeWindowFactoryImpl.getNullToolkitLock();
     }
     
-    /**
-     * Ony call this for small code segments for desktop w/ threading issues.
-     * @return {@link GlobalToolkitLock} if desktop has threading issues, otherwise {@link #getNullToolkitLock()}
-     */
-    public static ToolkitLock getGlobalToolkitLockIfRequired() {
-        return desktopHasThreadingIssues ? GlobalToolkitLock.getSingleton() : getNullToolkitLock();
-    }
-
     /**
      * Provides the system default {@link ToolkitLock} for the default system windowing type.
      * @see #getNativeWindowType(boolean)
