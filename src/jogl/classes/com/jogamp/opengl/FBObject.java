@@ -376,7 +376,7 @@ public class FBObject {
         public boolean initialize(GL gl) throws GLException {
             final boolean init = 0 == getName();
             if( init ) {
-                int glerr = checkPreGLError(gl);
+                checkPreGLError(gl);
                 
                 final int[] name = new int[] { -1 };
                 gl.glGenRenderbuffers(1, name, 0);
@@ -388,7 +388,7 @@ public class FBObject {
                 } else {
                     gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, format, getWidth(), getHeight());
                 }
-                glerr = gl.glGetError();
+                int glerr = gl.glGetError();
                 if(GL.GL_NO_ERROR != glerr) {
                     gl.glDeleteRenderbuffers(1, name, 0);
                     setName(0);
@@ -474,7 +474,7 @@ public class FBObject {
         public boolean initialize(GL gl) throws GLException {
             final boolean init = 0 == getName();
             if( init ) {
-                int glerr = checkPreGLError(gl);
+                checkPreGLError(gl);
                 
                 final int[] name = new int[] { -1 };            
                 gl.glGenTextures(1, name, 0);
@@ -497,7 +497,7 @@ public class FBObject {
                     gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, wrapT);            
                 }
                 boolean preTexImage2D = true;
-                glerr = gl.glGetError();
+                int glerr = gl.glGetError();
                 if(GL.GL_NO_ERROR == glerr) {
                     preTexImage2D = false;
                     gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, format, getWidth(), getHeight(), 0, dataFormat, dataType, null);
@@ -841,6 +841,7 @@ public class FBObject {
         if(DEBUG) {
             System.err.println("FBObject "+width+"x"+height+", "+samples+" -> "+this.samples+" samples");
             System.err.println("fullFBOSupport:           "+fullFBOSupport);
+            System.err.println("isSamplesSink:            "+(null == samplesSink));
             System.err.println("maxColorAttachments:      "+maxColorAttachments+"/"+realMaxColorAttachments+" [capped/real]");
             System.err.println("maxSamples:               "+maxSamples);
             System.err.println("maxTextureSize:           "+maxTextureSize);
@@ -1102,7 +1103,7 @@ public class FBObject {
                 destroy(gl);
             }
             if(null != exceptionMessage) {
-                throw new GLException(exceptionMessage+" GL Error "+toHexString(err));
+                throw new GLException(exceptionMessage+" GL Error "+toHexString(err)+" of "+this.toString());
             }
             return false;
         }
@@ -1960,7 +1961,7 @@ public class FBObject {
         boolean sampleSinkDepthStencilMismatch = sampleSinkDepthStencilMismatch();
         
         /** if(DEBUG) {
-            System.err.println("FBObject.resetMSAATexture2DSink.0: \n\tTHIS "+this+",\n\tSINK "+samplesSink+
+            System.err.println("FBObject.resetSamplingSink.0: \n\tTHIS "+this+",\n\tSINK "+samplesSink+
                                "\n\t size "+sampleSinkSizeMismatch +", tex "+sampleSinkTexMismatch +", depthStencil "+sampleSinkDepthStencilMismatch);
         } */
         
@@ -1972,7 +1973,7 @@ public class FBObject {
         unbind(gl);
         
         if(DEBUG) {
-            System.err.println("FBObject.resetMSAATexture2DSink: BEGIN\n\tTHIS "+this+",\n\tSINK "+samplesSink+
+            System.err.println("FBObject.resetSamplingSink: BEGIN\n\tTHIS "+this+",\n\tSINK "+samplesSink+
                                "\n\t size "+sampleSinkSizeMismatch +", tex "+sampleSinkTexMismatch +", depthStencil "+sampleSinkDepthStencilMismatch);
         }
                 
@@ -2007,7 +2008,7 @@ public class FBObject {
         }
         
         if(DEBUG) {
-            System.err.println("FBObject.resetMSAATexture2DSink: END\n\tTHIS "+this+",\n\tSINK "+samplesSink+
+            System.err.println("FBObject.resetSamplingSink: END\n\tTHIS "+this+",\n\tSINK "+samplesSink+
                                "\n\t size "+sampleSinkSizeMismatch +", tex "+sampleSinkTexMismatch +", depthStencil "+sampleSinkDepthStencilMismatch);
         }
     }
@@ -2120,10 +2121,12 @@ public class FBObject {
         if(samples>0 && samplesSinkDirty) {
             samplesSinkDirty = false;
             resetSamplingSink(gl);
+            checkPreGLError(gl);
             gl.glBindFramebuffer(GL2GL3.GL_READ_FRAMEBUFFER, fbName);
             gl.glBindFramebuffer(GL2GL3.GL_DRAW_FRAMEBUFFER, samplesSink.getWriteFramebuffer());
             ((GL2GL3)gl).glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, // since MSAA is supported, casting to GL2GL3 is OK
                                            GL.GL_COLOR_BUFFER_BIT, GL.GL_NEAREST);
+            checkNoError(null, gl.glGetError(), "FBObject syncSampleSink"); // throws GLException if error            
         }
         if(fullFBOSupport) {
             // default read/draw buffers, may utilize GLContext/GLDrawable override of 

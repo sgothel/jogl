@@ -84,7 +84,13 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     private final void initialize(boolean realize, GL gl) {        
         if(realize) {
             final int maxSamples = gl.getMaxRenderbufferSamples();
-            samples = samples <= maxSamples ? samples : maxSamples;
+            {
+                final int newSamples = samples <= maxSamples ? samples : maxSamples;
+                if(DEBUG) {
+                    System.err.println("GLFBODrawableImpl.initialize(): samples "+samples+" -> "+newSamples+"/"+maxSamples);
+                }
+                samples = newSamples;
+            }
             
             final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getChosenCapabilities();
             final int fbosN;
@@ -189,21 +195,21 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         Throwable tGL = null;
         ourContext.makeCurrent();
         fboBound = false; // clear bound-flag immediatly, caused by contextMadeCurrent(..) - otherwise we would swap @ release
-        try {                        
+        try {
             final int maxSamples = gl.getMaxRenderbufferSamples();        
             newSamples = newSamples <= maxSamples ? newSamples : maxSamples;
             
             if(0==samples && 0<newSamples || 0<samples && 0==newSamples) {
                 // MSAA on/off switch
                 if(DEBUG) {
-                    System.err.println("GLFBODrawableImpl.reset(): samples [on/off] reconfig: "+samples+" -> "+newSamples);
+                    System.err.println("GLFBODrawableImpl.reset(): samples [on/off] reconfig: "+samples+" -> "+newSamples+"/"+maxSamples);
                 }
                 initialize(false, gl);
                 samples = newSamples;
                 initialize(true, gl);
             } else {            
                 if(DEBUG) {
-                    System.err.println("GLFBODrawableImpl.reset(): simple reconfig: "+samples+" -> "+newSamples);
+                    System.err.println("GLFBODrawableImpl.reset(): simple reconfig: "+samples+" -> "+newSamples+"/"+maxSamples);
                 }
                 final int nWidth = getWidth();
                 final int nHeight = getHeight();
