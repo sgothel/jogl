@@ -759,6 +759,7 @@
 
     <target name="c.build.nativewindow.windowlib.x11" if="isX11">
       <javah destdir="${src.generated.c}/X11" classpath="${javah.classpath}" class="jogamp.nativewindow.x11.X11Lib" />
+      <javah destdir="${src.generated.c}/X11" classpath="${javah.classpath}" class="jogamp.nativewindow.x11.X11Util" />
 
       <c.build c.compiler.src.files="c.src.files.x11"
                output.lib.name="nativewindow_x11"
