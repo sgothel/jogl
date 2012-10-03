@@ -42,9 +42,20 @@ import javax.media.opengl.GLUniformData;
 import jogamp.opengl.Debug;
 
 import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.opengl.util.GLArrayDataEditable;
 
+/**
+ * ShaderState allows to sharing data between shader programs,
+ * while updating the attribute and uniform locations when switching.
+ * <p>
+ * This allows seamless switching of programs using <i>almost</i> same data
+ * but performing different artifacts. 
+ * </p>
+ * <p>
+ * A {@link #useProgram(GL2ES2, boolean) used} ShaderState is attached to the current GL context
+ * and can be retrieved via {@link #getShaderState(GL)}.
+ * </p>
+ */
 public class ShaderState {
     public static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.GLSLState", true);
     private static final String currentStateKey = "jogamp.opengl.glsl.ShaderState" ;
@@ -120,25 +131,6 @@ public class ShaderState {
      */
     public final Object detachObject(String name) {
         return attachedObjectsByString.remove(name);
-    }    
-    
-    /**
-     * Returns the attached user object for the given name to this ShaderState.
-     */
-    public final Object getAttachedObject(int name) {
-      return attachedObjectsByInt.get(name);
-    }
-
-    /**
-     * Attach user object for the given name to this ShaderState.
-     * Returns the previously set object or null.
-     */
-    public final Object attachObject(int name, Object obj) {
-      return attachedObjectsByInt.put(name, obj);
-    }
-
-    public final Object detachObject(int name) {
-        return attachedObjectsByInt.remove(name);
     }    
     
     /**
@@ -262,7 +254,6 @@ public class ShaderState {
     public synchronized void destroy(GL2ES2 gl) {
         release(gl, true, true, true);
         attachedObjectsByString.clear();        
-        attachedObjectsByInt.clear();
     }
 
     /**
@@ -1044,7 +1035,6 @@ public class ShaderState {
     private ArrayList<GLUniformData> managedUniforms = new ArrayList<GLUniformData>();
     
     private HashMap<String, Object> attachedObjectsByString = new HashMap<String, Object>();    
-    private IntObjectHashMap attachedObjectsByInt = new IntObjectHashMap();   
     private boolean resetAllShaderData = false;
 }
 
