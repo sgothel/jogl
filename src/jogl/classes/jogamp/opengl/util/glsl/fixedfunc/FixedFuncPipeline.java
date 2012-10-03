@@ -44,7 +44,7 @@ public class FixedFuncPipeline {
         init(gl, pmvMatrix, FixedFuncPipeline.class, shaderSrcRootDef, shaderBinRootDef, 
              vertexColorFileDef, vertexColorLightFileDef, fragmentColorFileDef, fragmentColorTextureFileDef);
     }
-    public FixedFuncPipeline(GL2ES2 gl, PMVMatrix pmvMatrix, Class shaderRootClass, String shaderSrcRoot, String shaderBinRoot, 
+    public FixedFuncPipeline(GL2ES2 gl, PMVMatrix pmvMatrix, Class<?> shaderRootClass, String shaderSrcRoot, String shaderBinRoot, 
                        String vertexColorFile,
                        String vertexColorLightFile,
                        String fragmentColorFile,
@@ -320,7 +320,7 @@ public class FixedFuncPipeline {
     public void validate(GL2ES2 gl) {
         shaderState.useProgram(gl, true);
         GLUniformData ud;
-        if(pmvMatrix.update()) {
+        if( pmvMatrix.update() ) {
             ud = shaderState.getUniform(mgl_PMVMatrix);
             if(null!=ud) {
                 // same data object ..
@@ -395,7 +395,7 @@ public class FixedFuncPipeline {
                "]";
     }
 
-    protected void init(GL2ES2 gl, PMVMatrix pmvMatrix, Class shaderRootClass, String shaderSrcRoot, String shaderBinRoot, 
+    protected void init(GL2ES2 gl, PMVMatrix pmvMatrix, Class<?> shaderRootClass, String shaderSrcRoot, String shaderBinRoot, 
                        String vertexColorFile,
                        String vertexColorLightFile,
                        String fragmentColorFile,
@@ -409,16 +409,16 @@ public class FixedFuncPipeline {
         this.shaderState.setVerbose(verbose);
         ShaderCode vertexColor, vertexColorLight, fragmentColor, fragmentColorTexture;
 
-        vertexColor = ShaderCode.create( gl, gl.GL_VERTEX_SHADER, shaderRootClass, shaderSrcRoot,
+        vertexColor = ShaderCode.create( gl, GL2ES2.GL_VERTEX_SHADER, shaderRootClass, shaderSrcRoot,
                                          shaderBinRoot, vertexColorFile, false);
 
-        vertexColorLight = ShaderCode.create( gl, gl.GL_VERTEX_SHADER, shaderRootClass, shaderSrcRoot,
+        vertexColorLight = ShaderCode.create( gl, GL2ES2.GL_VERTEX_SHADER, shaderRootClass, shaderSrcRoot,
                                            shaderBinRoot, vertexColorLightFile, false);
 
-        fragmentColor = ShaderCode.create( gl, gl.GL_FRAGMENT_SHADER, shaderRootClass, shaderSrcRoot,
+        fragmentColor = ShaderCode.create( gl, GL2ES2.GL_FRAGMENT_SHADER, shaderRootClass, shaderSrcRoot,
                                            shaderBinRoot, fragmentColorFile, false);
 
-        fragmentColorTexture = ShaderCode.create( gl, gl.GL_FRAGMENT_SHADER, shaderRootClass, shaderSrcRoot,
+        fragmentColorTexture = ShaderCode.create( gl, GL2ES2.GL_FRAGMENT_SHADER, shaderRootClass, shaderSrcRoot,
                                                   shaderBinRoot, fragmentColorTextureFile, false);
 
         shaderProgramColor = new ShaderProgram();
