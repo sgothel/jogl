@@ -458,7 +458,7 @@ public class ProjectFloat {
   }
 
   /**
-   * Method gluProject
+   * Map object coordinates to window coordinates.
    * 
    * @param objx
    * @param objy
@@ -506,6 +506,9 @@ public class ProjectFloat {
     return true;
   }
 
+  /**
+   * Map object coordinates to window coordinates.
+   */
   public boolean gluProject(float objx, float objy, float objz,
                             FloatBuffer modelMatrix,
                             FloatBuffer projMatrix,
@@ -543,7 +546,7 @@ public class ProjectFloat {
   }
   
   /**
-   * Method gluProject
+   * Map object coordinates to window coordinates.
    * 
    * @param objx
    * @param objy
@@ -595,7 +598,7 @@ public class ProjectFloat {
 
 
   /**
-   * Method gluUnproject
+   * Map window coordinates to object coordinates.
    * 
    * @param winx
    * @param winy
@@ -651,6 +654,20 @@ public class ProjectFloat {
   }
 
 
+  /**
+   * Map window coordinates to object coordinates.
+   * 
+   * @param winx
+   * @param winy
+   * @param winz
+   * @param modelMatrix
+   * @param projMatrix
+   * @param viewport
+   * @param viewport_offset
+   * @param obj_pos
+   * @param obj_pos_offset
+   * @return
+   */
   public boolean gluUnProject(float winx, float winy, float winz,
                               FloatBuffer modelMatrix, 
                               FloatBuffer projMatrix,
@@ -695,7 +712,7 @@ public class ProjectFloat {
   }
   
   /**
-   * Method gluUnproject
+   * Map window coordinates to object coordinates.
    * 
    * @param winx
    * @param winy
@@ -754,7 +771,7 @@ public class ProjectFloat {
 
 
   /**
-   * Method gluUnproject4
+   * Map window coordinates to object coordinates.
    * 
    * @param winx
    * @param winy
@@ -819,7 +836,7 @@ public class ProjectFloat {
   }
 
   /**
-   * Method gluUnproject4
+   * Map window coordinates to object coordinates.
    * 
    * @param winx
    * @param winy

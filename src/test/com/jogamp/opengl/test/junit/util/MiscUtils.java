@@ -30,6 +30,7 @@
 package com.jogamp.opengl.test.junit.util;
 
 import java.lang.reflect.*;
+import java.nio.FloatBuffer;
 
 public class MiscUtils {
     public static int atoi(String str, int def) {
@@ -50,6 +51,53 @@ public class MiscUtils {
         return def;
     }
 
+    public static void assertFloatBufferEquals(String errmsg, FloatBuffer expected, FloatBuffer actual, float delta) {
+        if(null == expected && null == actual) {
+            return;
+        }
+        String msg = null != errmsg ? errmsg + " " : "";
+        if(null == expected) {
+            throw new AssertionError(msg+"; Expected is null, but actual not: "+actual);
+        }
+        if(null == actual) {
+            throw new AssertionError(msg+"; Actual is null, but expected not: "+expected);
+        }
+        if(expected.remaining() != actual.remaining()) {
+            throw new AssertionError(msg+"; Expected has "+expected.remaining()+" remaining, but actual has "+actual.remaining());            
+        }
+        final int a0 = expected.position();
+        final int b0 = actual.position();
+        for(int i=0; i<expected.remaining(); i++) {
+            final float ai = expected.get(a0 + i);
+            final float bi = actual.get(b0 + i);
+            final float daibi = Math.abs(ai - bi);  
+            if( daibi > delta ) {
+                throw new AssertionError(msg+"; Expected @ ["+a0+"+"+i+"] has "+ai+", but actual @ ["+b0+"+"+i+"] has "+bi+", it's delta "+daibi+" > "+delta);
+            }
+        }
+    }
+    
+    public static void assertFloatBufferNotEqual(String errmsg, FloatBuffer expected, FloatBuffer actual, float delta) {
+        if(null == expected || null == actual) {
+            return;
+        }
+        if(expected.remaining() != actual.remaining()) {
+            return;            
+        }
+        String msg = null != errmsg ? errmsg + " " : "";
+        final int a0 = expected.position();
+        final int b0 = actual.position();
+        for(int i=0; i<expected.remaining(); i++) {
+            final float ai = expected.get(a0 + i);
+            final float bi = actual.get(b0 + i);
+            final float daibi = Math.abs(ai - bi);  
+            if( daibi > delta ) {
+                return;
+            }
+        }
+        throw new AssertionError(msg+"; Expected and actual are equal.");
+    }
+    
     public static boolean setFieldIfExists(Object instance, String fieldName, Object value) {
         try {
             Field f = instance.getClass().getField(fieldName);

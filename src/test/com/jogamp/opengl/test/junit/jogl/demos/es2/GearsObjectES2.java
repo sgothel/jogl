@@ -26,7 +26,6 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLUniformData;
 
-
 import com.jogamp.opengl.test.junit.jogl.demos.GearsObject;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -89,8 +88,11 @@ public class GearsObjectES2 extends GearsObject {
         pmvMatrix.glPushMatrix();
         pmvMatrix.glTranslatef(x, y, 0f);
         pmvMatrix.glRotatef(angle, 0f, 0f, 1f);
-        pmvMatrix.update();
-        st.uniform(gl, pmvMatrixUniform);
+        if( pmvMatrix.update() ) {
+            st.uniform(gl, pmvMatrixUniform);
+        } else {
+            throw new InternalError("PMVMatrix.update() returns false after mutable operations");
+        }
 
         colorUniform.setData(color);
         st.uniform(gl, colorUniform);
