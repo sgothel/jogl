@@ -341,7 +341,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
           StringBuilder buf = new StringBuilder();
           buf.append(getClass().getName()+" (");
           if(null!=pmvMatrix) {
-              buf.append(", matrixDirty: "+pmvMatrix.isDirty());
+              buf.append(", matrixDirty: "+ (0 != pmvMatrix.getModifiedBits(false)));
           }
           buf.append("\n\t, FixedFunction: "+fixedFunction);
           buf.append(gl);

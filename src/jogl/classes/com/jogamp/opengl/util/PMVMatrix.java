@@ -933,19 +933,22 @@ public class PMVMatrix implements GLMatrixFunc {
     }
 
     /** 
-     * Returns the modified bits due to mutable operations and clears it.
+     * Returns the modified bits due to mutable operations..
      * <p>
      * A modified bit is set, if the corresponding matrix had been modified by a mutable operation
-     * since last {@link #update()} or {@link #getModifiedBits()} call.
+     * since last {@link #update()} or {@link #getModifiedBits(boolean) getModifiedBits(true)} call.
      * </p>
+     * @param clear if true, clears the modified bits, otherwise leaves them untouched.
      * 
      * @see #MODIFIED_PROJECTION
      * @see #MODIFIED_MODELVIEW
      * @see #MODIFIED_TEXTURE
      */
-    public final int getModifiedBits() {
+    public final int getModifiedBits(boolean clear) {
         final int r = modifiedBits;
-        modifiedBits = 0;
+        if(clear) {
+            modifiedBits = 0;
+        }
         return r;
     }
     
@@ -1024,7 +1027,7 @@ public class PMVMatrix implements GLMatrixFunc {
      * {@link #glGetMviMatrixf() Mvi get} or {@link #glGetMvitMatrixf() Mvit get} etc anymore.
      * </p>
      * <p>
-     * This method clears the modified bits like {@link #getModifiedBits()},
+     * This method clears the modified bits like {@link #getModifiedBits(boolean) getModifiedBits(true)},
      * which are set by any mutable operation. The modified bits have no impact
      * on this method, but the return value.
      * </p>
@@ -1034,7 +1037,7 @@ public class PMVMatrix implements GLMatrixFunc {
      *         In other words, method returns true if any matrix used by the caller must be updated,
      *         e.g. uniforms in a shader program.
      * 
-     * @see #getModifiedBits()
+     * @see #getModifiedBits(boolean)
      * @see #MODIFIED_PROJECTION
      * @see #MODIFIED_MODELVIEW
      * @see #MODIFIED_TEXTURE

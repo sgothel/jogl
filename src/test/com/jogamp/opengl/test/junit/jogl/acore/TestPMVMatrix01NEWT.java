@@ -98,7 +98,7 @@ public class TestPMVMatrix01NEWT extends UITestCase {
             pmv.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             pmv.glLoadIdentity();
         }        
-        Assert.assertTrue("Modified bits zero", 0 != pmv.getModifiedBits()); // clear & test
+        Assert.assertTrue("Modified bits zero", 0 != pmv.getModifiedBits(true)); // clear & test
         Assert.assertTrue("Dirty bits clean, "+pmv.toString(), 0 != pmv.getDirtyBits());
         Assert.assertEquals("Request bits not zero, "+pmv.toString(), 0, pmv.getRequestMask());
         
@@ -106,7 +106,7 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         // Action #1
         //
         pmv.glTranslatef(1f, 2f, 3f); // all dirty !
-        Assert.assertTrue("Modified bits zero", 0 != pmv.getModifiedBits()); // clear & test
+        Assert.assertTrue("Modified bits zero", 0 != pmv.getModifiedBits(true)); // clear & test
         Assert.assertTrue("Dirty bits clean, "+pmv.toString(), 0 != pmv.getDirtyBits());
         Assert.assertEquals("Request bits not zero, "+pmv.toString(), 0, pmv.getRequestMask());
         // System.err.println("P1: "+pmv.toString());
@@ -140,7 +140,7 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         // Action #2
         //
         pmv.glLoadIdentity(); // all dirty
-        Assert.assertTrue("Modified bits zero", 0 != pmv.getModifiedBits()); // clear & test
+        Assert.assertTrue("Modified bits zero", 0 != pmv.getModifiedBits(true)); // clear & test
         Assert.assertTrue("Dirty bits clean, "+pmv.toString(), 0 != pmv.getDirtyBits());
         Assert.assertEquals("Request bits Mvi and Mvit not set, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW | PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW, pmv.getRequestMask());
         MiscUtils.assertFloatBufferEquals("P not identity, "+pmv.toString(), ident, p, epsilon);
@@ -188,7 +188,7 @@ public class TestPMVMatrix01NEWT extends UITestCase {
             pmv.glLoadIdentity();
         }        
         // System.err.println("P0: "+pmv.toString());
-        Assert.assertTrue("Modified bits zero", 0 != pmv.getModifiedBits()); // clear & test
+        Assert.assertTrue("Modified bits zero", 0 != pmv.getModifiedBits(true)); // clear & test
         Assert.assertTrue("Dirty bits clean, "+pmv.toString(), 0 != pmv.getDirtyBits());
         Assert.assertEquals("Request bits not zero, "+pmv.toString(), 0, pmv.getRequestMask());
         // System.err.println("P1: "+pmv.toString());
@@ -217,7 +217,7 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         // Action #1
         //
         pmv.glTranslatef(1f, 2f, 3f); // all dirty !
-        Assert.assertTrue("Modified bits zero", 0 != pmv.getModifiedBits()); // clear & test
+        Assert.assertTrue("Modified bits zero", 0 != pmv.getModifiedBits(true)); // clear & test
         Assert.assertTrue("Dirty bits clean, "+pmv.toString(), 0 != pmv.getDirtyBits());
         MiscUtils.assertFloatBufferEquals("P not identity, "+pmv.toString()+pmv.toString(), ident, p, epsilon);
         MiscUtils.assertFloatBufferEquals("Mv not translated123, "+pmv.toString()+pmv.toString(), translated123N, mv, epsilon);
