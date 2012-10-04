@@ -278,6 +278,7 @@
         <property name="jogl-glmobile.jar"              value="${build.jogl}/jogl-glmobile.jar" />
         <property name="jogl-glmobile-dbg.jar"          value="${build.jogl}/jogl-glmobile-dbg.jar" />
         <property name="jogl-util.jar"                  value="${build.jogl}/jogl-util.jar" />
+        <property name="jogl-util-graph.jar"            value="${build.jogl}/jogl-util-graph.jar" />
         <property name="jogl-glutess.jar"               value="${build.jogl}/jogl-glu-tess.jar" />
         <property name="jogl-glumipmap.jar"             value="${build.jogl}/jogl-glu-mipmap.jar" />
         <property name="jogl-util-fixedfuncemu.jar"     value="${build.jogl}/jogl-util-fixedfuncemu.jar" />
@@ -301,6 +302,7 @@
             <pathelement location="${jogl-glmobile.jar}" />
             <pathelement location="${jogl-glmobile-dbg.jar}" />
             <pathelement location="${jogl-util.jar}" />
+            <pathelement location="${jogl-util-graph.jar}" />
             <pathelement location="${jogl-glutess.jar}" />
             <pathelement location="${jogl-glumipmap.jar}" />
             <pathelement location="${jogl-util-fixedfuncemu.jar}" />
@@ -322,6 +324,7 @@
             <pathelement location="${jogl-glmobile.jar}" />
             <pathelement location="${jogl-glmobile-dbg.jar}" />
             <pathelement location="${jogl-util.jar}" />
+            <pathelement location="${jogl-util-graph.jar}" />
             <pathelement location="${jogl-glutess.jar}" />
             <pathelement location="${jogl-glumipmap.jar}" />
             <pathelement location="${jogl-util-fixedfuncemu.jar}" />
@@ -339,6 +342,7 @@
             <pathelement location="${jogl-glmobile.jar}" />
             <pathelement location="${jogl-glmobile-dbg.jar}" />
             <pathelement location="${jogl-util.jar}" />
+            <pathelement location="${jogl-util-graph.jar}" />
             <pathelement location="${jogl-glutess.jar}" />
             <pathelement location="${jogl-glumipmap.jar}" />
             <pathelement location="${jogl-util-fixedfuncemu.jar}" />
@@ -350,6 +354,7 @@
             <pathelement location="${jogl-glmobile.jar}" />
             <pathelement location="${jogl-glmobile-dbg.jar}" />
             <pathelement location="${jogl-util.jar}" />
+            <pathelement location="${jogl-util-graph.jar}" />
             <pathelement location="${jogl-glutess.jar}" />
             <pathelement location="${jogl-glumipmap.jar}" />
             <pathelement location="${jogl-util-fixedfuncemu.jar}" />
@@ -357,7 +362,7 @@
             <pathelement location="${jogl-omx.jar}" />
         </path>
         <!-- 
-            ${jogl-core.jar} ${jogl-glutess.jar} ${jogl-glumipmap.jar} ${jogl-glu-gldesktop.jar} ${jogl-os-x11.jar} ${jogl-os-win.jar} ${jogl-os-osx.jar} ${jogl-gldesktop.jar} ${jogl-gldesktop-dbg.jar} ${jogl-glmobile.jar} ${jogl-glmobile-dbg.jar} ${jogl-omx.jar} ${jogl-util.jar} ${jogl-util-gldesktop.jar} ${jogl-util-awt.jar} ${jogl-util-fixedfuncemu.jar} ${jogl-sdk.jar} -->
+            ${jogl-core.jar} ${jogl-glutess.jar} ${jogl-glumipmap.jar} ${jogl-glu-gldesktop.jar} ${jogl-os-x11.jar} ${jogl-os-win.jar} ${jogl-os-osx.jar} ${jogl-gldesktop.jar} ${jogl-gldesktop-dbg.jar} ${jogl-glmobile.jar} ${jogl-glmobile-dbg.jar} ${jogl-omx.jar} ${jogl-util.jar} ${jogl-util-graph.jar} ${jogl-util-gldesktop.jar} ${jogl-util-awt.jar} ${jogl-util-fixedfuncemu.jar} ${jogl-sdk.jar} -->
 
         <property name="newt-core.jar"                  value="${build.newt}/newt-core.jar" />
         <property name="newt-ogl.jar"                   value="${build.newt}/newt-ogl.jar" />

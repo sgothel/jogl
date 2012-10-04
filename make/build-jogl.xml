@@ -1054,7 +1054,7 @@
         </javac>
     </target>
 
-    <target name="java.compile.secondpass.android" if="isAndroid">
+    <target name="java.compile.secondpass.android" if="android-jars.available">
         <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
         <javac destdir="${classes}"
                includes="${java.part.android}"
@@ -1550,7 +1550,7 @@
             <srcfileset dir="${src.java}"
                      includes="${java.part.nonjava}"/>
             <targetfileset dir="."
-                     includes="${jogl-util.jar} ${jogl-util-fixedfuncemu.jar}" />
+                     includes="${jogl-util.jar} ${jogl-util-graph.jar} ${jogl-util-fixedfuncemu.jar}" />
         </dependset>
     </target>
     <target name="build-jars" depends="build-jars-dependset,build-jars-javase" />
@@ -1581,7 +1581,7 @@
         </jar>
     </target>
 
-    <target name="build-jars-android" depends="setup-manifestfile" if="isAndroid">
+    <target name="build-jars-android" depends="setup-manifestfile" if="android-jars.available">
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-os-android.jar}" filesonly="true">
             <fileset dir="${classes}" includes="${java.part.android}"/>
         </jar>
@@ -1662,9 +1662,13 @@
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.util} ${java.part.util.glsl} ${java.part.util.graph}"
-                     excludes="${java.part.util.awt} ${java.part.util.gldesktop} ${java.part.util.fixedfuncemu}"/>
+                     includes="${java.part.util} ${java.part.util.glsl}"
+                     excludes="${java.part.util.awt} ${java.part.util.gldesktop} ${java.part.util.fixedfuncemu} ${java.part.util.graph}"/>
             <fileset dir="resources/assets" includes="jogl/util/**" />
+        </jar>
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util-graph.jar}" filesonly="true">
+            <fileset dir="${classes}"
+                     includes="${java.part.util.graph}"/>
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util-fixedfuncemu.jar}" filesonly="true">
             <fileset dir="${classes}"

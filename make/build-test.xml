@@ -96,7 +96,7 @@
         </jar>
     </target>
 
-    <target name="test.compile.android" if="isAndroid">
+    <target name="test.compile.android" if="android-jars.available">
         <!-- Perform the junit pass Java Android compile -->
         <javac destdir="${classes}"
                fork="yes"
@@ -129,7 +129,9 @@
                      includes="${java.part.test.all}"/>
             <fileset dir="resources/assets-test" includes="**" />
         </jar>
+    </target>
 
+    <target name="test.package.android" depends="test.compile.android" if="isAndroid">
         <aapt.signed 
             assetsdir="resources/assets-test"
             jarsrcdir="${src}/test"
@@ -171,7 +173,7 @@
             </fileset>
         </copy>
         <antcall target="test.compile.javase" inheritRefs="true" inheritAll="true"/>
-        <antcall target="test.compile.android" inheritRefs="true" inheritAll="true"/>
+        <antcall target="test.package.android" inheritRefs="true" inheritAll="true"/>
     </target>
 
     <target name="test.manual.run" depends="test.compile">

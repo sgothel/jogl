@@ -237,7 +237,7 @@
         </javac>
     </target>
 
-    <target name="java.compile.android" if="isAndroid">
+    <target name="java.compile.android" if="android-jars.available">
         <javac destdir="${classes}"
                excludes="${java.excludes.all}"
                fork="yes"
@@ -814,7 +814,7 @@
         </jar>
     </target>
 
-    <target name="build-jars-android" depends="setup-manifestfile" if="isAndroid">
+    <target name="build-jars-android" depends="setup-manifestfile" if="android-jars.available">
         <jar manifest="${build.newt}/manifest.mf" destfile="${newt-driver-android.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.driver.android}"/>

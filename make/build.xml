@@ -98,7 +98,7 @@
         </copy>
     </target>
 
-    <target name="one.jar.dir.android" depends="one.jar.dir.prep" if="isAndroid" unless="one.dir.skip">
+    <target name="one.jar.dir.android" depends="one.jar.dir.prep" if="android-jars.available" unless="one.dir.skip">
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-all-android.jar}" filesonly="true" excludes="META-INF/*">
             <archives>
                 <zips>
