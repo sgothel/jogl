@@ -129,7 +129,7 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * <pre>
      * if ( 0 == windowHandle && visible ) {
      *   this.visible = visible;
-     *   if( 0 &lt; width*height ) {
+     *   if( 0 &lt; width && 0 &lt; height ) {
      *     createNative();
      *   }
      * } else if ( this.visible != visible ) {
@@ -171,9 +171,9 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * <p>
      * Zero size semantics are respected, see {@link #setVisible(boolean)}:<br>
      * <pre>
-     * if ( 0 != windowHandle && 0 &ge; width*height && visible ) {
+     * if ( visible && 0 != windowHandle && ( 0 &ge; width || 0 &ge; height ) ) {
      *   setVisible(false);
-     * } else if ( 0 == windowHandle && 0 &lt; width*height && visible ) {
+     * } else if ( visible && 0 == windowHandle && 0 &lt; width && 0 &lt; height ) {
      *   setVisible(true);
      * } else {
      *   // as expected ..

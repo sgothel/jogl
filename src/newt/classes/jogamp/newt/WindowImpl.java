@@ -797,10 +797,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         System.err.println("Window setSize: START "+getWidth()+"x"+getHeight()+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible);
                     }
                     int visibleAction; // 0 nop, 1 invisible, 2 visible (create)
-                    if ( isNativeValid() && 0>=width*height && visible ) {
+                    if ( visible && isNativeValid() && ( 0 >= width || 0 >= height ) ) {
                         visibleAction=1; // invisible
                         defineSize(0, 0);
-                    } else if ( !isNativeValid() && 0<width*height && visible ) {
+                    } else if ( visible && !isNativeValid() && 0 < width && 0 < height ) {
                         visibleAction = 2; // visible (create)
                         defineSize(width, height);
                     } else if ( isNativeValid() ) {
@@ -1050,7 +1050,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                     setScreen( (ScreenImpl) newScreen );
                                 }
                             }
-                            if( 0<width*height ) {
+                            if( 0 < width && 0 < height ) {
                                 operation = ReparentOperation.ACTION_NATIVE_CREATION;
                             } else {
                                 operation = ReparentOperation.ACTION_NATIVE_CREATION_PENDING;
@@ -1089,7 +1089,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     } else if( !isNativeValid() || forceDestroyCreate ) {
                         // Destroy this window and mark it for [pending] creation.
                         destroy();
-                        if( 0<width*height ) {
+                        if( 0 < width && 0 < height ) {
                             operation = ReparentOperation.ACTION_NATIVE_CREATION;
                         } else {
                             operation = ReparentOperation.ACTION_NATIVE_CREATION_PENDING;

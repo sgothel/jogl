@@ -157,7 +157,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         }
         updateSizeCheck();
         final Rectangle nClientArea = clientArea;
-        if(0 == nClientArea.width * nClientArea.height) {
+        if(0 >= nClientArea.width || 0 >= nClientArea.height) {        
             return false;
         }
         

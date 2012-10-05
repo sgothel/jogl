@@ -241,9 +241,14 @@ public class GLDrawableHelper {
       if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
           throw new NativeWindowException("Could not lock surface of drawable: "+drawable);
       }
+      boolean validateSize = true;
       try {
-          if(0>=newWidth)  { newWidth = 1; }
-          if(0>=newHeight) { newHeight = 1; }
+          if(DEBUG && ( 0>=newWidth || 0>=newHeight) ) {
+              System.err.println("WARNING: Odd size detected: "+newWidth+"x"+newHeight+", using safe size 1x1. Drawable "+drawable);
+              Thread.dumpStack();
+          }
+          if(0>=newWidth)  { newWidth = 1; validateSize=false; }
+          if(0>=newHeight) { newHeight = 1; validateSize=false; }
           // propagate new size 
           if(ns instanceof ProxySurface) {
               final ProxySurface ps = (ProxySurface) ns;
@@ -266,7 +271,7 @@ public class GLDrawableHelper {
       } finally {
           ns.unlockSurface();
       }
-      if(drawable.getWidth() != newWidth || drawable.getHeight() != newHeight) {
+      if( validateSize && ( drawable.getWidth() != newWidth || drawable.getHeight() != newHeight ) ) {
           throw new InternalError("Incomplete resize operation: expected "+newWidth+"x"+newHeight+", has: "+drawable);
       }
       return drawable;

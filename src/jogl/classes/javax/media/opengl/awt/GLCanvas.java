@@ -440,6 +440,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public void display() {
+    if( !validateGLDrawable() ) {
+        if(DEBUG) {
+            System.err.println(getThreadName()+": Info: GLCanvas display - skipped GL render, drawable not valid yet");
+        }
+        return; // not yet available ..
+    }
     Threading.invoke(true, displayOnEDTAction, getTreeLock());
     awtWindowClosingProtocol.addClosingListenerOneShot();
   }
@@ -489,7 +495,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                    (int) ((getHeight() + bounds.getHeight()) / 2));
       return;
     }
-    if( ! this.helper.isAnimatorAnimating() ) {
+    if( ! this.helper.isExternalAnimatorAnimating() ) {
         display();
     }
   }
@@ -570,30 +576,29 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         if( _drawable.isRealized() ) {
             return true;
         }
-        if (!Beans.isDesignTime() &&
-             0 < _drawable.getWidth() * _drawable.getHeight() ) {
-            // make sure drawable realization happens on AWT EDT, due to AWTTree lock
-            AWTEDTExecutor.singleton.invoke(getTreeLock(), true, setRealizedOnEDTAction);
-            if( _drawable.isRealized() ) {
-                sendReshape=true; // ensure a reshape is being send ..
-                if(DEBUG) {
-                    System.err.println(getThreadName()+": Realized Drawable: "+_drawable.toString());
-                    Thread.dumpStack();
+        final RecursiveLock _lock = lock;
+        _lock.lock();
+        try {            
+            if (!Beans.isDesignTime() && isDisplayable() &&
+                 0 < _drawable.getWidth() && 0 < _drawable.getHeight() ) {
+                // make sure drawable realization happens on AWT EDT, due to AWTTree lock
+                AWTEDTExecutor.singleton.invoke(getTreeLock(), true, setRealizedOnEDTAction);
+                if( _drawable.isRealized() ) {
+                    sendReshape=true; // ensure a reshape is being send ..
+                    if(DEBUG) {
+                        System.err.println(getThreadName()+": Realized Drawable: "+_drawable.toString());
+                        Thread.dumpStack();
+                    }
+                    return true;
                 }
-                return true;
             }
+        } finally {
+            _lock.unlock();
         }
     }
     return false;
   }
-  private Runnable setRealizedOnEDTAction = new Runnable() {
-      @Override
-    public void run() {
-          final GLDrawable _drawable = drawable;
-          if ( null != _drawable && 0 < _drawable.getWidth() * _drawable.getHeight() ) {
-              _drawable.setRealized(true);
-          }
-      } };
+  private Runnable setRealizedOnEDTAction = new Runnable() { public void run() { drawable.setRealized(true); } };
 
   /** <p>Overridden to track when this component is removed from a
       container. Subclasses which override this method must call
@@ -640,11 +645,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     synchronized (getTreeLock()) { // super.reshape(..) claims tree lock, so we do extend it's lock over reshape
         super.reshape(x, y, width, height);
         
-        GLDrawableImpl _drawable = drawable;
-        if( null != _drawable ) {
-            if(DEBUG) {
-                System.err.println("GLCanvas.sizeChanged: ("+Thread.currentThread().getName()+"): "+width+"x"+height+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
-            }
+        if(DEBUG) {
+            System.err.println("GLCanvas.sizeChanged: ("+Thread.currentThread().getName()+"): "+width+"x"+height+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
+            // Thread.dumpStack();
+        }            
+        if( validateGLDrawable() ) {
+            final GLDrawableImpl _drawable = drawable;
             if( ! _drawable.getChosenGLCapabilities().isOnscreen() ) {
                 final RecursiveLock _lock = lock;
                 _lock.lock();
@@ -984,11 +990,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         final RecursiveLock _lock = lock;
         _lock.lock();
         try {            
-            if( validateGLDrawable() ) {
-                helper.invokeGL(drawable, context, displayAction, initAction);
-            } else if(DEBUG) {
-                System.err.println(getThreadName()+": Info: GLCanvas display - skipped GL render, drawable not valid yet");
-            }
+            helper.invokeGL(drawable, context, displayAction, initAction);
         } finally {
             _lock.unlock();
         }

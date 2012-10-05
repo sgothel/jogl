@@ -206,6 +206,7 @@ public abstract class UITestCase {
     public class SnapshotGLEventListener implements GLEventListener {
         private final GLReadBufferUtil screenshot;
         private volatile boolean makeShot = false;
+        private volatile boolean makeShotAlways = false;
         private volatile int displayCount=0;
         private volatile int reshapeCount=0;
         public SnapshotGLEventListener(GLReadBufferUtil screenshot) {
@@ -214,13 +215,16 @@ public abstract class UITestCase {
         public SnapshotGLEventListener() {
             this.screenshot = new GLReadBufferUtil(false, false);
         }
+        public int getDisplayCount() { return displayCount; }
+        public int getReshapeCount() { return reshapeCount; }
 
         public void init(GLAutoDrawable drawable) {}
         public void dispose(GLAutoDrawable drawable) {}
         public void display(GLAutoDrawable drawable) {
             final GL gl = drawable.getGL();
-            System.err.println(Thread.currentThread().getName()+": ** display: "+displayCount+": "+drawable.getWidth()+"x"+drawable.getHeight()+", makeShot "+makeShot);
-            if(makeShot) {
+            final boolean _makeShot = makeShot || makeShotAlways;
+            System.err.println(Thread.currentThread().getName()+": ** display: "+displayCount+": "+drawable.getWidth()+"x"+drawable.getHeight()+", makeShot "+_makeShot);
+            if(_makeShot) {
                 makeShot=false;
                 snapshot(displayCount, null, gl, screenshot, TextureIO.PNG, null);
             }
@@ -232,6 +236,9 @@ public abstract class UITestCase {
         }
         public void setMakeSnapshot() {
             makeShot=true;
+        }
+        public void setMakeSnapshotAlways(boolean v) {
+            makeShotAlways=v;
         }
     };
     
