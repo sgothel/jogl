@@ -95,7 +95,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     protected final void defaultWindowRepaintOp() {
         final GLDrawable _drawable = drawable;
         if( null != _drawable && _drawable.isRealized() ) {
-            if( !_drawable.getNativeSurface().isSurfaceLockedByOtherThread() && !helper.isAnimatorAnimating() ) {
+            if( !_drawable.getNativeSurface().isSurfaceLockedByOtherThread() && !helper.isExternalAnimatorAnimating() ) {
                 display();
             }
         }
@@ -124,7 +124,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
             }
             sendReshape = true; // async if display() doesn't get called below, but avoiding deadlock
             if( _drawable.isRealized() ) {
-                if( !_drawable.getNativeSurface().isSurfaceLockedByOtherThread() && !helper.isAnimatorAnimating() ) {
+                if( !_drawable.getNativeSurface().isSurfaceLockedByOtherThread() && !helper.isExternalAnimatorAnimating() ) {
                     display();
                 }
             }

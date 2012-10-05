@@ -359,6 +359,7 @@ public abstract class DisplayImpl extends Display {
         return "NEWT-Display["+getFQName()+", excl "+exclusive+", refCount "+refCount+", hasEDT "+(null!=edtUtil)+", edtRunning "+isEDTRunning()+", "+aDevice+"]";
     }
 
+    /** Dispatch native Toolkit messageges */
     protected abstract void dispatchMessagesNative();
 
     private Object eventsLock = new Object();

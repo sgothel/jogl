@@ -149,7 +149,7 @@ public interface GLDrawable {
       This object shall be directly associated to the attached {@link NativeSurface}'s
       {@link AbstractGraphicsConfiguration}, and if changes are necessary,
       they should reflect those as well.
-      @return A copy of the queried object.
+      @return The immutable queried instance.
     */
   public GLCapabilitiesImmutable getChosenGLCapabilities();
 
