@@ -576,29 +576,37 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         if( _drawable.isRealized() ) {
             return true;
         }
-        final RecursiveLock _lock = lock;
-        _lock.lock();
-        try {            
-            if (!Beans.isDesignTime() && isDisplayable() &&
-                 0 < _drawable.getWidth() && 0 < _drawable.getHeight() ) {
-                // make sure drawable realization happens on AWT EDT, due to AWTTree lock
-                AWTEDTExecutor.singleton.invoke(getTreeLock(), true, setRealizedOnEDTAction);
-                if( _drawable.isRealized() ) {
-                    sendReshape=true; // ensure a reshape is being send ..
-                    if(DEBUG) {
-                        System.err.println(getThreadName()+": Realized Drawable: "+_drawable.toString());
-                        Thread.dumpStack();
-                    }
-                    return true;
-                }
-            }
-        } finally {
-            _lock.unlock();
+        if( Beans.isDesignTime() || !isDisplayable() || 0 >= _drawable.getWidth() || 0 >= _drawable.getHeight() ) {
+            return false; // early out!
         }
+        // make sure drawable realization happens on AWT EDT, due to AWTTree lock
+        AWTEDTExecutor.singleton.invoke(getTreeLock(), true, setRealizedOnEDTAction);
+        final boolean res = _drawable.isRealized();
+        if(DEBUG) {
+            System.err.println(getThreadName()+": Realized Drawable: "+res+", "+_drawable.toString());
+            Thread.dumpStack();
+        }
+        return res;
     }
     return false;
   }
-  private Runnable setRealizedOnEDTAction = new Runnable() { public void run() { drawable.setRealized(true); } };
+  private Runnable setRealizedOnEDTAction = new Runnable() { 
+      public void run() { 
+          final RecursiveLock _lock = lock;
+          _lock.lock();
+          try {            
+              final GLDrawable _drawable = drawable;
+              if( null == _drawable || 0 >= _drawable.getWidth() || 0 >= _drawable.getHeight() ) {
+                  return; 
+              }
+              _drawable.setRealized(true);
+              if( _drawable.isRealized() ) {
+                  sendReshape=true; // ensure a reshape is being send ..
+              }
+          } finally {
+              _lock.unlock();
+          }
+      } };
 
   /** <p>Overridden to track when this component is removed from a
       container. Subclasses which override this method must call
