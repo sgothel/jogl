@@ -83,11 +83,8 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     }
     
     private final void initialize(boolean realize, GL gl) {
-        final MutableGraphicsConfiguration msConfig = (MutableGraphicsConfiguration) surface.getGraphicsConfiguration();
         if(realize) {
-            origParentChosenCaps = (GLCapabilitiesImmutable) msConfig.getChosenCapabilities();
-            final GLCapabilities chosenFBOCaps = (GLCapabilities) origParentChosenCaps.cloneMutable();
-            chosenFBOCaps.copyFrom(getRequestedGLCapabilities());
+            final GLCapabilities chosenFBOCaps = (GLCapabilities) getChosenGLCapabilities(); // cloned at setRealized(true)
             
             final int maxSamples = gl.getMaxRenderbufferSamples();
             {
@@ -132,7 +129,6 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
             fboBound = false;
             fbos[0].formatToGLCapabilities(chosenFBOCaps);
             chosenFBOCaps.setDoubleBuffered( chosenFBOCaps.getDoubleBuffered() || samples > 0 );
-            msConfig.setChosenCapabilities(chosenFBOCaps);
             
             initialized = true;            
         } else {
@@ -144,7 +140,6 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
             fbos=null;
             fboBound = false;   
             pendingFBOReset = -1;
-            msConfig.setChosenCapabilities(origParentChosenCaps);
         }
         if(DEBUG) {
             System.err.println("GLFBODrawableImpl.initialize("+realize+"): "+this);
@@ -281,7 +276,17 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
 
     @Override
     protected final void setRealizedImpl() {
-        parent.setRealized(realized);
+        final MutableGraphicsConfiguration msConfig = (MutableGraphicsConfiguration) surface.getGraphicsConfiguration();
+        if(realized) {
+            parent.setRealized(true);
+            origParentChosenCaps = (GLCapabilitiesImmutable) msConfig.getChosenCapabilities();
+            final GLCapabilities chosenFBOCaps = (GLCapabilities) origParentChosenCaps.cloneMutable();
+            chosenFBOCaps.copyFrom(getRequestedGLCapabilities());
+            msConfig.setChosenCapabilities(chosenFBOCaps);
+        } else {
+            msConfig.setChosenCapabilities(origParentChosenCaps);
+            parent.setRealized(false);
+        }
     }
     
     @Override

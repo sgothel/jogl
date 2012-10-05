@@ -119,34 +119,47 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
 
         System.out.println("Window Caps PostGL   : "+window.getGraphicsConfiguration().getChosenCapabilities());
         System.out.println("Drawable   Post-GL(1): "+drawable.getClass().getName()+", "+drawable.getNativeSurface().getClass().getName());
-        
-        // Check caps of GLDrawable after realization
-        final GLCapabilitiesImmutable chosenGLCaps = drawable.getChosenGLCapabilities();
-        System.out.println("Chosen     GL Caps(1): "+chosenGLCaps);
-        Assert.assertNotNull(chosenGLCaps);
-        Assert.assertTrue(chosenGLCaps.getGreenBits()>5);
-        Assert.assertTrue(chosenGLCaps.getBlueBits()>5);
-        Assert.assertTrue(chosenGLCaps.getRedBits()>5);
-        Assert.assertTrue(chosenGLCaps.getDepthBits()>4);
-        Assert.assertEquals(expGLCaps.isOnscreen(), chosenGLCaps.isOnscreen());
-        Assert.assertEquals(expGLCaps.isFBO(), chosenGLCaps.isFBO());
-        Assert.assertEquals(expGLCaps.isPBuffer(), chosenGLCaps.isPBuffer());
-        Assert.assertEquals(expGLCaps.isBitmap(), chosenGLCaps.isBitmap());
-        /** Single/Double buffer cannot be checked since result may vary .. 
-        if(chosenGLCaps.isOnscreen() || chosenGLCaps.isFBO()) {
-            // dbl buffer may be disabled w/ offscreen pbuffer and bitmap
-            Assert.assertEquals(expGLCaps.getDoubleBuffered(), chosenGLCaps.getDoubleBuffered());
-        } */
 
-        GLContext context = drawable.createContext(null);
+        // Note: FBO Drawable realization happens at 1st context.makeCurrent(), 
+        //       and hence only then it's caps can _fully_ reflect expectations,
+        //       i.e. depth, stencil and MSAA will be valid only after makeCurrent(),
+        //       where on-/offscreen state after setRealized(true)
+        //       See GLFBODrawable API doc in this regard!
+        
+        
+        final GLCapabilitiesImmutable chosenGLCaps01 = drawable.getChosenGLCapabilities();
+        System.out.println("Chosen     GL Caps(1): "+chosenGLCaps01);
+        Assert.assertNotNull(chosenGLCaps01);
+        Assert.assertEquals(expGLCaps.isOnscreen(), chosenGLCaps01.isOnscreen());
+        Assert.assertEquals(expGLCaps.isFBO(), chosenGLCaps01.isFBO());
+        Assert.assertEquals(expGLCaps.isPBuffer(), chosenGLCaps01.isPBuffer());
+        Assert.assertEquals(expGLCaps.isBitmap(), chosenGLCaps01.isBitmap());
+        
+        final GLContext context = drawable.createContext(null);
         Assert.assertNotNull(context);
         int res = context.makeCurrent();
         Assert.assertTrue(GLContext.CONTEXT_CURRENT_NEW==res || GLContext.CONTEXT_CURRENT==res);
         context.release();
         
-        System.out.println("Chosen     GL Caps(2): "+drawable.getChosenGLCapabilities());
+        // Check caps of GLDrawable after realization
+        final GLCapabilitiesImmutable chosenGLCaps02 = drawable.getChosenGLCapabilities();
+        System.out.println("Chosen     GL Caps(2): "+chosenGLCaps02);
         System.out.println("Chosen     GL CTX (2): "+context.getGLVersion());
         System.out.println("Drawable   Post-GL(2): "+drawable.getClass().getName()+", "+drawable.getNativeSurface().getClass().getName());
+        Assert.assertNotNull(chosenGLCaps02);
+        Assert.assertTrue(chosenGLCaps02.getGreenBits()>5);
+        Assert.assertTrue(chosenGLCaps02.getBlueBits()>5);
+        Assert.assertTrue(chosenGLCaps02.getRedBits()>5);
+        Assert.assertTrue(chosenGLCaps02.getDepthBits()>4);
+        Assert.assertEquals(expGLCaps.isOnscreen(), chosenGLCaps02.isOnscreen());
+        Assert.assertEquals(expGLCaps.isFBO(), chosenGLCaps02.isFBO());
+        Assert.assertEquals(expGLCaps.isPBuffer(), chosenGLCaps02.isPBuffer());
+        Assert.assertEquals(expGLCaps.isBitmap(), chosenGLCaps02.isBitmap());
+        /** Single/Double buffer cannot be checked since result may vary .. 
+        if(chosenGLCaps.isOnscreen() || chosenGLCaps.isFBO()) {
+            // dbl buffer may be disabled w/ offscreen pbuffer and bitmap
+            Assert.assertEquals(expGLCaps.getDoubleBuffered(), chosenGLCaps.getDoubleBuffered());
+        } */
         
         final GLAutoDrawableDelegate glad = new GLAutoDrawableDelegate(drawable, context, window, false, null) {
                 @Override

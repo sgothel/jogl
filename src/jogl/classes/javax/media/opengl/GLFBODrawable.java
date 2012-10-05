@@ -39,7 +39,9 @@ import com.jogamp.opengl.FBObject.TextureAttachment;
  *
  * <p>
  * A {@link GLFBODrawable} is uninitialized until a {@link GLContext} is bound 
- * and made current the first time.
+ * and made current the first time, hence only then it's capabilities <i>fully</i> reflect expectations,
+ * i.e. color, depth, stencil and MSAA bits will be <i>valid</i> only after the first {@link GLContext#makeCurrent() makeCurrent()} call.
+ * On-/offscreen bits are <i>valid</i> after {@link #setRealized(boolean) setRealized(true)}.
  * </p>
  * 
  * <p>
