@@ -98,8 +98,9 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
 
         // Check caps of GLDrawable after realization
         final GLCapabilitiesImmutable chosenGLCaps = glad.getChosenGLCapabilities();
-        System.out.println("Chosen     GL Caps(1): "+chosenGLCaps);
         System.out.println("Chosen     GL CTX (1): "+glad.getContext().getGLVersion());
+        System.out.println("Chosen     GL Caps(1): "+chosenGLCaps);
+        System.out.println("Chosen     GL Caps(2): "+glad.getNativeSurface().getGraphicsConfiguration().getChosenCapabilities());
 
         Assert.assertNotNull(chosenGLCaps);
         Assert.assertTrue(chosenGLCaps.getGreenBits()>5);
@@ -161,7 +162,7 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
         if(null != f) {
             System.err.println(JoglVersion.getDefaultOpenGLInfo(f.getDefaultDevice(), null, true).toString());
         }
-    }
+    }    
     
     @Test
     public void testGL2OffScreenAutoDblBuf() throws InterruptedException {
@@ -188,7 +189,7 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
         reqGLCaps.setFBO(true);
         reqGLCaps.setDoubleBuffered(false);
         doTest(reqGLCaps, new GearsES2(1));
-    }
+    }    
     
     @Test
     public void testGL2OffScreenFBOStencil() throws InterruptedException {

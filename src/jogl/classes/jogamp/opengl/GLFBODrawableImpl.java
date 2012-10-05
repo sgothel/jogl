@@ -38,6 +38,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     protected static final boolean DEBUG = GLDrawableImpl.DEBUG || Debug.debug("FBObject");
     
     private final GLDrawableImpl parent;
+    private GLCapabilitiesImmutable origParentChosenCaps;
     
     private boolean initialized;
     private int texUnit;
@@ -58,20 +59,20 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         public void swapBuffers(boolean doubleBuffered);
     }
     
+    /**
+     * @param factory
+     * @param parent
+     * @param surface
+     * @param fboCaps the requested FBO capabilities
+     * @param textureUnit
+     */
     protected GLFBODrawableImpl(GLDrawableFactoryImpl factory, GLDrawableImpl parent, NativeSurface surface, 
                                 GLCapabilitiesImmutable fboCaps, int textureUnit) {
-        super(factory, surface, false);
+        super(factory, surface, fboCaps, false);
         this.initialized = false;
 
-        // Replace the chosen caps of dummy-surface w/ it's clone and copied values of orig FBO caps request.
-        // The dummy-surface has already been configured, hence value replace is OK
-        // and due to cloning, the native GLCapability portion is being preserved. 
-        final MutableGraphicsConfiguration msConfig = (MutableGraphicsConfiguration) surface.getGraphicsConfiguration();
-        final GLCapabilities fboCapsNative = (GLCapabilities) msConfig.getChosenCapabilities().cloneMutable();
-        fboCapsNative.copyFrom(fboCaps);
-        msConfig.setChosenCapabilities(fboCapsNative);
-            
         this.parent = parent;
+        this.origParentChosenCaps = (GLCapabilitiesImmutable) getChosenGLCapabilities(); // just to avoid null, will be reset at initialize(..)
         this.texUnit = textureUnit;
         this.samples = fboCaps.getNumSamples();
         
@@ -81,8 +82,13 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         this.swapBufferContext = null;
     }
     
-    private final void initialize(boolean realize, GL gl) {        
+    private final void initialize(boolean realize, GL gl) {
+        final MutableGraphicsConfiguration msConfig = (MutableGraphicsConfiguration) surface.getGraphicsConfiguration();
         if(realize) {
+            origParentChosenCaps = (GLCapabilitiesImmutable) msConfig.getChosenCapabilities();
+            final GLCapabilities chosenFBOCaps = (GLCapabilities) origParentChosenCaps.cloneMutable();
+            chosenFBOCaps.copyFrom(getRequestedGLCapabilities());
+            
             final int maxSamples = gl.getMaxRenderbufferSamples();
             {
                 final int newSamples = samples <= maxSamples ? samples : maxSamples;
@@ -92,11 +98,10 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 samples = newSamples;
             }
             
-            final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getChosenCapabilities();
             final int fbosN;
             if(samples > 0) {
                 fbosN = 1;
-            } else if( caps.getDoubleBuffered() ) {
+            } else if( chosenFBOCaps.getDoubleBuffered() ) {
                 fbosN = bufferCount;
             } else {
                 fbosN = 1;
@@ -113,11 +118,11 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                     throw new InternalError("Sample number mismatch: "+samples+", fbos["+i+"] "+fbos[i]);
                 }
                 if(samples > 0) {
-                    fbos[i].attachColorbuffer(gl, 0, caps.getAlphaBits()>0);
+                    fbos[i].attachColorbuffer(gl, 0, chosenFBOCaps.getAlphaBits()>0);
                 } else {
-                    fbos[i].attachTexture2D(gl, 0, caps.getAlphaBits()>0);
+                    fbos[i].attachTexture2D(gl, 0, chosenFBOCaps.getAlphaBits()>0);
                 }
-                if( caps.getStencilBits() > 0 ) {
+                if( chosenFBOCaps.getStencilBits() > 0 ) {
                     fbos[i].attachRenderbuffer(gl, Attachment.Type.DEPTH_STENCIL, 24);
                 } else {
                     fbos[i].attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
@@ -125,9 +130,9 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
             }
             fbos[fboIFront].resetSamplingSink(gl);
             fboBound = false;
-            final GLCapabilities fboCapsNative = (GLCapabilities) surface.getGraphicsConfiguration().getChosenCapabilities();
-            fbos[0].formatToGLCapabilities(fboCapsNative);
-            fboCapsNative.setDoubleBuffered( fboCapsNative.getDoubleBuffered() || samples > 0 );
+            fbos[0].formatToGLCapabilities(chosenFBOCaps);
+            chosenFBOCaps.setDoubleBuffered( chosenFBOCaps.getDoubleBuffered() || samples > 0 );
+            msConfig.setChosenCapabilities(chosenFBOCaps);
             
             initialized = true;            
         } else {
@@ -139,6 +144,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
             fbos=null;
             fboBound = false;   
             pendingFBOReset = -1;
+            msConfig.setChosenCapabilities(origParentChosenCaps);
         }
         if(DEBUG) {
             System.err.println("GLFBODrawableImpl.initialize("+realize+"): "+this);

@@ -49,6 +49,7 @@ import javax.media.nativewindow.OffscreenLayerSurface;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.MutableSurface;
 import javax.media.nativewindow.UpstreamSurfaceHook;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
@@ -187,8 +188,8 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                 throw new IllegalArgumentException("Passed NativeSurface must implement MutableSurface for offscreen: "+target);
             }
             if( chosenCaps.isFBO() && isFBOAvailable ) {
-                // need to hook-up a native dummy surface since source may not have
-                final ProxySurface dummySurface = createDummySurfaceImpl(adevice, false, chosenCaps, (GLCapabilitiesImmutable)config.getRequestedCapabilities(), null, 64, 64);
+                // need to hook-up a native dummy surface since source may not have & use minimum GLCapabilities for it w/ same profile 
+                final ProxySurface dummySurface = createDummySurfaceImpl(adevice, false, new GLCapabilities(chosenCaps.getGLProfile()), (GLCapabilitiesImmutable)config.getRequestedCapabilities(), null, 64, 64);
                 dummySurface.setUpstreamSurfaceHook(new DelegatedUpstreamSurfaceHookWithSurfaceSize(dummySurface.getUpstreamSurfaceHook(), target));
                 result = createFBODrawableImpl(dummySurface, chosenCaps, 0);
             } else {
@@ -299,8 +300,9 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     if( capsChosen.isFBO() ) {
         device.lock();
         try {
-            final ProxySurface dummySurface = createDummySurfaceImpl(device, true, capsChosen, capsRequested, null, width, height);
-            final GLDrawableImpl dummyDrawable = createOnscreenDrawableImpl(dummySurface);    
+            // Use minimum GLCapabilities for the dummy surface w/ same profile 
+            final ProxySurface dummySurface = createDummySurfaceImpl(device, true, new GLCapabilities(capsChosen.getGLProfile()), capsRequested, null, width, height);
+            final GLDrawableImpl dummyDrawable = createOnscreenDrawableImpl(dummySurface);
             return new GLFBODrawableImpl.ResizeableImpl(this, dummyDrawable, dummySurface, capsChosen, 0);
         } finally {
             device.unlock();

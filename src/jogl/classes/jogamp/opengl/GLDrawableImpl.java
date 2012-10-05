@@ -54,13 +54,15 @@ import javax.media.opengl.GLProfile;
 public abstract class GLDrawableImpl implements GLDrawable {
   protected static final boolean DEBUG = Debug.debug("GLDrawable");
 
-  protected GLDrawableImpl(GLDrawableFactory factory,
-                           NativeSurface comp,
-                           boolean realized) {
+  protected GLDrawableImpl(GLDrawableFactory factory, NativeSurface comp, boolean realized) {
+      this(factory, comp, (GLCapabilitiesImmutable) comp.getGraphicsConfiguration().getRequestedCapabilities(), realized);
+  }
+  
+  protected GLDrawableImpl(GLDrawableFactory factory, NativeSurface comp, GLCapabilitiesImmutable requestedCapabilities, boolean realized) {
       this.factory = factory;
       this.surface = comp;
       this.realized = realized;
-      this.requestedCapabilities = (GLCapabilitiesImmutable) surface.getGraphicsConfiguration().getRequestedCapabilities();
+      this.requestedCapabilities = requestedCapabilities;
   }
 
   /**
