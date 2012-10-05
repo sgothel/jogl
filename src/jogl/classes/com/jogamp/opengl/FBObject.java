@@ -317,7 +317,7 @@ public class FBObject {
         private int samples;
         
         /**
-         * @param type allowed types are {@link Type#DEPTH}, {@link Type#STENCIL} or {@link Type#COLOR}
+         * @param type allowed types are {@link Type#DEPTH_STENCIL} {@link Type#DEPTH}, {@link Type#STENCIL} or {@link Type#COLOR}
          * @param iFormat
          * @param samples
          * @param width
@@ -335,6 +335,7 @@ public class FBObject {
         
         private static Type validateType(Type type) {
             switch(type) {
+                case DEPTH_STENCIL:
                 case DEPTH:
                 case STENCIL:
                 case COLOR:
@@ -395,7 +396,7 @@ public class FBObject {
                     throw new GLException("GL Error "+toHexString(glerr)+" while creating "+this);
                 }
                 if(DEBUG) {
-                    System.err.println("Attachment.init: "+this);
+                    System.err.println("Attachment.init.X: "+this);
                 }
             }
             return init;
@@ -405,10 +406,10 @@ public class FBObject {
         public void free(GL gl) {
             final int[] name = new int[] { getName() };
             if( 0 != name[0] ) {
-                gl.glDeleteRenderbuffers(1, name, 0);
                 if(DEBUG) {
-                    System.err.println("Attachment.free: "+this);
+                    System.err.println("Attachment.free.0: "+this);
                 }
+                gl.glDeleteRenderbuffers(1, name, 0);
                 setName(0);
             }
         }
@@ -509,7 +510,7 @@ public class FBObject {
                     throw new GLException("GL Error "+toHexString(glerr)+" while creating (pre TexImage2D "+preTexImage2D+") "+this);
                 }
                 if(DEBUG) {
-                    System.err.println("Attachment.init: "+this);
+                    System.err.println("Attachment.init.X: "+this);
                 }
             }
             return init;
@@ -519,10 +520,10 @@ public class FBObject {
         public void free(GL gl) {
             final int[] name = new int[] { getName() };
             if( 0 != name[0] ) {
-                gl.glDeleteTextures(1, name, 0);
                 if(DEBUG) {
-                    System.err.println("Attachment.free: "+this);
+                    System.err.println("Attachment.free.0: "+this);
                 }
+                gl.glDeleteTextures(1, name, 0);
                 setName(0);
             }
         }
@@ -1082,7 +1083,7 @@ public class FBObject {
                 
             case 0:                
             default:
-                System.out.println("Framebuffer " + fbName + " is incomplete: status = " + toHexString(vStatus) + 
+                System.err.println("Framebuffer " + fbName + " is incomplete, status = " + toHexString(vStatus) + 
                         " : " + getStatusString(vStatus));
                 return false;
         }
@@ -1307,7 +1308,7 @@ public class FBObject {
             }
         }
         if(DEBUG) {
-            System.err.println("FBObject.attachColorbuffer: [attachmentPoint "+attachmentPoint+", colbuf "+colbuf+"]: "+this);
+            System.err.println("FBObject.attachColorbuffer.X: [attachmentPoint "+attachmentPoint+", colbuf "+colbuf+"]: "+this);
         }
         return colbuf;
     }
@@ -1462,20 +1463,17 @@ public class FBObject {
             stencil.initialize(gl);
         } else if( Attachment.Type.DEPTH_STENCIL == atype ) {
             if(null == depth) {
-                depth = new RenderAttachment(Type.DEPTH, internalFormat, samples, width, height, 0);
+                if(null != stencil) {
+                    throw new InternalError("XXX: DEPTH_STENCIL, depth was null, stencil not: "+this.toString());
+                }
+                depth = new RenderAttachment(Type.DEPTH_STENCIL, internalFormat, samples, width, height, 0);
             } else {
                 depth.setSize(width, height);
                 depth.setSamples(samples);
             }
             depth.initialize(gl);
-            if(null == stencil) {
-                stencil = new RenderAttachment(Type.STENCIL, internalFormat, samples, width, height, depth.getName());
-            } else {
-                stencil.setName(depth.getName());
-                stencil.setSize(width, height);
-                stencil.setSamples(samples);
-            }
-            stencil.initialize(gl);
+            // DEPTH_STENCIL shares buffer w/ depth and stencil
+            stencil = depth;
         }
 
         // Attach the buffer
@@ -1492,12 +1490,12 @@ public class FBObject {
             updateStatus(gl);
             if( !isStatusValid() ) {
                 detachRenderbuffer(gl, atype, true);
-                throw new GLException("renderbuffer attachment failed: "+this.getStatusString());
+                throw new GLException("renderbuffer [attachmentType "+atype+", iformat "+toHexString(internalFormat)+"] failed: "+this.getStatusString()+": "+this.toString());
             }
         }
 
         if(DEBUG) {
-            System.err.println("FBObject.attachRenderbuffer: [attachmentType "+atype+"]: "+this);
+            System.err.println("FBObject.attachRenderbuffer.X: [attachmentType "+atype+", iformat "+toHexString(internalFormat)+"]: "+this);
         }        
     }
     
@@ -1519,7 +1517,7 @@ public class FBObject {
             throw new IllegalArgumentException("ColorAttachment at "+attachmentPoint+", not attached, "+this);            
         }
         if(DEBUG) {
-            System.err.println("FBObject.detachColorbuffer: [attachmentPoint "+attachmentPoint+", dispose "+dispose+"]: "+res+", "+this);
+            System.err.println("FBObject.detachColorbuffer.X: [attachmentPoint "+attachmentPoint+", dispose "+dispose+"]: "+res+", "+this);
         }
         return res;
     }
@@ -1633,15 +1631,20 @@ public class FBObject {
         bind(gl);        
         detachRenderbufferImpl(gl, atype, dispose ? DetachAction.DISPOSE : DetachAction.NONE);
         if(DEBUG) {
-            System.err.println("FBObject.detachRenderbuffer: [attachmentType "+atype+", dispose "+dispose+"]: "+this);
+            System.err.println("FBObject.detachRenderbuffer.X: [attachmentType "+atype+", dispose "+dispose+"]: "+this);
         }        
     }
     
     public final boolean isDepthStencilPackedFormat() {
         final boolean res = null != depth && null != stencil &&
                             depth.format == stencil.format ;
-        if(res && depth.getName() != stencil.getName() ) {
-            throw new InternalError("depth/stencil packed format not sharing: depth "+depth+", stencil "+stencil);
+        if(res) {
+            if(depth.getName() != stencil.getName() ) {
+                throw new InternalError("depth/stencil packed format not sharing: depth "+depth+", stencil "+stencil);
+            }
+            if(depth != stencil) {
+                throw new InternalError("depth/stencil packed format not a shared reference: depth "+depth+", stencil "+stencil);
+            }
         }
         return res;
     }
@@ -1660,7 +1663,7 @@ public class FBObject {
         } 
         final boolean packed = isDepthStencilPackedFormat();
         if( packed ) {
-            // packed
+            // Note: DEPTH_STENCIL shares buffer w/ depth and stencil
             atype = Attachment.Type.DEPTH_STENCIL;
         }
         switch ( atype ) {
@@ -1709,6 +1712,9 @@ public class FBObject {
                     final int format = depth.format;
                     if(0 != depth.getName()) {
                         gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER, 0);
+                        if(packed) {
+                            gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_STENCIL_ATTACHMENT, GL.GL_RENDERBUFFER, 0);
+                        }
                         switch(detachAction) {
                             case DISPOSE:
                             case RECREATE:
@@ -1718,12 +1724,15 @@ public class FBObject {
                         }
                     }
                     if(DetachAction.RECREATE == detachAction) {
-                        attachRenderbufferImpl2(gl, Attachment.Type.DEPTH, format);
-                    } else if(!packed) {
+                        attachRenderbufferImpl2(gl, packed ? Attachment.Type.DEPTH_STENCIL : Attachment.Type.DEPTH, format);
+                    } else {
                         depth = null;
+                        if(packed) {
+                            stencil = null;
+                        }
                     }                    
                 }
-                if( null != stencil ) {
+                if( !packed && null != stencil ) {
                     final int format = stencil.format;
                     if(0 != stencil.getName()) {
                         gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_STENCIL_ATTACHMENT, GL.GL_RENDERBUFFER, 0);
@@ -1736,13 +1745,7 @@ public class FBObject {
                         }
                     }
                     if(DetachAction.RECREATE == detachAction) {
-                        if(packed) {
-                            // packed
-                            attachRenderbufferImpl2(gl, Attachment.Type.DEPTH_STENCIL, format);
-                        } else {
-                            // single
-                            attachRenderbufferImpl2(gl, Attachment.Type.STENCIL, format);
-                        }
+                        attachRenderbufferImpl2(gl, Attachment.Type.STENCIL, format);
                     } else {
                         stencil = null;
                     }
@@ -1753,13 +1756,18 @@ public class FBObject {
     }
         
     private final void freeAllRenderbufferImpl(GL gl) throws IllegalArgumentException {
+        // Note: DEPTH_STENCIL shares buffer w/ depth and stencil
+        final boolean packed = isDepthStencilPackedFormat();
         if( null != depth ) { 
             if(0 != depth.getName()) {
                 gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER, 0);
+                if(packed) {
+                    gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_STENCIL_ATTACHMENT, GL.GL_RENDERBUFFER, 0);                    
+                }
                 depth.free(gl);
             }
         }
-        if( null != stencil ) {
+        if( !packed && null != stencil ) {
             if(0 != stencil.getName()) {
                 gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_STENCIL_ATTACHMENT, GL.GL_RENDERBUFFER, 0);
                 stencil.free(gl);                    
@@ -1821,7 +1829,7 @@ public class FBObject {
             }
         }
         if(DEBUG) {
-            System.err.println("FBObject.detachAllTexturebuffer: "+this);
+            System.err.println("FBObject.detachAllTexturebuffer.X: "+this);
         }
     }
     
@@ -1870,7 +1878,7 @@ public class FBObject {
             ignoreStatus = false;
         }
         if(DEBUG) {
-            System.err.println("FBObject.detachAll: [resetNonColorbuffer "+detachNonColorbuffer+", recreate "+recreate+"]: "+this);
+            System.err.println("FBObject.detachAll.X: [resetNonColorbuffer "+detachNonColorbuffer+", recreate "+recreate+"]: "+this);
         }
     }
         

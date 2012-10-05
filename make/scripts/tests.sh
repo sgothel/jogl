@@ -66,7 +66,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.FBObject -Djogl.debug.TraceGL -Djogl.debug.GLBufferStateTracker"
     #D_ARGS="-Djogl.debug.FBObject"
     #D_ARGS="-Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode"
-    #D_ARGS="-Djogl.debug.FBObject -Djogl.debug.GLContext -Djogl.debug.GLDrawable -Djogl.debug.GLCanvas -Dnewt.debug.Window"
+    #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.FBObject -Djogl.debug.GLContext -Djogl.debug.GLDrawable -Djogl.debug.GLCanvas -Dnewt.debug.Window"
     #D_ARGS="-Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.FBObject"
     #D_ARGS="-Djogl.debug.GLContext.NoProfileAliasing"
     #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
@@ -104,7 +104,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.GLProfile"
     #D_ARGS="-Dnativewindow.debug.NativeWindow"
-    D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT"
+    #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.EDT -Dnewt.debug.Window -Djogl.debug.GLContext"
     #D_ARGS="-Dnativewindow.debug.X11Util.XErrorStackDump -Dnativewindow.debug.X11Util.TraceDisplayLifecycle -Dnativewindow.debug.X11Util"
     #D_ARGS="-Dnativewindow.debug.X11Util -Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnewt.debug=all"
@@ -137,7 +137,7 @@ function jrun() {
     #D_ARGS="-Xprof"
     #D_ARGS="-Djogl.debug.Animator"
     #D_ARGS="-Dnativewindow.debug=all"
-    D_ARGS="-Djogl.debug.GLCanvas"
+    #D_ARGS="-Djogl.debug.GLCanvas"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.X11Util.XSync"
     #D_ARGS="-Dnativewindow.debug.X11Util.XSync -Dnativewindow.debug.ToolkitLock.TraceLock"
     #D_ARGS="-Dnativewindow.debug.NativeWindow"
@@ -263,7 +263,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryOffscrnCapsNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryOffscrnCapsNEWT $*
 
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer01GLCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer02NewtCanvasAWT $*
@@ -317,7 +317,7 @@ function testawtswt() {
 #testawt javax.media.opengl.awt.GLCanvas $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug551AWT $*
-testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug572AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug572AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug611AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestAWTCloseX11DisplayBug565 $*
