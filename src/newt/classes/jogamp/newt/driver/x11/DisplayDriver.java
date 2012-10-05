@@ -89,6 +89,7 @@ public class DisplayDriver extends DisplayImpl {
         }
     }
 
+    @Override
     protected void closeNativeImpl() {
         DisplayRelease0(aDevice.getHandle(), javaObjectAtom, windowDeleteAtom);
         javaObjectAtom = 0;
@@ -96,6 +97,7 @@ public class DisplayDriver extends DisplayImpl {
         aDevice.close(); // closes X11 display
     }
 
+    @Override
     protected void dispatchMessagesNative() {
         aDevice.lock();
         try {
@@ -104,7 +106,9 @@ public class DisplayDriver extends DisplayImpl {
                 DispatchMessages0(handle, javaObjectAtom, windowDeleteAtom);
             }
         } finally {
-            aDevice.unlock();
+            if(null != aDevice) { // could be pulled by destroy event
+                aDevice.unlock();
+            }
         }
     }
 
