@@ -30,19 +30,24 @@ public class X11DummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
         final X11GraphicsConfiguration cfg = (X11GraphicsConfiguration) s.getGraphicsConfiguration();
         final X11GraphicsScreen screen = (X11GraphicsScreen) cfg.getScreen();
         final X11GraphicsDevice device = (X11GraphicsDevice) screen.getDevice();
-        if(0 == device.getHandle()) {
-            device.open();
-            s.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );
-        }
-        if( 0 == s.getSurfaceHandle() ) {
-            final long windowHandle = X11Lib.CreateDummyWindow(device.getHandle(), screen.getIndex(), cfg.getXVisualID(), 64, 64);
-            if(0 == windowHandle) {
-                throw new NativeWindowException("Creating dummy window failed w/ "+cfg);
+        device.lock();
+        try {
+            if(0 == device.getHandle()) {
+                device.open();
+                s.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );
             }
-            s.setSurfaceHandle(windowHandle);
-            s.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );            
+            if( 0 == s.getSurfaceHandle() ) {
+                final long windowHandle = X11Lib.CreateDummyWindow(device.getHandle(), screen.getIndex(), cfg.getXVisualID(), 64, 64);
+                if(0 == windowHandle) {
+                    throw new NativeWindowException("Creating dummy window failed w/ "+cfg);
+                }
+                s.setSurfaceHandle(windowHandle);
+                s.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );            
+            }
+            s.addUpstreamOptionBits(ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE);
+        } finally {
+            device.unlock();
         }
-        s.addUpstreamOptionBits(ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE);
     }
     
     @Override
@@ -52,9 +57,14 @@ public class X11DummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
             if( 0 == s.getSurfaceHandle() ) {
                 throw new InternalError("Owns upstream surface, but no X11 window: "+s);
             }
-            X11Lib.DestroyDummyWindow(device.getHandle(), s.getSurfaceHandle());            
-            s.setSurfaceHandle(0);
-            s.clearUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );
+            device.lock();
+            try {
+                X11Lib.DestroyDummyWindow(device.getHandle(), s.getSurfaceHandle());            
+                s.setSurfaceHandle(0);
+                s.clearUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );
+            } finally {
+                device.unlock();
+            }
         }
     }
 }

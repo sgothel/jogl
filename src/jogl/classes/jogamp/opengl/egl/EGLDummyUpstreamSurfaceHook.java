@@ -23,15 +23,20 @@ public class EGLDummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
     @Override
     public final void create(ProxySurface s) {
         final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) s.getGraphicsConfiguration().getScreen().getDevice();
-        if(0 == eglDevice.getHandle()) {
-            eglDevice.open();
-            s.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );
+        eglDevice.lock();
+        try {
+            if(0 == eglDevice.getHandle()) {
+                eglDevice.open();
+                s.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );
+            }
+            if( EGL.EGL_NO_SURFACE == s.getSurfaceHandle() ) {
+                s.setSurfaceHandle( EGLDrawableFactory.createPBufferSurfaceImpl((EGLGraphicsConfiguration)s.getGraphicsConfiguration(), 64, 64, false) );
+                s.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );            
+            }
+            s.addUpstreamOptionBits(ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE);
+        } finally {
+            eglDevice.unlock();
         }
-        if( EGL.EGL_NO_SURFACE == s.getSurfaceHandle() ) {
-            s.setSurfaceHandle( EGLDrawableFactory.createPBufferSurfaceImpl((EGLGraphicsConfiguration)s.getGraphicsConfiguration(), 64, 64, false) );
-            s.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );            
-        }
-        s.addUpstreamOptionBits(ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE);
     }
     
     @Override
@@ -41,9 +46,14 @@ public class EGLDummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
             if( EGL.EGL_NO_SURFACE == s.getSurfaceHandle() ) {
                 throw new InternalError("Owns upstream surface, but no EGL surface: "+s);
             }
-            EGL.eglDestroySurface(eglDevice.getHandle(), s.getSurfaceHandle());
-            s.setSurfaceHandle(EGL.EGL_NO_SURFACE);
-            s.clearUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );
+            eglDevice.lock();
+            try {
+                EGL.eglDestroySurface(eglDevice.getHandle(), s.getSurfaceHandle());
+                s.setSurfaceHandle(EGL.EGL_NO_SURFACE);
+                s.clearUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );
+            } finally {
+                eglDevice.unlock();
+            }
         }
     }
 }
