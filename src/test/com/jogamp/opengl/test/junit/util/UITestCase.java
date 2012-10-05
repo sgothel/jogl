@@ -186,13 +186,15 @@ public abstract class UITestCase {
             final String dblb = caps.getDoubleBuffered() ? "dbl" : "one";
             final String F_pfmt = readBufferUtil.hasAlpha() ? "rgba" : "rgb_";
             final String pfmt = caps.getAlphaBits() > 0 ? "rgba" : "rgb_";
+            final int depthBits = caps.getDepthBits();
+            final int stencilBits = caps.getStencilBits();
             final int samples = caps.getNumSamples() ;
             final String aaext = caps.getSampleExtension();
             postSNDetail = null != postSNDetail ? "-"+postSNDetail : "";
 
-            filenameBaseName = String.format("%-"+maxSimpleTestNameLen+"s-n%04d%s-%-6s-%s-%s-B%s-F%s_I%s-S%02d_%s-%04dx%04d.%s", 
+            filenameBaseName = String.format("%-"+maxSimpleTestNameLen+"s-n%04d%s-%-6s-%s-%s-B%s-F%s_I%s-D%02d-St%02d-Sa%02d_%s-%04dx%04d.%s", 
                     simpleTestName, sn, postSNDetail, drawable.getGLProfile().getName(), accel, 
-                    scrnm, dblb, F_pfmt, pfmt, samples, aaext,  
+                    scrnm, dblb, F_pfmt, pfmt, depthBits, stencilBits, samples, aaext,  
                     drawable.getWidth(), drawable.getHeight(), fileSuffix).replace(' ', '_');
         }
         final String filename = null != destPath ? destPath + File.separator + filenameBaseName : filenameBaseName;
