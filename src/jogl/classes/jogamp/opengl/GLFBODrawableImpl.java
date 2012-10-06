@@ -11,11 +11,13 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLFBODrawable;
 
+import com.jogamp.common.util.VersionUtil;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.FBObject.Attachment;
 import com.jogamp.opengl.FBObject.Colorbuffer;
 import com.jogamp.opengl.FBObject.TextureAttachment;
+import com.jogamp.opengl.JoglVersion;
 
 /**
  * {@link FBObject} offscreen GLDrawable implementation, i.e. {@link GLFBODrawable}.
@@ -43,12 +45,15 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     private boolean initialized;
     private int texUnit;
     private int samples;
+    private boolean fboResetQuirk;
     
     private FBObject[] fbos;
     private int fboIBack;  // points to GL_BACK buffer
     private int fboIFront; // points to GL_FRONT buffer
     private int pendingFBOReset = -1;
     private boolean fboBound;
+
+    private static volatile boolean resetQuirkInfoDumped = false;
     private static final int bufferCount = 2; // number of FBOs for double buffering. TODO: Possible to configure!
     
     // private DoubleBufferMode doubleBufferMode; // TODO: Add or remove TEXTURE (only) DoubleBufferMode support
@@ -75,6 +80,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         this.origParentChosenCaps = (GLCapabilitiesImmutable) getChosenGLCapabilities(); // just to avoid null, will be reset at initialize(..)
         this.texUnit = textureUnit;
         this.samples = fboCaps.getNumSamples();
+        fboResetQuirk = false;
         
         // default .. // TODO: Add or remove TEXTURE (only) DoubleBufferMode support
         // this.doubleBufferMode = ( samples > 0 || fboCaps.getDoubleBuffered() ) ? DoubleBufferMode.FBO : DoubleBufferMode.NONE ;
@@ -151,31 +157,46 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         swapBufferContext = sbc;
     }
 
-    static final boolean FBOResetQuirk = false;
-    
     private final void reset(GL gl, int idx, int width, int height, int samples, int alphaBits, int stencilBits) {
-        if( !FBOResetQuirk ) {
-            fbos[idx].reset(gl, width, height, samples, false);
-            if(fbos[idx].getNumSamples() != samples) {
-                throw new InternalError("Sample number mismatch: "+samples+", fbos["+idx+"] "+fbos[idx]);
+        if( !fboResetQuirk ) {
+            try {
+                fbos[idx].reset(gl, width, height, samples, false);
+                if(fbos[idx].getNumSamples() != samples) {
+                    throw new InternalError("Sample number mismatch: "+samples+", fbos["+idx+"] "+fbos[idx]);
+                }
+                return;
+            } catch (GLException e) {
+                if(DEBUG) {
+                    e.printStackTrace();
+                }
+                if(!resetQuirkInfoDumped) { // dump info only once
+                    resetQuirkInfoDumped = true;
+                    System.err.println("GLFBODrawable: Reset failed: "+e.getMessage());
+                    System.err.println("GLFBODrawable: Enabling FBOResetQuirk, due to previous GLException. "+this.toString());
+                    System.err.println(VersionUtil.getPlatformInfo());
+                    System.err.println(JoglVersion.getInstance());
+                    System.err.println(JoglVersion.getGLInfo(gl, null));
+                }
+                fboResetQuirk = true;
+                // 'fallthrough' intended
             }
+        }
+        // resetQuirk fallback
+        fbos[idx].destroy(gl);
+        fbos[idx] = new FBObject();
+        fbos[idx].reset(gl, getWidth(), getHeight(), samples, false);
+        if(fbos[idx].getNumSamples() != samples) {
+            throw new InternalError("Sample number mismatch: "+samples+", fbos["+idx+"] "+fbos[idx]);
+        }
+        if(samples > 0) {
+            fbos[idx].attachColorbuffer(gl, 0, alphaBits>0);
         } else {
-            fbos[idx].destroy(gl);
-            fbos[idx] = new FBObject();
-            fbos[idx].reset(gl, getWidth(), getHeight(), samples, false);
-            if(fbos[idx].getNumSamples() != samples) {
-                throw new InternalError("Sample number mismatch: "+samples+", fbos["+idx+"] "+fbos[idx]);
-            }
-            if(samples > 0) {
-                fbos[idx].attachColorbuffer(gl, 0, alphaBits>0);
-            } else {
-                fbos[idx].attachTexture2D(gl, 0, alphaBits>0);
-            }
-            if( stencilBits > 0 ) {
-                fbos[idx].attachRenderbuffer(gl, Attachment.Type.DEPTH_STENCIL, 24);
-            } else {
-                fbos[idx].attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
-            }
+            fbos[idx].attachTexture2D(gl, 0, alphaBits>0);
+        }
+        if( stencilBits > 0 ) {
+            fbos[idx].attachRenderbuffer(gl, Attachment.Type.DEPTH_STENCIL, 24);
+        } else {
+            fbos[idx].attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
         }
     }
         

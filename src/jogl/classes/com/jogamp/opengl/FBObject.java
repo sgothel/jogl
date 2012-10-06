@@ -1869,7 +1869,10 @@ public class FBObject {
                 detachRenderbufferImpl(gl, Attachment.Type.DEPTH_STENCIL, recreate ? DetachAction.RECREATE : DetachAction.DISPOSE);
             }
             if(ignoreStatus) { // post validate
-                updateStatus(gl);        
+                /* if(true) {
+                    throw new GLException("Simulating bug 617, reset FBO failure");
+                } */
+                updateStatus(gl);
                 if(!isStatusValid()) {
                     throw new GLException("detachAllImpl failed "+getStatusString()+", "+this);
                 }
