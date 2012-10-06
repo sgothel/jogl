@@ -142,25 +142,8 @@ public abstract class UITestCase {
     }
     
     static final String unsupportedTestMsg = "Test not supported on this platform.";
-    
-    /**
-     * Takes a snapshot of the drawable's current front framebuffer. Example filenames: 
-     * <pre>
-     * TestGLDrawableAutoDelegateOnOffscrnCapsNEWT.testES2OffScreenFBOSglBuf____-n0001-msaa0-GLES2_-sw-fbobject-Bdbl-Frgb__Irgb_-S00_default-0400x0300.png
-     * TestGLDrawableAutoDelegateOnOffscrnCapsNEWT.testES2OffScreenPbufferDblBuf-n0003-msaa0-GLES2_-sw-pbuffer_-Bdbl-Frgb__Irgb_-S00_default-0200x0150.png
-     * TestGLDrawableAutoDelegateOnOffscrnCapsNEWT.testGL2OffScreenPbufferSglBuf-n0003-msaa0-GL2___-hw-pbuffer_-Bone-Frgb__Irgb_-S00_default-0200x0150.png
-     * </pre>
-     * @param sn sequential number 
-     * @param postSNDetail optional detail to be added to the filename after <code>sn</code>
-     * @param gl the current GL context object. It's read drawable is being used as the pixel source and to gather some details which will end up in the filename.
-     * @param readBufferUtil the {@link GLReadBufferUtil} to be used to read the pixels for the screenshot.
-     * @param fileSuffix Optional file suffix without a <i>dot</i> defining the file type, i.e. <code>"png"</code>.
-     *                   If <code>null</code> the <code>"png"</code> as defined in {@link TextureIO#PNG} is being used.
-     * @param destPath Optional platform dependent file path. It shall use {@link File#separatorChar} as is directory separator.
-     *                 It shall not end with a directory separator, {@link File#separatorChar}.
-     *                 If <code>null</code> the current working directory is being used.  
-     */
-    public void snapshot(int sn, String postSNDetail, GL gl, GLReadBufferUtil readBufferUtil, String fileSuffix, String destPath) {
+
+    public String getSnapshotFilename(int sn, String postSNDetail, GLCapabilitiesImmutable caps, int width, int height, boolean sinkHasAlpha, String fileSuffix, String destPath) {
         if(null == fileSuffix) {
             fileSuffix = TextureIO.PNG;
         }
@@ -168,8 +151,6 @@ public abstract class UITestCase {
         final String simpleTestName = this.getSimpleTestName(".");
         final String filenameBaseName;
         {            
-            final GLDrawable drawable = gl.getContext().getGLReadDrawable();
-            final GLCapabilitiesImmutable caps = drawable.getChosenGLCapabilities();
             final String accel = caps.getHardwareAccelerated() ? "hw" : "sw" ;
             final String scrnm;
             if(caps.isOnscreen()) {
@@ -184,7 +165,7 @@ public abstract class UITestCase {
                 scrnm = "unknown_";
             }
             final String dblb = caps.getDoubleBuffered() ? "dbl" : "one";
-            final String F_pfmt = readBufferUtil.hasAlpha() ? "rgba" : "rgb_";
+            final String F_pfmt = sinkHasAlpha ? "rgba" : "rgb_";
             final String pfmt = caps.getAlphaBits() > 0 ? "rgba" : "rgb_";
             final int depthBits = caps.getDepthBits();
             final int stencilBits = caps.getStencilBits();
@@ -193,12 +174,36 @@ public abstract class UITestCase {
             postSNDetail = null != postSNDetail ? "-"+postSNDetail : "";
 
             filenameBaseName = String.format("%-"+maxSimpleTestNameLen+"s-n%04d%s-%-6s-%s-%s-B%s-F%s_I%s-D%02d-St%02d-Sa%02d_%s-%04dx%04d.%s", 
-                    simpleTestName, sn, postSNDetail, drawable.getGLProfile().getName(), accel, 
+                    simpleTestName, sn, postSNDetail, caps.getGLProfile().getName(), accel, 
                     scrnm, dblb, F_pfmt, pfmt, depthBits, stencilBits, samples, aaext,  
-                    drawable.getWidth(), drawable.getHeight(), fileSuffix).replace(' ', '_');
+                    width, height, fileSuffix).replace(' ', '_');
         }
-        final String filename = null != destPath ? destPath + File.separator + filenameBaseName : filenameBaseName;
-        System.err.println(Thread.currentThread().getName()+": ** screenshot: "+filename+", maxTestNameLen "+maxSimpleTestNameLen+", <"+simpleTestName+">");
+        return null != destPath ? destPath + File.separator + filenameBaseName : filenameBaseName;        
+    }
+    
+    /**
+     * Takes a snapshot of the drawable's current front framebuffer. Example filenames: 
+     * <pre>
+     * TestGLDrawableAutoDelegateOnOffscrnCapsNEWT.testES2OffScreenFBOSglBuf____-n0001-msaa0-GLES2_-sw-fbobject-Bdbl-Frgb__Irgb_-D24-St00-Sa00_default-0400x0300.png
+     * TestGLDrawableAutoDelegateOnOffscrnCapsNEWT.testES2OffScreenPbufferDblBuf-n0003-msaa0-GLES2_-sw-pbuffer_-Bdbl-Frgb__Irgb_-D24-St00-Sa00_default-0200x0150.png
+     * TestGLDrawableAutoDelegateOnOffscrnCapsNEWT.testGL2OffScreenPbufferSglBuf-n0003-msaa0-GL2___-hw-pbuffer_-Bone-Frgb__Irgb_-D24-St00-Sa00_default-0200x0150.png
+     * </pre>
+     * @param sn sequential number 
+     * @param postSNDetail optional detail to be added to the filename after <code>sn</code>
+     * @param gl the current GL context object. It's read drawable is being used as the pixel source and to gather some details which will end up in the filename.
+     * @param readBufferUtil the {@link GLReadBufferUtil} to be used to read the pixels for the screenshot.
+     * @param fileSuffix Optional file suffix without a <i>dot</i> defining the file type, i.e. <code>"png"</code>.
+     *                   If <code>null</code> the <code>"png"</code> as defined in {@link TextureIO#PNG} is being used.
+     * @param destPath Optional platform dependent file path. It shall use {@link File#separatorChar} as is directory separator.
+     *                 It shall not end with a directory separator, {@link File#separatorChar}.
+     *                 If <code>null</code> the current working directory is being used.  
+     */
+    public void snapshot(int sn, String postSNDetail, GL gl, GLReadBufferUtil readBufferUtil, String fileSuffix, String destPath) {
+        final GLDrawable drawable = gl.getContext().getGLReadDrawable();
+        final String filename = getSnapshotFilename(sn, postSNDetail, 
+                                                    drawable.getChosenGLCapabilities(), drawable.getWidth(), drawable.getHeight(), 
+                                                    readBufferUtil.hasAlpha(), fileSuffix, destPath);
+        System.err.println(Thread.currentThread().getName()+": ** screenshot: "+filename);
         gl.glFinish(); // just make sure rendering finished ..
         if(readBufferUtil.readPixels(gl, false)) {
             readBufferUtil.write(new File(filename));
@@ -219,7 +224,7 @@ public abstract class UITestCase {
         }
         public int getDisplayCount() { return displayCount; }
         public int getReshapeCount() { return reshapeCount; }
-
+        public GLReadBufferUtil getGLReadBufferUtil() { return screenshot; }
         public void init(GLAutoDrawable drawable) {}
         public void dispose(GLAutoDrawable drawable) {}
         public void display(GLAutoDrawable drawable) {
