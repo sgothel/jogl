@@ -43,22 +43,28 @@ public abstract class InputEvent extends NEWTEvent
  public static final int  CTRL_MASK        = 1 <<  1;
  public static final int  META_MASK        = 1 <<  2;
  public static final int  ALT_MASK         = 1 <<  3;
- public static final int  ALT_GRAPH_MASK   = 1 <<  5;
- public static final int  BUTTON1_MASK     = 1 <<  6;
- public static final int  BUTTON2_MASK     = 1 <<  7;
- public static final int  BUTTON3_MASK     = 1 <<  8;
- public static final int  BUTTON4_MASK     = 1 <<  9;
- public static final int  BUTTON5_MASK     = 1 << 10;
- public static final int  BUTTON6_MASK     = 1 << 11;
+ public static final int  ALT_GRAPH_MASK   = 1 <<  4;
+ 
+ public static final int  BUTTON1_MASK     = 1 <<  5;
+ public static final int  BUTTON2_MASK     = 1 <<  6;
+ public static final int  BUTTON3_MASK     = 1 <<  7;
+ public static final int  BUTTON4_MASK     = 1 <<  8;
+ public static final int  BUTTON5_MASK     = 1 <<  9;
+ public static final int  BUTTON6_MASK     = 1 << 10;
+ public static final int  BUTTON7_MASK     = 1 << 11;
+ public static final int  BUTTON8_MASK     = 1 << 12;
+ public static final int  BUTTON9_MASK     = 1 << 13;
+ 
+ public static final int  BUTTONLAST_MASK  = 1 << 20;  // 16
  
  /** Event is caused by auto-repeat. */
- public static final int  AUTOREPEAT_MASK  = 1 << 15;
+ public static final int  AUTOREPEAT_MASK  = 1 << 29;
  
  /** Pointer is confined, see {@link Window#confinePointer(boolean)}. */
- public static final int  CONFINED_MASK    = 1 << 16;
+ public static final int  CONFINED_MASK    = 1 << 30;
  
  /** Pointer is invisible, see {@link Window#setPointerVisible(boolean)}. */
- public static final int  INVISIBLE_MASK   = 1 << 17;
+ public static final int  INVISIBLE_MASK   = 1 << 31;
 
  /** 
   * Returns the corresponding button mask for the given button.
@@ -70,7 +76,7 @@ public abstract class InputEvent extends NEWTEvent
   */
  public static final int getButtonMask(int button)  {
      if( 0 < button && button <= MouseEvent.BUTTON_NUMBER ) {
-         return 1 << ( 5 + button ) ;
+         return 1 << ( 4 + button ) ;
      }
      return 0;
  }

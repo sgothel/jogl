@@ -51,9 +51,9 @@ import com.jogamp.newt.event.MouseEvent;
 
 public class WindowDriver extends WindowImpl {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
-    private static final int X11_WHEEL_ONE_UP_BUTTON = 4;
+    private static final int X11_WHEEL_ONE_UP_BUTTON   = 4;
     private static final int X11_WHEEL_ONE_DOWN_BUTTON = 5;
-    private static final int X11_WHEEL_TWO_UP_BUTTON = 6;
+    private static final int X11_WHEEL_TWO_UP_BUTTON   = 6;
     private static final int X11_WHEEL_TWO_DOWN_BUTTON = 7;
     
     static {

@@ -49,8 +49,15 @@ public class MouseEvent extends InputEvent
     public static final int BUTTON5 = 5;
     /** ID for button 6, value <code>6</code> */
     public static final int BUTTON6 = 6;
-    /** Number of buttons, value <code>6</code> */
-    public static final int BUTTON_NUMBER = 6;
+    /** ID for button 6, value <code>7</code> */
+    public static final int BUTTON7 = 7;
+    /** ID for button 6, value <code>8</code> */
+    public static final int BUTTON8 = 8;
+    /** ID for button 6, value <code>9</code> */
+    public static final int BUTTON9 = 9;
+    
+    /** Maximum number of buttons, value <code>16</code> */
+    public static final int BUTTON_NUMBER =  16;
 
     public static final int getClickTimeout() { 
         return 300; 
