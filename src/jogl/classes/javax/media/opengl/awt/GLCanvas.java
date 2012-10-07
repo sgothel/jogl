@@ -982,13 +982,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     }
   };
 
-  private final Runnable swapBuffersAction = new Runnable() {
-    @Override
-    public void run() {
-      drawable.swapBuffers();
-    }
-  };
-
   // Workaround for ATI driver bugs related to multithreading issues
   // like simultaneous rendering via Animators to canvases that are
   // being resized on the AWT event dispatch thread
@@ -1010,8 +1003,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     public void run() {
         final RecursiveLock _lock = lock;
         _lock.lock();
-        try {            
-            helper.invokeGL(drawable, context, swapBuffersAction, initAction);
+        try {
+            drawable.swapBuffers();
         } finally {
             _lock.unlock();
         }

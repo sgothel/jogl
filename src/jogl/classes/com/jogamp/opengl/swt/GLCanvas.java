@@ -153,24 +153,16 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    };
 
    /* Swaps buffers, assuming the GLContext is current */
-   private final Runnable swapBuffersAction = new Runnable() {
+   private final Runnable swapBuffersOnEDTAction = new Runnable() {
       @Override
       public void run() {
-         drawable.swapBuffers();
-      }
-   };
-
-   /* Swaps buffers, making the GLContext current first */
-   private final Runnable makeCurrentAndSwapBuffersOnEDTAction = new Runnable() {
-      @Override
-      public void run() {
-         final RecursiveLock _lock = lock;
-         _lock.lock();
-         try {            
-           helper.invokeGL(drawable, context, swapBuffersAction, initAction);
-         } finally {
-             _lock.unlock();
-         }
+        final RecursiveLock _lock = lock;
+        _lock.lock();
+        try {
+            drawable.swapBuffers();
+        } finally {
+            _lock.unlock();
+        }
       }
    };
 
@@ -627,7 +619,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    @Override
    public void swapBuffers() throws GLException {
-      runInGLThread(makeCurrentAndSwapBuffersOnEDTAction);
+      runInGLThread(swapBuffersOnEDTAction);
    }
 
    @Override

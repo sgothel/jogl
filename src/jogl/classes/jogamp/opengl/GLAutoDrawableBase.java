@@ -248,10 +248,8 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     public final void defaultSwapBuffers() throws GLException {
         final RecursiveLock _lock = getLock();
         _lock.lock();
-        try {            
-            if(drawable!=null && context != null) {
-                helper.invokeGL(drawable, context, defaultSwapAction, defaultInitAction);
-            }
+        try {
+            drawable.swapBuffers();
         } finally {
             _lock.unlock();
         }
@@ -298,12 +296,6 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
             _lock.unlock();
         }
     }
-        
-    protected final Runnable defaultSwapAction = new Runnable() {
-        @Override
-        public final void run() {
-            drawable.swapBuffers();
-        } } ;
         
     @Override
     public final GLDrawable getDelegatedDrawable() {
