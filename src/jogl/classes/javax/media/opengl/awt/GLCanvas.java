@@ -1004,7 +1004,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         final RecursiveLock _lock = lock;
         _lock.lock();
         try {
-            drawable.swapBuffers();
+            if(null != drawable) {
+                drawable.swapBuffers();
+            }
         } finally {
             _lock.unlock();
         }

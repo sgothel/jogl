@@ -249,7 +249,9 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
         final RecursiveLock _lock = getLock();
         _lock.lock();
         try {
-            drawable.swapBuffers();
+            if(null != drawable) {
+                drawable.swapBuffers();
+            }
         } finally {
             _lock.unlock();
         }

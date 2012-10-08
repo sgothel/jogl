@@ -159,7 +159,9 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
         final RecursiveLock _lock = lock;
         _lock.lock();
         try {
-            drawable.swapBuffers();
+            if(null != drawable) {
+                drawable.swapBuffers();
+            }
         } finally {
             _lock.unlock();
         }
