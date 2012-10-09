@@ -42,6 +42,7 @@ import com.jogamp.common.os.Platform;
  * </p>
  */
 public class TestInitConcurrent01NEWT extends InitConcurrentBaseNEWT {
+    static boolean mainRun = false;
 
     @Test
     public void test02TwoThreads() throws InterruptedException {
@@ -55,16 +56,21 @@ public class TestInitConcurrent01NEWT extends InitConcurrentBaseNEWT {
     
     @Test
     public void test16SixteenThreads() throws InterruptedException {
-        if( Platform.getCPUFamily() != Platform.CPUFamily.ARM ) {
+        if( !mainRun &&
+            Platform.getCPUFamily() != Platform.CPUFamily.ARM &&
+            Platform.getOSType() != Platform.OSType.WINDOWS ) {
             runJOGLTasks(16, true);
         } else {
-            runJOGLTasks( 8, true);
+            runJOGLTasks( 6, true);
         }
     }
     
     public static void main(String args[]) throws IOException {
+        mainRun = true;        
         for(int i=0; i<args.length; i++) {
-            if(args[i].equals("-time")) {
+            if(args[i].equals("-normalRun")) {
+                mainRun = false;
+            } else if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
