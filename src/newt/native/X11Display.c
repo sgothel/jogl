@@ -146,6 +146,8 @@ static jint X11KeySym2NewtVKey(KeySym keySym) {
             return J_VK_INSERT;
         case XK_Help:
             return J_VK_HELP;
+        case XK_grave:
+            return J_VK_BACK_QUOTE;
     }
     return keySym;
 }
