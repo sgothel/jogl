@@ -85,7 +85,7 @@ public class GLUniformData {
           sb.append("\n");
           final FloatBuffer fb = (FloatBuffer)getBuffer(); 
           for(int i=0; i<count; i++) {
-              FloatUtil.matrixToString(sb, i+": ", "%10.5f", fb, 0, rows, columns, false);
+              FloatUtil.matrixToString(sb, i+": ", "%10.5f", fb, i*rows*columns, rows, columns, false);
               sb.append(",\n");              
           }
       } else if(isBuffer()) {
