@@ -224,15 +224,20 @@ public class GLBuffers extends Buffers {
         if (parent == null || byteLen == 0) {
             return null;
         }
+        final int parentPos = parent.position();
+        final int parentLimit = parent.limit();
+        
         parent.position(bytePos);
         parent.limit(bytePos + byteLen);
-
+        Buffer res = null;
+        
         switch (glType) { // 29
             case GL.GL_BYTE:
             case GL.GL_UNSIGNED_BYTE:
             case GL2GL3.GL_UNSIGNED_BYTE_3_3_2:
             case GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV:
-                return parent.slice();
+                res = parent.slice().order(parent.order()); // slice and duplicate may change byte order
+                break;
                 
             case GL.GL_SHORT:
             case GL.GL_UNSIGNED_SHORT:
@@ -244,7 +249,8 @@ public class GLBuffers extends Buffers {
             case GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV:
             case GL.GL_HALF_FLOAT:
             case GLES2.GL_HALF_FLOAT_OES:
-                return parent.asShortBuffer();
+                res = parent.slice().order(parent.order()).asShortBuffer(); // slice and duplicate may change byte order
+                break;
                 
             case GL.GL_FIXED:
             case GL2GL3.GL_INT:
@@ -258,18 +264,23 @@ public class GLBuffers extends Buffers {
             case GL2GL3.GL_UNSIGNED_INT_5_9_9_9_REV:
             case GL2.GL_HILO16_NV:
             case GL2.GL_SIGNED_HILO16_NV:
-                return parent.asIntBuffer();
+                res = parent.slice().order(parent.order()).asIntBuffer(); // slice and duplicate may change byte order
+                break;
                 
             case GL2GL3.GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
-                return parent.asLongBuffer();
+                res = parent.slice().order(parent.order()).asLongBuffer(); // slice and duplicate may change byte order
+                break;
                 
             case GL.GL_FLOAT:
-                return parent.asFloatBuffer();
+                res = parent.slice().order(parent.order()).asFloatBuffer(); // slice and duplicate may change byte order
+                break;
                 
             case GL2.GL_DOUBLE:
-                return parent.asDoubleBuffer();
+                res = parent.slice().order(parent.order()).asDoubleBuffer(); // slice and duplicate may change byte order
+                break;
         }
-        return null;
+        parent.position(parentPos).limit(parentLimit);
+        return res;
     }
 
     private static final int glGetInteger(GL gl, int pname, int[] tmp) {
