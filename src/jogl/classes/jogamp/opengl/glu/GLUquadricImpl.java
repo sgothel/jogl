@@ -115,10 +115,11 @@
 
 package jogamp.opengl.glu;
 
-import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
+import javax.media.opengl.GL;
+import javax.media.opengl.glu.GLU;
+import javax.media.opengl.glu.GLUquadric;
+
 import com.jogamp.opengl.util.ImmModeSink;
-import java.nio.*;
 
 /**
  * GLUquadricImpl.java
@@ -190,17 +191,19 @@ public class GLUquadricImpl implements GLUquadric {
 
     ImmModeSink res = immModeSink;
     if(useGLSL) {
-        immModeSink = ImmModeSink.createGLSL (gl, GL.GL_STATIC_DRAW, 32, 
-                                              3, GL.GL_FLOAT,  // vertex
-                                              0, GL.GL_FLOAT,  // color
-                                              USE_NORM?3:0, normalType,// normal
-                                              USE_TEXT?2:0, GL.GL_FLOAT); // texture
+        immModeSink = ImmModeSink.createGLSL (32, 
+                                              3, GL.GL_FLOAT,             // vertex 
+                                              0, GL.GL_FLOAT,             // color
+                                              USE_NORM?3:0, normalType,   // normal
+                                              USE_TEXT?2:0, GL.GL_FLOAT,  // texCoords
+                                              GL.GL_STATIC_DRAW);
     } else {
-        immModeSink = ImmModeSink.createFixed(gl, GL.GL_STATIC_DRAW, 32, 
-                                              3, GL.GL_FLOAT,  // vertex
-                                              0, GL.GL_FLOAT,  // color
-                                              USE_NORM?3:0, normalType,// normal
-                                              USE_TEXT?2:0, GL.GL_FLOAT); // texture
+        immModeSink = ImmModeSink.createFixed(32,
+                                              3, GL.GL_FLOAT,             // vertex
+                                              0, GL.GL_FLOAT,             // color
+                                              USE_NORM?3:0, normalType,   // normal
+                                              USE_TEXT?2:0, GL.GL_FLOAT,  // texCoords
+                                              GL.GL_STATIC_DRAW);
     }
     return res;
   }
@@ -430,7 +433,7 @@ public class GLUquadricImpl implements GLUquadric {
       r = baseRadius;
       for (j = 0; j < stacks; j++) {
         float s = 0.0f;
-        glBegin(gl, immModeSink.GL_QUAD_STRIP);
+        glBegin(gl, ImmModeSink.GL_QUAD_STRIP);
         for (i = 0; i <= slices; i++) {
           if (i == slices) {
             x = sin(0.0f);
@@ -514,7 +517,7 @@ public class GLUquadricImpl implements GLUquadric {
           float r2 = r1 + dr;
           if (orientation == GLU.GLU_OUTSIDE) {
             int s;
-            glBegin(gl, immModeSink.GL_QUAD_STRIP);
+            glBegin(gl, ImmModeSink.GL_QUAD_STRIP);
             for (s = 0; s <= slices; s++) {
               float a;
               if (s == slices)
@@ -532,7 +535,7 @@ public class GLUquadricImpl implements GLUquadric {
           }
           else {
             int s;
-            glBegin(gl, immModeSink.GL_QUAD_STRIP);
+            glBegin(gl, ImmModeSink.GL_QUAD_STRIP);
             for (s = slices; s >= 0; s--) {
               float a;
               if (s == slices)
@@ -655,11 +658,10 @@ public class GLUquadricImpl implements GLUquadric {
                               int loops,
                               float startAngle,
                               float sweepAngle) {
-    int i, j, max;
+    int i, j;
     float[] sinCache = new float[CACHE_SIZE];
     float[] cosCache = new float[CACHE_SIZE];
     float angle;
-    float x, y;
     float sintemp, costemp;
     float deltaRadius;
     float radiusLow, radiusHigh;
@@ -770,7 +772,7 @@ public class GLUquadricImpl implements GLUquadric {
           texHigh = radiusHigh / outerRadius / 2;
         }
 
-        glBegin(gl, immModeSink.GL_QUAD_STRIP);
+        glBegin(gl, ImmModeSink.GL_QUAD_STRIP);
         for (i = 0; i <= slices; i++) {
           if (orientation == GLU.GLU_OUTSIDE) {
             if (textureFlag) {
@@ -984,7 +986,7 @@ public class GLUquadricImpl implements GLUquadric {
       // draw intermediate stacks as quad strips
       for (i = imin; i < imax; i++) {
         rho = i * drho;
-        glBegin(gl, immModeSink.GL_QUAD_STRIP);
+        glBegin(gl, ImmModeSink.GL_QUAD_STRIP);
         s = 0.0f;
         for (j = 0; j <= slices; j++) {
           theta = (j == slices) ? 0.0f : j * dtheta;

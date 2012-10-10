@@ -77,11 +77,12 @@ public class MultisampleDemoES1 implements GLEventListener {
         if (multisample) {
             gl.glDisable(GL.GL_MULTISAMPLE);
         }
-        immModeSink = ImmModeSink.createFixed(gl, GL.GL_STATIC_DRAW, 40, 
-                                              3, GL.GL_FLOAT,  // vertex
-                                              0, GL.GL_FLOAT,  // color
-                                              0, GL.GL_FLOAT,// normal
-                                              0, GL.GL_FLOAT); // texture
+        immModeSink = ImmModeSink.createFixed(40, 
+                                              3, GL.GL_FLOAT, // vertex
+                                              0, GL.GL_FLOAT, // color
+                                              0, GL.GL_FLOAT, // normal
+                                              0, GL.GL_FLOAT, // texCoords 
+                                              GL.GL_STATIC_DRAW);
         final int numSteps = 20;
         final double increment = Math.PI / numSteps;
         final double radius = 1;

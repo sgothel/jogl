@@ -69,7 +69,7 @@ import com.jogamp.common.os.Platform;
  * PMVMatrix can supplement {@link GL2ES2} applications w/ the 
  * lack of the described matrix functionality.
  * </p>
- * <a name="storageDetails"><h3>Matrix storage details</h3></a> 
+ * <a name="storageDetails"><h5>Matrix storage details</h5></a> 
  * <p>
  * All matrices use a common FloatBuffer storage
  * and are a {@link Buffers#slice2Float(Buffer, float[], int, int) sliced} representation of it.

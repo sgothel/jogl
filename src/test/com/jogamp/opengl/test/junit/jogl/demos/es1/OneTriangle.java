@@ -61,11 +61,12 @@ public class OneTriangle {
         // draw a triangle filling the window
         gl.glLoadIdentity();
         
-        ImmModeSink immModeSink = ImmModeSink.createFixed(gl, GL.GL_STATIC_DRAW, 3, 
-                                              3, GL.GL_FLOAT,  // vertex
-                                              3, GL.GL_FLOAT,  // color
-                                              0, GL.GL_FLOAT,// normal
-                                              0, GL.GL_FLOAT); // texture
+        ImmModeSink immModeSink = ImmModeSink.createFixed(3*3, 
+                                                          3, GL.GL_FLOAT, // vertex
+                                                          3, GL.GL_FLOAT, // color
+                                                          0, GL.GL_FLOAT, // normal
+                                                          0, GL.GL_FLOAT, // texCoords 
+                                                          GL.GL_STATIC_DRAW);
         immModeSink.glBegin(GL.GL_TRIANGLES);
         immModeSink.glColor3f( 1, 0, 0 );
         immModeSink.glVertex2f( 0, 0 );

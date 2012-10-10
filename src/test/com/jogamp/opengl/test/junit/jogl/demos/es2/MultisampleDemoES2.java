@@ -112,11 +112,12 @@ public class MultisampleDemoES2 implements GLEventListener {
         
         // Using predef array names, see 
         //    GLPointerFuncUtil.getPredefinedArrayIndexName(glArrayIndex);
-        immModeSink = ImmModeSink.createGLSL(gl, GL.GL_STATIC_DRAW, 40, 
+        immModeSink = ImmModeSink.createGLSL(40, 
                                               3, GL.GL_FLOAT,  // vertex
                                               4, GL.GL_FLOAT,  // color
-                                              0, GL.GL_FLOAT,// normal
-                                              0, GL.GL_FLOAT); // texture
+                                              0, GL.GL_FLOAT,  // normal
+                                              0, GL.GL_FLOAT,  // texCoords
+                                              GL.GL_STATIC_DRAW);
         final int numSteps = 20;
         final double increment = Math.PI / numSteps;
         final double radius = 1;
