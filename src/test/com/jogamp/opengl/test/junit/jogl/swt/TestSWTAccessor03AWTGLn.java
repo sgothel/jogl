@@ -55,6 +55,7 @@ import org.junit.Test;
 import com.jogamp.common.os.Platform;
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.test.junit.jogl.demos.es1.OneTriangle;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
@@ -64,7 +65,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  */
 public class TestSWTAccessor03AWTGLn extends UITestCase {
 
-    static final int duration = 250;
+    static int duration = 250;
 
     Display display = null;
     Shell shell = null;
@@ -203,6 +204,11 @@ public class TestSWTAccessor03AWTGLn extends UITestCase {
     }
 
     public static void main(String args[]) {
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-time")) {
+                duration = MiscUtils.atoi(args[++i], duration);
+            }
+        }
         org.junit.runner.JUnitCore.main( TestSWTAccessor03AWTGLn.class.getName() );
     }
 }
