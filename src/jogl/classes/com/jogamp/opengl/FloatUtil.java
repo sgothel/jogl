@@ -29,6 +29,8 @@ package com.jogamp.opengl;
 
 import java.nio.FloatBuffer;
 
+import com.jogamp.common.os.Platform;
+
 /**
  * Basic Float math utility functions.
  * <p>
@@ -291,4 +293,84 @@ public class FloatUtil {
     }
   }
 
+  /** 
+   * @param sb optional passed StringBuilder instance to be used
+   * @param f the format string of one floating point, i.e. "%10.5f", see {@link java.util.Formatter}
+   * @param a mxn matrix (rows x columns)
+   * @param aOffset offset to <code>a</code>'s current position
+   * @param rows
+   * @param columns
+   * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
+   * @param row row number to print 
+   * @return matrix row string representation
+   */
+  public static StringBuilder matrixRowToString(StringBuilder sb, String f, FloatBuffer a, int aOffset, int rows, int columns, boolean rowMajorOrder, int row) {
+      if(null == sb) {
+          sb = new StringBuilder();
+      }
+      final int a0 = aOffset + a.position();
+      if(rowMajorOrder) {
+          for(int c=0; c<columns; c++) {
+              sb.append( String.format( f+" ", a.get( a0 + row*columns + c ) ) ); 
+          }
+      } else {
+          for(int r=0; r<columns; r++) {
+              sb.append( String.format( f+" ", a.get( a0 + row + r*rows ) ) ); 
+          }
+      }
+      return sb;
+  }
+
+  /** 
+   * @param sb optional passed StringBuilder instance to be used
+   * @param rowPrefix optional prefix for each row 
+   * @param f the format string of one floating point, i.e. "%10.5f", see {@link java.util.Formatter}
+   * @param a mxn matrix (rows x columns)
+   * @param aOffset offset to <code>a</code>'s current position
+   * @param rows
+   * @param columns
+   * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
+   * @return matrix string representation
+   */
+  public static StringBuilder matrixToString(StringBuilder sb, String rowPrefix, String f, FloatBuffer a, int aOffset, int rows, int columns, boolean rowMajorOrder) {
+      if(null == sb) {
+          sb = new StringBuilder();
+      }
+      final String prefix = ( null == rowPrefix ) ? "" : rowPrefix;
+      for(int i=0; i<rows; i++) {
+          sb.append(prefix).append("[ ");
+          matrixRowToString(sb, f, a, aOffset, rows, columns, rowMajorOrder, i);
+          sb.append("]").append(Platform.getNewline());      
+      }
+      return sb;
+  }
+
+  /** 
+   * @param sb optional passed StringBuilder instance to be used
+   * @param rowPrefix optional prefix for each row 
+   * @param f the format string of one floating point, i.e. "%10.5f", see {@link java.util.Formatter}
+   * @param a 4x4 matrix in column major order (OpenGL)
+   * @param aOffset offset to <code>a</code>'s current position
+   * @param b 4x4 matrix in column major order (OpenGL)
+   * @param bOffset offset to <code>a</code>'s current position
+   * @param rows
+   * @param columns
+   * @param rowMajorOrder if true floats are layed out in row-major-order, otherwise column-major-order (OpenGL)
+   * @return side by side representation
+   */
+  public static StringBuilder matrixToString(StringBuilder sb, String rowPrefix, String f, FloatBuffer a, int aOffset, FloatBuffer b, int bOffset, int rows, int columns, boolean rowMajorOrder) {
+      if(null == sb) {
+          sb = new StringBuilder();
+      }
+      final String prefix = ( null == rowPrefix ) ? "" : rowPrefix;
+      for(int i=0; i<rows; i++) {
+          sb.append(prefix).append("[ ");
+          matrixRowToString(sb, f, a, aOffset, rows, columns, rowMajorOrder, i);
+          sb.append("=?= ");
+          matrixRowToString(sb, f, b, bOffset, rows, columns, rowMajorOrder, i);
+          sb.append("]").append(Platform.getNewline());      
+      }
+      return sb;
+  }
+  
 }

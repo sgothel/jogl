@@ -44,6 +44,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.opengl.FloatUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -51,8 +52,33 @@ import com.jogamp.opengl.util.PMVMatrix;
 public class TestPMVMatrix01NEWT extends UITestCase {
     
     static final float epsilon = 0.00001f;
-    // Translated xyz 123 - Normal - In column major order !
-    static FloatBuffer translated123N = FloatBuffer.wrap( new float[] {  1.0f,  0.0f,  0.0f,  0.0f,
+
+    // matrix 2 rows x 3 columns - In row major order
+    static FloatBuffer matrix2x3R = FloatBuffer.wrap( new float[] {  1.0f,  2.0f,  3.0f,
+                                                                     4.0f,  5.0f,  6.0f } );
+    
+    // matrix 2 rows x 3 columns - In column major order
+    static FloatBuffer matrix2x3C = FloatBuffer.wrap( new float[] {  1.0f,  4.0f,  
+                                                                     2.0f,  5.0f,  
+                                                                     3.0f,  6.0f } );
+    
+    // matrix 3 rows x 2 columns - In row major order
+    static FloatBuffer matrix3x2R = FloatBuffer.wrap( new float[] {  1.0f,  2.0f,
+                                                                     3.0f,  4.0f,
+                                                                     5.0f,  6.0f  } );
+    
+    // matrix 3 rows x 2 columns - In column major order
+    static FloatBuffer matrix3x2C = FloatBuffer.wrap( new float[] {  1.0f,  3.0f, 5.0f,  
+                                                                     2.0f,  4.0f, 6.0f  } );
+    
+    // Translated xyz 123 - Row - In row major order !
+    static FloatBuffer translated123R = FloatBuffer.wrap( new float[] {  1.0f,  0.0f,  0.0f,  1.0f,
+                                                                         0.0f,  1.0f,  0.0f,  2.0f,
+                                                                         0.0f,  0.0f,  1.0f,  3.0f,
+                                                                         0.0f,  0.0f,  0.0f,  1.0f } );
+    
+    // Translated xyz 123 - Column - In column major order !
+    static FloatBuffer translated123C = FloatBuffer.wrap( new float[] {  1.0f,  0.0f,  0.0f,  0.0f,
                                                                          0.0f,  1.0f,  0.0f,  0.0f,
                                                                          0.0f,  0.0f,  1.0f,  0.0f,
                                                                          1.0f,  2.0f,  3.0f,  1.0f } );
@@ -69,6 +95,44 @@ public class TestPMVMatrix01NEWT extends UITestCase {
                                                                           0.0f,  0.0f,  1.0f, -3.0f,
                                                                           0.0f,  0.0f,  0.0f,  1.0f } );
 
+    @Test
+    public void test00MatrixToString() {
+        final String s4x4Cpmv = PMVMatrix.matrixToString(null, "%10.5f", translated123C).toString();
+        final String s4x4Cflu = FloatUtil.matrixToString(null, null, "%10.5f", translated123C, 0, 4, 4, false).toString();
+        final String s4x4Rflu = FloatUtil.matrixToString(null, null, "%10.5f", translated123R, 0, 4, 4, true).toString();
+        System.err.println("PMV-C-O 4x4: ");
+        System.err.println(s4x4Cpmv);
+        System.err.println();
+        System.err.println("FLU-C-O 4x4: ");
+        System.err.println(s4x4Cflu);
+        System.err.println();
+        System.err.println("FLU-R-O 4x4: ");
+        System.err.println(s4x4Rflu);
+        System.err.println();
+        Assert.assertEquals(s4x4Cpmv, s4x4Cflu);
+        Assert.assertEquals(s4x4Cflu, s4x4Rflu);
+        
+        final String s2x3Rflu = FloatUtil.matrixToString(null, null, "%10.5f", matrix2x3R, 0, 2, 3, true).toString();
+        final String s2x3Cflu = FloatUtil.matrixToString(null, null, "%10.5f", matrix2x3C, 0, 2, 3, false).toString();
+        System.err.println("FLU-R-O 2x3: ");
+        System.err.println(s2x3Rflu);
+        System.err.println();
+        System.err.println("FLU-C-O 2x3: ");
+        System.err.println(s2x3Cflu);
+        System.err.println();
+        Assert.assertEquals(s2x3Cflu, s2x3Rflu);
+        
+        final String s3x2Rflu = FloatUtil.matrixToString(null, null, "%10.5f", matrix3x2R, 0, 3, 2, true).toString();
+        final String s3x2Cflu = FloatUtil.matrixToString(null, null, "%10.5f", matrix3x2C, 0, 3, 2, false).toString();
+        System.err.println("FLU-R-O 3x2: ");
+        System.err.println(s3x2Rflu);
+        System.err.println();
+        System.err.println("FLU-C-O 3x2: ");
+        System.err.println(s3x2Cflu);
+        System.err.println();
+        Assert.assertEquals(s3x2Cflu, s3x2Rflu);                
+    }
+    
     /**
      * Test using traditional access workflow, i.e. 1) operation 2) get-matrix references
      * <p>
@@ -123,7 +187,7 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         p = pmv.glGetPMatrixf();
         MiscUtils.assertFloatBufferEquals("P not identity, "+pmv.toString(), ident, p, epsilon);
         mv = pmv.glGetMvMatrixf();
-        MiscUtils.assertFloatBufferEquals("Mv not translated123, "+pmv.toString(), translated123N, mv, epsilon);        
+        MiscUtils.assertFloatBufferEquals("Mv not translated123, "+pmv.toString(), translated123C, mv, epsilon);        
         mvi = pmv.glGetMviMatrixf();
         MiscUtils.assertFloatBufferEquals("Mvi not translated123, "+pmv.toString(), translated123I, mvi, epsilon);
         Assert.assertEquals("Remaining dirty bits not Mvit, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW, pmv.getDirtyBits());
@@ -220,7 +284,7 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         Assert.assertTrue("Modified bits zero", 0 != pmv.getModifiedBits(true)); // clear & test
         Assert.assertTrue("Dirty bits clean, "+pmv.toString(), 0 != pmv.getDirtyBits());
         MiscUtils.assertFloatBufferEquals("P not identity, "+pmv.toString()+pmv.toString(), ident, p, epsilon);
-        MiscUtils.assertFloatBufferEquals("Mv not translated123, "+pmv.toString()+pmv.toString(), translated123N, mv, epsilon);
+        MiscUtils.assertFloatBufferEquals("Mv not translated123, "+pmv.toString()+pmv.toString(), translated123C, mv, epsilon);
         MiscUtils.assertFloatBufferNotEqual("Mvi already translated123 w/o update, "+pmv.toString()+pmv.toString(), translated123I, mvi, epsilon);
         MiscUtils.assertFloatBufferNotEqual("Mvit already translated123 w/o update, "+pmv.toString()+pmv.toString(), translated123IT, mvit, epsilon);
         MiscUtils.assertFloatBufferEquals("Mvi not identity, "+pmv.toString()+pmv.toString(), ident, mvi, epsilon);

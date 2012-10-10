@@ -3,6 +3,9 @@ package javax.media.opengl;
 
 import java.nio.*;
 
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.opengl.FloatUtil;
+
 public class GLUniformData {
 
     /**
@@ -69,14 +72,33 @@ public class GLUniformData {
     public IntBuffer intBufferValue()   { return (IntBuffer)data; };
     public FloatBuffer floatBufferValue() { return (FloatBuffer)data; };
 
+    public StringBuilder toString(StringBuilder sb) {
+      if(null == sb) {
+          sb = new StringBuilder();
+      }
+      sb.append("GLUniformData[name ").append(name).
+                       append(", location ").append(location). 
+                       append(", size ").append(rows).append("x").append(columns).
+                       append(", count ").append(count). 
+                       append(", data ");      
+      if(isMatrix() && data instanceof FloatBuffer) {
+          sb.append("\n");
+          final FloatBuffer fb = (FloatBuffer)getBuffer(); 
+          for(int i=0; i<count; i++) {
+              FloatUtil.matrixToString(sb, i+": ", "%10.5f", fb, 0, rows, columns, false);
+              sb.append(",\n");              
+          }
+      } else if(isBuffer()) {
+          Buffers.toString(sb, getBuffer());
+      } else {
+          sb.append(data);
+      }
+      sb.append("]");
+      return sb;
+    }
+    
     public String toString() {
-      return "GLUniformData[name "+name+
-                       ", location "+location+ 
-                       ", size "+rows+"*"+columns+
-                       ", count "+count+ 
-                       ", matrix "+isMatrix+ 
-                       ", data "+data+ 
-                       "]";
+        return toString(null).toString();
     }
 
     private void init(String name, int rows, int columns, Object data) {

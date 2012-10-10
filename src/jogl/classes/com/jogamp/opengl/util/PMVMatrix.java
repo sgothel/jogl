@@ -169,55 +169,11 @@ public class PMVMatrix implements GLMatrixFunc {
     /** 
      * @param sb optional passed StringBuilder instance to be used
      * @param f the format string of one floating point, i.e. "%10.5f", see {@link java.util.Formatter}
-     * @param row row number
-     * @param a 4x4 matrix in column major order (OpenGL)
-     * @return matrix row string representation
-     */
-    public static StringBuilder matrixRowToString(StringBuilder sb, String f, int row, FloatBuffer a) {
-        if(null == sb) {
-            sb = new StringBuilder();
-        }
-        final int a0 = a.position();
-        sb.append( String.format("[ "+f+" "+f+" "+f+" "+f+" ]", 
-                                 a.get(a0+row+0*4), a.get(a0+row+1*4), a.get(a0+row+2*4), a.get(a0+row+3*4) ) ); 
-        return sb;
-    }
-    
-    /** 
-     * @param sb optional passed StringBuilder instance to be used
-     * @param f the format string of one floating point, i.e. "%10.5f", see {@link java.util.Formatter}
      * @param a 4x4 matrix in column major order (OpenGL)
      * @return matrix string representation
      */
     public static StringBuilder matrixToString(StringBuilder sb, String f, FloatBuffer a) {
-        if(null == sb) {
-            sb = new StringBuilder();
-        }
-        matrixRowToString(sb, f, 0, a).append(Platform.getNewline());
-        matrixRowToString(sb, f, 1, a).append(Platform.getNewline());
-        matrixRowToString(sb, f, 2, a).append(Platform.getNewline());
-        matrixRowToString(sb, f, 3, a).append(Platform.getNewline());
-        return sb;
-    }
-    
-    /** 
-     * @param sb optional passed StringBuilder instance to be used
-     * @param f the format string of one floating point, i.e. "%10.5f", see {@link java.util.Formatter}
-     * @param row row number
-     * @param a 4x4 matrix in column major order (OpenGL)
-     * @param b 4x4 matrix in column major order (OpenGL)
-     * @return matrix row string representation side by side
-     */
-    public static StringBuilder matrixRowToString(StringBuilder sb, String f, int row, FloatBuffer a, FloatBuffer b) {
-        if(null == sb) {
-            sb = new StringBuilder();
-        }
-        final int a0 = a.position();
-        final int b0 = b.position();
-        sb.append( String.format("[ "+f+" "+f+" "+f+" "+f+" =?= "+f+" "+f+" "+f+" "+f+" ]", 
-                                 a.get(a0+row+0*4), a.get(a0+row+1*4), a.get(a0+row+2*4), a.get(a0+row+3*4), 
-                                 b.get(b0+row+0*4), b.get(b0+row+1*4), b.get(b0+row+2*4), b.get(b0+row+3*4) ) );
-        return sb;
+        return FloatUtil.matrixToString(sb, null, f, a, 0, 4, 4, false);        
     }
     
     /** 
@@ -228,14 +184,7 @@ public class PMVMatrix implements GLMatrixFunc {
      * @return side by side representation
      */
     public static StringBuilder matrixToString(StringBuilder sb, String f, FloatBuffer a, FloatBuffer b) {
-        if(null == sb) {
-            sb = new StringBuilder();
-        }
-        matrixRowToString(sb, f, 0, a, b).append(Platform.getNewline());
-        matrixRowToString(sb, f, 1, a, b).append(Platform.getNewline());
-        matrixRowToString(sb, f, 2, a, b).append(Platform.getNewline());
-        matrixRowToString(sb, f, 3, a, b).append(Platform.getNewline());
-        return sb;
+        return FloatUtil.matrixToString(sb, null, f, a, 0, b, 0, 4, 4, false);        
     }
     
     /**
