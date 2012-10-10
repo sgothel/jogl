@@ -89,7 +89,7 @@ public class GLUniformData {
               sb.append(",\n");              
           }
       } else if(isBuffer()) {
-          Buffers.toString(sb, getBuffer());
+          Buffers.toString(sb, null, getBuffer());
       } else {
           sb.append(data);
       }
