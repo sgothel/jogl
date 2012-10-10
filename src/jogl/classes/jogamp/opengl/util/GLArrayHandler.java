@@ -38,17 +38,12 @@ import javax.media.opengl.*;
 public interface GLArrayHandler {
 
   /**
-   * Implementation shall associate the data with the array
-   * and synchronize the data with the GPU.
-   * 
-   * @param gl current GL object
-   * @param enable true if array data shall be valid, otherwise false.
-   * @param ext extension object allowing passing of an implementation detail 
-   */
-  public void syncData(GL gl, boolean enable, Object ext);
-  
-  /**
    * Implementation shall enable or disable the array state.
+   * <p>
+   * Before enabling the array state,
+   * implementation shall associate the data with the array
+   * and synchronize the data with the GPU.
+   * </p>
    * 
    * @param gl current GL object
    * @param enable true if array shall be enabled, otherwise false.

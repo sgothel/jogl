@@ -41,11 +41,9 @@ public interface GLArrayHandlerFlat {
    * Implementation shall associate the data with the array
    * 
    * @param gl current GL object
-   * @param enable true if array data shall be valid, otherwise false.
-   * @param force true force data association, bypassing optimization
    * @param ext extension object allowing passing of an implementation detail 
    */
-  public void syncData(GL gl, boolean enable, boolean force, Object ext);
+  public void syncData(GL gl, Object ext);
   
   /**
    * Implementation shall enable or disable the array state.

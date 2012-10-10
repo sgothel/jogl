@@ -53,14 +53,14 @@ public class GLDataArrayHandler implements GLArrayHandler {
       throw new UnsupportedOperationException();
   }
   
-  public final void syncData(GL gl, boolean enable, Object ext) {
-    if(!ad.isVBO()) {
-        // makes no sense otherwise
-        throw new GLException("GLDataArrayHandler can only handle VBOs.");
-    }
+  public final void enableState(GL gl, boolean enable, Object ext) { 
     if(enable) {
+        if(!ad.isVBO()) {
+            // makes no sense otherwise
+            throw new GLException("GLDataArrayHandler can only handle VBOs.");
+        }
         Buffer buffer = ad.getBuffer();
-
+        
         // always bind and refresh the VBO mgr, 
         // in case more than one gl*Pointer objects are in use
         gl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
@@ -70,13 +70,10 @@ public class GLDataArrayHandler implements GLArrayHandler {
             }
             ad.setVBOWritten(true);
         }
-    } else {
         gl.glBindBuffer(ad.getVBOTarget(), 0);
-    }      
-  }
-  
-  public final void enableState(GL gl, boolean enable, Object ext) { 
-      // no array association
+          
+    }
+    // no array association
   }
 }
 

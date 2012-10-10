@@ -58,9 +58,9 @@ public class GLSLArrayHandler implements GLArrayHandler {
       throw new UnsupportedOperationException();
   }
   
-  public final void syncData(GL gl, boolean enable, Object ext) {
+  public final void enableState(GL gl, boolean enable, Object ext) {
     final GL2ES2 glsl = gl.getGL2ES2();
-    final ShaderState st = (ShaderState) ext;
+    final ShaderState st = (ShaderState) ext;    
     
     if(enable) {
         final Buffer buffer = ad.getBuffer();
@@ -87,6 +87,7 @@ public class GLSLArrayHandler implements GLArrayHandler {
                 }
                 ad.setVBOWritten(true);
                 st.vertexAttribPointer(glsl, ad);
+                glsl.glBindBuffer(ad.getVBOTarget(), 0);
             } else if(st.getAttribLocation(glsl, ad) >= 0) {
                 // didn't experience a performance hit on this query ..
                 // (using ShaderState's location query above to validate the location)
@@ -95,21 +96,13 @@ public class GLSLArrayHandler implements GLArrayHandler {
                 if(ad.getVBOName() != qi[0]) {
                     glsl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
                     st.vertexAttribPointer(glsl, ad);
+                    glsl.glBindBuffer(ad.getVBOTarget(), 0);
                 }
             }
         } else if(null!=buffer) {
             st.vertexAttribPointer(glsl, ad);
         }
-    } else if(ad.isVBO()) {
-        glsl.glBindBuffer(ad.getVBOTarget(), 0);
-    }      
-  }
-  
-  public final void enableState(GL gl, boolean enable, Object ext) {
-    final GL2ES2 glsl = gl.getGL2ES2();
-    final ShaderState st = (ShaderState) ext;
-    
-    if(enable) {
+        
         st.enableVertexAttribArray(glsl, ad);
     } else {
         st.disableVertexAttribArray(glsl, ad);

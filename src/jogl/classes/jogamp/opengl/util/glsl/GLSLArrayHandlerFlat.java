@@ -51,28 +51,26 @@ public class GLSLArrayHandlerFlat implements GLArrayHandlerFlat {
       return ad;
   }
     
-  public final void syncData(GL gl, boolean enable, boolean force, Object ext) {
-    if(enable) {
-        final GL2ES2 glsl = gl.getGL2ES2();
-        final ShaderState st = (ShaderState) ext;
+  public final void syncData(GL gl, Object ext) {
+    final GL2ES2 glsl = gl.getGL2ES2();
+    final ShaderState st = (ShaderState) ext;
 
+    st.vertexAttribPointer(glsl, ad);
+    /**
+     * Due to probable application VBO switching, this might not make any sense ..
+     * 
+    if(!written) {
         st.vertexAttribPointer(glsl, ad);
-        /**
-         * Due to probable application VBO switching, this might not make any sense ..
-         * 
-        if(force) {
+    } else if(st.getAttribLocation(glsl, ad) >= 0) {
+        final int[] qi = new int[1];
+        glsl.glGetVertexAttribiv(ad.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, qi, 0);
+        if(ad.getVBOName() != qi[0]) {
+            System.err.println("XXX1: "+ad.getName()+", vbo ad "+ad.getVBOName()+", gl "+qi[0]+", "+ad);
             st.vertexAttribPointer(glsl, ad);
-        } else if(st.getAttribLocation(glsl, ad) >= 0) {
-            final int[] qi = new int[1];
-            glsl.glGetVertexAttribiv(ad.getLocation(), GL2ES2.GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, qi, 0);
-            if(ad.getVBOName() != qi[0]) {
-                System.err.println("XXX1: "+ad.getName()+", vbo ad "+ad.getVBOName()+", gl "+qi[0]+", "+ad);
-                st.vertexAttribPointer(glsl, ad);
-            } else {
-                System.err.println("XXX0: "+ad.getName()+", vbo ad "+ad.getVBOName()+", gl "+qi[0]+", "+ad);
-            }
-        }*/
-    }
+        } else {
+            System.err.println("XXX0: "+ad.getName()+", vbo ad "+ad.getVBOName()+", gl "+qi[0]+", "+ad);
+        }
+    }*/
   }
 
   public final void enableState(GL gl, boolean enable, Object ext) {

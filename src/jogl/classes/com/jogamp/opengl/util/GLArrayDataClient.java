@@ -167,13 +167,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
         } else {
             ext = null;
         }
-        if(enable) {
-            glArrayHandler.syncData(gl, true, ext);
-            glArrayHandler.enableState(gl, true, ext);
-        } else {
-            glArrayHandler.enableState(gl, false, ext);
-            glArrayHandler.syncData(gl, false, ext);
-        }
+        glArrayHandler.enableState(gl, enable, ext);
         bufferEnabled = enable;
     }
   }

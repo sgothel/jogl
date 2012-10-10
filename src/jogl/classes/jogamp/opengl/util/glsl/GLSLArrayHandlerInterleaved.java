@@ -61,18 +61,18 @@ public class GLSLArrayHandlerInterleaved implements GLArrayHandler {
       subArrays.add(handler);
   }
 
-  private final void syncSubData(GL gl, boolean enable, boolean force, Object ext) {
+  private final void syncSubData(GL gl, Object ext) {
       for(int i=0; i<subArrays.size(); i++) {
-          subArrays.get(i).syncData(gl, enable, force, ext);
+          subArrays.get(i).syncData(gl, ext);
       }      
   }  
   
-  public final void syncData(GL gl, boolean enable, Object ext) {    
-    if(!ad.isVBO()) {
-        throw new InternalError("Interleaved handle is not VBO: "+ad);
-    }
-    
+  public final void enableState(GL gl, boolean enable, Object ext) {
     if(enable) {
+        if(!ad.isVBO()) {
+            throw new InternalError("Interleaved handle is not VBO: "+ad);
+        }
+        
         final Buffer buffer = ad.getBuffer();
         final boolean vboWritten = ad.isVBOWritten();
         
@@ -86,14 +86,9 @@ public class GLSLArrayHandlerInterleaved implements GLArrayHandler {
             ad.setVBOWritten(true);
         }
         // sub data will decide weather to update the vertex attrib pointer
-        syncSubData(gl, true, !vboWritten, ext);
-    } else {
-        // NOP on GLSL: syncSubData(gl, false, ext);
-        gl.glBindBuffer(ad.getVBOTarget(), 0);
+        syncSubData(gl, ext);
+        gl.glBindBuffer(ad.getVBOTarget(), 0);        
     }
-  }
-  
-  public final void enableState(GL gl, boolean enable, Object ext) {
     for(int i=0; i<subArrays.size(); i++) {
         subArrays.get(i).enableState(gl, enable, ext);
     }      

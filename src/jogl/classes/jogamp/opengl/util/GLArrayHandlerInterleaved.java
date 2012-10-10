@@ -59,17 +59,17 @@ public class GLArrayHandlerInterleaved implements GLArrayHandler {
       subArrays.add(handler);
   }
 
-  private final void syncSubData(GL gl, boolean enable, boolean force, Object ext) {
+  private final void syncSubData(GL gl, Object ext) {
       for(int i=0; i<subArrays.size(); i++) {
-          subArrays.get(i).syncData(gl, enable, force, ext);
+          subArrays.get(i).syncData(gl, ext);
       }      
   }  
   
-  public final void syncData(GL gl, boolean enable, Object ext) {
+  public final void enableState(GL gl, boolean enable, Object ext) {
     if(enable) {
         final Buffer buffer = ad.getBuffer();
-
-        if(ad.isVBO()) {
+        final boolean vboBound = ad.isVBO();
+        if(vboBound) {
             // always bind and refresh the VBO mgr, 
             // in case more than one gl*Pointer objects are in use
             gl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
@@ -80,16 +80,12 @@ public class GLArrayHandlerInterleaved implements GLArrayHandler {
                 ad.setVBOWritten(true);
             }
         }
-        syncSubData(gl, true, true, ext);
-    } else {
-        syncSubData(gl, false, true, ext);
-        if(ad.isVBO()) {
+        syncSubData(gl, ext);
+        if(vboBound) {
             gl.glBindBuffer(ad.getVBOTarget(), 0);
         }
+        
     }
-  }
-  
-  public final void enableState(GL gl, boolean enable, Object ext) {
     for(int i=0; i<subArrays.size(); i++) {
         subArrays.get(i).enableState(gl, enable, ext);
     }      
