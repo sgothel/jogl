@@ -214,6 +214,7 @@ public abstract class UITestCase {
         private final GLReadBufferUtil screenshot;
         private volatile boolean makeShot = false;
         private volatile boolean makeShotAlways = false;
+        private volatile boolean verbose = false;
         private volatile int displayCount=0;
         private volatile int reshapeCount=0;
         public SnapshotGLEventListener(GLReadBufferUtil screenshot) {
@@ -230,7 +231,9 @@ public abstract class UITestCase {
         public void display(GLAutoDrawable drawable) {
             final GL gl = drawable.getGL();
             final boolean _makeShot = makeShot || makeShotAlways;
-            System.err.println(Thread.currentThread().getName()+": ** display: "+displayCount+": "+drawable.getWidth()+"x"+drawable.getHeight()+", makeShot "+_makeShot);
+            if(verbose) {
+                System.err.println(Thread.currentThread().getName()+": ** display: "+displayCount+": "+drawable.getWidth()+"x"+drawable.getHeight()+", makeShot "+_makeShot);
+            }
             if(_makeShot) {
                 makeShot=false;
                 snapshot(displayCount, null, gl, screenshot, TextureIO.PNG, null);
@@ -238,7 +241,9 @@ public abstract class UITestCase {
             displayCount++;
         }
         public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-            System.err.println(Thread.currentThread().getName()+": ** reshape: "+reshapeCount+": "+width+"x"+height+" - "+drawable.getWidth()+"x"+drawable.getHeight());
+            if(verbose) {
+                System.err.println(Thread.currentThread().getName()+": ** reshape: "+reshapeCount+": "+width+"x"+height+" - "+drawable.getWidth()+"x"+drawable.getHeight());
+            }
             reshapeCount++;
         }
         public void setMakeSnapshot() {
@@ -246,6 +251,9 @@ public abstract class UITestCase {
         }
         public void setMakeSnapshotAlways(boolean v) {
             makeShotAlways=v;
+        }
+        public void setVerbose(boolean v) {
+            verbose=v;
         }
     };
     
