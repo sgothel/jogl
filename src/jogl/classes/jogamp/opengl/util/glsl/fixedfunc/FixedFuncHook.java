@@ -30,9 +30,12 @@
 package jogamp.opengl.util.glsl.fixedfunc;
 
 import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLArrayData;
 import javax.media.opengl.GLException;
@@ -113,15 +116,49 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     // FixedFuncHookIf - hooks 
     //
     public void glDrawArrays(int mode, int first, int count) {
-        fixedFunction.validate(gl); 
+        fixedFunction.validate(gl);
+        switch(mode) {
+            case GL2.GL_QUAD_STRIP:
+                mode=GL.GL_TRIANGLE_STRIP;
+                break;
+            case GL2.GL_POLYGON:
+                mode=GL.GL_TRIANGLE_FAN;
+                break;
+        }
+        if ( GL2.GL_QUADS == mode && !gl.isGL2() ) {
+            for (int j = first; j < count - 3; j += 4) {
+                gl.glDrawArrays(GL.GL_TRIANGLE_FAN, j, 4);
+            }
+        } else {
+            gl.glDrawArrays(mode, first, count);
+        }
+        
         gl.glDrawArrays(mode, first, count);
     }
     public void glDrawElements(int mode, int count, int type, java.nio.Buffer indices) {
         fixedFunction.validate(gl); 
-        gl.glDrawElements(mode, count, type, indices);
+        if ( GL2.GL_QUADS == mode && !gl.isGL2() ) {
+            if( GL.GL_UNSIGNED_BYTE == type ) {
+                final ByteBuffer b = (ByteBuffer) indices;
+                for (int j = b.position(); j < count; j++) {
+                    gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x000000ff & b.get(j)), 4);
+                }                        
+            } else {
+                final ShortBuffer b = (ShortBuffer) indices;
+                for (int j = b.position(); j < count; j++) {
+                    gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x0000ffff & b.get(j)), 4);
+                }                                                
+            }
+        } else {
+            gl.glDrawElements(mode, count, type, indices);
+            // GL2: gl.glDrawRangeElements(mode, 0, count-1, indices.remaining(), type, indices);
+        }
     }
     public void glDrawElements(int mode, int count, int type, long indices_buffer_offset) {
         fixedFunction.validate(gl); 
+        if ( GL2.GL_QUADS == mode && !gl.isGL2() ) {
+            throw new GLException("Cannot handle indexed QUADS on !GL2 w/ VBO due to lack of CPU index access");
+        }
         gl.glDrawElements(mode, count, type, indices_buffer_offset);
     }
 
@@ -183,11 +220,21 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
     public void glTexImage2D(int target, int level, int internalformat, int width, int height, int border, 
                              int format, int type,  Buffer pixels) {
+        // align internalformat w/ format, an ES2 requirement
+        switch(internalformat) {
+            case 3: internalformat= ( GL.GL_RGBA == format ) ? GL.GL_RGBA : GL.GL_RGB; break;
+            case 4: internalformat= ( GL.GL_RGB  == format ) ? GL.GL_RGB  : GL.GL_RGBA; break;
+        }
         fixedFunction.glTexImage2D(target, /* level, */ internalformat, /*width, height, border, */ format /*, type, pixels*/);
         gl.glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
     }
     public void glTexImage2D(int target, int level, int internalformat, int width, int height, int border,
-                             int format, int type,  long pixels_buffer_offset) {        
+                             int format, int type,  long pixels_buffer_offset) {
+        // align internalformat w/ format, an ES2 requirement
+        switch(internalformat) {
+            case 3: internalformat= ( GL.GL_RGBA == format ) ? GL.GL_RGBA : GL.GL_RGB; break;
+            case 4: internalformat= ( GL.GL_RGB  == format ) ? GL.GL_RGB  : GL.GL_RGBA; break;
+        }
         fixedFunction.glTexImage2D(target, /* level, */ internalformat, /*width, height, border, */ format /*, type, pixels*/);
         gl.glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels_buffer_offset);
     }

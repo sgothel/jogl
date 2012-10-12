@@ -422,12 +422,12 @@ public class ImmModeSink {
                 if ( GL_QUADS == mode && !gl.isGL2() ) {
                     if( GL.GL_UNSIGNED_BYTE == type ) {
                         final ByteBuffer b = (ByteBuffer) indices;
-                        for (int j = 0; j < b.remaining(); j++) {
+                        for (int j = b.position(); j < b.remaining(); j++) {
                             gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x000000ff & b.get(j)), 4);
                         }                        
                     } else {
                         final ShortBuffer b = (ShortBuffer) indices;
-                        for (int j = 0; j < b.remaining(); j++) {
+                        for (int j = b.position(); j < b.remaining(); j++) {
                             gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x0000ffff & b.get(j)), 4);
                         }                                                
                     }
