@@ -28,7 +28,6 @@
 
 package jogamp.opengl.util.glsl;
 
-import java.nio.Buffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +35,7 @@ import javax.media.opengl.GL;
 
 import jogamp.opengl.util.GLArrayHandler;
 import jogamp.opengl.util.GLArrayHandlerFlat;
+import jogamp.opengl.util.GLVBOArrayHandler;
 
 import com.jogamp.opengl.util.GLArrayDataEditable;
 
@@ -43,12 +43,11 @@ import com.jogamp.opengl.util.GLArrayDataEditable;
  * Interleaved fixed function arrays, i.e. where this buffer data 
  * represents many arrays. 
  */
-public class GLSLArrayHandlerInterleaved implements GLArrayHandler {
-  private GLArrayDataEditable ad;
+public class GLSLArrayHandlerInterleaved extends GLVBOArrayHandler implements GLArrayHandler {
   private List<GLArrayHandlerFlat> subArrays = new ArrayList<GLArrayHandlerFlat>();
 
   public GLSLArrayHandlerInterleaved(GLArrayDataEditable ad) {
-    this.ad = ad;
+    super(ad);
   }
   
   public final void setSubArrayVBOName(int vboName) {
@@ -72,22 +71,10 @@ public class GLSLArrayHandlerInterleaved implements GLArrayHandler {
         if(!ad.isVBO()) {
             throw new InternalError("Interleaved handle is not VBO: "+ad);
         }
-        
-        final Buffer buffer = ad.getBuffer();
-        final boolean vboWritten = ad.isVBOWritten();
-        
-        // always bind and refresh the VBO mgr, 
-        // in case more than one gl*Pointer objects are in use
-        gl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
-        if(!vboWritten) {
-            if(null!=buffer) {
-                gl.glBufferData(ad.getVBOTarget(), buffer.limit() * ad.getComponentSizeInBytes(), buffer, ad.getVBOUsage());
-            }
-            ad.setVBOWritten(true);
-        }
+        bindBuffer(gl, true);
         // sub data will decide weather to update the vertex attrib pointer
         syncSubData(gl, ext);
-        gl.glBindBuffer(ad.getVBOTarget(), 0);        
+        bindBuffer(gl, false);
     }
     for(int i=0; i<subArrays.size(); i++) {
         subArrays.get(i).enableState(gl, enable, ext);

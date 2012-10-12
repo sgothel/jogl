@@ -35,6 +35,7 @@ import javax.media.opengl.GL2ES2;
 
 import jogamp.opengl.util.GLArrayHandler;
 import jogamp.opengl.util.GLArrayHandlerFlat;
+import jogamp.opengl.util.GLVBOArrayHandler;
 
 import com.jogamp.opengl.util.GLArrayDataEditable;
 import com.jogamp.opengl.util.glsl.ShaderState;
@@ -43,11 +44,10 @@ import com.jogamp.opengl.util.glsl.ShaderState;
  * Used for 1:1 GLSL arrays, i.e. where the buffer data 
  * represents this array only. 
  */
-public class GLSLArrayHandler implements GLArrayHandler {
-  private GLArrayDataEditable ad;
-
+public class GLSLArrayHandler extends GLVBOArrayHandler implements GLArrayHandler {
+    
   public GLSLArrayHandler(GLArrayDataEditable ad) {
-    this.ad = ad;
+    super(ad);
   }
   
   public final void setSubArrayVBOName(int vboName) {
@@ -63,7 +63,6 @@ public class GLSLArrayHandler implements GLArrayHandler {
     final ShaderState st = (ShaderState) ext;    
     
     if(enable) {
-        final Buffer buffer = ad.getBuffer();
         /*
          * This would be the non optimized code path:
          * 
@@ -78,6 +77,7 @@ public class GLSLArrayHandler implements GLArrayHandler {
         }
         st.vertexAttribPointer(glsl, ad);
         */
+        final Buffer buffer = ad.getBuffer();
         if(ad.isVBO()) {
             // bind and refresh the VBO / vertex-attr only if necessary
             if(!ad.isVBOWritten()) {
@@ -108,6 +108,5 @@ public class GLSLArrayHandler implements GLArrayHandler {
         st.disableVertexAttribArray(glsl, ad);
     }
   }
-
 }
 

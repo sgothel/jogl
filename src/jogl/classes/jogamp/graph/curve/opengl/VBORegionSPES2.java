@@ -127,16 +127,14 @@ public class VBORegionSPES2 extends GLRegion {
 
     protected void drawImpl(GL2ES2 gl, RenderState rs, int vp_width, int vp_height, int[/*1*/] texWidth) {
         verticeAttr.enableBuffer(gl, true);       
-        texCoordAttr.enableBuffer(gl, true);
-        indices.enableBuffer(gl, true);
+        texCoordAttr.enableBuffer(gl, true);        
+        indices.bindBuffer(gl, true); // keeps VBO binding
         
-        indices.bindBuffer(gl, true);
         gl.glDrawElements(GL2ES2.GL_TRIANGLES, indices.getElementCount() * indices.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
+        
         indices.bindBuffer(gl, false);
-
-        verticeAttr.enableBuffer(gl, false);       
         texCoordAttr.enableBuffer(gl, false);
-        indices.enableBuffer(gl, false);
+        verticeAttr.enableBuffer(gl, false);       
     }    
 
     public final void destroy(GL2ES2 gl, RenderState rs) {

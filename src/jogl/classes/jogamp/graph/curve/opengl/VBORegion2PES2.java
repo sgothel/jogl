@@ -220,16 +220,14 @@ public class VBORegion2PES2  extends GLRegion {
         gl.glActiveTexture(GL.GL_TEXTURE0 + mgl_ActiveTexture.intValue());
         fbo.use(gl, texA);                        
         verticeFboAttr.enableBuffer(gl, true);       
-        texCoordFboAttr.enableBuffer(gl, true);
-        indicesFbo.enableBuffer(gl, true);
+        texCoordFboAttr.enableBuffer(gl, true);        
+        indicesFbo.bindBuffer(gl, true); // keeps VBO binding
         
-        indicesFbo.bindBuffer(gl, true);
         gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesFbo.getElementCount() * indicesFbo.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
-        indicesFbo.bindBuffer(gl, false);
         
-        verticeFboAttr.enableBuffer(gl, false);       
+        indicesFbo.bindBuffer(gl, false);        
         texCoordFboAttr.enableBuffer(gl, false);
-        indicesFbo.enableBuffer(gl, false);        
+        verticeFboAttr.enableBuffer(gl, false);       
         fbo.unuse(gl);
         
         // setback: gl.glActiveTexture(currentActiveTextureEngine[0]);
@@ -289,15 +287,13 @@ public class VBORegion2PES2  extends GLRegion {
     private void renderRegion(GL2ES2 gl) {
         verticeTxtAttr.enableBuffer(gl, true);       
         texCoordTxtAttr.enableBuffer(gl, true);
-        indicesTxt.enableBuffer(gl, true);        
+        indicesTxt.bindBuffer(gl, true); // keeps VBO binding
         
-        indicesTxt.bindBuffer(gl, true);
         gl.glDrawElements(GL2ES2.GL_TRIANGLES, indicesTxt.getElementCount() * indicesTxt.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
-        indicesTxt.bindBuffer(gl, false);
         
-        verticeTxtAttr.enableBuffer(gl, false);       
+        indicesTxt.bindBuffer(gl, false);        
         texCoordTxtAttr.enableBuffer(gl, false);
-        indicesTxt.enableBuffer(gl, false);        
+        verticeTxtAttr.enableBuffer(gl, false);       
     }
     
     public void destroy(GL2ES2 gl, RenderState rs) {

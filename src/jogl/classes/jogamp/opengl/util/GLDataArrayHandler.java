@@ -28,21 +28,20 @@
 
 package jogamp.opengl.util;
 
-import javax.media.opengl.*;
+import javax.media.opengl.GL;
+import javax.media.opengl.GLException;
 
-import com.jogamp.opengl.util.*;
+import com.jogamp.opengl.util.GLArrayDataEditable;
 
-import java.nio.*;
 
 /**
  * Used for pure VBO data arrays, i.e. where the buffer data 
  * does not represents a specific array name. 
  */
-public class GLDataArrayHandler implements GLArrayHandler {
-  private GLArrayDataEditable ad;
+public class GLDataArrayHandler extends GLVBOArrayHandler implements GLArrayHandler {
 
   public GLDataArrayHandler(GLArrayDataEditable ad) {
-    this.ad = ad;
+    super(ad);
   }
 
   public final void setSubArrayVBOName(int vboName) {
@@ -59,19 +58,8 @@ public class GLDataArrayHandler implements GLArrayHandler {
             // makes no sense otherwise
             throw new GLException("GLDataArrayHandler can only handle VBOs.");
         }
-        Buffer buffer = ad.getBuffer();
-        
-        // always bind and refresh the VBO mgr, 
-        // in case more than one gl*Pointer objects are in use
-        gl.glBindBuffer(ad.getVBOTarget(), ad.getVBOName());
-        if(!ad.isVBOWritten()) {
-            if(null!=buffer) {
-                gl.glBufferData(ad.getVBOTarget(), buffer.limit() * ad.getComponentSizeInBytes(), buffer, ad.getVBOUsage());
-            }
-            ad.setVBOWritten(true);
-        }
-        gl.glBindBuffer(ad.getVBOTarget(), 0);
-          
+        bindBuffer(gl, true);
+        bindBuffer(gl, false);
     }
     // no array association
   }

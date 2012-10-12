@@ -124,33 +124,41 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   // Data read access
   //
 
+  @Override
   public final boolean isVBOWritten() { return bufferWritten; }
 
+  @Override
   public final boolean sealed() { return sealed; }
   
+  @Override
   public final boolean enabled() { return bufferEnabled; }
 
   //
   // Data and GL state modification ..
   //
 
+  @Override
   public final void setVBOWritten(boolean written) { bufferWritten=written; }
 
+  @Override
   public void destroy(GL gl) {
     reset(gl);
     super.destroy(gl);
   }
 
+  @Override
   public void reset(GL gl) {
     enableBuffer(gl, false);
     reset();
   }
 
+  @Override
   public void seal(GL gl, boolean seal) {
     seal(seal);
     enableBuffer(gl, seal);
   }
 
+  @Override
   public void enableBuffer(GL gl, boolean enable) {
     if( enableBufferAlways || bufferEnabled != enable ) { 
         if(enable) {
@@ -172,12 +180,12 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     }
   }
   
-  public void bindBuffer(GL gl, boolean bind) {
-      if(isVBO()) {
-          gl.glBindBuffer(getVBOTarget(), bind ? getVBOName() : 0);
-      }
+  @Override
+  public boolean bindBuffer(GL gl, boolean bind) {
+      return glArrayHandler.bindBuffer(gl, bind);
   }
   
+  @Override
   public void setEnableAlways(boolean always) {
     enableBufferAlways = always;
   }
@@ -186,6 +194,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   // Data modification ..
   //
 
+  @Override
   public void reset() {
     if(buffer!=null) {
         buffer.clear();
@@ -195,6 +204,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     this.bufferWritten=false;
   }
 
+  @Override
   public void seal(boolean seal)
   {
     if(sealed==seal) return;
@@ -211,12 +221,14 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   }
 
 
+  @Override
   public void rewind() {
     if(buffer!=null) {
         buffer.rewind();
     }
   }
 
+  @Override
   public void padding(int doneInByteSize) {
     if ( buffer==null || sealed ) return;
     while(doneInByteSize<strideB) {
@@ -231,6 +243,7 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
    * This class buffer Class must match the arguments buffer class.
    * The arguments remaining elements must be a multiple of this arrays element stride.
    */
+  @Override
   public void put(Buffer v) {
     if ( sealed ) return;
     /** FIXME: isn't true for interleaved arrays !
@@ -241,28 +254,33 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
     Buffers.put(buffer, v);
   }
 
+  @Override
   public void putb(byte v) {
     if ( sealed ) return;
     growBufferIfNecessary(1);
     Buffers.putb(buffer, v);
   }
 
+  @Override
   public void puts(short v) {
     if ( sealed ) return;
     growBufferIfNecessary(1);
     Buffers.puts(buffer, v);
   }
 
+  @Override
   public void puti(int v) {
     if ( sealed ) return;
     growBufferIfNecessary(1);
     Buffers.puti(buffer, v);
   }
 
+  @Override
   public void putx(int v) {
     puti(v);
   }
 
+  @Override
   public void putf(float v) {
     if ( sealed ) return;
     growBufferIfNecessary(1);

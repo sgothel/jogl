@@ -37,12 +37,28 @@ import javax.media.opengl.*;
  */
 public interface GLArrayHandler {
 
+    
+  /**
+   * if <code>bind</code> is true and the data uses VBO, 
+   * the latter will be bound and data written to the GPU if required.
+   * <p>
+   * If  <code>bind</code> is false and the data uses VBO,
+   * the latter will be unbound.
+   * </p>
+   * 
+   * @param gl current GL object
+   * @param bind true if VBO shall be bound and data written, 
+   *        otherwise clear VBO binding.
+   * @return true if data uses VBO and action was performed, otherwise false 
+   */
+  public boolean bindBuffer(GL gl, boolean bind);
+  
   /**
    * Implementation shall enable or disable the array state.
    * <p>
    * Before enabling the array state,
-   * implementation shall associate the data with the array
-   * and synchronize the data with the GPU.
+   * implementation shall synchronize the data with the GPU
+   * and associate the data with the array.
    * </p>
    * 
    * @param gl current GL object
