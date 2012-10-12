@@ -29,48 +29,82 @@
 
 package jogamp.opengl.util.glsl.fixedfunc;
 
-import javax.media.opengl.*;
-import javax.media.opengl.fixedfunc.*;
-import com.jogamp.common.nio.Buffers;
-import com.jogamp.opengl.util.*;
+import java.nio.Buffer;
+import java.nio.IntBuffer;
 
-import java.nio.*;
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLArrayData;
+import javax.media.opengl.GLException;
+import javax.media.opengl.fixedfunc.GLLightingFunc;
+import javax.media.opengl.fixedfunc.GLMatrixFunc;
+import javax.media.opengl.fixedfunc.GLPointerFunc;
+
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.opengl.util.GLArrayDataWrapper;
+import com.jogamp.opengl.util.GLBuffers;
+import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.opengl.util.glsl.fixedfunc.ShaderSelectionMode;
 
 public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFunc {
     public static final int MAX_TEXTURE_UNITS = 8;
 
-    protected FixedFuncPipeline fixedFunction=null;
-    protected PMVMatrix pmvMatrix=null;
-    protected GL2ES2 gl=null;
+    protected FixedFuncPipeline fixedFunction;
+    protected PMVMatrix pmvMatrix;
+    protected boolean ownsPMVMatrix;
+    protected GL2ES2 gl;
 
-    public FixedFuncHook (GL2ES2 gl) {
-        this(gl, null);
-    }
-
-    public FixedFuncHook (GL2ES2 gl, PMVMatrix matrix) {
+    /**
+     * @param gl
+     * @param mode TODO
+     * @param pmvMatrix optional pass through PMVMatrix for the {@link FixedFuncHook} and {@link FixedFuncPipeline}
+     */
+    public FixedFuncHook (GL2ES2 gl, ShaderSelectionMode mode, PMVMatrix pmvMatrix) {
         this.gl = gl;
-        pmvMatrix = (null!=matrix)?matrix:new PMVMatrix();
-
-        fixedFunction = new FixedFuncPipeline(gl, pmvMatrix);
+        if(null != pmvMatrix) {
+            this.ownsPMVMatrix = false;
+            this.pmvMatrix = pmvMatrix;
+        } else {
+            this.ownsPMVMatrix = true;
+            this.pmvMatrix = new PMVMatrix();
+        }
+        fixedFunction = new FixedFuncPipeline(this.gl, mode, this.pmvMatrix);
     }
 
-    public FixedFuncHook(GL2ES2 gl, PMVMatrix matrix, 
-                       Class<?> shaderRootClass, String shaderSrcRoot, String shaderBinRoot, 
-                       String vertexColorFile,
-                       String vertexColorLightFile,
-                       String fragmentColorFile,
-                       String fragmentColorTextureFile) {
+    /**
+     * @param gl
+     * @param mode TODO
+     * @param pmvMatrix optional pass through PMVMatrix for the {@link FixedFuncHook} and {@link FixedFuncPipeline}
+     */
+    public FixedFuncHook(GL2ES2 gl, ShaderSelectionMode mode, PMVMatrix pmvMatrix, 
+                         Class<?> shaderRootClass, String shaderSrcRoot, String shaderBinRoot,
+                         String vertexColorFile, String vertexColorLightFile,
+                         String fragmentColorFile, String fragmentColorTextureFile) {
         this.gl = gl;
-        pmvMatrix = matrix;
+        if(null != pmvMatrix) {
+            this.ownsPMVMatrix = false;
+            this.pmvMatrix = pmvMatrix;
+        } else {
+            this.ownsPMVMatrix = true;
+            this.pmvMatrix = new PMVMatrix();
+        }
 
-        fixedFunction = new FixedFuncPipeline(gl, pmvMatrix,
-                                              shaderRootClass, shaderSrcRoot, shaderBinRoot, 
-                                              vertexColorFile, vertexColorLightFile, fragmentColorFile, fragmentColorTextureFile);
+        fixedFunction = new FixedFuncPipeline(this.gl, mode, this.pmvMatrix, shaderRootClass, shaderSrcRoot, 
+                                              shaderBinRoot, vertexColorFile, vertexColorLightFile, fragmentColorFile, fragmentColorTextureFile);
     }
 
+    public boolean verbose() { return fixedFunction.verbose(); }
+
+    public void setVerbose(boolean v) { fixedFunction.setVerbose(v); }
+    
     public void destroy() {
         fixedFunction.destroy(gl);
         fixedFunction = null;
+        if(ownsPMVMatrix) {
+            pmvMatrix.destroy();
+        }
+        pmvMatrix=null;
+        gl=null;
     }
 
     public PMVMatrix getMatrix() { return pmvMatrix; }
@@ -92,24 +126,19 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
 
     public void glActiveTexture(int texture) {
-        fixedFunction.glActiveTexture(gl, texture);
+        fixedFunction.glActiveTexture(texture);
         gl.glActiveTexture(texture);
     }
     public void glEnable(int cap) {
-        if(fixedFunction.glEnable(gl, cap, true)) {
+        if(fixedFunction.glEnable(cap, true)) {
             gl.glEnable(cap);
         }
     }
     public void glDisable(int cap) {
-        if(fixedFunction.glEnable(gl, cap, false)) {
+        if(fixedFunction.glEnable(cap, false)) {
             gl.glDisable(cap);
         }
-    }
-    public void glCullFace(int faceName) {
-        fixedFunction.glCullFace(gl, faceName);
-        gl.glCullFace(faceName);
-    }
-
+    }    
     public void glGetFloatv(int pname, java.nio.FloatBuffer params) {
         if(PMVMatrix.isMatrixGetName(pname)) {
             pmvMatrix.glGetFloatv(pname, params);
@@ -138,7 +167,35 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         }
         gl.glGetIntegerv(pname, params, params_offset);
     }
+    
+    public void glTexEnvi(int target, int pname, int value) {
+        fixedFunction.glTexEnvi(target, pname, value);
+    }
+    public void glGetTexEnviv(int target, int pname,  IntBuffer params) {
+        fixedFunction.glGetTexEnviv(target, pname, params);
+    }
+    public void glGetTexEnviv(int target, int pname,  int[] params, int params_offset) {
+        fixedFunction.glGetTexEnviv(target, pname, params, params_offset);
+    }
+    public void glBindTexture(int target, int texture) {
+        fixedFunction.glBindTexture(target, texture);
+        gl.glBindTexture(target, texture);
+    }
+    public void glTexImage2D(int target, int level, int internalformat, int width, int height, int border, 
+                             int format, int type,  Buffer pixels) {
+        fixedFunction.glTexImage2D(target, /* level, */ internalformat, /*width, height, border, */ format /*, type, pixels*/);
+        gl.glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels);
+    }
+    public void glTexImage2D(int target, int level, int internalformat, int width, int height, int border,
+                             int format, int type,  long pixels_buffer_offset) {        
+        fixedFunction.glTexImage2D(target, /* level, */ internalformat, /*width, height, border, */ format /*, type, pixels*/);
+        gl.glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels_buffer_offset);
+    }
 
+    public void glPointSize(float arg0) {
+        // NOP - FIXME ?        
+    }
+    
     // 
     // MatrixIf
     //
@@ -178,8 +235,14 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     public void glScalef(float x, float y, float z) {
         pmvMatrix.glScalef(x, y, z);
     }
+    public void glOrtho(double left, double right, double bottom, double top, double near_val, double far_val) {
+        glOrthof((float) left, (float) right, (float) bottom, (float) top, (float) near_val, (float) far_val); 
+    }
     public void glOrthof(float left, float right, float bottom, float top, float zNear, float zFar) {
         pmvMatrix.glOrthof(left, right, bottom, top, zNear, zFar);
+    }
+    public void glFrustum(double left, double right, double bottom, double top, double zNear, double zFar) {
+        glFrustumf((float) left, (float) right, (float) bottom, (float) top, (float) zNear, (float) zFar); 
     }
     public void glFrustumf(float left, float right, float bottom, float top, float zNear, float zFar) {
         pmvMatrix.glFrustumf(left, right, bottom, top, zNear, zFar);
@@ -207,13 +270,27 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     public void glMaterialf(int face, int pname, float param) {
         glMaterialfv(face, pname, GLBuffers.newDirectFloatBuffer(new float[] { param }));
     }
+
+    //
+    // Misc Simple States
+    //
     public void glShadeModel(int mode) {
       fixedFunction.glShadeModel(gl, mode);
+    }    
+    public  void glAlphaFunc(int func, float ref) {
+        fixedFunction.glAlphaFunc(func, ref);
     }
-
+    public void glCullFace(int faceName) {
+        fixedFunction.glCullFace(faceName);
+        gl.glCullFace(faceName);
+    }
+    
     //
     // PointerIf
     //
+    public void glClientActiveTexture(int textureUnit) {
+      fixedFunction.glClientActiveTexture(textureUnit);
+    }
     public void glEnableClientState(int glArrayIndex) {
       fixedFunction.glEnableClientState(gl, glArrayIndex);
     }

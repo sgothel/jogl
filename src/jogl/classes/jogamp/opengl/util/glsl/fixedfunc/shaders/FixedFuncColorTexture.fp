@@ -6,42 +6,98 @@
 #include mgl_uniform.glsl
 #include mgl_varying.glsl
 
-vec4 getTexColor(in sampler2D tex, in int idx) {
-    vec4 coord;
-    if(idx==0) {
-        coord= mgl_TexCoords[0];
-    } else if(idx==1) {
-        coord= mgl_TexCoords[1];
-    } else if(idx==2) {
-        coord= mgl_TexCoords[2];
-    } else if(idx==3) {
-        coord= mgl_TexCoords[3];
-    } else if(idx==4) {
-        coord= mgl_TexCoords[4];
-    } else if(idx==5) {
-        coord= mgl_TexCoords[5];
-    } else if(idx==6) {
-        coord= mgl_TexCoords[6];
-    } else {
-        coord= mgl_TexCoords[7];
+#include mgl_alphatest.fp
+
+const HIGHP float gamma = 1.5; // FIXME
+const HIGHP vec3 igammav = vec3(1.0 / gamma); // FIXME
+const vec4 texEnvColor = vec4(0.0); // FIXME
+
+const HIGHP vec4 zerov4 = vec4(0.0);
+const HIGHP vec4 onev4 = vec4(1.0);
+
+void calcTexColor(inout vec4 color, vec4 texColor, in int texFormat, in int texEnvMode) {
+    if(MGL_MODULATE == texEnvMode) { // default
+        if( 4 == texFormat ) {
+            color *= texColor;
+        } else {
+            color.rgb *= texColor.rgb;
+        }
+    } else if(MGL_REPLACE == texEnvMode) {
+        if( 4 == texFormat ) {
+            color = texColor;
+        } else {
+            color.rgb = texColor.rgb;
+        }
+    } else if(MGL_ADD == texEnvMode) {
+        if( 4 == texFormat ) {
+            color += texColor;
+        } else {
+            color.rgb += texColor.rgb;
+        }
+    } else if(MGL_BLEND == texEnvMode) {
+        color.rgb = mix(color.rgb, texEnvColor.rgb, texColor.rgb);
+        if( 4 == texFormat ) {
+            color.a *= texColor.a;
+        }
+    } else if(MGL_DECAL == texEnvMode) {
+        if( 4 == texFormat ) {
+            color.rgb = mix(color.rgb, texColor.rgb, texColor.a);
+        } else {
+            color.rgb = texColor.rgb;
+        }
     }
-    return texture2D(tex, coord.st);
+    color = clamp(color, zerov4, onev4);
 }
 
 void main (void)
-{
-  if( mgl_CullFace > 0 && 
-      ( ( mgl_CullFace == 1 && gl_FrontFacing ) ||
-        ( mgl_CullFace == 2 && !gl_FrontFacing ) ||
-        ( mgl_CullFace == 3 ) ) ) {
-    discard;
-  }
+{ 
+  HIGHP vec4 color = frontColor;
 
-  vec4 texColor = getTexColor(mgl_ActiveTexture,mgl_ActiveTextureIdx);
-
-  if(length(texColor.rgb)>0.0) {
-    gl_FragColor = vec4(frontColor.rgb*texColor.rgb, frontColor.a) ;
+  if( mgl_CullFace > 0 &&
+      ( ( MGL_FRONT          == mgl_CullFace &&  gl_FrontFacing ) ||
+        ( MGL_BACK           == mgl_CullFace && !gl_FrontFacing ) ||
+        ( MGL_FRONT_AND_BACK == mgl_CullFace ) ) ) {
+      DISCARD(color);
   } else {
-    gl_FragColor = frontColor;
+      int texEnv = 0;
+
+      if( 0 != mgl_TextureEnabled[0] ) {
+        calcTexColor(color, texture2D(mgl_Texture0, mgl_TexCoords[0].st), mgl_TexFormat[0], mgl_TexEnvMode[0]);
+      }
+      if( 0 != mgl_TextureEnabled[1] ) {
+        calcTexColor(color, texture2D(mgl_Texture1, mgl_TexCoords[1].st), mgl_TexFormat[1], mgl_TexEnvMode[1]);
+      }
+      if( 0 != mgl_TextureEnabled[2] ) {
+        calcTexColor(color, texture2D(mgl_Texture2, mgl_TexCoords[2].st), mgl_TexFormat[2], mgl_TexEnvMode[2]);
+      }
+      if( 0 != mgl_TextureEnabled[3] ) {
+        calcTexColor(color, texture2D(mgl_Texture3, mgl_TexCoords[3].st), mgl_TexFormat[3], mgl_TexEnvMode[3]);
+      }
+      if( 0 != mgl_TextureEnabled[4] ) {
+        calcTexColor(color, texture2D(mgl_Texture4, mgl_TexCoords[4].st), mgl_TexFormat[4], mgl_TexEnvMode[4]);
+      }
+      if( 0 != mgl_TextureEnabled[5] ) {
+        calcTexColor(color, texture2D(mgl_Texture5, mgl_TexCoords[5].st), mgl_TexFormat[5], mgl_TexEnvMode[5]);
+      }
+      if( 0 != mgl_TextureEnabled[6] ) {
+        calcTexColor(color, texture2D(mgl_Texture6, mgl_TexCoords[6].st), mgl_TexFormat[6], mgl_TexEnvMode[6]);
+      }
+      if( 0 != mgl_TextureEnabled[7] ) {
+        calcTexColor(color, texture2D(mgl_Texture7, mgl_TexCoords[7].st), mgl_TexFormat[7], mgl_TexEnvMode[7]);
+      }
+      if( mgl_AlphaTestFunc > 0 ) {
+          alphaTest(color);
+      }
   }
+
+  gl_FragColor = color;
+  /**
+  // simple alpha check
+  if (color.a != 0.0) {
+      gl_FragColor = vec4(pow(color.rgb, igammav), color.a);
+  } else {
+      // discard; // freezes NV tegra2 compiler
+      gl_FragColor = color;
+  } */
 }
+

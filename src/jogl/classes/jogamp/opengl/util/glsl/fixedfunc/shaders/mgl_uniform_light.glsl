@@ -9,6 +9,7 @@
 
 uniform LOWP    int     mgl_LightsEnabled[MAX_LIGHTS];
 
+uniform mgl_LightModelParameters  mgl_LightModel;
 uniform mgl_LightSourceParameters mgl_LightSource[MAX_LIGHTS];
 uniform mgl_MaterialParameters    mgl_FrontMaterial;
 

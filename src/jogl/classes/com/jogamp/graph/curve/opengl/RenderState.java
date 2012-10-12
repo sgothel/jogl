@@ -93,19 +93,19 @@ public abstract class RenderState {
         return false;
     }    
     
-    public StringBuilder toString(StringBuilder sb) {
+    public StringBuilder toString(StringBuilder sb, boolean alsoUnlocated) {
         if(null==sb) {
             sb = new StringBuilder();
         }
 
         sb.append("RenderState[");
-        st.toString(sb).append(Platform.getNewline());
+        st.toString(sb, alsoUnlocated).append(Platform.getNewline());
         sb.append("]");
 
         return sb;
     }
     
     public String toString() {
-        return toString(null).toString();
+        return toString(null, false).toString();
     }    
 }

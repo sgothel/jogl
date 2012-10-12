@@ -1,6 +1,9 @@
 #ifndef mgl_lightdef_glsl
 #define mgl_lightdef_glsl
 
+struct mgl_LightModelParameters {
+   vec4 ambient; 
+};
 struct mgl_LightSourceParameters {
    vec4 ambient; 
    vec4 diffuse; 

@@ -3,14 +3,21 @@
 #include mgl_uniform.glsl
 #include mgl_varying.glsl
 
+#include mgl_alphatest.fp
+
 void main (void)
 {
-  if( mgl_CullFace > 0 && 
-      ( ( mgl_CullFace == 1 && gl_FrontFacing ) ||
-        ( mgl_CullFace == 2 && !gl_FrontFacing ) ||
-        ( mgl_CullFace == 3 ) ) ) {
-    discard;
+  HIGHP vec4 color = frontColor;
+
+  if( mgl_CullFace > 0 &&
+      ( ( MGL_FRONT          == mgl_CullFace &&  gl_FrontFacing ) ||
+        ( MGL_BACK           == mgl_CullFace && !gl_FrontFacing ) ||
+        ( MGL_FRONT_AND_BACK == mgl_CullFace ) ) ) {
+      DISCARD(color);
   }
-  gl_FragColor = frontColor;
+  if( mgl_AlphaTestFunc > 0 ) {
+      alphaTest(color);
+  }
+  gl_FragColor = color;
 }
 
