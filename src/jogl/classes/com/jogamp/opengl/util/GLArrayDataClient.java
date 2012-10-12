@@ -182,6 +182,11 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
   
   @Override
   public boolean bindBuffer(GL gl, boolean bind) {
+      if(bind) {
+          checkSeal(true);
+          // init/generate VBO name if not done yet
+          init_vbo(gl);
+      }
       return glArrayHandler.bindBuffer(gl, bind);
   }
   
