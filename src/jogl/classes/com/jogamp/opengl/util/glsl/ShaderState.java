@@ -65,7 +65,7 @@ public class ShaderState {
 
     public boolean verbose() { return verbose; }
 
-    public void setVerbose(boolean v) { verbose=v; }
+    public void setVerbose(boolean v) { verbose = DEBUG || v; }
 
     /**
      * Fetches the current shader state from this thread (TLS) current GLContext
@@ -192,25 +192,29 @@ public class ShaderState {
      * <p>Use program, {@link #useProgram(GL2ES2, boolean)},
      * if <code>enable</code> is <code>true</code>.</p>
      * 
+     * @return true if shader program was attached, otherwise false (already attached)
+     * 
      * @throws GLException if program was not linked and linking fails
      */
-    public synchronized void attachShaderProgram(GL2ES2 gl, ShaderProgram prog, boolean enable) throws GLException {
-        if(DEBUG) {
+    public synchronized boolean attachShaderProgram(GL2ES2 gl, ShaderProgram prog, boolean enable) throws GLException {
+        if(verbose) {
             int curId = (null!=shaderProgram)?shaderProgram.id():-1;
             int newId = (null!=prog)?prog.id():-1;
-            System.err.println("Info: attachShaderProgram: "+curId+" -> "+newId+" (enable: "+enable+")\n\t"+shaderProgram+"\n\t"+prog);
-            if(verbose) {
-                Throwable tX = new Throwable("Info: attachShaderProgram: Trace");
-                tX.printStackTrace();
-            }
+            System.err.println("ShaderState: attachShaderProgram: "+curId+" -> "+newId+" (enable: "+enable+")\n\t"+shaderProgram+"\n\t"+prog);
+            if(DEBUG) {
+                Thread.dumpStack();
+            }                    
         }
         if(null!=shaderProgram) {
             if(shaderProgram.equals(prog)) {
-                // nothing to do ..
-                if(DEBUG) {
-                    System.err.println("Info: attachShaderProgram: NOP: equal id: "+shaderProgram.id());
+                if(enable) {
+                    useProgram(gl, true);
                 }
-                return;
+                // nothing else to do ..
+                if(verbose) {
+                    System.err.println("ShaderState: attachShaderProgram: No switch, equal id: "+shaderProgram.id()+", enabling "+enable);
+                }
+                return false;
             }
             if(shaderProgram.inUse()) {
                 if(null != prog && enable) {
@@ -240,6 +244,7 @@ public class ShaderState {
         if(DEBUG) {
             System.err.println("Info: attachShaderProgram: END");
         }
+        return true;
     }
 
     public ShaderProgram shaderProgram() { return shaderProgram; }
@@ -428,11 +433,13 @@ public class ShaderState {
                 Integer idx = new Integer(location);
                 activeAttribLocationMap.put(name, idx);
                 if(DEBUG) {
-                    System.err.println("Info: glGetAttribLocation: "+name+", loc: "+location);
+                    System.err.println("ShaderState: glGetAttribLocation: "+name+", loc: "+location);
                 }
             } else if(verbose) {
-                Throwable tX = new Throwable("Info: glGetAttribLocation failed, no location for: "+name+", loc: "+location);
-                tX.printStackTrace();
+                System.err.println("ShaderState: glGetAttribLocation failed, no location for: "+name+", loc: "+location);
+                if(DEBUG) {
+                    Thread.dumpStack();
+                }                    
             }
         }
         return location;
@@ -489,14 +496,16 @@ public class ShaderState {
             location = getAttribLocation(gl, name);
             if(0>location) {
                 if(verbose) {
-                    Throwable tX = new Throwable("Info: glEnableVertexAttribArray failed, no index for: "+name);
-                    tX.printStackTrace();
+                    System.err.println("ShaderState: glEnableVertexAttribArray failed, no index for: "+name);
+                    if(DEBUG) {
+                        Thread.dumpStack();
+                    }                    
                 }
                 return false;
             }
         }
         if(DEBUG) {
-            System.err.println("Info: glEnableVertexAttribArray: "+name+", loc: "+location);
+            System.err.println("ShaderState: glEnableVertexAttribArray: "+name+", loc: "+location);
         }
         gl.glEnableVertexAttribArray(location);
         return true;
@@ -562,14 +571,16 @@ public class ShaderState {
             location = getAttribLocation(gl, name);
             if(0>location) {
                 if(verbose) {
-                    Throwable tX = new Throwable("Info: glDisableVertexAttribArray failed, no index for: "+name);
-                    tX.printStackTrace();
+                    System.err.println("ShaderState: glDisableVertexAttribArray failed, no index for: "+name);
+                    if(DEBUG) {
+                        Thread.dumpStack();
+                    }
                 }
                 return false;
             }
         }
         if(DEBUG) {
-            System.err.println("Info: glDisableVertexAttribArray: "+name);
+            System.err.println("ShaderState: glDisableVertexAttribArray: "+name);
         }
         gl.glDisableVertexAttribArray(location);
         return true;
@@ -651,7 +662,7 @@ public class ShaderState {
         if(0 <= location) {
             // only pass the data, if the attribute exists in the current shader
             if(DEBUG) {
-                System.err.println("Info: glVertexAttribPointer: "+data);
+                System.err.println("ShaderState: glVertexAttribPointer: "+data);
             }
             gl.glVertexAttribPointer(data);
             return true;
@@ -731,9 +742,11 @@ public class ShaderState {
     
             if( attribute.isVBO() ) {
                 gl.glBindBuffer(GL.GL_ARRAY_BUFFER, attribute.getVBOName());
-            } 
-    
-            gl.glVertexAttribPointer(attribute);
+                gl.glVertexAttribPointer(attribute);
+                gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+            } else {   
+                gl.glVertexAttribPointer(attribute);
+            }
         }
     }
     
@@ -755,8 +768,8 @@ public class ShaderState {
         if(!shaderProgram.linked()) throw new GLException("Program is not linked");
         activeAttribLocationMap.clear();
         
-        for(Iterator<GLArrayData> iter = managedAttributes.iterator(); iter.hasNext(); ) {
-            iter.next().setLocation(-1);
+        for(int i=0; i<managedAttributes.size(); i++) {
+            ((GLArrayData)managedAttributes.get(i)).setLocation(-1);
         }
         for(Iterator<GLArrayData> iter = activeAttribDataMap.values().iterator(); iter.hasNext(); ) {
             relocateAttribute(gl, iter.next());
@@ -769,7 +782,7 @@ public class ShaderState {
         final int loc = attribute.getLocation();
 
         if(0<=loc) {
-            this.bindAttribLocation(gl, loc, name);
+            bindAttribLocation(gl, loc, name);
             
             if(isVertexAttribArrayEnabled(name)) {
                 // enable attrib, VBO and pass location/data
@@ -778,9 +791,11 @@ public class ShaderState {
     
             if( attribute.isVBO() ) {
                 gl.glBindBuffer(GL.GL_ARRAY_BUFFER, attribute.getVBOName());
-            } 
-    
-            gl.glVertexAttribPointer(attribute);
+                gl.glVertexAttribPointer(attribute);
+                gl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+            } else {   
+                gl.glVertexAttribPointer(attribute);
+            }
         }
     }
     
@@ -863,8 +878,10 @@ public class ShaderState {
                 Integer idx = new Integer(location);
                 activeUniformLocationMap.put(name, idx);
             } else if(verbose) {
-                Throwable tX = new Throwable("Info: glUniform failed, no location for: "+name+", index: "+location);
-                tX.printStackTrace();
+                System.err.println("ShaderState: glUniform failed, no location for: "+name+", index: "+location);
+                if(DEBUG) {
+                    Thread.dumpStack();
+                }
             }
         }
         return location;
@@ -927,7 +944,7 @@ public class ShaderState {
         if(0<=location) {
             // only pass the data, if the uniform exists in the current shader
             if(DEBUG) {
-                System.err.println("Info: glUniform: "+data);
+                System.err.println("ShaderState: glUniform: "+data);
             }
             gl.glUniform(data);
         }
@@ -976,7 +993,7 @@ public class ShaderState {
         }
     }
 
-    public StringBuilder toString(StringBuilder sb) {
+    public StringBuilder toString(StringBuilder sb, boolean alsoUnlocated) {
         if(null==sb) {
             sb = new StringBuilder();
         }
@@ -999,19 +1016,31 @@ public class ShaderState {
         }
         sb.append(Platform.getNewline()).append(" ],").append(" activeAttributes [");
         for(Iterator<GLArrayData> iter = activeAttribDataMap.values().iterator(); iter.hasNext(); ) {
-            sb.append(Platform.getNewline()).append("  ").append(iter.next());
+            final GLArrayData ad = iter.next();
+            if( alsoUnlocated || 0 <= ad.getLocation() ) {
+                sb.append(Platform.getNewline()).append("  ").append(ad);
+            }
         }
         sb.append(Platform.getNewline()).append(" ],").append(" managedAttributes [");
         for(Iterator<GLArrayData> iter = managedAttributes.iterator(); iter.hasNext(); ) {
-            sb.append(Platform.getNewline()).append("  ").append(iter.next());
+            final GLArrayData ad = iter.next();
+            if( alsoUnlocated || 0 <= ad.getLocation() ) {
+                sb.append(Platform.getNewline()).append("  ").append(ad);
+            }
         }
         sb.append(Platform.getNewline()).append(" ],").append(" activeUniforms [");
         for(Iterator<GLUniformData> iter=activeUniformDataMap.values().iterator(); iter.hasNext(); ) {
-            sb.append(Platform.getNewline()).append("  ").append(iter.next());
+            final GLUniformData ud = iter.next();
+            if( alsoUnlocated || 0 <= ud.getLocation() ) {
+                sb.append(Platform.getNewline()).append("  ").append(ud);
+            }
         }
         sb.append(Platform.getNewline()).append(" ],").append(" managedUniforms [");
         for(Iterator<GLUniformData> iter = managedUniforms.iterator(); iter.hasNext(); ) {
-            sb.append(Platform.getNewline()).append("  ").append(iter.next());
+            final GLUniformData ud = iter.next();
+            if( alsoUnlocated || 0 <= ud.getLocation() ) {
+                sb.append(Platform.getNewline()).append("  ").append(ud);
+            }
         }
         sb.append(Platform.getNewline()).append(" ]").append(Platform.getNewline()).append("]");
         return sb;
@@ -1019,10 +1048,10 @@ public class ShaderState {
     
     @Override
     public String toString() {
-        return toString(null).toString();
+        return toString(null, DEBUG).toString();
     }
     
-    private boolean verbose = DEBUG ? true : false;
+    private boolean verbose = DEBUG;
     private ShaderProgram shaderProgram=null;
     
     private HashMap<String, Boolean> activedAttribEnabledMap = new HashMap<String, Boolean>();
