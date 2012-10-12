@@ -45,9 +45,15 @@ public interface GLArrayDataEditable extends GLArrayData {
     public void seal(GL gl, boolean seal);
 
     /**
-     * <p>Enables/disables the buffer, 
-     * sets the client state, binds the VBO if used
-     * and transfers the data if necessary.</p>
+     * <p>
+     * Enables the buffer if <code>enable</code> is <code>true</code>, 
+     * and transfers the data if required.
+     * In case {@link #isVBO() VBO is used}, it is bound accordingly for the data transfer and data association.
+     * The VBO buffer is unbound when the method returns. 
+     * </p>
+     * <p>
+     * Disables the buffer if <code>enable</code> is <code>false</code>. 
+     * </p>
      * 
      * <p>The action will only be executed,
      * if the internal enable state differs, 
@@ -61,6 +67,15 @@ public interface GLArrayDataEditable extends GLArrayData {
      * @see #setEnableAlways(boolean)
      */
     public void enableBuffer(GL gl, boolean enable);
+    
+    /**
+     * In case {@link #isVBO() VBO is used}, the buffer is bound 
+     * if <code>bind</code> is <code>true</code>, otherwise the buffer is unbound.
+     * 
+     * @param gl
+     * @param bind
+     */
+    public void bindBuffer(GL gl, boolean bind);
 
     /**
      * Affects the behavior of 'enableBuffer'.

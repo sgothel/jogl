@@ -132,7 +132,7 @@ public class GLSLMiscHelper {
         Assert.assertTrue(vertices0.sealed());
         Assert.assertEquals(4, vertices0.getElementCount());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());        
-        Assert.assertEquals(vertices0.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
+        Assert.assertEquals(0, gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER)); // should be cleared ASAP
         validateGLArrayDataServerState(gl, vertices0);
         return vertices0;
     }
@@ -152,7 +152,7 @@ public class GLSLMiscHelper {
         Assert.assertTrue(vertices1.sealed());
         Assert.assertEquals(4, vertices1.getElementCount());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        Assert.assertEquals(vertices1.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
+        Assert.assertEquals(0, gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER)); // should be cleared ASAP
         validateGLArrayDataServerState(gl, vertices1);
         return vertices1;
     }
@@ -173,7 +173,7 @@ public class GLSLMiscHelper {
         Assert.assertTrue(colors0.isVBOWritten());
         Assert.assertTrue(colors0.sealed());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        Assert.assertEquals(colors0.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
+        Assert.assertEquals(0, gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER)); // should be cleared ASAP
         validateGLArrayDataServerState(gl, colors0);
         return colors0;
     }
@@ -191,7 +191,7 @@ public class GLSLMiscHelper {
         Assert.assertTrue(colors1.isVBOWritten());
         Assert.assertTrue(colors1.sealed());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        Assert.assertEquals(colors1.getVBOName(), gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER));
+        Assert.assertEquals(0, gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER)); // should be cleared ASAP
         validateGLArrayDataServerState(gl, colors1);
         return colors1;        
     }    

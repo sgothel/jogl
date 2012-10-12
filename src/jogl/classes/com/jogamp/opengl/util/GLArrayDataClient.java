@@ -171,7 +171,13 @@ public class GLArrayDataClient extends GLArrayDataWrapper implements GLArrayData
         bufferEnabled = enable;
     }
   }
-
+  
+  public void bindBuffer(GL gl, boolean bind) {
+      if(isVBO()) {
+          gl.glBindBuffer(getVBOTarget(), bind ? getVBOName() : 0);
+      }
+  }
+  
   public void setEnableAlways(boolean always) {
     enableBufferAlways = always;
   }
