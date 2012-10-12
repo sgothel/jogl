@@ -654,7 +654,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         super.reshape(x, y, width, height);
         
         if(DEBUG) {
-            System.err.println("GLCanvas.sizeChanged: ("+Thread.currentThread().getName()+"): "+width+"x"+height+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
+            final NativeSurface ns = getNativeSurface();
+            final long nsH = null != ns ? ns.getSurfaceHandle() : 0;
+            System.err.println("GLCanvas.sizeChanged: ("+Thread.currentThread().getName()+"): "+width+"x"+height+" - surfaceHandle 0x"+Long.toHexString(nsH));
             // Thread.dumpStack();
         }            
         if( validateGLDrawable() ) {
