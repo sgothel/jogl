@@ -217,6 +217,7 @@ public abstract class UITestCase {
         private volatile boolean verbose = false;
         private volatile int displayCount=0;
         private volatile int reshapeCount=0;
+        private volatile String postSNDetail = null;
         public SnapshotGLEventListener(GLReadBufferUtil screenshot) {
             this.screenshot = screenshot;
         }
@@ -236,7 +237,7 @@ public abstract class UITestCase {
             }
             if(_makeShot) {
                 makeShot=false;
-                snapshot(displayCount, null, gl, screenshot, TextureIO.PNG, null);
+                snapshot(displayCount, postSNDetail, gl, screenshot, TextureIO.PNG, null);
             }
             displayCount++;
         }
@@ -254,6 +255,9 @@ public abstract class UITestCase {
         }
         public void setVerbose(boolean v) {
             verbose=v;
+        }
+        public void setPostSNDetail(String v) {
+            postSNDetail = v;
         }
     };
     

@@ -48,6 +48,8 @@ import org.junit.Test;
 
 public class TestRedSquareES1NEWT extends UITestCase {
     static int width, height;
+    static boolean forceES2 = false;
+    static boolean forceFFPEmu = false;
 
     @BeforeClass
     public static void initClass() {
@@ -59,12 +61,16 @@ public class TestRedSquareES1NEWT extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps) throws InterruptedException {
+    protected void runTestGL(GLCapabilities caps, boolean forceFFPEmu) throws InterruptedException {
         GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test");
 
-        glWindow.addGLEventListener(new RedSquareES1());
+        final RedSquareES1 demo = new RedSquareES1();
+        demo.setForceFFPEmu(forceFFPEmu, forceFFPEmu, false, false);
+        glWindow.addGLEventListener(demo);
+        final SnapshotGLEventListener snap = new SnapshotGLEventListener();
+        glWindow.addGLEventListener(snap);
 
         Animator animator = new Animator(glWindow);
         QuitAdapter quitAdapter = new QuitAdapter();
@@ -95,6 +101,7 @@ public class TestRedSquareES1NEWT extends UITestCase {
         glWindow.setVisible(true);
         animator.setUpdateFPSFrames(1, null);
         animator.start();
+        snap.setMakeSnapshot();
 
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
@@ -105,20 +112,24 @@ public class TestRedSquareES1NEWT extends UITestCase {
     }
 
     @Test
-    public void test01() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES1());
-        runTestGL(caps);
+    public void test00() throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES1());
+        runTestGL(caps, forceFFPEmu);
     }
+    
+    static long duration = 1000; // ms
 
-    static long duration = 500; // ms
-
-    public static void main(String args[]) {
+    public static void main(String args[]) {        
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 try {
                     duration = Integer.parseInt(args[i]);
                 } catch (Exception ex) { ex.printStackTrace(); }
+            } else if(args[i].equals("-es2")) {
+                forceES2 = true;
+            } else if(args[i].equals("-ffpemu")) {
+                forceFFPEmu = true;
             }
         }
         org.junit.runner.JUnitCore.main(TestRedSquareES1NEWT.class.getName());

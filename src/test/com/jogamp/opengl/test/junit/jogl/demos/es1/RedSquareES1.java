@@ -10,11 +10,14 @@ import com.jogamp.opengl.util.glsl.fixedfunc.*;
 
 public class RedSquareES1 implements GLEventListener {
 
-    public static boolean glDebugEmu = false;
-    public static boolean glDebug = false ;
-    public static boolean glTrace = false ;
     public static boolean oneThread = false;
     public static boolean useAnimator = false;
+    private boolean debugFFPEmu = false;
+    private boolean verboseFFPEmu = false;
+    private boolean traceFFPEmu = false;
+    private boolean forceFFPEmu = false;
+    private boolean debug = false ;
+    private boolean trace = false ;
     private int swapInterval = 0;
 
     long startTime = 0;
@@ -26,6 +29,13 @@ public class RedSquareES1 implements GLEventListener {
 
     public RedSquareES1() {
         this.swapInterval = 1;
+    }
+    
+    public void setForceFFPEmu(boolean forceFFPEmu, boolean verboseFFPEmu, boolean debugFFPEmu, boolean traceFFPEmu) {
+        this.forceFFPEmu = forceFFPEmu;
+        this.verboseFFPEmu = verboseFFPEmu;
+        this.debugFFPEmu = debugFFPEmu;
+        this.traceFFPEmu = traceFFPEmu;
     }
     
     // FIXME: we must add storage of the pointers in the GL state to
@@ -42,29 +52,25 @@ public class RedSquareES1 implements GLEventListener {
         System.err.println(Thread.currentThread()+" RedSquareES1.init ...");
         GL _gl = drawable.getGL();
 
-        if(glDebugEmu) {
-            try {
-                // Debug ..
-                _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES2.class, _gl, null) );
-
-                if(glTrace) {
-                    // Trace ..
-                    _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES2.class, _gl, new Object[] { System.err } ) );
-                }
-            } catch (Exception e) {e.printStackTrace();} 
-            glDebug = false;
-            glTrace = false;
+        if(debugFFPEmu) {
+            // Debug ..
+            _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES2.class, _gl, null) );
+            debug = false;
         }
-
-        GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl);
-        if(glDebug) {
+        if(traceFFPEmu) {
+            // Trace ..
+            _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES2.class, _gl, new Object[] { System.err } ) );
+            trace = false;
+        }
+        GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl, ShaderSelectionMode.AUTO, null, forceFFPEmu, verboseFFPEmu);
+        
+        if(debug) {
             try {
                 // Debug ..
                 gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES1.class, gl, null) );
             } catch (Exception e) {e.printStackTrace();} 
         }
-
-        if(glTrace) {
+        if(trace) {
             try {
                 // Trace ..
                 gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES1.class, gl, new Object[] { System.err } ) );

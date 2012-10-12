@@ -27,6 +27,7 @@ import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.newt.Window;
@@ -37,12 +38,21 @@ import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
 import com.jogamp.opengl.test.junit.jogl.demos.GearsObject;
+import com.jogamp.opengl.util.glsl.fixedfunc.FixedFuncUtil;
+import com.jogamp.opengl.util.glsl.fixedfunc.ShaderSelectionMode;
 
 /**
  * GearsES1.java <BR>
  * @author Brian Paul (converted to Java by Ron Cemer and Sven Gothel) <P>
  */
 public class GearsES1 implements GLEventListener {
+  private boolean debugFFPEmu = false;
+  private boolean verboseFFPEmu = false;
+  private boolean traceFFPEmu = false;
+  private boolean forceFFPEmu = false;
+  private boolean debug = false ;
+  private boolean trace = false ;
+  
   private final float pos[] = { 5.0f, 5.0f, 10.0f, 0.0f };
 
   private float view_rotx = 20.0f, view_roty = 30.0f, view_rotz = 0.0f;
@@ -61,6 +71,13 @@ public class GearsES1 implements GLEventListener {
 
   public GearsES1() {
     this.swapInterval = 1;
+  }
+  
+  public void setForceFFPEmu(boolean forceFFPEmu, boolean verboseFFPEmu, boolean debugFFPEmu, boolean traceFFPEmu) {
+    this.forceFFPEmu = forceFFPEmu;
+    this.verboseFFPEmu = verboseFFPEmu;
+    this.debugFFPEmu = debugFFPEmu;
+    this.traceFFPEmu = traceFFPEmu;
   }
   
   public void setGears(GearsObject g1, GearsObject g2, GearsObject g3) {
@@ -91,8 +108,31 @@ public class GearsES1 implements GLEventListener {
     // drawable.setGL(new DebugGL(drawable.getGL()));
 
     GL _gl = drawable.getGL();
-    // GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl /*, true*/);
-    GL2ES1 gl = _gl.getGL2ES1();
+    
+    if(debugFFPEmu) {
+        // Debug ..
+        _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES2.class, _gl, null) );
+        debug = false;
+    }
+    if(traceFFPEmu) {
+        // Trace ..
+        _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES2.class, _gl, new Object[] { System.err } ) );
+        trace = false;
+    }
+    GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl, ShaderSelectionMode.AUTO, null, forceFFPEmu, verboseFFPEmu);
+    
+    if(debug) {
+        try {
+            // Debug ..
+            gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES1.class, gl, null) );
+        } catch (Exception e) {e.printStackTrace();} 
+    }
+    if(trace) {
+        try {
+            // Trace ..
+            gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES1.class, gl, new Object[] { System.err } ) );
+        } catch (Exception e) {e.printStackTrace();}
+    }
     
     System.err.println("GearsES1 init on "+Thread.currentThread());
     System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());

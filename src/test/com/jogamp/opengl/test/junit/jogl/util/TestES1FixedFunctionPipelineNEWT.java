@@ -26,10 +26,8 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.demos.es1.newt;
+package com.jogamp.opengl.test.junit.jogl.util;
 
-import com.jogamp.newt.event.KeyAdapter;
-import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
@@ -37,8 +35,10 @@ import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es1.GearsES1;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
 
 import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
@@ -46,79 +46,97 @@ import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
 
-public class TestGearsES1NEWT extends UITestCase {
+public class TestES1FixedFunctionPipelineNEWT extends UITestCase {
     static int width, height;
-    static boolean forceES2 = false;
-    static boolean forceFFPEmu = false;
 
     @BeforeClass
     public static void initClass() {
-        width  = 640;
-        height = 480;
+        width  = 512;
+        height = 512;
     }
 
     @AfterClass
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps, boolean forceFFPEmu) throws InterruptedException {
+    protected void runTestGL0(GLCapabilities caps, GLEventListener demo) throws InterruptedException {
         GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
-        glWindow.setTitle("Gears NEWT Test");
+        glWindow.setTitle(getSimpleTestName("."));
 
-        final GearsES1 demo = new GearsES1();
-        demo.setForceFFPEmu(forceFFPEmu, forceFFPEmu, false, false);
         glWindow.addGLEventListener(demo);
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
+        snap.setPostSNDetail(demo.getClass().getSimpleName());
         glWindow.addGLEventListener(snap);
 
         Animator animator = new Animator(glWindow);
         QuitAdapter quitAdapter = new QuitAdapter();
-
-        //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
-        //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
         glWindow.addKeyListener(quitAdapter);
         glWindow.addWindowListener(quitAdapter);
-
-        final GLWindow f_glWindow = glWindow;
-        glWindow.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
-                if(e.getKeyChar()=='f') {
-                    new Thread() {
-                        public void run() {
-                            f_glWindow.setFullscreen(!f_glWindow.isFullscreen());
-                    } }.start();
-                } else if(e.getKeyChar()=='d') {
-                    new Thread() {
-                        public void run() {
-                            f_glWindow.setUndecorated(!f_glWindow.isUndecorated());
-                    } }.start();
-                }
-            }
-        });
 
         glWindow.setSize(width, height);
         glWindow.setVisible(true);
         animator.setUpdateFPSFrames(1, null);
         animator.start();
+        
         snap.setMakeSnapshot();
-
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
-
+        glWindow.removeGLEventListener(demo);
+        
         animator.stop();
         glWindow.destroy();
     }
+    
+    protected void runTestGL(GLCapabilities caps, boolean forceFFPEmu) throws InterruptedException {
+        final RedSquareES1 demo01 = new RedSquareES1();
+        demo01.setForceFFPEmu(forceFFPEmu, false, false, false);
+        runTestGL0(caps, demo01);
+        
+        final GearsES1 demo02 = new GearsES1();
+        demo02.setForceFFPEmu(forceFFPEmu, false, false, false);
+        runTestGL0(caps, demo02);
+        
+        final DemoGL2ES1ImmModeSink demo03 = new DemoGL2ES1ImmModeSink(true);
+        demo03.setForceFFPEmu(forceFFPEmu, false, false, false);
+        runTestGL0(caps, demo03);
+        
+        final DemoGL2ES1TextureImmModeSink demo04 = new DemoGL2ES1TextureImmModeSink();
+        demo04.setForceFFPEmu(forceFFPEmu, false, false, false);
+        runTestGL0(caps, demo04);
+    }
 
     @Test
-    public void test00() throws InterruptedException {
-        GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES1());
-        runTestGL(caps, forceFFPEmu);
+    public void test01GL2Normal() throws InterruptedException {
+        if(!GLProfile.isAvailable(GLProfile.GL2)) { System.err.println("GL2 n/a"); return; }
+        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
+        runTestGL(caps, false);
+    }
+    
+    @Test
+    public void test03GL2FFPEmu() throws InterruptedException {
+        if(!GLProfile.isAvailable(GLProfile.GL2)) { System.err.println("GL2 n/a"); return; }
+        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
+        runTestGL(caps, true);
+    }
+    
+    @Test
+    public void test04GL2ES1Normal() throws InterruptedException {
+        if(!GLProfile.isAvailable(GLProfile.GL2ES1)) { System.err.println("GL2ES1 n/a"); return; }
+        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2ES1));
+        runTestGL(caps, false);
+    }
+    
+    @Test
+    public void test05ES2FFPEmu() throws InterruptedException {
+        if(!GLProfile.isAvailable(GLProfile.GLES2)) { System.err.println("GLES2 n/a"); return; }
+        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
+        runTestGL(caps, false); // should be FFPEmu implicit
     }
     
     static long duration = 1000; // ms
-    
+
     public static void main(String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -126,12 +144,8 @@ public class TestGearsES1NEWT extends UITestCase {
                 try {
                     duration = Integer.parseInt(args[i]);
                 } catch (Exception ex) { ex.printStackTrace(); }
-            } else if(args[i].equals("-es2")) {
-                forceES2 = true;
-            } else if(args[i].equals("-ffpemu")) {
-                forceFFPEmu = true;
             }
         }
-        org.junit.runner.JUnitCore.main(TestGearsES1NEWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestES1FixedFunctionPipelineNEWT.class.getName());
     }
 }
