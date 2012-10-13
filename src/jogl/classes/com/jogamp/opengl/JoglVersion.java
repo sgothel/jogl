@@ -169,6 +169,23 @@ public class JoglVersion extends JogampVersion {
         return sb;
     }
 
+    public StringBuilder getBriefOSGLBuildInfo(GL gl, StringBuilder sb) {        
+        if(null==sb) {
+            sb = new StringBuilder();
+        }
+        sb.append("OS: ").append(Platform.getOSName()).append(", version ").append(Platform.getOSVersion()).append(", arch ").append(Platform.getArchName());
+        sb.append(Platform.getNewline());
+        sb.append("GL_VENDOR     ").append(gl.glGetString(GL.GL_VENDOR));
+        sb.append(Platform.getNewline());
+        sb.append("GL_RENDERER   ").append(gl.glGetString(GL.GL_RENDERER));
+        sb.append(Platform.getNewline());
+        sb.append("GL_VERSION    ").append(gl.glGetString(GL.GL_VERSION));
+        sb.append(Platform.getNewline());
+        sb.append("JOGL GIT sha1 ").append(getImplementationCommit());
+        sb.append(Platform.getNewline());
+        return sb;
+    }
+    
     public static void main(String args[]) {
         System.err.println(VersionUtil.getPlatformInfo());
         System.err.println(GlueGenVersion.getInstance());

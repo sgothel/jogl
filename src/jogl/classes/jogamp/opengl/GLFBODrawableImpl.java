@@ -11,6 +11,7 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLFBODrawable;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.opengl.FBObject;
@@ -171,11 +172,16 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 }
                 if(!resetQuirkInfoDumped) { // dump info only once
                     resetQuirkInfoDumped = true;
-                    System.err.println("GLFBODrawable: Reset failed: "+e.getMessage());
-                    System.err.println("GLFBODrawable: Enabling FBOResetQuirk, due to previous GLException. "+this.toString());
-                    System.err.println(VersionUtil.getPlatformInfo());
-                    System.err.println(JoglVersion.getInstance());
-                    System.err.println(JoglVersion.getGLInfo(gl, null));
+                    System.err.println("GLFBODrawable: FBO Reset failed: "+e.getMessage());
+                    System.err.println("GLFBODrawable: Enabling FBOResetQuirk, due to GL driver bug.");
+                    final JoglVersion joglVersion = JoglVersion.getInstance();
+                    if(DEBUG) {
+                        System.err.println(VersionUtil.getPlatformInfo());
+                        System.err.println(joglVersion.toString());
+                        System.err.println(JoglVersion.getGLInfo(gl, null));
+                    } else {
+                        System.err.println(joglVersion.getBriefOSGLBuildInfo(gl, null));                        
+                    }
                 }
                 fboResetQuirk = true;
                 // 'fallthrough' intended
