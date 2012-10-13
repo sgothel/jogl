@@ -61,18 +61,23 @@ void main (void)
   } else {
       int texEnv = 0;
 
+      #if MAX_TEXTURE_UNITS >= 2
       if( 0 != mgl_TextureEnabled[0] ) {
         calcTexColor(color, texture2D(mgl_Texture0, mgl_TexCoords[0].st), mgl_TexFormat[0], mgl_TexEnvMode[0]);
       }
       if( 0 != mgl_TextureEnabled[1] ) {
         calcTexColor(color, texture2D(mgl_Texture1, mgl_TexCoords[1].st), mgl_TexFormat[1], mgl_TexEnvMode[1]);
       }
+      #endif
+      #if MAX_TEXTURE_UNITS >= 4
       if( 0 != mgl_TextureEnabled[2] ) {
         calcTexColor(color, texture2D(mgl_Texture2, mgl_TexCoords[2].st), mgl_TexFormat[2], mgl_TexEnvMode[2]);
       }
       if( 0 != mgl_TextureEnabled[3] ) {
         calcTexColor(color, texture2D(mgl_Texture3, mgl_TexCoords[3].st), mgl_TexFormat[3], mgl_TexEnvMode[3]);
       }
+      #endif
+      #if MAX_TEXTURE_UNITS >= 8
       if( 0 != mgl_TextureEnabled[4] ) {
         calcTexColor(color, texture2D(mgl_Texture4, mgl_TexCoords[4].st), mgl_TexFormat[4], mgl_TexEnvMode[4]);
       }
@@ -85,6 +90,7 @@ void main (void)
       if( 0 != mgl_TextureEnabled[7] ) {
         calcTexColor(color, texture2D(mgl_Texture7, mgl_TexCoords[7].st), mgl_TexFormat[7], mgl_TexEnvMode[7]);
       }
+      #endif
       if( mgl_AlphaTestFunc > 0 ) {
           alphaTest(color);
       }

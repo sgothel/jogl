@@ -14,10 +14,14 @@ public enum ShaderSelectionMode {
     AUTO, 
     /** Fixed shader selection: Simple color. */
     COLOR, 
-    /** Fixed shader selection: Multi-Textured color. */
-    COLOR_TEXTURE, 
+    /** Fixed shader selection: Multi-Textured color. 2 texture units. */
+    COLOR_TEXTURE2, 
+    /** Fixed shader selection: Multi-Textured color. 4 texture units. */
+    COLOR_TEXTURE4, 
+    /** Fixed shader selection: Multi-Textured color. 8 texture units. */
+    COLOR_TEXTURE8, 
     /** Fixed shader selection: Color with vertex-lighting. */
     COLOR_LIGHT_PER_VERTEX, 
-    /** Fixed shader selection: Multi-Textured color with vertex-lighting. */
-    COLOR_TEXTURE_LIGHT_PER_VERTEX 
+    /** Fixed shader selection: Multi-Textured color with vertex-lighting. 8 texture units.*/
+    COLOR_TEXTURE8_LIGHT_PER_VERTEX 
 }

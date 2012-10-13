@@ -62,20 +62,33 @@ import com.jogamp.opengl.util.glsl.fixedfunc.ShaderSelectionMode;
  */
 public class FixedFuncPipeline {
     protected static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.FixedFuncPipeline", true);
+    /** The maximum texture units which could be used, depending on {@link ShaderSelectionMode}. */
     public static final int MAX_TEXTURE_UNITS = 8;
     public static final int MAX_LIGHTS        = 8;
     
     public FixedFuncPipeline(GL2ES2 gl, ShaderSelectionMode mode, PMVMatrix pmvMatrix) {
-        init(gl, mode, pmvMatrix, FixedFuncPipeline.class, shaderSrcRootDef, 
-             shaderBinRootDef, vertexColorFileDef, vertexColorLightFileDef, fragmentColorFileDef, fragmentColorTextureFileDef);
+        shaderRootClass = FixedFuncPipeline.class;
+        shaderSrcRoot = shaderSrcRootDef;
+        shaderBinRoot = shaderBinRootDef;
+        vertexColorFile = vertexColorFileDef;
+        vertexColorLightFile = vertexColorLightFileDef;
+        fragmentColorFile = fragmentColorFileDef;
+        fragmentColorTextureFile = fragmentColorTextureFileDef;
+        init(gl, mode, pmvMatrix);
     }
-    public FixedFuncPipeline(GL2ES2 gl, ShaderSelectionMode mode, PMVMatrix pmvMatrix, Class<?> shaderRootClass, String shaderSrcRoot, 
-                       String shaderBinRoot,
-                       String vertexColorFile,
-                       String vertexColorLightFile,
-                       String fragmentColorFile, String fragmentColorTextureFile) {
-        init(gl, mode, pmvMatrix, shaderRootClass, shaderSrcRoot, 
-             shaderBinRoot, vertexColorFile, vertexColorLightFile, fragmentColorFile, fragmentColorTextureFile);
+    public FixedFuncPipeline(GL2ES2 gl, ShaderSelectionMode mode, PMVMatrix pmvMatrix, 
+                             Class<?> shaderRootClass, String shaderSrcRoot, 
+                             String shaderBinRoot,
+                             String vertexColorFile, String vertexColorLightFile,
+                             String fragmentColorFile, String fragmentColorTextureFile) {
+        this.shaderRootClass = shaderRootClass;
+        this.shaderSrcRoot = shaderSrcRoot;
+        this.shaderBinRoot = shaderBinRoot;
+        this.vertexColorFile = vertexColorFile;
+        this.vertexColorLightFile = vertexColorLightFile;
+        this.fragmentColorFile = fragmentColorFile;
+        this.fragmentColorTextureFile = fragmentColorTextureFile;
+        init(gl, mode, pmvMatrix); 
     }
     
     public ShaderSelectionMode getShaderSelectionMode() { return shaderSelectionMode; }
@@ -98,10 +111,24 @@ public class FixedFuncPipeline {
     }
 
     public void destroy(GL2ES2 gl) {
-        shaderProgramColor.release(gl, true);
-        shaderProgramColorLight.release(gl, true);
-        shaderProgramColorTexture.release(gl, true);
-        shaderProgramColorTextureLight.release(gl, true);
+        if(null != shaderProgramColor) {
+            shaderProgramColor.release(gl, true);
+        }
+        if(null != shaderProgramColorLight) {
+            shaderProgramColorLight.release(gl, true);
+        }
+        if(null != shaderProgramColorTexture2) {
+            shaderProgramColorTexture2.release(gl, true);
+        }
+        if(null != shaderProgramColorTexture4) {
+            shaderProgramColorTexture4.release(gl, true);
+        }
+        if(null != shaderProgramColorTexture4) {
+            shaderProgramColorTexture4.release(gl, true);
+        }
+        if(null != shaderProgramColorTexture8Light) {
+            shaderProgramColorTexture8Light.release(gl, true);
+        }
         shaderState.destroy(gl);
     }
 
@@ -562,9 +589,10 @@ public class FixedFuncPipeline {
             // pre-validate shader switch
             if( 0 != textureEnabledBits ) {
                 if(lightingEnabled) {
-                    newMode = ShaderSelectionMode.COLOR_TEXTURE_LIGHT_PER_VERTEX;
+                    newMode = ShaderSelectionMode.COLOR_TEXTURE8_LIGHT_PER_VERTEX;
                 } else {
-                    newMode = ShaderSelectionMode.COLOR_TEXTURE;
+                    // in auto mode, we simply use max texture units
+                    newMode = ShaderSelectionMode.COLOR_TEXTURE8;
                 }
             } else {
                 if(lightingEnabled) {
@@ -683,9 +711,11 @@ public class FixedFuncPipeline {
         sb.append("\n\t lightingEnabled: "+lightingEnabled);
         sb.append(", lightsEnabled: "); Buffers.toString(sb, null, lightsEnabled);
         sb.append("\n\t, shaderProgramColor: "+shaderProgramColor);
-        sb.append("\n\t, shaderProgramColorTexture: "+shaderProgramColorTexture);
+        sb.append("\n\t, shaderProgramColorTexture2: "+shaderProgramColorTexture2);
+        sb.append("\n\t, shaderProgramColorTexture4: "+shaderProgramColorTexture4);
+        sb.append("\n\t, shaderProgramColorTexture8: "+shaderProgramColorTexture8);
         sb.append("\n\t, shaderProgramColorLight: "+shaderProgramColorLight);
-        sb.append("\n\t, shaderProgramColorTextureLight: "+shaderProgramColorTextureLight);
+        sb.append("\n\t, shaderProgramColorTexture8Light: "+shaderProgramColorTexture8Light);
         sb.append("\n\t, ShaderState: ");
         shaderState.toString(sb, alsoUnlocated);
         sb.append("]");
@@ -695,19 +725,126 @@ public class FixedFuncPipeline {
         return toString(null, DEBUG).toString();
     }
 
+    private static final String constMaxShader0 = "#define MAX_TEXTURE_UNITS 0\n";
+    private static final String constMaxShader2 = "#define MAX_TEXTURE_UNITS 2\n";
+    private static final String constMaxShader4 = "#define MAX_TEXTURE_UNITS 4\n";
+    private static final String constMaxShader8 = "#define MAX_TEXTURE_UNITS 8\n";
+    
+    private void loadShader(GL2ES2 gl, ShaderSelectionMode mode) {
+        final boolean loadColor = ShaderSelectionMode.COLOR == mode;
+        final boolean loadColorTexture2 = ShaderSelectionMode.COLOR_TEXTURE2 == mode;
+        final boolean loadColorTexture4 = ShaderSelectionMode.COLOR_TEXTURE4 == mode;
+        final boolean loadColorTexture8 = ShaderSelectionMode.COLOR_TEXTURE8 == mode;
+        final boolean loadColorTexture = loadColorTexture2 || loadColorTexture4 || loadColorTexture8 ; 
+        final boolean loadColorLightPerVertex = ShaderSelectionMode.COLOR_LIGHT_PER_VERTEX == mode;
+        final boolean loadColorTexture8LightPerVertex = ShaderSelectionMode.COLOR_TEXTURE8_LIGHT_PER_VERTEX == mode;
+
+        if( null != shaderProgramColor && loadColor ||
+            null != shaderProgramColorTexture2 && loadColorTexture2 ||
+            null != shaderProgramColorTexture4 && loadColorTexture4 ||
+            null != shaderProgramColorTexture8 && loadColorTexture8 ||
+            null != shaderProgramColorLight && loadColorLightPerVertex ||
+            null != shaderProgramColorTexture8Light && loadColorTexture8LightPerVertex ) {
+            return;
+        }
+        
+        if( loadColor ) {
+            final ShaderCode vp = ShaderCode.create( gl, GL2ES2.GL_VERTEX_SHADER, shaderRootClass, shaderSrcRoot,
+                                             shaderBinRoot, vertexColorFile, true);
+            final ShaderCode fp = ShaderCode.create( gl, GL2ES2.GL_FRAGMENT_SHADER, shaderRootClass, shaderSrcRoot,
+                                               shaderBinRoot, fragmentColorFile, true);
+            vp.insertShaderSource(0, 0, constMaxShader0);
+            fp.insertShaderSource(0, 0, constMaxShader0);
+            shaderProgramColor = new ShaderProgram();
+            shaderProgramColor.add(vp);
+            shaderProgramColor.add(fp);
+            if(!shaderProgramColor.link(gl, System.err)) {
+                throw new GLException("Couldn't link VertexColor program: "+shaderProgramColor);
+            }
+        } else  if( loadColorTexture ) {
+            final ShaderCode vp = ShaderCode.create( gl, GL2ES2.GL_VERTEX_SHADER, shaderRootClass, shaderSrcRoot, shaderBinRoot, vertexColorFile, true);
+            final ShaderCode fp = ShaderCode.create( gl, GL2ES2.GL_FRAGMENT_SHADER, shaderRootClass, shaderSrcRoot,
+                                                     shaderBinRoot, fragmentColorTextureFile, true);
+            
+            if( loadColorTexture2 ) {
+                vp.insertShaderSource(0, 0, constMaxShader2);
+                fp.insertShaderSource(0, 0, constMaxShader2);                
+                shaderProgramColorTexture2 = new ShaderProgram();
+                shaderProgramColorTexture2.add(vp);
+                shaderProgramColorTexture2.add(fp);
+                if(!shaderProgramColorTexture2.link(gl, System.err)) {
+                    throw new GLException("Couldn't link VertexColorTexture2 program: "+shaderProgramColorTexture2);
+                }
+            } else if( loadColorTexture4 ) {
+                vp.insertShaderSource(0, 0, constMaxShader4);
+                fp.insertShaderSource(0, 0, constMaxShader4);
+                shaderProgramColorTexture4 = new ShaderProgram();
+                shaderProgramColorTexture4.add(vp);
+                shaderProgramColorTexture4.add(fp);
+                if(!shaderProgramColorTexture4.link(gl, System.err)) {
+                    throw new GLException("Couldn't link VertexColorTexture4 program: "+shaderProgramColorTexture4);
+                }
+            } else if( loadColorTexture8 ) {
+                vp.insertShaderSource(0, 0, constMaxShader8);
+                fp.insertShaderSource(0, 0, constMaxShader8);
+                shaderProgramColorTexture8 = new ShaderProgram();
+                shaderProgramColorTexture8.add(vp);
+                shaderProgramColorTexture8.add(fp);
+                if(!shaderProgramColorTexture8.link(gl, System.err)) {
+                    throw new GLException("Couldn't link VertexColorTexture8 program: "+shaderProgramColorTexture8);
+                }
+            }
+        } else if( loadColorLightPerVertex ) {
+            final ShaderCode vp = ShaderCode.create( gl, GL2ES2.GL_VERTEX_SHADER, shaderRootClass, shaderSrcRoot,
+                                               shaderBinRoot, vertexColorLightFile, true);
+            final ShaderCode fp = ShaderCode.create( gl, GL2ES2.GL_FRAGMENT_SHADER, shaderRootClass, shaderSrcRoot,
+                                               shaderBinRoot, fragmentColorFile, true);
+            vp.insertShaderSource(0, 0, constMaxShader0);
+            fp.insertShaderSource(0, 0, constMaxShader0);
+            shaderProgramColorLight = new ShaderProgram();
+            shaderProgramColorLight.add(vp);
+            shaderProgramColorLight.add(fp);
+            if(!shaderProgramColorLight.link(gl, System.err)) {
+                throw new GLException("Couldn't link VertexColorLight program: "+shaderProgramColorLight);
+            }
+        }  else if( loadColorTexture8LightPerVertex ) {
+            final ShaderCode vp = ShaderCode.create( gl, GL2ES2.GL_VERTEX_SHADER, shaderRootClass, shaderSrcRoot,
+                                               shaderBinRoot, vertexColorLightFile, true);
+            final ShaderCode fp = ShaderCode.create( gl, GL2ES2.GL_FRAGMENT_SHADER, shaderRootClass, shaderSrcRoot,
+                                                     shaderBinRoot, fragmentColorTextureFile, true);
+            vp.insertShaderSource(0, 0, constMaxShader8);
+            fp.insertShaderSource(0, 0, constMaxShader8);
+            shaderProgramColorTexture8Light = new ShaderProgram();
+            shaderProgramColorTexture8Light.add(vp);
+            shaderProgramColorTexture8Light.add(fp);
+            if(!shaderProgramColorTexture8Light.link(gl, System.err)) {
+                throw new GLException("Couldn't link VertexColorLight program: "+shaderProgramColorTexture8Light);
+            }
+        }
+    }
+    
     private ShaderProgram selectShaderProgram(GL2ES2 gl, ShaderSelectionMode mode) {
+        if(ShaderSelectionMode.AUTO == mode) {
+            mode = ShaderSelectionMode.COLOR;
+        }
+        loadShader(gl, mode);
         final ShaderProgram sp;
         switch(mode) {
             case COLOR_LIGHT_PER_VERTEX:
                 sp = shaderProgramColorLight;
                 break;
-            case COLOR_TEXTURE:
-                sp = shaderProgramColorTexture;
+            case COLOR_TEXTURE2:
+                sp = shaderProgramColorTexture2;
                 break;
-            case COLOR_TEXTURE_LIGHT_PER_VERTEX:
-                sp = shaderProgramColorTextureLight;
+            case COLOR_TEXTURE4:
+                sp = shaderProgramColorTexture4;
                 break;
-            case AUTO:
+            case COLOR_TEXTURE8:
+                sp = shaderProgramColorTexture8;
+                break;
+            case COLOR_TEXTURE8_LIGHT_PER_VERTEX:
+                sp = shaderProgramColorTexture8Light;
+                break;
             case COLOR:
             default:
                 sp = shaderProgramColor;
@@ -715,12 +852,7 @@ public class FixedFuncPipeline {
         return sp;
     }
     
-    private void init(GL2ES2 gl, ShaderSelectionMode mode, PMVMatrix pmvMatrix, Class<?> shaderRootClass, String shaderSrcRoot, 
-                      String shaderBinRoot,
-                      String vertexColorFile,
-                      String vertexColorLightFile,
-                      String fragmentColorFile, String fragmentColorTextureFile) 
-   {
+    private void init(GL2ES2 gl, ShaderSelectionMode mode, PMVMatrix pmvMatrix) { 
         if(null==pmvMatrix) {
             throw new GLException("PMVMatrix is null");
         }
@@ -728,47 +860,6 @@ public class FixedFuncPipeline {
         this.shaderSelectionMode = mode;
         this.shaderState=new ShaderState();
         this.shaderState.setVerbose(verbose);
-        ShaderCode vertexColor, vertexColorLight, fragmentColor, fragmentColorTexture;
-
-        vertexColor = ShaderCode.create( gl, GL2ES2.GL_VERTEX_SHADER, shaderRootClass, shaderSrcRoot,
-                                         shaderBinRoot, vertexColorFile, false);
-
-        vertexColorLight = ShaderCode.create( gl, GL2ES2.GL_VERTEX_SHADER, shaderRootClass, shaderSrcRoot,
-                                           shaderBinRoot, vertexColorLightFile, false);
-
-        fragmentColor = ShaderCode.create( gl, GL2ES2.GL_FRAGMENT_SHADER, shaderRootClass, shaderSrcRoot,
-                                           shaderBinRoot, fragmentColorFile, false);
-
-        fragmentColorTexture = ShaderCode.create( gl, GL2ES2.GL_FRAGMENT_SHADER, shaderRootClass, shaderSrcRoot,
-                                                  shaderBinRoot, fragmentColorTextureFile, false);
-
-        shaderProgramColor = new ShaderProgram();
-        shaderProgramColor.add(vertexColor);
-        shaderProgramColor.add(fragmentColor);
-        if(!shaderProgramColor.link(gl, System.err)) {
-            throw new GLException("Couldn't link VertexColor program: "+shaderProgramColor);
-        }
-
-        shaderProgramColorTexture = new ShaderProgram();
-        shaderProgramColorTexture.add(vertexColor);
-        shaderProgramColorTexture.add(fragmentColorTexture);
-        if(!shaderProgramColorTexture.link(gl, System.err)) {
-            throw new GLException("Couldn't link VertexColorTexture program: "+shaderProgramColorTexture);
-        }
-
-        shaderProgramColorLight = new ShaderProgram();
-        shaderProgramColorLight.add(vertexColorLight);
-        shaderProgramColorLight.add(fragmentColor);
-        if(!shaderProgramColorLight.link(gl, System.err)) {
-            throw new GLException("Couldn't link VertexColorLight program: "+shaderProgramColorLight);
-        }
-
-        shaderProgramColorTextureLight = new ShaderProgram();
-        shaderProgramColorTextureLight.add(vertexColorLight);
-        shaderProgramColorTextureLight.add(fragmentColorTexture);
-        if(!shaderProgramColorTextureLight.link(gl, System.err)) {
-            throw new GLException("Couldn't link VertexColorLight program: "+shaderProgramColorTextureLight);
-        }
 
         shaderState.attachShaderProgram(gl, selectShaderProgram(gl, shaderSelectionMode), true);
 
@@ -854,9 +945,9 @@ public class FixedFuncPipeline {
     private PMVMatrix pmvMatrix;
     private ShaderState shaderState;
     private ShaderProgram shaderProgramColor;
-    private ShaderProgram shaderProgramColorTexture;
+    private ShaderProgram shaderProgramColorTexture2, shaderProgramColorTexture4, shaderProgramColorTexture8;
     private ShaderProgram shaderProgramColorLight;
-    private ShaderProgram shaderProgramColorTextureLight;
+    private ShaderProgram shaderProgramColorTexture8Light;
     
     private ShaderSelectionMode shaderSelectionMode = ShaderSelectionMode.AUTO;
 
@@ -904,11 +995,19 @@ public class FixedFuncPipeline {
     public static final FloatBuffer defMatEmission  = neut4f;
     public static final float       defMatShininess = 0f;
 
-    private static final String vertexColorFileDef          = "FixedFuncColor";
-    private static final String vertexColorLightFileDef     = "FixedFuncColorLight";
-    private static final String fragmentColorFileDef        = "FixedFuncColor";
-    private static final String fragmentColorTextureFileDef = "FixedFuncColorTexture";
-    private static final String shaderSrcRootDef            = "shaders" ;
-    private static final String shaderBinRootDef            = "shaders/bin" ;
+    private static final String vertexColorFileDef           = "FixedFuncColor";
+    private static final String vertexColorLightFileDef      = "FixedFuncColorLight";
+    private static final String fragmentColorFileDef         = "FixedFuncColor";
+    private static final String fragmentColorTextureFileDef  = "FixedFuncColorTexture";
+    private static final String shaderSrcRootDef             = "shaders" ;
+    private static final String shaderBinRootDef             = "shaders/bin" ;
+    
+    private final Class<?> shaderRootClass;
+    private final String shaderSrcRoot; 
+    private final String shaderBinRoot;
+    private final String vertexColorFile;
+    private final String vertexColorLightFile;
+    private final String fragmentColorFile;
+    private final String fragmentColorTextureFile;     
 }
 

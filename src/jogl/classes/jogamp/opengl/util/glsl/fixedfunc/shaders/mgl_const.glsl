@@ -4,7 +4,7 @@
 
 #include es_precision.glsl
 
-const   LOWP int     MAX_TEXTURE_UNITS = 8; // <=gl_MaxTextureImageUnits 
+// will be defined at runtime: MAX_TEXTURE_UNITS [0|2|4|8]
 const   LOWP int     MAX_LIGHTS = 8; 
 
 const  HIGHP float   EPSILON =  0.0000001;  // FIXME: determine proper hw-precision
