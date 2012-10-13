@@ -52,8 +52,8 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 public abstract class GLDrawableImpl implements GLDrawable {
-  protected static final boolean DEBUG = Debug.debug("GLDrawable");
-
+  protected static final boolean DEBUG = GLDrawableFactoryImpl.DEBUG;
+  
   protected GLDrawableImpl(GLDrawableFactory factory, NativeSurface comp, boolean realized) {
       this(factory, comp, (GLCapabilitiesImmutable) comp.getGraphicsConfiguration().getRequestedCapabilities(), realized);
   }

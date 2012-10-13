@@ -74,7 +74,7 @@ import com.jogamp.opengl.GLRendererQuirks;
     they may be instantiated by the GLJPanel implementation. */
 @SuppressWarnings("deprecation")
 public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
-  protected static final boolean DEBUG = GLDrawableImpl.DEBUG;
+  protected static final boolean DEBUG = GLDrawableFactory.DEBUG; // allow package access
 
   protected GLDrawableFactoryImpl() {
     super();

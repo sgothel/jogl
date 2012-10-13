@@ -77,23 +77,6 @@ public class GLProfile {
     
     public static final boolean DEBUG = Debug.debug("GLProfile");
     
-    /** 
-     * We have to disable support for ANGLE, the D3D ES2 emulation on Windows provided w/ Firefox and Chrome. 
-     * When run in the mentioned browsers, the eglInitialize(..) implementation crashes.
-     * <p>
-     * This can be overridden by explicitly enabling ANGLE on Windows by setting the property
-     * <code>jogl.enable.ANGLE</code>.
-     * </p> 
-     */
-    private static final boolean enableANGLE = Debug.isPropertyDefined("jogl.enable.ANGLE", true);
-    
-    /** 
-     * In case no OpenGL ES implementation is required
-     * and if the running platform may have a buggy implementation,
-     * setting the property <code>jogl.disable.opengles</code> disables querying a possible existing OpenGL ES implementation. 
-     */
-    private static final boolean disableOpenGLES = Debug.isPropertyDefined("jogl.disable.opengles", true);
-    
     static {
         // Also initializes TempJarCache if shall be used.
         Platform.initSingleton();
@@ -1447,28 +1430,15 @@ public class GLProfile {
             defaultDesktopDevice = desktopFactory.getDefaultDevice();
         }
 
-        if ( !disableOpenGLES && ReflectionUtil.isClassAvailable("jogamp.opengl.egl.EGLDrawableFactory", classloader) ) {
+        if ( ReflectionUtil.isClassAvailable("jogamp.opengl.egl.EGLDrawableFactory", classloader) ) {
             t=null;
             try {
                 eglFactory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactoryImpl(GLES2);
                 if(null != eglFactory) {
-                    final boolean isANGLE = ((jogamp.opengl.egl.EGLDrawableFactory)eglFactory).isANGLE();
-                    if(isANGLE && !enableANGLE) {
-                        if(DEBUG) {
-                            System.err.println("Info: GLProfile.init - EGL/ES2 ANGLE disabled");
-                        }
-                        eglFactory.destroy();
-                        eglFactory    = null;
-                        hasEGLFactory = false;
-                    } else {
-                        if(DEBUG && isANGLE) {
-                            System.err.println("Info: GLProfile.init - EGL/ES2 ANGLE enabled");
-                        }
-                        hasEGLFactory = true;
-                        // update hasGLES1Impl, hasGLES2Impl based on EGL
-                        hasGLES2Impl = null!=eglFactory.getGLDynamicLookupHelper(2) && hasGLES2Impl;
-                        hasGLES1Impl = null!=eglFactory.getGLDynamicLookupHelper(1) && hasGLES1Impl;
-                    }
+                    hasEGLFactory = true;
+                    // update hasGLES1Impl, hasGLES2Impl based on EGL
+                    hasGLES2Impl = null!=eglFactory.getGLDynamicLookupHelper(2) && hasGLES2Impl;
+                    hasGLES1Impl = null!=eglFactory.getGLDynamicLookupHelper(1) && hasGLES1Impl;
                 }
             } catch (LinkageError le) {
                 t=le;

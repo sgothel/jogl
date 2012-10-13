@@ -97,9 +97,28 @@ import jogamp.opengl.Debug;
 */
 public abstract class GLDrawableFactory {
 
+  protected static final boolean DEBUG = Debug.debug("GLDrawable");
+  
+  /** 
+   * We have to disable support for ANGLE, the D3D ES2 emulation on Windows provided w/ Firefox and Chrome. 
+   * When run in the mentioned browsers, the eglInitialize(..) implementation crashes.
+   * <p>
+   * This can be overridden by explicitly enabling ANGLE on Windows by setting the property
+   * <code>jogl.enable.ANGLE</code>.
+   * </p> 
+   */
+  protected static final boolean enableANGLE = Debug.isPropertyDefined("jogl.enable.ANGLE", true);
+
+  /** 
+   * In case no OpenGL ES implementation is required
+   * and if the running platform may have a buggy implementation,
+   * setting the property <code>jogl.disable.opengles</code> disables querying a possible existing OpenGL ES implementation. 
+   */
+  protected static final boolean disableOpenGLES = Debug.isPropertyDefined("jogl.disable.opengles", true);
+
   static final String macosxFactoryClassNameCGL = "jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory";
   static final String macosxFactoryClassNameAWTCGL = "jogamp.opengl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory";
-  
+
   private static volatile boolean isInit = false;
   private static GLDrawableFactory eglFactory;
   private static GLDrawableFactory nativeOSFactory;
@@ -144,19 +163,19 @@ public abstract class GLDrawableFactory {
             }
         } else {
           // may use egl*Factory ..
-          if (GLProfile.DEBUG) {
+          if (DEBUG || GLProfile.DEBUG) {
               System.err.println("GLDrawableFactory.static - No native Windowing Factory for: "+nwt+"; May use EGLDrawableFactory, if available." );
           }
         }
     }
     if (null != factoryClassName) {
-      if (GLProfile.DEBUG) {
+      if (DEBUG || GLProfile.DEBUG) {
           System.err.println("GLDrawableFactory.static - Native OS Factory for: "+nwt+": "+factoryClassName);
       }
       try {
           tmp = (GLDrawableFactory) ReflectionUtil.createInstance(factoryClassName, cl);
       } catch (JogampRuntimeException jre) { 
-          if (GLProfile.DEBUG) {
+          if (DEBUG || GLProfile.DEBUG) {
               System.err.println("Info: GLDrawableFactory.static - Native Platform: "+nwt+" - not available: "+factoryClassName);
               jre.printStackTrace();
           }
@@ -165,18 +184,22 @@ public abstract class GLDrawableFactory {
     if(null != tmp && tmp.isComplete()) {
         nativeOSFactory = tmp;
     }
-
     tmp = null;
-    try {
-        tmp = (GLDrawableFactory) ReflectionUtil.createInstance("jogamp.opengl.egl.EGLDrawableFactory", cl);
-    } catch (JogampRuntimeException jre) {
-        if (GLProfile.DEBUG) {
-            System.err.println("Info: GLDrawableFactory.static - EGLDrawableFactory - not available");
-            jre.printStackTrace();
+
+    if(!disableOpenGLES) {
+        try {
+            tmp = (GLDrawableFactory) ReflectionUtil.createInstance("jogamp.opengl.egl.EGLDrawableFactory", cl);
+        } catch (JogampRuntimeException jre) {
+            if (DEBUG || GLProfile.DEBUG) {
+                System.err.println("Info: GLDrawableFactory.static - EGLDrawableFactory - not available");
+                jre.printStackTrace();
+            }
         }
-    }
-    if(null != tmp && tmp.isComplete()) {
-        eglFactory = tmp;
+        if(null != tmp && tmp.isComplete()) {
+            eglFactory = tmp;
+        }
+    } else if( DEBUG || GLProfile.DEBUG ) {
+        System.err.println("Info: GLDrawableFactory.static - EGLDrawableFactory - disabled!");
     }
   }
 

@@ -1,5 +1,5 @@
 REM scripts\java-win32-dbg.bat jogamp.newt.awt.opengl.VersionApplet
-REM scripts\java-win32-dbg.bat com.jogamp.newt.opengl.GLWindow
+scripts\java-win32-dbg.bat com.jogamp.newt.opengl.GLWindow
 REM scripts\java-win32-dbg.bat javax.media.opengl.awt.GLCanvas
 REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT %*
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT %*
@@ -75,7 +75,7 @@ REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAWT0
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting04AWT $*
 REM scripts\java-win32.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aSWT $*
 REM scripts\java-win32.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting04SWT $*
-scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
+REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
 
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT -time 5000
 

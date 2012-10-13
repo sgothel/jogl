@@ -81,13 +81,12 @@ import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.GLRendererQuirks;
 
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
-    protected static final boolean DEBUG = GLDrawableFactoryImpl.DEBUG;
+    protected static final boolean DEBUG = GLDrawableFactoryImpl.DEBUG; // allow package access
     
     /* package */ static final boolean QUERY_EGL_ES_NATIVE_TK = Debug.isPropertyDefined("jogl.debug.EGLDrawableFactory.QueryNativeTK", true);
     
     private static GLDynamicLookupHelper eglES1DynamicLookupHelper = null;
     private static GLDynamicLookupHelper eglES2DynamicLookupHelper = null;
-    private static boolean isANGLE = false;
 
     private static final boolean isANGLE(GLDynamicLookupHelper dl) {
         if(Platform.OSType.WINDOWS == Platform.OS_TYPE) {
@@ -135,10 +134,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     EGL.resetProcAddressTable(eglES1DynamicLookupHelper);
                     final boolean isANGLEES1 = isANGLE(eglES1DynamicLookupHelper);
                     isANGLE |= isANGLEES1;
-                    if (GLProfile.DEBUG) {
+                    if (DEBUG || GLProfile.DEBUG) {
                         System.err.println("Info: EGLDrawableFactory: EGL ES1 - OK, isANGLE: "+isANGLEES1);
                     }
-                } else if (GLProfile.DEBUG) {
+                } else if (DEBUG || GLProfile.DEBUG) {
                     System.err.println("Info: EGLDrawableFactory: EGL ES1 - NOPE");
                 }
             }
@@ -156,17 +155,28 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                     EGL.resetProcAddressTable(eglES2DynamicLookupHelper);
                     final boolean isANGLEES2 = isANGLE(eglES2DynamicLookupHelper);
                     isANGLE |= isANGLEES2;
-                    if (GLProfile.DEBUG) {
+                    if (DEBUG || GLProfile.DEBUG) {
                         System.err.println("Info: EGLDrawableFactory: EGL ES2 - OK, isANGLE: "+isANGLEES2);
                     }
-                } else if (GLProfile.DEBUG) {
+                } else if (DEBUG || GLProfile.DEBUG) {
                     System.err.println("Info: EGLDrawableFactory: EGL ES2 - NOPE");
                 }
             }
-            if(null != eglES2DynamicLookupHelper || null != eglES1DynamicLookupHelper) {
-                sharedMap = new HashMap<String /*uniqueKey*/, SharedResource>();
-                sharedMapCreateAttempt = new HashSet<String>();
-                defaultDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+            if( null != eglES2DynamicLookupHelper || null != eglES1DynamicLookupHelper ) {
+                if(isANGLE && !enableANGLE) {
+                    if(DEBUG || GLProfile.DEBUG) {
+                        System.err.println("Info: EGLDrawableFactory.init - EGL/ES2 ANGLE disabled");
+                    }
+                } else {
+                    if( isANGLE && ( DEBUG || GLProfile.DEBUG ) ) {
+                        System.err.println("Info: EGLDrawableFactory.init - EGL/ES2 ANGLE enabled");
+                    }                    
+                    sharedMap = new HashMap<String /*uniqueKey*/, SharedResource>();
+                    sharedMapCreateAttempt = new HashSet<String>();
+                    
+                    // FIXME: Following triggers eglInitialize(..) which crashed on Windows w/ Chrome/Angle, FF/Angle!
+                    defaultDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
+                }
             }
         }
     }
@@ -239,6 +249,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     private HashSet<String> sharedMapCreateAttempt = null;    
     private EGLGraphicsDevice defaultDevice = null;
     private SharedResource defaultSharedResource = null;
+    private boolean isANGLE = false;
 
     static class SharedResource {
       private final EGLGraphicsDevice device;
