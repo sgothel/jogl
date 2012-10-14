@@ -6,11 +6,11 @@
 
 #include mgl_const.glsl
 
-uniform HIGHP   mat4    mgl_PMVMatrix[4]; // P, Mv, Mvi and Mvit (transpose(inverse(ModelView)) == normalMatrix)
+uniform         mat4    mgl_PMVMatrix[4]; // P, Mv, Mvi and Mvit (transpose(inverse(ModelView)) == normalMatrix)
 uniform LOWP    int     mgl_ColorEnabled;
-uniform HIGHP   vec4    mgl_ColorStatic;
+uniform         vec4    mgl_ColorStatic;
 uniform LOWP    int     mgl_AlphaTestFunc;
-uniform HIGHP   float   mgl_AlphaTestRef;
+uniform         float   mgl_AlphaTestRef;
 #if MAX_TEXTURE_UNITS > 0
 uniform LOWP    int     mgl_TextureEnabled[MAX_TEXTURE_UNITS];
 uniform LOWP    int     mgl_TexCoordEnabled[MAX_TEXTURE_UNITS];

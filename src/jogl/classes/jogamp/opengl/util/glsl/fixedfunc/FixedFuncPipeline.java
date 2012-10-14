@@ -741,10 +741,28 @@ public class FixedFuncPipeline {
         return toString(null, DEBUG).toString();
     }
 
-    private static final String constMaxShader0 = "#define MAX_TEXTURE_UNITS 0\n";
-    private static final String constMaxShader2 = "#define MAX_TEXTURE_UNITS 2\n";
-    private static final String constMaxShader4 = "#define MAX_TEXTURE_UNITS 4\n";
-    private static final String constMaxShader8 = "#define MAX_TEXTURE_UNITS 8\n";
+    // Shall we use: #ifdef GL_FRAGMENT_PRECISION_HIGH .. #endif for using highp in fragment shader if avail ? 
+    static final String es2_prelude_vp = "#version 100\n\nprecision highp float;\nprecision highp int;\n";
+    static final String es2_prelude_fp = "#version 100\n\nprecision mediump float;\nprecision mediump int;\n/*precision lowp sampler2D;*/\n";
+    static final String gl2_prelude = "#version 110\n";
+    
+    private static final String constMaxTextures0 = "#define MAX_TEXTURE_UNITS 0\n";
+    private static final String constMaxTextures2 = "#define MAX_TEXTURE_UNITS 2\n";
+    private static final String constMaxTextures4 = "#define MAX_TEXTURE_UNITS 4\n";
+    private static final String constMaxTextures8 = "#define MAX_TEXTURE_UNITS 8\n";
+    
+    private void customizeShader(GL2ES2 gl, ShaderCode vp, ShaderCode fp, String maxTextureDefine) {
+        int rsVpPos, rsFpPos;
+        if(gl.isGLES2()) {
+            rsVpPos = vp.insertShaderSource(0, 0, es2_prelude_vp);
+            rsFpPos = fp.insertShaderSource(0, 0, es2_prelude_fp);
+        } else {
+            rsVpPos = vp.insertShaderSource(0, 0, gl2_prelude);
+            rsFpPos = fp.insertShaderSource(0, 0, gl2_prelude);
+        }
+        vp.insertShaderSource(0, rsVpPos, maxTextureDefine);
+        fp.insertShaderSource(0, rsFpPos, maxTextureDefine); 
+    }
     
     private void loadShader(GL2ES2 gl, ShaderSelectionMode mode) {
         final boolean loadColor = ShaderSelectionMode.COLOR == mode;
@@ -769,8 +787,7 @@ public class FixedFuncPipeline {
                                              shaderBinRoot, vertexColorFile, true);
             final ShaderCode fp = ShaderCode.create( gl, GL2ES2.GL_FRAGMENT_SHADER, shaderRootClass, shaderSrcRoot,
                                                shaderBinRoot, fragmentColorFile, true);
-            vp.insertShaderSource(0, 0, constMaxShader0);
-            fp.insertShaderSource(0, 0, constMaxShader0);
+            customizeShader(gl, vp, fp, constMaxTextures0);
             shaderProgramColor = new ShaderProgram();
             shaderProgramColor.add(vp);
             shaderProgramColor.add(fp);
@@ -783,8 +800,7 @@ public class FixedFuncPipeline {
                                                      shaderBinRoot, fragmentColorTextureFile, true);
             
             if( loadColorTexture2 ) {
-                vp.insertShaderSource(0, 0, constMaxShader2);
-                fp.insertShaderSource(0, 0, constMaxShader2);                
+                customizeShader(gl, vp, fp, constMaxTextures2);
                 shaderProgramColorTexture2 = new ShaderProgram();
                 shaderProgramColorTexture2.add(vp);
                 shaderProgramColorTexture2.add(fp);
@@ -792,8 +808,7 @@ public class FixedFuncPipeline {
                     throw new GLException("Couldn't link VertexColorTexture2 program: "+shaderProgramColorTexture2);
                 }
             } else if( loadColorTexture4 ) {
-                vp.insertShaderSource(0, 0, constMaxShader4);
-                fp.insertShaderSource(0, 0, constMaxShader4);
+                customizeShader(gl, vp, fp, constMaxTextures4);
                 shaderProgramColorTexture4 = new ShaderProgram();
                 shaderProgramColorTexture4.add(vp);
                 shaderProgramColorTexture4.add(fp);
@@ -801,8 +816,7 @@ public class FixedFuncPipeline {
                     throw new GLException("Couldn't link VertexColorTexture4 program: "+shaderProgramColorTexture4);
                 }
             } else if( loadColorTexture8 ) {
-                vp.insertShaderSource(0, 0, constMaxShader8);
-                fp.insertShaderSource(0, 0, constMaxShader8);
+                customizeShader(gl, vp, fp, constMaxTextures8);
                 shaderProgramColorTexture8 = new ShaderProgram();
                 shaderProgramColorTexture8.add(vp);
                 shaderProgramColorTexture8.add(fp);
@@ -815,8 +829,7 @@ public class FixedFuncPipeline {
                                                shaderBinRoot, vertexColorLightFile, true);
             final ShaderCode fp = ShaderCode.create( gl, GL2ES2.GL_FRAGMENT_SHADER, shaderRootClass, shaderSrcRoot,
                                                shaderBinRoot, fragmentColorFile, true);
-            vp.insertShaderSource(0, 0, constMaxShader0);
-            fp.insertShaderSource(0, 0, constMaxShader0);
+            customizeShader(gl, vp, fp, constMaxTextures0);
             shaderProgramColorLight = new ShaderProgram();
             shaderProgramColorLight.add(vp);
             shaderProgramColorLight.add(fp);
@@ -828,8 +841,7 @@ public class FixedFuncPipeline {
                                                shaderBinRoot, vertexColorLightFile, true);
             final ShaderCode fp = ShaderCode.create( gl, GL2ES2.GL_FRAGMENT_SHADER, shaderRootClass, shaderSrcRoot,
                                                      shaderBinRoot, fragmentColorTextureFile, true);
-            vp.insertShaderSource(0, 0, constMaxShader8);
-            fp.insertShaderSource(0, 0, constMaxShader8);
+            customizeShader(gl, vp, fp, constMaxTextures8);
             shaderProgramColorTexture8Light = new ShaderProgram();
             shaderProgramColorTexture8Light.add(vp);
             shaderProgramColorTexture8Light.add(fp);

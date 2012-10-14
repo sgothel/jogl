@@ -7,7 +7,7 @@
 
 void main (void)
 {
-  HIGHP vec4 color = frontColor;
+  vec4 color = frontColor;
 
   if( mgl_CullFace > 0 &&
       ( ( MGL_FRONT          == mgl_CullFace &&  gl_FrontFacing ) ||

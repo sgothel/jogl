@@ -7,7 +7,7 @@
 // will be defined at runtime: MAX_TEXTURE_UNITS [0|2|4|8]
 const   LOWP int     MAX_LIGHTS = 8; 
 
-const  HIGHP float   EPSILON =  0.0000001;  // FIXME: determine proper hw-precision
+const        float   EPSILON =  0.0000001;  // FIXME: determine proper hw-precision
 
 // discard freezes NV tegra2 compiler (STILL TRUE?)
 // #define DISCARD(c) (c.a = 0.0)

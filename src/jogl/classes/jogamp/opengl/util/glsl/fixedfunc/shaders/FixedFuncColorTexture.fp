@@ -8,12 +8,12 @@
 
 #include mgl_alphatest.fp
 
-const HIGHP float gamma = 1.5; // FIXME
-const HIGHP vec3 igammav = vec3(1.0 / gamma); // FIXME
+const float gamma = 1.5; // FIXME
+const vec3 igammav = vec3(1.0 / gamma); // FIXME
 const vec4 texEnvColor = vec4(0.0); // FIXME
 
-const HIGHP vec4 zerov4 = vec4(0.0);
-const HIGHP vec4 onev4 = vec4(1.0);
+const vec4 zerov4 = vec4(0.0);
+const vec4 onev4 = vec4(1.0);
 
 void calcTexColor(inout vec4 color, vec4 texColor, in int texFormat, in int texEnvMode) {
     if(MGL_MODULATE == texEnvMode) { // default
@@ -51,7 +51,7 @@ void calcTexColor(inout vec4 color, vec4 texColor, in int texFormat, in int texE
 
 void main (void)
 { 
-  HIGHP vec4 color = frontColor;
+  vec4 color = frontColor;
 
   if( mgl_CullFace > 0 &&
       ( ( MGL_FRONT          == mgl_CullFace &&  gl_FrontFacing ) ||
