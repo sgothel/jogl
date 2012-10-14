@@ -582,6 +582,16 @@ public class FixedFuncPipeline {
         return false; // ignore!
     }
 
+    private final int textureEnabledCount() {
+        int n=0;
+        for(int i=MAX_TEXTURE_UNITS-1; i>=0; i--) {
+            if( 0 != textureEnabled.get(i) ) {
+                n++;
+            }
+        }
+        return n;
+    }
+    
     public void validate(GL2ES2 gl) {
         if( ShaderSelectionMode.AUTO == shaderSelectionMode) {
             final ShaderSelectionMode newMode;
@@ -591,8 +601,14 @@ public class FixedFuncPipeline {
                 if(lightingEnabled) {
                     newMode = ShaderSelectionMode.COLOR_TEXTURE8_LIGHT_PER_VERTEX;
                 } else {
-                    // in auto mode, we simply use max texture units
-                    newMode = ShaderSelectionMode.COLOR_TEXTURE8;
+                    final int n = textureEnabledCount();
+                    if( 4 < n ) {
+                        newMode = ShaderSelectionMode.COLOR_TEXTURE8;
+                    } else if ( 2 < n ) {
+                        newMode = ShaderSelectionMode.COLOR_TEXTURE4;
+                    } else {
+                        newMode = ShaderSelectionMode.COLOR_TEXTURE2;
+                    }
                 }
             } else {
                 if(lightingEnabled) {
