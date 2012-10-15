@@ -59,8 +59,6 @@ void main (void)
         ( MGL_FRONT_AND_BACK == mgl_CullFace ) ) ) {
       DISCARD(color);
   } else {
-      int texEnv = 0;
-
       #if MAX_TEXTURE_UNITS >= 2
       if( 0 != mgl_TextureEnabled[0] ) {
         calcTexColor(color, texture2D(mgl_Texture0, mgl_TexCoords[0].st), mgl_TexFormat[0], mgl_TexEnvMode[0]);
