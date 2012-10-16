@@ -117,9 +117,9 @@ public abstract class NativeWindowFactory {
                     "/opt/vc/lib/libbcm_host.so");
                 public Boolean run() {
                     if ( vcliblocation.isFile() ) {
-                        return new Boolean(true);
+                        return Boolean.TRUE;
                     }
-                    return new Boolean(false);
+                    return Boolean.FALSE;
                 }
         } ).booleanValue();
     }
