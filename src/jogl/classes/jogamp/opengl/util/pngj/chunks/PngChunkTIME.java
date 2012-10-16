@@ -75,7 +75,7 @@ public class PngChunkTIME extends PngChunk {
 
 	/** format YYYY/MM/DD HH:mm:SS */
 	public String getAsString() {
-		return String.format("%04/%02d/%02d %02d:%02d:%02d", year, mon, day, hour, min, sec);
+		return String.format("%04d/%02d/%02d %02d:%02d:%02d", year, mon, day, hour, min, sec);
 	}
 
 	

@@ -180,7 +180,7 @@ public class LEDataInputStream extends FilterInputStream implements DataInput
     {
         int    i1 = readInt();
         int    i2 = readInt();
-        return ((long)(i1) & 0xFFFFFFFFL) +    (i2    << 32);
+        return ((long)i1 & 0xFFFFFFFFL) + ((long)i2 << 32);
     }
 
     public final float readFloat() throws IOException
