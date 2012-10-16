@@ -138,20 +138,27 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     public void glDrawElements(int mode, int count, int type, java.nio.Buffer indices) {
         fixedFunction.validate(gl); 
         if ( GL2.GL_QUADS == mode && !gl.isGL2() ) {
+            final int idx0 = indices.position();
+            
             if( GL.GL_UNSIGNED_BYTE == type ) {
                 final ByteBuffer b = (ByteBuffer) indices;
-                for (int j = b.position(); j < count; j++) {
-                    gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x000000ff & b.get(j)), 4);
+                for (int j = 0; j < count; j++) {
+                    gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x000000ff & b.get(idx0+j)), 4);
                 }                        
-            } else {
+            } else if( GL.GL_UNSIGNED_SHORT == type ){
                 final ShortBuffer b = (ShortBuffer) indices;
-                for (int j = b.position(); j < count; j++) {
-                    gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x0000ffff & b.get(j)), 4);
+                for (int j = 0; j < count; j++) {
+                    gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x0000ffff & b.get(idx0+j)), 4);
+                }                                                
+            } else {
+                final IntBuffer b = (IntBuffer) indices;
+                for (int j = 0; j < count; j++) {
+                    gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0xffffffff & b.get(idx0+j)), 4);
                 }                                                
             }
         } else {
             gl.glDrawElements(mode, count, type, indices);
-            // GL2: gl.glDrawRangeElements(mode, 0, count-1, indices.remaining(), type, indices);
+            // GL2: gl.glDrawRangeElements(mode, 0, count-1, count, type, indices);
         }
     }
     public void glDrawElements(int mode, int count, int type, long indices_buffer_offset) {

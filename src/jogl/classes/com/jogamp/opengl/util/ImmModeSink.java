@@ -3,6 +3,7 @@ package com.jogamp.opengl.util;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -12,6 +13,8 @@ import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
+
+import jogamp.opengl.Debug;
 
 import com.jogamp.opengl.util.glsl.ShaderState;
 
@@ -43,10 +46,9 @@ import com.jogamp.opengl.util.glsl.ShaderState;
  * </p>
  */
 public class ImmModeSink {
-
-  public static final boolean DEBUG_BEGIN_END = false;
-  public static final boolean DEBUG_DRAW = false;
-  public static final boolean DEBUG_BUFFER = false;
+  protected static final boolean DEBUG_BEGIN_END = Debug.isPropertyDefined("jogl.debug.ImmModeSink.BeginEnd", true);
+  protected static final boolean DEBUG_DRAW = Debug.isPropertyDefined("jogl.debug.ImmModeSink.Draw", true);  
+  protected static final boolean DEBUG_BUFFER = Debug.isPropertyDefined("jogl.debug.ImmModeSink.Buffer", true);  
 
   public static final int GL_QUADS      = 0x0007; // Needs data manipulation on ES1/ES2
   public static final int GL_QUAD_STRIP = 0x0008;
@@ -410,30 +412,39 @@ public class ImmModeSink {
                     gl.glDrawArrays(mode, 0, vElems);
                 }
             } else {
-                int type=-1;
+                final int type;
                 if(indices instanceof ByteBuffer) {
                     type =  GL.GL_UNSIGNED_BYTE;
                 } else if(indices instanceof ShortBuffer) {
                     type =  GL.GL_UNSIGNED_SHORT;
+                } else if(indices instanceof IntBuffer) {
+                    type =  GL.GL_UNSIGNED_INT;
                 } else {
-                    throw new GLException("Given Buffer Class not supported: "+indices.getClass()+", should be ubyte or ushort:\n\t"+this);
+                    throw new GLException("Given Buffer Class not supported: "+indices.getClass()+", should be ubyte, ushort or uint:\n\t"+this);
                 }
+                final int idxLen = indices.remaining();
+                final int idx0 = indices.position();
                 
                 if ( GL_QUADS == mode && !gl.isGL2() ) {
                     if( GL.GL_UNSIGNED_BYTE == type ) {
                         final ByteBuffer b = (ByteBuffer) indices;
-                        for (int j = b.position(); j < b.remaining(); j++) {
-                            gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x000000ff & b.get(j)), 4);
+                        for (int j = 0; j < idxLen; j++) {
+                            gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x000000ff & b.get(idx0+j)), 4);
                         }                        
-                    } else {
+                    } else if( GL.GL_UNSIGNED_SHORT == type ){
                         final ShortBuffer b = (ShortBuffer) indices;
-                        for (int j = b.position(); j < b.remaining(); j++) {
-                            gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x0000ffff & b.get(j)), 4);
+                        for (int j = 0; j < idxLen; j++) {
+                            gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x0000ffff & b.get(idx0+j)), 4);
+                        }                                                
+                    } else {
+                        final IntBuffer b = (IntBuffer) indices;
+                        for (int j = 0; j < idxLen; j++) {
+                            gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0xffffffff & b.get(idx0+j)), 4);
                         }                                                
                     }
                 } else {
-                    gl.glDrawElements(mode, indices.remaining(), type, indices);
-                    // GL2: gl.glDrawRangeElements(mode, 0, indices.remaining()-1, indices.remaining(), type, indices);
+                    gl.glDrawElements(mode, idxLen, type, indices);
+                    // GL2: gl.glDrawRangeElements(mode, 0, idxLen-1, idxLen, type, indices);
                 }
             }
         }
@@ -466,7 +477,7 @@ public class ImmModeSink {
 
     public void glVertex2b(byte x, byte y) {
         checkSeal(false);
-        growBuffer(VERTEX, 2);
+        growBuffer(VERTEX);
         if(vComps>0) 
             GLBuffers.putb(vertexArray, x);
         if(vComps>1) 
@@ -475,7 +486,7 @@ public class ImmModeSink {
     }
     public void glVertex3b(byte x, byte y, byte z) {
         checkSeal(false);
-        growBuffer(VERTEX, 3);
+        growBuffer(VERTEX);
         if(vComps>0) 
             GLBuffers.putb(vertexArray, x);
         if(vComps>1) 
@@ -486,7 +497,7 @@ public class ImmModeSink {
     }
     public void glVertex2s(short x, short y) {
         checkSeal(false);
-        growBuffer(VERTEX, 2);
+        growBuffer(VERTEX);
         if(vComps>0) 
             GLBuffers.puts(vertexArray, x);
         if(vComps>1) 
@@ -495,7 +506,7 @@ public class ImmModeSink {
     }
     public void glVertex3s(short x, short y, short z) {
         checkSeal(false);
-        growBuffer(VERTEX, 3);
+        growBuffer(VERTEX);
         if(vComps>0) 
             GLBuffers.puts(vertexArray, x);
         if(vComps>1) 
@@ -506,7 +517,7 @@ public class ImmModeSink {
     }
     public void glVertex2f(float x, float y) {
         checkSeal(false);
-        growBuffer(VERTEX, 2);
+        growBuffer(VERTEX);
         if(vComps>0) 
             GLBuffers.putf(vertexArray, x);
         if(vComps>1) 
@@ -515,7 +526,7 @@ public class ImmModeSink {
     }
     public void glVertex3f(float x, float y, float z) {
         checkSeal(false);
-        growBuffer(VERTEX, 3);
+        growBuffer(VERTEX);
         if(vComps>0) 
             GLBuffers.putf(vertexArray, x);
         if(vComps>1) 
@@ -527,7 +538,7 @@ public class ImmModeSink {
 
     public void glNormal3b(byte x, byte y, byte z) {
         checkSeal(false);
-        growBuffer(NORMAL, 3);
+        growBuffer(NORMAL);
         if(nComps>0) 
             GLBuffers.putb(normalArray, x);
         if(nComps>1) 
@@ -538,7 +549,7 @@ public class ImmModeSink {
     }
     public void glNormal3s(short x, short y, short z) {
         checkSeal(false);
-        growBuffer(NORMAL, 3);
+        growBuffer(NORMAL);
         if(nComps>0) 
             GLBuffers.puts(normalArray, x);
         if(nComps>1) 
@@ -549,7 +560,7 @@ public class ImmModeSink {
     }
     public void glNormal3f(float x, float y, float z) {
         checkSeal(false);
-        growBuffer(NORMAL, 3);
+        growBuffer(NORMAL);
         if(nComps>0) 
             GLBuffers.putf(normalArray, x);
         if(nComps>1) 
@@ -561,7 +572,7 @@ public class ImmModeSink {
 
     public void glColor3b(byte r, byte g, byte b) {
         checkSeal(false);
-        growBuffer(COLOR, 3);
+        growBuffer(COLOR);
         if(cComps>0) 
             GLBuffers.putb(colorArray, r);
         if(cComps>1) 
@@ -572,7 +583,7 @@ public class ImmModeSink {
     }
     public void glColor4b(byte r, byte g, byte b, byte a) {
         checkSeal(false);
-        growBuffer(COLOR, 4);
+        growBuffer(COLOR);
         if(cComps>0) 
             GLBuffers.putb(colorArray, r);
         if(cComps>1) 
@@ -585,7 +596,7 @@ public class ImmModeSink {
     }
     public void glColor3s(short r, short g, short b) {
         checkSeal(false);
-        growBuffer(COLOR, 3);
+        growBuffer(COLOR);
         if(cComps>0) 
             GLBuffers.puts(colorArray, r);
         if(cComps>1) 
@@ -596,7 +607,7 @@ public class ImmModeSink {
     }
     public void glColor4s(short r, short g, short b, short a) {
         checkSeal(false);
-        growBuffer(COLOR, 4);
+        growBuffer(COLOR);
         if(cComps>0) 
             GLBuffers.puts(colorArray, r);
         if(cComps>1) 
@@ -609,7 +620,7 @@ public class ImmModeSink {
     }
     public void glColor3f(float r, float g, float b) {
         checkSeal(false);
-        growBuffer(COLOR, 3);
+        growBuffer(COLOR);
         if(cComps>0) 
             GLBuffers.putf(colorArray, r);
         if(cComps>1) 
@@ -620,7 +631,7 @@ public class ImmModeSink {
     }
     public void glColor4f(float r, float g, float b, float a) {
         checkSeal(false);
-        growBuffer(COLOR, 4);
+        growBuffer(COLOR);
         if(cComps>0) 
             GLBuffers.putf(colorArray, r);
         if(cComps>1) 
@@ -634,7 +645,7 @@ public class ImmModeSink {
 
     public void glTexCoord2b(byte x, byte y) {
         checkSeal(false);
-        growBuffer(TEXTCOORD, 2);
+        growBuffer(TEXTCOORD);
         if(tComps>0) 
             GLBuffers.putb(textCoordArray, x);
         if(tComps>1) 
@@ -643,7 +654,7 @@ public class ImmModeSink {
     }
     public void glTexCoord3b(byte x, byte y, byte z) {
         checkSeal(false);
-        growBuffer(TEXTCOORD, 3);
+        growBuffer(TEXTCOORD);
         if(tComps>0) 
             GLBuffers.putb(textCoordArray, x);
         if(tComps>1) 
@@ -654,7 +665,7 @@ public class ImmModeSink {
     }
     public void glTexCoord2s(short x, short y) {
         checkSeal(false);
-        growBuffer(TEXTCOORD, 2);
+        growBuffer(TEXTCOORD);
         if(tComps>0) 
             GLBuffers.puts(textCoordArray, x);
         if(tComps>1) 
@@ -663,7 +674,7 @@ public class ImmModeSink {
     }
     public void glTexCoord3s(short x, short y, short z) {
         checkSeal(false);
-        growBuffer(TEXTCOORD, 3);
+        growBuffer(TEXTCOORD);
         if(tComps>0) 
             GLBuffers.puts(textCoordArray, x);
         if(tComps>1) 
@@ -674,7 +685,7 @@ public class ImmModeSink {
     }
     public void glTexCoord2f(float x, float y) {
         checkSeal(false);
-        growBuffer(TEXTCOORD, 2);
+        growBuffer(TEXTCOORD);
         if(tComps>0) 
             GLBuffers.putf(textCoordArray, x);
         if(tComps>1) 
@@ -683,7 +694,7 @@ public class ImmModeSink {
     }
     public void glTexCoord3f(float x, float y, float z) {
         checkSeal(false);
-        growBuffer(TEXTCOORD, 3);
+        growBuffer(TEXTCOORD);
         if(tComps>0) 
             GLBuffers.putf(textCoordArray, x);
         if(tComps>1) 
@@ -805,7 +816,7 @@ public class ImmModeSink {
     final boolean useT = tComps>0 && tElems>0 ;
     
     if(DEBUG_DRAW) {
-        System.err.println("ImmModeSink.enableFixed.0 "+enable+": use [ v "+useV+", c "+useC+", n "+useN+", t "+useT+"]");        
+        System.err.println("ImmModeSink.enableFixed.0 "+enable+": use [ v "+useV+", c "+useC+", n "+useN+", t "+useT+"], "+getElemUseCountStr()+", "+buffer);        
     }
 
     if(enable) {
@@ -877,7 +888,7 @@ public class ImmModeSink {
     final boolean useT = tComps>0 && tElems>0 ;
     
     if(DEBUG_DRAW) {
-        System.err.println("ImmModeSink.enableGLSL.0 "+enable+": use [ v "+useV+", c "+useC+", n "+useN+", t "+useT+"]");        
+        System.err.println("ImmModeSink.enableGLSL.0 "+enable+": use [ v "+useV+", c "+useC+", n "+useN+", t "+useT+"], "+getElemUseCountStr()+", "+buffer);        
     }
     
     if(enable) {
@@ -957,16 +968,20 @@ public class ImmModeSink {
         return "[v "+vElems+"/"+vCount+", c "+cElems+"/"+cCount+", n "+nElems+"/"+nCount+", t "+tElems+"/"+tCount+"]";
     }
     
-    protected boolean fitElemsInBuffers(int addElems) {
-        final int vAdd = addElems - ( vCount - vElems );
-        final int cAdd = addElems - ( cCount - cElems );
-        final int nAdd = addElems - ( nCount - nElems );
-        final int tAdd = addElems - ( tCount - tElems );
-        final boolean res = 0>=vAdd && 0>=cAdd && 0>=nAdd && 0>=tAdd;
-        /* if(DEBUG_BUFFER) {
-            System.err.println("ImmModeSink.fitElemsInBuffer: "+getElemUseCountStr()+" + "+addElems+" -> "+res);
-        } */
-        return res;
+    protected boolean fitElementInBuffer(int type) {
+        final int addElems = 1;
+        switch (type) {
+            case VERTEX:
+                return ( vCount - vElems ) >= addElems ;
+            case COLOR:
+                return ( cCount - cElems ) >= addElems ;
+            case NORMAL:
+                return ( nCount - nElems ) >= addElems ;
+            case TEXTCOORD:
+                return ( tCount - tElems ) >= addElems ;
+            default:
+                throw new InternalError("XXX");
+        }
     }
     
     protected boolean reallocateBuffer(int addElems) {
@@ -1065,9 +1080,10 @@ public class ImmModeSink {
         return true;
     }
 
-    protected final boolean growBuffer(int type, int additional) {
-        if( null !=buffer && !sealed && 0<additional) {
-            if( !fitElemsInBuffers(additional) ) {
+    /** grow buffer by initialElementCount if there is no space for one more element in the designated buffer */
+    protected final boolean growBuffer(int type) {
+        if( null !=buffer && !sealed ) {
+            if( !fitElementInBuffer(type) ) {
                 // save olde values ..
                 final Buffer _vertexArray=vertexArray, _colorArray=colorArray, _normalArray=normalArray, _textCoordArray=textCoordArray;
         
@@ -1138,10 +1154,10 @@ public class ImmModeSink {
     public static final int NORMAL = 2;
     public static final int TEXTCOORD = 3;
 
-    protected int vCount,    cCount,    nCount,    tCount;
+    protected int vCount,    cCount,    nCount,    tCount;   // number of elements fit in each buffer 
     protected int vOffset,   cOffset,   nOffset,   tOffset;
-    protected int vComps,    cComps,    nComps,    tComps;
-    protected int vElems,    cElems,    nElems,    tElems;
+    protected int vComps,    cComps,    nComps,    tComps;   // number of components for each elements [2, 3, 4] 
+    protected int vElems,    cElems,    nElems,    tElems;   // number of used elements in each buffer
     protected int vDataType, cDataType, nDataType, tDataType;
     protected Buffer vertexArray, colorArray, normalArray, textCoordArray;
     protected GLArrayDataWrapper vArrayData, cArrayData, nArrayData, tArrayData;
