@@ -397,7 +397,12 @@ public final class Path2D implements Cloneable {
     }
 
     public boolean contains(AABBox r) {
-        return contains(r);
+        float lx = r.getMinX();
+        float ly = r.getMinY();
+        float w = r.getWidth();
+        float h = r.getHeight();
+        int cross = Crossing.intersectShape(this, lx, ly, w, h);
+        return cross != Crossing.CROSSING && isInside(cross);
     }
 
     public boolean intersects(AABBox r) {
