@@ -89,13 +89,14 @@ public abstract class Screen {
     public abstract boolean isNativeValid();
 
     /**
-     * @return number of references by Window
+     * @return number of references
      */
     public abstract int getReferenceCount();
 
     /**
      * See {@link Display#addReference()}
-     *
+     * 
+     * @return number of references post operation
      * @throws NativeWindowException if the native creation failed.
      * @see #removeReference()
      * @see #setDestroyWhenUnused(boolean)
@@ -105,7 +106,8 @@ public abstract class Screen {
 
     /**
      * See {@link Display#removeReference()}
-     *
+     * 
+     * @return number of references post operation
      * @see #addReference()
      * @see #setDestroyWhenUnused(boolean)
      * @see #getDestroyWhenUnused()

@@ -500,8 +500,8 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     /**
      * @param t the thread for which context release shall be skipped, usually the animation thread,
      *          ie. {@link Animator#getThread()}.
-     * @deprecated this is an experimental feature,
-     *             intended for measuring performance in regards to GL context switch
+     * @deprecated This is an experimental feature,
+     *             intended for measuring performance in regards to GL context switch.
      */
     @Deprecated
     public void setSkipContextReleaseThread(Thread t) {

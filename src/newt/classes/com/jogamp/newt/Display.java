@@ -88,7 +88,7 @@ public abstract class Display {
     public abstract boolean isNativeValid();
 
     /**
-     * @return number of references by Screen
+     * @return number of references
      */
     public abstract int getReferenceCount();
 
@@ -96,7 +96,7 @@ public abstract class Display {
      * The 1st call will initiate native creation,
      * since we follow the lazy creation pattern.
      *
-     * @return number of references after adding one
+     * @return number of references post operation
      * @throws NativeWindowException if the native creation failed.
      * @see #removeReference()
      */
@@ -106,7 +106,7 @@ public abstract class Display {
      * The last call may destroy this instance,
      * if {@link #getDestroyWhenUnused()} returns <code>true</code>.
      *
-     * @return number of references after removing one
+     * @return number of references post operation
      * @see #addReference()
      * @see #getDestroyWhenUnused()
      * @see #setDestroyWhenUnused(boolean)
