@@ -80,8 +80,9 @@ public class ImmModeSink {
                                         int nComps, int nDataType, 
                                         int tComps, int tDataType, 
                                         int glBufferUsage) {
-    return new ImmModeSink(initialElementCount, vComps, 
-                           vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, false, glBufferUsage);
+    return new ImmModeSink(initialElementCount, 
+                           vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, 
+                           false, glBufferUsage);
   }
 
   /**
@@ -114,8 +115,9 @@ public class ImmModeSink {
                                        int nComps, int nDataType, 
                                        int tComps, int tDataType, 
                                        int glBufferUsage) {
-    return new ImmModeSink(initialElementCount, vComps, 
-                           vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, true, glBufferUsage);
+    return new ImmModeSink(initialElementCount, 
+                           vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, 
+                           true, glBufferUsage);
   }
 
   public void destroy(GL gl) {
@@ -323,13 +325,15 @@ public class ImmModeSink {
     vboSet.glTexCoord3b(x,y,z);
   }
 
-  protected ImmModeSink(int initialElementCount, int vComps,
-                        int vDataType, int cComps,
-                        int cDataType, int nComps, 
-                        int nDataType, int tComps, 
-                        int tDataType, boolean useGLSL, int glBufferUsage) {
-    vboSet = new  VBOSet(initialElementCount, vComps, 
-                         vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, useGLSL, glBufferUsage);
+  protected ImmModeSink(int initialElementCount, 
+                        int vComps, int vDataType, 
+                        int cComps, int cDataType, 
+                        int nComps, int nDataType, 
+                        int tComps, int tDataType, 
+                        boolean useGLSL, int glBufferUsage) {
+    vboSet = new  VBOSet(initialElementCount, 
+                         vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, 
+                         useGLSL, glBufferUsage);
     this.vboSetList   = new ArrayList<VBOSet>();
   }
   
@@ -360,11 +364,12 @@ public class ImmModeSink {
   private final ArrayList<VBOSet> vboSetList;
 
   protected static class VBOSet {
-    protected VBOSet (int initialElementCount, int vComps,
-                      int vDataType, int cComps,
-                      int cDataType, int nComps, 
-                      int nDataType, int tComps, 
-                      int tDataType, boolean useGLSL, int glBufferUsage) {
+    protected VBOSet (int initialElementCount, 
+                      int vComps, int vDataType, 
+                      int cComps, int cDataType, 
+                      int nComps, int nDataType, 
+                      int tComps, int tDataType, 
+                      boolean useGLSL, int glBufferUsage) {
         this.glBufferUsage=glBufferUsage;
         this.initialElementCount=initialElementCount;
         this.resizeElementCount=initialElementCount;
