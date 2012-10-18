@@ -11,6 +11,7 @@ uniform LOWP    int     mgl_ColorEnabled;
 uniform         vec4    mgl_ColorStatic;
 uniform LOWP    int     mgl_AlphaTestFunc;
 uniform         float   mgl_AlphaTestRef;
+// uniform LOWP int    mgl_CullFace; // ES2 supports CullFace implicit ..
 #if MAX_TEXTURE_UNITS > 0
 uniform LOWP    int     mgl_TextureEnabled[MAX_TEXTURE_UNITS];
 uniform LOWP    int     mgl_TexCoordEnabled[MAX_TEXTURE_UNITS];
@@ -31,6 +32,5 @@ uniform   sampler2D     mgl_Texture6;
 uniform   sampler2D     mgl_Texture7;
 #endif
 #endif
-uniform LOWP    int     mgl_CullFace;
 
 #endif // mgl_uniform_glsl

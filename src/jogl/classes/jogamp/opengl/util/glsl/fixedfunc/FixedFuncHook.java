@@ -341,10 +341,12 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     public  void glAlphaFunc(int func, float ref) {
         fixedFunction.glAlphaFunc(func, ref);
     }
+    
+    /** ES2 supports CullFace implicit 
     public void glCullFace(int faceName) {
         fixedFunction.glCullFace(faceName);
         gl.glCullFace(faceName);
-    }
+    } */
     
     //
     // PointerIf

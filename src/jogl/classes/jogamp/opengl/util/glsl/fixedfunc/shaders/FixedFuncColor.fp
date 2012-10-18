@@ -9,12 +9,13 @@ void main (void)
 {
   vec4 color = frontColor;
 
+  /** ES2 supports CullFace implicit ..
   if( mgl_CullFace > 0 &&
       ( ( MGL_FRONT          == mgl_CullFace &&  gl_FrontFacing ) ||
         ( MGL_BACK           == mgl_CullFace && !gl_FrontFacing ) ||
         ( MGL_FRONT_AND_BACK == mgl_CullFace ) ) ) {
       DISCARD(color);
-  }
+  } */
   if( mgl_AlphaTestFunc > 0 ) {
       alphaTest(color);
   }

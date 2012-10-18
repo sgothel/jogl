@@ -447,6 +447,7 @@ public class FixedFuncPipeline {
         }
     }
 
+    /** ES2 supports CullFace implicit
     public void glCullFace(int faceName) {
         int _cullFace;
         switch(faceName) {
@@ -471,7 +472,7 @@ public class FixedFuncPipeline {
                 cullFaceDirty=true;
             }
         }
-    }
+    } */
 
     public  void glAlphaFunc(int func, float ref) {
         int _func;
@@ -533,6 +534,7 @@ public class FixedFuncPipeline {
                 return true;
                 
             case GL.GL_CULL_FACE:
+                /** ES2 supports CullFace implicit 
                 final int _cullFace;
                 if(0>cullFace && enable || 0<cullFace && !enable) {
                     _cullFace = cullFace * -1;
@@ -542,7 +544,7 @@ public class FixedFuncPipeline {
                 if(_cullFace != cullFace) {
                     cullFaceDirty=true;
                     cullFace=_cullFace;
-                }
+                } */
                 return true;
                 
             case GL.GL_TEXTURE_2D:
@@ -660,6 +662,7 @@ public class FixedFuncPipeline {
             }
             colorVAEnabledDirty = false;
         }
+        /** ES2 supports CullFace implicit
         if(cullFaceDirty) {
             ud = shaderState.getUniform(mgl_CullFace);
             if(null!=ud) {
@@ -667,7 +670,7 @@ public class FixedFuncPipeline {
                 shaderState.uniform(gl, ud);
             }
             cullFaceDirty = false;
-        }
+        } */
 
         if(alphaTestDirty) {
             ud = shaderState.getUniform(mgl_AlphaTestFunc);
@@ -926,7 +929,8 @@ public class FixedFuncPipeline {
             shaderState.uniform(gl, new GLUniformData(mgl_Texture+i, i));
         }
         shaderState.uniform(gl, new GLUniformData(mgl_ShadeModel, 0));
-        shaderState.uniform(gl, new GLUniformData(mgl_CullFace, cullFace));
+        /** ES2 supports CullFace implicit
+        shaderState.uniform(gl, new GLUniformData(mgl_CullFace, cullFace)); */
         shaderState.uniform(gl, new GLUniformData(mgl_AlphaTestFunc, alphaTestFunc));
         shaderState.uniform(gl, new GLUniformData(mgl_AlphaTestRef, alphaTestRef));              
         for(int i=0; i<MAX_LIGHTS; i++) {
@@ -978,8 +982,10 @@ public class FixedFuncPipeline {
     private final IntBuffer textureFormat = Buffers.newDirectIntBuffer(new int[] { 0, 0, 0, 0, 0, 0, 0, 0 }); // per unit
     private boolean textureFormatDirty = false;
 
+    /** ES2 supports CullFace implicit
     private int cullFace=-2; // <=0 disabled, 1 GL_FRONT, 2 GL_BACK (default) and 3 GL_FRONT_AND_BACK
     private boolean cullFaceDirty = false;
+    private static final String mgl_CullFace         = "mgl_CullFace";        //  1i (lowp int) */
 
     private boolean colorVAEnabledDirty = false;
     private boolean lightingEnabled=false;
@@ -1010,7 +1016,6 @@ public class FixedFuncPipeline {
     private static final String mgl_FrontMaterial    = "mgl_FrontMaterial";   //  struct mgl_MaterialParameters
     private static final String mgl_LightsEnabled    = "mgl_LightsEnabled";   //  int mgl_LightsEnabled[MAX_LIGHTS];
 
-    private static final String mgl_CullFace         = "mgl_CullFace";        //  1i (lowp int)
     private static final String mgl_AlphaTestFunc    = "mgl_AlphaTestFunc";   //  1i (lowp int)
     private static final String mgl_AlphaTestRef     = "mgl_AlphaTestRef";    //  1f    
     private static final String mgl_ShadeModel       = "mgl_ShadeModel";      //  1i

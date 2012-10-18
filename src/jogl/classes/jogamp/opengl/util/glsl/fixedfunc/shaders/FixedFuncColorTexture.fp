@@ -53,12 +53,13 @@ void main (void)
 { 
   vec4 color = frontColor;
 
+  /** ES2 supports CullFace implicit ..
   if( mgl_CullFace > 0 &&
       ( ( MGL_FRONT          == mgl_CullFace &&  gl_FrontFacing ) ||
         ( MGL_BACK           == mgl_CullFace && !gl_FrontFacing ) ||
         ( MGL_FRONT_AND_BACK == mgl_CullFace ) ) ) {
       DISCARD(color);
-  } else {
+  } else { */
       #if MAX_TEXTURE_UNITS >= 2
       if( 0 != mgl_TextureEnabled[0] ) {
         calcTexColor(color, texture2D(mgl_Texture0, mgl_TexCoords[0].st), mgl_TexFormat[0], mgl_TexEnvMode[0]);
@@ -90,9 +91,9 @@ void main (void)
       }
       #endif
       if( mgl_AlphaTestFunc > 0 ) {
-          alphaTest(color);
+        alphaTest(color);
       }
-  }
+  // } /* CullFace */
 
   gl_FragColor = color;
   /**
