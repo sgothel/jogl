@@ -16,6 +16,7 @@ import javax.media.opengl.fixedfunc.GLPointerFunc;
 
 import jogamp.opengl.Debug;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 /**
@@ -301,10 +302,18 @@ public class ImmModeSink {
     vboSet.glColor3b(x,y,z);
   }
 
+  public final void glColor3ub(byte x, byte y, byte z) {
+    vboSet.glColor3ub(x,y,z);
+  }
+  
   public final void glColor4b(byte x, byte y, byte z, byte a) {
     vboSet.glColor4b(x,y,z,a);
   }
 
+  public final void glColor4ub(byte x, byte y, byte z, byte a) {
+    vboSet.glColor4ub(x,y,z,a);
+  }
+  
   public final void glTexCoord2b(byte x, byte y) {
     vboSet.glTexCoord2b(x,y);
   }
@@ -344,17 +353,21 @@ public class ImmModeSink {
         this.glBufferUsage=glBufferUsage;
         this.initialElementCount=initialElementCount;
         this.vDataType=vDataType;
+        this.vDataTypeSigned=GLBuffers.isSignedGLType(vDataType);
         this.vComps=vComps;
         this.cDataType=cDataType;
+        this.cDataTypeSigned=GLBuffers.isSignedGLType(cDataType);
         this.cComps=cComps;
         this.nDataType=nDataType;
+        this.nDataTypeSigned=GLBuffers.isSignedGLType(nDataType);
         this.nComps=nComps;
         this.tDataType=tDataType;
+        this.tDataTypeSigned=GLBuffers.isSignedGLType(tDataType);
         this.tComps=tComps;
         this.useGLSL=useGLSL;
         this.useVBO = 0 != glBufferUsage;
         this.vboName = 0;
-        
+                
         this.vCount=0;
         this.cCount=0;
         this.nCount=0;
@@ -460,113 +473,113 @@ public class ImmModeSink {
 
     public void glVertexv(Buffer v) {
         checkSeal(false);
-        GLBuffers.put(vertexArray, v);
+        Buffers.put(vertexArray, v);
     }
     public void glNormalv(Buffer v) {
         checkSeal(false);
-        GLBuffers.put(normalArray, v);
+        Buffers.put(normalArray, v);
     }
     public void glColorv(Buffer v) {
         checkSeal(false);
-        GLBuffers.put(colorArray, v);
+        Buffers.put(colorArray, v);
     }
     public void glTexCoordv(Buffer v) {
         checkSeal(false);
-        GLBuffers.put(textCoordArray, v);
+        Buffers.put(textCoordArray, v);
     }
 
     public void glVertex2b(byte x, byte y) {
         checkSeal(false);
         growBuffer(VERTEX);
         if(vComps>0) 
-            GLBuffers.putb(vertexArray, x);
-        if(vComps>1) 
-            GLBuffers.putb(vertexArray, y);
+            Buffers.putNb(vertexArray, vDataTypeSigned, x, true);
+        if(vComps>1)
+            Buffers.putNb(vertexArray, vDataTypeSigned, y, true);
         padding(VERTEX, vComps-2);
     }
     public void glVertex3b(byte x, byte y, byte z) {
         checkSeal(false);
         growBuffer(VERTEX);
-        if(vComps>0) 
-            GLBuffers.putb(vertexArray, x);
-        if(vComps>1) 
-            GLBuffers.putb(vertexArray, y);
-        if(vComps>2) 
-            GLBuffers.putb(vertexArray, z);
+        if(vComps>0)
+            Buffers.putNb(vertexArray, vDataTypeSigned, x, true);
+        if(vComps>1)
+            Buffers.putNb(vertexArray, vDataTypeSigned, y, true);
+        if(vComps>2)
+            Buffers.putNb(vertexArray, vDataTypeSigned, z, true);
         padding(VERTEX, vComps-3);
     }
     public void glVertex2s(short x, short y) {
         checkSeal(false);
         growBuffer(VERTEX);
-        if(vComps>0) 
-            GLBuffers.puts(vertexArray, x);
+        if(vComps>0)
+            Buffers.putNs(vertexArray, vDataTypeSigned, x, true);
         if(vComps>1) 
-            GLBuffers.puts(vertexArray, y);
+            Buffers.putNs(vertexArray, vDataTypeSigned, y, true);
         padding(VERTEX, vComps-2);
     }
     public void glVertex3s(short x, short y, short z) {
         checkSeal(false);
         growBuffer(VERTEX);
-        if(vComps>0) 
-            GLBuffers.puts(vertexArray, x);
+        if(vComps>0)
+            Buffers.putNs(vertexArray, vDataTypeSigned, x, true);
         if(vComps>1) 
-            GLBuffers.puts(vertexArray, y);
+            Buffers.putNs(vertexArray, vDataTypeSigned, y, true);
         if(vComps>2) 
-            GLBuffers.puts(vertexArray, z);
+            Buffers.putNs(vertexArray, vDataTypeSigned, z, true);
         padding(VERTEX, vComps-3);
     }
     public void glVertex2f(float x, float y) {
         checkSeal(false);
         growBuffer(VERTEX);
         if(vComps>0) 
-            GLBuffers.putf(vertexArray, x);
-        if(vComps>1) 
-            GLBuffers.putf(vertexArray, y);
+            Buffers.putNf(vertexArray, vDataTypeSigned, x);
+        if(vComps>1)
+            Buffers.putNf(vertexArray, vDataTypeSigned, y);
         padding(VERTEX, vComps-2);
     }
     public void glVertex3f(float x, float y, float z) {
         checkSeal(false);
         growBuffer(VERTEX);
         if(vComps>0) 
-            GLBuffers.putf(vertexArray, x);
-        if(vComps>1) 
-            GLBuffers.putf(vertexArray, y);
+            Buffers.putNf(vertexArray, vDataTypeSigned, x);
+        if(vComps>1)
+            Buffers.putNf(vertexArray, vDataTypeSigned, y);
         if(vComps>2) 
-            GLBuffers.putf(vertexArray, z);
+            Buffers.putNf(vertexArray, vDataTypeSigned, z);
         padding(VERTEX, vComps-3);
     }
 
     public void glNormal3b(byte x, byte y, byte z) {
         checkSeal(false);
         growBuffer(NORMAL);
-        if(nComps>0) 
-            GLBuffers.putb(normalArray, x);
+        if(nComps>0)             
+            Buffers.putNb(normalArray, nDataTypeSigned, x, true);
         if(nComps>1) 
-            GLBuffers.putb(normalArray, y);
+            Buffers.putNb(normalArray, nDataTypeSigned, y, true);
         if(nComps>2) 
-            GLBuffers.putb(normalArray, z);
+            Buffers.putNb(normalArray, nDataTypeSigned, z, true);
         padding(NORMAL, nComps-3);
     }
     public void glNormal3s(short x, short y, short z) {
         checkSeal(false);
         growBuffer(NORMAL);
         if(nComps>0) 
-            GLBuffers.puts(normalArray, x);
+            Buffers.putNs(normalArray, nDataTypeSigned, x, true);
         if(nComps>1) 
-            GLBuffers.puts(normalArray, y);
+            Buffers.putNs(normalArray, nDataTypeSigned, y, true);
         if(nComps>2) 
-            GLBuffers.puts(normalArray, z);
+            Buffers.putNs(normalArray, nDataTypeSigned, z, true);
         padding(NORMAL, nComps-3);
     }
     public void glNormal3f(float x, float y, float z) {
         checkSeal(false);
         growBuffer(NORMAL);
         if(nComps>0) 
-            GLBuffers.putf(normalArray, x);
-        if(nComps>1) 
-            GLBuffers.putf(normalArray, y);
+            Buffers.putNf(normalArray, nDataTypeSigned, x);
+        if(nComps>1)
+            Buffers.putNf(normalArray, nDataTypeSigned, y);
         if(nComps>2) 
-            GLBuffers.putf(normalArray, z);
+            Buffers.putNf(normalArray, nDataTypeSigned, z);
         padding(NORMAL, nComps-3);
     }
 
@@ -574,72 +587,96 @@ public class ImmModeSink {
         checkSeal(false);
         growBuffer(COLOR);
         if(cComps>0) 
-            GLBuffers.putb(colorArray, r);
+            Buffers.putNb(colorArray, cDataTypeSigned, r, true);
         if(cComps>1) 
-            GLBuffers.putb(colorArray, g);
+            Buffers.putNb(colorArray, cDataTypeSigned, g, true);
         if(cComps>2) 
-            GLBuffers.putb(colorArray, b);
+            Buffers.putNb(colorArray, cDataTypeSigned, b, true);
+        padding(COLOR, cComps-3);
+    }
+    public void glColor3ub(byte r, byte g, byte b) {
+        checkSeal(false);
+        growBuffer(COLOR);
+        if(cComps>0) 
+            Buffers.putNb(colorArray, cDataTypeSigned, r, false);
+        if(cComps>1) 
+            Buffers.putNb(colorArray, cDataTypeSigned, g, false);
+        if(cComps>2) 
+            Buffers.putNb(colorArray, cDataTypeSigned, b, false);
         padding(COLOR, cComps-3);
     }
     public void glColor4b(byte r, byte g, byte b, byte a) {
         checkSeal(false);
         growBuffer(COLOR);
         if(cComps>0) 
-            GLBuffers.putb(colorArray, r);
+            Buffers.putNb(colorArray, cDataTypeSigned, r, true);
         if(cComps>1) 
-            GLBuffers.putb(colorArray, g);
+            Buffers.putNb(colorArray, cDataTypeSigned, g, true);
         if(cComps>2) 
-            GLBuffers.putb(colorArray, b);
+            Buffers.putNb(colorArray, cDataTypeSigned, b, true);
         if(cComps>3) 
-            GLBuffers.putb(colorArray, a);
+            Buffers.putNb(colorArray, cDataTypeSigned, a, true);
+        padding(COLOR, cComps-4);
+    }
+    public void glColor4ub(byte r, byte g, byte b, byte a) {
+        checkSeal(false);
+        growBuffer(COLOR);
+        if(cComps>0) 
+            Buffers.putNb(colorArray, cDataTypeSigned, r, false);
+        if(cComps>1) 
+            Buffers.putNb(colorArray, cDataTypeSigned, g, false);
+        if(cComps>2) 
+            Buffers.putNb(colorArray, cDataTypeSigned, b, false);
+        if(cComps>3) 
+            Buffers.putNb(colorArray, cDataTypeSigned, a, false);
         padding(COLOR, cComps-4);
     }
     public void glColor3s(short r, short g, short b) {
         checkSeal(false);
         growBuffer(COLOR);
         if(cComps>0) 
-            GLBuffers.puts(colorArray, r);
+            Buffers.putNs(colorArray, cDataTypeSigned, r, true);
         if(cComps>1) 
-            GLBuffers.puts(colorArray, g);
+            Buffers.putNs(colorArray, cDataTypeSigned, g, true);
         if(cComps>2) 
-            GLBuffers.puts(colorArray, b);
+            Buffers.putNs(colorArray, cDataTypeSigned, b, true);
         padding(COLOR, cComps-3);
     }
     public void glColor4s(short r, short g, short b, short a) {
         checkSeal(false);
         growBuffer(COLOR);
         if(cComps>0) 
-            GLBuffers.puts(colorArray, r);
+            Buffers.putNs(colorArray, cDataTypeSigned, r, true);
         if(cComps>1) 
-            GLBuffers.puts(colorArray, g);
+            Buffers.putNs(colorArray, cDataTypeSigned, g, true);
         if(cComps>2) 
-            GLBuffers.puts(colorArray, b);
+            Buffers.putNs(colorArray, cDataTypeSigned, b, true);
         if(cComps>3) 
-            GLBuffers.puts(colorArray, a);
+            Buffers.putNs(colorArray, cDataTypeSigned, a, true);
         padding(COLOR, cComps-4);
     }
     public void glColor3f(float r, float g, float b) {
         checkSeal(false);
         growBuffer(COLOR);
         if(cComps>0) 
-            GLBuffers.putf(colorArray, r);
+            Buffers.putNf(colorArray, cDataTypeSigned, r);
         if(cComps>1) 
-            GLBuffers.putf(colorArray, g);
+            Buffers.putNf(colorArray, cDataTypeSigned, g);
         if(cComps>2) 
-            GLBuffers.putf(colorArray, b);
+            Buffers.putNf(colorArray, cDataTypeSigned, b);
         padding(COLOR, cComps-3);
     }
     public void glColor4f(float r, float g, float b, float a) {
         checkSeal(false);
         growBuffer(COLOR);
         if(cComps>0) 
-            GLBuffers.putf(colorArray, r);
+            Buffers.putNf(colorArray, cDataTypeSigned, r);
         if(cComps>1) 
-            GLBuffers.putf(colorArray, g);
+            Buffers.putNf(colorArray, cDataTypeSigned, g);
         if(cComps>2) 
-            GLBuffers.putf(colorArray, b);
+            Buffers.putNf(colorArray, cDataTypeSigned, b);
         if(cComps>3) 
-            GLBuffers.putf(colorArray, a);
+            Buffers.putNf(colorArray, cDataTypeSigned, a);
         padding(COLOR, cComps-4);
     }
 
@@ -647,60 +684,60 @@ public class ImmModeSink {
         checkSeal(false);
         growBuffer(TEXTCOORD);
         if(tComps>0) 
-            GLBuffers.putb(textCoordArray, x);
+            Buffers.putNb(textCoordArray, tDataTypeSigned, x, true);
         if(tComps>1) 
-            GLBuffers.putb(textCoordArray, y);
+            Buffers.putNb(textCoordArray, tDataTypeSigned, y, true);
         padding(TEXTCOORD, tComps-2);
     }
     public void glTexCoord3b(byte x, byte y, byte z) {
         checkSeal(false);
         growBuffer(TEXTCOORD);
         if(tComps>0) 
-            GLBuffers.putb(textCoordArray, x);
+            Buffers.putNb(textCoordArray, tDataTypeSigned, x, true);
         if(tComps>1) 
-            GLBuffers.putb(textCoordArray, y);
+            Buffers.putNb(textCoordArray, tDataTypeSigned, y, true);
         if(tComps>2) 
-            GLBuffers.putb(textCoordArray, z);
+            Buffers.putNb(textCoordArray, tDataTypeSigned, z, true);
         padding(TEXTCOORD, tComps-3);
     }
     public void glTexCoord2s(short x, short y) {
         checkSeal(false);
         growBuffer(TEXTCOORD);
         if(tComps>0) 
-            GLBuffers.puts(textCoordArray, x);
+            Buffers.putNs(textCoordArray, tDataTypeSigned, x, true);
         if(tComps>1) 
-            GLBuffers.puts(textCoordArray, y);
+            Buffers.putNs(textCoordArray, tDataTypeSigned, y, true);
         padding(TEXTCOORD, tComps-2);
     }
     public void glTexCoord3s(short x, short y, short z) {
         checkSeal(false);
         growBuffer(TEXTCOORD);
         if(tComps>0) 
-            GLBuffers.puts(textCoordArray, x);
+            Buffers.putNs(textCoordArray, tDataTypeSigned, x, true);
         if(tComps>1) 
-            GLBuffers.puts(textCoordArray, y);
+            Buffers.putNs(textCoordArray, tDataTypeSigned, y, true);
         if(tComps>2) 
-            GLBuffers.puts(textCoordArray, z);
+            Buffers.putNs(textCoordArray, tDataTypeSigned, z, true);
         padding(TEXTCOORD, tComps-3);
     }
     public void glTexCoord2f(float x, float y) {
         checkSeal(false);
         growBuffer(TEXTCOORD);
         if(tComps>0) 
-            GLBuffers.putf(textCoordArray, x);
+            Buffers.putNf(textCoordArray, tDataTypeSigned, x);
         if(tComps>1) 
-            GLBuffers.putf(textCoordArray, y);
+            Buffers.putNf(textCoordArray, tDataTypeSigned, y);
         padding(TEXTCOORD, tComps-2);
     }
     public void glTexCoord3f(float x, float y, float z) {
         checkSeal(false);
         growBuffer(TEXTCOORD);
         if(tComps>0) 
-            GLBuffers.putf(textCoordArray, x);
+            Buffers.putNf(textCoordArray, tDataTypeSigned, x);
         if(tComps>1) 
-            GLBuffers.putf(textCoordArray, y);
+            Buffers.putNf(textCoordArray, tDataTypeSigned, y);
         if(tComps>2) 
-            GLBuffers.putf(textCoordArray, z);
+            Buffers.putNf(textCoordArray, tDataTypeSigned, z);
         padding(TEXTCOORD, tComps-3);
     }
 
@@ -1015,7 +1052,7 @@ public class ImmModeSink {
         final int bSizeN  = nCount * nWidth;
         final int bSizeT  = tCount * tWidth;
         
-        buffer = GLBuffers.newDirectByteBuffer( bSizeV + bSizeC + bSizeN + bSizeT );
+        buffer = Buffers.newDirectByteBuffer( bSizeV + bSizeC + bSizeN + bSizeT );
         vOffset = 0;
         
         if(bSizeV>0) {
@@ -1090,19 +1127,19 @@ public class ImmModeSink {
                 if ( reallocateBuffer(initialElementCount) ) {
                     if(null!=_vertexArray) {
                         _vertexArray.flip();
-                        GLBuffers.put(vertexArray, _vertexArray);
+                        Buffers.put(vertexArray, _vertexArray);
                     }
                     if(null!=_colorArray) {
                         _colorArray.flip();
-                        GLBuffers.put(colorArray, _colorArray);
+                        Buffers.put(colorArray, _colorArray);
                     }
                     if(null!=_normalArray) {
                         _normalArray.flip();
-                        GLBuffers.put(normalArray, _normalArray);
+                        Buffers.put(normalArray, _normalArray);
                     }
                     if(null!=_textCoordArray) {
                         _textCoordArray.flip();
-                        GLBuffers.put(textCoordArray, _textCoordArray);
+                        Buffers.put(textCoordArray, _textCoordArray);
                     }
                     return true;
                 }
@@ -1114,56 +1151,69 @@ public class ImmModeSink {
     protected void padding(int type, int fill) {
         if ( sealed ) return;
 
-        Buffer dest = null;
-
+        final Buffer dest;
+        final boolean dSigned;
+        final float v;
+        
+        
         switch (type) {
             case VERTEX:
                 dest = vertexArray;
+                dSigned = vDataTypeSigned;
+                v = 0f;
                 vElems++;
                 break;
             case COLOR:
                 dest = colorArray;
+                dSigned = cDataTypeSigned;
+                v = 1f;
                 cElems++;
                 break;
             case NORMAL:
                 dest = normalArray;
+                dSigned = nDataTypeSigned;
+                v = 0f;
                 nElems++;
                 break;
             case TEXTCOORD:
                 dest = textCoordArray;
+                dSigned = tDataTypeSigned;
+                v = 0f;
                 tElems++;
                 break;
+            default: throw new InternalError("Invalid type "+type);
         }
 
         if ( null==dest ) return;
 
         while((fill--)>0) {
-            GLBuffers.putb(dest, (byte)0);
+            Buffers.putNf(dest, dSigned, v);
         }
     }
 
-    final protected int glBufferUsage, initialElementCount;
-    final protected boolean useVBO;
-    protected int mode, modeOrig;
+    final private int glBufferUsage, initialElementCount;
+    final private boolean useVBO;
+    private int mode, modeOrig;
 
-    protected ByteBuffer buffer;
-    protected int vboName;
+    private ByteBuffer buffer;
+    private int vboName;
 
-    public static final int VERTEX = 0;
-    public static final int COLOR = 1;
-    public static final int NORMAL = 2;
-    public static final int TEXTCOORD = 3;
+    private static final int VERTEX = 0;
+    private static final int COLOR = 1;
+    private static final int NORMAL = 2;
+    private static final int TEXTCOORD = 3;
 
-    protected int vCount,    cCount,    nCount,    tCount;   // number of elements fit in each buffer 
-    protected int vOffset,   cOffset,   nOffset,   tOffset;
-    protected int vComps,    cComps,    nComps,    tComps;   // number of components for each elements [2, 3, 4] 
-    protected int vElems,    cElems,    nElems,    tElems;   // number of used elements in each buffer
-    protected int vDataType, cDataType, nDataType, tDataType;
-    protected Buffer vertexArray, colorArray, normalArray, textCoordArray;
-    protected GLArrayDataWrapper vArrayData, cArrayData, nArrayData, tArrayData;
+    private int vCount,    cCount,    nCount,    tCount;       // number of elements fit in each buffer 
+    private int vOffset,   cOffset,   nOffset,   tOffset;      // offset of specific array in common buffer
+    private int vElems,    cElems,    nElems,    tElems;       // number of used elements in each buffer
+    private final int vComps,    cComps,    nComps,    tComps; // number of components for each elements [2, 3, 4] 
+    private final int vDataType, cDataType, nDataType, tDataType;
+    private final boolean vDataTypeSigned, cDataTypeSigned, nDataTypeSigned, tDataTypeSigned;
+    private Buffer vertexArray, colorArray, normalArray, textCoordArray;
+    private GLArrayDataWrapper vArrayData, cArrayData, nArrayData, tArrayData;
 
-    protected boolean sealed, sealedGL, useGLSL;
-    protected boolean bufferEnabled, bufferWritten;
+    private boolean sealed, sealedGL, useGLSL;
+    private boolean bufferEnabled, bufferWritten;
   }
 
 }

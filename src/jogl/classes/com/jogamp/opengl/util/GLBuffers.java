@@ -38,7 +38,8 @@
  */
 package com.jogamp.opengl.util;
 
-import com.jogamp.common.nio.Buffers;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
@@ -47,7 +48,7 @@ import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLES2;
 import javax.media.opengl.GLException;
 
-import java.nio.*;
+import com.jogamp.common.nio.Buffers;
 
 /**
  * Utility routines for dealing with direct buffers.
@@ -56,6 +57,26 @@ import java.nio.*;
  */
 public class GLBuffers extends Buffers {
 
+    /**
+     * @param glType GL primitive type
+     * @return false if one of GL primitive unsigned types, otherwise true
+     *              GL_UNSIGNED_BYTE, <br/>
+     *              GL_UNSIGNED_SHORT, <br/>
+     *              GL_UNSIGNED_INT, <br/>
+     *              GL_HILO16_NV <br/>
+     */
+    public static final boolean isSignedGLType(int glType) {
+        switch (glType) { // 29
+            case GL.GL_UNSIGNED_BYTE:
+            case GL.GL_UNSIGNED_SHORT:
+            case GL.GL_UNSIGNED_INT:
+            case GL2.GL_HILO16_NV:
+                return false;
+                
+        }
+        return true;
+    }
+    
     /**
      * @param glType shall be one of (29) <br/>
      *              GL_BYTE, GL_UNSIGNED_BYTE, <br/>
