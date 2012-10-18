@@ -17,6 +17,7 @@ import javax.media.opengl.fixedfunc.GLPointerFunc;
 import jogamp.opengl.Debug;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.util.glsl.ShaderState;
 
 /**
@@ -355,15 +356,19 @@ public class ImmModeSink {
         this.vDataType=vDataType;
         this.vDataTypeSigned=GLBuffers.isSignedGLType(vDataType);
         this.vComps=vComps;
+        this.vCompsBytes=vComps * GLBuffers.sizeOfGLType(vDataType);
         this.cDataType=cDataType;
         this.cDataTypeSigned=GLBuffers.isSignedGLType(cDataType);
         this.cComps=cComps;
+        this.cCompsBytes=cComps * GLBuffers.sizeOfGLType(cDataType);
         this.nDataType=nDataType;
         this.nDataTypeSigned=GLBuffers.isSignedGLType(nDataType);
         this.nComps=nComps;
+        this.nCompsBytes=nComps * GLBuffers.sizeOfGLType(nDataType);
         this.tDataType=tDataType;
         this.tDataTypeSigned=GLBuffers.isSignedGLType(tDataType);
         this.tComps=tComps;
+        this.tCompsBytes=tComps * GLBuffers.sizeOfGLType(tDataType); 
         this.useGLSL=useGLSL;
         this.useVBO = 0 != glBufferUsage;
         this.vboName = 0;
@@ -377,6 +382,8 @@ public class ImmModeSink {
         this.nElems=0;
         this.tElems=0;
         
+        this.pageSize = Platform.getMachineDescription().pageSizeInBytes();
+        
         reallocateBuffer(initialElementCount);
         rewind();
 
@@ -386,6 +393,7 @@ public class ImmModeSink {
         this.modeOrig = 0;
         this.bufferEnabled=false;
         this.bufferWritten=false;
+        this.bufferWrittenOnce=false;
     }
 
     protected boolean getUseVBO() { return useVBO; }
@@ -844,6 +852,31 @@ public class ImmModeSink {
     }
   }
 
+  private final void writeBuffer(GL gl) {
+    final int vBytes  = vElems * vCompsBytes;
+    final int cBytes  = cElems * cCompsBytes;
+    final int nBytes  = nElems * nCompsBytes;
+    final int tBytes  = tElems * tCompsBytes;
+    final int delta = buffer.limit() - (vBytes+cBytes+nBytes+tBytes);
+    if( bufferWrittenOnce && delta > pageSize ) {
+        if(0 < vBytes) {
+            gl.glBufferSubData(GL.GL_ARRAY_BUFFER, vOffset, vBytes, vertexArray);
+        }
+        if(0 < cBytes) {
+            gl.glBufferSubData(GL.GL_ARRAY_BUFFER, cOffset, cBytes, colorArray);
+        }
+        if(0 < nBytes) {
+            gl.glBufferSubData(GL.GL_ARRAY_BUFFER, nOffset, nBytes, normalArray);
+        }
+        if(0 < tBytes) {
+            gl.glBufferSubData(GL.GL_ARRAY_BUFFER, tOffset, tBytes, textCoordArray);
+        }
+    } else {
+        gl.glBufferData(GL.GL_ARRAY_BUFFER, buffer.limit(), buffer, glBufferUsage);
+        bufferWrittenOnce = true;                    
+    }                      
+  }
+  
   public void enableBufferFixed(GL gl, boolean enable) {
     GL2ES1 glf = gl.getGL2ES1();
     
@@ -864,7 +897,7 @@ public class ImmModeSink {
             glf.glBindBuffer(GL.GL_ARRAY_BUFFER, vboName);
             
             if(!bufferWritten) {
-                glf.glBufferData(GL.GL_ARRAY_BUFFER, buffer.limit(), buffer, glBufferUsage);
+                writeBuffer(gl);
             }
         }
         bufferWritten=true;
@@ -935,7 +968,7 @@ public class ImmModeSink {
             }
             glsl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboName);
             if(!bufferWritten) {
-                glsl.glBufferData(GL.GL_ARRAY_BUFFER, buffer.limit(), buffer, GL.GL_STATIC_DRAW);
+                writeBuffer(gl);
             }
         }
         bufferWritten=true;
@@ -990,7 +1023,7 @@ public class ImmModeSink {
                        ", sealed "+sealed+ 
                        ", sealedGL "+sealedGL+
                        ", bufferEnabled "+bufferEnabled+ 
-                       ", bufferWritten "+bufferWritten+
+                       ", bufferWritten "+bufferWritten+" (once "+bufferWrittenOnce+")"+
                        ", useVBO "+useVBO+", vboName "+vboName+
                        ",\n\t"+vArrayData+
                        ",\n\t"+cArrayData+
@@ -1042,47 +1075,42 @@ public class ImmModeSink {
         nCount += nAdd;
         tCount += tAdd;
         
-        final int vWidth = vComps * GLBuffers.sizeOfGLType(vDataType);
-        final int cWidth = cComps * GLBuffers.sizeOfGLType(cDataType);
-        final int nWidth = nComps * GLBuffers.sizeOfGLType(nDataType);
-        final int tWidth = tComps * GLBuffers.sizeOfGLType(tDataType);
-
-        final int bSizeV  = vCount * vWidth;
-        final int bSizeC  = cCount * cWidth;
-        final int bSizeN  = nCount * nWidth;
-        final int bSizeT  = tCount * tWidth;
+        final int vBytes  = vCount * vCompsBytes;
+        final int cBytes  = cCount * cCompsBytes;
+        final int nBytes  = nCount * nCompsBytes;
+        final int tBytes  = tCount * tCompsBytes;
         
-        buffer = Buffers.newDirectByteBuffer( bSizeV + bSizeC + bSizeN + bSizeT );
+        buffer = Buffers.newDirectByteBuffer( vBytes + cBytes + nBytes + tBytes );
         vOffset = 0;
         
-        if(bSizeV>0) {
-            vertexArray = GLBuffers.sliceGLBuffer(buffer, vOffset, bSizeV, vDataType);
+        if(vBytes>0) {
+            vertexArray = GLBuffers.sliceGLBuffer(buffer, vOffset, vBytes, vDataType);
         } else {
             vertexArray = null;
         }        
-        cOffset=vOffset+bSizeV;
+        cOffset=vOffset+vBytes;
 
-        if(bSizeC>0) {
-            colorArray = GLBuffers.sliceGLBuffer(buffer, cOffset, bSizeC, cDataType);
+        if(cBytes>0) {
+            colorArray = GLBuffers.sliceGLBuffer(buffer, cOffset, cBytes, cDataType);
         } else {
             colorArray = null;
         }
-        nOffset=cOffset+bSizeC;
+        nOffset=cOffset+cBytes;
 
-        if(bSizeN>0) {
-            normalArray = GLBuffers.sliceGLBuffer(buffer, nOffset, bSizeN, nDataType);
+        if(nBytes>0) {
+            normalArray = GLBuffers.sliceGLBuffer(buffer, nOffset, nBytes, nDataType);
         } else {
             normalArray = null;
         }
-        tOffset=nOffset+bSizeN;
+        tOffset=nOffset+nBytes;
 
-        if(bSizeT>0) {
-            textCoordArray = GLBuffers.sliceGLBuffer(buffer, tOffset, bSizeT, tDataType);
+        if(tBytes>0) {
+            textCoordArray = GLBuffers.sliceGLBuffer(buffer, tOffset, tBytes, tDataType);
         } else {
             textCoordArray = null;
         }
 
-        buffer.position(tOffset+bSizeT);
+        buffer.position(tOffset+tBytes);
         buffer.flip();
 
         if(vComps>0) {
@@ -1109,6 +1137,8 @@ public class ImmModeSink {
         } else {
             tArrayData = null;
         }
+        
+        bufferWrittenOnce = false; // new buffer data storage size!
         
         if(DEBUG_BUFFER) {
             System.err.println("ImmModeSink.realloc.X: "+this.toString());
@@ -1207,13 +1237,15 @@ public class ImmModeSink {
     private int vOffset,   cOffset,   nOffset,   tOffset;      // offset of specific array in common buffer
     private int vElems,    cElems,    nElems,    tElems;       // number of used elements in each buffer
     private final int vComps,    cComps,    nComps,    tComps; // number of components for each elements [2, 3, 4] 
+    private final int vCompsBytes, cCompsBytes, nCompsBytes, tCompsBytes; // byte size of all components 
     private final int vDataType, cDataType, nDataType, tDataType;
     private final boolean vDataTypeSigned, cDataTypeSigned, nDataTypeSigned, tDataTypeSigned;
+    private final int pageSize;
     private Buffer vertexArray, colorArray, normalArray, textCoordArray;
     private GLArrayDataWrapper vArrayData, cArrayData, nArrayData, tArrayData;
 
     private boolean sealed, sealedGL, useGLSL;
-    private boolean bufferEnabled, bufferWritten;
+    private boolean bufferEnabled, bufferWritten, bufferWrittenOnce;
   }
 
 }
