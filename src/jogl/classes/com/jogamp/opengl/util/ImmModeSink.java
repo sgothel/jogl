@@ -335,6 +335,20 @@ public class ImmModeSink {
   
   public boolean getUseVBO() { return vboSet.getUseVBO(); }
   
+  /**
+   * Returns the additional element count if buffer resize is required.
+   * @see #setResizeElementCount(int)
+   */
+  public int getResizeElementCount() { return vboSet.getResizeElementCount(); }
+  
+  /**
+   * Sets the additional element count if buffer resize is required,
+   * defaults to <code>initialElementCount</code> of factory method.
+   * @see #createFixed(int, int, int, int, int, int, int, int, int, int)
+   * @see #createGLSL(int, int, int, int, int, int, int, int, int, int)
+   */
+  public void setResizeElementCount(int v) { vboSet.setResizeElementCount(v); }
+  
   private void destroyList(GL gl) {
     for(int i=0; i<vboSetList.size(); i++) {
         vboSetList.get(i).destroy(gl);
@@ -353,6 +367,7 @@ public class ImmModeSink {
                       int tDataType, boolean useGLSL, int glBufferUsage) {
         this.glBufferUsage=glBufferUsage;
         this.initialElementCount=initialElementCount;
+        this.resizeElementCount=initialElementCount;
         this.vDataType=vDataType;
         this.vDataTypeSigned=GLBuffers.isSignedGLType(vDataType);
         this.vComps=vComps;
@@ -396,6 +411,9 @@ public class ImmModeSink {
         this.bufferWrittenOnce=false;
     }
 
+    protected int getResizeElementCount() { return resizeElementCount; }
+    protected void setResizeElementCount(int v) { resizeElementCount=v; }
+    
     protected boolean getUseVBO() { return useVBO; }
     
     protected final VBOSet regenerate(GL gl) {
@@ -1154,7 +1172,7 @@ public class ImmModeSink {
                 // save olde values ..
                 final Buffer _vertexArray=vertexArray, _colorArray=colorArray, _normalArray=normalArray, _textCoordArray=textCoordArray;
         
-                if ( reallocateBuffer(initialElementCount) ) {
+                if ( reallocateBuffer(resizeElementCount) ) {
                     if(null!=_vertexArray) {
                         _vertexArray.flip();
                         Buffers.put(vertexArray, _vertexArray);
@@ -1223,7 +1241,7 @@ public class ImmModeSink {
 
     final private int glBufferUsage, initialElementCount;
     final private boolean useVBO;
-    private int mode, modeOrig;
+    private int mode, modeOrig, resizeElementCount;
 
     private ByteBuffer buffer;
     private int vboName;
