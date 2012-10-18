@@ -135,16 +135,22 @@ public class FixedFuncPipeline {
     //
     // Simple Globals
     //
-    
-    public void glColor4fv(GL2ES2 gl, FloatBuffer data ) {
+    public void glColor4f(GL2ES2 gl, float red, float green, float blue, float alpha) {
+        colorStatic.put(0, red);
+        colorStatic.put(1, green);
+        colorStatic.put(2, blue);
+        colorStatic.put(3, alpha);
+        
         shaderState.useProgram(gl, true);
-        GLUniformData ud = shaderState.getUniform(mgl_ColorStatic);
+        final GLUniformData ud = shaderState.getUniform(mgl_ColorStatic);        
         if(null!=ud) {
-            ud.setData(data);
+            // same data object ..
             shaderState.uniform(gl, ud);
-        }
+        } else {
+            throw new GLException("Failed to update: mgl_ColorStatic");
+        }        
     }
-
+    
     //
     // Arrays / States
     //
@@ -897,7 +903,7 @@ public class FixedFuncPipeline {
         }
 
         shaderState.uniform(gl, new GLUniformData(mgl_ColorEnabled,  0));
-        shaderState.uniform(gl, new GLUniformData(mgl_ColorStatic, 4, one4f));
+        shaderState.uniform(gl, new GLUniformData(mgl_ColorStatic, 4, colorStatic));
         
         texID2Format.setKeyNotFoundValue(0);        
         shaderState.uniform(gl, new GLUniformData(mgl_TexCoordEnabled,  1, textureCoordEnabled));
@@ -943,6 +949,8 @@ public class FixedFuncPipeline {
     
     protected boolean verbose = DEBUG;
 
+    private final FloatBuffer colorStatic = Buffers.copyFloatBuffer(one4f);
+    
     private int activeTextureUnit=0;
     private int clientActiveTextureUnit=0;
     private final IntIntHashMap texID2Format = new IntIntHashMap();

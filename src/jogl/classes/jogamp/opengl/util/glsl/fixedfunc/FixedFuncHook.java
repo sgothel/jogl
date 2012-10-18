@@ -44,6 +44,7 @@ import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.util.ValueConv;
 import com.jogamp.opengl.util.GLArrayDataWrapper;
 import com.jogamp.opengl.util.GLBuffers;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -306,9 +307,15 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     // LightingIf
     //
     public void glColor4f(float red, float green, float blue, float alpha) {
-      fixedFunction.glColor4fv(gl, GLBuffers.newDirectFloatBuffer(new float[] { red, green, blue, alpha }));
+      fixedFunction.glColor4f(gl, red, green, blue, alpha);
     }
-
+    
+    public  void glColor4ub(byte red, byte green, byte blue, byte alpha) {
+      glColor4f(ValueConv.byte_to_float(red, false), 
+                ValueConv.byte_to_float(green, false), 
+                ValueConv.byte_to_float(blue, false), 
+                ValueConv.byte_to_float(alpha, false) );
+    }
     public void glLightfv(int light, int pname, java.nio.FloatBuffer params) {
       fixedFunction.glLightfv(gl, light, pname, params);
     }
