@@ -91,8 +91,9 @@ public class FixedFuncPipeline {
         init(gl, mode, pmvMatrix); 
     }
     
-    public ShaderSelectionMode getShaderSelectionMode() { return shaderSelectionMode; }
-    public void setShaderSelectionMode(ShaderSelectionMode mode) { shaderSelectionMode=mode; }
+    public ShaderSelectionMode getShaderSelectionMode() { return requestedShaderSelectionMode; }
+    public void setShaderSelectionMode(ShaderSelectionMode mode) { requestedShaderSelectionMode=mode; }
+    public ShaderSelectionMode getCurrentShaderSelectionMode() { return currentShaderSelectionMode; }
 
     public boolean verbose() { return verbose; }
 
@@ -599,7 +600,7 @@ public class FixedFuncPipeline {
     }
     
     public void validate(GL2ES2 gl) {
-        if( ShaderSelectionMode.AUTO == shaderSelectionMode) {
+        if( ShaderSelectionMode.AUTO == requestedShaderSelectionMode) {
             final ShaderSelectionMode newMode;
             
             // pre-validate shader switch
@@ -629,9 +630,19 @@ public class FixedFuncPipeline {
         }
         
         GLUniformData ud;
-        if( pmvMatrix.update() ) {
+        if( pmvMatrix.update() ) {            
             ud = shaderState.getUniform(mgl_PMVMatrix);
             if(null!=ud) {
+                final FloatBuffer m;
+                if(ShaderSelectionMode.COLOR_TEXTURE8_LIGHT_PER_VERTEX == currentShaderSelectionMode ||
+                   ShaderSelectionMode.COLOR_LIGHT_PER_VERTEX== currentShaderSelectionMode ) {
+                    m = pmvMatrix.glGetPMvMvitMatrixf();
+                } else {
+                    m = pmvMatrix.glGetPMvMatrixf();                    
+                }
+                if(m != ud.getBuffer()) {
+                    ud.setData(m);
+                }
                 // same data object ..
                 shaderState.uniform(gl, ud);
             } else {
@@ -857,13 +868,13 @@ public class FixedFuncPipeline {
         }
     }
     
-    private ShaderProgram selectShaderProgram(GL2ES2 gl, ShaderSelectionMode mode) {
-        if(ShaderSelectionMode.AUTO == mode) {
-            mode = ShaderSelectionMode.COLOR;
+    private ShaderProgram selectShaderProgram(GL2ES2 gl, ShaderSelectionMode newMode) {
+        if(ShaderSelectionMode.AUTO == newMode) {
+            newMode = ShaderSelectionMode.COLOR;
         }
-        loadShader(gl, mode);
+        loadShader(gl, newMode);
         final ShaderProgram sp;
-        switch(mode) {
+        switch(newMode) {
             case COLOR_LIGHT_PER_VERTEX:
                 sp = shaderProgramColorLight;
                 break;
@@ -883,6 +894,7 @@ public class FixedFuncPipeline {
             default:
                 sp = shaderProgramColor;
         }
+        currentShaderSelectionMode = newMode;
         return sp;
     }
     
@@ -891,11 +903,11 @@ public class FixedFuncPipeline {
             throw new GLException("PMVMatrix is null");
         }
         this.pmvMatrix=pmvMatrix;
-        this.shaderSelectionMode = mode;
+        this.requestedShaderSelectionMode = mode;        
         this.shaderState=new ShaderState();
         this.shaderState.setVerbose(verbose);
 
-        shaderState.attachShaderProgram(gl, selectShaderProgram(gl, shaderSelectionMode), true);
+        shaderState.attachShaderProgram(gl, selectShaderProgram(gl, requestedShaderSelectionMode), true);
 
         // mandatory ..
         if(!shaderState.uniform(gl, new GLUniformData(mgl_PMVMatrix, 4, 4, pmvMatrix.glGetPMvMvitMatrixf()))) {
@@ -985,7 +997,8 @@ public class FixedFuncPipeline {
     private ShaderProgram shaderProgramColorLight;
     private ShaderProgram shaderProgramColorTexture8Light;
     
-    private ShaderSelectionMode shaderSelectionMode = ShaderSelectionMode.AUTO;
+    private ShaderSelectionMode requestedShaderSelectionMode = ShaderSelectionMode.AUTO;
+    private ShaderSelectionMode currentShaderSelectionMode = requestedShaderSelectionMode;
 
     // uniforms ..
     private static final String mgl_PMVMatrix        = "mgl_PMVMatrix";       // m4fv[4] - P, Mv, Mvi and Mvit
