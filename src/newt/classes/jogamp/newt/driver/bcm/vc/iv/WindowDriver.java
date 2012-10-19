@@ -53,20 +53,19 @@ public class WindowDriver extends WindowImpl {
         if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
         }
-        // FIXME: Hack - Native BCM_VC_IV code CreateWindow() uses the default alpha value setting,
-        // which is alpha:8 ! Hence we require to chose alpha from the egl configurations.
-        // TODO: Properly select the alpha mode in CreateWindow()! This will allow this hack. 
-        final Capabilities capsChosen = (Capabilities) capsRequested.cloneMutable();
-        capsChosen.setAlphaBits(1);
         
         final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice(), capsRequested).chooseGraphicsConfiguration(
-                capsChosen, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen(), VisualIDHolder.VID_UNDEFINED);
+                capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen(), VisualIDHolder.VID_UNDEFINED);
         if (null == cfg) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
+        final Capabilities chosenCaps = (Capabilities) cfg.getChosenCapabilities();
+        // FIXME: Pass along opaque flag, since EGL doesn't determine it
+        if(capsRequested.isBackgroundOpaque() != chosenCaps.isBackgroundOpaque()) {
+            chosenCaps.setBackgroundOpaque(capsRequested.isBackgroundOpaque());
+        }
         setGraphicsConfiguration(cfg);
-
-        nativeWindowHandle = CreateWindow(getWidth(), getHeight());
+        nativeWindowHandle = CreateWindow(getWidth(), getHeight(), chosenCaps.isBackgroundOpaque(), chosenCaps.getAlphaBits());
         if (nativeWindowHandle == 0) {
             throw new NativeWindowException("Error creating egl window: "+cfg);
         }
@@ -139,7 +138,7 @@ public class WindowDriver extends WindowImpl {
     //
 
     protected static native boolean initIDs();
-    private        native long CreateWindow(int width, int height);
+    private        native long CreateWindow(int width, int height, boolean opaque, int alphaBits);
     private        native long RealizeWindow(long eglWindowHandle);
     private        native int  CloseWindow(long eglWindowHandle, long userData);
     private        native void setVisible0(long eglWindowHandle, boolean visible);

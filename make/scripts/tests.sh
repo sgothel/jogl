@@ -245,7 +245,7 @@ function testawtswt() {
 #testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFloatUtil01MatrixMatrixMultNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestPMVMatrix01NEWT $*
@@ -405,7 +405,7 @@ function testawtswt() {
 # Misc Utils
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestImmModeSinkES1NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.util.TestES1FixedFunctionPipelineNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.TestES1FixedFunctionPipelineNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestRedSquareES1NEWT $*
 

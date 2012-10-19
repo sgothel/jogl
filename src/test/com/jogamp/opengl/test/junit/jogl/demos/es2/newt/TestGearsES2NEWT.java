@@ -75,6 +75,7 @@ public class TestGearsES2NEWT extends UITestCase {
 
     static long duration = 500; // ms
     static boolean opaque = true;
+    static int forceAlpha = -1;
     static boolean undecorated = false;
     static boolean alwaysOnTop = false;
     static boolean fullscreen = false;
@@ -257,6 +258,9 @@ public class TestGearsES2NEWT extends UITestCase {
             System.err.println("Loop "+i+"/"+loops);
             GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2());
             caps.setBackgroundOpaque(opaque);
+            if(-1 < forceAlpha) {
+                caps.setAlphaBits(forceAlpha); 
+            }
             runTestGL(caps, undecorated);
             if(loop_shutdown) {
                 GLProfile.shutdown();
@@ -274,6 +278,9 @@ public class TestGearsES2NEWT extends UITestCase {
                 duration = MiscUtils.atol(args[i], duration);
             } else if(args[i].equals("-translucent")) {
                 opaque = false;
+            } else if(args[i].equals("-forceAlpha")) {
+                i++;
+                forceAlpha = MiscUtils.atoi(args[i], 0);
             } else if(args[i].equals("-undecorated")) {
                 undecorated = true;
             } else if(args[i].equals("-atop")) {
@@ -328,6 +335,7 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("size "+wsize);
         System.err.println("screen "+screenIdx);
         System.err.println("translucent "+(!opaque));
+        System.err.println("forceAlpha "+forceAlpha);        
         System.err.println("undecorated "+undecorated);
         System.err.println("atop "+alwaysOnTop);
         System.err.println("fullscreen "+fullscreen);

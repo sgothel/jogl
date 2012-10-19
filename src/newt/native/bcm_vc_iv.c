@@ -101,8 +101,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_bcm_vc_iv_ScreenDriver_initNative
     if( graphics_get_display_size(0 /* LCD */, &screen_width, &screen_height) >= 0 ) {
         DBG_PRINT( "BCM.Screen initNative ok %dx%d\n", screen_width, screen_height );
         (*env)->CallVoidMethod(env, obj, setScreenSizeID, (jint) screen_width, (jint) screen_height);
+    } else {
+        DBG_PRINT( "BCM.Screen initNative failed\n" );
     }
-    DBG_PRINT( "BCM.Screen initNative failed\n" );
 }
 
 /**
@@ -132,7 +133,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_initID
 }
 
 JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_CreateWindow
-  (JNIEnv *env, jobject obj, jint width, jint height)
+  (JNIEnv *env, jobject obj, jint width, jint height, jboolean opaque, jint alphaBits)
 {
    int32_t success = 0;
    VC_RECT_T dst_rect;
@@ -148,12 +149,26 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_CreateWin
    src_rect.width = width << 16;
    src_rect.height = height << 16;   
 
+   VC_DISPMANX_ALPHA_T dispman_alpha;
+   memset(&dispman_alpha, 0x0, sizeof(VC_DISPMANX_ALPHA_T));
+
+   if( JNI_TRUE == opaque ) {
+       dispman_alpha.flags = DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS ;
+       dispman_alpha.opacity = 0xFF;
+       dispman_alpha.mask = 0;
+   } else {
+       dispman_alpha.flags = DISPMANX_FLAGS_ALPHA_FROM_SOURCE ;
+       dispman_alpha.opacity = 0xFF;
+       dispman_alpha.mask = 0xFF;
+   }
+
    DISPMANX_DISPLAY_HANDLE_T dispman_display = vc_dispmanx_display_open( 0 /* LCD */);
    DISPMANX_UPDATE_HANDLE_T dispman_update = vc_dispmanx_update_start( 0 );
    DISPMANX_ELEMENT_HANDLE_T dispman_element = vc_dispmanx_element_add ( dispman_update, dispman_display,
                                                                          0/*layer*/, &dst_rect, 0/*src*/,
                                                                          &src_rect, DISPMANX_PROTECTION_NONE, 
-                                                                         0 /*alpha TODO*/, 0/*clamp*/, 0/*transform*/);
+                                                                         &dispman_alpha /*alpha */, 0/*clamp*/, 0/*transform*/);
+
    EGL_DISPMANX_WINDOW_T * nativeWindowPtr = calloc(1, sizeof(EGL_DISPMANX_WINDOW_T));  
    nativeWindowPtr->element = dispman_element;
    nativeWindowPtr->width = width;
