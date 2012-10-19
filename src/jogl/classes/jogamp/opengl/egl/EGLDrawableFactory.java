@@ -99,6 +99,13 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     }
 
+    private static final boolean includesES1(GLDynamicLookupHelper dl) {
+        return 0 != dl.dynamicLookupFunction("glLoadIdentity") &&
+               0 != dl.dynamicLookupFunction("glEnableClientState") &&
+               0 != dl.dynamicLookupFunction("glBegin") &&
+               0 != dl.dynamicLookupFunction("glColorPointer");
+    }
+    
     public EGLDrawableFactory() {
         super();
 
@@ -138,7 +145,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                         System.err.println("Info: EGLDrawableFactory: EGL ES1 - OK, isANGLE: "+isANGLEES1);
                     }
                 } else if (DEBUG || GLProfile.DEBUG) {
-                    System.err.println("Info: EGLDrawableFactory: EGL ES1 - NOPE");
+                    System.err.println("Info: EGLDrawableFactory: EGL ES1 - NOPE (ES1 lib)");
                 }
             }
             if(!hasDesktopES2 && null==eglES2DynamicLookupHelper) {
@@ -153,10 +160,17 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 if(null!=tmp && tmp.isLibComplete()) {
                     eglES2DynamicLookupHelper = tmp;
                     EGL.resetProcAddressTable(eglES2DynamicLookupHelper);
+                    final boolean includesES1 = null == eglES1DynamicLookupHelper && includesES1(eglES2DynamicLookupHelper);
+                    if(includesES1) {
+                        eglES1DynamicLookupHelper = tmp;
+                    }
                     final boolean isANGLEES2 = isANGLE(eglES2DynamicLookupHelper);
                     isANGLE |= isANGLEES2;
                     if (DEBUG || GLProfile.DEBUG) {
-                        System.err.println("Info: EGLDrawableFactory: EGL ES2 - OK, isANGLE: "+isANGLEES2);
+                        System.err.println("Info: EGLDrawableFactory: EGL ES2 - OK (includesES1 "+includesES1+", isANGLE: "+isANGLEES2+")");
+                        if(includesES1) {
+                            System.err.println("Info: EGLDrawableFactory: EGL ES1 - OK (ES2 lib)");
+                        }
                     }
                 } else if (DEBUG || GLProfile.DEBUG) {
                     System.err.println("Info: EGLDrawableFactory: EGL ES2 - NOPE");
