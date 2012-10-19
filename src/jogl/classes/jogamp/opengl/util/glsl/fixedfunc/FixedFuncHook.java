@@ -117,57 +117,13 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     // FixedFuncHookIf - hooks 
     //
     public void glDrawArrays(int mode, int first, int count) {
-        fixedFunction.validate(gl);
-        switch(mode) {
-            case GL2.GL_QUAD_STRIP:
-                mode=GL.GL_TRIANGLE_STRIP;
-                break;
-            case GL2.GL_POLYGON:
-                mode=GL.GL_TRIANGLE_FAN;
-                break;
-        }
-        if ( GL2.GL_QUADS == mode && !gl.isGL2() ) {
-            for (int j = first; j < count - 3; j += 4) {
-                gl.glDrawArrays(GL.GL_TRIANGLE_FAN, j, 4);
-            }
-        } else {
-            gl.glDrawArrays(mode, first, count);
-        }
-        
-        gl.glDrawArrays(mode, first, count);
+        fixedFunction.glDrawArrays(gl, mode, first, count);
     }
     public void glDrawElements(int mode, int count, int type, java.nio.Buffer indices) {
-        fixedFunction.validate(gl); 
-        if ( GL2.GL_QUADS == mode && !gl.isGL2() ) {
-            final int idx0 = indices.position();
-            
-            if( GL.GL_UNSIGNED_BYTE == type ) {
-                final ByteBuffer b = (ByteBuffer) indices;
-                for (int j = 0; j < count; j++) {
-                    gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x000000ff & b.get(idx0+j)), 4);
-                }                        
-            } else if( GL.GL_UNSIGNED_SHORT == type ){
-                final ShortBuffer b = (ShortBuffer) indices;
-                for (int j = 0; j < count; j++) {
-                    gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x0000ffff & b.get(idx0+j)), 4);
-                }                                                
-            } else {
-                final IntBuffer b = (IntBuffer) indices;
-                for (int j = 0; j < count; j++) {
-                    gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0xffffffff & b.get(idx0+j)), 4);
-                }                                                
-            }
-        } else {
-            gl.glDrawElements(mode, count, type, indices);
-            // GL2: gl.glDrawRangeElements(mode, 0, count-1, count, type, indices);
-        }
+        fixedFunction.glDrawElements(gl, mode, count, type, indices);        
     }
     public void glDrawElements(int mode, int count, int type, long indices_buffer_offset) {
-        fixedFunction.validate(gl); 
-        if ( GL2.GL_QUADS == mode && !gl.isGL2() ) {
-            throw new GLException("Cannot handle indexed QUADS on !GL2 w/ VBO due to lack of CPU index access");
-        }
-        gl.glDrawElements(mode, count, type, indices_buffer_offset);
+        fixedFunction.glDrawElements(gl, mode, count, type, indices_buffer_offset); 
     }
 
     public void glActiveTexture(int texture) {
@@ -247,8 +203,17 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         gl.glTexImage2D(target, level, internalformat, width, height, border, format, type, pixels_buffer_offset);
     }
 
-    public void glPointSize(float arg0) {
-        // NOP - FIXME ?        
+    public void glPointSize(float size) {
+        fixedFunction.glPointSize(size);
+    }
+    public  void glPointParameterf(int pname, float param) {
+        fixedFunction.glPointParameterf(pname, param);
+    }
+    public  void glPointParameterfv(int pname, float[] params, int params_offset) {
+        fixedFunction.glPointParameterfv(pname, params, params_offset);
+    }
+    public  void glPointParameterfv(int pname, java.nio.FloatBuffer params) {
+        fixedFunction.glPointParameterfv(pname, params);
     }
     
     // 

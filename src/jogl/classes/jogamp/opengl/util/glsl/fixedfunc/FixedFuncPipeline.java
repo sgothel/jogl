@@ -29,10 +29,13 @@
 
 package jogamp.opengl.util.glsl.fixedfunc;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLArrayData;
@@ -333,6 +336,42 @@ public class FixedFuncPipeline {
     }
     
     //
+    // Point Sprites
+    //
+    public void glPointSize(float size) {
+        pointParams.put(0, size);
+    }
+    public  void glPointParameterf(int pname, float param) {
+        switch(pname) {
+            case GL2ES1.GL_POINT_SIZE_MIN:
+                pointParams.put(2, param);
+                break;
+            case GL2ES1.GL_POINT_SIZE_MAX:
+                pointParams.put(3, param);
+                break;
+        }
+    }
+    public  void glPointParameterfv(int pname, float[] params, int params_offset) {
+        switch(pname) {
+            case GL2ES1.GL_POINT_DISTANCE_ATTENUATION:
+                pointParams.put(4, params[params_offset + 0]);
+                pointParams.put(5, params[params_offset + 1]);
+                pointParams.put(6, params[params_offset + 2]);
+                break;
+        }
+    }
+    public  void glPointParameterfv(int pname, java.nio.FloatBuffer params) {
+        final int o = params.position();
+        switch(pname) {
+            case GL2ES1.GL_POINT_DISTANCE_ATTENUATION:
+                pointParams.put(4, params.get(o + 0));
+                pointParams.put(5, params.get(o + 1));
+                pointParams.put(6, params.get(o + 2));
+                break;
+        }
+    }
+
+    //
     // Lighting
     // 
 
@@ -577,6 +616,10 @@ public class FixedFuncPipeline {
                     alphaTestFunc=_alphaTestFunc;
                 }
                 return false;
+                
+            case GL2ES1.GL_POINT_SMOOTH:
+                pointParams.put(1, enable ? 1.0f : 0.0f);
+                return false;
         }
 
         int light = cap - GLLightingFunc.GL_LIGHT0;
@@ -591,6 +634,71 @@ public class FixedFuncPipeline {
         return false; // ignore!
     }
 
+    //
+    // Draw
+    //
+    
+    public void glDrawArrays(GL2ES2 gl, int mode, int first, int count) {
+        validate(gl);
+        switch(mode) {
+            case GL2.GL_QUAD_STRIP:
+                mode=GL.GL_TRIANGLE_STRIP;
+                break;
+            case GL2.GL_POLYGON:
+                mode=GL.GL_TRIANGLE_FAN;
+                break;
+        }
+        if ( GL2.GL_QUADS == mode && !gl.isGL2() ) {
+            for (int j = first; j < count - 3; j += 4) {
+                gl.glDrawArrays(GL.GL_TRIANGLE_FAN, j, 4);
+            }
+        } else if( GL2ES1.GL_POINTS != mode ) {            
+            gl.glDrawArrays(mode, first, count);
+        } else {
+            // FIXME GL_POINTS !
+            gl.glDrawArrays(mode, first, count);            
+        }
+    }
+    public void glDrawElements(GL2ES2 gl, int mode, int count, int type, java.nio.Buffer indices) {
+        validate(gl); 
+        if ( GL2.GL_QUADS == mode && !gl.isGL2() ) {
+            final int idx0 = indices.position();
+            
+            if( GL.GL_UNSIGNED_BYTE == type ) {
+                final ByteBuffer b = (ByteBuffer) indices;
+                for (int j = 0; j < count; j++) {
+                    gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x000000ff & b.get(idx0+j)), 4);
+                }                        
+            } else if( GL.GL_UNSIGNED_SHORT == type ){
+                final ShortBuffer b = (ShortBuffer) indices;
+                for (int j = 0; j < count; j++) {
+                    gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0x0000ffff & b.get(idx0+j)), 4);
+                }                                                
+            } else {
+                final IntBuffer b = (IntBuffer) indices;
+                for (int j = 0; j < count; j++) {
+                    gl.glDrawArrays(GL.GL_TRIANGLE_FAN, (int)(0xffffffff & b.get(idx0+j)), 4);
+                }                                                
+            }
+        } else if( GL2ES1.GL_POINTS != mode ) {            
+            gl.glDrawElements(mode, count, type, indices);
+        } else {
+            // FIXME GL_POINTS !
+            gl.glDrawElements(mode, count, type, indices);
+        }
+    }
+    public void glDrawElements(GL2ES2 gl, int mode, int count, int type, long indices_buffer_offset) {
+        validate(gl); 
+        if ( GL2.GL_QUADS == mode && !gl.isGL2() ) {
+            throw new GLException("Cannot handle indexed QUADS on !GL2 w/ VBO due to lack of CPU index access");
+        } else if( GL2ES1.GL_POINTS != mode ) {            
+            // FIXME GL_POINTS !
+            gl.glDrawElements(mode, count, type, indices_buffer_offset);
+        } else {
+            gl.glDrawElements(mode, count, type, indices_buffer_offset);
+        }
+    }
+    
     private final int textureEnabledCount() {
         int n=0;
         for(int i=MAX_TEXTURE_UNITS-1; i>=0; i--) {
@@ -995,6 +1103,12 @@ public class FixedFuncPipeline {
     private boolean alphaTestDirty=false;
     private int alphaTestFunc=-8; // <=0 disabled; 1 GL_NEVER, 2 GL_LESS, 3 GL_EQUAL, 4 GL_LEQUAL, 5 GL_GREATER, 6 GL_NOTEQUAL, 7 GL_GEQUAL, and 8 GL_ALWAYS (default)
     private float alphaTestRef=0f;
+    
+    // pointSize, pointSmooth, attn. pointMinSize, attn. pointMaxSize
+    // attenuation coefficients 1f 0f 0f 
+    // attenuation alpha theshold 1f 
+    private final FloatBuffer pointParams = Buffers.newDirectFloatBuffer(new float[] { 1.0f, 0.0f, 0.0f, 1.0f, 
+                                                                                       1.0f, 0.0f, 0.0f, 1.0f });
         
     private PMVMatrix pmvMatrix;
     private ShaderState shaderState;
@@ -1019,6 +1133,7 @@ public class FixedFuncPipeline {
     private static final String mgl_AlphaTestFunc    = "mgl_AlphaTestFunc";   //  1i (lowp int)
     private static final String mgl_AlphaTestRef     = "mgl_AlphaTestRef";    //  1f    
     private static final String mgl_ShadeModel       = "mgl_ShadeModel";      //  1i
+    private static final String mgl_PointParams      = "mgl_PointParams";     //  8f (sz, smooth, attnMinSz, attnMaxSz, attnCoeff(3), attnAlphaTs)
 
     private static final String mgl_TextureEnabled   = "mgl_TextureEnabled";  //  int mgl_TextureEnabled[MAX_TEXTURE_UNITS];
     private static final String mgl_Texture          = "mgl_Texture";         //  sampler2D mgl_Texture<0..7>
