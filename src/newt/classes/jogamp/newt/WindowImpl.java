@@ -1711,6 +1711,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 // set current state
                 WindowImpl.this.fullscreen = fullscreen;
 
+                final ScreenMode sm = screen.getCurrentScreenMode();
                 int x,y,w,h;
                 
                 if(fullscreen) {
@@ -1720,8 +1721,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     nfs_height = getHeight();
                     x = screen.getX(); 
                     y = screen.getY();
-                    w = screen.getWidth();
-                    h = screen.getHeight();
+                    w = sm.getRotatedWidth();
+                    h = sm.getRotatedHeight();
                 } else {
                     x = nfs_x;
                     y = nfs_y;
@@ -1743,7 +1744,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
                 }
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h+", "+isUndecorated()+", "+screen);
+                    System.err.println("Window fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h+", "+isUndecorated()+
+                                       ", virtl-size: "+screen.getWidth()+"x"+screen.getHeight()+", SM "+sm.getRotatedWidth()+"x"+sm.getRotatedHeight());
                 }
 
                 DisplayImpl display = (DisplayImpl) screen.getDisplay();

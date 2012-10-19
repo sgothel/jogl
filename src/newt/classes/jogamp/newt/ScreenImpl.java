@@ -277,7 +277,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
     protected void updateVirtualScreenOriginAndSize() {
         getVirtualScreenOriginAndSize(vOrigin, vSize);
         if(DEBUG) {
-            System.err.println("Detected screen origin "+vOrigin+", size "+vSize);
+            System.err.println("Detected virtual screen origin "+vOrigin+", size "+vSize);
         }
     }
 
@@ -321,18 +321,24 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
         return null;
     }
 
+    private final ScreenModeStatus getScreenModeStatus(boolean throwException) {
+        final String key = this.getFQName();
+        final ScreenModeStatus res = ScreenModeStatus.getScreenModeStatus(key);
+        if(null == res & throwException) {
+            throw new InternalError("ScreenModeStatus.getScreenModeStatus("+key+") == null");
+        }
+        return res;
+    }
+    
     public ScreenMode getOriginalScreenMode() {
-        ScreenModeStatus sms = ScreenModeStatus.getScreenModeStatus(this.getFQName());
+        final ScreenModeStatus sms = getScreenModeStatus(false);
         return ( null != sms ) ? sms.getOriginalScreenMode() : null ;
     }
 
     public ScreenMode getCurrentScreenMode() {
         ScreenMode smU = null;
-        ScreenModeStatus sms = ScreenModeStatus.getScreenModeStatus(this.getFQName());
-        if(null == sms) {
-            throw new InternalError("ScreenModeStatus.getScreenModeStatus("+this.getFQName()+") == null");            
-        }
-        ScreenMode sm0 = getCurrentScreenModeIntern();
+        final ScreenModeStatus sms = getScreenModeStatus(true);
+        final ScreenMode sm0 = getCurrentScreenModeIntern();
         if(null == sm0) {
             throw new InternalError("getCurrentScreenModeImpl() == null");
         }
@@ -378,12 +384,23 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
                 System.err.println("Screen.setCurrentScreenMode ("+(System.nanoTime()-tStart)/1e6+"ms): fireScreenModeChangeNotify() "+smU);
             }
 
-            success = setCurrentScreenModeImpl(smU);                                
-            if(DEBUG) {
-                System.err.println("Screen.setCurrentScreenMode ("+(System.nanoTime()-tStart)/1e6+"ms): setCurrentScreenModeImpl() "+smU+", success: "+success);
+            success = setCurrentScreenModeImpl(smU);
+            if(success) {
+                if(DEBUG) {
+                    System.err.println("Screen.setCurrentScreenMode ("+(System.nanoTime()-tStart)/1e6+"ms): setCurrentScreenModeImpl() "+smU+", success(1): "+success);
+                }
+            } else {
+                // 2nd attempt validate!
+                final ScreenMode queriedCurrent = getCurrentScreenMode(); // may fireScreenModeChanged(..) if successful and differs!
+                final ScreenMode smsCurrent = sms.getCurrentScreenMode();
+                success = smsCurrent.hashCode() == smU.hashCode() && queriedCurrent.hashCode() == smU.hashCode() ;
+                if(DEBUG) {
+                    System.err.println("Screen.setCurrentScreenMode.2: queried "+queriedCurrent);
+                    System.err.println("Screen.setCurrentScreenMode.2:     SMS "+smsCurrent);
+                    System.err.println("Screen.setCurrentScreenMode ("+(System.nanoTime()-tStart)/1e6+"ms): setCurrentScreenModeImpl() "+smU+", success(2): "+success);
+                }
             }
-
-            sms.fireScreenModeChanged(smU, success);                            
+            sms.fireScreenModeChanged(smU, success);
             if(DEBUG) {
                 System.err.println("Screen.setCurrentScreenMode ("+(System.nanoTime()-tStart)/1e6+"ms): X.X "+smU+", success: "+success);
             }
@@ -482,7 +499,7 @@ public abstract class ScreenImpl extends Screen implements ScreenModeListener {
             res = getCurrentScreenModeImpl();
         }
         if(null == res) {
-            if( 0==getWidth()*getHeight() ) {
+            if( 0>=getWidth() || 0>=getHeight() ) {
                 updateVirtualScreenOriginAndSize();
             }
             int[] props = new int[ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL];
