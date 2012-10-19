@@ -102,7 +102,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     private static final boolean includesES1(GLDynamicLookupHelper dl) {
         return 0 != dl.dynamicLookupFunction("glLoadIdentity") &&
                0 != dl.dynamicLookupFunction("glEnableClientState") &&
-               0 != dl.dynamicLookupFunction("glBegin") &&
                0 != dl.dynamicLookupFunction("glColorPointer");
     }
     
