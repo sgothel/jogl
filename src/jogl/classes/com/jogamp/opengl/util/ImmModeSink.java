@@ -526,7 +526,7 @@ public class ImmModeSink {
             Buffers.putNb(vertexArray, vDataTypeSigned, x, true);
         if(vComps>1)
             Buffers.putNb(vertexArray, vDataTypeSigned, y, true);
-        padding(VERTEX, vComps-2);
+        countAndPadding(VERTEX, vComps-2);
     }
     public void glVertex3b(byte x, byte y, byte z) {
         checkSeal(false);
@@ -537,7 +537,7 @@ public class ImmModeSink {
             Buffers.putNb(vertexArray, vDataTypeSigned, y, true);
         if(vComps>2)
             Buffers.putNb(vertexArray, vDataTypeSigned, z, true);
-        padding(VERTEX, vComps-3);
+        countAndPadding(VERTEX, vComps-3);
     }
     public void glVertex2s(short x, short y) {
         checkSeal(false);
@@ -546,7 +546,7 @@ public class ImmModeSink {
             Buffers.putNs(vertexArray, vDataTypeSigned, x, true);
         if(vComps>1) 
             Buffers.putNs(vertexArray, vDataTypeSigned, y, true);
-        padding(VERTEX, vComps-2);
+        countAndPadding(VERTEX, vComps-2);
     }
     public void glVertex3s(short x, short y, short z) {
         checkSeal(false);
@@ -557,7 +557,7 @@ public class ImmModeSink {
             Buffers.putNs(vertexArray, vDataTypeSigned, y, true);
         if(vComps>2) 
             Buffers.putNs(vertexArray, vDataTypeSigned, z, true);
-        padding(VERTEX, vComps-3);
+        countAndPadding(VERTEX, vComps-3);
     }
     public void glVertex2f(float x, float y) {
         checkSeal(false);
@@ -566,7 +566,7 @@ public class ImmModeSink {
             Buffers.putNf(vertexArray, vDataTypeSigned, x);
         if(vComps>1)
             Buffers.putNf(vertexArray, vDataTypeSigned, y);
-        padding(VERTEX, vComps-2);
+        countAndPadding(VERTEX, vComps-2);
     }
     public void glVertex3f(float x, float y, float z) {
         checkSeal(false);
@@ -577,7 +577,7 @@ public class ImmModeSink {
             Buffers.putNf(vertexArray, vDataTypeSigned, y);
         if(vComps>2) 
             Buffers.putNf(vertexArray, vDataTypeSigned, z);
-        padding(VERTEX, vComps-3);
+        countAndPadding(VERTEX, vComps-3);
     }
 
     public void glNormal3b(byte x, byte y, byte z) {
@@ -589,7 +589,7 @@ public class ImmModeSink {
             Buffers.putNb(normalArray, nDataTypeSigned, y, true);
         if(nComps>2) 
             Buffers.putNb(normalArray, nDataTypeSigned, z, true);
-        padding(NORMAL, nComps-3);
+        countAndPadding(NORMAL, nComps-3);
     }
     public void glNormal3s(short x, short y, short z) {
         checkSeal(false);
@@ -600,7 +600,7 @@ public class ImmModeSink {
             Buffers.putNs(normalArray, nDataTypeSigned, y, true);
         if(nComps>2) 
             Buffers.putNs(normalArray, nDataTypeSigned, z, true);
-        padding(NORMAL, nComps-3);
+        countAndPadding(NORMAL, nComps-3);
     }
     public void glNormal3f(float x, float y, float z) {
         checkSeal(false);
@@ -611,7 +611,7 @@ public class ImmModeSink {
             Buffers.putNf(normalArray, nDataTypeSigned, y);
         if(nComps>2) 
             Buffers.putNf(normalArray, nDataTypeSigned, z);
-        padding(NORMAL, nComps-3);
+        countAndPadding(NORMAL, nComps-3);
     }
 
     public void glColor3b(byte r, byte g, byte b) {
@@ -623,7 +623,7 @@ public class ImmModeSink {
             Buffers.putNb(colorArray, cDataTypeSigned, g, true);
         if(cComps>2) 
             Buffers.putNb(colorArray, cDataTypeSigned, b, true);
-        padding(COLOR, cComps-3);
+        countAndPadding(COLOR, cComps-3);
     }
     public void glColor3ub(byte r, byte g, byte b) {
         checkSeal(false);
@@ -634,7 +634,7 @@ public class ImmModeSink {
             Buffers.putNb(colorArray, cDataTypeSigned, g, false);
         if(cComps>2) 
             Buffers.putNb(colorArray, cDataTypeSigned, b, false);
-        padding(COLOR, cComps-3);
+        countAndPadding(COLOR, cComps-3);
     }
     public void glColor4b(byte r, byte g, byte b, byte a) {
         checkSeal(false);
@@ -647,7 +647,7 @@ public class ImmModeSink {
             Buffers.putNb(colorArray, cDataTypeSigned, b, true);
         if(cComps>3) 
             Buffers.putNb(colorArray, cDataTypeSigned, a, true);
-        padding(COLOR, cComps-4);
+        countAndPadding(COLOR, cComps-4);
     }
     public void glColor4ub(byte r, byte g, byte b, byte a) {
         checkSeal(false);
@@ -660,7 +660,7 @@ public class ImmModeSink {
             Buffers.putNb(colorArray, cDataTypeSigned, b, false);
         if(cComps>3) 
             Buffers.putNb(colorArray, cDataTypeSigned, a, false);
-        padding(COLOR, cComps-4);
+        countAndPadding(COLOR, cComps-4);
     }
     public void glColor3s(short r, short g, short b) {
         checkSeal(false);
@@ -671,7 +671,7 @@ public class ImmModeSink {
             Buffers.putNs(colorArray, cDataTypeSigned, g, true);
         if(cComps>2) 
             Buffers.putNs(colorArray, cDataTypeSigned, b, true);
-        padding(COLOR, cComps-3);
+        countAndPadding(COLOR, cComps-3);
     }
     public void glColor4s(short r, short g, short b, short a) {
         checkSeal(false);
@@ -684,7 +684,7 @@ public class ImmModeSink {
             Buffers.putNs(colorArray, cDataTypeSigned, b, true);
         if(cComps>3) 
             Buffers.putNs(colorArray, cDataTypeSigned, a, true);
-        padding(COLOR, cComps-4);
+        countAndPadding(COLOR, cComps-4);
     }
     public void glColor3f(float r, float g, float b) {
         checkSeal(false);
@@ -695,7 +695,7 @@ public class ImmModeSink {
             Buffers.putNf(colorArray, cDataTypeSigned, g);
         if(cComps>2) 
             Buffers.putNf(colorArray, cDataTypeSigned, b);
-        padding(COLOR, cComps-3);
+        countAndPadding(COLOR, cComps-3);
     }
     public void glColor4f(float r, float g, float b, float a) {
         checkSeal(false);
@@ -708,7 +708,7 @@ public class ImmModeSink {
             Buffers.putNf(colorArray, cDataTypeSigned, b);
         if(cComps>3) 
             Buffers.putNf(colorArray, cDataTypeSigned, a);
-        padding(COLOR, cComps-4);
+        countAndPadding(COLOR, cComps-4);
     }
 
     public void glTexCoord2b(byte x, byte y) {
@@ -718,7 +718,7 @@ public class ImmModeSink {
             Buffers.putNb(textCoordArray, tDataTypeSigned, x, true);
         if(tComps>1) 
             Buffers.putNb(textCoordArray, tDataTypeSigned, y, true);
-        padding(TEXTCOORD, tComps-2);
+        countAndPadding(TEXTCOORD, tComps-2);
     }
     public void glTexCoord3b(byte x, byte y, byte z) {
         checkSeal(false);
@@ -729,7 +729,7 @@ public class ImmModeSink {
             Buffers.putNb(textCoordArray, tDataTypeSigned, y, true);
         if(tComps>2) 
             Buffers.putNb(textCoordArray, tDataTypeSigned, z, true);
-        padding(TEXTCOORD, tComps-3);
+        countAndPadding(TEXTCOORD, tComps-3);
     }
     public void glTexCoord2s(short x, short y) {
         checkSeal(false);
@@ -738,7 +738,7 @@ public class ImmModeSink {
             Buffers.putNs(textCoordArray, tDataTypeSigned, x, true);
         if(tComps>1) 
             Buffers.putNs(textCoordArray, tDataTypeSigned, y, true);
-        padding(TEXTCOORD, tComps-2);
+        countAndPadding(TEXTCOORD, tComps-2);
     }
     public void glTexCoord3s(short x, short y, short z) {
         checkSeal(false);
@@ -749,7 +749,7 @@ public class ImmModeSink {
             Buffers.putNs(textCoordArray, tDataTypeSigned, y, true);
         if(tComps>2) 
             Buffers.putNs(textCoordArray, tDataTypeSigned, z, true);
-        padding(TEXTCOORD, tComps-3);
+        countAndPadding(TEXTCOORD, tComps-3);
     }
     public void glTexCoord2f(float x, float y) {
         checkSeal(false);
@@ -758,7 +758,7 @@ public class ImmModeSink {
             Buffers.putNf(textCoordArray, tDataTypeSigned, x);
         if(tComps>1) 
             Buffers.putNf(textCoordArray, tDataTypeSigned, y);
-        padding(TEXTCOORD, tComps-2);
+        countAndPadding(TEXTCOORD, tComps-2);
     }
     public void glTexCoord3f(float x, float y, float z) {
         checkSeal(false);
@@ -769,7 +769,7 @@ public class ImmModeSink {
             Buffers.putNf(textCoordArray, tDataTypeSigned, y);
         if(tComps>2) 
             Buffers.putNf(textCoordArray, tDataTypeSigned, z);
-        padding(TEXTCOORD, tComps-3);
+        countAndPadding(TEXTCOORD, tComps-3);
     }
 
     public void rewind() {
@@ -1201,37 +1201,47 @@ public class ImmModeSink {
         return false;
     }
 
-    protected void padding(int type, int fill) {
+    /**
+     * Fourth element default value for color (alpha), vertex (w) is '1',
+     * as specified w/ VertexAttributes (ES2/GL3).
+     * <p>
+     * vec4 v = vec4(0, 0, 0, 1);
+     * vec4 c = vec4(0, 0, 0, 1);
+     * </p>
+     * 
+     * @param type
+     * @param fill
+     */
+    private void countAndPadding(int type, int fill) {
         if ( sealed ) return;
 
         final Buffer dest;
         final boolean dSigned;
-        final float v;
-        
-        
+        final int e;
+                
         switch (type) {
             case VERTEX:
                 dest = vertexArray;
                 dSigned = vDataTypeSigned;
-                v = 0f;
+                e = 4 == vComps ? 1 : 0;
                 vElems++;
                 break;
             case COLOR:
                 dest = colorArray;
                 dSigned = cDataTypeSigned;
-                v = 1f;
+                e = 4 == cComps ? 1 : 0;
                 cElems++;
                 break;
             case NORMAL:
                 dest = normalArray;
                 dSigned = nDataTypeSigned;
-                v = 0f;
+                e = 0;
                 nElems++;
                 break;
             case TEXTCOORD:
                 dest = textCoordArray;
                 dSigned = tDataTypeSigned;
-                v = 0f;
+                e = 0;
                 tElems++;
                 break;
             default: throw new InternalError("Invalid type "+type);
@@ -1239,8 +1249,12 @@ public class ImmModeSink {
 
         if ( null==dest ) return;
 
-        while((fill--)>0) {
-            Buffers.putNf(dest, dSigned, v);
+        while( fill > e ) {
+            fill--;
+            Buffers.putNf(dest, dSigned, 0f);            
+        }
+        if( e > 0 ) {
+            Buffers.putNf(dest, dSigned, 1f);
         }
     }
 
