@@ -38,8 +38,10 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES1;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLArrayData;
 import javax.media.opengl.GLException;
+import javax.media.opengl.GLRunnable2;
 import javax.media.opengl.GLUniformData;
 import javax.media.opengl.fixedfunc.GLLightingFunc;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
@@ -213,6 +215,22 @@ public class FixedFuncPipeline {
     // MULTI-TEXTURE
     //
 
+    /** Enables/Disables the named texture unit (if changed), returns previous state */
+    private boolean glEnableTexture(boolean enable, int unit) {
+        final boolean isEnabled = 0 != ( textureEnabledBits & ( 1 << activeTextureUnit ) );  
+        if( isEnabled != enable ) {
+            if(enable) {
+                textureEnabledBits |=  ( 1 << unit );
+                textureEnabled.put(unit, 1);
+            } else {
+                textureEnabledBits &= ~( 1 << unit );
+                textureEnabled.put(unit, 0);
+            }
+            textureEnabledDirty=true;
+        }
+        return isEnabled;
+    }
+    
     public void glClientActiveTexture(int textureUnit) {
         textureUnit -= GL.GL_TEXTURE0;
         if(0 <= textureUnit && textureUnit<MAX_TEXTURE_UNITS) {
@@ -339,38 +357,124 @@ public class FixedFuncPipeline {
     // Point Sprites
     //
     public void glPointSize(float size) {
-        pointParams.put(0, size);
+        pointParams1.put(0, size);
+        pointParamsDirty = true;                
     }
     public  void glPointParameterf(int pname, float param) {
         switch(pname) {
             case GL2ES1.GL_POINT_SIZE_MIN:
-                pointParams.put(2, param);
+                pointParams1.put(2, param);
                 break;
             case GL2ES1.GL_POINT_SIZE_MAX:
-                pointParams.put(3, param);
+                pointParams1.put(3, param);
+                break;
+            case GL2ES2.GL_POINT_FADE_THRESHOLD_SIZE:
+                pointParams2.put(3, param);
                 break;
         }
+        pointParamsDirty = true;                
     }
     public  void glPointParameterfv(int pname, float[] params, int params_offset) {
         switch(pname) {
             case GL2ES1.GL_POINT_DISTANCE_ATTENUATION:
-                pointParams.put(4, params[params_offset + 0]);
-                pointParams.put(5, params[params_offset + 1]);
-                pointParams.put(6, params[params_offset + 2]);
+                pointParams2.put(0, params[params_offset + 0]);
+                pointParams2.put(1, params[params_offset + 1]);
+                pointParams2.put(2, params[params_offset + 2]);
                 break;
         }
+        pointParamsDirty = true;                
     }
     public  void glPointParameterfv(int pname, java.nio.FloatBuffer params) {
         final int o = params.position();
         switch(pname) {
             case GL2ES1.GL_POINT_DISTANCE_ATTENUATION:
-                pointParams.put(4, params.get(o + 0));
-                pointParams.put(5, params.get(o + 1));
-                pointParams.put(6, params.get(o + 2));
+                pointParams2.put(0, params.get(o + 0));
+                pointParams2.put(1, params.get(o + 1));
+                pointParams2.put(2, params.get(o + 2));
                 break;
         }
+        pointParamsDirty = true;                
     }
 
+    // private int[] pointTexObj = new int[] { 0 };
+    
+    private void glDrawPoints(GL2ES2 gl, GLRunnable2<Object,Object> glDrawAction, Object args) {
+        /**
+         * FIXME: 
+         * 
+         * Event thought it works using a texture and gl_PointCoord in frag shader,
+         * I don't see the point here (lol) if gl_PointSize must be 1.0 in vert shader ..
+         * otherwise nothing is seen on ES2.0. 
+         * On Desktop POINTS are always shown as 1 pixel sized points!
+
+        final int prevActiveTextureUnit = activeTextureUnit;
+        final int prevBoundTextureObject = this.boundTextureObject[0];
+        glActiveTexture(GL.GL_TEXTURE0);
+        gl.glActiveTexture(GL.GL_TEXTURE0);
+        if( 0 == pointTexObj[0] ) {
+            gl.glGenTextures(1, pointTexObj, 0);
+            glBindTexture(GL.GL_TEXTURE_2D, pointTexObj[0]);
+            gl.glBindTexture(GL.GL_TEXTURE_2D, pointTexObj[0]);
+            final int sz = 32;
+            ByteBuffer bb = Buffers.newDirectByteBuffer(sz*sz*4);
+            for(int i=sz*sz*4-1; 0<=i; i--) {
+                bb.put(i, (byte)0xff);
+            }
+            glTexImage2D(GL.GL_TEXTURE_2D, GL.GL_RGBA, GL.GL_RGBA);   
+            gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, sz, sz, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, bb);
+            gl.glTexParameteri ( GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR );
+            gl.glTexParameteri ( GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR );
+            gl.glTexParameteri ( GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT );
+            gl.glTexParameteri ( GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT ); 
+        } else {
+            glBindTexture(GL.GL_TEXTURE_2D, pointTexObj[0]);
+            gl.glBindTexture(GL.GL_TEXTURE_2D, pointTexObj[0]);
+        }        
+        final boolean wasEnabled = glEnableTexture(true, 0);
+        */
+        
+        loadShaderPoints(gl);
+        shaderState.attachShaderProgram(gl, shaderProgramPoints, true);
+        validate(gl, false); // sync uniforms
+        if(gl.isGL2GL3()) {
+            // if(gl.isGL2()) {
+            //    gl.glEnable(GL2.GL_POINT_SPRITE);
+            //}
+            gl.glEnable(GL2GL3.GL_VERTEX_PROGRAM_POINT_SIZE);
+        }
+
+        glDrawAction.run(gl, args);
+                
+        if(gl.isGL2GL3()) {
+            gl.glDisable(GL2GL3.GL_VERTEX_PROGRAM_POINT_SIZE);
+            // if(gl.isGL2()) {
+            //    gl.glDisable(GL2.GL_POINT_SPRITE);
+            //}
+        }
+        /**
+        if( 0 != prevBoundTextureObject ) {
+            glBindTexture(GL.GL_TEXTURE_2D, prevBoundTextureObject);            
+            gl.glBindTexture(GL.GL_TEXTURE_2D, prevBoundTextureObject);
+        }
+        glActiveTexture(GL.GL_TEXTURE0+prevActiveTextureUnit);
+        gl.glActiveTexture(GL.GL_TEXTURE0+prevActiveTextureUnit);        
+        if(!wasEnabled) {
+            glEnableTexture(false, 0);
+        } */
+        shaderState.attachShaderProgram(gl, selectShaderProgram(gl, currentShaderSelectionMode), true);
+    }
+    private static final GLRunnable2<Object, Object> glDrawArraysAction = new GLRunnable2<Object,Object>() {
+        @Override
+        public Object run(GL gl, Object args) {
+            int[] _args = (int[])args;
+            gl.glDrawArrays(GL.GL_POINTS, _args[0], _args[1]);
+            return null;
+        }        
+    };    
+    private final void glDrawPointArrays(GL2ES2 gl, int first, int count) {
+        glDrawPoints(gl, glDrawArraysAction, new int[] { first, count });        
+    }
+    
     //
     // Lighting
     // 
@@ -554,7 +658,7 @@ public class FixedFuncPipeline {
             }
         }
     }
-    
+
     /**
      * @return false if digested in regard to GL2ES2 spec, 
      *         eg this call must not be passed to an underlying ES2 implementation.
@@ -587,17 +691,7 @@ public class FixedFuncPipeline {
                 return true;
                 
             case GL.GL_TEXTURE_2D:
-                final boolean isEnabled = 0 != ( textureEnabledBits & ( 1 << activeTextureUnit ) );  
-                if( isEnabled != enable ) {
-                    if(enable) {
-                        textureEnabledBits |=  ( 1 << activeTextureUnit );
-                        textureEnabled.put(activeTextureUnit, 1);
-                    } else {
-                        textureEnabledBits &= ~( 1 << activeTextureUnit );
-                        textureEnabled.put(activeTextureUnit, 0);
-                    }
-                    textureEnabledDirty=true;
-                }
+                glEnableTexture(enable, activeTextureUnit);
                 return false;
                 
             case GLLightingFunc.GL_LIGHTING:
@@ -618,7 +712,8 @@ public class FixedFuncPipeline {
                 return false;
                 
             case GL2ES1.GL_POINT_SMOOTH:
-                pointParams.put(1, enable ? 1.0f : 0.0f);
+                pointParams1.put(1, enable ? 1.0f : 0.0f);
+                pointParamsDirty = true;
                 return false;
         }
 
@@ -639,7 +734,6 @@ public class FixedFuncPipeline {
     //
     
     public void glDrawArrays(GL2ES2 gl, int mode, int first, int count) {
-        validate(gl);
         switch(mode) {
             case GL2.GL_QUAD_STRIP:
                 mode=GL.GL_TRIANGLE_STRIP;
@@ -647,20 +741,21 @@ public class FixedFuncPipeline {
             case GL2.GL_POLYGON:
                 mode=GL.GL_TRIANGLE_FAN;
                 break;
+            case GL2ES1.GL_POINTS:
+                glDrawPointArrays(gl, first, count);
+                return;
         }
+        validate(gl, true);
         if ( GL2.GL_QUADS == mode && !gl.isGL2() ) {
             for (int j = first; j < count - 3; j += 4) {
                 gl.glDrawArrays(GL.GL_TRIANGLE_FAN, j, 4);
             }
-        } else if( GL2ES1.GL_POINTS != mode ) {            
+        } else {            
             gl.glDrawArrays(mode, first, count);
-        } else {
-            // FIXME GL_POINTS !
-            gl.glDrawArrays(mode, first, count);            
         }
     }
     public void glDrawElements(GL2ES2 gl, int mode, int count, int type, java.nio.Buffer indices) {
-        validate(gl); 
+        validate(gl, true); 
         if ( GL2.GL_QUADS == mode && !gl.isGL2() ) {
             final int idx0 = indices.position();
             
@@ -688,7 +783,7 @@ public class FixedFuncPipeline {
         }
     }
     public void glDrawElements(GL2ES2 gl, int mode, int count, int type, long indices_buffer_offset) {
-        validate(gl); 
+        validate(gl, true); 
         if ( GL2.GL_QUADS == mode && !gl.isGL2() ) {
             throw new GLException("Cannot handle indexed QUADS on !GL2 w/ VBO due to lack of CPU index access");
         } else if( GL2ES1.GL_POINTS != mode ) {            
@@ -709,34 +804,36 @@ public class FixedFuncPipeline {
         return n;
     }
     
-    public void validate(GL2ES2 gl) {
-        if( ShaderSelectionMode.AUTO == requestedShaderSelectionMode) {
-            final ShaderSelectionMode newMode;
-            
-            // pre-validate shader switch
-            if( 0 != textureEnabledBits ) {
-                if(lightingEnabled) {
-                    newMode = ShaderSelectionMode.COLOR_TEXTURE8_LIGHT_PER_VERTEX;
-                } else {
-                    final int n = textureEnabledCount();
-                    if( 4 < n ) {
-                        newMode = ShaderSelectionMode.COLOR_TEXTURE8;
-                    } else if ( 2 < n ) {
-                        newMode = ShaderSelectionMode.COLOR_TEXTURE4;
+    public void validate(GL2ES2 gl, boolean selectShader) {
+        if( selectShader ) {
+            if( ShaderSelectionMode.AUTO == requestedShaderSelectionMode) {
+                final ShaderSelectionMode newMode;
+                
+                // pre-validate shader switch
+                if( 0 != textureEnabledBits ) {
+                    if(lightingEnabled) {
+                        newMode = ShaderSelectionMode.COLOR_TEXTURE8_LIGHT_PER_VERTEX;
                     } else {
-                        newMode = ShaderSelectionMode.COLOR_TEXTURE2;
+                        final int n = textureEnabledCount();
+                        if( 4 < n ) {
+                            newMode = ShaderSelectionMode.COLOR_TEXTURE8;
+                        } else if ( 2 < n ) {
+                            newMode = ShaderSelectionMode.COLOR_TEXTURE4;
+                        } else {
+                            newMode = ShaderSelectionMode.COLOR_TEXTURE2;
+                        }
+                    }
+                } else {
+                    if(lightingEnabled) {
+                        newMode = ShaderSelectionMode.COLOR_LIGHT_PER_VERTEX;
+                    } else {
+                        newMode = ShaderSelectionMode.COLOR;
                     }
                 }
+                shaderState.attachShaderProgram(gl, selectShaderProgram(gl, newMode), true); // enables shader-program implicit
             } else {
-                if(lightingEnabled) {
-                    newMode = ShaderSelectionMode.COLOR_LIGHT_PER_VERTEX;
-                } else {
-                    newMode = ShaderSelectionMode.COLOR;
-                }
+                shaderState.useProgram(gl, true);
             }
-            shaderState.attachShaderProgram(gl, selectShaderProgram(gl, newMode), true); // enables shader-program implicit
-        } else {
-            shaderState.useProgram(gl, true);
         }
         
         GLUniformData ud;
@@ -793,6 +890,21 @@ public class FixedFuncPipeline {
             }
             alphaTestDirty = false;
         }
+        if(pointParamsDirty) {
+            /** FIXME 
+            ud = shaderState.getUniform(mgl_PointParams1);
+            if(null!=ud) {
+                // same data object 
+                shaderState.uniform(gl, ud);
+            }
+            ud = shaderState.getUniform(mgl_PointParams2);
+            if(null!=ud) {
+                // same data object 
+                shaderState.uniform(gl, ud);
+            } */
+            pointParamsDirty = false;
+        }
+        
         if(lightsEnabledDirty) {
             ud = shaderState.getUniform(mgl_LightsEnabled);
             if(null!=ud) {
@@ -872,7 +984,9 @@ public class FixedFuncPipeline {
     // Shall we use: #ifdef GL_FRAGMENT_PRECISION_HIGH .. #endif for using highp in fragment shader if avail ? 
     static final String es2_prelude_vp = "#version 100\n\nprecision highp float;\nprecision highp int;\n";
     static final String es2_prelude_fp = "#version 100\n\nprecision mediump float;\nprecision mediump int;\n/*precision lowp sampler2D;*/\n";
-    static final String gl2_prelude = "#version 110\n";
+    // static final String gl2_prelude = "#version 110\n";  // GL 2.0
+    // static final String gl2_prelude = "#version 120\n"; // GL 2.1 (Nvidia driver claims it's required to use gl_Points -> driver bug)
+    static final String gl2_prelude = "// version 110\n";
     
     private static final String constMaxTextures0 = "#define MAX_TEXTURE_UNITS 0\n";
     private static final String constMaxTextures2 = "#define MAX_TEXTURE_UNITS 2\n";
@@ -891,6 +1005,24 @@ public class FixedFuncPipeline {
         vp.insertShaderSource(0, rsVpPos, maxTextureDefine);
         fp.insertShaderSource(0, rsFpPos, maxTextureDefine); 
     }
+
+    private void loadShaderPoints(GL2ES2 gl) {
+        if( null != shaderProgramPoints ) {
+            return;
+        }
+        
+        final ShaderCode vp = ShaderCode.create( gl, GL2ES2.GL_VERTEX_SHADER, shaderRootClass, shaderSrcRoot,
+                                         shaderBinRoot, vertexPointsFileDef, true);
+        final ShaderCode fp = ShaderCode.create( gl, GL2ES2.GL_FRAGMENT_SHADER, shaderRootClass, shaderSrcRoot,
+                                           shaderBinRoot, fragmentPointsFileDef, true);
+        customizeShader(gl, vp, fp, constMaxTextures2);
+        shaderProgramPoints = new ShaderProgram();
+        shaderProgramPoints.add(vp);
+        shaderProgramPoints.add(fp);
+        if(!shaderProgramPoints.link(gl, System.err)) {
+            throw new GLException("Couldn't link VertexColor program: "+shaderProgramPoints);
+        }        
+    }
     
     private void loadShader(GL2ES2 gl, ShaderSelectionMode mode) {
         final boolean loadColor = ShaderSelectionMode.COLOR == mode;
@@ -900,7 +1032,7 @@ public class FixedFuncPipeline {
         final boolean loadColorTexture = loadColorTexture2 || loadColorTexture4 || loadColorTexture8 ; 
         final boolean loadColorLightPerVertex = ShaderSelectionMode.COLOR_LIGHT_PER_VERTEX == mode;
         final boolean loadColorTexture8LightPerVertex = ShaderSelectionMode.COLOR_TEXTURE8_LIGHT_PER_VERTEX == mode;
-
+        
         if( null != shaderProgramColor && loadColor ||
             null != shaderProgramColorTexture2 && loadColorTexture2 ||
             null != shaderProgramColorTexture4 && loadColorTexture4 ||
@@ -1040,7 +1172,9 @@ public class FixedFuncPipeline {
         /** ES2 supports CullFace implicit
         shaderState.uniform(gl, new GLUniformData(mgl_CullFace, cullFace)); */
         shaderState.uniform(gl, new GLUniformData(mgl_AlphaTestFunc, alphaTestFunc));
-        shaderState.uniform(gl, new GLUniformData(mgl_AlphaTestRef, alphaTestRef));              
+        shaderState.uniform(gl, new GLUniformData(mgl_AlphaTestRef, alphaTestRef));   
+        shaderState.uniform(gl, new GLUniformData(mgl_PointParams1, 4, pointParams1));
+        shaderState.uniform(gl, new GLUniformData(mgl_PointParams2, 4, pointParams2));
         for(int i=0; i<MAX_LIGHTS; i++) {
             shaderState.uniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].ambient", 4, defAmbient));
             shaderState.uniform(gl, new GLUniformData(mgl_LightSource+"["+i+"].diffuse", 4, 0==i ? one4f : defDiffuseN));
@@ -1104,11 +1238,11 @@ public class FixedFuncPipeline {
     private int alphaTestFunc=-8; // <=0 disabled; 1 GL_NEVER, 2 GL_LESS, 3 GL_EQUAL, 4 GL_LEQUAL, 5 GL_GREATER, 6 GL_NOTEQUAL, 7 GL_GEQUAL, and 8 GL_ALWAYS (default)
     private float alphaTestRef=0f;
     
-    // pointSize, pointSmooth, attn. pointMinSize, attn. pointMaxSize
-    // attenuation coefficients 1f 0f 0f 
-    // attenuation alpha theshold 1f 
-    private final FloatBuffer pointParams = Buffers.newDirectFloatBuffer(new float[] { 1.0f, 0.0f, 0.0f, 1.0f, 
-                                                                                       1.0f, 0.0f, 0.0f, 1.0f });
+    private boolean pointParamsDirty = false;
+    /** pointSize, pointSmooth, attn. pointMinSize, attn. pointMaxSize */
+    private final FloatBuffer pointParams1 = Buffers.newDirectFloatBuffer(new float[] {  1.0f, 0.0f, 0.0f, 1.0f });
+    /** attenuation coefficients 1f 0f 0f, attenuation alpha theshold 1f */ 
+    private final FloatBuffer pointParams2 = Buffers.newDirectFloatBuffer(new float[] {  1.0f, 0.0f, 0.0f, 1.0f });
         
     private PMVMatrix pmvMatrix;
     private ShaderState shaderState;
@@ -1116,6 +1250,7 @@ public class FixedFuncPipeline {
     private ShaderProgram shaderProgramColorTexture2, shaderProgramColorTexture4, shaderProgramColorTexture8;
     private ShaderProgram shaderProgramColorLight;
     private ShaderProgram shaderProgramColorTexture8Light;
+    private ShaderProgram shaderProgramPoints;
     
     private ShaderSelectionMode requestedShaderSelectionMode = ShaderSelectionMode.AUTO;
     private ShaderSelectionMode currentShaderSelectionMode = requestedShaderSelectionMode;
@@ -1133,7 +1268,8 @@ public class FixedFuncPipeline {
     private static final String mgl_AlphaTestFunc    = "mgl_AlphaTestFunc";   //  1i (lowp int)
     private static final String mgl_AlphaTestRef     = "mgl_AlphaTestRef";    //  1f    
     private static final String mgl_ShadeModel       = "mgl_ShadeModel";      //  1i
-    private static final String mgl_PointParams      = "mgl_PointParams";     //  8f (sz, smooth, attnMinSz, attnMaxSz, attnCoeff(3), attnAlphaTs)
+    private static final String mgl_PointParams1     = "mgl_PointParams1";    //  4f (sz, smooth, attnMinSz, attnMaxSz)
+    private static final String mgl_PointParams2     = "mgl_PointParams2";    //  4f (attnCoeff(3), attnAlphaTs)
 
     private static final String mgl_TextureEnabled   = "mgl_TextureEnabled";  //  int mgl_TextureEnabled[MAX_TEXTURE_UNITS];
     private static final String mgl_Texture          = "mgl_Texture";         //  sampler2D mgl_Texture<0..7>
@@ -1168,6 +1304,8 @@ public class FixedFuncPipeline {
     private static final String vertexColorLightFileDef      = "FixedFuncColorLight";
     private static final String fragmentColorFileDef         = "FixedFuncColor";
     private static final String fragmentColorTextureFileDef  = "FixedFuncColorTexture";
+    private static final String vertexPointsFileDef          = "FixedFuncPoints";
+    private static final String fragmentPointsFileDef        = vertexPointsFileDef;
     private static final String shaderSrcRootDef             = "shaders" ;
     private static final String shaderBinRootDef             = "shaders/bin" ;
     

@@ -11,7 +11,8 @@ uniform LOWP    int     mgl_ColorEnabled;
 uniform         vec4    mgl_ColorStatic;
 uniform LOWP    int     mgl_AlphaTestFunc;
 uniform         float   mgl_AlphaTestRef;
-uniform         float   mgl_PointParams[8]; // sz, smooth, attnMinSz, attnMaxSz, attnCoeff(3), attnAlphaTs
+uniform MEDIUMP float   mgl_PointParams1[4]; // sz, smooth, attnMinSz, attnMaxSz
+uniform MEDIUMP float   mgl_PointParams2[4]; // attnCoeff(3), attnAlphaTs
 
 // uniform LOWP int    mgl_CullFace; // ES2 supports CullFace implicit ..
 #if MAX_TEXTURE_UNITS > 0
