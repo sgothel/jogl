@@ -253,16 +253,10 @@ public class GLArrayDataWrapper implements GLArrayData {
     
     this.componentType = componentType;
     componentClazz = getBufferClass(componentType);
-    switch(componentType) {
-        case GL.GL_BYTE:
-        case GL.GL_UNSIGNED_BYTE:
-        case GL.GL_SHORT:
-        case GL.GL_UNSIGNED_SHORT:
-        case GL.GL_FIXED:
-            this.normalized = normalized;
-            break;
-        default:    
-            this.normalized = false;
+    if( GLBuffers.isGLTypeFixedPoint(componentType) ) {
+        this.normalized = normalized;
+    } else {
+        this.normalized = false;
     }
     componentByteSize = GLBuffers.sizeOfGLType(componentType);
     if(0 > componentByteSize) {

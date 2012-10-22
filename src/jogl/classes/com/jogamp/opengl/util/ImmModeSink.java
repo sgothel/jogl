@@ -1137,25 +1137,29 @@ public class ImmModeSink {
         buffer.flip();
 
         if(vComps>0) {
-            vArrayData = GLArrayDataWrapper.createFixed(GLPointerFunc.GL_VERTEX_ARRAY, vComps, vDataType, false, 0,
+            vArrayData = GLArrayDataWrapper.createFixed(GLPointerFunc.GL_VERTEX_ARRAY, vComps, 
+                                                        vDataType, GLBuffers.isGLTypeFixedPoint(vDataType), 0,
                                                         vertexArray, 0, vOffset, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER);
         } else {
             vArrayData = null;
         }
         if(cComps>0) {
-            cArrayData = GLArrayDataWrapper.createFixed(GLPointerFunc.GL_COLOR_ARRAY, cComps, cDataType, false, 0,
+            cArrayData = GLArrayDataWrapper.createFixed(GLPointerFunc.GL_COLOR_ARRAY, cComps, 
+                                                        cDataType, GLBuffers.isGLTypeFixedPoint(cDataType), 0,
                                                         colorArray, 0, cOffset, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER);
         } else {
             cArrayData = null;
         }
         if(nComps>0) {
-            nArrayData = GLArrayDataWrapper.createFixed(GLPointerFunc.GL_NORMAL_ARRAY, nComps, nDataType, false, 0,
+            nArrayData = GLArrayDataWrapper.createFixed(GLPointerFunc.GL_NORMAL_ARRAY, nComps, 
+                                                        nDataType, GLBuffers.isGLTypeFixedPoint(nDataType), 0,
                                                         normalArray, 0, nOffset, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER);
         } else {
             nArrayData = null;
         }
         if(tComps>0) {
-            tArrayData = GLArrayDataWrapper.createFixed(GLPointerFunc.GL_TEXTURE_COORD_ARRAY, tComps, tDataType, false, 0,
+            tArrayData = GLArrayDataWrapper.createFixed(GLPointerFunc.GL_TEXTURE_COORD_ARRAY, tComps, 
+                                                        tDataType, GLBuffers.isGLTypeFixedPoint(tDataType), 0,
                                                         textCoordArray, 0, tOffset, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER);
         } else {
             tArrayData = null;

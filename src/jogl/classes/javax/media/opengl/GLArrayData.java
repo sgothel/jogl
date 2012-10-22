@@ -145,7 +145,11 @@ public interface GLArrayData {
 
     /**
      * True, if GL shall normalize fixed point data while converting 
-     * them into float
+     * them into float.
+     * <p> 
+     * Default behavior (of the fixed function pipeline) is <code>true</code>
+     * for fixed point data type and <code>false</code> for floating point data types.
+     * </p>
      */
     public boolean getNormalized();
 

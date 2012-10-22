@@ -30,12 +30,9 @@
 package jogamp.opengl.util.glsl.fixedfunc;
 
 import java.nio.Buffer;
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLArrayData;
 import javax.media.opengl.GLException;
@@ -343,14 +340,15 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
 
     public void glVertexPointer(int size, int type, int stride, java.nio.Buffer pointer) {
-      glVertexPointer(GLArrayDataWrapper.createFixed(GL_VERTEX_ARRAY, size, type, false, stride, pointer, 0, 0, 0, GL.GL_ARRAY_BUFFER));
+      glVertexPointer(GLArrayDataWrapper.createFixed(GL_VERTEX_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride, 
+                                                     pointer, 0, 0, 0, GL.GL_ARRAY_BUFFER));
     }
     public void glVertexPointer(int size, int type, int stride, long pointer_buffer_offset) {
       int vboName = gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER);
       if(vboName==0) {
         throw new GLException("no GL_ARRAY_BUFFER VBO bound");
       }
-      glVertexPointer(GLArrayDataWrapper.createFixed(GL_VERTEX_ARRAY, size, type, false, stride, 
+      glVertexPointer(GLArrayDataWrapper.createFixed(GL_VERTEX_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride, 
                                                      null, vboName, pointer_buffer_offset, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER));
     }
 
@@ -370,7 +368,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
       fixedFunction.glColorPointer(gl, array);
     }
     public void glColorPointer(int size, int type, int stride, java.nio.Buffer pointer) {
-      glColorPointer(GLArrayDataWrapper.createFixed(GL_COLOR_ARRAY, size, type, false, stride, 
+      glColorPointer(GLArrayDataWrapper.createFixed(GL_COLOR_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride, 
                                                     pointer, 0, 0, 0, GL.GL_ARRAY_BUFFER));
     }
     public void glColorPointer(int size, int type, int stride, long pointer_buffer_offset) {
@@ -378,7 +376,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
       if(vboName==0) {
         throw new GLException("no GL_ARRAY_BUFFER VBO bound");
       }
-      glColorPointer(GLArrayDataWrapper.createFixed(GL_COLOR_ARRAY, size, type, false, stride, 
+      glColorPointer(GLArrayDataWrapper.createFixed(GL_COLOR_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride, 
                                                    null, vboName, pointer_buffer_offset, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER));
     }
 
@@ -401,7 +399,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
       fixedFunction.glNormalPointer(gl, array);
     }
     public void glNormalPointer(int type, int stride, java.nio.Buffer pointer) {
-      glNormalPointer(GLArrayDataWrapper.createFixed(GL_NORMAL_ARRAY, 3, type, false, stride, 
+      glNormalPointer(GLArrayDataWrapper.createFixed(GL_NORMAL_ARRAY, 3, type, GLBuffers.isGLTypeFixedPoint(type), stride, 
                                                      pointer, 0, 0, 0, GL.GL_ARRAY_BUFFER));
     }
     public void glNormalPointer(int type, int stride, long pointer_buffer_offset) {
@@ -409,7 +407,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
       if(vboName==0) {
         throw new GLException("no GL_ARRAY_BUFFER VBO bound");
       }
-      glNormalPointer(GLArrayDataWrapper.createFixed(GL_NORMAL_ARRAY, 3, type, false, stride, 
+      glNormalPointer(GLArrayDataWrapper.createFixed(GL_NORMAL_ARRAY, 3, type, GLBuffers.isGLTypeFixedPoint(type), stride, 
                                                      null, vboName, pointer_buffer_offset, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER));
     }
 
@@ -430,7 +428,8 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
     }
     public void glTexCoordPointer(int size, int type, int stride, java.nio.Buffer pointer) {
       glTexCoordPointer(
-        GLArrayDataWrapper.createFixed(GL_TEXTURE_COORD_ARRAY, size, type, false, stride, pointer, 0, 0, 0, GL.GL_ARRAY_BUFFER));
+        GLArrayDataWrapper.createFixed(GL_TEXTURE_COORD_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride, 
+                                       pointer, 0, 0, 0, GL.GL_ARRAY_BUFFER));
     }
     public void glTexCoordPointer(int size, int type, int stride, long pointer_buffer_offset) {
       int vboName = gl.glGetBoundBuffer(GL.GL_ARRAY_BUFFER);
@@ -438,7 +437,7 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         throw new GLException("no GL_ARRAY_BUFFER VBO bound");
       }
       glTexCoordPointer(
-        GLArrayDataWrapper.createFixed(GL_TEXTURE_COORD_ARRAY, size, type, false, stride, 
+        GLArrayDataWrapper.createFixed(GL_TEXTURE_COORD_ARRAY, size, type, GLBuffers.isGLTypeFixedPoint(type), stride, 
                                        null, vboName, pointer_buffer_offset, GL.GL_STATIC_DRAW, GL.GL_ARRAY_BUFFER) );
     }
 

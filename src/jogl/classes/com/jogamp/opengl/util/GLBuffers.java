@@ -78,6 +78,27 @@ public class GLBuffers extends Buffers {
     }
     
     /**
+     * @param glType GL primitive type
+     * @return false if one of GL primitive floating point types, otherwise true
+     *              GL_FLOAT, <br/>
+     *              GL_HALF_FLOAT, <br/>
+     *              GL_HALF_FLOAT_OES, <br/>
+     *              GL_DOUBLE <br/>
+     */
+    public static final boolean isGLTypeFixedPoint(int glType) {
+        switch(glType) {
+            case GL.GL_FLOAT:
+            case GL.GL_HALF_FLOAT:
+            case GLES2.GL_HALF_FLOAT_OES:
+            case GL2GL3.GL_DOUBLE:
+                return false;
+                
+            default:
+                return true;
+        }        
+    }
+    
+    /**
      * @param glType shall be one of (29) <br/>
      *              GL_BYTE, GL_UNSIGNED_BYTE, <br/>
      *              GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV, <br/>
