@@ -1,10 +1,11 @@
 
-#include es_precision.glsl
-#include mgl_lightdef.glsl
+// [0].rgba: 0, smooth, attnMinSz, attnMaxSz
+// [1].rgba: attnCoeff(3), attnFadeTs
+uniform vec4 mgl_PointParams[2]; 
 
-#include mgl_const.glsl
-#include mgl_uniform.glsl
-#include mgl_varying.glsl
+#define pointSmooth                 (mgl_PointParams[0].g)
+
+varying vec4 frontColor;
 
 // #define TEST 1
 

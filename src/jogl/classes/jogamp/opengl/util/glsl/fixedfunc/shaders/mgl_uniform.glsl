@@ -11,8 +11,19 @@ uniform LOWP    int     mgl_ColorEnabled;
 uniform         vec4    mgl_ColorStatic;
 uniform LOWP    int     mgl_AlphaTestFunc;
 uniform         float   mgl_AlphaTestRef;
-uniform MEDIUMP float   mgl_PointParams1[4]; // sz, smooth, attnMinSz, attnMaxSz
-uniform MEDIUMP float   mgl_PointParams2[4]; // attnCoeff(3), attnAlphaTs
+
+// [0].rgba: size, smooth, attnMinSz, attnMaxSz
+// [1].rgba: attnCoeff(3), attnFadeTs
+uniform MEDIUMP vec4    mgl_PointParams[2];
+
+#define pointSize                   (mgl_PointParams[0].r)
+#define pointSmooth                 (mgl_PointParams[0].g)
+#define pointSizeMin                (mgl_PointParams[0].b)
+#define pointSizeMax                (mgl_PointParams[0].a)
+#define pointDistanceConstantAtten  (mgl_PointParams[1].r)
+#define pointDistanceLinearAtten    (mgl_PointParams[1].g)
+#define pointDistanceQuadraticAtten (mgl_PointParams[1].b)
+#define pointFadeThresholdSize      (mgl_PointParams[1].a)
 
 // uniform LOWP int    mgl_CullFace; // ES2 supports CullFace implicit ..
 #if MAX_TEXTURE_UNITS > 0
