@@ -265,7 +265,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitchNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestPointsNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestPointsNEWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT $*
@@ -389,7 +389,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1AWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES2NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestBug605FlippedImageNEWT $*
