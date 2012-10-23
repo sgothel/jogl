@@ -1222,7 +1222,7 @@ public class ImmModeSink {
 
         final Buffer dest;
         final boolean dSigned;
-        final int e;
+        final int e; // either 0 or 1
                 
         switch (type) {
             case VERTEX:
@@ -1258,7 +1258,7 @@ public class ImmModeSink {
             fill--;
             Buffers.putNf(dest, dSigned, 0f);            
         }
-        if( e > 0 ) {
+        if( fill > 0 ) { // e == 1, add missing '1f end component'
             Buffers.putNf(dest, dSigned, 1f);
         }
     }
