@@ -58,6 +58,20 @@ public class PointsDemoES2 extends PointsDemo {
     /** ( pointSize, pointSmooth, attn. pointMinSize, attn. pointMaxSize ) , ( attenuation coefficients 1f 0f 0f, attenuation fade theshold 1f )   */
     private final FloatBuffer pointParams = Buffers.newDirectFloatBuffer(new float[] {  1.0f, 0.0f, 0.0f, 4096.0f, 1.0f, 0.0f, 0.0f, 1.0f }); 
 
+    static final String es2_prelude_vp = "#version 100\n\nprecision highp float;\nprecision highp int;\n";
+    static final String es2_prelude_fp = "#version 100\n\nprecision mediump float;\nprecision mediump int;\n/*precision lowp sampler2D;*/\n";
+    static final String gl2_prelude = "#version 120\n"; // GL 2.1 (Nvidia driver claims it's required to use gl_Points, OSX claim's it for gl_PointCoord -> driver bug - both were introduced w/ 1.10)
+    
+    private void customizeShader(GL2ES2 gl, ShaderCode vp, ShaderCode fp) {
+        if(gl.isGLES2()) {
+            vp.insertShaderSource(0, 0, es2_prelude_vp);
+            fp.insertShaderSource(0, 0, es2_prelude_fp);
+        } else {
+            vp.insertShaderSource(0, 0, gl2_prelude);
+            fp.insertShaderSource(0, 0, gl2_prelude);
+        }
+    }
+    
     public PointsDemoES2(int swapInterval) {
         this.swapInterval = swapInterval;
     }
@@ -91,9 +105,10 @@ public class PointsDemoES2 extends PointsDemo {
         st = new ShaderState();
         st.setVerbose(true);
         final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(), "shader",
-                "shader/bin", "PointsShader", false);
+                "shader/bin", "PointsShader", true);
         final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), "shader",
-                "shader/bin", "PointsShader", false);
+                "shader/bin", "PointsShader", true);
+        customizeShader(gl, vp0, fp0);
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);
         sp0.add(gl, fp0, System.err);

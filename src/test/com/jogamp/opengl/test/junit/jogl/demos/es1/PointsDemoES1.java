@@ -33,15 +33,25 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.test.junit.jogl.demos.PointsDemo;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.opengl.util.glsl.fixedfunc.FixedFuncUtil;
+import com.jogamp.opengl.util.glsl.fixedfunc.ShaderSelectionMode;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES1;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLPipelineFactory;
 import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.gl2es1.GLUgl2es1;
 
 public class PointsDemoES1 extends PointsDemo {
     final static GLU glu = new GLUgl2es1();
+    private boolean debugFFPEmu = false;
+    private boolean verboseFFPEmu = false;
+    private boolean traceFFPEmu = false;
+    private boolean forceFFPEmu = false;
+    private boolean debug = false ;
+    private boolean trace = false ;
     GLArrayDataServer vertices ;
     float[] pointSizes ;
     private int swapInterval = 0;
@@ -56,10 +66,43 @@ public class PointsDemoES1 extends PointsDemo {
         this.swapInterval = 1;
     }
         
+    public void setForceFFPEmu(boolean forceFFPEmu, boolean verboseFFPEmu, boolean debugFFPEmu, boolean traceFFPEmu) {
+        this.forceFFPEmu = forceFFPEmu;
+        this.verboseFFPEmu = verboseFFPEmu;
+        this.debugFFPEmu = debugFFPEmu;
+        this.traceFFPEmu = traceFFPEmu;
+    }
+    
     public void setSmoothPoints(boolean v) { smooth = v; }
     
     public void init(GLAutoDrawable glad) {
-        GL2ES1 gl = glad.getGL().getGL2ES1();
+        GL _gl = glad.getGL();
+
+        if(debugFFPEmu) {
+            // Debug ..
+            _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES2.class, _gl, null) );
+            debug = false;
+        }
+        if(traceFFPEmu) {
+            // Trace ..
+            _gl = _gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES2.class, _gl, new Object[] { System.err } ) );
+            trace = false;
+        }
+        GL2ES1 gl = FixedFuncUtil.wrapFixedFuncEmul(_gl, ShaderSelectionMode.AUTO, null, forceFFPEmu, verboseFFPEmu);
+        
+        if(debug) {
+            try {
+                // Debug ..
+                gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES1.class, gl, null) );
+            } catch (Exception e) {e.printStackTrace();} 
+        }
+        if(trace) {
+            try {
+                // Trace ..
+                gl = (GL2ES1) gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES1.class, gl, new Object[] { System.err } ) );
+            } catch (Exception e) {e.printStackTrace();}
+        }                
+        
         System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
         System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
         System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));

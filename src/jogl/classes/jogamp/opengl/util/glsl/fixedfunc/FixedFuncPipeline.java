@@ -940,9 +940,7 @@ public class FixedFuncPipeline {
     // Shall we use: #ifdef GL_FRAGMENT_PRECISION_HIGH .. #endif for using highp in fragment shader if avail ? 
     static final String es2_prelude_vp = "#version 100\n\nprecision highp float;\nprecision highp int;\n";
     static final String es2_prelude_fp = "#version 100\n\nprecision mediump float;\nprecision mediump int;\n/*precision lowp sampler2D;*/\n";
-    // static final String gl2_prelude = "#version 110\n";  // GL 2.0
-    // static final String gl2_prelude = "#version 120\n"; // GL 2.1 (Nvidia driver claims it's required to use gl_Points -> driver bug)
-    static final String gl2_prelude = "// version 110\n";
+    static final String gl2_prelude = "#version 120\n"; // GL 2.1 (Nvidia driver claims it's required to use gl_Points, OSX claim's it for gl_PointCoord -> driver bug - both were introduced w/ 1.10)
     
     private static final String constMaxTextures0 = "#define MAX_TEXTURE_UNITS 0\n";
     private static final String constMaxTextures2 = "#define MAX_TEXTURE_UNITS 2\n";
