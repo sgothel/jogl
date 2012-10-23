@@ -173,9 +173,6 @@ public class ImmModeSink {
   }
 
   public void glBegin(int mode) {
-    if(DEBUG_BEGIN_END) {
-        System.err.println("ImmModeSink.glBegin("+vboSet.mode+"):\n\t"+this);
-    }
     vboSet.modeOrig = mode;
     switch(mode) {
         case GL_QUAD_STRIP:
@@ -186,6 +183,9 @@ public class ImmModeSink {
             break;
     }
     vboSet.mode = mode;
+    if(DEBUG_BEGIN_END) {
+        System.err.println("ImmModeSink.glBegin("+vboSet.modeOrig+" -> "+vboSet.mode+")");
+    }
     vboSet.checkSeal(false);
   }
 
@@ -203,7 +203,7 @@ public class ImmModeSink {
 
   private void glEnd(GL gl, Buffer indices, boolean immediateDraw) {
     if(DEBUG_BEGIN_END) {
-        System.err.println("ImmModeSink START glEnd(immediate: "+immediateDraw+"):\n\t"+this);
+        System.err.println("ImmModeSink START glEnd(immediate: "+immediateDraw+")");
     }
     if(immediateDraw) {
         vboSet.seal(gl, true);
@@ -216,7 +216,7 @@ public class ImmModeSink {
         vboSet = vboSet.regenerate(gl);
     }
     if(DEBUG_BEGIN_END) {
-        System.err.println("ImmModeSink END glEnd(immediate: "+immediateDraw+"):\n\t"+this);
+        System.err.println("ImmModeSink END glEnd(immediate: "+immediateDraw+")");
     }
   }
 
@@ -441,11 +441,12 @@ public class ImmModeSink {
 
     protected void draw(GL gl, Buffer indices, boolean disableBufferAfterDraw, int i)
     {
+        enableBuffer(gl, true);
+
         if(DEBUG_DRAW) {
             System.err.println("ImmModeSink.draw["+i+"].0 (disableBufferAfterDraw: "+disableBufferAfterDraw+"):\n\t"+this);
         }
-        enableBuffer(gl, true);
-
+        
         if (buffer!=null) {
             if(null==indices) {
                 if ( GL_QUADS == mode && !gl.isGL2() ) {
@@ -498,7 +499,7 @@ public class ImmModeSink {
         }
         
         if(DEBUG_DRAW) {
-            System.err.println("ImmModeSink.draw["+i+"].X (disableBufferAfterDraw: "+disableBufferAfterDraw+"):\n\t"+this);
+            System.err.println("ImmModeSink.draw["+i+"].X (disableBufferAfterDraw: "+disableBufferAfterDraw+")");
         }
     }
 
@@ -964,7 +965,7 @@ public class ImmModeSink {
     }
     
     if(DEBUG_DRAW) {
-        System.err.println("ImmModeSink.enableFixed.X "+this);        
+        System.err.println("ImmModeSink.enableFixed.X ");        
     }
   }
 
@@ -1035,7 +1036,7 @@ public class ImmModeSink {
     }
     
     if(DEBUG_DRAW) {
-        System.err.println("ImmModeSink.enableGLSL.X "+this);        
+        System.err.println("ImmModeSink.enableGLSL.X ");        
     }
   }
 
