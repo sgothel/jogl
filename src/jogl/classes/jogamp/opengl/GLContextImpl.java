@@ -60,6 +60,7 @@ import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
@@ -971,7 +972,22 @@ public abstract class GLContextImpl extends GLContext {
       ctxMinorVersion = minor;
       ctxOptions = ctp;
       if(setVersionString) {
-          ctxVersionString = getGLVersion(ctxMajorVersion, ctxMinorVersion, ctxOptions, getGL().glGetString(GL.GL_VERSION));
+          ctxVersionString = getGLVersion(ctxMajorVersion, ctxMinorVersion, ctxOptions, gl.glGetString(GL.GL_VERSION));
+          ctxGLSLVersion = null;
+          if(ctxMajorVersion >= 2) { // >= ES2 || GL2.0
+              final String glslVersion = gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION);
+              if( null != glslVersion ) {
+                  ctxGLSLVersion = new VersionNumber(glslVersion, ".");
+                  if( ctxGLSLVersion.getMajor() < 1 ) {
+                      ctxGLSLVersion = null; // failed ..
+                  }
+              }
+          } 
+          if( null == ctxGLSLVersion ){
+              final int[] sver = new int[2];
+              getStaticGLSLVersionNumber(ctxMajorVersion, ctxMinorVersion, ctxOptions, sver);
+              ctxGLSLVersion = new VersionNumber(sver[0], sver[1], 0);
+          }
       }
   }
   

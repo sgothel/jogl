@@ -52,6 +52,7 @@ import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.GLExtensions;
@@ -159,6 +160,7 @@ public abstract class GLContext {
   protected int ctxMinorVersion;
   protected int ctxOptions;
   protected String ctxVersionString;
+  protected VersionNumber ctxGLSLVersion;
   private int currentSwapInterval;
   protected GLRendererQuirks glRendererQuirks;
 
@@ -174,6 +176,7 @@ public abstract class GLContext {
       ctxMinorVersion=-1;
       ctxOptions=0;
       ctxVersionString=null;
+      ctxGLSLVersion=null;
       attachedObjects.clear();
       contextHandle=0;
       currentSwapInterval = -1;
@@ -628,6 +631,78 @@ public abstract class GLContext {
   public final boolean isGLDebugEnabled()         { return ( 0 != ( CTX_OPTION_DEBUG   & ctxOptions ) ); }
   public final boolean isCreatedWithARBMethod()   { return ( 0 != ( CTX_IS_ARB_CREATED & ctxOptions ) ); }
 
+  /**
+   * Returns the matching GLSL version number, queried by this context GL
+   * via {@link GL2ES2#GL_SHADING_LANGUAGE_VERSION} if &ge; ES2.0 or GL2.0,
+   * otherwise a static match is being utilized.
+   * <p>
+   * The context must have been current once, otherwise <code>null</code> is returned. 
+   * </p>
+   * <p>
+   * Examples w/ <code>major.minor</code>: 
+   * <pre>
+   *    1.00 (ES2.0), 1.10 (GL2.0), 1.20 (GL2.1), 1.50 GL(3.2), 
+   *    3.30 (GL3.3), 4.40 (GL4.0)
+   * </pre >
+   * </p>
+   * <p>
+   * <i>Matching</i> could also refer to the maximum GLSL version usable by this context
+   * since <i>normal</i> GL implementations are capable of using a lower GLSL version as well.
+   * The latter is not true on OSX w/ a GL3 context. 
+   * </p>
+   * 
+   * @param GLSL version number if context has been made current at least once, otherwise <code>null</code>.
+   *            
+   * @see #getGLVersionMajor()
+   * @see #getGLVersionMinor()
+   */
+  public final VersionNumber getGLSLVersionNumber() {
+      return ctxGLSLVersion;
+  }
+  
+  /**
+   * Returns the GLSL version string as to be used in a shader program, including a terminating newline '\n',
+   * i.e.:
+   * <pre>
+   *    #version 110
+   * </pre>
+   * <p>
+   * If context has not been made current, <code>null</code> is returned.
+   * </p>
+   * @see #getGLSLVersionNumber()
+   */
+  public final String getGLSLVersionString() {
+      if(null == ctxGLSLVersion) {
+          return null;
+      }
+      final int minor = ctxGLSLVersion.getMinor();
+      return "#version " + ctxGLSLVersion.getMajor() + ( minor < 10 ? "0"+minor : minor ) + "\n" ;
+  }
+  
+  protected static final void getStaticGLSLVersionNumber(int glMajorVersion, int glMinorVersion, int ctxOptions, int[] res) {
+      if( 0 != ( CTX_PROFILE_ES & ctxOptions ) ) {
+          res[0] = 1; res[1] =  0;      // ES 2.0  ->  GLSL 1.00
+      } else if( 1 == glMajorVersion ) {
+          res[0] = 1; res[0] = 10;      // GL 1.x  ->  GLSL 1.10
+      } else if( 2 == glMajorVersion ) {
+          res[0] = 1;
+          switch ( glMinorVersion ) {
+          case 0:  res[1] = 10; break;  // GL 2.0  ->  GLSL 1.10
+          default: res[1] = 20; break;  // GL 2.1  ->  GLSL 1.20
+          }
+      } else if( 3 == glMajorVersion && 2 >= glMajorVersion ) {
+          res[0] = 1;
+          switch ( glMinorVersion ) {
+          case 0:  res[1] = 30; break;  // GL 3.0  ->  GLSL 1.30
+          case 1:  res[1] = 40; break;  // GL 3.1  ->  GLSL 1.40
+          default: res[1] = 50; break;  // GL 3.2  ->  GLSL 1.50 
+          }
+      } else { // >= 3.3
+          res[0] = glMajorVersion;     // GL M.N  ->  GLSL M.N
+          res[1] = glMinorVersion * 10;
+      }
+  }
+  
   /**
    * @return true if this context is an ES2 context or implements
    *         the extension <code>GL_ARB_ES2_compatibility</code>, otherwise false
