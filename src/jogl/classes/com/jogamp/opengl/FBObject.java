@@ -801,7 +801,9 @@ public class FBObject {
         stencil08Avail = fullFBOSupport || gl.isExtensionAvailable(GLExtensions.OES_stencil8);
         stencil16Avail = fullFBOSupport;
         
-        packedDepthStencilAvail = fullFBOSupport || gl.isExtensionAvailable(GLExtensions.OES_packed_depth_stencil);
+        packedDepthStencilAvail = fullFBOSupport ||
+                                  gl.isExtensionAvailable(GLExtensions.OES_packed_depth_stencil) ||
+                                  gl.isExtensionAvailable(GLExtensions.EXT_packed_depth_stencil) ;
         
         final boolean NV_fbo_color_attachments = gl.isExtensionAvailable(GLExtensions.NV_fbo_color_attachments);
                                 
