@@ -53,26 +53,26 @@ class GLVersionNumber extends VersionNumber {
                 tok.nextToken(); // GL_
                 tok.nextToken(); // VERSION_
                 if (!tok.hasMoreTokens()) {
-                    major = 0;
+                    val[0] = 0;
                     return;
                 }
-                major = Integer.valueOf(tok.nextToken()).intValue();
+                val[0] = Integer.valueOf(tok.nextToken()).intValue();
                 if (!tok.hasMoreTokens()) {
-                    minor = 0;
+                    val[1] = 0;
                     return;
                 }
-                minor = Integer.valueOf(tok.nextToken()).intValue();
+                val[1] = Integer.valueOf(tok.nextToken()).intValue();
                 if (!tok.hasMoreTokens()) {
-                    sub = 0;
+                    val[2] = 0;
                     return;
                 }
-                sub = Integer.valueOf(tok.nextToken()).intValue();
+                val[2] = Integer.valueOf(tok.nextToken()).intValue();
             } else {
                 int radix = 10;
                 if (versionString.length() > 2) {
                     if (Character.isDigit(versionString.charAt(0)) && versionString.charAt(1) == '.' && Character.isDigit(versionString.charAt(2))) {
-                        major = Character.digit(versionString.charAt(0), radix);
-                        minor = Character.digit(versionString.charAt(2), radix);
+                        val[0] = Character.digit(versionString.charAt(0), radix);
+                        val[1] = Character.digit(versionString.charAt(2), radix);
                         // See if there's version-specific information which might
                         // imply a more recent OpenGL version
                         StringTokenizer tok = new StringTokenizer(versionString, " ");
@@ -90,9 +90,9 @@ class GLVersionNumber extends VersionNumber {
                                     // Avoid possibly confusing situations by putting some
                                     // constraints on the upgrades we do to the major and
                                     // minor versions
-                                    if ((altMajor == major && altMinor > minor) || altMajor == major + 1) {
-                                        major = altMajor;
-                                        minor = altMinor;
+                                    if ((altMajor == val[0] && altMinor > val[1]) || altMajor == val[0] + 1) {
+                                        val[0] = altMajor;
+                                        val[1] = altMinor;
                                     }
                                 }
                             }
@@ -106,8 +106,8 @@ class GLVersionNumber extends VersionNumber {
             // FIXME: refactor desktop OpenGL dependencies and make this
             // class work properly for OpenGL ES
             System.err.println("Info: ExtensionAvailabilityCache: FunctionAvailabilityCache.Version.<init>: " + e);
-            major = 1;
-            minor = 0;
+            val[0] = 1;
+            val[1] = 0;
             /*
             throw (IllegalArgumentException)
             new IllegalArgumentException(
