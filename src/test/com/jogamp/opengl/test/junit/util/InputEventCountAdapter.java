@@ -28,8 +28,13 @@
  
 package com.jogamp.opengl.test.junit.util;
 
+import java.util.EventObject;
+import java.util.List;
+
 public interface InputEventCountAdapter extends  EventCountAdapter {
     int getCount();
     boolean isPressed();
+    
+    public List<EventObject> getQueued();    
 }
 

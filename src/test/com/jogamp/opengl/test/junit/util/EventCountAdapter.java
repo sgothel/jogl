@@ -28,7 +28,16 @@
  
 package com.jogamp.opengl.test.junit.util;
 
+/**
+ * Base event count adapter.
+ * <p>
+ * Instance starts in verbose mode.
+ * </p>
+ */
 public interface EventCountAdapter {
     void reset();
+    
+    /** Instance starts in verbose mode, call w/ false to disable verbosity. */
+    void setVerbose(boolean v);
 }
 

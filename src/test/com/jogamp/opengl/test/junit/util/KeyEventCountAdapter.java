@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2012 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -28,51 +28,11 @@
  
 package com.jogamp.opengl.test.junit.util;
 
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowFocusListener;
-
-public class AWTWindowFocusAdapter implements FocusEventCountAdapter, WindowFocusListener {
-
-    String prefix;
-    int focusCount;
-    boolean verbose = true;
-
-    public AWTWindowFocusAdapter(String prefix) {
-        this.prefix = prefix;
-        reset();
-    }
-
-    public void setVerbose(boolean v) { verbose = false; }
-
-    public boolean focusLost() {
-        return focusCount<0;        
-    }
+public interface KeyEventCountAdapter extends  InputEventCountAdapter {
+    public int getKeyPressedCount(boolean autoRepeatOnly);
     
-    public boolean focusGained() {
-        return focusCount>0;
-    }
-        
-    public void reset() {
-        focusCount = 0;
-    }
-
-    /* @Override */
-    public void windowGainedFocus(WindowEvent e) {
-        if(focusCount<0) { focusCount=0; }
-        focusCount++;
-        if( verbose ) {
-            System.err.println("FOCUS AWT  GAINED (Window) [fc "+focusCount+"]: "+prefix+", "+e);
-        }
-    }
-
-    /* @Override */
-    public void windowLostFocus(WindowEvent e) {
-        if(focusCount>0) { focusCount=0; }
-        focusCount--;
-        if( verbose ) {
-            System.err.println("FOCUS AWT  LOST   (Window) [fc "+focusCount+"]: "+prefix+", "+e);
-        }
-    }
+    public int getKeyReleasedCount(boolean autoRepeatOnly);
     
-    public String toString() { return prefix+"[focusCount "+focusCount +"]"; }
+    public int getKeyTypedCount(boolean autoRepeatOnly);    
 }
+

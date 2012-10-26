@@ -279,61 +279,73 @@ public class WindowDriver extends WindowImpl {
         return keyCode;
     }
     private int lastPressedKeyCode = 0;
+    private char lastTypedKeyChar = 0;
     private int pressedKeyBalance = 0;
     private int autoRepeat = 0;
     
-    @Override
-    public void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
+    private final void emitKeyEvent(boolean send, boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
+        if( send ) {
+            super.sendKeyEvent(eventType, modifiers, keyCode, keyChar);
+        } else {
+            super.enqueueKeyEvent(wait, eventType, modifiers, keyCode, keyChar);
+        }
+    }
+
+    private final void handleKeyEvent(boolean send, boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
+        // System.err.println("*** handleKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", mods "+toHexString(modifiers));
+        
         // Note that we have to regenerate the keyCode for EVENT_KEY_TYPED on this platform
         keyCode = validateKeyCode(eventType, modifiers, keyCode, keyChar);
+        
+        // Reorder: WINDOWS delivery order is PRESSED, TYPED and RELEASED -> NEWT order: PRESSED, RELEASED and TYPED
+        // Auto-Repeat: WINDOWS delivers only PRESSED and TYPED.
         switch(eventType) {
             case KeyEvent.EVENT_KEY_RELEASED:
-                // reorder: WINDOWS delivery order is PRESSED, TYPED and RELEASED -> NEWT order: PRESSED, RELEASED and TYPED
+                if( 0 != autoRepeat ) {
+                    // AR out - send out missing PRESSED
+                    emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_PRESSED, modifiers | autoRepeat, keyCode, lastTypedKeyChar);
+                }
+                autoRepeat = 0;
+                emitKeyEvent(send, wait, eventType, modifiers, keyCode, keyChar);                    
+                if( 0 != lastTypedKeyChar ) {
+                    emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_TYPED, modifiers, keyCode, lastTypedKeyChar);
+                    lastTypedKeyChar = 0;
+                }
                 break;
             case KeyEvent.EVENT_KEY_PRESSED:
-                if(pressedKeyBalance > 1) {
-                    // Auto-Repeat: WINDOWS delivers only PRESSED and TYPED.
-                    // Since reordering already injects RELEASE, we only need to set the AUTOREPEAT_MASK.
+                if( pressedKeyBalance > 1 ) {
                     pressedKeyBalance--;
-                    autoRepeat |= InputEvent.AUTOREPEAT_MASK;
+                    if ( 0 == autoRepeat ) {
+                        // AR in - skip already send PRESSED
+                        autoRepeat = InputEvent.AUTOREPEAT_MASK;
+                    } else {
+                        emitKeyEvent(send, wait, eventType, modifiers | autoRepeat, keyCode, (char)-1);
+                    }
                 } else {
-                    autoRepeat &= ~InputEvent.AUTOREPEAT_MASK;
+                    autoRepeat = 0;
+                    emitKeyEvent(send, wait, eventType, modifiers, keyCode, (char)-1);
                 }
-                super.sendKeyEvent(eventType, modifiers | autoRepeat, keyCode, (char)-1);
                 break;
             case KeyEvent.EVENT_KEY_TYPED:
-                modifiers |= autoRepeat;
-                super.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, (char)-1);
-                super.sendKeyEvent(eventType, modifiers, keyCode, keyChar);
+                if( 0 == autoRepeat ) {
+                    lastTypedKeyChar = keyChar;
+                } else {
+                    modifiers |= autoRepeat;
+                    emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, (char)-1);
+                    emitKeyEvent(send, wait, eventType, modifiers, keyCode, keyChar);                    
+                }
                 break;
         }
     }
     
     @Override
+    public void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
+        handleKeyEvent(true, false, eventType, modifiers, keyCode, keyChar);
+    }
+    
+    @Override
     public void enqueueKeyEvent(boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
-        // Note that we have to regenerate the keyCode for EVENT_KEY_TYPED on this platform
-        keyCode = validateKeyCode(eventType, modifiers, keyCode, keyChar);
-        switch(eventType) {
-            case KeyEvent.EVENT_KEY_RELEASED:
-                // reorder: WINDOWS delivery order is PRESSED, TYPED and RELEASED -> NEWT order: PRESSED, RELEASED and TYPED
-                break;
-            case KeyEvent.EVENT_KEY_PRESSED:
-                if(pressedKeyBalance > 1) {
-                    // Auto-Repeat: WINDOWS delivers only PRESSED and TYPED.
-                    // Since reordering already injects RELEASE, we only need to set the AUTOREPEAT_MASK.
-                    pressedKeyBalance--;
-                    autoRepeat |= InputEvent.AUTOREPEAT_MASK;
-                } else {
-                    autoRepeat &= ~InputEvent.AUTOREPEAT_MASK;
-                }
-                super.enqueueKeyEvent(wait, eventType, modifiers | autoRepeat, keyCode, (char)-1);
-                break;
-            case KeyEvent.EVENT_KEY_TYPED:
-                modifiers |= autoRepeat;
-                super.enqueueKeyEvent(wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, (char)-1);
-                super.enqueueKeyEvent(wait, eventType, modifiers, keyCode, keyChar);
-                break;
-        }
+        handleKeyEvent(false, wait, eventType, modifiers, keyCode, keyChar);
     }
     
     //----------------------------------------------------------------------

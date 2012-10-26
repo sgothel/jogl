@@ -48,6 +48,17 @@ package com.jogamp.newt.event;
  * Besides regular modifiers like {@link InputEvent#SHIFT_MASK} etc., 
  * the {@link InputEvent#AUTOREPEAT_MASK} bit is added if repetition is detected.
  * </p>
+ * <p>
+ * Auto-Repeat shall behave as follow:
+ * <pre>
+    D = pressed, U = released, T = typed
+    0 = normal, 1 = auto-repeat
+
+    D(0), [ U(1), T(1), D(1), U(1) T(1) ..], U(0) T(0)
+ * </pre>
+ * The idea is if you mask out auto-repeat in your event listener
+ * you just get one long pressed key D/U/T triple.
+ * </p>
  */
 @SuppressWarnings("serial")
 public class KeyEvent extends InputEvent

@@ -29,17 +29,24 @@
 package com.jogamp.opengl.test.junit.util;
 
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.EventObject;
+import java.util.List;
 
-public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements InputEventCountAdapter {
+public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements KeyEventCountAdapter {
 
     String prefix;
-    int keyTyped;
+    int keyPressed, keyReleased, keyTyped;
     boolean pressed;
+    List<EventObject> queue = new ArrayList<EventObject>();
+    boolean verbose = true;
 
     public AWTKeyAdapter(String prefix) {
         this.prefix = prefix;
         reset();
     }
+
+    public void setVerbose(boolean v) { verbose = false; }
 
     public boolean isPressed() {
         return pressed;
@@ -49,24 +56,54 @@ public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements InputEve
         return keyTyped;
     }
 
+    public int getKeyPressedCount(boolean autoRepeatOnly) {
+        return keyPressed; 
+    }
+    
+    public int getKeyReleasedCount(boolean autoRepeatOnly) {
+        return keyReleased; 
+    }
+    
+    public int getKeyTypedCount(boolean autoRepeatOnly) {
+        return keyTyped; 
+    }
+    
+    public List<EventObject> getQueued() {
+        return queue;
+    }
+    
     public void reset() {
         keyTyped = 0;
+        keyPressed = 0;
+        keyReleased = 0;
         pressed = false;
+        queue.clear();
     }
 
     public void keyPressed(KeyEvent e) {
         pressed = true;
-        System.err.println("KEY AWT PRESSED ["+pressed+"]: "+prefix+", "+e);
+        keyPressed++;
+        queue.add(e);
+        if( verbose ) {
+            System.err.println("KEY AWT PRESSED ["+pressed+"]: "+prefix+", "+e);
+        }
     }
 
     public void keyReleased(KeyEvent e) {
         pressed = false;
-        System.err.println("KEY AWT RELEASED ["+pressed+"]: "+prefix+", "+e);
+        keyReleased++;
+        queue.add(e);
+        if( verbose ) {
+            System.err.println("KEY AWT RELEASED ["+pressed+"]: "+prefix+", "+e);
+        }
     }
 
     public void keyTyped(java.awt.event.KeyEvent e) {
-        ++keyTyped;
-        System.err.println("KEY AWT  TYPED ["+keyTyped+"]: "+prefix+", "+e);
+        keyTyped++;
+        queue.add(e);
+        if( verbose ) {
+            System.err.println("KEY AWT  TYPED ["+keyTyped+"]: "+prefix+", "+e);
+        }
     }
     
     public String toString() { return prefix+"[pressed "+pressed+", typed "+keyTyped+"]"; }

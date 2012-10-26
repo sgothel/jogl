@@ -36,11 +36,14 @@ public class NEWTFocusAdapter implements WindowListener, FocusEventCountAdapter 
 
     String prefix;
     int focusCount;
+    boolean verbose = true;
 
     public NEWTFocusAdapter(String prefix) {
         this.prefix = prefix;
         reset();
     }
+
+    public void setVerbose(boolean v) { verbose = false; }
 
     public boolean focusLost() {
         return focusCount<0;        
@@ -57,13 +60,17 @@ public class NEWTFocusAdapter implements WindowListener, FocusEventCountAdapter 
     public void windowGainedFocus(WindowEvent e) {
         if(focusCount<0) { focusCount=0; }
         focusCount++;
-        System.err.println("FOCUS NEWT GAINED [fc "+focusCount+"]: "+prefix+", "+e);
+        if( verbose ) {
+            System.err.println("FOCUS NEWT GAINED [fc "+focusCount+"]: "+prefix+", "+e);
+        }
     }
 
     public void windowLostFocus(WindowEvent e) {
         if(focusCount>0) { focusCount=0; }
         focusCount--;
-        System.err.println("FOCUS NEWT LOST   [fc "+focusCount+"]: "+prefix+", "+e);
+        if( verbose ) {
+            System.err.println("FOCUS NEWT LOST   [fc "+focusCount+"]: "+prefix+", "+e);
+        }
     }
 
     public void windowResized(WindowEvent e) { }

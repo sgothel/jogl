@@ -381,6 +381,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                   } else {
                     autoRepeatModifiers &= ~EVENT_AUTOREPEAT_MASK;
                   }
+                } else {
+                    autoRepeatModifiers &= ~EVENT_AUTOREPEAT_MASK;
                 }
                 // fall through intended
             case KeyPress:

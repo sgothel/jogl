@@ -28,19 +28,29 @@
  
 package com.jogamp.opengl.test.junit.util;
 
+import java.util.ArrayList;
+import java.util.EventObject;
+import java.util.List;
+
+import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 
-public class NEWTKeyAdapter extends KeyAdapter implements InputEventCountAdapter {
+public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
 
     String prefix;
-    int keyTyped;
+    int keyPressed, keyReleased, keyTyped;
+    int keyPressedAR, keyReleasedAR, keyTypedAR;
     boolean pressed;
+    List<EventObject> queue = new ArrayList<EventObject>();
+    boolean verbose = true;
 
     public NEWTKeyAdapter(String prefix) {
         this.prefix = prefix;
         reset();
     }
+    
+    public void setVerbose(boolean v) { verbose = false; }
 
     public boolean isPressed() {
         return pressed;
@@ -50,25 +60,67 @@ public class NEWTKeyAdapter extends KeyAdapter implements InputEventCountAdapter
         return keyTyped;
     }
 
+    public int getKeyPressedCount(boolean autoRepeatOnly) {
+        return autoRepeatOnly ? keyPressedAR: keyPressed; 
+    }
+    
+    public int getKeyReleasedCount(boolean autoRepeatOnly) {
+        return autoRepeatOnly ? keyReleasedAR: keyReleased; 
+    }
+    
+    public int getKeyTypedCount(boolean autoRepeatOnly) {
+        return autoRepeatOnly ? keyTypedAR: keyTyped; 
+    }
+    
+    public List<EventObject> getQueued() {
+        return queue;
+    }
+    
     public void reset() {
         keyTyped = 0;
+        keyPressed = 0;
+        keyReleased = 0;
+        keyTypedAR = 0;
+        keyPressedAR = 0;
+        keyReleasedAR = 0;
         pressed = false;
+        queue.clear();
     }
 
     public void keyPressed(KeyEvent e) {
         pressed = true;
-        System.err.println("NEWT AWT PRESSED ["+pressed+"]: "+prefix+", "+e);
+        keyPressed++;
+        if( 0 != ( e.getModifiers() & InputEvent.AUTOREPEAT_MASK ) ) {
+            keyPressedAR++;
+        }
+        queue.add(e);
+        if( verbose ) {
+            System.err.println("NEWT AWT PRESSED ["+pressed+"]: "+prefix+", "+e);
+        }
     }
     
     public void keyReleased(KeyEvent e) {
         pressed = false;
-        System.err.println("NEWT AWT RELEASED ["+pressed+"]: "+prefix+", "+e);
+        keyReleased++;
+        if( 0 != ( e.getModifiers() & InputEvent.AUTOREPEAT_MASK ) ) {
+            keyReleasedAR++;
+        }
+        queue.add(e);
+        if( verbose ) {
+            System.err.println("NEWT AWT RELEASED ["+pressed+"]: "+prefix+", "+e);
+        }
     }
      
     @Override
     public void keyTyped(KeyEvent e) {
-        ++keyTyped;
-        System.err.println("KEY NEWT TYPED ["+keyTyped+"]: "+prefix+", "+e);
+        keyTyped++;
+        if( 0 != ( e.getModifiers() & InputEvent.AUTOREPEAT_MASK ) ) {
+            keyTypedAR++;
+        }
+        queue.add(e);
+        if( verbose ) {
+            System.err.println("KEY NEWT TYPED ["+keyTyped+"]: "+prefix+", "+e);
+        }
     }
     
     public String toString() { return prefix+"[pressed "+pressed+", typed "+keyTyped+"]"; }

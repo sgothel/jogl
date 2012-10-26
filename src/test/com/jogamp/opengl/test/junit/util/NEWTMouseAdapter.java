@@ -28,6 +28,10 @@
  
 package com.jogamp.opengl.test.junit.util;
 
+import java.util.ArrayList;
+import java.util.EventObject;
+import java.util.List;
+
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 
@@ -36,12 +40,16 @@ public class NEWTMouseAdapter extends MouseAdapter implements InputEventCountAda
     String prefix;
     int mouseClicked;
     boolean pressed;
+    List<EventObject> queue = new ArrayList<EventObject>();
+    boolean verbose = true;
 
     public NEWTMouseAdapter(String prefix) {
         this.prefix = prefix;
         reset();
     }
 
+    public void setVerbose(boolean v) { verbose = false; }
+    
     public boolean isPressed() {
         return pressed;
     }
@@ -50,24 +58,38 @@ public class NEWTMouseAdapter extends MouseAdapter implements InputEventCountAda
         return mouseClicked;
     }
 
+    public List<EventObject> getQueued() {
+        return queue;
+    }
+    
     public void reset() {
         mouseClicked = 0;
         pressed = false;
+        queue.clear();
     }
 
     public void mousePressed(MouseEvent e) {
         pressed = true;
-        System.err.println("MOUSE NEWT PRESSED ["+pressed+"]: "+prefix+", "+e);
+        queue.add(e);
+        if( verbose ) {
+            System.err.println("MOUSE NEWT PRESSED ["+pressed+"]: "+prefix+", "+e);
+        }
     }
     
     public void mouseReleased(MouseEvent e) {
         pressed = false;
-        System.err.println("MOUSE NEWT RELEASED ["+pressed+"]: "+prefix+", "+e);
+        queue.add(e);
+        if( verbose ) {
+            System.err.println("MOUSE NEWT RELEASED ["+pressed+"]: "+prefix+", "+e);
+        }
     }
     
     public void mouseClicked(MouseEvent e) {
         mouseClicked+=e.getClickCount();
-        System.err.println("MOUSE NEWT CLICKED ["+mouseClicked+"]: "+prefix+", "+e);
+        queue.add(e);
+        if( verbose ) {
+            System.err.println("MOUSE NEWT CLICKED ["+mouseClicked+"]: "+prefix+", "+e);
+        }
     }
     
     public String toString() { return prefix+"[pressed "+pressed+", clicked "+mouseClicked+"]"; }

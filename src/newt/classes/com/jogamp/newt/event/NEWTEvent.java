@@ -161,11 +161,7 @@ public class NEWTEvent extends java.util.EventObject {
         return sb.append("NEWTEvent[sys:").append(isSystemEvent()).append(", source:").append(getSource().getClass().getName()).append(", when:").append(getWhen()).append(" d ").append((System.currentTimeMillis()-getWhen())).append("ms]");
     }
 
-    public static String toHexString(int hex) {
+    static String toHexString(int hex) {
         return "0x" + Integer.toHexString(hex);
-    }
-
-    public static String toHexString(long hex) {
-        return "0x" + Long.toHexString(hex);
     }
 }

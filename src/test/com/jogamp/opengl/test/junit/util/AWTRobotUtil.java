@@ -312,7 +312,7 @@ public class AWTRobotUtil {
         }
         if(!hasFocus) {
             System.err.print("*** AWTRobotUtil.assertRequestFocusAndWait() ");
-            if(gain.focusGained() && !lost.focusLost()) {
+            if( ( null == gain || gain.focusGained() ) && ( null == lost || !lost.focusLost() ) ) {
                 // be error tolerant here, some impl. may lack focus-lost events (OS X) 
                 System.err.println("minor UI failure");
                 hasFocus = true;
@@ -337,7 +337,7 @@ public class AWTRobotUtil {
     }
 
     public static int keyType(int i, Robot robot, int keyCode,
-                              Object obj, InputEventCountAdapter counter) throws InterruptedException, AWTException, InvocationTargetException 
+                              Object obj, KeyEventCountAdapter counter) throws InterruptedException, AWTException, InvocationTargetException 
     {
         int tc = 0;
         int j;
@@ -365,13 +365,26 @@ public class AWTRobotUtil {
         Assert.assertEquals("Key ("+i+":"+j+") not typed one time", 1, tc);
         return (int) ( System.currentTimeMillis() - t0 ) ;
     }
+
+    /** No validation is performed .. */ 
+    public static int keyPress(int i, Robot robot, boolean press, int keyCode, int msDelay) {
+        final long t0 = System.currentTimeMillis();        
+        if(press) {
+            robot.keyPress(keyCode);
+        } else {
+            robot.keyRelease(keyCode);
+        }
+        robot.delay(msDelay);
+        
+        return (int) ( System.currentTimeMillis() - t0 ) ;
+    }
     
     /**
      * @param keyCode TODO
      * @param counter shall return the number of keys typed (press + release)
      */
     public static void assertKeyType(Robot robot, int keyCode, int typeCount, 
-                                     Object obj, InputEventCountAdapter counter) 
+                                     Object obj, KeyEventCountAdapter counter) 
         throws AWTException, InterruptedException, InvocationTargetException {
 
         if(null == robot) {
@@ -398,6 +411,38 @@ public class AWTRobotUtil {
         Assert.assertEquals("Wrong key count", typeCount, counter.getCount()-c0);
     }
 
+    /**
+     * @param keyCode TODO
+     * @param counter shall return the number of keys typed (press + release)
+     */
+    public static void assertKeyPress(Robot robot, int keyCode, int typeCount, 
+                                      Object obj, KeyEventCountAdapter counter) 
+        throws AWTException, InterruptedException, InvocationTargetException {
+
+        if(null == robot) {
+            robot = new Robot();
+            robot.setAutoWaitForIdle(true);
+        }
+
+        centerMouse(robot, obj, false);
+
+        Assert.assertEquals("Key already pressed", false, counter.isPressed());
+        
+        if(DEBUG) {
+            System.err.println("**************************************");
+            System.err.println("KC0: "+counter);
+        }
+        
+        final int c0 = counter.getCount();
+
+        for(int i=0; i<typeCount; i++) {
+            keyType(i, robot, keyCode, obj, counter); 
+        }
+
+        if(DEBUG) { System.err.println("KC3.0: "+counter); }
+        Assert.assertEquals("Wrong key count", typeCount, counter.getCount()-c0);
+    }
+    
     static int mouseClick(int i, Robot robot, int mouseButton,
                           Object obj, InputEventCountAdapter counter) throws InterruptedException, AWTException, InvocationTargetException 
     {

@@ -29,17 +29,24 @@
 package com.jogamp.opengl.test.junit.util;
 
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.EventObject;
+import java.util.List;
 
 public class AWTMouseAdapter extends java.awt.event.MouseAdapter implements InputEventCountAdapter {
     String prefix;
     int mouseClicked;
     boolean pressed;
+    List<EventObject> queue = new ArrayList<EventObject>();
+    boolean verbose = true;
 
     public AWTMouseAdapter(String prefix) {
         this.prefix = prefix;
         reset();
     }
 
+    public void setVerbose(boolean v) { verbose = false; }
+    
     public boolean isPressed() {
         return pressed;
     }
@@ -48,24 +55,38 @@ public class AWTMouseAdapter extends java.awt.event.MouseAdapter implements Inpu
         return mouseClicked;
     }
     
+    public List<EventObject> getQueued() {
+        return queue;
+    }
+    
     public void reset() {
         mouseClicked = 0;
         pressed = false;
+        queue.clear();
     }
 
     public void mousePressed(MouseEvent e) {
         pressed = true;
-        System.err.println("MOUSE AWT PRESSED ["+pressed+"]: "+prefix+", "+e);
+        queue.add(e);
+        if( verbose ) {
+            System.err.println("MOUSE AWT PRESSED ["+pressed+"]: "+prefix+", "+e);
+        }
     }
 
     public void mouseReleased(MouseEvent e) {
         pressed = false;
-        System.err.println("MOUSE AWT RELEASED ["+pressed+"]: "+prefix+", "+e);
+        queue.add(e);
+        if( verbose ) {
+            System.err.println("MOUSE AWT RELEASED ["+pressed+"]: "+prefix+", "+e);
+        }
     }
     
     public void mouseClicked(java.awt.event.MouseEvent e) {
         mouseClicked+=e.getClickCount();
-        System.err.println("MOUSE AWT CLICKED ["+mouseClicked+"]: "+prefix+", "+e);
+        queue.add(e);
+        if( verbose ) {
+            System.err.println("MOUSE AWT CLICKED ["+mouseClicked+"]: "+prefix+", "+e);
+        }
     }    
     
     public String toString() { return prefix+"[pressed "+pressed+", clicked "+mouseClicked+"]"; }
