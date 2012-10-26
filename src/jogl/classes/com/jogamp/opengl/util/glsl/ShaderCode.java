@@ -46,6 +46,7 @@ import java.util.Set;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLES2;
+import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 
 import jogamp.opengl.Debug;
@@ -806,6 +807,34 @@ public class ShaderCode {
         }
     }
 
+    /** {@value #es2_default_precision_vp} */
+    public static final String es2_default_precision_vp = "\nprecision highp float;\nprecision highp int;\n";
+    /** {@value #es2_default_precision_fp} */
+    public static final String es2_default_precision_fp = "\nprecision mediump float;\nprecision mediump int;\n/*precision lowp sampler2D;*/\n";
+    
+    /**
+     * Default customization of this shader source code.
+     * <p>
+     * Note: The shader source to be edit must be created using a mutable StringBuilder.
+     * </p>
+     * @param gl a GL context, which must have been made current once 
+     * @param preludeVersion if true {@link GLContext#getGLSLVersionString()} is preluded, otherwise not.
+     * @param es2DefaultPrecision optional default precision source code line(s) preluded if not null and if {@link GL#isGLES()}.
+     *        You may use {@link #es2_default_precision_fp} for fragment shader and {@link #es2_default_precision_vp} for vertex shader.
+     * @return the index after the inserted data, maybe 0 if nothing has be inserted.
+     */
+    public final int defaultShaderCustomization(GL2ES2 gl, boolean preludeVersion, String es2DefaultPrecision) {
+        int pos = 0;
+        if(preludeVersion) {
+            final String glslVersion_prelude = gl.getContext().getGLSLVersionString();
+            pos = insertShaderSource(0, pos, glslVersion_prelude);
+        }
+        if( gl.isGLES() && null != es2DefaultPrecision ) {
+            pos = insertShaderSource(0, pos, es2DefaultPrecision);
+        }
+        return pos;
+    }    
+    
     //----------------------------------------------------------------------
     // Internals only below this point
     //

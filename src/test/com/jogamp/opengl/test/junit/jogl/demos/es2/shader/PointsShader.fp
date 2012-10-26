@@ -1,4 +1,11 @@
 
+#if __VERSION__ >= 140
+  #define varying in
+  out vec4 mgl_FragColor;
+#else
+  #define mgl_FragColor gl_FragColor   
+#endif
+
 // [0].rgba: 0, smooth, attnMinSz, attnMaxSz
 // [1].rgba: attnCoeff(3), attnFadeTs
 uniform vec4 mgl_PointParams[2]; 
@@ -28,12 +35,12 @@ void main (void)
       #endif
 
       #ifndef TEST
-          gl_FragColor.a *= r1;
+          mgl_FragColor.a *= r1;
       #else
-          gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-          gl_FragColor.r = r1 < 0.0 ? 1.0 : 0.0;
-          gl_FragColor.g = r > 1.0 ? 1.0 : 0.0;
-          gl_FragColor.b = r > border ? 1.0 : 0.0;
+          mgl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+          mgl_FragColor.r = r1 < 0.0 ? 1.0 : 0.0;
+          mgl_FragColor.g = r > 1.0 ? 1.0 : 0.0;
+          mgl_FragColor.b = r > border ? 1.0 : 0.0;
       #endif
   }
 }

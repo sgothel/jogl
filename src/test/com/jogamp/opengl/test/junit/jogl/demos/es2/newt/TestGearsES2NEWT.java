@@ -88,6 +88,7 @@ public class TestGearsES2NEWT extends UITestCase {
     static int loops = 1;
     static boolean loop_shutdown = false;
     static boolean forceES2 = false;
+    static boolean forceGL3 = false;
     
     @BeforeClass
     public static void initClass() {
@@ -256,7 +257,15 @@ public class TestGearsES2NEWT extends UITestCase {
     public void test01GL2ES2() throws InterruptedException {
         for(int i=1; i<=loops; i++) {
             System.err.println("Loop "+i+"/"+loops);
-            GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2());
+            final GLProfile glp;
+            if(forceGL3) {
+                glp = GLProfile.get(GLProfile.GL3);
+            } else if(forceES2) {
+                glp = GLProfile.get(GLProfile.GLES2);
+            } else {
+                glp = GLProfile.getGL2ES2();
+            }
+            GLCapabilities caps = new GLCapabilities( glp );
             caps.setBackgroundOpaque(opaque);
             if(-1 < forceAlpha) {
                 caps.setAlphaBits(forceAlpha); 
@@ -294,6 +303,8 @@ public class TestGearsES2NEWT extends UITestCase {
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
+            } else if(args[i].equals("-gl3")) {
+                forceGL3 = true;
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
             } else if(args[i].equals("-mouseInvisible")) {

@@ -162,7 +162,8 @@ public class ShaderUtil {
                 try {
                     final int[] param = new int[1];
                     gl.glGetIntegerv(GL2ES2.GL_NUM_SHADER_BINARY_FORMATS, param, 0);
-                    int numFormats = param[0];
+                    final int err = gl.glGetError();
+                    final int numFormats = GL.GL_NO_ERROR == err ? param[0] : 0;
                     if(numFormats>0) {
                         int[] formats = new int[numFormats];
                         gl.glGetIntegerv(GL2ES2.GL_SHADER_BINARY_FORMATS, formats, 0);
@@ -170,7 +171,7 @@ public class ShaderUtil {
                             info.shaderBinaryFormats.add(new Integer(formats[i]));
                         }
                     }
-                } catch (GLException gle) { gle.printStackTrace(); }                    
+                } catch (GLException gle) { System.err.println("Catched Exception: "+gle.getMessage()); gle.printStackTrace(); }                    
             }
         }
         return info.shaderBinaryFormats;
@@ -186,7 +187,8 @@ public class ShaderUtil {
                 try {
                     final byte[] param = new byte[1];
                     gl.glGetBooleanv(GL2ES2.GL_SHADER_COMPILER, param, 0);
-                    boolean v = param[0]!=(byte)0x00;
+                    final int err = gl.glGetError();
+                    boolean v = GL.GL_NO_ERROR == err && param[0]!=(byte)0x00;
                     if(!v) {
                         final Set<Integer> bfs = getShaderBinaryFormats(gl);
                         if(bfs.size()==0) {
@@ -196,7 +198,7 @@ public class ShaderUtil {
                     }
                     info.shaderCompilerAvailable = new Boolean(v);
                     queryOK = true;
-                } catch (GLException gle) { gle.printStackTrace(); }
+                } catch (GLException gle) { System.err.println("Catched Exception: "+gle.getMessage()); gle.printStackTrace(); }
                 if(!queryOK) {
                     info.shaderCompilerAvailable = new Boolean(true);
                 }                

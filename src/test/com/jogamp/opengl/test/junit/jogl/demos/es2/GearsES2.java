@@ -120,7 +120,7 @@ public class GearsES2 implements GLEventListener {
         System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
         System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
         System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
-        System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none"));
+        System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none")+", "+gl.getContext().getGLSLVersionNumber());
         System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
         System.err.println("GL Profile: "+gl.getGLProfile());
         System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
@@ -130,9 +130,11 @@ public class GearsES2 implements GLEventListener {
         st = new ShaderState();
         // st.setVerbose(true);
         final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(), "shader",
-                "shader/bin", "gears", false);
+                "shader/bin", "gears", true);
         final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), "shader",
-                "shader/bin", "gears", false);
+                "shader/bin", "gears", true);
+        vp0.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_vp);
+        fp0.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);
         sp0.add(gl, fp0, System.err);
