@@ -49,6 +49,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.newt.awt.NewtCanvasAWT;
+import com.jogamp.newt.event.InputEvent;
+import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
@@ -56,18 +59,9 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.util.*;
 
 /**
- * Testing key event order incl. auto-repeat (Bug 601)
- * 
- * <p>
- * Note Event order:
- * <ol>
- *   <li>{@link #EVENT_KEY_PRESSED}</li>
- *   <li>{@link #EVENT_KEY_RELEASED}</li>
- *   <li>{@link #EVENT_KEY_TYPED}</li>
- * </ol>
- * </p>
+ * Testing key press and release events w/o AUTO-REPEAT
  */
-public class TestKeyEventOrderNEWT extends UITestCase {
+public class TestKeyPressReleaseUnmaskRepeatNEWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 100;
     static long awtWaitTimeout = 1000;
@@ -104,7 +98,7 @@ public class TestKeyEventOrderNEWT extends UITestCase {
         glWindow.destroy();
     }
         
-    @Test
+    // @Test
     public void test02NewtCanvasAWT() throws AWTException, InterruptedException, InvocationTargetException {
         GLWindow glWindow = GLWindow.create(glCaps);
         
@@ -137,39 +131,6 @@ public class TestKeyEventOrderNEWT extends UITestCase {
         glWindow.destroy();
     }
     
-    static void testKeyEventOrder(Robot robot, NEWTKeyAdapter keyAdapter, int loops) {
-        System.err.println("KEY Event Order Test: "+loops);
-        keyAdapter.reset();
-        for(int i=0; i<loops; i++) {
-            // 1
-            AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_A, 10);
-            AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_A, 100);
-            robot.waitForIdle();
-            // 2
-            AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_B, 10);
-            AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_B, 100);
-            robot.waitForIdle();
-            // 3 + 4
-            AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_A, 10);
-            AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_B, 10);
-            AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_A, 10);
-            AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_B, 10);
-            robot.waitForIdle();
-            // 5 + 6
-            AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_A, 10);
-            AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_B, 10);
-            AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_B, 10);
-            AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_A, 10);
-            robot.waitForIdle();            
-        }
-        robot.delay(250);
-        // dumpKeyEvents(keyAdapter.getQueued());
-        
-        NEWTKeyUtil.validateKeyEventOrder(keyAdapter.getQueued());
-        
-        NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, 6*loops, 0);        
-    }
-        
     void testImpl(GLWindow glWindow) throws AWTException, InterruptedException, InvocationTargetException {
         final Robot robot = new Robot();
         robot.setAutoWaitForIdle(true);
@@ -178,9 +139,8 @@ public class TestKeyEventOrderNEWT extends UITestCase {
         TestListenerCom01AWT.setDemoFields(demo1, glWindow, false);
         glWindow.addGLEventListener(demo1);
 
-        NEWTKeyAdapter glWindow1KA = new NEWTKeyAdapter("GLWindow1");
-        glWindow1KA.setVerbose(false);
-        glWindow.addKeyListener(glWindow1KA);
+        SimpleKeyPressRelease simpleKeyPressRelease = new SimpleKeyPressRelease();
+        glWindow.addKeyListener(simpleKeyPressRelease);
 
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true));        
         AWTRobotUtil.clearAWTFocus(robot);
@@ -191,17 +151,11 @@ public class TestKeyEventOrderNEWT extends UITestCase {
 
         Thread.sleep(durationPerTest); // manual testing
         
-        glWindow1KA.reset();
         AWTRobotUtil.assertRequestFocusAndWait(null, glWindow, glWindow, null, null);  // programmatic
         // AWTRobotUtil.assertRequestFocusAndWait(robot, glWindow, glWindow, null, null); // by mouse click
 
-        // 
-        // Test the key event order w/o auto-repeat
-        //
-        testKeyEventOrder(robot, glWindow1KA, 6);
-        
         // Remove listeners to avoid logging during dispose/destroy.
-        glWindow.removeKeyListener(glWindow1KA);
+        glWindow.removeKeyListener(simpleKeyPressRelease);
 
         // Shutdown the test.
         animator.stop();
@@ -213,6 +167,39 @@ public class TestKeyEventOrderNEWT extends UITestCase {
             i = Integer.parseInt(a);
         } catch (Exception ex) { ex.printStackTrace(); }
         return i;
+    }
+    
+    static class SimpleKeyPressRelease implements KeyListener {
+        int seq;
+
+        SimpleKeyPressRelease() {
+            reset();
+        }
+        
+        public void reset() {
+            seq=0;
+        }
+        
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if( 0 == ( InputEvent.AUTOREPEAT_MASK & e.getModifiers() ) ) {
+                seq++;
+                System.err.println(seq+": "+e);
+            }
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+            if( 0 == ( InputEvent.AUTOREPEAT_MASK & e.getModifiers() ) ) {
+                seq++;
+                System.err.println(seq+": "+e);
+            }
+        }
+
+        @Override
+        public void keyTyped(KeyEvent e) {
+        }
+        
     }
 
     public static void main(String args[]) throws IOException {
@@ -227,7 +214,7 @@ public class TestKeyEventOrderNEWT extends UITestCase {
         System.err.println(stdin.readLine()); 
         */
         System.out.println("durationPerTest: "+durationPerTest);
-        String tstname = TestKeyEventOrderNEWT.class.getName();
+        String tstname = TestKeyPressReleaseUnmaskRepeatNEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

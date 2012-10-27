@@ -37,6 +37,7 @@ package jogamp.newt;
 import java.util.ArrayList;
 import java.lang.reflect.Method;
 
+import com.jogamp.common.util.IntBitfield;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Display;
@@ -2169,6 +2170,30 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
     // KeyListener/Event Support
     //
+    protected IntBitfield keyPressedState = new IntBitfield(KeyEvent.VK_CONTEXT_MENU+1);
+    protected IntBitfield keyRepeatState = new IntBitfield(KeyEvent.VK_CONTEXT_MENU+1);
+    
+    /**
+     * @param keyCode
+     * @return 1 if pressed, 0 if not pressed, -1 if not handled. 
+     */
+    protected final int isKeyPressed(int keyCode) { 
+        if( 0 <= keyCode && keyCode < keyPressedState.capacity() ) {
+            return keyPressedState.get(keyCode) ? 1 : 0;
+        }
+        return -1;
+    }
+    /**
+     * @param keyCode
+     * @return 1 if pressed, 0 if not pressed, -1 if not handled. 
+     */
+    protected final int isKeyInAutoRepeat(int keyCode) { 
+        if( 0 <= keyCode && keyCode < keyRepeatState.capacity() ) {
+            return keyRepeatState.get(keyCode) ? 1 : 0;
+        }
+        return -1;
+    }
+        
     public void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
         consumeKeyEvent(new KeyEvent(eventType, this, System.currentTimeMillis(), modifiers, keyCode, keyChar) );
     }

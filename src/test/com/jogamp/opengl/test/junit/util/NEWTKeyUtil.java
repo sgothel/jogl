@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.junit.Assert;
 
+import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.newt.event.KeyEvent;
 
 public class NEWTKeyUtil {
@@ -56,12 +57,17 @@ public class NEWTKeyUtil {
     }
     
     public static void validateKeyEventOrder(List<EventObject> keyEvents) {
-        int eet = KeyEvent.EVENT_KEY_PRESSED;
+        IntIntHashMap keyCode2NextEvent = new IntIntHashMap(); 
         for(int i=0; i<keyEvents.size(); i++) {
             final KeyEvent e = (KeyEvent) keyEvents.get(i);
+            int eet = keyCode2NextEvent.get(e.getKeyCode());
+            if( 0 >= eet ) {
+                eet = KeyEvent.EVENT_KEY_PRESSED;
+            }
             final int et = e.getEventType();
             Assert.assertEquals("Key event not in proper order", eet, et);
             eet = getNextKeyEventType(et);
+            keyCode2NextEvent.put(e.getKeyCode(), eet);
         }        
     }
     

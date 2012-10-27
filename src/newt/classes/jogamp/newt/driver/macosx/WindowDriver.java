@@ -306,74 +306,60 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         } // else may need offscreen solution ? FIXME
     }
     
-    @Override
-    public void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
+    private final void emitKeyEvent(boolean send, boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
+        if( send ) {
+            super.sendKeyEvent(eventType, modifiers, keyCode, keyChar);
+        } else {
+            super.enqueueKeyEvent(wait, eventType, modifiers, keyCode, keyChar);
+        }
+    }
+
+    private final void handleKeyEvent(boolean send, boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
-        final int keyCode2 = MacKeyUtil.validateKeyCode(keyCode, keyChar);
-        final boolean valid = validateKeyEvent(eventType, modifiers, keyCode);
-        if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.sendKeyEvent "+Thread.currentThread().getName()+" char: 0x"+Integer.toHexString(keyChar)+", code 0x"+Integer.toHexString(keyCode)+" -> 0x"+Integer.toHexString(keyCode2)+", valid "+valid);
-        if(valid) {
-            if(pressedKeyBalance > 1) {
-                // Auto-Repeat: OSX delivers only PRESSED
-                // inject auto-repeat RELEASE and TYPED keys _before_
-                pressedKeyBalance--;
-                modifiers |= InputEvent.AUTOREPEAT_MASK;
-                super.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, (char)-1); // RELEASED
-                super.sendKeyEvent(KeyEvent.EVENT_KEY_TYPED, modifiers, keyCode, keyChar); // TYPED
-            }       
-            // only deliver keyChar on key Typed events, harmonizing platform behavior
-            keyChar = KeyEvent.EVENT_KEY_TYPED == eventType ? keyChar : (char)-1;
-            super.sendKeyEvent(eventType, modifiers, keyCode2, keyChar);
+        keyCode = MacKeyUtil.validateKeyCode(keyCode, keyChar);
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("MacWindow.sendKeyEvent "+Thread.currentThread().getName()+" char: 0x"+Integer.toHexString(keyChar)+", code 0x"+Integer.toHexString(keyCode)+" -> 0x"+Integer.toHexString(keyCode));
         }
+        // Auto-Repeat: OSX delivers only PRESSED, inject auto-repeat RELEASE and TYPED keys _before_ PRESSED
+        switch(eventType) {
+            case KeyEvent.EVENT_KEY_RELEASED:
+                if( 1 == isKeyInAutoRepeat(keyCode) ) {
+                    // AR out
+                    keyRepeatState.put(keyCode, false);
+                }
+                keyPressedState.put(keyCode, false);
+                keyChar = (char)-1;
+                break;
+            case KeyEvent.EVENT_KEY_PRESSED:
+                if( 1 == isKeyPressed(keyCode) ) {
+                    if( 0 == isKeyInAutoRepeat(keyCode) ) {
+                        // AR in
+                        keyRepeatState.put(keyCode, true);
+                    }
+                    modifiers |= InputEvent.AUTOREPEAT_MASK;
+                    emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, (char)-1); // RELEASED
+                    emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_TYPED, modifiers, keyCode, keyChar); // TYPED
+                } else {
+                    keyPressedState.put(keyCode, true);
+                }
+                keyChar = (char)-1;
+                break;
+            case KeyEvent.EVENT_KEY_TYPED:
+                break;
+        }
+        emitKeyEvent(send, wait, eventType, modifiers, keyCode, keyChar);
+    }
+    
+    @Override
+    public void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
+        handleKeyEvent(true, false, eventType, modifiers, keyCode, keyChar);
     }
     
     @Override
     public void enqueueKeyEvent(boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
-        // Note that we send the key char for the key code on this
-        // platform -- we do not get any useful key codes out of the system
-        final int keyCode2 = MacKeyUtil.validateKeyCode(keyCode, keyChar);
-        final boolean valid = validateKeyEvent(eventType, modifiers, keyCode);
-        if(DEBUG_IMPLEMENTATION) System.err.println("MacWindow.enqueueKeyEvent "+Thread.currentThread().getName()+" char: 0x"+Integer.toHexString(keyChar)+", code 0x"+Integer.toHexString(keyCode)+" -> 0x"+Integer.toHexString(keyCode2)+", valid "+valid);
-        if(valid) {
-            if(pressedKeyBalance > 1) {
-                // Auto-Repeat: OSX delivers only PRESSED
-                // inject auto-repeat RELEASE and TYPED keys _before_
-                pressedKeyBalance--;
-                modifiers |= InputEvent.AUTOREPEAT_MASK;
-                super.enqueueKeyEvent(wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, (char)-1); // RELEASED
-                super.enqueueKeyEvent(wait, KeyEvent.EVENT_KEY_TYPED, modifiers, keyCode, keyChar); // TYPED
-            }       
-            // only deliver keyChar on key Typed events, harmonizing platform behavior
-            keyChar = KeyEvent.EVENT_KEY_TYPED == eventType ? keyChar : (char)-1;
-            super.enqueueKeyEvent(wait, eventType, modifiers, keyCode2, keyChar);
-        }
+        handleKeyEvent(false, wait, eventType, modifiers, keyCode, keyChar);
     }
-
-    private int keyDownModifiers = 0;
-    private int keyDownCode = 0;
-    private int pressedKeyBalance = 0;
-    
-    private boolean validateKeyEvent(int eventType, int modifiers, int keyCode) {
-        switch(eventType) {
-            case KeyEvent.EVENT_KEY_PRESSED:
-                pressedKeyBalance++;
-                keyDownModifiers = modifiers;
-                keyDownCode = keyCode;
-                return true;
-            case KeyEvent.EVENT_KEY_RELEASED:
-                pressedKeyBalance--;
-                return keyDownModifiers == modifiers && keyDownCode == keyCode;
-            case KeyEvent.EVENT_KEY_TYPED:
-                final boolean matchKeyDown = keyDownModifiers == modifiers && keyDownCode == keyCode;
-                keyDownModifiers = 0;
-                keyDownCode = 0;
-                return matchKeyDown;
-            default:
-                throw new NativeWindowException("Unexpected key event type " + eventType);
-        }
-    }
-    
 
     //----------------------------------------------------------------------
     // Internals only
