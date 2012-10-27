@@ -32,9 +32,9 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLSi
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestParenting01AWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestKeyEventOrderNEWT %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestKeyEventOrderNEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestKeyEventAutoRepeatNEWT %*
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestKeyPressReleaseUnmaskRepeatNEWT %*
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestKeyPressReleaseUnmaskRepeatNEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT %*

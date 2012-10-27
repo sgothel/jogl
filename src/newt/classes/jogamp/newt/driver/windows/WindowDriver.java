@@ -281,12 +281,13 @@ public class WindowDriver extends WindowImpl {
         // Auto-Repeat: WINDOWS delivers only PRESSED and TYPED.        
         switch(eventType) {
             case KeyEvent.EVENT_KEY_RELEASED:
-                if( 1 == isKeyInAutoRepeat(keyCode) ) {
-                    // AR out - send out missing PRESSED
-                    emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_PRESSED, modifiers | InputEvent.AUTOREPEAT_MASK, keyCode, (char)-1);
-                    keyRepeatState.put(keyCode, false);
+                if( isKeyCodeTracked(keyCode) ) {
+                    if( keyRepeatState.put(keyCode, false) ) {
+                        // AR out - send out missing PRESSED
+                        emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_PRESSED, modifiers | InputEvent.AUTOREPEAT_MASK, keyCode, (char)-1);
+                    }
+                    keyPressedState.put(keyCode, false);
                 }
-                keyPressedState.put(keyCode, false);
                 emitKeyEvent(send, wait, eventType, modifiers, keyCode, keyChar);
                 final char lastTypedKeyChar = (char) typedKeyCode2KeyChar.put(keyCode, 0);
                 if( 0 < lastTypedKeyChar ) {
@@ -294,16 +295,17 @@ public class WindowDriver extends WindowImpl {
                 }
                 break;
             case KeyEvent.EVENT_KEY_PRESSED:
-                lastPressedKeyCode = keyCode;                
-                if( 1 == isKeyPressed(keyCode) ) {
-                    if( 0 == isKeyInAutoRepeat(keyCode) ) {
-                        // AR in - skip already send PRESSED
-                        keyRepeatState.put(keyCode, true);
+                lastPressedKeyCode = keyCode;
+                if( isKeyCodeTracked(keyCode) ) {
+                    if( keyPressedState.put(keyCode, true) ) {
+                        // key was already pressed
+                        if( keyRepeatState.put(keyCode, true) ) {
+                            emitKeyEvent(send, wait, eventType, modifiers | InputEvent.AUTOREPEAT_MASK, keyCode, (char)-1);
+                        } // else AR in - skip already send PRESSED
                     } else {
-                        emitKeyEvent(send, wait, eventType, modifiers | InputEvent.AUTOREPEAT_MASK, keyCode, (char)-1);
+                        emitKeyEvent(send, wait, eventType, modifiers, keyCode, (char)-1);
                     }
                 } else {
-                    keyPressedState.put(keyCode, true);
                     emitKeyEvent(send, wait, eventType, modifiers, keyCode, (char)-1);
                 }
                 break;

@@ -324,24 +324,21 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         // Auto-Repeat: OSX delivers only PRESSED, inject auto-repeat RELEASE and TYPED keys _before_ PRESSED
         switch(eventType) {
             case KeyEvent.EVENT_KEY_RELEASED:
-                if( 1 == isKeyInAutoRepeat(keyCode) ) {
-                    // AR out
-                    keyRepeatState.put(keyCode, false);
+                if( isKeyCodeTracked(keyCode) ) {
+                    keyRepeatState.put(keyCode, false); // prev == true -> AR out
+                    keyPressedState.put(keyCode, false);
                 }
-                keyPressedState.put(keyCode, false);
                 keyChar = (char)-1;
                 break;
             case KeyEvent.EVENT_KEY_PRESSED:
-                if( 1 == isKeyPressed(keyCode) ) {
-                    if( 0 == isKeyInAutoRepeat(keyCode) ) {
-                        // AR in
-                        keyRepeatState.put(keyCode, true);
+                if( isKeyCodeTracked(keyCode) ) {
+                    if( keyPressedState.put(keyCode, true) ) {
+                        // key was already pressed
+                        keyRepeatState.put(keyCode, true); // prev == false ->  AR in
+                        modifiers |= InputEvent.AUTOREPEAT_MASK;
+                        emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, (char)-1); // RELEASED
+                        emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_TYPED, modifiers, keyCode, keyChar); // TYPED
                     }
-                    modifiers |= InputEvent.AUTOREPEAT_MASK;
-                    emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, (char)-1); // RELEASED
-                    emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_TYPED, modifiers, keyCode, keyChar); // TYPED
-                } else {
-                    keyPressedState.put(keyCode, true);
                 }
                 keyChar = (char)-1;
                 break;

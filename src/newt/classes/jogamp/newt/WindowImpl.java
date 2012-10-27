@@ -2193,6 +2193,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
         return -1;
     }
+    protected final boolean isKeyCodeTracked(int keyCode) { 
+        return 0 <= keyCode && keyCode < keyRepeatState.capacity();
+    }
         
     public void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
         consumeKeyEvent(new KeyEvent(eventType, this, System.currentTimeMillis(), modifiers, keyCode, keyChar) );
