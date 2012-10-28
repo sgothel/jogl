@@ -81,6 +81,7 @@ public class RedSquareES2 implements GLEventListener {
         System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none"));
         System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
         System.err.println("GL Profile: "+gl.getGLProfile());
+        System.err.println("GL Renderer Quirks:" + gl.getContext().getRendererQuirks().toString());
         System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
         
         st = new ShaderState();

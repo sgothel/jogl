@@ -52,7 +52,7 @@ public class GearsObjectES2 extends GearsObject {
         this.colorUniform = colorUniform;
     }
 
-    public GearsObjectES2(GearsObject shared,
+    public GearsObjectES2(GearsObjectES2 shared,
                           PMVMatrix pmvMatrix, 
                           GLUniformData pmvMatrixUniform,
                           GLUniformData colorUniform) 

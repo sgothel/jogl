@@ -123,6 +123,7 @@ public class GearsES2 implements GLEventListener {
         System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none")+", "+gl.getContext().getGLSLVersionNumber());
         System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
         System.err.println("GL Profile: "+gl.getGLProfile());
+        System.err.println("GL Renderer Quirks:" + gl.getContext().getRendererQuirks().toString());
         System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
 
         gl.glEnable(GL.GL_DEPTH_TEST);
@@ -141,7 +142,7 @@ public class GearsES2 implements GLEventListener {
         st.attachShaderProgram(gl, sp0, true);
         // Use debug pipeline
         // drawable.setGL(new DebugGL(drawable.getGL()));
-
+        
         pmvMatrix = new PMVMatrix(pmvUseBackingArray);
         st.attachObject("pmvMatrix", pmvMatrix);
         pmvMatrixUniform = new GLUniformData("pmvMatrix", 4, 4, pmvMatrix.glGetPMvMvitMatrixf()); // P, Mv, Mvi and Mvit
@@ -178,7 +179,7 @@ public class GearsES2 implements GLEventListener {
         } else {
             gear3 = new GearsObjectES2(gear3, pmvMatrix, pmvMatrixUniform, colorU);
             System.err.println("gear3 reused: "+gear3);
-        }                
+        }
     
         final Object upstreamWidget = drawable.getUpstreamWidget();
         if (upstreamWidget instanceof Window) {
@@ -251,7 +252,7 @@ public class GearsES2 implements GLEventListener {
         colorU = null;        
         st.destroy(gl);
         st = null;
-
+        
         System.err.println(Thread.currentThread()+" GearsES2.dispose FIN");
     }
 
