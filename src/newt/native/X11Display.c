@@ -344,14 +344,14 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
         XNextEvent(dpy, &evt);
         num_events--;
 
-        if( 0==evt.xany.window ) {
-            NewtCommon_throwNewRuntimeException(env, "event window NULL, bail out!");
-            return ;
-        }
-
         if(dpy!=evt.xany.display) {
             NewtCommon_throwNewRuntimeException(env, "wrong display, bail out!");
             return ;
+        }
+
+        if( 0==evt.xany.window ) {
+            DBG_PRINT( "X11: DispatchMessages dpy %p, Event %d - Window NULL, ignoring\n", (void*)dpy, (int)evt.type);
+            continue;
         }
 
         // DBG_PRINT( "X11: DispatchMessages dpy %p, win %p, Event %d\n", (void*)dpy, (void*)evt.xany.window, (int)evt.type);
@@ -365,8 +365,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
             );
 
         if(NULL==jwindow) {
-            fprintf(stderr, "Warning: NEWT X11 DisplayDispatch %p, Couldn't handle event %d for X11 window %p\n", 
-                (void*)dpy, evt.type, (void*)evt.xany.window);
+            fprintf(stderr, "Warning: NEWT X11 DisplayDispatch %p, Couldn't handle event %d for X11 window %p\n", (void*)dpy, evt.type, (void*)evt.xany.window);
             continue;
         }
  
