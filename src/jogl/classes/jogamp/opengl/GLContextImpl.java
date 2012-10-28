@@ -98,7 +98,8 @@ public abstract class GLContextImpl extends GLContext {
   private final GLStateTracker glStateTracker = new GLStateTracker();
   private GLDebugMessageHandler glDebugHandler = null;
   private final int[] boundFBOTarget = new int[] { 0, 0 }; // { draw, read }
-
+  private int defaultVAO = 0; 
+  
   protected GLDrawableImpl drawable;
   protected GLDrawableImpl drawableRead;
   
@@ -347,6 +348,12 @@ public abstract class GLContextImpl extends GLContext {
                   } catch (Throwable t) {
                       drawableContextRealizedException = t;
                   }
+                  if(0 != defaultVAO) {
+                      int[] tmp = new int[] { defaultVAO };
+                      gl.getGL2GL3().glBindVertexArray(0);
+                      gl.getGL2GL3().glDeleteVertexArrays(1, tmp, 0);
+                      defaultVAO = 0;
+                  }
                   glDebugHandler.enable(false);
                   if(lock.getHoldCount() > 1) {
                       // pending release() after makeCurrent()
@@ -563,6 +570,13 @@ public abstract class GLContextImpl extends GLContext {
         final boolean created;
         try {
             created = createImpl(shareWith); // may throws exception if fails!
+            if( created && glRendererQuirks.exist(GLRendererQuirks.RequiresBoundVAO) ) {
+                // Workaround: Create a default VAO to be used per default on makeCurrent
+                final int[] tmp = new int[1];
+                gl.getGL2GL3().glGenVertexArrays(1, tmp, 0);
+                defaultVAO = tmp[0];
+                gl.getGL2GL3().glBindVertexArray(defaultVAO);
+            }
         } finally {
             if (null != shareWith) {
                 shareWith.getDrawableImpl().unlockSurface();
@@ -1292,11 +1306,18 @@ public abstract class GLContextImpl extends GLContext {
     
     // OS related quirks
     if( Platform.getOSType() == Platform.OSType.MACOS ) {
-        final int quirk = GLRendererQuirks.NoOffscreenBitmap;
+        final int quirk1 = GLRendererQuirks.NoOffscreenBitmap;
         if(DEBUG) {
-            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType());
+            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk1)+": cause: OS "+Platform.getOSType());
         }
-        quirks[i++] = quirk;
+        quirks[i++] = quirk1;
+        if( 3 <= ctxMajorVersion ) {
+            final int quirk2 = GLRendererQuirks.RequiresBoundVAO;
+            if(DEBUG) {
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk2)+": cause: OS "+Platform.getOSType());
+            }
+            quirks[i++] = quirk2;
+        }
     } else if( Platform.getOSType() == Platform.OSType.WINDOWS ) {
         final int quirk = GLRendererQuirks.NoDoubleBufferedBitmap;
         if(DEBUG) {

@@ -245,7 +245,7 @@ function testawtswt() {
 #testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFloatUtil01MatrixMatrixMultNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestPMVMatrix01NEWT $*
@@ -378,7 +378,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.TestKeyEventOrderNEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestKeyEventAutoRepeatNEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestKeyPressReleaseUnmaskRepeatNEWT $*
-testawt com.jogamp.opengl.test.junit.newt.TestKeyCodeNEWT $*
+#testawt com.jogamp.opengl.test.junit.newt.TestKeyCodeNEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT $*

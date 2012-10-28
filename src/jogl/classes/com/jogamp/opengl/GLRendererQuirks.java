@@ -58,12 +58,19 @@ public class GLRendererQuirks {
     
     /** SIGSEGV on setSwapInterval() after changing the context's drawable w/ 'Mesa 8.0.4' dri2SetSwapInterval/DRI2 (soft & intel) */
     public static final int NoSetSwapIntervalPostRetarget = 4;
+
+    /** Requires a bound VAO for vertex attribute operations, i.e. GL impl. uses no default VAO. Violates GL 3.2. On OSX OpenGL 3.2 context. FIXME: Constrain version. */
+    public static final int RequiresBoundVAO = 5;
+    
+    /** GLSL <code>discard</code> command leads to undefined behavior or won't get compiled if being used. Appears to happen on Nvidia Tegra2. FIXME: Constrain version. */
+    public static final int GLSLBuggyDiscard = 6;
     
     /** Number of quirks known. */
-    public static final int COUNT                   = 5;
+    public static final int COUNT = 7;
     
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
-                                                          "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget" 
+                                                          "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "RequiresBoundVAO",
+                                                          "GLSLBuggyDiscard"
                                                         };
 
     private final int _bitmask;
