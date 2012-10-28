@@ -368,6 +368,10 @@ static jmethodID windowRepaintID = NULL;
     cachedInsets[1] = 0; // r
     cachedInsets[2] = 0; // t
     cachedInsets[3] = 0; // b
+    modsDown[0] = NO; // shift
+    modsDown[1] = NO; // ctrl
+    modsDown[2] = NO; // alt
+    modsDown[3] = NO; // win
     mouseConfined = NO;
     mouseVisible = YES;
     mouseInside = NO;
@@ -597,6 +601,14 @@ static jint mods2JavaMods(NSUInteger mods)
 
 - (void) sendKeyEvent: (NSEvent*) event eventType: (jint) evType
 {
+    jint keyCode = (jint) [event keyCode];
+    NSString* chars = [event charactersIgnoringModifiers];
+    NSUInteger mods = [event modifierFlags];
+    [self sendKeyEvent: keyCode characters: chars modifiers: mods eventType: evType];
+}
+
+- (void) sendKeyEvent: (jint) keyCode characters: (NSString*) chars modifiers: (NSUInteger)mods eventType: (jint) evType
+{
     NSView* nsview = [self contentView];
     if( ! [nsview isMemberOfClass:[NewtView class]] ) {
         return;
@@ -616,16 +628,30 @@ static jint mods2JavaMods(NSUInteger mods)
     }
 
     int i;
-    jint keyCode = (jint) [event keyCode];
-    NSString* chars = [event charactersIgnoringModifiers];
-    int len = [chars length];
-    jint javaMods = mods2JavaMods([event modifierFlags]);
+    int len = NULL != chars ? [chars length] : 0;
+    jint javaMods = mods2JavaMods(mods);
 
-    for (i = 0; i < len; i++) {
-        // Note: the key code in the NSEvent does not map to anything we can use
-        jchar keyChar = (jchar) [chars characterAtIndex: i];
+    if(len > 0) {
+        // printable chars
+        for (i = 0; i < len; i++) {
+            // Note: the key code in the NSEvent does not map to anything we can use
+            jchar keyChar = (jchar) [chars characterAtIndex: i];
 
-        DBG_PRINT("sendKeyEvent: %d/%d char 0x%X, code 0x%X\n", i, len, (int)keyChar, (int)keyCode);
+            DBG_PRINT("sendKeyEvent: %d/%d char 0x%X, code 0x%X\n", i, len, (int)keyChar, (int)keyCode);
+
+            #ifdef USE_SENDIO_DIRECT
+            (*env)->CallVoidMethod(env, javaWindowObject, sendKeyEventID,
+                                   evType, javaMods, keyCode, keyChar);
+            #else
+            (*env)->CallVoidMethod(env, javaWindowObject, enqueueKeyEventID, JNI_FALSE,
+                                   evType, javaMods, keyCode, keyChar);
+            #endif
+        }
+    } else {
+        // non-printable chars
+        jchar keyChar = (jchar) -1;
+
+        DBG_PRINT("sendKeyEvent: code 0x%X\n", (int)keyCode);
 
         #ifdef USE_SENDIO_DIRECT
         (*env)->CallVoidMethod(env, javaWindowObject, sendKeyEventID,
@@ -803,6 +829,36 @@ static jint mods2JavaMods(NSUInteger mods)
 {
     [self sendKeyEvent: theEvent eventType: EVENT_KEY_RELEASED];
     [self sendKeyEvent: theEvent eventType: EVENT_KEY_TYPED];
+}
+
+#define kVK_Shift     0x38
+#define kVK_Option    0x3A
+#define kVK_Control   0x3B
+#define kVK_Command   0x37
+
+- (void) handleFlagsChanged:(int) keyMask keyIndex: (int) keyIdx keyCode: (int) keyCode modifiers: (NSUInteger) mods
+{
+    if ( NO == modsDown[keyIdx] && 0 != ( mods & keyMask ) )  {
+        modsDown[keyIdx] = YES;
+        mods &= ~keyMask;
+        [self sendKeyEvent: keyCode characters: NULL modifiers: mods eventType: EVENT_KEY_TYPED];
+    } else if ( YES == modsDown[keyIdx] && 0 == ( mods & keyMask ) )  {
+        modsDown[keyIdx] = NO;
+        [self sendKeyEvent: keyCode characters: NULL modifiers: mods eventType: EVENT_KEY_RELEASED];
+        [self sendKeyEvent: keyCode characters: NULL modifiers: mods eventType: EVENT_KEY_TYPED];
+    }
+}
+
+- (void) flagsChanged:(NSEvent *) theEvent
+{
+    NSUInteger mods = [theEvent modifierFlags];
+
+    // BOOL modsDown[4]; // shift, ctrl, alt/option, win/command
+
+    [self handleFlagsChanged: NSShiftKeyMask keyIndex: 0 keyCode: kVK_Shift modifiers: mods];
+    [self handleFlagsChanged: NSControlKeyMask keyIndex: 1 keyCode: kVK_Control modifiers: mods];
+    [self handleFlagsChanged: NSAlternateKeyMask keyIndex: 2 keyCode: kVK_Option modifiers: mods];
+    [self handleFlagsChanged: NSCommandKeyMask keyIndex: 3 keyCode: kVK_Command modifiers: mods];
 }
 
 - (void) mouseEntered: (NSEvent*) theEvent

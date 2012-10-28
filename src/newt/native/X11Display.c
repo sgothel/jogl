@@ -148,6 +148,8 @@ static jint X11KeySym2NewtVKey(KeySym keySym) {
             return J_VK_HELP;
         case XK_grave:
             return J_VK_BACK_QUOTE;
+        case XK_apostrophe:
+            return J_VK_QUOTE;
     }
     return keySym;
 }

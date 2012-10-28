@@ -314,12 +314,12 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         }
     }
 
-    private final void handleKeyEvent(boolean send, boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
+    private final void handleKeyEvent(boolean send, boolean wait, int eventType, int modifiers, int _keyCode, char keyChar) {
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
-        keyCode = MacKeyUtil.validateKeyCode(keyCode, keyChar);
+        final int keyCode = MacKeyUtil.validateKeyCode(_keyCode, keyChar);
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("MacWindow.sendKeyEvent "+Thread.currentThread().getName()+" char: 0x"+Integer.toHexString(keyChar)+", code 0x"+Integer.toHexString(keyCode)+" -> 0x"+Integer.toHexString(keyCode));
+            System.err.println("MacWindow.sendKeyEvent "+Thread.currentThread().getName()+" char: 0x"+Integer.toHexString(keyChar)+", code 0x"+Integer.toHexString(_keyCode)+" -> 0x"+Integer.toHexString(keyCode));
         }
         // Auto-Repeat: OSX delivers only PRESSED, inject auto-repeat RELEASE and TYPED keys _before_ PRESSED
         switch(eventType) {

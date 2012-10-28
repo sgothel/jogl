@@ -162,13 +162,13 @@ public class MacKeyUtil {
             case kVK_Space:                return KeyEvent.VK_SPACE;
             case kVK_Delete:               return KeyEvent.VK_BACK_SPACE;
             case kVK_Escape:               return KeyEvent.VK_ESCAPE;
-            case kVK_Command:              return KeyEvent.VK_ALT;
+            case kVK_Command:              return KeyEvent.VK_WINDOWS;
             case kVK_Shift:                return KeyEvent.VK_SHIFT;
             case kVK_CapsLock:             return KeyEvent.VK_CAPS_LOCK;
-            case kVK_Option:               return KeyEvent.VK_WINDOWS;
+            case kVK_Option:               return KeyEvent.VK_ALT;
             case kVK_Control:              return KeyEvent.VK_CONTROL;
             case kVK_RightShift:           return KeyEvent.VK_SHIFT;
-            case kVK_RightOption:          return KeyEvent.VK_WINDOWS;
+            case kVK_RightOption:          return KeyEvent.VK_ALT;
             case kVK_RightControl:         return KeyEvent.VK_CONTROL;
             // case kVK_Function:             return KeyEvent.VK_F;
             case kVK_F17:                  return KeyEvent.VK_F17;
@@ -206,78 +206,73 @@ public class MacKeyUtil {
             case kVK_UpArrow:              return KeyEvent.VK_UP;
         }
         
-        if (keyChar == '\r') {
-            // Turn these into \n
-            return KeyEvent.VK_ENTER;
-        }
-
-        if (keyChar >= NSUpArrowFunctionKey && keyChar <= NSModeSwitchFunctionKey) {
-            switch (keyChar) {
-                case NSUpArrowFunctionKey:     return KeyEvent.VK_UP;
-                case NSDownArrowFunctionKey:   return KeyEvent.VK_DOWN;
-                case NSLeftArrowFunctionKey:   return KeyEvent.VK_LEFT;
-                case NSRightArrowFunctionKey:  return KeyEvent.VK_RIGHT;
-                case NSF1FunctionKey:          return KeyEvent.VK_F1;
-                case NSF2FunctionKey:          return KeyEvent.VK_F2;
-                case NSF3FunctionKey:          return KeyEvent.VK_F3;
-                case NSF4FunctionKey:          return KeyEvent.VK_F4;
-                case NSF5FunctionKey:          return KeyEvent.VK_F5;
-                case NSF6FunctionKey:          return KeyEvent.VK_F6;
-                case NSF7FunctionKey:          return KeyEvent.VK_F7;
-                case NSF8FunctionKey:          return KeyEvent.VK_F8;
-                case NSF9FunctionKey:          return KeyEvent.VK_F9;
-                case NSF10FunctionKey:         return KeyEvent.VK_F10;
-                case NSF11FunctionKey:         return KeyEvent.VK_F11;
-                case NSF12FunctionKey:         return KeyEvent.VK_F12;
-                case NSF13FunctionKey:         return KeyEvent.VK_F13;
-                case NSF14FunctionKey:         return KeyEvent.VK_F14;
-                case NSF15FunctionKey:         return KeyEvent.VK_F15;
-                case NSF16FunctionKey:         return KeyEvent.VK_F16;
-                case NSF17FunctionKey:         return KeyEvent.VK_F17;
-                case NSF18FunctionKey:         return KeyEvent.VK_F18;
-                case NSF19FunctionKey:         return KeyEvent.VK_F19;
-                case NSF20FunctionKey:         return KeyEvent.VK_F20;
-                case NSF21FunctionKey:         return KeyEvent.VK_F21;
-                case NSF22FunctionKey:         return KeyEvent.VK_F22;
-                case NSF23FunctionKey:         return KeyEvent.VK_F23;
-                case NSF24FunctionKey:         return KeyEvent.VK_F24;
-                case NSInsertFunctionKey:      return KeyEvent.VK_INSERT;
-                case NSDeleteFunctionKey:      return KeyEvent.VK_DELETE;
-                case NSHomeFunctionKey:        return KeyEvent.VK_HOME;
-                case NSBeginFunctionKey:       return KeyEvent.VK_BEGIN;
-                case NSEndFunctionKey:         return KeyEvent.VK_END;
-                case NSPageUpFunctionKey:      return KeyEvent.VK_PAGE_UP;
-                case NSPageDownFunctionKey:    return KeyEvent.VK_PAGE_DOWN;
-                case NSPrintScreenFunctionKey: return KeyEvent.VK_PRINTSCREEN;
-                case NSScrollLockFunctionKey:  return KeyEvent.VK_SCROLL_LOCK;
-                case NSPauseFunctionKey:       return KeyEvent.VK_PAUSE;
-                // Not handled:
-                // NSSysReqFunctionKey
-                // NSBreakFunctionKey
-                // NSResetFunctionKey
-                case NSStopFunctionKey:        return KeyEvent.VK_STOP;
-                // Not handled:
-                // NSMenuFunctionKey
-                // NSUserFunctionKey
-                // NSSystemFunctionKey
-                // NSPrintFunctionKey
-                // NSClearLineFunctionKey
-                // NSClearDisplayFunctionKey
-                // NSInsertLineFunctionKey
-                // NSDeleteLineFunctionKey
-                // NSInsertCharFunctionKey
-                // NSDeleteCharFunctionKey
-                // NSPrevFunctionKey
-                // NSNextFunctionKey
-                // NSSelectFunctionKey
-                // NSExecuteFunctionKey
-                // NSUndoFunctionKey
-                // NSRedoFunctionKey
-                // NSFindFunctionKey
-                // NSHelpFunctionKey
-                // NSModeSwitchFunctionKey
-                default: break;
-            }
+        switch (keyChar) {
+            case NSUpArrowFunctionKey:     return KeyEvent.VK_UP;
+            case NSDownArrowFunctionKey:   return KeyEvent.VK_DOWN;
+            case NSLeftArrowFunctionKey:   return KeyEvent.VK_LEFT;
+            case NSRightArrowFunctionKey:  return KeyEvent.VK_RIGHT;
+            case NSF1FunctionKey:          return KeyEvent.VK_F1;
+            case NSF2FunctionKey:          return KeyEvent.VK_F2;
+            case NSF3FunctionKey:          return KeyEvent.VK_F3;
+            case NSF4FunctionKey:          return KeyEvent.VK_F4;
+            case NSF5FunctionKey:          return KeyEvent.VK_F5;
+            case NSF6FunctionKey:          return KeyEvent.VK_F6;
+            case NSF7FunctionKey:          return KeyEvent.VK_F7;
+            case NSF8FunctionKey:          return KeyEvent.VK_F8;
+            case NSF9FunctionKey:          return KeyEvent.VK_F9;
+            case NSF10FunctionKey:         return KeyEvent.VK_F10;
+            case NSF11FunctionKey:         return KeyEvent.VK_F11;
+            case NSF12FunctionKey:         return KeyEvent.VK_F12;
+            case NSF13FunctionKey:         return KeyEvent.VK_F13;
+            case NSF14FunctionKey:         return KeyEvent.VK_F14;
+            case NSF15FunctionKey:         return KeyEvent.VK_F15;
+            case NSF16FunctionKey:         return KeyEvent.VK_F16;
+            case NSF17FunctionKey:         return KeyEvent.VK_F17;
+            case NSF18FunctionKey:         return KeyEvent.VK_F18;
+            case NSF19FunctionKey:         return KeyEvent.VK_F19;
+            case NSF20FunctionKey:         return KeyEvent.VK_F20;
+            case NSF21FunctionKey:         return KeyEvent.VK_F21;
+            case NSF22FunctionKey:         return KeyEvent.VK_F22;
+            case NSF23FunctionKey:         return KeyEvent.VK_F23;
+            case NSF24FunctionKey:         return KeyEvent.VK_F24;
+            case NSInsertFunctionKey:      return KeyEvent.VK_INSERT;
+            case NSDeleteFunctionKey:      return KeyEvent.VK_DELETE;
+            case NSHomeFunctionKey:        return KeyEvent.VK_HOME;
+            case NSBeginFunctionKey:       return KeyEvent.VK_BEGIN;
+            case NSEndFunctionKey:         return KeyEvent.VK_END;
+            case NSPageUpFunctionKey:      return KeyEvent.VK_PAGE_UP;
+            case NSPageDownFunctionKey:    return KeyEvent.VK_PAGE_DOWN;
+            case NSPrintScreenFunctionKey: return KeyEvent.VK_PRINTSCREEN;
+            case NSScrollLockFunctionKey:  return KeyEvent.VK_SCROLL_LOCK;
+            case NSPauseFunctionKey:       return KeyEvent.VK_PAUSE;
+            // Not handled:
+            // NSSysReqFunctionKey
+            // NSBreakFunctionKey
+            // NSResetFunctionKey
+            case NSStopFunctionKey:        return KeyEvent.VK_STOP;
+            // Not handled:
+            // NSMenuFunctionKey
+            // NSUserFunctionKey
+            // NSSystemFunctionKey
+            // NSPrintFunctionKey
+            // NSClearLineFunctionKey
+            // NSClearDisplayFunctionKey
+            // NSInsertLineFunctionKey
+            // NSDeleteLineFunctionKey
+            // NSInsertCharFunctionKey
+            // NSDeleteCharFunctionKey
+            // NSPrevFunctionKey
+            // NSNextFunctionKey
+            // NSSelectFunctionKey
+            // NSExecuteFunctionKey
+            // NSUndoFunctionKey
+            // NSRedoFunctionKey
+            // NSFindFunctionKey
+            // NSHelpFunctionKey
+            // NSModeSwitchFunctionKey
+            case 0x60: return KeyEvent.VK_BACK_QUOTE; // `
+            case 0x27: return KeyEvent.VK_QUOTE;      // '          
+            case '\r': return KeyEvent.VK_ENTER;
         }
 
         if ('a' <= keyChar && keyChar <= 'z') {

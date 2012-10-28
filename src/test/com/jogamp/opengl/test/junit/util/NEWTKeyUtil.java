@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl.test.junit.util;
 
+import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
 
@@ -36,10 +37,73 @@ import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.newt.event.KeyEvent;
 
 public class NEWTKeyUtil {
+    public static class CodeSeg {
+        public final int min;
+        public final int max;
+        public final String description;
+        
+        public CodeSeg(int min, int max, String description) {
+            this.min = min;
+            this.max = max;
+            this.description = description;
+        }
+    }
+    public static class CodeEvent {
+        public final int code;
+        public final String description;
+        public final KeyEvent event;
+        
+        public CodeEvent(int code, String description, KeyEvent event) {
+            this.code = code;
+            this.description = description;
+            this.event = event;
+        }
+        public String toString() {
+            return "Code 0x"+Integer.toHexString(code)+" != "+event+" // "+description;
+        }
+    }
+    
     public static void dumpKeyEvents(List<EventObject> keyEvents) {
         for(int i=0; i<keyEvents.size(); i++) {
             System.err.println(i+": "+keyEvents.get(i));
         }        
+    }
+    
+    public static boolean validateKeyCode(CodeSeg[] codeSegments, List<List<EventObject>> keyEventsList, boolean verbose) {
+        final List<CodeEvent> missCodes = new ArrayList<CodeEvent>();
+        int totalCodeCount = 0;
+        boolean res = true;
+        for(int i=0; i<codeSegments.length; i++) {
+            final CodeSeg codeSeg = codeSegments[i];
+            totalCodeCount += codeSeg.max - codeSeg.min + 1;
+            final List<EventObject> keyEvents = keyEventsList.get(i);
+            res &= validateKeyCode(missCodes, codeSeg, keyEvents, verbose);
+        }        
+        if(verbose) {
+            System.err.println("*** Total KeyCode Misses "+missCodes.size()+" / "+totalCodeCount+", valid "+res);
+            for(int i=0; i<missCodes.size(); i++) {
+                System.err.println("Miss["+i+"]: "+missCodes.get(i));
+            }
+        }
+        return res;
+    }
+    public static boolean validateKeyCode(List<CodeEvent> missCodes, CodeSeg codeSeg, List<EventObject> keyEvents, boolean verbose) {
+        final int codeCount = codeSeg.max - codeSeg.min + 1;
+        int misses = 0;
+        for(int i=0; i<codeCount; i++) {
+            final int c = codeSeg.min + i;
+            final int j = i*3+0; // KEY_PRESSED
+            final KeyEvent e = (KeyEvent) ( j < keyEvents.size() ? keyEvents.get(j) : null );
+            if( null == e || c != e.getKeyCode() ) {
+                missCodes.add(new CodeEvent(c, codeSeg.description, e));
+                misses++;
+            }
+        }
+        final boolean res = 3*codeCount == keyEvents.size() && 0 == missCodes.size();
+        if(verbose) {
+            System.err.println("+++ Code Segment "+codeSeg.description+", Misses: "+misses+" / "+codeCount+", events "+keyEvents.size()+", valid "+res);
+        }
+        return res;
     }
     
     public static int getNextKeyEventType(int et) {

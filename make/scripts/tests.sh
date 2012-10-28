@@ -377,7 +377,8 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
 #testawt com.jogamp.opengl.test.junit.newt.TestKeyEventOrderNEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestKeyEventAutoRepeatNEWT $*
-testawt com.jogamp.opengl.test.junit.newt.TestKeyPressReleaseUnmaskRepeatNEWT $*
+#testawt com.jogamp.opengl.test.junit.newt.TestKeyPressReleaseUnmaskRepeatNEWT $*
+testawt com.jogamp.opengl.test.junit.newt.TestKeyCodeNEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT $*

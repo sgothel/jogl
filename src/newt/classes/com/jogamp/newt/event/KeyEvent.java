@@ -156,10 +156,10 @@ public class KeyEvent extends InputEvent
 
     /* Virtual key codes. */
 
-    public static final int VK_ENTER          = '\n';
-    public static final int VK_BACK_SPACE     = '\b';
-    public static final int VK_TAB            = '\t';
     public static final int VK_CANCEL         = 0x03;
+    public static final int VK_BACK_SPACE     = 0x08; // '\b'
+    public static final int VK_TAB            = 0x09; // '\t'
+    public static final int VK_ENTER          = 0x0A; // '\n'
     public static final int VK_CLEAR          = 0x0C;
     public static final int VK_SHIFT          = 0x10;
     public static final int VK_CONTROL        = 0x11;
@@ -297,17 +297,9 @@ public class KeyEvent extends InputEvent
     public static final int VK_ADD            = 0x6B;
 
     /** 
-     * This constant is obsolete, and is included only for backwards
-     * compatibility.
-     * @see #VK_SEPARATOR
-     */
-    public static final int VK_SEPARATER      = 0x6C;
-
-    /** 
      * Constant for the Numpad Separator key. 
-     * @since 1.4
      */
-    public static final int VK_SEPARATOR      = VK_SEPARATER;
+    public static final int VK_SEPARATOR      = 0x6C;
 
     public static final int VK_SUBTRACT       = 0x6D;
     public static final int VK_DECIMAL        = 0x6E;

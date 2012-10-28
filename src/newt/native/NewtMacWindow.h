@@ -111,6 +111,7 @@
     BOOL mouseInside;
     BOOL cursorIsHidden;
     BOOL realized;
+    BOOL modsDown[4]; // shift, ctrl, alt/option, win/command
     NSPoint lastInsideMousePosition;
 @public
     int cachedInsets[4]; // l, r, t, b
@@ -145,6 +146,7 @@
 - (void) setMousePosition:(NSPoint)p;
 
 - (void) sendKeyEvent: (NSEvent*) event eventType: (jint) evType;
+- (void) sendKeyEvent: (jint) keyCode characters: (NSString*) chars modifiers: (NSUInteger)mods eventType: (jint) evType;
 - (void) sendMouseEvent: (NSEvent*) event eventType: (jint) evType;
 - (void) focusChanged: (BOOL) gained;
 
@@ -157,6 +159,8 @@
 - (void) windowDidResignKey: (NSNotification *) notification;
 - (void) keyDown: (NSEvent*) theEvent;
 - (void) keyUp: (NSEvent*) theEvent;
+- (void) handleFlagsChanged:(int) keyMask keyIndex: (int) keyIdx keyCode: (int) keyCode modifiers: (NSUInteger) mods;
+- (void) flagsChanged: (NSEvent *) theEvent;
 - (void) mouseEntered: (NSEvent*) theEvent;
 - (void) mouseExited: (NSEvent*) theEvent;
 - (void) mouseMoved: (NSEvent*) theEvent;
