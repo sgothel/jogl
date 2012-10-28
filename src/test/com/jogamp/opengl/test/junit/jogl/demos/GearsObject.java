@@ -117,18 +117,20 @@ public abstract class GearsObject {
 
         s[4] = 0; // sin(0f)
         c[4] = 1; // cos(0f)
+        
+        final int vboUsage = GL.GL_STATIC_DRAW;
 
-        frontFace = createInterleaved(6, GL.GL_FLOAT, false, 4*teeth+2, GL.GL_STATIC_DRAW);
+        frontFace = createInterleaved(6, GL.GL_FLOAT, false, 4*teeth+2, vboUsage);
         addInterleavedVertexAndNormalArrays(frontFace, 3);
-        backFace = createInterleaved(6, GL.GL_FLOAT, false, 4*teeth+2, GL.GL_STATIC_DRAW);
+        backFace = createInterleaved(6, GL.GL_FLOAT, false, 4*teeth+2, vboUsage);
         addInterleavedVertexAndNormalArrays(backFace, 3);
-        frontSide = createInterleaved(6, GL.GL_FLOAT, false, 6*teeth, GL.GL_STATIC_DRAW);
+        frontSide = createInterleaved(6, GL.GL_FLOAT, false, 6*teeth, vboUsage);
         addInterleavedVertexAndNormalArrays(frontSide, 3);
-        backSide = createInterleaved(6, GL.GL_FLOAT, false, 6*teeth, GL.GL_STATIC_DRAW);
+        backSide = createInterleaved(6, GL.GL_FLOAT, false, 6*teeth, vboUsage);
         addInterleavedVertexAndNormalArrays(backSide, 3);
-        outwardFace = createInterleaved(6, GL.GL_FLOAT, false, 4*4*teeth+2, GL.GL_STATIC_DRAW);
+        outwardFace = createInterleaved(6, GL.GL_FLOAT, false, 4*4*teeth+2, vboUsage);
         addInterleavedVertexAndNormalArrays(outwardFace, 3);
-        insideRadiusCyl = createInterleaved(6, GL.GL_FLOAT, false, 2*teeth+2, GL.GL_STATIC_DRAW);
+        insideRadiusCyl = createInterleaved(6, GL.GL_FLOAT, false, 2*teeth+2, vboUsage);
         addInterleavedVertexAndNormalArrays(insideRadiusCyl, 3);
 
         for (i = 0; i < teeth; i++) {

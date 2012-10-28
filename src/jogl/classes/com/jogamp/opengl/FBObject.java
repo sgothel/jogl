@@ -389,7 +389,7 @@ public class FBObject {
                 } else {
                     gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, format, getWidth(), getHeight());
                 }
-                int glerr = gl.glGetError();
+                final int glerr = gl.glGetError();
                 if(GL.GL_NO_ERROR != glerr) {
                     gl.glDeleteRenderbuffers(1, name, 0);
                     setName(0);
