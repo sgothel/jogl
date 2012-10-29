@@ -807,6 +807,7 @@ public class ShaderCode {
         }
     }
 
+    // Shall we use: #ifdef GL_FRAGMENT_PRECISION_HIGH .. #endif for using highp in fragment shader if avail ?     
     /** {@value #es2_default_precision_vp} */
     public static final String es2_default_precision_vp = "\nprecision highp float;\nprecision highp int;\n";
     /** {@value #es2_default_precision_fp} */

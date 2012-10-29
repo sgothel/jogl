@@ -1,3 +1,11 @@
+
+#if __VERSION__ >= 130
+  #define varying in
+  out vec4 mgl_FragColor;
+#else
+  #define mgl_FragColor gl_FragColor   
+#endif
+
 #include es_precision.glsl
 
 #include mgl_uniform.glsl
@@ -19,6 +27,6 @@ void main (void)
   if( mgl_AlphaTestFunc > 0 ) {
       alphaTest(color);
   }
-  gl_FragColor = color;
+  mgl_FragColor = color;
 }
 

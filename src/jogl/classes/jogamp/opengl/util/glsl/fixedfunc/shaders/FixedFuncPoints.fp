@@ -1,4 +1,12 @@
 
+#if __VERSION__ >= 130
+  #define varying in
+  out vec4 mgl_FragColor;
+#else
+  #define mgl_FragColor gl_FragColor   
+#endif
+
+
 #include es_precision.glsl
 #include mgl_lightdef.glsl
 
@@ -10,7 +18,7 @@
 
 void main (void)
 { 
-  gl_FragColor = frontColor;
+  mgl_FragColor = frontColor;
 
   if( pointSmooth > 0.5 ) {
       // smooth (AA)
@@ -27,12 +35,12 @@ void main (void)
       #endif
 
       #ifndef TEST
-          gl_FragColor.a *= r1;
+          mgl_FragColor.a *= r1;
       #else
-          gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-          gl_FragColor.r = r1 < 0.0 ? 1.0 : 0.0;
-          gl_FragColor.g = r > 1.0 ? 1.0 : 0.0;
-          gl_FragColor.b = r > border ? 1.0 : 0.0;
+          mgl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+          mgl_FragColor.r = r1 < 0.0 ? 1.0 : 0.0;
+          mgl_FragColor.g = r > 1.0 ? 1.0 : 0.0;
+          mgl_FragColor.b = r > border ? 1.0 : 0.0;
       #endif
   }
 }

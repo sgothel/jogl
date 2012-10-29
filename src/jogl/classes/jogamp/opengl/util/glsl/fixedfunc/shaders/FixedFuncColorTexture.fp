@@ -1,4 +1,12 @@
 
+#if __VERSION__ >= 130
+  #define varying in
+  out vec4 mgl_FragColor;
+#else
+  #define mgl_FragColor gl_FragColor   
+#endif
+
+
 #include es_precision.glsl
 #include mgl_lightdef.glsl
 
@@ -95,14 +103,14 @@ void main (void)
       }
   // } /* CullFace */
 
-  gl_FragColor = color;
+  mgl_FragColor = color;
   /**
   // simple alpha check
   if (color.a != 0.0) {
-      gl_FragColor = vec4(pow(color.rgb, igammav), color.a);
+      mgl_FragColor = vec4(pow(color.rgb, igammav), color.a);
   } else {
       // discard; // freezes NV tegra2 compiler
-      gl_FragColor = color;
+      mgl_FragColor = color;
   } */
 }
 

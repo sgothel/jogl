@@ -937,30 +937,19 @@ public class FixedFuncPipeline {
         return toString(null, DEBUG).toString();
     }
 
-    // Shall we use: #ifdef GL_FRAGMENT_PRECISION_HIGH .. #endif for using highp in fragment shader if avail ? 
-    static final String es2_prelude_vp = "#version 100\n\nprecision highp float;\nprecision highp int;\n";
-    static final String es2_prelude_fp = "#version 100\n\nprecision mediump float;\nprecision mediump int;\n/*precision lowp sampler2D;*/\n";
-    static final String gl2_prelude = "#version 120\n"; // GL 2.1 (Nvidia driver claims it's required to use gl_Points, OSX claim's it for gl_PointCoord -> driver bug - both were introduced w/ 1.10)
-    
     private static final String constMaxTextures0 = "#define MAX_TEXTURE_UNITS 0\n";
     private static final String constMaxTextures2 = "#define MAX_TEXTURE_UNITS 2\n";
     private static final String constMaxTextures4 = "#define MAX_TEXTURE_UNITS 4\n";
     private static final String constMaxTextures8 = "#define MAX_TEXTURE_UNITS 8\n";
     
-    private void customizeShader(GL2ES2 gl, ShaderCode vp, ShaderCode fp, String maxTextureDefine) {
-        int rsVpPos, rsFpPos;
-        if(gl.isGLES2()) {
-            rsVpPos = vp.insertShaderSource(0, 0, es2_prelude_vp);
-            rsFpPos = fp.insertShaderSource(0, 0, es2_prelude_fp);
-        } else {
-            rsVpPos = vp.insertShaderSource(0, 0, gl2_prelude);
-            rsFpPos = fp.insertShaderSource(0, 0, gl2_prelude);
-        }
+    private final void customizeShader(GL2ES2 gl, ShaderCode vp, ShaderCode fp, String maxTextureDefine) {
+        int rsVpPos = vp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_vp);
+        int rsFpPos = fp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);        
         vp.insertShaderSource(0, rsVpPos, maxTextureDefine);
         fp.insertShaderSource(0, rsFpPos, maxTextureDefine); 
     }
 
-    private void loadShaderPoints(GL2ES2 gl) {
+    private final void loadShaderPoints(GL2ES2 gl) {
         if( null != shaderProgramPoints ) {
             return;
         }
@@ -978,7 +967,7 @@ public class FixedFuncPipeline {
         }        
     }
     
-    private void loadShader(GL2ES2 gl, ShaderSelectionMode mode) {
+    private final void loadShader(GL2ES2 gl, ShaderSelectionMode mode) {
         final boolean loadColor = ShaderSelectionMode.COLOR == mode;
         final boolean loadColorTexture2 = ShaderSelectionMode.COLOR_TEXTURE2 == mode;
         final boolean loadColorTexture4 = ShaderSelectionMode.COLOR_TEXTURE4 == mode;
