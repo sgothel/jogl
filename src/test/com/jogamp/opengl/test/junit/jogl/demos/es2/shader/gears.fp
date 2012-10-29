@@ -1,7 +1,7 @@
 // Copyright (C) 2011 JogAmp Community. All rights reserved.
 // Details see GearsES2.java
 
-#if __VERSION__ >= 140
+#if __VERSION__ >= 130
   #define varying in
   out vec4 mgl_FragColor;
 #else

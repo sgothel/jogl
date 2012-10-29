@@ -1,5 +1,9 @@
 //Copyright 2012 JogAmp Community. All rights reserved.
 
+#if __VERSION__ >= 130
+  #define attribute in
+  #define varying out
+#endif
 
 uniform mat4    mgl_PMVMatrix[2]; // P, Mv
 attribute vec4  mgl_Vertex;

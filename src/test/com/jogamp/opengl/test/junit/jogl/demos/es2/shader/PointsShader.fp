@@ -1,5 +1,5 @@
 
-#if __VERSION__ >= 140
+#if __VERSION__ >= 130
   #define varying in
   out vec4 mgl_FragColor;
 #else
@@ -18,7 +18,7 @@ varying vec4 frontColor;
 
 void main (void)
 { 
-  gl_FragColor = frontColor;
+  mgl_FragColor = frontColor;
 
   if( pointSmooth > 0.5 ) {
       // smooth (AA)

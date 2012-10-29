@@ -1,6 +1,6 @@
 // Copyright 2010 JogAmp Community. All rights reserved.
 
-#if __VERSION__ >= 140
+#if __VERSION__ >= 130
   #define varying in
   out vec4 mgl_FragColor;
 #else

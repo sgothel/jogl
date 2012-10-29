@@ -1,5 +1,12 @@
 //Copyright 2010 JogAmp Community. All rights reserved.
 
+#if __VERSION__ >= 130
+  #define varying in
+  out vec4 mgl_FragColor;
+#else
+  #define mgl_FragColor gl_FragColor   
+#endif
+
 #ifdef GL_ES
   #define MEDIUMP mediump
   #define HIGHP highp
@@ -19,7 +26,7 @@ void main (void)
 {
   MEDIUMP vec2 c = step( onev2, mod(gl_FragCoord.xy, gcu_RulerPixFreq) );
   if( c.s == 0.0 || c.t == 0.0 ) {
-    gl_FragColor = vec4(gcu_RulerColor, 1.0);
+    mgl_FragColor = vec4(gcu_RulerColor, 1.0);
   } else {
     discard;
   }

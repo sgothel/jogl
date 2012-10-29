@@ -1,5 +1,5 @@
 
-#if __VERSION__ >= 140
+#if __VERSION__ >= 130
   #define attribute in
   #define varying out
 #endif

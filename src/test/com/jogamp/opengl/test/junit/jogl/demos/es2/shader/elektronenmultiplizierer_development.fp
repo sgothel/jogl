@@ -9,6 +9,13 @@
  * author: Dominik Stroehlein (DemoscenePassivist) 
  **/
 
+#if __VERSION__ >= 130
+  #define varying in
+  out vec4 mgl_FragColor;
+#else
+  #define mgl_FragColor gl_FragColor   
+#endif
+
 #ifdef GL_ES
   precision mediump float;
   precision mediump sampler2D;
@@ -343,7 +350,7 @@ void main() {
         color = raymarch_orbittrap_image(oglFragCoord.xy);
     } 
     if (en==2 || en==7) {
-        gl_FragColor = color;
+        mgl_FragColor = color;
     } else {
         //do normal rendering ...    
         //analog-tv distortion ...
@@ -376,6 +383,6 @@ void main() {
         //tv flicker effect
         color_tv *= 0.97+0.13*sin(2.5*tm);
         color_tv *= br;
-        gl_FragColor = vec4(color_tv,1.0);
+        mgl_FragColor = vec4(color_tv,1.0);
     }       
 }
