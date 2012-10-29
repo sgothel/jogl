@@ -7,7 +7,7 @@
   #define mgl_FragColor gl_FragColor   
 #endif
 
-varying   HIGHP vec4    frontColor;
+varying vec4 frontColor;
 
 void main (void)
 {
