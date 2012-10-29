@@ -1311,7 +1311,7 @@ public abstract class GLContextImpl extends GLContext {
             System.err.println("Quirk: "+GLRendererQuirks.toString(quirk1)+": cause: OS "+Platform.getOSType());
         }
         quirks[i++] = quirk1;
-        if( 3 <= ctxMajorVersion ) {
+        if( isGL3() ) {
             final int quirk2 = GLRendererQuirks.RequiresBoundVAO;
             if(DEBUG) {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk2)+": cause: OS "+Platform.getOSType());
