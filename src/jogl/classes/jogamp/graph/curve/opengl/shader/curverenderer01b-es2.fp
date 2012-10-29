@@ -8,7 +8,7 @@
 
 precision mediump float;
 precision mediump int;
-precision mediump sampler2D;
+precision mediump sampler2D; // default is lowp
 
 #include curverenderer01b-xxx.fp
 

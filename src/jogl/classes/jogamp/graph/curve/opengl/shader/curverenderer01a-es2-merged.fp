@@ -1,8 +1,8 @@
 //Copyright 2010 JogAmp Community. All rights reserved.
 
 #ifdef GL_ES
-  precision lowp float;
-  precision lowp int;
+  precision mediump float;
+  precision mediump int;
 #endif
 
 uniform mat4    gcu_PMVMatrix[3]; // P, Mv, and Mvi
