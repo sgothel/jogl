@@ -376,7 +376,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
 #testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyEventOrderAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyEventAutoRepeatAWT $*
+testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyEventAutoRepeatAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyPressReleaseUnmaskRepeatAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyCodeAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
@@ -411,7 +411,7 @@ function testawtswt() {
 # Misc Utils
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestImmModeSinkES1NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.util.TestES1FixedFunctionPipelineNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.TestES1FixedFunctionPipelineNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestRedSquareES1NEWT $*
 

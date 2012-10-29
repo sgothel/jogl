@@ -165,8 +165,15 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
             System.err.println("+++ KEY Event Auto-Repeat START Input Loop: "+i);
             AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_A, pressDurationMS);
             robot.waitForIdle();
-            AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_A, 1000); // 1s .. no AR anymore
-            robot.waitForIdle();
+            AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_A, 500); // 1s .. no AR anymore
+            robot.waitForIdle();            
+            final int minCodeCount = firstIdx + 3;
+            final int desiredCodeCount = firstIdx + 6;
+            for(int j=0; j < 10 && keyEvents.size() < desiredCodeCount; j++) { // wait until events are collected
+                robot.delay(100);
+            }
+            Assert.assertTrue("AR Test didn't collect enough key events: required min "+minCodeCount+", received "+(keyEvents.size()-firstIdx)+", "+keyEvents, 
+                              keyEvents.size() >= minCodeCount );
             first[i][0] = (KeyEvent) keyEvents.get(firstIdx+0);
             first[i][1] = (KeyEvent) keyEvents.get(firstIdx+1);
             first[i][2] = (KeyEvent) keyEvents.get(firstIdx+2);

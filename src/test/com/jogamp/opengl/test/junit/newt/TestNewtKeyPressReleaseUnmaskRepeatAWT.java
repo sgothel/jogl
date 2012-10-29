@@ -98,7 +98,7 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
         glWindow.destroy();
     }
         
-    // @Test
+    @Test
     public void test02NewtCanvasAWT() throws AWTException, InterruptedException, InvocationTargetException {
         GLWindow glWindow = GLWindow.create(glCaps);
         
