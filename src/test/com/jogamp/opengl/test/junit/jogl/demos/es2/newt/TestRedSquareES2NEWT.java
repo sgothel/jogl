@@ -54,6 +54,8 @@ public class TestRedSquareES2NEWT extends UITestCase {
     static boolean loop_shutdown = false;
     static boolean vsync = false;
     static boolean forceES2 = false;
+    static boolean forceGL3 = false;
+    static boolean mainRun = false;
     static boolean doRotate = true;
 
     @BeforeClass
@@ -127,17 +129,38 @@ public class TestRedSquareES2NEWT extends UITestCase {
     public void test01GL2ES2() throws InterruptedException {
         for(int i=1; i<=loops; i++) {
             System.err.println("Loop "+i+"/"+loops);
-            GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2());
+            final GLProfile glp;
+            if(forceGL3) {
+                glp = GLProfile.get(GLProfile.GL3);
+            } else if(forceES2) {
+                glp = GLProfile.get(GLProfile.GLES2);
+            } else {
+                glp = GLProfile.getGL2ES2();
+            }
+            final GLCapabilities caps = new GLCapabilities(glp);
             runTestGL(caps);
             if(loop_shutdown) {
                 GLProfile.shutdown();
             }
         }
     }
+    
+    @Test
+    public void test02GL3() throws InterruptedException {
+        if(mainRun) return;
+        
+        if( !GLProfile.isAvailable(GLProfile.GL3) ) {
+            System.err.println("GL3 n/a");
+        }
+        final GLProfile glp = GLProfile.get(GLProfile.GL3);
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps);
+    }    
 
     static long duration = 500; // ms
 
     public static void main(String args[]) {
+        mainRun = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
@@ -146,6 +169,8 @@ public class TestRedSquareES2NEWT extends UITestCase {
                 } catch (Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
+            } else if(args[i].equals("-gl3")) {
+                forceGL3 = true;
             } else if(args[i].equals("-norotate")) {
                 doRotate = false;
             } else if(args[i].equals("-loops")) {

@@ -89,6 +89,7 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean loop_shutdown = false;
     static boolean forceES2 = false;
     static boolean forceGL3 = false;
+    static boolean mainRun = false;
     
     @BeforeClass
     public static void initClass() {
@@ -265,7 +266,7 @@ public class TestGearsES2NEWT extends UITestCase {
             } else {
                 glp = GLProfile.getGL2ES2();
             }
-            GLCapabilities caps = new GLCapabilities( glp );
+            final GLCapabilities caps = new GLCapabilities( glp );
             caps.setBackgroundOpaque(opaque);
             if(-1 < forceAlpha) {
                 caps.setAlphaBits(forceAlpha); 
@@ -277,7 +278,21 @@ public class TestGearsES2NEWT extends UITestCase {
         }
     }
 
-    public static void main(String args[]) throws IOException {        
+    @Test
+    public void test02GL3() throws InterruptedException {
+        if(mainRun) return;
+        
+        if( !GLProfile.isAvailable(GLProfile.GL3) ) {
+            System.err.println("GL3 n/a");
+        }
+        final GLProfile glp = GLProfile.get(GLProfile.GL3);
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps, undecorated);
+    }
+    
+    public static void main(String args[]) throws IOException {
+        mainRun = true;
+        
         int x=0, y=0, w=640, h=480;
         boolean usePos = false;
         

@@ -814,6 +814,12 @@ public abstract class GLContext {
                                 && 0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE));
   }
 
+  /** Indicates whether this profile is capable of GL4 (core only). <p>Includes [ GL4 ].</p> */
+  public final boolean isGL4core() {
+      return ctxMajorVersion>=4 && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
+                                && 0 != (ctxOptions & CTX_PROFILE_CORE);
+  }
+  
   /** @see GLProfile#isGL3bc() */
   public final boolean isGL3bc() {
       return ( ctxMajorVersion>3 || ctxMajorVersion==3 && ctxMinorVersion>=1 )
@@ -826,6 +832,13 @@ public abstract class GLContext {
       return ( ctxMajorVersion>3 || ctxMajorVersion==3 && ctxMinorVersion>=1 )
              && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
              && 0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE));
+  }
+  
+  /** Indicates whether this profile is capable of GL3 (core only). <p>Includes [ GL4, GL3 ].</p> */
+  public final boolean isGL3core() {
+      return ( ctxMajorVersion>3 || ctxMajorVersion==3 && ctxMinorVersion>=1 )
+             && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
+             && 0 != (ctxOptions & CTX_PROFILE_CORE);
   }
   
   /** @see GLProfile#isGL2() */

@@ -570,8 +570,11 @@ public abstract class GLContextImpl extends GLContext {
         final boolean created;
         try {
             created = createImpl(shareWith); // may throws exception if fails!
-            if( created && glRendererQuirks.exist(GLRendererQuirks.RequiresBoundVAO) ) {
-                // Workaround: Create a default VAO to be used per default on makeCurrent
+            if( created && isGL3core() && ( ctxMajorVersion>3 || ctxMajorVersion==3 && ctxMinorVersion>=2 ) ) {
+                // Due to GL 3.2 core spec: E.2. DEPRECATED AND REMOVED FEATURES (p 331)
+                // There is no more default VAO buffer 0 bound, hence generating and binding one
+                // to avoid INVALID_OPERATION at VertexAttribPointer. 
+                // More clear is GL 4.3 core spec: 10.4 (p 307).
                 final int[] tmp = new int[1];
                 gl.getGL2GL3().glGenVertexArrays(1, tmp, 0);
                 defaultVAO = tmp[0];
@@ -1311,13 +1314,6 @@ public abstract class GLContextImpl extends GLContext {
             System.err.println("Quirk: "+GLRendererQuirks.toString(quirk1)+": cause: OS "+Platform.getOSType());
         }
         quirks[i++] = quirk1;
-        if( isGL3() ) {
-            final int quirk2 = GLRendererQuirks.RequiresBoundVAO;
-            if(DEBUG) {
-                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk2)+": cause: OS "+Platform.getOSType());
-            }
-            quirks[i++] = quirk2;
-        }
     } else if( Platform.getOSType() == Platform.OSType.WINDOWS ) {
         final int quirk = GLRendererQuirks.NoDoubleBufferedBitmap;
         if(DEBUG) {
