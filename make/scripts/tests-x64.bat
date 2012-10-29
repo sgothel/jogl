@@ -32,10 +32,11 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLSi
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestParenting01AWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestKeyEventOrderNEWT %*
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestKeyEventAutoRepeatNEWT %*
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestKeyPressReleaseUnmaskRepeatNEWT %*
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestKeyCodeNEWT %*
+
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestNewtKeyEventOrderAWT %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestNewtKeyEventAutoRepeatAWT %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestNewtKeyPressReleaseUnmaskRepeatAWT %*
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestNewtKeyCodeAWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT %*

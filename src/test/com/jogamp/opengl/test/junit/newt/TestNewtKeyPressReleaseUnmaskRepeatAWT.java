@@ -61,7 +61,7 @@ import com.jogamp.opengl.test.junit.util.*;
 /**
  * Testing key press and release events w/o AUTO-REPEAT
  */
-public class TestKeyPressReleaseUnmaskRepeatNEWT extends UITestCase {
+public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 100;
     static long awtWaitTimeout = 1000;
@@ -214,7 +214,7 @@ public class TestKeyPressReleaseUnmaskRepeatNEWT extends UITestCase {
         System.err.println(stdin.readLine()); 
         */
         System.out.println("durationPerTest: "+durationPerTest);
-        String tstname = TestKeyPressReleaseUnmaskRepeatNEWT.class.getName();
+        String tstname = TestNewtKeyPressReleaseUnmaskRepeatAWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

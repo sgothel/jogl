@@ -71,7 +71,7 @@ import com.jogamp.opengl.test.junit.util.NEWTKeyUtil.CodeSeg;
  * </ol>
  * </p>
  */
-public class TestKeyCodeNEWT extends UITestCase {
+public class TestNewtKeyCodeAWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 100;
     static long awtWaitTimeout = 1000;
@@ -248,7 +248,7 @@ public class TestKeyCodeNEWT extends UITestCase {
         System.err.println(stdin.readLine()); 
         */
         System.out.println("durationPerTest: "+durationPerTest);
-        String tstname = TestKeyCodeNEWT.class.getName();
+        String tstname = TestNewtKeyCodeAWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

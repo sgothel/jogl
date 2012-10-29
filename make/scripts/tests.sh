@@ -245,7 +245,7 @@ function testawtswt() {
 #testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFloatUtil01MatrixMatrixMultNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestPMVMatrix01NEWT $*
@@ -375,10 +375,10 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestEventSourceNotAWTBug
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
-#testawt com.jogamp.opengl.test.junit.newt.TestKeyEventOrderNEWT $*
-#testawt com.jogamp.opengl.test.junit.newt.TestKeyEventAutoRepeatNEWT $*
-#testawt com.jogamp.opengl.test.junit.newt.TestKeyPressReleaseUnmaskRepeatNEWT $*
-#testawt com.jogamp.opengl.test.junit.newt.TestKeyCodeNEWT $*
+#testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyEventOrderAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyEventAutoRepeatAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyPressReleaseUnmaskRepeatAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyCodeAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT $*
@@ -411,7 +411,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 # Misc Utils
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestImmModeSinkES1NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.util.TestES1FixedFunctionPipelineNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.util.TestES1FixedFunctionPipelineNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestRedSquareES1NEWT $*
 

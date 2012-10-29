@@ -67,7 +67,7 @@ import com.jogamp.opengl.test.junit.util.*;
  * </ol>
  * </p>
  */
-public class TestKeyEventOrderNEWT extends UITestCase {
+public class TestNewtKeyEventOrderAWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 100;
     static long awtWaitTimeout = 1000;
@@ -227,7 +227,7 @@ public class TestKeyEventOrderNEWT extends UITestCase {
         System.err.println(stdin.readLine()); 
         */
         System.out.println("durationPerTest: "+durationPerTest);
-        String tstname = TestKeyEventOrderNEWT.class.getName();
+        String tstname = TestNewtKeyEventOrderAWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

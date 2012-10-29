@@ -83,7 +83,7 @@ import com.jogamp.opengl.test.junit.util.*;
  * The idea is if you mask out auto-repeat in your event listener
  * you just get one long pressed key D/U/T triple.
  */
-public class TestKeyEventAutoRepeatNEWT extends UITestCase {
+public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 100;
     static long awtWaitTimeout = 1000;
@@ -301,7 +301,7 @@ public class TestKeyEventAutoRepeatNEWT extends UITestCase {
         System.err.println(stdin.readLine()); 
         */
         System.out.println("durationPerTest: "+durationPerTest);
-        String tstname = TestKeyEventAutoRepeatNEWT.class.getName();
+        String tstname = TestNewtKeyEventAutoRepeatAWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 
