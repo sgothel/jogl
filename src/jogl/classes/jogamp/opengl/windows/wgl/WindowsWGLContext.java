@@ -41,6 +41,7 @@
 package jogamp.opengl.windows.wgl;
 
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,6 +52,7 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import com.jogamp.opengl.GLExtensions;
@@ -235,7 +237,8 @@ public class WindowsWGLContext extends GLContextImpl {
     }
 
     try {
-        ctx = _wglExt.wglCreateContextAttribsARB(drawable.getHandle(), share, attribs, 0);
+        final IntBuffer attribsNIO = Buffers.newDirectIntBuffer(attribs);
+        ctx = _wglExt.wglCreateContextAttribsARB(drawable.getHandle(), share, attribsNIO);
     } catch (RuntimeException re) {
         if(DEBUG) {
           Throwable t = new Throwable("Info: WindowWGLContext.createContextARBImpl wglCreateContextAttribsARB failed with "+getGLVersion(major, minor, ctp, "@creation"), re);
@@ -487,9 +490,12 @@ public class WindowsWGLContext extends GLContextImpl {
       if (initSwapGroupImpl(wglExt)>0) {
         final NativeSurface ns = drawable.getNativeSurface();
         try {
-            if( wglExt.wglQueryMaxSwapGroupsNV(ns.getDisplayHandle(),
-                                               maxGroups, maxGroups_offset,
-                                               maxBarriers, maxBarriers_offset) ) {
+            final IntBuffer maxGroupsNIO = Buffers.newDirectIntBuffer(maxGroups.length - maxGroups_offset);
+            final IntBuffer maxBarriersNIO = Buffers.newDirectIntBuffer(maxBarriers.length - maxBarriers_offset);
+
+            if( wglExt.wglQueryMaxSwapGroupsNV(ns.getDisplayHandle(), maxGroupsNIO, maxBarriersNIO) ) {
+                maxGroupsNIO.get(maxGroups, maxGroups_offset, maxGroupsNIO.remaining());
+                maxBarriersNIO.get(maxGroups, maxGroups_offset, maxBarriersNIO.remaining());
                 res = true;
             }
         } catch (Throwable t) { hasSwapGroupNV=-1; }

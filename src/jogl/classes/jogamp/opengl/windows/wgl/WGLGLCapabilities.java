@@ -28,6 +28,8 @@
 
 package jogamp.opengl.windows.wgl;
 
+import java.nio.IntBuffer;
+
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
 
@@ -75,12 +77,13 @@ public class WGLGLCapabilities extends GLCapabilities {
       return true;
   }
 
-  public boolean setValuesByARB(final int[] iattribs, final int niattribs, final int[] iresults) {
+  public boolean setValuesByARB(final IntBuffer iattribs, final int niattribs, final IntBuffer iresults) {
       arb_pixelformat = 1;
 
       int alphaBits = 0;
       for (int i = 0; i < niattribs; i++) {
-          int attr = iattribs[i];
+          final int attr = iattribs.get(i);
+          final int res = iresults.get(i);
           switch (attr) {
               case WGLExt.WGL_DRAW_TO_WINDOW_ARB:
               case WGLExt.WGL_DRAW_TO_BITMAP_ARB:
@@ -88,37 +91,37 @@ public class WGLGLCapabilities extends GLCapabilities {
                   break;
 
               case WGLExt.WGL_ACCELERATION_ARB:
-                  setHardwareAccelerated(iresults[i] == WGLExt.WGL_FULL_ACCELERATION_ARB);
+                  setHardwareAccelerated(res == WGLExt.WGL_FULL_ACCELERATION_ARB);
                   break;
 
               case WGLExt.WGL_SUPPORT_OPENGL_ARB:
-                  if (iresults[i] != GL.GL_TRUE) {
+                  if (res != GL.GL_TRUE) {
                       return false;
                   }
                   break;
 
               case WGLExt.WGL_DEPTH_BITS_ARB:
-                  setDepthBits(iresults[i]);
+                  setDepthBits(res);
                   break;
 
               case WGLExt.WGL_STENCIL_BITS_ARB:
-                  setStencilBits(iresults[i]);
+                  setStencilBits(res);
                   break;
 
               case WGLExt.WGL_DOUBLE_BUFFER_ARB:
-                  setDoubleBuffered(iresults[i] == GL.GL_TRUE);
+                  setDoubleBuffered(res == GL.GL_TRUE);
                   break;
 
               case WGLExt.WGL_STEREO_ARB:
-                  setStereo(iresults[i] == GL.GL_TRUE);
+                  setStereo(res == GL.GL_TRUE);
                   break;
 
               case WGLExt.WGL_PIXEL_TYPE_ARB:
-                  if(iresults[i] == WGLExt.WGL_TYPE_COLORINDEX_ARB) {
+                  if(res == WGLExt.WGL_TYPE_COLORINDEX_ARB) {
                       return false; // color index not supported
                   }
 
-                  if (iresults[i] == WGLExt.WGL_TYPE_RGBA_FLOAT_ARB) {
+                  if (res == WGLExt.WGL_TYPE_RGBA_FLOAT_ARB) {
                       setPbufferFloatingPointBuffers(true);
                   }
 
@@ -127,54 +130,54 @@ public class WGLGLCapabilities extends GLCapabilities {
                   break;
 
               case WGLExt.WGL_FLOAT_COMPONENTS_NV:
-                  if (iresults[i] != 0) {
+                  if (res != 0) {
                       setPbufferFloatingPointBuffers(true);
                   }
                   break;
 
               case WGLExt.WGL_RED_BITS_ARB:
-                  setRedBits(iresults[i]);
+                  setRedBits(res);
                   break;
 
               case WGLExt.WGL_GREEN_BITS_ARB:
-                  setGreenBits(iresults[i]);
+                  setGreenBits(res);
                   break;
 
               case WGLExt.WGL_BLUE_BITS_ARB:
-                  setBlueBits(iresults[i]);
+                  setBlueBits(res);
                   break;
 
               case WGLExt.WGL_ALPHA_BITS_ARB:
                   // ALPHA shall be set at last - due to it's auto setting by !opaque / samples
-                  alphaBits = iresults[i];
+                  alphaBits = res;
                   break;
 
               case WGLExt.WGL_ACCUM_RED_BITS_ARB:
-                  setAccumRedBits(iresults[i]);
+                  setAccumRedBits(res);
                   break;
 
               case WGLExt.WGL_ACCUM_GREEN_BITS_ARB:
-                  setAccumGreenBits(iresults[i]);
+                  setAccumGreenBits(res);
                   break;
 
               case WGLExt.WGL_ACCUM_BLUE_BITS_ARB:
-                  setAccumBlueBits(iresults[i]);
+                  setAccumBlueBits(res);
                   break;
 
               case WGLExt.WGL_ACCUM_ALPHA_BITS_ARB:
-                  setAccumAlphaBits(iresults[i]);
+                  setAccumAlphaBits(res);
                   break;
 
               case WGLExt.WGL_SAMPLE_BUFFERS_ARB:
-                  setSampleBuffers(iresults[i] != 0);
+                  setSampleBuffers(res != 0);
                   break;
 
               case WGLExt.WGL_SAMPLES_ARB:
-                  setNumSamples(iresults[i]);
+                  setNumSamples(res);
                   break;
 
               default:
-                  throw new GLException("Unknown pixel format attribute " + iattribs[i]);
+                  throw new GLException("Unknown pixel format attribute " + attr);
           }
       }
       setAlphaBits(alphaBits);

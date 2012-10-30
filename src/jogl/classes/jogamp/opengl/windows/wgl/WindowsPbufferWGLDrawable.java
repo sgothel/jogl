@@ -40,6 +40,9 @@
 
 package jogamp.opengl.windows.wgl;
 
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowException;
@@ -50,6 +53,8 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
+
+import com.jogamp.common.nio.Buffers;
 
 import jogamp.nativewindow.windows.GDI;
 import jogamp.opengl.GLDrawableImpl;
@@ -131,8 +136,8 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
         final int winattrPbuffer = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(false /* onscreen */, false /* fbo */, true /* pbuffer */, false /* bitmap */);
         
-        int[]   iattributes = new int  [2*WindowsWGLGraphicsConfiguration.MAX_ATTRIBS];
-        float[] fattributes = new float[1];
+        final IntBuffer iattributes = Buffers.newDirectIntBuffer(2*WindowsWGLGraphicsConfiguration.MAX_ATTRIBS);
+        final FloatBuffer fattributes = Buffers.newDirectFloatBuffer(1);
         int[]   floatModeTmp = new int[1];
         int     niattribs   = 0;
 
@@ -161,18 +166,14 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
           ati = (floatMode == GLPbuffer.ATI_FLOAT);
         } */
 
-        int[] pformats = new int[WindowsWGLGraphicsConfiguration.MAX_PFORMATS];
-        int   nformats;
-        int[] nformatsTmp = new int[1];
+        final IntBuffer pformats = Buffers.newDirectIntBuffer(WindowsWGLGraphicsConfiguration.MAX_PFORMATS);
+        final IntBuffer nformatsTmp = Buffers.newDirectIntBuffer(1);
         if (!wglExt.wglChoosePixelFormatARB(sharedHdc,
-                                            iattributes, 0,
-                                            fattributes, 0,
-                                            WindowsWGLGraphicsConfiguration.MAX_PFORMATS,
-                                            pformats, 0,
-                                            nformatsTmp, 0)) {
+                                            iattributes, fattributes, WindowsWGLGraphicsConfiguration.MAX_PFORMATS,
+                                            pformats, nformatsTmp)) {
           throw new GLException("pbuffer creation error: wglChoosePixelFormat() failed");
         }
-        nformats = nformatsTmp[0];
+        final int nformats = nformatsTmp.get(0);
         if (nformats <= 0) {
           throw new GLException("pbuffer creation error: Couldn't find a suitable pixel format");
         }
@@ -181,8 +182,8 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
           System.err.println("" + nformats + " suitable pixel formats found");
           for (int i = 0; i < nformats; i++) {
             WGLGLCapabilities dbgCaps = WindowsWGLGraphicsConfiguration.wglARBPFID2GLCapabilities(sharedResource, device, glProfile, 
-                                          sharedHdc, pformats[i], winattrPbuffer);
-            System.err.println("pixel format " + pformats[i] + " (index " + i + "): " + dbgCaps);
+                                          sharedHdc, pformats.get(i), winattrPbuffer);
+            System.err.println("pixel format " + pformats.get(i) + " (index " + i + "): " + dbgCaps);
           }
         }
 
@@ -192,32 +193,32 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
             int whichFormat;
             // Loop is a workaround for bugs in NVidia's recent drivers
             for (whichFormat = 0; whichFormat < nformats; whichFormat++) {
-              int format = pformats[whichFormat];
+              int format = pformats.get(whichFormat);
 
               // Create the p-buffer.
               niattribs = 0;
 
               if (rtt) {
-                iattributes[niattribs++]   = WGLExt.WGL_TEXTURE_FORMAT_ARB;
+                iattributes.put(niattribs++, WGLExt.WGL_TEXTURE_FORMAT_ARB);
                 if (useFloat) {
-                  iattributes[niattribs++] = WGLExt.WGL_TEXTURE_FLOAT_RGB_NV;
+                  iattributes.put(niattribs++, WGLExt.WGL_TEXTURE_FLOAT_RGB_NV);
                 } else {
-                  iattributes[niattribs++] = WGLExt.WGL_TEXTURE_RGBA_ARB;
+                  iattributes.put(niattribs++, WGLExt.WGL_TEXTURE_RGBA_ARB);
                 }
 
-                iattributes[niattribs++] = WGLExt.WGL_TEXTURE_TARGET_ARB;
-                iattributes[niattribs++] = rect ? WGLExt.WGL_TEXTURE_RECTANGLE_NV : WGLExt.WGL_TEXTURE_2D_ARB;
+                iattributes.put(niattribs++, WGLExt.WGL_TEXTURE_TARGET_ARB);
+                iattributes.put(niattribs++, rect ? WGLExt.WGL_TEXTURE_RECTANGLE_NV : WGLExt.WGL_TEXTURE_2D_ARB);
 
-                iattributes[niattribs++] = WGLExt.WGL_MIPMAP_TEXTURE_ARB;
-                iattributes[niattribs++] = GL.GL_FALSE;
+                iattributes.put(niattribs++, WGLExt.WGL_MIPMAP_TEXTURE_ARB);
+                iattributes.put(niattribs++, GL.GL_FALSE);
 
-                iattributes[niattribs++] = WGLExt.WGL_PBUFFER_LARGEST_ARB; // exact
-                iattributes[niattribs++] = GL.GL_FALSE;
+                iattributes.put(niattribs++, WGLExt.WGL_PBUFFER_LARGEST_ARB); // exact
+                iattributes.put(niattribs++, GL.GL_FALSE);
               }
 
-              iattributes[niattribs++] = 0;
+              iattributes.put(niattribs++, 0);
 
-              tmpBuffer = wglExt.wglCreatePbufferARB(sharedHdc, format, getWidth(), getHeight(), iattributes, 0);
+              tmpBuffer = wglExt.wglCreatePbufferARB(sharedHdc, format, getWidth(), getHeight(), iattributes);
               if (tmpBuffer != 0) {
                 // Done
                 break;
@@ -228,7 +229,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
               throw new GLException("pbuffer creation error: wglCreatePbuffer() failed: tried " + nformats +
                                     " pixel formats, last error was: " + wglGetLastError());
             }
-            pfdid = pformats[whichFormat];
+            pfdid = pformats.get(whichFormat);
         }
 
         // Get the device context.

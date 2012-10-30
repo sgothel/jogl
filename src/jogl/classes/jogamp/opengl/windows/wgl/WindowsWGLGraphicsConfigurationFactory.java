@@ -50,12 +50,16 @@ import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.common.nio.Buffers;
+
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLGraphicsConfigurationFactory;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -349,8 +353,8 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                 // No given PFD IDs
                 //
                 // 1st choice: get GLCapabilities based on users GLCapabilities setting recommendedIndex as preferred choice
-                int[] iattributes = new int[2 * WindowsWGLGraphicsConfiguration.MAX_ATTRIBS];
-                float[] fattributes = new float[1];
+                final IntBuffer iattributes = Buffers.newDirectIntBuffer(2*WindowsWGLGraphicsConfiguration.MAX_ATTRIBS);
+                final FloatBuffer fattributes = Buffers.newDirectFloatBuffer(1);
                 int accelerationMode = WGLExt.WGL_FULL_ACCELERATION_ARB;
                 pformats = WindowsWGLGraphicsConfiguration.wglChoosePixelFormatARB(sharedResource, device, capsChosen,
                                                                                    hdc, iattributes, accelerationMode, fattributes);
