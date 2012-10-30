@@ -36,6 +36,7 @@
 
 package jogamp.opengl.macosx.cgl;
 
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +48,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 
@@ -70,7 +72,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         return new ArrayList<GLCapabilitiesImmutable>(0);
     }
     
-    static final int[] cglInternalAttributeToken = new int[] {
+    static final IntBuffer cglInternalAttributeToken = Buffers.newDirectIntBuffer(new int[] {
         CGL.kCGLPFAOpenGLProfile,    // >= lion
         CGL.NSOpenGLPFAAccelerated,  // query only (prefer accelerated, but allow non accelerated), ignored for createPixelformat 
         CGL.NSOpenGLPFANoRecovery,
@@ -84,70 +86,65 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         CGL.NSOpenGLPFAAccumSize,
         CGL.NSOpenGLPFAStencilSize,
         CGL.NSOpenGLPFASampleBuffers,
-        CGL.NSOpenGLPFASamples };
+        CGL.NSOpenGLPFASamples });
 
-    static int[] GLCapabilities2NSAttribList(GLCapabilitiesImmutable caps, int ctp, int major, int minor) {
-        int len = cglInternalAttributeToken.length;
-        int off = 0;
-        if ( !MacOSXCGLContext.isLionOrLater ) {
-            // no OpenGLProfile
-            off++;
-            len--;
-        }        
-        int[] ivalues = new int[len];
+    static IntBuffer GLCapabilities2NSAttribList(IntBuffer attrToken, GLCapabilitiesImmutable caps, int ctp, int major, int minor) {
+        final int len = attrToken.remaining();
+        final int off = attrToken.position();
+        final IntBuffer ivalues = Buffers.newDirectIntBuffer(len);
 
         for (int idx = 0; idx < len; idx++) {
-          final int attr = cglInternalAttributeToken[idx+off];
+          final int attr = attrToken.get(idx+off);
           switch (attr) {
               case CGL.kCGLPFAOpenGLProfile: 
-                ivalues[idx] = MacOSXCGLContext.GLProfile2CGLOGLProfileValue(ctp, major, minor);
+                ivalues.put(idx, MacOSXCGLContext.GLProfile2CGLOGLProfileValue(ctp, major, minor));
                 break;
               case CGL.NSOpenGLPFANoRecovery:
-                ivalues[idx] = caps.getHardwareAccelerated() ? 1 : 0;
+                ivalues.put(idx, caps.getHardwareAccelerated() ? 1 : 0);
                 break;
                   
               case CGL.kCGLPFAColorFloat:
-                ivalues[idx] = ( !caps.isOnscreen() && caps.isPBuffer() && caps.getPbufferFloatingPointBuffers() ) ? 1 : 0;
+                ivalues.put(idx, ( !caps.isOnscreen() && caps.isPBuffer() && caps.getPbufferFloatingPointBuffers() ) ? 1 : 0);
                 break;
 
               case CGL.NSOpenGLPFAPixelBuffer:
-                ivalues[idx] = ( !caps.isOnscreen() && caps.isPBuffer() ) ? 1 : 0;
+                ivalues.put(idx, ( !caps.isOnscreen() && caps.isPBuffer() ) ? 1 : 0);
                 break;
 
               case CGL.NSOpenGLPFADoubleBuffer:
-                ivalues[idx] = (caps.getDoubleBuffered() ? 1 : 0);
+                ivalues.put(idx, (caps.getDoubleBuffered() ? 1 : 0));
                 break;
 
               case CGL.NSOpenGLPFAStereo:
-                ivalues[idx] = (caps.getStereo() ? 1 : 0);
+                ivalues.put(idx, (caps.getStereo() ? 1 : 0));
                 break;
 
               case CGL.NSOpenGLPFAColorSize:
-                ivalues[idx] = (caps.getRedBits() + caps.getGreenBits() + caps.getBlueBits());
+                ivalues.put(idx, (caps.getRedBits() + caps.getGreenBits() + caps.getBlueBits()));
                 break;
 
               case CGL.NSOpenGLPFAAlphaSize:
-                ivalues[idx] = caps.getAlphaBits();
+                ivalues.put(idx, caps.getAlphaBits());
                 break;
 
               case CGL.NSOpenGLPFADepthSize:
-                ivalues[idx] = caps.getDepthBits();
+                ivalues.put(idx, caps.getDepthBits());
                 break;
 
               case CGL.NSOpenGLPFAAccumSize:
-                ivalues[idx] = (caps.getAccumRedBits() + caps.getAccumGreenBits() + caps.getAccumBlueBits() + caps.getAccumAlphaBits());
+                ivalues.put(idx, (caps.getAccumRedBits() + caps.getAccumGreenBits() + caps.getAccumBlueBits() + caps.getAccumAlphaBits()));
                 break;
 
               case CGL.NSOpenGLPFAStencilSize:
-                ivalues[idx] = caps.getStencilBits();
+                ivalues.put(idx, caps.getStencilBits());
                 break;
 
               case CGL.NSOpenGLPFASampleBuffers:
-                ivalues[idx] = caps.getSampleBuffers() ? 1 : 0;
+                ivalues.put(idx, caps.getSampleBuffers() ? 1 : 0);
                 break;
 
               case CGL.NSOpenGLPFASamples:
-                ivalues[idx] = caps.getNumSamples() ;
+                ivalues.put(idx, caps.getNumSamples());
                 break;
 
               default:
@@ -158,15 +155,13 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
     }
 
     static long GLCapabilities2NSPixelFormat(GLCapabilitiesImmutable caps, int ctp, int major, int minor) {
-        int len = cglInternalAttributeToken.length;
-        int off = 0;
+        final IntBuffer attrToken = cglInternalAttributeToken.duplicate();
         if ( !MacOSXCGLContext.isLionOrLater ) {
             // no OpenGLProfile
-            off++;
-            len--;
+            attrToken.position(1);
         }        
-        int[] ivalues = GLCapabilities2NSAttribList(caps, ctp, major, minor);
-        return CGL.createPixelFormat(cglInternalAttributeToken, off, len, ivalues, 0);
+        final IntBuffer ivalues = GLCapabilities2NSAttribList(attrToken, caps, ctp, major, minor);
+        return CGL.createPixelFormat(attrToken, attrToken.remaining(), ivalues);
     }
 
     static GLCapabilities NSPixelFormat2GLCapabilities(GLProfile glp, long pixelFormat) {
@@ -175,51 +170,51 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
 
     static long GLCapabilities2CGLPixelFormat(GLCapabilitiesImmutable caps, int ctp, int major, int minor) {
       // Set up pixel format attributes
-      int[] attrs = new int[256];
+      final IntBuffer attrs = Buffers.newDirectIntBuffer(256);
       int i = 0;
       if(MacOSXCGLContext.isLionOrLater) {
-          attrs[i++] = CGL.kCGLPFAOpenGLProfile; 
-          attrs[i++] = MacOSXCGLContext.GLProfile2CGLOGLProfileValue(ctp, major, minor);
+          attrs.put(i++, CGL.kCGLPFAOpenGLProfile); 
+          attrs.put(i++, MacOSXCGLContext.GLProfile2CGLOGLProfileValue(ctp, major, minor));
       }
       if(!caps.isOnscreen() && caps.isPBuffer()) {
-        attrs[i++] = CGL.kCGLPFAPBuffer;
+        attrs.put(i++, CGL.kCGLPFAPBuffer);
         if (caps.getPbufferFloatingPointBuffers()) {
-          attrs[i++] = CGL.kCGLPFAColorFloat;
+          attrs.put(i++, CGL.kCGLPFAColorFloat);
         }
       }
       if (caps.getDoubleBuffered()) {
-        attrs[i++] = CGL.kCGLPFADoubleBuffer;
+        attrs.put(i++, CGL.kCGLPFADoubleBuffer);
       }
       if (caps.getStereo()) {
-        attrs[i++] = CGL.kCGLPFAStereo;
+        attrs.put(i++, CGL.kCGLPFAStereo);
       }
-      attrs[i++] = CGL.kCGLPFAColorSize;
-      attrs[i++] = (caps.getRedBits() +
-                    caps.getGreenBits() +
-                    caps.getBlueBits());
-      attrs[i++] = CGL.kCGLPFAAlphaSize;
-      attrs[i++] = caps.getAlphaBits();
-      attrs[i++] = CGL.kCGLPFADepthSize;
-      attrs[i++] = caps.getDepthBits();
+      attrs.put(i++, CGL.kCGLPFAColorSize);
+      attrs.put(i++, ( caps.getRedBits() +
+                       caps.getGreenBits() +
+                       caps.getBlueBits() ) );
+      attrs.put(i++, CGL.kCGLPFAAlphaSize);
+      attrs.put(i++, caps.getAlphaBits());
+      attrs.put(i++, CGL.kCGLPFADepthSize);
+      attrs.put(i++, caps.getDepthBits());
       // FIXME: should validate stencil size as is done in MacOSXWindowSystemInterface.m
-      attrs[i++] = CGL.kCGLPFAStencilSize;
-      attrs[i++] = caps.getStencilBits();
-      attrs[i++] = CGL.kCGLPFAAccumSize;
-      attrs[i++] = (caps.getAccumRedBits() +
-                    caps.getAccumGreenBits() +
-                    caps.getAccumBlueBits() +
-                    caps.getAccumAlphaBits());
+      attrs.put(i++, CGL.kCGLPFAStencilSize);
+      attrs.put(i++, caps.getStencilBits());
+      attrs.put(i++, CGL.kCGLPFAAccumSize);
+      attrs.put(i++, ( caps.getAccumRedBits() +
+                       caps.getAccumGreenBits() +
+                       caps.getAccumBlueBits() +
+                       caps.getAccumAlphaBits() ) );
       if (caps.getSampleBuffers()) {
-        attrs[i++] = CGL.kCGLPFASampleBuffers;
-        attrs[i++] = 1;
-        attrs[i++] = CGL.kCGLPFASamples;
-        attrs[i++] = caps.getNumSamples();
+        attrs.put(i++, CGL.kCGLPFASampleBuffers);
+        attrs.put(i++, 1);
+        attrs.put(i++, CGL.kCGLPFASamples);
+        attrs.put(i++, caps.getNumSamples());
       }
 
       // Use attribute array to select pixel format
       PointerBuffer fmt = PointerBuffer.allocateDirect(1);
-      int[] numScreens = new int[1];
-      int res = CGL.CGLChoosePixelFormat(attrs, 0, fmt, numScreens, 0);
+      IntBuffer numScreens = Buffers.newDirectIntBuffer(1);
+      int res = CGL.CGLChoosePixelFormat(attrs, fmt, numScreens);
       if (res != CGL.kCGLNoError) {
         throw new GLException("Error code " + res + " while choosing pixel format");
       }
@@ -231,14 +226,17 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
     }
 
     private static GLCapabilities PixelFormat2GLCapabilities(GLProfile glp, long pixelFormat, boolean nsUsage) {
-        int len = cglInternalAttributeToken.length;
-        int off = 0;
+        final IntBuffer attrToken = cglInternalAttributeToken.duplicate();
+        final int off;
         if ( !MacOSXCGLContext.isLionOrLater ) {
             // no OpenGLProfile
-            off++;
-            len--;
+            off = 1;
+        } else {
+            off = 0;
         }        
-        int[] ivalues = new int[len];
+        attrToken.position(1);
+        final int len = attrToken.remaining();
+        final IntBuffer ivalues = Buffers.newDirectIntBuffer(len);
 
         // On this platform the pixel format is associated with the
         // context and not the drawable. However it's a reasonable
@@ -249,15 +247,16 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
 
         // Figure out what attributes we really got
         if(nsUsage) {
-            CGL.queryPixelFormat(pixelFormat, cglInternalAttributeToken, off, len, ivalues, 0);
+            CGL.queryPixelFormat(pixelFormat, attrToken, len, ivalues);
         } else {
-            CGL.CGLQueryPixelFormat(pixelFormat, cglInternalAttributeToken, off, len, ivalues, 0);
+            CGL.CGLQueryPixelFormat(pixelFormat, attrToken, len, ivalues);
         }
         if(null == glp && MacOSXCGLContext.isLionOrLater) {
             // pre-scan for OpenGL Profile
             for (int i = 0; i < len; i++) {
-                if(CGL.kCGLPFAOpenGLProfile == cglInternalAttributeToken[i+off]) {
-                    switch(ivalues[i]) {
+                final int ivalue = ivalues.get(i);
+                if(CGL.kCGLPFAOpenGLProfile == attrToken.get(i+off)) {
+                    switch(ivalue) {
                         case CGL.kCGLOGLPVersion_3_2_Core:
                             glp = GLProfile.get(GLProfile.GL3);
                             break;
@@ -265,7 +264,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
                             glp = GLProfile.get(GLProfile.GL2);
                             break;                            
                         default:
-                            throw new RuntimeException("Unhandled OSX OpenGL Profile: 0x"+Integer.toHexString(ivalues[i]));
+                            throw new RuntimeException("Unhandled OSX OpenGL Profile: 0x"+Integer.toHexString(ivalue));
                     }
                 }            
             }
@@ -276,34 +275,32 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         final GLCapabilities caps = new GLCapabilities(glp);
         int alphaBits = 0;
         for (int i = 0; i < len; i++) {
-          int attr = cglInternalAttributeToken[i+off];
+          final int attr = attrToken.get(i+off);
+          final int ivalue = ivalues.get(i);
           switch (attr) {
               case CGL.NSOpenGLPFAAccelerated:
-                caps.setHardwareAccelerated(ivalues[i] != 0);
+                caps.setHardwareAccelerated(ivalue != 0);
                 break;
                 
               case CGL.kCGLPFAColorFloat:
-                caps.setPbufferFloatingPointBuffers(ivalues[i] != 0);
+                caps.setPbufferFloatingPointBuffers(ivalue != 0);
                 break;
 
               case CGL.NSOpenGLPFAPixelBuffer:
-                caps.setPBuffer(ivalues[i] != 0);
+                caps.setPBuffer(ivalue != 0);
                 break;
 
               case CGL.NSOpenGLPFADoubleBuffer:
-                caps.setDoubleBuffered(ivalues[i] != 0);
+                caps.setDoubleBuffered(ivalue != 0);
                 break;
 
               case CGL.NSOpenGLPFAStereo:
-                caps.setStereo(ivalues[i] != 0);
+                caps.setStereo(ivalue != 0);
                 break;
 
               case CGL.NSOpenGLPFAColorSize:
                 {
-                  int bitSize = ivalues[i];
-                  if (bitSize == 32)
-                    bitSize = 24;
-                  bitSize /= 3;
+                  final int bitSize = ( 32 == ivalue ? 24 : ivalue ) / 3;
                   caps.setRedBits(bitSize);
                   caps.setGreenBits(bitSize);
                   caps.setBlueBits(bitSize);
@@ -312,16 +309,16 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
 
               case CGL.NSOpenGLPFAAlphaSize:
                 // ALPHA shall be set at last - due to it's auto setting by !opaque / samples
-                alphaBits = ivalues[i];
+                alphaBits = ivalue;
                 break;
 
               case CGL.NSOpenGLPFADepthSize:
-                caps.setDepthBits(ivalues[i]);
+                caps.setDepthBits(ivalue);
                 break;
 
               case CGL.NSOpenGLPFAAccumSize:
                 {
-                  int bitSize = ivalues[i] / 4;
+                  final int bitSize = ivalue / 4;
                   caps.setAccumRedBits(bitSize);
                   caps.setAccumGreenBits(bitSize);
                   caps.setAccumBlueBits(bitSize);
@@ -330,15 +327,15 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
                 break;
 
               case CGL.NSOpenGLPFAStencilSize:
-                caps.setStencilBits(ivalues[i]);
+                caps.setStencilBits(ivalue);
                 break;
 
               case CGL.NSOpenGLPFASampleBuffers:
-                caps.setSampleBuffers(ivalues[i] != 0);
+                caps.setSampleBuffers(ivalue != 0);
                 break;
 
               case CGL.NSOpenGLPFASamples:
-                caps.setNumSamples(ivalues[i]);
+                caps.setNumSamples(ivalue);
                 break;
 
               default:

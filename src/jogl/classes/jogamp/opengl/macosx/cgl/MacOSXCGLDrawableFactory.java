@@ -41,6 +41,7 @@
 package jogamp.opengl.macosx.cgl;
 
 import java.nio.Buffer;
+import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -69,6 +70,7 @@ import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
 import com.jogamp.common.JogampRuntimeException;
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.nativewindow.macosx.MacOSXGraphicsDevice;
@@ -430,10 +432,9 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
 
   @Override
   protected boolean setGammaRamp(float[] ramp) {
-    return CGL.setGammaRamp(ramp.length,
-                            ramp, 0,
-                            ramp, 0,
-                            ramp, 0);
+    final FloatBuffer rampNIO = Buffers.newDirectFloatBuffer(ramp);
+
+    return CGL.setGammaRamp(ramp.length, rampNIO, rampNIO, rampNIO);
   }
 
   @Override

@@ -41,6 +41,7 @@
 package jogamp.opengl.macosx.cgl;
 
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.Map;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
@@ -63,6 +64,7 @@ import jogamp.opengl.GLFBODrawableImpl;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.macosx.cgl.MacOSXCGLDrawable.GLBackendType;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionNumber;
@@ -537,16 +539,16 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           }  */                  
           
           try {
-              int[] viewNotReady = new int[1];
+              final IntBuffer viewNotReady = Buffers.newDirectIntBuffer(1);
               // Try to allocate a context with this
               ctx = CGL.createContext(share,
                       nsViewHandle, incompleteView,
                       pixelFormat,
                       chosenCaps.isBackgroundOpaque(),
-                      viewNotReady, 0);
+                      viewNotReady);
               if (0 == ctx) {
                   if(DEBUG) {
-                      System.err.println("NS create failed: viewNotReady: "+ (1 == viewNotReady[0]));
+                      System.err.println("NS create failed: viewNotReady: "+ (1 == viewNotReady.get(0)));
                   }
                   return 0;
               }
@@ -609,7 +611,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   if(0>=lastWidth || 0>=lastHeight || !drawable.isRealized()) {
                       throw new GLException("Drawable not realized yet or invalid texture size, texSize "+lastWidth+"x"+lastHeight+", "+drawable);
                   }
-                  nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, nsOpenGLLayerPFmt, pbufferHandle, texID, chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight);
+                  nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, /* MacOSXCGLContext.this.isGL3(), */ nsOpenGLLayerPFmt, pbufferHandle, texID, chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight);
                   if (DEBUG) {
                       System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer)+" w/ pbuffer "+toHexString(pbufferHandle)+", texID "+texID+", texSize "+lastWidth+"x"+lastHeight+", "+drawable);
                   }
@@ -899,8 +901,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       
       @Override
       public boolean setSwapInterval(int interval) {
-          int[] lval = new int[] { interval } ;
-          CGL.CGLSetParameter(contextHandle, CGL.kCGLCPSwapInterval, lval, 0);
+          final IntBuffer lval = Buffers.newDirectIntBuffer(1);
+          lval.put(0, interval);
+          CGL.CGLSetParameter(contextHandle, CGL.kCGLCPSwapInterval, lval);
           return true;
       }
       @Override
