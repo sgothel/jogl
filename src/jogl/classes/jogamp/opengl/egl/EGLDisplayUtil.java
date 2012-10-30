@@ -100,30 +100,6 @@ public class EGLDisplayUtil {
      * @param eglDisplay
      * @param major
      * @param minor
-     * @return true if the eglDisplay is valid and it's reference counter becomes one and {@link EGL#eglInitialize(long, int[], int, int[], int)} was successful, otherwise false
-     *
-     * @see EGL#eglInitialize(long, int[], int, int[], int)}
-     */
-    public static synchronized boolean eglInitialize(long eglDisplay, int[] major, int major_offset, int[] minor, int minor_offset)  {
-        final boolean res;    
-        final int refCnt = eglDisplayCounter.get(eglDisplay) + 1; // 0 + 1 = 1 -> 1st init
-        if(1==refCnt) {
-            res = EGL.eglInitialize(eglDisplay, major, major_offset, minor, minor_offset);
-        } else {
-            res = true;
-        }
-        eglDisplayCounter.put(eglDisplay, refCnt);
-        if(DEBUG) {
-            System.err.println("EGLDisplayUtil.eglInitialize1("+EGLContext.toHexString(eglDisplay)+" ...): #"+refCnt+" = "+res);
-            // Thread.dumpStack();
-        }
-        return res;
-    }
-    
-    /**
-     * @param eglDisplay
-     * @param major
-     * @param minor
      * @return true if the eglDisplay is valid and it's reference counter becomes one and {@link EGL#eglInitialize(long, IntBuffer, IntBuffer)} was successful, otherwise false
      * 
      * @see EGL#eglInitialize(long, IntBuffer, IntBuffer)

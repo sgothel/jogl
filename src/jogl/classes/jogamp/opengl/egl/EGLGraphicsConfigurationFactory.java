@@ -351,7 +351,7 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
                                ", numConfigs "+numConfigs.get(0));
         }
 
-        final IntBuffer attrs = Buffers.newDirectIntBuffer(EGLGraphicsConfiguration.GLCapabilities2AttribList(capsChosen));
+        final IntBuffer attrs = EGLGraphicsConfiguration.GLCapabilities2AttribList(capsChosen);
         PointerBuffer configs = PointerBuffer.allocateDirect(numConfigs.get(0));
 
         // 1st choice: get GLCapabilities based on users GLCapabilities 

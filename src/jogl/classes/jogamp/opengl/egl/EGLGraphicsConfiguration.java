@@ -110,19 +110,19 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
     }
 
     public static long EGLConfigId2EGLConfig(long display, int configID) {
-        int[] attrs = new int[] {
+        final IntBuffer attrs = Buffers.newDirectIntBuffer(new int[] {
                 EGL.EGL_CONFIG_ID, configID,
                 EGL.EGL_NONE
-            };
-        PointerBuffer configs = PointerBuffer.allocateDirect(1);
-        int[] numConfigs = new int[1];
+            });
+        final PointerBuffer configs = PointerBuffer.allocateDirect(1);
+        final IntBuffer numConfigs = Buffers.newDirectIntBuffer(1);
         if (!EGL.eglChooseConfig(display,
-                                 attrs, 0,
+                                 attrs,
                                  configs, 1,
-                                 numConfigs, 0)) {
+                                 numConfigs)) {
             return 0;
         }
-        if (numConfigs[0] == 0) {
+        if (numConfigs.get(0) == 0) {
             return 0;
         }
         return configs.get(0);
@@ -148,18 +148,19 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
     static int EGLConfigDrawableTypeBits(final EGLGraphicsDevice device, final long config) {
         int val = 0;
 
-        int[] stype = new int[1];
-        if(! EGL.eglGetConfigAttrib(device.getHandle(), config, EGL.EGL_SURFACE_TYPE, stype, 0)) {
+        final IntBuffer stype = Buffers.newDirectIntBuffer(1);
+        if(! EGL.eglGetConfigAttrib(device.getHandle(), config, EGL.EGL_SURFACE_TYPE, stype)) {
             throw new GLException("Could not determine EGL_SURFACE_TYPE");
         }
 
-        if ( 0 != ( stype[0] & EGL.EGL_WINDOW_BIT ) ) {
+        final int _stype = stype.get(0);
+        if ( 0 != ( _stype & EGL.EGL_WINDOW_BIT ) ) {
             val |= GLGraphicsConfigurationUtil.WINDOW_BIT;
         }
-        if ( 0 != ( stype[0] & EGL.EGL_PIXMAP_BIT ) ) {
+        if ( 0 != ( _stype & EGL.EGL_PIXMAP_BIT ) ) {
             val |= GLGraphicsConfigurationUtil.BITMAP_BIT;
         }
-        if ( 0 != ( stype[0] & EGL.EGL_PBUFFER_BIT ) ) {
+        if ( 0 != ( _stype & EGL.EGL_PBUFFER_BIT ) ) {
             val |= GLGraphicsConfigurationUtil.PBUFFER_BIT |
                    GLGraphicsConfigurationUtil.FBO_BIT;     
         }
@@ -298,11 +299,11 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         return (EGLGLCapabilities) GLGraphicsConfigurationUtil.fixWinAttribBitsAndHwAccel(device, drawableTypeBits, caps); 
     }
 
-    public static int[] GLCapabilities2AttribList(GLCapabilitiesImmutable caps) {
-        int[] attrs = new int[32];
+    public static IntBuffer GLCapabilities2AttribList(GLCapabilitiesImmutable caps) {
+        final IntBuffer attrs = Buffers.newDirectIntBuffer(32);
         int idx=0;
 
-        attrs[idx++] = EGL.EGL_SURFACE_TYPE;
+        attrs.put(idx++, EGL.EGL_SURFACE_TYPE);
         final int surfaceType;
         if( caps.isOnscreen() ) {
             surfaceType = EGL.EGL_WINDOW_BIT;            
@@ -315,99 +316,99 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         } else {
             throw new GLException("no surface type set in caps: "+caps);
         }
-        attrs[idx++] = surfaceType;
+        attrs.put(idx++, surfaceType);
 
-        attrs[idx++] = EGL.EGL_RED_SIZE;
-        attrs[idx++] = caps.getRedBits();
+        attrs.put(idx++, EGL.EGL_RED_SIZE);
+        attrs.put(idx++, caps.getRedBits());
 
-        attrs[idx++] = EGL.EGL_GREEN_SIZE;
-        attrs[idx++] = caps.getGreenBits();
+        attrs.put(idx++, EGL.EGL_GREEN_SIZE);
+        attrs.put(idx++, caps.getGreenBits());
 
-        attrs[idx++] = EGL.EGL_BLUE_SIZE;
-        attrs[idx++] = caps.getBlueBits();
+        attrs.put(idx++, EGL.EGL_BLUE_SIZE);
+        attrs.put(idx++, caps.getBlueBits());
 
         if(caps.getAlphaBits()>0) {
-            attrs[idx++] = EGL.EGL_ALPHA_SIZE;
-            attrs[idx++] = caps.getAlphaBits();
+            attrs.put(idx++, EGL.EGL_ALPHA_SIZE);
+            attrs.put(idx++, caps.getAlphaBits());
         }
         
         if(caps.getStencilBits()>0) {
-            attrs[idx++] = EGL.EGL_STENCIL_SIZE;
-            attrs[idx++] = caps.getStencilBits();
+            attrs.put(idx++, EGL.EGL_STENCIL_SIZE);
+            attrs.put(idx++, caps.getStencilBits());
         }
 
-        attrs[idx++] = EGL.EGL_DEPTH_SIZE;
-        attrs[idx++] = caps.getDepthBits();
+        attrs.put(idx++, EGL.EGL_DEPTH_SIZE);
+        attrs.put(idx++, caps.getDepthBits());
 
         if(caps.getSampleBuffers()) {
             if(caps.getSampleExtension().equals(GLGraphicsConfigurationUtil.NV_coverage_sample)) {
-                attrs[idx++] = EGLExt.EGL_COVERAGE_BUFFERS_NV;
-                attrs[idx++] = 1;
-                attrs[idx++] = EGLExt.EGL_COVERAGE_SAMPLES_NV;
-                attrs[idx++] = caps.getNumSamples();
+                attrs.put(idx++, EGLExt.EGL_COVERAGE_BUFFERS_NV);
+                attrs.put(idx++, 1);
+                attrs.put(idx++, EGLExt.EGL_COVERAGE_SAMPLES_NV);
+                attrs.put(idx++, caps.getNumSamples());
             } else {
                 // try default ..
-                attrs[idx++] = EGL.EGL_SAMPLE_BUFFERS;
-                attrs[idx++] = 1;
-                attrs[idx++] = EGL.EGL_SAMPLES;
-                attrs[idx++] = caps.getNumSamples();
+                attrs.put(idx++, EGL.EGL_SAMPLE_BUFFERS);
+                attrs.put(idx++, 1);
+                attrs.put(idx++, EGL.EGL_SAMPLES);
+                attrs.put(idx++, caps.getNumSamples());
             }
         }
 
-        attrs[idx++] = EGL.EGL_TRANSPARENT_TYPE;
-        attrs[idx++] = caps.isBackgroundOpaque() ? EGL.EGL_NONE : EGL.EGL_TRANSPARENT_TYPE;
+        attrs.put(idx++, EGL.EGL_TRANSPARENT_TYPE);
+        attrs.put(idx++, caps.isBackgroundOpaque() ? EGL.EGL_NONE : EGL.EGL_TRANSPARENT_TYPE);
 
         // 22
 
         if(!caps.isBackgroundOpaque()) {
-            attrs[idx++] = EGL.EGL_TRANSPARENT_RED_VALUE;
-            attrs[idx++] = caps.getTransparentRedValue()>=0?caps.getTransparentRedValue():EGL.EGL_DONT_CARE;
+            attrs.put(idx++, EGL.EGL_TRANSPARENT_RED_VALUE);
+            attrs.put(idx++, caps.getTransparentRedValue()>=0?caps.getTransparentRedValue():EGL.EGL_DONT_CARE);
 
-            attrs[idx++] = EGL.EGL_TRANSPARENT_GREEN_VALUE;
-            attrs[idx++] = caps.getTransparentGreenValue()>=0?caps.getTransparentGreenValue():EGL.EGL_DONT_CARE;
+            attrs.put(idx++, EGL.EGL_TRANSPARENT_GREEN_VALUE);
+            attrs.put(idx++, caps.getTransparentGreenValue()>=0?caps.getTransparentGreenValue():EGL.EGL_DONT_CARE);
 
-            attrs[idx++] = EGL.EGL_TRANSPARENT_BLUE_VALUE;
-            attrs[idx++] = caps.getTransparentBlueValue()>=0?caps.getTransparentBlueValue():EGL.EGL_DONT_CARE;
+            attrs.put(idx++, EGL.EGL_TRANSPARENT_BLUE_VALUE);
+            attrs.put(idx++, caps.getTransparentBlueValue()>=0?caps.getTransparentBlueValue():EGL.EGL_DONT_CARE);
 
             /** Not define in EGL
-            attrs[idx++] = EGL.EGL_TRANSPARENT_ALPHA_VALUE;
-            attrs[idx++] = caps.getTransparentAlphaValue()>=0?caps.getTransparentAlphaValue():EGL.EGL_DONT_CARE; */
+            attrs.put(idx++, EGL.EGL_TRANSPARENT_ALPHA_VALUE;
+            attrs.put(idx++, caps.getTransparentAlphaValue()>=0?caps.getTransparentAlphaValue():EGL.EGL_DONT_CARE; */
         }
 
         // 28 
-        attrs[idx++] = EGL.EGL_RENDERABLE_TYPE;
+        attrs.put(idx++, EGL.EGL_RENDERABLE_TYPE);
         if(caps.getGLProfile().usesNativeGLES1()) {
-            attrs[idx++] = EGL.EGL_OPENGL_ES_BIT;
+            attrs.put(idx++, EGL.EGL_OPENGL_ES_BIT);
         } else if(caps.getGLProfile().usesNativeGLES2()) {
-            attrs[idx++] = EGL.EGL_OPENGL_ES2_BIT;
+            attrs.put(idx++, EGL.EGL_OPENGL_ES2_BIT);
         } else {
-            attrs[idx++] = EGL.EGL_OPENGL_BIT;
+            attrs.put(idx++, EGL.EGL_OPENGL_BIT);
         }
 
         // 30
 
-        attrs[idx++] = EGL.EGL_NONE;
+        attrs.put(idx++, EGL.EGL_NONE);
 
         return attrs;
     }
 
-    public static int[] CreatePBufferSurfaceAttribList(int width, int height, int texFormat) {
-        int[] attrs = new int[16];
+    public static IntBuffer CreatePBufferSurfaceAttribList(int width, int height, int texFormat) {
+        IntBuffer attrs = Buffers.newDirectIntBuffer(16);
         int idx=0;
 
-        attrs[idx++] = EGL.EGL_WIDTH;
-        attrs[idx++] = width;
+        attrs.put(idx++, EGL.EGL_WIDTH);
+        attrs.put(idx++, width);
 
-        attrs[idx++] = EGL.EGL_HEIGHT;
-        attrs[idx++] = height;
+        attrs.put(idx++, EGL.EGL_HEIGHT);
+        attrs.put(idx++, height);
 
-        attrs[idx++] = EGL.EGL_TEXTURE_FORMAT;
-        attrs[idx++] = texFormat;
+        attrs.put(idx++, EGL.EGL_TEXTURE_FORMAT);
+        attrs.put(idx++, texFormat);
 
-        attrs[idx++] = EGL.EGL_TEXTURE_TARGET;
-        attrs[idx++] = EGL.EGL_NO_TEXTURE==texFormat ? EGL.EGL_NO_TEXTURE : EGL.EGL_TEXTURE_2D;
+        attrs.put(idx++, EGL.EGL_TEXTURE_TARGET);
+        attrs.put(idx++, EGL.EGL_NO_TEXTURE==texFormat ? EGL.EGL_NO_TEXTURE : EGL.EGL_TEXTURE_2D);
 
-        attrs[idx++] = EGL.EGL_NONE;
+        attrs.put(idx++, EGL.EGL_NONE);
 
         return attrs;
     }

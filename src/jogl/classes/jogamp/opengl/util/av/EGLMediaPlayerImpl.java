@@ -125,12 +125,12 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
         }
 
         if(useKHRSync) {
-            int[] tmp = new int[1];
+            IntBuffer tmp = Buffers.newDirectIntBuffer(1);
             // Create sync object so that we can be sure that gl has finished
             // rendering the EGLImage texture before we tell OpenMAX to fill
             // it with a new frame.
-            tmp[0] = EGL.EGL_NONE;
-            sync = eglExt.eglCreateSyncKHR(eglDrawable.getNativeSurface().getDisplayHandle(), EGLExt.EGL_SYNC_FENCE_KHR, tmp, 0);
+            tmp.put(0, EGL.EGL_NONE);
+            sync = eglExt.eglCreateSyncKHR(eglDrawable.getNativeSurface().getDisplayHandle(), EGLExt.EGL_SYNC_FENCE_KHR, tmp);
             if (0==sync) {
                 throw new RuntimeException("EGLSync creation failed: "+EGL.eglGetError()+", ctx "+eglCtx+", err "+toHexString(EGL.eglGetError()));
             }

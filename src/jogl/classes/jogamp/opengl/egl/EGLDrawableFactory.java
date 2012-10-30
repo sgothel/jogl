@@ -323,7 +323,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }
         if(0 < numConfigs.get(0)) {
             final PointerBuffer configs = PointerBuffer.allocateDirect(numConfigs.get(0));
-            final IntBuffer attrs = Buffers.newDirectIntBuffer(EGLGraphicsConfiguration.GLCapabilities2AttribList(caps));
+            final IntBuffer attrs = EGLGraphicsConfiguration.GLCapabilities2AttribList(caps);
             final int winattrmask = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(caps);
             if( EGL.eglChooseConfig(eglDisplay.getHandle(), attrs, configs, configs.capacity(), numConfigs) && numConfigs.get(0) > 0) {
                 return EGLGraphicsConfigurationFactory.eglConfigs2GLCaps(eglDisplay, caps.getGLProfile(), configs, numConfigs.get(0), winattrmask, false /* forceTransparentFlag */);
@@ -736,8 +736,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
           System.out.println("Pbuffer config: " + config);
         }
 
-        final int[] attrs = EGLGraphicsConfiguration.CreatePBufferSurfaceAttribList(width, height, texFormat);
-        final long surf = EGL.eglCreatePbufferSurface(eglDevice.getHandle(), config.getNativeConfig(), attrs, 0);
+        final IntBuffer attrs = EGLGraphicsConfiguration.CreatePBufferSurfaceAttribList(width, height, texFormat);
+        final long surf = EGL.eglCreatePbufferSurface(eglDevice.getHandle(), config.getNativeConfig(), attrs);
         if (EGL.EGL_NO_SURFACE==surf) {
             throw new GLException("Creation of window surface (eglCreatePbufferSurface) failed, dim "+width+"x"+height+", "+eglDevice+", "+config+", error 0x"+Integer.toHexString(EGL.eglGetError()));
         } else if(DEBUG) {
