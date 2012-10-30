@@ -45,6 +45,7 @@ import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
 
+import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.DriverClearFocus;
 import jogamp.newt.driver.DriverUpdatePosition;
@@ -149,7 +150,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         
     public final void clearFocus() {
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("MacWindow: clearFocus() - requestFocusParent, isOffscreenInstance "+isOffscreenInstance);
+            System.err.println("MacWindow: clearFocus(), isOffscreenInstance "+isOffscreenInstance);
         }
         if(!isOffscreenInstance) {
             resignFocus0(getWindowHandle());
@@ -236,16 +237,21 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
 
     protected Point getLocationOnScreenImpl(int x, int y) {
-        Point p = new Point(x, y);
+        final NativeWindow parent = getParent();
+        final boolean useParent = null != parent && 0 != parent.getWindowHandle() ;
+        
+        if( !useParent && !isOffscreenInstance && 0 != surfaceHandle) {
+            return OSXUtil.GetLocationOnScreen(surfaceHandle, true, x, y);
+        }
+        
+        final Point p = new Point(x, y);
         // min val is 0
         p.setX(Math.max(p.getX(), 0));
         p.setY(Math.max(p.getY(), 0));
-        
-        final NativeWindow parent = getParent();
-        if( null != parent && 0 != parent.getWindowHandle() ) {
+        if( useParent ) {
             p.translate(parent.getLocationOnScreen(null));
         }
-        return p;        
+        return p;
     }
     
     private Point getTopLevelLocationOnScreen(int x, int y) {
