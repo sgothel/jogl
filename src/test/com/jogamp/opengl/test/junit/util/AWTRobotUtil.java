@@ -29,6 +29,7 @@
 package com.jogamp.opengl.test.junit.util;
 
 import jogamp.newt.WindowImplAccess;
+
 import java.lang.reflect.InvocationTargetException;
 import java.awt.AWTException;
 import java.awt.Component;
@@ -212,7 +213,7 @@ public class AWTRobotUtil {
             throw new RuntimeException("Neither AWT nor NEWT: "+obj);
         }
         
-        if(null == robot) {        
+        if(null == robot) {            
             if(null!=comp) {
                 javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
@@ -342,6 +343,7 @@ public class AWTRobotUtil {
         int tc = 0;
         int j;
         final long t0 = System.currentTimeMillis();
+        final int c0 = null!=counter ? counter.getCount() : 0;
         
         for(j=0; 1 > tc && j<RETRY_NUMBER; j++) {
             if(!hasFocus(obj)) {
@@ -349,11 +351,12 @@ public class AWTRobotUtil {
                 if(DEBUG) { System.err.println(i+":"+j+" KC1.0: "+counter+" - regain focus"); }
                 requestFocus(null, obj);
             }
-            final int c0 = null!=counter ? counter.getCount() : 0;
             if(DEBUG) { System.err.println(i+":"+j+" KC1.1: "+counter); }
             robot.waitForIdle();
             robot.keyPress(keyCode);
+            robot.delay(10);
             robot.keyRelease(keyCode);
+            robot.delay(100);
             if(DEBUG) { System.err.println(i+":"+j+" KC1.2: "+counter); }
             tc = ( null!=counter ? counter.getCount() : 1 ) - c0;
             for (int wait=0; wait<POLL_DIVIDER && 1 > tc; wait++) {
