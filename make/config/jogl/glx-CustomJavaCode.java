@@ -16,43 +16,49 @@
   private static native java.nio.ByteBuffer dispatch_glXGetVisualFromFBConfig(long dpy, long config, long procAddr);
 
 
-  /** Interface to C language function: <br> - Alias for: <br> <code> GLXFBConfig *  glXChooseFBConfigSGIX, glXChooseFBConfig(Display *  dpy, int screen, const int *  attribList, int *  nitems); </code>    */
-  public static com.jogamp.common.nio.PointerBuffer glXChooseFBConfig(long dpy, int screen, int[] attribList, int attribList_offset, int[] nitems, int nitems_offset)
-  {
+  /** Entry point to C language function: <code> GLXFBConfig *  glXChooseFBConfig(Display *  dpy, int screen, const int *  attribList, int *  nitems); </code> <br>Part of CORE FUNC
+      @param attribList a direct only {@link java.nio.IntBuffer}
+      @param nitems a direct only {@link java.nio.IntBuffer}   */
+  public static PointerBuffer glXChooseFBConfig(long dpy, int screen, IntBuffer attribList, IntBuffer nitems)  {
+
+    if (!Buffers.isDirect(attribList))
+      throw new GLException("Argument \"attribList\" is not a direct buffer");
+    if (!Buffers.isDirect(nitems))
+      throw new GLException("Argument \"nitems\" is not a direct buffer");
     final long __addr_ = glxProcAddressTable._addressof_glXChooseFBConfig;
     if (__addr_ == 0) {
-        throw new GLException("Method \"glXChooseFBConfig\" not available");
+      throw new GLException("Method \"glXChooseFBConfig\" not available");
     }
-    if(attribList != null && attribList.length <= attribList_offset)
-      throw new GLException("array offset argument \"attribList_offset\" (" + attribList_offset + ") equals or exceeds array length (" + attribList.length + ")");
-    if(nitems != null && nitems.length <= nitems_offset)
-      throw new GLException("array offset argument \"nitems_offset\" (" + nitems_offset + ") equals or exceeds array length (" + nitems.length + ")");
-    java.nio.ByteBuffer _res;
-    _res = dispatch_glXChooseFBConfig(dpy, screen, attribList, Buffers.SIZEOF_INT * attribList_offset, nitems, Buffers.SIZEOF_INT * nitems_offset, __addr_);
-
+    final ByteBuffer _res;
+    _res = dispatch_glXChooseFBConfig(dpy, screen, attribList, Buffers.getDirectBufferByteOffset(attribList), nitems, Buffers.getDirectBufferByteOffset(nitems), __addr_);
     if (_res == null) return null;
+    Buffers.nativeOrder(_res);
     return PointerBuffer.wrap(_res);
   }
 
-  /** Entry point to C language function: - Alias for: <br> <code> GLXFBConfig *  glXChooseFBConfigSGIX, glXChooseFBConfig(Display *  dpy, int screen, const int *  attribList, int *  nitems); </code>    */
-  private static native java.nio.ByteBuffer dispatch_glXChooseFBConfig(long dpy, int screen, Object attribList, int attribList_byte_offset, Object nitems, int nitems_byte_offset, long procAddr);
+  /** Entry point to C language function: <code> GLXFBConfig *  glXChooseFBConfig(Display *  dpy, int screen, const int *  attribList, int *  nitems); </code> <br>Part of CORE FUNC
+      @param attribList a direct only {@link java.nio.IntBuffer}
+      @param nitems a direct only {@link java.nio.IntBuffer}   */
+  private static native ByteBuffer dispatch_glXChooseFBConfig(long dpy, int screen, Object attribList, int attribList_byte_offset, Object nitems, int nitems_byte_offset, long procAddress);
 
-  /** Interface to C language function: <br> - Alias for: <br> <code> XVisualInfo *  glXChooseVisual(Display *  dpy, int screen, int *  attribList); </code>    */
-  public static XVisualInfo glXChooseVisual(long dpy, int screen, int[] attribList, int attribList_offset)
-  {
+
+  /** Entry point to C language function: <code> XVisualInfo *  glXChooseVisual(Display *  dpy, int screen, int *  attribList); </code> <br>Part of <code>GLX_VERSION_1_X</code>
+      @param attribList a direct only {@link java.nio.IntBuffer}   */
+  public static XVisualInfo glXChooseVisual(long dpy, int screen, IntBuffer attribList)  {
+
+    if (!Buffers.isDirect(attribList))
+      throw new GLException("Argument \"attribList\" is not a direct buffer");
     final long __addr_ = glxProcAddressTable._addressof_glXChooseVisual;
     if (__addr_ == 0) {
-        throw new GLException("Method \"glXChooseVisual\" not available");
+      throw new GLException("Method \"glXChooseVisual\" not available");
     }
-    if(attribList != null && attribList.length <= attribList_offset)
-      throw new GLException("array offset argument \"attribList_offset\" (" + attribList_offset + ") equals or exceeds array length (" + attribList.length + ")");
-    java.nio.ByteBuffer _res;
-    _res = dispatch_glXChooseVisual(dpy, screen, attribList, Buffers.SIZEOF_INT * attribList_offset, __addr_);
-
+    final ByteBuffer _res;
+    _res = dispatch_glXChooseVisual(dpy, screen, attribList, Buffers.getDirectBufferByteOffset(attribList), __addr_);
     if (_res == null) return null;
-    return XVisualInfo.create(_res);
+    return XVisualInfo.create(Buffers.nativeOrder(_res));
   }
 
-  /** Entry point to C language function: - Alias for: <br> <code> XVisualInfo *  glXChooseVisual(Display *  dpy, int screen, int *  attribList); </code>    */
-  private static native java.nio.ByteBuffer dispatch_glXChooseVisual(long dpy, int screen, Object attribList, int attribList_byte_offset, long procAddr);
+  /** Entry point to C language function: <code> XVisualInfo *  glXChooseVisual(Display *  dpy, int screen, int *  attribList); </code> <br>Part of <code>GLX_VERSION_1_X</code>
+      @param attribList a direct only {@link java.nio.IntBuffer}   */
+  private static native ByteBuffer dispatch_glXChooseVisual(long dpy, int screen, Object attribList, int attribList_byte_offset, long procAddress);
 

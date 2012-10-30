@@ -40,6 +40,8 @@
 
 package jogamp.opengl.x11.glx;
 
+import java.nio.IntBuffer;
+
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
@@ -49,6 +51,8 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLPbuffer;
+
+import com.jogamp.common.nio.Buffers;
 
 public class X11PbufferGLXDrawable extends X11GLXDrawable {
   protected X11PbufferGLXDrawable(GLDrawableFactory factory, NativeSurface target) {
@@ -107,17 +111,17 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
 
       // Create the p-buffer.
       int niattribs = 0;
-      int[] iattributes = new int[7];
+      IntBuffer iattributes = Buffers.newDirectIntBuffer(7);
 
-      iattributes[niattribs++] = GLX.GLX_PBUFFER_WIDTH;
-      iattributes[niattribs++] = ms.getWidth();
-      iattributes[niattribs++] = GLX.GLX_PBUFFER_HEIGHT;
-      iattributes[niattribs++] = ms.getHeight();
-      iattributes[niattribs++] = GLX.GLX_LARGEST_PBUFFER; // exact
-      iattributes[niattribs++] = 0;
-      iattributes[niattribs++] = 0;
+      iattributes.put(niattribs++, GLX.GLX_PBUFFER_WIDTH);
+      iattributes.put(niattribs++, ms.getWidth());
+      iattributes.put(niattribs++, GLX.GLX_PBUFFER_HEIGHT);
+      iattributes.put(niattribs++, ms.getHeight());
+      iattributes.put(niattribs++, GLX.GLX_LARGEST_PBUFFER); // exact
+      iattributes.put(niattribs++, 0);
+      iattributes.put(niattribs++, 0);
 
-      long pbuffer = GLX.glXCreatePbuffer(display, config.getFBConfig(), iattributes, 0);
+      long pbuffer = GLX.glXCreatePbuffer(display, config.getFBConfig(), iattributes);
       if (pbuffer == 0) {
         // FIXME: query X error code for detail error message
         throw new GLException("pbuffer creation error: glXCreatePbuffer() failed");

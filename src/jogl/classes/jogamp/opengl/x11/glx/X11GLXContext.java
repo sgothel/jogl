@@ -570,9 +570,13 @@ public abstract class X11GLXContext extends GLContextImpl {
       if (initSwapGroupImpl(glXExt)>0) {
         final NativeSurface ns = drawable.getNativeSurface();
         try {
+            final IntBuffer maxGroupsNIO = Buffers.newDirectIntBuffer(maxGroups.length - maxGroups_offset);
+            final IntBuffer maxBarriersNIO = Buffers.newDirectIntBuffer(maxBarriers.length - maxBarriers_offset);
+            
             if( glXExt.glXQueryMaxSwapGroupsNV(ns.getDisplayHandle(), ns.getScreenIndex(),
-                                               maxGroups, maxGroups_offset,
-                                               maxBarriers, maxBarriers_offset) ) {
+                                               maxGroupsNIO, maxBarriersNIO) ) {
+                maxGroupsNIO.get(maxGroups, maxGroups_offset, maxGroupsNIO.remaining());
+                maxBarriersNIO.get(maxGroups, maxGroups_offset, maxBarriersNIO.remaining());
                 res = true;
             }
         } catch (Throwable t) { hasSwapGroupNV=-1; }

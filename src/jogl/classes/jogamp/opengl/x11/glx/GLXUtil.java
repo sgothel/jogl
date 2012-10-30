@@ -33,10 +33,13 @@
 
 package jogamp.opengl.x11.glx;
 
+import java.nio.IntBuffer;
+
 import javax.media.opengl.GLException;
 
 import jogamp.opengl.Debug;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 
@@ -53,7 +56,7 @@ public class GLXUtil {
         boolean glXAvailable = false;
         x11Device.lock();
         try {
-            glXAvailable = GLX.glXQueryExtension(x11Device.getHandle(), null, 0, null, 0);
+            glXAvailable = GLX.glXQueryExtension(x11Device.getHandle(), null, null);
         } catch (Throwable t) { /* n/a */
         } finally {
             x11Device.unlock();
@@ -87,32 +90,32 @@ public class GLXUtil {
     }
     
     public static VersionNumber getGLXServerVersionNumber(X11GraphicsDevice x11Device) {
-        int[] major = new int[1];
-        int[] minor = new int[1];
+        final IntBuffer major = Buffers.newDirectIntBuffer(1);
+        final IntBuffer minor = Buffers.newDirectIntBuffer(1);
         
         x11Device.lock();
         try {
-            if (!GLX.glXQueryVersion(x11Device.getHandle(), major, 0, minor, 0)) {
+            if (!GLX.glXQueryVersion(x11Device.getHandle(), major, minor)) {
               throw new GLException("glXQueryVersion failed");
             }
     
             // Work around bugs in ATI's Linux drivers where they report they
             // only implement GLX version 1.2 on the server side
-            if (major[0] == 1 && minor[0] == 2) {
+            if (major.get(0) == 1 && minor.get(0) == 2) {
               String str = GLX.glXGetClientString(x11Device.getHandle(), GLX.GLX_VERSION);
               try {
                   // e.g. "1.3"
-                  major[0] = Integer.valueOf(str.substring(0, 1)).intValue();
-                  minor[0] = Integer.valueOf(str.substring(2, 3)).intValue();
+                  major.put(0, Integer.valueOf(str.substring(0, 1)).intValue());
+                  minor.put(0, Integer.valueOf(str.substring(2, 3)).intValue());
               } catch (Exception e) {
-                  major[0] = 1;
-                  minor[0] = 2;
+                  major.put(0, 1);
+                  minor.put(0, 2);
               }
             }
         } finally {
             x11Device.unlock();
         }
-        return new VersionNumber(major[0], minor[0], 0);
+        return new VersionNumber(major.get(0), minor.get(0), 0);
     }
     
     public static boolean isMultisampleAvailable(String extensions) {

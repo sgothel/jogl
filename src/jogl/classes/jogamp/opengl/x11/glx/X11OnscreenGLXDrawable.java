@@ -91,7 +91,7 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
             if(0!=glXWindow) {
                 GLX.glXDestroyWindow(dpy, glXWindow);
             }
-            glXWindow = GLX.glXCreateWindow(dpy, config.getFBConfig(), getNativeSurface().getSurfaceHandle(), null, 0);
+            glXWindow = GLX.glXCreateWindow(dpy, config.getFBConfig(), getNativeSurface().getSurfaceHandle(), null);
             if (DEBUG) {
               System.err.println("X11OnscreenGLXDrawable.setRealized(true): glXWindow: "+toHexString(getNativeSurface().getSurfaceHandle())+" -> "+toHexString(glXWindow));
             }

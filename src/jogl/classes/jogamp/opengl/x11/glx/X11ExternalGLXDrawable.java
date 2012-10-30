@@ -39,6 +39,8 @@
 
 package jogamp.opengl.x11.glx;
 
+import java.nio.IntBuffer;
+
 import javax.media.nativewindow.NativeSurface;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
@@ -47,6 +49,7 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.WrappedSurface;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 
@@ -69,23 +72,24 @@ public class X11ExternalGLXDrawable extends X11GLXDrawable {
     if (drawable == 0) {
       throw new GLException("Error: attempted to make an external GLDrawable without a drawable current");
     }
-    int[] val = new int[1];
-    GLX.glXQueryContext(display, context, GLX.GLX_SCREEN, val, 0);
-    X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val[0], false);
+    IntBuffer val = Buffers.newDirectIntBuffer(1);
+    
+    GLX.glXQueryContext(display, context, GLX.GLX_SCREEN, val);
+    X11GraphicsScreen x11Screen = (X11GraphicsScreen) X11GraphicsScreen.createScreenDevice(display, val.get(0), false);
 
-    GLX.glXQueryContext(display, context, GLX.GLX_FBCONFIG_ID, val, 0);
-    X11GLXGraphicsConfiguration cfg = X11GLXGraphicsConfiguration.create(glp, x11Screen, val[0]);
+    GLX.glXQueryContext(display, context, GLX.GLX_FBCONFIG_ID, val);
+    X11GLXGraphicsConfiguration cfg = X11GLXGraphicsConfiguration.create(glp, x11Screen, val.get(0));
 
     int w, h;
-    GLX.glXQueryDrawable(display, drawable, GLX.GLX_WIDTH, val, 0);
-    w=val[0];
-    GLX.glXQueryDrawable(display, drawable, GLX.GLX_HEIGHT, val, 0);
-    h=val[0];
+    GLX.glXQueryDrawable(display, drawable, GLX.GLX_WIDTH, val);
+    w=val.get(0);
+    GLX.glXQueryDrawable(display, drawable, GLX.GLX_HEIGHT, val);
+    h=val.get(0);
 
-    GLX.glXQueryContext(display, context, GLX.GLX_RENDER_TYPE, val, 0);
-    if ((val[0] & GLX.GLX_RGBA_TYPE) == 0) {
+    GLX.glXQueryContext(display, context, GLX.GLX_RENDER_TYPE, val);
+    if ((val.get(0) & GLX.GLX_RGBA_TYPE) == 0) {
       if (DEBUG) {
-        System.err.println("X11ExternalGLXDrawable: WARNING: forcing GLX_RGBA_TYPE for newly created contexts (current 0x"+Integer.toHexString(val[0])+")");
+        System.err.println("X11ExternalGLXDrawable: WARNING: forcing GLX_RGBA_TYPE for newly created contexts (current 0x"+Integer.toHexString(val.get(0))+")");
       }
     }
     return new X11ExternalGLXDrawable(factory, new WrappedSurface(cfg, drawable, w, h, true));

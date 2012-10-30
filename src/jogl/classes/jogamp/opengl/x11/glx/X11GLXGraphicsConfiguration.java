@@ -33,6 +33,8 @@
 
 package jogamp.opengl.x11.glx;
 
+import java.nio.IntBuffer;
+
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.VisualIDHolder;
@@ -51,6 +53,7 @@ import jogamp.nativewindow.x11.XRenderPictFormat;
 import jogamp.nativewindow.x11.XVisualInfo;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.nativewindow.x11.X11GraphicsConfiguration;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
@@ -122,9 +125,9 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
       return new X11GLXGraphicsConfiguration(x11Screen, caps, caps, new DefaultGLCapabilitiesChooser());
     }
 
-    static int[] GLCapabilities2AttribList(GLCapabilitiesImmutable caps,
-                                           boolean forFBAttr, boolean isMultisampleAvailable,
-                                           long display, int screen) 
+    static IntBuffer GLCapabilities2AttribList(GLCapabilitiesImmutable caps,
+                                               boolean forFBAttr, boolean isMultisampleAvailable,
+                                               long display, int screen) 
     {
         int colorDepth = (caps.getRedBits() +
                           caps.getGreenBits() +
@@ -132,11 +135,11 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         if (colorDepth < 15) {
           throw new GLException("Bit depths < 15 (i.e., non-true-color) not supported");
         }
-        int[] res = new int[MAX_ATTRIBS];
+        final IntBuffer res = Buffers.newDirectIntBuffer(MAX_ATTRIBS);
         int idx = 0;
 
         if (forFBAttr) {
-          res[idx++] = GLX.GLX_DRAWABLE_TYPE;
+          res.put(idx++, GLX.GLX_DRAWABLE_TYPE);
           
           final int surfaceType;
           if( caps.isOnscreen() ) {
@@ -150,77 +153,77 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
           } else {
               throw new GLException("no surface type set in caps: "+caps);
           }
-          res[idx++] = surfaceType;
+          res.put(idx++, surfaceType);
           
-          res[idx++] = GLX.GLX_RENDER_TYPE;
-          res[idx++] = GLX.GLX_RGBA_BIT;
+          res.put(idx++, GLX.GLX_RENDER_TYPE);
+          res.put(idx++, GLX.GLX_RGBA_BIT);
         } else {
-          res[idx++] = GLX.GLX_RGBA;
+          res.put(idx++, GLX.GLX_RGBA);
         }
 
         // FIXME: Still a bug is Mesa: PBUFFER && GLX_STEREO==GL_FALSE ?
         if (forFBAttr) {
-            res[idx++] = GLX.GLX_DOUBLEBUFFER;
-            res[idx++] = caps.getDoubleBuffered()?GL.GL_TRUE:GL.GL_FALSE;
-            res[idx++] = GLX.GLX_STEREO;
-            res[idx++] = caps.getStereo()?GL.GL_TRUE:GL.GL_FALSE;
-            res[idx++] = GLX.GLX_TRANSPARENT_TYPE;
-            res[idx++] = GLX.GLX_NONE;
+            res.put(idx++, GLX.GLX_DOUBLEBUFFER);
+            res.put(idx++, caps.getDoubleBuffered()?GL.GL_TRUE:GL.GL_FALSE);
+            res.put(idx++, GLX.GLX_STEREO);
+            res.put(idx++, caps.getStereo()?GL.GL_TRUE:GL.GL_FALSE);
+            res.put(idx++, GLX.GLX_TRANSPARENT_TYPE);
+            res.put(idx++, GLX.GLX_NONE);
             /**
-            res[idx++] = caps.isBackgroundOpaque()?GLX.GLX_NONE:GLX.GLX_TRANSPARENT_RGB;
+            res.put(idx++, caps.isBackgroundOpaque()?GLX.GLX_NONE:GLX.GLX_TRANSPARENT_RGB;
             if(!caps.isBackgroundOpaque()) {
-                res[idx++] = GLX.GLX_TRANSPARENT_RED_VALUE;
-                res[idx++] = caps.getTransparentRedValue()>=0?caps.getTransparentRedValue():(int)GLX.GLX_DONT_CARE;
-                res[idx++] = GLX.GLX_TRANSPARENT_GREEN_VALUE;
-                res[idx++] = caps.getTransparentGreenValue()>=0?caps.getTransparentGreenValue():(int)GLX.GLX_DONT_CARE;
-                res[idx++] = GLX.GLX_TRANSPARENT_BLUE_VALUE;
-                res[idx++] = caps.getTransparentBlueValue()>=0?caps.getTransparentBlueValue():(int)GLX.GLX_DONT_CARE;
-                res[idx++] = GLX.GLX_TRANSPARENT_ALPHA_VALUE;
-                res[idx++] = caps.getTransparentAlphaValue()>=0?caps.getTransparentAlphaValue():(int)GLX.GLX_DONT_CARE;
+                res.put(idx++, GLX.GLX_TRANSPARENT_RED_VALUE);
+                res.put(idx++, caps.getTransparentRedValue()>=0?caps.getTransparentRedValue():(int)GLX.GLX_DONT_CARE);
+                res.put(idx++, GLX.GLX_TRANSPARENT_GREEN_VALUE);
+                res.put(idx++, caps.getTransparentGreenValue()>=0?caps.getTransparentGreenValue():(int)GLX.GLX_DONT_CARE);
+                res.put(idx++, GLX.GLX_TRANSPARENT_BLUE_VALUE);
+                res.put(idx++, caps.getTransparentBlueValue()>=0?caps.getTransparentBlueValue():(int)GLX.GLX_DONT_CARE);
+                res.put(idx++, GLX.GLX_TRANSPARENT_ALPHA_VALUE);
+                res.put(idx++, caps.getTransparentAlphaValue()>=0?caps.getTransparentAlphaValue():(int)GLX.GLX_DONT_CARE);
             } */
         } else {
             if (caps.getDoubleBuffered()) {
-              res[idx++] = GLX.GLX_DOUBLEBUFFER;
+              res.put(idx++, GLX.GLX_DOUBLEBUFFER);
             }
             if (caps.getStereo()) {
-              res[idx++] = GLX.GLX_STEREO;
+              res.put(idx++, GLX.GLX_STEREO);
             }
         }
 
-        res[idx++] = GLX.GLX_RED_SIZE;
-        res[idx++] = caps.getRedBits();
-        res[idx++] = GLX.GLX_GREEN_SIZE;
-        res[idx++] = caps.getGreenBits();
-        res[idx++] = GLX.GLX_BLUE_SIZE;
-        res[idx++] = caps.getBlueBits();
+        res.put(idx++, GLX.GLX_RED_SIZE);
+        res.put(idx++, caps.getRedBits());
+        res.put(idx++, GLX.GLX_GREEN_SIZE);
+        res.put(idx++, caps.getGreenBits());
+        res.put(idx++, GLX.GLX_BLUE_SIZE);
+        res.put(idx++, caps.getBlueBits());
         if(caps.getAlphaBits()>0) {
-            res[idx++] = GLX.GLX_ALPHA_SIZE;
-            res[idx++] = caps.getAlphaBits();
+            res.put(idx++, GLX.GLX_ALPHA_SIZE);
+            res.put(idx++, caps.getAlphaBits());
         }
         if (caps.getStencilBits() > 0) {
-          res[idx++] = GLX.GLX_STENCIL_SIZE;
-          res[idx++] = caps.getStencilBits();
+          res.put(idx++, GLX.GLX_STENCIL_SIZE);
+          res.put(idx++, caps.getStencilBits());
         }
-        res[idx++] = GLX.GLX_DEPTH_SIZE;
-        res[idx++] = caps.getDepthBits();
+        res.put(idx++, GLX.GLX_DEPTH_SIZE);
+        res.put(idx++, caps.getDepthBits());
         if (caps.getAccumRedBits()   > 0 ||
             caps.getAccumGreenBits() > 0 ||
             caps.getAccumBlueBits()  > 0 ||
             caps.getAccumAlphaBits() > 0) {
-          res[idx++] = GLX.GLX_ACCUM_RED_SIZE;
-          res[idx++] = caps.getAccumRedBits();
-          res[idx++] = GLX.GLX_ACCUM_GREEN_SIZE;
-          res[idx++] = caps.getAccumGreenBits();
-          res[idx++] = GLX.GLX_ACCUM_BLUE_SIZE;
-          res[idx++] = caps.getAccumBlueBits();
-          res[idx++] = GLX.GLX_ACCUM_ALPHA_SIZE;
-          res[idx++] = caps.getAccumAlphaBits();
+          res.put(idx++, GLX.GLX_ACCUM_RED_SIZE);
+          res.put(idx++, caps.getAccumRedBits());
+          res.put(idx++, GLX.GLX_ACCUM_GREEN_SIZE);
+          res.put(idx++, caps.getAccumGreenBits());
+          res.put(idx++, GLX.GLX_ACCUM_BLUE_SIZE);
+          res.put(idx++, caps.getAccumBlueBits());
+          res.put(idx++, GLX.GLX_ACCUM_ALPHA_SIZE);
+          res.put(idx++, caps.getAccumAlphaBits());
         }
         if (isMultisampleAvailable && caps.getSampleBuffers()) {
-          res[idx++] = GLX.GLX_SAMPLE_BUFFERS;
-          res[idx++] = GL.GL_TRUE;
-          res[idx++] = GLX.GLX_SAMPLES;
-          res[idx++] = caps.getNumSamples();
+          res.put(idx++, GLX.GLX_SAMPLE_BUFFERS);
+          res.put(idx++, GL.GL_TRUE);
+          res.put(idx++, GLX.GLX_SAMPLES);
+          res.put(idx++, caps.getNumSamples());
         }
         if (caps.isPBuffer()) {
           if (caps.getPbufferFloatingPointBuffers()) {
@@ -229,11 +232,11 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
                 glXExtensions.indexOf("GLX_NV_float_buffer") < 0) {
               throw new GLException("Floating-point pbuffers on X11 currently require NVidia hardware: "+glXExtensions);
             }
-            res[idx++] = GLXExt.GLX_FLOAT_COMPONENTS_NV;
-            res[idx++] = GL.GL_TRUE;
+            res.put(idx++, GLXExt.GLX_FLOAT_COMPONENTS_NV);
+            res.put(idx++, GL.GL_TRUE);
           }
         }
-        res[idx++] = 0;
+        res.put(idx++, 0);
         return res;
   }
 
@@ -245,8 +248,8 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
   }
 
   static boolean GLXFBConfigValid(long display, long fbcfg) {
-    int[] tmp = new int[1];
-    if(GLX.GLX_BAD_ATTRIBUTE == GLX.glXGetFBConfigAttrib(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp, 0)) {
+    final IntBuffer tmp = Buffers.newDirectIntBuffer(1);
+    if(GLX.GLX_BAD_ATTRIBUTE == GLX.glXGetFBConfigAttrib(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp)) {
       return false;
     }
     return true;
@@ -255,8 +258,8 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
   static int FBCfgDrawableTypeBits(final X11GraphicsDevice device, final long fbcfg) {
     int val = 0;
 
-    int[] tmp = new int[1];
-    int fbtype = glXGetFBConfig(device.getHandle(), fbcfg, GLX.GLX_DRAWABLE_TYPE, tmp, 0);
+    final IntBuffer tmp = Buffers.newDirectIntBuffer(1);
+    int fbtype = glXGetFBConfig(device.getHandle(), fbcfg, GLX.GLX_DRAWABLE_TYPE, tmp);
 
     if ( 0 != ( fbtype & GLX.GLX_WINDOW_BIT ) ) {
         val |= GLGraphicsConfigurationUtil.WINDOW_BIT |
@@ -299,18 +302,18 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         return null;
     }
 
-    int[] tmp = new int[1];
-    if(GLX.GLX_BAD_ATTRIBUTE == GLX.glXGetFBConfigAttrib(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp, 0)) {
+    final IntBuffer tmp = Buffers.newDirectIntBuffer(1);
+    if(GLX.GLX_BAD_ATTRIBUTE == GLX.glXGetFBConfigAttrib(display, fbcfg, GLX.GLX_RENDER_TYPE, tmp)) {
       return null;
     }
-    if( 0 == ( GLX.GLX_RGBA_BIT & tmp[0] ) ) {
+    if( 0 == ( GLX.GLX_RGBA_BIT & tmp.get(0) ) ) {
       return null; // no RGBA -> color index not supported
     }
 
     final X11GLCapabilities res = new X11GLCapabilities(visualInfo, fbcfg, fbcfgid, glp);
     if (isMultisampleAvailable) {
-      res.setSampleBuffers(glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
-      res.setNumSamples   (glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLES,        tmp, 0));
+      res.setSampleBuffers(glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLE_BUFFERS, tmp) != 0);
+      res.setNumSamples   (glXGetFBConfig(display, fbcfg, GLX.GLX_SAMPLES,        tmp));
     }
     final XRenderDirectFormat xrmask = ( null != visualInfo ) ? 
                                          XVisual2XRenderMask( display, visualInfo.getVisual() ) : 
@@ -324,22 +327,22 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
         res.setTransparentAlphaValue(alphaMask);
     }
     // ALPHA shall be set at last - due to it's auto setting by the above (!opaque / samples)    
-    res.setDoubleBuffered(glXGetFBConfig(display, fbcfg, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);
-    res.setStereo        (glXGetFBConfig(display, fbcfg, GLX.GLX_STEREO,           tmp, 0) != 0);
-    res.setHardwareAccelerated(glXGetFBConfig(display, fbcfg, GLX.GLX_CONFIG_CAVEAT, tmp, 0) != GLX.GLX_SLOW_CONFIG);
-    res.setRedBits       (glXGetFBConfig(display, fbcfg, GLX.GLX_RED_SIZE,         tmp, 0));
-    res.setGreenBits     (glXGetFBConfig(display, fbcfg, GLX.GLX_GREEN_SIZE,       tmp, 0));
-    res.setBlueBits      (glXGetFBConfig(display, fbcfg, GLX.GLX_BLUE_SIZE,        tmp, 0));
-    res.setAlphaBits     (glXGetFBConfig(display, fbcfg, GLX.GLX_ALPHA_SIZE,       tmp, 0));
-    res.setAccumRedBits  (glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_RED_SIZE,   tmp, 0));
-    res.setAccumGreenBits(glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_GREEN_SIZE, tmp, 0));
-    res.setAccumBlueBits (glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_BLUE_SIZE,  tmp, 0));
-    res.setAccumAlphaBits(glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_ALPHA_SIZE, tmp, 0));
-    res.setDepthBits     (glXGetFBConfig(display, fbcfg, GLX.GLX_DEPTH_SIZE,       tmp, 0));
-    res.setStencilBits   (glXGetFBConfig(display, fbcfg, GLX.GLX_STENCIL_SIZE,     tmp, 0));
+    res.setDoubleBuffered(glXGetFBConfig(display, fbcfg, GLX.GLX_DOUBLEBUFFER,     tmp) != 0);
+    res.setStereo        (glXGetFBConfig(display, fbcfg, GLX.GLX_STEREO,           tmp) != 0);
+    res.setHardwareAccelerated(glXGetFBConfig(display, fbcfg, GLX.GLX_CONFIG_CAVEAT, tmp) != GLX.GLX_SLOW_CONFIG);
+    res.setRedBits       (glXGetFBConfig(display, fbcfg, GLX.GLX_RED_SIZE,         tmp));
+    res.setGreenBits     (glXGetFBConfig(display, fbcfg, GLX.GLX_GREEN_SIZE,       tmp));
+    res.setBlueBits      (glXGetFBConfig(display, fbcfg, GLX.GLX_BLUE_SIZE,        tmp));
+    res.setAlphaBits     (glXGetFBConfig(display, fbcfg, GLX.GLX_ALPHA_SIZE,       tmp));
+    res.setAccumRedBits  (glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_RED_SIZE,   tmp));
+    res.setAccumGreenBits(glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_GREEN_SIZE, tmp));
+    res.setAccumBlueBits (glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_BLUE_SIZE,  tmp));
+    res.setAccumAlphaBits(glXGetFBConfig(display, fbcfg, GLX.GLX_ACCUM_ALPHA_SIZE, tmp));
+    res.setDepthBits     (glXGetFBConfig(display, fbcfg, GLX.GLX_DEPTH_SIZE,       tmp));
+    res.setStencilBits   (glXGetFBConfig(display, fbcfg, GLX.GLX_STENCIL_SIZE,     tmp));
     
     try { 
-        res.setPbufferFloatingPointBuffers(glXGetFBConfig(display, fbcfg, GLXExt.GLX_FLOAT_COMPONENTS_NV, tmp, 0) != GL.GL_FALSE);
+        res.setPbufferFloatingPointBuffers(glXGetFBConfig(display, fbcfg, GLXExt.GLX_FLOAT_COMPONENTS_NV, tmp) != GL.GL_FALSE);
     } catch (Exception e) {}
 
     return (X11GLCapabilities) GLGraphicsConfigurationUtil.fixWinAttribBitsAndHwAccel(device, drawableTypeBits, res); 
@@ -353,26 +356,27 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
   }
 
-  static int glXGetFBConfig(long display, long cfg, int attrib, int[] tmp, int tmp_offset) {
+  static int glXGetFBConfig(long display, long cfg, int attrib, IntBuffer tmp) {
     if (display == 0) {
       throw new GLException("No display connection");
     }
-    int res = GLX.glXGetFBConfigAttrib(display, cfg, attrib, tmp, tmp_offset);
+    int res = GLX.glXGetFBConfigAttrib(display, cfg, attrib, tmp);
     if (res != 0) {
       throw new GLException("glXGetFBConfig("+toHexString(attrib)+") failed: error code " + glXGetFBConfigErrorCode(res));
     }
-    return tmp[tmp_offset];
+    return tmp.get(tmp.position());
   }
 
   static int glXFBConfig2FBConfigID(long display, long cfg) {
-      int[] tmpID = new int[1];
-      return glXGetFBConfig(display, cfg, GLX.GLX_FBCONFIG_ID, tmpID, 0);
+      final IntBuffer tmpID = Buffers.newDirectIntBuffer(1);
+      return glXGetFBConfig(display, cfg, GLX.GLX_FBCONFIG_ID, tmpID);
   }
 
   static long glXFBConfigID2FBConfig(long display, int screen, int id) {
-      int[] attribs = new int[] { GLX.GLX_FBCONFIG_ID, id, 0 };
-      int[] count = { -1 };
-      PointerBuffer fbcfgsL = GLX.glXChooseFBConfig(display, screen, attribs, 0, count, 0);
+      final IntBuffer attribs = Buffers.newDirectIntBuffer(new int[] { GLX.GLX_FBCONFIG_ID, id, 0 });
+      final IntBuffer count = Buffers.newDirectIntBuffer(1);
+      count.put(0, -1);      
+      PointerBuffer fbcfgsL = GLX.glXChooseFBConfig(display, screen, attribs, count);
       if (fbcfgsL == null || fbcfgsL.limit()<1) {
           return 0;
       }
@@ -410,15 +414,15 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
 
     final long display = device.getHandle();
-    int[] tmp = new int[1];
-    int val = glXGetConfig(display, info, GLX.GLX_USE_GL, tmp, 0);
+    final IntBuffer tmp = Buffers.newDirectIntBuffer(1);
+    int val = glXGetConfig(display, info, GLX.GLX_USE_GL, tmp);
     if (val == 0) {
       if(DEBUG) {
         System.err.println("Visual ("+toHexString(info.getVisualid())+") does not support OpenGL");
       }
       return null;
     }
-    val = glXGetConfig(display, info, GLX.GLX_RGBA, tmp, 0);
+    val = glXGetConfig(display, info, GLX.GLX_RGBA, tmp);
     if (val == 0) {
       if(DEBUG) {
         System.err.println("Visual ("+toHexString(info.getVisualid())+") does not support RGBA");
@@ -428,15 +432,15 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
 
     GLCapabilities res = new X11GLCapabilities(info, glp);
 
-    res.setDoubleBuffered(glXGetConfig(display, info, GLX.GLX_DOUBLEBUFFER,     tmp, 0) != 0);
-    res.setStereo        (glXGetConfig(display, info, GLX.GLX_STEREO,           tmp, 0) != 0);
+    res.setDoubleBuffered(glXGetConfig(display, info, GLX.GLX_DOUBLEBUFFER,     tmp) != 0);
+    res.setStereo        (glXGetConfig(display, info, GLX.GLX_STEREO,           tmp) != 0);
     // Note: use of hardware acceleration is determined by
     // glXCreateContext, not by the XVisualInfo. Optimistically claim
     // that all GLCapabilities have the capability to be hardware
     // accelerated.    
     if (isMultisampleEnabled) {
-      res.setSampleBuffers(glXGetConfig(display, info, GLX.GLX_SAMPLE_BUFFERS, tmp, 0) != 0);
-      res.setNumSamples   (glXGetConfig(display, info, GLX.GLX_SAMPLES,        tmp, 0));
+      res.setSampleBuffers(glXGetConfig(display, info, GLX.GLX_SAMPLE_BUFFERS, tmp) != 0);
+      res.setNumSamples   (glXGetConfig(display, info, GLX.GLX_SAMPLES,        tmp));
     }
     final XRenderDirectFormat xrmask = ( null != info ) ? 
                                          XVisual2XRenderMask( display, info.getVisual() ) : 
@@ -451,16 +455,16 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
     // ALPHA shall be set at last - due to it's auto setting by the above (!opaque / samples)
     res.setHardwareAccelerated(true);
-    res.setDepthBits     (glXGetConfig(display, info, GLX.GLX_DEPTH_SIZE,       tmp, 0));
-    res.setStencilBits   (glXGetConfig(display, info, GLX.GLX_STENCIL_SIZE,     tmp, 0));
-    res.setRedBits       (glXGetConfig(display, info, GLX.GLX_RED_SIZE,         tmp, 0));
-    res.setGreenBits     (glXGetConfig(display, info, GLX.GLX_GREEN_SIZE,       tmp, 0));
-    res.setBlueBits      (glXGetConfig(display, info, GLX.GLX_BLUE_SIZE,        tmp, 0));
-    res.setAlphaBits     (glXGetConfig(display, info, GLX.GLX_ALPHA_SIZE,       tmp, 0));
-    res.setAccumRedBits  (glXGetConfig(display, info, GLX.GLX_ACCUM_RED_SIZE,   tmp, 0));
-    res.setAccumGreenBits(glXGetConfig(display, info, GLX.GLX_ACCUM_GREEN_SIZE, tmp, 0));
-    res.setAccumBlueBits (glXGetConfig(display, info, GLX.GLX_ACCUM_BLUE_SIZE,  tmp, 0));
-    res.setAccumAlphaBits(glXGetConfig(display, info, GLX.GLX_ACCUM_ALPHA_SIZE, tmp, 0));
+    res.setDepthBits     (glXGetConfig(display, info, GLX.GLX_DEPTH_SIZE,       tmp));
+    res.setStencilBits   (glXGetConfig(display, info, GLX.GLX_STENCIL_SIZE,     tmp));
+    res.setRedBits       (glXGetConfig(display, info, GLX.GLX_RED_SIZE,         tmp));
+    res.setGreenBits     (glXGetConfig(display, info, GLX.GLX_GREEN_SIZE,       tmp));
+    res.setBlueBits      (glXGetConfig(display, info, GLX.GLX_BLUE_SIZE,        tmp));
+    res.setAlphaBits     (glXGetConfig(display, info, GLX.GLX_ALPHA_SIZE,       tmp));
+    res.setAccumRedBits  (glXGetConfig(display, info, GLX.GLX_ACCUM_RED_SIZE,   tmp));
+    res.setAccumGreenBits(glXGetConfig(display, info, GLX.GLX_ACCUM_GREEN_SIZE, tmp));
+    res.setAccumBlueBits (glXGetConfig(display, info, GLX.GLX_ACCUM_BLUE_SIZE,  tmp));
+    res.setAccumAlphaBits(glXGetConfig(display, info, GLX.GLX_ACCUM_ALPHA_SIZE, tmp));
 
     return (X11GLCapabilities) GLGraphicsConfigurationUtil.fixWinAttribBitsAndHwAccel(device, drawableTypeBits, res); 
   }
@@ -475,15 +479,15 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     }
   }
 
-  static int glXGetConfig(long display, XVisualInfo info, int attrib, int[] tmp, int tmp_offset) {
+  static int glXGetConfig(long display, XVisualInfo info, int attrib, IntBuffer tmp) {
     if (display == 0) {
       throw new GLException("No display connection");
     }
-    int res = GLX.glXGetConfig(display, info, attrib, tmp, tmp_offset);
+    int res = GLX.glXGetConfig(display, info, attrib, tmp);
     if (res != 0) {
       throw new GLException("glXGetConfig("+toHexString(attrib)+") failed: error code " + glXGetConfigErrorCode(res));
     }
-    return tmp[tmp_offset];
+    return tmp.get(tmp.position());
   }
 
   public String toString() {
