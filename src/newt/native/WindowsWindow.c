@@ -595,20 +595,25 @@ static int WmKeyUp(JNIEnv *env, jobject window, UINT wkey, UINT repCnt,
 
 static void NewtWindows_requestFocus (JNIEnv *env, jobject window, HWND hwnd, jboolean force) {
     HWND pHwnd, current;
+    BOOL isEnabled = IsWindowEnabled(hwnd);
     pHwnd = GetParent(hwnd);
     current = GetFocus();
-    DBG_PRINT("*** WindowsWindow: requestFocus.S parent %p, window %p, isCurrent %d\n", 
-        (void*) pHwnd, (void*)hwnd, current==hwnd);
+    DBG_PRINT("*** WindowsWindow: requestFocus.S force %d, parent %p, window %p, isEnabled %d, isCurrent %d\n", 
+        (int)force, (void*)pHwnd, (void*)hwnd, isEnabled, current==hwnd);
 
-    if( JNI_TRUE==force || current!=hwnd) {
+    if( JNI_TRUE==force || current!=hwnd || !isEnabled ) {
         UINT flags = SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOMOVE;
+        if(!isEnabled) {
+            EnableWindow(hwnd, TRUE);
+        }
         SetWindowPos(hwnd, HWND_TOP, 0, 0, 0, 0, flags);
         SetForegroundWindow(hwnd);  // Slightly Higher Priority
-        SetFocus(hwnd);// Sets Keyboard Focus To Window
+        SetFocus(hwnd);// Sets Keyboard Focus To Window (activates parent window if exist, or this window)
         if(NULL!=pHwnd) {
             SetActiveWindow(hwnd);
         }
-        DBG_PRINT("*** WindowsWindow: requestFocus.X1\n");
+        current = GetFocus();
+        DBG_PRINT("*** WindowsWindow: requestFocus.X1 isCurrent %d\n", current==hwnd);
     }
     DBG_PRINT("*** WindowsWindow: requestFocus.XX\n");
 }
@@ -959,11 +964,13 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     }
 
     case WM_SETFOCUS:
+        DBG_PRINT("*** WindowsWindow: WM_SETFOCUS window %p, lost %p\n", wnd, (HWND)wParam);
         (*env)->CallVoidMethod(env, window, focusChangedID, JNI_FALSE, JNI_TRUE);
         useDefWindowProc = 1;
         break;
 
     case WM_KILLFOCUS:
+        DBG_PRINT("*** WindowsWindow: WM_KILLFOCUS window %p, received %p\n", wnd, (HWND)wParam);
         (*env)->CallVoidMethod(env, window, focusChangedID, JNI_FALSE, JNI_FALSE);
         useDefWindowProc = 1;
         break;
