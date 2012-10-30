@@ -234,7 +234,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         } else {
             off = 0;
         }        
-        attrToken.position(1);
+        attrToken.position(off);
         final int len = attrToken.remaining();
         final IntBuffer ivalues = Buffers.newDirectIntBuffer(len);
 
@@ -251,6 +251,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
         } else {
             CGL.CGLQueryPixelFormat(pixelFormat, attrToken, len, ivalues);
         }
+        
         if(null == glp && MacOSXCGLContext.isLionOrLater) {
             // pre-scan for OpenGL Profile
             for (int i = 0; i < len; i++) {
