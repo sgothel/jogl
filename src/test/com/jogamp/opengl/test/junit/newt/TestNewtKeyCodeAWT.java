@@ -142,7 +142,9 @@ public class TestNewtKeyCodeAWT extends UITestCase {
     }
         
     static CodeSeg[] codeSegments = new CodeSeg[] {
-      new CodeSeg(0x008, 0x00a, "bs, tab, cr"),
+      new CodeSeg(0x008, 0x008, "bs"),
+      // new CodeSeg(0x009, 0x009, "tab"), // TAB functions as focus traversal key
+      new CodeSeg(0x00a, 0x00a, "cr"),
       new CodeSeg(0x010, 0x011, "shift, ctrl"), // single alt n/a on windows
       new CodeSeg(0x01B, 0x01B, "esc"),
       new CodeSeg(0x020, 0x024, "space, up, down, end, home"),
@@ -168,7 +170,8 @@ public class TestNewtKeyCodeAWT extends UITestCase {
     };
     
     static void testKeyCode(Robot robot, NEWTKeyAdapter keyAdapter) {
-        List<List<EventObject>> cse = new ArrayList<List<EventObject>>();
+        final List<List<EventObject>> cse = new ArrayList<List<EventObject>>();
+        final List<EventObject> queue = keyAdapter.getQueued();
         
         for(int i=0; i<codeSegments.length; i++) {
             keyAdapter.reset();
@@ -177,11 +180,10 @@ public class TestNewtKeyCodeAWT extends UITestCase {
             for(int c=codeSeg.min; c<=codeSeg.max; c++) {
                 // System.err.println("*** KeyCode 0x"+Integer.toHexString(c));
                 AWTRobotUtil.keyPress(0, robot, true, c, 10);
-                AWTRobotUtil.keyPress(0, robot, false, c, 10);
+                AWTRobotUtil.keyPress(0, robot, false, c, 100);
                 robot.waitForIdle();
             }
             final int codeCount = codeSeg.max - codeSeg.min + 1;
-            final List<EventObject> queue = keyAdapter.getQueued();
             for(int j=0; j < 10 && queue.size() < 3 * codeCount; j++) { // wait until events are collected
                 robot.delay(100);
             }
@@ -199,12 +201,13 @@ public class TestNewtKeyCodeAWT extends UITestCase {
         TestListenerCom01AWT.setDemoFields(demo1, glWindow, false);
         glWindow.addGLEventListener(demo1);
 
+        // NEWTFocusAdapter glWindow1FA = new NEWTFocusAdapter("GLWindow1");
+        // glWindow.addWindowListener(glWindow1FA);
         NEWTKeyAdapter glWindow1KA = new NEWTKeyAdapter("GLWindow1");
         glWindow1KA.setVerbose(false);
         glWindow.addKeyListener(glWindow1KA);
 
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true));        
-        AWTRobotUtil.clearAWTFocus(robot);
 
         // Continuous animation ..
         Animator animator = new Animator(glWindow);
@@ -212,9 +215,9 @@ public class TestNewtKeyCodeAWT extends UITestCase {
 
         Thread.sleep(durationPerTest); // manual testing
         
-        glWindow1KA.reset();
         AWTRobotUtil.assertRequestFocusAndWait(null, glWindow, glWindow, null, null);  // programmatic
-        // AWTRobotUtil.assertRequestFocusAndWait(robot, glWindow, glWindow, null, null); // by mouse click
+        AWTRobotUtil.requestFocus(robot, glWindow); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
+        glWindow1KA.reset();        
 
         // 
         // Test the key event order w/o auto-repeat

@@ -258,7 +258,6 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
         glWindow.addKeyListener(glWindow1KA);
 
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true));        
-        AWTRobotUtil.clearAWTFocus(robot);
 
         // Continuous animation ..
         Animator animator = new Animator(glWindow);
@@ -266,9 +265,9 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
 
         Thread.sleep(durationPerTest); // manual testing
         
-        glWindow1KA.reset();
         AWTRobotUtil.assertRequestFocusAndWait(null, glWindow, glWindow, null, null);  // programmatic
-        // AWTRobotUtil.assertRequestFocusAndWait(robot, glWindow, glWindow, null, null); // by mouse click
+        AWTRobotUtil.requestFocus(robot, glWindow); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
+        glWindow1KA.reset();
 
         // 
         // Test the key event order w/ auto-repeat

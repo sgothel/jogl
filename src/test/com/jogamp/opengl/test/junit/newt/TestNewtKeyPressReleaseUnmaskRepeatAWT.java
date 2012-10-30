@@ -143,7 +143,6 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
         glWindow.addKeyListener(simpleKeyPressRelease);
 
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true));        
-        AWTRobotUtil.clearAWTFocus(robot);
 
         // Continuous animation ..
         Animator animator = new Animator(glWindow);
@@ -152,7 +151,7 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
         Thread.sleep(durationPerTest); // manual testing
         
         AWTRobotUtil.assertRequestFocusAndWait(null, glWindow, glWindow, null, null);  // programmatic
-        // AWTRobotUtil.assertRequestFocusAndWait(robot, glWindow, glWindow, null, null); // by mouse click
+        AWTRobotUtil.requestFocus(robot, glWindow); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
 
         // Remove listeners to avoid logging during dispose/destroy.
         glWindow.removeKeyListener(simpleKeyPressRelease);
