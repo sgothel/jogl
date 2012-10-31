@@ -41,7 +41,10 @@ import com.jogamp.graph.font.FontFactory;
 
 public class JavaFontLoader implements FontSet {
     
-    final static FontSet fontLoader = new JavaFontLoader();
+    // FIXME: Add cache size to limit memory usage 
+    private static final IntObjectHashMap fontMap = new IntObjectHashMap();
+    
+    private static final FontSet fontLoader = new JavaFontLoader();
 
     public static FontSet get() {
         return fontLoader;
@@ -74,9 +77,6 @@ public class JavaFontLoader implements FontSet {
         }
     }
 
-    // FIXME: Add cache size to limit memory usage 
-    static final IntObjectHashMap fontMap = new IntObjectHashMap();
-    
     static boolean is(int bits, int bit) {
         return 0 != ( bits & bit ) ;
     }

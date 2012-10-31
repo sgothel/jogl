@@ -40,9 +40,14 @@ import java.net.URLConnection;
 
 public class UbuntuFontLoader implements FontSet {
     
-    final static FontSet fontLoader = new UbuntuFontLoader();
+    // FIXME: Add cache size to limit memory usage 
+    private static final IntObjectHashMap fontMap = new IntObjectHashMap();
+        
+    private static final String relPath = "fonts/ubuntu/" ;    
+    
+    private static final FontSet fontLoader = new UbuntuFontLoader();
 
-    public static FontSet get() {
+    public static final FontSet get() {
         return fontLoader;
     }
     
@@ -59,14 +64,9 @@ public class UbuntuFontLoader implements FontSet {
 
     };
         
-    final static String relPath = "fonts/ubuntu/" ;    
-    
     private UbuntuFontLoader() {
     }
 
-    // FIXME: Add cache size to limit memory usage 
-    static final IntObjectHashMap fontMap = new IntObjectHashMap();
-        
     static boolean is(int bits, int bit) {
         return 0 != ( bits & bit ) ;
     }
