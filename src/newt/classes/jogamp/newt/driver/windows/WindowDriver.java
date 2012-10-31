@@ -46,6 +46,7 @@ import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 
+import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MouseAdapter;
@@ -266,6 +267,9 @@ public class WindowDriver extends WindowImpl {
             super.enqueueKeyEvent(wait, eventType, modifiers, keyCode, keyChar);
         }
     }
+    
+    /** FIXME: We have to store the keyChar for typed events, since keyChar from pressed/released may be wrong (Uppercase: SHIFT-1, etc ..). */
+    private IntIntHashMap typedKeyCode2KeyChar = new IntIntHashMap(KeyEvent.VK_CONTEXT_MENU+1); 
 
     private final void handleKeyEvent(boolean send, boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
         final boolean isModifierKeyCode = KeyEvent.isModifierKey(keyCode);
@@ -281,6 +285,10 @@ public class WindowDriver extends WindowImpl {
                         emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_PRESSED, modifiers | InputEvent.AUTOREPEAT_MASK, keyCode, keyChar);
                     }
                     keyPressedState.put(keyCode, false);
+                }
+                final int keyCharTyped = typedKeyCode2KeyChar.put(keyCode, 0);
+                if( 0 != keyCharTyped ) {
+                    keyChar = (char)keyCharTyped;
                 }
                 emitKeyEvent(send, wait, eventType, modifiers, keyCode, keyChar);
                 emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_TYPED, modifiers, keyCode, keyChar);
@@ -304,6 +312,8 @@ public class WindowDriver extends WindowImpl {
                     modifiers |= InputEvent.AUTOREPEAT_MASK;
                     emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keyChar);
                     emitKeyEvent(send, wait, eventType, modifiers, keyCode, keyChar);
+                } else if( 0 != keyCode ) {
+                    typedKeyCode2KeyChar.put(keyCode, keyChar);
                 }
                 break;
         }

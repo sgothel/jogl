@@ -557,7 +557,7 @@ static int WmChar(JNIEnv *env, jobject window, UINT character, WORD repCnt, BYTE
 }
 
 static int WmKeyDown(JNIEnv *env, jobject window, UINT wkey, WORD repCnt, BYTE scanCode, BYTE flags, BOOL system) {
-    UINT modifiers = 0, jkey = 0, character = -1;
+    UINT modifiers = 0, jkey = 0, character = 0;
     if (wkey == VK_PROCESSKEY) {
         return 1;
     }
@@ -584,7 +584,7 @@ static int WmKeyDown(JNIEnv *env, jobject window, UINT wkey, WORD repCnt, BYTE s
         (*env)->CallVoidMethod(env, window, sendKeyEventID,
                                (jint) EVENT_KEY_TYPED,
                                modifiers,
-                               (jint) -1,
+                               (jint) 0,
                                (jchar) '\177');
     }
 
@@ -592,7 +592,7 @@ static int WmKeyDown(JNIEnv *env, jobject window, UINT wkey, WORD repCnt, BYTE s
 }
 
 static int WmKeyUp(JNIEnv *env, jobject window, UINT wkey, WORD repCnt, BYTE scanCode, BYTE flags, BOOL system) {
-    UINT modifiers = 0, jkey = 0, character = -1;
+    UINT modifiers = 0, jkey = 0, character = 0;
     if (wkey == VK_PROCESSKEY) {
         return 1;
     }
