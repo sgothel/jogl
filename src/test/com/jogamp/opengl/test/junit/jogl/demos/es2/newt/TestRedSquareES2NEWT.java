@@ -183,6 +183,7 @@ public class TestRedSquareES2NEWT extends UITestCase {
         System.err.println("loops "+loops);
         System.err.println("loop shutdown "+loop_shutdown);
         System.err.println("forceES2 "+forceES2);
+        System.err.println("forceGL3 "+forceGL3);
         org.junit.runner.JUnitCore.main(TestRedSquareES2NEWT.class.getName());
     }
 }

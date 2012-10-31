@@ -61,6 +61,7 @@ import org.junit.Test;
 public class TestGearsES2AWT extends UITestCase {
     static int width, height;
     static boolean forceES2 = false;
+    static boolean forceGL3 = false;
     static boolean shallUseOffscreenLayer = false;
     static boolean shallUseOffscreenPBufferLayer = false;
     static boolean useMSAA = false;
@@ -145,7 +146,15 @@ public class TestGearsES2AWT extends UITestCase {
 
     @Test
     public void test01() throws InterruptedException, InvocationTargetException {
-        GLCapabilities caps = new GLCapabilities(forceES2 ? GLProfile.get(GLProfile.GLES2) : GLProfile.getGL2ES2());
+        final GLProfile glp;
+        if(forceGL3) {
+            glp = GLProfile.get(GLProfile.GL3);
+        } else if(forceES2) {
+            glp = GLProfile.get(GLProfile.GLES2);
+        } else {
+            glp = GLProfile.getGL2ES2();
+        }
+        final GLCapabilities caps = new GLCapabilities(glp);
         if(useMSAA) {
             caps.setNumSamples(4);
             caps.setSampleBuffers(true);
@@ -172,6 +181,8 @@ public class TestGearsES2AWT extends UITestCase {
                 } catch (Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
+            } else if(args[i].equals("-gl3")) {
+                forceGL3 = true;
             } else if(args[i].equals("-vsync")) {
                 i++;
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);
@@ -197,6 +208,7 @@ public class TestGearsES2AWT extends UITestCase {
             }
         }
         System.err.println("forceES2 "+forceES2);
+        System.err.println("forceGL3 "+forceGL3);
         System.err.println("swapInterval "+swapInterval);
         System.err.println("shallUseOffscreenLayer "+shallUseOffscreenLayer);
         

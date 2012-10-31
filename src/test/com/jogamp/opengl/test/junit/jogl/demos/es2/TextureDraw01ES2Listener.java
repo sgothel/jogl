@@ -62,8 +62,6 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
         this.textureData = td;
     }
 
-    static final String[] es2_prelude = { "#version 100\n", "precision mediump float;\n" };
-    static final String gl2_prelude = "#version 110\n";
     static final String shaderBasename = "texture01_xxx";
     
     private void initShader(GL2ES2 gl, boolean use_program) {
@@ -72,19 +70,8 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
                                             "shader", "shader/bin", shaderBasename, true);
         ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), 
                                             "shader", "shader/bin", shaderBasename, true);
-        
-        // Prelude shader code w/ GLSL profile specifics [ 1. pre-proc, 2. other ]
-        int rsFpPos;
-        if(gl.isGLES2()) {
-            rsVp.insertShaderSource(0, 0, es2_prelude[0]);
-            rsFpPos = rsFp.insertShaderSource(0, 0, es2_prelude[0]);
-        } else {
-            rsVp.insertShaderSource(0, 0, gl2_prelude);
-            rsFpPos = rsFp.insertShaderSource(0, 0, gl2_prelude);
-        }
-        if(gl.isGLES2()) {
-            rsFpPos = rsFp.insertShaderSource(0, rsFpPos, es2_prelude[1]);
-        }        
+        rsVp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_vp);
+        rsFp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);
         
         // Create & Link the shader program
         ShaderProgram sp = new ShaderProgram();
