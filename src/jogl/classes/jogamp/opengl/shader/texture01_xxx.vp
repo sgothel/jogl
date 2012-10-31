@@ -1,0 +1,19 @@
+// Copyright 2012 JogAmp Community. All rights reserved.
+
+#if __VERSION__ >= 130
+  #define attribute in
+  #define varying out
+#endif
+
+uniform   mat4    mgl_PMVMatrix[2];
+
+attribute vec4    mgl_Vertex;
+attribute vec4    mgl_MultiTexCoord;
+
+varying   vec2    mgl_texCoord;
+
+void main(void)
+{
+  mgl_texCoord = mgl_MultiTexCoord.st;
+  gl_Position = mgl_PMVMatrix[0] * mgl_PMVMatrix[1] * mgl_Vertex;
+}

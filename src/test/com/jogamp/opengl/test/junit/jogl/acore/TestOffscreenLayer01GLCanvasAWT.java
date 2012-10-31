@@ -41,6 +41,7 @@ import java.lang.reflect.InvocationTargetException;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 
 import jogamp.nativewindow.jawt.JAWTUtil;
@@ -122,22 +123,27 @@ public class TestOffscreenLayer01GLCanvasAWT extends UITestCase {
     }
     
     @Test
-    public void testOffscreenLayerGLCanvas_OffscreenLayerWithOnscreenClass() throws InterruptedException, InvocationTargetException {        
-        testOffscreenLayerGLCanvas_Impl(true);
+    public void test01_GLDefault() throws InterruptedException, InvocationTargetException {        
+        testOffscreenLayerGLCanvas_Impl(null);
     }
     
-    private void testOffscreenLayerGLCanvas_Impl(boolean offscreenLayer) throws InterruptedException, InvocationTargetException {
-        if(!offscreenLayer && JAWTUtil.isOffscreenLayerRequired()) {
-            System.err.println("onscreen layer n/a");
+    @Test
+    public void test01_GL3() throws InterruptedException, InvocationTargetException {        
+        if( !GLProfile.isAvailable(GLProfile.GL3) ) {
+            System.err.println("GL3 n/a");
             return;
         }
-        if(offscreenLayer && !JAWTUtil.isOffscreenLayerSupported()) {
+        testOffscreenLayerGLCanvas_Impl(GLProfile.get(GLProfile.GL3));
+    }
+    
+    private void testOffscreenLayerGLCanvas_Impl(GLProfile glp) throws InterruptedException, InvocationTargetException {
+        if(!JAWTUtil.isOffscreenLayerSupported()) {
             System.err.println("offscreen layer n/a");
             return;
         }        
         final Frame frame1 = new Frame("AWT Parent Frame");
         
-        GLCapabilities caps = new GLCapabilities(null);
+        GLCapabilities caps = new GLCapabilities(glp);
         if(singleBuffer) {
             caps.setDoubleBuffered(false);
         }
@@ -150,7 +156,7 @@ public class TestOffscreenLayer01GLCanvasAWT extends UITestCase {
             caps.setOnscreen(true); // simulate normal behavior ..
         }
         final GLCanvas glc = new GLCanvas(caps);
-        glc.setShallUseOffscreenLayer(offscreenLayer); // trigger offscreen layer - if supported
+        glc.setShallUseOffscreenLayer(true); // trigger offscreen layer - if supported
         glc.setPreferredSize(preferredGLSize);
         glc.setMinimumSize(preferredGLSize);
         glc.setSize(preferredGLSize);
@@ -165,8 +171,7 @@ public class TestOffscreenLayer01GLCanvasAWT extends UITestCase {
         setupFrameAndShow(frame1, glc);
         Assert.assertEquals(true, AWTRobotUtil.waitForRealized(glc, true));
         Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glc, true));
-        Assert.assertEquals(JAWTUtil.isOffscreenLayerSupported() && offscreenLayer,
-                            glc.isOffscreenLayerSurfaceEnabled());
+        Assert.assertEquals(true, glc.isOffscreenLayerSurfaceEnabled());
         
         GLAnimatorControl animator1 = new Animator(glc);
         if(!noAnimation) {

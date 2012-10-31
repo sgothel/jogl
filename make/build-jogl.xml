@@ -89,7 +89,7 @@
                   value="com/jogamp/gluegen/runtime/opengl/*"/>
 
         <property name="java.part.core" 
-                  value="${java.part.gluegen-gl-rt} javax/media/opengl/* javax/media/opengl/fixedfunc/* javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* com/jogamp/opengl/* jogamp/opengl/* jogamp/opengl/glu/* jogamp/opengl/glu/error/*"/>
+                  value="${java.part.gluegen-gl-rt} javax/media/opengl/* javax/media/opengl/fixedfunc/* javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* com/jogamp/opengl/* jogamp/opengl/* jogamp/opengl/glu/* jogamp/opengl/glu/error/* jogamp/opengl/shader/**"/>
         <property name="java.part.core.exclude" value="javax/media/opengl/Debug* javax/media/opengl/Trace*"/>
 
         <property name="java.part.nv-cg"
@@ -167,6 +167,9 @@
         <property name="java.part.util.graph.fonts"
                   value="jogamp/graph/font/fonts/**"/>
 
+        <property name="java.part.core.shadercode"
+                  value="jogamp/opengl/shader/* jogamp/opengl/shader/bin/**"/>
+
         <property name="java.part.util.graph.shadercode"
                   value="jogamp/graph/curve/opengl/shader/* jogamp/graph/curve/opengl/shader/bin/**"/>
 
@@ -177,7 +180,7 @@
                   value="jogamp/opengl/util/glsl/fixedfunc/shaders/* jogamp/opengl/util/glsl/fixedfunc/shaders/bin/**"/>
 
         <property name="java.part.nonjava" 
-                  value="${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
+                  value="${java.part.core.shadercode} ${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
 
         <property name="java.part.all-desktop" 
                   value="${java.part.sdk} ${java.part.glx} ${java.part.wgl} ${java.part.cgl} ${java.part.gldesktop} ${java.part.glugldesktop} ${java.part.util.gldesktop}"/>
@@ -1550,7 +1553,7 @@
             <srcfileset dir="${src.java}"
                      includes="${java.part.nonjava}"/>
             <targetfileset dir="."
-                     includes="${jogl-util.jar} ${jogl-util-graph.jar} ${jogl-util-fixedfuncemu.jar}" />
+                     includes="${jogl-core.jar} ${jogl-util.jar} ${jogl-util-graph.jar} ${jogl-util-fixedfuncemu.jar}" />
         </dependset>
     </target>
     <target name="build-jars" depends="build-jars-dependset,build-jars-javase" />

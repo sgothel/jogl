@@ -51,11 +51,14 @@ import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.OffscreenLayerSurface;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GL3;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
+import javax.media.opengl.GLUniformData;
 
 import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.opengl.GLContextImpl;
@@ -71,6 +74,9 @@ import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import com.jogamp.opengl.GLExtensions;
+import com.jogamp.opengl.util.PMVMatrix;
+import com.jogamp.opengl.util.glsl.ShaderCode;
+import com.jogamp.opengl.util.glsl.ShaderProgram;
 
 public abstract class MacOSXCGLContext extends GLContextImpl
 {
@@ -132,6 +138,52 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
   }
 
+  /** Static instances of GL3 core shader code, initialized lazy when required - never destroyed. */
+  private static Object gl3ShaderLock = new Object();
+  private static volatile boolean gl3VertexShaderInitialized = false;
+  private static ShaderCode gl3VertexShader = null;
+  private static ShaderCode gl3FragmentShader = null;
+  
+  private static ShaderProgram createCALayerShader(GL3 gl) {
+      // Create vertex & fragment shader code objects
+      if( !gl3VertexShaderInitialized ) { // volatile OK
+          synchronized( gl3ShaderLock ) {
+              if( !gl3VertexShaderInitialized ) {
+                  final String shaderBasename = "texture01_xxx";
+                  gl3VertexShader = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, MacOSXCGLContext.class, 
+                          "../../shader", "../../shader/bin", shaderBasename, true);
+                  gl3FragmentShader = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, MacOSXCGLContext.class, 
+                          "../../shader", "../../shader/bin", shaderBasename, true);
+                  gl3VertexShader.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_vp);
+                  gl3FragmentShader.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);
+                  gl3VertexShaderInitialized = true;
+              }
+          }
+      }
+      // Create & Link the shader program
+      final ShaderProgram sp = new ShaderProgram();
+      sp.add(gl3VertexShader);
+      sp.add(gl3FragmentShader);
+      if(!sp.link(gl, System.err)) {
+          throw new GLException("Couldn't link program: "+sp);
+      }
+      sp.useProgram(gl, true);
+
+      // setup mgl_PMVMatrix
+      final PMVMatrix pmvMatrix = new PMVMatrix();
+      pmvMatrix.glMatrixMode(PMVMatrix.GL_PROJECTION);
+      pmvMatrix.glLoadIdentity();
+      pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
+      pmvMatrix.glLoadIdentity();       
+      final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()); // P, Mv
+      pmvMatrixUniform.setLocation( gl.glGetUniformLocation( sp.program(), pmvMatrixUniform.getName() ) );
+      gl.glUniform(pmvMatrixUniform);
+
+      sp.useProgram(gl, false);
+      return sp;
+  }
+      
+  
   private boolean haveSetOpenGLMode = false;
   private GLBackendType openGLMode = GLBackendType.NSOPENGL;
 
@@ -441,7 +493,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       private int vsyncTimeout;    // microSec - for nsOpenGLLayer mode
       private int lastWidth=0, lastHeight=0; // allowing to detect size change
       private boolean needsSetContextPBuffer = false;
-
+      private ShaderProgram gl3ShaderProgram = null;
+      
       @Override
       public boolean isNSContext() { return true; }
 
@@ -611,7 +664,16 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   if(0>=lastWidth || 0>=lastHeight || !drawable.isRealized()) {
                       throw new GLException("Drawable not realized yet or invalid texture size, texSize "+lastWidth+"x"+lastHeight+", "+drawable);
                   }
-                  nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, /* MacOSXCGLContext.this.isGL3(), */ nsOpenGLLayerPFmt, pbufferHandle, texID, chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight);
+                  final int gl3ShaderProgramName;
+                  if( MacOSXCGLContext.this.isGL3core() ) {
+                      if( null == gl3ShaderProgram) {
+                          gl3ShaderProgram = createCALayerShader(MacOSXCGLContext.this.gl.getGL3());
+                      }
+                      gl3ShaderProgramName = gl3ShaderProgram.program();
+                  } else {
+                      gl3ShaderProgramName = 0;
+                  }
+                  nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, gl3ShaderProgramName, nsOpenGLLayerPFmt, pbufferHandle, texID, chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight);
                   if (DEBUG) {
                       System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer)+" w/ pbuffer "+toHexString(pbufferHandle)+", texID "+texID+", texSize "+lastWidth+"x"+lastHeight+", "+drawable);
                   }
@@ -632,7 +694,11 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                       // still having a valid OLS attached to surface (parent OLS could have been removed)
                       ols.detachSurfaceLayer();
                   }
-                  CGL.releaseNSOpenGLLayer(nsOpenGLLayer); 
+                  CGL.releaseNSOpenGLLayer(nsOpenGLLayer);
+                  if( null != gl3ShaderProgram ) {
+                      gl3ShaderProgram.destroy(MacOSXCGLContext.this.gl.getGL3());
+                      gl3ShaderProgram = null;
+                  }
                   nsOpenGLLayer = 0;
               }
               if(0 != nsOpenGLLayerPFmt) {
@@ -767,10 +833,10 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   if(res) {
                       if(isFBO) {
                           // trigger CALayer to update incl. possible surface change (texture)
-                          CGL.setNSOpenGLLayerNeedsDisplayFBO(nsOpenGLLayer, texID, lastWidth, lastHeight);                          
+                          CGL.setNSOpenGLLayerNeedsDisplayFBO(nsOpenGLLayer, texID);                          
                       } else {
                           // trigger CALayer to update incl. possible surface change (new pbuffer handle)
-                          CGL.setNSOpenGLLayerNeedsDisplayPBuffer(nsOpenGLLayer, drawable.getHandle(), lastWidth, lastHeight);                          
+                          CGL.setNSOpenGLLayerNeedsDisplayPBuffer(nsOpenGLLayer, drawable.getHandle());                          
                       }
                   }
               } else {

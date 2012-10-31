@@ -3,6 +3,22 @@
 #import <pthread.h>
 #include "timespec.h"
 
+#import <OpenGL/glext.h>
+
+/** 
+ * Partial include of gl3.h - which we can only expect and use 
+ * in case of a GL3 core context at runtime.
+ * Otherwise we would need to have 2 modules, one including GL2
+ * and one inclusing GL3 headers.
+ */
+#ifndef GL_ARB_vertex_array_object
+#define GL_VERTEX_ARRAY_BINDING           0x85B5
+extern void glBindVertexArray (GLuint array);
+extern void glDeleteVertexArrays (GLsizei n, const GLuint *arrays);
+extern void glGenVertexArrays (GLsizei n, GLuint *arrays);
+extern GLboolean glIsVertexArray (GLuint array);
+#endif
+
 // 
 // CADisplayLink only available on iOS >= 3.1, sad, since it's convenient.
 // Use CVDisplayLink otherwise.
@@ -82,11 +98,18 @@
 
 @protected
     NSOpenGLContext* parentCtx;
+    GLuint gl3ShaderProgramName;
+    GLuint vboBufVert;
+    GLuint vboBufTexCoord;
+    GLint vertAttrLoc;
+    GLint texCoordAttrLoc;
     NSOpenGLPixelFormat* parentPixelFmt;
+    int texWidth;
+    int texHeight;
+    int newTexWidth;
+    int newTexHeight;
     volatile NSOpenGLPixelBuffer* pbuffer;
     volatile GLuint textureID;
-    volatile int texWidth;
-    volatile int texHeight;
     volatile NSOpenGLPixelBuffer* newPBuffer;
 #ifdef HAS_CADisplayLink
     CADisplayLink* displayLink;
@@ -102,11 +125,10 @@
     pthread_mutex_t renderLock;
     pthread_cond_t renderSignal;
     volatile Bool shallDraw;
-    volatile int newTexWidth;
-    volatile int newTexHeight;
 }
 
 - (id) setupWithContext: (NSOpenGLContext*) parentCtx
+       gl3ShaderProgramName: (GLuint) gl3ShaderProgramName
        pixelFormat: (NSOpenGLPixelFormat*) pfmt
        pbuffer: (NSOpenGLPixelBuffer*) p
        texIDArg: (GLuint) texID
@@ -122,6 +144,7 @@
 - (void) setNewPBuffer: (NSOpenGLPixelBuffer*)p;
 - (void) applyNewPBuffer;
 
+- (NSOpenGLPixelFormat *)openGLPixelFormatForDisplayMask:(uint32_t)mask;
 - (NSOpenGLContext *)openGLContextForPixelFormat:(NSOpenGLPixelFormat *)pixelFormat;
 - (void)disableAnimation;
 - (void)pauseAnimation:(Bool)pause;
@@ -172,6 +195,7 @@ static const GLfloat gl_verts[] = {
 @implementation MyNSOpenGLLayer
 
 - (id) setupWithContext: (NSOpenGLContext*) _parentCtx
+       gl3ShaderProgramName: (GLuint) _gl3ShaderProgramName
        pixelFormat: (NSOpenGLPixelFormat*) _parentPixelFmt
        pbuffer: (NSOpenGLPixelBuffer*) p
        texIDArg: (GLuint) texID
@@ -192,6 +216,11 @@ static const GLfloat gl_verts[] = {
         }
     }
     parentCtx = _parentCtx;
+    gl3ShaderProgramName = _gl3ShaderProgramName;
+    vboBufVert = 0;
+    vboBufTexCoord = 0;
+    vertAttrLoc = 0;
+    texCoordAttrLoc = 0;
     parentPixelFmt = _parentPixelFmt;
     swapInterval = 1; // defaults to on (as w/ new GL profiles)
     swapIntervalCounter = 0;
@@ -339,7 +368,7 @@ static const GLfloat gl_verts[] = {
         SYNC_PRINT("<NP-A %p -> %p>", pbuffer, newPBuffer);
 
         if( 0 != textureID ) {
-            glDeleteTextures(1, &textureID);
+            glDeleteTextures(1, (GLuint *)&textureID);
             [self setTextureID: 0];
         }
         [pbuffer release];
@@ -359,7 +388,7 @@ static const GLfloat gl_verts[] = {
             DBG_PRINT("MyNSOpenGLLayer::deallocPBuffer (with ctx) %p (refcnt %d) - context %p, pbuffer %p, texID %d\n", self, (int)[self retainCount], context, pbuffer, (int)textureID);
 
             if( 0 != textureID ) {
-                glDeleteTextures(1, &textureID);
+                glDeleteTextures(1, (GLuint *)&textureID);
                 [self setTextureID: 0];
             }
             if(NULL != pbuffer) {
@@ -378,13 +407,12 @@ static const GLfloat gl_verts[] = {
     }
 }
 
-/**
 - (NSOpenGLPixelFormat *)openGLPixelFormatForDisplayMask:(uint32_t)mask
 {
     DBG_PRINT("MyNSOpenGLLayer::openGLPixelFormatForDisplayMask: %p (refcnt %d) - parent-pfmt %p -> new-pfmt %p\n", 
         self, (int)[self retainCount], parentPixelFmt, parentPixelFmt);
     return parentPixelFmt;
-} */
+}
 
 - (NSOpenGLContext *)openGLContextForPixelFormat:(NSOpenGLPixelFormat *)pixelFormat
 {
@@ -487,12 +515,16 @@ static const GLfloat gl_verts[] = {
 
         if( NULL != pbuffer ) {
             if( texSizeChanged && 0 != textureID ) {
-                glDeleteTextures(1, &textureID);
+                glDeleteTextures(1, (GLuint *)&textureID);
                 [self setTextureID: 0];
             }
             textureTarget = [pbuffer textureTarget];
+            if( 0 != gl3ShaderProgramName ) {
+                glUseProgram(gl3ShaderProgramName);
+                glActiveTexture(GL_TEXTURE0);
+            }
             if( 0 == textureID ) {
-                glGenTextures(1, &textureID);
+                glGenTextures(1, (GLuint *)&textureID);
                 glBindTexture(textureTarget, textureID);
                 glTexParameteri(textureTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
                 glTexParameteri(textureTarget, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -501,26 +533,80 @@ static const GLfloat gl_verts[] = {
             } else {
                 glBindTexture(textureTarget, textureID);
             }
-            [context setTextureImageToPixelBuffer: pbuffer colorBuffer: GL_FRONT];
+            [context setTextureImageToPixelBuffer: (NSOpenGLPixelBuffer*) pbuffer colorBuffer: GL_FRONT];
         } else {
+            if( 0 != gl3ShaderProgramName ) {
+                glUseProgram(gl3ShaderProgramName);
+                glActiveTexture(GL_TEXTURE0);
+            }
             textureTarget = GL_TEXTURE_2D;
             glBindTexture(textureTarget, textureID);
         }
-        SYNC_PRINT(" %d*>", (int)textureID);
+        SYNC_PRINT(" %d gl3Prog %d/%d*>", (int)textureID, (int)gl3ShaderProgramName, (int)glIsProgram (gl3ShaderProgramName));
 
-        glEnable(textureTarget);
-       
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        glVertexPointer(2, GL_FLOAT, 0, gl_verts);
-        glTexCoordPointer(2, GL_FLOAT, 0, gl_texCoords);
-       
-        glDrawArrays(GL_QUADS, 0, 4);
-       
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-       
-        glDisable(textureTarget);
+        if( 0 == vboBufVert ) { // Once: Init Data and Bind to Pointer
+            if( 0 != gl3ShaderProgramName ) {
+                // Install default VAO as required by GL 3.2 core!
+                GLuint vaoBuf = 0;
+                glGenVertexArrays(1, &vaoBuf);
+                glBindVertexArray(vaoBuf);
+
+                // Set texture-unit 0
+                GLint texUnitLoc = glGetUniformLocation (gl3ShaderProgramName, "mgl_Texture0");
+                glUniform1i (texUnitLoc, 0);
+            }
+            glGenBuffers( 1, &vboBufVert );
+            glBindBuffer( GL_ARRAY_BUFFER, vboBufVert );
+            glBufferData( GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), gl_verts, GL_STATIC_DRAW);
+            if( 0 != gl3ShaderProgramName ) {
+                vertAttrLoc = glGetAttribLocation( gl3ShaderProgramName, "mgl_Vertex" );
+                glVertexAttribPointer( vertAttrLoc, 2, GL_FLOAT, GL_FALSE, 0, NULL );
+            } else {
+                glVertexPointer(2, GL_FLOAT, 0, NULL);
+            }
+
+            glGenBuffers( 1, &vboBufTexCoord );
+            glBindBuffer( GL_ARRAY_BUFFER, vboBufTexCoord );
+            glBufferData( GL_ARRAY_BUFFER, 4 * 2 * sizeof(GLfloat), gl_texCoords, GL_STATIC_DRAW);
+            if( 0 != gl3ShaderProgramName ) {
+                texCoordAttrLoc = glGetAttribLocation( gl3ShaderProgramName, "mgl_MultiTexCoord" );
+                glVertexAttribPointer( texCoordAttrLoc, 2, GL_FLOAT, GL_FALSE, 0, NULL );
+            } else {
+                glTexCoordPointer(2, GL_FLOAT, 0, NULL);
+            }
+        }
+        if( texSizeChanged ) {
+            glBindBuffer( GL_ARRAY_BUFFER, vboBufTexCoord );
+            glBufferSubData( GL_ARRAY_BUFFER, 0, 4 * 2 * sizeof(GLfloat), gl_texCoords);
+            if( 0 != gl3ShaderProgramName ) {
+                glVertexAttribPointer( texCoordAttrLoc, 2, GL_FLOAT, GL_FALSE, 0, NULL );
+            } else {
+                glTexCoordPointer(2, GL_FLOAT, 0, NULL);
+            }
+        }
+        if( 0 != gl3ShaderProgramName ) {
+            glEnableVertexAttribArray( vertAttrLoc );
+            glEnableVertexAttribArray( texCoordAttrLoc );
+        } else {
+            glEnable(textureTarget);
+           
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        }
+
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+           
+        if( 0 != gl3ShaderProgramName ) {
+            glDisableVertexAttribArray( vertAttrLoc );
+            glDisableVertexAttribArray( texCoordAttrLoc );
+            glUseProgram(0);
+        } else {
+            glDisableClientState(GL_VERTEX_ARRAY);
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+           
+            glDisable(textureTarget);
+        }
+
         glBindTexture(textureTarget, 0);
 
         [context clearDrawable];
@@ -664,13 +750,13 @@ static const GLfloat gl_verts[] = {
 
 @end
 
-NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, NSOpenGLPixelFormat* fmt, NSOpenGLPixelBuffer* p, uint32_t texID, Bool opaque, int texWidth, int texHeight) {
+NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, int gl3ShaderProgramName, NSOpenGLPixelFormat* fmt, NSOpenGLPixelBuffer* p, uint32_t texID, Bool opaque, int texWidth, int texHeight) {
   // This simply crashes after dealloc() has been called .. ie. ref-count -> 0 too early ?
   // However using alloc/init, actual dealloc happens at JAWT destruction, hence too later IMHO.
   // return [[MyNSOpenGLLayer layer] setupWithContext:ctx pixelFormat: fmt pbuffer: p texIDArg: (GLuint)texID
   //                                                      opaque: opaque texWidth: texWidth texHeight: texHeight];
 
-  return [[[MyNSOpenGLLayer alloc] init] setupWithContext:ctx pixelFormat: fmt pbuffer: p texIDArg: (GLuint)texID
+  return [[[MyNSOpenGLLayer alloc] init] setupWithContext:ctx gl3ShaderProgramName: (GLuint)gl3ShaderProgramName pixelFormat: fmt pbuffer: p texIDArg: (GLuint)texID
                                                               opaque: opaque texWidth: texWidth texHeight: texHeight];
 }
 
@@ -688,7 +774,7 @@ void waitUntilNSOpenGLLayerIsReady(NSOpenGLLayer* layer, long to_micros) {
     [pool release];
 }
 
-void setNSOpenGLLayerNeedsDisplayFBO(NSOpenGLLayer* layer, uint32_t texID, int texWidth, int texHeight) {
+void setNSOpenGLLayerNeedsDisplayFBO(NSOpenGLLayer* layer, uint32_t texID) {
     MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     Bool shallDraw;
@@ -698,7 +784,7 @@ void setNSOpenGLLayerNeedsDisplayFBO(NSOpenGLLayer* layer, uint32_t texID, int t
     shallDraw = [l isGLSourceValid];
     l->shallDraw = shallDraw;
 
-    SYNC_PRINT("<! T%dx%d O%dx%d %d>", texWidth, texHeight, l->newTexWidth, l->newTexHeight, (int)shallDraw);
+    SYNC_PRINT("<! T %d>", (int)shallDraw);
     if(shallDraw) {
         if ( [NSThread isMainThread] == YES ) {
           [l setNeedsDisplay];
@@ -711,7 +797,7 @@ void setNSOpenGLLayerNeedsDisplayFBO(NSOpenGLLayer* layer, uint32_t texID, int t
     [pool release];
 }
 
-void setNSOpenGLLayerNeedsDisplayPBuffer(NSOpenGLLayer* layer, NSOpenGLPixelBuffer* p, int texWidth, int texHeight) {
+void setNSOpenGLLayerNeedsDisplayPBuffer(NSOpenGLLayer* layer, NSOpenGLPixelBuffer* p) {
     MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     Bool shallDraw;
@@ -724,7 +810,7 @@ void setNSOpenGLLayerNeedsDisplayPBuffer(NSOpenGLLayer* layer, NSOpenGLPixelBuff
     shallDraw = [l isGLSourceValid];
     l->shallDraw = shallDraw;
 
-    SYNC_PRINT("<! T%dx%d O%dx%d %d>", texWidth, texHeight, l->newTexWidth, l->newTexHeight, (int)shallDraw);
+    SYNC_PRINT("<! T %d>", (int)shallDraw);
     if(shallDraw) {
         if ( [NSThread isMainThread] == YES ) {
           [l setNeedsDisplay];
