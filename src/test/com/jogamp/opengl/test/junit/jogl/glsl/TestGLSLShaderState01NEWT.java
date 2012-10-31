@@ -81,12 +81,12 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         rsFp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);
 
         final ShaderProgram sp = new ShaderProgram();
-        Assert.assertTrue(0>sp.program());
+        Assert.assertTrue(0 == sp.program());
         
         sp.add(gl, rsVp, System.err);
         sp.add(gl, rsFp, System.err);
         
-        Assert.assertTrue(0<=sp.program()); 
+        Assert.assertTrue(0 != sp.program()); 
         Assert.assertTrue(!sp.inUse());
         Assert.assertTrue(!sp.linked());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());

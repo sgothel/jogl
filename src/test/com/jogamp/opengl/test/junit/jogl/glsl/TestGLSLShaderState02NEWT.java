@@ -94,9 +94,9 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         sp1.add(rsVp0);
         sp1.add(rsFp1);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        Assert.assertTrue(0>sp1.program());        
-        sp1.init(gl);
-        Assert.assertTrue(0<=sp1.program()); 
+        Assert.assertTrue(0 == sp1.program());        
+        Assert.assertTrue(sp1.init(gl));
+        Assert.assertTrue(0 != sp1.program()); 
         Assert.assertTrue(!sp1.inUse());
         Assert.assertTrue(!sp1.linked());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
@@ -111,9 +111,9 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         sp0.add(rsFp0);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
         
-        Assert.assertTrue(0>sp0.program());        
-        sp0.init(gl);
-        Assert.assertTrue(0<=sp0.program()); 
+        Assert.assertTrue(0 == sp0.program());        
+        Assert.assertTrue(sp0.init(gl));
+        Assert.assertTrue(0 != sp0.program()); 
         Assert.assertTrue(!sp0.inUse());
         Assert.assertTrue(!sp0.linked());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());        
@@ -265,15 +265,16 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
         sp1.add(rsVp0);
         sp1.add(rsFp1);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
-        Assert.assertTrue(0>sp1.program());        
-        sp1.init(gl);
+        Assert.assertTrue(0 == sp1.program());        
+        Assert.assertTrue(sp1.init(gl));
+        Assert.assertTrue(0 != sp1.program());
         Assert.assertTrue(sp1.link(gl, System.err));
         
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(rsVp0);
         sp0.add(rsFp0);
         
-        sp0.init(gl);
+        Assert.assertTrue(sp0.init(gl));
         Assert.assertTrue(sp0.link(gl, System.err));
         
         st.attachShaderProgram(gl, sp0, true);        

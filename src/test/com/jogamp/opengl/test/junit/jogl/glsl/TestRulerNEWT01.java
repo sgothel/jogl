@@ -83,7 +83,7 @@ public class TestRulerNEWT01 extends UITestCase {
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);
         sp0.add(gl, fp0, System.err);       
-        Assert.assertTrue(0<=sp0.program()); 
+        Assert.assertTrue(0 != sp0.program()); 
         Assert.assertTrue(!sp0.inUse());
         Assert.assertTrue(!sp0.linked());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());

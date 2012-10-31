@@ -87,8 +87,8 @@ public class TestFBOMRTNEWT01 extends UITestCase {
                 "shader/bin", "fbo-mrt-1", false);
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);
-        sp0.add(gl, fp0, System.err);       
-        Assert.assertTrue(0<=sp0.program()); 
+        sp0.add(gl, fp0, System.err);
+        Assert.assertTrue(0 != sp0.program()); 
         Assert.assertTrue(!sp0.inUse());
         Assert.assertTrue(!sp0.linked());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());        
@@ -101,7 +101,7 @@ public class TestFBOMRTNEWT01 extends UITestCase {
         final ShaderProgram sp1 = new ShaderProgram();
         sp1.add(gl, vp1, System.err);
         sp1.add(gl, fp1, System.err);       
-        Assert.assertTrue(0<=sp1.program()); 
+        Assert.assertTrue(0 != sp1.program()); 
         Assert.assertTrue(!sp1.inUse());
         Assert.assertTrue(!sp1.linked());
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());        
