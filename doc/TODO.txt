@@ -6,6 +6,17 @@ Version 2.0:
 
 +++
 
+NVIDIA Tegra: discard problem (still exist?):
+  OK:
+    GL_RENDERER: NVIDIA Tegra
+    GL_VERSION: OpenGL ES 2.0 14.01002
+
++++
+
+TestSharedContextVBOES2NEWT crashes the NV driver sporadically.
+
+++
+
 WIP:
 
 - Optimize/Fix NIO caching of glMapBuffer/glUnmapBuffer
