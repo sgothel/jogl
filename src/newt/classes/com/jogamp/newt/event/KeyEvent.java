@@ -59,6 +59,10 @@ package com.jogamp.newt.event;
  * The idea is if you mask out auto-repeat in your event listener
  * you just get one long pressed key D/U/T triple.
  * </p>
+ * <p>
+ * {@link #isModifierKey() Modifiers keys} will produce regular events (pressed, released and typed),
+ * however they will not produce Auto-Repeat events itself.
+ * </p>
  */
 @SuppressWarnings("serial")
 public class KeyEvent extends InputEvent
@@ -69,12 +73,12 @@ public class KeyEvent extends InputEvent
         this.keyChar=keyChar;
     }
 
-    /** Only valid on all platforms at {@link KeyListener#keyTyped(KeyEvent)} */
+    /** Returns the character matching the {@link #getKeyCode() virtual key code}, if exist. */
     public char getKeyChar() {
         return keyChar;
     }
 
-    /** Always valid. */
+    /** Returns the virtual key code. */
     public int getKeyCode() {
         return keyCode;
     }
@@ -100,49 +104,68 @@ public class KeyEvent extends InputEvent
         }
     }
 
-    public boolean   isActionKey() {
+    /** Returns true if <code>keyCode</code> represents a modifier key, i.e. one of {@link #VK_SHIFT}, {@link #VK_CONTROL}, {@link #VK_ALT}, {@link #VK_ALT_GRAPH}, {@link #VK_META}. */
+    public static boolean isModifierKey(int keyCode) {
         switch (keyCode) {
-        case VK_HOME:
-        case VK_END:
-        case VK_PAGE_UP:
-        case VK_PAGE_DOWN:
-        case VK_UP:
-        case VK_DOWN:
-        case VK_LEFT:
-        case VK_RIGHT:
-
-        case VK_F1:
-        case VK_F2:
-        case VK_F3:
-        case VK_F4:
-        case VK_F5:
-        case VK_F6:
-        case VK_F7:
-        case VK_F8:
-        case VK_F9:
-        case VK_F10:
-        case VK_F11:
-        case VK_F12:
-        case VK_F13:
-        case VK_F14:
-        case VK_F15:
-        case VK_F16:
-        case VK_F17:
-        case VK_F18:
-        case VK_F19:
-        case VK_F20:
-        case VK_F21:
-        case VK_F22:
-        case VK_F23:
-        case VK_F24:
-        case VK_PRINTSCREEN:
-        case VK_CAPS_LOCK:
-        case VK_PAUSE:
-        case VK_INSERT:
-
-        case VK_HELP:
-        case VK_WINDOWS:
-            return true;
+            case VK_SHIFT:
+            case VK_CONTROL:
+            case VK_ALT:
+            case VK_ALT_GRAPH:
+            case VK_META:
+                return true;
+            default:
+                return false;
+        }
+    }
+    
+    /** Returns true if {@link #getKeyCode()} represents a modifier key, i.e. one of {@link #VK_SHIFT}, {@link #VK_CONTROL}, {@link #VK_ALT}, {@link #VK_ALT_GRAPH}, {@link #VK_META}. */
+    public boolean isModifierKey() {
+        return isModifierKey(keyCode);
+    }
+    
+    public boolean isActionKey() {
+        switch (keyCode) {
+            case VK_HOME:
+            case VK_END:
+            case VK_PAGE_UP:
+            case VK_PAGE_DOWN:
+            case VK_UP:
+            case VK_DOWN:
+            case VK_LEFT:
+            case VK_RIGHT:
+    
+            case VK_F1:
+            case VK_F2:
+            case VK_F3:
+            case VK_F4:
+            case VK_F5:
+            case VK_F6:
+            case VK_F7:
+            case VK_F8:
+            case VK_F9:
+            case VK_F10:
+            case VK_F11:
+            case VK_F12:
+            case VK_F13:
+            case VK_F14:
+            case VK_F15:
+            case VK_F16:
+            case VK_F17:
+            case VK_F18:
+            case VK_F19:
+            case VK_F20:
+            case VK_F21:
+            case VK_F22:
+            case VK_F23:
+            case VK_F24:
+            case VK_PRINTSCREEN:
+            case VK_CAPS_LOCK:
+            case VK_PAUSE:
+            case VK_INSERT:
+    
+            case VK_HELP:
+            case VK_WINDOWS:
+                return true;
         }
         return false;
     }

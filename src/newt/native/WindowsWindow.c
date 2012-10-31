@@ -463,87 +463,108 @@ static void BuildDynamicKeyMapTable()
     } // for each VK_OEM_*
 }
 
-static jint GetModifiers() {
+static jint GetModifiers(BOOL altKeyFlagged, UINT jkey) {
     jint modifiers = 0;
     // have to do &0xFFFF to avoid runtime assert caused by compiling with
     // /RTCcsu
-    if (HIBYTE((GetKeyState(VK_CONTROL) & 0xFFFF)) != 0) {
+    if ( HIBYTE((GetKeyState(VK_CONTROL) & 0xFFFF)) != 0 || J_VK_CONTROL == jkey ) {
         modifiers |= EVENT_CTRL_MASK;
     }
-    if (HIBYTE((GetKeyState(VK_SHIFT) & 0xFFFF)) != 0) {
+    if ( HIBYTE((GetKeyState(VK_SHIFT) & 0xFFFF)) != 0 || J_VK_SHIFT == jkey ) {
         modifiers |= EVENT_SHIFT_MASK;
     }
-    if (HIBYTE((GetKeyState(VK_MENU) & 0xFFFF)) != 0) {
+    if ( altKeyFlagged || HIBYTE((GetKeyState(VK_MENU) & 0xFFFF)) != 0 || J_VK_ALT == jkey ) {
         modifiers |= EVENT_ALT_MASK;
     }
-    if (HIBYTE((GetKeyState(VK_LBUTTON) & 0xFFFF)) != 0) {
+    if ( HIBYTE((GetKeyState(VK_LBUTTON) & 0xFFFF)) != 0 ) {
         modifiers |= EVENT_BUTTON1_MASK;
     }
-    if (HIBYTE((GetKeyState(VK_MBUTTON) & 0xFFFF)) != 0) {
+    if ( HIBYTE((GetKeyState(VK_MBUTTON) & 0xFFFF)) != 0 ) {
         modifiers |= EVENT_BUTTON2_MASK;
     }
-    if (HIBYTE((GetKeyState(VK_RBUTTON) & 0xFFFF)) != 0) {
+    if ( HIBYTE((GetKeyState(VK_RBUTTON) & 0xFFFF)) != 0 ) {
         modifiers |= EVENT_BUTTON3_MASK;
     }
 
     return modifiers;
 }
 
-static int WmChar(JNIEnv *env, jobject window, UINT character, UINT repCnt,
-                  UINT flags, BOOL system)
-{
+static BOOL IsAltKeyDown(BYTE flags, BOOL system) {
     // The Alt modifier is reported in the 29th bit of the lParam,
-    // i.e., it is the 13th bit of `flags' (which is HIWORD(lParam)).
-    BOOL alt_is_down = (flags & (1<<13)) != 0;
-    if (system && alt_is_down) {
-        if (character == VK_SPACE) {
-            return 1;
-        }
-    }
-
-    if (character == VK_RETURN) {
-        character = J_VK_ENTER;
-    }
-    (*env)->CallVoidMethod(env, window, sendKeyEventID,
-                           (jint) EVENT_KEY_TYPED,
-                           GetModifiers(),
-                           (jint) -1,
-                           (jchar) character);
-    return 1;
+    // i.e., it is the 5th bit of `flags' (which is HIBYTE(HIWORD(lParam))).
+    return system && ( flags & (1<<5) ) != 0;
 }
 
-UINT WindowsKeyToJavaKey(UINT windowsKey, UINT modifiers)
+UINT WindowsKeyToJavaKey(UINT windowsKey)
 {
-    int i, j;
+    int i, j, javaKey = J_VK_UNDEFINED;
     // for the general case, use a bi-directional table
     for (i = 0; keyMapTable[i].windowsKey != 0; i++) {
         if (keyMapTable[i].windowsKey == windowsKey) {
-            return keyMapTable[i].javaKey;
+            javaKey = keyMapTable[i].javaKey;
         }
     }
-    for (j = 0; dynamicKeyMapTable[j].windowsKey != 0; j++) {
-        if (dynamicKeyMapTable[j].windowsKey == windowsKey) {
-            if (dynamicKeyMapTable[j].javaKey != J_VK_UNDEFINED) {
-                return dynamicKeyMapTable[j].javaKey;
-            } else {
-                break;
+    if( J_VK_UNDEFINED == javaKey ) {
+        for (j = 0; dynamicKeyMapTable[j].windowsKey != 0; j++) {
+            if (dynamicKeyMapTable[j].windowsKey == windowsKey) {
+                if (dynamicKeyMapTable[j].javaKey != J_VK_UNDEFINED) {
+                    javaKey = dynamicKeyMapTable[j].javaKey;
+                } else {
+                    break;
+                }
             }
         }
     }
 
-    return J_VK_UNDEFINED;
+#ifdef DEBUG_KEYS
+    STD_PRINT("*** WindowsWindow: WindowsKeyToJavaKey 0x%X -> 0x%X\n", windowsKey, javaKey);
+#endif
+    return javaKey;
 }
 
-static int WmKeyDown(JNIEnv *env, jobject window, UINT wkey, UINT repCnt,
-                     UINT flags, BOOL system)
-{
+#ifndef MAPVK_VSC_TO_VK
+    #define MAPVK_VSC_TO_VK 1
+#endif
+#ifndef MAPVK_VK_TO_CHAR
+    #define MAPVK_VK_TO_CHAR 2
+#endif
+
+static UINT WmVKey2ShiftedChar(UINT wkey, UINT modifiers) {
+    UINT c = MapVirtualKey(wkey, MAPVK_VK_TO_CHAR);
+    if( 0 != ( modifiers & EVENT_SHIFT_MASK ) ) {
+        return islower(c) ? toupper(c) : c;
+    }
+    return isupper(c) ? tolower(c) : c;
+}
+
+static int WmChar(JNIEnv *env, jobject window, UINT character, WORD repCnt, BYTE scanCode, BYTE flags, BOOL system) {
+    UINT modifiers = 0, jkey = 0, wkey = 0;
+
+    wkey = MapVirtualKey(scanCode, MAPVK_VSC_TO_VK);
+    jkey = WindowsKeyToJavaKey(wkey);
+    modifiers = GetModifiers( IsAltKeyDown(flags, system), 0 );
+
+    if (character == VK_RETURN) {
+        character = J_VK_ENTER;
+    }
+
+    (*env)->CallVoidMethod(env, window, sendKeyEventID,
+                           (jint) EVENT_KEY_TYPED,
+                           modifiers,
+                           (jint) jkey,
+                           (jchar) character);
+    return 1;
+}
+
+static int WmKeyDown(JNIEnv *env, jobject window, UINT wkey, WORD repCnt, BYTE scanCode, BYTE flags, BOOL system) {
     UINT modifiers = 0, jkey = 0, character = -1;
     if (wkey == VK_PROCESSKEY) {
         return 1;
     }
 
-    modifiers = GetModifiers();
-    jkey = WindowsKeyToJavaKey(wkey, modifiers);
+    jkey = WindowsKeyToJavaKey(wkey);
+    modifiers = GetModifiers( IsAltKeyDown(flags, system), jkey );
+    character = WmVKey2ShiftedChar(wkey, modifiers);
 
 /*
     character = WindowsKeyToJavaChar(wkey, modifiers, SAVE);
@@ -562,7 +583,7 @@ static int WmKeyDown(JNIEnv *env, jobject window, UINT wkey, UINT repCnt,
     if (jkey == J_VK_DELETE) {
         (*env)->CallVoidMethod(env, window, sendKeyEventID,
                                (jint) EVENT_KEY_TYPED,
-                               GetModifiers(),
+                               modifiers,
                                (jint) -1,
                                (jchar) '\177');
     }
@@ -570,16 +591,16 @@ static int WmKeyDown(JNIEnv *env, jobject window, UINT wkey, UINT repCnt,
     return 0;
 }
 
-static int WmKeyUp(JNIEnv *env, jobject window, UINT wkey, UINT repCnt,
-                   UINT flags, BOOL system)
-{
+static int WmKeyUp(JNIEnv *env, jobject window, UINT wkey, WORD repCnt, BYTE scanCode, BYTE flags, BOOL system) {
     UINT modifiers = 0, jkey = 0, character = -1;
     if (wkey == VK_PROCESSKEY) {
         return 1;
     }
 
-    modifiers = GetModifiers();
-    jkey = WindowsKeyToJavaKey(wkey, modifiers);
+    jkey = WindowsKeyToJavaKey(wkey);
+    modifiers = GetModifiers( IsAltKeyDown(flags, system), jkey );
+    character = WmVKey2ShiftedChar(wkey, modifiers);
+
 /*
     character = WindowsKeyToJavaChar(wkey, modifiers, SAVE);
 */
@@ -775,21 +796,15 @@ static void WmSize(JNIEnv *env, jobject window, HWND wnd, UINT type)
     (*env)->CallVoidMethod(env, window, sizeChangedID, JNI_FALSE, w, h, JNI_FALSE);
 }
 
-static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
-                                WPARAM wParam, LPARAM lParam)
-{
+static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) {
     LRESULT res = 0;
     int useDefWindowProc = 0;
     JNIEnv *env = NULL;
     jobject window = NULL;
     BOOL isKeyDown = FALSE;
     WindowUserData * wud;
-
-#ifdef DEBUG_KEYS
-    if (  WM_KEYDOWN == message ) {
-        STD_PRINT("*** WindowsWindow: wndProc window %p, 0x%X %d/%d\n", wnd, message, (int)LOWORD(lParam), (int)HIWORD(lParam));
-    }
-#endif
+    WORD repCnt; 
+    BYTE scanCode, flags;
 
 #if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
     wud = (WindowUserData *) GetWindowLong(wnd, GWL_USERDATA);
@@ -831,26 +846,57 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         break;
 
     case WM_SYSCHAR:
-        useDefWindowProc = WmChar(env, window, wParam,
-                                  LOWORD(lParam), HIWORD(lParam), FALSE);
+        repCnt = HIWORD(lParam); scanCode = LOBYTE(repCnt); flags = HIBYTE(repCnt);
+        repCnt = LOWORD(lParam);
+#ifdef DEBUG_KEYS
+        STD_PRINT("*** WindowsWindow: windProc WM_SYSCHAR sending window %p -> %p, char 0x%X, repCnt %d, scanCode 0x%X, flags 0x%X\n", wnd, window, (int)wParam, (int)repCnt, (int)scanCode, (int)flags);
+#endif
+        useDefWindowProc = WmChar(env, window, wParam, repCnt, scanCode, flags, TRUE);
+        break;
+
+    case WM_SYSKEYDOWN:
+        repCnt = HIWORD(lParam); scanCode = LOBYTE(repCnt); flags = HIBYTE(repCnt);
+        repCnt = LOWORD(lParam);
+#ifdef DEBUG_KEYS
+        STD_PRINT("*** WindowsWindow: windProc WM_SYSKEYDOWN sending window %p -> %p, code 0x%X, repCnt %d, scanCode 0x%X, flags 0x%X\n", wnd, window, (int)wParam, (int)repCnt, (int)scanCode, (int)flags);
+#endif
+        useDefWindowProc = WmKeyDown(env, window, wParam, repCnt, scanCode, flags, TRUE);
+        break;
+
+    case WM_SYSKEYUP:
+        repCnt = HIWORD(lParam); scanCode = LOBYTE(repCnt); flags = HIBYTE(repCnt);
+        repCnt = LOWORD(lParam);
+#ifdef DEBUG_KEYS
+        STD_PRINT("*** WindowsWindow: windProc WM_SYSKEYUP sending window %p -> %p, code 0x%X, repCnt %d, scanCode 0x%X, flags 0x%X\n", wnd, window, (int)wParam, (int)repCnt, (int)scanCode, (int)flags);
+#endif
+        useDefWindowProc = WmKeyUp(env, window, wParam, repCnt, scanCode, flags, TRUE);
         break;
 
     case WM_CHAR:
-        useDefWindowProc = WmChar(env, window, wParam,
-                                  LOWORD(lParam), HIWORD(lParam), TRUE);
+        repCnt = HIWORD(lParam); scanCode = LOBYTE(repCnt); flags = HIBYTE(repCnt);
+        repCnt = LOWORD(lParam);
+#ifdef DEBUG_KEYS
+        STD_PRINT("*** WindowsWindow: windProc WM_CHAR sending window %p -> %p, char 0x%X, repCnt %d, scanCode 0x%X, flags 0x%X\n", wnd, window, (int)wParam, (int)repCnt, (int)scanCode, (int)flags);
+#endif
+        useDefWindowProc = WmChar(env, window, wParam, repCnt, scanCode, flags, FALSE);
         break;
         
     case WM_KEYDOWN:
+        repCnt = HIWORD(lParam); scanCode = LOBYTE(repCnt); flags = HIBYTE(repCnt);
+        repCnt = LOWORD(lParam);
 #ifdef DEBUG_KEYS
-        STD_PRINT("*** WindowsWindow: windProc sending window %p -> %p, 0x%X %d/%d\n", wnd, window, message, (int)LOWORD(lParam), (int)HIWORD(lParam));
+        STD_PRINT("*** WindowsWindow: windProc WM_KEYDOWN sending window %p -> %p, code 0x%X, repCnt %d, scanCode 0x%X, flags 0x%X\n", wnd, window, (int)wParam, (int)repCnt, (int)scanCode, (int)flags);
 #endif
-        useDefWindowProc = WmKeyDown(env, window, wParam,
-                                     LOWORD(lParam), HIWORD(lParam), FALSE);
+        useDefWindowProc = WmKeyDown(env, window, wParam, repCnt, scanCode, flags, FALSE);
         break;
 
     case WM_KEYUP:
-        useDefWindowProc = WmKeyUp(env, window, wParam,
-                                   LOWORD(lParam), HIWORD(lParam), FALSE);
+        repCnt = HIWORD(lParam); scanCode = LOBYTE(repCnt); flags = HIBYTE(repCnt);
+        repCnt = LOWORD(lParam);
+#ifdef DEBUG_KEYS
+        STD_PRINT("*** WindowsWindow: windProc WM_KEYUP sending window %p -> %p, code 0x%X, repCnt %d, scanCode 0x%X, flags 0x%X\n", wnd, window, (int)wParam, (int)repCnt, (int)scanCode, (int)flags);
+#endif
+        useDefWindowProc = WmKeyUp(env, window, wParam, repCnt, scanCode, flags, FALSE);
         break;
 
     case WM_SIZE:
@@ -873,7 +919,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
-                               GetModifiers(),
+                               GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jint) 1, (jint) 0);
         useDefWindowProc = 1;
@@ -882,7 +928,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     case WM_LBUTTONUP:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_RELEASED,
-                               GetModifiers(),
+                               GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jint) 1, (jint) 0);
         useDefWindowProc = 1;
@@ -893,7 +939,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
-                               GetModifiers(),
+                               GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jint) 2, (jint) 0);
         useDefWindowProc = 1;
@@ -902,7 +948,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     case WM_MBUTTONUP:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_RELEASED,
-                               GetModifiers(),
+                               GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jint) 2, (jint) 0);
         useDefWindowProc = 1;
@@ -913,7 +959,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_PRESSED,
-                               GetModifiers(),
+                               GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jint) 3, (jint) 0);
         useDefWindowProc = 1;
@@ -922,7 +968,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     case WM_RBUTTONUP:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_RELEASED,
-                               GetModifiers(),
+                               GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jint) 3,  (jint) 0);
         useDefWindowProc = 1;
@@ -931,7 +977,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
     case WM_MOUSEMOVE:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_MOVED,
-                               GetModifiers(),
+                               GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jint) 0,  (jint) 0);
         useDefWindowProc = 1;
@@ -956,7 +1002,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message,
         ScreenToClient(wnd, &eventPt);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_WHEEL_MOVED,
-                               GetModifiers(),
+                               GetModifiers( FALSE, 0 ),
                                (jint) eventPt.x, (jint) eventPt.y,
                                (jint) 1,  (jint) (GET_WHEEL_DELTA_WPARAM(wParam)/120.0f));
         useDefWindowProc = 1;
@@ -1035,11 +1081,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_DisplayDriver_DispatchMes
         // DBG_PRINT("*** WindowsWindow.DispatchMessages0: thread 0x%X - gotOne %d\n", (int)GetCurrentThreadId(), (int)gotOne);
         if (gotOne) {
             ++i;
-#ifdef DEBUG_KEYS
-            if(WM_KEYDOWN == msg.message) {
-                STD_PRINT("*** WindowsWindow: DispatchMessages window %p, 0x%X %d/%d\n", msg.hwnd, msg.message, (int)LOWORD(msg.lParam), (int)HIWORD(msg.lParam));
-            }
-#endif
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }

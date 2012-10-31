@@ -45,27 +45,31 @@ public class AWTMouseAdapter extends java.awt.event.MouseAdapter implements Inpu
         reset();
     }
 
-    public void setVerbose(boolean v) { verbose = false; }
+    public synchronized void setVerbose(boolean v) { verbose = false; }
     
-    public boolean isPressed() {
+    public synchronized boolean isPressed() {
         return pressed;
     }
     
-    public int getCount() {
+    public synchronized int getCount() {
         return mouseClicked;
     }
     
-    public List<EventObject> getQueued() {
+    public synchronized List<EventObject> getQueued() {
         return queue;
     }
     
-    public void reset() {
+    public synchronized int getQueueSize() {
+        return queue.size();
+    }
+
+    public synchronized void reset() {
         mouseClicked = 0;
         pressed = false;
         queue.clear();
     }
 
-    public void mousePressed(MouseEvent e) {
+    public synchronized void mousePressed(MouseEvent e) {
         pressed = true;
         queue.add(e);
         if( verbose ) {
@@ -73,7 +77,7 @@ public class AWTMouseAdapter extends java.awt.event.MouseAdapter implements Inpu
         }
     }
 
-    public void mouseReleased(MouseEvent e) {
+    public synchronized void mouseReleased(MouseEvent e) {
         pressed = false;
         queue.add(e);
         if( verbose ) {
@@ -81,7 +85,7 @@ public class AWTMouseAdapter extends java.awt.event.MouseAdapter implements Inpu
         }
     }
     
-    public void mouseClicked(java.awt.event.MouseEvent e) {
+    public synchronized void mouseClicked(java.awt.event.MouseEvent e) {
         mouseClicked+=e.getClickCount();
         queue.add(e);
         if( verbose ) {

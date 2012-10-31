@@ -34,9 +34,10 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestParenting01
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestNewtKeyEventOrderAWT %*
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestNewtKeyEventAutoRepeatAWT %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestNewtKeyEventAutoRepeatAWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestNewtKeyPressReleaseUnmaskRepeatAWT %*
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestNewtKeyCodeAWT %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestNewtKeyCodesAWT %*
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestNewtKeyCodeModifiersAWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT %*

@@ -159,7 +159,6 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
         EventObject[][] last = new EventObject[loops][3];
         
         keyAdapter.reset();
-        final List<EventObject> keyEvents = keyAdapter.getQueued();
         int firstIdx = 0;
         for(int i=0; i<loops; i++) {
             System.err.println("+++ KEY Event Auto-Repeat START Input Loop: "+i);
@@ -169,11 +168,12 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
             robot.waitForIdle();            
             final int minCodeCount = firstIdx + 3;
             final int desiredCodeCount = firstIdx + 6;
-            for(int j=0; j < 10 && keyEvents.size() < desiredCodeCount; j++) { // wait until events are collected
+            for(int j=0; j < 10 && keyAdapter.getQueueSize() < desiredCodeCount; j++) { // wait until events are collected
                 robot.delay(100);
             }
-            Assert.assertTrue("AR Test didn't collect enough key events: required min "+minCodeCount+", received "+(keyEvents.size()-firstIdx)+", "+keyEvents, 
-                              keyEvents.size() >= minCodeCount );
+            Assert.assertTrue("AR Test didn't collect enough key events: required min "+minCodeCount+", received "+(keyAdapter.getQueueSize()-firstIdx)+", "+keyAdapter.getQueued(), 
+                              keyAdapter.getQueueSize() >= minCodeCount );
+            final List<EventObject> keyEvents = keyAdapter.getQueued();
             first[i][0] = (KeyEvent) keyEvents.get(firstIdx+0);
             first[i][1] = (KeyEvent) keyEvents.get(firstIdx+1);
             first[i][2] = (KeyEvent) keyEvents.get(firstIdx+2);
@@ -184,22 +184,27 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
             System.err.println("+++ KEY Event Auto-Repeat END   Input Loop: "+i);
             
             // add a pair of normal press/release in between auto-repeat!
+            firstIdx = keyEvents.size();
             AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_B, 10);
             robot.waitForIdle();
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_B, 250);
             robot.waitForIdle();
+            for(int j=0; j < 10 && keyAdapter.getQueueSize() < firstIdx+3; j++) { // wait until events are collected
+                robot.delay(100);
+            }
             firstIdx = keyEvents.size();
         }
         // dumpKeyEvents(keyEvents);
-        
+        final List<EventObject> keyEvents = keyAdapter.getQueued();
         NEWTKeyUtil.validateKeyEventOrder(keyEvents);
         
         final boolean hasAR = 0 < keyAdapter.getKeyPressedCount(true) ;
         
-        Assert.assertEquals("Key event count not multiple of 3", 0, keyEvents.size()%3);
-        final int expTotal = keyEvents.size()/3;
-        final int expAR = hasAR ? expTotal - loops - loops : 0;
-        NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, expTotal, expAR);
+        {
+            final int expTotal = keyEvents.size();
+            final int expAR = hasAR ? expTotal - 3 * 2 * loops : 0; // per loop: 3 for non AR events and 3 for non AR 'B'
+            NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, expTotal, expAR);
+        }
         
         if( !hasAR ) {
             System.err.println("No AUTO-REPEAT triggered by AWT Robot .. aborting test analysis");
@@ -266,7 +271,7 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
         Thread.sleep(durationPerTest); // manual testing
         
         AWTRobotUtil.assertRequestFocusAndWait(null, glWindow, glWindow, null, null);  // programmatic
-        AWTRobotUtil.requestFocus(robot, glWindow); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
+        AWTRobotUtil.requestFocus(robot, glWindow, false); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
         glWindow1KA.reset();
 
         // 

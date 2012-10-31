@@ -46,33 +46,37 @@ public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements KeyEvent
         reset();
     }
 
-    public void setVerbose(boolean v) { verbose = false; }
+    public synchronized void setVerbose(boolean v) { verbose = false; }
 
-    public boolean isPressed() {
+    public synchronized boolean isPressed() {
         return pressed;
     }
     
-    public int getCount() {
+    public synchronized int getCount() {
         return keyTyped;
     }
 
-    public int getKeyPressedCount(boolean autoRepeatOnly) {
+    public synchronized int getKeyPressedCount(boolean autoRepeatOnly) {
         return keyPressed; 
     }
     
-    public int getKeyReleasedCount(boolean autoRepeatOnly) {
+    public synchronized int getKeyReleasedCount(boolean autoRepeatOnly) {
         return keyReleased; 
     }
     
-    public int getKeyTypedCount(boolean autoRepeatOnly) {
+    public synchronized int getKeyTypedCount(boolean autoRepeatOnly) {
         return keyTyped; 
     }
     
-    public List<EventObject> getQueued() {
+    public synchronized List<EventObject> getQueued() {
         return queue;
     }
     
-    public void reset() {
+    public synchronized int getQueueSize() {
+        return queue.size();
+    }
+    
+    public synchronized void reset() {
         keyTyped = 0;
         keyPressed = 0;
         keyReleased = 0;
@@ -80,7 +84,7 @@ public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements KeyEvent
         queue.clear();
     }
 
-    public void keyPressed(KeyEvent e) {
+    public synchronized void keyPressed(KeyEvent e) {
         pressed = true;
         keyPressed++;
         queue.add(e);
@@ -89,7 +93,7 @@ public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements KeyEvent
         }
     }
 
-    public void keyReleased(KeyEvent e) {
+    public synchronized void keyReleased(KeyEvent e) {
         pressed = false;
         keyReleased++;
         queue.add(e);
@@ -98,7 +102,7 @@ public class AWTKeyAdapter extends java.awt.event.KeyAdapter implements KeyEvent
         }
     }
 
-    public void keyTyped(java.awt.event.KeyEvent e) {
+    public synchronized void keyTyped(java.awt.event.KeyEvent e) {
         keyTyped++;
         queue.add(e);
         if( verbose ) {

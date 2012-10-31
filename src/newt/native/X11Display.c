@@ -154,24 +154,24 @@ static jint X11KeySym2NewtVKey(KeySym keySym) {
     return keySym;
 }
 
-static jint X11InputState2NewtModifiers(unsigned int xstate) {
+static jint X11InputState2NewtModifiers(unsigned int xstate, KeySym keySym) {
     jint modifiers = 0;
-    if ((ControlMask & xstate) != 0) {
+    if ( (ControlMask & xstate) != 0 || J_VK_CONTROL == keySym ) {
         modifiers |= EVENT_CTRL_MASK;
     }
-    if ((ShiftMask & xstate) != 0) {
+    if ( (ShiftMask & xstate) != 0 || J_VK_SHIFT == keySym ) {
         modifiers |= EVENT_SHIFT_MASK;
     }
-    if ((Mod1Mask & xstate) != 0) {
+    if ( (Mod1Mask & xstate) != 0 || J_VK_ALT == keySym ) {
         modifiers |= EVENT_ALT_MASK;
     }
-    if ((Button1Mask & xstate) != 0) {
+    if ( (Button1Mask & xstate) != 0 ) {
         modifiers |= EVENT_BUTTON1_MASK;
     }
-    if ((Button2Mask & xstate) != 0) {
+    if ( (Button2Mask & xstate) != 0 ) {
         modifiers |= EVENT_BUTTON2_MASK;
     }
-    if ((Button3Mask & xstate) != 0) {
+    if ( (Button3Mask & xstate) != 0 ) {
         modifiers |= EVENT_BUTTON3_MASK;
     }
 
@@ -397,13 +397,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     keyChar=0;
                     keySym = X11KeySym2NewtVKey(keySym);
                 }
-                modifiers |= X11InputState2NewtModifiers(evt.xkey.state) | autoRepeatModifiers;
+                modifiers |= X11InputState2NewtModifiers(evt.xkey.state, keySym) | autoRepeatModifiers;
                 break;
 
             case ButtonPress:
             case ButtonRelease:
             case MotionNotify:
-                modifiers |= X11InputState2NewtModifiers(evt.xbutton.state);
+                modifiers |= X11InputState2NewtModifiers(evt.xbutton.state, 0);
                 break;
 
             default:
@@ -472,23 +472,23 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
             case KeyPress:
                 #ifdef USE_SENDIO_DIRECT
                 (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_PRESSED, 
-                                      modifiers, keySym, (jchar) -1);
+                                      modifiers, keySym, (jchar) keyChar);
                 #else
                 (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_PRESSED, 
-                                      modifiers, keySym, (jchar) -1);
+                                      modifiers, keySym, (jchar) keyChar);
                 #endif
 
                 break;
             case KeyRelease:
                 #ifdef USE_SENDIO_DIRECT
                 (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_RELEASED, 
-                                      modifiers, keySym, (jchar) -1);
+                                      modifiers, keySym, (jchar) keyChar);
 
                 (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_TYPED, 
                                       modifiers, keySym, (jchar) keyChar);
                 #else
                 (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_RELEASED, 
-                                      modifiers, keySym, (jchar) -1);
+                                      modifiers, keySym, (jchar) keyChar);
 
                 (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_TYPED, 
                                       modifiers, keySym, (jchar) keyChar);

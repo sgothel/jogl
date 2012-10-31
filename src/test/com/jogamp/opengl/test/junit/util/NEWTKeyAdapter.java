@@ -50,33 +50,37 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
         reset();
     }
     
-    public void setVerbose(boolean v) { verbose = false; }
+    public synchronized void setVerbose(boolean v) { verbose = false; }
 
-    public boolean isPressed() {
+    public synchronized boolean isPressed() {
         return pressed;
     }
     
-    public int getCount() {
+    public synchronized int getCount() {
         return keyTyped;
     }
 
-    public int getKeyPressedCount(boolean autoRepeatOnly) {
+    public synchronized int getKeyPressedCount(boolean autoRepeatOnly) {
         return autoRepeatOnly ? keyPressedAR: keyPressed; 
     }
     
-    public int getKeyReleasedCount(boolean autoRepeatOnly) {
+    public synchronized int getKeyReleasedCount(boolean autoRepeatOnly) {
         return autoRepeatOnly ? keyReleasedAR: keyReleased; 
     }
     
-    public int getKeyTypedCount(boolean autoRepeatOnly) {
+    public synchronized int getKeyTypedCount(boolean autoRepeatOnly) {
         return autoRepeatOnly ? keyTypedAR: keyTyped; 
     }
     
-    public List<EventObject> getQueued() {
+    public synchronized List<EventObject> getQueued() {
         return queue;
     }
     
-    public void reset() {
+    public synchronized int getQueueSize() {
+        return queue.size();
+    }
+
+    public synchronized void reset() {
         keyTyped = 0;
         keyPressed = 0;
         keyReleased = 0;
@@ -87,7 +91,7 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
         queue.clear();
     }
 
-    public void keyPressed(KeyEvent e) {
+    public synchronized void keyPressed(KeyEvent e) {
         pressed = true;
         keyPressed++;
         if( 0 != ( e.getModifiers() & InputEvent.AUTOREPEAT_MASK ) ) {
@@ -99,7 +103,7 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
         }
     }
     
-    public void keyReleased(KeyEvent e) {
+    public synchronized void keyReleased(KeyEvent e) {
         pressed = false;
         keyReleased++;
         if( 0 != ( e.getModifiers() & InputEvent.AUTOREPEAT_MASK ) ) {
@@ -112,7 +116,7 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
     }
      
     @Override
-    public void keyTyped(KeyEvent e) {
+    public synchronized void keyTyped(KeyEvent e) {
         keyTyped++;
         if( 0 != ( e.getModifiers() & InputEvent.AUTOREPEAT_MASK ) ) {
             keyTypedAR++;

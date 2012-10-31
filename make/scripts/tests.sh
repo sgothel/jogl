@@ -263,7 +263,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOffscrnCapsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitchNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestPointsNEWT $*
 
@@ -376,9 +376,11 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
 #testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyEventOrderAWT $*
-testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyEventAutoRepeatAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyEventAutoRepeatAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyPressReleaseUnmaskRepeatAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyCodeAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyCodesAWT $*
+testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyCodeModifiersAWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT $*

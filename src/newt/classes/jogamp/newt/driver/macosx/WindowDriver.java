@@ -324,9 +324,10 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
         final int keyCode = MacKeyUtil.validateKeyCode(_keyCode, keyChar);
-        if(DEBUG_IMPLEMENTATION) {
-            System.err.println("MacWindow.sendKeyEvent "+Thread.currentThread().getName()+" char: 0x"+Integer.toHexString(keyChar)+", code 0x"+Integer.toHexString(_keyCode)+" -> 0x"+Integer.toHexString(keyCode));
-        }
+        // final boolean isModifierKeyCode = KeyEvent.isModifierKey(keyCode);
+        // System.err.println("*** handleKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", key 0x"+Integer.toHexString(_keyCode)+" -> 0x"+Integer.toHexString(keyCode)+", mods "+toHexString(modifiers)+", was: pressed "+isKeyPressed(keyCode)+", repeat "+isKeyInAutoRepeat(keyCode)+", isModifierKeyCode "+isModifierKeyCode);
+            
+        // 1:1 Order: OSX and NEWT delivery order is PRESSED, RELEASED and TYPED            
         // Auto-Repeat: OSX delivers only PRESSED, inject auto-repeat RELEASE and TYPED keys _before_ PRESSED
         switch(eventType) {
             case KeyEvent.EVENT_KEY_RELEASED:
@@ -334,7 +335,6 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                     keyRepeatState.put(keyCode, false); // prev == true -> AR out
                     keyPressedState.put(keyCode, false);
                 }
-                keyChar = (char)-1;
                 break;
             case KeyEvent.EVENT_KEY_PRESSED:
                 if( isKeyCodeTracked(keyCode) ) {
@@ -342,11 +342,10 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                         // key was already pressed
                         keyRepeatState.put(keyCode, true); // prev == false ->  AR in
                         modifiers |= InputEvent.AUTOREPEAT_MASK;
-                        emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, (char)-1); // RELEASED
+                        emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keyChar); // RELEASED
                         emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_TYPED, modifiers, keyCode, keyChar); // TYPED
                     }
                 }
-                keyChar = (char)-1;
                 break;
             case KeyEvent.EVENT_KEY_TYPED:
                 break;

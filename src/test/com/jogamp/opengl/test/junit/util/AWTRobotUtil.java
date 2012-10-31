@@ -196,10 +196,20 @@ public class AWTRobotUtil {
     
     /**
      * requestFocus, if robot is valid, use mouse operation,
-     * otherwise programatic, ie call requestFocus
+     * otherwise programmatic, ie call requestFocus
      */
     public static void requestFocus(Robot robot, Object obj) 
         throws AWTException, InterruptedException, InvocationTargetException {
+        requestFocus(robot, obj, true);
+    }
+    
+    /**
+     * requestFocus, if robot is valid, use mouse operation,
+     * otherwise programmatic, ie call requestFocus
+     */
+    public static void requestFocus(Robot robot, Object obj, boolean onTitleBarIfWindow) 
+        throws AWTException, InterruptedException, InvocationTargetException {
+    
         final Component comp;
         final com.jogamp.newt.Window win;
 
@@ -226,7 +236,7 @@ public class AWTRobotUtil {
             }
         } else {
             final int mouseButton = java.awt.event.InputEvent.BUTTON1_MASK;    
-            centerMouse(robot, obj, true);
+            centerMouse(robot, obj, onTitleBarIfWindow);
     
             robot.waitForIdle();
             robot.mousePress(mouseButton);

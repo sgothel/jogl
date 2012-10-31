@@ -38,6 +38,9 @@ import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Robot;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.EventObject;
+import java.util.List;
 
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
@@ -49,19 +52,17 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.newt.awt.NewtCanvasAWT;
-import com.jogamp.newt.event.InputEvent;
-import com.jogamp.newt.event.KeyEvent;
-import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 
 import com.jogamp.opengl.test.junit.util.*;
+import com.jogamp.opengl.test.junit.util.NEWTKeyUtil.CodeSeg;
 
 /**
- * Testing key press and release events w/o AUTO-REPEAT
+ * Testing key code of key events.
  */
-public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
+public class TestNewtKeyCodesAWT extends UITestCase {
     static int width, height;
     static long durationPerTest = 100;
     static long awtWaitTimeout = 1000;
@@ -130,7 +131,58 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
         }        
         glWindow.destroy();
     }
+        
+    static CodeSeg[] codeSegments = new CodeSeg[] {
+      new CodeSeg(0x008, 0x008, "bs"),
+      // new CodeSeg(0x009, 0x009, "tab"), // TAB functions as focus traversal key
+      new CodeSeg(0x00a, 0x00a, "cr"),
+      new CodeSeg(0x010, 0x012, "shift, ctrl, alt"),
+      new CodeSeg(0x01B, 0x01B, "esc"),
+      new CodeSeg(0x020, 0x024, "space, up, down, end, home"),
+      new CodeSeg(0x025, 0x028, "cursor"),
+      new CodeSeg(0x02C, 0x02F, ", - . /"),
+      new CodeSeg(0x030, 0x039, "0 - 9"),
+      new CodeSeg(0x03B, 0x03B, ";"),
+      new CodeSeg(0x03D, 0x03D, "="),
+      new CodeSeg(0x041, 0x05A, "a - z"),
+      new CodeSeg(0x05B, 0x05D, "[ \\ ]"),
+      // new CodeSeg(0x060, 0x06B, "numpad1"), // can be mapped to normal keycodes
+      // new CodeSeg(0x06D, 0x06F, "numpad2"), // can be mapped to normal keycodes
+      new CodeSeg(0x07F, 0x07F, "del"),
+      // new CodeSeg(0x090, 0x091, "num lock, scroll lock"),
+      // new CodeSeg(0x070, 0x07B, "F1 - F12"),
+      // new CodeSeg(0x09A, 0x09D, "prt ins hlp meta"),
+      new CodeSeg(0x0C0, 0x0C0, "back quote"),
+      new CodeSeg(0x0DE, 0x0DE, "quote"),
+      // new CodeSeg(0x0E0, 0x0E3, "cursor kp"),
+      // new CodeSeg(0x080, 0x08F, "dead-1"),
+      // new CodeSeg(0x096, 0x0A2, "& ^ \" < > { }"), 
+      // new CodeSeg(0x200, 0x20D, "extra-2"), // @ ; ..
+    };
     
+    static void testKeyCodes(Robot robot, NEWTKeyAdapter keyAdapter) {
+        final List<List<EventObject>> cse = new ArrayList<List<EventObject>>();
+        
+        for(int i=0; i<codeSegments.length; i++) {
+            keyAdapter.reset();
+            final CodeSeg codeSeg = codeSegments[i];
+            // System.err.println("*** Segment "+codeSeg.description);
+            for(int c=codeSeg.min; c<=codeSeg.max; c++) {
+                // System.err.println("*** KeyCode 0x"+Integer.toHexString(c));
+                AWTRobotUtil.keyPress(0, robot, true, c, 10);
+                AWTRobotUtil.keyPress(0, robot, false, c, 100);
+                robot.waitForIdle();
+            }
+            final int codeCount = codeSeg.max - codeSeg.min + 1;
+            for(int j=0; j < 10 && keyAdapter.getQueueSize() < 3 * codeCount; j++) { // wait until events are collected
+                robot.delay(100);
+            }
+            final ArrayList<EventObject> events = new ArrayList<EventObject>(keyAdapter.getQueued());
+            cse.add(events);
+        }
+        Assert.assertEquals("KeyCode impl. incomplete", true, NEWTKeyUtil.validateKeyCodes(codeSegments, cse, true));        
+    }
+        
     void testImpl(GLWindow glWindow) throws AWTException, InterruptedException, InvocationTargetException {
         final Robot robot = new Robot();
         robot.setAutoWaitForIdle(true);
@@ -139,8 +191,11 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
         TestListenerCom01AWT.setDemoFields(demo1, glWindow, false);
         glWindow.addGLEventListener(demo1);
 
-        SimpleKeyPressRelease simpleKeyPressRelease = new SimpleKeyPressRelease();
-        glWindow.addKeyListener(simpleKeyPressRelease);
+        // NEWTFocusAdapter glWindow1FA = new NEWTFocusAdapter("GLWindow1");
+        // glWindow.addWindowListener(glWindow1FA);
+        NEWTKeyAdapter glWindow1KA = new NEWTKeyAdapter("GLWindow1");
+        glWindow1KA.setVerbose(false);
+        glWindow.addKeyListener(glWindow1KA);
 
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true));        
 
@@ -152,9 +207,12 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
         
         AWTRobotUtil.assertRequestFocusAndWait(null, glWindow, glWindow, null, null);  // programmatic
         AWTRobotUtil.requestFocus(robot, glWindow, false); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
+        glWindow1KA.reset();        
 
+        testKeyCodes(robot, glWindow1KA);
+        
         // Remove listeners to avoid logging during dispose/destroy.
-        glWindow.removeKeyListener(simpleKeyPressRelease);
+        glWindow.removeKeyListener(glWindow1KA);
 
         // Shutdown the test.
         animator.stop();
@@ -166,39 +224,6 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
             i = Integer.parseInt(a);
         } catch (Exception ex) { ex.printStackTrace(); }
         return i;
-    }
-    
-    static class SimpleKeyPressRelease implements KeyListener {
-        int seq;
-
-        SimpleKeyPressRelease() {
-            reset();
-        }
-        
-        public void reset() {
-            seq=0;
-        }
-        
-        @Override
-        public void keyPressed(KeyEvent e) {
-            if( 0 == ( InputEvent.AUTOREPEAT_MASK & e.getModifiers() ) ) {
-                seq++;
-                System.err.println(seq+": "+e);
-            }
-        }
-
-        @Override
-        public void keyReleased(KeyEvent e) {
-            if( 0 == ( InputEvent.AUTOREPEAT_MASK & e.getModifiers() ) ) {
-                seq++;
-                System.err.println(seq+": "+e);
-            }
-        }
-
-        @Override
-        public void keyTyped(KeyEvent e) {
-        }
-        
     }
 
     public static void main(String args[]) throws IOException {
@@ -213,7 +238,7 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
         System.err.println(stdin.readLine()); 
         */
         System.out.println("durationPerTest: "+durationPerTest);
-        String tstname = TestNewtKeyPressReleaseUnmaskRepeatAWT.class.getName();
+        String tstname = TestNewtKeyCodesAWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

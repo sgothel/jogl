@@ -840,12 +840,11 @@ static jint mods2JavaMods(NSUInteger mods)
 {
     if ( NO == modsDown[keyIdx] && 0 != ( mods & keyMask ) )  {
         modsDown[keyIdx] = YES;
-        mods &= ~keyMask;
-        [self sendKeyEvent: keyCode characters: NULL modifiers: mods eventType: EVENT_KEY_TYPED];
+        [self sendKeyEvent: keyCode characters: NULL modifiers: mods|keyMask eventType: EVENT_KEY_PRESSED];
     } else if ( YES == modsDown[keyIdx] && 0 == ( mods & keyMask ) )  {
         modsDown[keyIdx] = NO;
-        [self sendKeyEvent: keyCode characters: NULL modifiers: mods eventType: EVENT_KEY_RELEASED];
-        [self sendKeyEvent: keyCode characters: NULL modifiers: mods eventType: EVENT_KEY_TYPED];
+        [self sendKeyEvent: keyCode characters: NULL modifiers: mods|keyMask eventType: EVENT_KEY_RELEASED];
+        [self sendKeyEvent: keyCode characters: NULL modifiers: mods|keyMask eventType: EVENT_KEY_TYPED];
     }
 }
 

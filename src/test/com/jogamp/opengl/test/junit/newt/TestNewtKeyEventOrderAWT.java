@@ -56,7 +56,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 import com.jogamp.opengl.test.junit.util.*;
 
 /**
- * Testing key event order incl. auto-repeat (Bug 601)
+ * Testing key event order excl. auto-repeat (Bug 601)
  * 
  * <p>
  * Note Event order:
@@ -167,7 +167,7 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
         
         NEWTKeyUtil.validateKeyEventOrder(keyAdapter.getQueued());
         
-        NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, 6*loops, 0);        
+        NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, 6*3*loops, 0);        
     }
         
     void testImpl(GLWindow glWindow) throws AWTException, InterruptedException, InvocationTargetException {
@@ -191,7 +191,7 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
         Thread.sleep(durationPerTest); // manual testing
         
         AWTRobotUtil.assertRequestFocusAndWait(null, glWindow, glWindow, null, null);  // programmatic
-        AWTRobotUtil.requestFocus(robot, glWindow); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
+        AWTRobotUtil.requestFocus(robot, glWindow, false); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
         glWindow1KA.reset();
 
         // 
