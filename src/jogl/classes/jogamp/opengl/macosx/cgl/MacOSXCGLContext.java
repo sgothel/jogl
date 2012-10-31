@@ -138,32 +138,19 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     }
   }
 
-  /** Static instances of GL3 core shader code, initialized lazy when required - never destroyed. */
-  private static Object gl3ShaderLock = new Object();
-  private static volatile boolean gl3VertexShaderInitialized = false;
-  private static ShaderCode gl3VertexShader = null;
-  private static ShaderCode gl3FragmentShader = null;
+  private static final String shaderBasename = "texture01_xxx";
   
   private static ShaderProgram createCALayerShader(GL3 gl) {
-      // Create vertex & fragment shader code objects
-      if( !gl3VertexShaderInitialized ) { // volatile OK
-          synchronized( gl3ShaderLock ) {
-              if( !gl3VertexShaderInitialized ) {
-                  final String shaderBasename = "texture01_xxx";
-                  gl3VertexShader = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, MacOSXCGLContext.class, 
-                          "../../shader", "../../shader/bin", shaderBasename, true);
-                  gl3FragmentShader = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, MacOSXCGLContext.class, 
-                          "../../shader", "../../shader/bin", shaderBasename, true);
-                  gl3VertexShader.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_vp);
-                  gl3FragmentShader.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);
-                  gl3VertexShaderInitialized = true;
-              }
-          }
-      }
       // Create & Link the shader program
       final ShaderProgram sp = new ShaderProgram();
-      sp.add(gl3VertexShader);
-      sp.add(gl3FragmentShader);
+      final ShaderCode vp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, MacOSXCGLContext.class, 
+                                              "../../shader", "../../shader/bin", shaderBasename, true);
+      final ShaderCode fp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, MacOSXCGLContext.class, 
+                                              "../../shader", "../../shader/bin", shaderBasename, true);
+      vp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_vp);
+      fp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);
+      sp.add(vp);
+      sp.add(fp);
       if(!sp.link(gl, System.err)) {
           throw new GLException("Couldn't link program: "+sp);
       }

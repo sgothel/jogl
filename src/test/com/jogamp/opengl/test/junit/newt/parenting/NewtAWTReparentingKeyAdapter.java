@@ -48,7 +48,9 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
     }
     
     public void keyTyped(KeyEvent e) {
-        if(e.getKeyChar()=='d') {
+        if(e.getKeyChar()=='i') {
+            System.err.println(glWindow);
+        } else if(e.getKeyChar()=='d') {
             glWindow.setUndecorated(!glWindow.isUndecorated());
         } else if(e.getKeyChar()=='f') {
             glWindow.setFullscreen(!glWindow.isFullscreen());

@@ -68,12 +68,13 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
     static long durationPerTest = numFocus * 200;
     static GLCapabilities glCaps;
     static boolean manual = false;
+    static boolean forceGL3 = false;
 
     @BeforeClass
     public static void initClass() {
         glSize = new Dimension(200,200);
         fSize = new Dimension(300,300);
-        glCaps = new GLCapabilities(null);
+        glCaps = new GLCapabilities( forceGL3 ? GLProfile.get(GLProfile.GL3) : null );
     }
 
     @Test
@@ -314,6 +315,8 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
                 durationPerTest = atoi(args[++i]);
             } else if(args[i].equals("-manual")) {
                 manual = true;
+            } else if(args[i].equals("-gl3")) {
+                forceGL3 = true;
             }
         }
         String tstname = TestParentingFocusTraversal01AWT.class.getName();
