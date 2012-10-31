@@ -73,7 +73,7 @@ public class FloatUtil {
    * Make matrix an identity matrix
    */
   public static final void makeIdentityf(FloatBuffer m) {
-    int oldPos = m.position();
+    final int oldPos = m.position();
     m.put(IDENTITY_MATRIX);
     m.position(oldPos);
   }
@@ -91,7 +91,7 @@ public class FloatUtil {
    * Make matrix an zero matrix
    */
   public static final void makeZero(FloatBuffer m) {
-    int oldPos = m.position();
+    final int oldPos = m.position();
     m.put(ZERO_MATRIX);
     m.position(oldPos);
   }
@@ -246,10 +246,10 @@ public class FloatUtil {
    * @param v_in 4-component column-vector
    * @param v_out m_in * v_in
    */
-  public static final void multMatrixVecf(float[] m_in, int m_in_off, float[] v_in, int v_in_off, float[] v_out) {
+  public static final void multMatrixVecf(float[] m_in, int m_in_off, float[] v_in, int v_in_off, float[] v_out, int v_out_off) {
     for (int i = 0; i < 4; i++) {
       // (one matrix row in column-major order) X (column vector)
-      v_out[i] =
+      v_out[i + v_out_off] =
         v_in[0+v_in_off] * m_in[0*4+i+m_in_off] +
         v_in[1+v_in_off] * m_in[1*4+i+m_in_off] +
         v_in[2+v_in_off] * m_in[2*4+i+m_in_off] +
@@ -279,10 +279,44 @@ public class FloatUtil {
    * @param v_in 4-component column-vector
    * @param v_out m_in * v_in
    */
+  public static final void multMatrixVecf(FloatBuffer m_in, float[] v_in, int v_in_off, float[] v_out, int v_out_off) {
+    final int matrixPos = m_in.position();
+    for (int i = 0; i < 4; i++) {
+      // (one matrix row in column-major order) X (column vector)
+      v_out[i+v_out_off] =
+        v_in[0+v_in_off] * m_in.get(0*4+i+matrixPos) +
+        v_in[1+v_in_off] * m_in.get(1*4+i+matrixPos) +
+        v_in[2+v_in_off] * m_in.get(2*4+i+matrixPos) +
+        v_in[3+v_in_off] * m_in.get(3*4+i+matrixPos);      
+    }
+  }
+  
+  /**
+   * @param m_in 4x4 matrix in column-major order
+   * @param v_in 4-component column-vector
+   * @param v_out m_in * v_in
+   */
+  public static final void multMatrixVecf(FloatBuffer m_in, float[] v_in, float[] v_out) {
+    final int matrixPos = m_in.position();
+    for (int i = 0; i < 4; i++) {
+      // (one matrix row in column-major order) X (column vector)
+      v_out[i] =
+        v_in[0] * m_in.get(0*4+i+matrixPos) +
+        v_in[1] * m_in.get(1*4+i+matrixPos) +
+        v_in[2] * m_in.get(2*4+i+matrixPos) +
+        v_in[3] * m_in.get(3*4+i+matrixPos);      
+    }
+  }
+  
+  /**
+   * @param m_in 4x4 matrix in column-major order
+   * @param v_in 4-component column-vector
+   * @param v_out m_in * v_in
+   */
   public static final void multMatrixVecf(FloatBuffer m_in, FloatBuffer v_in, FloatBuffer v_out) {
-    int inPos = v_in.position();
-    int outPos = v_out.position();
-    int matrixPos = m_in.position();
+    final int inPos = v_in.position();
+    final int outPos = v_out.position();
+    final int matrixPos = m_in.position();
     for (int i = 0; i < 4; i++) {
       // (one matrix row in column-major order) X (column vector)
       v_out.put(i + outPos,
