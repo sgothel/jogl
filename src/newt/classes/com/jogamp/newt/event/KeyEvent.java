@@ -73,7 +73,14 @@ public class KeyEvent extends InputEvent
         this.keyChar=keyChar;
     }
 
-    /** Returns the character matching the {@link #getKeyCode() virtual key code}, if exist. */
+    /** 
+     * Returns the character matching the {@link #getKeyCode() virtual key code}, if exist.
+     * <p>
+     * <b>Disclaimer</b>: Only valid on all platforms at {@link KeyListener#keyTyped(KeyEvent)}.
+     * Precisely, on the Windows platform we currently cannot deliver the proper character
+     * in case of shifted keys where no uppercase exists, e.g. 'shift + 1' doesn't produce '!'.
+     * </p> 
+     */
     public char getKeyChar() {
         return keyChar;
     }
