@@ -110,7 +110,7 @@ public class TestGLCanvasAWTActionDeadlock00AWT extends UITestCase {
         frame1.setLocation(0, 0);
         frame1.setTitle("Generic Title");
         
-        GLCanvas glCanvas = createGLCanvas(frame1);
+        GLCanvas glCanvas = createGLCanvas();
         glCanvas.addGLEventListener(gle1);
         glCanvas.addGLEventListener(gle2);
         
@@ -167,7 +167,7 @@ public class TestGLCanvasAWTActionDeadlock00AWT extends UITestCase {
         glCanvas.disposeGLEventListener(gle2, true);
         detachGLCanvas(frame, glCanvas, restartOnCurrentThread);
                     
-        glCanvas = createGLCanvas(frame);
+        glCanvas = createGLCanvas();
         
         attachGLCanvas(frame, glCanvas, restartOnCurrentThread);
         glCanvas.addGLEventListener(gle1);
@@ -220,7 +220,7 @@ public class TestGLCanvasAWTActionDeadlock00AWT extends UITestCase {
     
     int frameCount = 0;
     
-    GLCanvas createGLCanvas(final Frame frame) {
+    GLCanvas createGLCanvas() {
         System.err.println("*** createGLCanvas.0");
         final GLCanvas glCanvas = new GLCanvas();
         glCanvas.setBounds(0, 0, width, height);
