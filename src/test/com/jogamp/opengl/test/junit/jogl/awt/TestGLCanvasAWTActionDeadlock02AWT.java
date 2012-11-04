@@ -58,7 +58,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 // Sample program that relies on JOGL's mechanism to handle the OpenGL context  
 // and rendering loop when using an AWT canvas attached to an Applet.
-public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
+public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
   static int framesPerTest = 240; // frames
 
   static class MiniPApplet extends Applet implements MouseMotionListener, KeyListener {
@@ -133,7 +133,7 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
               }
               
               if (restartCanvas && restartTimeout == frameCount) {
-                restart();
+                // restart();
               }
               
               if (useAnimator) {
@@ -256,7 +256,7 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
           animator.stop();
           animator.remove(canvas);
         }
-        canvas.removeGLEventListener(listener);
+        canvas.disposeGLEventListener(listener, true);
         this.remove(canvas);    
            
         capabilities = new GLCapabilities(profile); 
@@ -580,10 +580,10 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
   
   @Test
   public void test00() {
-    TestGLCanvasAWTActionDeadlock01AWT.MiniPApplet mini;
+    TestGLCanvasAWTActionDeadlock02AWT.MiniPApplet mini;
     try {
-      Class<?> c = Thread.currentThread().getContextClassLoader().loadClass(TestGLCanvasAWTActionDeadlock01AWT.MiniPApplet.class.getName());
-      mini = (TestGLCanvasAWTActionDeadlock01AWT.MiniPApplet) c.newInstance();
+      Class<?> c = Thread.currentThread().getContextClassLoader().loadClass(TestGLCanvasAWTActionDeadlock02AWT.MiniPApplet.class.getName());
+      mini = (TestGLCanvasAWTActionDeadlock02AWT.MiniPApplet) c.newInstance();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }    
@@ -598,7 +598,7 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
             framesPerTest = MiscUtils.atoi(args[++i], framesPerTest);
         }
     }
-    org.junit.runner.JUnitCore.main(TestGLCanvasAWTActionDeadlock01AWT.class.getName());
+    org.junit.runner.JUnitCore.main(TestGLCanvasAWTActionDeadlock02AWT.class.getName());
   }
   
 }
