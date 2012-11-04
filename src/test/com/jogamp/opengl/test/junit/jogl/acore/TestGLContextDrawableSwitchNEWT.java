@@ -43,11 +43,11 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
-import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.opengl.GLAutoDrawableDelegate;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.GLDrawableUtil;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
@@ -157,28 +157,11 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
             if( ( t1 - t0 ) / period > s) {
                 s++;
                 System.err.println(s+" - switch - START "+ ( t1 - t0 ));
-                animator.pause();
 
                 // switch context _and_ the demo synchronously
-                if(0 == s%2) {
-                    final GLEventListener demo = glad2.removeGLEventListener(0);
-                    GLContext ctx1 = glad1.setContext(glad2.getContext());
-                    glad2.setContext(ctx1);
-                    glad1.addGLEventListener(0, demo);
-                } else {
-                    final GLEventListener demo = glad1.removeGLEventListener(0);
-                    GLContext ctx2 = glad2.setContext(glad1.getContext());                    
-                    glad1.setContext(ctx2);
-                    glad2.addGLEventListener(0, demo);
-                }
-                System.err.println(s+" - switch - display-1");
-                glad1.display();
-                System.err.println(s+" - switch - display-2");
-                glad2.display();
+                GLDrawableUtil.swapGLContextAndAllGLEventListener(glad1, glad2);
                 
-                System.err.println(s+" - switch - END "+ ( t1 - t0 ));
-                
-                animator.resume();
+                System.err.println(s+" - switch - END "+ ( t1 - t0 ));                
             }
             Thread.sleep(100);
             t1 = System.currentTimeMillis();
@@ -223,24 +206,15 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
             if( ( t1 - t0 ) / period > s) {
                 s++;
                 System.err.println(s+" - switch - START "+ ( t1 - t0 ));
-                animator.pause();
+                System.err.println(s+" - A w1-h 0x"+Long.toHexString(glWindow1.getHandle())+",-ctx 0x"+Long.toHexString(glWindow1.getContext().getHandle()));
+                System.err.println(s+" - A w2-h 0x"+Long.toHexString(glWindow2.getHandle())+",-ctx 0x"+Long.toHexString(glWindow2.getContext().getHandle()));
 
                 // switch context _and_ the demo synchronously
-                if(0 == s%2) {
-                    final GLEventListener demo = glWindow2.removeGLEventListener(0);
-                    GLContext ctx1 = glWindow1.setContext(glWindow2.getContext());
-                    glWindow1.addGLEventListener(0, demo);
-                    glWindow2.setContext(ctx1);
-                } else {
-                    final GLEventListener demo = glWindow1.removeGLEventListener(0);
-                    GLContext ctx2 = glWindow2.setContext(glWindow1.getContext());                    
-                    glWindow2.addGLEventListener(0, demo);
-                    glWindow1.setContext(ctx2);
-                }
+                GLDrawableUtil.swapGLContextAndAllGLEventListener(glWindow1, glWindow2);
                 
+                System.err.println(s+" - B w1-h 0x"+Long.toHexString(glWindow1.getHandle())+",-ctx 0x"+Long.toHexString(glWindow1.getContext().getHandle()));
+                System.err.println(s+" - B w2-h 0x"+Long.toHexString(glWindow2.getHandle())+",-ctx 0x"+Long.toHexString(glWindow2.getContext().getHandle()));
                 System.err.println(s+" - switch - END "+ ( t1 - t0 ));
-                
-                animator.resume();
             }
             Thread.sleep(100);
             t1 = System.currentTimeMillis();
@@ -288,27 +262,23 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
             if( ( t1 - t0 ) / period > s) {
                 s++;
                 System.err.println(s+" - switch - START "+ ( t1 - t0 ));
-                animator.pause();
-                
-                GLEventListener demo1 = glWindow1.removeGLEventListener(0);
-                GLEventListener demo2 = glWindow2.removeGLEventListener(0);
-                
-                GLContext ctx1 = glWindow1.setContext(glWindow2.getContext());
-                glWindow1.addGLEventListener(0, demo2);
-                
-                glWindow2.setContext(ctx1);
-                glWindow2.addGLEventListener(0, demo1);
-                
+                System.err.println(s+" - A w1-h 0x"+Long.toHexString(glWindow1.getHandle())+",-ctx 0x"+Long.toHexString(glWindow1.getContext().getHandle()));
+                System.err.println(s+" - A w2-h 0x"+Long.toHexString(glWindow2.getHandle())+",-ctx 0x"+Long.toHexString(glWindow2.getContext().getHandle()));
+                GLDrawableUtil.swapGLContextAndAllGLEventListener(glWindow1, glWindow2);
+                System.err.println(s+" - B w1-h 0x"+Long.toHexString(glWindow1.getHandle())+",-ctx 0x"+Long.toHexString(glWindow1.getContext().getHandle()));                
+                System.err.println(s+" - B w2-h 0x"+Long.toHexString(glWindow2.getHandle())+",-ctx 0x"+Long.toHexString(glWindow2.getContext().getHandle()));
                 System.err.println(s+" - switch - END "+ ( t1 - t0 ));
-                
-                animator.resume();
             }
             Thread.sleep(100);
             t1 = System.currentTimeMillis();
         }
 
         animator.stop();
+        System.err.println("pre -del-w1: w1: "+glWindow1);
+        System.err.println("pre -del-w1: w2: "+glWindow2);
         glWindow1.destroy();
+        System.err.println("post-del-w1: w1: "+glWindow1);
+        System.err.println("post-del-w1: w2: "+glWindow2);
         glWindow2.destroy();
         
     }

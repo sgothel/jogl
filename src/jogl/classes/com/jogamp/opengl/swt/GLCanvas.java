@@ -216,6 +216,26 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       }
    };
 
+   private class DisposeGLEventListenerAction implements Runnable {
+       private GLEventListener listener;
+       private boolean remove;
+       private DisposeGLEventListenerAction(GLEventListener listener, boolean remove) {
+           this.listener = listener;
+           this.remove = remove;
+       }
+
+       @Override
+       public void run() {
+           final RecursiveLock _lock = lock;
+           _lock.lock();
+           try {
+               listener = helper.disposeGLEventListener(GLCanvas.this, drawable, context, listener, remove);
+           } finally {
+               _lock.unlock();
+           }
+       }
+   };
+   
    /**
     * Storage for the client area rectangle so that it may be accessed from outside of the SWT thread.
     */
@@ -302,7 +322,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       addPaintListener(new PaintListener() {
          @Override
         public void paintControl(final PaintEvent arg0) {
-            if ( !helper.isExternalAnimatorAnimating() ) {                
+            if ( !helper.isAnimatorAnimatingOnOtherThread() ) {                
                display(); // checks: null != drawable
             }
          }
@@ -439,13 +459,45 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    }
 
    @Override
-   public void addGLEventListener(final GLEventListener arg0) {
-      helper.addGLEventListener(arg0);
+   public void addGLEventListener(final GLEventListener listener) {
+      helper.addGLEventListener(listener);
    }
 
    @Override
-   public void addGLEventListener(final int arg0, final GLEventListener arg1) throws IndexOutOfBoundsException {
-      helper.addGLEventListener(arg0, arg1);
+   public void addGLEventListener(final int idx, final GLEventListener listener) throws IndexOutOfBoundsException {
+      helper.addGLEventListener(idx, listener);
+   }
+
+   @Override
+   public int getGLEventListenerCount() {
+      return helper.getGLEventListenerCount();
+   }
+   
+   @Override
+   public GLEventListener getGLEventListener(int index) throws IndexOutOfBoundsException {
+      return helper.getGLEventListener(index);
+   }
+   
+   @Override
+   public boolean getGLEventListenerInitState(GLEventListener listener) {
+       return helper.getGLEventListenerInitState(listener);
+   }
+   
+   @Override
+   public void setGLEventListenerInitState(GLEventListener listener, boolean initialized) {
+       helper.setGLEventListenerInitState(listener, initialized);
+   }
+   
+   @Override
+   public GLEventListener disposeGLEventListener(GLEventListener listener, boolean remove) {
+       final DisposeGLEventListenerAction r = new DisposeGLEventListenerAction(listener, remove);
+       runInGLThread(r);
+       return r.listener;
+   }
+   
+   @Override
+   public GLEventListener removeGLEventListener(final GLEventListener listener) {
+      return helper.removeGLEventListener(listener);
    }
 
    /**
@@ -496,17 +548,12 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    public boolean invoke(final boolean wait, final GLRunnable run) {
       return helper.invoke(this, wait, run);
    }
-
+   
    @Override
-   public void removeGLEventListener(final GLEventListener arg0) {
-      helper.removeGLEventListener(arg0);
+   public void enqueue(GLRunnable glRunnable) {
+      helper.enqueue(glRunnable);
    }
 
-   @Override
-   public GLEventListener removeGLEventListener(int index) throws IndexOutOfBoundsException {
-      return helper.removeGLEventListener(index);
-   }
-       
    @Override
    public void setAnimator(final GLAnimatorControl arg0) throws GLException {
       helper.setAnimator(arg0);

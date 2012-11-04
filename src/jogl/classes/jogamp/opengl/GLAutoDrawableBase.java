@@ -95,7 +95,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     protected final void defaultWindowRepaintOp() {
         final GLDrawable _drawable = drawable;
         if( null != _drawable && _drawable.isRealized() ) {
-            if( !_drawable.getNativeSurface().isSurfaceLockedByOtherThread() && !helper.isExternalAnimatorAnimating() ) {
+            if( !_drawable.getNativeSurface().isSurfaceLockedByOtherThread() && !helper.isAnimatorAnimatingOnOtherThread() ) {
                 display();
             }
         }
@@ -124,7 +124,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
             }
             sendReshape = true; // async if display() doesn't get called below, but avoiding deadlock
             if( _drawable.isRealized() ) {
-                if( !_drawable.getNativeSurface().isSurfaceLockedByOtherThread() && !helper.isExternalAnimatorAnimating() ) {
+                if( !_drawable.getNativeSurface().isSurfaceLockedByOtherThread() && !helper.isAnimatorAnimatingOnOtherThread() ) {
                     display();
                 }
             }
@@ -178,7 +178,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
         final GLAnimatorControl ctrl = helper.getAnimator();
         
         // Is an animator thread perform rendering?
-        if ( helper.isAnimatorRunningOnOtherThread() ) {
+        if ( helper.isAnimatorStartedOnOtherThread() ) {
             // Pause animations before initiating safe destroy.
             final boolean isPaused = ctrl.pause();
             destroy();
@@ -299,6 +299,16 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
         }
     }
         
+    protected final GLEventListener defaultDisposeGLEventListener(GLEventListener listener, boolean remove) {
+        final RecursiveLock _lock = getLock();
+        _lock.lock();
+        try {
+            return helper.disposeGLEventListener(GLAutoDrawableBase.this, drawable, context, listener, remove);
+        } finally {
+            _lock.unlock();
+        }        
+    }
+    
     @Override
     public final GLDrawable getDelegatedDrawable() {
         return drawable;
@@ -356,13 +366,33 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     }
 
     @Override
-    public final void removeGLEventListener(GLEventListener listener) {
-        helper.removeGLEventListener(listener);        
+    public int getGLEventListenerCount() {
+        return helper.getGLEventListenerCount();
+    }
+
+    @Override
+    public GLEventListener getGLEventListener(int index) throws IndexOutOfBoundsException {
+        return helper.getGLEventListener(index);
+    }
+
+    @Override
+    public boolean getGLEventListenerInitState(GLEventListener listener) {
+        return helper.getGLEventListenerInitState(listener);
+    }
+
+    @Override
+    public void setGLEventListenerInitState(GLEventListener listener, boolean initialized) {
+        helper.setGLEventListenerInitState(listener, initialized);
+    }
+   
+    @Override
+    public GLEventListener disposeGLEventListener(GLEventListener listener, boolean remove) {
+        return defaultDisposeGLEventListener(listener, remove);
     }
     
     @Override
-    public GLEventListener removeGLEventListener(int index) throws IndexOutOfBoundsException {
-        return helper.removeGLEventListener(index);
+    public final GLEventListener removeGLEventListener(GLEventListener listener) {
+        return helper.removeGLEventListener(listener);        
     }
     
     @Override
@@ -381,6 +411,11 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
         return helper.invoke(this, wait, glRunnable);        
     }
 
+    @Override
+    public final void enqueue(GLRunnable glRunnable) {
+        helper.enqueue(glRunnable);
+    }
+    
     @Override
     public final void setAutoSwapBufferMode(boolean enable) {
         helper.setAutoSwapBufferMode(enable);        

@@ -426,15 +426,47 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public void removeGLEventListener(GLEventListener listener) {
-    helper.removeGLEventListener(listener);
+  public int getGLEventListenerCount() {
+      return helper.getGLEventListenerCount();
   }
 
   @Override
-  public GLEventListener removeGLEventListener(int index) throws IndexOutOfBoundsException {
-    return helper.removeGLEventListener(index);
-  }       
+  public GLEventListener getGLEventListener(int index) throws IndexOutOfBoundsException {
+      return helper.getGLEventListener(index);
+  }
+
+  @Override
+  public boolean getGLEventListenerInitState(GLEventListener listener) {
+      return helper.getGLEventListenerInitState(listener);
+  }
+
+  @Override
+  public void setGLEventListenerInitState(GLEventListener listener, boolean initialized) {
+      helper.setGLEventListenerInitState(listener, initialized);
+  }
+   
+  @Override
+  public GLEventListener disposeGLEventListener(GLEventListener listener, boolean remove) {
+    final DisposeGLEventListenerAction r = new DisposeGLEventListenerAction(listener, remove);
+    if (EventQueue.isDispatchThread()) {
+      r.run();
+    } else {
+      // Multithreaded redrawing of Swing components is not allowed,
+      // so do everything on the event dispatch thread
+      try {
+        EventQueue.invokeAndWait(r);
+      } catch (Exception e) {
+        throw new GLException(e);
+      }
+    }
+    return r.listener;
+  }
   
+  @Override
+  public GLEventListener removeGLEventListener(GLEventListener listener) {
+    return helper.removeGLEventListener(listener);
+  }
+
   @Override
   public void setAnimator(GLAnimatorControl animatorControl) {
     helper.setAnimator(animatorControl);
@@ -450,6 +482,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     return helper.invoke(this, wait, glRunnable);
   }
 
+  @Override
+  public void enqueue(GLRunnable glRunnable) {
+    helper.enqueue(glRunnable);
+  }
+  
   @Override
   public GLContext createContext(GLContext shareWith) {
     return (null != backend) ? backend.createContext(shareWith) : null;
@@ -685,7 +722,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
     @Override
     public void dispose(GLAutoDrawable drawable) {
-      helper.dispose(GLJPanel.this);
+      helper.disposeAllGLEventListener(GLJPanel.this, false);
     }
 
     @Override
@@ -758,6 +795,20 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
   };
 
+  private class DisposeGLEventListenerAction implements Runnable {
+      GLEventListener listener;
+      private boolean remove;
+      private DisposeGLEventListenerAction(GLEventListener listener, boolean remove) {
+          this.listener = listener;
+          this.remove = remove;
+      }
+
+      @Override
+      public void run() {
+          listener = helper.disposeGLEventListener(GLJPanel.this, backend.getDrawable(), backend.getContext(), listener, remove);
+      }
+  };
+  
   private int getNextPowerOf2(int number) {
     // Workaround for problems where 0 width or height are transiently
     // seen during layout

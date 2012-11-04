@@ -75,7 +75,6 @@ public class TextureSequenceCubeES2 implements GLEventListener {
     private float view_rotx = 0.0f, view_roty = 0.0f, view_rotz = 0.0f;
     int[] vboNames = new int[4];
     boolean innerCube;
-    boolean initialized = false;
     private ByteBuffer cubeIndices;
         
     private final MouseListener mouseAction = new MouseAdapter() {

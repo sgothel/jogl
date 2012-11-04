@@ -50,7 +50,6 @@ public class RedSquareES2 implements GLEventListener {
     Window window = null;
     float aspect = 1.0f;
     boolean doRotate = true;
-    boolean isInitialized = false;
 
     public RedSquareES2(int swapInterval) {
         this.swapInterval = swapInterval;
@@ -64,11 +63,6 @@ public class RedSquareES2 implements GLEventListener {
     public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
     
     public void init(GLAutoDrawable glad) {
-        if(isInitialized) {
-            System.err.println(Thread.currentThread()+" RedSquareES2.init skipped!");
-            return; 
-        }
-        isInitialized = true;
         System.err.println(Thread.currentThread()+" RedSquareES2.init ...");
         GL2ES2 gl = glad.getGL().getGL2ES2();
         
@@ -184,11 +178,6 @@ public class RedSquareES2 implements GLEventListener {
     }
 
     public void dispose(GLAutoDrawable glad) {
-        if(!isInitialized) {
-            System.err.println(Thread.currentThread()+" RedSquareES2.dispose skipped!");
-            return; 
-        }
-        isInitialized = false;
         System.err.println(Thread.currentThread()+" RedSquareES2.dispose ... ");
         GL2ES2 gl = glad.getGL().getGL2ES2();
         st.destroy(gl);

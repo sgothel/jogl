@@ -65,7 +65,6 @@ public class GearsES2 implements GLEventListener {
 
     private int prevMouseX, prevMouseY;
     private boolean doRotate = true;
-    private boolean isInitialized = false;
     boolean ignoreFocus = false;
 
     public GearsES2(int swapInterval) {
@@ -106,11 +105,6 @@ public class GearsES2 implements GLEventListener {
 
 
     public void init(GLAutoDrawable drawable) {
-        if(isInitialized) {
-            System.err.println(Thread.currentThread()+" GearsES2.init skipped!");
-            return; 
-        }
-        isInitialized = true;
         System.err.println(Thread.currentThread()+" GearsES2.init ...");
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -228,11 +222,6 @@ public class GearsES2 implements GLEventListener {
     // private boolean useAndroidDebug = false;
 
     public void dispose(GLAutoDrawable drawable) {
-        if(!isInitialized) {
-            System.err.println(Thread.currentThread()+" GearsES2.dispose skipped!");
-            return; 
-        }
-        isInitialized = false;
         System.err.println(Thread.currentThread()+" GearsES2.dispose ... ");
         final Object upstreamWidget = drawable.getUpstreamWidget();
         if (upstreamWidget instanceof Window) {            

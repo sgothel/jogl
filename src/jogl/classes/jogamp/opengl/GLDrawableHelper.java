@@ -61,7 +61,6 @@ import com.jogamp.opengl.util.Animator;
 
 /** Encapsulates the implementation of most of the GLAutoDrawable's
     methods to be able to share it between GLCanvas and GLJPanel. */
-
 public class GLDrawableHelper {
   /** true if property <code>jogl.debug.GLDrawable.PerfStats</code> is defined. */
   private static final boolean PERF_STATS = Debug.isPropertyDefined("jogl.debug.GLDrawable.PerfStats", true);
@@ -75,6 +74,7 @@ public class GLDrawableHelper {
   private boolean autoSwapBufferMode;
   private Thread skipContextReleaseThread;
   private GLAnimatorControl animatorCtrl;
+  private static Runnable nop = new Runnable() { public void run() {} };
 
   public GLDrawableHelper() {
     reset();
@@ -289,45 +289,239 @@ public class GLDrawableHelper {
         // GLEventListener may be added after context is created,
         // hence we earmark initialization for the next display call.
         listenersToBeInit.add(listener);
+        
         listeners.add(index, listener);
     }
   }
-  
-  public final void removeGLEventListener(GLEventListener listener) {
+
+  /**
+   * Note that no {@link GLEventListener#dispose(GLAutoDrawable)} call is being issued
+   * due to the lack of a current context. 
+   * Consider calling {@link #disposeGLEventListener(GLAutoDrawable, GLDrawable, GLContext, GLEventListener)}.
+   * @return the removed listener, or null if listener was not added
+   */
+  public final GLEventListener removeGLEventListener(GLEventListener listener) {
     synchronized(listenersLock) {
-        listeners.remove(listener);
         listenersToBeInit.remove(listener);
+        return listeners.remove(listener) ? listener : null;
     }
   }
 
-  public final GLEventListener removeGLEventListener(int index)
-    throws IndexOutOfBoundsException {
+  public final GLEventListener removeGLEventListener(int index) throws IndexOutOfBoundsException {
     synchronized(listenersLock) {
         if(0>index) {
             index = listeners.size()-1;
         }
-        return listeners.remove(index);
+        final GLEventListener listener = listeners.remove(index);
+        listenersToBeInit.remove(listener);
+        return listener;
+    }
+  }
+  
+  public final int getGLEventListenerCount() {
+    synchronized(listenersLock) {
+        return listeners.size();
+    }      
+  }
+
+  public final GLEventListener getGLEventListener(int index) throws IndexOutOfBoundsException {
+    synchronized(listenersLock) {
+        if(0>index) {
+            index = listeners.size()-1;
+        }
+        return listeners.get(index);
+    }
+  }
+  
+  public final boolean getGLEventListenerInitState(GLEventListener listener) {
+    synchronized(listenersLock) {
+        return !listenersToBeInit.contains(listener);
+    }
+  }
+  
+  public final void setGLEventListenerInitState(GLEventListener listener, boolean initialized) {
+    synchronized(listenersLock) {
+        if(initialized) {
+            listenersToBeInit.remove(listener);
+        } else {
+            listenersToBeInit.add(listener);
+        }
     }
   }
   
   /**
-   * Issues {@link javax.media.opengl.GLEventListener#dispose(javax.media.opengl.GLAutoDrawable)}
-   * to all listeners.
+   * Disposes the given {@link GLEventListener} via {@link GLEventListener#dispose(GLAutoDrawable)} 
+   * if it has been initialized and added to this queue.
    * <p>
-   * Please consider using {@link #disposeGL(GLAutoDrawable, GLDrawable, GLContext, Runnable)}
-   * for correctness!
+   * If <code>remove</code> is <code>true</code>, the {@link GLEventListener} is removed from this drawable queue before disposal,
+   * otherwise marked uninitialized.
    * </p>
-   * @param drawable
+   * <p>
+   * Please consider using {@link #disposeGLEventListener(GLAutoDrawable, GLDrawable, GLContext, GLEventListener)} 
+   * for correctness, i.e. encapsulating all calls w/ makeCurrent etc.
+   * </p>
+   * @param autoDrawable
+   * @param remove if true, the listener gets removed
+   * @return the disposed and/or removed listener, otherwise null if neither action is performed
    */
-  public final void dispose(GLAutoDrawable drawable) {
+  public final GLEventListener disposeGLEventListener(GLAutoDrawable autoDrawable, GLEventListener listener, boolean remove) {
+      synchronized(listenersLock) {
+          if( remove ) {              
+              if( listeners.remove(listener) ) {
+                  if( !listenersToBeInit.remove(listener) ) {              
+                      listener.dispose(autoDrawable);
+                  }
+                  return listener;
+              }
+          } else {
+              if( listeners.contains(listener) && !listenersToBeInit.contains(listener) ) {
+                  listener.dispose(autoDrawable);
+                  listenersToBeInit.add(listener);
+                  return listener;
+              }              
+          }
+      }
+      return null;
+  }
+  
+  /**
+   * Disposes all added initialized {@link GLEventListener}s via {@link GLEventListener#dispose(GLAutoDrawable)}.
+   * <p>
+   * If <code>remove</code> is <code>true</code>, the {@link GLEventListener}s are removed from this drawable queue before disposal,
+   * otherwise maked uninitialized.
+   * </p>
+   * <p>
+   * Please consider using {@link #disposeAllGLEventListener(GLAutoDrawable, GLDrawable, GLContext)} 
+   * or {@link #disposeGL(GLAutoDrawable, GLDrawable, GLContext, Runnable)}
+   * for correctness, i.e. encapsulating all calls w/ makeCurrent etc.
+   * </p>
+   * @param autoDrawable
+   * @return the disposal count
+   */
+  public final int disposeAllGLEventListener(GLAutoDrawable autoDrawable, boolean remove) {
+    int disposeCount = 0;
     synchronized(listenersLock) {
-        final ArrayList<GLEventListener> _listeners = listeners;
-        for (int i=0; i < _listeners.size(); i++) {
-          _listeners.get(i).dispose(drawable);
+        if( remove ) {
+            for (int count = listeners.size(); 0 < count; count--) {
+              final GLEventListener listener = listeners.remove(0);
+              if( !listenersToBeInit.remove(listener) ) {
+                  listener.dispose(autoDrawable);
+                  disposeCount++;
+              }
+            }
+        } else {
+            final int count = listeners.size();
+            for (int i = 0; i < count; i++) {
+              final GLEventListener listener = listeners.get(i);
+              if( !listenersToBeInit.contains(listener) ) {
+                  listener.dispose(autoDrawable);
+                  listenersToBeInit.add(listener);
+                  disposeCount++;
+              }
+            }            
         }
     }
+    return disposeCount;
   }
 
+  /**
+   * Principal helper method which runs {@link #disposeGLEventListener(GLAutoDrawable, GLEventListener, boolean)} 
+   * with the context made current.
+   * <p>
+   * If an {@link GLAnimatorControl} is being attached and the current thread is different 
+   * than {@link GLAnimatorControl#getThread() the animator's thread}, it is paused during the operation.
+   * </p>
+   * 
+   * @param autoDrawable
+   * @param context
+   * @param listener
+   * @param initAction
+   */
+  public final GLEventListener disposeGLEventListener(final GLAutoDrawable autoDrawable,
+                                                      final GLDrawable drawable,
+                                                      final GLContext context, 
+                                                      final GLEventListener listener,
+                                                      final boolean remove) {
+      synchronized(listenersLock) {
+          // fast path for uninitialized listener
+          if( listenersToBeInit.contains(listener) ) {
+             if( remove ) {
+                 listenersToBeInit.remove(listener);
+                 return listeners.remove(listener) ? listener : null; 
+             }
+             return null;
+          }
+      }
+      final boolean isPaused = isAnimatorAnimatingOnOtherThread() && animatorCtrl.pause();
+      final GLEventListener[] res = new GLEventListener[] { null };
+      final Runnable action = new Runnable() {
+          public void run() {
+              res[0] = disposeGLEventListener(autoDrawable, listener, remove);
+          }
+      };
+      invokeGL(drawable, context, action, nop);
+      
+      if(isPaused) {
+          animatorCtrl.resume();
+      }
+      return res[0];
+  }
+  
+  /**
+   * Principal helper method which runs {@link #disposeAllGLEventListener(GLAutoDrawable, boolean)} 
+   * with the context made current.
+   * <p>
+   * If an {@link GLAnimatorControl} is being attached and the current thread is different 
+   * than {@link GLAnimatorControl#getThread() the animator's thread}, it is paused during the operation.
+   * </p>
+   * 
+   * @param autoDrawable
+   * @param context
+   * @param listener
+   * @param initAction
+   */
+  public final void disposeAllGLEventListener(final GLAutoDrawable autoDrawable,
+                                              final GLDrawable drawable,
+                                              final GLContext context,
+                                              final boolean remove) {
+      
+      final boolean isPaused = isAnimatorAnimatingOnOtherThread() && animatorCtrl.pause();
+      
+      final Runnable action = new Runnable() {
+          public void run() {
+              disposeAllGLEventListener(autoDrawable, remove);
+          }
+      };
+      invokeGL(drawable, context, action, nop);
+      
+      if(isPaused) {
+          animatorCtrl.resume();
+      }
+  }
+  
+  /** 
+   * Principal helper method which runs 
+   * {@link #disposeAllGLEventListener(GLAutoDrawable, boolean) disposeAllGLEventListener(autoDrawable, false)} 
+   * with the context made current <b>and</b> destroys the context afterwards while holding the lock.
+   * @param autoDrawable
+   * @param drawable
+   * @param context
+   * @param postAction
+   */
+  public final void disposeGL(final GLAutoDrawable autoDrawable,
+                              final GLDrawable drawable,
+                              final GLContext context,
+                              final Runnable postAction) {
+    if(PERF_STATS) {
+        invokeGLImplStats(drawable, context, null, null, autoDrawable);    
+    } else {
+        invokeGLImpl(drawable, context, null, null, autoDrawable);
+    }
+    if(null != postAction) {
+        postAction.run();
+    }
+  }
+      
   private final void init(GLEventListener l, GLAutoDrawable drawable, boolean sendReshape) {
       l.init(drawable);
       if(sendReshape) {
@@ -374,7 +568,7 @@ public class GLDrawableHelper {
           }
       }
   }
-
+  
   private final void reshape(GLEventListener listener, GLAutoDrawable drawable,
                              int x, int y, int width, int height, boolean setViewport, boolean checkInit) {
     if(checkInit) {
@@ -459,15 +653,15 @@ public class GLDrawableHelper {
     }
   }
 
-  public final boolean isAnimatorRunningOnOtherThread() {
+  public final boolean isAnimatorStartedOnOtherThread() {
     return ( null != animatorCtrl ) ? animatorCtrl.isStarted() && animatorCtrl.getThread() != Thread.currentThread() : false ;
   }
 
-  public final boolean isAnimatorRunning() {
+  public final boolean isAnimatorStarted() {
     return ( null != animatorCtrl ) ? animatorCtrl.isStarted() : false ;
   }
 
-  public final boolean isExternalAnimatorAnimating() {
+  public final boolean isAnimatorAnimatingOnOtherThread() {
     return ( null != animatorCtrl ) ? animatorCtrl.isAnimating() && animatorCtrl.getThread() != Thread.currentThread() : false ;
   }
 
@@ -501,9 +695,9 @@ public class GLDrawableHelper {
     GLRunnableTask rTask = null;
     Object rTaskLock = new Object();
     synchronized(rTaskLock) {
-        boolean deferred;
+        final boolean deferred;
         synchronized(glRunnablesLock) {
-            deferred = isExternalAnimatorAnimating();
+            deferred = isAnimatorAnimatingOnOtherThread();
             if(!deferred) {
                 wait = false; // don't wait if exec immediatly
             }
@@ -531,6 +725,15 @@ public class GLDrawableHelper {
     return true;
   }
 
+  public final void enqueue(GLRunnable glRunnable) {
+    if( null == glRunnable) {
+        return;
+    }    
+    synchronized(glRunnablesLock) {
+        glRunnables.add( new GLRunnableTask(glRunnable, null, false) );
+    }
+  }
+  
   public final void setAutoSwapBufferMode(boolean enable) {
     autoSwapBufferMode = enable;
   }
@@ -576,10 +779,10 @@ public class GLDrawableHelper {
    * @param runnable
    * @param initAction
    */
-  public final void invokeGL(GLDrawable drawable,
-                             GLContext context,
-                             Runnable  runnable,
-                             Runnable  initAction) {
+  public final void invokeGL(final GLDrawable drawable,
+                             final GLContext context,
+                             final Runnable  runnable,
+                             final Runnable  initAction) {
     if(null==context) {
         if (DEBUG) {
             Exception e = new GLException(Thread.currentThread().getName()+" Info: GLDrawableHelper " + this + ".invokeGL(): NULL GLContext");
@@ -595,34 +798,11 @@ public class GLDrawableHelper {
     }
   }
 
-  /** 
-   * Principal helper method which runs {@link #dispose(GLAutoDrawable)} with the context
-   * made current and destroys the context afterwards while holding the lock.  
-   * 
-   * @param autoDrawable
-   * @param drawable
-   * @param context
-   * @param postAction
-   */
-  public final void disposeGL(GLAutoDrawable autoDrawable,
-                              GLDrawable drawable,
-                              GLContext context,
-                              Runnable  postAction) {
-    if(PERF_STATS) {
-        invokeGLImplStats(drawable, context, null, null, autoDrawable);    
-    } else {
-        invokeGLImpl(drawable, context, null, null, autoDrawable);
-    }
-    if(null != postAction) {
-        postAction.run();
-    }
-  }
-  
-  private final void invokeGLImpl(GLDrawable drawable,
-                                  GLContext context,
-                                  Runnable  runnable,
-                                  Runnable  initAction,
-                                  GLAutoDrawable disposeAutoDrawable) {
+  private final void invokeGLImpl(final GLDrawable drawable,
+                                  final GLContext context,
+                                  final Runnable  runnable,
+                                  final Runnable  initAction,
+                                  final GLAutoDrawable disposeAutoDrawable) {
     final Thread currentThread = Thread.currentThread();
     
     final boolean isDisposeAction = null==initAction ;
@@ -660,8 +840,8 @@ public class GLDrawableHelper {
             if(GLContext.CONTEXT_CURRENT_NEW == res) {
                 throw new GLException(currentThread.getName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context was not created (new ctx): "+context);
             }
-            if(listeners.size()>0) {
-                dispose(disposeAutoDrawable);
+            if( listeners.size() > 0 && null != disposeAutoDrawable ) {
+                disposeAllGLEventListener(disposeAutoDrawable, false);
             }
         }
       }
@@ -686,11 +866,11 @@ public class GLDrawableHelper {
     }
   }
   
-  private final void invokeGLImplStats(GLDrawable drawable,
-                                       GLContext context,
-                                       Runnable  runnable,
-                                       Runnable  initAction,
-                                       GLAutoDrawable disposeAutoDrawable) {
+  private final void invokeGLImplStats(final GLDrawable drawable,
+                                       final GLContext context,
+                                       final Runnable  runnable,
+                                       final Runnable  initAction,
+                                       final GLAutoDrawable disposeAutoDrawable) {
     final Thread currentThread = Thread.currentThread();
     
     final boolean isDisposeAction = null==initAction ;
@@ -748,8 +928,8 @@ public class GLDrawableHelper {
             if(res == GLContext.CONTEXT_CURRENT_NEW) {
                 throw new GLException(currentThread.getName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context was not created (new ctx): "+context);
             }
-            if(listeners.size()>0) {
-                dispose(disposeAutoDrawable);
+            if( listeners.size() > 0 && null != disposeAutoDrawable ) {
+                disposeAllGLEventListener(disposeAutoDrawable, false);
             }
         }
       }

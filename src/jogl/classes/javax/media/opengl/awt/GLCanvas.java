@@ -495,7 +495,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                    (int) ((getHeight() + bounds.getHeight()) / 2));
       return;
     }
-    if( ! this.helper.isExternalAnimatorAnimating() ) {
+    if( ! this.helper.isAnimatorAnimatingOnOtherThread() ) {
         display();
     }
   }
@@ -699,15 +699,37 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public void removeGLEventListener(GLEventListener listener) {
-    helper.removeGLEventListener(listener);
+  public int getGLEventListenerCount() {
+      return helper.getGLEventListenerCount();
   }
 
   @Override
-  public GLEventListener removeGLEventListener(int index) throws IndexOutOfBoundsException {
-    return helper.removeGLEventListener(index);
+  public GLEventListener getGLEventListener(int index) throws IndexOutOfBoundsException {
+      return helper.getGLEventListener(index);
+  }
+
+  @Override
+  public boolean getGLEventListenerInitState(GLEventListener listener) {
+      return helper.getGLEventListenerInitState(listener);
+  }
+
+  @Override
+  public void setGLEventListenerInitState(GLEventListener listener, boolean initialized) {
+      helper.setGLEventListenerInitState(listener, initialized);
   }
   
+  @Override
+  public GLEventListener disposeGLEventListener(GLEventListener listener, boolean remove) {
+    final DisposeGLEventListenerAction r = new DisposeGLEventListenerAction(listener, remove);
+    Threading.invoke(true, r, getTreeLock());
+    return r.listener;
+  }
+  
+  @Override
+  public GLEventListener removeGLEventListener(GLEventListener listener) {
+    return helper.removeGLEventListener(listener);
+  }
+
   @Override
   public void setAnimator(GLAnimatorControl animatorControl) {
     helper.setAnimator(animatorControl);
@@ -723,6 +745,11 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     return helper.invoke(this, wait, glRunnable);
   }
 
+  @Override
+  public void enqueue(GLRunnable glRunnable) {
+    helper.enqueue(glRunnable);
+  }
+  
   @Override
   public GLContext setContext(GLContext newCtx) {
       final RecursiveLock _lock = lock;
@@ -984,15 +1011,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     }
   };
 
-  // Workaround for ATI driver bugs related to multithreading issues
-  // like simultaneous rendering via Animators to canvases that are
-  // being resized on the AWT event dispatch thread
   private final Runnable displayOnEDTAction = new Runnable() {
     @Override
     public void run() {
         final RecursiveLock _lock = lock;
         _lock.lock();
-        try {            
+        try {
             helper.invokeGL(drawable, context, displayAction, initAction);
         } finally {
             _lock.unlock();
@@ -1015,6 +1039,26 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     }
   };
 
+  private class DisposeGLEventListenerAction implements Runnable {
+    GLEventListener listener;
+    private boolean remove;
+    private DisposeGLEventListenerAction(GLEventListener listener, boolean remove) {
+        this.listener = listener;
+        this.remove = remove;
+    }
+    
+    @Override
+    public void run() {
+        final RecursiveLock _lock = lock;
+        _lock.lock();
+        try {
+            listener = helper.disposeGLEventListener(GLCanvas.this, drawable, context, listener, remove);
+        } finally {
+            _lock.unlock();
+        }
+    }
+  };
+  
   // Disables the AWT's erasing of this Canvas's background on Windows
   // in Java SE 6. This internal API is not available in previous
   // releases, but the system property
