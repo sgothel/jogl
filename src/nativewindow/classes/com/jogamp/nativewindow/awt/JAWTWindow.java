@@ -239,7 +239,8 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
   protected abstract void detachSurfaceLayerImpl(final long layerHandle);
 
-  protected final long getAttachedSurfaceLayer() {
+  @Override
+  public final long getAttachedSurfaceLayer() {
       return offscreenSurfaceLayer;
   }
   

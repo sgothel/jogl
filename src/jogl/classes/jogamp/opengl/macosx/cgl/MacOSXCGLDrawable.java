@@ -117,7 +117,9 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
     // OpenGL window interface
     synchronized (createdContexts) {
         if(bound) {
-            createdContexts.add(new WeakReference<MacOSXCGLContext>((MacOSXCGLContext)ctx));
+            final MacOSXCGLContext osxCtx = (MacOSXCGLContext)ctx;
+            createdContexts.add(new WeakReference<MacOSXCGLContext>(osxCtx));
+            osxCtx.drawableChangedNotify();
         } else {
             for(int i=0; i<createdContexts.size(); ) {
                 final WeakReference<MacOSXCGLContext> ref = createdContexts.get(i); 

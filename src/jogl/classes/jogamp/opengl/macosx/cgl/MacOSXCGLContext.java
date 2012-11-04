@@ -84,6 +84,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   // NSOpenGL-based or CGL-based)
   protected interface GLBackendImpl {
         boolean isNSContext();
+        void drawableChangedNotify();
         long create(long share, int ctp, int major, int minor);
         boolean destroy(long ctx);
         boolean contextRealized(boolean realized);
@@ -336,7 +337,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           super.contextRealized(false);  // 2) free drawable stuff
       }
   }
-
+  
+  /* pp */ void drawableChangedNotify() {
+      if( 0 != contextHandle) {
+          impl.drawableChangedNotify();
+      }
+  }
+  
   /* pp */ void detachPBuffer() {
       impl.detachPBuffer();
   }
@@ -475,7 +482,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   class NSOpenGLImpl implements GLBackendImpl {
       private OffscreenLayerSurface backingLayerHost = null;
       private long nsOpenGLLayer = 0;
-      private long nsOpenGLLayerPFmt = 0;
+      private long nsOpenGLLayerPFmt = 0; // lifecycle:  [create - contextRealized]
       private float screenVSyncTimeout; // microSec
       private int vsyncTimeout;    // microSec - for nsOpenGLLayer mode
       private int lastWidth=0, lastHeight=0; // allowing to detect size change
@@ -486,26 +493,31 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       public boolean isNSContext() { return true; }
 
       @Override
-      public long create(long share, int ctp, int major, int minor) {
-          long ctx = 0;
-          final NativeSurface surface = drawable.getNativeSurface();        
-          final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) surface.getGraphicsConfiguration();
-          final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+      public void drawableChangedNotify() {          
+          backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(drawable.getNativeSurface(), true);
+          if( null == backingLayerHost ) {
+              boolean[] isPBuffer = { false };
+              boolean[] isFBO = { false };
+              CGL.setContextView(contextHandle, getNSViewHandle(isPBuffer, isFBO));
+          } else {
+              nsOpenGLLayer = backingLayerHost.getAttachedSurfaceLayer();
+          }
+      }
+
+      private long getNSViewHandle(boolean[] isPBuffer, boolean[] isFBO) {
           final long nsViewHandle;
-          final boolean isPBuffer;
-          final boolean isFBO;
           if(drawable instanceof GLFBODrawableImpl) {
               nsViewHandle = 0;
-              isPBuffer = false;
-              isFBO = true;
+              isPBuffer[0] = false;
+              isFBO[0] = true;
               if(DEBUG) {
                   System.err.println("NS create GLFBODrawableImpl drawable: isFBO "+isFBO+", isPBuffer "+isPBuffer+", "+drawable.getClass().getName()+",\n\t"+drawable);
               }
           } else if(drawable instanceof MacOSXCGLDrawable) {
               // we allow null here! (special pbuffer case)
               nsViewHandle = ((MacOSXCGLDrawable)MacOSXCGLContext.this.drawable).getNSViewHandle();
-              isPBuffer = CGL.isNSOpenGLPixelBuffer(drawable.getHandle());
-              isFBO = false;
+              isPBuffer[0] = CGL.isNSOpenGLPixelBuffer(drawable.getHandle());
+              isFBO[0] = false;
               if(DEBUG) {
                   System.err.println("NS create MacOSXCGLDrawable drawable handle isFBO "+isFBO+", isPBuffer "+isPBuffer+", "+drawable.getClass().getName()+",\n\t"+drawable);
               }
@@ -514,8 +526,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               final long drawableHandle = drawable.getHandle();
               final boolean isNSView = OSXUtil.isNSView(drawableHandle);
               final boolean isNSWindow = OSXUtil.isNSWindow(drawableHandle);
-              isPBuffer = CGL.isNSOpenGLPixelBuffer(drawableHandle);
-              isFBO = false;
+              isPBuffer[0] = CGL.isNSOpenGLPixelBuffer(drawableHandle);
+              isFBO[0] = false;
 
               if(DEBUG) {
                   System.err.println("NS create Anonymous drawable handle "+toHexString(drawableHandle)+": isNSView "+isNSView+", isNSWindow "+isNSWindow+", isFBO "+isFBO+", isPBuffer "+isPBuffer+", "+drawable.getClass().getName()+",\n\t"+drawable);
@@ -524,13 +536,32 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   nsViewHandle = drawableHandle;
               } else if( isNSWindow ) {
                   nsViewHandle = OSXUtil.GetNSView(drawableHandle);
-              } else if( isPBuffer ) {
+              } else if( isPBuffer[0] ) {
                   nsViewHandle = 0;
               } else {
                   throw new RuntimeException("Anonymous drawable instance's handle neither NSView, NSWindow nor PBuffer: "+toHexString(drawableHandle)+", "+drawable.getClass().getName()+",\n\t"+drawable);
               }
           }
-          needsSetContextPBuffer = isPBuffer;
+          needsSetContextPBuffer = isPBuffer[0];
+          return nsViewHandle;
+      }
+      
+      @Override
+      public long create(long share, int ctp, int major, int minor) {
+          long ctx = 0;
+          final NativeSurface surface = drawable.getNativeSurface();        
+          final MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) surface.getGraphicsConfiguration();
+          final GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+          final long nsViewHandle;
+          final boolean isPBuffer;
+          final boolean isFBO;
+          {
+              boolean[] _isPBuffer = { false };
+              boolean[] _isFBO = { false };
+              nsViewHandle = getNSViewHandle(_isPBuffer, _isFBO);
+              isPBuffer = _isPBuffer[0];
+              isFBO = _isFBO[0];
+          }
           backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(surface, true);
 
           boolean incompleteView = null != backingLayerHost;
@@ -661,6 +692,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                       gl3ShaderProgramName = 0;
                   }
                   nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, gl3ShaderProgramName, nsOpenGLLayerPFmt, pbufferHandle, texID, chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight);
+                  nsOpenGLLayerPFmt = 0; // NSOpenGLLayer will release pfmt
                   if (DEBUG) {
                       System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer)+" w/ pbuffer "+toHexString(pbufferHandle)+", texID "+texID+", texSize "+lastWidth+"x"+lastHeight+", "+drawable);
                   }
@@ -687,10 +719,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                       gl3ShaderProgram = null;
                   }
                   nsOpenGLLayer = 0;
-              }
-              if(0 != nsOpenGLLayerPFmt) {
-                  CGL.deletePixelFormat(nsOpenGLLayerPFmt);
-                  nsOpenGLLayerPFmt = 0;
               }
           }
           backingLayerHost = null;
@@ -841,6 +869,11 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       @Override
       public boolean isNSContext() { return false; }
 
+      @Override
+      public void drawableChangedNotify() {
+          // FIXME
+      }
+      
       @Override
       public long create(long share, int ctp, int major, int minor) {
           long ctx = 0;

@@ -551,8 +551,7 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
     
     NSOpenGLContext* ctx = [[NSOpenGLContext alloc] initWithFormat:fmt shareContext:share];
         
-    if (ctx != nil) {
-      if (view != nil) {
+    if ( nil != ctx && nil != view ) {
         if(!opaque) {
             GLint zeroOpacity = 0;
             [ctx setValues:&zeroOpacity forParameter:NSOpenGLCPSurfaceOpacity];
@@ -563,10 +562,18 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
             DBG_PRINT("createContext.3.X: setView\n");
             [view unlockFocus];        
         }
-      }
     }
 
     DBG_PRINT("createContext.X: ctx: %p\n", ctx);
+    [pool release];
+    return ctx;
+}
+
+void setContextView(NSOpenGLContext* ctx, NSView* view) {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    if ( nil != ctx && nil != view ) {
+        [ctx setView:view];
+    }
     [pool release];
     return ctx;
 }

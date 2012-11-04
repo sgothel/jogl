@@ -448,6 +448,7 @@ static const GLfloat gl_verts[] = {
     [self disableAnimation];
     [self deallocPBuffer];
     [[self openGLContext] release];
+    [parentPixelFmt release];
     [self release];
     DBG_PRINT("MyNSOpenGLLayer::releaseLayer.X: %p (refcnt %d)\n", self, (int)[self retainCount]);
     pthread_mutex_unlock(&renderLock);

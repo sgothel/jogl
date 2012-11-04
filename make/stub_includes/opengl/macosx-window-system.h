@@ -36,6 +36,7 @@ NSOpenGLContext* createContext(NSOpenGLContext* shareContext,
                     NSOpenGLPixelFormat* pixelFormat,
                     Bool opaque,
                     int* viewNotReady);
+void setContextView(NSOpenGLContext* ctx, NSView* view);
 Bool  makeCurrentContext(NSOpenGLContext* ctx);
 Bool  clearCurrentContext(NSOpenGLContext *ctx);
 Bool  deleteContext(NSOpenGLContext* ctx, Bool releaseOnMainThread);

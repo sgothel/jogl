@@ -47,6 +47,9 @@ public interface OffscreenLayerSurface {
    */
   public void detachSurfaceLayer() throws NativeWindowException;
   
+  /** Returns the attached surface layer or null if none is attached. */
+  public long getAttachedSurfaceLayer();
+  
   /** Returns true if a surface layer is attached, otherwise false. */
   public boolean isSurfaceLayerAttached();
   
