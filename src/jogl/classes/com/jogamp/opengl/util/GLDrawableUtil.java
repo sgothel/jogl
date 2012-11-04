@@ -123,41 +123,53 @@ public class GLDrawableUtil {
     final boolean aIsPaused = isAnimatorAnimatingOnOtherThread(aAnim) && aAnim.pause();
     final boolean bIsPaused = isAnimatorAnimatingOnOtherThread(bAnim) && bAnim.pause();
     
-    // enqueue reset GL-Viewport
-    a.enqueue(setViewport);
-    b.enqueue(setViewport);
-    
     //
-    // cache all GLEventListener and their init-state
-    // enqueue reshape on their destination, if already initialized
+    // remove and cache all GLEventListener and their init-state
     //
     final int aSz = a.getGLEventListenerCount();
     final GLEventListener[] aGLE = new GLEventListener[aSz];
     final boolean[] aInit = new boolean[aSz];
     for(int i=0; i<aSz; i++) {
         final GLEventListener l = a.getGLEventListener(0);
-        final boolean initialized = a.getGLEventListenerInitState(l);
-        aInit[i] = initialized;
+        aInit[i] = a.getGLEventListenerInitState(l);
         aGLE[i] = a.removeGLEventListener( l );
-        if( initialized ) {
-            b.enqueue(new ReshapeGLEventListener(l));
-        }
     }    
     final int bSz = b.getGLEventListenerCount();
     final GLEventListener[] bGLE = new GLEventListener[bSz];
     final boolean[] bInit = new boolean[bSz];
     for(int i=0; i<bSz; i++) {
         final GLEventListener l = b.getGLEventListener(0);
-        final boolean initialized = b.getGLEventListenerInitState(l);
-        bInit[i] = initialized;
+        bInit[i] = b.getGLEventListenerInitState(l);
         bGLE[i] = b.removeGLEventListener( l );
-        if( initialized ) {
-            a.enqueue(new ReshapeGLEventListener(l));
-        }
     }
     
-    // switch context and trigger reshape
+    //
+    // trigger glFinish to sync GL ctx
+    //
+    a.enqueue(glFinish);
+    b.enqueue(glFinish);
+    a.display();
+    b.display();
+    
+    //
+    // switch context and
+    // trigger GL-Viewport reset and reshape of all initialized GLEventListeners
+    //
     b.setContext( a.setContext( b.getContext() ) );
+    a.enqueue(setViewport);
+    b.enqueue(setViewport);
+    for(int i=0; i<aSz; i++) {
+        if( aInit[i] ) {
+            b.enqueue(new ReshapeGLEventListener(aGLE[i]));
+        }
+    }    
+    for(int i=0; i<bSz; i++) {
+        if( bInit[i] ) {
+            a.enqueue(new ReshapeGLEventListener(bGLE[i]));
+        }
+    }
+    a.enqueue(glFinish);
+    b.enqueue(glFinish);
     a.display();
     b.display();
     
@@ -185,6 +197,13 @@ public class GLDrawableUtil {
     @Override
     public boolean run(GLAutoDrawable drawable) {
         drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
+        return true;
+    }            
+  };
+  static GLRunnable glFinish = new GLRunnable() {
+    @Override
+    public boolean run(GLAutoDrawable drawable) {
+        drawable.getGL().glFinish();
         return true;
     }            
   };
