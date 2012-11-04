@@ -1,0 +1,604 @@
+/**
+ * Copyright 2012 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
+package com.jogamp.opengl.test.junit.jogl.awt;
+
+import java.applet.Applet;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.DisplayMode;
+import java.awt.EventQueue;
+import java.awt.Frame;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
+import java.awt.Rectangle;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javax.media.opengl.*;
+import javax.media.opengl.awt.GLCanvas;
+
+import org.junit.Assume;
+import org.junit.Test;
+
+import com.jogamp.opengl.util.AnimatorBase;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.UITestCase;
+
+// Sample program that relies on JOGL's mechanism to handle the OpenGL context  
+// and rendering loop when using an AWT canvas attached to an Applet.
+public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
+  static int framesPerTest = 240; // frames
+
+  static class MiniPApplet extends Applet implements MouseMotionListener, KeyListener {
+      private static final long serialVersionUID = 1L;
+    
+      /////////////////////////////////////////////////////////////
+      //
+      // Test parameters  
+      
+      public int frameRate           = 120;
+      public int numSamples          = 4;
+      
+      public boolean fullScreen      = false;  
+      public boolean useAnimator     = true;
+      public boolean resizeableFrame = true;
+    
+      public boolean restartCanvas   = true;
+      public int restartTimeout      = 100; // in number of frames.
+      
+      public boolean printThreadInfo = false;
+      public boolean printEventInfo  = false;
+      
+      /////////////////////////////////////////////////////////////
+      //
+      // Internal variables
+      
+      int width;
+      int height;
+    
+      String OPENGL_VENDOR;  
+      String OPENGL_RENDERER;
+      String OPENGL_VERSION;    
+      String OPENGL_EXTENSIONS; 
+    
+      int currentSamples = -1;
+      
+      private Frame frame;
+      private GLProfile profile;
+      private GLCapabilities capabilities;
+      private GLCanvas canvas;
+    
+      private SimpleListener listener;
+      private CustomAnimator animator;
+      
+      private long beforeTime;
+      private long overSleepTime;
+      private long frameRatePeriod = 1000000000L / frameRate;
+      
+      private boolean initialized = false;  
+      
+      private double theta = 0;
+      private double s = 0;
+      private double c = 0;  
+      
+      private long millisOffset;
+      private int fcount, lastm;
+      private float frate;
+      private int fint = 3;
+      
+      private boolean setFramerate = false;
+      private boolean restarted = false;
+      
+      private int frameCount = 0;
+      
+      void run() {
+        // Thread loop = new Thread("Animation Thread") {
+          // public void run() {        
+            frameCount = 0;
+            while ( frameCount < framesPerTest ) {
+              if (!initialized) {
+                setup();            
+              }
+              
+              if (restartCanvas && restartTimeout == frameCount) {
+                restart();
+              }
+              
+              if (useAnimator) {
+                animator.requestRender();
+              } else {
+                canvas.display();            
+              }
+              
+              clock();
+              
+              frameCount++;
+              if( null == frame ) {
+                  break;
+              }
+            }
+            dispose();
+          // }
+        // };
+        // loop.start();        
+      }
+    
+      void setup() {
+        if (printThreadInfo) System.out.println("Current thread at setup(): " + Thread.currentThread());
+        
+        millisOffset = System.currentTimeMillis();    
+    
+        // Frame setup ----------------------------------------------------------
+        
+        width = 300;
+        height = 300;    
+        MiniPApplet applet = this;
+        Rectangle fullScreenRect = null;
+        
+        GraphicsEnvironment environment =
+          GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice displayDevice = environment.getDefaultScreenDevice();
+        frame = new Frame(displayDevice.getDefaultConfiguration());
+        
+        frame.setTitle("MiniPApplet");
+        if (fullScreen) {
+          frame.setUndecorated(true);
+          frame.setBackground(Color.GRAY);
+          DisplayMode mode = displayDevice.getDisplayMode();
+          fullScreenRect = new Rectangle(0, 0, mode.getWidth(), mode.getHeight());
+          frame.setBounds(fullScreenRect);
+          frame.setVisible(true);
+        }
+        frame.setLayout(null);
+        frame.add(applet);
+        if (fullScreen) {
+          frame.invalidate();
+        } else {
+          frame.pack();
+        }
+        frame.setResizable(resizeableFrame);
+        
+        if (fullScreen) {
+          // After the pack(), the screen bounds are gonna be 0s
+          frame.setBounds(fullScreenRect);
+          applet.setBounds((fullScreenRect.width - applet.width) / 2,
+                           (fullScreenRect.height - applet.height) / 2,
+                           applet.width, applet.height);
+        } else {
+          Insets insets = frame.getInsets();
+    
+          int windowW = applet.width + insets.left + insets.right;
+          int windowH = applet.height + insets.top + insets.bottom;
+          int locationX = 100; 
+          int locationY = 100;
+          
+          frame.setSize(windowW, windowH);
+          frame.setLocation(locationX, locationY);
+          
+          int usableWindowH = windowH - insets.top - insets.bottom;
+          applet.setBounds((windowW - width)/2, insets.top + (usableWindowH - height)/2, width, height);      
+        }
+        
+        frame.add(this);
+        frame.addWindowListener(new WindowAdapter() {
+          public void windowClosing(WindowEvent e) {
+              dispose();
+          }
+        });    
+        
+        frame.setVisible(true);
+    
+        // Canvas setup ----------------------------------------------------------
+        
+        profile = GLProfile.getDefault();
+        capabilities = new GLCapabilities(profile); 
+        capabilities.setSampleBuffers(true);
+        capabilities.setNumSamples(numSamples);
+        capabilities.setDepthBits(24);
+        capabilities.setStencilBits(8);
+        capabilities.setAlphaBits(8);
+        
+        canvas = new GLCanvas(capabilities);
+        canvas.setBounds(0, 0, width, height);
+            
+        this.setLayout(new BorderLayout());
+        this.add(canvas, BorderLayout.CENTER);
+        canvas.addMouseMotionListener(this); 
+        canvas.addKeyListener(this);
+            
+        // Setting up animation
+        listener = new SimpleListener();
+        canvas.addGLEventListener(listener);
+        if (useAnimator) {
+          animator = new CustomAnimator(canvas);
+          animator.start();
+        }    
+        initialized = true;    
+      }
+      
+      void restart() {
+        System.out.println("Restarting surface...");
+        
+        // Stopping animation, removing current canvas.
+        if (useAnimator) {
+          animator.stop();
+          animator.remove(canvas);
+        }
+        canvas.removeGLEventListener(listener);
+        this.remove(canvas);    
+           
+        capabilities = new GLCapabilities(profile); 
+        capabilities.setSampleBuffers(true);
+        capabilities.setNumSamples(numSamples);
+        
+        canvas = new GLCanvas(capabilities);
+        canvas.setBounds(0, 0, width, height);
+        
+        // Setting up animation again
+        this.setLayout(new BorderLayout());
+        this.add(canvas, BorderLayout.CENTER);
+        canvas.addMouseMotionListener(this);
+        canvas.addKeyListener(this);
+        
+        canvas.addGLEventListener(listener);
+        if (useAnimator) {
+          animator.add(canvas);
+          animator.start();
+        }    
+           
+        setFramerate = false;
+        restarted = true;
+        
+        System.out.println("Done");
+      }
+      
+      void dispose() {
+        if( null == frame ) {
+            return;
+        }
+        
+        // Stopping animation, removing current canvas.
+        if (useAnimator) {
+          animator.stop();
+          animator.remove(canvas);
+        }
+        canvas.removeGLEventListener(listener);
+        if( EventQueue.isDispatchThread() ) {
+            MiniPApplet.this.remove(canvas);
+            frame.remove(MiniPApplet.this);
+            frame.validate();
+            frame.dispose();
+            frame = null;
+        } else {
+            try {
+                javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        MiniPApplet.this.remove(canvas);
+                        frame.remove(MiniPApplet.this);
+                        frame.validate();
+                        frame.dispose();
+                        frame = null;
+                    }});
+            } catch (Throwable t) {
+                t.printStackTrace();
+                Assume.assumeNoException(t);
+            }
+        }
+      }
+      
+      void draw(GL2 gl) {
+        frame.setTitle("frame " + frameCount);
+        
+        if (printThreadInfo) System.out.println("Current thread at draw(): " + Thread.currentThread());      
+        
+        if (OPENGL_VENDOR == null) {
+          OPENGL_VENDOR     = gl.glGetString(GL.GL_VENDOR);  
+          OPENGL_RENDERER   = gl.glGetString(GL.GL_RENDERER);
+          OPENGL_VERSION    = gl.glGetString(GL.GL_VERSION);    
+          OPENGL_EXTENSIONS = gl.glGetString(GL.GL_EXTENSIONS);
+          System.out.println(OPENGL_VENDOR);
+          System.out.println(OPENGL_RENDERER);
+          System.out.println(OPENGL_VERSION);
+          System.out.println(OPENGL_EXTENSIONS);
+          
+          int[] temp = { 0 };
+          gl.glGetIntegerv(GL2.GL_MAX_SAMPLES, temp, 0);
+          System.out.println("Maximum number of samples supported by the hardware: " + temp[0]);
+        }
+        
+        if (currentSamples == -1) {
+          int[] temp = { 0 };
+          gl.glGetIntegerv(GL.GL_SAMPLES, temp, 0);
+          currentSamples = temp[0];
+          if (numSamples != currentSamples) {
+            System.err.println("Requested sampling level " + numSamples + " not supported. Using " + currentSamples + " samples instead.");
+          } 
+        }
+        
+        if (!setFramerate) {      
+          if (60 < frameRate) {
+            // Disables vsync
+            gl.setSwapInterval(0);  
+          } else if (30 < frameRate) {        
+            gl.setSwapInterval(1); 
+          } else {
+            gl.setSwapInterval(2);
+          }      
+          setFramerate = true;      
+        }
+        
+        if (restarted) {
+          int[] temp = { 0 };
+          gl.glGetIntegerv(GL.GL_SAMPLES, temp, 0);    
+          if (numSamples != temp[0]) {
+            System.err.println("Multisampling level requested " + numSamples + " not supported. Using " + temp[0] + "samples instead.");
+          }    
+        }
+        
+        gl.glClearColor(0, 0, 0, 1);
+        gl.glClear(GL.GL_COLOR_BUFFER_BIT);
+        
+        theta += 0.01;
+        s = Math.sin(theta);
+        c = Math.cos(theta);      
+        
+        gl.glBegin(GL.GL_TRIANGLES);
+        gl.glColor3f(1, 0, 0);
+        gl.glVertex2d(-c, -c);
+        gl.glColor3f(0, 1, 0);
+        gl.glVertex2d(0, c);
+        gl.glColor3f(0, 0, 1);
+        gl.glVertex2d(s, -s);
+        gl.glEnd();     
+        
+        gl.glFlush();
+        
+        fcount += 1;
+        int m = (int) (System.currentTimeMillis() - millisOffset);
+        if (m - lastm > 1000 * fint) {
+          frate = (float)(fcount) / fint;
+          fcount = 0;
+          lastm = m;
+          System.err.println("fps: " + frate); 
+        }     
+      }
+      
+      void clock() {
+        long afterTime = System.nanoTime();
+        long timeDiff = afterTime - beforeTime;
+        long sleepTime = (frameRatePeriod - timeDiff) - overSleepTime;
+    
+        if (sleepTime > 0) {  // some time left in this cycle
+          try {
+            Thread.sleep(sleepTime / 1000000L, (int) (sleepTime % 1000000L));
+          } catch (InterruptedException ex) { }
+    
+          overSleepTime = (System.nanoTime() - afterTime) - sleepTime;
+    
+        } else {    // sleepTime <= 0; the frame took longer than the period
+          overSleepTime = 0L;
+        }
+    
+        beforeTime = System.nanoTime();    
+      }  
+      
+      class SimpleListener implements GLEventListener {
+        @Override
+        public void display(GLAutoDrawable drawable) {
+          draw(drawable.getGL().getGL2());
+        }
+    
+        @Override
+        public void dispose(GLAutoDrawable drawable) { }
+    
+        @Override
+        public void init(GLAutoDrawable drawable) { }
+    
+        @Override
+        public void reshape(GLAutoDrawable drawable, int x, int y, int w, int h) { }    
+      }
+      
+      public void mouseDragged(MouseEvent ev) {
+        if (printEventInfo) {
+          System.err.println("Mouse dragged event: " + ev);
+        }
+      }
+    
+      public void mouseMoved(MouseEvent ev) {
+        if (printEventInfo) {
+          System.err.println("Mouse moved event: " + ev);
+        }
+      }  
+      
+      public void keyPressed(KeyEvent ev) { 
+        if (printEventInfo) {
+          System.err.println("Key pressed event: " + ev);
+        }
+      }
+      
+      public void keyReleased(KeyEvent ev) { 
+        if (printEventInfo) {
+          System.err.println("Key released event: " + ev);
+        }   
+      }
+    
+      public void keyTyped(KeyEvent ev) { 
+        if (printEventInfo) {
+          System.err.println("Key typed event: " + ev);
+        }   
+      }
+      
+      /** An Animator subclass which renders one frame at the time
+       *  upon calls to the requestRender() method. 
+       **/
+      public class CustomAnimator extends AnimatorBase {    
+          private Timer timer = null;
+          private TimerTask task = null;
+          private volatile boolean shouldRun;
+    
+          protected String getBaseName(String prefix) {
+              return "Custom" + prefix + "Animator" ;
+          }
+    
+          /** Creates an CustomAnimator with an initial drawable to 
+           * animate. */
+          public CustomAnimator(GLAutoDrawable drawable) {
+              if (drawable != null) {
+                  add(drawable);
+              }
+          }
+    
+          public synchronized void requestRender() {
+              shouldRun = true;
+          }
+    
+          public final boolean isStarted() {
+              stateSync.lock();
+              try {
+                  return (timer != null);
+              } finally {
+                  stateSync.unlock();
+              }
+          }
+    
+          public final boolean isAnimating() {
+              stateSync.lock();
+              try {
+                  return (timer != null) && (task != null);
+              } finally {
+                  stateSync.unlock();
+              }
+          }
+    
+          private void startTask() {
+              if(null != task) {
+                  return;
+              }
+              
+              task = new TimerTask() {
+                  private boolean firstRun = true;
+                  public void run() {
+                      if (firstRun) {
+                        Thread.currentThread().setName("OPENGL");
+                        firstRun = false;
+                      }
+                      if(CustomAnimator.this.shouldRun) {
+                         CustomAnimator.this.animThread = Thread.currentThread();
+                          // display impl. uses synchronized block on the animator instance
+                          display();                
+                          synchronized (this) {
+                            // done with current frame.
+                            shouldRun = false;
+                          }                    
+                      }
+                  }
+              };
+    
+              fpsCounter.resetFPSCounter();
+              shouldRun = false;
+              
+              timer.schedule(task, 0, 1);
+          }
+          
+          public synchronized boolean  start() {
+              if (timer != null) {
+                  return false;
+              }
+              stateSync.lock();
+              try {
+                  timer = new Timer();
+                  startTask();
+              } finally {
+                  stateSync.unlock();
+              }
+              return true;
+          }
+    
+          /** Stops this CustomAnimator. */
+          public synchronized boolean stop() {
+              if (timer == null) {
+                  return false;
+              }
+              stateSync.lock();
+              try {
+                  shouldRun = false;
+                  if(null != task) {
+                      task.cancel();
+                      task = null;
+                  }
+                  if(null != timer) {
+                      timer.cancel();
+                      timer = null;
+                  }
+                  animThread = null;
+                  try {
+                      Thread.sleep(20); // ~ 1/60 hz wait, since we can't ctrl stopped threads
+                  } catch (InterruptedException e) { }
+              } finally {
+                  stateSync.unlock();
+              }
+              return true;
+          }
+          
+          public final boolean isPaused() { return false; }
+          public synchronized boolean resume() { return false; }
+          public synchronized boolean pause() { return false; }    
+      }
+  }
+  
+  @Test
+  public void test00() {
+    TestGLCanvasAWTActionDeadlock01AWT.MiniPApplet mini;
+    try {
+      Class<?> c = Thread.currentThread().getContextClassLoader().loadClass(TestGLCanvasAWTActionDeadlock01AWT.MiniPApplet.class.getName());
+      mini = (TestGLCanvasAWTActionDeadlock01AWT.MiniPApplet) c.newInstance();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }    
+    if (mini != null) {
+      mini.run();
+    }
+  }
+  
+  public static void main(String args[]) {
+    for(int i=0; i<args.length; i++) {
+        if(args[i].equals("-frames")) {
+            framesPerTest = MiscUtils.atoi(args[++i], framesPerTest);
+        }
+    }
+    org.junit.runner.JUnitCore.main(TestGLCanvasAWTActionDeadlock01AWT.class.getName());
+  }
+  
+}
