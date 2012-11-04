@@ -119,7 +119,7 @@ public class FPSAnimator extends AnimatorBase {
         if(null != task) {
             return;
         }
-        long delay = (long) (1000.0f / (float) fps);
+        final long period = (long) (1000.0f / (float) fps);
         task = new TimerTask() {
             public void run() {
                 if(FPSAnimator.this.shouldRun) {
@@ -134,9 +134,9 @@ public class FPSAnimator extends AnimatorBase {
         shouldRun = true;
 
         if (scheduleAtFixedRate) {
-            timer.scheduleAtFixedRate(task, 0, delay);
+            timer.scheduleAtFixedRate(task, 0, period);
         } else {
-            timer.schedule(task, 0, delay);
+            timer.schedule(task, 0, period);
         }
     }
 
@@ -174,7 +174,8 @@ public class FPSAnimator extends AnimatorBase {
             }
             animThread = null;
             try {
-                Thread.sleep(20); // ~ 1/60 hz wait, since we can't ctrl stopped threads
+                final long periodx2 = 2L * (long) (1000.0f / (float) fps);
+                Thread.sleep(periodx2 > 20L ? periodx2 : 20L); // max(2 x timer period, ~ 1/60), since we can't ctrl stopped threads
             } catch (InterruptedException e) { }
         } finally {
             stateSync.unlock();
@@ -195,7 +196,8 @@ public class FPSAnimator extends AnimatorBase {
             }
             animThread = null;
             try {
-                Thread.sleep(20); // ~ 1/60 hz wait, since we can't ctrl stopped threads
+                final long periodx2 = 2L * (long) (1000.0f / (float) fps);
+                Thread.sleep(periodx2 > 20L ? periodx2 : 20L); // max(2 x timer period, ~ 1/60), since we can't ctrl stopped threads
             } catch (InterruptedException e) { }
         } finally {
             stateSync.unlock();
