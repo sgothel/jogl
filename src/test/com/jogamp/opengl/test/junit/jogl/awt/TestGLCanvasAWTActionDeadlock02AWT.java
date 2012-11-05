@@ -43,6 +43,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -123,7 +124,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
       
       private int frameCount = 0;
       
-      void run() {
+      void run() throws InterruptedException, InvocationTargetException {
         // Thread loop = new Thread("Animation Thread") {
           // public void run() {        
             frameCount = 0;
@@ -133,7 +134,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
               }
               
               if (restartCanvas && restartTimeout == frameCount) {
-                // restart();
+                restart();
               }
               
               if (useAnimator) {
@@ -155,7 +156,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         // loop.start();        
       }
     
-      void setup() {
+      void setup() throws InterruptedException, InvocationTargetException {
         if (printThreadInfo) System.out.println("Current thread at setup(): " + Thread.currentThread());
         
         millisOffset = System.currentTimeMillis();    
@@ -214,11 +215,18 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         frame.add(this);
         frame.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {
-              dispose();
+              try {
+                  dispose();
+              } catch (Exception ex) {
+                  Assume.assumeNoException(ex);
+              }
           }
         });    
         
-        frame.setVisible(true);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame.setVisible(true); // from here on all AWT mods must be done on AWT-EDT !
+            } } );
     
         // Canvas setup ----------------------------------------------------------
         
@@ -227,17 +235,21 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         capabilities.setSampleBuffers(true);
         capabilities.setNumSamples(numSamples);
         capabilities.setDepthBits(24);
-        capabilities.setStencilBits(8);
+        // capabilities.setStencilBits(8); // No Stencil on OSX w/ hw-accel !
         capabilities.setAlphaBits(8);
         
         canvas = new GLCanvas(capabilities);
         canvas.setBounds(0, 0, width, height);
             
-        this.setLayout(new BorderLayout());
-        this.add(canvas, BorderLayout.CENTER);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                MiniPApplet.this.setLayout(new BorderLayout());
+                MiniPApplet.this.add(canvas, BorderLayout.CENTER);
+                MiniPApplet.this.validate();
+            } } );
         canvas.addMouseMotionListener(this); 
         canvas.addKeyListener(this);
-            
+        
         // Setting up animation
         listener = new SimpleListener();
         canvas.addGLEventListener(listener);
@@ -248,7 +260,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         initialized = true;    
       }
       
-      void restart() {
+      void restart() throws InterruptedException, InvocationTargetException {
         System.out.println("Restarting surface...");
         
         // Stopping animation, removing current canvas.
@@ -267,8 +279,12 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         canvas.setBounds(0, 0, width, height);
         
         // Setting up animation again
-        this.setLayout(new BorderLayout());
-        this.add(canvas, BorderLayout.CENTER);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                MiniPApplet.this.setLayout(new BorderLayout());
+                MiniPApplet.this.add(canvas, BorderLayout.CENTER);
+                MiniPApplet.this.validate();
+            } } );
         canvas.addMouseMotionListener(this);
         canvas.addKeyListener(this);
         
@@ -284,7 +300,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         System.out.println("Done");
       }
       
-      void dispose() {
+      void dispose() throws InterruptedException, InvocationTargetException {
         if( null == frame ) {
             return;
         }
@@ -302,24 +318,28 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
             frame.dispose();
             frame = null;
         } else {
-            try {
-                javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        MiniPApplet.this.remove(canvas);
-                        frame.remove(MiniPApplet.this);
-                        frame.validate();
-                        frame.dispose();
-                        frame = null;
-                    }});
-            } catch (Throwable t) {
-                t.printStackTrace();
-                Assume.assumeNoException(t);
-            }
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    MiniPApplet.this.remove(canvas);
+                    frame.remove(MiniPApplet.this);
+                    frame.validate();
+                    frame.dispose();
+                    frame = null;
+                }});
         }
       }
       
+      boolean justInitialized = true;
+      
       void draw(GL2 gl) {
-        frame.setTitle("frame " + frameCount);
+        if(!justInitialized) {                    
+            // BUG on OSX/CALayer: If frame.setTitle() is issued right after initialization
+            // the call hangs in 
+            //  at apple.awt.CWindow._setTitle(Native Method)
+            //  at apple.awt.CWindow.setTitle(CWindow.java:765) [1.6.0_37, build 1.6.0_37-b06-434-11M3909]
+            //
+            frame.setTitle("frame " + frameCount);
+        }
         
         if (printThreadInfo) System.out.println("Current thread at draw(): " + Thread.currentThread());      
         
@@ -336,6 +356,10 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
           int[] temp = { 0 };
           gl.glGetIntegerv(GL2.GL_MAX_SAMPLES, temp, 0);
           System.out.println("Maximum number of samples supported by the hardware: " + temp[0]);
+          System.out.println("Frame: "+frame);
+          System.out.println("Applet: "+MiniPApplet.this);
+          System.out.println("GLCanvas: "+canvas);
+          System.out.println("GLDrawable: "+canvas.getDelegatedDrawable());
         }
         
         if (currentSamples == -1) {
@@ -418,13 +442,16 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         @Override
         public void display(GLAutoDrawable drawable) {
           draw(drawable.getGL().getGL2());
+          justInitialized = false;
         }
     
         @Override
         public void dispose(GLAutoDrawable drawable) { }
     
         @Override
-        public void init(GLAutoDrawable drawable) { }
+        public void init(GLAutoDrawable drawable) { 
+            justInitialized = true;
+        }
     
         @Override
         public void reshape(GLAutoDrawable drawable, int x, int y, int w, int h) { }    
@@ -588,7 +615,11 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
       throw new RuntimeException(e);
     }    
     if (mini != null) {
-      mini.run();
+      try {
+          mini.run();
+      } catch (Exception ex) {
+          Assume.assumeNoException(ex);
+      }
     }
   }
   

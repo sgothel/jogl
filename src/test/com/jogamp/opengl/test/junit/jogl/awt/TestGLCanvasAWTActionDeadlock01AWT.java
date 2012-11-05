@@ -29,7 +29,9 @@
 package com.jogamp.opengl.test.junit.jogl.awt;
 
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
@@ -61,23 +63,28 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
     GLEventListener gle2 = null;
     
     @Test
+    public void test00NoAnimator() throws InterruptedException {
+        testImpl(null, 0, false);
+    }
+    
+    @Test
     public void test01Animator() throws InterruptedException {
         testImpl(new Animator(), 0, false);
     }
     
-    // @Test
+    @Test
     public void test02FPSAnimator() throws InterruptedException {
         testImpl(new FPSAnimator(30), 0, false);
     }
     
-    // @Test
+    @Test
     public void test02FPSAnimator_RestartOnAWTEDT() throws InterruptedException {
-        testImpl(new FPSAnimator(30), 100, false);
+        testImpl(new FPSAnimator(30), 200, false);
     }
     
-    // @Test
+    @Test
     public void test02FPSAnimator_RestartOnCurrentThread() throws InterruptedException {
-        testImpl(new FPSAnimator(30), 100, true);
+        testImpl(new FPSAnimator(30), 200, true);
     }
     
     void testImpl(final AnimatorBase animator, int restartPeriod, boolean restartOnCurrentThread) throws InterruptedException {
@@ -109,8 +116,11 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
         });    
         
         gle1 = new GLEventListener() {
+            boolean justInitialized = true;
+            
             @Override
             public void init(GLAutoDrawable drawable) {
+                justInitialized = true;
             }
 
             @Override
@@ -119,8 +129,22 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
 
             @Override
             public void display(GLAutoDrawable drawable) {
-                frame1.setTitle("f "+frameCount+", fps "+animator.getLastFPS());
+                if(!justInitialized) {                    
+                    // BUG on OSX/CALayer: If frame.setTitle() is issued right after initialization
+                    // the call hangs in 
+                    //  at apple.awt.CWindow._setTitle(Native Method)
+                    //  at apple.awt.CWindow.setTitle(CWindow.java:765) [1.6.0_37, build 1.6.0_37-b06-434-11M3909]
+                    //
+                    final String msg = "f "+frameCount+", fps "+( null != animator ? animator.getLastFPS() : 0);
+                    System.err.println("About to setTitle: CT "+Thread.currentThread().getName()+", "+msg+
+                                       frame1+", displayable "+frame1.isDisplayable()+
+                                       ", valid "+frame1.isValid()+", visible "+frame1.isVisible());
+                    // Thread.dumpStack();
+                    frame1.setTitle(msg);
+                    
+                }
                 frameCount++;
+                justInitialized=false;
             }
 
             @Override
@@ -133,27 +157,37 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
         glCanvas.addGLEventListener(gle1);
         glCanvas.addGLEventListener(gle2);
         
-        animator.setUpdateFPSFrames(60, System.err);
-        animator.add(glCanvas);
-        animator.start();
+        if(null != animator) {
+            System.err.println("About to start Animator: CT "+Thread.currentThread().getName());
+            animator.setUpdateFPSFrames(60, System.err);
+            animator.add(glCanvas);
+            animator.start();
+        }
 
         attachGLCanvas(applet1, glCanvas, false);
         
+        System.err.println("About to setVisible.0 CT "+Thread.currentThread().getName());
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
+                    System.err.println("About to setVisible.1.0 CT "+Thread.currentThread().getName());
                     frame1.setVisible(true);
+                    System.err.println("About to setVisible.1.X CT "+Thread.currentThread().getName());
                 }});
         } catch (Throwable t) { 
             t.printStackTrace();
             Assume.assumeNoException(t);
         }
+        System.err.println("About to setVisible.X CT "+Thread.currentThread().getName());
         
         final long sleep = 0 < restartPeriod ? restartPeriod : 100;
         long togo = durationPerTest;
         while( 0 < togo ) {
+            if(null == animator) {
+                glCanvas.display();
+            }
             if(0 < restartPeriod) {
-                glCanvas = restart(applet1, glCanvas, restartOnCurrentThread);
+                glCanvas = restart(frame1, applet1, glCanvas, restartOnCurrentThread);
             }
             
             Thread.sleep(sleep);
@@ -162,12 +196,30 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
         }
         
         dispose(frame1, applet1);
-        animator.stop();
+        if(null != animator) {
+            animator.stop();
+        }
         
         gle1 = null;                
         gle2 = null;
     }
     
+    int frameCount = 0;
+    
+    GLCanvas createGLCanvas() {
+        System.err.println("*** createGLCanvas.0");
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        // Iff using offscreen layer, use pbuffer, hence restore onscreen:=true.
+        // caps.setPBuffer(true);
+        // caps.setOnscreen(true);
+        final GLCanvas glCanvas = new GLCanvas(caps);
+        glCanvas.setBounds(0, 0, width, height);
+        Assert.assertNotNull(glCanvas);
+        System.err.println("*** createGLCanvas.X");
+        frameCount = 0;
+        return glCanvas;        
+    }
+
     void dispose(final Frame frame, final Applet applet) {
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -181,14 +233,14 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
         }
     }
     
-    GLCanvas restart(final Applet frame, GLCanvas glCanvas, boolean restartOnCurrentThread) throws InterruptedException {
+    GLCanvas restart(final Frame frame, final Applet applet, GLCanvas glCanvas, boolean restartOnCurrentThread) throws InterruptedException {
         glCanvas.disposeGLEventListener(gle1, true);
         glCanvas.disposeGLEventListener(gle2, true);
-        detachGLCanvas(frame, glCanvas, restartOnCurrentThread);
+        detachGLCanvas(applet, glCanvas, restartOnCurrentThread);
                     
         glCanvas = createGLCanvas();
         
-        attachGLCanvas(frame, glCanvas, restartOnCurrentThread);
+        attachGLCanvas(applet, glCanvas, restartOnCurrentThread);
         glCanvas.addGLEventListener(gle1);
         glCanvas.addGLEventListener(gle2);
         
@@ -226,7 +278,7 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
             try {
                 javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                     public void run() {
-                        applet.remove(glCanvas);
+                        applet.remove(glCanvas);                        
                         applet.validate();
                     }});
             } catch (Throwable t) {
@@ -237,17 +289,6 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
         System.err.println("*** detachGLCanvas.X");
     }
     
-    int frameCount = 0;
-    
-    GLCanvas createGLCanvas() {
-        System.err.println("*** createGLCanvas.0");
-        final GLCanvas glCanvas = new GLCanvas();
-        glCanvas.setBounds(0, 0, width, height);
-        Assert.assertNotNull(glCanvas);
-        System.err.println("*** createGLCanvas.X");
-        return glCanvas;        
-    }
-
     public static void main(String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
