@@ -82,10 +82,11 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
         testImpl(new FPSAnimator(30), 200, false);
     }
     
+    /** May crash due to invalid thread usage, i.e. non AWT-EDT
     @Test
     public void test02FPSAnimator_RestartOnCurrentThread() throws InterruptedException {
         testImpl(new FPSAnimator(30), 200, true);
-    }
+    } */
     
     void testImpl(final AnimatorBase animator, int restartPeriod, boolean restartOnCurrentThread) throws InterruptedException {
         final Frame frame1 = new Frame("Frame 1");
