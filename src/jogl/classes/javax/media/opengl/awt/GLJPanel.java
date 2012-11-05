@@ -54,6 +54,7 @@ import java.awt.image.DataBufferInt;
 import java.beans.Beans;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
@@ -483,8 +484,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public void enqueue(GLRunnable glRunnable) {
-    helper.enqueue(glRunnable);
+  public boolean invoke(final boolean wait, final List<GLRunnable> glRunnables) {
+    return helper.invoke(this, wait, glRunnables);
   }
   
   @Override

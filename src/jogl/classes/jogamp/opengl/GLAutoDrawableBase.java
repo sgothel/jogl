@@ -29,6 +29,7 @@
 package jogamp.opengl;
 
 import java.io.PrintStream;
+import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
@@ -412,8 +413,8 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     }
 
     @Override
-    public final void enqueue(GLRunnable glRunnable) {
-        helper.enqueue(glRunnable);
+    public boolean invoke(final boolean wait, final List<GLRunnable> glRunnables) {
+        return helper.invoke(this, wait, glRunnables);
     }
     
     @Override

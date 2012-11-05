@@ -27,6 +27,8 @@
  */
 package com.jogamp.opengl.swt;
 
+import java.util.List;
+
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.ProxySurface;
@@ -545,15 +547,15 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    }
 
    @Override
-   public boolean invoke(final boolean wait, final GLRunnable run) {
-      return helper.invoke(this, wait, run);
+   public boolean invoke(final boolean wait, final GLRunnable runnable) {
+      return helper.invoke(this, wait, runnable);
    }
    
    @Override
-   public void enqueue(GLRunnable glRunnable) {
-      helper.enqueue(glRunnable);
+   public boolean invoke(final boolean wait, final List<GLRunnable> runnables) {
+      return helper.invoke(this, wait, runnables);
    }
-
+   
    @Override
    public void setAnimator(final GLAnimatorControl arg0) throws GLException {
       helper.setAnimator(arg0);

@@ -40,6 +40,8 @@
 
 package javax.media.opengl;
 
+import java.util.List;
+
 import jogamp.opengl.Debug;
 
 /** A higher-level abstraction than {@link GLDrawable} which supplies
@@ -379,30 +381,16 @@ public interface GLAutoDrawable extends GLDrawable {
    * @see #enqueue(GLRunnable)
    */
   public boolean invoke(boolean wait, GLRunnable glRunnable);
-
-  /**
-   * Enqueues a one-shot {@link GLRunnable},
-   * which will be executed within the next {@link #display()} call
-   * after all registered {@link GLEventListener}s
-   * {@link GLEventListener#display(GLAutoDrawable) display(GLAutoDrawable)}
-   * methods has been called.
-   * <p>
-   * Unlike the {@link #invoke(boolean, GLRunnable)}, this method only enqueues the {@link GLRunnable}
-   * w/o taking care of it's execution. Hence either a performing {@link GLAnimatorControl animator}
-   * or explicit user call shall trigger {@link #display()} to ensure it's execution. 
-   * </p>
-   * <p>
-   * Method return immediately w/o waiting or blocking
-   * </p>
-   *
-   * @param glRunnable the {@link GLRunnable} to execute within the next {@link #display()} call
-   * 
-   * @see #invoke(boolean, GLRunnable)
-   * @see #display()
-   * @see GLRunnable
-   */
-  public void enqueue(GLRunnable glRunnable);
   
+  /**
+   * Extends {@link #invoke(boolean, GLRunnable)} functionality 
+   * allowing to inject a list of {@link GLRunnable}s.
+   * @param wait if <code>true</code> block until execution of the last <code>glRunnable</code> is finished, otherwise return immediately w/o waiting
+   * @param glRunnables the {@link GLRunnable}s to execute within {@link #display()}
+   * @return <code>true</code> if the {@link GLRunnable}s has been processed or queued, otherwise <code>false</code>.
+   */
+  public boolean invoke(boolean wait, List<GLRunnable> glRunnables);
+
   /** Destroys all resources associated with this GLAutoDrawable,
       inclusive the GLContext.
       If a window is attached to it's implementation, it shall be closed.

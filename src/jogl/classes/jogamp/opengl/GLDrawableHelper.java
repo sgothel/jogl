@@ -41,6 +41,7 @@
 package jogamp.opengl;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.HashSet;
 
 import javax.media.nativewindow.NativeSurface;
@@ -691,9 +692,9 @@ public class GLDrawableHelper {
         return false;
     }
     
-    Throwable throwable = null;
     GLRunnableTask rTask = null;
     Object rTaskLock = new Object();
+    Throwable throwable = null;
     synchronized(rTaskLock) {
         final boolean deferred;
         synchronized(glRunnablesLock) {
@@ -723,6 +724,50 @@ public class GLDrawableHelper {
         }
     }
     return true;
+  }
+  
+  public final boolean invoke(GLAutoDrawable drawable, boolean wait, List<GLRunnable> newGLRunnables) {
+    if( null == newGLRunnables || newGLRunnables.size() == 0 || null == drawable ||
+        wait && ( !drawable.isRealized() || null==drawable.getContext() ) ) {
+        return false;
+    }
+    
+    final int count = newGLRunnables.size();
+    GLRunnableTask rTask = null;
+    Object rTaskLock = new Object();
+    Throwable throwable = null;
+    synchronized(rTaskLock) {
+        final boolean deferred;
+        synchronized(glRunnablesLock) {
+            deferred = isAnimatorAnimatingOnOtherThread();
+            if(!deferred) {
+                wait = false; // don't wait if exec immediatly
+            }
+            for(int i=0; i<count-1; i++) {
+                glRunnables.add( new GLRunnableTask(newGLRunnables.get(i), null, false) );
+            }
+            rTask = new GLRunnableTask(newGLRunnables.get(count-1),
+                                       wait ? rTaskLock : null,
+                                       wait  /* catch Exceptions if waiting for result */);
+            glRunnables.add(rTask);
+        }
+        if( !deferred ) {
+            drawable.display();
+        } else if( wait ) {
+            try {
+                rTaskLock.wait(); // free lock, allow execution of rTask
+            } catch (InterruptedException ie) {
+                throwable = ie;
+            }
+            if(null==throwable) {
+                throwable = rTask.getThrowable();
+            }
+            if(null!=throwable) {
+                throw new RuntimeException(throwable);
+            }
+        }
+    }
+    return true;      
   }
 
   public final void enqueue(GLRunnable glRunnable) {

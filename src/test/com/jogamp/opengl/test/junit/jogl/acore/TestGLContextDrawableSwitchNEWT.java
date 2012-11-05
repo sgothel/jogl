@@ -274,11 +274,11 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
         }
 
         animator.stop();
-        System.err.println("pre -del-w1: w1: "+glWindow1);
-        System.err.println("pre -del-w1: w2: "+glWindow2);
+        // System.err.println("pre -del-w1: w1: "+glWindow1);
+        // System.err.println("pre -del-w1: w2: "+glWindow2);
         glWindow1.destroy();
-        System.err.println("post-del-w1: w1: "+glWindow1);
-        System.err.println("post-del-w1: w2: "+glWindow2);
+        // System.err.println("post-del-w1: w1: "+glWindow1);
+        // System.err.println("post-del-w1: w2: "+glWindow2);
         glWindow2.destroy();
         
     }

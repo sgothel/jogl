@@ -57,6 +57,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.EventQueue;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.OffscreenLayerOption;
@@ -746,8 +747,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public void enqueue(GLRunnable glRunnable) {
-    helper.enqueue(glRunnable);
+  public boolean invoke(final boolean wait, final List<GLRunnable> glRunnables) {
+    return helper.invoke(this, wait, glRunnables);
   }
   
   @Override

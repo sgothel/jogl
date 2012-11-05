@@ -27,6 +27,9 @@
  */
 package com.jogamp.opengl.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLContext;
@@ -80,7 +83,7 @@ public class GLDrawableUtil {
     dest.addGLEventListener(listener);
     if(preserveInitState && initialized) {
         dest.setGLEventListenerInitState(listener, true);
-        dest.enqueue(new ReshapeGLEventListener(listener));
+        dest.invoke(false, new ReshapeGLEventListener(listener));
     } // else .. !init state is default
   }
   
@@ -118,6 +121,8 @@ public class GLDrawableUtil {
    * @param b
    */
   public static final void swapGLContextAndAllGLEventListener(GLAutoDrawable a, GLAutoDrawable b) {
+    final List<GLRunnable> aGLCmds = new ArrayList<GLRunnable>();
+    final List<GLRunnable> bGLCmds = new ArrayList<GLRunnable>();
     final GLAnimatorControl aAnim = a.getAnimator();
     final GLAnimatorControl bAnim = b.getAnimator();    
     final boolean aIsPaused = isAnimatorAnimatingOnOtherThread(aAnim) && aAnim.pause();
@@ -146,32 +151,30 @@ public class GLDrawableUtil {
     //
     // trigger glFinish to sync GL ctx
     //
-    a.enqueue(glFinish);
-    b.enqueue(glFinish);
-    a.display();
-    b.display();
+    a.invoke(true, glFinish);
+    b.invoke(true, glFinish);
     
     //
     // switch context and
     // trigger GL-Viewport reset and reshape of all initialized GLEventListeners
     //
     b.setContext( a.setContext( b.getContext() ) );
-    a.enqueue(setViewport);
-    b.enqueue(setViewport);
+    aGLCmds.add(setViewport);
+    bGLCmds.add(setViewport);
     for(int i=0; i<aSz; i++) {
         if( aInit[i] ) {
-            b.enqueue(new ReshapeGLEventListener(aGLE[i]));
+            bGLCmds.add(new ReshapeGLEventListener(aGLE[i]));
         }
     }    
     for(int i=0; i<bSz; i++) {
         if( bInit[i] ) {
-            a.enqueue(new ReshapeGLEventListener(bGLE[i]));
+            aGLCmds.add(new ReshapeGLEventListener(bGLE[i]));
         }
     }
-    a.enqueue(glFinish);
-    b.enqueue(glFinish);
-    a.display();
-    b.display();
+    aGLCmds.add(glFinish);
+    bGLCmds.add(glFinish);
+    a.invoke(true, aGLCmds);
+    b.invoke(true, bGLCmds);
     
     // add all cached GLEventListener to their destination and fix their init-state
     for(int i=0; i<bSz; i++) {
@@ -248,10 +251,8 @@ public class GLDrawableUtil {
     }
     dest.setContext( src.setContext( dest.getContext() ) );
     
-    src.enqueue(setViewport);
-    dest.enqueue(setViewport);
-    src.display();
-    dest.display();
+    src.invoke(true, setViewport);
+    dest.invoke(true, setViewport);
     
     if(aIsPaused) { aAnim.resume(); }
     if(bIsPaused) { bAnim.resume(); }
