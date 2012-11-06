@@ -11,7 +11,6 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLFBODrawable;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 import com.jogamp.opengl.FBObject;
@@ -222,6 +221,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         Throwable tFBO = null;
         Throwable tGL = null;
         ourContext.makeCurrent();
+        gl.glFinish(); // sync GL command stream
         fboBound = false; // clear bound-flag immediatly, caused by contextMadeCurrent(..) - otherwise we would swap @ release
         try {
             final int maxSamples = gl.getMaxRenderbufferSamples();        
