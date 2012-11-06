@@ -642,7 +642,7 @@ public class FBObject {
     private Colorbuffer[] colorAttachmentPoints; // colorbuffer attachment points 
     private RenderAttachment depth, stencil; // depth and stencil maybe equal in case of packed-depth-stencil
 
-    private final FBObject samplesSink; // MSAA sink
+    private FBObject samplesSink; // MSAA sink
     private TextureAttachment samplesSinkTexture; 
     private boolean samplesSinkDirty;
 
@@ -746,9 +746,6 @@ public class FBObject {
      * </p>
      */
     public FBObject() {
-        this(false);
-    }
-    /* pp */ FBObject(boolean isSampleSink) {
         this.initialized = false;
         
         // TBD @ init
@@ -779,7 +776,7 @@ public class FBObject {
         this.depth = null;
         this.stencil = null;                
         
-        this.samplesSink = isSampleSink ? null : new FBObject(true);
+        this.samplesSink = null;
         this.samplesSinkTexture = null;
         this.samplesSinkDirty = true;
     }
@@ -1942,6 +1939,10 @@ public class FBObject {
     /**
      * Manually reset the MSAA sampling sink, if used.
      * <p>
+     * If MSAA is being used and no sampling sink is attached via {@link #setSamplingSink(FBObject)}
+     * a new sampling sink is being created.
+     * </p>
+     * <p>
      * Automatically called by {@link #reset(GL, int, int, int, boolean)} 
      * and {@link #syncSamplingSink(GL)}.
      * </p>
@@ -1953,16 +1954,17 @@ public class FBObject {
      * @throws GLException in case of an error, i.e. size too big, etc ..
      */
     public final void resetSamplingSink(GL gl) throws GLException {
-        if(null == samplesSink ) {
-            return; // this is the sample sink!
-        }
         if(0 == samples) {
             // MSAA off
-            if(samplesSink.initialized) {
+            if(null != samplesSink && samplesSink.initialized) {
                 // cleanup
                 samplesSink.detachAll(gl);
             }
             return;
+        }
+        
+        if(null == samplesSink ) {
+            samplesSink = new FBObject();
         }
         
         if(!samplesSink.initialized) {
@@ -2024,6 +2026,27 @@ public class FBObject {
             System.err.println("FBObject.resetSamplingSink: END\n\tTHIS "+this+",\n\tSINK "+samplesSink+
                                "\n\t size "+sampleSinkSizeMismatch +", tex "+sampleSinkTexMismatch +", depthStencil "+sampleSinkDepthStencilMismatch);
         }
+    }
+    
+    /**
+     * Setting this FBO sampling sink.
+     * @param newSamplingSink the new FBO sampling sink to use, or null to remove current sampling sink 
+     * @throws GLException if this FBO doesn't use MSAA or the given sink uses MSAA itself
+     */
+    public void setSamplingSink(FBObject newSamplingSink) throws GLException {
+        if( null == newSamplingSink) {
+            samplesSink = null;
+            samplesSinkTexture = null;
+        } else if( samples > 0 ) {
+            if( newSamplingSink.getNumSamples() > 0 ) {
+                throw new GLException("SamplingSink FBO cannot use MSAA itself: "+newSamplingSink);
+            }
+            samplesSink = newSamplingSink;
+            samplesSinkTexture = (TextureAttachment) newSamplingSink.getColorbuffer(0);
+        } else {
+            throw new GLException("Setting SamplingSink for non MSAA FBO not allowed: "+this);
+        }
+        samplesSinkDirty = true;
     }
     
     /** 
@@ -2279,7 +2302,7 @@ public class FBObject {
         return "FBO[name r/w "+fbName+"/"+getReadFramebuffer()+", init "+initialized+", bound "+bound+", size "+width+"x"+height+
                ", samples "+samples+"/"+maxSamples+", depth "+depth+", stencil "+stencil+
                ", color attachments: "+colorAttachmentCount+"/"+maxColorAttachments+
-               ": "+caps+", msaa-sink "+samplesSinkTexture+", isSamplesSink "+(null == samplesSink)+
+               ": "+caps+", msaa-sink "+samplesSinkTexture+", hasSamplesSink "+(null != samplesSink)+
                ", state "+getStatusString()+", obj "+toHexString(objectHashCode())+"]";
     }
     
