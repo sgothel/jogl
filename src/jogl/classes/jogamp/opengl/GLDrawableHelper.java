@@ -173,12 +173,17 @@ public class GLDrawableHelper {
       if( ! drawable.isRealized() ) {
           return drawable;
       }
-      final boolean contextCurrent = null != context && context.isCurrent();
+      final GLContext currentContext = GLContext.getCurrent();
       final GLDrawableFactory factory = drawable.getFactory();
       final NativeSurface surface = drawable.getNativeSurface();
       final ProxySurface proxySurface = (surface instanceof ProxySurface) ? (ProxySurface)surface : null;
       
-      if(contextCurrent) {
+      if( null != context ) {
+          // Ensure to sync GL command stream
+          if( currentContext != context ) {
+              context.makeCurrent();
+          }
+          context.getGL().glFinish();
           context.release();
       }
       
@@ -199,8 +204,8 @@ public class GLDrawableHelper {
           context.setGLDrawable(drawable, true); // re-association
       }
       
-      if(contextCurrent) {
-          context.makeCurrent();
+      if( null != currentContext ) {
+          currentContext.makeCurrent();
       }
       return drawable;
   }
