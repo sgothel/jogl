@@ -397,8 +397,8 @@ public class GLDrawableHelper {
    * otherwise maked uninitialized.
    * </p>
    * <p>
-   * Please consider using {@link #disposeAllGLEventListener(GLAutoDrawable, GLDrawable, GLContext)} 
-   * or {@link #disposeGL(GLAutoDrawable, GLDrawable, GLContext, Runnable)}
+   * Please consider using {@link #disposeAllGLEventListener(GLAutoDrawable, GLContext, boolean)}
+   * or {@link #disposeGL(GLAutoDrawable, GLContext)}
    * for correctness, i.e. encapsulating all calls w/ makeCurrent etc.
    * </p>
    * @param autoDrawable
@@ -483,8 +483,7 @@ public class GLDrawableHelper {
    * 
    * @param autoDrawable
    * @param context
-   * @param listener
-   * @param initAction
+   * @param remove
    */
   public final void disposeAllGLEventListener(final GLAutoDrawable autoDrawable,
                                               final GLDrawable drawable,
@@ -505,29 +504,6 @@ public class GLDrawableHelper {
       }
   }
   
-  /** 
-   * Principal helper method which runs 
-   * {@link #disposeAllGLEventListener(GLAutoDrawable, boolean) disposeAllGLEventListener(autoDrawable, false)} 
-   * with the context made current <b>and</b> destroys the context afterwards while holding the lock.
-   * @param autoDrawable
-   * @param drawable
-   * @param context
-   * @param postAction
-   */
-  public final void disposeGL(final GLAutoDrawable autoDrawable,
-                              final GLDrawable drawable,
-                              final GLContext context,
-                              final Runnable postAction) {
-    if(PERF_STATS) {
-        invokeGLImplStats(drawable, context, null, null, autoDrawable);    
-    } else {
-        invokeGLImpl(drawable, context, null, null, autoDrawable);
-    }
-    if(null != postAction) {
-        postAction.run();
-    }
-  }
-      
   private final void init(GLEventListener l, GLAutoDrawable drawable, boolean sendReshape) {
       l.init(drawable);
       if(sendReshape) {
@@ -842,21 +818,21 @@ public class GLDrawableHelper {
     }
 
     if(PERF_STATS) {
-        invokeGLImplStats(drawable, context, runnable, initAction, null);    
+        invokeGLImplStats(drawable, context, runnable, initAction);    
     } else {
-        invokeGLImpl(drawable, context, runnable, initAction, null);
+        invokeGLImpl(drawable, context, runnable, initAction);
     }
   }
 
-  private final void invokeGLImpl(final GLDrawable drawable,
-                                  final GLContext context,
-                                  final Runnable  runnable,
-                                  final Runnable  initAction,
-                                  final GLAutoDrawable disposeAutoDrawable) {
-    final Thread currentThread = Thread.currentThread();
-    
-    final boolean isDisposeAction = null==initAction ;
-        
+  /** 
+   * Principal helper method which runs 
+   * {@link #disposeAllGLEventListener(GLAutoDrawable, boolean) disposeAllGLEventListener(autoDrawable, false)} 
+   * with the context made current <b>and</b> destroys the context afterwards while holding the lock.
+   * @param autoDrawable
+   * @param context
+   */
+  public final void disposeGL(final GLAutoDrawable autoDrawable,
+                              final GLContext context) {
     // Support for recursive makeCurrent() calls as well as calling
     // other drawables' display() methods from within another one's
     GLContext lastContext = GLContext.getCurrent();
@@ -874,35 +850,66 @@ public class GLDrawableHelper {
     try {
       res = context.makeCurrent();
       if (GLContext.CONTEXT_NOT_CURRENT != res) {
-        if(!isDisposeAction) {
-            perThreadInitAction.set(initAction);
-            if (GLContext.CONTEXT_CURRENT_NEW == res) {
-              if (DEBUG) {
-                System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
-              }
-              initAction.run();
-            }
-            runnable.run();
-            if (autoSwapBufferMode) {
-                drawable.swapBuffers();
-            }
-        } else {
-            if(GLContext.CONTEXT_CURRENT_NEW == res) {
-                throw new GLException(currentThread.getName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context was not created (new ctx): "+context);
-            }
-            if( listeners.size() > 0 && null != disposeAutoDrawable ) {
-                disposeAllGLEventListener(disposeAutoDrawable, false);
-            }
+        if(GLContext.CONTEXT_CURRENT_NEW == res) {
+            throw new GLException(Thread.currentThread().getName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context was not created (new ctx): "+context);
+        }
+        if( listeners.size() > 0 && null != autoDrawable ) {
+            disposeAllGLEventListener(autoDrawable, false);
         }
       }
     } finally {
       try {
-          if(isDisposeAction) {
-              context.destroy();
-              flushGLRunnables();
-          } else if( GLContext.CONTEXT_NOT_CURRENT != res ) {
-              context.release();
+          context.destroy();
+          flushGLRunnables();
+      } catch (Exception e) {
+          System.err.println("Catched: "+e.getMessage());
+          e.printStackTrace();
+      }
+      if (lastContext != null) {
+        final int res2 = lastContext.makeCurrent();
+        if (null != lastInitAction && res2 == GLContext.CONTEXT_CURRENT_NEW) {
+          lastInitAction.run();
+        }
+      }
+    }
+  }
+      
+  private final void invokeGLImpl(final GLDrawable drawable,
+                                  final GLContext context,
+                                  final Runnable  runnable,
+                                  final Runnable  initAction) {                                  
+    // Support for recursive makeCurrent() calls as well as calling
+    // other drawables' display() methods from within another one's
+    GLContext lastContext = GLContext.getCurrent();
+    Runnable  lastInitAction = null;
+    if (lastContext != null) {
+        if (lastContext == context) {
+            lastContext = null; // utilize recursive locking
+        } else {
+            lastInitAction = perThreadInitAction.get();
+            lastContext.release();
+        }
+    }
+    int res = GLContext.CONTEXT_NOT_CURRENT;
+  
+    try {
+      res = context.makeCurrent();
+      if (GLContext.CONTEXT_NOT_CURRENT != res) {
+        perThreadInitAction.set(initAction);
+        if (GLContext.CONTEXT_CURRENT_NEW == res) {
+          if (DEBUG) {
+            System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
           }
+          initAction.run();
+        }
+        runnable.run();
+        if ( autoSwapBufferMode ) {
+            drawable.swapBuffers();
+        }
+      }
+    } finally {
+      try {
+          context.release();
       } catch (Exception e) {
           System.err.println("Catched: "+e.getMessage());
           e.printStackTrace();
@@ -919,11 +926,8 @@ public class GLDrawableHelper {
   private final void invokeGLImplStats(final GLDrawable drawable,
                                        final GLContext context,
                                        final Runnable  runnable,
-                                       final Runnable  initAction,
-                                       final GLAutoDrawable disposeAutoDrawable) {
+                                       final Runnable  initAction) {
     final Thread currentThread = Thread.currentThread();
-    
-    final boolean isDisposeAction = null==initAction ;
     
     // Support for recursive makeCurrent() calls as well as calling
     // other drawables' display() methods from within another one's
@@ -956,41 +960,28 @@ public class GLDrawableHelper {
           ctxClaimed = true;
       }
       if (res != GLContext.CONTEXT_NOT_CURRENT) {
-        if(!isDisposeAction) {
-            perThreadInitAction.set(initAction);
-            if (res == GLContext.CONTEXT_CURRENT_NEW) {
-              if (DEBUG) {
-                System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
-              }
-              initAction.run();
-            }
-            tdR = System.currentTimeMillis();        
-            tdA = tdR - t0; // makeCurrent
-            runnable.run();
-            tdS = System.currentTimeMillis();
-            tdR = tdS - tdR; // render time
-            if (autoSwapBufferMode) {
-                drawable.swapBuffers();
-                tdX = System.currentTimeMillis();
-                tdS = tdX - tdS; // swapBuffers
-            }
-        } else {
-            if(res == GLContext.CONTEXT_CURRENT_NEW) {
-                throw new GLException(currentThread.getName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context was not created (new ctx): "+context);
-            }
-            if( listeners.size() > 0 && null != disposeAutoDrawable ) {
-                disposeAllGLEventListener(disposeAutoDrawable, false);
-            }
+        perThreadInitAction.set(initAction);
+        if (res == GLContext.CONTEXT_CURRENT_NEW) {
+          if (DEBUG) {
+            System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
+          }
+          initAction.run();
+        }
+        tdR = System.currentTimeMillis();        
+        tdA = tdR - t0; // makeCurrent
+        runnable.run();
+        tdS = System.currentTimeMillis();
+        tdR = tdS - tdR; // render time
+        if (autoSwapBufferMode) {
+            drawable.swapBuffers();
+            tdX = System.currentTimeMillis();
+            tdS = tdX - tdS; // swapBuffers
         }
       }
     } finally {
       try {
-          if(isDisposeAction) {
-              context.destroy();
-              flushGLRunnables();
-              ctxDestroyed = true;
-          } else if( res != GLContext.CONTEXT_NOT_CURRENT &&
-                     (null == skipContextReleaseThread || currentThread != skipContextReleaseThread) ) {
+          if( res != GLContext.CONTEXT_NOT_CURRENT &&
+              (null == skipContextReleaseThread || currentThread != skipContextReleaseThread) ) {
               context.release();
               ctxReleased = true;
           }

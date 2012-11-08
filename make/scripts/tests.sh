@@ -5,15 +5,15 @@ if [ -z "$1" -o -z "$2" -o -z "$3" ] ; then
     exit 0
 fi
 
-javaexe=$1
+javaexe="$1"
 shift
 javaxargs=$1
 shift
 bdir=$1
 shift
 
-if [ ! -x $javaexe ] ; then
-    echo java-exe $javaexe is not an executable
+if [ ! -x "$javaexe" ] ; then
+    echo java-exe "$javaexe" is not an executable
     exit 1
 fi
 if [ ! -d $bdir ] ; then
@@ -42,15 +42,15 @@ if [ $MOSX -eq 1 ] ; then
     MOSX_MT=1
 fi
 
-which $javaexe 2>&1 | tee -a java-run.log
-$javaexe -version 2>&1 | tee -a java-run.log
+which "$javaexe" 2>&1 | tee -a java-run.log
+"$javaexe" -version 2>&1 | tee -a java-run.log
 echo LIBXCB_ALLOW_SLOPPY_LOCK: $LIBXCB_ALLOW_SLOPPY_LOCK 2>&1 | tee -a java-run.log
 echo LIBGL_DRIVERS_PATH: $LIBGL_DRIVERS_PATH 2>&1 | tee -a java-run.log
 echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a java-run.log
 echo LIBGL_ALWAYS_INDIRECT: $LIBGL_ALWAYS_INDIRECT 2>&1 | tee -a java-run.log
 echo LIBGL_ALWAYS_SOFTWARE: $LIBGL_ALWAYS_SOFTWARE 2>&1 | tee -a java-run.log
 echo SWT_CLASSPATH: $SWT_CLASSPATH 2>&1 | tee -a java-run.log
-echo $javaexe $javaxargs $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
+echo "$javaexe" $javaxargs $X_ARGS $D_ARGS $* 2>&1 | tee -a java-run.log
 echo MacOsX $MOSX
 
 function jrun() {
@@ -209,13 +209,13 @@ function jrun() {
     echo
     echo LD_LIBRARY_PATH $LD_LIBRARY_PATH
     echo
-    echo $javaexe $javaxargs $X_ARGS $D_ARGS $C_ARG $*
+    echo "$javaexe" $javaxargs $X_ARGS $D_ARGS $C_ARG $*
     #LIBGL_DRIVERS_PATH=/usr/lib/mesa:/usr/lib32/mesa \
     #LIBGL_DEBUG=verbose INTEL_STRICT_CONFORMANCE=1 INTEL_DEBUG="buf bat" \
     #LIBGL_DEBUG=verbose MESA_DEBUG=true INTEL_STRICT_CONFORMANCE=1 \
     #export LIBGL_DEBUG=verbose MESA_DEBUG=true LIBGL_ALWAYS_SOFTWARE=true
-    #gdb --args $javaexe $javaxargs $X_ARGS $D_ARGS $C_ARG $*
-    $javaexe $javaxargs $X_ARGS $D_ARGS $C_ARG $*
+    #gdb --args "$javaexe" $javaxargs $X_ARGS $D_ARGS $C_ARG $*
+    "$javaexe" $javaxargs $X_ARGS $D_ARGS $C_ARG $*
     echo
     echo "Test End: $*"
     echo
@@ -266,7 +266,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOffscrnCapsNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOffscrnCapsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitchNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestPointsNEWT $*
 
@@ -285,6 +285,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOf
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOOnThreadSharedContext1DemoES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMix2DemosES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMRTNEWT01 $*
+
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableDeadlockAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461FBOSupersamplingSwingAWT
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
@@ -351,7 +352,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOf
 #testawt com.jogamp.opengl.test.junit.jogl.glu.TestBug463ScaleImageMemoryAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWTCardLayoutAnimatorStartStopBug532 $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock00AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock01AWT $*
+testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock02AWT $*
 
 #

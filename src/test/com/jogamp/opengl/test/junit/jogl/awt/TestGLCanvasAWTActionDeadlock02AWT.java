@@ -53,12 +53,31 @@ import javax.media.opengl.awt.GLCanvas;
 import org.junit.Assume;
 import org.junit.Test;
 
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.VersionNumber;
 import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
-// Sample program that relies on JOGL's mechanism to handle the OpenGL context  
-// and rendering loop when using an AWT canvas attached to an Applet.
+/**
+ * Sample program that relies on JOGL's mechanism to handle the OpenGL context  
+ * and rendering loop when using an AWT canvas attached to an Applet.
+ * <p>
+ * BUG on OSX/CALayer w/ Java6: 
+ * If frame.setTitle() is issued right after initialization the call hangs in
+ * <pre> 
+ * at apple.awt.CWindow._setTitle(Native Method)
+ *  at apple.awt.CWindow.setTitle(CWindow.java:765) [1.6.0_37, build 1.6.0_37-b06-434-11M3909]
+ * </pre>
+ * </p>
+ * <p>
+ * OSX/CALayer is forced by using an Applet component in this unit test.
+ * </p>
+ * <p>
+ * Similar deadlock has been experienced w/ other mutable operation on an AWT Container owning a GLCanvas child,
+ * e.g. setResizable*().
+ * </p>
+ */
 public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
   static int framesPerTest = 240; // frames
 
@@ -109,7 +128,9 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
       private long frameRatePeriod = 1000000000L / frameRate;
       
       private boolean initialized = false;  
-      
+      private boolean osxCALayerAWTModBug = false;
+      boolean justInitialized = true;
+
       private double theta = 0;
       private double s = 0;
       private double c = 0;  
@@ -161,6 +182,13 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         
         millisOffset = System.currentTimeMillis();    
     
+        final VersionNumber version170 = new VersionNumber(1, 7, 0);
+        osxCALayerAWTModBug = Platform.OSType.MACOS == Platform.getOSType() && 
+                              0 > Platform.getJavaVersionNumber().compareTo(version170);
+        System.err.println("OSX CALayer AWT-Mod Bug "+osxCALayerAWTModBug);
+        System.err.println("OSType "+Platform.getOSType());
+        System.err.println("Java Version "+Platform.getJavaVersionNumber());
+        
         // Frame setup ----------------------------------------------------------
         
         width = 300;
@@ -328,16 +356,9 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
                 }});
         }
       }
-      
-      boolean justInitialized = true;
-      
+            
       void draw(GL2 gl) {
-        if(!justInitialized) {                    
-            // BUG on OSX/CALayer: If frame.setTitle() is issued right after initialization
-            // the call hangs in 
-            //  at apple.awt.CWindow._setTitle(Native Method)
-            //  at apple.awt.CWindow.setTitle(CWindow.java:765) [1.6.0_37, build 1.6.0_37-b06-434-11M3909]
-            //
+        if( !osxCALayerAWTModBug || !justInitialized ) {
             frame.setTitle("frame " + frameCount);
         }
         
@@ -441,15 +462,15 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
       class SimpleListener implements GLEventListener {
         @Override
         public void display(GLAutoDrawable drawable) {
-          draw(drawable.getGL().getGL2());
-          justInitialized = false;
+            draw(drawable.getGL().getGL2());
+            justInitialized = false;
         }
     
         @Override
         public void dispose(GLAutoDrawable drawable) { }
     
         @Override
-        public void init(GLAutoDrawable drawable) { 
+        public void init(GLAutoDrawable drawable) {
             justInitialized = true;
         }
     

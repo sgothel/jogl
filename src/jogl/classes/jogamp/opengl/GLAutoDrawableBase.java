@@ -223,27 +223,26 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
      * In such case call <code>super.destroyImplInLock</code> first.</p>
      */
     protected void destroyImplInLock() {
-        final GLContext _context = context;
-        final GLDrawable _drawable = drawable;
-        if( null != _drawable ) {
-            if( _drawable.isRealized() ) {
-                if( null != _context && _context.isCreated() ) {
-                    // Catch dispose GLExceptions by GLEventListener, just 'print' them
-                    // so we can continue with the destruction.
-                    try {
-                        helper.disposeGL(this, _drawable, _context, null);
-                    } catch (GLException gle) {
-                        gle.printStackTrace();
-                    }
+        if( null != context ) {
+            if( context.isCreated() ) {        
+                // Catch dispose GLExceptions by GLEventListener, just 'print' them
+                // so we can continue with the destruction.
+                try {
+                    helper.disposeGL(this, context);
+                } catch (GLException gle) {
+                    gle.printStackTrace();
                 }
-                _drawable.setRealized(false);
             }
-            if( ownsDevice ) {
-                _drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice().close();
-            }
+            context = null;
         }
-        context = null;
-        drawable = null;        
+        if( null != drawable ) {
+            final AbstractGraphicsDevice device = drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
+            drawable.setRealized(false);
+            drawable = null;
+            if( ownsDevice ) {
+                device.close();
+            }
+        }        
     }
     
     public final void defaultSwapBuffers() throws GLException {

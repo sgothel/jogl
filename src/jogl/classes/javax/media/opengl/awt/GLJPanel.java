@@ -757,21 +757,26 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     return "AWT-GLJPanel[ "+((null!=backend)?backend.getDrawable().getClass().getName():"null-drawable")+"]";
   }
 
-  private final Runnable postDisposeAction = new Runnable() {
-      @Override
-      public void run() {
-          if (backend != null && !backend.isUsingOwnThreadManagment()) {
-              backend.destroy();
-              backend = null;
-              isInitialized = false;
-          }
-      }
-  };
-
   private final Runnable disposeAction = new Runnable() {
     @Override
     public void run() {
-      helper.disposeGL(GLJPanel.this, backend.getDrawable(), backend.getContext(), postDisposeAction);
+        if ( null != backend ) {
+            final GLContext _context = backend.getContext();
+            if( null != _context && _context.isCreated() ) {
+                // Catch dispose GLExceptions by GLEventListener, just 'print' them
+                // so we can continue with the destruction.
+                try {
+                    helper.disposeGL(GLJPanel.this, _context);
+                } catch (GLException gle) {
+                    gle.printStackTrace();
+                }
+            }
+            if ( !backend.isUsingOwnThreadManagment() ) {
+                backend.destroy();
+                backend = null;
+                isInitialized = false;
+            }
+        }
     }
   };
 

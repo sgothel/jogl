@@ -888,33 +888,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   //
 
   private boolean disposeRegenerate;
-  private final Runnable postDisposeOnEDTAction = new Runnable() {
-    @Override
-    public void run() {
-      context=null;
-      if(null!=drawable) {
-          drawable.setRealized(false);
-          drawable=null;
-          if(null!=jawtWindow) {
-            jawtWindow.destroy();
-            jawtWindow=null;
-          }
-      }
-
-      if(disposeRegenerate) {
-          // Similar process as in addNotify()!
-
-          // Recreate GLDrawable/GLContext to reflect it's new graphics configuration
-          createDrawableAndContext();
-
-          if(DEBUG) {
-            System.err.println(getThreadName()+": GLCanvas.dispose(true): new drawable: "+drawable);
-          }
-          validateGLDrawable(); // immediate attempt to recreate the drawable
-      }
-    }
-  };
-
   private final Runnable disposeOnEDTAction = new Runnable() {
     @Override
     public void run() {
@@ -929,31 +902,64 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                 Thread.dumpStack();
             }
         
-            if(null!=drawable && null!=context) {
-                boolean animatorPaused = false;
-                if(null!=animator) {
-                    // can't remove us from animator for recreational addNotify()
-                    animatorPaused = animator.pause();
-                }
-        
-                if(context.isCreated()) {
-                    helper.disposeGL(GLCanvas.this, drawable, context, postDisposeOnEDTAction);
-                }
-        
-                if(animatorPaused) {
-                    animator.resume();
-                }
+            final boolean animatorPaused;
+            if(null!=animator) {
+                // can't remove us from animator for recreational addNotify()
+                animatorPaused = animator.pause();
+            } else {
+                animatorPaused = false;
             }
-        
-            if(!disposeRegenerate) {
+            
+            if( null != context ) {
+                if( context.isCreated() ) {
+                    // Catch dispose GLExceptions by GLEventListener, just 'print' them
+                    // so we can continue with the destruction.
+                    try {
+                        helper.disposeGL(GLCanvas.this, context);
+                    } catch (GLException gle) {
+                        gle.printStackTrace();
+                    }
+                }       
+                context=null;
+            }
+            if( null != drawable ) {
+                drawable.setRealized(false);
+                if(DEBUG) {
+                    System.err.println(getThreadName()+": dispose("+disposeRegenerate+") - 1: "+drawable);
+                }
+                drawable=null;
+            }
+            if( null != jawtWindow ) {
+                jawtWindow.destroy();
+                if(DEBUG) {
+                    System.err.println(getThreadName()+": dispose("+disposeRegenerate+") - 2: "+jawtWindow);
+                }
+                jawtWindow=null;
+            }
+
+            if(disposeRegenerate) {
+                // Similar process as in addNotify()!
+
+                // Recreate GLDrawable/GLContext to reflect it's new graphics configuration
+                createDrawableAndContext();
+
+                if(DEBUG) {
+                    System.err.println(getThreadName()+": GLCanvas.dispose(true): new drawable: "+drawable);
+                }
+                validateGLDrawable(); // immediate attempt to recreate the drawable
+            } else {        
                 if(null != awtConfig) {
                     AWTEDTExecutor.singleton.invoke(getTreeLock(), true, disposeAbstractGraphicsDeviceActionOnEDT);
                 }
                 awtConfig=null;
             }
         
+            if(animatorPaused) {
+                animator.resume();
+            }
+            
             if(DEBUG) {
-                System.err.println(getThreadName()+": dispose("+disposeRegenerate+") - END, "+animator);
+                System.err.println(getThreadName()+": dispose("+disposeRegenerate+") - END, animator "+animator);
             }
             
         } finally {

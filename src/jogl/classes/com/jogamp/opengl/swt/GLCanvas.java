@@ -173,45 +173,49 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    /*
     * Disposes of OpenGL resources
     */
-   private final Runnable postDisposeGLAction = new Runnable() {
-      @Override
-      public void run() {
-         context = null;
-         if (null != drawable) {
-            drawable.setRealized(false);
-            drawable = null;
-         }
-      }
-   };
-
    private final Runnable disposeOnEDTGLAction = new Runnable() {
       @Override
       public void run() {
          final RecursiveLock _lock = lock;
          _lock.lock();
          try {
-             if (null != drawable && null != context) {
-                boolean animatorPaused = false;
-                final GLAnimatorControl animator = getAnimator();
-                if (null != animator) {
-                   animatorPaused = animator.pause();
-                }
-        
-                if(context.isCreated()) {
-                    helper.disposeGL(GLCanvas.this, drawable, context, postDisposeGLAction);
-                }
-        
-                if (animatorPaused) {
-                   animator.resume();
-                }
+             final GLAnimatorControl animator = getAnimator();
+             final boolean animatorPaused;
+             if(null!=animator) {
+                 // can't remove us from animator for recreational addNotify()
+                 animatorPaused = animator.pause();
+             } else {
+                 animatorPaused = false;
+             }
+
+             if ( null != context ) {
+                 if( context.isCreated() ) {
+                     // Catch dispose GLExceptions by GLEventListener, just 'print' them
+                     // so we can continue with the destruction.
+                     try {
+                         helper.disposeGL(GLCanvas.this, context);
+                     } catch (GLException gle) {
+                         gle.printStackTrace();
+                     }
+                 }
+                 context = null;        
+             }
+             if ( null != drawable ) {
+                 drawable.setRealized(false);
+                 drawable = null;
              }
              // SWT is owner of the device handle, not us.
              // Hence close() operation is a NOP. 
              if (null != device) {
-                device.close();
-                device = null;
+                 device.close();
+                 device = null;
              }
              SWTAccessor.setRealized(GLCanvas.this, false); // unrealize ..
+
+             if (animatorPaused) {
+                 animator.resume();
+             }
+
          } finally {
              _lock.unlock();
          }

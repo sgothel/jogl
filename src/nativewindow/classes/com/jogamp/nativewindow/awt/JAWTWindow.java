@@ -320,31 +320,40 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     int res = surfaceLock.getHoldCount() == 1 ? LOCK_SURFACE_NOT_READY : LOCK_SUCCESS; // new lock ?
 
     if ( LOCK_SURFACE_NOT_READY == res ) {
-        determineIfApplet();
-        try {
-            final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
-            adevice.lock();
+        if( !component.isDisplayable() ) {
+            // W/o native peer, we cannot utilize JAWT for locking.
+            surfaceLock.unlock();
+            if(DEBUG) {
+                System.err.println("JAWTWindow: Can't lock surface, component peer n/a. Component displayable "+component.isDisplayable()+", "+component);
+                Thread.dumpStack();
+            }
+        } else {
+            determineIfApplet();
             try {
-                if(null == jawt) { // no need to re-fetch for each frame
-                    jawt = fetchJAWTImpl();
-                    isOffscreenLayerSurface = JAWTUtil.isJAWTUsingOffscreenLayer(jawt);
-                }
-                res = lockSurfaceImpl();
-                if(LOCK_SUCCESS == res && drawable_old != drawable) {
-                    res = LOCK_SURFACE_CHANGED;
-                    if(DEBUG) {
-                        System.err.println("JAWTWindow: surface change 0x"+Long.toHexString(drawable_old)+" -> 0x"+Long.toHexString(drawable));
-                        // Thread.dumpStack();
+                final AbstractGraphicsDevice adevice = getGraphicsConfiguration().getScreen().getDevice();
+                adevice.lock();
+                try {
+                    if(null == jawt) { // no need to re-fetch for each frame
+                        jawt = fetchJAWTImpl();
+                        isOffscreenLayerSurface = JAWTUtil.isJAWTUsingOffscreenLayer(jawt);
+                    }
+                    res = lockSurfaceImpl();
+                    if(LOCK_SUCCESS == res && drawable_old != drawable) {
+                        res = LOCK_SURFACE_CHANGED;
+                        if(DEBUG) {
+                            System.err.println("JAWTWindow: surface change 0x"+Long.toHexString(drawable_old)+" -> 0x"+Long.toHexString(drawable));
+                            // Thread.dumpStack();
+                        }
+                    }
+                } finally {
+                    if (LOCK_SURFACE_NOT_READY >= res) {
+                        adevice.unlock();
                     }
                 }
             } finally {
                 if (LOCK_SURFACE_NOT_READY >= res) {
-                    adevice.unlock();
+                    surfaceLock.unlock();
                 }
-            }
-        } finally {
-            if (LOCK_SURFACE_NOT_READY >= res) {
-                surfaceLock.unlock();
             }
         }
     }

@@ -119,13 +119,11 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   }
   protected int lockSurfaceImpl() throws NativeWindowException {
     int ret = NativeWindow.LOCK_SURFACE_NOT_READY;
-    if(null == ds) {
-        ds = getJAWT().GetDrawingSurface(component);
-        if (ds == null) {
-          // Widget not yet realized
-          unlockSurfaceImpl();
-          return NativeWindow.LOCK_SURFACE_NOT_READY;
-        }
+    ds = getJAWT().GetDrawingSurface(component);
+    if (ds == null) {
+      // Widget not yet realized
+      unlockSurfaceImpl();
+      return NativeWindow.LOCK_SURFACE_NOT_READY;
     }
     int res = ds.Lock();
     dsLocked = ( 0 == ( res & JAWTFactory.JAWT_LOCK_ERROR ) ) ;
@@ -141,21 +139,19 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
     if ((res & JAWTFactory.JAWT_LOCK_SURFACE_CHANGED) != 0) {
       ret = NativeWindow.LOCK_SURFACE_CHANGED;
     }
-    if(null == dsi) {
-        if (firstLock) {
-          AccessController.doPrivileged(new PrivilegedAction<Object>() {
-              public Object run() {
-                dsi = ds.GetDrawingSurfaceInfo();
-                return null;
-              }
-            });
-        } else {
-          dsi = ds.GetDrawingSurfaceInfo();
-        }
-        if (dsi == null) {
-          unlockSurfaceImpl();
-          return NativeWindow.LOCK_SURFACE_NOT_READY;
-        }
+    if (firstLock) {
+      AccessController.doPrivileged(new PrivilegedAction<Object>() {
+          public Object run() {
+            dsi = ds.GetDrawingSurfaceInfo();
+            return null;
+          }
+        });
+    } else {
+      dsi = ds.GetDrawingSurfaceInfo();
+    }
+    if (dsi == null) {
+      unlockSurfaceImpl();
+      return NativeWindow.LOCK_SURFACE_NOT_READY;
     }
     updateBounds(dsi.getBounds());
     if (DEBUG && firstLock ) {
