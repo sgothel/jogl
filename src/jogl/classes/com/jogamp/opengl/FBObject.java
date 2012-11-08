@@ -810,7 +810,7 @@ public class FBObject {
 
         int realMaxColorAttachments = 1;
         maxColorAttachments = 1;
-        if( null != samplingSink && fullFBOSupport || NV_fbo_color_attachments ) {
+        if( fullFBOSupport || NV_fbo_color_attachments ) {
             try {
                 gl.glGetIntegerv(GL2GL3.GL_MAX_COLOR_ATTACHMENTS, val, 0);
                 realMaxColorAttachments = 1 <= val[0] ? val[0] : 1; // cap minimum to 1
@@ -841,7 +841,6 @@ public class FBObject {
         if(DEBUG) {
             System.err.println("FBObject "+width+"x"+height+", "+samples+" -> "+this.samples+" samples");
             System.err.println("fullFBOSupport:           "+fullFBOSupport);
-            System.err.println("isSamplesSink:            "+(null == samplingSink));
             System.err.println("maxColorAttachments:      "+maxColorAttachments+"/"+realMaxColorAttachments+" [capped/real]");
             System.err.println("maxSamples:               "+maxSamples);
             System.err.println("maxTextureSize:           "+maxTextureSize);
@@ -965,6 +964,12 @@ public class FBObject {
             width = newWidth;
             height = newHeight;
             samples = newSamples;
+            
+            if(0 < samples && null == samplingSink ) {
+                // needs valid samplingSink for detach*() -> bind()
+                samplingSink = new FBObject();
+                samplingSink.init(gl, width, height, 0);
+            }
             detachAllImpl(gl, true , true);            
             if(resetSamplingSink) {
                 resetSamplingSink(gl);
@@ -2030,10 +2035,12 @@ public class FBObject {
     
     /**
      * Setting this FBO sampling sink.
-     * @param newSamplingSink the new FBO sampling sink to use, or null to remove current sampling sink 
+     * @param newSamplingSink the new FBO sampling sink to use, or null to remove current sampling sink
+     * @return the previous sampling sink or null if none was attached 
      * @throws GLException if this FBO doesn't use MSAA or the given sink uses MSAA itself
      */
-    public void setSamplingSink(FBObject newSamplingSink) throws GLException {
+    public FBObject setSamplingSink(FBObject newSamplingSink) throws GLException {
+        final FBObject prev = samplingSink; 
         if( null == newSamplingSink) {
             samplingSink = null;
             samplingSinkTexture = null;
@@ -2047,6 +2054,7 @@ public class FBObject {
             throw new GLException("Setting SamplingSink for non MSAA FBO not allowed: "+this);
         }
         samplingSinkDirty = true;
+        return prev;
     }
     
     /** 
