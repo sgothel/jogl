@@ -284,7 +284,8 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             }
         }
         try {
-            if( !updateGraphicsConfigurationARB((WindowsWGLDrawableFactory)factory, config, chooser, hdc, extHDC, pfdIDs) ) {
+            if( !((GLCapabilitiesImmutable)config.getChosenCapabilities()).getHardwareAccelerated()
+                    || !updateGraphicsConfigurationARB((WindowsWGLDrawableFactory)factory, config, chooser, hdc, extHDC, pfdIDs) ) {
                 updateGraphicsConfigurationGDI(config, chooser, hdc, extHDC, pfdIDs);
             }
         } finally {
