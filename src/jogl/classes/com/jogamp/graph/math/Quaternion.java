@@ -176,11 +176,11 @@ public class Quaternion {
      */
     public void mult(Quaternion q)
     {
-        float w1 = w*q.w - (x*q.x + y*q.y + z*q.z);
+        float w1 = w*q.w - x*q.x - y*q.y - z*q.z;
 
-        float x1 = w*q.z + q.w*z + y*q.z - z*q.y;
-        float y1 = w*q.x + q.w*x + z*q.x - x*q.z;
-        float z1 = w*q.y + q.w*y + x*q.y - y*q.x;
+        float x1 = w*q.x + x*q.w + y*q.z - z*q.y;
+        float y1 = w*q.y - x*q.z + y*q.w + x*q.x;
+        float z1 = w*q.z + x*q.y - y*q.x + y*q.w;
 
         w = w1;
         x = x1;
