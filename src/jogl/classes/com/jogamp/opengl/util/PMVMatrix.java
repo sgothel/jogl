@@ -385,6 +385,26 @@ public class PMVMatrix implements GLMatrixFunc {
     public final FloatBuffer glGetPMvMatrixf() {
         return matrixPMv;
     }
+    
+    /**
+     * @param d a 4*4 float array to hold the pre-multiplied P*MV
+     * @param d_off offset of d
+     * @return the pre-multiplied P*MV, param d
+     */
+    public float[] getPreMultipliedPMV(float[] d, int d_off) {
+        FloatUtil.multMatrixf(matrixP, matrixMv, d, d_off);
+        return d;
+    }
+    
+    /**
+     * @param d a 4*4 FloatBuffer to hold the premultiplied P*MV
+     * @param d_off offset of d
+     * @return the pre-multiplied P*MV, param d
+     */
+    public FloatBuffer getPreMultipliedPMV(FloatBuffer d) {
+        FloatUtil.multMatrixf(matrixP, matrixMv, d);
+        return d;
+    }
 
     /** 
      * Returns 3 matrices within one FloatBuffer: {@link #glGetPMatrixf() P}, {@link #glGetMvMatrixf() Mv} and {@link #glGetMviMatrixf() Mvi}.  
