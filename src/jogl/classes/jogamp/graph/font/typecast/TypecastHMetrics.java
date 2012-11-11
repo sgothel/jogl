@@ -31,7 +31,7 @@ import jogamp.graph.font.typecast.ot.table.HeadTable;
 import jogamp.graph.font.typecast.ot.table.HheaTable;
 
 import com.jogamp.graph.font.Font.Metrics;
-import com.jogamp.graph.geom.AABBox;
+import com.jogamp.opengl.math.geom.AABBox;
 
 class TypecastHMetrics implements Metrics {
     private final TypecastFont fontImpl;

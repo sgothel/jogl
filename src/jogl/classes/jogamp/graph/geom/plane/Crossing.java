@@ -17,12 +17,10 @@
 /**
  * @author Denis M. Kishenko
  */
-package jogamp.graph.math.plane;
+package jogamp.graph.geom.plane;
 
-import com.jogamp.opengl.FloatUtil;
+import com.jogamp.opengl.math.FloatUtil;
 
-import jogamp.graph.geom.plane.Path2D;
-import jogamp.graph.geom.plane.PathIterator;
 
 
 public class Crossing {

@@ -89,7 +89,7 @@
                   value="com/jogamp/gluegen/runtime/opengl/*"/>
 
         <property name="java.part.core" 
-                  value="${java.part.gluegen-gl-rt} javax/media/opengl/* javax/media/opengl/fixedfunc/* javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* com/jogamp/opengl/* jogamp/opengl/* jogamp/opengl/glu/* jogamp/opengl/glu/error/* jogamp/opengl/shader/**"/>
+                  value="${java.part.gluegen-gl-rt} javax/media/opengl/* javax/media/opengl/fixedfunc/* javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* com/jogamp/opengl/* com/jogamp/opengl/math/** jogamp/opengl/* jogamp/opengl/glu/* jogamp/opengl/glu/error/* jogamp/opengl/shader/**"/>
         <property name="java.part.core.exclude" value="javax/media/opengl/Debug* javax/media/opengl/Trace*"/>
 
         <property name="java.part.nv-cg"

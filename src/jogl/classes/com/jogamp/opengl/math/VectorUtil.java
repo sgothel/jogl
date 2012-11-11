@@ -25,13 +25,9 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.math;
+package com.jogamp.opengl.math;
 
 import java.util.ArrayList;
-
-
-import com.jogamp.graph.geom.Vertex;
-import com.jogamp.opengl.FloatUtil;
 
 public class VectorUtil {
 
@@ -62,9 +58,9 @@ public class VectorUtil {
      */
     public static float[] normalize(float[] vector)
     {
-        float[] newVector = new float[3];
+        final float[] newVector = new float[3];
 
-        float d = FloatUtil.sqrt(vector[0]*vector[0] + vector[1]*vector[1] + vector[2]*vector[2]);
+        final float d = FloatUtil.sqrt(vector[0]*vector[0] + vector[1]*vector[1] + vector[2]*vector[2]);
         if(d> 0.0f)
         {
             newVector[0] = vector[0]/d;
@@ -81,7 +77,7 @@ public class VectorUtil {
      */
     public static float[] scale(float[] vector, float scale)
     {
-        float[] newVector = new float[3];
+        final float[] newVector = new float[3];
 
         newVector[0] = vector[0]*scale;
         newVector[1] = vector[1]*scale;
@@ -96,7 +92,7 @@ public class VectorUtil {
      */
     public static float[] vectorAdd(float[] v1, float[] v2)
     {
-        float[] newVector = new float[3];
+        final float[] newVector = new float[3];
 
         newVector[0] = v1[0] + v2[0];
         newVector[1] = v1[1] + v2[1];
@@ -111,7 +107,7 @@ public class VectorUtil {
      */
     public static float[] cross(float[] vec1, float[] vec2)
     {
-        float[] out = new float[3];
+        final float[] out = new float[3];
 
         out[0] = vec2[2]*vec1[1] - vec2[1]*vec1[2];
         out[1] = vec2[0]*vec1[2] - vec2[2]*vec1[0];
@@ -127,7 +123,7 @@ public class VectorUtil {
      */
     public static float[] colMatrixVectorMult(float[] colMatrix, float[] vec)
     {
-        float[] out = new float[3];
+        final float[] out = new float[3];
 
         out[0] = vec[0]*colMatrix[0] + vec[1]*colMatrix[4] + vec[2]*colMatrix[8] + colMatrix[12]; 
         out[1] = vec[0]*colMatrix[1] + vec[1]*colMatrix[5] + vec[2]*colMatrix[9] + colMatrix[13]; 
@@ -143,7 +139,7 @@ public class VectorUtil {
      */
     public static float[] rowMatrixVectorMult(float[] rawMatrix, float[] vec)
     {
-        float[] out = new float[3];
+        final float[] out = new float[3];
 
         out[0] = vec[0]*rawMatrix[0] + vec[1]*rawMatrix[1] + vec[2]*rawMatrix[2] + rawMatrix[3]; 
         out[1] = vec[0]*rawMatrix[4] + vec[1]*rawMatrix[5] + vec[2]*rawMatrix[6] + rawMatrix[7]; 
@@ -161,6 +157,7 @@ public class VectorUtil {
     {
         return (p1+p2)/2.0f;
     }
+    
     /** Calculate the midpoint of two points
      * @param p1 first point
      * @param p2 second point
@@ -168,13 +165,14 @@ public class VectorUtil {
      */
     public static float[] mid(float[] p1, float[] p2)
     {
-        float[] midPoint = new float[3];
+        final float[] midPoint = new float[3];
         midPoint[0] = (p1[0] + p2[0])*0.5f;
         midPoint[1] = (p1[1] + p2[1])*0.5f;
         midPoint[2] = (p1[2] + p2[2])*0.5f;
 
         return midPoint;
     }
+    
     /** Compute the norm of a vector
      * @param vec vector
      * @return vorm
@@ -183,6 +181,7 @@ public class VectorUtil {
     {
         return FloatUtil.sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
     }
+    
     /** Compute distance between 2 points
      * @param p0 a ref point on the line
      * @param vec vector representing the direction of the line
@@ -191,11 +190,11 @@ public class VectorUtil {
      */
     public static float computeLength(float[] p0, float[] point)
     {
-        float[] w = new float[]{point[0]-p0[0],point[1]-p0[1],point[2]-p0[2]};
+        final float w0 = point[0]-p0[0];
+        final float w1 = point[1]-p0[1];
+        final float w2 = point[2]-p0[2];
 
-        float distance = FloatUtil.sqrt(w[0]*w[0] + w[1]*w[1] + w[2]*w[2]);
-
-        return distance;
+        return FloatUtil.sqrt(w0*w0 + w1*w1 + w2*w2);
     }
 
     /**Check equality of 2 vec3 vectors
@@ -205,11 +204,9 @@ public class VectorUtil {
      */
     public static boolean checkEquality(float[] v1, float[] v2)
     {
-        if(Float.compare(v1[0], v2[0]) == 0 &&
-                Float.compare(v1[1], v2[1]) == 0 &&
-                Float.compare(v1[2], v2[2]) == 0 )
-            return true;
-        return false;
+        return Float.compare(v1[0], v2[0]) == 0 &&
+               Float.compare(v1[1], v2[1]) == 0 &&
+               Float.compare(v1[2], v2[2]) == 0 ;
     }
 
     /**Check equality of 2 vec2 vectors
@@ -219,10 +216,8 @@ public class VectorUtil {
      */
     public static boolean checkEqualityVec2(float[] v1, float[] v2)
     {
-        if(Float.compare(v1[0], v2[0]) == 0 && 
-                Float.compare(v1[1], v2[1]) == 0)
-            return true;
-        return false;
+        return Float.compare(v1[0], v2[0]) == 0 && 
+               Float.compare(v1[1], v2[1]) == 0 ;
     }
 
     /** Compute the determinant of 3 vectors
@@ -233,8 +228,7 @@ public class VectorUtil {
      */
     public static float computeDeterminant(float[] a, float[] b, float[] c)
     {
-        float area = a[0]*b[1]*c[2] + a[1]*b[2]*c[0] + a[2]*b[0]*c[1] - a[0]*b[2]*c[1] - a[1]*b[0]*c[2] - a[2]*b[1]*c[0];
-        return area;
+        return a[0]*b[1]*c[2] + a[1]*b[2]*c[0] + a[2]*b[0]*c[1] - a[0]*b[2]*c[1] - a[1]*b[0]*c[2] - a[2]*b[1]*c[0];
     }
 
     /** Check if three vertices are colliniear
@@ -255,7 +249,7 @@ public class VectorUtil {
      */
     public static float[] computeVector(float[] v1, float[] v2)
     {
-        float[] vector = new float[3];
+        final float[] vector = new float[3];
         vector[0] = v2[0] - v1[0];
         vector[1] = v2[1] - v1[1];
         vector[2] = v2[2] - v1[2];
@@ -270,11 +264,11 @@ public class VectorUtil {
      * @return true if the vertex d is inside the circle defined by the 
      * vertices a, b, c. from paper by Guibas and Stolfi (1985).
      */
-    public static boolean inCircle(Vertex a, Vertex b, Vertex c, Vertex d){
+    public static boolean inCircle(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d){
         return (a.getX() * a.getX() + a.getY() * a.getY()) * triArea(b, c, d) -
-        (b.getX() * b.getX() + b.getY() * b.getY()) * triArea(a, c, d) +
-        (c.getX() * c.getX() + c.getY() * c.getY()) * triArea(a, b, d) -
-        (d.getX() * d.getX() + d.getY() * d.getY()) * triArea(a, b, c) > 0;
+               (b.getX() * b.getX() + b.getY() * b.getY()) * triArea(a, c, d) +
+               (c.getX() * c.getX() + c.getY() * c.getY()) * triArea(a, b, d) -
+               (d.getX() * d.getX() + d.getY() * d.getY()) * triArea(a, b, c) > 0;
     }
 
     /** Computes oriented area of a triangle
@@ -284,7 +278,7 @@ public class VectorUtil {
      * @return compute twice the area of the oriented triangle (a,b,c), the area
      * is positive if the triangle is oriented counterclockwise.
      */
-    public static float triArea(Vertex a, Vertex b, Vertex c){
+    public static float triArea(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c) {
         return (b.getX() - a.getX()) * (c.getY() - a.getY()) - (b.getY() - a.getY())*(c.getX() - a.getX());
     }
 
@@ -324,7 +318,7 @@ public class VectorUtil {
      * @param c third vertex
      * @return true if the points a,b,c are in a ccw order
      */
-    public static boolean ccw(Vertex a, Vertex b, Vertex c){
+    public static boolean ccw(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c){
         return triArea(a,b,c) > 0;
     }
 
@@ -334,7 +328,7 @@ public class VectorUtil {
      * @param c third vertex
      * @return Winding
      */
-    public static Winding getWinding(Vertex a, Vertex b, Vertex c) {
+    public static Winding getWinding(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c) {
         return triArea(a,b,c) > 0 ? Winding.CCW : Winding.CW ;
     }
 
@@ -342,7 +336,7 @@ public class VectorUtil {
      * @param vertices
      * @return positive area if ccw else negative area value
      */
-    public static float area(ArrayList<Vertex> vertices) {
+    public static float area(ArrayList<? extends Vert2fImmutable> vertices) {
         int n = vertices.size();
         float area = 0.0f;
         for (int p = n - 1, q = 0; q < n; p = q++)
@@ -358,7 +352,7 @@ public class VectorUtil {
      * @param vertices array of Vertices
      * @return CCW or CW {@link Winding}
      */
-    public static Winding getWinding(ArrayList<Vertex> vertices) {
+    public static Winding getWinding(ArrayList<? extends Vert2fImmutable> vertices) {
         return area(vertices) >= 0 ? Winding.CCW : Winding.CW ;
     }
 
@@ -371,7 +365,7 @@ public class VectorUtil {
      * @return the intersection coordinates if the segments intersect, otherwise 
      * returns null 
      */
-    public static float[] seg2SegIntersection(Vertex a, Vertex b, Vertex c, Vertex d) {
+    public static float[] seg2SegIntersection(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d) {
         float determinant = (a.getX()-b.getX())*(c.getY()-d.getY()) - (a.getY()-b.getY())*(c.getX()-d.getX());
 
         if (determinant == 0) 
@@ -398,7 +392,7 @@ public class VectorUtil {
      * @return the intersection coordinates if the lines intersect, otherwise 
      * returns null 
      */
-    public static float[] line2lineIntersection(Vertex a, Vertex b, Vertex c, Vertex d) {
+    public static float[] line2lineIntersection(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d) {
         float determinant = (a.getX()-b.getX())*(c.getY()-d.getY()) - (a.getY()-b.getY())*(c.getX()-d.getX());
 
         if (determinant == 0) 
@@ -420,7 +414,7 @@ public class VectorUtil {
      * @param e vertex 2 of first segment
      * @return true if the segment intersects at least one segment of the triangle, false otherwise
      */
-    public static boolean tri2SegIntersection(Vertex a, Vertex b, Vertex c, Vertex d, Vertex e){
+    public static boolean tri2SegIntersection(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d, Vert2fImmutable e){
         if(seg2SegIntersection(a, b, d, e) != null)
             return true;
         if(seg2SegIntersection(b, c, d, e) != null)

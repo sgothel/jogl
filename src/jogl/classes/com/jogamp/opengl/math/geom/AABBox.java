@@ -25,9 +25,10 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.graph.geom;
+package com.jogamp.opengl.math.geom;
 
-import com.jogamp.graph.math.VectorUtil;
+import com.jogamp.opengl.math.VectorUtil;
+
 
 /**
  * Axis Aligned Bounding Box. Defined by two 3D coordinates (low and high)
@@ -289,6 +290,22 @@ public class AABBox implements Cloneable {
     
     public final float getMinY() {
         return low[1];
+    }
+    
+    public final float getMinZ() {
+        return low[2];
+    }
+    
+    public final float getMaxX() {
+        return high[0];
+    }
+    
+    public final float getMaxY() {
+        return high[1];
+    }
+    
+    public final float getMaxZ() {
+        return high[2];
     }
     
     public final float getWidth(){

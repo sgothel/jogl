@@ -27,7 +27,7 @@
  */
 package com.jogamp.graph.font;
 
-import com.jogamp.graph.geom.AABBox;
+import com.jogamp.opengl.math.geom.AABBox;
 
 /**
  * Interface wrapper for font implementation.

@@ -26,7 +26,7 @@ import java.io.Serializable;
 
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
-import com.jogamp.opengl.FloatUtil;
+import com.jogamp.opengl.math.FloatUtil;
 
 public class AffineTransform implements Cloneable, Serializable {
 

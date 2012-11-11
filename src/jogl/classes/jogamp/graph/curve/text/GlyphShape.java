@@ -34,7 +34,7 @@ import com.jogamp.graph.geom.Triangle;
 import com.jogamp.graph.geom.Vertex.Factory;
 
 import com.jogamp.graph.curve.OutlineShape;
-import com.jogamp.graph.math.Quaternion;
+import com.jogamp.opengl.math.Quaternion;
 
 public class GlyphShape {
     

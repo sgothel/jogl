@@ -28,7 +28,7 @@
 package com.jogamp.graph.geom.opengl;
 
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.math.VectorUtil;
+import com.jogamp.opengl.math.VectorUtil;
 
 /** A Simple Vertex Implementation. Where the coordinates, and other attributes are
  * float based, and the coordinates and texture coordinates are saved in two float arrays.
@@ -88,6 +88,12 @@ public class SVertex implements Vertex {
         System.arraycopy(coordsBuffer, offset, coord, 0, length);
     }
         
+    @Override
+    public int getCoordCount() {
+        return 3;
+    }
+    
+    @Override
     public final float[] getCoord() {
         return coord;
     }

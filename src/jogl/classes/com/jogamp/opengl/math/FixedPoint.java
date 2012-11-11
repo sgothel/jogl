@@ -31,7 +31,7 @@
  * 
  */
 
-package com.jogamp.opengl.util;
+package com.jogamp.opengl.math;
 
 public class FixedPoint {
   public static final int toFixed(int value) {

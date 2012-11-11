@@ -34,7 +34,7 @@ import jogamp.graph.geom.plane.AffineTransform;
 import jogamp.graph.geom.plane.Path2D;
 
 import com.jogamp.graph.font.Font;
-import com.jogamp.graph.geom.AABBox;
+import com.jogamp.opengl.math.geom.AABBox;
 
 public class TypecastGlyph implements FontInt.GlyphInt {
     public class Advance

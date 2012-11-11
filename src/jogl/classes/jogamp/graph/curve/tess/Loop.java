@@ -30,10 +30,10 @@ package jogamp.graph.curve.tess;
 import java.util.ArrayList;
 
 
-import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Triangle;
-import com.jogamp.graph.math.VectorUtil;
+import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.math.geom.AABBox;
 
 public class Loop {
     private HEdge root = null;
@@ -250,7 +250,7 @@ public class Loop {
                     continue;
                 }
                 inValid = VectorUtil.inCircle(root.getGraphPoint().getPoint(), next.getGraphPoint().getPoint(),
-                        cand, e.getGraphPoint().getPoint());
+                                              cand, e.getGraphPoint().getPoint());
                 if(inValid){
                     break;
                 }

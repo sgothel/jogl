@@ -44,7 +44,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.common.os.Platform;
-import com.jogamp.opengl.FloatUtil;
+import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.PMVMatrix;

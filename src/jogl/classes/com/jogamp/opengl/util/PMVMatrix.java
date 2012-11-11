@@ -46,9 +46,9 @@ import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import jogamp.opengl.ProjectFloat;
 
-import com.jogamp.opengl.FloatUtil;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Platform;
+import com.jogamp.opengl.math.FloatUtil;
 
 /**
  * PMVMatrix implements a subset of the fixed function pipeline

@@ -4,7 +4,7 @@ package javax.media.opengl;
 import java.nio.*;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.opengl.FloatUtil;
+import com.jogamp.opengl.math.FloatUtil;
 
 public class GLUniformData {
 

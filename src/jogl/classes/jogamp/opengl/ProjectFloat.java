@@ -122,7 +122,7 @@ import java.nio.IntBuffer;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.opengl.FloatUtil;
+import com.jogamp.opengl.math.FloatUtil;
 
 /**
  * ProjectFloat.java

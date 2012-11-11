@@ -21,11 +21,10 @@ package jogamp.graph.geom.plane;
 
 import java.util.NoSuchElementException;
 
-import com.jogamp.graph.geom.AABBox;
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.opengl.SVertex;
+import com.jogamp.opengl.math.geom.AABBox;
 
-import jogamp.graph.math.plane.Crossing;
 
 public final class Path2D implements Cloneable {
 

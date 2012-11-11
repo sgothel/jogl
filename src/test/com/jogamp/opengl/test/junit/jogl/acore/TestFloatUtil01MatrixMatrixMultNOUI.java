@@ -31,7 +31,7 @@ package com.jogamp.opengl.test.junit.jogl.acore;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.jogamp.opengl.FloatUtil;
+import com.jogamp.opengl.math.FloatUtil;
 
 public class TestFloatUtil01MatrixMatrixMultNOUI {
 

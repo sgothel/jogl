@@ -56,7 +56,7 @@ import jogamp.graph.font.typecast.ot.table.GlyfDescript;
 import jogamp.graph.font.typecast.ot.table.GlyphDescription;
 import jogamp.graph.font.typecast.t2.T2Interpreter;
 
-import com.jogamp.graph.geom.AABBox;
+import com.jogamp.opengl.math.geom.AABBox;
 
 
 

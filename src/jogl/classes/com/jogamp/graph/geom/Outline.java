@@ -30,7 +30,8 @@ package com.jogamp.graph.geom;
 import java.util.ArrayList;
 
 import com.jogamp.graph.geom.Vertex;
-import com.jogamp.graph.math.VectorUtil;
+import com.jogamp.opengl.math.VectorUtil;
+import com.jogamp.opengl.math.geom.AABBox;
 
 
 
