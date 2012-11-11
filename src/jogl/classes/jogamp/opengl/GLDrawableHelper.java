@@ -408,7 +408,7 @@ public class GLDrawableHelper {
     int disposeCount = 0;
     synchronized(listenersLock) {
         if( remove ) {
-            for (int count = listeners.size(); 0 < count; count--) {
+            for (int count = listeners.size(); 0 < count && 0 < listeners.size(); count--) {
               final GLEventListener listener = listeners.remove(0);
               if( !listenersToBeInit.remove(listener) ) {
                   listener.dispose(autoDrawable);
@@ -416,8 +416,7 @@ public class GLDrawableHelper {
               }
             }
         } else {
-            final int count = listeners.size();
-            for (int i = 0; i < count; i++) {
+            for (int i = 0; i < listeners.size(); i++) {
               final GLEventListener listener = listeners.get(i);
               if( !listenersToBeInit.contains(listener) ) {
                   listener.dispose(autoDrawable);
