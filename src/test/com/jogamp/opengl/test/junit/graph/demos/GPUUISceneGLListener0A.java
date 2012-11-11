@@ -267,9 +267,8 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         } else {
             System.err.println("GPUUISceneGLListener0A: dispose (0)");            
         }
-        
-        drawable.removeGLEventListener(sceneUIController);
-        sceneUIController.dispose(drawable);
+
+        // sceneUIController will remove itself from the drawable!
         
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         regionRenderer.destroy(gl);
