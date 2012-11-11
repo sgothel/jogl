@@ -275,7 +275,7 @@ public class PMVMatrix implements GLMatrixFunc {
           requestMask = 0;
           matrixMode = GL_MODELVIEW;
           
-          mulPMV = null;
+          mulMVP = null;
           frustum = null;
     }
 
@@ -1040,10 +1040,10 @@ public class PMVMatrix implements GLMatrixFunc {
         if( 0 != ( dirtyBits & ( DIRTY_FRUSTUM & requestMask ) ) ) {
             if( null == frustum ) {
                 frustum = new Frustum();
-                mulPMV = new float[16];
+                mulMVP = new float[16];
             }
-            FloatUtil.multMatrixf(matrixP, matrixMv, mulPMV, 0);
-            frustum.update(mulPMV, 0);
+            FloatUtil.multMatrixf(matrixMv, matrixP, mulMVP, 0);
+            frustum.update(mulMVP, 0);
             dirtyBits &= ~DIRTY_FRUSTUM;
             mod = true;
         }
@@ -1128,6 +1128,6 @@ public class PMVMatrix implements GLMatrixFunc {
     protected int dirtyBits = DIRTY_ALL; // contains the dirty bits, i.e. hinting for update operation
     protected int requestMask = 0; // may contain the requested dirty bits: DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW
     protected ProjectFloat projectFloat;
-    protected float[] mulPMV; // premultiplied PMV
+    protected float[] mulMVP; // premultiplied PMV
     protected Frustum frustum;
 }

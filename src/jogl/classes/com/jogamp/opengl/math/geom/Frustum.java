@@ -45,13 +45,13 @@ public class Frustum {
     
     /**
      * Creates a defined instance w/ calculating the frustum
-     * using the passed float[16] as premultiplied P*MV.
+     * using the passed float[16] as premultiplied MV*P (column major order)
      */
-	public Frustum(float[] pmv, int pmv_off) {
+	public Frustum(float[] mvp, int pmv_off) {
 		for (int i = 0; i < 6; ++i) {
 			planes[i] = new Plane();
 		}
-		update(pmv, pmv_off);
+		update(mvp, pmv_off);
 	}
 
     public static class Plane {
@@ -81,68 +81,68 @@ public class Frustum {
     
     /**
      * Re-calculate the frustum
-     * using the passed float[16] as premultiplied P*MV.
+     * using the passed float[16] as premultiplied MV*P (column major order).
      */
-    public void update(float[] pmv, int pmv_off) {
+    public void update(float[] mvp, int mvp_off) {
         // Left: [30+00, 31+01, 32+02, 33+03]
         // comboMatrix.m[12] + comboMatrix.m[0];
         {
             final Plane p = planes[0];
             final float[] p_n = p.n;
-            p_n[0] = pmv[ pmv_off + 12 ] + pmv[ pmv_off + 0 ];
-            p_n[1] = pmv[ pmv_off + 13 ] + pmv[ pmv_off + 1 ];
-            p_n[2] = pmv[ pmv_off + 14 ] + pmv[ pmv_off + 2 ];
-            p.d = pmv[ pmv_off + 15 ] + pmv[ pmv_off + 3 ];
+            p_n[0] = mvp[ mvp_off + 12 ] + mvp[ mvp_off + 0 ];
+            p_n[1] = mvp[ mvp_off + 13 ] + mvp[ mvp_off + 1 ];
+            p_n[2] = mvp[ mvp_off + 14 ] + mvp[ mvp_off + 2 ];
+            p.d = mvp[ mvp_off + 15 ] + mvp[ mvp_off + 3 ];
         }
 
         // Right: [30-00, 31-01, 32-02, 33-03]
         {
             final Plane p = planes[1];
             final float[] p_n = p.n;
-            p_n[0] = pmv[ pmv_off + 12 ] - pmv[ pmv_off + 0 ];
-            p_n[1] = pmv[ pmv_off + 13 ] - pmv[ pmv_off + 1 ];
-            p_n[2] = pmv[ pmv_off + 14 ] - pmv[ pmv_off + 2 ];
-            p.d = pmv[ pmv_off + 15 ] - pmv[ pmv_off + 3 ];
+            p_n[0] = mvp[ mvp_off + 12 ] - mvp[ mvp_off + 0 ];
+            p_n[1] = mvp[ mvp_off + 13 ] - mvp[ mvp_off + 1 ];
+            p_n[2] = mvp[ mvp_off + 14 ] - mvp[ mvp_off + 2 ];
+            p.d = mvp[ mvp_off + 15 ] - mvp[ mvp_off + 3 ];
         }
 
         // Bottom: [30+10, 31+11, 32+12, 33+13]
         {
             final Plane p = planes[2];
             final float[] p_n = p.n;
-            p_n[0] = pmv[ pmv_off + 12 ] + pmv[ pmv_off + 4 ];
-            p_n[1] = pmv[ pmv_off + 13 ] + pmv[ pmv_off + 5 ];
-            p_n[2] = pmv[ pmv_off + 14 ] + pmv[ pmv_off + 6 ];
-            p.d = pmv[ pmv_off + 15 ] + pmv[ pmv_off + 7 ];
+            p_n[0] = mvp[ mvp_off + 12 ] + mvp[ mvp_off + 4 ];
+            p_n[1] = mvp[ mvp_off + 13 ] + mvp[ mvp_off + 5 ];
+            p_n[2] = mvp[ mvp_off + 14 ] + mvp[ mvp_off + 6 ];
+            p.d = mvp[ mvp_off + 15 ] + mvp[ mvp_off + 7 ];
         }
 
         // Top: [30-10, 31-11, 32-12, 33-13]
         {
             final Plane p = planes[3];
             final float[] p_n = p.n;
-            p_n[0] = pmv[ pmv_off + 12 ] - pmv[ pmv_off + 4 ];
-            p_n[1] = pmv[ pmv_off + 13 ] - pmv[ pmv_off + 5 ];
-            p_n[2] = pmv[ pmv_off + 14 ] - pmv[ pmv_off + 6 ];
-            p.d = pmv[ pmv_off + 15 ] - pmv[ pmv_off + 7 ];
+            p_n[0] = mvp[ mvp_off + 12 ] - mvp[ mvp_off + 4 ];
+            p_n[1] = mvp[ mvp_off + 13 ] - mvp[ mvp_off + 5 ];
+            p_n[2] = mvp[ mvp_off + 14 ] - mvp[ mvp_off + 6 ];
+            p.d = mvp[ mvp_off + 15 ] - mvp[ mvp_off + 7 ];
         }
 
         // Near: [30+20, 31+21, 32+22, 33+23]
         {
             final Plane p = planes[4];
             final float[] p_n = p.n;
-            p_n[0] = pmv[ pmv_off + 12 ] + pmv[ pmv_off + 8 ];
-            p_n[1] = pmv[ pmv_off + 13 ] + pmv[ pmv_off + 9 ];
-            p_n[2] = pmv[ pmv_off + 14 ] + pmv[ pmv_off + 10 ];
-            p.d = pmv[ pmv_off + 15 ] + pmv[ pmv_off + 11 ];
+            p_n[0] = mvp[ mvp_off + 12 ] + mvp[ mvp_off + 8 ];
+            p_n[1] = mvp[ mvp_off + 13 ] + mvp[ mvp_off + 9 ];
+            p_n[2] = mvp[ mvp_off + 14 ] + mvp[ mvp_off + 10 ];
+            p.d = mvp[ mvp_off + 15 ] + mvp[ mvp_off + 11 ];
         }
 
         // Far: [30-20, 31-21, 32-22, 33-23]
         {
             final Plane p = planes[5];
             final float[] p_n = p.n;
-            p_n[0] = pmv[ pmv_off + 12 ] - pmv[ pmv_off + 8 ];
-            p_n[1] = pmv[ pmv_off + 13 ] - pmv[ pmv_off + 9 ];
-            p_n[2] = pmv[ pmv_off + 14 ] - pmv[ pmv_off + 10 ];
-            p.d = pmv[ pmv_off + 15 ] - pmv[ pmv_off + 11 ];
+            p_n[0] = mvp[ mvp_off + 12 ] - mvp[ mvp_off + 8 ];
+            p_n[1] = mvp[ mvp_off + 13 ] - mvp[ mvp_off + 9 ];
+            p_n[2] = mvp[ mvp_off + 14 ] - mvp[ mvp_off + 10 ];
+            p.d = mvp[ mvp_off + 15 ] - mvp[ mvp_off + 11 ];
         }
 
         for (int i = 0; i < 6; ++i) {
