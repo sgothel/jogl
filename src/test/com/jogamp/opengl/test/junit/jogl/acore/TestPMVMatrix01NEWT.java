@@ -45,6 +45,7 @@ import org.junit.Test;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.math.FloatUtil;
+import com.jogamp.opengl.math.geom.Frustum;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -136,18 +137,20 @@ public class TestPMVMatrix01NEWT extends UITestCase {
     /**
      * Test using traditional access workflow, i.e. 1) operation 2) get-matrix references
      * <p>
-     * The Mvi and Mvit dirty-bits and request-mask will be validated.
+     * The Mvi, Mvit and Frustum dirty-bits and request-mask will be validated.
      * </p>
      */
     @SuppressWarnings("deprecation")
     @Test
     public void test01MviUpdateTraditionalAccess() {
         FloatBuffer p, mv, mvi, mvit;
+        Frustum frustum;
         boolean b;
         final PMVMatrix pmv = new PMVMatrix(true);
         // System.err.println("P0: "+pmv.toString());
         
         Assert.assertTrue("Dirty bits clean, "+pmv.toString(), 0 != pmv.getDirtyBits());
+        Assert.assertEquals("Remaining dirty bits not Mvi|Mvit|Frustum, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW|PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW | PMVMatrix.DIRTY_FRUSTUM, pmv.getDirtyBits());
         Assert.assertEquals("Request bits not zero, "+pmv.toString(), 0, pmv.getRequestMask());
         
         //
@@ -164,6 +167,7 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         }        
         Assert.assertTrue("Modified bits zero", 0 != pmv.getModifiedBits(true)); // clear & test
         Assert.assertTrue("Dirty bits clean, "+pmv.toString(), 0 != pmv.getDirtyBits());
+        Assert.assertEquals("Remaining dirty bits not Mvi|Mvit|Frustum, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW|PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW | PMVMatrix.DIRTY_FRUSTUM, pmv.getDirtyBits());
         Assert.assertEquals("Request bits not zero, "+pmv.toString(), 0, pmv.getRequestMask());
         
         //
@@ -172,12 +176,14 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         pmv.glTranslatef(1f, 2f, 3f); // all dirty !
         Assert.assertTrue("Modified bits zero", 0 != pmv.getModifiedBits(true)); // clear & test
         Assert.assertTrue("Dirty bits clean, "+pmv.toString(), 0 != pmv.getDirtyBits());
+        Assert.assertEquals("Remaining dirty bits not Mvi|Mvit|Frustum, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW|PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW | PMVMatrix.DIRTY_FRUSTUM, pmv.getDirtyBits());
         Assert.assertEquals("Request bits not zero, "+pmv.toString(), 0, pmv.getRequestMask());
         // System.err.println("P1: "+pmv.toString());
         
         b = pmv.update(); // will not clean dirty bits, since no request has been made -> false
         Assert.assertEquals("Update has been perfomed, but non requested", false, b);       
         Assert.assertTrue("Dirty bits clean, "+pmv.toString(), 0 != pmv.getDirtyBits());
+        Assert.assertEquals("Remaining dirty bits not Mvi|Mvit|Frustum, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW|PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW | PMVMatrix.DIRTY_FRUSTUM, pmv.getDirtyBits());
         Assert.assertEquals("Request bits not zero, "+pmv.toString(), 0, pmv.getRequestMask());
         // System.err.println("P2: "+pmv.toString());
         
@@ -190,14 +196,19 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         MiscUtils.assertFloatBufferEquals("Mv not translated123, "+pmv.toString(), translated123C, mv, epsilon);        
         mvi = pmv.glGetMviMatrixf();
         MiscUtils.assertFloatBufferEquals("Mvi not translated123, "+pmv.toString(), translated123I, mvi, epsilon);
-        Assert.assertEquals("Remaining dirty bits not Mvit, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW, pmv.getDirtyBits());
         Assert.assertEquals("Request bit Mvi not set, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW, pmv.getRequestMask());
+        Assert.assertEquals("Remaining dirty bits not Mvit|Frustum, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW | PMVMatrix.DIRTY_FRUSTUM, pmv.getDirtyBits());
+        
+        frustum = pmv.glGetFrustum();
+        Assert.assertNotNull("Frustum is null"+pmv.toString(), frustum); // FIXME: Test Frustum value!
+        Assert.assertEquals("Remaining dirty bits not Mvit, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW, pmv.getDirtyBits());
+        Assert.assertEquals("Request bits Mvi|Frustum not set, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW | PMVMatrix.DIRTY_FRUSTUM, pmv.getRequestMask());
         // System.err.println("P3: "+pmv.toString());
         
         mvit = pmv.glGetMvitMatrixf();
         MiscUtils.assertFloatBufferEquals("Mvit not translated123, "+pmv.toString()+pmv.toString(), translated123IT, mvit, epsilon);
         Assert.assertTrue("Dirty bits not clean, "+pmv.toString(), 0 == pmv.getDirtyBits());
-        Assert.assertEquals("Request bits Mvi and Mvit not set, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW | PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW, pmv.getRequestMask());        
+        Assert.assertEquals("Request bits Mvi|Mvit|Frustum not set, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW | PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW | PMVMatrix.DIRTY_FRUSTUM, pmv.getRequestMask());        
         // System.err.println("P4: "+pmv.toString());
 
         //
@@ -206,37 +217,42 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         pmv.glLoadIdentity(); // all dirty
         Assert.assertTrue("Modified bits zero", 0 != pmv.getModifiedBits(true)); // clear & test
         Assert.assertTrue("Dirty bits clean, "+pmv.toString(), 0 != pmv.getDirtyBits());
-        Assert.assertEquals("Request bits Mvi and Mvit not set, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW | PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW, pmv.getRequestMask());
+        Assert.assertEquals("Remaining dirty bits not Mvi|Mvit|Frustum, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW|PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW | PMVMatrix.DIRTY_FRUSTUM, pmv.getDirtyBits());
+        Assert.assertEquals("Request bits Mvi|Mvit|Frustum not set, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW | PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW | PMVMatrix.DIRTY_FRUSTUM, pmv.getRequestMask());
         MiscUtils.assertFloatBufferEquals("P not identity, "+pmv.toString(), ident, p, epsilon);
         MiscUtils.assertFloatBufferEquals("Mv not identity, "+pmv.toString(), ident, mv, epsilon);        
         MiscUtils.assertFloatBufferNotEqual("Mvi already identity w/o update, "+pmv.toString(), ident, mvi, epsilon);
         MiscUtils.assertFloatBufferNotEqual("Mvit already identity w/o update, "+pmv.toString(), ident, mvit, epsilon);
         MiscUtils.assertFloatBufferEquals("Mvi not translated123, "+pmv.toString()+pmv.toString(), translated123I, mvi, epsilon);
         MiscUtils.assertFloatBufferEquals("Mvit not translated123, "+pmv.toString()+pmv.toString(), translated123IT, mvit, epsilon);
+        Assert.assertNotNull("Frustum is null"+pmv.toString(), frustum); // FIXME: Test Frustum value!
      
         b = pmv.update(); // will clean dirty bits, since request has been made -> true
         Assert.assertEquals("Update has not been perfomed, but requested", true, b);       
         Assert.assertTrue("Dirty bits not clean, "+pmv.toString(), 0 == pmv.getDirtyBits());
-        Assert.assertEquals("Request bits Mvi and Mvit not set, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW | PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW, pmv.getRequestMask());
+        Assert.assertEquals("Request bits Mvi|Mvit|Frustum not set, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW | PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW | PMVMatrix.DIRTY_FRUSTUM, pmv.getRequestMask());
         MiscUtils.assertFloatBufferEquals("Mvi not identity after update, "+pmv.toString(), ident, mvi, epsilon);
         MiscUtils.assertFloatBufferEquals("Mvit not identity after update, "+pmv.toString(), ident, mvit, epsilon);
+        Assert.assertNotNull("Frustum is null"+pmv.toString(), frustum); // FIXME: Test Frustum value!
     }
     
     /**
      * Test using shader access workflow, i.e. 1) get-matrix references 2) operations
      * <p>
-     * The Mvi and Mvit dirty-bits and request-mask will be validated.
+     * The Mvi, Mvit and Frustum dirty-bits and request-mask will be validated.
      * </p>
      */
     @SuppressWarnings("deprecation")
     @Test
     public void test02MviUpdateShaderAccess() {
         final FloatBuffer p, mv, mvi, mvit;
+        Frustum frustum;
         boolean b;
         final PMVMatrix pmv = new PMVMatrix(true);
         // System.err.println("P0: "+pmv.toString());
         
         Assert.assertTrue("Dirty bits clean, "+pmv.toString(), 0 != pmv.getDirtyBits());
+        Assert.assertEquals("Remaining dirty bits not Mvi|Mvit|Frustum, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW|PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW | PMVMatrix.DIRTY_FRUSTUM, pmv.getDirtyBits());
         Assert.assertEquals("Request bits not zero, "+pmv.toString(), 0, pmv.getRequestMask());
         
         //
@@ -254,6 +270,7 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         // System.err.println("P0: "+pmv.toString());
         Assert.assertTrue("Modified bits zero", 0 != pmv.getModifiedBits(true)); // clear & test
         Assert.assertTrue("Dirty bits clean, "+pmv.toString(), 0 != pmv.getDirtyBits());
+        Assert.assertEquals("Remaining dirty bits not Mvi|Mvit|Frustum, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW|PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW | PMVMatrix.DIRTY_FRUSTUM, pmv.getDirtyBits());
         Assert.assertEquals("Request bits not zero, "+pmv.toString(), 0, pmv.getRequestMask());
         // System.err.println("P1: "+pmv.toString());
         
@@ -269,31 +286,38 @@ public class TestPMVMatrix01NEWT extends UITestCase {
         
         mvi  = pmv.glGetMviMatrixf();
         MiscUtils.assertFloatBufferEquals("Mvi not identity, "+pmv.toString(), ident, mvi, epsilon);        
-        Assert.assertEquals("Remaining dirty bits not Mvit, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW, pmv.getDirtyBits());
+        Assert.assertEquals("Remaining dirty bits not Mvit|Frustum, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW | PMVMatrix.DIRTY_FRUSTUM, pmv.getDirtyBits());
         Assert.assertEquals("Request bit Mvi not set, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW, pmv.getRequestMask());
         
         mvit = pmv.glGetMvitMatrixf();
         MiscUtils.assertFloatBufferEquals("Mvi not identity, "+pmv.toString(), ident, mvit, epsilon);        
-        Assert.assertTrue("Dirty bits not clean, "+pmv.toString(), 0 == pmv.getDirtyBits());
+        Assert.assertEquals("Remaining dirty bits not Frustum, "+pmv.toString(), PMVMatrix.DIRTY_FRUSTUM, pmv.getDirtyBits());
         Assert.assertEquals("Request bits Mvi and Mvit not set, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW | PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW, pmv.getRequestMask());
 
+        frustum = pmv.glGetFrustum();
+        Assert.assertNotNull("Frustum is null"+pmv.toString(), frustum); // FIXME: Test Frustum value!
+        Assert.assertTrue("Dirty bits not clean, "+pmv.toString(), 0 == pmv.getDirtyBits());
+        Assert.assertEquals("Request bits Mvi|Mvit|Frustum not set, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW | PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW | PMVMatrix.DIRTY_FRUSTUM, pmv.getRequestMask());
+        
         //
         // Action #1
         //
         pmv.glTranslatef(1f, 2f, 3f); // all dirty !
         Assert.assertTrue("Modified bits zero", 0 != pmv.getModifiedBits(true)); // clear & test
         Assert.assertTrue("Dirty bits clean, "+pmv.toString(), 0 != pmv.getDirtyBits());
+        Assert.assertEquals("Remaining dirty bits not Mvi|Mvit|Frustum, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW|PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW | PMVMatrix.DIRTY_FRUSTUM, pmv.getDirtyBits());
         MiscUtils.assertFloatBufferEquals("P not identity, "+pmv.toString()+pmv.toString(), ident, p, epsilon);
         MiscUtils.assertFloatBufferEquals("Mv not translated123, "+pmv.toString()+pmv.toString(), translated123C, mv, epsilon);
         MiscUtils.assertFloatBufferNotEqual("Mvi already translated123 w/o update, "+pmv.toString()+pmv.toString(), translated123I, mvi, epsilon);
         MiscUtils.assertFloatBufferNotEqual("Mvit already translated123 w/o update, "+pmv.toString()+pmv.toString(), translated123IT, mvit, epsilon);
         MiscUtils.assertFloatBufferEquals("Mvi not identity, "+pmv.toString()+pmv.toString(), ident, mvi, epsilon);
         MiscUtils.assertFloatBufferEquals("Mvit not identity, "+pmv.toString()+pmv.toString(), ident, mvit, epsilon);
+        Assert.assertNotNull("Frustum is null"+pmv.toString(), frustum); // FIXME: Test Frustum value!
         
         b = pmv.update(); // will clean dirty bits, since all requests has been made -> true        
         Assert.assertEquals("Update has not been perfomed, but requested", true, b);       
         Assert.assertTrue("Dirty bits not clean, "+pmv.toString(), 0 == pmv.getDirtyBits());
-        Assert.assertEquals("Request bits Mvi and Mvit not set, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW | PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW, pmv.getRequestMask());
+        Assert.assertEquals("Request bits Mvi|Mvit|Frustum not set, "+pmv.toString(), PMVMatrix.DIRTY_INVERSE_MODELVIEW | PMVMatrix.DIRTY_INVERSE_TRANSPOSED_MODELVIEW | PMVMatrix.DIRTY_FRUSTUM, pmv.getRequestMask());
         MiscUtils.assertFloatBufferEquals("Mvi not translated123, "+pmv.toString()+pmv.toString(), translated123I, mvi, epsilon);
         MiscUtils.assertFloatBufferEquals("Mvit not translated123, "+pmv.toString()+pmv.toString(), translated123IT, mvit, epsilon);
         // System.err.println("P2: "+pmv.toString());        
