@@ -73,7 +73,7 @@ public class Frustum {
         
         @Override
         public String toString() {
-            return "Plane[ " + n + ", " + d + "]";
+            return "Plane[ [ " + n[0] + ", " + n[1] + ", " + n[2] + " ], " + d + "]";
         }
     }
 
