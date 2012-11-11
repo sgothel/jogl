@@ -58,13 +58,8 @@ public class AABBox implements Cloneable {
      * @param hz max z-coordinate
      */
     public AABBox(float lx, float ly, float lz,
-            float hx, float hy, float hz)
-    {
-        reset();
-        resize(lx, ly, lz);
-        resize(hx, hy, hz);
-
-        computeCenter();
+                  float hx, float hy, float hz) {
+        setSize(lx, ly, lz, hx, hy, hz);
     }
     
     /** Create a AABBox defining the low and high
@@ -72,11 +67,7 @@ public class AABBox implements Cloneable {
      * @param high max xyz-coordinates
      */
     public AABBox(float[] low, float[] high) {
-        reset();
-        resize(low[0],low[1],low[2]);
-        resize(high[0],high[1],high[2]);
-
-        computeCenter();
+        setSize(low[0],low[1],low[2], high[0],high[1],high[2]);
     }
 
     /** resets this box to the inverse low/high, allowing the next {@link #resize(float, float, float)} command to hit. */
@@ -114,6 +105,34 @@ public class AABBox implements Cloneable {
         this.low[2] = lz;
     }
 
+    private final void computeCenter() {
+        center[0] = (high[0] + low[0])/2;
+        center[1] = (high[1] + low[1])/2;
+        center[2] = (high[2] + low[2])/2;
+    }
+
+    /** 
+     * Set size of the AABBox specifying the coordinates 
+     * of the low and high.
+     * 
+     * @param lx min x-coordinate
+     * @param ly min y-coordnate
+     * @param lz min z-coordinate
+     * @param hx max x-coordinate
+     * @param hy max y-coordinate
+     * @param hz max z-coordinate
+     */
+    public final void setSize(float lx, float ly, float lz,
+                              float hx, float hy, float hz) {        
+        this.low[0] = lx;
+        this.low[1] = ly;
+        this.low[2] = lz;
+        this.high[0] = hx;
+        this.high[1] = hy;
+        this.high[2] = hz;
+        computeCenter();
+    }
+    
     /** Resize the AABBox to encapsulate another AABox
      * @param newBox AABBox to be encapsulated in
      */
@@ -138,12 +157,6 @@ public class AABBox implements Cloneable {
             high[2] = newHigh[2];
 
         computeCenter();
-    }
-
-    private final void computeCenter() {
-        center[0] = (high[0] + low[0])/2;
-        center[1] = (high[1] + low[1])/2;
-        center[2] = (high[2] + low[2])/2;
     }
 
     /** Resize the AABBox to encapsulate the passed
