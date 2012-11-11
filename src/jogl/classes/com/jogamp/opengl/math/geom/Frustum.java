@@ -27,143 +27,184 @@
  */
 package com.jogamp.opengl.math.geom;
 
-import com.jogamp.common.os.Platform;
-import com.jogamp.opengl.math.FloatUtil;
-
+/**
+ * Derived Frustum of premultiplied projection * modelview matrix
+ * exposing {@link #isOutside(AABBox)} test and the {@link #getPlanes() planes} itself.
+ */
 public class Frustum {
 	protected Plane[] planes = new Plane[6];
-	protected float[] pmv;
-
-	public Frustum(float[] pmv) {
-	    this.pmv = pmv;
+	
+	/**
+	 * Creates an undefined instance w/o calculating the frustum.
+	 */
+    public Frustum() {
+        for (int i = 0; i < 6; ++i) {
+            planes[i] = new Plane();
+        }
+    }
+    
+    /**
+     * Creates a defined instance w/ calculating the frustum
+     * using the passed float[16] as premultiplied P*MV.
+     */
+	public Frustum(float[] pmv, int pmv_off) {
 		for (int i = 0; i < 6; ++i) {
 			planes[i] = new Plane();
 		}
+		update(pmv, pmv_off);
 	}
 
-	public void setMatrix(float[] pmv) {
-        this.pmv = pmv;
-	}
+    public static class Plane {
+        /** Normal of the plane */
+        public final float[] n = new float[3];
+        
+        /** Distance to origin */
+        public float d;
+
+        /** Return distance of plane to given point */
+        public final float distanceTo(float x, float y, float z) {
+            return (n[0] * x) + (n[1] * y) + (n[2] * z) + d;
+        }
+
+        /** Return distance of plane to given point */
+        public final float distanceTo(float[] p) {
+            return (n[0] * p[0]) + (n[1] * p[1]) + (n[2] * p[2]) + d;
+        }
+        
+        @Override
+        public String toString() {
+            return "Plane[ " + n + ", " + d + "]";
+        }
+    }
 
     public final Plane[] getPlanes() { return planes; }
     
-    public final float[] getPMV() { return pmv; }
-    
-	public class Plane {
-		public final float[] n = new float[3];
-		public float d;
+    /**
+     * Re-calculate the frustum
+     * using the passed float[16] as premultiplied P*MV.
+     */
+    public void update(float[] pmv, int pmv_off) {
+        // Left: [30+00, 31+01, 32+02, 33+03]
+        // comboMatrix.m[12] + comboMatrix.m[0];
+        {
+            final Plane p = planes[0];
+            final float[] p_n = p.n;
+            p_n[0] = pmv[ pmv_off + 12 ] + pmv[ pmv_off + 0 ];
+            p_n[1] = pmv[ pmv_off + 13 ] + pmv[ pmv_off + 1 ];
+            p_n[2] = pmv[ pmv_off + 14 ] + pmv[ pmv_off + 2 ];
+            p.d = pmv[ pmv_off + 15 ] + pmv[ pmv_off + 3 ];
+        }
 
-		public final float distanceTo(float x, float y, float z) {
-			return (n[0] * x) + (n[1] * y) + (n[2] * z) + d;
-		}
+        // Right: [30-00, 31-01, 32-02, 33-03]
+        {
+            final Plane p = planes[1];
+            final float[] p_n = p.n;
+            p_n[0] = pmv[ pmv_off + 12 ] - pmv[ pmv_off + 0 ];
+            p_n[1] = pmv[ pmv_off + 13 ] - pmv[ pmv_off + 1 ];
+            p_n[2] = pmv[ pmv_off + 14 ] - pmv[ pmv_off + 2 ];
+            p.d = pmv[ pmv_off + 15 ] - pmv[ pmv_off + 3 ];
+        }
 
-		@Override
-		public String toString() {
-			return "Plane[ [ " + n[0] + ", " + n[1] + ", " + n[2] + " ], " + d + "]";
-		}
-	}
+        // Bottom: [30+10, 31+11, 32+12, 33+13]
+        {
+            final Plane p = planes[2];
+            final float[] p_n = p.n;
+            p_n[0] = pmv[ pmv_off + 12 ] + pmv[ pmv_off + 4 ];
+            p_n[1] = pmv[ pmv_off + 13 ] + pmv[ pmv_off + 5 ];
+            p_n[2] = pmv[ pmv_off + 14 ] + pmv[ pmv_off + 6 ];
+            p.d = pmv[ pmv_off + 15 ] + pmv[ pmv_off + 7 ];
+        }
+
+        // Top: [30-10, 31-11, 32-12, 33-13]
+        {
+            final Plane p = planes[3];
+            final float[] p_n = p.n;
+            p_n[0] = pmv[ pmv_off + 12 ] - pmv[ pmv_off + 4 ];
+            p_n[1] = pmv[ pmv_off + 13 ] - pmv[ pmv_off + 5 ];
+            p_n[2] = pmv[ pmv_off + 14 ] - pmv[ pmv_off + 6 ];
+            p.d = pmv[ pmv_off + 15 ] - pmv[ pmv_off + 7 ];
+        }
+
+        // Near: [30+20, 31+21, 32+22, 33+23]
+        {
+            final Plane p = planes[4];
+            final float[] p_n = p.n;
+            p_n[0] = pmv[ pmv_off + 12 ] + pmv[ pmv_off + 8 ];
+            p_n[1] = pmv[ pmv_off + 13 ] + pmv[ pmv_off + 9 ];
+            p_n[2] = pmv[ pmv_off + 14 ] + pmv[ pmv_off + 10 ];
+            p.d = pmv[ pmv_off + 15 ] + pmv[ pmv_off + 11 ];
+        }
+
+        // Far: [30-20, 31-21, 32-22, 33-23]
+        {
+            final Plane p = planes[5];
+            final float[] p_n = p.n;
+            p_n[0] = pmv[ pmv_off + 12 ] - pmv[ pmv_off + 8 ];
+            p_n[1] = pmv[ pmv_off + 13 ] - pmv[ pmv_off + 9 ];
+            p_n[2] = pmv[ pmv_off + 14 ] - pmv[ pmv_off + 10 ];
+            p.d = pmv[ pmv_off + 15 ] - pmv[ pmv_off + 11 ];
+        }
+
+        for (int i = 0; i < 6; ++i) {
+            final Plane p = planes[i];
+            final float[] p_n = p.n;
+            final double invl = Math.sqrt(p_n[0] * p_n[0] + p_n[1] * p_n[1] + p_n[2] * p_n[2]);
+
+            p_n[0] *= invl;
+            p_n[1] *= invl;
+            p_n[2] *= invl;
+            p.d *= invl;
+        }
+    }
 
 	private static final boolean quickClassify(Plane p, AABBox box) {
 	    final float[] low = box.getLow();
 	    final float[] high = box.getHigh();
 	    
 		if (p.distanceTo(low[0],  low[1],  low[2]) > 0.0f)
-			return (true);
+			return true;
 		if (p.distanceTo(high[0], low[1],  low[2]) > 0.0f)
-			return (true);
+			return true;
 		if (p.distanceTo(low[0],  high[1], low[2]) > 0.0f)
-			return (true);
+			return true;
 		if (p.distanceTo(high[0], high[1], low[2]) > 0.0f)
-			return (true);
+			return true;
 		if (p.distanceTo(low[0],  low[1],  high[2]) > 0.0f)
-			return (true);
+			return true;
 		if (p.distanceTo(high[0], low[1],  high[2]) > 0.0f)
-			return (true);
+			return true;
 		if (p.distanceTo(low[0],  high[1], high[2]) > 0.0f)
-			return (true);
+			return true;
 		if (p.distanceTo(high[0], high[1], high[2]) > 0.0f)
-			return (true);
+			return true;
 
-		return (false);
+		return false;
 	}
 
 	/**
-	 * Quick check to see if an orthogonal bounding box is inside the frustum
+	 * Quick check to see if an orthogonal bounding box is completly outside of the frustum.
+	 * <p>
+	 * Note: If method returns false, the box may be only partially inside.
+	 * </p>
 	 */
-	public final boolean isInside(AABBox box) {
-		for (int i = 0; i < 6; ++i) {
-			if (!quickClassify(planes[i], box))
-				return false;
-		}
-		// We make no attempt to determine whether it's fully inside or not.
-		return true;
-	}
-
-	public void compute() {
-		// Left: [30+00, 31+01, 32+02, 33+03]
-		// comboMatrix.m[12] + comboMatrix.m[0];
-
-		planes[0].n[0] = pmv[12] + pmv[0];
-		planes[0].n[1] = pmv[13] + pmv[1];
-		planes[0].n[2] = pmv[14] + pmv[2];
-		planes[0].d = pmv[15] + pmv[3];
-
-		// Right: [30-00, 31-01, 32-02, 33-03]
-
-		planes[1].n[0] = pmv[12] - pmv[0];
-		planes[1].n[1] = pmv[13] - pmv[1];
-		planes[1].n[2] = pmv[14] - pmv[2];
-		planes[1].d = pmv[15] - pmv[3];
-
-		// Bottom: [30+10, 31+11, 32+12, 33+13]
-
-		planes[2].n[0] = pmv[12] + pmv[4];
-		planes[2].n[1] = pmv[13] + pmv[5];
-		planes[2].n[2] = pmv[14] + pmv[6];
-		planes[2].d = pmv[15] + pmv[7];
-
-		// Top: [30-10, 31-11, 32-12, 33-13]
-
-		planes[3].n[0] = pmv[12] - pmv[4];
-		planes[3].n[1] = pmv[13] - pmv[5];
-		planes[3].n[2] = pmv[14] - pmv[6];
-		planes[3].d = pmv[15] - pmv[7];
-
-		// Far: [30-20, 31-21, 32-22, 33-23]
-
-		planes[5].n[0] = pmv[12] - pmv[8];
-		planes[5].n[1] = pmv[13] - pmv[9];
-		planes[5].n[2] = pmv[14] - pmv[10];
-		planes[5].d = pmv[15] - pmv[11];
-
-		// Near: [30+20, 31+21, 32+22, 33+23]
-
-		planes[4].n[0] = pmv[12] + pmv[8];
-		planes[4].n[1] = pmv[13] + pmv[9];
-		planes[4].n[2] = pmv[14] + pmv[10];
-		planes[4].d = pmv[15] + pmv[11];
-
-
-		for (int i = 0; i < 6; ++i) {
-		    final float[] p_n = planes[i].n;
-			final double invl = Math.sqrt(p_n[0] * p_n[0] + p_n[1] * p_n[1] + p_n[2] * p_n[2]);
-
-			p_n[0] *= invl;
-			p_n[1] *= invl;
-			p_n[2] *= invl;
-			planes[i].d *= invl;
-		}
-	}
-
+    public final boolean isOutside(AABBox box) {
+        for (int i = 0; i < 6; ++i) {
+            if (!quickClassify(planes[i], box)) {
+                // fully outside
+                return true;
+            }
+        }
+        // We make no attempt to determine whether it's fully inside or not.
+        return false;
+    }
+    
     public StringBuilder toString(StringBuilder sb) {
         if( null == sb ) {
             sb = new StringBuilder();
         }
-        sb.append("Frustum[ P*MV[").append(Platform.NEWLINE);
-        FloatUtil.matrixToString(sb, "p*mv", null, pmv, 0, 4, 4, false);
-        sb.append("], Planes[").append(planes[0]).append(", ");
+        sb.append("Frustum[ Planes[ ").append(planes[0]).append(", ");
         sb.append(planes[1]).append(", ").append(planes[2]).append(", ").append(planes[3]).append(", ").append(planes[4]).append(", ");
-        sb.append(planes[5]).append("] ]");
+        sb.append(planes[5]).append(" ] ]");
         return sb;
     }
     
