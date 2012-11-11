@@ -29,9 +29,9 @@ package com.jogamp.graph.math;
 
 import java.util.ArrayList;
 
-import jogamp.graph.math.MathFloat;
 
 import com.jogamp.graph.geom.Vertex;
+import com.jogamp.opengl.FloatUtil;
 
 public class VectorUtil {
 
@@ -64,7 +64,7 @@ public class VectorUtil {
     {
         float[] newVector = new float[3];
 
-        float d = MathFloat.sqrt(vector[0]*vector[0] + vector[1]*vector[1] + vector[2]*vector[2]);
+        float d = FloatUtil.sqrt(vector[0]*vector[0] + vector[1]*vector[1] + vector[2]*vector[2]);
         if(d> 0.0f)
         {
             newVector[0] = vector[0]/d;
@@ -181,7 +181,7 @@ public class VectorUtil {
      */
     public static float norm(float[] vec)
     {
-        return MathFloat.sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
+        return FloatUtil.sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
     }
     /** Compute distance between 2 points
      * @param p0 a ref point on the line
@@ -193,7 +193,7 @@ public class VectorUtil {
     {
         float[] w = new float[]{point[0]-p0[0],point[1]-p0[1],point[2]-p0[2]};
 
-        float distance = MathFloat.sqrt(w[0]*w[0] + w[1]*w[1] + w[2]*w[2]);
+        float distance = FloatUtil.sqrt(w[0]*w[0] + w[1]*w[1] + w[2]*w[2]);
 
         return distance;
     }

@@ -27,7 +27,8 @@
  */
 package com.jogamp.graph.math;
 
-import jogamp.graph.math.MathFloat;
+import com.jogamp.opengl.FloatUtil;
+
 
 public class Quaternion {
     protected float x,y,z,w;
@@ -49,14 +50,14 @@ public class Quaternion {
      */
     public Quaternion(float[] vector1, float[] vector2) 
     {
-        float theta = (float)MathFloat.acos(dot(vector1, vector2));
+        float theta = (float)FloatUtil.acos(dot(vector1, vector2));
         float[] cross = cross(vector1,vector2);
         cross = normalizeVec(cross);
 
-        this.x = (float)MathFloat.sin(theta/2)*cross[0];
-        this.y = (float)MathFloat.sin(theta/2)*cross[1];
-        this.z = (float)MathFloat.sin(theta/2)*cross[2];
-        this.w = (float)MathFloat.cos(theta/2);
+        this.x = (float)FloatUtil.sin(theta/2)*cross[0];
+        this.y = (float)FloatUtil.sin(theta/2)*cross[1];
+        this.z = (float)FloatUtil.sin(theta/2)*cross[2];
+        this.w = (float)FloatUtil.cos(theta/2);
         this.normalize();
     }
     
@@ -66,8 +67,8 @@ public class Quaternion {
     public float[] toAxis()
     {
         float[] vec = new float[4];
-        float scale = (float)MathFloat.sqrt(x * x + y * y + z * z);
-        vec[0] =(float) MathFloat.acos(w) * 2.0f;
+        float scale = (float)FloatUtil.sqrt(x * x + y * y + z * z);
+        vec[0] =(float) FloatUtil.acos(w) * 2.0f;
         vec[1] = x / scale;
         vec[2] = y / scale;
         vec[3] = z / scale;
@@ -82,7 +83,7 @@ public class Quaternion {
     {
         float[] newVector = new float[3];
 
-        float d = MathFloat.sqrt(vector[0]*vector[0] + vector[1]*vector[1] + vector[2]*vector[2]);
+        float d = FloatUtil.sqrt(vector[0]*vector[0] + vector[1]*vector[1] + vector[2]*vector[2]);
         if(d> 0.0f)
         {
             newVector[0] = vector[0]/d;
@@ -203,7 +204,7 @@ public class Quaternion {
      */
     public void normalize()
     {
-        float norme = (float)MathFloat.sqrt(w*w + x*x + y*y + z*z);
+        float norme = (float)FloatUtil.sqrt(w*w + x*x + y*y + z*z);
         if (norme == 0.0f)
         {
             w = 1.0f; 
@@ -274,12 +275,12 @@ public class Quaternion {
     {
         float omega, cosom, sinom, sclp, sclq;
         cosom = a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w;
-        if ((1.0f+cosom) > MathFloat.E) {
-            if ((1.0f-cosom) > MathFloat.E) {
-                omega = (float)MathFloat.acos(cosom);
-                sinom = (float)MathFloat.sin(omega);
-                sclp = (float)MathFloat.sin((1.0f-t)*omega) / sinom;
-                sclq = (float)MathFloat.sin(t*omega) / sinom;
+        if ((1.0f+cosom) > FloatUtil.E) {
+            if ((1.0f-cosom) > FloatUtil.E) {
+                omega = (float)FloatUtil.acos(cosom);
+                sinom = (float)FloatUtil.sin(omega);
+                sclp = (float)FloatUtil.sin((1.0f-t)*omega) / sinom;
+                sclq = (float)FloatUtil.sin(t*omega) / sinom;
             }
             else {
                 sclp = 1.0f - t;
@@ -295,8 +296,8 @@ public class Quaternion {
             y = a.x;
             z =-a.w;
             w = a.z;
-            sclp = MathFloat.sin((1.0f-t) * MathFloat.PI * 0.5f);
-            sclq = MathFloat.sin(t * MathFloat.PI * 0.5f);
+            sclp = FloatUtil.sin((1.0f-t) * FloatUtil.PI * 0.5f);
+            sclq = FloatUtil.sin(t * FloatUtil.PI * 0.5f);
             x = sclp*a.x + sclq*b.x;
             y = sclp*a.y + sclq*b.y;
             z = sclp*a.z + sclq*b.z;
@@ -330,7 +331,7 @@ public class Quaternion {
     public void setFromMatrix(float[] m) {
         float T= m[0] + m[4] + m[8] + 1;
         if (T>0){
-            float S = 0.5f / (float)MathFloat.sqrt(T);
+            float S = 0.5f / (float)FloatUtil.sqrt(T);
             w = 0.25f / S;
             x = ( m[5] - m[7]) * S;
             y = ( m[6] - m[2]) * S;
@@ -338,21 +339,21 @@ public class Quaternion {
         }
         else{
             if ((m[0] > m[4])&(m[0] > m[8])) { 
-                float S = MathFloat.sqrt( 1.0f + m[0] - m[4] - m[8] ) * 2f; // S=4*qx 
+                float S = FloatUtil.sqrt( 1.0f + m[0] - m[4] - m[8] ) * 2f; // S=4*qx 
                 w = (m[7] - m[5]) / S;
                 x = 0.25f * S;
                 y = (m[3] + m[1]) / S; 
                 z = (m[6] + m[2]) / S; 
             } 
             else if (m[4] > m[8]) { 
-                float S = MathFloat.sqrt( 1.0f + m[4] - m[0] - m[8] ) * 2f; // S=4*qy
+                float S = FloatUtil.sqrt( 1.0f + m[4] - m[0] - m[8] ) * 2f; // S=4*qy
                 w = (m[6] - m[2]) / S;
                 x = (m[3] + m[1]) / S; 
                 y = 0.25f * S;
                 z = (m[7] + m[5]) / S; 
             } 
             else { 
-                float S = MathFloat.sqrt( 1.0f + m[8] - m[0] - m[4] ) * 2f; // S=4*qz
+                float S = FloatUtil.sqrt( 1.0f + m[8] - m[0] - m[4] ) * 2f; // S=4*qz
                 w = (m[3] - m[1]) / S;
                 x = (m[6] + m[2]) / S; 
                 y = (m[7] + m[5]) / S; 
@@ -368,13 +369,13 @@ public class Quaternion {
      */
     public boolean isRotationMatrix(float[] m) {
         double epsilon = 0.01; // margin to allow for rounding errors
-        if (MathFloat.abs(m[0]*m[3] + m[3]*m[4] + m[6]*m[7]) > epsilon) return false;
-        if (MathFloat.abs(m[0]*m[2] + m[3]*m[5] + m[6]*m[8]) > epsilon) return false;
-        if (MathFloat.abs(m[1]*m[2] + m[4]*m[5] + m[7]*m[8]) > epsilon) return false;
-        if (MathFloat.abs(m[0]*m[0] + m[3]*m[3] + m[6]*m[6] - 1) > epsilon) return false;
-        if (MathFloat.abs(m[1]*m[1] + m[4]*m[4] + m[7]*m[7] - 1) > epsilon) return false;
-        if (MathFloat.abs(m[2]*m[2] + m[5]*m[5] + m[8]*m[8] - 1) > epsilon) return false;
-        return (MathFloat.abs(determinant(m)-1) < epsilon);
+        if (FloatUtil.abs(m[0]*m[3] + m[3]*m[4] + m[6]*m[7]) > epsilon) return false;
+        if (FloatUtil.abs(m[0]*m[2] + m[3]*m[5] + m[6]*m[8]) > epsilon) return false;
+        if (FloatUtil.abs(m[1]*m[2] + m[4]*m[5] + m[7]*m[8]) > epsilon) return false;
+        if (FloatUtil.abs(m[0]*m[0] + m[3]*m[3] + m[6]*m[6] - 1) > epsilon) return false;
+        if (FloatUtil.abs(m[1]*m[1] + m[4]*m[4] + m[7]*m[7] - 1) > epsilon) return false;
+        if (FloatUtil.abs(m[2]*m[2] + m[5]*m[5] + m[8]*m[8] - 1) > epsilon) return false;
+        return (FloatUtil.abs(determinant(m)-1) < epsilon);
     }
     private float determinant(float[] m) {
           return m[0]*m[4]*m[8] + m[3]*m[7]*m[2] + m[6]*m[1]*m[5] - m[0]*m[7]*m[5] - m[3]*m[1]*m[8] - m[6]*m[4]*m[2];

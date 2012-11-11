@@ -19,9 +19,10 @@
  */
 package jogamp.graph.math.plane;
 
+import com.jogamp.opengl.FloatUtil;
+
 import jogamp.graph.geom.plane.Path2D;
 import jogamp.graph.geom.plane.PathIterator;
-import jogamp.graph.math.MathFloat;
 
 
 public class Crossing {
@@ -68,7 +69,7 @@ public class Crossing {
             if (d < 0.0) {
                 return 0;
             }
-            d = MathFloat.sqrt(d);
+            d = FloatUtil.sqrt(d);
             res[rc++] = (- b + d) / (a * 2.0f);
             // d != 0.0
             if (d != 0.0) {
@@ -101,15 +102,15 @@ public class Crossing {
         float n = - a / 3.0f;
 
         if (R2 < Q3) {
-            float t = MathFloat.acos(R / MathFloat.sqrt(Q3)) / 3.0f;
-            float p = 2.0f * MathFloat.PI / 3.0f;
-            float m = -2.0f * MathFloat.sqrt(Q);
-            res[rc++] = m * MathFloat.cos(t) + n;
-            res[rc++] = m * MathFloat.cos(t + p) + n;
-            res[rc++] = m * MathFloat.cos(t - p) + n;
+            float t = FloatUtil.acos(R / FloatUtil.sqrt(Q3)) / 3.0f;
+            float p = 2.0f * FloatUtil.PI / 3.0f;
+            float m = -2.0f * FloatUtil.sqrt(Q);
+            res[rc++] = m * FloatUtil.cos(t) + n;
+            res[rc++] = m * FloatUtil.cos(t + p) + n;
+            res[rc++] = m * FloatUtil.cos(t - p) + n;
         } else {
 //          Debug.println("R2 >= Q3 (" + R2 + "/" + Q3 + ")");
-            float A = MathFloat.pow(MathFloat.abs(R) + MathFloat.sqrt(R2 - Q3), 1.0f / 3.0f);
+            float A = FloatUtil.pow(FloatUtil.abs(R) + FloatUtil.sqrt(R2 - Q3), 1.0f / 3.0f);
             if (R > 0.0) {
                 A = -A;
             }

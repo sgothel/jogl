@@ -406,5 +406,21 @@ public class FloatUtil {
       }
       return sb;
   }
+
+  public static final float E = 2.7182818284590452354f;
+
+  public static final float PI = 3.14159265358979323846f;
+
+  public static float abs(float a) { return (float) java.lang.Math.abs(a);  }
+
+  public static float pow(float a, float b) { return (float) java.lang.Math.pow(a, b);  }
+
+  public static float sin(float a) { return (float) java.lang.Math.sin(a);  }
+
+  public static float cos(float a) { return (float) java.lang.Math.cos(a);  }
+
+  public static float acos(float a) { return (float) java.lang.Math.acos(a);  }
+
+  public static float sqrt(float a) { return (float) java.lang.Math.sqrt(a);  }
   
 }

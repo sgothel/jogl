@@ -22,11 +22,11 @@ package jogamp.graph.geom.plane;
 import java.io.IOException;
 import java.io.Serializable;
 
-import jogamp.graph.math.MathFloat;
 // import jogamp.opengl.util.HashCode;
 
 import com.jogamp.graph.geom.Vertex;
 import com.jogamp.graph.geom.Vertex.Factory;
+import com.jogamp.opengl.FloatUtil;
 
 public class AffineTransform implements Cloneable, Serializable {
 
@@ -285,13 +285,13 @@ public class AffineTransform implements Cloneable, Serializable {
     }
 
     public void setToRotation(float angle) {
-        float sin = MathFloat.sin(angle);
-        float cos = MathFloat.cos(angle);
-        if (MathFloat.abs(cos) < ZERO) {
+        float sin = FloatUtil.sin(angle);
+        float cos = FloatUtil.cos(angle);
+        if (FloatUtil.abs(cos) < ZERO) {
             cos = 0.0f;
             sin = sin > 0.0f ? 1.0f : -1.0f;
         } else
-            if (MathFloat.abs(sin) < ZERO) {
+            if (FloatUtil.abs(sin) < ZERO) {
                 sin = 0.0f;
                 cos = cos > 0.0f ? 1.0f : -1.0f;
             }
@@ -387,7 +387,7 @@ public class AffineTransform implements Cloneable, Serializable {
 
     public AffineTransform createInverse() throws NoninvertibleTransformException {
         float det = getDeterminant();
-        if (MathFloat.abs(det) < ZERO) {
+        if (FloatUtil.abs(det) < ZERO) {
             throw new NoninvertibleTransformException(determinantIsZero);
         }
         return new AffineTransform(
@@ -467,7 +467,7 @@ public class AffineTransform implements Cloneable, Serializable {
 
     public Vertex inverseTransform(Vertex src, Vertex dst) throws NoninvertibleTransformException {
         float det = getDeterminant();
-        if (MathFloat.abs(det) < ZERO) {
+        if (FloatUtil.abs(det) < ZERO) {
             throw new NoninvertibleTransformException(determinantIsZero);
         }
         if (dst == null) {
@@ -485,7 +485,7 @@ public class AffineTransform implements Cloneable, Serializable {
         throws NoninvertibleTransformException
     {
         float det = getDeterminant();
-        if (MathFloat.abs(det) < ZERO) {
+        if (FloatUtil.abs(det) < ZERO) {
             throw new NoninvertibleTransformException(determinantIsZero);            
         }
 
