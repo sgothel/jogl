@@ -33,20 +33,22 @@ import com.jogamp.common.os.Platform;
  * Derived Frustum of premultiplied projection * modelview matrix
  * exposing {@link #isOutside(AABBox)} test and the {@link #getPlanes() planes} itself.
  * <p>
- * Implementation follows the following paper:<br/>
- *   http://graphics.cs.ucf.edu/cap4720/fall2008/plane_extraction.pdf
+ * Implementation of the world-frustum planes follows the following paper:
  * <pre>
- * Fast Extraction of Viewing Frustum Planes from 
- * the World-View-Projection Matrix
- * Authors (in alphabetical order):
+ * Fast Extraction of Viewing Frustum Planes from the World-View-Projection Matrix
  *   Gil Gribb <ggribb@ravensoft.com>
  *   Klaus Hartmann <k_hartmann@osnabrueck.netsurf.de>
- * 06/15/2001
+ *   http://graphics.cs.ucf.edu/cap4720/fall2008/plane_extraction.pdf
  * </pre>
- * </p>
- * <p>
- * Further reference: Planes and Half-Spaces,  Max Wagner <mwagner@digipen.edu><br/>
- *   http://www.emeyex.com/site/tuts/PlanesHalfSpaces.pdf
+ * Fundamentals about Planes, Half-Spaces and Frustum-Culling:<br/>
+ * <pre>
+ * Planes and Half-Spaces,  Max Wagner <mwagner@digipen.edu>
+ * http://www.emeyex.com/site/tuts/PlanesHalfSpaces.pdf
+ * </pre>
+ * <pre>
+ * Frustum Culling,  Max Wagner <mwagner@digipen.edu>
+ * http://www.emeyex.com/site/tuts/FrustumCulling.pdf
+ * </pre>
  * </p>
  */
 public class Frustum {
