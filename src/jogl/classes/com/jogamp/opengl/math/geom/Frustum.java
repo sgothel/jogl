@@ -30,16 +30,31 @@ package com.jogamp.opengl.math.geom;
 import com.jogamp.common.os.Platform;
 
 /**
- * Derived Frustum of premultiplied projection * modelview matrix
- * exposing {@link #isOutside(AABBox)} test and the {@link #getPlanes() planes} itself.
+ * Providing frustum {@link #getPlanes() planes} derived by different inputs 
+ * ({@link #updateByPMV(float[], int) P*MV}, ..)
+ * used to {@link #classifySphere(float[], float) classify objects} and to test 
+ * whether they are {@link #isOutside(AABBox) outside}.
+ * 
  * <p>
- * Implementation of the world-frustum planes follows the following paper:
+ * Extracting the world-frustum planes from the P*Mv:
  * <pre>
  * Fast Extraction of Viewing Frustum Planes from the World-View-Projection Matrix
  *   Gil Gribb <ggribb@ravensoft.com>
  *   Klaus Hartmann <k_hartmann@osnabrueck.netsurf.de>
  *   http://graphics.cs.ucf.edu/cap4720/fall2008/plane_extraction.pdf
  * </pre>
+ * Classifying Point, Sphere and AABBox:
+ * <pre>
+ * Efficient View Frustum Culling
+ *   Daniel Sýkora <sykorad@fel.cvut.cz>
+ *   Josef Jelínek <jelinej1@fel.cvut.cz>
+ *   http://www.cg.tuwien.ac.at/hostings/cescg/CESCG-2002/DSykoraJJelinek/index.html
+ * </pre>
+ * <pre>
+ * Lighthouse3d.com
+ * http://www.lighthouse3d.com/tutorials/view-frustum-culling/
+ * </pre>
+ * 
  * Fundamentals about Planes, Half-Spaces and Frustum-Culling:<br/>
  * <pre>
  * Planes and Half-Spaces,  Max Wagner <mwagner@digipen.edu>
@@ -60,8 +75,8 @@ public class Frustum {
 	 * <p>
 	 * Use one of the <code>update(..)</code> methods to set the {@link #getPlanes() planes}.
 	 * </p>
-	 * @see #update(Plane[])
-	 * @see #update(float[], int)
+	 * @see #updateByPlanes(Plane[])
+	 * @see #updateByPMV(float[], int)
 	 */
     public Frustum() {
         for (int i = 0; i < 6; ++i) {
@@ -149,7 +164,7 @@ public class Frustum {
      * Copy the given <code>src</code> planes into this this instance's planes.
      * @param src the 6 source planes
      */
-    public final void update(Plane[] src) { 
+    public final void updateByPlanes(Plane[] src) { 
         for (int i = 0; i < 6; ++i) {
             final Plane p0 = planes[i];
             final float[] p0_n = p0.n;
@@ -170,7 +185,7 @@ public class Frustum {
      * as required by this class.
      * </p>
      */
-    public void update(float[] pmv, int pmv_off) {        
+    public void updateByPMV(float[] pmv, int pmv_off) {        
         // Left:   a = m41 + m11, b = m42 + m12, c = m43 + m13, d = m44 + m14  - [1..4] row-major
         // Left:   a = m30 + m00, b = m31 + m01, c = m32 + m02, d = m33 + m03  - [0..3] row-major
         {
@@ -249,7 +264,7 @@ public class Frustum {
             p.d /= invl;
         }
     }
-
+    
 	private static final boolean isOutsideImpl(Plane p, AABBox box) {
 	    final float[] low = box.getLow();
 	    final float[] high = box.getHigh();
@@ -268,12 +283,12 @@ public class Frustum {
 	}
 
 	/**
-	 * Check to see if an orthogonal bounding box is completly outside of the frustum.
+	 * Check to see if an axis aligned bounding box is completely outside of the frustum.
 	 * <p>
 	 * Note: If method returns false, the box may only be partially inside.
 	 * </p>
 	 */
-    public final boolean isOutside(AABBox box) {
+    public final boolean isAABBoxOutside(AABBox box) {
         for (int i = 0; i < 6; ++i) {
             if ( isOutsideImpl(planes[i], box) ) {
                 // fully outside
@@ -285,18 +300,36 @@ public class Frustum {
     }
     
     
+    public static enum Location { OUTSIDE, INSIDE, INTERSECT };
+    
     /**
-     * Check to see if a point is outside of the frustum.
+     * Check to see if a point is outside, inside or on a plane of the frustum.
+     * 
+     * @param p the point
+     * @return {@link Location} of point related to frustum planes
      */
-    public final boolean isOutside(float[] p) {
+    public final Location classifyPoint(float[] p) {
+        Location res = Location.INSIDE;
+        
         for (int i = 0; i < 6; ++i) {
-            if ( planes[i].distanceTo(p) < 0.0f ) {
-                // outside
-                return true;
+            final float d = planes[i].distanceTo(p);
+            if ( d < 0.0f ) {
+                return Location.OUTSIDE;
+            } else if ( d == 0.0f ) {
+                res = Location.INTERSECT;
             }
         }
-        // inside
-        return false;
+        return res;
+    }
+    
+    /**
+     * Check to see if a point is outside of the frustum.
+     * 
+     * @param p the point
+     * @return true if outside of the frustum, otherwise inside or on a plane
+     */
+    public final boolean isPointOutside(float[] p) {
+        return Location.OUTSIDE == classifyPoint(p);
     }
     
     /**
@@ -304,21 +337,33 @@ public class Frustum {
      * 
      * @param p center of the sphere
      * @param radius radius of the sphere
-     * @return 1 if outside, -1 if intersects, 0 if inside
+     * @return {@link Location} of point related to frustum planes
      */
-    public final int isOutside(float[] p, float radius) {
+    public final Location classifySphere(float[] p, float radius) {
+        Location res = Location.INSIDE; // fully inside
+        
         for (int i = 0; i < 6; ++i) {
             final float d = planes[i].distanceTo(p);
-            if ( d > radius ) { 
+            if ( d < -radius ) { 
                 // fully outside
-                return 1;
+                return Location.OUTSIDE;
             } else if (d < radius ) {
                 // intersecting
-                return -1;
+                res = Location.INTERSECT;
             }
-        }
-        // fully inside
-        return 0;
+        }        
+        return res;
+    }
+    
+    /**
+     * Check to see if a sphere is outside of the frustum.
+     * 
+     * @param p center of the sphere
+     * @param radius radius of the sphere
+     * @return true if outside of the frustum, otherwise inside or intersecting
+     */
+    public final boolean isSphereOutside(float[] p, float radius) {
+        return Location.OUTSIDE == classifySphere(p, radius);
     }
     
     public StringBuilder toString(StringBuilder sb) {
