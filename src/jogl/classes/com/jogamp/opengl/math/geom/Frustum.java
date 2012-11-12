@@ -69,7 +69,13 @@ public class Frustum {
         }
     }
     
-	/** Plane equation := dot(n, x - p) = 0 ->  ax + bc + cx + d == 0 */
+	/** 
+	 * Plane equation := dot(n, x - p) = 0 ->  ax + bc + cx + d == 0
+	 * <p>
+	 * In order to work w/ {@link Frustum#isOutside(AABBox) isOutside(..)} methods,
+	 * the normals have to point to the inside of the frustum.
+	 * </p> 
+	 */
     public static class Plane {
         /** Normal of the plane */
         public final float[] n = new float[3];
@@ -121,7 +127,7 @@ public class Frustum {
     public static final int FAR    = 5;
     
     /**
-     * Planes are ordered in the returned array as follows:
+     * {@link Plane}s are ordered in the returned array as follows:
      * <ul>
      *   <li>{@link #LEFT}</li>
      *   <li>{@link #RIGHT}</li>
@@ -130,6 +136,10 @@ public class Frustum {
      *   <li>{@link #NEAR}</li>
      *   <li>{@link #FAR}</li>
      * </ul>
+     * <p>
+     * {@link Plane}'s normals are pointing to the inside of the frustum
+     * in order to work w/ {@link #isOutside(AABBox) isOutside(..)} methods.
+     * </p> 
      * 
      * @return array of normalized {@link Plane}s, order see above. 
      */
@@ -155,6 +165,10 @@ public class Frustum {
     /**
      * Calculate the frustum planes in world coordinates
      * using the passed float[16] as premultiplied P*MV (column major order).
+     * <p>
+     * Frustum plane's normals will point to the inside of the viewing frustum,
+     * as required by this class.
+     * </p>
      */
     public void update(float[] pmv, int pmv_off) {        
         // Left:   a = m41 + m11, b = m42 + m12, c = m43 + m13, d = m44 + m14  - [1..4] row-major
