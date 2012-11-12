@@ -1042,7 +1042,7 @@ public class PMVMatrix implements GLMatrixFunc {
                 frustum = new Frustum();
                 mulPMV = new float[16];
             }
-            FloatUtil.multMatrixf(matrixMv, matrixP, mulPMV, 0);
+            FloatUtil.multMatrixf(matrixP, matrixMv, mulPMV, 0);
             frustum.update(mulPMV, 0);
             dirtyBits &= ~DIRTY_FRUSTUM;
             mod = true;

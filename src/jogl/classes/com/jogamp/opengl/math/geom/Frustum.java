@@ -57,6 +57,11 @@ public class Frustum {
 	
 	/**
 	 * Creates an undefined instance w/o calculating the frustum.
+	 * <p>
+	 * Use one of the <code>update(..)</code> methods to set the {@link #getPlanes() planes}.
+	 * </p>
+	 * @see #update(Plane[])
+	 * @see #update(float[], int)
 	 */
     public Frustum() {
         for (int i = 0; i < 6; ++i) {
@@ -64,17 +69,6 @@ public class Frustum {
         }
     }
     
-    /**
-     * Creates a defined instance w/ calculating the frustum
-     * using the passed float[16] as premultiplied P*MV (column major order)
-     */
-	public Frustum(float[] pmv, int pmv_off) {
-		for (int i = 0; i < 6; ++i) {
-			planes[i] = new Plane();
-		}
-		update(pmv, pmv_off);
-	}
-
 	/** Plane equation := dot(n, x - p) = 0 ->  ax + bc + cx + d == 0 */
     public static class Plane {
         /** Normal of the plane */
@@ -142,7 +136,24 @@ public class Frustum {
     public final Plane[] getPlanes() { return planes; }
     
     /**
-     * Re-calculate the frustum
+     * Copy the given <code>src</code> planes into this this instance's planes.
+     * @param src the 6 source planes
+     */
+    public final void update(Plane[] src) { 
+        for (int i = 0; i < 6; ++i) {
+            final Plane p0 = planes[i];
+            final float[] p0_n = p0.n;
+            final Plane p1 = src[i];
+            final float[] p1_n = p1.n;
+            p0_n[0] = p1_n[0];
+            p0_n[1] = p1_n[1];
+            p0_n[2] = p1_n[2];
+            p0.d = p1.d;
+        }
+    }
+    
+    /**
+     * Calculate the frustum planes in world coordinates
      * using the passed float[16] as premultiplied P*MV (column major order).
      */
     public void update(float[] pmv, int pmv_off) {        
