@@ -225,7 +225,7 @@ public class Frustum {
         }
     }
 
-	private static final boolean quickClassify(Plane p, AABBox box) {
+	private static final boolean isOutsideImpl(Plane p, AABBox box) {
 	    final float[] low = box.getLow();
 	    final float[] high = box.getHigh();
 	    
@@ -237,26 +237,63 @@ public class Frustum {
 		     p.distanceTo(high[0], low[1],  high[2]) > 0.0f ||
 		     p.distanceTo(low[0],  high[1], high[2]) > 0.0f ||
 		     p.distanceTo(high[0], high[1], high[2]) > 0.0f ) {
-			return true;
+			return false;
 		}
-		return false;
+		return true;
 	}
 
 	/**
-	 * Quick check to see if an orthogonal bounding box is completly outside of the frustum.
+	 * Check to see if an orthogonal bounding box is completly outside of the frustum.
 	 * <p>
-	 * Note: If method returns false, the box may be only partially inside.
+	 * Note: If method returns false, the box may only be partially inside.
 	 * </p>
 	 */
     public final boolean isOutside(AABBox box) {
         for (int i = 0; i < 6; ++i) {
-            if (!quickClassify(planes[i], box)) {
+            if ( isOutsideImpl(planes[i], box) ) {
                 // fully outside
                 return true;
             }
         }
         // We make no attempt to determine whether it's fully inside or not.
         return false;
+    }
+    
+    
+    /**
+     * Check to see if a point is outside of the frustum.
+     */
+    public final boolean isOutside(float[] p) {
+        for (int i = 0; i < 6; ++i) {
+            if ( planes[i].distanceTo(p) < 0.0f ) {
+                // outside
+                return true;
+            }
+        }
+        // inside
+        return false;
+    }
+    
+    /**
+     * Check to see if a sphere is outside, intersecting or inside of the frustum.
+     * 
+     * @param p center of the sphere
+     * @param radius radius of the sphere
+     * @return 1 if outside, -1 if intersects, 0 if inside
+     */
+    public final int isOutside(float[] p, float radius) {
+        for (int i = 0; i < 6; ++i) {
+            final float d = planes[i].distanceTo(p);
+            if ( d > radius ) { 
+                // fully outside
+                return 1;
+            } else if (d < radius ) {
+                // intersecting
+                return -1;
+            }
+        }
+        // fully inside
+        return 0;
     }
     
     public StringBuilder toString(StringBuilder sb) {
