@@ -27,11 +27,30 @@
  */
 package com.jogamp.opengl.math.geom;
 
+import com.jogamp.common.os.Platform;
+
 /**
  * Derived Frustum of premultiplied projection * modelview matrix
  * exposing {@link #isOutside(AABBox)} test and the {@link #getPlanes() planes} itself.
+ * <p>
+ * Implementation follows the following paper:<br/>
+ *   http://graphics.cs.ucf.edu/cap4720/fall2008/plane_extraction.pdf
+ * <pre>
+ * Fast Extraction of Viewing Frustum Planes from 
+ * the World-View-Projection Matrix
+ * Authors (in alphabetical order):
+ *   Gil Gribb <ggribb@ravensoft.com>
+ *   Klaus Hartmann <k_hartmann@osnabrueck.netsurf.de>
+ * 06/15/2001
+ * </pre>
+ * </p>
+ * <p>
+ * Further reference: Planes and Half-Spaces,  Max Wagner <mwagner@digipen.edu><br/>
+ *   http://www.emeyex.com/site/tuts/PlanesHalfSpaces.pdf
+ * </p>
  */
 public class Frustum {
+    /** Normalized planes[l, r, b, t, n, f] */
 	protected Plane[] planes = new Plane[6];
 	
 	/**
@@ -45,15 +64,16 @@ public class Frustum {
     
     /**
      * Creates a defined instance w/ calculating the frustum
-     * using the passed float[16] as premultiplied MV*P (column major order)
+     * using the passed float[16] as premultiplied P*MV (column major order)
      */
-	public Frustum(float[] mvp, int pmv_off) {
+	public Frustum(float[] pmv, int pmv_off) {
 		for (int i = 0; i < 6; ++i) {
 			planes[i] = new Plane();
 		}
-		update(mvp, pmv_off);
+		update(pmv, pmv_off);
 	}
 
+	/** Plane equation := dot(n, x - p) = 0 ->  ax + bc + cx + d == 0 */
     public static class Plane {
         /** Normal of the plane */
         public final float[] n = new float[3];
@@ -61,14 +81,28 @@ public class Frustum {
         /** Distance to origin */
         public float d;
 
-        /** Return distance of plane to given point */
+        /** 
+         * Return signed distance of plane to given point.
+         * <ul>
+         *   <li>If dist &lt; 0 , then the point p lies in the negative halfspace.</li>
+         *   <li>If dist = 0 , then the point p lies in the plane.</li>
+         *   <li>If dist &gt; 0 , then the point p lies in the positive halfspace.</li>
+         * </ul> 
+         * A plane cuts 3D space into 2 half spaces.
+         * <p>
+         * Positive halfspace is where the plane’s normals vector points into.
+         * </p> 
+         * <p>
+         * Negative halfspace is the <i>other side</i> of the plane, i.e. *-1
+         * </p> 
+         **/
         public final float distanceTo(float x, float y, float z) {
-            return (n[0] * x) + (n[1] * y) + (n[2] * z) + d;
+            return n[0] * x + n[1] * y + n[2] * z + d;
         }
 
-        /** Return distance of plane to given point */
+        /** Return distance of plane to given point, see {@link #distanceTo(float, float, float)}. */
         public final float distanceTo(float[] p) {
-            return (n[0] * p[0]) + (n[1] * p[1]) + (n[2] * p[2]) + d;
+            return n[0] * p[0] + n[1] * p[1] + n[2] * p[2] + d;
         }
         
         @Override
@@ -76,84 +110,116 @@ public class Frustum {
             return "Plane[ [ " + n[0] + ", " + n[1] + ", " + n[2] + " ], " + d + "]";
         }
     }
-
+    
+    /** Index for left plane: {@value} */
+    public static final int LEFT   = 0;
+    /** Index for right plane: {@value} */
+    public static final int RIGHT  = 1;
+    /** Index for bottom plane: {@value} */
+    public static final int BOTTOM = 2;
+    /** Index for top plane: {@value} */
+    public static final int TOP    = 3;
+    /** Index for near plane: {@value} */
+    public static final int NEAR   = 4;
+    /** Index for far plane: {@value} */
+    public static final int FAR    = 5;
+    
+    /**
+     * Planes are ordered in the returned array as follows:
+     * <ul>
+     *   <li>{@link #LEFT}</li>
+     *   <li>{@link #RIGHT}</li>
+     *   <li>{@link #BOTTOM}</li>
+     *   <li>{@link #TOP}</li>
+     *   <li>{@link #NEAR}</li>
+     *   <li>{@link #FAR}</li>
+     * </ul>
+     * 
+     * @return array of normalized {@link Plane}s, order see above. 
+     */
     public final Plane[] getPlanes() { return planes; }
     
     /**
      * Re-calculate the frustum
-     * using the passed float[16] as premultiplied MV*P (column major order).
+     * using the passed float[16] as premultiplied P*MV (column major order).
      */
-    public void update(float[] mvp, int mvp_off) {
-        // Left: [30+00, 31+01, 32+02, 33+03]
-        // comboMatrix.m[12] + comboMatrix.m[0];
+    public void update(float[] pmv, int pmv_off) {        
+        // Left:   a = m41 + m11, b = m42 + m12, c = m43 + m13, d = m44 + m14  - [1..4] row-major
+        // Left:   a = m30 + m00, b = m31 + m01, c = m32 + m02, d = m33 + m03  - [0..3] row-major
         {
-            final Plane p = planes[0];
+            final Plane p = planes[LEFT];
             final float[] p_n = p.n;
-            p_n[0] = mvp[ mvp_off + 12 ] + mvp[ mvp_off + 0 ];
-            p_n[1] = mvp[ mvp_off + 13 ] + mvp[ mvp_off + 1 ];
-            p_n[2] = mvp[ mvp_off + 14 ] + mvp[ mvp_off + 2 ];
-            p.d = mvp[ mvp_off + 15 ] + mvp[ mvp_off + 3 ];
+            p_n[0] = pmv[ pmv_off + 3 + 0 * 4 ] + pmv[ pmv_off + 0 + 0 * 4 ];
+            p_n[1] = pmv[ pmv_off + 3 + 1 * 4 ] + pmv[ pmv_off + 0 + 1 * 4 ];
+            p_n[2] = pmv[ pmv_off + 3 + 2 * 4 ] + pmv[ pmv_off + 0 + 2 * 4 ];
+            p.d    = pmv[ pmv_off + 3 + 3 * 4 ] + pmv[ pmv_off + 0 + 3 * 4 ];
         }
 
-        // Right: [30-00, 31-01, 32-02, 33-03]
+        // Right:  a = m41 - m11, b = m42 - m12, c = m43 - m13, d = m44 - m14  - [1..4] row-major
+        // Right:  a = m30 - m00, b = m31 - m01, c = m32 - m02, d = m33 - m03  - [0..3] row-major
         {
-            final Plane p = planes[1];
+            final Plane p = planes[RIGHT];
             final float[] p_n = p.n;
-            p_n[0] = mvp[ mvp_off + 12 ] - mvp[ mvp_off + 0 ];
-            p_n[1] = mvp[ mvp_off + 13 ] - mvp[ mvp_off + 1 ];
-            p_n[2] = mvp[ mvp_off + 14 ] - mvp[ mvp_off + 2 ];
-            p.d = mvp[ mvp_off + 15 ] - mvp[ mvp_off + 3 ];
+            p_n[0] = pmv[ pmv_off + 3 + 0 * 4 ] - pmv[ pmv_off + 0 + 0 * 4 ];
+            p_n[1] = pmv[ pmv_off + 3 + 1 * 4 ] - pmv[ pmv_off + 0 + 1 * 4 ];
+            p_n[2] = pmv[ pmv_off + 3 + 2 * 4 ] - pmv[ pmv_off + 0 + 2 * 4 ];
+            p.d    = pmv[ pmv_off + 3 + 3 * 4 ] - pmv[ pmv_off + 0 + 3 * 4 ];
         }
 
-        // Bottom: [30+10, 31+11, 32+12, 33+13]
+        // Bottom: a = m41 + m21, b = m42 + m22, c = m43 + m23, d = m44 + m24  - [1..4] row-major
+        // Bottom: a = m30 + m10, b = m31 + m11, c = m32 + m12, d = m33 + m13  - [0..3] row-major
         {
-            final Plane p = planes[2];
+            final Plane p = planes[BOTTOM];
             final float[] p_n = p.n;
-            p_n[0] = mvp[ mvp_off + 12 ] + mvp[ mvp_off + 4 ];
-            p_n[1] = mvp[ mvp_off + 13 ] + mvp[ mvp_off + 5 ];
-            p_n[2] = mvp[ mvp_off + 14 ] + mvp[ mvp_off + 6 ];
-            p.d = mvp[ mvp_off + 15 ] + mvp[ mvp_off + 7 ];
+            p_n[0] = pmv[ pmv_off + 3 + 0 * 4 ] + pmv[ pmv_off + 1 + 0 * 4 ];
+            p_n[1] = pmv[ pmv_off + 3 + 1 * 4 ] + pmv[ pmv_off + 1 + 1 * 4 ];
+            p_n[2] = pmv[ pmv_off + 3 + 2 * 4 ] + pmv[ pmv_off + 1 + 2 * 4 ];
+            p.d    = pmv[ pmv_off + 3 + 3 * 4 ] + pmv[ pmv_off + 1 + 3 * 4 ];
         }
 
-        // Top: [30-10, 31-11, 32-12, 33-13]
+        // Top:   a = m41 - m21, b = m42 - m22, c = m43 - m23, d = m44 - m24  - [1..4] row-major
+        // Top:   a = m30 - m10, b = m31 - m11, c = m32 - m12, d = m33 - m13  - [0..3] row-major
         {
-            final Plane p = planes[3];
+            final Plane p = planes[TOP];
             final float[] p_n = p.n;
-            p_n[0] = mvp[ mvp_off + 12 ] - mvp[ mvp_off + 4 ];
-            p_n[1] = mvp[ mvp_off + 13 ] - mvp[ mvp_off + 5 ];
-            p_n[2] = mvp[ mvp_off + 14 ] - mvp[ mvp_off + 6 ];
-            p.d = mvp[ mvp_off + 15 ] - mvp[ mvp_off + 7 ];
+            p_n[0] = pmv[ pmv_off + 3 + 0 * 4 ] - pmv[ pmv_off + 1 + 0 * 4 ];
+            p_n[1] = pmv[ pmv_off + 3 + 1 * 4 ] - pmv[ pmv_off + 1 + 1 * 4 ];
+            p_n[2] = pmv[ pmv_off + 3 + 2 * 4 ] - pmv[ pmv_off + 1 + 2 * 4 ];
+            p.d    = pmv[ pmv_off + 3 + 3 * 4 ] - pmv[ pmv_off + 1 + 3 * 4 ];
         }
 
-        // Near: [30+20, 31+21, 32+22, 33+23]
+        // Near:  a = m41 + m31, b = m42 + m32, c = m43 + m33, d = m44 + m34  - [1..4] row-major
+        // Near:  a = m30 + m20, b = m31 + m21, c = m32 + m22, d = m33 + m23  - [0..3] row-major
         {
-            final Plane p = planes[4];
+            final Plane p = planes[NEAR];
             final float[] p_n = p.n;
-            p_n[0] = mvp[ mvp_off + 12 ] + mvp[ mvp_off + 8 ];
-            p_n[1] = mvp[ mvp_off + 13 ] + mvp[ mvp_off + 9 ];
-            p_n[2] = mvp[ mvp_off + 14 ] + mvp[ mvp_off + 10 ];
-            p.d = mvp[ mvp_off + 15 ] + mvp[ mvp_off + 11 ];
+            p_n[0] = pmv[ pmv_off + 3 + 0 * 4 ] + pmv[ pmv_off + 2 + 0 * 4 ];
+            p_n[1] = pmv[ pmv_off + 3 + 1 * 4 ] + pmv[ pmv_off + 2 + 1 * 4 ];
+            p_n[2] = pmv[ pmv_off + 3 + 2 * 4 ] + pmv[ pmv_off + 2 + 2 * 4 ];
+            p.d    = pmv[ pmv_off + 3 + 3 * 4 ] + pmv[ pmv_off + 2 + 3 * 4 ];
         }
 
-        // Far: [30-20, 31-21, 32-22, 33-23]
+        // Far:   a = m41 - m31, b = m42 - m32, c = m43 - m33, d = m44 - m34  - [1..4] row-major
+        // Far:   a = m30 - m20, b = m31 - m21, c = m32 + m22, d = m33 + m23  - [0..3] row-major
         {
-            final Plane p = planes[5];
+            final Plane p = planes[FAR];
             final float[] p_n = p.n;
-            p_n[0] = mvp[ mvp_off + 12 ] - mvp[ mvp_off + 8 ];
-            p_n[1] = mvp[ mvp_off + 13 ] - mvp[ mvp_off + 9 ];
-            p_n[2] = mvp[ mvp_off + 14 ] - mvp[ mvp_off + 10 ];
-            p.d = mvp[ mvp_off + 15 ] - mvp[ mvp_off + 11 ];
+            p_n[0] = pmv[ pmv_off + 3 + 0 * 4 ] - pmv[ pmv_off + 2 + 0 * 4 ];
+            p_n[1] = pmv[ pmv_off + 3 + 1 * 4 ] - pmv[ pmv_off + 2 + 1 * 4 ];
+            p_n[2] = pmv[ pmv_off + 3 + 2 * 4 ] - pmv[ pmv_off + 2 + 2 * 4 ];
+            p.d    = pmv[ pmv_off + 3 + 3 * 4 ] - pmv[ pmv_off + 2 + 3 * 4 ];
         }
 
+        // Normalize all planes
         for (int i = 0; i < 6; ++i) {
             final Plane p = planes[i];
             final float[] p_n = p.n;
             final double invl = Math.sqrt(p_n[0] * p_n[0] + p_n[1] * p_n[1] + p_n[2] * p_n[2]);
 
-            p_n[0] *= invl;
-            p_n[1] *= invl;
-            p_n[2] *= invl;
-            p.d *= invl;
+            p_n[0] /= invl;
+            p_n[1] /= invl;
+            p_n[2] /= invl;
+            p.d /= invl;
         }
     }
 
@@ -161,23 +227,16 @@ public class Frustum {
 	    final float[] low = box.getLow();
 	    final float[] high = box.getHigh();
 	    
-		if (p.distanceTo(low[0],  low[1],  low[2]) > 0.0f)
+		if ( p.distanceTo(low[0],  low[1],  low[2])  > 0.0f ||
+		     p.distanceTo(high[0], low[1],  low[2])  > 0.0f ||
+		     p.distanceTo(low[0],  high[1], low[2])  > 0.0f ||
+		     p.distanceTo(high[0], high[1], low[2])  > 0.0f ||
+		     p.distanceTo(low[0],  low[1],  high[2]) > 0.0f ||
+		     p.distanceTo(high[0], low[1],  high[2]) > 0.0f ||
+		     p.distanceTo(low[0],  high[1], high[2]) > 0.0f ||
+		     p.distanceTo(high[0], high[1], high[2]) > 0.0f ) {
 			return true;
-		if (p.distanceTo(high[0], low[1],  low[2]) > 0.0f)
-			return true;
-		if (p.distanceTo(low[0],  high[1], low[2]) > 0.0f)
-			return true;
-		if (p.distanceTo(high[0], high[1], low[2]) > 0.0f)
-			return true;
-		if (p.distanceTo(low[0],  low[1],  high[2]) > 0.0f)
-			return true;
-		if (p.distanceTo(high[0], low[1],  high[2]) > 0.0f)
-			return true;
-		if (p.distanceTo(low[0],  high[1], high[2]) > 0.0f)
-			return true;
-		if (p.distanceTo(high[0], high[1], high[2]) > 0.0f)
-			return true;
-
+		}
 		return false;
 	}
 
@@ -202,9 +261,14 @@ public class Frustum {
         if( null == sb ) {
             sb = new StringBuilder();
         }
-        sb.append("Frustum[ Planes[ ").append(planes[0]).append(", ");
-        sb.append(planes[1]).append(", ").append(planes[2]).append(", ").append(planes[3]).append(", ").append(planes[4]).append(", ");
-        sb.append(planes[5]).append(" ] ]");
+        sb.append("Frustum[ Planes[ ").append(Platform.NEWLINE)
+        .append(" L: ").append(planes[0]).append(", ").append(Platform.NEWLINE)
+        .append(" R: ").append(planes[1]).append(", ").append(Platform.NEWLINE)
+        .append(" B: ").append(planes[2]).append(", ").append(Platform.NEWLINE)
+        .append(" T: ").append(planes[3]).append(", ").append(Platform.NEWLINE)
+        .append(" N: ").append(planes[4]).append(", ").append(Platform.NEWLINE)
+        .append(" F: ").append(planes[5]).append("], ").append(Platform.NEWLINE)
+        .append("]");
         return sb;
     }
     
