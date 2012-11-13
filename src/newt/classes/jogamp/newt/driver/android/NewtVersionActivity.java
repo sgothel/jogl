@@ -60,8 +60,10 @@ public class NewtVersionActivity extends NewtBaseActivity {
        final ScrollView scroller = new ScrollView(getActivity());
        scroller.addView(tv);
        viewGroup.addView(scroller, new android.widget.FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.TOP|Gravity.LEFT));
-       
-       tv.setText(VersionUtil.getPlatformInfo()+Platform.NEWLINE+GlueGenVersion.getInstance()+Platform.NEWLINE+JoglVersion.getInstance()+Platform.NEWLINE);               
+
+       final String info1 = VersionUtil.getPlatformInfo()+Platform.NEWLINE+GlueGenVersion.getInstance()+Platform.NEWLINE+JoglVersion.getInstance()+Platform.NEWLINE;
+       Log.d(MD.TAG, info1);
+       tv.setText(info1);               
        
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
@@ -82,9 +84,11 @@ public class NewtVersionActivity extends NewtBaseActivity {
                 sb.append(drawable.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities()).append(Platform.NEWLINE).append(Platform.NEWLINE);
                 sb.append("Chosen: ").append(Platform.NEWLINE);
                 sb.append(drawable.getChosenGLCapabilities()).append(Platform.NEWLINE).append(Platform.NEWLINE);
+                final String info2 = sb.toString();
+                Log.d(MD.TAG, info2);
                 viewGroup.post(new Runnable() {
                     public void run() {
-                        tv.append(sb.toString());
+                        tv.append(info2);
                         viewGroup.removeView(androidGLView);
                     } } );                
             }
