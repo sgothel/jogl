@@ -568,24 +568,38 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           if( !incompleteView && surface instanceof ProxySurface ) {
               incompleteView = ((ProxySurface)surface).containsUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE );
           }
-          long pixelFormat = MacOSXCGLGraphicsConfiguration.GLCapabilities2NSPixelFormat(chosenCaps, ctp, major, minor);
+          long pixelFormat;
+          {
+              final GLCapabilitiesImmutable targetCaps;
+              if( isFBO ) {
+                  // Use minimum GLCapabilities for the target surface w/ same profile
+                  targetCaps = new GLCapabilities( chosenCaps.getGLProfile() );
+              } else {
+                  targetCaps = chosenCaps;
+              }
+              pixelFormat = MacOSXCGLGraphicsConfiguration.GLCapabilities2NSPixelFormat(targetCaps, ctp, major, minor);
+          }
           if (pixelFormat == 0) {
               if(DEBUG) {
                   System.err.println("Unable to allocate pixel format with requested GLCapabilities: "+chosenCaps);
               }
               return 0;
           }
-          GLCapabilities fixedCaps = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(chosenCaps.getGLProfile(), pixelFormat);
-          if( !fixedCaps.isPBuffer() && isPBuffer ) {
-              throw new InternalError("handle is PBuffer, fixedCaps not: "+drawable);
+          final GLCapabilitiesImmutable fixedCaps;
+          if( isFBO ) {
+              // pixelformat of target doesn't affect caps w/ FBO
+              fixedCaps = chosenCaps;
+          } else {
+              final GLCapabilities _fixedCaps = MacOSXCGLGraphicsConfiguration.NSPixelFormat2GLCapabilities(chosenCaps.getGLProfile(), pixelFormat);
+              if( !_fixedCaps.isPBuffer() && isPBuffer ) {
+                  throw new InternalError("handle is PBuffer, fixedCaps not: "+drawable);
+              }
+              // determine on-/offscreen caps, since pformat is ambiguous 
+              _fixedCaps.setPBuffer( isPBuffer ); // exclusive
+              _fixedCaps.setBitmap( false );      // n/a in our OSX impl.
+              _fixedCaps.setOnscreen( !isFBO && !isPBuffer );
+              fixedCaps = GLGraphicsConfigurationUtil.fixOpaqueGLCapabilities(_fixedCaps, chosenCaps.isBackgroundOpaque());
           }
-          { // determine on-/offscreen caps, since pformat is ambiguous 
-              fixedCaps.setFBO( isFBO );         // exclusive 
-              fixedCaps.setPBuffer( isPBuffer ); // exclusive
-              fixedCaps.setBitmap( false );      // n/a in our OSX impl.
-              fixedCaps.setOnscreen( !isFBO && !isPBuffer );
-          }
-          fixedCaps = GLGraphicsConfigurationUtil.fixOpaqueGLCapabilities(fixedCaps, chosenCaps.isBackgroundOpaque());
           int sRefreshRate = OSXUtil.GetScreenRefreshRate(drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getIndex());
           screenVSyncTimeout = 1000000f / sRefreshRate;
           if(DEBUG) {
@@ -604,10 +618,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               // Thread.dumpStack();
           }
           config.setChosenCapabilities(fixedCaps);
-          /**
-          if(null != backingLayerHost) {
-              backingLayerHost.setChosenCapabilities(fixedCaps);
-          }  */                  
           
           try {
               final IntBuffer viewNotReady = Buffers.newDirectIntBuffer(1);

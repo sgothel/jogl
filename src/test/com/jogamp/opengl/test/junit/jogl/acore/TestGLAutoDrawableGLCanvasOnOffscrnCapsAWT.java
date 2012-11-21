@@ -247,14 +247,41 @@ public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
     }
     
     @Test
-    public void testGL2OnScreen() throws InterruptedException {
+    public void testGL2OnScreenDblBuf() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
         if(null == reqGLCaps) return;
         doTest(reqGLCaps, new GearsES2(1));
     }
     
     @Test
-    public void testGL2OffScreenAuto() throws InterruptedException {
+    public void testGL2OnScreenDblBufStencil() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setStencilBits(1);
+        doTest(reqGLCaps, new GearsES2(1));
+    }
+    
+    @Test
+    public void testGL2OnScreenDblBufMSAA() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setSampleBuffers(true);
+        reqGLCaps.setNumSamples(4);
+        doTest(reqGLCaps, new GearsES2(1));
+    }
+    
+    @Test
+    public void testGL2OnScreenDblBufStencilMSAA() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setStencilBits(1);
+        reqGLCaps.setSampleBuffers(true);
+        reqGLCaps.setNumSamples(4);
+        doTest(reqGLCaps, new GearsES2(1));
+    }
+    
+    @Test
+    public void testGL2OffScreenAutoDblBuf() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
         if(null == reqGLCaps) return;
         reqGLCaps.setOnscreen(false);
@@ -262,11 +289,33 @@ public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
     }
 
     @Test
-    public void testGL2OffScreenFBOMSAA() throws InterruptedException {
+    public void testGL2OffScreenFBODblBufStencil() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
         if(null == reqGLCaps) return;
         reqGLCaps.setOnscreen(false);
         reqGLCaps.setFBO(true);
+        reqGLCaps.setStencilBits(1);
+        doTest(reqGLCaps, new GearsES2(1));
+    }
+    
+    @Test
+    public void testGL2OffScreenFBODblBufMSAA() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setOnscreen(false);
+        reqGLCaps.setFBO(true);
+        reqGLCaps.setSampleBuffers(true);
+        reqGLCaps.setNumSamples(4);
+        doTest(reqGLCaps, new GearsES2(1));
+    }
+    
+    @Test
+    public void testGL2OffScreenFBODblBufStencilMSAA() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setOnscreen(false);
+        reqGLCaps.setFBO(true);
+        reqGLCaps.setStencilBits(1);
         reqGLCaps.setSampleBuffers(true);
         reqGLCaps.setNumSamples(4);
         doTest(reqGLCaps, new GearsES2(1));
@@ -280,42 +329,6 @@ public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
         reqGLCaps.setPBuffer(true);
         doTest(reqGLCaps, new GearsES2(1));
     }
-    
-    @Test
-    public void testES2OnScreen() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
-        if(null == reqGLCaps) return;
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-    
-    @Test
-    public void testES2OffScreenAuto() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
-        if(null == reqGLCaps) return;
-        reqGLCaps.setOnscreen(false);
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-    
-    @Test
-    public void testES2OffScreenFBOMSAA() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
-        if(null == reqGLCaps) return;
-        reqGLCaps.setOnscreen(false);
-        reqGLCaps.setFBO(true);
-        reqGLCaps.setSampleBuffers(true);
-        reqGLCaps.setNumSamples(4);
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-    
-    @Test
-    public void testES2OffScreenPbuffer() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
-        if(null == reqGLCaps) return;
-        reqGLCaps.setOnscreen(false);
-        reqGLCaps.setPBuffer(true);
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-    
     
     public static void main(String args[]) throws IOException {
         org.junit.runner.JUnitCore.main(TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT.class.getName());

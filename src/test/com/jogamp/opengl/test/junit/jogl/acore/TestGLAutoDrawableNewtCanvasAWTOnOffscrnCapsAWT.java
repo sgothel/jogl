@@ -266,18 +266,67 @@ public class TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT extends UITestCase 
     }
     
     @Test
-    public void testGL2OffScreenLayerAuto() throws InterruptedException {
+    public void testGL2OnScreenDblBufStencil() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setStencilBits(1);
+        doTest(false, reqGLCaps, new GearsES2(1));
+    }
+    
+    @Test
+    public void testGL2OnScreenDblBufMSAA() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setSampleBuffers(true);
+        reqGLCaps.setNumSamples(4);
+        doTest(false, reqGLCaps, new GearsES2(1));
+    }
+    
+    @Test
+    public void testGL2OnScreenDblBufStencilMSAA() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setStencilBits(1);
+        reqGLCaps.setSampleBuffers(true);
+        reqGLCaps.setNumSamples(4);
+        doTest(false, reqGLCaps, new GearsES2(1));
+    }
+    
+    @Test
+    public void testGL2OffScreenLayerAutoDblBuf() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
         if(null == reqGLCaps) return;
         doTest(true, reqGLCaps, new GearsES2(1));
     }
 
     @Test
-    public void testGL2OffScreenFBOMSAA() throws InterruptedException {
+    public void testGL2OffScreenFBODblBufStencil() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
         if(null == reqGLCaps) return;
         reqGLCaps.setFBO(true);
         reqGLCaps.setOnscreen(true); // get native NEWT Window, not OffscreenWindow
+        reqGLCaps.setStencilBits(1);
+        doTest(true, reqGLCaps, new GearsES2(1));
+    }
+    
+    @Test
+    public void testGL2OffScreenFBODblBufMSAA() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setFBO(true);
+        reqGLCaps.setOnscreen(true); // get native NEWT Window, not OffscreenWindow
+        reqGLCaps.setSampleBuffers(true);
+        reqGLCaps.setNumSamples(4);
+        doTest(true, reqGLCaps, new GearsES2(1));
+    }
+    
+    @Test
+    public void testGL2OffScreenFBODblBufStencilMSAA() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setFBO(true);
+        reqGLCaps.setOnscreen(true); // get native NEWT Window, not OffscreenWindow
+        reqGLCaps.setStencilBits(1);
         reqGLCaps.setSampleBuffers(true);
         reqGLCaps.setNumSamples(4);
         doTest(true, reqGLCaps, new GearsES2(1));

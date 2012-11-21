@@ -147,6 +147,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(target, true);
         if(null != ols) {
             final GLCapabilitiesImmutable chosenCapsMod = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(chosenCaps, this, adevice);
+            
             // layered surface -> Offscreen/[FBO|PBuffer]
             if( !chosenCapsMod.isFBO() && !chosenCapsMod.isPBuffer() ) {
                 throw new GLException("Neither FBO nor Pbuffer is available for "+chosenCapsMod+", "+target);
@@ -155,7 +156,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
             ols.setChosenCapabilities(chosenCapsMod);
             if(DEBUG) {
                 System.err.println("GLDrawableFactoryImpl.createGLDrawable -> OnscreenDrawable -> Offscreen-Layer");
-                System.err.println("chosenCaps: "+chosenCaps);
+                System.err.println("chosenCaps:    "+chosenCaps);
                 System.err.println("chosenCapsMod: "+chosenCapsMod);
                 System.err.println("OffscreenLayerSurface: **** "+ols);
                 System.err.println("Target: **** "+target);
@@ -165,7 +166,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                 throw new IllegalArgumentException("Passed NativeSurface must implement SurfaceChangeable for offscreen layered surface: "+target);
             }            
             if( chosenCapsMod.isFBO() ) {
-                // target surface is already a native one
                 result = createFBODrawableImpl(target, chosenCapsMod, 0);
             } else {            
                 result = createOffscreenDrawableImpl(target);

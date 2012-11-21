@@ -193,8 +193,8 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
                 }
             }
             if(null == errMsg) {
-                // fix caps reflecting offscreen! (no GL available here ..)
-                Capabilities caps = (Capabilities) getGraphicsConfiguration().getChosenCapabilities().cloneMutable();
+                // Fix caps reflecting offscreen! (no GL available here ..)
+                final Capabilities caps = (Capabilities) getGraphicsConfiguration().getChosenCapabilities().cloneMutable();
                 caps.setOnscreen(false);
                 setChosenCapabilities(caps);
             }

@@ -235,13 +235,6 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
     }
     
     @Test
-    public void testGL2OnScreenDblBuf() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
-        if(null == reqGLCaps) return;
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-    
-    @Test
     public void testGL2OnScreenSglBuf() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
         if(null == reqGLCaps) return;
@@ -249,6 +242,13 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
         doTest(reqGLCaps, new GearsES2(1));
     }
   
+    @Test
+    public void testGL2OnScreenDblBuf() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        doTest(reqGLCaps, new GearsES2(1));
+    }
+    
     @Test
     public void testGL2OffScreenAutoDblBuf() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
@@ -258,21 +258,21 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
     }
 
     @Test
-    public void testGL2OffScreenFBODblBuf() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
-        if(null == reqGLCaps) return;
-        reqGLCaps.setOnscreen(false);
-        reqGLCaps.setFBO(true);
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-    
-    @Test
     public void testGL2OffScreenFBOSglBuf() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
         if(null == reqGLCaps) return;
         reqGLCaps.setOnscreen(false);
         reqGLCaps.setFBO(true);
         reqGLCaps.setDoubleBuffered(false);
+        doTest(reqGLCaps, new GearsES2(1));
+    }
+    
+    @Test
+    public void testGL2OffScreenFBODblBuf() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setOnscreen(false);
+        reqGLCaps.setFBO(true);
         doTest(reqGLCaps, new GearsES2(1));
     }
     
@@ -306,17 +306,17 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
     }
     
     @Test
-    public void testES2OnScreenDblBuf() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
-        if(null == reqGLCaps) return;
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-    
-    @Test
     public void testES2OnScreenSglBuf() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
         if(null == reqGLCaps) return;
         reqGLCaps.setDoubleBuffered(false);
+        doTest(reqGLCaps, new GearsES2(1));
+    }
+    
+    @Test
+    public void testES2OnScreenDblBuf() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
+        if(null == reqGLCaps) return;
         doTest(reqGLCaps, new GearsES2(1));
     }
     
@@ -329,21 +329,21 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
     }
 
     @Test
-    public void testES2OffScreenFBODblBuf() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
-        if(null == reqGLCaps) return;
-        reqGLCaps.setOnscreen(false);
-        reqGLCaps.setFBO(true);
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-    
-    @Test
     public void testES2OffScreenFBOSglBuf() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
         if(null == reqGLCaps) return;
         reqGLCaps.setOnscreen(false);
         reqGLCaps.setFBO(true);
         reqGLCaps.setDoubleBuffered(false);
+        doTest(reqGLCaps, new GearsES2(1));
+    }
+    
+    @Test
+    public void testES2OffScreenFBODblBuf() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setOnscreen(false);
+        reqGLCaps.setFBO(true);
         doTest(reqGLCaps, new GearsES2(1));
     }
     

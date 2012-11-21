@@ -65,6 +65,7 @@ public class TestGearsES2AWT extends UITestCase {
     static boolean shallUseOffscreenLayer = false;
     static boolean shallUseOffscreenPBufferLayer = false;
     static boolean useMSAA = false;
+    static boolean useStencil = false;
     static boolean addComp = true;
     static boolean shutdownRemoveGLCanvas = true;
     static boolean shutdownDisposeFrame = true;
@@ -159,6 +160,9 @@ public class TestGearsES2AWT extends UITestCase {
             caps.setNumSamples(4);
             caps.setSampleBuffers(true);
         }
+        if(useStencil) {
+            caps.setStencilBits(1);
+        }
         if(shallUseOffscreenLayer) {
             caps.setOnscreen(false);
         }
@@ -192,6 +196,8 @@ public class TestGearsES2AWT extends UITestCase {
                 shallUseOffscreenPBufferLayer = true;
             } else if(args[i].equals("-msaa")) {
                 useMSAA = true;
+            } else if(args[i].equals("-stencil")) {
+                useStencil = true;
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
             } else if(args[i].equals("-justGears")) {
