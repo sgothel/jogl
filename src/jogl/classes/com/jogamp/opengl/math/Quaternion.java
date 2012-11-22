@@ -179,8 +179,8 @@ public class Quaternion {
         float w1 = w*q.w - x*q.x - y*q.y - z*q.z;
 
         float x1 = w*q.x + x*q.w + y*q.z - z*q.y;
-        float y1 = w*q.y - x*q.z + y*q.w + x*q.x;
-        float z1 = w*q.z + x*q.y - y*q.x + y*q.w;
+        float y1 = w*q.y - x*q.z + y*q.w + z*q.x;
+        float z1 = w*q.z + x*q.y - y*q.x + z*q.w;
 
         w = w1;
         x = x1;
