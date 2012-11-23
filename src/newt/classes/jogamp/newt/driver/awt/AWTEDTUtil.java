@@ -215,12 +215,11 @@ public class AWTEDTUtil implements EDTUtil {
                 do {
                     // event dispatch
                     if(!shouldStop) {
-                        // FIXME: Determine whether we require to run the 
-                        // delivery of events (dispatch) on AWT-EDT.
-                        // Since the WindowDriver itself delivers all Window related events,
-                        // this shall not be required.
-                        //   AWTEDTExecutor.singleton.invoke(true, dispatchMessages);
-                        dispatchMessages.run();
+                        // EDT invoke thread is AWT-EDT,
+                        // hence dispatching is required to run on AWT-EDT as well.
+                        // Otherwise a deadlock may happen due to dispatched event's
+                        // triggering a locking action.
+                        AWTEDTExecutor.singleton.invoke(true, dispatchMessages);
                     }
                     // wait
                     synchronized(sync) {
