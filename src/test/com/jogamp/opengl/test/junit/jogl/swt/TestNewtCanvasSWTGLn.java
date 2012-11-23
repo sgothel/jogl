@@ -52,6 +52,7 @@ import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.swt.NewtCanvasSWT;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.MultisampleDemoES2;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
@@ -213,18 +214,10 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
         runTestAGL( caps, new MultisampleDemoES2(true), false /* postAttach */, false /* animator */);
     }
 
-    static int atoi(String a) {
-        int i=0;
-        try {
-            i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
-        return i;
-    }
-
     public static void main(String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
-                duration = atoi(args[++i]);
+                duration = MiscUtils.atoi(args[++i],  duration);
             }
         }
         System.out.println("durationPerTest: "+duration);

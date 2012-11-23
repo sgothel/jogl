@@ -109,6 +109,33 @@ public class AWTRobotUtil {
         return new java.awt.Point(x0, y0);
     }
 
+    public static java.awt.Point getClientLocation(Object obj, int x, int y) 
+        throws InterruptedException, InvocationTargetException {
+        Component comp = null;
+        com.jogamp.newt.Window win = null;
+
+        if(obj instanceof com.jogamp.newt.Window) {
+            win = (com.jogamp.newt.Window) obj;
+        } else if(obj instanceof Component) {
+            comp = (Component) obj;
+        } else {
+            throw new RuntimeException("Neither AWT nor NEWT: "+obj);
+        }
+
+        int x0, y0;
+        if(null!=comp) {
+            java.awt.Point p0 = comp.getLocationOnScreen();            
+            x0 = (int) p0.getX() + x;
+            y0 = (int) p0.getY() + y;
+        } else {
+            javax.media.nativewindow.util.Point p0 = win.getLocationOnScreen(null);            
+            x0 = p0.getX() + x;
+            y0 = p0.getY() + y;
+        }
+
+        return new java.awt.Point(x0, y0);
+    }
+    
     /**
      * toFront, call setVisible(true) and toFront(),
      * after positioning the mouse in the middle of the window via robot.
@@ -177,6 +204,20 @@ public class AWTRobotUtil {
         robot.delay(ROBOT_DELAY);
     }
 
+    public static void setMouseToClientLocation(Robot robot, Object obj, int x, int y) 
+        throws AWTException, InterruptedException, InvocationTargetException {
+        
+        if(null == robot) {
+            robot = new Robot();
+            robot.setAutoWaitForIdle(true);
+        }
+        
+        java.awt.Point p0 = getClientLocation(obj, x, y);
+
+        robot.mouseMove( (int) p0.getX(), (int) p0.getY() );
+        robot.delay(ROBOT_DELAY);
+    }
+    
     public static int getClickTimeout(Object obj) {
         if(obj instanceof com.jogamp.newt.Window) {
             return com.jogamp.newt.event.MouseEvent.getClickTimeout();
