@@ -42,9 +42,16 @@ package com.jogamp.opengl.util;
 import java.util.*;
 import javax.media.opengl.*;
 
-/** An Animator subclass which attempts to achieve a target
-frames-per-second rate to avoid using all CPU time. The target FPS
-is only an estimate and is not guaranteed. */
+/** 
+ * An Animator subclass which attempts to achieve a target
+ * frames-per-second rate to avoid using all CPU time. The target FPS
+ * is only an estimate and is not guaranteed. 
+ * <p>
+ * The Animator execution thread does not run as a daemon thread,
+ * so it is able to keep an application from terminating.<br>
+ * Call {@link #stop() } to terminate the animation and it's execution thread.
+ * </p>
+ */
 public class FPSAnimator extends AnimatorBase {
     private Timer timer = null;
     private TimerTask task = null;

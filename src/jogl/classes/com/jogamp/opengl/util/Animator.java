@@ -56,8 +56,7 @@ import javax.media.opengl.GLAutoDrawable;
  * so it is able to keep an application from terminating.<br>
  * Call {@link #stop() } to terminate the animation and it's execution thread.
  * </p>
-*/
-
+ */
 public class Animator extends AnimatorBase {
     /** timeout in milliseconds, 15 frames @ 60Hz = 240ms, limiting {@link #finishLifecycleAction(Condition)} */
     private static final long TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION = 15*16;
