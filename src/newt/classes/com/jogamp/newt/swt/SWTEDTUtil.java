@@ -154,16 +154,22 @@ public class SWTEDTUtil implements EDTUtil {
                     // Thread.dumpStack();
                 }
             }
-            
-            // start if should not stop && not started yet                    
-            if( !stop && !nedt.isRunning() ) {
-                startImpl();
+            if( isCurrentThreadEDT() ) {
+                task.run();
+                wait = false; // running in same thread (EDT) -> no wait
+            } else if( swtDisplay.isDisposed() ) {
+                wait = false; // drop task, SWT disposed 
+            } else {
+                // start if should not stop && not started yet                    
+                if( !stop && !nedt.isRunning() ) {
+                    startImpl();
+                }
+                if(wait) {
+                    swtDisplay.syncExec(task);
+                } else {
+                    swtDisplay.asyncExec(task);
+                }
             }
-        }
-        if(wait) {
-            swtDisplay.syncExec(task);
-        } else {
-            swtDisplay.asyncExec(task);
         }
     }    
 

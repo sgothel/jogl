@@ -150,7 +150,7 @@ public class DefaultEDTUtil implements EDTUtil {
                         System.err.println("Warning: EDT about (1) to stop, won't enqueue new task: "+edt);
                         Thread.dumpStack();
                     }
-                    return; 
+                    return;
                 }
                 // System.err.println(Thread.currentThread()+" XXX stop: "+stop+", tasks: "+edt.tasks.size()+", task: "+task);
                 // Thread.dumpStack();

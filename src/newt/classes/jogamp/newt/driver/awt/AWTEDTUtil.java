@@ -142,13 +142,17 @@ public class AWTEDTUtil implements EDTUtil {
                     // Thread.dumpStack();
                 }
             }
-            
-            // start if should not stop && not started yet                    
-            if( !stop && !nedt.isRunning() ) {
-                startImpl();
+            if( isCurrentThreadEDT() ) {
+                task.run();
+                wait = false; // running in same thread (EDT) -> no wait
+            } else {            
+                // start if should not stop && not started yet                    
+                if( !stop && !nedt.isRunning() ) {
+                    startImpl();
+                }
+                AWTEDTExecutor.singleton.invoke(wait, task);
             }
         }
-        AWTEDTExecutor.singleton.invoke(wait, task);
     }    
 
     @Override
