@@ -30,6 +30,8 @@ package com.jogamp.nativewindow.swt;
 import com.jogamp.common.os.Platform;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import org.eclipse.swt.graphics.GCData;
 import org.eclipse.swt.widgets.Control;
@@ -70,7 +72,7 @@ public class SWTAccessor {
     static final String str_OS_gtk_class = "org.eclipse.swt.internal.gtk.OS";
     static final Class<?> OS_gtk_class;
     static final Method OS_gtk_widget_realize;
-    static final Method OS_gtk_widget_unrealize;
+    static final Method OS_gtk_widget_unrealize; // optional (removed in SWT 4.3)
     static final Method OS_GTK_WIDGET_WINDOW;
     static final Method OS_gdk_x11_drawable_get_xdisplay;
     static final Method OS_gdk_x11_drawable_get_xid;    
@@ -82,6 +84,12 @@ public class SWTAccessor {
     
     static {
         Field f = null;
+        
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            public Object run() {
+                NativeWindowFactory.initSingleton(); // last resort ..
+                return null;
+            } } );
         
         final String nwt = NativeWindowFactory.getNativeWindowType(false);
 
@@ -127,14 +135,18 @@ public class SWTAccessor {
         Method m1=null, m2=null, m3=null, m4=null, m5=null;
         Class<?> handleType = swt_uses_long_handles  ? long.class : int.class ;
         if( NativeWindowFactory.TYPE_X11 == nwt ) {
+            // mandatory
             try {
                 c = ReflectionUtil.getClass(str_OS_gtk_class, false, SWTAccessor.class.getClassLoader());
                 m1 = c.getDeclaredMethod(str_gtk_widget_realize, handleType);        
-                m2 = c.getDeclaredMethod(str_gtk_widget_unrealize, handleType);
                 m3 = c.getDeclaredMethod(str_GTK_WIDGET_WINDOW, handleType);
                 m4 = c.getDeclaredMethod(str_gdk_x11_drawable_get_xdisplay, handleType);
                 m5 = c.getDeclaredMethod(str_gdk_x11_drawable_get_xid, handleType);
             } catch (Exception ex) { throw new NativeWindowException(ex); }
+            // optional 
+            try {
+                m2 = c.getDeclaredMethod(str_gtk_widget_unrealize, handleType);
+            } catch (Exception ex) { }
         }
         OS_gtk_class = c;
         OS_gtk_widget_realize = m1;
@@ -197,7 +209,7 @@ public class SWTAccessor {
                 public void run() {
                     if(realize) {
                         callStaticMethodL2V(OS_gtk_widget_realize, handle);
-                    } else {
+                    } else if(null != OS_gtk_widget_unrealize) {
                         callStaticMethodL2V(OS_gtk_widget_unrealize, handle);
                     }                    
                 }

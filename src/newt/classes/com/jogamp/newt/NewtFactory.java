@@ -34,12 +34,17 @@
 
 package com.jogamp.newt;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowFactory;
+
+import com.jogamp.common.os.Platform;
 
 import jogamp.newt.Debug;
 import jogamp.newt.DisplayImpl;
@@ -54,8 +59,12 @@ public class NewtFactory {
     // Work-around for initialization order problems on Mac OS X
     // between native Newt and (apparently) Fmod
     static {
-        NativeWindowFactory.initSingleton(); // last resort ..
-        WindowImpl.init(NativeWindowFactory.getNativeWindowType(true));
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            public Object run() {
+                NativeWindowFactory.initSingleton(); // last resort ..
+                WindowImpl.init(NativeWindowFactory.getNativeWindowType(true));
+                return null;
+            } } );
     }
 
     public static Class<?> getCustomClass(String packageName, String classBaseName) {

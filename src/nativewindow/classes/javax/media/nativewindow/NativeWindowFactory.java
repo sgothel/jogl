@@ -148,8 +148,18 @@ public abstract class NativeWindowFactory {
     }
 
     static {
-        Platform.initSingleton();
-        DEBUG = Debug.debug("NativeWindow");
+        final boolean[] _DEBUG = new boolean[] { false };
+        final String[] _tmp = new String[] { null };
+        
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            public Object run() {
+                Platform.initSingleton(); // last resort ..
+                _DEBUG[0] = Debug.debug("NativeWindow");
+                _tmp[0] = Debug.getProperty("nativewindow.ws.name", true);
+                return null;
+            } } ) ;
+        
+        DEBUG = _DEBUG[0];
         if(DEBUG) {
             System.err.println(Thread.currentThread().getName()+" - Info: NativeWindowFactory.<init>");
             // Thread.dumpStack();
@@ -157,11 +167,10 @@ public abstract class NativeWindowFactory {
         
         // Gather the windowing TK first
         nativeWindowingTypePure = _getNativeWindowingType();
-        final String tmp = Debug.getProperty("nativewindow.ws.name", true);
-        if(null==tmp || tmp.length()==0) {
+        if(null==_tmp[0] || _tmp[0].length()==0) {
             nativeWindowingTypeCustom = nativeWindowingTypePure;
         } else {
-            nativeWindowingTypeCustom = tmp.intern(); // canonical representation
+            nativeWindowingTypeCustom = _tmp[0].intern(); // canonical representation
         }
     }
 
