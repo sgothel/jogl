@@ -39,6 +39,4 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-void NativewindowCommon_x11ErrorHandlerEnable(JNIEnv * env, Display *dpy, int onoff, int quiet, int sync);
-
 #endif /* Xmisc_h */
