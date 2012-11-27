@@ -107,11 +107,12 @@ mv nope/*.jar .
 listdeployment jar
 
 if [ $pack200 -eq 1 ] ; then
-    for i in *.jar ; do
+    for i in *.jar atomic/*jar ; do
         fname=$i
+        dname=$(dirname $fname)
         bname=$(basename $fname .jar)
-        echo pack200 $bname.pack.gz $fname
-        pack200 $bname.pack.gz $fname
+        echo pack200 $dname/$bname.pack.gz $fname
+        pack200 $dname/$bname.pack.gz $fname
     done
     listdeployment pack.gz
 fi
