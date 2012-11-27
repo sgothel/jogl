@@ -30,6 +30,9 @@ package jogamp.newt.driver.awt;
 
 import java.awt.EventQueue;
 
+import javax.media.nativewindow.NativeWindowException;
+
+import com.jogamp.common.util.RunnableTask;
 import com.jogamp.newt.util.EDTUtil;
 
 import jogamp.common.awt.AWTEDTExecutor;
@@ -124,33 +127,57 @@ public class AWTEDTUtil implements EDTUtil {
         if(task == null) {
             throw new RuntimeException("Null Runnable");
         }
-        synchronized(edtLock) { // lock the EDT status
-            if( nedt.shouldStop ) {
-                // drop task ..
-                if(DEBUG) {
-                    System.err.println("Warning: EDT about (1) to stop, won't enqueue new task: "+nedt);
-                    Thread.dumpStack();
+        Throwable throwable = null;
+        RunnableTask rTask = null;
+        Object rTaskLock = new Object();
+        synchronized(rTaskLock) { // lock the optional task execution
+            synchronized(edtLock) { // lock the EDT status
+                if( nedt.shouldStop ) {
+                    // drop task ..
+                    if(DEBUG) {
+                        System.err.println("Warning: EDT about (1) to stop, won't enqueue new task: "+nedt);
+                        Thread.dumpStack();
+                    }
+                    return; 
                 }
-                return; 
+                // System.err.println(Thread.currentThread()+" XXX stop: "+stop+", tasks: "+edt.tasks.size()+", task: "+task);
+                // Thread.dumpStack();
+                if(stop) {
+                    nedt.shouldStop = true;
+                    if(DEBUG) {
+                        System.err.println(Thread.currentThread()+": EDT signal STOP (on edt: "+isCurrentThreadEDT()+") - "+nedt);
+                        // Thread.dumpStack();
+                    }
+                }
+                if( isCurrentThreadEDT() ) {
+                    task.run();
+                    wait = false; // running in same thread (EDT) -> no wait
+                } else {            
+                    // start if should not stop && not started yet                    
+                    if( !stop && !nedt.isRunning() ) {
+                        startImpl();
+                    }
+                    rTask = new RunnableTask(task,
+                                             wait ? rTaskLock : null,
+                                             true /* always catch and report Exceptions, don't disturb EDT */);
+                    AWTEDTExecutor.singleton.invoke(false, rTask);
+                }
             }
-            // System.err.println(Thread.currentThread()+" XXX stop: "+stop+", tasks: "+edt.tasks.size()+", task: "+task);
-            // Thread.dumpStack();
-            if(stop) {
-                nedt.shouldStop = true;
-                if(DEBUG) {
-                    System.err.println(Thread.currentThread()+": EDT signal STOP (on edt: "+isCurrentThreadEDT()+") - "+nedt);
-                    // Thread.dumpStack();
+            if( wait ) {
+                try {
+                    rTaskLock.wait(); // free lock, allow execution of rTask
+                } catch (InterruptedException ie) {
+                    throwable = ie;
                 }
-            }
-            if( isCurrentThreadEDT() ) {
-                task.run();
-                wait = false; // running in same thread (EDT) -> no wait
-            } else {            
-                // start if should not stop && not started yet                    
-                if( !stop && !nedt.isRunning() ) {
-                    startImpl();
+                if(null==throwable) {
+                    throwable = rTask.getThrowable();
                 }
-                AWTEDTExecutor.singleton.invoke(wait, task);
+                if(null!=throwable) {
+                    if(throwable instanceof NativeWindowException) {
+                        throw (NativeWindowException)throwable;
+                    }
+                    throw new RuntimeException(throwable);
+                }
             }
         }
     }    
@@ -161,7 +188,7 @@ public class AWTEDTUtil implements EDTUtil {
         synchronized(edtLock) {
             _edt = nedt;
         }
-        if(!_edt.isRunning() || EventQueue.isDispatchThread()  || _edt == Thread.currentThread()) {
+        if(!_edt.isRunning() || _edt == Thread.currentThread() || EventQueue.isDispatchThread()) {
             return;
         }
         try {
@@ -174,7 +201,7 @@ public class AWTEDTUtil implements EDTUtil {
     @Override
     final public void waitUntilStopped() {
         synchronized(edtLock) {
-            if(nedt.isRunning() && nedt != Thread.currentThread() ) {
+            if(nedt.isRunning() && nedt != Thread.currentThread() && !EventQueue.isDispatchThread()) {
                 while(nedt.isRunning()) {
                     try {
                         edtLock.wait();

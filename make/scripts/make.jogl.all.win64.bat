@@ -6,8 +6,8 @@ set ANT_PATH=C:\apache-ant-1.8.2
 
 set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw64\bin;%PATH%
 
-set LIB_GEN=%THISDIR%\lib
-set CLASSPATH=.;%THISDIR%\build-win64\classes
+REM set LIB_GEN=%THISDIR%\lib
+REM set CLASSPATH=.;%THISDIR%\build-win64\classes
 REM    -Dc.compiler.debug=true 
 REM    -Dsetup.addNativeOpenMAX=true 
 REM    -Dsetup.addNativeKD=true

@@ -35,12 +35,11 @@ import java.lang.reflect.InvocationTargetException;
 import org.eclipse.swt.SWT ;
 
 import org.eclipse.swt.layout.FillLayout ;
-import org.eclipse.swt.layout.GridData ;
-import org.eclipse.swt.layout.GridLayout ;
 
 import org.eclipse.swt.widgets.Composite ;
 import org.eclipse.swt.widgets.Display ;
 import org.eclipse.swt.widgets.Shell ;
+import org.junit.Assume;
 import org.junit.Test;
 
 import javax.media.opengl.GL ;
@@ -52,6 +51,7 @@ import javax.media.opengl.GLProfile;
 
 import junit.framework.Assert;
 
+import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow ;
@@ -142,7 +142,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
     ////////////////////////////////////////////////////////////////////////////////
     
     static class ResizeThread extends Thread {
-        boolean shallStop = false;
+        volatile boolean shallStop = false;
         private Shell _shell ;
         private int _n ;
     
@@ -151,6 +151,26 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
             super();
             _shell = shell ;
         }
+        
+        final Runnable resizeAction = new Runnable() {
+            public void run()
+            {
+                System.err.println("[R-i shallStop "+shallStop+", disposed "+_shell.isDisposed()+"]");
+                if( shallStop || _shell.isDisposed() ) {
+                    return;
+                }
+                try {
+                    if( _n % 2 == 0 ) {
+                        _shell.setSize( 200, 200 ) ;
+                    } else {
+                        _shell.setSize( 400, 450 ) ;
+                    }
+                } catch (Exception e0) {
+                    e0.printStackTrace();
+                    Assert.assertTrue("Deadlock @ setSize: "+e0, false);
+                }                            
+                ++_n ;
+            }  };
         
         public void run()
         {
@@ -162,33 +182,24 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
             // This loop simulates rapid resizing by the user by toggling
             // the shell back-and-forth between two sizes.
             
-            while( !shallStop )
+            System.err.println("[R-0 shallStop "+shallStop+", disposed "+_shell.isDisposed()+"]");
+            
+            final Display display = _shell.getDisplay();
+            
+            while( !shallStop && !_shell.isDisposed() )
             {
                 try
                 {
-                    _shell.getDisplay().asyncExec( new Runnable()
-                    {
-                        public void run()
-                        {
-                            try {
-                                if( _n % 2 == 0 ) {
-                                    _shell.setSize( 200, 200 ) ;
-                                } else {
-                                    _shell.setSize( 400, 450 ) ;
-                                }
-                            } catch (Exception e0) {
-                                e0.printStackTrace();
-                                Assert.assertTrue("Deadlock @ setSize: "+e0, false);
-                            }                            
-                            ++_n ;
-                        }
-                    } ) ;
+                    System.err.println("[R-n shallStop "+shallStop+", disposed "+_shell.isDisposed()+"]");
+                    display.asyncExec( resizeAction );
+                    display.wake();
                     
-                    Thread.sleep( 50L ) ;
+                    Thread.sleep( 50L ) ;                    
                 } catch( InterruptedException e ) {
                     break ;
                 }
             }
+            System.err.println("*R-Exit* shallStop "+shallStop+", disposed "+_shell.isDisposed());
         }
     }
     
@@ -196,50 +207,101 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
     
     static class KeyfireThread extends Thread
     {
-        boolean shallStop = false;
+        volatile boolean shallStop = false;
+        Display _display;
         Robot _robot;
         int _n = 0;
     
-        public KeyfireThread(Robot robot)
+        public KeyfireThread(Robot robot, Display display)
         {
             _robot = robot;
+            _display = display;
         }
         
         public void run()
         {
+            System.err.println("[K-0]");
+            
             while( !shallStop )
             {
                 try {
+                    System.err.println("[K-"+_n+"]");
                     AWTRobotUtil.keyPress(_n, _robot, true, KeyEvent.VK_0, 10);
                     AWTRobotUtil.keyPress(_n, _robot, false, KeyEvent.VK_0, 0);
                     Thread.sleep( 40L ) ;
+                    _n++;
+                    if(!_display.isDisposed()) {
+                        _display.wake();
+                    }
                 } catch( InterruptedException e ) {
                     break ;
                 }
             }
+            System.err.println("*K-Exit*");
         }
     }
     
     ////////////////////////////////////////////////////////////////////////////////
     
+    private volatile boolean shallStop = false;
+    
+    static class SWT_DSC {
+        Display display;
+        Shell shell;
+        Composite composite;
+        
+        public void init() {
+            SWTAccessor.invoke(true, new Runnable() {
+                public void run() {        
+                    display = new Display();
+                    Assert.assertNotNull( display );
+                }});
+            
+            display.syncExec(new Runnable() {
+                public void run() {        
+                    shell = new Shell( display );
+                    Assert.assertNotNull( shell );
+                    shell.setLayout( new FillLayout() );
+                    composite = new Composite( shell, SWT.NONE );
+                    composite.setLayout( new FillLayout() );
+                    Assert.assertNotNull( composite );
+                }});            
+        }
+        
+        public void dispose() {
+            Assert.assertNotNull( display );
+            Assert.assertNotNull( shell );
+            Assert.assertNotNull( composite );
+            try {
+                display.syncExec(new Runnable() {
+                   public void run() {
+                    composite.dispose();
+                    shell.dispose();
+                   }});
+                SWTAccessor.invoke(true, new Runnable() {
+                   public void run() {
+                    display.dispose();
+                   }});
+            }
+            catch( Throwable throwable ) {
+                throwable.printStackTrace();
+                Assume.assumeNoException( throwable );
+            }
+            display = null;
+            shell = null;
+            composite = null;            
+        }
+    }
+    
     @Test
     public void test() throws InterruptedException, AWTException, InvocationTargetException {
-        final int columnCount = 1;
-        final Display display = new Display() ;
-
-        final Shell shell = new Shell( display ) ;
-        shell.setLayout( new FillLayout() ) ;
-        
         final Robot robot = new Robot();
         
-        Composite composite = new Composite( shell, SWT.NONE ) ;
-        {
-            GridLayout layout = new GridLayout() ;
-            layout.numColumns = columnCount ;
-            composite.setLayout( layout ) ;
-        }
-
+        final SWT_DSC dsc = new SWT_DSC();
+        dsc.init();
+                
         final GLWindow glWindow;
+        final NewtCanvasSWT canvas;
         {
             final GLProfile gl2Profile = GLProfile.get( GLProfile.GL2 ) ;
             GLCapabilities caps = new GLCapabilities( gl2Profile ) ;
@@ -252,26 +314,30 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
                     glWindow.display();                    
                 }                
             });
-            NewtCanvasSWT canvas = NewtCanvasSWT.create( composite, SWT.NO_BACKGROUND, glWindow ) ;
-            canvas.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, true, columnCount, 1 ) ) ;
+            canvas = NewtCanvasSWT.create( dsc.composite, 0, glWindow ) ;
         }
             
-        shell.setText( "NewtCanvasSWT Resize Bug Demo" ) ;
-        shell.setSize( 400, 450 ) ;
-        shell.open() ;
-        
+        dsc.display.syncExec( new Runnable() {
+            public void run() {
+               dsc.shell.setText( "NewtCanvasSWT Resize Bug Demo" ) ;
+               dsc.shell.setSize( 400, 450 ) ;
+               dsc.shell.open() ;
+            } } );
+                        
         AWTRobotUtil.requestFocus(robot, glWindow, false);
         AWTRobotUtil.setMouseToClientLocation(robot, glWindow, 50, 50);
 
+        shallStop = false;
+        
         final ResizeThread resizer;
         {
-            resizer = new ResizeThread( shell ) ;
+            resizer = new ResizeThread( dsc.shell ) ;
             resizer.start() ;
         }
         
         final KeyfireThread keyfire;
         {
-            keyfire = new KeyfireThread( robot ) ;
+            keyfire = new KeyfireThread( robot, dsc.display ) ;
             keyfire.start() ;
         }
         
@@ -292,18 +358,15 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
                     {
                         keyfire.join();
                     } catch( InterruptedException e ) { }
-                    display.syncExec( new Runnable() {
-                        @Override
-                        public void run() {
-                            shell.dispose();                            
-                        } } );
+                    shallStop = true;
+                    dsc.display.wake();
                 } } ).start();
         }
-        
+                
         try {
-            while( !shell.isDisposed() ) {
-                if( !display.readAndDispatch() ) {
-                    display.sleep();
+            while( !shallStop && !dsc.display.isDisposed() ) {
+                if( !dsc.display.readAndDispatch() ) {
+                    dsc.display.sleep();
                 }
             }
         } catch (Exception e0) {
@@ -311,7 +374,10 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
             Assert.assertTrue("Deadlock @ dispatch: "+e0, false);
         }
         
-        display.dispose() ;
+        System.err.println("NewtCanvasAWT Dispose");
+        canvas.dispose();
+        
+        dsc.dispose();
     }
     
     public static void main( String[] args ) {

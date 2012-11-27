@@ -93,6 +93,9 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
             public void run() {        
                 display = new Display();
                 Assert.assertNotNull( display );
+            }});
+        display.syncExec(new Runnable() {
+            public void run() {        
                 shell = new Shell( display );
                 Assert.assertNotNull( shell );
                 shell.setLayout( new FillLayout() );
@@ -108,10 +111,13 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
         Assert.assertNotNull( shell );
         Assert.assertNotNull( composite );
         try {
-            SWTAccessor.invoke(true, new Runnable() {
+            display.syncExec(new Runnable() {
                public void run() {
                 composite.dispose();
                 shell.dispose();
+               }});
+            SWTAccessor.invoke(true, new Runnable() {
+               public void run() {
                 display.dispose();
                }});
         }
@@ -149,7 +155,7 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
         final NewtCanvasSWT canvas1 = NewtCanvasSWT.create( composite, 0, postAttach ? null : glWindow1 );
         Assert.assertNotNull( canvas1 );
 
-        SWTAccessor.invoke(true, new Runnable() {
+        display.syncExec( new Runnable() {
            public void run() {
               shell.setText( getSimpleTestName(".") );
               shell.setSize( 640, 480 );

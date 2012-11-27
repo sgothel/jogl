@@ -366,12 +366,10 @@ public abstract class DisplayImpl extends Display {
     private ArrayList<NEWTEventTask> events = new ArrayList<NEWTEventTask>();
     private volatile boolean haveEvents = false;
 
-    class DispatchMessagesRunnable implements Runnable {
+    final protected Runnable dispatchMessagesRunnable = new Runnable() {
         public void run() {
             DisplayImpl.this.dispatchMessages();
-        }
-    }
-    protected DispatchMessagesRunnable dispatchMessagesRunnable = new DispatchMessagesRunnable();
+        } };
 
     final void dispatchMessage(final NEWTEventTask eventTask) {
         final NEWTEvent event = eventTask.get();
