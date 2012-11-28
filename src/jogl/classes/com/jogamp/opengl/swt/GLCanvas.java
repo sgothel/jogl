@@ -54,8 +54,10 @@ import jogamp.opengl.GLDrawableHelper;
 import jogamp.opengl.GLDrawableImpl;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Rectangle;
@@ -146,8 +148,10 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       public void run() {
         final RecursiveLock _lock = lock;
         _lock.lock();
-        try {            
-            helper.invokeGL(drawable, context, displayAction, initAction);
+        try {        
+            if( !GLCanvas.this.isDisposed() ) {
+                helper.invokeGL(drawable, context, displayAction, initAction);
+            }
         } finally {
             _lock.unlock();
         }
@@ -161,7 +165,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
         final RecursiveLock _lock = lock;
         _lock.lock();
         try {
-            if(null != drawable) {
+            if(null != drawable && !GLCanvas.this.isDisposed() ) {
                 drawable.swapBuffers();
             }
         } finally {
@@ -193,7 +197,11 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
                      // Catch dispose GLExceptions by GLEventListener, just 'print' them
                      // so we can continue with the destruction.
                      try {
-                         helper.disposeGL(GLCanvas.this, context);
+                         if( !GLCanvas.this.isDisposed() ) {
+                             helper.disposeGL(GLCanvas.this, context);
+                         } else {
+                             context.destroy();
+                         }
                      } catch (GLException gle) {
                          gle.printStackTrace();
                      }
@@ -204,13 +212,10 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
                  drawable.setRealized(false);
                  drawable = null;
              }
-             // SWT is owner of the device handle, not us.
-             // Hence close() operation is a NOP. 
              if (null != device) {
                  device.close();
                  device = null;
              }
-             SWTAccessor.setRealized(GLCanvas.this, false); // unrealize ..
 
              if (animatorPaused) {
                  animator.resume();
@@ -235,7 +240,9 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
            final RecursiveLock _lock = lock;
            _lock.lock();
            try {
-               listener = helper.disposeGLEventListener(GLCanvas.this, drawable, context, listener, remove);
+               if( !GLCanvas.this.isDisposed() ) {
+                   listener = helper.disposeGLEventListener(GLCanvas.this, drawable, context, listener, remove);
+               }
            } finally {
                _lock.unlock();
            }
@@ -326,7 +333,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       /* Register SWT listeners (e.g. PaintListener) to render/resize GL surface. */
       /* TODO: verify that these do not need to be manually de-registered when destroying the SWT component */
       addPaintListener(new PaintListener() {
-         @Override
+        @Override
         public void paintControl(final PaintEvent arg0) {
             if ( !helper.isAnimatorAnimatingOnOtherThread() ) {                
                display(); // checks: null != drawable
@@ -334,10 +341,21 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
          }
       });
 
-      addControlListener(new ControlAdapter() {
+      addControlListener(new ControlListener() {
+         @Override
+         public void controlMoved(ControlEvent e) {
+         }
+         
          @Override
          public void controlResized(final ControlEvent arg0) {
             updateSizeCheck();
+         }
+      });
+      
+      addDisposeListener(new DisposeListener() {
+         @Override
+         public void widgetDisposed(DisposeEvent e) {
+             GLCanvas.this.dispose();
          }
       });
    }
@@ -684,8 +702,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    @Override
    public void dispose() {
-      runInGLThread(disposeOnEDTGLAction);
-      super.dispose();
+     runInGLThread(disposeOnEDTGLAction);
+     super.dispose();          
    }
 
    /**
@@ -694,22 +712,39 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     *   <li>Mac OSX
     *   <ul>
     *     <!--li>AWT EDT: In case AWT is available, the AWT EDT is the OSX UI main thread</li-->
-    *     <li><i>Main Thread</i>: Run on OSX UI main thread.</li>
+    *     <!--li><i>Main Thread</i>: Run on OSX UI main thread.</li-->
+    *     <li>Current thread</li>
     *   </ul></li>
     *   <li>Linux, Windows, ..
     *   <ul>
-    *     <li>Use {@link Threading#invokeOnOpenGLThread(boolean, Runnable)}</li>
+    *     <!--li>Use {@link Threading#invokeOnOpenGLThread(boolean, Runnable)}</li-->
+    *     <li>Current thread</li>
     *   </ul></li>  
     * </ul>
+    * The current thread seems to be valid for all platforms, 
+    * since no SWT lifecycle tasks are being performed w/ this call.
+    * Only GL task, which are independent from the SWT threading model.
+    *   
     * @see Platform#AWT_AVAILABLE
     * @see Platform#getOSType()
     */
-   private static void runInGLThread(final Runnable action) {
+   private void runInGLThread(final Runnable action) {
+      /**
       if(Platform.OSType.MACOS == Platform.OS_TYPE) {
           SWTAccessor.invoke(true, action);
       } else {
           Threading.invokeOnOpenGLThread(true, action);
-      }
+      } */
+      /**
+      if( !isDisposed() ) {
+          final Display d = getDisplay();
+          if( d.getThread() == Thread.currentThread() ) {
+              action.run();
+          } else {
+              d.syncExec(action);
+          }
+      } */
+      action.run();
    }
 
    public static void main(final String[] args) {
