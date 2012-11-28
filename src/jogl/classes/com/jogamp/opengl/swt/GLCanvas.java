@@ -389,8 +389,8 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
                   } finally {
                       _lock.unlock();
                   }
-                  sendReshape = true; // async if display() doesn't get called below, but avoiding deadlock
               }
+              sendReshape = true; // async if display() doesn't get called below, but avoiding deadlock
           }          
       }
    }
