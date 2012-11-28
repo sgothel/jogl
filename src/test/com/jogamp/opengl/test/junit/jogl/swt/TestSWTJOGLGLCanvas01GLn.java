@@ -51,6 +51,7 @@ import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.swt.GLCanvas;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
 
@@ -71,7 +72,8 @@ import com.jogamp.opengl.util.texture.TextureIO;
 public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
 
     static int duration = 250;
-
+    static boolean doAnimation = true;
+    
     static final int iwidth = 640;
     static final int iheight = 480;
 
@@ -90,10 +92,13 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
             public void run() {        
                 display = new Display();
                 Assert.assertNotNull( display );
+            }});
+        display.syncExec(new Runnable() {
+            public void run() {        
                 shell = new Shell( display );
                 Assert.assertNotNull( shell );
                 shell.setLayout( new FillLayout() );
-                composite = new Composite( shell, SWT.NONE );
+                composite = new Composite( shell, SWT.NO_BACKGROUND );
                 composite.setLayout( new FillLayout() );
                 Assert.assertNotNull( composite );
             }});
@@ -105,10 +110,13 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
         Assert.assertNotNull( shell );
         Assert.assertNotNull( composite );
         try {
-            SWTAccessor.invoke(true, new Runnable() {
+            display.syncExec(new Runnable() {
                public void run() {
                 composite.dispose();
                 shell.dispose();
+               }});
+            SWTAccessor.invoke(true, new Runnable() {
+               public void run() {
                 display.dispose();
                }});
         }
@@ -140,12 +148,18 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
            public void dispose(final GLAutoDrawable drawable) { }
         });       
        
-        SWTAccessor.invoke(true, new Runnable() {
+        display.syncExec(new Runnable() {
            public void run() {
             shell.setText( getSimpleTestName(".") );
             shell.setSize( 640, 480 );
             shell.open();
            } } );
+        
+        Animator anim = new Animator();
+        if(doAnimation) {
+            anim.add(canvas);
+            anim.start();
+        }        
         
         long lStartTime = System.currentTimeMillis();
         long lEndTime = lStartTime + duration;
@@ -160,7 +174,10 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
-        SWTAccessor.invoke(true, new Runnable() {
+        
+        anim.stop();
+        
+        display.syncExec(new Runnable() {
            public void run() {
                canvas.dispose();
            } } );
@@ -183,6 +200,8 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 duration = atoi(args[++i]);
+            } else if(args[i].equals("-still")) {
+                doAnimation = false;
             }
         }
         System.out.println("durationPerTest: "+duration);
