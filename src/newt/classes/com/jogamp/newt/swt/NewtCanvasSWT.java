@@ -49,8 +49,10 @@ import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.newt.Debug;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Rectangle;
@@ -142,12 +144,23 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
             }
         });
 
-        addControlListener(new ControlAdapter() {
+        addControlListener(new ControlListener() {
+            @Override
+            public void controlMoved(ControlEvent e) {
+            }
             @Override
             public void controlResized(final ControlEvent arg0) {
                 updateSizeCheck();
             }
         });
+        
+        addDisposeListener(new DisposeListener() {
+            @Override
+            public void widgetDisposed(DisposeEvent e) {
+               NewtCanvasSWT.this.dispose();
+            }
+        });
+        
     }
     
     /** assumes nativeWindow == null ! */
@@ -160,7 +173,8 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         if(0 >= nClientArea.width || 0 >= nClientArea.height) {        
             return false;
         }
-        
+        screen.getDevice().open();
+
         /* Native handle for the control, used to associate with GLContext */
         final long nativeWindowHandle = SWTAccessor.getWindowHandle(this);
         final int visualID = SWTAccessor.getNativeVisualID(screen.getDevice(), nativeWindowHandle);
@@ -230,6 +244,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
             newtChild.destroy();
             newtChild = null;
         }
+        screen.getDevice().close();
         nativeWindow = null;
         super.dispose();            
     }
