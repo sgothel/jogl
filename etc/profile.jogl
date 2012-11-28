@@ -24,6 +24,10 @@ function concat_jogl_list()
 }
 
 ARCH=`uname -m`
+if [ "$ARCH" = "i86pc" ] ; then
+    ARCH="x86"
+fi
+
 KERNEL=`uname -s | awk ' { printf "%s",tolower($0) ; } '`
 if [ "$KERNEL" = "sunos" ] ; then
     KERNEL="solaris"
