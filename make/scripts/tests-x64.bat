@@ -54,9 +54,10 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestP
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting04SWT %*
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor03AWTGLn %*
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTBug628ResizeDeadlock %*
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTBug643AsyncExec %*
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestWindows01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
