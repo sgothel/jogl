@@ -173,7 +173,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             window.parentWindowHandle = parentWindowHandle;
             window.screen = (ScreenImpl) screen;
             window.capsRequested = (CapabilitiesImmutable) caps.cloneMutable();
-            window.setUndecorated(0!=parentWindowHandle);
             window.instantiationFinished();
             return window;
         } catch (Throwable t) {
@@ -804,11 +803,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     } else if ( visible && !isNativeValid() && 0 < width && 0 < height ) {
                         visibleAction = 2; // visible (create)
                         defineSize(width, height);
-                    } else if ( isNativeValid() ) {
+                    } else if ( visible && isNativeValid() ) {
                         visibleAction = 0;
                         // this width/height will be set by windowChanged, called by the native implementation
                         reconfigureWindowImpl(getX(), getY(), width, height, getReconfigureFlags(0, isVisible()));
                     } else {
+                        // invisible or invalid w/ 0 size
                         visibleAction = 0;
                         defineSize(width, height);
                     }
@@ -1045,8 +1045,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                             if(null!=newParentWindowNEWT) {
                                 setScreen( (ScreenImpl) newParentWindowNEWT.getScreen() );
                             } else {
-                                Screen newScreen = NewtFactory.createCompatibleScreen(newParentWindow, getScreen());
-                                if( getScreen() != newScreen ) {
+                                final Screen newScreen = NewtFactory.createCompatibleScreen(newParentWindow, screen);
+                                if( screen != newScreen ) {
                                     // auto destroy on-the-fly created Screen/Display
                                     setScreen( (ScreenImpl) newScreen );
                                 }
@@ -1056,14 +1056,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                             } else {
                                 operation = ReparentOperation.ACTION_NATIVE_CREATION_PENDING;
                             }
-                        } else if ( forceDestroyCreate || !NewtFactory.isScreenCompatible(newParentWindow, getScreen()) ) {
+                        } else if ( forceDestroyCreate || !NewtFactory.isScreenCompatible(newParentWindow, screen) ) {
                             // Destroy this window, may create a new compatible Screen/Display,
                             // and mark it for creation.
                             destroy();
                             if(null!=newParentWindowNEWT) {
                                 setScreen( (ScreenImpl) newParentWindowNEWT.getScreen() );
                             } else {
-                                setScreen( (ScreenImpl) NewtFactory.createCompatibleScreen(newParentWindow, getScreen()) );
+                                setScreen( (ScreenImpl) NewtFactory.createCompatibleScreen(newParentWindow, screen) );
                             }
                             operation = ReparentOperation.ACTION_NATIVE_CREATION;
                         } else {
@@ -1078,7 +1078,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if( null != parentWindow ) {
                         // child -> top
                         // put client to current parent+child position
-                        Point p = getLocationOnScreen(null);
+                        final Point p = getLocationOnScreen(null);
                         x = p.getX();
                         y = p.getY();
                     }
@@ -1134,7 +1134,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
 
                 if( ReparentOperation.ACTION_NATIVE_REPARENTING == operation ) {
-                    DisplayImpl display = (DisplayImpl) screen.getDisplay();
+                    final DisplayImpl display = (DisplayImpl) screen.getDisplay();
                     display.dispatchMessagesNative(); // status up2date
 
                     if(wasVisible) {
@@ -1566,15 +1566,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     public void runOnEDTIfAvail(boolean wait, final Runnable task) {
-        if(windowLock.isOwner(Thread.currentThread())) {
+        if( windowLock.isOwner( Thread.currentThread() ) ) {
             task.run();
         } else {
-            Screen scrn = getScreen();
-            if(null==scrn) {
-                throw new RuntimeException("Null screen of inner class: "+this);
-            }
-            DisplayImpl d = (DisplayImpl) scrn.getDisplay();
-            d.runOnEDTIfAvail(wait, task);
+            ( (DisplayImpl) screen.getDisplay() ).runOnEDTIfAvail(wait, task);
         }
     }
 
@@ -1899,7 +1894,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     public void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
         if(isNativeValid()) {
-            ((DisplayImpl)getScreen().getDisplay()).enqueueEvent(wait, event);
+            ((DisplayImpl)screen.getDisplay()).enqueueEvent(wait, event);
         }
     }
 
@@ -1914,7 +1909,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         repaintQueued=true;
                         final boolean discardTO = QUEUED_EVENT_TO <= System.currentTimeMillis()-e.getWhen();
                         if(DEBUG_IMPLEMENTATION) {
-                            System.err.println("Window.consumeEvent: "+Thread.currentThread().getName()+" - queued "+e+", discard-to "+discardTO);
+                            System.err.println("Window.consumeEvent: REPAINT "+Thread.currentThread().getName()+" - queued "+e+", discard-to "+discardTO);
                             // Thread.dumpStack();
                         }                                                
                         return discardTO; // discardTO:=true -> consumed
@@ -1930,7 +1925,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 if( null != windowLock.getOwner() ) {
                     final boolean discardTO = QUEUED_EVENT_TO <= System.currentTimeMillis()-e.getWhen();
                     if(DEBUG_IMPLEMENTATION) {
-                        System.err.println("Window.consumeEvent: "+Thread.currentThread().getName()+" - queued "+e+", discard-to "+discardTO);
+                        System.err.println("Window.consumeEvent: RESIZED "+Thread.currentThread().getName()+" - queued "+e+", discard-to "+discardTO);
                         // Thread.dumpStack();
                     }
                     return discardTO; // discardTO:=true -> consumed
