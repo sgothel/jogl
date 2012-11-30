@@ -72,7 +72,7 @@ public class AWTEDTUtil implements EDTUtil {
         synchronized(edtLock) { 
             waitUntilStopped();
             if(DEBUG) {
-                System.err.println(Thread.currentThread()+": EDT reset - edt: "+nedt);
+                System.err.println(Thread.currentThread()+": AWT-EDT reset - edt: "+nedt);
             }
             this.nedt = new NewtEventDispatchThread(threadGroup, name);
             this.nedt.setDaemon(true); // don't stop JVM from shutdown ..
@@ -81,13 +81,13 @@ public class AWTEDTUtil implements EDTUtil {
 
     private final void startImpl() {
         if(nedt.isAlive()) {
-            throw new RuntimeException("EDT Thread.isAlive(): true, isRunning: "+nedt.isRunning()+", edt: "+nedt);
+            throw new RuntimeException("AWT-EDT Thread.isAlive(): true, isRunning: "+nedt.isRunning()+", edt: "+nedt);
         }
         start_iter++;
         nedt.setName(name+start_iter);
         nedt.shouldStop = false;
         if(DEBUG) {
-            System.err.println(Thread.currentThread()+": EDT START - edt: "+nedt);
+            System.err.println(Thread.currentThread()+": AWT-EDT START - edt: "+nedt);
             // Thread.dumpStack();
         }
         nedt.start();
@@ -124,9 +124,6 @@ public class AWTEDTUtil implements EDTUtil {
     }
     
     private void invokeImpl(boolean wait, Runnable task, boolean stop) {
-        if(task == null) {
-            throw new RuntimeException("Null Runnable");
-        }
         Throwable throwable = null;
         RunnableTask rTask = null;
         Object rTaskLock = new Object();
@@ -135,7 +132,7 @@ public class AWTEDTUtil implements EDTUtil {
                 if( nedt.shouldStop ) {
                     // drop task ..
                     if(DEBUG) {
-                        System.err.println("Warning: EDT about (1) to stop, won't enqueue new task: "+nedt);
+                        System.err.println(Thread.currentThread()+": Warning: AWT-EDT about (1) to stop, won't enqueue new task: "+nedt);
                         Thread.dumpStack();
                     }
                     return; 
@@ -145,18 +142,19 @@ public class AWTEDTUtil implements EDTUtil {
                 if(stop) {
                     nedt.shouldStop = true;
                     if(DEBUG) {
-                        System.err.println(Thread.currentThread()+": EDT signal STOP (on edt: "+isCurrentThreadEDT()+") - "+nedt);
+                        System.err.println(Thread.currentThread()+": AWT-EDT signal STOP (on edt: "+isCurrentThreadEDT()+") - "+nedt);
                         // Thread.dumpStack();
                     }
+                } else if( !nedt.isRunning() ) {
+                    // start if should not stop && not started yet
+                    startImpl();
                 }
-                if( isCurrentThreadEDT() ) {
+                if( null == task ) {
+                    wait = false;
+                } else if( isCurrentThreadEDT() ) {
                     task.run();
                     wait = false; // running in same thread (EDT) -> no wait
                 } else {            
-                    // start if should not stop && not started yet                    
-                    if( !stop && !nedt.isRunning() ) {
-                        startImpl();
-                    }
                     rTask = new RunnableTask(task,
                                              wait ? rTaskLock : null,
                                              true /* always catch and report Exceptions, don't disturb EDT */);
@@ -239,7 +237,7 @@ public class AWTEDTUtil implements EDTUtil {
         @Override
         final public void run() {
             if(DEBUG) {
-                System.err.println(getName()+": EDT run() START "+ getName());
+                System.err.println(getName()+": AWT-EDT run() START "+ getName());
             }
             RuntimeException error = null;
             try {
@@ -269,11 +267,11 @@ public class AWTEDTUtil implements EDTUtil {
                 if(t instanceof RuntimeException) {
                     error = (RuntimeException) t;
                 } else {
-                    error = new RuntimeException("Within EDT", t);
+                    error = new RuntimeException("Within AWT-EDT", t);
                 }
             } finally {
                 if(DEBUG) {
-                    System.err.println(getName()+": EDT run() END "+ getName()+", "+error); 
+                    System.err.println(getName()+": AWT-EDT run() END "+ getName()+", "+error); 
                 }
                 synchronized(edtLock) {
                     isRunning = !shouldStop;
@@ -282,7 +280,7 @@ public class AWTEDTUtil implements EDTUtil {
                     }
                 }
                 if(DEBUG) {
-                    System.err.println(getName()+": EDT run() EXIT "+ getName()+", exception: "+error);
+                    System.err.println(getName()+": AWT-EDT run() EXIT "+ getName()+", exception: "+error);
                 }
                 if(null!=error) {
                     throw error;

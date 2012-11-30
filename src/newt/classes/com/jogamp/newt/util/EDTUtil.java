@@ -125,7 +125,7 @@ public interface EDTUtil {
     public void invokeStop(Runnable finalTask);
 
     /** 
-     * Shall start the thread if not running.<br>
+     * Shall start the thread if not running, <code>task</code> maybe null for this purpose.<br>
      * Append task to the EDT task queue.<br>
      * Wait until execution is finished if <code>wait == true</code>.<br>
      * Can be issued from within EDT, ie from within an enqueued task.<br>

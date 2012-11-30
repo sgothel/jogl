@@ -165,11 +165,11 @@ public abstract class Display {
      * <code>null</code> is returned and no change is being made.
      * </p>
      * <p>
-     * Note that <code>newEDTUtil</code> will not be started if not done so already,
-     * to do so you may issue {@link EDTUtil#invoke(boolean, Runnable) invoke} 
+     * Note that <code>newEDTUtil</code> will not be started by this method.
+     * To do so you may issue {@link EDTUtil#invoke(boolean, Runnable) invoke} 
      * on the new EDTUtil:
      * <pre>
-     *          newEDTUtil.invoke(true, new Runnable() { public void run() { } } );
+     *          newEDTUtil.invoke(true, null);
      * </pre>
      * </p>
      */
