@@ -71,13 +71,15 @@ public class WindowDriver extends WindowImpl {
         if (0 != hdc) {
             throw new InternalError("surface not released");
         }
-        hdc = GDI.GetDC(getWindowHandle());
-        hmon = MonitorFromWindow0(getWindowHandle());
+        final long hWnd = getWindowHandle();
+        hdc = GDI.GetDC(hWnd);
         
         // return ( 0 == hdc ) ? LOCK_SURFACE_NOT_READY : ( hdc_old != hdc ) ? LOCK_SURFACE_CHANGED : LOCK_SUCCESS ;
         if( 0 == hdc ) { 
             return LOCK_SURFACE_NOT_READY;
-        }
+        }        
+        hmon = MonitorFromWindow0(hWnd);
+        
         if( hdc_old == hdc ) {
             return LOCK_SUCCESS;
         }
@@ -217,14 +219,14 @@ public class WindowDriver extends WindowImpl {
 
     @Override
     protected boolean setPointerVisibleImpl(final boolean pointerVisible) {
-        final Boolean[] res = new Boolean[] { Boolean.FALSE };
+        final boolean[] res = new boolean[] { false };
         
         this.runOnEDTIfAvail(true, new Runnable() {
             public void run() {
-                res[0] = Boolean.valueOf(setPointerVisible0(getWindowHandle(), pointerVisible));
+                res[0] = setPointerVisible0(getWindowHandle(), pointerVisible);
             }
         });
-        return res[0].booleanValue();
+        return res[0];
     }
 
     @Override
