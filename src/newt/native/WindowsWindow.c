@@ -1034,23 +1034,22 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
     case WM_PAINT: {
         RECT r;
         useDefWindowProc = 0;
-        if (GetUpdateRect(wnd, &r, TRUE /* erase background */)) {
-            /*
-            jint width = r.right-r.left;
-            jint height = r.bottom-r.top;
-            if (width > 0 && height > 0) {
-                (*env)->CallVoidMethod(env, window, windowRepaintID, JNI_FALSE, r.left, r.top, width, height);
-            }
-            ValidateRect(wnd, &r);
-            */
+        if (GetUpdateRect(wnd, &r, FALSE /* do not erase background */)) {
+            // clear the whole client area and issue repaint for it, w/o looping through erase background
+            ValidateRect(wnd, NULL); // clear all!
+            (*env)->CallVoidMethod(env, window, windowRepaintID, JNI_FALSE, 0, 0, -1, -1);
+        } else {
+            // shall not happen ?
+            ValidateRect(wnd, NULL); // clear all!
         }
+        // return 0 == done
         break;
     }
     case WM_ERASEBKGND:
         // ignore erase background
         (*env)->CallVoidMethod(env, window, windowRepaintID, JNI_FALSE, 0, 0, -1, -1);
         useDefWindowProc = 0;
-        res = 1; // OpenGL, etc .. erases the background, hence we claim to have just done this
+        res = 1; // return 1 == done, OpenGL, etc .. erases the background, hence we claim to have just done this
         break;
 
 
