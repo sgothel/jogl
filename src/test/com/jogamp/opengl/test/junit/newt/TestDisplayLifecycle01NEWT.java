@@ -89,7 +89,7 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(0,display.getReferenceCount());
         Assert.assertEquals(false,display.isNativeValid());
         Assert.assertNotNull(display.getEDTUtil());
-        Assert.assertEquals(false,display.getEDTUtil().isRunning());
+        Assert.assertEquals(true,display.getEDTUtil().isRunning());
         Assert.assertEquals(0,screen.getReferenceCount());
         Assert.assertEquals(false,screen.isNativeValid());
 
@@ -201,6 +201,8 @@ public class TestDisplayLifecycle01NEWT extends UITestCase {
         Assert.assertEquals(false,display.isNativeValid());
         Assert.assertNotNull(display.getEDTUtil());
         Assert.assertEquals(false,display.getEDTUtil().isRunning());
+        display.getEDTUtil().invoke(true, null);
+        Assert.assertEquals(true,display.getEDTUtil().isRunning());
         Assert.assertEquals(0,screen.getReferenceCount());
         Assert.assertEquals(false,screen.isNativeValid());
 

@@ -140,7 +140,10 @@ public class AWTEDTUtil implements EDTUtil {
                 // System.err.println(Thread.currentThread()+" XXX stop: "+stop+", tasks: "+edt.tasks.size()+", task: "+task);
                 // Thread.dumpStack();
                 if(stop) {
-                    nedt.shouldStop = true;
+                    synchronized(nedt.sync) {
+                        nedt.shouldStop = true;
+                        nedt.sync.notifyAll(); // stop immediate if waiting (poll freq)
+                    }
                     if(DEBUG) {
                         System.err.println(Thread.currentThread()+": AWT-EDT signal STOP (on edt: "+isCurrentThreadEDT()+") - "+nedt);
                         // Thread.dumpStack();
