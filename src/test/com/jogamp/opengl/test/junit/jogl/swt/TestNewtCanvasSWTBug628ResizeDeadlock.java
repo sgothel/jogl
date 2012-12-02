@@ -341,7 +341,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
         }
         
         {
-            new Thread(new Runnable() {
+            final Thread t = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -359,7 +359,9 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
                     } catch( InterruptedException e ) { }
                     shallStop = true;
                     dsc.display.wake();
-                } } ).start();
+                } } );
+            t.setDaemon(true);
+            t.start();
         }
                 
         try {

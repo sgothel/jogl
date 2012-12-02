@@ -171,7 +171,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
     
     /** assumes nativeWindow == null ! */
     protected final boolean validateNative() {
-        if( isDisposed() ) {
+        if( isDisposed() || !isVisible() ) {
             return false;
         }
         updateSizeCheck();
@@ -347,22 +347,19 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
             updateSizeCheck();
             final int w = clientArea.width;
             final int h = clientArea.height;
-
+            
             // set SWT EDT and start it
             {
                 final Display newtDisplay = newtChild.getScreen().getDisplay();
-                final EDTUtil edt = new SWTEDTUtil(newtDisplay, getDisplay());
-                newtDisplay.setEDTUtil(edt);
-                edt.invoke(true, null); // start EDT
+                newtDisplay.setEDTUtil( new SWTEDTUtil(newtDisplay, getDisplay()) );
             }
             
-            newtChild.setVisible(false); // set invisible to force defineSize(w,h) in WindowImpl since event dispatching might be postponed 
-            newtChild.setSize(w, h);
+            newtChild.setSize(w, h);            
             newtChild.reparentWindow(nativeWindow);
             newtChild.setVisible(true);
-            configureNewtChild(true);
+            configureNewtChild(true);            
             newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
-
+            
             // force this SWT Canvas to be focus-able, 
             // since it is completely covered by the newtChild (z-order).
             setEnabled(true);

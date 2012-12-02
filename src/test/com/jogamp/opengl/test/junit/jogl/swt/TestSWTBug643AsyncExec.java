@@ -50,10 +50,13 @@ import junit.framework.Assert;
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.opengl.GLWindow ;
 import com.jogamp.newt.swt.NewtCanvasSWT ;
+import com.jogamp.newt.swt.SWTEDTUtil;
 import com.jogamp.opengl.swt.GLCanvas;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.Animator;
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -61,69 +64,93 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 public class TestSWTBug643AsyncExec extends UITestCase {
     
     static int duration = 500;
+    static boolean useAnimator = false;
     
     ////////////////////////////////////////////////////////////////////////////////
     
-    static void resetAsyncExecCount() {
-        synchronized(asyncExecCountSync) {
-            asyncExecCount=0;
+    static void resetSWTAndNEWTEDTCounter() {
+        synchronized(swtCountSync) {
+            swtCount=0;
+        }
+        synchronized(edtCountSync) {
+            edtCount=0;
         }
     }
-    static int incrAsyncExecCount() {
-        synchronized(asyncExecCountSync) {
-            asyncExecCount++;
-            return asyncExecCount;
+    static int incrSWTCount() {
+        synchronized(swtCountSync) {
+            swtCount++;
+            return swtCount;
         }
     }
-    static int getAsyncExecCount() {
-        synchronized(asyncExecCountSync) {
-            return asyncExecCount;
+    static int getSWTCount() {
+        synchronized(swtCountSync) {
+            return swtCount;
         }
     }
-    static Object asyncExecCountSync = new Object();
-    static int asyncExecCount = 0;    
+    static int incrNEWTCount() {
+        synchronized(edtCountSync) {
+            edtCount++;
+            return edtCount;
+        }
+    }
+    static int getNEWTCount() {
+        synchronized(edtCountSync) {
+            return edtCount;
+        }
+    }
+    static Object swtCountSync = new Object();
+    static int swtCount = 0;    
+    static Object edtCountSync = new Object();
+    static int edtCount = 0;    
     
     ////////////////////////////////////////////////////////////////////////////////
     
-    static class AsyncExecFeederThread extends Thread {
+    static class AsyncExecEDTFeederThread extends Thread {
         volatile boolean shallStop = false;
-        private Display display ;
-        private int n ;
+        private Display swtDisplay ;
+        private jogamp.newt.DisplayImpl newtDisplay;
+        private int swtN, newtN ;
     
-        public AsyncExecFeederThread( Display display )
+        public AsyncExecEDTFeederThread( Display swtDisplay, com.jogamp.newt.Display newtDisplay )
         {
             super();
-            this.display = display ;
+            this.swtDisplay = swtDisplay ;
+            this.newtDisplay = (jogamp.newt.DisplayImpl)newtDisplay;
         }
         
-        final Runnable asyncAction = new Runnable() {
+        final Runnable swtAsyncAction = new Runnable() {
             public void run()
             {
-                ++n ;
-                System.err.println("[A-i shallStop "+shallStop+", disposed "+display.isDisposed()+"]: Counter[loc "+n+", glob: "+incrAsyncExecCount()+"]");
+                ++swtN ;
+                System.err.println("[SWT A-i shallStop "+shallStop+"]: Counter[loc "+swtN+", glob: "+incrSWTCount()+"]");
+            }  };
+            
+        final Runnable newtAsyncAction = new Runnable() {
+            public void run()
+            {
+                ++newtN ;
+                System.err.println("[NEWT A-i shallStop "+shallStop+"]: Counter[loc "+newtN+", glob: "+incrNEWTCount()+"]");
             }  };
         
         public void run()
         {
-            System.err.println("[A-0 shallStop "+shallStop+", disposed "+display.isDisposed()+"]");
+            System.err.println("[A-0 shallStop "+shallStop+"]");
             
-            // final Display d = Display.getDefault();
-            final Display d = this.display;
-            
-            while( !shallStop && !d.isDisposed() )
+            while( !shallStop && !swtDisplay.isDisposed() )
             {
                 try
                 {
-                    System.err.println("[A-n shallStop "+shallStop+", disposed "+d.isDisposed()+"]");
-                    d.asyncExec( asyncAction );
-                    d.wake();
-                    
+                    swtDisplay.asyncExec( swtAsyncAction );
+                    if(null != newtDisplay && newtDisplay.isNativeValid() && newtDisplay.getEDTUtil().isRunning()) {
+                        // only perform async exec on valid and already running NEWT EDT!
+                        newtDisplay.runOnEDTIfAvail(false, newtAsyncAction);
+                    }
                     Thread.sleep( 50L ) ;                    
                 } catch( InterruptedException e ) {
                     break ;
                 }
             }
-            System.err.println("*R-Exit* shallStop "+shallStop+", disposed "+d.isDisposed());
+            System.err.println("*R-Exit* shallStop "+shallStop);
         }
     }
     
@@ -179,12 +206,13 @@ public class TestSWTBug643AsyncExec extends UITestCase {
         }
     }
     
-    private void testImpl(boolean useJOGLGLCanvas, boolean useNewtCanvasSWT) throws InterruptedException, AWTException, InvocationTargetException {
-        resetAsyncExecCount();
+    private void testImpl(boolean useJOGLGLCanvas, boolean useNewtCanvasSWT, boolean glWindowPreVisible) throws InterruptedException, AWTException, InvocationTargetException {
+        resetSWTAndNEWTEDTCounter();
         
         final SWT_DSC dsc = new SWT_DSC();
         dsc.init();
                 
+        final com.jogamp.newt.Display newtDisplay;
         {
             final GLProfile gl2Profile = GLProfile.get( GLProfile.GL2 ) ;
             final GLCapabilities caps = new GLCapabilities( gl2Profile ) ;
@@ -192,42 +220,58 @@ public class TestSWTBug643AsyncExec extends UITestCase {
             final GLAutoDrawable glad;
             if( useJOGLGLCanvas ) {
                 glad = GLCanvas.create(dsc.composite, 0, caps, null, null);
+                glad.addGLEventListener( new GearsES2() ) ;
+                newtDisplay = null;
             } else if( useNewtCanvasSWT ) {
                 final GLWindow glWindow = GLWindow.create( caps ) ;
+                glWindow.addGLEventListener( new GearsES2() ) ;
+                newtDisplay = glWindow.getScreen().getDisplay();
+                if( glWindowPreVisible ) {
+                    newtDisplay.setEDTUtil(new SWTEDTUtil(newtDisplay, dsc.display)); // Especially Windows requires creation access via same thread!
+                    glWindow.setVisible(true);
+                    AWTRobotUtil.waitForRealized(glWindow, true);
+                    Thread.sleep(120); // let it render a bit, before consumed by SWT                   
+                }
                 glad = glWindow;
                 NewtCanvasSWT.create( dsc.composite, 0, glWindow ) ;                
             } else {
                 throw new InternalError("XXX");
             }
-            glad.addGLEventListener( new GearsES2() ) ;
+            if(useAnimator) {
+                Animator animator = new Animator(glad);
+                animator.start();
+            }
         }
             
+        System.err.println("**** Pre Shell Open");
         dsc.display.syncExec( new Runnable() {
             public void run() {
                dsc.shell.setText( "NewtCanvasSWT Resize Bug Demo" ) ;
                dsc.shell.setSize( 400, 450 ) ;
                dsc.shell.open() ;
             } } );
+        System.err.println("**** Post Shell Open");
 
         shallStop = false;
+                
+        final int[] counterBeforeExit = new int[] { 0 /* SWT */, 0 /* NEWT */ };
         
-        final int[] ayncExecCountBeforeExit = new int[] { 0 };
-        
-        final AsyncExecFeederThread asyncExecFeeder;
+        final AsyncExecEDTFeederThread asyncExecFeeder;
         {
-            asyncExecFeeder = new AsyncExecFeederThread( dsc.display) ;
+            asyncExecFeeder = new AsyncExecEDTFeederThread(dsc.display, newtDisplay) ;
             asyncExecFeeder.start() ;
         }
         
         {
-            new Thread(new Runnable() {
+            final Thread t = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
                         Thread.sleep(duration);
                     } catch (InterruptedException e) {}
                     
-                    ayncExecCountBeforeExit[0] = getAsyncExecCount();
+                    counterBeforeExit[0] = getSWTCount();
+                    counterBeforeExit[1] = getNEWTCount();
                     asyncExecFeeder.shallStop = true;
                     try
                     {
@@ -235,15 +279,15 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                     } catch( InterruptedException e ) { }
                     shallStop = true;
                     dsc.display.wake();
-                } } ).start();
+                } } );
+            t.setDaemon(true);
+            t.start();
         }
                 
         try {
             final Display d = dsc.display;            
             while( !shallStop && !d.isDisposed() ) {
-                final boolean r = d.readAndDispatch();
-                System.err.print(",");
-                if( !r ) {
+                if( !d.readAndDispatch() ) {
                     dsc.display.sleep();
                 }
             }
@@ -256,24 +300,34 @@ public class TestSWTBug643AsyncExec extends UITestCase {
         
         dsc.dispose();
         
-        System.err.println("AsyncExecCount before exit: " + ayncExecCountBeforeExit[0]);
-        Assert.assertTrue("AsyncExecCount not greater zero before dispose!", 0 < ayncExecCountBeforeExit[0]);        
+        System.err.println("EDT Counter before exit: SWT " + counterBeforeExit[0] + ", NEWT "+counterBeforeExit[1]);
+        Assert.assertTrue("SWT EDT Counter not greater zero before dispose!", 0 < counterBeforeExit[0]);
+        if( null != newtDisplay ) {
+            Assert.assertTrue("NEWT EDT Counter not greater zero before dispose!", 0 < counterBeforeExit[1]);
+        }
     }
 
     @Test
     public void test01JOGLGLCanvas() throws InterruptedException, AWTException, InvocationTargetException {
-        testImpl(true /* useJOGLGLCanvas */, false /* useNewtCanvasSWT */);
+        testImpl(true /* useJOGLGLCanvas */, false /* useNewtCanvasSWT */, false /* glWindowPreVisible */);
     }
     
     @Test
-    public void test02NewtCanvasSWT() throws InterruptedException, AWTException, InvocationTargetException {
-        testImpl(false /* useJOGLGLCanvas */, true /* useNewtCanvasSWT */);
+    public void test02NewtCanvasSWTSimple() throws InterruptedException, AWTException, InvocationTargetException {
+        testImpl(false /* useJOGLGLCanvas */, true /* useNewtCanvasSWT */, false /* glWindowPreVisible */);
+    }
+    
+    @Test
+    public void test02NewtCanvasSWTPreVisible() throws InterruptedException, AWTException, InvocationTargetException {
+        testImpl(false /* useJOGLGLCanvas */, true /* useNewtCanvasSWT */, true /* glWindowPreVisible */);
     }
     
     public static void main( String[] args ) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 duration = MiscUtils.atoi(args[++i],  duration);
+            } else if(args[i].equals("-anim")) {
+                useAnimator = true;
             }
         }
         System.out.println("durationPerTest: "+duration);

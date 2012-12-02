@@ -423,7 +423,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    
    /** assumes drawable == null ! */
    protected final boolean validateDrawableAndContext() {
-      if( GLCanvas.this.isDisposed() ) {
+      if( isDisposed() || !isVisible() ) {
           return false;
       }
       final Rectangle nClientArea = clientArea;
