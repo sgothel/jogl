@@ -366,8 +366,9 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
                 
         try {
             while( !shallStop && !dsc.display.isDisposed() ) {
-                if( !dsc.display.readAndDispatch() ) {
-                    dsc.display.sleep();
+                if( !dsc.display.readAndDispatch() && !shallStop ) {
+                    // blocks on linux .. dsc.display.sleep();
+                    Thread.sleep(10);
                 }
             }
         } catch (Exception e0) {

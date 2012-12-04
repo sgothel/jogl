@@ -60,8 +60,8 @@ public class GearsES2 implements GLEventListener {
     private int swapInterval = 0;
     private boolean pmvUseBackingArray = true; // the default for PMVMatrix now, since it's faster
     // private MouseListener gearsMouse = new TraceMouseAdapter(new GearsMouseAdapter());
-    private MouseListener gearsMouse = new GearsMouseAdapter();    
-    private KeyListener gearsKeys = new GearsKeyAdapter();
+    public MouseListener gearsMouse = new GearsMouseAdapter();    
+    public KeyListener gearsKeys = new GearsKeyAdapter();
 
     private int prevMouseX, prevMouseY;
     private boolean doRotate = true;
@@ -352,6 +352,10 @@ public class GearsES2 implements GLEventListener {
                 window = (Window) source;
                 width=window.getWidth();
                 height=window.getHeight();
+            } else if (source instanceof GLAutoDrawable) {
+                GLAutoDrawable glad = (GLAutoDrawable) source;
+                width = glad.getWidth();
+                height = glad.getHeight();
             } else if (GLProfile.isAWTAvailable() && source instanceof java.awt.Component) {
                 java.awt.Component comp = (java.awt.Component) source;
                 width=comp.getWidth();

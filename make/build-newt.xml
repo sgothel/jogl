@@ -112,7 +112,7 @@
                   value="com/jogamp/newt/awt/** com/jogamp/newt/event/awt/** jogamp/newt/awt/** ${java.part.driver.awt}"/>
 
         <property name="java.part.swt"
-                  value="com/jogamp/newt/swt/**"/>
+                  value="com/jogamp/newt/swt/** jogamp/newt/swt/**"/>
 
         <property name="java.part.driver.linux"
                   value="jogamp/newt/driver/linux/**"/>

@@ -428,6 +428,7 @@
         <property name="jogl-all-android.jar"           value="${jar}/jogl-all-android.jar" />
         <property name="jogl-all-android.apk"           value="${jar}/jogl-all-android-${android.abi}.apk" />
 
+        <!-- NativeWindow Compilation .. -->
         <path id="swt_gluegen.classpath">
             <pathelement location="${gluegen-rt.jar}" />
             <pathelement location="${swt.jar}" />

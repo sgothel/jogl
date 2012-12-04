@@ -50,6 +50,7 @@ import org.junit.Test;
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.opengl.swt.GLCanvas;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.MultisampleDemoES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
@@ -58,10 +59,9 @@ import com.jogamp.opengl.util.texture.TextureIO;
 /**
  * Tests that a basic SWT app can open without crashing under different GL profiles.
  * <p> 
- * Uses JOGL's new SWT GLCanvas.
- * </p>
- * <p>
- * Note: To employ custom GLCapabilities, NewtCanvasSWT shall be used.
+ * Uses JOGL's new SWT GLCanvas,
+ * which allows utilizing custom GLCapability settings,
+ * independent from the already instantiated SWT visual.
  * </p>
  * <p>
  * Note that {@link SWTAccessor#invoke(boolean, Runnable)} is still used to comply w/ 
@@ -188,6 +188,14 @@ public class TestSWTJOGLGLCanvas01GLn extends UITestCase {
         runTestAGL( new GLCapabilities(GLProfile.getGL2ES2()), new GearsES2() );
     }
 
+    @Test
+    public void test_MultisampleAndAlpha() throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
+        caps.setSampleBuffers(true);
+        caps.setNumSamples(2);
+        runTestAGL( caps, new MultisampleDemoES2(true) );
+    }
+    
     static int atoi(String a) {
         int i=0;
         try {

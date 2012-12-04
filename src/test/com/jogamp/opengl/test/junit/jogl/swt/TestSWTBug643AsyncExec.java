@@ -45,12 +45,13 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities ;
 import javax.media.opengl.GLProfile;
 
+import jogamp.newt.swt.SWTEDTUtil;
+import jogamp.newt.swt.event.SWTNewtEventFactory;
 import junit.framework.Assert;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.opengl.GLWindow ;
 import com.jogamp.newt.swt.NewtCanvasSWT ;
-import com.jogamp.newt.swt.SWTEDTUtil;
 import com.jogamp.opengl.swt.GLCanvas;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
@@ -121,15 +122,15 @@ public class TestSWTBug643AsyncExec extends UITestCase {
         final Runnable swtAsyncAction = new Runnable() {
             public void run()
             {
-                ++swtN ;
-                System.err.println("[SWT A-i shallStop "+shallStop+"]: Counter[loc "+swtN+", glob: "+incrSWTCount()+"]");
+                ++swtN ; incrSWTCount();
+                System.err.println("[SWT A-i shallStop "+shallStop+"]: Counter[loc "+swtN+", glob: "+getSWTCount()+"]");
             }  };
             
         final Runnable newtAsyncAction = new Runnable() {
             public void run()
             {
-                ++newtN ;
-                System.err.println("[NEWT A-i shallStop "+shallStop+"]: Counter[loc "+newtN+", glob: "+incrNEWTCount()+"]");
+                ++newtN ; incrNEWTCount();
+                System.err.println("[NEWT A-i shallStop "+shallStop+"]: Counter[loc "+newtN+", glob: "+getNEWTCount()+"]");
             }  };
         
         public void run()
@@ -219,9 +220,13 @@ public class TestSWTBug643AsyncExec extends UITestCase {
             
             final GLAutoDrawable glad;
             if( useJOGLGLCanvas ) {
-                glad = GLCanvas.create(dsc.composite, 0, caps, null, null);
-                glad.addGLEventListener( new GearsES2() ) ;
-                newtDisplay = null;
+                final GearsES2 demo = new GearsES2();
+                final GLCanvas glc = GLCanvas.create(dsc.composite, 0, caps, null, null);
+                final SWTNewtEventFactory swtNewtEventFactory = new SWTNewtEventFactory();
+                swtNewtEventFactory.attachDispatchListener(glc, glc, demo.gearsMouse, demo.gearsKeys);
+                glc.addGLEventListener( demo ) ;
+                glad = glc; 
+                newtDisplay = null;                
             } else if( useNewtCanvasSWT ) {
                 final GLWindow glWindow = GLWindow.create( caps ) ;
                 glWindow.addGLEventListener( new GearsES2() ) ;
@@ -287,8 +292,9 @@ public class TestSWTBug643AsyncExec extends UITestCase {
         try {
             final Display d = dsc.display;            
             while( !shallStop && !d.isDisposed() ) {
-                if( !d.readAndDispatch() ) {
-                    dsc.display.sleep();
+                if( !d.readAndDispatch() && !shallStop ) {
+                    // blocks on linux .. dsc.display.sleep();
+                    Thread.sleep(10);
                 }
             }
         } catch (Exception e0) {

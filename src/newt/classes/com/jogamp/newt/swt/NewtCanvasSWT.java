@@ -26,7 +26,6 @@
  * or implied, of JogAmp Community.
  */
 
-
 package com.jogamp.newt.swt;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
@@ -44,20 +43,18 @@ import javax.media.nativewindow.WindowClosingProtocol;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
+import javax.media.opengl.GLCapabilities;
 
 import jogamp.nativewindow.macosx.OSXUtil;
 import jogamp.newt.Debug;
+import jogamp.newt.swt.SWTEDTUtil;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.ControlListener;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.Display;
@@ -67,6 +64,9 @@ import com.jogamp.newt.util.EDTUtil;
 
 /**
  * SWT {@link Canvas} containing a NEWT {@link Window} using native parenting.
+ * <p>
+ * Implementation allows use of custom {@link GLCapabilities}.
+ * </p>
  */
 public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
     private static final boolean DEBUG = Debug.debug("Window");
@@ -126,54 +126,44 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
         clientArea = getClientArea();
 
         final AbstractGraphicsDevice device = SWTAccessor.getDevice(this);
-        screen = SWTAccessor.getScreen(device, 0);
+        screen = SWTAccessor.getScreen(device, -1 /* default */);
         nativeWindow = null;
         
         if(null != child) {
             setNEWTChild(child);
         }
-        
-        /* Register SWT listeners (e.g. PaintListener) to render/resize GL surface. */
-        /* TODO: verify that these do not need to be manually de-registered when destroying the SWT component */
-        addPaintListener(new PaintListener() {
+
+        final Listener listener = new Listener () {
             @Override
-            public void paintControl(final PaintEvent arg0) {
-                if( null != nativeWindow || validateNative() ) {
-                    if( newtChildReady ) {
-                        if( postSetSize ) {
-                            newtChild.setSize(clientArea.width, clientArea.height);
-                            postSetSize = false;
+            public void handleEvent (Event event) {
+                switch (event.type) {
+                case SWT.Paint:
+                    if( null != nativeWindow || validateNative() ) {
+                        if( newtChildReady ) {
+                            if( postSetSize ) {
+                                newtChild.setSize(clientArea.width, clientArea.height);
+                                postSetSize = false;
+                            }
+                            newtChild.windowRepaint(0, 0, clientArea.width, clientArea.height);
                         }
-                        newtChild.windowRepaint(0, 0, clientArea.width, clientArea.height);
                     }
+                    break;
+                case SWT.Resize:
+                    updateSizeCheck();
+                    break;
+                case SWT.Dispose:
+                    NewtCanvasSWT.this.dispose();
+                    break;
                 }
             }
-        });
-
-        addControlListener(new ControlListener() {
-            @Override
-            public void controlMoved(ControlEvent e) {
-            }
-            @Override
-            public void controlResized(final ControlEvent arg0) {
-                updateSizeCheck();
-            }
-        });
-        
-        addDisposeListener(new DisposeListener() {
-            @Override
-            public void widgetDisposed(DisposeEvent e) {
-               NewtCanvasSWT.this.dispose();
-            }
-        });
-        
+        };
+        addListener (SWT.Resize, listener);
+        addListener (SWT.Paint, listener);
+        addListener (SWT.Dispose, listener);
     }
     
     /** assumes nativeWindow == null ! */
     protected final boolean validateNative() {
-        if( isDisposed() || !isVisible() ) {
-            return false;
-        }
         updateSizeCheck();
         final Rectangle nClientArea = clientArea;
         if(0 >= nClientArea.width || 0 >= nClientArea.height) {        
@@ -216,6 +206,10 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
              ( nClientArea.width != oClientArea.width || nClientArea.height != oClientArea.height )
            ) {
             clientArea = nClientArea; // write back new value
+            if(DEBUG) {
+                final long nsh = newtChildReady ? newtChild.getSurfaceHandle() : 0;
+                System.err.println("NewtCanvasSWT.sizeChanged: ("+Thread.currentThread().getName()+"): newtChildReady "+newtChildReady+", "+nClientArea.x+"/"+nClientArea.y+" "+nClientArea.width+"x"+nClientArea.height+" - surfaceHandle 0x"+Long.toHexString(nsh));
+            }
             if( newtChildReady ) {
                 newtChild.setSize(clientArea.width, clientArea.height);
             } else {
@@ -223,7 +217,7 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
             }
         }
     }
-
+    
     @Override
     public void update() {
         // don't paint background etc .. nop avoids flickering
@@ -261,11 +255,11 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
     public NativeWindow getNativeWindow() { return nativeWindow; }
     
     public WindowClosingMode getDefaultCloseOperation() {
-        return newtChildCloseOp; // FIXME
+        return newtChildCloseOp; // TODO: implement ?!
     }
 
     public WindowClosingMode setDefaultCloseOperation(WindowClosingMode op) {
-        return newtChildCloseOp = op; // FIXME
+        return newtChildCloseOp = op; // TODO: implement ?!
     }
 
 
