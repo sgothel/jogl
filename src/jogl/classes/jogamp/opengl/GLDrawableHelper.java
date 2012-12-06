@@ -890,35 +890,38 @@ public class GLDrawableHelper {
         }
     }
     int res = GLContext.CONTEXT_NOT_CURRENT;
-  
+    
     try {
-      res = context.makeCurrent();
-      if (GLContext.CONTEXT_NOT_CURRENT != res) {
-        perThreadInitAction.set(initAction);
-        if (GLContext.CONTEXT_CURRENT_NEW == res) {
-          if (DEBUG) {
-            System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
-          }
-          initAction.run();
+        res = context.makeCurrent();
+        if (GLContext.CONTEXT_NOT_CURRENT != res) {
+            try {
+                perThreadInitAction.set(initAction);
+                if (GLContext.CONTEXT_CURRENT_NEW == res) {
+                    if (DEBUG) {
+                        System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
+                    }
+                    initAction.run();
+                }
+                runnable.run();
+                if ( autoSwapBufferMode ) {
+                    drawable.swapBuffers();
+                }
+            } finally {
+                try {
+                    context.release();
+                } catch (Exception e) {
+                    System.err.println("Catched: "+e.getMessage());
+                    e.printStackTrace();
+                }
+            }
         }
-        runnable.run();
-        if ( autoSwapBufferMode ) {
-            drawable.swapBuffers();
-        }
-      }
     } finally {
-      try {
-          context.release();
-      } catch (Exception e) {
-          System.err.println("Catched: "+e.getMessage());
-          e.printStackTrace();
-      }
-      if (lastContext != null) {
-        final int res2 = lastContext.makeCurrent();
-        if (null != lastInitAction && res2 == GLContext.CONTEXT_CURRENT_NEW) {
-          lastInitAction.run();
+        if (lastContext != null) {
+            final int res2 = lastContext.makeCurrent();
+            if (null != lastInitAction && res2 == GLContext.CONTEXT_CURRENT_NEW) {
+                lastInitAction.run();
+            }
         }
-      }
     }
   }
   

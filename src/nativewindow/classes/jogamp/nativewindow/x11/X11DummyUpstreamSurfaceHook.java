@@ -37,7 +37,7 @@ public class X11DummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
                 s.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );
             }
             if( 0 == s.getSurfaceHandle() ) {
-                final long windowHandle = X11Lib.CreateDummyWindow(device.getHandle(), screen.getIndex(), cfg.getXVisualID(), 64, 64);
+                final long windowHandle = X11Lib.CreateWindow(0, device.getHandle(), screen.getIndex(), cfg.getXVisualID(), 64, 64, false, false);
                 if(0 == windowHandle) {
                     throw new NativeWindowException("Creating dummy window failed w/ "+cfg);
                 }
@@ -59,7 +59,7 @@ public class X11DummyUpstreamSurfaceHook extends UpstreamSurfaceHookMutableSize 
             }
             device.lock();
             try {
-                X11Lib.DestroyDummyWindow(device.getHandle(), s.getSurfaceHandle());            
+                X11Lib.DestroyWindow(device.getHandle(), s.getSurfaceHandle());            
                 s.setSurfaceHandle(0);
                 s.clearUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE );
             } finally {

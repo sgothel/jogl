@@ -65,7 +65,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
     
-    static int duration = 1000;
+    static int duration = 500;
     
     static class BigFlashingX implements GLEventListener
     {    
@@ -262,7 +262,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
                     shell = new Shell( display );
                     Assert.assertNotNull( shell );
                     shell.setLayout( new FillLayout() );
-                    composite = new Composite( shell, SWT.NONE );
+                    composite = new Composite( shell, SWT.NO_BACKGROUND );
                     composite.setLayout( new FillLayout() );
                     Assert.assertNotNull( composite );
                 }});            
@@ -301,10 +301,9 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
         dsc.init();
                 
         final GLWindow glWindow;
-        final NewtCanvasSWT canvas;
         {
             final GLProfile gl2Profile = GLProfile.get( GLProfile.GL2 ) ;
-            GLCapabilities caps = new GLCapabilities( gl2Profile ) ;
+            final GLCapabilities caps = new GLCapabilities( gl2Profile ) ;
             glWindow = GLWindow.create( caps ) ;
             glWindow.addGLEventListener( new BigFlashingX() ) ;
             glWindow.addKeyListener(new KeyAdapter() {
@@ -314,7 +313,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
                     glWindow.display();                    
                 }                
             });
-            canvas = NewtCanvasSWT.create( dsc.composite, 0, glWindow ) ;
+            NewtCanvasSWT.create( dsc.composite, 0, glWindow ) ;
         }
             
         dsc.display.syncExec( new Runnable() {
@@ -342,7 +341,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
         }
         
         {
-            new Thread(new Runnable() {
+            final Thread t = new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
@@ -360,13 +359,16 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
                     } catch( InterruptedException e ) { }
                     shallStop = true;
                     dsc.display.wake();
-                } } ).start();
+                } } );
+            t.setDaemon(true);
+            t.start();
         }
                 
         try {
             while( !shallStop && !dsc.display.isDisposed() ) {
-                if( !dsc.display.readAndDispatch() ) {
-                    dsc.display.sleep();
+                if( !dsc.display.readAndDispatch() && !shallStop ) {
+                    // blocks on linux .. dsc.display.sleep();
+                    Thread.sleep(10);
                 }
             }
         } catch (Exception e0) {
@@ -374,8 +376,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
             Assert.assertTrue("Deadlock @ dispatch: "+e0, false);
         }
         
-        System.err.println("NewtCanvasAWT Dispose");
-        canvas.dispose();
+        // canvas is disposed implicit, due to it's disposed listener !
         
         dsc.dispose();
     }

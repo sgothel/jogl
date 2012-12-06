@@ -29,10 +29,16 @@ package com.jogamp.opengl.swt;
 
 import java.util.List;
 
+import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.UpstreamSurfaceHook;
+import javax.media.nativewindow.VisualIDHolder;
+import javax.media.nativewindow.VisualIDHolder.VIDType;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
@@ -48,21 +54,20 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLRunnable;
 import javax.media.opengl.Threading;
 
+import jogamp.nativewindow.x11.X11Util;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableHelper;
 import jogamp.opengl.GLDrawableImpl;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 
 import com.jogamp.common.GlueGenVersion;
@@ -71,13 +76,14 @@ import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.nativewindow.swt.SWTAccessor;
+import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.opengl.JoglVersion;
 
 /**
  * Native SWT Canvas implementing GLAutoDrawable
- * 
- * <p>Note: To employ custom GLCapabilities, NewtCanvasSWT shall be used instead.</p>
- * 
+ * <p>
+ * Implementation allows use of custom {@link GLCapabilities}.
+ * </p>
  */
 public class GLCanvas extends Canvas implements GLAutoDrawable {
   private static final boolean DEBUG = Debug.debug("GLCanvas");
@@ -101,11 +107,15 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    private final GLCapabilitiesImmutable capsRequested;
    private final GLCapabilitiesChooser capsChooser; 
    
+   private volatile Rectangle clientArea;
    private volatile GLDrawableImpl drawable; // volatile: avoid locking for read-only access
-   private GLContextImpl context;
+   private volatile GLContextImpl context;
 
    /* Native window surface */
-   private AbstractGraphicsDevice device;
+   private final boolean useX11GTK;
+   private volatile long gdkWindow; // either GDK child window ..
+   private volatile long x11Window; // .. or X11 child window (for GL rendering)
+   private final AbstractGraphicsScreen screen;
 
    /* Construction parameters stored for GLAutoDrawable accessor methods */
    private int additionalCtxCreationFlags = 0;
@@ -133,7 +143,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
       @Override
       public void run() {
          if (sendReshape) {
-            helper.reshape(GLCanvas.this, 0, 0, getWidth(), getHeight());
+            helper.reshape(GLCanvas.this, 0, 0, clientArea.width, clientArea.height);
             sendReshape = false;
          }
          helper.display(GLCanvas.this);
@@ -141,13 +151,15 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    };
 
    /* Action to make specified context current prior to running displayAction */
-   private final Runnable makeCurrentAndDisplayOnEDTAction = new Runnable() {
+   private final Runnable makeCurrentAndDisplayOnGLAction = new Runnable() {
       @Override
       public void run() {
         final RecursiveLock _lock = lock;
         _lock.lock();
-        try {            
-            helper.invokeGL(drawable, context, displayAction, initAction);
+        try {        
+            if( !GLCanvas.this.isDisposed() ) {
+                helper.invokeGL(drawable, context, displayAction, initAction);
+            }
         } finally {
             _lock.unlock();
         }
@@ -155,13 +167,14 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    };
 
    /* Swaps buffers, assuming the GLContext is current */
-   private final Runnable swapBuffersOnEDTAction = new Runnable() {
+   private final Runnable swapBuffersOnGLAction = new Runnable() {
       @Override
       public void run() {
         final RecursiveLock _lock = lock;
         _lock.lock();
         try {
-            if(null != drawable) {
+            final boolean drawableOK = null != drawable && drawable.isRealized();
+            if( drawableOK && !GLCanvas.this.isDisposed() ) {
                 drawable.swapBuffers();
             }
         } finally {
@@ -193,7 +206,11 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
                      // Catch dispose GLExceptions by GLEventListener, just 'print' them
                      // so we can continue with the destruction.
                      try {
-                         helper.disposeGL(GLCanvas.this, context);
+                         if( !GLCanvas.this.isDisposed() ) {
+                             helper.disposeGL(GLCanvas.this, context);
+                         } else {
+                             context.destroy();
+                         }
                      } catch (GLException gle) {
                          gle.printStackTrace();
                      }
@@ -204,13 +221,14 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
                  drawable.setRealized(false);
                  drawable = null;
              }
-             // SWT is owner of the device handle, not us.
-             // Hence close() operation is a NOP. 
-             if (null != device) {
-                 device.close();
-                 device = null;
+             if( 0 != x11Window) {
+                 SWTAccessor.destroyX11Window(screen.getDevice(), x11Window);
+                 x11Window = 0;
+             } else if( 0 != gdkWindow) {
+                 SWTAccessor.destroyGDKWindow(gdkWindow);
+                 gdkWindow = 0;
              }
-             SWTAccessor.setRealized(GLCanvas.this, false); // unrealize ..
+             screen.getDevice().close();
 
              if (animatorPaused) {
                  animator.resume();
@@ -235,18 +253,15 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
            final RecursiveLock _lock = lock;
            _lock.lock();
            try {
-               listener = helper.disposeGLEventListener(GLCanvas.this, drawable, context, listener, remove);
+               if( !GLCanvas.this.isDisposed() ) {
+                   listener = helper.disposeGLEventListener(GLCanvas.this, drawable, context, listener, remove);
+               }
            } finally {
                _lock.unlock();
            }
        }
    };
    
-   /**
-    * Storage for the client area rectangle so that it may be accessed from outside of the SWT thread.
-    */
-   private volatile Rectangle clientArea;
-
    /** 
     * Creates an instance using {@link #GLCanvas(Composite, int, GLCapabilitiesImmutable, GLCapabilitiesChooser, GLContext)} 
     * on the SWT thread.
@@ -286,61 +301,80 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     * @param style
     *           Optional SWT style bit-field. The {@link SWT#NO_BACKGROUND} bit is set before passing this up to the
     *           Canvas constructor, so OpenGL handles the background.
-    * @param caps
+    * @param capsReqUser
     *           Optional GLCapabilities. If not provided, the default capabilities for the default GLProfile for the
     *           graphics device determined by the parent Composite are used. Note that the GLCapabilities that are
     *           actually used may differ based on the capabilities of the graphics device.
-    * @param chooser
+    * @param capsChooser
     *           Optional GLCapabilitiesChooser to customize the selection of the used GLCapabilities based on the
     *           requested GLCapabilities, and the available capabilities of the graphics device.
     * @param shareWith
     *           Optional GLContext to share state (textures, vbos, shaders, etc.) with.
     */
-   public GLCanvas(final Composite parent, final int style, GLCapabilitiesImmutable caps,
-                   final GLCapabilitiesChooser chooser, final GLContext shareWith) {
+   public GLCanvas(final Composite parent, final int style, GLCapabilitiesImmutable capsReqUser,
+                   final GLCapabilitiesChooser capsChooser, final GLContext shareWith) {
       /* NO_BACKGROUND required to avoid clearing bg in native SWT widget (we do this in the GL display) */
       super(parent, style | SWT.NO_BACKGROUND);
 
       GLProfile.initSingleton(); // ensure JOGL is completly initialized
 
       SWTAccessor.setRealized(this, true);
-
+      
       clientArea = GLCanvas.this.getClientArea();
 
       /* Get the nativewindow-Graphics Device associated with this control (which is determined by the parent Composite). 
        * Note: SWT is owner of the native handle, hence closing operation will be a NOP. */
-      device = SWTAccessor.getDevice(this);
+      final AbstractGraphicsDevice swtDevice = SWTAccessor.getDevice(this);
+      
+      useX11GTK = SWTAccessor.useX11GTK();
+      if(useX11GTK) {
+          // Decoupled X11 Device/Screen allowing X11 display lock-free off-thread rendering 
+          final long x11DeviceHandle = X11Util.openDisplay(swtDevice.getConnection());
+          if( 0 == x11DeviceHandle ) {
+              throw new RuntimeException("Error creating display(EDT): "+swtDevice.getConnection());
+          }
+          final AbstractGraphicsDevice x11Device = new X11GraphicsDevice(x11DeviceHandle, AbstractGraphicsDevice.DEFAULT_UNIT, true /* owner */);
+          screen = SWTAccessor.getScreen(x11Device, -1 /* default */);          
+      } else {
+          screen = SWTAccessor.getScreen(swtDevice, -1 /* default */);
+      }
 
       /* Select default GLCapabilities if none was provided, otherwise clone provided caps to ensure safety */
-      if(null == caps) {
-          caps = new GLCapabilities(GLProfile.getDefault(device));
+      if(null == capsReqUser) {
+          capsReqUser = new GLCapabilities(GLProfile.getDefault(screen.getDevice()));
       }
-      this.capsRequested = caps;
-      this.capsChooser = chooser;
+            
+      this.capsRequested = capsReqUser;
+      this.capsChooser = capsChooser;
       this.shareWith = shareWith;
 
       // post create .. when ready
+      gdkWindow = 0;
+      x11Window = 0;
       drawable = null;
       context = null;
       
-      /* Register SWT listeners (e.g. PaintListener) to render/resize GL surface. */
-      /* TODO: verify that these do not need to be manually de-registered when destroying the SWT component */
-      addPaintListener(new PaintListener() {
-         @Override
-        public void paintControl(final PaintEvent arg0) {
-            if ( !helper.isAnimatorAnimatingOnOtherThread() ) {                
-               display(); // checks: null != drawable
-            }
-         }
-      });
-
-      addControlListener(new ControlAdapter() {
-         @Override
-         public void controlResized(final ControlEvent arg0) {
-            updateSizeCheck();
-         }
-      });
+      final Listener listener = new Listener () {
+          @Override
+          public void handleEvent (Event event) {
+              switch (event.type) {
+              case SWT.Paint:
+                  displayIfNoAnimatorNoCheck();
+                  break;
+              case SWT.Resize:
+                  updateSizeCheck();
+                  break;
+              case SWT.Dispose:
+                  GLCanvas.this.dispose();
+                  break;
+              }
+          }
+      };
+      addListener (SWT.Resize, listener);
+      addListener (SWT.Paint, listener);
+      addListener (SWT.Dispose, listener);
    }
+   
    private final UpstreamSurfaceHook swtCanvasUpStreamHook = new UpstreamSurfaceHook() {
        @Override
        public final void create(ProxySurface s) { /* nop */ }
@@ -372,11 +406,13 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
          ) {
           clientArea = nClientArea; // write back new value
           
-          GLDrawableImpl _drawable = drawable;
-          if( null != _drawable ) {
-              if(DEBUG) {
-                  System.err.println("GLCanvas.sizeChanged: ("+Thread.currentThread().getName()+"): "+nClientArea.width+"x"+nClientArea.height+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
-              }
+          final GLDrawableImpl _drawable = drawable;
+          final boolean drawableOK = null != _drawable && _drawable.isRealized();
+          if(DEBUG) {
+              final long dh = drawableOK ? _drawable.getHandle() : 0;
+              System.err.println("GLCanvas.sizeChanged: ("+Thread.currentThread().getName()+"): "+nClientArea.x+"/"+nClientArea.y+" "+nClientArea.width+"x"+nClientArea.height+" - drawableHandle 0x"+Long.toHexString(dh));
+          }
+          if( drawableOK ) {
               if( ! _drawable.getChosenGLCapabilities().isOnscreen() ) {
                   final RecursiveLock _lock = lock;
                   _lock.lock();
@@ -389,66 +425,154 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
                   } finally {
                       _lock.unlock();
                   }
-                  sendReshape = true; // async if display() doesn't get called below, but avoiding deadlock
-              }
-          }          
+              }              
+          }    
+          if(0 != x11Window) {
+              SWTAccessor.resizeX11Window(screen.getDevice(), clientArea, x11Window);
+          } else if(0 != gdkWindow) {
+              SWTAccessor.resizeGDKWindow(clientArea, gdkWindow);
+          }
+          sendReshape = true; // async if display() doesn't get called below, but avoiding deadlock
       }
    }
    
-   @Override
-   public void display() {
-      if( null != drawable || validateDrawableAndContext() ) {
-          runInGLThread(makeCurrentAndDisplayOnEDTAction);
-      }
+   private boolean isValidAndVisibleOnEDTActionResult;
+   private final Runnable isValidAndVisibleOnEDTAction = new Runnable() {
+       @Override
+       public void run() {           
+           isValidAndVisibleOnEDTActionResult = !GLCanvas.this.isDisposed() && GLCanvas.this.isVisible();
+       } };
+       
+   private final boolean isValidAndVisibleOnEDT() {
+       synchronized(isValidAndVisibleOnEDTAction) {
+           runOnEDTIfAvail(true, isValidAndVisibleOnEDTAction);
+           return isValidAndVisibleOnEDTActionResult;
+       }
    }
-
    
-   /** assumes drawable == null ! */
-   protected final boolean validateDrawableAndContext() {
-      if( GLCanvas.this.isDisposed() ) {
+   /** assumes drawable == null || !drawable.isRealized() !  Checks of !isDispose() and isVisible() */
+   protected final boolean validateDrawableAndContextWithCheck() {
+      if( !isValidAndVisibleOnEDT() ) {
           return false;
       }
+      return validateDrawableAndContextPostCheck();       
+   }
+   
+   /** assumes drawable == null || !drawable.isRealized() ! No check of !isDispose() and isVisible() */
+   protected final boolean validateDrawableAndContextPostCheck() {
       final Rectangle nClientArea = clientArea;
       if(0 >= nClientArea.width || 0 >= nClientArea.height) {
           return false;
       }
                
+      final boolean res;
       final RecursiveLock _lock = lock;
       _lock.lock();
       try {
-          final GLDrawableFactory glFactory = GLDrawableFactory.getFactory(capsRequested.getGLProfile());
-    
-          /* Native handle for the control, used to associate with GLContext */
-          final long nativeWindowHandle = SWTAccessor.getWindowHandle(this);
-          
-          /* Create a NativeWindow proxy for the SWT canvas */
-          ProxySurface proxySurface = null;
-          try {
-              proxySurface = glFactory.createProxySurface(device, 0 /* screenIdx */, nativeWindowHandle, 
-                                                          capsRequested, capsChooser, swtCanvasUpStreamHook);
-          } catch (GLException gle) {
-              // not ready yet ..
-              if(DEBUG) { System.err.println(gle.getMessage()); }
+          if(null == drawable) {
+              createDrawableAndContext();
           }
-          
-          if(null != proxySurface) {
-              /* Associate a GL surface with the proxy */
-              drawable = (GLDrawableImpl) glFactory.createGLDrawable(proxySurface);
+          if(null != drawable) {
               drawable.setRealized(true);
-        
-              context = (GLContextImpl) drawable.createContext(shareWith);
+              res = drawable.isRealized();
+          } else {
+              res = false;
           }
       } finally {
           _lock.unlock();
+      }  
+            
+      if(res) {
+          sendReshape = true;
+          if(DEBUG) {
+              System.err.println("SWT GLCanvas realized! "+this+", "+drawable);
+              // Thread.dumpStack();
+          }          
       }
-      final boolean res = null != drawable;
-      if(DEBUG && res) {
-          System.err.println("SWT GLCanvas realized! "+this+", "+drawable);
-          Thread.dumpStack();
-      }
-      return res;
+      return res;      
    }
    
+   private final void createDrawableAndContext() {
+       final AbstractGraphicsDevice device = screen.getDevice();
+       device.open();
+
+       final long nativeWindowHandle;
+       if( useX11GTK ) {
+           final GraphicsConfigurationFactory factory = GraphicsConfigurationFactory.getFactory(device, capsRequested);
+           final AbstractGraphicsConfiguration cfg = factory.chooseGraphicsConfiguration(
+                   capsRequested, capsRequested, capsChooser, screen, VisualIDHolder.VID_UNDEFINED);
+           if(DEBUG) {
+               System.err.println("SWT.GLCanvas.X11 factory: "+factory+", chosen config: "+cfg);
+           }        
+           if (null == cfg) {
+               throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
+           }
+           final int visualID = cfg.getVisualID(VIDType.NATIVE);
+           if( VisualIDHolder.VID_UNDEFINED != visualID ) {
+               // gdkWindow = SWTAccessor.createCompatibleGDKChildWindow(this, visualID, clientArea.width, clientArea.height);
+               // nativeWindowHandle = SWTAccessor.gdk_window_get_xwindow(gdkWindow); 
+               x11Window = SWTAccessor.createCompatibleX11ChildWindow(screen, this, visualID, clientArea.width, clientArea.height);
+               nativeWindowHandle = x11Window;
+           } else {
+              throw new GLException("Could not choose valid visualID: 0x"+Integer.toHexString(visualID)+", "+this);
+           }
+       } else {
+           nativeWindowHandle = SWTAccessor.getWindowHandle(this);
+       }
+       final GLDrawableFactory glFactory = GLDrawableFactory.getFactory(capsRequested.getGLProfile());
+       
+       // Create a NativeWindow proxy for the SWT canvas
+       ProxySurface proxySurface = glFactory.createProxySurface(device, screen.getIndex(), nativeWindowHandle, 
+                                                                capsRequested, capsChooser, swtCanvasUpStreamHook);
+       // Associate a GL surface with the proxy
+       drawable = (GLDrawableImpl) glFactory.createGLDrawable(proxySurface);
+       context = (GLContextImpl) drawable.createContext(shareWith);
+       context.setContextCreationFlags(additionalCtxCreationFlags);       
+   }
+   
+   @Override
+   public void update() {
+       // don't paint background etc .. nop avoids flickering
+       // super.update();
+   }
+
+   /**
+   @Override
+   public boolean forceFocus() {
+       final boolean r = super.forceFocus();
+       if(r && 0 != gdkWindow) {
+           SWTGTKUtil.focusGDKWindow(gdkWindow);
+       }
+       return r;       
+   } */
+   
+   @Override
+   public void dispose() {
+     runInGLThread(disposeOnEDTGLAction);
+     super.dispose();          
+   }
+
+   private final void displayIfNoAnimatorNoCheck() {
+       if ( !helper.isAnimatorAnimatingOnOtherThread() ) {
+           final boolean drawableOK = null != drawable && drawable.isRealized();
+           if( drawableOK || validateDrawableAndContextPostCheck() ) {
+               runInGLThread(makeCurrentAndDisplayOnGLAction);
+           }                
+       }
+   }
+   
+   //
+   // GL[Auto]Drawable
+   //
+   
+   @Override
+   public void display() {
+      final boolean drawableOK = null != drawable && drawable.isRealized();
+      if( drawableOK || validateDrawableAndContextWithCheck() ) {
+          runInGLThread(makeCurrentAndDisplayOnGLAction);
+      }
+   }
+
    @Override
    public final Object getUpstreamWidget() {
        return this;
@@ -674,18 +798,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
 
    @Override
    public void swapBuffers() throws GLException {
-      runInGLThread(swapBuffersOnEDTAction);
-   }
-
-   @Override
-   public void update() {
-      // don't paint background etc .. nop avoids flickering
-   }
-
-   @Override
-   public void dispose() {
-      runInGLThread(disposeOnEDTGLAction);
-      super.dispose();
+      runInGLThread(swapBuffersOnGLAction);
    }
 
    /**
@@ -694,24 +807,66 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
     *   <li>Mac OSX
     *   <ul>
     *     <!--li>AWT EDT: In case AWT is available, the AWT EDT is the OSX UI main thread</li-->
-    *     <li><i>Main Thread</i>: Run on OSX UI main thread.</li>
+    *     <!--li><i>Main Thread</i>: Run on OSX UI main thread.</li-->
+    *     <li>Current thread</li>
     *   </ul></li>
     *   <li>Linux, Windows, ..
     *   <ul>
-    *     <li>Use {@link Threading#invokeOnOpenGLThread(boolean, Runnable)}</li>
+    *     <!--li>Use {@link Threading#invokeOnOpenGLThread(boolean, Runnable)}</li-->
+    *     <li>Current thread</li>
     *   </ul></li>  
     * </ul>
+    * The current thread seems to be valid for all platforms, 
+    * since no SWT lifecycle tasks are being performed w/ this call.
+    * Only GL task, which are independent from the SWT threading model.
+    *   
     * @see Platform#AWT_AVAILABLE
     * @see Platform#getOSType()
     */
-   private static void runInGLThread(final Runnable action) {
+   private void runInGLThread(final Runnable action) {
+      /**
       if(Platform.OSType.MACOS == Platform.OS_TYPE) {
           SWTAccessor.invoke(true, action);
       } else {
           Threading.invokeOnOpenGLThread(true, action);
-      }
+      } */
+      /**
+      if( !isDisposed() ) {
+          final Display d = getDisplay();
+          if( d.getThread() == Thread.currentThread() ) {
+              action.run();
+          } else {
+              d.syncExec(action);
+          }
+      } */
+      action.run();
+   }
+   
+   private void runOnEDTIfAvail(boolean wait, final Runnable action) {       
+       final Display d = isDisposed() ? null : getDisplay();
+       if( null == d || d.isDisposed() || d.getThread() == Thread.currentThread() ) {
+           action.run();
+       } else if(wait) {
+           d.syncExec(action);
+       } else {
+           d.asyncExec(action);
+       }
    }
 
+   @Override
+   public String toString() {
+       final GLDrawable _drawable = drawable;
+       final int dw = (null!=_drawable) ? _drawable.getWidth() : -1;
+       final int dh = (null!=_drawable) ? _drawable.getHeight() : -1;
+
+       return "SWT-GLCanvas[Realized "+isRealized()+
+               ",\n\t"+((null!=_drawable)?_drawable.getClass().getName():"null-drawable")+
+               ",\n\tFactory   "+getFactory()+
+               ",\n\thandle    0x"+Long.toHexString(getHandle())+
+               ",\n\tDrawable size "+dw+"x"+dh+
+               ",\n\tSWT size "+getWidth()+"x"+getHeight()+"]";
+   }
+   
    public static void main(final String[] args) {
        System.err.println(VersionUtil.getPlatformInfo());
        System.err.println(GlueGenVersion.getInstance());

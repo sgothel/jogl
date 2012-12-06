@@ -31,6 +31,8 @@
 #include "jogamp_nativewindow_x11_X11Lib.h"
 #include "jogamp_nativewindow_x11_X11Util.h"
 
+#include <X11/Xatom.h>
+
 // #define VERBOSE_ON 1
 
 #ifdef VERBOSE_ON
@@ -84,6 +86,8 @@ Bool XF86VidModeSetGammaRamp(
 #if defined(_HPUX) && !defined(RTLD_DEFAULT)
 #define RTLD_DEFAULT NULL
 #endif
+
+#define X11_MOUSE_EVENT_MASK (ButtonPressMask | ButtonReleaseMask | PointerMotionMask | EnterWindowMask | LeaveWindowMask)
 
 static const char * const ClazzNameBuffers = "com/jogamp/common/nio/Buffers";
 static const char * const ClazzNameBuffersStaticCstrName = "copyByteBuffer";
@@ -436,17 +440,62 @@ Java_jogamp_nativewindow_x11_X11Lib_XCloseDisplay__J(JNIEnv *env, jclass _unused
   return _res;
 }
 
+static void NativewindowX11_setNormalWindowEWMH (Display *dpy, Window w) {
+    Atom _NET_WM_WINDOW_TYPE = XInternAtom( dpy, "_NET_WM_WINDOW_TYPE", False );
+    Atom types[1]={0};
+    types[0] = XInternAtom( dpy, "_NET_WM_WINDOW_TYPE_NORMAL", False );
+    XChangeProperty( dpy, w, _NET_WM_WINDOW_TYPE, XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, 1);
+    XSync(dpy, False);
+}
+
+#define DECOR_USE_MWM 1     // works for known WMs
+// #define DECOR_USE_EWMH 1 // haven't seen this to work (NORMAL->POPUP, never gets undecorated)
+
+/* see <http://tonyobryan.com/index.php?article=9> */
+#define MWM_HINTS_DECORATIONS   (1L << 1)
+#define PROP_MWM_HINTS_ELEMENTS 5
+
+static void NativewindowX11_setDecorations (Display *dpy, Window w, Bool decorated) {
+
+#ifdef DECOR_USE_MWM
+    unsigned long mwmhints[PROP_MWM_HINTS_ELEMENTS] = { MWM_HINTS_DECORATIONS, 0, decorated, 0, 0 }; // flags, functions, decorations, input_mode, status
+    Atom _MOTIF_WM_HINTS = XInternAtom( dpy, "_MOTIF_WM_HINTS", False );
+#endif
+
+#ifdef DECOR_USE_EWMH
+    Atom _NET_WM_WINDOW_TYPE = XInternAtom( dpy, "_NET_WM_WINDOW_TYPE", False );
+    Atom types[3]={0};
+    int ntypes=0;
+    if(True==decorated) {
+        types[ntypes++] = XInternAtom( dpy, "_NET_WM_WINDOW_TYPE_NORMAL", False );
+    } else {
+        types[ntypes++] = XInternAtom( dpy, "_NET_WM_WINDOW_TYPE_POPUP_MENU", False );
+    }
+#endif
+
+#ifdef DECOR_USE_MWM
+    XChangeProperty( dpy, w, _MOTIF_WM_HINTS, _MOTIF_WM_HINTS, 32, PropModeReplace, (unsigned char *)&mwmhints, PROP_MWM_HINTS_ELEMENTS);
+#endif
+
+#ifdef DECOR_USE_EWMH
+    XChangeProperty( dpy, w, _NET_WM_WINDOW_TYPE, XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, ntypes);
+#endif
+
+    XSync(dpy, False);
+}
+
 /*
  * Class:     jogamp_nativewindow_x11_X11Lib
- * Method:    CreateDummyWindow
- * Signature: (JIIII)J
+ * Method:    CreateWindow
+ * Signature: (JJIIIIZZ)J
  */
-JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateDummyWindow
-  (JNIEnv *env, jclass unused, jlong display, jint screen_index, jint visualID, jint width, jint height)
+JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateWindow
+  (JNIEnv *env, jclass unused, jlong parent, jlong display, jint screen_index, jint visualID, jint width, jint height, jboolean input, jboolean visible)
 {
     Display * dpy  = (Display *)(intptr_t)display;
     int       scrn_idx = (int)screen_index;
-    Window  windowParent = 0;
+    Window root = RootWindow(dpy, scrn_idx);
+    Window  windowParent = (Window) parent;
     Window  window = 0;
 
     XVisualInfo visualTemplate;
@@ -473,6 +522,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateDummyWindow
     NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 1, 0, 0);
 
     scrn = ScreenOfDisplay(dpy, scrn_idx);
+    if(0==windowParent) {
+        windowParent = root;
+    }
 
     // try given VisualID on screen
     memset(&visualTemplate, 0, sizeof(XVisualInfo));
@@ -500,9 +552,6 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateDummyWindow
         pVisualQuery=NULL;
     }
 
-    if(0==windowParent) {
-        windowParent = XRootWindowOfScreen(scrn);
-    }
 
     attrMask  = ( CWBackingStore | CWBackingPlanes | CWBackingPixel | CWBackPixmap | 
                   CWBorderPixel | CWColormap | CWOverrideRedirect ) ;
@@ -514,15 +563,22 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateDummyWindow
     xswa.backing_store=NotUseful; /* NotUseful, WhenMapped, Always */
     xswa.backing_planes=0;        /* planes to be preserved if possible */
     xswa.backing_pixel=0;         /* value to use in restoring planes */
+    if( input ) {
+        xswa.event_mask  = X11_MOUSE_EVENT_MASK;
+        xswa.event_mask |= KeyPressMask | KeyReleaseMask ;
+    }
+    if( visible ) {
+        xswa.event_mask |= FocusChangeMask | SubstructureNotifyMask | StructureNotifyMask | ExposureMask ;
+    }
 
     xswa.colormap = XCreateColormap(dpy,
-                                    XRootWindow(dpy, scrn_idx),
+                                    windowParent,
                                     visual,
                                     AllocNone);
 
     window = XCreateWindow(dpy,
                            windowParent,
-                           0, 0,
+                           0, 0, // only a hint, WM most likely will override
                            width, height,
                            0, // border width
                            depth,
@@ -530,9 +586,25 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateDummyWindow
                            visual,
                            attrMask,
                            &xswa);
+    if(0==window) {
+        NativewindowCommon_throwNewRuntimeException(env, "could not create Window, bail out!");
+        return 0;
+    }
+
+    NativewindowX11_setNormalWindowEWMH(dpy, window);
+    NativewindowX11_setDecorations(dpy, window, False);
+
+    if( visible ) {
+        XEvent event;
+
+        XMapWindow(dpy, window);
+    }
+
     XSync(dpy, False);
 
-    XSelectInput(dpy, window, 0); // no events
+    if( !input ) {
+        XSelectInput(dpy, window, 0); // no events
+    }
 
     // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, 0, 1);
 
@@ -544,10 +616,10 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateDummyWindow
 
 /*
  * Class:     jogamp_nativewindow_x11_X11Lib
- * Method:    DestroyDummyWindow
+ * Method:    DestroyWindow
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_jogamp_nativewindow_x11_X11Lib_DestroyDummyWindow
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_x11_X11Lib_DestroyWindow
   (JNIEnv *env, jclass unused, jlong display, jlong window)
 {
     Display * dpy = (Display *)(intptr_t)display;
@@ -559,10 +631,35 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_x11_X11Lib_DestroyDummyWindow
     }
 
     NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 1, 0, 0);
+    XSelectInput(dpy, w, 0);
     XUnmapWindow(dpy, w);
     XSync(dpy, False);
     XDestroyWindow(dpy, w);
     // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, 0, 1);
+}
+
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_x11_X11Lib_SetWindowPosSize
+  (JNIEnv *env, jclass unused, jlong display, jlong window, jint x, jint y, jint width, jint height) {
+    Display * dpy = (Display *)(intptr_t)display;
+    Window      w = (Window) window;
+    XWindowChanges xwc;
+    int flags = 0;
+    
+    memset(&xwc, 0, sizeof(XWindowChanges));
+
+    if(0<=x && 0<=y) {
+        flags |= CWX | CWY;
+        xwc.x=x;
+        xwc.y=y;
+    }
+
+    if(0<width && 0<height) {
+        flags |= CWWidth | CWHeight;
+        xwc.width=width;
+        xwc.height=height;
+    }
+    XConfigureWindow(dpy, w, flags, &xwc);
+    XSync(dpy, False);
 }
 
 /*

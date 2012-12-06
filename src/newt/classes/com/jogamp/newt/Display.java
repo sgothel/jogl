@@ -158,19 +158,15 @@ public abstract class Display {
      * </p>
      * <p>
      * If a previous one exists and it differs from the new one, 
-     * it's being stopped, wait-until-idle and reset to allow restart.
+     * it's being stopped, wait-until-idle and reset to allow a restart at a later time.
      * </p>
      * <p>
      * If <code>newEDTUtil</code> is not null and equals the previous one,
-     * <code>null</code> is returned and no change is being made.
+     * no change is being made.
      * </p>
      * <p>
-     * Note that <code>newEDTUtil</code> will not be started if not done so already,
-     * to do so you may issue {@link EDTUtil#invoke(boolean, Runnable) invoke} 
-     * on the new EDTUtil:
-     * <pre>
-     *          newEDTUtil.invoke(true, new Runnable() { public void run() { } } );
-     * </pre>
+     * Note that <code>newEDTUtil</code> will be started by this method,
+     * if it is not running yet.
      * </p>
      */
     public abstract EDTUtil setEDTUtil(EDTUtil newEDTUtil);

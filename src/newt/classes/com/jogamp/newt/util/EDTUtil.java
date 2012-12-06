@@ -113,7 +113,8 @@ public interface EDTUtil {
 
     /** 
      * Append the final task to the EDT task queue,
-     * signals EDT to stop and wait until stopped.<br>
+     * signals EDT to stop and wait until stopped.<br/>
+     * <code>task</code> maybe <code>null</code><br/>
      * Due to the nature of this method:
      * <ul>
      *   <li>All previous queued tasks will be finished.</li>
@@ -125,7 +126,7 @@ public interface EDTUtil {
     public void invokeStop(Runnable finalTask);
 
     /** 
-     * Shall start the thread if not running.<br>
+     * Shall start the thread if not running, <code>task</code> maybe null for this purpose.<br>
      * Append task to the EDT task queue.<br>
      * Wait until execution is finished if <code>wait == true</code>.<br>
      * Can be issued from within EDT, ie from within an enqueued task.<br>

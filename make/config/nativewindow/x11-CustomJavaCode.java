@@ -28,8 +28,9 @@
 
   public static native int DefaultVisualID(long display, int screen);
 
-  public static native long CreateDummyWindow(long display, int screen_index, int visualID, int width, int height);
-  public static native void DestroyDummyWindow(long display, long window);
+  public static native long CreateWindow(long parent, long display, int screen_index, int visualID, int width, int height, boolean input, boolean visible);
+  public static native void DestroyWindow(long display, long window);
+  public static native void SetWindowPosSize(long display, long window, int x, int y, int width, int height);
 
   public static Point GetRelativeLocation(long display, int screen_index, long src_win, long dest_win, int src_x, int src_y) {
     return (Point) GetRelativeLocation0(display, screen_index, src_win, dest_win, src_x, src_y);

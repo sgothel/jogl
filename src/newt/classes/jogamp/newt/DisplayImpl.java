@@ -84,9 +84,8 @@ public abstract class DisplayImpl extends Display {
                 display.hashCode = display.fqname.hashCode();
                 displayList.add(display);
             }
-            if(null == display.edtUtil) {
-                display.setEDTUtil(null); // device's default if EDT is used, or null        
-            }
+            display.setEDTUtil(display.edtUtil); // device's default if EDT is used, or null
+            
             if(DEBUG) {
                 System.err.println("Display.create() NEW: "+display+" "+getThreadName());
             }
@@ -166,20 +165,24 @@ public abstract class DisplayImpl extends Display {
 
     @Override
     public EDTUtil setEDTUtil(EDTUtil newEDTUtil) {        
-        if(null == newEDTUtil) {
-            newEDTUtil = createEDTUtil();
-        } else if( newEDTUtil == edtUtil ) {
-            if(DEBUG) {
-                System.err.println("Display.setEDTUtil: "+newEDTUtil+" - keep!");
-            }
-            return null; // no change
-        }
         final EDTUtil oldEDTUtil = edtUtil;
-        if(DEBUG) {
-            System.err.println("Display.setEDTUtil: "+oldEDTUtil+" -> "+newEDTUtil);
+        if(null == newEDTUtil) {
+            if(DEBUG) {
+                System.err.println("Display.setEDTUtil(default): "+oldEDTUtil+" -> "+newEDTUtil);
+            }
+            edtUtil = createEDTUtil();
+        } else if( newEDTUtil != edtUtil ) {
+            if(DEBUG) {
+                System.err.println("Display.setEDTUtil(custom): "+oldEDTUtil+" -> "+newEDTUtil);
+            }
+            removeEDT( null );
+            edtUtil = newEDTUtil;
+        } else if( DEBUG ) {
+            System.err.println("Display.setEDTUtil: "+newEDTUtil+" - keep!");
         }
-        removeEDT( new Runnable() { public void run() {} } );
-        edtUtil = newEDTUtil;
+        if( !edtUtil.isRunning() ) { // start EDT if not running yet
+            edtUtil.invoke(true, null);
+        }
         return oldEDTUtil;
     }
 
@@ -209,11 +212,7 @@ public abstract class DisplayImpl extends Display {
 
     public boolean validateEDT() {
         if(0==refCount && null==aDevice && null != edtUtil && edtUtil.isRunning()) {
-            removeEDT( new Runnable() {
-                public void run() {
-                    // nop
-                }
-            } );
+            removeEDT( null );
             return true;
         }
         return false;
