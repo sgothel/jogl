@@ -49,18 +49,8 @@ public class MacOSXOffscreenCGLContext extends MacOSXPbufferCGLContext
   }
 
   @Override
-  public int getOffscreenContextPixelDataType() {
-    GL gl = getGL();
+  public int getDefaultPixelDataType() {
+    final GL gl = getGL();
     return gl.isGL2GL3()?GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV:GL.GL_UNSIGNED_SHORT_5_5_5_1;
-  }
-
-  @Override
-  public int getOffscreenContextReadBuffer() {
-    return GL.GL_FRONT;
-  }
-
-  @Override
-  public boolean offscreenImageNeedsVerticalFlip() {
-    return true;
   }
 }

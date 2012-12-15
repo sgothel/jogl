@@ -538,20 +538,6 @@ public class WindowsWGLContext extends GLContextImpl {
   }
 
   @Override
-  public int getOffscreenContextPixelDataType() {
-    throw new GLException("Should not call this");
-  }
-
-  public int getOffscreenContextReadBuffer() {
-    throw new GLException("Should not call this");
-  }
-
-  @Override
-  public boolean offscreenImageNeedsVerticalFlip() {
-    throw new GLException("Should not call this");
-  }
-
-  @Override
   public void bindPbufferToTexture() {
     throw new GLException("Should not call this");
   }

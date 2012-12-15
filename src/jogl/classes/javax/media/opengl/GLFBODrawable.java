@@ -101,7 +101,8 @@ public interface GLFBODrawable extends GLDrawable {
     void setTextureUnit(int unit);
     
     /**
-     * Set a new sample size
+     * Set the number of sample buffers if using MSAA
+     * 
      * @param gl GL context object bound to this drawable, will be made current during operation. 
      *           A prev. current context will be make current after operation. 
      * @param newSamples new sample size
@@ -113,6 +114,25 @@ public interface GLFBODrawable extends GLDrawable {
      * @return the number of sample buffers if using MSAA, otherwise 0
      */
     int getNumSamples();
+        
+    /**
+     * Sets the number of buffers (FBO) being used if using {@link GLCapabilities#getDoubleBuffered() double buffering}.
+     * <p>
+     * If {@link GLCapabilities#getDoubleBuffered() double buffering} is not chosen, this is a NOP.
+     * </p>
+     * <p>
+     * Must be called before {@link #isInitialized() initialization}, otherwise an exception is thrown.
+     * </p>
+     * @return the new number of buffers (FBO) used, maybe different than the requested <code>bufferCount</code> (see above) 
+     * @throws GLException if already initialized, see {@link #isInitialized()}.
+     */
+    int setNumBuffers(int bufferCount) throws GLException;
+    
+    /** 
+     * @return the number of buffers (FBO) being used. 1 if not using {@link GLCapabilities#getDoubleBuffered() double buffering},
+     * otherwise &ge; 2, depending on {@link #setNumBuffers(int)}. 
+     */
+    int getNumBuffers();
     
     /**
      * @return the used {@link DoubleBufferMode} 

@@ -1513,15 +1513,46 @@ public abstract class GLContextImpl extends GLContext {
     throw new GLException("Not supported on non-pbuffer contexts");
   }
 
-  /** On some platforms the mismatch between OpenGL's coordinate
-      system (origin at bottom left) and the window system's
-      coordinate system (origin at top left) necessitates a vertical
-      flip of pixels read from offscreen contexts. */
-  public abstract boolean offscreenImageNeedsVerticalFlip();
+  @Override
+  public boolean isGLOrientationFlippedVertical() {
+      return true;
+  }
 
-  /** Only called for offscreen contexts; needed by glReadPixels */
-  public abstract int getOffscreenContextPixelDataType();
+  @Override
+  public int getDefaultPixelDataType() {
+      if(!pixelDataTypeEvaluated) {
+          synchronized(this) {
+              if(!pixelDataTypeEvaluated) {
+                  evalPixelDataType();
+                  pixelDataTypeEvaluated = true;
+              }
+          }
+      }
+      return pixelDataType;
+  }
 
+  private volatile boolean pixelDataTypeEvaluated = false; 
+  int /* pixelDataInternalFormat, */ pixelDataFormat, pixelDataType;
+  
+  private final void evalPixelDataType() {
+    /* if(isGL2GL3() && 3 == components) {
+        pixelDataInternalFormat=GL.GL_RGB;
+        pixelDataFormat=GL.GL_RGB;
+        pixelDataType = GL.GL_UNSIGNED_BYTE;            
+    } else */ if(isGLES2Compatible() || isExtensionAvailable(GLExtensions.OES_read_format)) {
+        final int[] glImplColorReadVals = new int[] { 0, 0 };
+        gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_FORMAT, glImplColorReadVals, 0);
+        gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_TYPE, glImplColorReadVals, 1);            
+        // pixelDataInternalFormat = (4 == components) ? GL.GL_RGBA : GL.GL_RGB;
+        pixelDataFormat = glImplColorReadVals[0];
+        pixelDataType = glImplColorReadVals[1];
+    } else {
+        // RGBA read is safe for all GL profiles 
+        // pixelDataInternalFormat = (4 == components) ? GL.GL_RGBA : GL.GL_RGB;
+        pixelDataFormat=GL.GL_RGBA;
+        pixelDataType = GL.GL_UNSIGNED_BYTE;
+    }            
+  }
 
   //----------------------------------------------------------------------
   // Helpers for buffer object optimizations
@@ -1599,8 +1630,10 @@ public abstract class GLContextImpl extends GLContext {
   @Override
   public final int getDefaultDrawFramebuffer() { return drawable.getDefaultDrawFramebuffer(); }  
   @Override
-  public final int getDefaultReadFramebuffer() { return drawable.getDefaultReadFramebuffer(); }
-  
+  public final int getDefaultReadFramebuffer() { return drawable.getDefaultReadFramebuffer(); }  
+  @Override
+  public final int getDefaultReadBuffer() { return drawable.getDefaultReadBuffer(gl); }
+    
   //---------------------------------------------------------------------------
   // GL_ARB_debug_output, GL_AMD_debug_output helpers
   //

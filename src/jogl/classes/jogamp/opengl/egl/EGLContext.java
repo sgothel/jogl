@@ -344,14 +344,4 @@ public abstract class EGLContext extends GLContextImpl {
     public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
         throw new GLException("Should not call this");
     }
-
-    @Override
-    public boolean offscreenImageNeedsVerticalFlip() {
-        throw new GLException("Should not call this");
-    }
-
-    @Override
-    public int getOffscreenContextPixelDataType() {
-        throw new GLException("Should not call this");
-    }
 }

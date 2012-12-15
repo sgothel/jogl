@@ -113,7 +113,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.GLProfile"
     #D_ARGS="-Dnativewindow.debug.NativeWindow"
-    D_ARGS="-Djogl.debug.GLCanvas -Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.Animator"
+    #D_ARGS="-Djogl.debug.GLCanvas -Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.Animator"
     #D_ARGS="-Dnewt.debug.EDT -Dnewt.debug.Window -Djogl.debug.GLContext"
     #D_ARGS="-Dnativewindow.debug.X11Util.XErrorStackDump -Dnativewindow.debug.X11Util.TraceDisplayLifecycle -Dnativewindow.debug.X11Util"
     #D_ARGS="-Dnativewindow.debug.X11Util -Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnewt.debug=all"
@@ -164,10 +164,12 @@ function jrun() {
     #D_ARGS="-Dnewt.debug=all -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
     #D_ARGS="-Djogl.debug.GLContext -Dnewt.debug=all -Djogamp.debug.Lock -Djogamp.common.utils.locks.Lock.timeout=10000"
     #D_ARGS="-Dnewt.debug=all"
+    D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GLJPanel"
     #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=True -Dsun.java2d.xrender=false"
     #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=false -Dsun.java2d.xrender=false"
     #X_ARGS="-verbose:jni"
     #X_ARGS="-Xrs"
+    X_ARGS="-Dsun.awt.disableMixing=true"
 
     if [ $awton -eq 1 ] ; then
         export CLASSPATH=$JOGAMP_ALL_AWT_CLASSPATH
@@ -328,10 +330,6 @@ function testawtswt() {
 #testawt jogamp.newt.awt.opengl.VersionApplet $*
 #testawt javax.media.opengl.awt.GLCanvas $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLCanvasAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug551AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug572AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug611AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestAWTCloseX11DisplayBug565 $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextNewtAWTBug523 $*
@@ -339,14 +337,20 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestPBufferDeadlockAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.x11.TestGLXCallsOnAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug551AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug572AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug611AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT01GLn $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestSwingAWT01GLn
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT02WindowClosing
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestJScrollPaneMixHwLw01AWT $*
+##testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug642JSplitPaneMixHwLw01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.text.TestAWTTextRendererUseVertexArrayBug464
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWTAnalyzeBug455 $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWTBug450 $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461FBOSupersamplingSwingAWT
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461PBufferSupersamplingSwingAWT
@@ -370,7 +374,7 @@ function testawtswt() {
 #
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor03AWTGLn $*
-testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
+#testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTBug628ResizeDeadlock $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTBug643AsyncExec $*
@@ -416,10 +420,14 @@ testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
 
 #testawt $*
 
+#testawtswt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04SWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent01NEWT $*
+
 #
 # Misc Utils
 #
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestImmModeSinkES1NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.TestImmModeSinkES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestES1FixedFunctionPipelineNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestRedSquareES1NEWT $*

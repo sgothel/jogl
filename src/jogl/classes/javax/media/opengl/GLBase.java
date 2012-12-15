@@ -432,6 +432,19 @@ public interface GLBase {
     * </p> 
     */
    public int getDefaultReadFramebuffer();
-
+   
+   /** 
+    * Returns the default color buffer within the current bound 
+    * {@link #getDefaultReadFramebuffer()}, i.e. GL_READ_FRAMEBUFFER​,  
+    * which will be used as the source for pixel reading commands, 
+    * like {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)} etc.
+    * <p>
+    * For offscreen framebuffer objects this is {@link GL#GL_COLOR_ATTACHMENT0},
+    * otherwise this is {@link GL#GL_FRONT} for single buffer configurations 
+    * and {@link GL#GL_BACK} for double buffer configurations.
+    * </p> 
+    */
+   public int getDefaultReadBuffer();
+   
 }
 

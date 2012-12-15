@@ -618,12 +618,18 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public NativeSurface getNativeSurface() {
-    throw new GLException("FIXME");
+    if(null != backend) {
+        return backend.getDrawable().getNativeSurface();
+    }
+    return null;
   }
 
   @Override
   public long getHandle() {
-    throw new GLException("FIXME");
+    if(null != backend) {
+        return backend.getDrawable().getNativeSurface().getSurfaceHandle();
+    }
+    return 0;
   }
 
   @Override
@@ -657,6 +663,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         if (oglPipelineEnabled) {
           backend = new J2DOGLBackend();
         } else {
+          backend = new SoftwareBackend();
+          /**
           if (!hardwareAccelerationDisabled &&
               factory.canCreateGLPbuffer(null)) {
             backend = new PbufferBackend();
@@ -665,7 +673,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
               throw new GLException("Fallback to software rendering disabled by user");
             }
             backend = new SoftwareBackend();
-          }
+          } */
         }
       }
 
@@ -996,7 +1004,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           gl.glPixelStorei(GL2.GL_PACK_ALIGNMENT,     1);
 
           // Actually read the pixels.
-          gl.glReadBuffer(GL2.GL_FRONT);
+          gl.glReadBuffer(gl.getDefaultReadBuffer());
           if (readBackBytes != null) {
             gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, glFormat, glType, readBackBytes);
           } else if (readBackInts != null) {
@@ -1173,12 +1181,12 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
     @Override
     protected int getGLPixelType() {
-      return offscreenContext.getOffscreenContextPixelDataType();
+      return offscreenContext.getDefaultPixelDataType();
     }
 
     @Override
     protected boolean flipVertically() {
-      return offscreenContext.offscreenImageNeedsVerticalFlip();
+      return offscreenContext.isGLOrientationFlippedVertical();
     }
   }
 

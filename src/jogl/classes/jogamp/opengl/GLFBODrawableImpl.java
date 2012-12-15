@@ -302,6 +302,9 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     protected final int getDefaultReadFramebuffer() { return initialized ? fbos[fboIFront].getReadFramebuffer() : 0; }
 
     @Override
+    protected final int getDefaultReadBuffer(GL gl) { return initialized ? fbos[fboIFront].getDefaultReadBuffer() : GL.GL_COLOR_ATTACHMENT0 ; }
+    
+    @Override
     protected final void setRealizedImpl() {
         final MutableGraphicsConfiguration msConfig = (MutableGraphicsConfiguration) surface.getGraphicsConfiguration();
         if(realized) {
@@ -433,6 +436,17 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         if(samples != newSamples) {
             reset(gl, newSamples);
         }
+    }
+    
+    @Override
+    public final int setNumBuffers(int bufferCount) throws GLException {
+        // FIXME: Implement
+        return bufferCount;
+    }
+    
+    @Override
+    public final int getNumBuffers() {
+        return bufferCount;
     }
     
     /** // TODO: Add or remove TEXTURE (only) DoubleBufferMode support

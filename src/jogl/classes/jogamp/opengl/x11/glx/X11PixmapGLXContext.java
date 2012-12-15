@@ -50,24 +50,9 @@ public class X11PixmapGLXContext extends X11GLXContext {
   }
 
   @Override
-  public int getOffscreenContextPixelDataType() {
+  public int getDefaultPixelDataType() {
     GL gl = getGL();
     return gl.isGL2GL3()?GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV:GL.GL_UNSIGNED_SHORT_5_5_5_1;
   }
 
-  @Override
-  public int getOffscreenContextReadBuffer() {
-    GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)drawable.getNativeSurface().getGraphicsConfiguration().getChosenCapabilities();
-    if (caps.getDoubleBuffered()) {
-      return GL.GL_BACK;
-    }
-    return GL.GL_FRONT;
-  }
-
-  @Override
-  public boolean offscreenImageNeedsVerticalFlip() {
-    // There doesn't seem to be a way to do this in the construction
-    // of the Pixmap or GLXPixmap
-    return true;
-  }
 }

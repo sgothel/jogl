@@ -970,6 +970,32 @@ public abstract class GLContext {
    */
   public abstract int getDefaultReadFramebuffer();
   
+  /** 
+   * Returns the default color buffer within the current bound 
+   * {@link #getDefaultReadFramebuffer()}, i.e. GL_READ_FRAMEBUFFER​,  
+   * which will be used as the source for pixel reading commands, 
+   * like {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)} etc.
+   * <p>
+   * For offscreen framebuffer objects this is {@link GL#GL_COLOR_ATTACHMENT0},
+   * otherwise this is {@link GL#GL_FRONT} for single buffer configurations 
+   * and {@link GL#GL_BACK} for double buffer configurations.
+   * </p> 
+   */
+  public abstract int getDefaultReadBuffer();
+  
+  /** On some platforms the mismatch between OpenGL's coordinate
+      system (origin at bottom left) and the window system's
+      coordinate system (origin at top left) necessitates a vertical
+      flip of pixels read from offscreen contexts.
+      <p>
+      Default impl. is <code>true</code>.
+      </p> 
+   */
+  public abstract boolean isGLOrientationFlippedVertical();
+  
+  /** Get the default pixel data type, as required by e.g. {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)}. */
+  public abstract int getDefaultPixelDataType();
+  
   /**
    * @return The extension implementing the GLDebugOutput feature,
    *         either <i>GL_ARB_debug_output</i> or <i>GL_AMD_debug_output</i>.

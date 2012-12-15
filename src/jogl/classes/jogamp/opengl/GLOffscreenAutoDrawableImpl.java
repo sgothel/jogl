@@ -95,6 +95,16 @@ public class GLOffscreenAutoDrawableImpl extends GLAutoDrawableDelegate implemen
             windowRepaintOp();
         }
         
+        @Override
+        public final int setNumBuffers(int bufferCount) throws GLException {
+            return ((GLFBODrawableImpl)drawable).setNumBuffers(bufferCount);
+        }
+        
+        @Override
+        public final int getNumBuffers() {
+            return ((GLFBODrawableImpl)drawable).getNumBuffers();
+        }
+        
         /** // TODO: Add or remove TEXTURE (only) DoubleBufferMode support
         @Override
         public DoubleBufferMode getDoubleBufferMode() {

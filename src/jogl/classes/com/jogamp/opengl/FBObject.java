@@ -2283,7 +2283,8 @@ public class FBObject {
     /** Returns the framebuffer name to render to. */
     public final int getWriteFramebuffer() { return fbName; }
     /** Returns the framebuffer name to read from. Depending on multisampling, this may be a different framebuffer. */
-    public final int getReadFramebuffer() { return ( samples > 0 ) ? samplingSink.getReadFramebuffer() : fbName; }
+    public final int getReadFramebuffer() { return ( samples > 0 ) ? samplingSink.getReadFramebuffer() : fbName; }    
+    public final int getDefaultReadBuffer() { return GL.GL_COLOR_ATTACHMENT0; }    
     /** Return the number of color/texture attachments */
     public final int getColorAttachmentCount() { return colorAttachmentCount; }
     /** Return the stencil {@link RenderAttachment} attachment, if exist. Maybe share the same {@link Attachment#getName()} as {@link #getDepthAttachment()}, if packed depth-stencil is being used. */ 

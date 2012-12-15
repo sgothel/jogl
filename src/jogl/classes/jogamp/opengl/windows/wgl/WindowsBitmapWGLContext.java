@@ -49,18 +49,12 @@ public class WindowsBitmapWGLContext extends WindowsWGLContext {
   }
 
   @Override
-  public int getOffscreenContextPixelDataType() {
+  public int getDefaultPixelDataType() {
       return GL.GL_UNSIGNED_BYTE;
   }
 
   @Override
-  public int getOffscreenContextReadBuffer() {
-    // On Windows these contexts are always single-buffered
-    return GL.GL_FRONT;
-  }
-
-  @Override
-  public boolean offscreenImageNeedsVerticalFlip() {
+  public boolean isGLOrientationFlippedVertical() {
     // We can take care of this in the DIB creation (see below)
     return false;
   }

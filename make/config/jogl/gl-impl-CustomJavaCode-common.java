@@ -113,3 +113,8 @@
       return _context.getDefaultReadFramebuffer();
     }
 
+    @Override
+    public final int getDefaultReadBuffer() {
+      return _context.getDefaultReadBuffer();
+    }
+

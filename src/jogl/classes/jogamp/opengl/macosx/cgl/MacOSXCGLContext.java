@@ -420,20 +420,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     return super.isExtensionAvailable(glExtensionName);
   }
 
-  @Override
-  public int getOffscreenContextPixelDataType() {
-    throw new GLException("Should not call this");
-  }
-
-  public int getOffscreenContextReadBuffer() {
-    throw new GLException("Should not call this");
-  }
-
-  @Override
-  public boolean offscreenImageNeedsVerticalFlip() {
-    throw new GLException("Should not call this");
-  }
-
   // Support for "mode switching" as described in MacOSXCGLDrawable
   public void setOpenGLMode(GLBackendType mode) {
       if (mode == openGLMode) {
