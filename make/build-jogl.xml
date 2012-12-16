@@ -88,9 +88,12 @@
         <property name="java.part.gluegen-gl-rt" 
                   value="com/jogamp/gluegen/runtime/opengl/*"/>
 
+        <property name="java.part.core.util"
+                  value="com/jogamp/opengl/util/* jogamp/opengl/util/* com/jogamp/opengl/util/glsl/* jogamp/opengl/util/glsl/* jogamp/opengl/shader/**"/>
+
         <property name="java.part.core" 
-                  value="${java.part.gluegen-gl-rt} javax/media/opengl/* javax/media/opengl/fixedfunc/* javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* com/jogamp/opengl/* com/jogamp/opengl/math/** jogamp/opengl/* jogamp/opengl/glu/* jogamp/opengl/glu/error/* jogamp/opengl/shader/**"/>
-        <property name="java.part.core.exclude" value="javax/media/opengl/Debug* javax/media/opengl/Trace*"/>
+                  value="${java.part.gluegen-gl-rt} javax/media/opengl/* javax/media/opengl/fixedfunc/* com/jogamp/opengl/* com/jogamp/opengl/math/** jogamp/opengl/* ${java.part.core.util}"/>
+        <property name="java.part.core.exclude" value="javax/media/opengl/Debug* javax/media/opengl/Trace* com/jogamp/opengl/util/AWTAnimatorImpl*"/>
 
         <property name="java.part.nv-cg"
                   value="com/jogamp/opengl/cg com/jogamp/opengl/cg/* jogamp/opengl/cg/*"/>
@@ -98,13 +101,10 @@
         <property name="java.part.egl"
                   value="jogamp/opengl/egl/*"/>
 
-        <property name="java.part.glutess"
-                  value="jogamp/opengl/glu/tessellator/**"/>
+        <property name="java.part.glu"
+                  value="javax/media/opengl/glu/* javax/media/opengl/glu/gl2es1/* jogamp/opengl/glu/* jogamp/opengl/glu/error/* jogamp/opengl/glu/tessellator/** jogamp/opengl/glu/mipmap/**"/>
 
-        <property name="java.part.glumipmap"
-                  value="jogamp/opengl/glu/mipmap/**"/>
-
-        <property name="java.part.glugldesktop"
+        <property name="java.part.glu.gldesktop"
                   value="jogamp/opengl/glu/gl2/** jogamp/opengl/glu/nurbs/** jogamp/opengl/glu/registry/** javax/media/opengl/glu/gl2/**"/>
 
         <property name="java.part.openmax"
@@ -129,37 +129,37 @@
                   value="jogamp/opengl/**/gl2/** jogamp/opengl/**/gl3/** jogamp/opengl/**/gl4/**"/>
 
         <property name="java.part.gldesktop.dbg"
-                  value="javax/media/opengl/TraceGL2.* javax/media/opengl/DebugGL2.* javax/media/opengl/TraceGL2GL3.* javax/media/opengl/DebugGL2GL3.* javax/media/opengl/TraceGL3.* javax/media/opengl/DebugGL3.* javax/media/opengl/TraceGL3bc.* javax/media/opengl/DebugGL3bc.* javax/media/opengl/TraceGL4.* javax/media/opengl/DebugGL4.* javax/media/opengl/TraceGL4bc.* javax/media/opengl/DebugGL4bc.*"/>
+                  value="javax/media/opengl/TraceGL2.* javax/media/opengl/DebugGL2.* javax/media/opengl/TraceGL3.* javax/media/opengl/DebugGL3.* javax/media/opengl/TraceGL3bc.* javax/media/opengl/DebugGL3bc.* javax/media/opengl/TraceGL4.* javax/media/opengl/DebugGL4.* javax/media/opengl/TraceGL4bc.* javax/media/opengl/DebugGL4bc.*"/>
 
         <property name="java.part.es1"
                   value="javax/media/opengl/**/es1/** com/jogamp/opengl/**/es1/** jogamp/opengl/**/es1/**"/>
 
         <property name="java.part.es1.dbg"
-                  value="javax/media/opengl/TraceGLES1.* javax/media/opengl/DebugGLES1.* javax/media/opengl/TraceGL2ES1.* javax/media/opengl/DebugGL2ES1.*"/>
+                  value="javax/media/opengl/TraceGLES1.* javax/media/opengl/DebugGLES1.*"/>
 
         <property name="java.part.es2"
                   value="javax/media/opengl/**/es2/** com/jogamp/opengl/**/es2/** jogamp/opengl/**/es2/**"/>
 
         <property name="java.part.es2.dbg"
-                  value="javax/media/opengl/TraceGLES2.* javax/media/opengl/DebugGLES2.* javax/media/opengl/TraceGL2ES2.* javax/media/opengl/DebugGL2ES2.*"/>
+                  value="javax/media/opengl/TraceGLES2.* javax/media/opengl/DebugGLES2.*"/>
 
         <property name="java.part.awt"
-                  value="javax/media/opengl/awt/** jogamp/opengl/**/awt/**"/>
+                  value="javax/media/opengl/awt/** jogamp/opengl/**/awt/** com/jogamp/opengl/util/AWTAnimatorImpl*"/>
         
         <property name="java.part.swt"
                   value="com/jogamp/opengl/**/swt/**"/>
 
         <property name="java.part.util"
-                  value="com/jogamp/opengl/util/* com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/av/* com/jogamp/opengl/util/packrect/** jogamp/opengl/util/* jogamp/opengl/util/av/** jogamp/opengl/util/pngj/**"/>
+                  value="com/jogamp/opengl/util/texture/** com/jogamp/opengl/util/av/* com/jogamp/opengl/util/packrect/** jogamp/opengl/util/av/** jogamp/opengl/util/pngj/**"/>
 
         <property name="java.part.util.awt"
-                  value="com/jogamp/opengl/util/**/awt/** com/jogamp/opengl/util/AWTAnimatorImpl*"/>
+                  value="com/jogamp/opengl/util/**/awt/**"/>
 
         <property name="java.part.util.gldesktop"
                   value="com/jogamp/opengl/util/**/gl2/**"/>
 
         <property name="java.part.util.glsl"
-                  value="com/jogamp/opengl/util/glsl/* com/jogamp/opengl/util/glsl/fixedfunc/* jogamp/opengl/util/glsl/*"/>
+                  value="com/jogamp/opengl/util/glsl/fixedfunc/*"/>
 
         <property name="java.part.util.graph"
                   value="com/jogamp/graph/** jogamp/graph/**"/>
@@ -183,7 +183,7 @@
                   value="${java.part.core.shadercode} ${java.part.util.fixedfuncemu.shadercode} ${java.part.util.graph.shadercode} ${java.part.util.graph.fonts}"/>
 
         <property name="java.part.all-desktop" 
-                  value="${java.part.sdk} ${java.part.glx} ${java.part.wgl} ${java.part.cgl} ${java.part.gldesktop} ${java.part.glugldesktop} ${java.part.util.gldesktop}"/>
+                  value="${java.part.sdk} ${java.part.glx} ${java.part.wgl} ${java.part.cgl} ${java.part.gldesktop} ${java.part.glu.gldesktop} ${java.part.util.gldesktop}"/>
 
         <!-- condition excludes -->
 
@@ -922,11 +922,6 @@
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
-        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GL2ES1" />
-            <arg value="${src.generated.java}/javax/media/opengl" />
-            <classpath refid="pipeline.classpath" />
-        </java>
     </target>          
 
     <target name="java.generate.composable.pipeline.es2" depends="java.generate.composable.pipeline.check.es2" unless="java.generate.composable.pipeline.skip.es2">
@@ -935,21 +930,11 @@
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
-        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GL2ES2" />
-            <arg value="${src.generated.java}/javax/media/opengl" />
-            <classpath refid="pipeline.classpath" />
-        </java>
     </target>          
 
     <target name="java.generate.composable.pipeline.gl2" depends="java.generate.composable.pipeline.check.gl2" unless="java.generate.composable.pipeline.skip.gl2">
         <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GL2" />
-            <arg value="${src.generated.java}/javax/media/opengl" />
-            <classpath refid="pipeline.classpath" />
-        </java>
-        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GL2GL3" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
@@ -1625,7 +1610,7 @@
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-gldesktop.jar}" filesonly="true">
             <fileset dir="${classes}"
                      includes="${java.part.gldesktop}"
-                     excludes="${java.part.gldesktop.dbg} ${java.part.glugldesktop}"/>
+                     excludes="${java.part.gldesktop.dbg} ${java.part.glu.gldesktop}"/>
         </jar>
 
         <!-- misc -->
@@ -1635,7 +1620,7 @@
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-glu-gldesktop.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.glugldesktop}"/>
+                     includes="${java.part.glu.gldesktop}"/>
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util-gldesktop.jar}" filesonly="true">
             <fileset dir="${classes}"
@@ -1655,13 +1640,9 @@
             <fileset dir="${classes}"
                      includes="${java.part.sdk}"/>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-glutess.jar}" filesonly="true">
+        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-glu.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.glutess}"/>
-        </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-glumipmap.jar}" filesonly="true">
-            <fileset dir="${classes}"
-                     includes="${java.part.glumipmap}"/>
+                     includes="${java.part.glu}"/>
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util.jar}" filesonly="true">
             <fileset dir="${classes}"
