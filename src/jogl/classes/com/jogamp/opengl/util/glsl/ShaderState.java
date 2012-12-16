@@ -35,7 +35,6 @@ import java.util.Iterator;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLArrayData;
-import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLUniformData;
 
@@ -58,7 +57,6 @@ import com.jogamp.opengl.util.GLArrayDataEditable;
  */
 public class ShaderState {
     public static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.GLSLState", true);
-    private static final String currentStateKey = "jogamp.opengl.glsl.ShaderState" ;
     
     public ShaderState() {
     }
@@ -66,46 +64,6 @@ public class ShaderState {
     public boolean verbose() { return verbose; }
 
     public void setVerbose(boolean v) { verbose = DEBUG || v; }
-
-    /**
-     * Fetches the current shader state from this thread (TLS) current GLContext
-     *
-     * @see com.jogamp.opengl.util.glsl.ShaderState#useProgram(GL2ES2, boolean)
-     * @see com.jogamp.opengl.util.glsl.ShaderState#getShaderState(GL)
-     * @see com.jogamp.opengl.util.glsl.ShaderState#setShaderState(GL)
-     * @see com.jogamp.opengl.util.glsl.ShaderState#getCurrentShaderState()
-     */
-    public static ShaderState getCurrentShaderState() { 
-        return getShaderState(GLContext.getCurrentGL());
-    }
-
-    /**
-     * Gets the shader state attached to the GL object's GLContext
-     *
-     * @param gl the GL object referencing the GLContext
-     * 
-     * @see com.jogamp.opengl.util.glsl.ShaderState#useProgram(GL2ES2, boolean)
-     * @see com.jogamp.opengl.util.glsl.ShaderState#getShaderState(GL)
-     * @see com.jogamp.opengl.util.glsl.ShaderState#setShaderState(GL)
-     * @see com.jogamp.opengl.util.glsl.ShaderState#getCurrentShaderState()
-     */
-    public static ShaderState getShaderState(GL gl) { 
-        return (ShaderState) gl.getContext().getAttachedObject(currentStateKey);
-    }
-
-    /**
-     * Attaches the shader state to the GL object's GLContext
-     *
-     * @param gl the GL object referencing the GLContext
-     * 
-     * @see com.jogamp.opengl.util.glsl.ShaderState#useProgram(GL2ES2, boolean)
-     * @see com.jogamp.opengl.util.glsl.ShaderState#getShaderState(GL)
-     * @see com.jogamp.opengl.util.glsl.ShaderState#setShaderState(GL)
-     * @see com.jogamp.opengl.util.glsl.ShaderState#getCurrentShaderState()
-     */
-    public final ShaderState setShaderState(GL gl) { 
-        return (ShaderState) gl.getContext().attachObject(currentStateKey, this);
-    }
 
     /**
      * Returns the attached user object for the given name to this ShaderState.
@@ -135,19 +93,14 @@ public class ShaderState {
     
     /**
      * Turns the shader program on or off.<br>
-     * Puts this ShaderState to to the thread local storage (TLS),
-     * if <code>on</code> is <code>true</code>.
      *
      * @throws GLException if no program is attached
      *
      * @see com.jogamp.opengl.util.glsl.ShaderState#useProgram(GL2ES2, boolean)
-     * @see com.jogamp.opengl.util.glsl.ShaderState#getShaderState(GL)
-     * @see com.jogamp.opengl.util.glsl.ShaderState#getCurrentShaderState()
      */
     public synchronized void useProgram(GL2ES2 gl, boolean on) throws GLException {
         if(null==shaderProgram) { throw new GLException("No program is attached"); }        
         if(on) {
-            setShaderState(gl);
             if(shaderProgram.linked()) {
                 shaderProgram.useProgram(gl, true);
                 if(resetAllShaderData) {
@@ -332,6 +285,10 @@ public class ShaderState {
         return activeAttribDataMap.get(name);
     }
     
+    public boolean isActiveAttribute(GLArrayData attribute) {
+        return attribute == activeAttribDataMap.get(attribute.getName());
+    }
+    
     /**
      * Binds or unbinds the {@link GLArrayData} lifecycle to this ShaderState.
      *  
@@ -343,11 +300,14 @@ public class ShaderState {
      *  
      * <p>The data will not be transfered to the GPU, use {@link #vertexAttribPointer(GL2ES2, GLArrayData)} additionally.</p>
      * 
+     * <p>The data will also be {@link GLArrayData#associate(Object, boolean) associated} with this ShaderState.</p>
+     * 
      * @param attribute the {@link GLArrayData} which lifecycle shall be managed
      * @param own true if <i>owning</i> shall be performs, false if <i>disowning</i>.
      * 
      * @see #bindAttribLocation(GL2ES2, int, String)
      * @see #getAttribute(String)
+     * @see GLArrayData#associate(Object, boolean)
      */
     public void ownAttribute(GLArrayData attribute, boolean own) {
         if(own) {
@@ -359,6 +319,7 @@ public class ShaderState {
         } else {
             managedAttributes.remove(attribute);
         }
+        attribute.associate(this, own);
     }
     
     public boolean ownsAttribute(GLArrayData attribute) {
@@ -402,8 +363,12 @@ public class ShaderState {
      * @see #getAttribute(String)
      */
     public void bindAttribLocation(GL2ES2 gl, int location, GLArrayData data) {
-        bindAttribLocation(gl, location, data.getName());
-        data.setLocation(location);
+        if(null==shaderProgram) throw new GLException("No program is attached");
+        if(shaderProgram.linked()) throw new GLException("Program is already linked");
+        final String name = data.getName();
+        final Integer loc = new Integer(location);
+        activeAttribLocationMap.put(name, loc);
+        data.setLocation(gl, shaderProgram.program(), location);
         activeAttribDataMap.put(data.getName(), data);
     }
 
@@ -465,8 +430,27 @@ public class ShaderState {
      * @see #getAttribute(String)
      */
     public int getAttribLocation(GL2ES2 gl, GLArrayData data) {
-        int location = getAttribLocation(gl, data.getName());
-        data.setLocation(location);
+        if(null==shaderProgram) throw new GLException("No program is attached");
+        final String name = data.getName();
+        int location = getCachedAttribLocation(name);
+        if(0<=location) {
+            data.setLocation(location);
+        } else {
+            if(!shaderProgram.linked()) throw new GLException("Program is not linked");
+            location = data.setLocation(gl, shaderProgram.program());
+            if(0<=location) {
+                Integer idx = new Integer(location);
+                activeAttribLocationMap.put(name, idx);
+                if(DEBUG) {
+                    System.err.println("ShaderState: glGetAttribLocation: "+name+", loc: "+location);
+                }
+            } else if(verbose) {
+                System.err.println("ShaderState: glGetAttribLocation failed, no location for: "+name+", loc: "+location);
+                if(DEBUG) {
+                    Thread.dumpStack();
+                }                    
+            }
+        }        
         activeAttribDataMap.put(data.getName(), data);
         return location;
     }
@@ -873,6 +857,7 @@ public class ShaderState {
         if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
         int location = getCachedUniformLocation(name);
         if(0>location) {
+            if(!shaderProgram.linked()) throw new GLException("Program is not linked");
             location = gl.glGetUniformLocation(shaderProgram.program(), name);
             if(0<=location) {
                 Integer idx = new Integer(location);
@@ -886,7 +871,7 @@ public class ShaderState {
         }
         return location;
     }
-
+   
     /**
      * Validates and returns the location of a shader uniform.<br>
      * Uses either the cached value {@link #getCachedUniformLocation(String)} if valid,
@@ -908,9 +893,25 @@ public class ShaderState {
      * @see ShaderProgram#glReplaceShader
      */
     public int getUniformLocation(GL2ES2 gl, GLUniformData data) {
-        int location = getUniformLocation(gl, data.getName());
-        data.setLocation(location);
-        activeUniformDataMap.put(data.getName(), data);        
+        if(!shaderProgram.inUse()) throw new GLException("Program is not in use");
+        final String name = data.getName();
+        int location = getCachedUniformLocation(name);
+        if(0<=location) {
+            data.setLocation(location);
+        } else {
+            if(!shaderProgram.linked()) throw new GLException("Program is not linked");
+            location = data.setLocation(gl, shaderProgram.program());
+            if(0<=location) {
+                Integer idx = new Integer(location);
+                activeUniformLocationMap.put(name, idx);
+            } else if(verbose) {
+                System.err.println("ShaderState: glUniform failed, no location for: "+name+", index: "+location);
+                if(DEBUG) {
+                    Thread.dumpStack();
+                }
+            }
+        }        
+        activeUniformDataMap.put(name, data);        
         return location;
     }
     

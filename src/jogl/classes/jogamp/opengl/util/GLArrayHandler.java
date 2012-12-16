@@ -31,9 +31,9 @@ package jogamp.opengl.util;
 import javax.media.opengl.*;
 
 /**
- * Handles consistency of buffer data and array state.
- * Implementations shall consider buffer types (VBO, ..), interleaved, etc.
- * They also need to consider array state types, i.e. fixed function or GLSL.
+ * Handles consistency of buffer data and array state.<br/>
+ * Implementations shall consider buffer types (VBO, ..), interleaved, etc.<br/>
+ * They also need to consider array state types, i.e. fixed function or GLSL.<br/>
  */
 public interface GLArrayHandler {
 

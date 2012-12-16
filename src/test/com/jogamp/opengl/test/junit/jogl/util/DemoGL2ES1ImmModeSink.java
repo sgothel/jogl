@@ -1,3 +1,30 @@
+/**
+ * Copyright 2012 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ *
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ *
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
 package com.jogamp.opengl.test.junit.jogl.util;
 
 import javax.media.opengl.GL;
@@ -68,8 +95,6 @@ class DemoGL2ES1ImmModeSink implements GLEventListener {
 
         gl.glMatrixMode( GL2ES1.GL_MODELVIEW );
         gl.glLoadIdentity();
-
-        gl.glViewport( 0, 0, width, height );        
     }
     
     @Override
@@ -79,15 +104,13 @@ class DemoGL2ES1ImmModeSink implements GLEventListener {
         gl.glClear( GL.GL_COLOR_BUFFER_BIT );
 
         // draw a triangle filling the window
-        gl.glLoadIdentity();
-        
         ims.glBegin(GL.GL_TRIANGLES);
         ims.glColor3f( 1, 0, 0 );
         ims.glVertex2f( 0, 0 );
         ims.glColor3f( 0, 1, 0 );
-        ims.glVertex2f( TestImmModeSinkES1NEWT.iWidth, 0 );
+        ims.glVertex2f( drawable.getWidth(), 0 );
         ims.glColor3f( 0, 0, 1 );
-        ims.glVertex2f( TestImmModeSinkES1NEWT.iWidth / 2, TestImmModeSinkES1NEWT.iHeight );
+        ims.glVertex2f( drawable.getWidth() / 2, drawable.getHeight() );
         ims.glEnd(gl, true);
     }
 

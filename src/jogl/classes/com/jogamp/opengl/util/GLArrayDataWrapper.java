@@ -1,3 +1,30 @@
+/**
+ * Copyright 2010 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ *
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ *
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
 
 package com.jogamp.opengl.util;
 
@@ -97,53 +124,91 @@ public class GLArrayDataWrapper implements GLArrayData {
     return glp.isValidArrayDataType(getIndex(), getComponentCount(), getComponentType(), isVertexAttribute(), throwException);
   }
     
+  @Override
+  public void associate(Object obj, boolean enable) {
+      // nop
+  }
+  
   // 
   // Data read access
   //
 
+  @Override
   public final boolean isVertexAttribute() { return isVertexAttribute; }
 
+  @Override
   public final int getIndex() { return index; }
 
+  @Override
   public final int getLocation() { return location; }
 
-  public final void setLocation(int v) { location = v; }
+  @Override
+  public final int setLocation(int v) { location = v; return location; }
 
+  @Override
+  public final int setLocation(GL2ES2 gl, int program) {
+      location = gl.glGetAttribLocation(program, name);
+      return location;
+  }
+  
+  @Override
+  public final int setLocation(GL2ES2 gl, int program, int location) {
+      this.location = location;
+      gl.glBindAttribLocation(program, location, name);
+      return location;
+  }
+  
+  @Override
   public final String getName() { return name; }
 
+  @Override
   public final long getVBOOffset() { return vboEnabled?vboOffset:0; }
 
+  @Override
   public final int getVBOName() { return vboEnabled?vboName:0; }
 
+  @Override
   public final boolean isVBO() { return vboEnabled; }
 
+  @Override
   public final int getVBOUsage() { return vboEnabled?vboUsage:0; }
   
+  @Override
   public final int getVBOTarget() { return vboEnabled?vboTarget:0; }
   
+  @Override
   public final Buffer getBuffer() { return buffer; }
 
+  @Override
   public final int getComponentCount() { return components; }
 
+  @Override
   public final int getComponentType() { return componentType; }
 
+  @Override
   public final int getComponentSizeInBytes() { return componentByteSize; }
   
+  @Override
   public final int getElementCount() {
     if(null==buffer) return 0;
     return ( buffer.position()==0 ) ? ( buffer.limit() / components ) : ( buffer.position() / components ) ;
   }
+  
+  @Override
   public final int getSizeInBytes() {
     if(null==buffer) return 0;
     return ( buffer.position()==0 ) ? ( buffer.limit() * componentByteSize ) : ( buffer.position() * componentByteSize ) ;      
   }
   
+  @Override
   public final boolean getNormalized() { return normalized; }
 
+  @Override
   public final int getStride() { return strideB; }
 
-  public final Class getBufferClass() { return componentClazz; }
+  public final Class<?> getBufferClass() { return componentClazz; }
 
+  @Override
   public void destroy(GL gl) {
     buffer = null;
     vboName=0;
@@ -152,6 +217,7 @@ public class GLArrayDataWrapper implements GLArrayData {
     alive = false;
   }
 
+  @Override
   public String toString() {
     return "GLArrayDataWrapper["+name+
                        ", index "+index+
@@ -172,7 +238,7 @@ public class GLArrayDataWrapper implements GLArrayData {
                        "]";
   }
 
-  public static final Class getBufferClass(int dataType) {
+  public static final Class<?> getBufferClass(int dataType) {
     switch(dataType) {
         case GL.GL_BYTE:
         case GL.GL_UNSIGNED_BYTE:
@@ -189,6 +255,7 @@ public class GLArrayDataWrapper implements GLArrayData {
     }
   }
 
+  @Override  
   public void setName(String newName) {
     location = -1;
     name = newName;
@@ -310,14 +377,13 @@ public class GLArrayDataWrapper implements GLArrayData {
   protected String name;
   protected int components;
   protected int componentType;
-  protected Class componentClazz;
+  protected Class<?> componentClazz;
   protected int componentByteSize;
   protected boolean normalized;
   protected int strideB; // stride in bytes
   protected int strideL; // stride in logical components
   protected Buffer buffer;
   protected boolean isVertexAttribute;
-
   protected long vboOffset;
   protected int vboName;
   protected boolean vboEnabled;

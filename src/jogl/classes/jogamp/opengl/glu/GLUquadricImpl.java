@@ -120,6 +120,7 @@ import javax.media.opengl.glu.GLU;
 import javax.media.opengl.glu.GLUquadric;
 
 import com.jogamp.opengl.util.ImmModeSink;
+import com.jogamp.opengl.util.glsl.ShaderState;
 
 /**
  * GLUquadricImpl.java
@@ -140,22 +141,26 @@ public class GLUquadricImpl implements GLUquadric {
   private boolean immModeSinkImmediate;
   public int normalType;
   public GL gl;
+  public ShaderState shaderState;
+  public int shaderProgram;
 
   public static final boolean USE_NORM = true;
   public static final boolean USE_TEXT = false;
 
   private ImmModeSink immModeSink=null;
 
-  public GLUquadricImpl(GL gl, boolean useGLSL) {
+  public GLUquadricImpl(GL gl, boolean useGLSL, ShaderState st, int shaderProgram) {
     this.gl=gl;
     this.useGLSL = useGLSL;
-    drawStyle = GLU.GLU_FILL;
-    orientation = GLU.GLU_OUTSIDE;
-    textureFlag = false;
-    normals = GLU.GLU_SMOOTH;
-    normalType = gl.isGLES1()?GL.GL_BYTE:GL.GL_FLOAT;
-    immModeSinkImmediate=true;
-    immModeSinkEnabled=!gl.isGL2();
+    this.drawStyle = GLU.GLU_FILL;
+    this.orientation = GLU.GLU_OUTSIDE;
+    this.textureFlag = false;
+    this.normals = GLU.GLU_SMOOTH;
+    this.normalType = gl.isGLES1()?GL.GL_BYTE:GL.GL_FLOAT;
+    this.immModeSinkImmediate=true;
+    this.immModeSinkEnabled=!gl.isGL2();
+    this.shaderState = st;
+    this.shaderProgram = shaderProgram;
     replaceImmModeSink();
   }
 
@@ -191,12 +196,21 @@ public class GLUquadricImpl implements GLUquadric {
 
     ImmModeSink res = immModeSink;
     if(useGLSL) {
-        immModeSink = ImmModeSink.createGLSL (32, 
-                                              3, GL.GL_FLOAT,             // vertex 
-                                              0, GL.GL_FLOAT,             // color
-                                              USE_NORM?3:0, normalType,   // normal
-                                              USE_TEXT?2:0, GL.GL_FLOAT,  // texCoords
-                                              GL.GL_STATIC_DRAW);
+        if(null != shaderState) {
+            immModeSink = ImmModeSink.createGLSL (32, 
+                                                  3, GL.GL_FLOAT,             // vertex 
+                                                  0, GL.GL_FLOAT,             // color
+                                                  USE_NORM?3:0, normalType,   // normal
+                                                  USE_TEXT?2:0, GL.GL_FLOAT,  // texCoords
+                                                  GL.GL_STATIC_DRAW, shaderState);
+        } else {
+            immModeSink = ImmModeSink.createGLSL (32, 
+                                                  3, GL.GL_FLOAT,             // vertex 
+                                                  0, GL.GL_FLOAT,             // color
+                                                  USE_NORM?3:0, normalType,   // normal
+                                                  USE_TEXT?2:0, GL.GL_FLOAT,  // texCoords
+                                                  GL.GL_STATIC_DRAW, shaderProgram);            
+        }
     } else {
         immModeSink = ImmModeSink.createFixed(32,
                                               3, GL.GL_FLOAT,             // vertex

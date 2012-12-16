@@ -152,26 +152,26 @@ public class GearsES2 implements GLEventListener {
         st.uniform(gl, colorU);
 
         if(null == gear1) {
-            gear1 = new GearsObjectES2(1.0f, 4.0f, 1.0f, 20, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
+            gear1 = new GearsObjectES2(st, 1.0f, 4.0f, 1.0f, 20, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
             System.err.println("gear1 created: "+gear1);
         } else {
-            gear1 = new GearsObjectES2(gear1, pmvMatrix, pmvMatrixUniform, colorU);
+            gear1 = new GearsObjectES2(gear1, st, pmvMatrix, pmvMatrixUniform, colorU);
             System.err.println("gear1 reused: "+gear1);
         }
                     
         if(null == gear2) {
-            gear2 = new GearsObjectES2(0.5f, 2.0f, 2.0f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
+            gear2 = new GearsObjectES2(st, 0.5f, 2.0f, 2.0f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
             System.err.println("gear2 created: "+gear2);
         } else {
-            gear2 = new GearsObjectES2(gear2, pmvMatrix, pmvMatrixUniform, colorU);
+            gear2 = new GearsObjectES2(gear2, st, pmvMatrix, pmvMatrixUniform, colorU);
             System.err.println("gear2 reused: "+gear2);
         }
                 
         if(null == gear3) {
-            gear3 = new GearsObjectES2(1.3f, 2.0f, 0.5f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
+            gear3 = new GearsObjectES2(st, 1.3f, 2.0f, 0.5f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
             System.err.println("gear3 created: "+gear3);
         } else {
-            gear3 = new GearsObjectES2(gear3, pmvMatrix, pmvMatrixUniform, colorU);
+            gear3 = new GearsObjectES2(gear3, st, pmvMatrix, pmvMatrixUniform, colorU);
             System.err.println("gear3 reused: "+gear3);
         }
     

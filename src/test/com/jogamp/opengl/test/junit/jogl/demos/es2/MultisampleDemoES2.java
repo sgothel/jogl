@@ -117,7 +117,7 @@ public class MultisampleDemoES2 implements GLEventListener {
                                               4, GL.GL_FLOAT,  // color
                                               0, GL.GL_FLOAT,  // normal
                                               0, GL.GL_FLOAT,  // texCoords
-                                              GL.GL_STATIC_DRAW);
+                                              GL.GL_STATIC_DRAW, st);
         final int numSteps = 20;
         final double increment = Math.PI / numSteps;
         final double radius = 1;

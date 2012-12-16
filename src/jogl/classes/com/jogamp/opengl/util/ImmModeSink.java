@@ -35,7 +35,7 @@ import com.jogamp.opengl.util.glsl.ShaderState;
  * via {@link #glEnd(GL, boolean) glEnd(gl, false)} for deferred rendering via {@link #draw(GL, boolean)}.
  * </p>
  * <a name="storageDetails"><h5>Buffer storage and it's creation via {@link #createFixed(int, int, int, int, int, int, int, int, int, int) createFixed(..)} 
- * and {@link #createGLSL(int, int, int, int, int, int, int, int, int, int) createGLSL(..)}</h5></a> 
+ * and {@link #createGLSL(int, int, int, int, int, int, int, int, int, int, ShaderState) createGLSL(..)}</h5></a> 
  * <p>
  * If unsure whether <i>colors</i>, <i>normals</i> and <i>textures</i> will be used, 
  * simply add them with an expected component count.
@@ -82,13 +82,11 @@ public class ImmModeSink {
                                         int glBufferUsage) {
     return new ImmModeSink(initialElementCount, 
                            vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, 
-                           false, glBufferUsage);
+                           false, glBufferUsage, null, 0);
   }
 
   /**
-   * Uses a GL2ES2 GLSL shader immediate mode sink.
-   * To issue the draw() command,
-   * a ShaderState must be current, using ShaderState.glUseProgram().
+   * Uses a GL2ES2 GLSL shader immediate mode sink, utilizing the given ShaderState.
    * <p>
    * See <a href="#storageDetails"> buffer storage details</a>.
    * </p>
@@ -104,7 +102,7 @@ public class ImmModeSink {
    * @param tDataType optional texture-coordinate data type, e.g. {@link GL#GL_FLOAT}
    * @param glBufferUsage VBO <code>usage</code> parameter for {@link GL#glBufferData(int, long, Buffer, int)}, e.g. {@link GL#GL_STATIC_DRAW}, 
    *                      set to <code>0</code> for no VBO usage
-   * 
+   * @param st ShaderState to locate the vertex attributes
    * @see #draw(GL, boolean)
    * @see com.jogamp.opengl.util.glsl.ShaderState#useProgram(GL2ES2, boolean)
    * @see com.jogamp.opengl.util.glsl.ShaderState#getCurrentShaderState()
@@ -114,12 +112,45 @@ public class ImmModeSink {
                                        int cComps, int cDataType,
                                        int nComps, int nDataType, 
                                        int tComps, int tDataType, 
-                                       int glBufferUsage) {
+                                       int glBufferUsage, ShaderState st) {
     return new ImmModeSink(initialElementCount, 
                            vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, 
-                           true, glBufferUsage);
+                           true, glBufferUsage, st, 0);
   }
 
+  /**
+   * Uses a GL2ES2 GLSL shader immediate mode sink, utilizing the given shader-program.
+   * <p>
+   * See <a href="#storageDetails"> buffer storage details</a>.
+   * </p>
+   * 
+   * @param initialElementCount initial buffer size, if subsequent mutable operations are about to exceed the buffer size, the buffer will grow about the initial size.
+   * @param vComps mandatory vertex component count, should be 2, 3 or 4.
+   * @param vDataType mandatory vertex data type, e.g. {@link GL#GL_FLOAT}
+   * @param cComps optional color component count, may be 0, 3 or 4
+   * @param cDataType optional color data type, e.g. {@link GL#GL_FLOAT}
+   * @param nComps optional normal component count, may be 0, 3 or 4
+   * @param nDataType optional normal data type, e.g. {@link GL#GL_FLOAT}
+   * @param tComps optional texture-coordinate  component count, may be 0, 2 or 3
+   * @param tDataType optional texture-coordinate data type, e.g. {@link GL#GL_FLOAT}
+   * @param glBufferUsage VBO <code>usage</code> parameter for {@link GL#glBufferData(int, long, Buffer, int)}, e.g. {@link GL#GL_STATIC_DRAW}, 
+   *                      set to <code>0</code> for no VBO usage
+   * @param shaderProgram shader-program name to locate the vertex attributes
+   * @see #draw(GL, boolean)
+   * @see com.jogamp.opengl.util.glsl.ShaderState#useProgram(GL2ES2, boolean)
+   * @see com.jogamp.opengl.util.glsl.ShaderState#getCurrentShaderState()
+   */
+  public static ImmModeSink createGLSL(int initialElementCount, 
+                                       int vComps, int vDataType,
+                                       int cComps, int cDataType,
+                                       int nComps, int nDataType, 
+                                       int tComps, int tDataType, 
+                                       int glBufferUsage, int shaderProgram) {
+    return new ImmModeSink(initialElementCount, 
+                           vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, 
+                           true, glBufferUsage, null, shaderProgram);
+  }
+  
   public void destroy(GL gl) {
     destroyList(gl);
 
@@ -330,10 +361,10 @@ public class ImmModeSink {
                         int cComps, int cDataType, 
                         int nComps, int nDataType, 
                         int tComps, int tDataType, 
-                        boolean useGLSL, int glBufferUsage) {
-    vboSet = new  VBOSet(initialElementCount, 
-                         vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, 
-                         useGLSL, glBufferUsage);
+                        boolean useGLSL, int glBufferUsage, ShaderState st, int shaderProgram) {
+    vboSet = new VBOSet(initialElementCount, 
+                        vComps, vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, 
+                        useGLSL, glBufferUsage, st, shaderProgram);
     this.vboSetList   = new ArrayList<VBOSet>();
   }
   
@@ -349,7 +380,7 @@ public class ImmModeSink {
    * Sets the additional element count if buffer resize is required,
    * defaults to <code>initialElementCount</code> of factory method.
    * @see #createFixed(int, int, int, int, int, int, int, int, int, int)
-   * @see #createGLSL(int, int, int, int, int, int, int, int, int, int)
+   * @see #createGLSL(int, int, int, int, int, int, int, int, int, int, ShaderState)
    */
   public void setResizeElementCount(int v) { vboSet.setResizeElementCount(v); }
   
@@ -369,9 +400,19 @@ public class ImmModeSink {
                       int cComps, int cDataType, 
                       int nComps, int nDataType, 
                       int tComps, int tDataType, 
-                      boolean useGLSL, int glBufferUsage) {
+                      boolean useGLSL, int glBufferUsage, ShaderState st, int shaderProgram) {
+        // final ..
         this.glBufferUsage=glBufferUsage;
         this.initialElementCount=initialElementCount;
+        this.useVBO = 0 != glBufferUsage;
+        this.useGLSL=useGLSL;
+        this.shaderState = st;
+        this.shaderProgram = shaderProgram;
+        
+        if(useGLSL && null == shaderState && 0 == shaderProgram) {
+            throw new IllegalArgumentException("Using GLSL but neither a valid shader-program nor ShaderState has been passed!");
+        }
+        // variable ..
         this.resizeElementCount=initialElementCount;
         this.vDataType=vDataType;
         this.vDataTypeSigned=GLBuffers.isSignedGLType(vDataType);
@@ -389,8 +430,6 @@ public class ImmModeSink {
         this.tDataTypeSigned=GLBuffers.isSignedGLType(tDataType);
         this.tComps=tComps;
         this.tCompsBytes=tComps * GLBuffers.sizeOfGLType(tDataType); 
-        this.useGLSL=useGLSL;
-        this.useVBO = 0 != glBufferUsage;
         this.vboName = 0;
                 
         this.vCount=0;
@@ -414,6 +453,7 @@ public class ImmModeSink {
         this.bufferEnabled=false;
         this.bufferWritten=false;
         this.bufferWrittenOnce=false;
+        this.glslLocationSet = false;
     }
 
     protected int getResizeElementCount() { return resizeElementCount; }
@@ -423,7 +463,8 @@ public class ImmModeSink {
     
     protected final VBOSet regenerate(GL gl) {
         return new VBOSet(initialElementCount, vComps, 
-                          vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, useGLSL, glBufferUsage);
+                          vDataType, cComps, cDataType, nComps, nDataType, tComps, tDataType, 
+                          useGLSL, glBufferUsage, shaderState, shaderProgram);
     }
 
     protected void checkSeal(boolean test) throws GLException {
@@ -439,10 +480,27 @@ public class ImmModeSink {
         }
     }
 
+    private boolean usingShaderProgram = false;
+    
+    protected void useShaderProgram(GL2ES2 gl, boolean force) {
+        if( force || !usingShaderProgram ) {
+            if(null != shaderState) {
+                shaderState.useProgram(gl, true);
+            } else /* if( 0 != shaderProgram) */ {
+                gl.glUseProgram(shaderProgram);
+            }
+            usingShaderProgram = true;
+        }
+    }
+    
     protected void draw(GL gl, Buffer indices, boolean disableBufferAfterDraw, int i)
     {
         enableBuffer(gl, true);
-
+        
+        if(null != shaderState || 0 != shaderProgram) {
+            useShaderProgram(gl.getGL2ES2(), false);
+        }
+        
         if(DEBUG_DRAW) {
             System.err.println("ImmModeSink.draw["+i+"].0 (disableBufferAfterDraw: "+disableBufferAfterDraw+"):\n\t"+this);
         }
@@ -788,6 +846,51 @@ public class ImmModeSink {
         }
     }
 
+    public void setShaderProgram(int program) {
+        if(null == shaderState && 0 == program) {
+            throw new IllegalArgumentException("Not allowed to zero shader program if no ShaderState is set");
+        }
+        shaderProgram = program;
+        glslLocationSet = false; // enforce location reset!
+    }
+    
+    /**
+     * @param gl
+     * @return true if all locations for all used arrays are found (min 1 array), otherwise false.
+     *         Also sets 'glslLocationSet' to the return value! 
+     */
+    private boolean resetGLSLArrayLocation(GL2ES2 gl) {
+        int iA = 0;
+        int iL = 0;
+        
+        if(null != vArrayData) {
+            iA++;
+            if( vArrayData.setLocation(gl, shaderProgram) >= 0 ) {
+                iL++;  
+            }
+        }
+        if(null != cArrayData) {
+            iA++;
+            if( cArrayData.setLocation(gl, shaderProgram) >= 0 ) {
+                iL++;
+            }
+        }
+        if(null != nArrayData) {
+            iA++;
+            if( nArrayData.setLocation(gl, shaderProgram) >= 0 ) {
+                iL++;
+            }
+        }
+        if(null != tArrayData) {
+            iA++;
+            if( tArrayData.setLocation(gl, shaderProgram) >= 0 ) {
+                iL++;
+            }
+        }
+        glslLocationSet = iA == iL;
+        return glslLocationSet;
+    }
+    
     public void destroy(GL gl) {
         reset(gl);
 
@@ -868,8 +971,13 @@ public class ImmModeSink {
             checkSeal(true);
         }
         bufferEnabled = enable;
-        if(useGLSL) { 
-            enableBufferGLSL(gl, enable);
+        if(useGLSL) {
+            useShaderProgram(gl.getGL2ES2(), true);
+            if(null != shaderState) {
+                enableBufferGLSLShaderState(gl, enable);
+            } else {
+                enableBufferGLSLSimple(gl, enable);
+            }
         } else {
             enableBufferFixed(gl, enable);
         }
@@ -901,7 +1009,7 @@ public class ImmModeSink {
     }                      
   }
   
-  public void enableBufferFixed(GL gl, boolean enable) {
+  private void enableBufferFixed(GL gl, boolean enable) {
     GL2ES1 glf = gl.getGL2ES1();
     
     final boolean useV = vComps>0 && vElems>0 ;
@@ -969,11 +1077,7 @@ public class ImmModeSink {
     }
   }
 
-  public void enableBufferGLSL(GL gl, boolean enable) {
-    ShaderState st = ShaderState.getShaderState(gl);
-    if(null==st) {
-        throw new GLException("No ShaderState in "+gl);
-    }      
+  private void enableBufferGLSLShaderState(GL gl, boolean enable) {
     GL2ES2 glsl = gl.getGL2ES2();
  
     final boolean useV = vComps>0 && vElems>0 ;
@@ -982,7 +1086,88 @@ public class ImmModeSink {
     final boolean useT = tComps>0 && tElems>0 ;
     
     if(DEBUG_DRAW) {
-        System.err.println("ImmModeSink.enableGLSL.0 "+enable+": use [ v "+useV+", c "+useC+", n "+useN+", t "+useT+"], "+getElemUseCountStr()+", "+buffer);        
+        System.err.println("ImmModeSink.enableGLSL.A.0 "+enable+": use [ v "+useV+", c "+useC+", n "+useN+", t "+useT+"], "+getElemUseCountStr()+", "+buffer);        
+    }
+    
+    if(enable) {
+        if(useVBO) {
+            if(0 == vboName) {
+                throw new InternalError("Using VBO but no vboName");
+            }
+            glsl.glBindBuffer(GL.GL_ARRAY_BUFFER, vboName);
+            if(!bufferWritten) {
+                writeBuffer(gl);
+            }
+        }
+        bufferWritten=true;        
+    }
+    
+    if(useV) {
+       if(enable) {
+           shaderState.enableVertexAttribArray(glsl, vArrayData);
+           shaderState.vertexAttribPointer(glsl, vArrayData);
+       } else {
+           shaderState.disableVertexAttribArray(glsl, vArrayData);
+       }
+    }
+    if(useC) {
+       if(enable) {
+           shaderState.enableVertexAttribArray(glsl, cArrayData);
+           shaderState.vertexAttribPointer(glsl, cArrayData);
+       } else {
+           shaderState.disableVertexAttribArray(glsl, cArrayData);
+       }
+    }
+    if(useN) {
+       if(enable) {
+           shaderState.enableVertexAttribArray(glsl, nArrayData);
+           shaderState.vertexAttribPointer(glsl, nArrayData);
+       } else {
+           shaderState.disableVertexAttribArray(glsl, nArrayData);
+       }
+    }
+    if(useT) {
+       if(enable) {
+           shaderState.enableVertexAttribArray(glsl, tArrayData);
+           shaderState.vertexAttribPointer(glsl, tArrayData);
+       } else {
+           shaderState.disableVertexAttribArray(glsl, tArrayData);
+       }
+    }    
+    glslLocationSet = true; // ShaderState does set the location implicit
+    
+    if(enable && useVBO) {
+        glsl.glBindBuffer(GL.GL_ARRAY_BUFFER, 0);
+    }
+    
+    if(DEBUG_DRAW) {
+        System.err.println("ImmModeSink.enableGLSL.A.X ");        
+    }
+  }
+
+  private void enableBufferGLSLSimple(GL gl, boolean enable) {
+    GL2ES2 glsl = gl.getGL2ES2();
+ 
+    final boolean useV = vComps>0 && vElems>0 ;
+    final boolean useC = cComps>0 && cElems>0 ;
+    final boolean useN = nComps>0 && nElems>0 ;
+    final boolean useT = tComps>0 && tElems>0 ;
+    
+    if(DEBUG_DRAW) {
+        System.err.println("ImmModeSink.enableGLSL.B.0 "+enable+": use [ v "+useV+", c "+useC+", n "+useN+", t "+useT+"], "+getElemUseCountStr()+", "+buffer);        
+    }
+    
+    if(!glslLocationSet) {
+        if( !resetGLSLArrayLocation(glsl) ) {
+            if(DEBUG_DRAW) {
+                final int vLoc = null != vArrayData ? vArrayData.getLocation() : -1;
+                final int cLoc = null != cArrayData ? cArrayData.getLocation() : -1;
+                final int nLoc = null != nArrayData ? nArrayData.getLocation() : -1;
+                final int tLoc = null != tArrayData ? tArrayData.getLocation() : -1;
+                System.err.println("ImmModeSink.enableGLSL.B.X attribute locations in shader program "+shaderProgram+", incomplete ["+vLoc+", "+cLoc+", "+nLoc+", "+tLoc+"] - glslLocationSet "+glslLocationSet);
+            }
+            return;
+        }
     }
     
     if(enable) {
@@ -1000,34 +1185,34 @@ public class ImmModeSink {
 
     if(useV) {
        if(enable) {
-           st.enableVertexAttribArray(glsl, vArrayData);
-           st.vertexAttribPointer(glsl, vArrayData);
+           glsl.glEnableVertexAttribArray(vArrayData.getLocation());
+           glsl.glVertexAttribPointer(vArrayData);
        } else {
-           st.disableVertexAttribArray(glsl, vArrayData);
+           glsl.glDisableVertexAttribArray(vArrayData.getLocation());
        }
     }
     if(useC) {
        if(enable) {
-           st.enableVertexAttribArray(glsl, cArrayData);
-           st.vertexAttribPointer(glsl, cArrayData);
+           glsl.glEnableVertexAttribArray(cArrayData.getLocation());
+           glsl.glVertexAttribPointer(cArrayData);
        } else {
-           st.disableVertexAttribArray(glsl, cArrayData);
+           glsl.glDisableVertexAttribArray(cArrayData.getLocation());
        }
     }
     if(useN) {
        if(enable) {
-           st.enableVertexAttribArray(glsl, nArrayData);
-           st.vertexAttribPointer(glsl, nArrayData);
+           glsl.glEnableVertexAttribArray(nArrayData.getLocation());
+           glsl.glVertexAttribPointer(nArrayData);
        } else {
-           st.disableVertexAttribArray(glsl, nArrayData);
+           glsl.glDisableVertexAttribArray(nArrayData.getLocation());
        }
     }
     if(useT) {
        if(enable) {
-           st.enableVertexAttribArray(glsl, tArrayData);
-           st.vertexAttribPointer(glsl, tArrayData);
+           glsl.glEnableVertexAttribArray(tArrayData.getLocation());
+           glsl.glVertexAttribPointer(tArrayData);
        } else {
-           st.disableVertexAttribArray(glsl, tArrayData);
+           glsl.glDisableVertexAttribArray(tArrayData.getLocation());
        }
     }
     
@@ -1036,11 +1221,16 @@ public class ImmModeSink {
     }
     
     if(DEBUG_DRAW) {
-        System.err.println("ImmModeSink.enableGLSL.X ");        
+        System.err.println("ImmModeSink.enableGLSL.B.X ");        
     }
   }
-
+  
     public String toString() {
+        final String glslS = useGLSL ? 
+                       ", useShaderState "+(null!=shaderState)+
+                       ", shaderProgram "+shaderProgram+
+                       ", glslLocationSet "+glslLocationSet : "";
+        
         return "VBOSet[mode "+mode+ 
                        ", modeOrig "+modeOrig+ 
                        ", use/count "+getElemUseCountStr()+
@@ -1049,6 +1239,8 @@ public class ImmModeSink {
                        ", bufferEnabled "+bufferEnabled+ 
                        ", bufferWritten "+bufferWritten+" (once "+bufferWrittenOnce+")"+
                        ", useVBO "+useVBO+", vboName "+vboName+
+                       ", useGLSL "+useGLSL+
+                       glslS+
                        ",\n\t"+vArrayData+
                        ",\n\t"+cArrayData+
                        ",\n\t"+nArrayData+
@@ -1264,7 +1456,9 @@ public class ImmModeSink {
     }
 
     final private int glBufferUsage, initialElementCount;
-    final private boolean useVBO;
+    final private boolean useVBO, useGLSL;
+    final private ShaderState shaderState;
+    private int shaderProgram;
     private int mode, modeOrig, resizeElementCount;
 
     private ByteBuffer buffer;
@@ -1286,8 +1480,9 @@ public class ImmModeSink {
     private Buffer vertexArray, colorArray, normalArray, textCoordArray;
     private GLArrayDataWrapper vArrayData, cArrayData, nArrayData, tArrayData;
 
-    private boolean sealed, sealedGL, useGLSL;
+    private boolean sealed, sealedGL;    
     private boolean bufferEnabled, bufferWritten, bufferWrittenOnce;
+    private boolean glslLocationSet;
   }
 
 }

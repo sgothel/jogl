@@ -147,10 +147,26 @@ public class GLUniformData {
     public int getLocation() { return location; }
 
     /**
-     * Sets the determined location of the shader uniform.
+     * Sets the given location of the shader uniform.
+     * @return the given location
      */
-    public GLUniformData setLocation(int location) { this.location=location; return this; }
+    public int setLocation(int location) { this.location=location; return location; }
 
+    /**
+     * Retrieves the location of the shader uniform from the linked shader program.
+     * <p>
+     * No validation is performed within the implementation.
+     * </p>
+     * @param gl
+     * @param program
+     * @return &ge;0 denotes a valid uniform location as found and used in the given shader program.
+     *         &lt;0 denotes an invalid location, i.e. not found or used in the given shader program.
+     */
+    public int setLocation(GL2ES2 gl, int program) {
+        location = gl.glGetUniformLocation(program, name);
+        return location;
+    }
+    
     public Object getObject() {
         return data;
     }

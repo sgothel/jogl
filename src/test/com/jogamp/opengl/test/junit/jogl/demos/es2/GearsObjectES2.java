@@ -39,28 +39,41 @@ public class GearsObjectES2 extends GearsObject {
     PMVMatrix pmvMatrix;
     GLUniformData pmvMatrixUniform;
     GLUniformData colorUniform;
+    ShaderState st;
     
-    public GearsObjectES2(float inner_radius, float outer_radius, float width,
-                          int teeth, float tooth_depth,
-                          PMVMatrix pmvMatrix, 
-                          GLUniformData pmvMatrixUniform,
-                          GLUniformData colorUniform) 
+    public GearsObjectES2(ShaderState st, float inner_radius, float outer_radius,
+                          float width, int teeth,
+                          float tooth_depth, 
+                          PMVMatrix pmvMatrix,
+                          GLUniformData pmvMatrixUniform, GLUniformData colorUniform) 
     {
         super(inner_radius, outer_radius, width, teeth, tooth_depth);
         this.pmvMatrix = pmvMatrix;
         this.pmvMatrixUniform = pmvMatrixUniform;
         this.colorUniform = colorUniform;
+        this.st = st;
+        associate(st);
     }
 
     public GearsObjectES2(GearsObjectES2 shared,
-                          PMVMatrix pmvMatrix, 
-                          GLUniformData pmvMatrixUniform,
-                          GLUniformData colorUniform) 
+                          ShaderState st, 
+                          PMVMatrix pmvMatrix,
+                          GLUniformData pmvMatrixUniform, GLUniformData colorUniform) 
     {
         super(shared);
         this.pmvMatrix = pmvMatrix;
         this.pmvMatrixUniform = pmvMatrixUniform;
         this.colorUniform = colorUniform;
+        associate(st);
+    }
+    
+    private void associate(ShaderState st) {
+        frontFace.associate(st, true);
+        frontSide.associate(st, true);
+        backFace.associate(st, true);
+        backSide.associate(st, true);
+        outwardFace.associate(st, true);
+        insideRadiusCyl.associate(st, true);        
     }
 
     @Override
@@ -83,7 +96,6 @@ public class GearsObjectES2 extends GearsObject {
     @Override
     public void draw(GL _gl, float x, float y, float angle, FloatBuffer color) {
         final GL2ES2 gl = _gl.getGL2ES2();
-        final ShaderState st = ShaderState.getShaderState(gl);
         pmvMatrix.glPushMatrix();
         pmvMatrix.glTranslatef(x, y, 0f);
         pmvMatrix.glRotatef(angle, 0f, 0f, 1f);

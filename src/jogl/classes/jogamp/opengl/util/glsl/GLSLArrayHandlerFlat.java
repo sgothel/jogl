@@ -53,9 +53,13 @@ public class GLSLArrayHandlerFlat implements GLArrayHandlerFlat {
     
   public final void syncData(GL gl, Object ext) {
     final GL2ES2 glsl = gl.getGL2ES2();
-    final ShaderState st = (ShaderState) ext;
-
-    st.vertexAttribPointer(glsl, ad);
+    if( null != ext ) {
+        ((ShaderState)ext).vertexAttribPointer(glsl, ad);
+    } else {
+        if( 0 <= ad.getLocation() ) {
+            glsl.glVertexAttribPointer(ad);
+        }
+    }
     /**
      * Due to probable application VBO switching, this might not make any sense ..
      * 
@@ -75,13 +79,22 @@ public class GLSLArrayHandlerFlat implements GLArrayHandlerFlat {
 
   public final void enableState(GL gl, boolean enable, Object ext) {
     final GL2ES2 glsl = gl.getGL2ES2();
-    final ShaderState st = (ShaderState) ext;
-    
-    if(enable) {
-        st.enableVertexAttribArray(glsl, ad);
+    if( null != ext ) {
+        final ShaderState st = (ShaderState)ext;
+        if(enable) {
+            st.enableVertexAttribArray(glsl, ad);
+        } else {
+            st.disableVertexAttribArray(glsl, ad);
+        }
     } else {
-        st.disableVertexAttribArray(glsl, ad);
+        final int location = ad.getLocation();
+        if( 0 <= location ) {
+            if(enable) {
+                glsl.glEnableVertexAttribArray(location);
+            } else {
+                glsl.glDisableVertexAttribArray(location);
+            }
+        }        
     }
   }  
 }
-
