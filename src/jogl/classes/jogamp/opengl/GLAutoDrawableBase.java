@@ -228,7 +228,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
                 // Catch dispose GLExceptions by GLEventListener, just 'print' them
                 // so we can continue with the destruction.
                 try {
-                    helper.disposeGL(this, context);
+                    helper.disposeGL(this, context, true);
                 } catch (GLException gle) {
                     gle.printStackTrace();
                 }

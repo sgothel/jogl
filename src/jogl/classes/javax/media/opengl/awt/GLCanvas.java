@@ -915,7 +915,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                     // Catch dispose GLExceptions by GLEventListener, just 'print' them
                     // so we can continue with the destruction.
                     try {
-                        helper.disposeGL(GLCanvas.this, context);
+                        helper.disposeGL(GLCanvas.this, context, true);
                     } catch (GLException gle) {
                         gle.printStackTrace();
                     }

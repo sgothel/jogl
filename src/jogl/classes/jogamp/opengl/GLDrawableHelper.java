@@ -398,7 +398,7 @@ public class GLDrawableHelper {
    * </p>
    * <p>
    * Please consider using {@link #disposeAllGLEventListener(GLAutoDrawable, GLContext, boolean)}
-   * or {@link #disposeGL(GLAutoDrawable, GLContext)}
+   * or {@link #disposeGL(GLAutoDrawable, GLContext, boolean)}
    * for correctness, i.e. encapsulating all calls w/ makeCurrent etc.
    * </p>
    * @param autoDrawable
@@ -826,12 +826,16 @@ public class GLDrawableHelper {
   /** 
    * Principal helper method which runs 
    * {@link #disposeAllGLEventListener(GLAutoDrawable, boolean) disposeAllGLEventListener(autoDrawable, false)} 
-   * with the context made current <b>and</b> destroys the context afterwards while holding the lock.
+   * with the context made current.
+   * <p>
+   * If <code>destroyContext</code> is <code>true</code> the context is destroyed in the end while holding the lock.<br/>
+   * </p>
    * @param autoDrawable
    * @param context
+   * @param destroyContext destroy context in the end while holding the lock
    */
   public final void disposeGL(final GLAutoDrawable autoDrawable,
-                              final GLContext context) {
+                              final GLContext context, boolean destroyContext) {
     // Support for recursive makeCurrent() calls as well as calling
     // other drawables' display() methods from within another one's
     GLContext lastContext = GLContext.getCurrent();
@@ -858,7 +862,11 @@ public class GLDrawableHelper {
       }
     } finally {
       try {
-          context.destroy();
+          if(destroyContext) {
+              context.destroy();
+          } else {
+              context.release();
+          }
           flushGLRunnables();
       } catch (Exception e) {
           System.err.println("Catched: "+e.getMessage());

@@ -207,7 +207,7 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
                      // so we can continue with the destruction.
                      try {
                          if( !GLCanvas.this.isDisposed() ) {
-                             helper.disposeGL(GLCanvas.this, context);
+                             helper.disposeGL(GLCanvas.this, context, true);
                          } else {
                              context.destroy();
                          }
