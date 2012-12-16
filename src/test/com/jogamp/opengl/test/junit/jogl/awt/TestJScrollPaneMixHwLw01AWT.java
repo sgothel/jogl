@@ -77,7 +77,7 @@ public class TestJScrollPaneMixHwLw01AWT extends UITestCase {
     }
     
     protected void runTestGL(GLCapabilities caps, boolean useJScroll) throws InterruptedException {
-        final JFrame frame = new JFrame("Mix Hw/Lw Swing");
+        final JFrame frame = new JFrame("JScrollPane Mix Hw/Lw Swing");
         Assert.assertNotNull(frame);
         
         final Dimension f_sz = new Dimension(600,400);

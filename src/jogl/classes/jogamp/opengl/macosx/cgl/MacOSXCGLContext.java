@@ -164,7 +164,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
       pmvMatrix.glLoadIdentity();       
       final GLUniformData pmvMatrixUniform = new GLUniformData("mgl_PMVMatrix", 4, 4, pmvMatrix.glGetPMvMatrixf()); // P, Mv
-      pmvMatrixUniform.setLocation( gl.glGetUniformLocation( sp.program(), pmvMatrixUniform.getName() ) );
+      pmvMatrixUniform.setLocation(gl, sp.program());
       gl.glUniform(pmvMatrixUniform);
 
       sp.useProgram(gl, false);

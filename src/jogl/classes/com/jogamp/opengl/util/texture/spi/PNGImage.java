@@ -144,7 +144,7 @@ public class PNGImage {
     /** Returns the dpi of the image. */
     public double[] getDpi() { return dpi; }
     
-    /** Returns the OpenGL format for this texture; e.g. GL.GL_BGR or GL.GL_BGRA. */
+    /** Returns the OpenGL format for this texture; e.g. GL.GL_LUMINANCE, GL.GL_RGB or GL.GL_RGBA. */
     public int getGLFormat() { return glFormat; }
     
     /** Returns the OpenGL data type: GL.GL_UNSIGNED_BYTE. */
