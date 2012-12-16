@@ -1250,16 +1250,24 @@ public final void gluDisk(GLUquadric quad, double inner, double outer, int slice
 
 /** Option (throws GLException if not available in profile). <br> Interface to C language function: <br> <code> GLUquadric *  gluNewQuadric(void); </code>    */
 public final GLUquadric gluNewQuadric() {
-  return gluNewQuadric(false);
+  return gluNewQuadric(false, null, 0);
 }
 
-public final GLUquadric gluNewQuadric(boolean useGLSL) {
+public final GLUquadric gluNewQuadric(boolean useGLSL, ShaderState st) {
+    return gluNewQuadric(useGLSL, st, 0);
+}
+
+public final GLUquadric gluNewQuadric(boolean useGLSL, int shaderProgram) {
+    return gluNewQuadric(useGLSL, null, shaderProgram);
+}
+
+private final GLUquadric gluNewQuadric(boolean useGLSL, ShaderState st, int shaderProgram) {
   GL gl = getCurrentGL();
   if(useGLSL && !gl.isGL2ES2()) {
     throw new GLException("GLUquadric GLSL implementation not supported for profile: "+gl);
   }
   validateGLUquadricImpl();
-  return new GLUquadricImpl(gl, useGLSL);
+  return new GLUquadricImpl(gl, useGLSL, st, shaderProgram);
 }
 
 /** Option (throws GLException if not available in profile). <br> Interface to C language function: <br> <code> void gluPartialDisk(GLUquadric *  quad, GLdouble inner, GLdouble outer, GLint slices, GLint loops, GLdouble start, GLdouble sweep); </code>    */
