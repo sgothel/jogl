@@ -42,8 +42,30 @@ if [ $MOSX -eq 1 ] ; then
     MOSX_MT=1
 fi
 
+#export LD_LIBRARY_PATH=$spath/../lib/external/PVRVFrame/OGLES-2.0/Linux_x86_64:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=$spath/../lib/external/PVRVFrame/OGLES-2.0/Linux_x86_32:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=/usr/local/projects/Xorg.modular/build-x86_64/lib:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=/opt-linux-x86_64/x11lib-1.3:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=/usr/lib/mesa:/usr/lib32/mesa:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/mesa:/usr/lib/i386-linux-gnu/mesa:$LD_LIBRARY_PATH
+#export LIBGL_DRIVERS_PATH=/usr/lib/x86_64-linux-gnu/dri:/usr/lib/i386-linux-gnu/dri
+#export LD_LIBRARY_PATH=`pwd`/lib/external/mesa_git/x86_64-linux-gnu:$LD_LIBRARY_PATH
+#export LIBGL_DRIVERS_PATH=`pwd`/lib/external/mesa_git/x86_64-linux-gnu/dri
+#export LD_LIBRARY_PATH=`pwd`/lib/external/mesa_901/x86_64-linux-gnu:$LD_LIBRARY_PATH
+#export LIBGL_DRIVERS_PATH=`pwd`/lib/external/mesa_901/x86_64-linux-gnu/dri
+#export LD_LIBRARY_PATH=`pwd`/lib/external/mesa_900/x86_64-linux-gnu:$LD_LIBRARY_PATH
+#export LIBGL_DRIVERS_PATH=`pwd`/lib/external/mesa_900/x86_64-linux-gnu/dri
+
+#export LIBGL_DEBUG=verbose 
+#export MESA_DEBUG=true 
+#export LIBGL_ALWAYS_SOFTWARE=true
+#export INTEL_DEBUG="buf bat"
+#export INTEL_STRICT_CONFORMANCE=1 
+
 which "$javaexe" 2>&1 | tee -a java-run.log
 "$javaexe" -version 2>&1 | tee -a java-run.log
+echo LD_LIBRARY_PATH $LD_LIBRARY_PATH 2>&1 | tee -a java-run.log
 echo LIBXCB_ALLOW_SLOPPY_LOCK: $LIBXCB_ALLOW_SLOPPY_LOCK 2>&1 | tee -a java-run.log
 echo LIBGL_DRIVERS_PATH: $LIBGL_DRIVERS_PATH 2>&1 | tee -a java-run.log
 echo LIBGL_DEBUG: $LIBGL_DEBUG 2>&1 | tee -a java-run.log
@@ -198,25 +220,10 @@ function jrun() {
             C_ARG="com.jogamp.newt.util.MainThread"
         fi
     fi
-    #export LD_LIBRARY_PATH=$spath/../lib/external/PVRVFrame/OGLES-2.0/Linux_x86_64:$LD_LIBRARY_PATH
-    #export LD_LIBRARY_PATH=$spath/../lib/external/PVRVFrame/OGLES-2.0/Linux_x86_32:$LD_LIBRARY_PATH
-    #export LD_LIBRARY_PATH=/usr/local/projects/Xorg.modular/build-x86_64/lib:$LD_LIBRARY_PATH
-    #export LD_LIBRARY_PATH=/opt-linux-x86_64/x11lib-1.3:$LD_LIBRARY_PATH
-    #export LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64:$LD_LIBRARY_PATH
-    #export LD_LIBRARY_PATH=/usr/lib/mesa:/usr/lib32/mesa:$LD_LIBRARY_PATH
-    #export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/mesa:/usr/lib/i386-linux-gnu/mesa:$LD_LIBRARY_PATH
-    #export LD_LIBRARY_PATH=`pwd`/lib/external/mesa/x86_64-linux-gnu:$LD_LIBRARY_PATH
-    #export LD_LIBRARY_PATH=`pwd`/lib/external/mesa/x86_64-linux-gnu/gallium:$LD_LIBRARY_PATH
     echo
     echo "Test Start: $*"
     echo
-    echo LD_LIBRARY_PATH $LD_LIBRARY_PATH
-    echo
     echo "$javaexe" $javaxargs $X_ARGS $D_ARGS $C_ARG $*
-    #LIBGL_DRIVERS_PATH=/usr/lib/mesa:/usr/lib32/mesa \
-    #LIBGL_DEBUG=verbose INTEL_STRICT_CONFORMANCE=1 INTEL_DEBUG="buf bat" \
-    #LIBGL_DEBUG=verbose MESA_DEBUG=true INTEL_STRICT_CONFORMANCE=1 \
-    #export LIBGL_DEBUG=verbose MESA_DEBUG=true LIBGL_ALWAYS_SOFTWARE=true
     #gdb --args "$javaexe" $javaxargs $X_ARGS $D_ARGS $C_ARG $*
     "$javaexe" $javaxargs $X_ARGS $D_ARGS $C_ARG $*
     echo
@@ -270,7 +277,8 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitchNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestPointsNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLPointsNEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLUnitsNEWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOffscrnCapsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryOffscrnCapsNEWT $*
@@ -345,7 +353,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01 $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT02WindowClosing
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestJScrollPaneMixHwLw01AWT $*
-testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug642JSplitPaneMixHwLw01AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug642JSplitPaneMixHwLw01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.text.TestAWTTextRendererUseVertexArrayBug464
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*

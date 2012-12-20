@@ -43,7 +43,7 @@ import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
 
-public class TestPointsNEWT extends UITestCase {
+public class TestGLPointsNEWT extends UITestCase {
     static int width, height;
 
     @BeforeClass
@@ -151,6 +151,6 @@ public class TestPointsNEWT extends UITestCase {
                 } catch (Exception ex) { ex.printStackTrace(); }
             }
         }
-        org.junit.runner.JUnitCore.main(TestPointsNEWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGLPointsNEWT.class.getName());
     }
 }
