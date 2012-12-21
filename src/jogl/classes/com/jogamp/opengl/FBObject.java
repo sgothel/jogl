@@ -31,6 +31,7 @@ package com.jogamp.opengl;
 import java.util.Arrays;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GL3;
 import javax.media.opengl.GLBase;
@@ -812,7 +813,7 @@ public class FBObject {
         maxColorAttachments = 1;
         if( fullFBOSupport || NV_fbo_color_attachments ) {
             try {
-                gl.glGetIntegerv(GL2GL3.GL_MAX_COLOR_ATTACHMENTS, val, 0);
+                gl.glGetIntegerv(GL2ES2.GL_MAX_COLOR_ATTACHMENTS, val, 0);
                 realMaxColorAttachments = 1 <= val[0] ? val[0] : 1; // cap minimum to 1
             } catch (GLException gle) { gle.printStackTrace(); }
         }
