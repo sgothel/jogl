@@ -693,8 +693,7 @@ public abstract class GLContextImpl extends GLContext {
    * @see #createContextARBImpl
    * @see #destroyContextARBImpl
    */
-  protected abstract long createContextARBImpl(long share, boolean direct, int ctxOptionFlags,
-                                               int major, int minor);
+  protected abstract long createContextARBImpl(long share, boolean direct, int ctxOptionFlags, int major, int minor);
 
   /**
    * Destroy the context created by {@link #createContextARBImpl}.
@@ -757,7 +756,7 @@ public abstract class GLContextImpl extends GLContext {
         _ctp[0] |= additionalCtxCreationFlags;
         _ctx = createContextARBImpl(share, direct, _ctp[0], _major[0], _minor[0]);
         if(0!=_ctx) {
-            setGLFunctionAvailability(true, _major[0], _minor[0], _ctp[0]);
+            setGLFunctionAvailability(true, _major[0], _minor[0], _ctp[0], false);
         }
     }
     return _ctx;
@@ -940,8 +939,7 @@ public abstract class GLContextImpl extends GLContext {
         _context = createContextARBImpl(share, direct, ctxOptionFlags, major[0], minor[0]);
 
         if(0 != _context) {
-            ok = true;
-            setGLFunctionAvailability(true, major[0], minor[0], ctxOptionFlags);
+            ok = setGLFunctionAvailability(true, major[0], minor[0], ctxOptionFlags, true);
         } else {
             ok = false;
         }
@@ -1166,15 +1164,17 @@ public abstract class GLContextImpl extends GLContext {
    * @param major OpenGL major version
    * @param minor OpenGL minor version
    * @param ctxProfileBits OpenGL context profile and option bits, see {@link javax.media.opengl.GLContext#CTX_OPTION_ANY}
-   *
+   * @param strictVersionMatch if <code>true</code> and the ctx version (by string) is lower than the given major.minor version, 
+   *                           method aborts and returns <code>false</code>, otherwise <code>true</code>.   
+   * @return returns <code>true</code> if successful, otherwise <code>false</code>. See <code>strictVersionMatch</code>.
    * @see #setContextVersion
    * @see javax.media.opengl.GLContext#CTX_OPTION_ANY
    * @see javax.media.opengl.GLContext#CTX_PROFILE_COMPAT
    * @see javax.media.opengl.GLContext#CTX_IMPL_ES2_COMPAT
    */
-  protected final void setGLFunctionAvailability(boolean force, int major, int minor, int ctxProfileBits) {
+  protected final boolean setGLFunctionAvailability(boolean force, int major, int minor, int ctxProfileBits, boolean strictVersionMatch) {
     if(null!=this.gl && null!=glProcAddressTable && !force) {
-        return; // already done and not forced
+        return true; // already done and not forced
     }
 
     if(null==this.gl || !verifyInstance(gl.getGLProfile(), "Impl", this.gl)) {
@@ -1206,7 +1206,13 @@ public abstract class GLContextImpl extends GLContext {
     {
         final VersionNumber setGLVersionNumber = new VersionNumber(major, minor, 0);
         final VersionNumber strGLVersionNumber = getGLVersionNumber(ctxProfileBits, glVersion);
-        if( null != strGLVersionNumber && ( strGLVersionNumber.compareTo(setGLVersionNumber) <= 0 || 0 == major ) ) {
+        if( null != strGLVersionNumber && ( strGLVersionNumber.compareTo(setGLVersionNumber) < 0 || 0 == major ) ) {
+            if( 0 < major && strictVersionMatch ) {
+                if(DEBUG) {
+                    System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, GL version mismatch: "+major+"."+minor+", ctp "+toHexString(ctxProfileBits)+", "+glVersion+", "+strGLVersionNumber);
+                }
+                return false;
+            }
             glVersionNumber = strGLVersionNumber;
             major = glVersionNumber.getMajor();
             minor = glVersionNumber.getMinor();
@@ -1299,8 +1305,9 @@ public abstract class GLContextImpl extends GLContext {
     setDefaultSwapInterval();
     
     if(DEBUG) {
-        System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: "+contextFQN+" - "+GLContext.getGLVersion(ctxMajorVersion, ctxMinorVersion, ctxOptions, null));
+        System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: OK "+contextFQN+" - "+GLContext.getGLVersion(ctxMajorVersion, ctxMinorVersion, ctxOptions, null));
     }
+    return true;
   }
   
   private final void setRendererQuirks(boolean hwAccel) {
@@ -1380,16 +1387,18 @@ public abstract class GLContextImpl extends GLContext {
     }
 
     synchronized(mappedContextTypeObjectLock) {
-        ProcAddressTable table = mappedGLProcAddress.remove( contextFQN );
+        final ProcAddressTable table = mappedGLProcAddress.remove( contextFQN );
         if(DEBUG) {
-            System.err.println(getThreadName() + ": RM GLContext GL ProcAddressTable mapping key("+contextFQN+") -> "+table.hashCode());
+            final int hc = null != table ? table.hashCode() : 0;
+            System.err.println(getThreadName() + ": RM GLContext GL ProcAddressTable mapping key("+contextFQN+") -> "+toHexString(hc));
         }
     }
 
     synchronized(mappedContextTypeObjectLock) {
-        ExtensionAvailabilityCache  eCache = mappedExtensionAvailabilityCache.remove( contextFQN );
+        final ExtensionAvailabilityCache  eCache = mappedExtensionAvailabilityCache.remove( contextFQN );
         if(DEBUG) {
-            System.err.println(getThreadName() + ": RM GLContext GL ExtensionAvailabilityCache mapping key("+contextFQN+") -> "+eCache.hashCode());
+            final int hc = null != eCache ? eCache.hashCode() : 0;
+            System.err.println(getThreadName() + ": RM GLContext GL ExtensionAvailabilityCache mapping key("+contextFQN+") -> "+toHexString(hc));
         }
     }
   }

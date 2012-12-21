@@ -214,7 +214,7 @@ public abstract class EGLContext extends GLContextImpl {
             throw new GLException("Error making context " +
                                   toHexString(contextHandle) + " current: error code " + toHexString(EGL.eglGetError()));
         }
-        setGLFunctionAvailability(true, glProfile.usesNativeGLES2() ? 2 : 1, 0, CTX_PROFILE_ES);
+        setGLFunctionAvailability(true, glProfile.usesNativeGLES2() ? 2 : 1, 0, CTX_PROFILE_ES, false);
         return true;
     }
 
