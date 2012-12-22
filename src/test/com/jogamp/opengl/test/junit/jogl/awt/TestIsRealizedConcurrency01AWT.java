@@ -45,7 +45,7 @@ import org.junit.Test;
 
 
 public class TestIsRealizedConcurrency01AWT extends UITestCase {
-    static long durationPerTest = 1000; // ms
+    static long durationPerTest = 500; // ms
         
     @Test
     public void testAddRemove() throws InterruptedException, InvocationTargetException {

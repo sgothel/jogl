@@ -10,6 +10,7 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.io.IOException;
 
+import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
@@ -30,6 +31,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.FPSAnimator;
 
 /**
  * Documenting Bug 642 (related to Bug 586)
@@ -76,7 +78,7 @@ public class TestBug642JSplitPaneMixHwLw01AWT extends UITestCase {
         }
     }
     
-    protected void runTestGL(GLCapabilities caps, boolean useGLJPanel) throws InterruptedException {
+    protected void runTestGL(GLCapabilities caps, boolean useGLJPanel, boolean useContainer) throws InterruptedException {
         final String typeS = useGLJPanel ? "LW" : "HW";
         final JFrame frame = new JFrame("Mix Hw/Lw Swing - Canvas "+typeS);
         Assert.assertNotNull(frame);
@@ -99,7 +101,14 @@ public class TestBug642JSplitPaneMixHwLw01AWT extends UITestCase {
             final GLCanvas glCanvas = new GLCanvas(new GLCapabilities(GLProfile.getDefault()));
             Assert.assertNotNull(glCanvas);        
             glCanvas.addGLEventListener(new GearsES2());
-            glComp = glCanvas;
+            if( useContainer ) {
+                final Container cont = new Container();
+                cont.setLayout(new BorderLayout());
+                cont.add(glCanvas, BorderLayout.CENTER);
+                glComp = cont;
+            } else {
+                glComp = glCanvas;
+            }
             glad = glCanvas;
         }
         
@@ -113,7 +122,7 @@ public class TestBug642JSplitPaneMixHwLw01AWT extends UITestCase {
         splitPane.setRightComponent(new JPanel());
         contentPane.add(splitPane, BorderLayout.CENTER);            
 
-        Animator animator = new Animator(glad);
+        final GLAnimatorControl animator = useGLJPanel ? new FPSAnimator(glad, 60) : new Animator(glad);
         animator.start();
         
         try {
@@ -148,17 +157,24 @@ public class TestBug642JSplitPaneMixHwLw01AWT extends UITestCase {
     }
 
     @Test
-    public void test01JSplitPaneWithHwGLCanvas() throws InterruptedException {
+    public void test01JSplitPaneWithHwGLCanvasPlain() throws InterruptedException {
         GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
-        runTestGL(caps, false);
+        runTestGL(caps, false, false);
     }
 
     @Test
-    public void test01JSplitPaneWithLwGLJPanel() throws InterruptedException {
+    public void test02JSplitPaneWithHwGLCanvasContainer() throws InterruptedException {
         GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
-        runTestGL(caps, true);
+        runTestGL(caps, false, true);
+    }
+    
+    @Test
+    public void test03JSplitPaneWithLwGLJPanel() throws InterruptedException {
+        GLProfile glp = GLProfile.getGL2ES2();
+        GLCapabilities caps = new GLCapabilities(glp);
+        runTestGL(caps, true, false);
     }
     
     public static void main(String args[]) throws IOException {
