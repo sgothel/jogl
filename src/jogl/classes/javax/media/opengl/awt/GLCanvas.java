@@ -1024,7 +1024,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         final RecursiveLock _lock = lock;
         _lock.lock();
         try {
-            if( drawable.isRealized() ) {
+            if( null != drawable && drawable.isRealized() ) {
                 helper.invokeGL(drawable, context, displayAction, initAction);
             }
         } finally {
@@ -1039,7 +1039,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         final RecursiveLock _lock = lock;
         _lock.lock();
         try {
-            if(null != drawable && drawable.isRealized() ) {
+            if( null != drawable && drawable.isRealized() ) {
                 drawable.swapBuffers();
             }
         } finally {
