@@ -36,10 +36,10 @@ import com.jogamp.opengl.util.glsl.ShaderState;
  * @author Brian Paul (converted to Java by Ron Cemer and Sven Gothel) <P>
  */
 public class GearsObjectES2 extends GearsObject {
-    PMVMatrix pmvMatrix;
-    GLUniformData pmvMatrixUniform;
-    GLUniformData colorUniform;
-    ShaderState st;
+    final PMVMatrix pmvMatrix;
+    final GLUniformData pmvMatrixUniform;
+    final GLUniformData colorUniform;
+    final ShaderState st;
     
     public GearsObjectES2(ShaderState st, float inner_radius, float outer_radius,
                           float width, int teeth,
@@ -64,6 +64,7 @@ public class GearsObjectES2 extends GearsObject {
         this.pmvMatrix = pmvMatrix;
         this.pmvMatrixUniform = pmvMatrixUniform;
         this.colorUniform = colorUniform;
+        this.st = st;
         associate(st);
     }
     
