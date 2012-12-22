@@ -131,7 +131,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         WGLExt wglExt = ((WindowsWGLContext)sharedResource.getContext()).getWGLExt();
 
         if (DEBUG) {
-            System.out.println("Pbuffer config: " + config);
+            System.out.println(getThreadName()+": Pbuffer config: " + config);
         }
 
         final int winattrPbuffer = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(false /* onscreen */, false /* fbo */, true /* pbuffer */, false /* bitmap */);
@@ -146,8 +146,8 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
         final AbstractGraphicsDevice device = config.getScreen().getDevice();
 
         if (DEBUG) {
-          System.out.println("Pbuffer parentHdc = " + toHexString(sharedHdc));
-          System.out.println("Pbuffer chosenCaps: " + chosenCaps);
+          System.out.println(getThreadName()+": Pbuffer parentHdc = " + toHexString(sharedHdc));
+          System.out.println(getThreadName()+": Pbuffer chosenCaps: " + chosenCaps);
         }
 
         if(!WindowsWGLGraphicsConfiguration.GLCapabilities2AttribList(chosenCaps,

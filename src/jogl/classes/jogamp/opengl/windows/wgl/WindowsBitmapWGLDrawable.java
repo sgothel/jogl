@@ -79,7 +79,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
     int werr;
     NativeSurface ns = getNativeSurface();
     if(DEBUG) {
-        System.err.println("WindowsBitmapWGLDrawable (1): "+ns);
+        System.err.println(getThreadName()+": WindowsBitmapWGLDrawable (1): "+ns);
     }
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration();
     GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getRequestedCapabilities();
@@ -141,7 +141,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
     }
     ((MutableSurface)ns).setSurfaceHandle(hdc);
     if(DEBUG) {
-        System.err.println("WindowsBitmapWGLDrawable (2): "+ns);
+        System.err.println(getThreadName()+": WindowsBitmapWGLDrawable (2): "+ns);
     }
 
     if ((origbitmap = GDI.SelectObject(hdc, hbitmap)) == 0) {

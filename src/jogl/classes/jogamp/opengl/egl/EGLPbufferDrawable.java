@@ -41,7 +41,6 @@
 package jogamp.opengl.egl;
 
 import javax.media.nativewindow.NativeSurface;
-import javax.media.nativewindow.MutableSurface;
 import javax.media.opengl.GLContext;
 
 public class EGLPbufferDrawable extends EGLDrawable {

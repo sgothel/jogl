@@ -54,6 +54,7 @@ import javax.media.opengl.GLPbuffer;
 
 import com.jogamp.common.nio.Buffers;
 
+@SuppressWarnings("deprecation")
 public class X11PbufferGLXDrawable extends X11GLXDrawable {
   protected X11PbufferGLXDrawable(GLDrawableFactory factory, NativeSurface target) {
                                   /* GLCapabilities caps,
@@ -82,6 +83,9 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       GLX.glXDestroyPbuffer(ns.getDisplayHandle(), ns.getSurfaceHandle());
     }
     ((MutableSurface)ns).setSurfaceHandle(0);
+    if (DEBUG) {
+        System.err.println(getThreadName()+": Destroyed pbuffer " + this);
+    }
   }
 
   private void createPbuffer() {
@@ -92,7 +96,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       final long display = aDevice.getHandle();
 
       if (DEBUG) {
-        System.out.println("Pbuffer config: " + config);
+        System.out.println(getThreadName()+": Pbuffer config: " + config);
       }
 
       if (display==0) {
@@ -131,7 +135,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       ms.setSurfaceHandle(pbuffer);
 
       if (DEBUG) {
-        System.err.println("Created pbuffer " + this);
+        System.err.println(getThreadName()+": Created pbuffer " + this);
       }
   }
 

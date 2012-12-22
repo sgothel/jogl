@@ -131,7 +131,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     MacOSXCGLDrawableFactory.SharedResource sr = ((MacOSXCGLDrawableFactory)factory).getOrCreateOSXSharedResource(config.getScreen().getDevice());
 
     if (DEBUG) {
-        System.out.println("Pbuffer config: " + config);
+        System.out.println(getThreadName()+": Pbuffer config: " + config);
         if(null != sr) {
             System.out.println("Pbuffer NPOT Texure  avail: "+sr.isNPOTTextureAvailable());
             System.out.println("Pbuffer RECT Texture avail: "+sr.isRECTTextureAvailable());

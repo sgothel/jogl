@@ -95,7 +95,7 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
     }
     ((MutableSurface)ns).setSurfaceHandle(drawable);
     if (DEBUG) {
-        System.err.println("Created pixmap " + toHexString(pixmap) +
+        System.err.println(getThreadName()+": Created pixmap " + toHexString(pixmap) +
                            ", GLXPixmap " + toHexString(drawable) +
                            ", display " + toHexString(dpy));
     }
@@ -109,7 +109,7 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
 
     long drawable = ns.getSurfaceHandle();
     if (DEBUG) {
-        System.err.println("Destroying pixmap " + toHexString(pixmap) +
+        System.err.println(getThreadName()+": Destroying pixmap " + toHexString(pixmap) +
                            ", GLXPixmap " + toHexString(drawable) +
                            ", display " + toHexString(display));
     }
