@@ -567,7 +567,8 @@ public abstract class GLContextImpl extends GLContext {
         if (null != shareWith) {
             shareWith.getDrawableImpl().lockSurface();
         }
-        final boolean created;
+        Throwable exception = null;
+        boolean created;
         try {
             created = createImpl(shareWith); // may throws exception if fails!
             if( created && isGL3core() && ( ctxMajorVersion>3 || ctxMajorVersion==3 && ctxMinorVersion>=2 ) ) {
@@ -580,6 +581,9 @@ public abstract class GLContextImpl extends GLContext {
                 defaultVAO = tmp[0];
                 gl.getGL2GL3().glBindVertexArray(defaultVAO);
             }
+        } catch (Throwable t) {
+            exception = t;
+            created = false;
         } finally {
             if (null != shareWith) {
                 shareWith.getDrawableImpl().unlockSurface();
@@ -591,6 +595,9 @@ public abstract class GLContextImpl extends GLContext {
                 // Thread.dumpStack();
             } else {
                 System.err.println(getThreadName() + ": Create GL context FAILED obj " + toHexString(hashCode()) + ", surf "+toHexString(drawable.getHandle())+" for " + getClass().getName());
+                if(null != exception) {
+                    exception.printStackTrace();
+                }
             }
         }
         if(!created) {

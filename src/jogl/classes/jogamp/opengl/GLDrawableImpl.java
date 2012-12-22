@@ -76,7 +76,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
 
   @Override
   public final void swapBuffers() throws GLException {
-    if( !realized ) {
+    if( !realized ) { // volatile OK (locked below)
         return; // destroyed already
     }
     int lockRes = lockSurface(); // it's recursive, so it's ok within [makeCurrent .. release]
@@ -87,17 +87,19 @@ public abstract class GLDrawableImpl implements GLDrawable {
         if (NativeSurface.LOCK_SURFACE_CHANGED == lockRes) {
             updateHandle();
         }
-        final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)surface.getGraphicsConfiguration().getChosenCapabilities();
-        if ( caps.getDoubleBuffered() ) {
-            if(!surface.surfaceSwap()) {
-                swapBuffersImpl(true);
+        if( realized ) { // volatile OK
+            final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)surface.getGraphicsConfiguration().getChosenCapabilities();
+            if ( caps.getDoubleBuffered() ) {
+                if(!surface.surfaceSwap()) {
+                    swapBuffersImpl(true);
+                }
+            } else {
+                final GLContext ctx = GLContext.getCurrent();
+                if(null!=ctx && ctx.getGLDrawable()==this) {
+                    ctx.getGL().glFlush();
+                }
+                swapBuffersImpl(false);
             }
-        } else {
-            final GLContext ctx = GLContext.getCurrent();
-            if(null!=ctx && ctx.getGLDrawable()==this) {
-                ctx.getGL().glFlush();
-            }
-            swapBuffersImpl(false);
         }
     } finally {
         unlockSurface();
@@ -160,12 +162,11 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
 
   @Override
-  public final synchronized void setRealized(boolean realizedArg) {
-    if ( realized != realizedArg ) {
+  public final void setRealized(boolean realizedArg) {
+    if ( realized != realizedArg ) { // volatile: OK (locked below)
         if(DEBUG) {
             System.err.println(getThreadName() + ": setRealized: "+getClass().getSimpleName()+" "+realized+" -> "+realizedArg);
         }
-        realized = realizedArg;
         AbstractGraphicsDevice aDevice = surface.getGraphicsConfiguration().getScreen().getDevice();
         if(realizedArg) {
             if(surface instanceof ProxySurface) {
@@ -178,12 +179,15 @@ public abstract class GLDrawableImpl implements GLDrawable {
             aDevice.lock();
         }
         try {
-            if(realizedArg) {
-                setRealizedImpl();
-                updateHandle();
-            } else {
-                destroyHandle();
-                setRealizedImpl();
+            if ( realized != realizedArg ) { // volatile: OK
+                realized = realizedArg;
+                if(realizedArg) {
+                    setRealizedImpl();
+                    updateHandle();
+                } else {
+                    destroyHandle();
+                    setRealizedImpl();
+                }
             }
         } finally {
             if(realizedArg) {
@@ -199,6 +203,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
         System.err.println(getThreadName() + ": setRealized: "+getClass().getName()+" "+this.realized+" == "+realizedArg);
     }
   }
+  
   /**
    * Platform specific realization of drawable 
    */
@@ -256,7 +261,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
   }
   
   @Override
-  public final synchronized boolean isRealized() {
+  public final boolean isRealized() {
     return realized;
   }
 
@@ -306,6 +311,6 @@ public abstract class GLDrawableImpl implements GLDrawable {
   // result of calling show() on the main thread. To work around this
   // we prevent any JAWT or OpenGL operations from being done until
   // addNotify() is called on the surface.
-  protected boolean realized;
+  protected volatile boolean realized;
 
 }

@@ -77,7 +77,8 @@ public class TestBug642JSplitPaneMixHwLw01AWT extends UITestCase {
     }
     
     protected void runTestGL(GLCapabilities caps, boolean useGLJPanel) throws InterruptedException {
-        final JFrame frame = new JFrame("JSplitPane Mix Hw/Lw Swing");
+        final String typeS = useGLJPanel ? "LW" : "HW";
+        final JFrame frame = new JFrame("Mix Hw/Lw Swing - Canvas "+typeS);
         Assert.assertNotNull(frame);
         
         final Dimension f_sz = new Dimension(824,568);
