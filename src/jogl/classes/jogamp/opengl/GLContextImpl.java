@@ -448,7 +448,7 @@ public abstract class GLContextImpl extends GLContext {
    */
   @Override
   public int makeCurrent() throws GLException {
-    boolean unlockContextAndDrawable = false;
+    boolean unlockContextAndDrawable = true;
     int res = CONTEXT_NOT_CURRENT;
 
     // Note: the surface is locked within [makeCurrent .. swap .. release]
@@ -457,50 +457,51 @@ public abstract class GLContextImpl extends GLContext {
         return CONTEXT_NOT_CURRENT;
     }
     try {
+        if (0 == drawable.getHandle()) {
+            throw new GLException("drawable has invalid handle: "+drawable);
+        }
         if (NativeSurface.LOCK_SURFACE_CHANGED == lockRes) {
             drawable.updateHandle();
         }
 
-        lock.lock();
-        try {
-            // One context can only be current by one thread,
-            // and one thread can only have one context current!
-            final GLContext current = getCurrent();
-            if (current != null) {
-                if (current == this) {
-                    // Assume we don't need to make this context current again
-                    // For Mac OS X, however, we need to update the context to track resizes
-                    drawableUpdatedNotify();
-                    if(TRACE_SWITCH) {
-                        System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - keep   - CONTEXT_CURRENT - "+lock);                        
+        if ( drawable.isRealized() ) {
+            lock.lock();
+            try {
+                // One context can only be current by one thread,
+                // and one thread can only have one context current!
+                final GLContext current = getCurrent();
+                if (current != null) {
+                    if (current == this) {
+                        // Assume we don't need to make this context current again
+                        // For Mac OS X, however, we need to update the context to track resizes
+                        drawableUpdatedNotify();
+                        if(TRACE_SWITCH) {
+                            System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - keep   - CONTEXT_CURRENT - "+lock);                        
+                        }
+                        return CONTEXT_CURRENT;
+                    } else {
+                        current.release();
                     }
-                    return CONTEXT_CURRENT;
-                } else {
-                    current.release();
                 }
+                res = makeCurrentWithinLock(lockRes);
+                unlockContextAndDrawable = CONTEXT_NOT_CURRENT == res;
+                
+                /**
+                 * FIXME: refactor dependence on Java 2D / JOGL bridge
+                    if ( tracker != null && res == CONTEXT_CURRENT_NEW ) {
+                        // Increase reference count of GLObjectTracker
+                        tracker.ref();
+                    }
+                 */
+            } catch (RuntimeException e) {
+              unlockContextAndDrawable = true;
+              throw e;
+            } finally {
+              if (unlockContextAndDrawable) {
+                lock.unlock();
+              }
             }
-            if (0 == drawable.getHandle()) {
-                throw new GLException("drawable has invalid handle: "+drawable);
-            }
-            res = makeCurrentWithinLock(lockRes);
-            unlockContextAndDrawable = CONTEXT_NOT_CURRENT == res;
-
-            /**
-             * FIXME: refactor dependence on Java 2D / JOGL bridge
-                if ((tracker != null) &&
-                    (res == CONTEXT_CURRENT_NEW)) {
-                    // Increase reference count of GLObjectTracker
-                    tracker.ref();
-                }
-             */
-        } catch (RuntimeException e) {
-          unlockContextAndDrawable = true;
-          throw e;
-        } finally {
-          if (unlockContextAndDrawable) {
-            lock.unlock();
-          }
-        }
+        } /* if ( drawable.isRealized() ) */
     } catch (RuntimeException e) {
       unlockContextAndDrawable = true;
       throw e;
@@ -511,8 +512,8 @@ public abstract class GLContextImpl extends GLContext {
     }
 
     if (res == CONTEXT_NOT_CURRENT) {
-      if(TRACE_SWITCH) {
-          System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - switch - CONTEXT_NOT_CURRENT - "+lock);
+      if(DEBUG || TRACE_SWITCH) {
+          System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+", drawable.isRealized() "+drawable.isRealized()+" - switch - CONTEXT_NOT_CURRENT - "+lock);
       }
     } else {
       setCurrent(this);
@@ -567,8 +568,7 @@ public abstract class GLContextImpl extends GLContext {
         if (null != shareWith) {
             shareWith.getDrawableImpl().lockSurface();
         }
-        Throwable exception = null;
-        boolean created;
+        final boolean created;
         try {
             created = createImpl(shareWith); // may throws exception if fails!
             if( created && isGL3core() && ( ctxMajorVersion>3 || ctxMajorVersion==3 && ctxMinorVersion>=2 ) ) {
@@ -581,9 +581,6 @@ public abstract class GLContextImpl extends GLContext {
                 defaultVAO = tmp[0];
                 gl.getGL2GL3().glBindVertexArray(defaultVAO);
             }
-        } catch (Throwable t) {
-            exception = t;
-            created = false;
         } finally {
             if (null != shareWith) {
                 shareWith.getDrawableImpl().unlockSurface();
@@ -595,9 +592,6 @@ public abstract class GLContextImpl extends GLContext {
                 // Thread.dumpStack();
             } else {
                 System.err.println(getThreadName() + ": Create GL context FAILED obj " + toHexString(hashCode()) + ", surf "+toHexString(drawable.getHandle())+" for " + getClass().getName());
-                if(null != exception) {
-                    exception.printStackTrace();
-                }
             }
         }
         if(!created) {
