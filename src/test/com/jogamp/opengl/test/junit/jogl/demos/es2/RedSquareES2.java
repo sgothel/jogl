@@ -27,7 +27,6 @@
  */
 package com.jogamp.opengl.test.junit.jogl.demos.es2;
 
-import com.jogamp.newt.Window;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -47,7 +46,6 @@ public class RedSquareES2 implements GLEventListener {
     GLArrayDataServer colors ;
     long t0;
     private int swapInterval = 0;
-    Window window = null;
     float aspect = 1.0f;
     boolean doRotate = true;
 

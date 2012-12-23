@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.newt;
+package com.jogamp.opengl.test.junit.newt.event;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -213,7 +213,6 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
         robot.setAutoWaitForIdle(true);
 
         GLEventListener demo1 = new RedSquareES2();
-        TestListenerCom01AWT.setDemoFields(demo1, glWindow, false);
         glWindow.addGLEventListener(demo1);
 
         // NEWTFocusAdapter glWindow1FA = new NEWTFocusAdapter("GLWindow1");
