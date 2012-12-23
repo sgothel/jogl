@@ -1,0 +1,37 @@
+Modifier       AWT Constant                     AWT Bit  AWT Ex  NEWT Constant              NEWT Bit
+-------------  -------------------------------  -------  ------  -------------------------  --------
+Shift          Event.SHIFT_MASK                 0                
+Ctrl           Event.CTRL_MASK                  1                
+Meta           Event.META_MASK                  2                
+Alt            Event.ALT_MASK                   3               
+Button1        InputEvent.BUTTON1_MASK          4
+Button2        InputEvent.BUTTON2_MASK          3
+Button3        InputEvent.BUTTON3_MASK          2
+Shift Down     InputEvent.SHIFT_DOWN_MASK       6        *       InputEvent.SHIFT_MASK      0
+Ctrl Down      InputEvent.CTRL_DOWN_MASK        7        *       InputEvent.CTRL_MASK       1
+Meta Down      InputEvent.META_DOWN_MASK        8        *       InputEvent.META_MASK       2
+Alt Down       InputEvent.ALT_DOWN_MASK         9        *       InputEvent.ALT_MASK        3
+Button1 Down   InputEvent.BUTTON1_DOWN_MASK     10       *       InputEvent.BUTTON1_MASK    5
+Button2 Down   InputEvent.BUTTON2_DOWN_MASK     11       *       InputEvent.BUTTON2_MASK    6
+Button3 Down   InputEvent.BUTTON3_DOWN_MASK     12       *       InputEvent.BUTTON3_MASK    7
+AltGraph Down  InputEvent.ALT_GRAPH_DOWN_MASK   13       *       InputEvent.ALT_GRAPH_MASK  4
+Button4 Down   --                               14       *       InputEvent.BUTTON4_MASK    8
+Button5 Down   --                               15       *       InputEvent.BUTTON5_MASK    9
+Button6 Down   --                               16       *       InputEvent.BUTTON6_MASK    10
+Button7 Down   --                               17       *       InputEvent.BUTTON7_MASK    11
+Button8 Down   --                               18       *       InputEvent.BUTTON8_MASK    12
+Button9 Down   --                               19       *       InputEvent.BUTTON9_MASK    13
+Button10 Down  --                               20       *
+Button11 Down  --                               21       *
+Button12 Down  --                               22       *
+Button13 Down  --                               23       *
+Button14 Down  --                               24       *
+Button15 Down  --                               25       *
+Button16 Down  --                               26       *       InputEvent.BUTTONLAST_MASK 20
+Button17 Down  --                               27       *
+Button18 Down  --                               28       *
+Button19 Down  --                               29       *
+Button20 Down  --                               30       *
+Autorepeat     --                               -                InputEvent.AUTOREPEAT_MASK 29
+Confined       --                               -                InputEvent.CONFINED_MASK   30
+Invisible      --                               -                InputEvent.INVISIBLE_MASK  31

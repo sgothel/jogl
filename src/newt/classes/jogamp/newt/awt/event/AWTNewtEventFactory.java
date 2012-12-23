@@ -72,6 +72,58 @@ public class AWTNewtEventFactory {
         eventTypeAWT2NEWT = map;
     }
 
+    // Define the button state masks we'll check based on what
+    // the AWT says is available.
+
+    private static int awtButtonMasks[] ;
+    private static int newtButtonMasks[] ;
+
+    static {
+
+        int numButtonMasks ;
+
+        if (java.awt.Toolkit.getDefaultToolkit().areExtraMouseButtonsEnabled()) {
+            numButtonMasks = java.awt.MouseInfo.getNumberOfButtons() ;
+        } else {
+            numButtonMasks = 3 ;
+        }
+
+        if (numButtonMasks > com.jogamp.newt.event.MouseEvent.BUTTON_NUMBER) {
+            numButtonMasks = com.jogamp.newt.event.MouseEvent.BUTTON_NUMBER ;
+        }
+
+        // There is an assumption in awtModifiers2Newt(int,int,boolean)
+        // that the awtButtonMasks and newtButtonMasks are peers, i.e.
+        // a given index refers to the same button in each array.
+
+        awtButtonMasks = new int[numButtonMasks] ;
+        for (int n = 0 ; n < awtButtonMasks.length ; ++n) {
+            awtButtonMasks[n] = java.awt.event.InputEvent.getMaskForButton(n+1) ;
+        }
+
+        newtButtonMasks = new int[numButtonMasks] ;
+        for (int n = 0 ; n < newtButtonMasks.length ; ++n) {
+            newtButtonMasks[n] = com.jogamp.newt.event.InputEvent.getButtonMask(n+1) ;
+        }
+    }
+
+    /**
+     * Converts the specified set of AWT event modifiers to the equivalent
+     * NEWT event modifiers.  This method doesn't pay attention to the AWT
+     * button modifier bits explicitly even though there is a direct
+     * association in the AWT InputEvent class between BUTTON2_MASK and
+     * ALT_MASK, and BUTTON3_MASK and META_MASK.  Instead the current
+     * button state is picked up from the bits in the extended modifiers.
+     * If you need the button bits too, then call
+     * {@link #awtModifiers2Newt(int,int,boolean)} instead.
+     * 
+     * @param awtMods
+     * The AWT event modifiers.
+     *
+     * @param mouseHint
+     * Not used currently.
+     */
+
     public static final int awtModifiers2Newt(int awtMods, boolean mouseHint) {
         int newtMods = 0;
         if ((awtMods & java.awt.event.InputEvent.SHIFT_MASK) != 0)     newtMods |= com.jogamp.newt.event.InputEvent.SHIFT_MASK;
@@ -79,9 +131,75 @@ public class AWTNewtEventFactory {
         if ((awtMods & java.awt.event.InputEvent.META_MASK) != 0)      newtMods |= com.jogamp.newt.event.InputEvent.META_MASK;
         if ((awtMods & java.awt.event.InputEvent.ALT_MASK) != 0)       newtMods |= com.jogamp.newt.event.InputEvent.ALT_MASK;
         if ((awtMods & java.awt.event.InputEvent.ALT_GRAPH_MASK) != 0) newtMods |= com.jogamp.newt.event.InputEvent.ALT_GRAPH_MASK;
+
+        // The BUTTON1_MASK, BUTTON2_MASK, and BUTTON3_MASK bits are
+        // being ignored intentionally.  The AWT docs say that the
+        // BUTTON1_DOWN_MASK etc bits in the extended modifiers are
+        // the preferred place to check current button state.
+
         return newtMods;
     }
+    
+    /**
+     * Converts the specified set of AWT event modifiers and extended event
+     * modifiers to the equivalent NEWT event modifiers.
+     * 
+     * @param awtMods
+     * The AWT event modifiers.
+     * 
+     * @param awtModsEx
+     * The AWT extended event modifiers.
+     *
+     * @param mouseHint
+     * Not used currently.
+     */
 
+    public static final int awtModifiers2Newt(final int awtMods, final int awtModsEx, final boolean mouseHint) {
+        int newtMods = 0;
+
+        //System.err.println( ">>>> AWT modifiers:") ;
+        //_printAwtModifiers( awtMods, awtModsEx ) ;
+        //System.err.println( ">>>> END AWT modifiers") ;
+
+        // Bug 629:
+        //
+        // AWT defines the notion of "extended modifiers".  They put other bits there
+        // specific to the mouse buttons and say that these are the preferred bits to
+        // check for mouse button state.  This seems to hint that at some point they
+        // may be the only way to get this info.
+
+        if ((awtModsEx & java.awt.event.InputEvent.SHIFT_DOWN_MASK) != 0)     newtMods |= com.jogamp.newt.event.InputEvent.SHIFT_MASK;
+        if ((awtModsEx & java.awt.event.InputEvent.CTRL_DOWN_MASK) != 0)      newtMods |= com.jogamp.newt.event.InputEvent.CTRL_MASK;
+        if ((awtModsEx & java.awt.event.InputEvent.META_DOWN_MASK) != 0)      newtMods |= com.jogamp.newt.event.InputEvent.META_MASK;
+        if ((awtModsEx & java.awt.event.InputEvent.ALT_DOWN_MASK) != 0)       newtMods |= com.jogamp.newt.event.InputEvent.ALT_MASK;
+        if ((awtModsEx & java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK) != 0) newtMods |= com.jogamp.newt.event.InputEvent.ALT_GRAPH_MASK;
+
+        for (int n = 0 ; n < awtButtonMasks.length ; ++n) {
+            if ((awtModsEx & awtButtonMasks[n]) != 0) {
+                newtMods |= newtButtonMasks[n] ;
+            }
+        }
+
+        return newtMods;
+    }
+/*
+    private static void _printAwtModifiers( int awtMods, int awtModsEx ) {
+        if( ( awtMods & java.awt.event.InputEvent.SHIFT_MASK ) != 0 ) { System.err.println( "SHIFT" ) ; }
+        if( ( awtMods & java.awt.event.InputEvent.CTRL_MASK ) != 0 ) { System.err.println( "CTRL" ) ; }
+        if( ( awtMods & java.awt.event.InputEvent.META_MASK ) != 0 ) { System.err.println( "META" ) ; }
+        if( ( awtMods & java.awt.event.InputEvent.ALT_MASK ) != 0 ) { System.err.println( "ALT" ) ; }
+        if( ( awtMods & java.awt.event.InputEvent.ALT_GRAPH_MASK ) != 0 ) { System.err.println( "ALT_GRAPH" ) ; }
+
+        if( ( awtModsEx & java.awt.event.InputEvent.SHIFT_DOWN_MASK ) != 0 ) { System.err.println( "SHIFT Ex" ) ; }
+        if( ( awtModsEx & java.awt.event.InputEvent.CTRL_DOWN_MASK ) != 0 ) { System.err.println( "CTRL Ex" ) ; }
+        if( ( awtModsEx & java.awt.event.InputEvent.META_DOWN_MASK ) != 0 ) { System.err.println( "META Ex" ) ; }
+        if( ( awtModsEx & java.awt.event.InputEvent.ALT_DOWN_MASK ) != 0 ) { System.err.println( "ALT Ex" ) ; }
+        if( ( awtModsEx & java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK ) != 0 ) { System.err.println( "ALT_GRAPH Ex" ) ; }
+        if( ( awtModsEx & java.awt.event.InputEvent.BUTTON1_DOWN_MASK ) != 0 ) { System.err.println( "BUTTON1" ) ; }
+        if( ( awtModsEx & java.awt.event.InputEvent.BUTTON2_DOWN_MASK ) != 0 ) { System.err.println( "BUTTON2" ) ; }
+        if( ( awtModsEx & java.awt.event.InputEvent.BUTTON3_DOWN_MASK ) != 0 ) { System.err.println( "BUTTON3" ) ; }
+    }
+*/
     public static final int awtButton2Newt(int awtButton) {
         switch (awtButton) {
             case java.awt.event.MouseEvent.BUTTON1: return com.jogamp.newt.event.MouseEvent.BUTTON1;
@@ -124,7 +242,7 @@ public class AWTNewtEventFactory {
                 rotation = -1 * ((java.awt.event.MouseWheelEvent)event).getWheelRotation();
             }
 
-            int mods = awtModifiers2Newt(event.getModifiers(), true);
+            int mods = awtModifiers2Newt(event.getModifiers(), event.getModifiersEx(), true);
             if(null!=newtSource) {
                 if(newtSource.isPointerConfined()) {
                     mods |= InputEvent.CONFINED_MASK;
@@ -147,7 +265,7 @@ public class AWTNewtEventFactory {
         if(0xFFFFFFFF != type) {
             return new com.jogamp.newt.event.KeyEvent(
                            type, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, event.getWhen(), 
-                           awtModifiers2Newt(event.getModifiers(), false), 
+                           awtModifiers2Newt(event.getModifiers(), event.getModifiersEx(), false), 
                            event.getKeyCode(), event.getKeyChar());
         }
         return null; // no mapping ..
