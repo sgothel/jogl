@@ -216,6 +216,23 @@ public abstract class TestNewtEventModifiers extends UITestCase {
             if( ( modifiers & com.jogamp.newt.event.InputEvent.BUTTON9_MASK ) != 0 ) { _debugPrintStream.println( "             BUTTON9" ) ; }
         }
 
+        private static void _printAwtModifiers( int awtMods, int awtModsEx ) {
+            if( ( awtMods & java.awt.event.InputEvent.SHIFT_MASK ) != 0 ) { System.err.println( "SHIFT" ) ; }
+            if( ( awtMods & java.awt.event.InputEvent.CTRL_MASK ) != 0 ) { System.err.println( "CTRL" ) ; }
+            if( ( awtMods & java.awt.event.InputEvent.META_MASK ) != 0 ) { System.err.println( "META" ) ; }
+            if( ( awtMods & java.awt.event.InputEvent.ALT_MASK ) != 0 ) { System.err.println( "ALT" ) ; }
+            if( ( awtMods & java.awt.event.InputEvent.ALT_GRAPH_MASK ) != 0 ) { System.err.println( "ALT_GRAPH" ) ; }
+    
+            if( ( awtModsEx & java.awt.event.InputEvent.SHIFT_DOWN_MASK ) != 0 ) { System.err.println( "SHIFT Ex" ) ; }
+            if( ( awtModsEx & java.awt.event.InputEvent.CTRL_DOWN_MASK ) != 0 ) { System.err.println( "CTRL Ex" ) ; }
+            if( ( awtModsEx & java.awt.event.InputEvent.META_DOWN_MASK ) != 0 ) { System.err.println( "META Ex" ) ; }
+            if( ( awtModsEx & java.awt.event.InputEvent.ALT_DOWN_MASK ) != 0 ) { System.err.println( "ALT Ex" ) ; }
+            if( ( awtModsEx & java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK ) != 0 ) { System.err.println( "ALT_GRAPH Ex" ) ; }
+            if( ( awtModsEx & java.awt.event.InputEvent.BUTTON1_DOWN_MASK ) != 0 ) { System.err.println( "BUTTON1" ) ; }
+            if( ( awtModsEx & java.awt.event.InputEvent.BUTTON2_DOWN_MASK ) != 0 ) { System.err.println( "BUTTON2" ) ; }
+            if( ( awtModsEx & java.awt.event.InputEvent.BUTTON3_DOWN_MASK ) != 0 ) { System.err.println( "BUTTON3" ) ; }
+        }
+        
         public ArrayList<String> getFailures() {
             return _failures ;
         }
@@ -282,18 +299,24 @@ public abstract class TestNewtEventModifiers extends UITestCase {
 
     ////////////////////////////////////////////////////////////////////////////
 
+    public static int getAWTButtonMask(int button) {
+        int m;
+        switch(button) {
+            case 1 : m = java.awt.event.InputEvent.BUTTON1_MASK; break;
+            case 2 : m = java.awt.event.InputEvent.BUTTON2_MASK; break;
+            case 3 : m = java.awt.event.InputEvent.BUTTON3_MASK; break;
+            default: throw new IllegalArgumentException("Only buttons 1-3 have a MASK value, requested button "+button);
+        }
+        return m;
+    }
+    
     @BeforeClass
     public static void beforeClass() throws Exception {
 
         // Who know how many buttons the AWT will say exist on given platform.
         // We'll test the smaller of what NEWT supports and what the
         // AWT says is available.
-
-        if( java.awt.Toolkit.getDefaultToolkit().areExtraMouseButtonsEnabled() ) {
-            _numButtonsToTest = java.awt.MouseInfo.getNumberOfButtons() ;
-        } else {
-            _numButtonsToTest = 3 ;
-        }
+        // _numButtonsToTest = java.awt.MouseInfo.getNumberOfButtons() ;
 
         // Then again, maybe not:
 
@@ -320,7 +343,7 @@ public abstract class TestNewtEventModifiers extends UITestCase {
             _awtButtonMasks = new int[_numButtonsToTest] ;
             
             for( int n = 0 ; n < _awtButtonMasks.length ; ++n ) {
-                _awtButtonMasks[n] = java.awt.event.InputEvent.getMaskForButton( n + 1 ) ;
+                _awtButtonMasks[n] = getAWTButtonMask( n + 1 );
             }
             
             _newtButtonMasks = new int[_numButtonsToTest] ;
@@ -726,7 +749,7 @@ public abstract class TestNewtEventModifiers extends UITestCase {
         }
 
         for (int n = 0 ; n < _numButtonsToTest ; ++n) {
-            if ((awtExtendedModifiers & java.awt.event.InputEvent.getMaskForButton(n+1)) != 0) {
+            if ((awtExtendedModifiers & getAWTButtonMask(n+1)) != 0) {
                 mask |= com.jogamp.newt.event.InputEvent.getButtonMask(n+1) ;
             }
         }
