@@ -70,7 +70,7 @@ public abstract class InputEvent extends NEWTEvent
   * Returns the corresponding button mask for the given button.
   * <p>
   * In case the given button lies outside 
-  * of the valid range [{@link MouseEvent#BUTTON1} .. {@link MouseEvent#BUTTON6}],
+  * of the valid range [{@link MouseEvent#BUTTON1} .. {@link MouseEvent#BUTTON_NUMBER}],
   * null is returned.
   * </p>
   */

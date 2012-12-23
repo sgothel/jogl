@@ -44,6 +44,8 @@ import org.junit.Before ;
 import org.junit.BeforeClass ;
 import org.junit.Test ;
 
+import com.jogamp.common.os.Platform;
+import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.opengl.test.junit.util.UITestCase ;
 
 /**
@@ -52,7 +54,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase ;
  * and canvas up to subclasses.
  */
 
-public abstract class TestNewtEventModifiers extends UITestCase {
+public abstract class BaseNewtEventModifiers extends UITestCase {
 
     static
     {
@@ -162,9 +164,12 @@ public abstract class TestNewtEventModifiers extends UITestCase {
                 if( _debug ) {
                     _debugPrintStream.println( ", checking modifiers..." ) ;
                     _debugPrintStream.println( "         expected NEWT Modifiers:" ) ;
-                    _printModifiers( _expectedModifiers ) ;
+                    {
+                        final MouseEvent exp = new MouseEvent(MouseEvent.EVENT_MOUSE_CLICKED, null, 0, _expectedModifiers, 0, 0, 1, 1, 0);
+                        _debugPrintStream.println("             "+exp.getModifiersString(null).toString());
+                    }
                     _debugPrintStream.println( "         current NEWT Modifiers:" ) ;
-                    _printModifiers( event.getModifiers() ) ;
+                    _debugPrintStream.println("             "+event.getModifiersString(null).toString());
                 }
 
                 _checkModifierMask( event, com.jogamp.newt.event.InputEvent.SHIFT_MASK ) ;
@@ -195,44 +200,17 @@ public abstract class TestNewtEventModifiers extends UITestCase {
             }
 
             if( ( event.getModifiers() & mask ) != ( _expectedModifiers & mask ) ) {
-                _failures.add( com.jogamp.newt.event.MouseEvent.getEventTypeString( event.getEventType() ) ) ;
+                StringBuilder sb = new StringBuilder();
+                sb.append( com.jogamp.newt.event.MouseEvent.getEventTypeString( event.getEventType() ) ).append(": ");
+                final MouseEvent exp = new MouseEvent(MouseEvent.EVENT_MOUSE_CLICKED, null, 0, _expectedModifiers, 0, 0, 1, 1, 0);
+                sb.append("Expected:").append(Platform.NEWLINE);
+                exp.getModifiersString(sb).append(Platform.NEWLINE);
+                sb.append(", Have: ").append(Platform.NEWLINE);
+                event.getModifiersString(sb).append(Platform.NEWLINE);
+                _failures.add( sb.toString() ) ;
             }
         }
 
-        private void _printModifiers( int modifiers ) {
-            if( ( modifiers & com.jogamp.newt.event.InputEvent.SHIFT_MASK ) != 0 ) { _debugPrintStream.println( "             SHIFT" ) ; }
-            if( ( modifiers & com.jogamp.newt.event.InputEvent.CTRL_MASK ) != 0 ) { _debugPrintStream.println( "             CTRL" ) ; }
-            if( ( modifiers & com.jogamp.newt.event.InputEvent.META_MASK ) != 0 ) { _debugPrintStream.println( "             META" ) ; }
-            if( ( modifiers & com.jogamp.newt.event.InputEvent.ALT_MASK ) != 0 ) { _debugPrintStream.println( "             ALT" ) ; }
-            if( ( modifiers & com.jogamp.newt.event.InputEvent.ALT_GRAPH_MASK ) != 0 ) { _debugPrintStream.println( "             ALT_GRAPH" ) ; }
-            if( ( modifiers & com.jogamp.newt.event.InputEvent.BUTTON1_MASK ) != 0 ) { _debugPrintStream.println( "             BUTTON1" ) ; }
-            if( ( modifiers & com.jogamp.newt.event.InputEvent.BUTTON2_MASK ) != 0 ) { _debugPrintStream.println( "             BUTTON2" ) ; }
-            if( ( modifiers & com.jogamp.newt.event.InputEvent.BUTTON3_MASK ) != 0 ) { _debugPrintStream.println( "             BUTTON3" ) ; }
-            if( ( modifiers & com.jogamp.newt.event.InputEvent.BUTTON4_MASK ) != 0 ) { _debugPrintStream.println( "             BUTTON4" ) ; }
-            if( ( modifiers & com.jogamp.newt.event.InputEvent.BUTTON5_MASK ) != 0 ) { _debugPrintStream.println( "             BUTTON5" ) ; }
-            if( ( modifiers & com.jogamp.newt.event.InputEvent.BUTTON6_MASK ) != 0 ) { _debugPrintStream.println( "             BUTTON6" ) ; }
-            if( ( modifiers & com.jogamp.newt.event.InputEvent.BUTTON7_MASK ) != 0 ) { _debugPrintStream.println( "             BUTTON7" ) ; }
-            if( ( modifiers & com.jogamp.newt.event.InputEvent.BUTTON8_MASK ) != 0 ) { _debugPrintStream.println( "             BUTTON8" ) ; }
-            if( ( modifiers & com.jogamp.newt.event.InputEvent.BUTTON9_MASK ) != 0 ) { _debugPrintStream.println( "             BUTTON9" ) ; }
-        }
-
-        private static void _printAwtModifiers( int awtMods, int awtModsEx ) {
-            if( ( awtMods & java.awt.event.InputEvent.SHIFT_MASK ) != 0 ) { System.err.println( "SHIFT" ) ; }
-            if( ( awtMods & java.awt.event.InputEvent.CTRL_MASK ) != 0 ) { System.err.println( "CTRL" ) ; }
-            if( ( awtMods & java.awt.event.InputEvent.META_MASK ) != 0 ) { System.err.println( "META" ) ; }
-            if( ( awtMods & java.awt.event.InputEvent.ALT_MASK ) != 0 ) { System.err.println( "ALT" ) ; }
-            if( ( awtMods & java.awt.event.InputEvent.ALT_GRAPH_MASK ) != 0 ) { System.err.println( "ALT_GRAPH" ) ; }
-    
-            if( ( awtModsEx & java.awt.event.InputEvent.SHIFT_DOWN_MASK ) != 0 ) { System.err.println( "SHIFT Ex" ) ; }
-            if( ( awtModsEx & java.awt.event.InputEvent.CTRL_DOWN_MASK ) != 0 ) { System.err.println( "CTRL Ex" ) ; }
-            if( ( awtModsEx & java.awt.event.InputEvent.META_DOWN_MASK ) != 0 ) { System.err.println( "META Ex" ) ; }
-            if( ( awtModsEx & java.awt.event.InputEvent.ALT_DOWN_MASK ) != 0 ) { System.err.println( "ALT Ex" ) ; }
-            if( ( awtModsEx & java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK ) != 0 ) { System.err.println( "ALT_GRAPH Ex" ) ; }
-            if( ( awtModsEx & java.awt.event.InputEvent.BUTTON1_DOWN_MASK ) != 0 ) { System.err.println( "BUTTON1" ) ; }
-            if( ( awtModsEx & java.awt.event.InputEvent.BUTTON2_DOWN_MASK ) != 0 ) { System.err.println( "BUTTON2" ) ; }
-            if( ( awtModsEx & java.awt.event.InputEvent.BUTTON3_DOWN_MASK ) != 0 ) { System.err.println( "BUTTON3" ) ; }
-        }
-        
         public ArrayList<String> getFailures() {
             return _failures ;
         }
@@ -291,7 +269,6 @@ public abstract class TestNewtEventModifiers extends UITestCase {
 
     private static int _numButtonsToTest ;
     private static int _awtButtonMasks[] ;
-    private static int _newtButtonMasks[] ;
 
     private static java.awt.Robot _robot ;
 
@@ -300,6 +277,8 @@ public abstract class TestNewtEventModifiers extends UITestCase {
     ////////////////////////////////////////////////////////////////////////////
 
     public static int getAWTButtonMask(int button) {
+        // Java7: java.awt.event.InputEvent.getMaskForButton( n + 1 ) ; -> using InputEvent.BUTTON1_DOWN_MASK .. etc
+        // Java6: Only use BUTTON1_MASK, .. 
         int m;
         switch(button) {
             case 1 : m = java.awt.event.InputEvent.BUTTON1_MASK; break;
@@ -316,7 +295,13 @@ public abstract class TestNewtEventModifiers extends UITestCase {
         // Who know how many buttons the AWT will say exist on given platform.
         // We'll test the smaller of what NEWT supports and what the
         // AWT says is available.
-        // _numButtonsToTest = java.awt.MouseInfo.getNumberOfButtons() ;
+        /** Java7: 
+        if( java.awt.Toolkit.getDefaultToolkit().areExtraMouseButtonsEnabled() ) {
+            _numButtonsToTest = java.awt.MouseInfo.getNumberOfButtons() ;
+        } else {
+            _numButtonsToTest = 3 ;
+        } */
+        _numButtonsToTest = 3 ;
 
         // Then again, maybe not:
 
@@ -327,7 +312,7 @@ public abstract class TestNewtEventModifiers extends UITestCase {
         // up weren't even delivered to the listeners.
         //
         // So... for now we're only going to test 3 buttons since
-        // that's the common case.
+        // that's the common case _and_ Java6 safe.
 
         _numButtonsToTest = 3 ;
 
@@ -344,13 +329,7 @@ public abstract class TestNewtEventModifiers extends UITestCase {
             
             for( int n = 0 ; n < _awtButtonMasks.length ; ++n ) {
                 _awtButtonMasks[n] = getAWTButtonMask( n + 1 );
-            }
-            
-            _newtButtonMasks = new int[_numButtonsToTest] ;
-
-            for( int n = 0 ; n < _newtButtonMasks.length ; ++n ) {
-                _newtButtonMasks[n] = com.jogamp.newt.event.InputEvent.getButtonMask( n + 1 ) ;
-            }
+            }            
         }
 
         _robot = new java.awt.Robot() ;

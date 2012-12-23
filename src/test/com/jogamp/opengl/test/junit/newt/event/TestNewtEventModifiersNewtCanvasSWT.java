@@ -47,7 +47,7 @@ import com.jogamp.newt.swt.NewtCanvasSWT ;
  * the canvas is a NewtCanvasSWT.
  */
 
-public class TestNewtEventModifiersNewtCanvasSWT extends TestNewtEventModifiers {
+public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers {
 
     private static Shell _testShell ;
     private static GLWindow _glWindow ;
@@ -87,7 +87,7 @@ public class TestNewtEventModifiersNewtCanvasSWT extends TestNewtEventModifiers 
     @BeforeClass
     public static void beforeClass() throws Exception {
 
-        TestNewtEventModifiers.beforeClass() ;
+        BaseNewtEventModifiers.beforeClass() ;
 
         _displayThread = new DisplayThread() ;
         _displayThread.start() ;
@@ -127,7 +127,7 @@ public class TestNewtEventModifiersNewtCanvasSWT extends TestNewtEventModifiers 
     @AfterClass
     public static void afterClass() throws Exception {
 
-        TestNewtEventModifiers.afterClass() ;
+        BaseNewtEventModifiers.afterClass() ;
 
         _glWindow.destroy() ;
 

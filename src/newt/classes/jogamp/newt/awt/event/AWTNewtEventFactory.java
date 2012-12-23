@@ -29,29 +29,58 @@
 package jogamp.newt.awt.event;
 
 import com.jogamp.common.util.IntIntHashMap;
-import com.jogamp.newt.event.InputEvent;
 
+/**
+ *
+ * <a name="AWTEventModifierMapping"><h5>AWT Event Modifier Mapping</h5></a> 
+ * <pre>
+    Modifier       AWT Constant                     AWT Bit  AWT Ex  NEWT Constant              NEWT Bit
+    -------------  -------------------------------  -------  ------  -------------------------  --------
+    Shift          Event.SHIFT_MASK                 0                
+    Ctrl           Event.CTRL_MASK                  1                
+    Meta           Event.META_MASK                  2                
+    Alt            Event.ALT_MASK                   3               
+    Button1        InputEvent.BUTTON1_MASK          4
+    Button2        InputEvent.BUTTON2_MASK          3
+    Button3        InputEvent.BUTTON3_MASK          2
+    Shift Down     InputEvent.SHIFT_DOWN_MASK       6        *       InputEvent.SHIFT_MASK      0
+    Ctrl Down      InputEvent.CTRL_DOWN_MASK        7        *       InputEvent.CTRL_MASK       1
+    Meta Down      InputEvent.META_DOWN_MASK        8        *       InputEvent.META_MASK       2
+    Alt Down       InputEvent.ALT_DOWN_MASK         9        *       InputEvent.ALT_MASK        3
+    Button1 Down   InputEvent.BUTTON1_DOWN_MASK     10       *       InputEvent.BUTTON1_MASK    5
+    Button2 Down   InputEvent.BUTTON2_DOWN_MASK     11       *       InputEvent.BUTTON2_MASK    6
+    Button3 Down   InputEvent.BUTTON3_DOWN_MASK     12       *       InputEvent.BUTTON3_MASK    7
+    AltGraph Down  InputEvent.ALT_GRAPH_DOWN_MASK   13       *       InputEvent.ALT_GRAPH_MASK  4
+    Button4 Down   --                               14       *       InputEvent.BUTTON4_MASK    8
+    Button5 Down   --                               15       *       InputEvent.BUTTON5_MASK    9
+    Button6 Down   --                               16       *       InputEvent.BUTTON6_MASK    10
+    Button7 Down   --                               17       *       InputEvent.BUTTON7_MASK    11
+    Button8 Down   --                               18       *       InputEvent.BUTTON8_MASK    12
+    Button9 Down   --                               19       *       InputEvent.BUTTON9_MASK    13
+    Button10 Down  --                               20       *                                  14
+    Button11 Down  --                               21       *                                  15
+    Button12 Down  --                               22       *                                  16
+    Button13 Down  --                               23       *                                  17
+    Button14 Down  --                               24       *                                  18
+    Button15 Down  --                               25       *                                  19
+    Button16 Down  --                               26       *       InputEvent.BUTTONLAST_MASK 20
+    Button17 Down  --                               27       *
+    Button18 Down  --                               28       *
+    Button19 Down  --                               29       *
+    Button20 Down  --                               30       *
+    Autorepeat     --                               -                InputEvent.AUTOREPEAT_MASK 29
+    Confined       --                               -                InputEvent.CONFINED_MASK   30
+    Invisible      --                               -                InputEvent.INVISIBLE_MASK  31
+ * </pre>
+ *
+ */
 public class AWTNewtEventFactory {
 
     protected static final IntIntHashMap eventTypeAWT2NEWT;
     
-    // Define the button state masks we'll check based on what
-    // the AWT says is available.
-    private static int awtButtonMasks[] ;
-    private static int newtButtonMasks[] ;
+    /** zero-based AWT button mask array filled by {@link #getAWTButtonDownMask(int)}, allowing fast lookup. */
+    private static int awtButtonDownMasks[] ;
 
-    public static int getAWTButtonMask(int button) {
-        // return java.awt.event.InputEvent.getMaskForButton(button); // n/a
-        int m;
-        switch(button) {
-            case 1 : m = java.awt.event.InputEvent.BUTTON1_MASK; break;
-            case 2 : m = java.awt.event.InputEvent.BUTTON2_MASK; break;
-            case 3 : m = java.awt.event.InputEvent.BUTTON3_MASK; break;
-            default: m = 0;
-        }
-        return m;
-    }
-    
     static {
         IntIntHashMap map = new IntIntHashMap();
         map.setKeyNotFoundValue(0xFFFFFFFF);
@@ -88,65 +117,76 @@ public class AWTNewtEventFactory {
 
         eventTypeAWT2NEWT = map;
         
-        final int numButtonMasks ;
-
-        // numButtonMasks = java.awt.MouseInfo.getNumberOfButtons() ;
-        // if (numButtonMasks > com.jogamp.newt.event.MouseEvent.BUTTON_NUMBER) {
-        //    numButtonMasks = com.jogamp.newt.event.MouseEvent.BUTTON_NUMBER ;
-        // }
-        numButtonMasks = 3 ;
-
         // There is an assumption in awtModifiers2Newt(int,int,boolean)
         // that the awtButtonMasks and newtButtonMasks are peers, i.e.
         // a given index refers to the same button in each array.
 
-        awtButtonMasks = new int[numButtonMasks] ;
-        for (int n = 0 ; n < awtButtonMasks.length ; ++n) {
-            awtButtonMasks[n] = getAWTButtonMask(n+1);
+        /* {
+            Method _getMaskForButtonMethod = null;
+            try {
+                _getMaskForButtonMethod = ReflectionUtil.getMethod(java.awt.event.InputEvent.class, "getMaskForButton", int.class);
+            } catch(Throwable t) {}        
+            getMaskForButtonMethod = _getMaskForButtonMethod;
+        } */
+        
+        awtButtonDownMasks = new int[com.jogamp.newt.event.MouseEvent.BUTTON_NUMBER] ; // java.awt.MouseInfo.getNumberOfButtons() ;
+        for (int n = 0 ; n < awtButtonDownMasks.length ; ++n) {
+            awtButtonDownMasks[n] = getAWTButtonDownMaskImpl(n+1);
         }
-
-        newtButtonMasks = new int[numButtonMasks] ;
-        for (int n = 0 ; n < newtButtonMasks.length ; ++n) {
-            newtButtonMasks[n] = com.jogamp.newt.event.InputEvent.getButtonMask(n+1) ;
-        }        
     }
 
-
+    private static int getAWTButtonDownMaskImpl(int button) {
+        /**
+         * java.awt.event.InputEvent.getMaskForButton(button);
+         * 
+        if(null != getMaskForButtonMethod) {
+            Object r=null;
+            try {
+                r = getMaskForButtonMethod.invoke(null, new Integer(button));
+            } catch (Throwable t) { }
+            if(null != r) {
+                return ((Integer)r).intValue();
+            }
+        } */
+        final int m;
+        switch(button) {
+            case 0 : m = 0; break;
+            case 1 : m = java.awt.event.InputEvent.BUTTON1_DOWN_MASK; break; // 1<<10
+            case 2 : m = java.awt.event.InputEvent.BUTTON2_DOWN_MASK; break; // 1<<11
+            case 3 : m = java.awt.event.InputEvent.BUTTON3_DOWN_MASK; break; // 1<<12
+            default:
+                if( button <= com.jogamp.newt.event.MouseEvent.BUTTON_NUMBER ) {
+                    m = 1 << ( 10 + button ) ; // b4 = 1<<14, b5 = 1<<15, etc
+                } else {
+                    m = 0;
+                }                
+        }
+        return m;
+    }
+    
     /**
-     * Converts the specified set of AWT event modifiers to the equivalent
-     * NEWT event modifiers.  This method doesn't pay attention to the AWT
-     * button modifier bits explicitly even though there is a direct
-     * association in the AWT InputEvent class between BUTTON2_MASK and
-     * ALT_MASK, and BUTTON3_MASK and META_MASK.  Instead the current
-     * button state is picked up from the bits in the extended modifiers.
-     * If you need the button bits too, then call
-     * {@link #awtModifiers2Newt(int,int,boolean)} instead.
+     * <p>
+     * See <a href="#AWTEventModifierMapping"> AWT event modifier mapping details</a>.
+     * </p>
      * 
-     * @param awtMods
-     * The AWT event modifiers.
-     *
-     * @param mouseHint
-     * Not used currently.
+     * @param button
+     * @return
      */
-    public static final int awtModifiers2Newt(int awtMods, boolean mouseHint) {
-        int newtMods = 0;
-        if ((awtMods & java.awt.event.InputEvent.SHIFT_MASK) != 0)     newtMods |= com.jogamp.newt.event.InputEvent.SHIFT_MASK;
-        if ((awtMods & java.awt.event.InputEvent.CTRL_MASK) != 0)      newtMods |= com.jogamp.newt.event.InputEvent.CTRL_MASK;
-        if ((awtMods & java.awt.event.InputEvent.META_MASK) != 0)      newtMods |= com.jogamp.newt.event.InputEvent.META_MASK;
-        if ((awtMods & java.awt.event.InputEvent.ALT_MASK) != 0)       newtMods |= com.jogamp.newt.event.InputEvent.ALT_MASK;
-        if ((awtMods & java.awt.event.InputEvent.ALT_GRAPH_MASK) != 0) newtMods |= com.jogamp.newt.event.InputEvent.ALT_GRAPH_MASK;
-
-        // The BUTTON1_MASK, BUTTON2_MASK, and BUTTON3_MASK bits are
-        // being ignored intentionally.  The AWT docs say that the
-        // BUTTON1_DOWN_MASK etc bits in the extended modifiers are
-        // the preferred place to check current button state.
-
-        return newtMods;
+    public static int getAWTButtonDownMask(int button) {
+        if( 0 < button && button <= awtButtonDownMasks.length ) {
+            return awtButtonDownMasks[button-1];
+        } else {
+            return 0;
+        }        
     }
     
     /**
      * Converts the specified set of AWT event modifiers and extended event
      * modifiers to the equivalent NEWT event modifiers.
+     * 
+     * <p>
+     * See <a href="#AWTEventModifierMapping"> AWT event modifier mapping details</a>.
+     * </p>
      * 
      * @param awtMods
      * The AWT event modifiers.
@@ -160,33 +200,42 @@ public class AWTNewtEventFactory {
      */
     public static final int awtModifiers2Newt(final int awtMods, final int awtModsEx, final boolean mouseHint) {
         int newtMods = 0;
+        
+        /** Redundant old modifiers ..
+        if ((awtMods & java.awt.event.InputEvent.SHIFT_MASK) != 0)     newtMods |= com.jogamp.newt.event.InputEvent.SHIFT_MASK;
+        if ((awtMods & java.awt.event.InputEvent.CTRL_MASK) != 0)      newtMods |= com.jogamp.newt.event.InputEvent.CTRL_MASK;
+        if ((awtMods & java.awt.event.InputEvent.META_MASK) != 0)      newtMods |= com.jogamp.newt.event.InputEvent.META_MASK;
+        if ((awtMods & java.awt.event.InputEvent.ALT_MASK) != 0)       newtMods |= com.jogamp.newt.event.InputEvent.ALT_MASK;
+        if ((awtMods & java.awt.event.InputEvent.ALT_GRAPH_MASK) != 0) newtMods |= com.jogamp.newt.event.InputEvent.ALT_GRAPH_MASK; */
+        
         if ((awtModsEx & java.awt.event.InputEvent.SHIFT_DOWN_MASK) != 0)     newtMods |= com.jogamp.newt.event.InputEvent.SHIFT_MASK;
         if ((awtModsEx & java.awt.event.InputEvent.CTRL_DOWN_MASK) != 0)      newtMods |= com.jogamp.newt.event.InputEvent.CTRL_MASK;
         if ((awtModsEx & java.awt.event.InputEvent.META_DOWN_MASK) != 0)      newtMods |= com.jogamp.newt.event.InputEvent.META_MASK;
         if ((awtModsEx & java.awt.event.InputEvent.ALT_DOWN_MASK) != 0)       newtMods |= com.jogamp.newt.event.InputEvent.ALT_MASK;
         if ((awtModsEx & java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK) != 0) newtMods |= com.jogamp.newt.event.InputEvent.ALT_GRAPH_MASK;
 
-        if ((awtModsEx & awtButtonMasks[0]) != 0)                             newtMods |= newtButtonMasks[0] ;
-        if ((awtModsEx & awtButtonMasks[1]) != 0)                             newtMods |= newtButtonMasks[1] ;
-        if ((awtModsEx & awtButtonMasks[2]) != 0)                             newtMods |= newtButtonMasks[2] ;
-
-        /**
-        for (int n = 0 ; n < awtButtonMasks.length ; ++n) {
-            if ((awtModsEx & awtButtonMasks[n]) != 0) {
-                newtMods |= newtButtonMasks[n] ;
+        // The BUTTON1_MASK, BUTTON2_MASK, and BUTTON3_MASK bits are
+        // being ignored intentionally.  The AWT docs say that the
+        // BUTTON1_DOWN_MASK etc bits in the extended modifiers are
+        // the preferred place to check current button state.
+        
+        if( 0 != awtModsEx ) {
+            for (int n = 0 ; n < awtButtonDownMasks.length ; ++n) {
+                if ( (awtModsEx & awtButtonDownMasks[n]) != 0 ) {
+                    newtMods |= com.jogamp.newt.event.InputEvent.getButtonMask(n+1);
+                }
             }
-        } */
+        }
 
         return newtMods;
     }
     
     public static final int awtButton2Newt(int awtButton) {
-        switch (awtButton) {
-            case java.awt.event.MouseEvent.BUTTON1: return com.jogamp.newt.event.MouseEvent.BUTTON1;
-            case java.awt.event.MouseEvent.BUTTON2: return com.jogamp.newt.event.MouseEvent.BUTTON2;
-            case java.awt.event.MouseEvent.BUTTON3: return com.jogamp.newt.event.MouseEvent.BUTTON3;
+        if( 0 < awtButton && awtButton <= com.jogamp.newt.event.MouseEvent.BUTTON_NUMBER ) {
+            return awtButton;
+        } else {
+            return 0;
         }
-        return 0;
     }
 
     public static final com.jogamp.newt.event.WindowEvent createWindowEvent(java.awt.event.WindowEvent event, com.jogamp.newt.Window newtSource) {
@@ -225,10 +274,10 @@ public class AWTNewtEventFactory {
             int mods = awtModifiers2Newt(event.getModifiers(), event.getModifiersEx(), true);
             if(null!=newtSource) {
                 if(newtSource.isPointerConfined()) {
-                    mods |= InputEvent.CONFINED_MASK;
+                    mods |= com.jogamp.newt.event.InputEvent.CONFINED_MASK;
                 }
                 if(!newtSource.isPointerVisible()) {
-                    mods |= InputEvent.INVISIBLE_MASK;
+                    mods |= com.jogamp.newt.event.InputEvent.INVISIBLE_MASK;
                 }
             }
                     

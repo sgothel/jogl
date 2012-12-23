@@ -44,7 +44,7 @@ import com.jogamp.newt.event.awt.AWTMouseAdapter ;
  * the source is an AWT canvas.
  */
 
-public class TestNewtEventModifiersAWTCanvas extends TestNewtEventModifiers {
+public class TestNewtEventModifiersAWTCanvas extends BaseNewtEventModifiers {
 
     private static JFrame _testFrame ;
 
@@ -53,7 +53,7 @@ public class TestNewtEventModifiersAWTCanvas extends TestNewtEventModifiers {
     @BeforeClass
     public static void beforeClass() throws Exception {
 
-        TestNewtEventModifiers.beforeClass() ;
+        BaseNewtEventModifiers.beforeClass() ;
 
         final GLCanvas canvas = new GLCanvas() ;
         canvas.addGLEventListener( new BigGreenXGLEventListener() ) ;
@@ -76,7 +76,7 @@ public class TestNewtEventModifiersAWTCanvas extends TestNewtEventModifiers {
     @AfterClass
     public static void afterClass() throws Exception {
 
-        TestNewtEventModifiers.afterClass() ;
+        BaseNewtEventModifiers.afterClass() ;
 
         SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
