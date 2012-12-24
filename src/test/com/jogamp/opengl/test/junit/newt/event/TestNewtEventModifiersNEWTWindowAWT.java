@@ -26,81 +26,48 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.newt.event ;
+package com.jogamp.opengl.test.junit.newt.event;
 
-import java.awt.BorderLayout ;
-
-import javax.media.opengl.GLCapabilities ;
-import javax.media.opengl.GLProfile ;
-
-import javax.swing.JFrame ;
-import javax.swing.SwingUtilities ;
-import javax.swing.WindowConstants ;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLProfile;
 
 import org.junit.AfterClass ;
 import org.junit.BeforeClass ;
 
-import com.jogamp.newt.awt.NewtCanvasAWT ;
-import com.jogamp.newt.opengl.GLWindow ;
+import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 
 /**
- * Test whether or not event modifiers are preserved by NEWT when
- * the canvas is a NewtCanvasAWT.
+ * Test whether or not event modifiers are properly delivered by NEWT.
  */
+public class TestNewtEventModifiersNEWTWindowAWT extends BaseNewtEventModifiers {
 
-public class TestNewtEventModifiersNewtCanvasAWT extends BaseNewtEventModifiers {
-
-    private static JFrame _testFrame ;
-    private static GLWindow _glWindow ;
+    private static GLWindow glWindow;
 
     ////////////////////////////////////////////////////////////////////////////
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-
-        SwingUtilities.invokeAndWait( new Runnable() {
-            public void run() {
-
-                _testFrame = new JFrame( "Event Modifier Test NewtCanvasAWT" ) ;
-                _testFrame.setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE ) ;
-
-                {
-                    GLCapabilities caps = new GLCapabilities( GLProfile.getGL2ES2() ) ;
-                    _glWindow = GLWindow.create( caps ) ;
-
-                    NewtCanvasAWT canvas = new NewtCanvasAWT( _glWindow ) ;
-                    _testFrame.getContentPane().add( canvas, BorderLayout.CENTER ) ;
-
-                    _glWindow.addGLEventListener( new RedSquareES2() ) ;
-                }
-
-                _testFrame.setBounds( TEST_FRAME_X, TEST_FRAME_Y, TEST_FRAME_WIDTH, TEST_FRAME_HEIGHT ) ;
-                _testFrame.setVisible( true ) ;
-            }
-        } ) ;
-
-        _glWindow.addMouseListener( _testMouseListener ) ;
+        glWindow = GLWindow.create( new GLCapabilities( GLProfile.getGL2ES2() ) );
+        glWindow.setTitle("Event Modifier Test GLWindow");
+        glWindow.addGLEventListener( new RedSquareES2() ) ;
+        glWindow.addMouseListener(_testMouseListener);
+        glWindow.setSize(TEST_FRAME_WIDTH, TEST_FRAME_HEIGHT);
+        glWindow.setPosition(TEST_FRAME_X, TEST_FRAME_Y);
+        glWindow.setVisible(true);
     }
 
     ////////////////////////////////////////////////////////////////////////////
 
     @AfterClass
     public static void afterClass() throws Exception {
-
-        SwingUtilities.invokeAndWait( new Runnable() {
-            public void run() {
-                _testFrame.dispose() ;
-            }
-        } ) ;
-
-        _glWindow.destroy() ;
+        glWindow.destroy();
     }
 
     ////////////////////////////////////////////////////////////////////////////
 
     public static void main(String args[]) throws Exception {
-        String testName = TestNewtEventModifiersNewtCanvasAWT.class.getName() ;
+        String testName = TestNewtEventModifiersNEWTWindowAWT.class.getName() ;
         org.junit.runner.JUnitCore.main( testName ) ;
     }
 

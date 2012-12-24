@@ -392,16 +392,20 @@ function testawtswt() {
 #
 # newt.awt (testawt)
 #
-testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
+#testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper $*
 #testawt com.jogamp.opengl.test.junit.newt.TestEventSourceNotAWTBug
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
-#testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyEventOrderAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyEventAutoRepeatAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyPressReleaseUnmaskRepeatAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyCodesAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.TestNewtKeyCodeModifiersAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventOrderAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventAutoRepeatAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyPressReleaseUnmaskRepeatAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodesAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodeModifiersAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNEWTWindowAWT $*
+testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersAWTCanvas $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasSWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT $*

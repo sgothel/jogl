@@ -41,6 +41,7 @@ import org.junit.BeforeClass ;
 
 import com.jogamp.newt.opengl.GLWindow ;
 import com.jogamp.newt.swt.NewtCanvasSWT ;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 
 /**
  * Test whether or not event modifiers preserved by NEWT when
@@ -87,8 +88,6 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
     @BeforeClass
     public static void beforeClass() throws Exception {
 
-        BaseNewtEventModifiers.beforeClass() ;
-
         _displayThread = new DisplayThread() ;
         _displayThread.start() ;
 
@@ -111,7 +110,7 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
 
                     NewtCanvasSWT.create( _testShell, SWT.NO_BACKGROUND, _glWindow ) ;
 
-                    _glWindow.addGLEventListener( new BigGreenXGLEventListener() ) ;
+                    _glWindow.addGLEventListener( new RedSquareES2() ) ;
                 }
 
                 _testShell.setBounds( TEST_FRAME_X, TEST_FRAME_Y, TEST_FRAME_WIDTH, TEST_FRAME_HEIGHT ) ;
@@ -126,8 +125,6 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
 
     @AfterClass
     public static void afterClass() throws Exception {
-
-        BaseNewtEventModifiers.afterClass() ;
 
         _glWindow.destroy() ;
 

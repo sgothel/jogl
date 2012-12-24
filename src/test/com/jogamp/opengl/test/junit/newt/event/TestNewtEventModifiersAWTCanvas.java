@@ -38,6 +38,7 @@ import org.junit.AfterClass ;
 import org.junit.BeforeClass ;
 
 import com.jogamp.newt.event.awt.AWTMouseAdapter ;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 
 /**
  * Test whether or not event modifiers are preserved by NEWT when
@@ -53,10 +54,8 @@ public class TestNewtEventModifiersAWTCanvas extends BaseNewtEventModifiers {
     @BeforeClass
     public static void beforeClass() throws Exception {
 
-        BaseNewtEventModifiers.beforeClass() ;
-
         final GLCanvas canvas = new GLCanvas() ;
-        canvas.addGLEventListener( new BigGreenXGLEventListener() ) ;
+        canvas.addGLEventListener( new RedSquareES2() ) ;
         new AWTMouseAdapter( _testMouseListener ).addTo( (java.awt.Component)canvas ) ;
 
         _testFrame = new JFrame( "Event Modifier Test AWTCanvas" ) ;
@@ -75,8 +74,6 @@ public class TestNewtEventModifiersAWTCanvas extends BaseNewtEventModifiers {
 
     @AfterClass
     public static void afterClass() throws Exception {
-
-        BaseNewtEventModifiers.afterClass() ;
 
         SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {

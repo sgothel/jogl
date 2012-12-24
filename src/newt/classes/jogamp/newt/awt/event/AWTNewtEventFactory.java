@@ -194,11 +194,8 @@ public class AWTNewtEventFactory {
      * @param awtModsEx
      * The AWT extended event modifiers.
      * AWT passes mouse button specific bits here and are the preferred way check the mouse button state.
-     *
-     * @param mouseHint
-     * Not used currently.
      */
-    public static final int awtModifiers2Newt(final int awtMods, final int awtModsEx, final boolean mouseHint) {
+    public static final int awtModifiers2Newt(final int awtMods, final int awtModsEx) {
         int newtMods = 0;
         
         /** Redundant old modifiers ..
@@ -271,7 +268,9 @@ public class AWTNewtEventFactory {
                 rotation = -1 * ((java.awt.event.MouseWheelEvent)event).getWheelRotation();
             }
 
-            int mods = awtModifiers2Newt(event.getModifiers(), event.getModifiersEx(), true);
+            final int newtButton = awtButton2Newt(event.getButton());
+            int mods = awtModifiers2Newt(event.getModifiers(), event.getModifiersEx());
+            mods |= com.jogamp.newt.event.InputEvent.getButtonMask(newtButton); // always include NEWT BUTTON_MASK
             if(null!=newtSource) {
                 if(newtSource.isPointerConfined()) {
                     mods |= com.jogamp.newt.event.InputEvent.CONFINED_MASK;
@@ -280,11 +279,10 @@ public class AWTNewtEventFactory {
                     mods |= com.jogamp.newt.event.InputEvent.INVISIBLE_MASK;
                 }
             }
-                    
             return new com.jogamp.newt.event.MouseEvent(
                            type, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, event.getWhen(),
                            mods, event.getX(), event.getY(), event.getClickCount(), 
-                           awtButton2Newt(event.getButton()), rotation);
+                           newtButton, rotation);
         }
         return null; // no mapping ..
     }
@@ -294,7 +292,7 @@ public class AWTNewtEventFactory {
         if(0xFFFFFFFF != type) {
             return new com.jogamp.newt.event.KeyEvent(
                            type, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, event.getWhen(), 
-                           awtModifiers2Newt(event.getModifiers(), event.getModifiersEx(), false), 
+                           awtModifiers2Newt(event.getModifiers(), event.getModifiersEx()), 
                            event.getKeyCode(), event.getKeyChar());
         }
         return null; // no mapping ..

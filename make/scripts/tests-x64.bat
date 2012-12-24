@@ -22,7 +22,7 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug551A
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWTCardLayoutAnimatorStartStopBug532 %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestJScrollPaneMixHwLw01AWT %*
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug642JSplitPaneMixHwLw01AWT %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestBug642JSplitPaneMixHwLw01AWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestIsRealizedConcurrency01AWT %*
 
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper %*
@@ -40,11 +40,14 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLSi
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestParenting01AWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestNewtKeyEventOrderAWT %*
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestNewtKeyEventAutoRepeatAWT %*
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestNewtKeyPressReleaseUnmaskRepeatAWT %*
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestNewtKeyCodesAWT %*
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestNewtKeyCodeModifiersAWT %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventOrderAWT %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventAutoRepeatAWT %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyPressReleaseUnmaskRepeatAWT %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodesAWT %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodeModifiersAWT %*
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersAWTCanvas %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasAWT %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasSWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT %*
