@@ -59,8 +59,8 @@ public class NewtBaseActivity extends Activity {
    }
    
    public void setRootActivity(Activity rootActivity) {
-       this.isDelegatedActivity = true;
        this.rootActivity = rootActivity;
+       this.isDelegatedActivity = this != rootActivity;
    }
    
    public final boolean isDelegatedActivity() {
@@ -231,7 +231,11 @@ public class NewtBaseActivity extends Activity {
       
    @Override
    public android.view.Window getWindow() {
-       return getActivity().getWindow();
+       if( isDelegatedActivity() ) {
+           return getActivity().getWindow();
+       } else {
+           return getWindow();
+       }
    }
    
    @Override
