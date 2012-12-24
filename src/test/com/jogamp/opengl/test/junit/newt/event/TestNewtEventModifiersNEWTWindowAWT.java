@@ -32,36 +32,44 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
 import org.junit.AfterClass ;
+import org.junit.Assert;
 import org.junit.BeforeClass ;
 
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 
 /**
  * Test whether or not event modifiers are properly delivered by NEWT.
  */
 public class TestNewtEventModifiersNEWTWindowAWT extends BaseNewtEventModifiers {
 
-    private static GLWindow glWindow;
+    private static GLWindow _glWindow;
 
     ////////////////////////////////////////////////////////////////////////////
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        glWindow = GLWindow.create( new GLCapabilities( GLProfile.getGL2ES2() ) );
-        glWindow.setTitle("Event Modifier Test GLWindow");
-        glWindow.addGLEventListener( new RedSquareES2() ) ;
-        glWindow.addMouseListener(_testMouseListener);
-        glWindow.setSize(TEST_FRAME_WIDTH, TEST_FRAME_HEIGHT);
-        glWindow.setPosition(TEST_FRAME_X, TEST_FRAME_Y);
-        glWindow.setVisible(true);
+        _glWindow = GLWindow.create( new GLCapabilities( GLProfile.getGL2ES2() ) );
+        _glWindow.setTitle("Event Modifier Test GLWindow");
+        _glWindow.addGLEventListener( new RedSquareES2() ) ;
+        _glWindow.addMouseListener(_testMouseListener);
+        _glWindow.setSize(TEST_FRAME_WIDTH, TEST_FRAME_HEIGHT);
+        _glWindow.setPosition(TEST_FRAME_X, TEST_FRAME_Y);
+        _glWindow.setVisible(true);
+        
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(_glWindow, true));
+        AWTRobotUtil.assertRequestFocusAndWait(null, _glWindow, _glWindow, null, null);  // programmatic
+        Assert.assertNotNull(_robot);
+        AWTRobotUtil.requestFocus(_robot, _glWindow, false); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
     }
 
     ////////////////////////////////////////////////////////////////////////////
 
     @AfterClass
     public static void afterClass() throws Exception {
-        glWindow.destroy();
+        baseAfterClass();
+        _glWindow.destroy();
     }
 
     ////////////////////////////////////////////////////////////////////////////

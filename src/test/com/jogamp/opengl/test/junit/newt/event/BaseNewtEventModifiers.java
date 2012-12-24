@@ -51,6 +51,29 @@ import com.jogamp.opengl.test.junit.util.UITestCase ;
 
 public abstract class BaseNewtEventModifiers extends UITestCase {
 
+    ////////////////////////////////////////////////////////////////////////////
+
+    protected static final int TEST_FRAME_X = 100 ;
+    protected static final int TEST_FRAME_Y = 100 ;
+
+    protected static final int TEST_FRAME_WIDTH = 400 ;
+    protected static final int TEST_FRAME_HEIGHT = 400 ;
+
+    private static final int INITIAL_MOUSE_X = TEST_FRAME_X + ( TEST_FRAME_WIDTH / 2 ) ;
+    private static final int INITIAL_MOUSE_Y = TEST_FRAME_Y + ( TEST_FRAME_HEIGHT / 2 ) ;
+
+    private static final int MS_ROBOT_KEY_PRESS_DELAY = 50 ;
+    private static final int MS_ROBOT_KEY_RELEASE_DELAY = 50 ;
+    private static final int MS_ROBOT_MOUSE_MOVE_DELAY = 100 ;
+    
+    private static final int MS_ROBOT_AUTO_DELAY = 50 ; 
+    private static final int MS_ROBOT_POST_TEST_DELAY = 100;
+    
+    private static final boolean _debug = true ;
+    private static PrintStream _debugPrintStream = System.err ;
+    
+    ////////////////////////////////////////////////////////////////////////////
+    
     static
     {
         GLProfile.initSingleton() ;
@@ -61,14 +84,15 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         private static final String NO_EVENT_DELIVERY = "no event delivery" ;
 
         private boolean _modifierCheckEnabled ;
-        private int _expectedModifiers ;
+        private int _expectedModifiers;
+        private volatile int _eventCount ;
         private ArrayList<String> _failures = new ArrayList<String>() ;
 
-        public void setModifierCheckEnabled( boolean value ) {
+        public synchronized void setModifierCheckEnabled( boolean value ) {
             _modifierCheckEnabled = value ;
         }
 
-        public boolean modifierCheckEnabled() {
+        public synchronized boolean modifierCheckEnabled() {
             return _modifierCheckEnabled ;
         }
         
@@ -79,39 +103,41 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
          * in this test code it's probably ok.
          */
 
-        public void setExpectedModifiers( int value ) {
+        public synchronized void setExpectedModifiers( int value ) {
             _expectedModifiers = value ;
+            clear();
+        }
+        
+        public synchronized ArrayList<String> clear() {
+            ArrayList<String> old = _failures;
+            
+            _eventCount = 0;
 
             // Assume we will have a failure due to no event delivery.
             // If an event is delivered and it's good this assumed
-            // failure will get cleared out.
-
-            _failures.clear() ;
-            _failures.add( NO_EVENT_DELIVERY ) ;
+            // failure will get cleared out.            
+            _failures = new ArrayList<String>();
+            _failures.add( NO_EVENT_DELIVERY );
+            return old;
         }
         
-        private void _checkModifiers( com.jogamp.newt.event.MouseEvent hasEvent ) {
-
-            if( _debug ) {
-                _debugPrintStream.print( "     received NEWT " ) ;
-                _debugPrintStream.print( com.jogamp.newt.event.MouseEvent.getEventTypeString( hasEvent.getEventType() ) ) ;
+        public ArrayList<String> getFailures(int waitEventCount) {
+            int j;
+            for(j=0; j < 20 && _eventCount < waitEventCount; j++) { // wait until events are collected
+                _robot.delay(MS_ROBOT_AUTO_DELAY);
             }
-
+            if(0 == _eventCount) {
+                _debugPrintStream.println("**** No Event. Waited "+j+" * "+MS_ROBOT_AUTO_DELAY+"ms, eventCount "+_eventCount);
+            }
+            return clear();
+        }
+        
+        private synchronized void _checkModifiers( com.jogamp.newt.event.MouseEvent hasEvent ) {
             if( _modifierCheckEnabled ) {
 
                 final MouseEvent expEvent = new MouseEvent(hasEvent.getEventType(), hasEvent.getSource(), hasEvent.getWhen(), _expectedModifiers, 
                                                            hasEvent.getX(), hasEvent.getY(), hasEvent.getClickCount(), hasEvent.getButton(), hasEvent.getWheelRotation());
                 
-                if( _debug ) {
-                    _debugPrintStream.println( ", checking modifiers..." ) ;
-                    _debugPrintStream.println( "         expected NEWT Modifiers:" ) ;
-                    {
-                        _debugPrintStream.println("             "+expEvent.getModifiersString(null).toString());
-                    }
-                    _debugPrintStream.println( "         current NEWT Modifiers:" ) ;
-                    _debugPrintStream.println("             "+hasEvent.getModifiersString(null).toString());
-                }
-
                 _checkModifierMask( expEvent, hasEvent, com.jogamp.newt.event.InputEvent.SHIFT_MASK, "shift" ) ;
                 _checkModifierMask( expEvent, hasEvent, com.jogamp.newt.event.InputEvent.CTRL_MASK, "ctrl" ) ;
                 _checkModifierMask( expEvent, hasEvent, com.jogamp.newt.event.InputEvent.META_MASK, "meta" ) ;
@@ -121,14 +147,10 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
                 for( int n = 0 ; n < _numButtonsToTest ; ++n ) {
                     _checkModifierMask( expEvent, hasEvent, com.jogamp.newt.event.InputEvent.getButtonMask( n + 1 ), "button"+(n+1) ) ;
                 }
-            } else {
-                if( _debug ) {
-                    _debugPrintStream.println( ", modifier check disabled" ) ;
-                }
             }
         }
 
-        private void _checkModifierMask( com.jogamp.newt.event.MouseEvent expEvent, com.jogamp.newt.event.MouseEvent hasEvent, int mask, String maskS ) {
+        private synchronized void _checkModifierMask( com.jogamp.newt.event.MouseEvent expEvent, com.jogamp.newt.event.MouseEvent hasEvent, int mask, String maskS ) {
 
             // If the "no event delivery" failure is still in the list then
             // get rid of it since that obviously isn't true anymore.  We
@@ -142,81 +164,88 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             if( ( hasEvent.getModifiers() & mask ) != ( expEvent.getModifiers() & mask ) ) {
                 StringBuilder sb = new StringBuilder();
                 sb.append( com.jogamp.newt.event.MouseEvent.getEventTypeString( hasEvent.getEventType() ) ).append(": mask ").append(maskS).append(" 0x").append(Integer.toHexString(mask));
-                sb.append(", expected:");
+                sb.append(", eventCount ").append(_eventCount).append(", expected:");
                 expEvent.getModifiersString(sb);
                 sb.append(", have: ");
                 hasEvent.getModifiersString(sb);
+                sb.append(" - full event: ");
+                hasEvent.toString(sb);
                 _failures.add( sb.toString() ) ;
-                /**
-                System.err.println("*** MASK: 0x"+Integer.toHexString(mask));
-                System.err.println("*** EXP: "+expEvent);
-                System.err.println("*** EXP: 0x"+Integer.toHexString(expEvent.getModifiers()));
-                System.err.println("*** HAS: "+hasEvent);
-                System.err.println("*** HAS: 0x"+Integer.toHexString(hasEvent.getModifiers()));
-                throw new RuntimeException(sb.toString()); */
             }
         }
 
-        public ArrayList<String> getFailures() {
-            return _failures ;
-        }
-
-        public void mouseClicked( com.jogamp.newt.event.MouseEvent event ) {
+        public synchronized void mouseClicked( com.jogamp.newt.event.MouseEvent event ) {
+            _eventCount++;
+            if( _debug ) {
+                _debugPrintStream.println( "MouseClicked     "+_eventCount+": "+event);
+            }            
             _checkModifiers( event ) ;
         }
 
-        public void mousePressed( com.jogamp.newt.event.MouseEvent event ) {
+        public synchronized void mousePressed( com.jogamp.newt.event.MouseEvent event ) {
+            _eventCount++;
+            if( _debug ) {
+                _debugPrintStream.println( "MousePressed     "+_eventCount+": "+event);
+            }            
             _checkModifiers( event ) ;
         }
 
-        public void mouseReleased( com.jogamp.newt.event.MouseEvent event ) {
+        public synchronized void mouseReleased( com.jogamp.newt.event.MouseEvent event ) {
+            _eventCount++;
+            if( _debug ) {
+                _debugPrintStream.println( "MouseReleased    "+_eventCount+": "+event);
+            }            
             _checkModifiers( event ) ;
         }
 
-        public void mouseEntered( com.jogamp.newt.event.MouseEvent event ) {
+        public synchronized void mouseEntered( com.jogamp.newt.event.MouseEvent event ) {
+            _eventCount++;
+            if( _debug ) {
+                _debugPrintStream.println( "MouseEntered     "+_eventCount+": "+event);
+            }            
             _checkModifiers( event ) ;
         }
         
-        public void mouseExited( com.jogamp.newt.event.MouseEvent event ) {
+        public synchronized void mouseExited( com.jogamp.newt.event.MouseEvent event ) {
+            _eventCount++;
+            if( _debug ) {
+                _debugPrintStream.println( "MouseExited      "+_eventCount+": "+event);
+            }            
             _checkModifiers( event ) ;
         }
 
-        public void mouseDragged( com.jogamp.newt.event.MouseEvent event ) {
+        public synchronized void mouseDragged( com.jogamp.newt.event.MouseEvent event ) {
+            _eventCount++;
+            if( _debug ) {
+                _debugPrintStream.println( "MouseDragged     "+_eventCount+": "+event);
+            }            
             _checkModifiers( event ) ;
         }
 
-        public void mouseMoved( com.jogamp.newt.event.MouseEvent event ) {
-            _checkModifiers( event ) ;
+        public synchronized void mouseMoved( com.jogamp.newt.event.MouseEvent event ) {    
+            // Ignored, since mouse MOVE doesn't hold mouse button, we look for DRAGGED!
+            // _eventCount++;
+            if( _debug ) {
+                _debugPrintStream.println( "MouseMoved        ignored: "+event);
+            }            
+            // _checkModifiers( event ) ;
         }
         
-        public void mouseWheelMoved( com.jogamp.newt.event.MouseEvent event ) {
+        public synchronized void mouseWheelMoved( com.jogamp.newt.event.MouseEvent event ) {
+            _eventCount++;
+            if( _debug ) {
+                _debugPrintStream.println( "MouseWheeleMoved "+_eventCount+": "+event);
+            }            
             _checkModifiers( event ) ;
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////
 
-    protected static final int TEST_FRAME_X = 100 ;
-    protected static final int TEST_FRAME_Y = 100 ;
-
-    protected static final int TEST_FRAME_WIDTH = 400 ;
-    protected static final int TEST_FRAME_HEIGHT = 400 ;
-
-    private static final int INITIAL_MOUSE_X = TEST_FRAME_X + ( TEST_FRAME_WIDTH / 2 ) ;
-    private static final int INITIAL_MOUSE_Y = TEST_FRAME_Y + ( TEST_FRAME_HEIGHT / 2 ) ;
-
-    private static final int MS_ROBOT_SHORT_AUTO_DELAY = 50 ;
-    private static final int MS_ROBOT_LONG_AUTO_DELAY = 500 ;
-
-    private static boolean _debug = true ;
-    private static PrintStream _debugPrintStream = System.err ;
-
-    ////////////////////////////////////////////////////////////////////////////
-
     private static int _numButtonsToTest ;
     private static int _awtButtonMasks[] ;
 
-    private static java.awt.Robot _robot ;
+    protected static java.awt.Robot _robot ;
 
     protected static TestMouseListener _testMouseListener ;
 
@@ -280,7 +309,6 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
         _robot = new java.awt.Robot() ;
         _robot.setAutoWaitForIdle( true ) ;
-        _robot.setAutoDelay( MS_ROBOT_LONG_AUTO_DELAY ) ;
 
         _testMouseListener = new TestMouseListener() ;
     }
@@ -291,30 +319,14 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     public void baseBeforeTest() throws Exception {
         
         _testMouseListener.setModifierCheckEnabled( false ) ;
-        _robot.setAutoDelay( MS_ROBOT_SHORT_AUTO_DELAY ) ;
+        _robot.setAutoDelay( MS_ROBOT_AUTO_DELAY ) ;
 
         // Make sure all the buttons and modifier keys are released.
 
         _releaseModifiers() ;
         _escape() ;
 
-        // Move the pointer into the window and click once to
-        // ensure that the test window has focus.
-
-        if( _debug ) {
-            _debugPrintStream.println( ">>>> Clicking in the window to get focus." ) ;
-        }
-
-        _robot.mouseMove( INITIAL_MOUSE_X, INITIAL_MOUSE_Y ) ;
-        _robot.mousePress( java.awt.event.InputEvent.BUTTON1_MASK ); // java7: java.awt.event.InputEvent.BUTTON1_DOWN_MASK 
-        _robot.mouseRelease( java.awt.event.InputEvent.BUTTON1_MASK ) ; // java7: java.awt.event.InputEvent.BUTTON1_DOWN_MASK
-
         _testMouseListener.setModifierCheckEnabled( true ) ;
-        _robot.setAutoDelay( MS_ROBOT_LONG_AUTO_DELAY ) ;
-
-        if( _debug ) {
-            _debugPrintStream.println( ">>>> About to start testing." ) ;
-        }
     }
     
     ////////////////////////////////////////////////////////////////////////////
@@ -352,30 +364,31 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_CONTROL, java.awt.event.InputEvent.CTRL_DOWN_MASK ) ;
     }
 
-    // The META and ALT tests get too tied up with functions of the window system on X11,
-    // so it's probably best to leave them commented out.
+    /**
+     * The META and ALT tests get too tied up with functions of the window system on X11,
+     * so it's probably best to leave them commented out.    
+        @Test
+        public void testSingleButtonPressAndReleaseWithMeta() throws Exception {
+            _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_META, java.awt.event.InputEvent.META_DOWN_MASK ) ;
+        }
+    
+        @Test
+        public void testSingleButtonPressAndReleaseWithAlt() throws Exception {
+            _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_ALT, java.awt.event.InputEvent.ALT_DOWN_MASK ) ;
+        }
+     */
 
-    //@Test
-    public void testSingleButtonPressAndReleaseWithMeta() throws Exception {
-        _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_META, java.awt.event.InputEvent.META_DOWN_MASK ) ;
-    }
-
-    //@Test
-    public void testSingleButtonPressAndReleaseWithAlt() throws Exception {
-        _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_ALT, java.awt.event.InputEvent.ALT_DOWN_MASK ) ;
-    }
-
-    // FIXME - not sure yet what's up with ALT_GRAPH.  It appears that this
-    // modifier didn't make it through, so I had to disable this test else
-    // it would always fail.
-    //
-    // My US keyboard doesn't have an AltGr key, so maybe X is smart
-    // enough to not let this modifier slip through (?).
-
-    //@Test
-    public void testSingleButtonPressAndReleaseWithAltGraph() throws Exception {
-        _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_ALT_GRAPH, java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK ) ;
-    }
+    /** 
+     * FIXME - not sure yet what's up with ALT_GRAPH.  It appears that this
+     * modifier didn't make it through, so I had to disable this test else it would always fail.
+     *
+     * My US keyboard doesn't have an AltGr key, so maybe X is smart
+     * enough to not let this modifier slip through (?).
+        @Test
+        public void testSingleButtonPressAndReleaseWithAltGraph() throws Exception {
+            _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_ALT_GRAPH, java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK ) ;
+        }
+     */
 
     ////////////////////////////////////////////////////////////////////////////
 
@@ -406,15 +419,15 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
             int awtButtonMask = _awtButtonMasks[n] ;
 
-            if( _debug ) { _debugPrintStream.println( "\n     pressing button " + ( n + 1 ) ) ; }
+            if( _debug ) { _debugPrintStream.println( "*** pressing button " + ( n + 1 ) ) ; }
             _testMouseListener.setExpectedModifiers( _getNewtModifiersForAwtExtendedModifiers( keyModifierMask | awtButtonMask ) ) ;
             _robot.mousePress( awtButtonMask ) ;
-            _checkFailures() ;
+            _checkFailures("mouse-press("+(n+1)+")", 1) ;
 
-            if( _debug ) { _debugPrintStream.println( "\n     releasing button " + ( n + 1 ) ) ; }
+            if( _debug ) { _debugPrintStream.println( "*** releasing button " + ( n + 1 ) ) ; }
             _testMouseListener.setExpectedModifiers( _getNewtModifiersForAwtExtendedModifiers( keyModifierMask | awtButtonMask ) ) ;
             _robot.mouseRelease( awtButtonMask ) ;
-            _checkFailures() ;
+            _checkFailures("mouse-release("+(n+1)+")", 1) ;
         }
 
         _doKeyRelease( keyCode ) ;
@@ -432,31 +445,31 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
             int awtButtonMask = _awtButtonMasks[n] ;
 
-            if( _debug ) { _debugPrintStream.println( "\n     pressing button " + ( n + 1 ) ) ; }
+            if( _debug ) { _debugPrintStream.println( "*** pressing button " + ( n + 1 ) ) ; }
             _testMouseListener.setExpectedModifiers( _getNewtModifiersForAwtExtendedModifiers( keyModifierMask | awtButtonMask ) ) ;
             _robot.mousePress( awtButtonMask ) ;
-            _checkFailures() ;
-
+            _checkFailures("mouse-press("+(n+1)+")", 1) ;
+            
             for (int m = 0 ; m < _numButtonsToTest ; ++m) {
 
                 if( n != m ) {
 
-                    if( _debug ) { _debugPrintStream.println( "\n     pressing additional button " + ( m + 1 ) ) ; }
+                    if( _debug ) { _debugPrintStream.println( "*** pressing additional button " + ( m + 1 ) ) ; }
                     _testMouseListener.setExpectedModifiers( _getNewtModifiersForAwtExtendedModifiers( keyModifierMask | awtButtonMask | _awtButtonMasks[m] ) ) ;
                     _robot.mousePress( _awtButtonMasks[m] ) ;
-                    _checkFailures() ;
+                    _checkFailures("mouse-press("+(n+1)+", "+(m+1)+")", 1) ;
 
-                    if( _debug ) { _debugPrintStream.println( "\n     releasing additional button " + ( m + 1 ) ) ; }
+                    if( _debug ) { _debugPrintStream.println( "*** releasing additional button " + ( m + 1 ) ) ; }
                     _testMouseListener.setExpectedModifiers( _getNewtModifiersForAwtExtendedModifiers( keyModifierMask | awtButtonMask | _awtButtonMasks[m] ) ) ;
                     _robot.mouseRelease( _awtButtonMasks[m] ) ;
-                    _checkFailures() ;
+                    _checkFailures("mouse-release("+(n+1)+", "+(m+1)+")", 1) ;
                 }
             }
 
-            if( _debug ) { _debugPrintStream.println( "\n     releasing button " + ( n + 1 ) ) ; }
+            if( _debug ) { _debugPrintStream.println( "*** releasing button " + ( n + 1 ) ) ; }
             _testMouseListener.setExpectedModifiers( _getNewtModifiersForAwtExtendedModifiers( keyModifierMask | awtButtonMask ) ) ;
             _robot.mouseRelease( awtButtonMask ) ;
-            _checkFailures() ;
+            _checkFailures("mouse-release("+(n+1)+")", 1);
         }
 
         _doKeyRelease( keyCode ) ;
@@ -477,18 +490,18 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
                 cumulativeAwtModifiers |= _awtButtonMasks[n] ;
 
-                if( _debug ) { _debugPrintStream.println( "\n     pressing button " + ( n + 1 ) ) ; }
+                if( _debug ) { _debugPrintStream.println( "*** pressing button " + ( n + 1 ) ) ; }
                 _testMouseListener.setExpectedModifiers( _getNewtModifiersForAwtExtendedModifiers( keyModifierMask | cumulativeAwtModifiers ) ) ;
                 _robot.mousePress( _awtButtonMasks[n] ) ;
-                _checkFailures() ;
+                _checkFailures("mouse-press("+(n+1)+")", 1) ;
             }
 
             for (int n = _numButtonsToTest - 1 ; n >= 0 ; --n) {
 
-                if( _debug ) { _debugPrintStream.println( "\n     releasing button " + ( n + 1 ) ) ; }
+                if( _debug ) { _debugPrintStream.println( "*** releasing button " + ( n + 1 ) ) ; }
                 _testMouseListener.setExpectedModifiers( _getNewtModifiersForAwtExtendedModifiers( keyModifierMask | cumulativeAwtModifiers ) ) ;
                 _robot.mouseRelease( _awtButtonMasks[n] ) ;
-                _checkFailures() ;
+                _checkFailures("mouse-release("+(n+1)+")", 1) ;
                 
                 cumulativeAwtModifiers &= ~_awtButtonMasks[n] ;
             }
@@ -511,23 +524,26 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
             int awtButtonMask = _awtButtonMasks[n] ;
 
-            if( _debug ) { _debugPrintStream.println( "\n     pressing button " + ( n + 1 ) ) ; }
+            if( _debug ) { _debugPrintStream.println( "*** pressing button " + ( n + 1 ) ) ; }
             _testMouseListener.setExpectedModifiers( _getNewtModifiersForAwtExtendedModifiers( keyModifierMask | awtButtonMask ) ) ;
             _robot.mousePress( awtButtonMask ) ;
-            _checkFailures() ;
+            _checkFailures("mouse-press("+(n+1)+")", 1) ;
 
             // To get a drag we only need to move one pixel.
-            if( _debug ) { _debugPrintStream.println( "\n     moving mouse" ) ; }
-            _robot.mouseMove( INITIAL_MOUSE_X + 1, INITIAL_MOUSE_Y + 1 ) ;
-            _checkFailures() ;
+            if( _debug ) { _debugPrintStream.println( "*** moving mouse" ) ; }
+            final int newX = INITIAL_MOUSE_X + 8, newY = INITIAL_MOUSE_Y + 8;
+            _robot.mouseMove( newX, newY ) ;
+            _robot.delay(MS_ROBOT_MOUSE_MOVE_DELAY);
+            _checkFailures("mouse-move("+newX+", "+newY+")", 1) ;
 
-            if( _debug ) { _debugPrintStream.println( "\n     releasing button " + ( n + 1 ) ) ; }
+            if( _debug ) { _debugPrintStream.println( "*** releasing button " + ( n + 1 ) ) ; }
             _testMouseListener.setExpectedModifiers( _getNewtModifiersForAwtExtendedModifiers( keyModifierMask | awtButtonMask ) ) ;
             _robot.mouseRelease( awtButtonMask ) ;
-            _checkFailures() ;
+            _checkFailures("mouse-release("+(n+1)+")", 1) ;
 
             _testMouseListener.setModifierCheckEnabled( false ) ;
             _robot.mouseMove( INITIAL_MOUSE_X, INITIAL_MOUSE_Y ) ;
+            _robot.delay(MS_ROBOT_MOUSE_MOVE_DELAY);            
             _testMouseListener.setModifierCheckEnabled( true ) ;
         }
 
@@ -541,6 +557,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             boolean modifierCheckEnabled = _testMouseListener.modifierCheckEnabled() ;
             _testMouseListener.setModifierCheckEnabled( false ) ;
             _robot.keyPress( keyCode ) ;
+            _robot.delay(MS_ROBOT_KEY_PRESS_DELAY);
             _testMouseListener.setModifierCheckEnabled( modifierCheckEnabled ) ;
         }
     }
@@ -552,26 +569,25 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             boolean modifierCheckEnabled = _testMouseListener.modifierCheckEnabled() ;
             _testMouseListener.setModifierCheckEnabled( false ) ;
             _robot.keyRelease( keyCode ) ;
+            _robot.delay(MS_ROBOT_KEY_RELEASE_DELAY);
             _testMouseListener.setModifierCheckEnabled( modifierCheckEnabled ) ;
         }
     }
 
     ////////////////////////////////////////////////////////////////////////////
 
-    private void _checkFailures() {
+    private void _checkFailures(String descr, int waitEventCount) {
+        ArrayList<String> failures = _testMouseListener.getFailures(waitEventCount) ;
 
-        ArrayList<String> failures = _testMouseListener.getFailures() ;
-
-        if( _debug ) {
-            int numFailures = failures.size() ;
-            if( numFailures == 0 ) {
-                _debugPrintStream.println( "     PASSED" ) ;
-            } else {
-                _debugPrintStream.println( "     FAILED" ) ;
-                for( int n = 0 ; n < numFailures ; ++n ) {
-                    _debugPrintStream.print( "         " ) ;
-                    _debugPrintStream.println( failures.get(n) ) ;
-                }
+        _debugPrintStream.print(getSimpleTestName(".")+" - "+descr+": ");
+        int numFailures = failures.size() ;
+        if( numFailures == 0 ) {
+            _debugPrintStream.println( " PASSED" ) ;
+        } else {
+            _debugPrintStream.println( " FAILED" ) ;
+            for( int n = 0 ; n < numFailures ; ++n ) {
+                _debugPrintStream.print( "         " ) ;
+                _debugPrintStream.println( failures.get(n) ) ;
             }
         }
 
@@ -586,11 +602,12 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         _testMouseListener.setModifierCheckEnabled( false ) ;
         
         Thread.sleep( 500 ) ;
+        
+        _robot.setAutoDelay( MS_ROBOT_POST_TEST_DELAY ) ;
     }
     
     ////////////////////////////////////////////////////////////////////////////
 
-    @AfterClass
     public static void baseAfterClass() throws Exception {
 
         // Make sure all modifiers are released, otherwise the user's
@@ -606,7 +623,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
         if (_robot != null) {
 
-            _robot.setAutoDelay( MS_ROBOT_SHORT_AUTO_DELAY ) ;
+            _robot.setAutoDelay( MS_ROBOT_AUTO_DELAY ) ;
 
             boolean modifierCheckEnabled = _testMouseListener.modifierCheckEnabled() ;
             _testMouseListener.setModifierCheckEnabled( false ) ;
@@ -614,9 +631,9 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             {
                 _robot.keyRelease( java.awt.event.KeyEvent.VK_SHIFT ) ;
                 _robot.keyRelease( java.awt.event.KeyEvent.VK_CONTROL ) ;
-                _robot.keyRelease( java.awt.event.KeyEvent.VK_META ) ;
-                _robot.keyRelease( java.awt.event.KeyEvent.VK_ALT ) ;
-                _robot.keyRelease( java.awt.event.KeyEvent.VK_ALT_GRAPH ) ;
+                // _robot.keyRelease( java.awt.event.KeyEvent.VK_META ) ;
+                // _robot.keyRelease( java.awt.event.KeyEvent.VK_ALT ) ;
+                // _robot.keyRelease( java.awt.event.KeyEvent.VK_ALT_GRAPH ) ;
 
                 for (int n = 0 ; n < _awtButtonMasks.length ; ++n) {
                     _robot.mouseRelease( _awtButtonMasks[n] ) ;
@@ -624,8 +641,6 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             }
 
             _testMouseListener.setModifierCheckEnabled( modifierCheckEnabled ) ;
-
-            _robot.setAutoDelay( MS_ROBOT_LONG_AUTO_DELAY ) ;
         }
     }
 

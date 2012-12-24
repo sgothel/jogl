@@ -37,11 +37,13 @@ import javax.media.opengl.GLCapabilities ;
 import javax.media.opengl.GLProfile ;
 
 import org.junit.AfterClass ;
+import org.junit.Assert;
 import org.junit.BeforeClass ;
 
 import com.jogamp.newt.opengl.GLWindow ;
 import com.jogamp.newt.swt.NewtCanvasSWT ;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 
 /**
  * Test whether or not event modifiers preserved by NEWT when
@@ -117,6 +119,9 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
                 _testShell.open() ;
             }
         } ) ;
+        AWTRobotUtil.assertRequestFocusAndWait(null, _glWindow, _glWindow, null, null);  // programmatic
+        Assert.assertNotNull(_robot);
+        AWTRobotUtil.requestFocus(_robot, _glWindow, false); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
 
         _glWindow.addMouseListener( _testMouseListener ) ;
     }
@@ -125,7 +130,8 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
 
     @AfterClass
     public static void afterClass() throws Exception {
-
+        baseAfterClass();
+        
         _glWindow.destroy() ;
 
         _displayThread.getDisplay().syncExec( new Runnable() {
