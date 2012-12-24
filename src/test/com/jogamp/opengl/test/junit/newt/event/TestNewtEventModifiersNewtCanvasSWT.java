@@ -30,6 +30,7 @@ package com.jogamp.opengl.test.junit.newt.event;
 
 import org.eclipse.swt.SWT ;
 import org.eclipse.swt.layout.FillLayout ;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display ;
 import org.eclipse.swt.widgets.Shell ;
 
@@ -38,8 +39,10 @@ import javax.media.opengl.GLProfile ;
 
 import org.junit.AfterClass ;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.BeforeClass ;
 
+import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.opengl.GLWindow ;
 import com.jogamp.newt.swt.NewtCanvasSWT ;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
@@ -52,7 +55,9 @@ import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 
 public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers {
 
-    private static Shell _testShell ;
+    private static Display _display = null;
+    private static Shell _shell = null;
+    private static Composite _composite = null;
     private static GLWindow _glWindow ;
     private static DisplayThread _displayThread ;
 
@@ -60,28 +65,48 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
 
     private static class DisplayThread extends Thread
     {
-        private Display _display ;
-
+        public volatile boolean shallStop = false;
+        public volatile boolean isInit = false;
+        
         public DisplayThread()
         {
             super( "SWT Display Thread" ) ;
         }
 
-        public Display getDisplay() {
-            return _display ;
-        }
-
         public void run() {
-
-            _display = new Display() ;
-
-            while( isInterrupted() == false ) {
+            
+            synchronized(this) {
+                SWTAccessor.invoke(true, new Runnable() {
+                    public void run() {        
+                        _display = new Display();
+                        Assert.assertNotNull( _display );
+                    }});
+                
+                isInit = true;
+                this.notifyAll();
+            }
+            
+            while( !_display.isDisposed() && !shallStop && isInterrupted() == false ) {
                 if( !_display.readAndDispatch() ) {
-                    _display.sleep() ;
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) { }
                 }
             }
-
-            _display.dispose() ;
+            
+            synchronized(this) {
+                try {
+                    if(!_display.isDisposed()) {
+                        SWTAccessor.invoke(true, new Runnable() {
+                            public void run() {        
+                                _display.dispose();
+                            }});
+                    }
+                } finally {
+                    isInit = false;
+                    this.notifyAll();
+                }
+            }
         }
     }
 
@@ -91,34 +116,39 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
     public static void beforeClass() throws Exception {
 
         _displayThread = new DisplayThread() ;
-        _displayThread.start() ;
-
-        // Wait for the display thread's runnable to get set.
-
-        while( _displayThread.getDisplay() == null ) {
-            try { Thread.sleep( 10 ) ; } catch( InterruptedException e ) {}
-        }
-
-        _displayThread.getDisplay().syncExec( new Runnable() {
-            public void run() {
-
-                _testShell = new Shell( _displayThread.getDisplay() ) ;
-                _testShell.setText( "Event Modifier Test NewtCanvasSWT" ) ;
-                _testShell.setLayout( new FillLayout() ) ;
-
-                {
-                    GLCapabilities caps = new GLCapabilities( GLProfile.get( GLProfile.GL2ES2 ) ) ;
-                    _glWindow = GLWindow.create( caps ) ;
-
-                    NewtCanvasSWT.create( _testShell, SWT.NO_BACKGROUND, _glWindow ) ;
-
-                    _glWindow.addGLEventListener( new RedSquareES2() ) ;
-                }
-
-                _testShell.setBounds( TEST_FRAME_X, TEST_FRAME_Y, TEST_FRAME_WIDTH, TEST_FRAME_HEIGHT ) ;
-                _testShell.open() ;
+        synchronized(_displayThread) {
+            _displayThread.start() ;
+            while(!_displayThread.isInit) {
+                _displayThread.wait();
             }
-        } ) ;
+        }
+        
+        _display.syncExec(new Runnable() {
+            public void run() {        
+                _shell = new Shell( _display );
+                Assert.assertNotNull( _shell );
+                _shell.setText( "Event Modifier Test NewtCanvasSWT" ) ;
+                _shell.setLayout( new FillLayout() );
+                _composite = new Composite( _shell, SWT.NONE );
+                _composite.setLayout( new FillLayout() );
+                Assert.assertNotNull( _composite );
+            }});
+
+        {
+            GLCapabilities caps = new GLCapabilities( GLProfile.get( GLProfile.GL2ES2 ) ) ;
+            _glWindow = GLWindow.create( caps ) ;
+            _glWindow.addGLEventListener( new RedSquareES2() ) ;
+
+            NewtCanvasSWT.create( _composite, SWT.NO_BACKGROUND, _glWindow ) ;
+        }
+        
+        _display.syncExec( new Runnable() {
+           public void run() {
+              _shell.setBounds( TEST_FRAME_X, TEST_FRAME_Y, TEST_FRAME_WIDTH, TEST_FRAME_HEIGHT ) ;
+              _shell.open();
+           }
+        });
+        
         AWTRobotUtil.assertRequestFocusAndWait(null, _glWindow, _glWindow, null, null);  // programmatic
         Assert.assertNotNull(_robot);
         AWTRobotUtil.requestFocus(_robot, _glWindow, false); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
@@ -134,17 +164,23 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
         
         _glWindow.destroy() ;
 
-        _displayThread.getDisplay().syncExec( new Runnable() {
-            public void run() {
-                _testShell.dispose() ;
-            }
-        } ) ;
-
-        _displayThread.interrupt() ;
-
         try {
-            _displayThread.join() ;
-        } catch( InterruptedException e ) {
+            _display.syncExec(new Runnable() {
+               public void run() {
+                _composite.dispose();
+                _shell.dispose();
+               }});
+            
+            synchronized(_displayThread) {
+                _displayThread.shallStop = true;
+                while( _displayThread.isInit && _displayThread.isAlive() ) {
+                    _displayThread.wait();
+                }
+            }
+        }
+        catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
         }
     }
 

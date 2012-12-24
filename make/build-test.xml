@@ -587,6 +587,7 @@
             <batchtest todir="${results.test}">
               <fileset dir="${classes}">
                   <include name="${java.dir.junit}/**/newt/**/Test*AWT*"/>
+                  <!--include name="${java.dir.junit}/**/newt/**/TestNewtEventModifiers*AWT*"/-->
                   <exclude name="**/*$$*"/>
               </fileset>
               <formatter usefile="false" type="brief"/>

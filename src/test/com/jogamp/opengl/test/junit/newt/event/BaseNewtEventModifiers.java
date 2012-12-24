@@ -174,14 +174,6 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             }
         }
 
-        public synchronized void mouseClicked( com.jogamp.newt.event.MouseEvent event ) {
-            _eventCount++;
-            if( _debug ) {
-                _debugPrintStream.println( "MouseClicked     "+_eventCount+": "+event);
-            }            
-            _checkModifiers( event ) ;
-        }
-
         public synchronized void mousePressed( com.jogamp.newt.event.MouseEvent event ) {
             _eventCount++;
             if( _debug ) {
@@ -198,22 +190,6 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             _checkModifiers( event ) ;
         }
 
-        public synchronized void mouseEntered( com.jogamp.newt.event.MouseEvent event ) {
-            _eventCount++;
-            if( _debug ) {
-                _debugPrintStream.println( "MouseEntered     "+_eventCount+": "+event);
-            }            
-            _checkModifiers( event ) ;
-        }
-        
-        public synchronized void mouseExited( com.jogamp.newt.event.MouseEvent event ) {
-            _eventCount++;
-            if( _debug ) {
-                _debugPrintStream.println( "MouseExited      "+_eventCount+": "+event);
-            }            
-            _checkModifiers( event ) ;
-        }
-
         public synchronized void mouseDragged( com.jogamp.newt.event.MouseEvent event ) {
             _eventCount++;
             if( _debug ) {
@@ -222,6 +198,10 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             _checkModifiers( event ) ;
         }
 
+        //
+        // IGNORED 
+        // 
+        
         public synchronized void mouseMoved( com.jogamp.newt.event.MouseEvent event ) {    
             // Ignored, since mouse MOVE doesn't hold mouse button, we look for DRAGGED!
             // _eventCount++;
@@ -231,13 +211,39 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             // _checkModifiers( event ) ;
         }
         
-        public synchronized void mouseWheelMoved( com.jogamp.newt.event.MouseEvent event ) {
-            _eventCount++;
+        public synchronized void mouseClicked( com.jogamp.newt.event.MouseEvent event ) {
+            // Ignored, since we look for PRESS/RELEASE only!
+            // _eventCount++;
             if( _debug ) {
-                _debugPrintStream.println( "MouseWheeleMoved "+_eventCount+": "+event);
+                _debugPrintStream.println( "MouseClicked      ignored: "+event);
             }            
-            _checkModifiers( event ) ;
+            // _checkModifiers( event ) ;
         }
+
+        public synchronized void mouseWheelMoved( com.jogamp.newt.event.MouseEvent event ) {
+            // _eventCount++;
+            if( _debug ) {
+                _debugPrintStream.println( "MouseWheeleMoved  ignored: "+event);
+            }            
+            // _checkModifiers( event ) ;
+        }
+        
+        public synchronized void mouseEntered( com.jogamp.newt.event.MouseEvent event ) {
+            // _eventCount++;
+            if( _debug ) {
+                _debugPrintStream.println( "MouseEntered      ignored: "+event);
+            }            
+            // _checkModifiers( event ) ;
+        }
+        
+        public synchronized void mouseExited( com.jogamp.newt.event.MouseEvent event ) {
+            // _eventCount++;
+            if( _debug ) {
+                _debugPrintStream.println( "MouseExited       ignored: "+event);
+            }            
+            // _checkModifiers( event ) ;
+        }
+
     }
 
     ////////////////////////////////////////////////////////////////////////////
