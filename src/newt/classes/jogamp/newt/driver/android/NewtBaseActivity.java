@@ -234,7 +234,7 @@ public class NewtBaseActivity extends Activity {
        if( isDelegatedActivity() ) {
            return getActivity().getWindow();
        } else {
-           return getWindow();
+           return super.getWindow();
        }
    }
    
