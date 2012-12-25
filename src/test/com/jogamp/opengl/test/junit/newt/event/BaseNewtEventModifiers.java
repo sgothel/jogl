@@ -33,9 +33,7 @@ import java.util.ArrayList ;
 
 import javax.media.opengl.GLProfile ;
 
-import org.junit.After ;
 import org.junit.Assert ;
-import org.junit.Before ;
 import org.junit.BeforeClass ;
 import org.junit.Test ;
 
@@ -64,7 +62,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
     protected static final int MS_ROBOT_KEY_PRESS_DELAY = 50 ;
     protected static final int MS_ROBOT_KEY_RELEASE_DELAY = 50 ;
-    protected static final int MS_ROBOT_MOUSE_MOVE_DELAY = 100 ;
+    protected static final int MS_ROBOT_MOUSE_MOVE_DELAY = 200 ;
     
     protected static final int MS_ROBOT_AUTO_DELAY = 50 ; 
     protected static final int MS_ROBOT_POST_TEST_DELAY = 100;
@@ -320,22 +318,6 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     }
 
     ////////////////////////////////////////////////////////////////////////////
-
-    @Before
-    public void baseBeforeTest() throws Exception {
-        
-        _testMouseListener.setModifierCheckEnabled( false ) ;
-        _robot.setAutoDelay( MS_ROBOT_AUTO_DELAY ) ;
-
-        // Make sure all the buttons and modifier keys are released.
-
-        _releaseModifiers() ;
-        _escape() ;
-
-        _testMouseListener.setModifierCheckEnabled( true ) ;
-    }
-    
-    ////////////////////////////////////////////////////////////////////////////
     // Following both methods are mandatory to deal with SWT's requirement
     // to run the SWT event dispatch on the TK thread - which must be the main thread on OSX.
     // We spawn off the actual test-action into another thread,
@@ -348,19 +330,38 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         } catch (InterruptedException e) { }        
     }
     
-    private void execOffThreadWithOnThreadEventDispatch(Runnable testAction) {
+    private void execOffThreadWithOnThreadEventDispatch(Runnable testAction) throws Exception {
+        _testMouseListener.setModifierCheckEnabled( false ) ;        
+        _robot.setAutoDelay( MS_ROBOT_AUTO_DELAY ) ;
+        {        
+            // Make sure all the buttons and modifier keys are released.
+            _releaseModifiers() ;
+            _escape() ;
+            eventDispatch(); eventDispatch(); eventDispatch();
+            Thread.sleep( MS_ROBOT_POST_TEST_DELAY ) ;
+            eventDispatch(); eventDispatch(); eventDispatch();
+        }
+        _testMouseListener.setModifierCheckEnabled( true ) ;
+        
         Throwable throwable = null;
         final Object sync = new Object();
-        final RunnableTask rt = new RunnableTask( testAction, sync, true ); 
-        new Thread(rt, "Test-Thread").start();
-        while( !rt.isExecuted() && null == throwable ) {
-            eventDispatch();
-        }
-        if(null==throwable) {
-            throwable = rt.getThrowable();
-        }
-        if(null!=throwable) {
-            throw new RuntimeException(throwable);
+        final RunnableTask rt = new RunnableTask( testAction, sync, true );
+        try {
+            new Thread(rt, "Test-Thread").start();
+            while( !rt.isExecuted() && null == throwable ) {
+                eventDispatch();
+            }
+            if(null==throwable) {
+                throwable = rt.getThrowable();
+            }
+            if(null!=throwable) {
+                throw new RuntimeException(throwable);
+            }
+        } finally {        
+            _testMouseListener.setModifierCheckEnabled( false ) ;            
+            eventDispatch(); eventDispatch(); eventDispatch();
+            Thread.sleep( MS_ROBOT_POST_TEST_DELAY ) ;
+            eventDispatch(); eventDispatch(); eventDispatch();
         }
     }
     
@@ -676,18 +677,6 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
     ////////////////////////////////////////////////////////////////////////////
 
-    @After
-    public void baseAfterTest() throws Exception {
-
-        _testMouseListener.setModifierCheckEnabled( false ) ;
-        
-        Thread.sleep( 500 ) ;
-        
-        _robot.setAutoDelay( MS_ROBOT_POST_TEST_DELAY ) ;
-    }
-    
-    ////////////////////////////////////////////////////////////////////////////
-
     public static void baseAfterClass() throws Exception {
 
         // Make sure all modifiers are released, otherwise the user's
@@ -695,6 +684,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
         _releaseModifiers() ;
         _escape() ;
+        Thread.sleep( MS_ROBOT_POST_TEST_DELAY ) ;
     }
 
     ////////////////////////////////////////////////////////////////////////////
