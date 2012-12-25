@@ -34,12 +34,12 @@ import java.util.ArrayList ;
 import javax.media.opengl.GLProfile ;
 
 import org.junit.After ;
-import org.junit.AfterClass ;
 import org.junit.Assert ;
 import org.junit.Before ;
 import org.junit.BeforeClass ;
 import org.junit.Test ;
 
+import com.jogamp.common.util.RunnableTask;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.opengl.test.junit.util.UITestCase ;
 
@@ -59,18 +59,18 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     protected static final int TEST_FRAME_WIDTH = 400 ;
     protected static final int TEST_FRAME_HEIGHT = 400 ;
 
-    private static final int INITIAL_MOUSE_X = TEST_FRAME_X + ( TEST_FRAME_WIDTH / 2 ) ;
-    private static final int INITIAL_MOUSE_Y = TEST_FRAME_Y + ( TEST_FRAME_HEIGHT / 2 ) ;
+    protected static final int INITIAL_MOUSE_X = TEST_FRAME_X + ( TEST_FRAME_WIDTH / 2 ) ;
+    protected static final int INITIAL_MOUSE_Y = TEST_FRAME_Y + ( TEST_FRAME_HEIGHT / 2 ) ;
 
-    private static final int MS_ROBOT_KEY_PRESS_DELAY = 50 ;
-    private static final int MS_ROBOT_KEY_RELEASE_DELAY = 50 ;
-    private static final int MS_ROBOT_MOUSE_MOVE_DELAY = 100 ;
+    protected static final int MS_ROBOT_KEY_PRESS_DELAY = 50 ;
+    protected static final int MS_ROBOT_KEY_RELEASE_DELAY = 50 ;
+    protected static final int MS_ROBOT_MOUSE_MOVE_DELAY = 100 ;
     
-    private static final int MS_ROBOT_AUTO_DELAY = 50 ; 
-    private static final int MS_ROBOT_POST_TEST_DELAY = 100;
+    protected static final int MS_ROBOT_AUTO_DELAY = 50 ; 
+    protected static final int MS_ROBOT_POST_TEST_DELAY = 100;
     
-    private static final boolean _debug = true ;
-    private static PrintStream _debugPrintStream = System.err ;
+    protected static final boolean _debug = true ;
+    protected static PrintStream _debugPrintStream = System.err ;
     
     ////////////////////////////////////////////////////////////////////////////
     
@@ -336,6 +336,35 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     }
     
     ////////////////////////////////////////////////////////////////////////////
+    // Following both methods are mandatory to deal with SWT's requirement
+    // to run the SWT event dispatch on the TK thread - which must be the main thread on OSX.
+    // We spawn off the actual test-action into another thread,
+    // while dispatching the events until the test-action is completed.
+    // YES: This is sort of ideal - NOT :) 
+    
+    protected void eventDispatch() { 
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) { }        
+    }
+    
+    private void execOffThreadWithOnThreadEventDispatch(Runnable testAction) {
+        Throwable throwable = null;
+        final Object sync = new Object();
+        final RunnableTask rt = new RunnableTask( testAction, sync, true ); 
+        new Thread(rt, "Test-Thread").start();
+        while( !rt.isExecuted() && null == throwable ) {
+            eventDispatch();
+        }
+        if(null==throwable) {
+            throwable = rt.getThrowable();
+        }
+        if(null!=throwable) {
+            throw new RuntimeException(throwable);
+        }
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////
 
     // The approach on all these tests is to tell the test mouse listener what
     // modifiers we think it should receive.  Then when the events are delivered
@@ -357,17 +386,32 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
     @Test
     public void testSingleButtonPressAndRelease() throws Exception {
-        _doSingleButtonPressAndRelease( 0, 0 ) ;
+        execOffThreadWithOnThreadEventDispatch(new Runnable() { 
+            public void run() { 
+                try { 
+                    _doSingleButtonPressAndRelease( 0, 0 ); 
+                } catch (Exception e) { throw new RuntimeException(e); } 
+            } } );
     }
 
     @Test
     public void testSingleButtonPressAndReleaseWithShift() throws Exception {
-        _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_SHIFT, java.awt.event.InputEvent.SHIFT_DOWN_MASK ) ;
+        execOffThreadWithOnThreadEventDispatch(new Runnable() { 
+            public void run() { 
+                try { 
+                    _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_SHIFT, java.awt.event.InputEvent.SHIFT_DOWN_MASK ) ;
+                } catch (Exception e) { throw new RuntimeException(e); } 
+            } } );
     }
 
     @Test
     public void testSingleButtonPressAndReleaseWithCtrl() throws Exception {
-        _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_CONTROL, java.awt.event.InputEvent.CTRL_DOWN_MASK ) ;
+        execOffThreadWithOnThreadEventDispatch(new Runnable() { 
+            public void run() { 
+                try { 
+                    _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_CONTROL, java.awt.event.InputEvent.CTRL_DOWN_MASK ) ;
+                } catch (Exception e) { throw new RuntimeException(e); } 
+            } } );
     }
 
     /**
@@ -375,12 +419,22 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
      * so it's probably best to leave them commented out.    
         @Test
         public void testSingleButtonPressAndReleaseWithMeta() throws Exception {
-            _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_META, java.awt.event.InputEvent.META_DOWN_MASK ) ;
+            execOffThreadWithOnThreadEventDispatch(new Runnable() { 
+                public void run() { 
+                    try { 
+                        _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_META, java.awt.event.InputEvent.META_DOWN_MASK ) ;
+                    } catch (Exception e) { throw new RuntimeException(e); } 
+                } } );
         }
     
         @Test
         public void testSingleButtonPressAndReleaseWithAlt() throws Exception {
-            _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_ALT, java.awt.event.InputEvent.ALT_DOWN_MASK ) ;
+            execOffThreadWithOnThreadEventDispatch(new Runnable() { 
+                public void run() { 
+                    try { 
+                        _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_ALT, java.awt.event.InputEvent.ALT_DOWN_MASK ) ;
+                    } catch (Exception e) { throw new RuntimeException(e); } 
+                } } );
         }
      */
 
@@ -392,7 +446,12 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
      * enough to not let this modifier slip through (?).
         @Test
         public void testSingleButtonPressAndReleaseWithAltGraph() throws Exception {
-            _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_ALT_GRAPH, java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK ) ;
+            execOffThreadWithOnThreadEventDispatch(new Runnable() { 
+                public void run() { 
+                    try { 
+                        _doSingleButtonPressAndRelease( java.awt.event.KeyEvent.VK_ALT_GRAPH, java.awt.event.InputEvent.ALT_GRAPH_DOWN_MASK ) ;
+                    } catch (Exception e) { throw new RuntimeException(e); } 
+                } } );
         }
      */
 
@@ -400,17 +459,32 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
     @Test
     public void testHoldOneButtonAndPressAnother() throws Exception {
-        _doHoldOneButtonAndPressAnother( 0, 0 ) ;
+        execOffThreadWithOnThreadEventDispatch(new Runnable() { 
+            public void run() { 
+                try { 
+                    _doHoldOneButtonAndPressAnother( 0, 0 ) ;
+                } catch (Exception e) { throw new RuntimeException(e); } 
+            } } );
     }
     
     @Test
     public void testPressAllButtonsInSequence() throws Exception {
-        _doPressAllButtonsInSequence( 0, 0 ) ;
+        execOffThreadWithOnThreadEventDispatch(new Runnable() { 
+            public void run() { 
+                try { 
+                    _doPressAllButtonsInSequence( 0, 0 ) ;
+                } catch (Exception e) { throw new RuntimeException(e); } 
+            } } );
     }
 
     @Test
     public void testSingleButtonClickAndDrag() throws Exception {
-        _doSingleButtonClickAndDrag( 0, 0 ) ;
+        execOffThreadWithOnThreadEventDispatch(new Runnable() { 
+            public void run() { 
+                try { 
+                    _doSingleButtonClickAndDrag( 0, 0 ) ;
+                } catch (Exception e) { throw new RuntimeException(e); } 
+            } } );
     }
 
     ////////////////////////////////////////////////////////////////////////////

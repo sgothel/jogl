@@ -287,7 +287,24 @@ public class AWTRobotUtil {
             System.err.println("requestFocus: click, d: "+d+" ms");
         }
     }
-
+    
+    public static void requestFocus(Robot robot, Object obj, int x, int y) 
+        throws AWTException, InterruptedException, InvocationTargetException {
+        
+        final boolean idling = robot.isAutoWaitForIdle();
+        final int mouseButton = java.awt.event.InputEvent.BUTTON1_MASK;
+        robot.mouseMove( x, y );
+        if( idling ) {
+            robot.waitForIdle();
+        } else {
+            try { Thread.sleep(50); } catch (InterruptedException e) { }
+        }
+        robot.mousePress(mouseButton);
+        robot.mouseRelease(mouseButton);
+        final int d = getClickTimeout(obj) + 1;
+        robot.delay( d );
+    }
+    
     public static boolean hasFocus(Object obj) {
         if(obj instanceof Component) {
             final Component comp = (Component) obj;

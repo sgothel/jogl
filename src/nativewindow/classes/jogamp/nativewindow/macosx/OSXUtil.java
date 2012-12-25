@@ -32,6 +32,8 @@ import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 
+import com.jogamp.common.util.RunnableTask;
+
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.nativewindow.ToolkitProperties;
@@ -154,11 +156,42 @@ public class OSXUtil implements ToolkitProperties {
         DestroyCALayer0(caLayer);    
     }
     
+    /**
+     * Run on OSX UI main thread.
+     * <p> 
+     * 'waitUntilDone' is implemented on Java site via lock/wait on {@link RunnableTask} to not freeze OSX main thread.
+     * </p>
+     * 
+     * @param waitUntilDone
+     * @param runnable
+     */
     public static void RunOnMainThread(boolean waitUntilDone, Runnable runnable) {
-        if(IsMainThread0()) {
+        if( IsMainThread0() ) {
             runnable.run(); // don't leave the JVM
         } else {
-            RunOnMainThread0(waitUntilDone, runnable);
+            if( waitUntilDone ) {
+                // Utilize Java side lock/wait and simply pass the Runnable async to OSX main thread,
+                // otherwise we may freeze the OSX main thread.            
+                Throwable throwable = null;
+                final Object sync = new Object();
+                final RunnableTask rt = new RunnableTask( runnable, sync, true ); 
+                synchronized(sync) {
+                    RunOnMainThread0(rt);
+                    try {
+                        sync.wait();
+                    } catch (InterruptedException ie) {
+                        throwable = ie;
+                    }
+                    if(null==throwable) {
+                        throwable = rt.getThrowable();
+                    }
+                    if(null!=throwable) {
+                        throw new RuntimeException(throwable);
+                    }
+                }                
+            } else {
+                RunOnMainThread0(runnable);
+            }
         }
     }
     
@@ -205,7 +238,7 @@ public class OSXUtil implements ToolkitProperties {
     private static native void AddCASublayer0(long rootCALayer, long subCALayer);
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
     private static native void DestroyCALayer0(long caLayer);
-    private static native void RunOnMainThread0(boolean waitUntilDone, Runnable runnable);
+    private static native void RunOnMainThread0(Runnable runnable);
     private static native boolean IsMainThread0();
     private static native int GetScreenRefreshRate0(int scrn_idx);
 }

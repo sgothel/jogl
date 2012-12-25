@@ -480,7 +480,7 @@ public class SWTAccessor {
     *   <li>Mac OSX
     *   <ul>
     *     <!--li>AWT EDT: In case AWT is available, the AWT EDT is the OSX UI main thread</li-->
-    *     <li><i>Main Thread</i>: Run on OSX UI main thread.</li>
+    *     <li><i>Main Thread</i>: Run on OSX UI main thread. 'wait' is implemented on Java site via lock/wait on {@link RunnableTask} to not freeze OSX main thread.</li>
     *   </ul></li>
     *   <li>Linux, Windows, ..
     *   <ul>

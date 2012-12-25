@@ -59,69 +59,42 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
     private static Shell _shell = null;
     private static Composite _composite = null;
     private static GLWindow _glWindow ;
-    private static DisplayThread _displayThread ;
 
     ////////////////////////////////////////////////////////////////////////////
-
-    private static class DisplayThread extends Thread
-    {
-        public volatile boolean shallStop = false;
-        public volatile boolean isInit = false;
-        
-        public DisplayThread()
-        {
-            super( "SWT Display Thread" ) ;
-        }
-
-        public void run() {
-            
-            synchronized(this) {
-                SWTAccessor.invoke(true, new Runnable() {
-                    public void run() {        
-                        _display = new Display();
-                        Assert.assertNotNull( _display );
-                    }});
-                
-                isInit = true;
-                this.notifyAll();
-            }
-            
-            while( !_display.isDisposed() && !shallStop && isInterrupted() == false ) {
-                if( !_display.readAndDispatch() ) {
-                    try {
-                        Thread.sleep(10);
-                    } catch (InterruptedException e) { }
-                }
-            }
-            
-            synchronized(this) {
-                try {
-                    if(!_display.isDisposed()) {
-                        SWTAccessor.invoke(true, new Runnable() {
-                            public void run() {        
-                                _display.dispose();
-                            }});
-                    }
-                } finally {
-                    isInit = false;
-                    this.notifyAll();
-                }
-            }
-        }
+    
+    protected static void eventDispatch2xImpl() {
+        eventDispatchImpl();
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) { }
+        eventDispatchImpl();
     }
-
+    
+    protected static void eventDispatchImpl() {
+        if( !_display.isDisposed() ) {
+            if( !_display.readAndDispatch() ) {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) { }
+            }
+        }                
+    }
+    
+    @Override
+    protected void eventDispatch() {
+        eventDispatchImpl();
+    }
+    
     ////////////////////////////////////////////////////////////////////////////
 
     @BeforeClass
     public static void beforeClass() throws Exception {
 
-        _displayThread = new DisplayThread() ;
-        synchronized(_displayThread) {
-            _displayThread.start() ;
-            while(!_displayThread.isInit) {
-                _displayThread.wait();
-            }
-        }
+        SWTAccessor.invoke(true, new Runnable() {
+            public void run() {  
+                _display = new Display();
+            }});
+        Assert.assertNotNull( _display );
         
         _display.syncExec(new Runnable() {
             public void run() {        
@@ -149,10 +122,16 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
            }
         });
         
-        AWTRobotUtil.assertRequestFocusAndWait(null, _glWindow, _glWindow, null, null);  // programmatic
+        // no AWT idling, may deadlock on OSX!
         Assert.assertNotNull(_robot);
-        AWTRobotUtil.requestFocus(_robot, _glWindow, false); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
-
+        _robot.setAutoWaitForIdle( false ) ;
+        
+        // no waiting for results ..
+        AWTRobotUtil.requestFocus(null, _glWindow, false); // programmatic
+        eventDispatch2xImpl();
+        AWTRobotUtil.requestFocus(_robot, _glWindow, INITIAL_MOUSE_X, INITIAL_MOUSE_Y);
+        eventDispatch2xImpl();
+        
         _glWindow.addMouseListener( _testMouseListener ) ;
     }
 
@@ -171,12 +150,12 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
                 _shell.dispose();
                }});
             
-            synchronized(_displayThread) {
-                _displayThread.shallStop = true;
-                while( _displayThread.isInit && _displayThread.isAlive() ) {
-                    _displayThread.wait();
-                }
-            }
+            if(!_display.isDisposed()) {
+                SWTAccessor.invoke(true, new Runnable() {
+                    public void run() {        
+                        _display.dispose();
+                    }});
+            }            
         }
         catch( Throwable throwable ) {
             throwable.printStackTrace();

@@ -519,13 +519,18 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
 {
     int shallBeDetached = 0;
     JNIEnv* env = NativewindowCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
+    DBG_PRINT("MainRunnable.0 env: %d\n", (int)(NULL!=env));
     if(NULL!=env) {
+        DBG_PRINT("MainRunnable.1.0\n");
         (*env)->CallVoidMethod(env, runnableObj, runnableRunID);
+        DBG_PRINT("MainRunnable.1.1\n");
 
         if (shallBeDetached) {
+            DBG_PRINT("MainRunnable.1.2\n");
             (*jvmHandle)->DetachCurrentThread(jvmHandle);
         }
     }
+    DBG_PRINT("MainRunnable.X\n");
 }
 
 @end
@@ -537,14 +542,16 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
  * Signature: (ZLjava/lang/Runnable;)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RunOnMainThread0
-  (JNIEnv *env, jclass unused, jboolean jwait, jobject runnable)
+  (JNIEnv *env, jclass unused, jobject runnable)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+
+    DBG_PRINT( "RunOnMainThread0: isMainThread %d, NSApp %d, NSApp-isRunning %d\n", 
+        (int)([NSThread isMainThread]), (int)(NULL!=NSApp), (int)([NSApp isRunning]));
 
     if ( NO == [NSThread isMainThread] ) {
         jobject runnableGlob = (*env)->NewGlobalRef(env, runnable);
 
-        BOOL wait = (JNI_TRUE == jwait) ? YES : NO;
         JavaVM *jvmHandle = NULL;
         int jvmVersion = 0;
 
@@ -554,14 +561,18 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RunOnMainThread0
             jvmVersion = (*env)->GetVersion(env);
         }
 
+        DBG_PRINT( "RunOnMainThread0.1.0\n");
         MainRunnable * mr = [[MainRunnable alloc] initWithRunnable: runnableGlob jvmHandle: jvmHandle jvmVersion: jvmVersion];
-        [mr performSelectorOnMainThread:@selector(jRun) withObject:nil waitUntilDone:wait];
+        [mr performSelectorOnMainThread:@selector(jRun) withObject:nil waitUntilDone:NO];
         [mr release];
+        DBG_PRINT( "RunOnMainThread0.1.1\n");
 
         (*env)->DeleteGlobalRef(env, runnableGlob);
     } else {
+        DBG_PRINT( "RunOnMainThread0.2\n");
         (*env)->CallVoidMethod(env, runnable, runnableRunID);
     }
+    DBG_PRINT( "RunOnMainThread0.X\n");
 
     [pool release];
 }
@@ -620,7 +631,7 @@ JNIEXPORT jint JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetScreenRefreshR
     DBG_PRINT("GetScreenRefreshRate.0: screen %p\n", (void *)screen);
     if(NULL != screen) {
         CGDirectDisplayID display = NewtScreen_getCGDirectDisplayIDByNSScreen(screen);
-        DBG_PRINT("GetScreenRefreshRate.1: display %p\n", (void *)display);
+        DBG_PRINT("GetScreenRefreshRate.1: display %p\n", (void *)(intptr_t)display);
         if(0 != display) {
             CFDictionaryRef mode = CGDisplayCurrentMode(display);
             DBG_PRINT("GetScreenRefreshRate.2: mode %p\n", (void *)mode);
@@ -633,7 +644,7 @@ JNIEXPORT jint JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetScreenRefreshR
     if(0 == res) {
         res = 60; // default .. (experienced on OSX 10.6.8)
     }
-    DBG_PRINT(stderr, "GetScreenRefreshRate.X: %d\n", res);
+    DBG_PRINT(stderr, "GetScreenRefreshRate.X: %d\n", (int)res);
     // [pool release];
     JNF_COCOA_EXIT(env);
     return res;
