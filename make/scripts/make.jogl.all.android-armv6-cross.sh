@@ -16,7 +16,7 @@ export TARGET_ADB_PORT=5555
 export TARGET_ROOT=/data/projects
 export TARGET_ANT_HOME=/usr/share/ant
 
-echo ANDROID_SDK_HOME $ANDROID_SDK_HOME
+echo ANDROID_HOME $ANDROID_HOME
 echo NDK_ROOT $NDK_ROOT
 
 if [ -z "$NDK_ROOT" ] ; then
@@ -48,22 +48,22 @@ elif [ ! -e $NDK_ROOT ] ; then
 fi
 export NDK_ROOT
 
-if [ -z "$ANDROID_SDK_HOME" ] ; then
+if [ -z "$ANDROID_HOME" ] ; then
     if [ -e /usr/local/android-sdk-linux_x86 ] ; then
-        ANDROID_SDK_HOME=/usr/local/android-sdk-linux_x86
+        ANDROID_HOME=/usr/local/android-sdk-linux_x86
     elif [ -e /opt-linux-x86/android-sdk-linux_x86 ] ; then
-        ANDROID_SDK_HOME=/opt-linux-x86/android-sdk-linux_x86
+        ANDROID_HOME=/opt-linux-x86/android-sdk-linux_x86
     elif [ -e /opt/android-sdk-linux_x86 ] ; then
-        ANDROID_SDK_HOME=/opt/android-sdk-linux_x86
+        ANDROID_HOME=/opt/android-sdk-linux_x86
     else 
-        echo ANDROID_SDK_HOME is not specified and does not exist in default locations
+        echo ANDROID_HOME is not specified and does not exist in default locations
         exit 1
     fi
-elif [ ! -e $ANDROID_SDK_HOME ] ; then
-    echo ANDROID_SDK_HOME $ANDROID_SDK_HOME does not exist
+elif [ ! -e $ANDROID_HOME ] ; then
+    echo ANDROID_HOME $ANDROID_HOME does not exist
     exit 1
 fi
-export ANDROID_SDK_HOME
+export ANDROID_HOME
 
 export ANDROID_VERSION=9
 export SOURCE_LEVEL=1.6
@@ -78,7 +78,7 @@ export NDK_TOOLCHAIN_ROOT=$NDK_ROOT/toolchains/${TARGET_TRIPLE}-${GCC_VERSION}/p
 export TARGET_PLATFORM_ROOT=${NDK_ROOT}/platforms/android-${ANDROID_VERSION}/arch-arm
 
 # Need to add toolchain bins to the PATH. 
-export PATH="$NDK_TOOLCHAIN_ROOT/$TARGET_TRIPLE/bin:$ANDROID_SDK_HOME/platform-tools:$PATH"
+export PATH="$NDK_TOOLCHAIN_ROOT/$TARGET_TRIPLE/bin:$ANDROID_HOME/platform-tools:$PATH"
 
 export GLUEGEN_CPPTASKS_FILE=`pwd`/../../gluegen/make/lib/gluegen-cpptasks-android-armv6.xml
 
