@@ -166,6 +166,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
     if ( realized != realizedArg ) { // volatile: OK (locked below)
         if(DEBUG) {
             System.err.println(getThreadName() + ": setRealized: "+getClass().getSimpleName()+" "+realized+" -> "+realizedArg);
+            Thread.dumpStack();
         }
         AbstractGraphicsDevice aDevice = surface.getGraphicsConfiguration().getScreen().getDevice();
         if(realizedArg) {

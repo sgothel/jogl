@@ -580,14 +580,14 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         if( Beans.isDesignTime() || !isDisplayable() || 0 >= _drawable.getWidth() || 0 >= _drawable.getHeight() ) {
             return false; // early out!
         }
-        // make sure drawable realization happens on AWT EDT, due to AWTTree lock
-        AWTEDTExecutor.singleton.invoke(getTreeLock(), true, setRealizedOnEDTAction);
-        final boolean res = _drawable.isRealized();
+        // Make sure drawable realization happens on AWT-EDT and only there. Consider the AWTTree lock!
+        final boolean res0 = AWTEDTExecutor.singleton.invoke(getTreeLock(), false /* allowOnNonEDT */, true /* wait */, setRealizedOnEDTAction);
+        final boolean res1 = res0 && _drawable.isRealized();
         if(DEBUG) {
-            System.err.println(getThreadName()+": Realized Drawable: "+res+", "+_drawable.toString());
+            System.err.println(getThreadName()+": Realized Drawable: invoked "+res0+", probedIsRealized "+res1+", "+_drawable.toString());
             Thread.dumpStack();
         }
-        return res;
+        return res1;
     }
     return false;
   }
@@ -879,7 +879,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                           ",\n\thandle    0x"+Long.toHexString(getHandle())+
                           ",\n\tDrawable size "+dw+"x"+dh+
                           ",\n\tAWT pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
-                          ",\n\tvisible "+isVisible()+
+                          ",\n\tvisible "+isVisible()+", displayable "+isDisplayable()+
                           ",\n\t"+awtConfig+"]";
   }
 
@@ -949,7 +949,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                 validateGLDrawable(); // immediate attempt to recreate the drawable
             } else {        
                 if(null != awtConfig) {
-                    AWTEDTExecutor.singleton.invoke(getTreeLock(), true, disposeAbstractGraphicsDeviceActionOnEDT);
+                    AWTEDTExecutor.singleton.invoke(getTreeLock(), true /* allowOnNonEDT */, true /* wait */, disposeAbstractGraphicsDeviceActionOnEDT);
                 }
                 awtConfig=null;
             }
