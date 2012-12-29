@@ -45,7 +45,19 @@ import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
 
-public class TestGLUnitsNEWT extends UITestCase {
+/**
+ * Some GL state values are broken w/ Mesa 9.0 w/ multiple different context.
+ * <p>
+ * This bug lies within Mesa3D (any renderer) and is fixed in 
+ * commit 8dc79ae7d73cf6711c2182ff9a5d37ef6c989d23.
+ * </p>
+ * <p>
+ * Mesa3D Version 9.0 still exposes this bug, 
+ * where 9.0.1 has it fixed w/ above commit.
+ * </p>
+ * <https://jogamp.org/bugzilla/show_bug.cgi?id=651>
+ */
+public class TestGLMesaBug651NEWT extends UITestCase {
     static int width, height;
 
     @BeforeClass
@@ -205,6 +217,6 @@ public class TestGLUnitsNEWT extends UITestCase {
     }
     
     public static void main(String args[]) {
-        org.junit.runner.JUnitCore.main(TestGLUnitsNEWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGLMesaBug651NEWT.class.getName());
     }
 }

@@ -37,7 +37,7 @@ package com.jogamp.opengl;
  */
 public class GLRendererQuirks {
     /** 
-     * Crashes XServer when using double buffered PBuffer with:
+     * Crashes XServer when using double buffered PBuffer with GL_RENDERER:
      * <ul>
      *  <li>Mesa DRI Intel(R) Sandybridge Desktop</li>
      *  <li>Mesa DRI Intel(R) Ivybridge Mobile - 3.0 Mesa 8.0.4</li>
@@ -62,11 +62,23 @@ public class GLRendererQuirks {
     /** GLSL <code>discard</code> command leads to undefined behavior or won't get compiled if being used. Appears to happen on Nvidia Tegra2. FIXME: Constrain version. */
     public static final int GLSLBuggyDiscard = 5;
     
+    /** 
+     * Non compliant GL context, e.g. due to a buggy implementation rendering it not suitable for use.
+     * <p>
+     * Mesa >= 9.0 (?), Intel driver, OpenGL 3.1 compatibility context is not compliant: 
+     * <pre>
+     * GL_RENDERER: Mesa DRI Intel(R) Sandybridge Desktop 
+     * </pre>
+     * </p>
+     */
+    public static final int GLNonCompliant = 6;
+    
     /** Number of quirks known. */
-    public static final int COUNT = 6;
+    public static final int COUNT = 7;
     
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
-                                                          "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard"
+                                                          "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
+                                                          "GLNonCompliant"
                                                         };
 
     private final int _bitmask;
