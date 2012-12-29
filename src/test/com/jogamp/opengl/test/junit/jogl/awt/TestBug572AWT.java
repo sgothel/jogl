@@ -50,8 +50,28 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * Tests context creation + display on various kinds of Window implementations.
  */
 public class TestBug572AWT extends UITestCase {
+     static class Cleanup implements Runnable {
+        Window window;
+        
+        public Cleanup(Window w) {
+            window = w;
+        }
+        
+        public void run() {
+            System.err.println("cleaning up...");
+            window.setVisible(false);
+            try {
+                window.removeAll();
+            } catch (Throwable t) {
+                Assume.assumeNoException(t);
+                t.printStackTrace();
+            }
+            window.dispose();
+        }
+    }
 
-    protected void runTestGL() throws InterruptedException, InvocationTargetException {
+    @Test
+    public void test01RealizeGLCanvasOnAWTEDT() throws InterruptedException, InvocationTargetException {
         final Window window = new JFrame(this.getSimpleTestName(" - "));
         final GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());        
         final GLCanvas glCanvas = new GLCanvas(caps);
@@ -67,16 +87,18 @@ public class TestBug572AWT extends UITestCase {
         window.setSize(512, 512);
         window.validate();
 
-        window.setVisible(true);
+        // trigger realization on AWT-EDT, otherwise it won't immediatly ..
+        SwingUtilities.invokeAndWait(new Runnable() {
+            @Override
+            public void run() {
+                window.setVisible(true);
+            }            
+        } );
         System.err.println("XXXX-0 "+glCanvas.getDelegatedDrawable().isRealized()+", "+glCanvas);
         
-        // Immediately displayable after issuing initial setVisible(true) .. even not within AWT-EDT ?
+        // Immediately displayable after issuing initial setVisible(true) on AWT-EDT!
         Assert.assertTrue("GLCanvas didn't become displayable", glCanvas.isDisplayable());
         Assert.assertTrue("GLCanvas didn't become realized", glCanvas.isRealized());
-        
-        // Would be required if not immediately displayable ...   
-        // Assert.assertTrue("GLCanvas didn't become displayable and realized", AWTRobotUtil.waitForRealized(glCanvas, true));
-        // System.err.println("XXXX-1 "+glCanvas.getDelegatedDrawable().isRealized()+", "+glCanvas);
         
         // The AWT-EDT reshape/repaint events happen offthread later ..
         System.err.println("XXXX-1 reshapeCount "+snapshooter.getReshapeCount());
@@ -97,30 +119,58 @@ public class TestBug572AWT extends UITestCase {
         // After initial 'setVisible(true)' all AWT manipulation needs to be done
         // via the AWT EDT, according to the AWT spec.
 
-        Runnable cleanup = new Runnable() {
-            public void run() {
-                System.err.println("cleaning up...");
-                window.setVisible(false);
-                try {
-                    window.removeAll();
-                } catch (Throwable t) {
-                    Assume.assumeNoException(t);
-                    t.printStackTrace();
-                }
-                window.dispose();
-            }
-
-        };
-
         // AWT / Swing on EDT..
-        SwingUtilities.invokeAndWait(cleanup);
+        SwingUtilities.invokeAndWait(new Cleanup(window));
     }
 
     @Test
-    public void test01() throws InterruptedException, InvocationTargetException {
-        runTestGL();
-    }
+    public void test02RealizeGLCanvasOnCurrentThread() throws InterruptedException, InvocationTargetException {
+        final Window window = new JFrame(this.getSimpleTestName(" - "));
+        final GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());        
+        final GLCanvas glCanvas = new GLCanvas(caps);
+        final SnapshotGLEventListener snapshooter = new SnapshotGLEventListener();
+        snapshooter.setMakeSnapshotAlways(true);
+        glCanvas.addGLEventListener(new GearsES2());
+        glCanvas.addGLEventListener(snapshooter);
+        window.add(glCanvas);
 
+        // Revalidate size/layout.
+        // Always validate if component added/removed.
+        // Ensure 1st paint of GLCanvas will have a valid size, hence drawable gets created.
+        window.setSize(512, 512);
+        window.validate();
+
+        // trigger realization on non AWT-EDT, realization will happen at a later time ..
+        window.setVisible(true);
+        System.err.println("XXXX-0 "+glCanvas.getDelegatedDrawable().isRealized()+", "+glCanvas);
+        
+        // Wait until it's displayable after issuing initial setVisible(true) on current thread (non AWT-EDT)!
+        Assert.assertTrue("GLCanvas didn't become visible", AWTRobotUtil.waitForVisible(glCanvas, true));
+        Assert.assertTrue("GLCanvas didn't become realized", AWTRobotUtil.waitForRealized(glCanvas, true)); // implies displayable        
+        
+        // The AWT-EDT reshape/repaint events happen offthread later ..
+        System.err.println("XXXX-1 reshapeCount "+snapshooter.getReshapeCount());
+        System.err.println("XXXX-1 displayCount "+snapshooter.getDisplayCount());
+        
+        // Wait unitl AWT-EDT has issued reshape/repaint
+        for (int wait=0; wait<AWTRobotUtil.POLL_DIVIDER &&
+                         ( 0 == snapshooter.getReshapeCount() || 0 == snapshooter.getDisplayCount() ); 
+             wait++) {
+            Thread.sleep(AWTRobotUtil.TIME_SLICE);
+        }
+        System.err.println("XXXX-2 reshapeCount "+snapshooter.getReshapeCount());
+        System.err.println("XXXX-2 displayCount "+snapshooter.getDisplayCount());
+        
+        Assert.assertTrue("GLCanvas didn't reshape", snapshooter.getReshapeCount()>0);
+        Assert.assertTrue("GLCanvas didn't display", snapshooter.getDisplayCount()>0);
+        
+        // After initial 'setVisible(true)' all AWT manipulation needs to be done
+        // via the AWT EDT, according to the AWT spec.
+
+        // AWT / Swing on EDT..
+        SwingUtilities.invokeAndWait(new Cleanup(window));
+    }
+    
     public static void main(String args[]) {
         org.junit.runner.JUnitCore.main(TestBug572AWT.class.getName());
     }
