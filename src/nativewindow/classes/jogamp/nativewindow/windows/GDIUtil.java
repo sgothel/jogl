@@ -112,12 +112,22 @@ public class GDIUtil implements ToolkitProperties {
         return (Point) GetRelativeLocation0(src_win, dest_win, src_x, src_y);
     }
     
+    public static boolean IsUndecorated(long win) {
+        return IsUndecorated0(win);
+    }
+    
+    public static boolean IsChild(long win) {
+        return IsChild0(win);
+    }
+    
     public static native boolean CreateWindowClass(long hInstance, String clazzName, long wndProc);
     public static native boolean DestroyWindowClass(long hInstance, String className);
     
     private static native boolean initIDs0();
     private static native long getDummyWndProc0();  
     private static native Object GetRelativeLocation0(long src_win, long dest_win, int src_x, int src_y);
+    private static native boolean IsChild0(long win);
+    private static native boolean IsUndecorated0(long win);
   
     static native long CreateDummyWindow0(long hInstance, String className, String windowName, int x, int y, int width, int height);  
 }

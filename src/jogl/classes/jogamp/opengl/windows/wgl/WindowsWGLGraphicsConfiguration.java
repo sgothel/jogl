@@ -55,6 +55,7 @@ import com.jogamp.opengl.GLExtensions;
 
 import jogamp.nativewindow.windows.DWM_BLURBEHIND;
 import jogamp.nativewindow.windows.GDI;
+import jogamp.nativewindow.windows.GDIUtil;
 import jogamp.nativewindow.windows.MARGINS;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
 import jogamp.opengl.GLContextImpl;
@@ -170,13 +171,13 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
                                   " for device context " + toHexString(hdc) +
                                   ": error code " + GDI.GetLastError());
         }
-        if(!caps.isBackgroundOpaque()) {
+        if( !caps.isBackgroundOpaque() ) {
             final long hwnd = GDI.WindowFromDC(hdc);
             DWM_BLURBEHIND bb = DWM_BLURBEHIND.create();
-            bb.setDwFlags(GDI.DWM_BB_ENABLE);
-            bb.setFEnable(1);
+            bb.setDwFlags(GDI.DWM_BB_ENABLE| GDI.DWM_BB_TRANSITIONONMAXIMIZED);
+            bb.setFEnable( 1 );
             boolean ok = GDI.DwmEnableBlurBehindWindow(hwnd, bb);
-            if(ok) {
+            if( ok ) {
                 MARGINS m = MARGINS.create();
                 m.setCxLeftWidth(-1);
                 m.setCxRightWidth(-1);
@@ -185,7 +186,9 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
                 ok = GDI.DwmExtendFrameIntoClientArea(hwnd, m);
             }
             if(DEBUG) {
-                System.err.println("translucency enabled on wnd: 0x"+Long.toHexString(hwnd)+" - ok: "+ok);
+                final boolean isUndecorated = GDIUtil.IsUndecorated(hwnd);
+                final boolean isChild = GDIUtil.IsChild(hwnd);
+                System.err.println("translucency enabled on wnd: 0x"+Long.toHexString(hwnd)+" - isUndecorated "+isUndecorated+", isChild "+isChild+", ok: "+ok);
             }
         }
         if (DEBUG) {

@@ -97,14 +97,15 @@ function jrun() {
     #D_ARGS="-Djogl.debug.TraceGL -Djogl.debug.DebugGL -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.FBObject -Djogl.debug.GLContext -Djogl.debug.GLDrawable -Djogl.debug.GLCanvas -Dnewt.debug.Window"
     #D_ARGS="-Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.FBObject"
-    D_ARGS="-Djogl.debug.GLContext"
+    #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnativewindow.debug.GraphicsConfiguration"
+    D_ARGS="-Dnativewindow.debug.GraphicsConfiguration"
+    #D_ARGS="-Djogl.debug.GLContext"
     #D_ARGS="-Djogl.debug.GLContext.NoProfileAliasing"
     #D_ARGS="-Djogamp.debug=all"
     #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.GLCanvas"
-    #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnativewindow.debug.GraphicsConfiguration"
     #D_ARGS="-Djogl.debug.GLDrawable"
     #D_ARGS="-Djogl.fbo.force.none"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all -Djogamp.debug.Lock"
@@ -281,7 +282,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitchNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLPointsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug651NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOffscrnCapsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryOffscrnCapsNEWT $*
@@ -291,7 +292,6 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
 
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer01GLCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer02NewtCanvasAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableFactoryNEWT $*
@@ -303,11 +303,6 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableDeadlockAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461FBOSupersamplingSwingAWT
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
-
-#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cSwingAWT $*
-
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.glu.TestGluUnprojectFloatNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteWindow01NEWT $*
@@ -324,8 +319,6 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
-#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00bNEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
@@ -409,23 +402,13 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasAWT $*
 #testawtswt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasSWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cSwingAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02AWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04AWT $*
-#testawtswt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aSWT $*
-#testawtswt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04SWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentParentingAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestCloseNewtAWT
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1AWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES2NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.caps.TestTranslucencyNEWT $*
+testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestBug605FlippedImageNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestBug605FlippedImageAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.glsl.TestShaderCompilationBug459AWT
@@ -436,8 +419,26 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
 
 #testawt $*
 
-#testawtswt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04SWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrent01NEWT $*
+
+#
+# NEWT Parenting (w/ NEWT, AWT or SWT)
+#
+#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cSwingAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cAWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02AWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting03AWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04AWT $*
+#testawtswt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aSWT $*
+#testawtswt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04SWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentParentingAWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT $*
 
 #
 # Misc Utils

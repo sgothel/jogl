@@ -224,3 +224,29 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_windows_GDIUtil_GetRelativeLo
     return (*env)->NewObject(env, pointClz, pointCstr, (jint)dest.x, (jint)dest.y);
 }
 
+/*
+ * Class:     jogamp_nativewindow_windows_GDIUtil
+ * Method:    IsChild0
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_windows_GDIUtil_IsChild0
+  (JNIEnv *env, jclass unused, jlong jwin)
+{
+    HWND hwnd = (HWND) (intptr_t) jwin;
+    LONG style = GetWindowLong(hwnd, GWL_STYLE);
+    BOOL bIsChild = 0 != (style & WS_CHILD) ;
+    return bIsChild ? JNI_TRUE : JNI_FALSE;
+}
+
+/*
+ * Class:     jogamp_nativewindow_windows_GDIUtil
+ * Method:    IsUndecorated0
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_windows_GDIUtil_IsUndecorated0
+  (JNIEnv *env, jclass unused, jlong jwin)
+{
+    HWND hwnd = (HWND) (intptr_t) jwin;
+    LONG style = GetWindowLong(hwnd, GWL_STYLE);
+    BOOL bIsUndecorated = 0 != (style & (WS_CHILD|WS_POPUP)) ;
+    return bIsUndecorated ? JNI_TRUE : JNI_FALSE;
+}
+

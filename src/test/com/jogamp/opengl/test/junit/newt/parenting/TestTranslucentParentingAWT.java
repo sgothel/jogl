@@ -174,20 +174,12 @@ public class TestTranslucentParentingAWT extends UITestCase {
         }
     }
 
-    static int atoi(String a) {
-        int i=0;
-        try {
-            i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
-        return i;
-    }
-
     public static void main(String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
-                durationPerTest = atoi(args[++i]);
+                durationPerTest = MiscUtils.atol(args[++i], durationPerTest);
             } else if(args[i].equals("-wait")) {
-                waitAdd2nd = atoi(args[++i]);
+                waitAdd2nd = MiscUtils.atol(args[++i], waitAdd2nd);
             }
         }
         String tstname = TestTranslucentParentingAWT.class.getName();
