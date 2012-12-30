@@ -737,7 +737,7 @@ static RECT* UpdateInsets(JNIEnv *env, jobject window, HWND hwnd)
     {
         LONG style = GetWindowLong(hwnd, GWL_STYLE);
 
-        BOOL bIsUndecorated = (style & (WS_CHILD|WS_POPUP|WS_SYSMENU)) != 0;
+        BOOL bIsUndecorated = (style & (WS_CHILD|WS_POPUP)) != 0;
         if (!bIsUndecorated) {
             /* Get outer frame sizes. */
             if (style & WS_THICKFRAME) {
