@@ -8,6 +8,7 @@ import java.io.IOException;
  */
 abstract class ProgressiveOutputStream extends ByteArrayOutputStream {
 	private final int size;
+	private long countFlushed = 0;
 
 	public ProgressiveOutputStream(int size) {
 		this.size = size;
@@ -60,6 +61,7 @@ abstract class ProgressiveOutputStream extends ByteArrayOutputStream {
 			if (nb == 0)
 				return;
 			flushBuffer(buf, nb);
+			countFlushed += nb;
 			int bytesleft = count - nb;
 			count = bytesleft;
 			if (bytesleft > 0)
@@ -67,5 +69,9 @@ abstract class ProgressiveOutputStream extends ByteArrayOutputStream {
 		}
 	}
 
-	public abstract void flushBuffer(byte[] b, int n);
+	protected abstract void flushBuffer(byte[] b, int n);
+
+	public long getCountFlushed() {
+		return countFlushed;
+	}
 }

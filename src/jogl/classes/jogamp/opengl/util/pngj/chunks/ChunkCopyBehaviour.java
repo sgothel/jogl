@@ -1,8 +1,9 @@
 package jogamp.opengl.util.pngj.chunks;
 
 /**
- * Chunk copy policy to apply when copyng from a pngReader to a pngWriter http://www.w3.org/TR/PNG/#14
+ * Chunk copy policy to apply when copyng from a pngReader to a pngWriter.
  * <p>
+ * http://www.w3.org/TR/PNG/#14 <br>
  * These are masks, can be OR-ed
  **/
 public class ChunkCopyBehaviour {

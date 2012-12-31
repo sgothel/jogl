@@ -3,11 +3,9 @@ package jogamp.opengl.util.pngj.chunks;
 import jogamp.opengl.util.pngj.ImageInfo;
 
 /**
- * superclass for three textual chunks (TEXT, ITXT, ZTXT)
- * 
- * @author Hernan J Gonzalez
+ * Superclass (abstract) for three textual chunks (TEXT, ITXT, ZTXT)
  */
-public abstract class PngChunkTextVar extends PngChunk {
+public abstract class PngChunkTextVar extends PngChunkMultiple {
 	protected String key; // key/val: only for tEXt. lazy computed
 	protected String val;
 
@@ -28,8 +26,8 @@ public abstract class PngChunkTextVar extends PngChunk {
 	}
 
 	@Override
-	public boolean allowsMultiple() {
-		return true;
+	public ChunkOrderingConstraint getOrderingConstraint() {
+		return ChunkOrderingConstraint.NONE;
 	}
 
 	public static class PngTxtInfo {

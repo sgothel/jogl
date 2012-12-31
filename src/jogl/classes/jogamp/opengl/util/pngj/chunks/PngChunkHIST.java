@@ -1,50 +1,48 @@
 package jogamp.opengl.util.pngj.chunks;
 
 import jogamp.opengl.util.pngj.ImageInfo;
-import jogamp.opengl.util.pngj.PngHelper;
+import jogamp.opengl.util.pngj.PngHelperInternal;
 import jogamp.opengl.util.pngj.PngjException;
 
-/*
+/**
+ * hIST chunk.
+ * <p>
+ * see http://www.w3.org/TR/PNG/#11hIST <br>
+ * only for palette images
  */
-public class PngChunkHIST extends PngChunk {
-	// http://www.w3.org/TR/PNG/#11hIST
-	// only for palette images
+public class PngChunkHIST extends PngChunkSingle {
+	public final static String ID = ChunkHelper.hIST;
 
 	private int[] hist = new int[0]; // should have same lenght as palette
 
 	public PngChunkHIST(ImageInfo info) {
-		super(ChunkHelper.hIST, info);
+		super(ID, info);
 	}
 
 	@Override
-	public boolean mustGoBeforeIDAT() {
-		return true;
+	public ChunkOrderingConstraint getOrderingConstraint() {
+		return ChunkOrderingConstraint.AFTER_PLTE_BEFORE_IDAT;
 	}
 
 	@Override
-	public boolean mustGoAfterPLTE() {
-		return true;
-	}
-
-	@Override
-	public void parseFromChunk(ChunkRaw c) {
+	public void parseFromRaw(ChunkRaw c) {
 		if (!imgInfo.indexed)
 			throw new PngjException("only indexed images accept a HIST chunk");
 		int nentries = c.data.length / 2;
 		hist = new int[nentries];
 		for (int i = 0; i < hist.length; i++) {
-			hist[i] = PngHelper.readInt2fromBytes(c.data, i * 2);
+			hist[i] = PngHelperInternal.readInt2fromBytes(c.data, i * 2);
 		}
 	}
 
 	@Override
-	public ChunkRaw createChunk() {
+	public ChunkRaw createRawChunk() {
 		if (!imgInfo.indexed)
 			throw new PngjException("only indexed images accept a HIST chunk");
 		ChunkRaw c = null;
 		c = createEmptyChunk(hist.length * 2, true);
 		for (int i = 0; i < hist.length; i++) {
-			PngHelper.writeInt2tobytes(hist[i], c.data, i * 2);
+			PngHelperInternal.writeInt2tobytes(hist[i], c.data, i * 2);
 		}
 		return c;
 	}

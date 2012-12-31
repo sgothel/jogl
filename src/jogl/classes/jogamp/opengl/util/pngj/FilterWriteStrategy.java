@@ -1,7 +1,7 @@
 package jogamp.opengl.util.pngj;
 
 /**
- * Manages the writer strategy for selecting the internal png "filter"
+ * Manages the writer strategy for selecting the internal png predictor filter
  */
 class FilterWriteStrategy {
 	private static final int COMPUTE_STATS_EVERY_N_LINES = 8;
@@ -89,7 +89,7 @@ class FilterWriteStrategy {
 				}
 			}
 		}
-		if (configuredType == FilterType.FILTER_ALTERNATE) {
+		if (configuredType == FilterType.FILTER_CYCLIC) {
 			currentType = FilterType.getByVal((currentType.val + 1) % 5);
 		}
 		return currentType;

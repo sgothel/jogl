@@ -344,7 +344,7 @@ A.6) The JOGL source tree contains code from Hernan J. Gonzalez and Shawn Hartso
 
    PNGJ: Java library for reading and writing PNG images.
 
-   Version 0.85  (1 April 2012)
+   Version 1.12  (3 Dec 2012)
 
    <http://code.google.com/p/pngj/>
 

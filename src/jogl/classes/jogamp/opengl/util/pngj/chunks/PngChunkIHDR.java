@@ -3,14 +3,20 @@ package jogamp.opengl.util.pngj.chunks;
 import java.io.ByteArrayInputStream;
 
 import jogamp.opengl.util.pngj.ImageInfo;
-import jogamp.opengl.util.pngj.PngHelper;
+import jogamp.opengl.util.pngj.PngHelperInternal;
 import jogamp.opengl.util.pngj.PngjException;
 
 
 /**
- * this is a special chunk!
+ * IHDR chunk.
+ * <p>
+ * see http://www.w3.org/TR/PNG/#11IHDR
+ * <p>
+ * This is a special critical Chunk.
  */
-public class PngChunkIHDR extends PngChunk {
+public class PngChunkIHDR extends PngChunkSingle {
+	public final static String ID = ChunkHelper.IHDR;
+
 	private int cols;
 	private int rows;
 	private int bitspc;
@@ -22,16 +28,21 @@ public class PngChunkIHDR extends PngChunk {
 	// http://www.w3.org/TR/PNG/#11IHDR
 	//
 	public PngChunkIHDR(ImageInfo info) {
-		super(ChunkHelper.IHDR, info);
+		super(ID, info);
 	}
 
 	@Override
-	public ChunkRaw createChunk() {
+	public ChunkOrderingConstraint getOrderingConstraint() {
+		return ChunkOrderingConstraint.NA;
+	}
+
+	@Override
+	public ChunkRaw createRawChunk() {
 		ChunkRaw c = new ChunkRaw(13, ChunkHelper.b_IHDR, true);
 		int offset = 0;
-		PngHelper.writeInt4tobytes(cols, c.data, offset);
+		PngHelperInternal.writeInt4tobytes(cols, c.data, offset);
 		offset += 4;
-		PngHelper.writeInt4tobytes(rows, c.data, offset);
+		PngHelperInternal.writeInt4tobytes(rows, c.data, offset);
 		offset += 4;
 		c.data[offset++] = (byte) bitspc;
 		c.data[offset++] = (byte) colormodel;
@@ -42,18 +53,18 @@ public class PngChunkIHDR extends PngChunk {
 	}
 
 	@Override
-	public void parseFromChunk(ChunkRaw c) {
+	public void parseFromRaw(ChunkRaw c) {
 		if (c.len != 13)
 			throw new PngjException("Bad IDHR len " + c.len);
 		ByteArrayInputStream st = c.getAsByteStream();
-		cols = PngHelper.readInt4(st);
-		rows = PngHelper.readInt4(st);
+		cols = PngHelperInternal.readInt4(st);
+		rows = PngHelperInternal.readInt4(st);
 		// bit depth: number of bits per channel
-		bitspc = PngHelper.readByte(st);
-		colormodel = PngHelper.readByte(st);
-		compmeth = PngHelper.readByte(st);
-		filmeth = PngHelper.readByte(st);
-		interlaced = PngHelper.readByte(st);
+		bitspc = PngHelperInternal.readByte(st);
+		colormodel = PngHelperInternal.readByte(st);
+		compmeth = PngHelperInternal.readByte(st);
+		filmeth = PngHelperInternal.readByte(st);
+		interlaced = PngHelperInternal.readByte(st);
 	}
 
 	@Override

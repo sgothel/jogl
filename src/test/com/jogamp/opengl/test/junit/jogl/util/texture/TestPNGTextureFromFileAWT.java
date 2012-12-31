@@ -83,10 +83,12 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
     public void initTest() throws IOException {
         grayTextureStream = TestPNGTextureFromFileAWT.class.getResourceAsStream( "grayscale_texture.png" );
         Assert.assertNotNull(grayTextureStream);
-        URLConnection testTextureUrlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-160x90.png", this.getClass().getClassLoader());
-        Assert.assertNotNull(testTextureUrlConn);
-        testTextureStream = testTextureUrlConn.getInputStream();
-        Assert.assertNotNull(testTextureStream);
+        {
+            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN01-160x90.png");
+            Assert.assertNotNull(testTextureUrlConn);
+            testTextureStream = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStream);
+        }
     }
 
     @After

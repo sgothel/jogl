@@ -4,31 +4,46 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.zip.CRC32;
 
 /**
- * Some utility static methods.
+ * Some utility static methods for internal use.
  * <p>
- * See also <code>FileHelper</code> (if not sandboxed).
+ * Client code should not normally use this class
  * <p>
- * Client code should rarely need these methods.
  */
-public class PngHelper {
+public class PngHelperInternal {
 	/**
 	 * Default charset, used internally by PNG for several things
 	 */
 	public static Charset charsetLatin1 = Charset.forName("ISO-8859-1");
-	public static Charset charsetUTF8 = Charset.forName("UTF-8"); // only for some chunks
+	/**
+	 * UTF-8 is only used for some chunks
+	 */
+	public static Charset charsetUTF8 = Charset.forName("UTF-8");
 
 	static boolean DEBUG = false;
+
+	/**
+	 * PNG magic bytes
+	 */
+	public static byte[] getPngIdSignature() {
+		return new byte[] { -119, 80, 78, 71, 13, 10, 26, 10 };
+	}
+
+	public static int doubleToInt100000(double d) {
+		return (int) (d * 100000.0 + 0.5);
+	}
+
+	public static double intToDouble100000(int i) {
+		return i / 100000.0;
+	}
 
 	public static int readByte(InputStream is) {
 		try {
 			return is.read();
 		} catch (IOException e) {
-			throw new PngjOutputException(e);
+			throw new PngjInputException("error reading byte", e);
 		}
 	}
 
@@ -111,7 +126,7 @@ public class PngHelper {
 	}
 
 	/**
-	 * guaranteed to read exactly len bytes. throws error if it cant
+	 * guaranteed to read exactly len bytes. throws error if it can't
 	 */
 	public static void readBytes(InputStream is, byte[] b, int offset, int len) {
 		if (len == 0)
@@ -121,11 +136,26 @@ public class PngHelper {
 			while (read < len) {
 				int n = is.read(b, offset + read, len - read);
 				if (n < 1)
-					throw new RuntimeException("error reading bytes, " + n + " !=" + len);
+					throw new PngjInputException("error reading bytes, " + n + " !=" + len);
 				read += n;
 			}
 		} catch (IOException e) {
 			throw new PngjInputException("error reading", e);
+		}
+	}
+
+	public static void skipBytes(InputStream is, int len) {
+		byte[] buf = new byte[8192 * 4];
+		int read, remain = len;
+		try {
+			while (remain > 0) {
+				read = is.read(buf, 0, remain > buf.length ? buf.length : remain);
+				if (read < 0)
+					throw new PngjInputException("error reading (skipping) : EOF");
+				remain -= read;
+			}
+		} catch (IOException e) {
+			throw new PngjInputException("error reading (skipping)", e);
 		}
 	}
 
@@ -150,25 +180,6 @@ public class PngHelper {
 			System.out.println(msg);
 	}
 
-	public static Set<String> asSet(String... values) {
-		return new HashSet<String>(java.util.Arrays.asList(values));
-	}
-
-	public static Set<String> unionSets(Set<String> set1, Set<String> set2) {
-		Set<String> s = new HashSet<String>();
-		s.addAll(set1);
-		s.addAll(set2);
-		return s;
-	}
-
-	public static Set<String> unionSets(Set<String> set1, Set<String> set2, Set<String> set3) {
-		Set<String> s = new HashSet<String>();
-		s.addAll(set1);
-		s.addAll(set2);
-		s.addAll(set3);
-		return s;
-	}
-
 	private static final ThreadLocal<CRC32> crcProvider = new ThreadLocal<CRC32>() {
 		protected CRC32 initialValue() {
 			return new CRC32();
@@ -180,34 +191,74 @@ public class PngHelper {
 		return crcProvider.get();
 	}
 
-	static final byte[] pngIdBytes = { -119, 80, 78, 71, 13, 10, 26, 10 }; // png magic
-
-	public static double resMetersToDpi(long res) {
-		return (double) res * 0.0254;
+	// / filters
+	public static int filterRowNone(int r) {
+		return (int) (r & 0xFF);
 	}
 
-	public static long resDpiToMeters(double dpi) {
-		return (long) (dpi / 0.0254 + 0.5);
+	public static int filterRowSub(int r, int left) {
+		return ((int) (r - left) & 0xFF);
 	}
 
-	public static int doubleToInt100000(double d) {
-		return (int) (d * 100000.0 + 0.5);
+	public static int filterRowUp(int r, int up) {
+		return ((int) (r - up) & 0xFF);
 	}
 
-	public static double intToDouble100000(int i) {
-		return i / 100000.0;
+	public static int filterRowAverage(int r, int left, int up) {
+		return (r - (left + up) / 2) & 0xFF;
 	}
 
-	public static int clampTo_0_255(int i) {
-		return i > 255 ? 255 : (i < 0 ? 0 : i);
+	public static int filterRowPaeth(int r, int left, int up, int upleft) { // a = left, b = above, c = upper left
+		return (r - filterPaethPredictor(left, up, upleft)) & 0xFF;
 	}
 
-	public static int clampTo_0_65535(int i) {
-		return i > 65535 ? 65535 : (i < 0 ? 0 : i);
+	public static int unfilterRowNone(int r) {
+		return (int) (r & 0xFF);
 	}
 
-	public static int clampTo_128_127(int x) {
-		return x > 127 ? 127 : (x < -128 ? -128 : x);
+	public static int unfilterRowSub(int r, int left) {
+		return ((int) (r + left) & 0xFF);
+	}
+
+	public static int unfilterRowUp(int r, int up) {
+		return ((int) (r + up) & 0xFF);
+	}
+
+	public static int unfilterRowAverage(int r, int left, int up) {
+		return (r + (left + up) / 2) & 0xFF;
+	}
+
+	public static int unfilterRowPaeth(int r, int left, int up, int upleft) { // a = left, b = above, c = upper left
+		return (r + filterPaethPredictor(left, up, upleft)) & 0xFF;
+	}
+
+	final static int filterPaethPredictor(final int a, final int b, final int c) { // a = left, b = above, c = upper
+																					// left
+		// from http://www.libpng.org/pub/png/spec/1.2/PNG-Filters.html
+
+		final int p = a + b - c;// ; initial estimate
+		final int pa = p >= a ? p - a : a - p;
+		final int pb = p >= b ? p - b : b - p;
+		final int pc = p >= c ? p - c : c - p;
+		// ; return nearest of a,b,c,
+		// ; breaking ties in order a,b,c.
+		if (pa <= pb && pa <= pc)
+			return a;
+		else if (pb <= pc)
+			return b;
+		else
+			return c;
+	}
+
+	/*
+	 * we put this methods here so as to not pollute the public interface of PngReader
+	 */
+	public final static void initCrcForTests(PngReader pngr) {
+		pngr.initCrctest();
+	}
+
+	public final static long getCrctestVal(PngReader pngr) {
+		return pngr.getCrctestVal();
 	}
 
 }

@@ -13,12 +13,12 @@ public class ImageInfo {
 	private static final int MAX_COLS_ROWS_VAL = 1000000;
 
 	/**
-	 * Image width, in pixels.
+	 * Cols= Image width, in pixels.
 	 */
 	public final int cols;
 
 	/**
-	 * Image height, in pixels
+	 * Rows= Image height, in pixels
 	 */
 	public final int rows;
 
@@ -29,8 +29,8 @@ public class ImageInfo {
 	public final int bitDepth;
 
 	/**
-	 * Number of channels, as used internally. This is 3 for RGB, 4 for RGBA, 2 for GA (gray with alpha), 1 for
-	 * grayscales or indexed.
+	 * Number of channels, as used internally: 3 for RGB, 4 for RGBA, 2 for GA (gray with alpha), 1 for grayscale or
+	 * indexed.
 	 */
 	public final int channels;
 
@@ -75,10 +75,14 @@ public class ImageInfo {
 	public final int samplesPerRow;
 
 	/**
-	 * For internal use only. Samples available for our packed scanline. Equals samplesPerRow if not packed. Elsewhere,
-	 * it's lower
+	 * Amount of "packed samples" : when several samples are stored in a single byte (bitdepth 1,2 4) they are counted
+	 * as one "packed sample". This is less that samplesPerRow only when bitdepth is 1-2-4 (flag packed = true)
+	 * <p>
+	 * This equals the number of elements in the scanline array if working with packedMode=true
+	 * <p>
+	 * For internal use, client code should rarely access this.
 	 */
-	final int samplesPerRowP;
+	public final int samplesPerRowPacked;
 
 	/**
 	 * Short constructor: assumes truecolor (RGB/RGBA)
@@ -119,7 +123,7 @@ public class ImageInfo {
 		this.bytesPixel = (bitspPixel + 7) / 8;
 		this.bytesPerRow = (bitspPixel * cols + 7) / 8;
 		this.samplesPerRow = channels * this.cols;
-		this.samplesPerRowP = packed ? bytesPerRow : samplesPerRow;
+		this.samplesPerRowPacked = packed ? bytesPerRow : samplesPerRow;
 		// several checks
 		switch (this.bitDepth) {
 		case 1:
@@ -147,7 +151,7 @@ public class ImageInfo {
 	public String toString() {
 		return "ImageInfo [cols=" + cols + ", rows=" + rows + ", bitDepth=" + bitDepth + ", channels=" + channels
 				+ ", bitspPixel=" + bitspPixel + ", bytesPixel=" + bytesPixel + ", bytesPerRow=" + bytesPerRow
-				+ ", samplesPerRow=" + samplesPerRow + ", samplesPerRowP=" + samplesPerRowP + ", alpha=" + alpha
+				+ ", samplesPerRow=" + samplesPerRow + ", samplesPerRowP=" + samplesPerRowPacked + ", alpha=" + alpha
 				+ ", greyscale=" + greyscale + ", indexed=" + indexed + ", packed=" + packed + "]";
 	}
 
@@ -157,16 +161,11 @@ public class ImageInfo {
 		int result = 1;
 		result = prime * result + (alpha ? 1231 : 1237);
 		result = prime * result + bitDepth;
-		result = prime * result + bitspPixel;
-		result = prime * result + bytesPerRow;
-		result = prime * result + bytesPixel;
 		result = prime * result + channels;
 		result = prime * result + cols;
 		result = prime * result + (greyscale ? 1231 : 1237);
 		result = prime * result + (indexed ? 1231 : 1237);
-		result = prime * result + (packed ? 1231 : 1237);
 		result = prime * result + rows;
-		result = prime * result + samplesPerRow;
 		return result;
 	}
 
@@ -183,12 +182,6 @@ public class ImageInfo {
 			return false;
 		if (bitDepth != other.bitDepth)
 			return false;
-		if (bitspPixel != other.bitspPixel)
-			return false;
-		if (bytesPerRow != other.bytesPerRow)
-			return false;
-		if (bytesPixel != other.bytesPixel)
-			return false;
 		if (channels != other.channels)
 			return false;
 		if (cols != other.cols)
@@ -197,12 +190,9 @@ public class ImageInfo {
 			return false;
 		if (indexed != other.indexed)
 			return false;
-		if (packed != other.packed)
-			return false;
 		if (rows != other.rows)
-			return false;
-		if (samplesPerRow != other.samplesPerRow)
 			return false;
 		return true;
 	}
+
 }

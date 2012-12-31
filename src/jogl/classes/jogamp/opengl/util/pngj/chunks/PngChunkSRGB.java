@@ -1,12 +1,17 @@
 package jogamp.opengl.util.pngj.chunks;
 
 import jogamp.opengl.util.pngj.ImageInfo;
-import jogamp.opengl.util.pngj.PngHelper;
+import jogamp.opengl.util.pngj.PngHelperInternal;
 import jogamp.opengl.util.pngj.PngjException;
 
-/*
+/**
+ * sRGB chunk.
+ * <p>
+ * see http://www.w3.org/TR/PNG/#11sRGB
  */
-public class PngChunkSRGB extends PngChunk {
+public class PngChunkSRGB extends PngChunkSingle {
+	public final static String ID = ChunkHelper.sRGB;
+
 	// http://www.w3.org/TR/PNG/#11sRGB
 
 	public static final int RENDER_INTENT_Perceptual = 0;
@@ -17,28 +22,23 @@ public class PngChunkSRGB extends PngChunk {
 	private int intent;
 
 	public PngChunkSRGB(ImageInfo info) {
-		super(ChunkHelper.sRGB, info);
+		super(ID, info);
 	}
 
 	@Override
-	public boolean mustGoBeforeIDAT() {
-		return true;
+	public ChunkOrderingConstraint getOrderingConstraint() {
+		return ChunkOrderingConstraint.BEFORE_PLTE_AND_IDAT;
 	}
 
 	@Override
-	public boolean mustGoBeforePLTE() {
-		return true;
-	}
-
-	@Override
-	public void parseFromChunk(ChunkRaw c) {
+	public void parseFromRaw(ChunkRaw c) {
 		if (c.len != 1)
 			throw new PngjException("bad chunk length " + c);
-		intent = PngHelper.readInt1fromByte(c.data, 0);
+		intent = PngHelperInternal.readInt1fromByte(c.data, 0);
 	}
 
 	@Override
-	public ChunkRaw createChunk() {
+	public ChunkRaw createRawChunk() {
 		ChunkRaw c = null;
 		c = createEmptyChunk(1, true);
 		c.data[0] = (byte) intent;

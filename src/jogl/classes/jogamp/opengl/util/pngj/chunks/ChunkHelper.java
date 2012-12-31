@@ -8,11 +8,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
-import jogamp.opengl.util.pngj.PngHelper;
+import jogamp.opengl.util.pngj.PngHelperInternal;
 import jogamp.opengl.util.pngj.PngjException;
 
 
@@ -41,38 +43,83 @@ public class ChunkHelper {
 	public static final String tEXt = "tEXt";
 	public static final String zTXt = "zTXt";
 
-	public static Set<String> KNOWN_CHUNKS_CRITICAL = PngHelper.asSet(IHDR, PLTE, IDAT, IEND);
-
+	/**
+	 * Converts to bytes using Latin1 (ISO-8859-1)
+	 */
 	public static byte[] toBytes(String x) {
-		return x.getBytes(PngHelper.charsetLatin1);
+		return x.getBytes(PngHelperInternal.charsetLatin1);
 	}
 
+	/**
+	 * Converts to String using Latin1 (ISO-8859-1)
+	 */
 	public static String toString(byte[] x) {
-		return new String(x, PngHelper.charsetLatin1);
+		return new String(x, PngHelperInternal.charsetLatin1);
 	}
 
-	public static boolean isCritical(String id) { // critical chunk ?
-		// first letter is uppercase
+	/**
+	 * Converts to String using Latin1 (ISO-8859-1)
+	 */
+	public static String toString(byte[] x, int offset, int len) {
+		return new String(x, offset, len, PngHelperInternal.charsetLatin1);
+	}
+
+	/**
+	 * Converts to bytes using UTF-8
+	 */
+	public static byte[] toBytesUTF8(String x) {
+		return x.getBytes(PngHelperInternal.charsetUTF8);
+	}
+
+	/**
+	 * Converts to string using UTF-8
+	 */
+	public static String toStringUTF8(byte[] x) {
+		return new String(x, PngHelperInternal.charsetUTF8);
+	}
+
+	/**
+	 * Converts to string using UTF-8
+	 */
+	public static String toStringUTF8(byte[] x, int offset, int len) {
+		return new String(x, offset, len, PngHelperInternal.charsetUTF8);
+	}
+
+	/**
+	 * critical chunk : first letter is uppercase
+	 */
+	public static boolean isCritical(String id) {
 		return (Character.isUpperCase(id.charAt(0)));
 	}
 
-	public static boolean isPublic(String id) { // public chunk?
-		// second letter is uppercase
+	/**
+	 * public chunk: second letter is uppercase
+	 */
+	public static boolean isPublic(String id) { //
 		return (Character.isUpperCase(id.charAt(1)));
 	}
 
 	/**
-	 * "Unknown" just means that our chunk factory (even when it has been augmented by client code) did not recognize its id
+	 * Safe to copy chunk: fourth letter is lower case
+	 */
+	public static boolean isSafeToCopy(String id) {
+		return (!Character.isUpperCase(id.charAt(3)));
+	}
+
+	/**
+	 * "Unknown" just means that our chunk factory (even when it has been augmented by client code) did not recognize
+	 * its id
 	 */
 	public static boolean isUnknown(PngChunk c) {
 		return c instanceof PngChunkUNKNOWN;
 	}
 
-	public static boolean isSafeToCopy(String id) { // safe to copy?
-		// fourth letter is lower case
-		return (!Character.isUpperCase(id.charAt(3)));
-	}
-
+	/**
+	 * Finds position of null byte in array
+	 * 
+	 * @param b
+	 * @return -1 if not found
+	 */
 	public static int posNullByte(byte[] b) {
 		for (int i = 0; i < b.length; i++)
 			if (b[i] == 0)
@@ -80,6 +127,13 @@ public class ChunkHelper {
 		return -1;
 	}
 
+	/**
+	 * Decides if a chunk should be loaded, according to a ChunkLoadBehaviour
+	 * 
+	 * @param id
+	 * @param behav
+	 * @return true/false
+	 */
 	public static boolean shouldLoad(String id, ChunkLoadBehaviour behav) {
 		if (isCritical(id))
 			return true;
@@ -129,6 +183,71 @@ public class ChunkHelper {
 
 	public static boolean maskMatch(int v, int mask) {
 		return (v & mask) != 0;
+	}
+
+	/**
+	 * Returns only the chunks that "match" the predicate
+	 * 
+	 * See also trimList()
+	 */
+	public static List<PngChunk> filterList(List<PngChunk> target, ChunkPredicate predicateKeep) {
+		List<PngChunk> result = new ArrayList<PngChunk>();
+		for (PngChunk element : target) {
+			if (predicateKeep.match(element)) {
+				result.add(element);
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Remove (in place) the chunks that "match" the predicate
+	 * 
+	 * See also filterList
+	 */
+	public static int trimList(List<PngChunk> target, ChunkPredicate predicateRemove) {
+		Iterator<PngChunk> it = target.iterator();
+		int cont = 0;
+		while (it.hasNext()) {
+			PngChunk c = it.next();
+			if (predicateRemove.match(c)) {
+				it.remove();
+				cont++;
+			}
+		}
+		return cont;
+	}
+
+	/**
+	 * MY adhoc criteria: two chunks are "equivalent" ("practically equal") if they have same id and (perhaps, if
+	 * multiple are allowed) if the match also in some "internal key" (eg: key for string values, palette for sPLT, etc)
+	 * 
+	 * Notice that the use of this is optional, and that the PNG standard allows Text chunks that have same key
+	 * 
+	 * @return true if "equivalent"
+	 */
+	public static final boolean equivalent(PngChunk c1, PngChunk c2) {
+		if (c1 == c2)
+			return true;
+		if (c1 == null || c2 == null || !c1.id.equals(c2.id))
+			return false;
+		// same id
+		if (c1.getClass() != c2.getClass())
+			return false; // should not happen
+		if (!c2.allowsMultiple())
+			return true;
+		if (c1 instanceof PngChunkTextVar) {
+			return ((PngChunkTextVar) c1).getKey().equals(((PngChunkTextVar) c2).getKey());
+		}
+		if (c1 instanceof PngChunkSPLT) {
+			return ((PngChunkSPLT) c1).getPalName().equals(((PngChunkSPLT) c2).getPalName());
+		}
+		// unknown chunks that allow multiple? consider they don't match
+		return false;
+	}
+
+	public static boolean isText(PngChunk c) {
+		return c instanceof PngChunkTextVar;
 	}
 
 }

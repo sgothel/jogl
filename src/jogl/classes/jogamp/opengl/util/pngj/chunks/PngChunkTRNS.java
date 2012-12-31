@@ -1,39 +1,41 @@
 package jogamp.opengl.util.pngj.chunks;
 
 import jogamp.opengl.util.pngj.ImageInfo;
-import jogamp.opengl.util.pngj.PngHelper;
+import jogamp.opengl.util.pngj.PngHelperInternal;
 import jogamp.opengl.util.pngj.PngjException;
 
-/*
+/**
+ * tRNS chunk.
+ * <p>
+ * see http://www.w3.org/TR/PNG/#11tRNS
+ * <p>
+ * this chunk structure depends on the image type
  */
-public class PngChunkTRNS extends PngChunk {
+public class PngChunkTRNS extends PngChunkSingle {
+	public final static String ID = ChunkHelper.tRNS;
+
 	// http://www.w3.org/TR/PNG/#11tRNS
-	// this chunk structure depends on the image type
-	// only one of these is meaningful
+
+	// only one of these is meaningful, depending on the image type
 	private int gray;
 	private int red, green, blue;
 	private int[] paletteAlpha = new int[] {};
 
 	public PngChunkTRNS(ImageInfo info) {
-		super(ChunkHelper.tRNS, info);
+		super(ID, info);
 	}
 
 	@Override
-	public boolean mustGoBeforeIDAT() {
-		return true;
+	public ChunkOrderingConstraint getOrderingConstraint() {
+		return ChunkOrderingConstraint.AFTER_PLTE_BEFORE_IDAT;
 	}
 
 	@Override
-	public boolean mustGoAfterPLTE() {
-		return true;
-	}
-
-	@Override
-	public ChunkRaw createChunk() {
+	public ChunkRaw createRawChunk() {
 		ChunkRaw c = null;
 		if (imgInfo.greyscale) {
 			c = createEmptyChunk(2, true);
-			PngHelper.writeInt2tobytes(gray, c.data, 0);
+			PngHelperInternal.writeInt2tobytes(gray, c.data, 0);
 		} else if (imgInfo.indexed) {
 			c = createEmptyChunk(paletteAlpha.length, true);
 			for (int n = 0; n < c.len; n++) {
@@ -41,17 +43,17 @@ public class PngChunkTRNS extends PngChunk {
 			}
 		} else {
 			c = createEmptyChunk(6, true);
-			PngHelper.writeInt2tobytes(red, c.data, 0);
-			PngHelper.writeInt2tobytes(green, c.data, 0);
-			PngHelper.writeInt2tobytes(blue, c.data, 0);
+			PngHelperInternal.writeInt2tobytes(red, c.data, 0);
+			PngHelperInternal.writeInt2tobytes(green, c.data, 0);
+			PngHelperInternal.writeInt2tobytes(blue, c.data, 0);
 		}
 		return c;
 	}
 
 	@Override
-	public void parseFromChunk(ChunkRaw c) {
+	public void parseFromRaw(ChunkRaw c) {
 		if (imgInfo.greyscale) {
-			gray = PngHelper.readInt2fromBytes(c.data, 0);
+			gray = PngHelperInternal.readInt2fromBytes(c.data, 0);
 		} else if (imgInfo.indexed) {
 			int nentries = c.data.length;
 			paletteAlpha = new int[nentries];
@@ -59,9 +61,9 @@ public class PngChunkTRNS extends PngChunk {
 				paletteAlpha[n] = (int) (c.data[n] & 0xff);
 			}
 		} else {
-			red = PngHelper.readInt2fromBytes(c.data, 0);
-			green = PngHelper.readInt2fromBytes(c.data, 2);
-			blue = PngHelper.readInt2fromBytes(c.data, 4);
+			red = PngHelperInternal.readInt2fromBytes(c.data, 0);
+			green = PngHelperInternal.readInt2fromBytes(c.data, 2);
+			blue = PngHelperInternal.readInt2fromBytes(c.data, 4);
 		}
 	}
 
@@ -115,6 +117,18 @@ public class PngChunkTRNS extends PngChunk {
 		if (!imgInfo.indexed)
 			throw new PngjException("only indexed images support this");
 		paletteAlpha = palAlpha;
+	}
+
+	/**
+	 * to use when only one pallete index is set as totally transparent
+	 */
+	public void setIndexEntryAsTransparent(int palAlphaIndex) {
+		if (!imgInfo.indexed)
+			throw new PngjException("only indexed images support this");
+		paletteAlpha = new int[] { palAlphaIndex + 1 };
+		for (int i = 0; i < palAlphaIndex; i++)
+			paletteAlpha[i] = 255;
+		paletteAlpha[palAlphaIndex] = 0;
 	}
 
 	/**
