@@ -37,8 +37,6 @@ package com.jogamp.opengl.util;
 import java.nio.Buffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLException;
@@ -48,6 +46,7 @@ import jogamp.opengl.ProjectFloat;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.FloatStack;
 import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.math.geom.Frustum;
 
@@ -260,9 +259,11 @@ public class PMVMatrix implements GLMatrixFunc {
           FloatUtil.makeIdentityf(matrixOrtho, 0);
           FloatUtil.makeZero(matrixFrustum, 0);
 
-          matrixPStack = new ArrayList<float[]>();
-          matrixMvStack= new ArrayList<float[]>();
-
+          // Start w/ zero size to save memory
+          matrixTStack = new FloatStack( 0,  2*16); // growSize: GL-min size (2)
+          matrixPStack = new FloatStack( 0,  2*16); // growSize: GL-min size (2)
+          matrixMvStack= new FloatStack( 0, 16*16); // growSize: half GL-min size (32)
+          
           // default values and mode
           glMatrixMode(GL_PROJECTION);
           glLoadIdentity();
@@ -300,16 +301,16 @@ public class PMVMatrix implements GLMatrixFunc {
         matrixFrustum = null;
         
         if(null!=matrixPStack) {
-            matrixPStack.clear(); matrixPStack=null;
+            matrixPStack=null;
         }
         if(null!=matrixMvStack) {
-            matrixMvStack.clear(); matrixMvStack=null;
+            matrixMvStack=null;
         }
         if(null!=matrixPStack) {
-            matrixPStack.clear(); matrixPStack=null;
+            matrixPStack=null;
         }
         if(null!=matrixTStack) {
-            matrixTStack.clear(); matrixTStack=null;
+            matrixTStack=null;
         }
     }
 
@@ -527,19 +528,18 @@ public class PMVMatrix implements GLMatrixFunc {
 
     @Override
     public final void glLoadMatrixf(final float[] values, final int offset) {
-        int len = values.length-offset;
         if(matrixMode==GL_MODELVIEW) {
-            matrixMv.put(values, offset, len);
+            matrixMv.put(values, offset, 16);
             matrixMv.reset();
             dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
             modifiedBits |= MODIFIED_MODELVIEW;
         } else if(matrixMode==GL_PROJECTION) {
-            matrixP.put(values, offset, len);
+            matrixP.put(values, offset, 16);
             matrixP.reset();
             dirtyBits |= DIRTY_FRUSTUM ;
             modifiedBits |= MODIFIED_PROJECTION;            
         } else if(matrixMode==GL.GL_TEXTURE) {
-            matrixTex.put(values, offset, len);
+            matrixTex.put(values, offset, 16);
             matrixTex.reset();
             modifiedBits |= MODIFIED_TEXTURE;
         } 
@@ -568,32 +568,31 @@ public class PMVMatrix implements GLMatrixFunc {
 
     @Override
     public final void glPopMatrix() {
-        float[] stackEntry=null;
+        final FloatStack stack;
         if(matrixMode==GL_MODELVIEW) {
-            stackEntry = matrixMvStack.remove(0);
+            stack = matrixMvStack;
         } else if(matrixMode==GL_PROJECTION) {
-            stackEntry = matrixPStack.remove(0);
+            stack = matrixPStack;
         } else if(matrixMode==GL.GL_TEXTURE) {
-            stackEntry = matrixTStack.remove(0);
-        } 
-        glLoadMatrixf(stackEntry, 0);
+            stack = matrixTStack;
+        } else {
+            throw new InternalError("XXX: mode "+matrixMode);
+        }
+        stack.position(stack.position() - 16);
+        glLoadMatrixf(stack.buffer(), stack.position());
     }
 
     @Override
     public final void glPushMatrix() {
-        float[] stackEntry = new float[1*16];
-        if(matrixMode==GL_MODELVIEW) {
-            matrixMv.get(stackEntry);
-            matrixMv.reset();
-            matrixMvStack.add(0, stackEntry);
+        if(matrixMode==GL_MODELVIEW) { 
+            matrixMvStack.putOnTop(matrixMv, 16);
+            matrixMv.reset();            
         } else if(matrixMode==GL_PROJECTION) {
-            matrixP.get(stackEntry);
+            matrixPStack.putOnTop(matrixP, 16);
             matrixP.reset();
-            matrixPStack.add(0, stackEntry);
         } else if(matrixMode==GL.GL_TEXTURE) {
-            matrixTex.get(stackEntry);
+            matrixTStack.putOnTop(matrixTex, 16);
             matrixTex.reset();
-            matrixTStack.add(0, stackEntry);
         }
     }
 
@@ -1122,7 +1121,7 @@ public class PMVMatrix implements GLMatrixFunc {
     protected Buffer matrixBuffer;
     protected FloatBuffer matrixIdent, matrixPMvMvit, matrixPMvMvi, matrixPMv, matrixP, matrixTex, matrixMv, matrixMvi, matrixMvit;
     protected float[] matrixMult, matrixTrans, matrixRot, matrixScale, matrixOrtho, matrixFrustum, vec3f;
-    protected List<float[]> matrixTStack, matrixPStack, matrixMvStack;
+    protected FloatStack matrixTStack, matrixPStack, matrixMvStack;
     protected int matrixMode = GL_MODELVIEW;
     protected int modifiedBits = MODIFIED_ALL;
     protected int dirtyBits = DIRTY_ALL; // contains the dirty bits, i.e. hinting for update operation
