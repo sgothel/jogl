@@ -307,9 +307,9 @@ public class GLArrayDataWrapper implements GLArrayData {
     // We can't have any dependence on the FixedFuncUtil class here for build bootstrapping reasons
     
     if( GL.GL_ELEMENT_ARRAY_BUFFER == vboTarget ) {
-        // ok ..
-    } else if( GL.GL_ARRAY_BUFFER == vboTarget ) {
-        // check name ..
+        // OK ..
+    } else if( ( 0 == vboUsage && 0 == vboTarget ) || GL.GL_ARRAY_BUFFER == vboTarget ) {
+        // Set/Check name .. - Required for GLSL case. Validation and debug-name for FFP. 
         this.name = ( null == name ) ? GLPointerFuncUtil.getPredefinedArrayIndexName(index) : name ;
         if(null == this.name ) {
             throw new GLException("Not a valid array buffer index: "+index);
