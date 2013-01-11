@@ -90,6 +90,7 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean forceES2 = false;
     static boolean forceGL3 = false;
     static boolean mainRun = false;
+    static boolean exclusiveContext = false;
     
     @BeforeClass
     public static void initClass() {
@@ -143,9 +144,11 @@ public class TestGearsES2NEWT extends UITestCase {
             });
         }
 
-        Animator animator = new Animator(glWindow);
+        Animator animator = new Animator();
+        animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
+        animator.setExclusiveContext(exclusiveContext);
+        
         QuitAdapter quitAdapter = new QuitAdapter();
-
         //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
         glWindow.addKeyListener(quitAdapter);
@@ -165,62 +168,79 @@ public class TestGearsES2NEWT extends UITestCase {
                 if(e.getKeyChar()=='f') {
                     new Thread() {
                         public void run() {
+                            final Thread t = glWindow.setExclusiveContextThread(null);
                             System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setFullscreen(!glWindow.isFullscreen());
                             System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                            glWindow.setExclusiveContextThread(t);
                     } }.start();
                 } else if(e.getKeyChar()=='a') {
                     new Thread() {
                         public void run() {
+                            final Thread t = glWindow.setExclusiveContextThread(null);
                             System.err.println("[set alwaysontop pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setAlwaysOnTop(!glWindow.isAlwaysOnTop());
                             System.err.println("[set alwaysontop post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
+                            glWindow.setExclusiveContextThread(t);
                     } }.start();
                 } else if(e.getKeyChar()=='d') {
                     new Thread() {
                         public void run() {
+                            final Thread t = glWindow.setExclusiveContextThread(null);
+                            // while( null != glWindow.getExclusiveContextThread() ) ;
                             System.err.println("[set undecorated  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", d "+glWindow.isUndecorated()+", "+glWindow.getInsets());
                             glWindow.setUndecorated(!glWindow.isUndecorated());
                             System.err.println("[set undecorated post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", d "+glWindow.isUndecorated()+", "+glWindow.getInsets());
+                            glWindow.setExclusiveContextThread(t);
                     } }.start();
                 } else if(e.getKeyChar()=='s') {
                     new Thread() {
                         public void run() {
+                            final Thread t = glWindow.setExclusiveContextThread(null);
                             System.err.println("[set position  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
                             glWindow.setPosition(100, 100);
                             System.err.println("[set position post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+                            glWindow.setExclusiveContextThread(t);
                     } }.start();
                 } else if(e.getKeyChar()=='i') {
                     new Thread() {
                         public void run() {
+                            final Thread t = glWindow.setExclusiveContextThread(null);
                             System.err.println("[set mouse visible pre]: "+glWindow.isPointerVisible());
                             glWindow.setPointerVisible(!glWindow.isPointerVisible());
                             System.err.println("[set mouse visible post]: "+glWindow.isPointerVisible());
+                            glWindow.setExclusiveContextThread(t);
                     } }.start();
                 } else if(e.getKeyChar()=='j') {
                     new Thread() {
                         public void run() {
+                            final Thread t = glWindow.setExclusiveContextThread(null);
                             System.err.println("[set mouse confined pre]: "+glWindow.isPointerConfined());
                             glWindow.confinePointer(!glWindow.isPointerConfined());
                             System.err.println("[set mouse confined post]: "+glWindow.isPointerConfined());
                             if(!glWindow.isPointerConfined()) {
                                 demo.setConfinedFixedCenter(false);
                             }
+                            glWindow.setExclusiveContextThread(t);
                     } }.start();
                 } else if(e.getKeyChar()=='J') {
                     new Thread() {
                         public void run() {
+                            final Thread t = glWindow.setExclusiveContextThread(null);
                             System.err.println("[set mouse confined pre]: "+glWindow.isPointerConfined());
                             glWindow.confinePointer(!glWindow.isPointerConfined());
                             System.err.println("[set mouse confined post]: "+glWindow.isPointerConfined());
                             demo.setConfinedFixedCenter(glWindow.isPointerConfined());
+                            glWindow.setExclusiveContextThread(t);
                     } }.start();
                 } else if(e.getKeyChar()=='w') {
                     new Thread() {
                         public void run() {
+                            final Thread t = glWindow.setExclusiveContextThread(null);
                             System.err.println("[set mouse pos pre]");
                             glWindow.warpPointer(glWindow.getWidth()/2, glWindow.getHeight()/2);
                             System.err.println("[set mouse pos post]");
+                            glWindow.setExclusiveContextThread(t);
                     } }.start();
                 }
             }
@@ -232,24 +252,29 @@ public class TestGearsES2NEWT extends UITestCase {
             }
          });
 
+        animator.add(glWindow);
         animator.start();
-        // glWindow.setSkipContextReleaseThread(animator.getThread());
+        Assert.assertTrue(animator.isStarted());
+        Assert.assertTrue(animator.isAnimating());
+        Assert.assertEquals(exclusiveContext ? animator.getThread() : null, glWindow.getExclusiveContextThread());
 
         glWindow.setVisible(true);
+        animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
         
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
         System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
         
-        animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
         
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
 
+        Assert.assertEquals(exclusiveContext ? animator.getThread() : null, glWindow.getExclusiveContextThread());
         animator.stop();
         Assert.assertFalse(animator.isAnimating());
         Assert.assertFalse(animator.isStarted());
+        Assert.assertEquals(null, glWindow.getExclusiveContextThread());
         glWindow.destroy();
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
     }
@@ -316,6 +341,8 @@ public class TestGearsES2NEWT extends UITestCase {
             } else if(args[i].equals("-vsync")) {
                 i++;
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);
+            } else if(args[i].equals("-exclctx")) {
+                exclusiveContext = true;
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
             } else if(args[i].equals("-gl3")) {
@@ -365,14 +392,15 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("undecorated "+undecorated);
         System.err.println("atop "+alwaysOnTop);
         System.err.println("fullscreen "+fullscreen);
-        System.err.println("pmvDirect "+(!pmvUseBackingArray));
-        System.err.println("swapInterval "+swapInterval);
+        System.err.println("pmvDirect "+(!pmvUseBackingArray));        
         System.err.println("mouseVisible "+mouseVisible);
         System.err.println("mouseConfined "+mouseConfined);
         System.err.println("loops "+loops);
         System.err.println("loop shutdown "+loop_shutdown);
         System.err.println("forceES2 "+forceES2);
         System.err.println("forceGL3 "+forceGL3);
+        System.err.println("swapInterval "+swapInterval);
+        System.err.println("exclusiveContext "+exclusiveContext);
 
         if(waitForKey) {
             BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));

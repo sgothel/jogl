@@ -46,6 +46,7 @@ import com.jogamp.opengl.test.junit.util.QuitAdapter;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.TextArea;
 import java.io.BufferedReader;
@@ -71,11 +72,22 @@ public class TestGearsES2AWT extends UITestCase {
     static boolean shutdownDisposeFrame = true;
     static boolean shutdownSystemExit = false;
     static int swapInterval = 1;
+    static boolean exclusiveContext = false;
+    static Thread awtEDT;
 
     @BeforeClass
     public static void initClass() {
         width  = 640;
         height = 480;
+        try {
+            EventQueue.invokeAndWait(new Runnable() {
+                public void run() {
+                    awtEDT = Thread.currentThread();
+                } } );
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.assertNull(e);
+        }
     }
 
     @AfterClass
@@ -106,6 +118,9 @@ public class TestGearsES2AWT extends UITestCase {
         glCanvas.addGLEventListener(new GearsES2(swapInterval));
 
         Animator animator = new Animator(glCanvas);
+        if( exclusiveContext ) {
+            animator.setExclusiveContext(awtEDT);
+        }
         QuitAdapter quitAdapter = new QuitAdapter();
 
         new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glCanvas);
@@ -117,8 +132,11 @@ public class TestGearsES2AWT extends UITestCase {
                 frame.setVisible(true);
             }});
         animator.start();
+        Assert.assertTrue(animator.isStarted());
+        Assert.assertTrue(animator.isAnimating());
+        Assert.assertEquals(exclusiveContext ? awtEDT : null, glCanvas.getExclusiveContextThread());
         animator.setUpdateFPSFrames(60, System.err);
-
+        
         while(!quitAdapter.shouldQuit() /* && animator.isAnimating() */ && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
@@ -127,8 +145,11 @@ public class TestGearsES2AWT extends UITestCase {
         Assert.assertNotNull(glCanvas);
         Assert.assertNotNull(animator);
 
+        Assert.assertEquals(exclusiveContext ? awtEDT : null, glCanvas.getExclusiveContextThread());
         animator.stop();
-        Assert.assertEquals(false, animator.isAnimating());
+        Assert.assertFalse(animator.isAnimating());
+        Assert.assertFalse(animator.isStarted());
+        Assert.assertEquals(null, glCanvas.getExclusiveContextThread());
         frame.setVisible(false);
         Assert.assertEquals(false, frame.isVisible());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
@@ -190,6 +211,8 @@ public class TestGearsES2AWT extends UITestCase {
             } else if(args[i].equals("-vsync")) {
                 i++;
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);
+            } else if(args[i].equals("-exclctx")) {
+                exclusiveContext = true;
             } else if(args[i].equals("-layered")) {
                 shallUseOffscreenLayer = true;
             } else if(args[i].equals("-layeredPBuffer")) {
@@ -216,6 +239,7 @@ public class TestGearsES2AWT extends UITestCase {
         System.err.println("forceES2 "+forceES2);
         System.err.println("forceGL3 "+forceGL3);
         System.err.println("swapInterval "+swapInterval);
+        System.err.println("exclusiveContext "+exclusiveContext);
         System.err.println("shallUseOffscreenLayer "+shallUseOffscreenLayer);
         
         if(waitForKey) {

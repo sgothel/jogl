@@ -742,6 +742,16 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
+  public final Thread setExclusiveContextThread(Thread t) throws GLException {
+      return helper.setExclusiveContextThread(t, context);
+  }
+
+  @Override
+  public final Thread getExclusiveContextThread() {
+      return helper.getExclusiveContextThread();
+  }
+
+  @Override
   public boolean invoke(boolean wait, GLRunnable glRunnable) {
     return helper.invoke(this, wait, glRunnable);
   }

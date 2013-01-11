@@ -208,7 +208,10 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
             glWindow.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, System.err);
 
             // glAnimator = new FPSAnimator(canvas, 60);
-            glAnimator = new Animator(tg, glWindow);
+            glAnimator = new Animator();
+            glAnimator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD); // No AWT thread involved!
+            glAnimator.setThreadGroup(tg);
+            glAnimator.add(glWindow);
             glAnimator.setUpdateFPSFrames(FPSCounter.DEFAULT_FRAMES_PER_INTERVAL, null);
             
         } catch (Throwable t) {

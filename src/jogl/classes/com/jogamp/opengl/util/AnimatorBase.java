@@ -38,6 +38,7 @@ import java.util.ArrayList;
 
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 /**
@@ -51,69 +52,174 @@ import javax.media.opengl.GLProfile;
  */
 public abstract class AnimatorBase implements GLAnimatorControl {
     protected static final boolean DEBUG = Debug.debug("Animator");
-
-    private static int animatorCount = 0;
-
+    
+    /** A 1s timeout while waiting for a native action response, limiting {@link #finishLifecycleAction(Condition, long)} */
+    protected static final long TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION = 1000;
+    
+    protected static final long POLLP_WAIT_FOR_FINISH_LIFECYCLE_ACTION = 32; // 2 frames @ 60Hz
+    
+    /**
+     * If present in <code>modeBits</code> field and 
+     * {@link GLProfile#isAWTAvailable() AWT is available},
+     * implementation is aware of the AWT EDT, otherwise not.
+     * <p>
+     * This is the <i>default</i>.
+     * </p>
+     * @see #setModeBits(boolean, int)
+     */
+    public static final int MODE_EXPECT_AWT_RENDERING_THREAD = 1 << 0; 
+    
     public interface AnimatorImpl {
         void display(ArrayList<GLAutoDrawable> drawables, boolean ignoreExceptions, boolean printExceptions);
         boolean blockUntilDone(Thread thread);
     }
 
-    protected ArrayList<GLAutoDrawable> drawables = new ArrayList<GLAutoDrawable>();
-    protected boolean drawablesEmpty;
+    protected int modeBits;
     protected AnimatorImpl impl;
     protected String baseName;
+    
+    protected ArrayList<GLAutoDrawable> drawables = new ArrayList<GLAutoDrawable>();
+    protected boolean drawablesEmpty;
     protected Thread animThread;
     protected boolean ignoreExceptions;
     protected boolean printExceptions;
+    protected boolean exclusiveContext;
+    protected Thread userExclusiveContextThread;
     protected FPSCounterImpl fpsCounter = new FPSCounterImpl();    
     protected RecursiveLock stateSync = LockFactory.createRecursiveLock();
-
-    /** Creates a new, empty Animator. */
-    public AnimatorBase() {
-        if(GLProfile.isAWTAvailable()) {
+    
+    private final static Class<?> awtAnimatorImplClazz;    
+    static {
+        GLProfile.initSingleton();
+        if( GLProfile.isAWTAvailable() ) {
+            Class<?> clazz;
             try {
-                impl = (AnimatorImpl) Class.forName("com.jogamp.opengl.util.AWTAnimatorImpl").newInstance();
-                baseName = "AWTAnimator";
-            } catch (Exception e) { e.printStackTrace(); }
-        }
-        if(null==impl) {
-            impl = new DefaultAnimatorImpl();
-            baseName = "Animator";
-        }
-        synchronized (Animator.class) {
-            animatorCount++;
-            baseName = baseName.concat("-"+animatorCount);
-            drawablesEmpty = true;
+                clazz = Class.forName("com.jogamp.opengl.util.AWTAnimatorImpl");
+            } catch (Exception e) {
+                clazz = null;                
+            }
+            awtAnimatorImplClazz =  clazz;
+        } else {
+            awtAnimatorImplClazz = null;
         }
     }
 
+    /**
+     * Creates a new, empty Animator instance 
+     * while expecting an AWT rendering thread if AWT is available.
+     * 
+     * @see GLProfile#isAWTAvailable()
+     */
+    public AnimatorBase() {
+        modeBits = MODE_EXPECT_AWT_RENDERING_THREAD; // default!        
+        drawablesEmpty = true;
+    }
+    
+    /**
+     * Initializes implementation details post setup,
+     * invoked at {@link #add(GLAutoDrawable)}, {@link #start()}, ..
+     * <p>
+     * Operation is a NOP if <code>force</code> is <code>false</code> 
+     * and this instance is already initialized.
+     * </p> 
+     * 
+     * @throws GLException if Animator is {@link #isStarted()}  
+     */
+    protected void initImpl(boolean force) {
+        if( force || null == impl ) {
+            if( 0 != ( MODE_EXPECT_AWT_RENDERING_THREAD & modeBits ) && null != awtAnimatorImplClazz ) {
+                try {
+                    impl = (AnimatorImpl) awtAnimatorImplClazz.newInstance();
+                    baseName = getBaseName("AWT");
+                } catch (Exception e) { e.printStackTrace(); }
+            }
+            if( null == impl ) {
+                impl = new DefaultAnimatorImpl();
+                baseName = getBaseName("");
+            }
+            if(DEBUG) {
+                System.err.println("Animator.initImpl: baseName "+baseName+", implClazz "+impl.getClass().getName()+" - "+toString()+" - "+Thread.currentThread().getName());
+            }
+        }
+    }
     protected abstract String getBaseName(String prefix);
 
-    public synchronized void add(GLAutoDrawable drawable) {
-        if(DEBUG) {
-            System.err.println("Animator add: "+drawable.hashCode()+" - "+Thread.currentThread().getName());
+    /**
+     * Enables or disables the given <code>bitValues</code>
+     * in this Animators <code>modeBits</code>.
+     * @param enable
+     * @param bitValues
+     * 
+     * @throws GLException if Animator is {@link #isStarted()}
+     * @see AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD
+     */
+    public synchronized void setModeBits(boolean enable, int bitValues) throws GLException {
+        if( isStarted() ) {
+            throw new GLException("Animator already started");
         }
+        final int _oldModeBits = modeBits;
+        if(enable) {
+            modeBits |=  bitValues;
+        } else {
+            modeBits &= ~bitValues;
+        }
+        if( _oldModeBits != modeBits ) {
+            initImpl(true);
+        }
+    }
+    public synchronized int getModeBits() { return modeBits; }
+    
+    
+    @Override
+    public synchronized void add(final GLAutoDrawable drawable) {
+        if(DEBUG) {
+            System.err.println("Animator add: 0x"+Integer.toHexString(drawable.hashCode())+" - "+toString()+" - "+Thread.currentThread().getName());
+        }
+        if( drawables.contains(drawable) ) {
+            throw new IllegalArgumentException("Drawable already added to animator: "+this+", "+drawable);
+        }
+        initImpl(false);
         boolean paused = pause();
+        if( isStarted() ) {
+            drawable.setExclusiveContextThread( exclusiveContext ? getExclusiveContextThread() : null ); // if already running ..
+        }
         drawables.add(drawable);
         drawablesEmpty = drawables.size() == 0;
         drawable.setAnimator(this);
         if(paused) {
             resume();
         }
-        if(impl.blockUntilDone(animThread)) {
-            while(isStarted() && !isPaused() && !isAnimating()) {
-                try {
-                    wait();
-                } catch (InterruptedException ie) { }
-            }
+        final Condition waitForAnimatingAndECTCondition = new Condition() {
+            public boolean eval() {
+                final Thread dect = drawable.getExclusiveContextThread();
+                return isStarted() && !isPaused() && !isAnimating() && ( exclusiveContext && null == dect || !exclusiveContext && null != dect );
+            } };
+        final boolean res = finishLifecycleAction(waitForAnimatingAndECTCondition, 0);
+        if(DEBUG) {
+            System.err.println("Animator add: Wait for Animating/ECT OK: "+res+", "+toString()+", dect "+drawable.getExclusiveContextThread());
         }
         notifyAll();
     }
 
-    public synchronized void remove(GLAutoDrawable drawable) {
+    @Override
+    public synchronized void remove(final GLAutoDrawable drawable) {
         if(DEBUG) {
-            System.err.println("Animator remove: "+drawable.hashCode()+" - "+Thread.currentThread().getName() + ": "+toString());
+            System.err.println("Animator remove: 0x"+Integer.toHexString(drawable.hashCode())+" - "+toString()+" - "+Thread.currentThread().getName());
+        }
+        if( !drawables.contains(drawable) ) {
+            throw new IllegalArgumentException("Drawable not added to animator: "+this+", "+drawable);
+        }
+        
+        if( exclusiveContext && isAnimating() ) {
+            drawable.setExclusiveContextThread( null );
+            final Condition waitForNullECTCondition = new Condition() {
+                public boolean eval() {
+                    return null != drawable.getExclusiveContextThread();
+                } };
+            final boolean res = finishLifecycleAction(waitForNullECTCondition, POLLP_WAIT_FOR_FINISH_LIFECYCLE_ACTION);
+            if(DEBUG) {
+                System.err.println("Animator remove: Wait for Null-ECT OK: "+res+", "+toString()+", dect "+drawable.getExclusiveContextThread());
+            }
         }
 
         boolean paused = pause();
@@ -123,14 +229,202 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         if(paused) {
             resume();
         }
-        if(impl.blockUntilDone(animThread)) {
-            while(isStarted() && drawablesEmpty && isAnimating()) {
-                try {
-                    wait();
-                } catch (InterruptedException ie) { }
-            }
+        final boolean res = finishLifecycleAction(waitForNotAnimatingIfEmptyCondition, 0);
+        if(DEBUG) {
+            System.err.println("Animator remove: Wait for !Animating-if-empty OK: "+res+", "+toString());
         }
         notifyAll();
+    }
+    private final Condition waitForNotAnimatingIfEmptyCondition = new Condition() {
+        public boolean eval() {
+            return isStarted() && drawablesEmpty && isAnimating();
+        } };
+
+    
+    /**
+     * Dedicate all {@link GLAutoDrawable}'s context to the given exclusive context thread.
+     * <p>
+     * The given thread will be exclusive to all {@link GLAutoDrawable}'s context while {@link #isAnimating()}.
+     * </p>
+     * <p>
+     * If already started and disabling, method waits
+     * until change is propagated to all {@link GLAutoDrawable} if not 
+     * called from the animator thread or {@link #getExclusiveContextThread() exclusive context thread}.
+     * </p>
+     * <p>
+     * Note: Utilizing this feature w/ AWT could lead to an AWT-EDT deadlock, depending on the AWT implementation.
+     * Hence it is advised not to use it with native AWT GLAutoDrawable like GLCanvas.
+     * </p>
+     * 
+     * @param enable
+     * @return previous value
+     * @see #setExclusiveContext(boolean)
+     * @see #getExclusiveContextThread()
+     * @see #isExclusiveContextEnabled()
+     */
+    // @Override
+    public final Thread setExclusiveContext(Thread t) {
+        final Thread old;
+        final boolean enable = null != t;
+        stateSync.lock();
+        try {
+            old = userExclusiveContextThread;            
+            if( enable && t != animThread ) { // disable: will be cleared at end after propagation && filter out own animThread usae
+                userExclusiveContextThread=t;
+            }
+        } finally {
+            stateSync.unlock();
+        }
+        setExclusiveContext(enable);
+        return old;
+    }
+    
+    /**
+     * Dedicate all {@link GLAutoDrawable}'s context to this animator thread.
+     * <p>
+     * The given thread will be exclusive to all {@link GLAutoDrawable}'s context while {@link #isAnimating()}.
+     * </p>
+     * <p>
+     * If already started and disabling, method waits
+     * until change is propagated to all {@link GLAutoDrawable} if not 
+     * called from the animator thread or {@link #getExclusiveContextThread() exclusive context thread}.
+     * </p>
+     * <p>
+     * Note: Utilizing this feature w/ AWT could lead to an AWT-EDT deadlock, depending on the AWT implementation.
+     * Hence it is advised not to use it with native AWT GLAutoDrawable like GLCanvas.
+     * </p>
+     * 
+     * @param enable
+     * @return previous value
+     * @see #setExclusiveContext(Thread)
+     * @see #getExclusiveContextThread()
+     * @see #isExclusiveContextEnabled()
+     */
+    // @Override
+    public final boolean setExclusiveContext(boolean enable) {
+        final boolean propagateState;
+        final boolean oldExclusiveContext;
+        final Thread _exclusiveContextThread;
+        synchronized (AnimatorBase.this) {
+            propagateState = isStarted() && !drawablesEmpty;
+            _exclusiveContextThread = userExclusiveContextThread;
+            oldExclusiveContext = exclusiveContext;
+            exclusiveContext = enable;
+            if(DEBUG) {
+                System.err.println("AnimatorBase.setExclusiveContextThread: "+oldExclusiveContext+" -> "+exclusiveContext+", propagateState "+propagateState+", "+this);
+            }
+        }
+        final Thread dECT = enable ? ( null != userExclusiveContextThread ? userExclusiveContextThread : animThread ) : null ;
+        if( propagateState ) {
+            setDrawablesExclCtxState(enable);
+            if( !enable ) {
+                if( Thread.currentThread() == getThread() || Thread.currentThread() == _exclusiveContextThread ) {
+                    display();
+                } else {
+                    final boolean resumed = isAnimating() ? false : resume();
+                    int counter = 10;
+                    while( 0<counter && isAnimating() && !validateDrawablesExclCtxState(dECT) ) {
+                        try {
+                            Thread.sleep(20);
+                        } catch (InterruptedException e) { }
+                        counter--;
+                    }
+                    if(resumed) {
+                        pause();
+                    }
+                }
+                stateSync.lock();
+                try {
+                    userExclusiveContextThread=null;
+                } finally {
+                    stateSync.unlock();
+                }
+            }
+        }
+        if(DEBUG) {
+            System.err.println("AnimatorBase.setExclusiveContextThread: all-GLAD Ok: "+validateDrawablesExclCtxState(dECT)+", "+this);
+        }
+        return oldExclusiveContext;
+    }    
+    
+    /**
+     * Returns <code>true</code>, if the exclusive context thread is enabled, otherwise <code>false</code>.
+     * 
+     * @see #setExclusiveContext(boolean)
+     * @see #setExclusiveContext(Thread)
+     */
+    // @Override
+    public final boolean isExclusiveContextEnabled() { 
+        stateSync.lock();
+        try {
+            return exclusiveContext; 
+        } finally {
+            stateSync.unlock();
+        }
+    }
+    
+    /**
+     * Returns the exclusive context thread if {@link #isExclusiveContextEnabled()} and {@link #isStarted()}, otherwise <code>null</code>.
+     * <p>
+     * If exclusive context is enabled via {@link #setExclusiveContext(boolean)}
+     * the {@link #getThread() animator thread} is returned if above conditions are met.
+     * </p>
+     * <p>
+     * If exclusive context is enabled via {@link #setExclusiveContext(Thread)}
+     * the user passed thread is returned if above conditions are met.
+     * </p>
+     * @see #setExclusiveContext(boolean)
+     * @see #setExclusiveContext(Thread)
+     */
+    // @Override
+    public final Thread getExclusiveContextThread() { 
+        stateSync.lock();
+        try {
+            return ( isStartedImpl() && exclusiveContext ) ? ( null != userExclusiveContextThread ? userExclusiveContextThread : animThread ) : null ;
+        } finally {
+            stateSync.unlock();
+        }
+    }
+    
+    /**
+     * Should be called at {@link #start()} and {@link #stop()}
+     * from within the animator thread.
+     * <p>
+     * At {@link #stop()} an additional {@link #display()} call shall be issued
+     * to allow propagation of releasing the exclusive thread.
+     * </p>
+     */
+    protected final synchronized void setDrawablesExclCtxState(boolean enable) {
+        if(DEBUG) {
+            System.err.println("AnimatorBase.setExclusiveContextImpl exlusive "+exclusiveContext+": Enable "+enable+" for "+this+" - "+Thread.currentThread());
+            // Thread.dumpStack();
+        }
+        final Thread ect = getExclusiveContextThread();
+        for (int i=0; i<drawables.size(); i++) {
+            try {
+                drawables.get(i).setExclusiveContextThread( enable ? ect : null );
+            } catch (RuntimeException e) { 
+                e.printStackTrace();
+            }
+        }
+    }
+    protected final boolean validateDrawablesExclCtxState(Thread expected) {
+        for (int i=0; i<drawables.size(); i++) {
+            if( expected != drawables.get(i).getExclusiveContextThread() ) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    @Override
+    public final Thread getThread() {
+        stateSync.lock();
+        try {
+            return animThread;
+        } finally {
+            stateSync.unlock();
+        }
     }
 
     /** Called every frame to cause redrawing of all of the
@@ -143,54 +437,55 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         fpsCounter.tickFPS();
     }
 
+    @Override
     public final void setUpdateFPSFrames(int frames, PrintStream out) {
         fpsCounter.setUpdateFPSFrames(frames, out);
     }
     
+    @Override
     public final void resetFPSCounter() {
         fpsCounter.resetFPSCounter();
     }
 
+    @Override
     public final int getUpdateFPSFrames() {
         return fpsCounter.getUpdateFPSFrames();
     }
     
+    @Override
     public final long getFPSStartTime()   {
         return fpsCounter.getFPSStartTime();
     }
 
+    @Override
     public final long getLastFPSUpdateTime() {
         return fpsCounter.getLastFPSUpdateTime();
     }
 
+    @Override
     public final long getLastFPSPeriod() {
         return fpsCounter.getLastFPSPeriod();
     }
     
+    @Override
     public final float getLastFPS() {
         return fpsCounter.getLastFPS();
     }
     
+    @Override
     public final int getTotalFPSFrames() {
         return fpsCounter.getTotalFPSFrames();
     }
 
+    @Override
     public final long getTotalFPSDuration() {
         return fpsCounter.getTotalFPSDuration();
     }
     
+    @Override
     public final float getTotalFPS() {
         return fpsCounter.getTotalFPS();
     }        
-
-    public final Thread getThread() {
-        stateSync.lock();
-        try {
-            return animThread;
-        } finally {
-            stateSync.unlock();
-        }
-    }
 
     /** Sets a flag causing this Animator to ignore exceptions produced
     while redrawing the drawables. By default this flag is set to
@@ -207,7 +502,78 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         this.printExceptions = printExceptions;
     }
 
+    protected interface Condition {
+        /**
+         * @return true if branching (continue waiting, action), otherwise false
+         */
+        boolean eval();
+    }
+    
+    /**
+     * @param waitCondition method will wait until TO is reached or {@link Condition#eval() waitCondition.eval()} returns <code>false</code>.
+     * @param pollPeriod if <code>0</code>, method will wait until TO is reached or being notified. 
+     *                   if &gt; <code>0</code>, method will wait for the given <code>pollPeriod</code> in milliseconds.
+     * @return <code>true</code> if {@link Condition#eval() waitCondition.eval()} returned <code>false</code>, otherwise <code>false</code>.
+     */
+    protected synchronized boolean finishLifecycleAction(Condition waitCondition, long pollPeriod) {
+        // It's hard to tell whether the thread which changes the lifecycle has
+        // dependencies on the Animator's internal thread. Currently we
+        // use a couple of heuristics to determine whether we should do
+        // the blocking wait().
+        initImpl(false);
+        final boolean blocking = impl.blockUntilDone(animThread);
+        long remaining = blocking ? TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION : 0;
+        if( 0 >= pollPeriod ) {
+            pollPeriod = remaining;
+        }
+        boolean nok = waitCondition.eval();
+        while ( nok && remaining>0 ) {
+            final long t1 = System.currentTimeMillis();
+            if( pollPeriod > remaining ) { pollPeriod = remaining; }
+            notifyAll();
+            try {
+                wait(pollPeriod);
+            } catch (InterruptedException ie) {  }
+            remaining -= System.currentTimeMillis() - t1 ;
+            nok = waitCondition.eval();
+        }
+        if(DEBUG || nok) {
+            if( remaining<=0 && nok ) {
+                System.err.println("finishLifecycleAction(" + waitCondition.getClass().getName() + "): ++++++ timeout reached ++++++ " + Thread.currentThread().getName());
+            }
+            stateSync.lock(); // avoid too many lock/unlock ops 
+            try {
+                System.err.println("finishLifecycleAction(" + waitCondition.getClass().getName() + "): OK "+(!nok)+
+                        "- pollPeriod "+pollPeriod+", blocking "+blocking+
+                        ", waited " + (blocking ? ( TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION - remaining ) : 0 ) + "/" + TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION +                         
+                        " - " + Thread.currentThread().getName());
+                System.err.println(" - "+toString());
+            } finally {
+                stateSync.unlock();
+            }
+            if(nok) {
+                Thread.dumpStack();
+            }
+        }
+        return !nok;
+    }
+
+    protected final boolean isStartedImpl() {
+        return animThread != null ;
+    }
+    @Override
+    public boolean isStarted() {
+        stateSync.lock();
+        try {
+            return animThread != null ;
+        } finally {
+            stateSync.unlock();
+        }
+    }
+
     public String toString() {
-        return getClass().getName()+"[started "+isStarted()+", animating "+isAnimating()+", paused "+isPaused()+", drawable "+drawables.size()+", totals[dt "+getTotalFPSDuration()+", frames "+getTotalFPSFrames()+", fps "+getTotalFPS()+"]]";
+        return getClass().getName()+"[started "+isStarted()+", animating "+isAnimating()+", paused "+isPaused()+", drawable "+drawables.size()+
+               ", totals[dt "+getTotalFPSDuration()+", frames "+getTotalFPSFrames()+", fps "+getTotalFPS()+
+               "], modeBits "+modeBits+", init'ed "+(null!=impl)+", animThread "+getThread()+", exclCtxThread "+exclusiveContext+"("+getExclusiveContextThread()+")]";
     }
 }

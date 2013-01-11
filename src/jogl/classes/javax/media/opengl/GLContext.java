@@ -276,6 +276,9 @@ public abstract class GLContext {
   /**
    * Makes this GLContext current on the calling thread.
    * <p>
+   * Recursive call to {@link #makeCurrent()} and hence {@link #release()} are supported.
+   * </p>
+   * <p>
    * There are two return values that indicate success and one that
    * indicates failure.
    * </p>
@@ -288,7 +291,7 @@ public abstract class GLContext {
    * </p>
    * <p>
    * A return value of {@link #CONTEXT_CURRENT} indicates that the context has
-   * been made currrent, with its previous state restored.
+   * been made current, with its previous state restored.
    * </p>
    * <p>
    * If the context could not be made current (for example, because
@@ -319,6 +322,9 @@ public abstract class GLContext {
 
   /**
    * Releases control of this GLContext from the current thread.
+   * <p>
+   * Recursive call to {@link #release()} and hence {@link #makeCurrent()} are supported.
+   * </p>
    * <p>
    * The drawable's surface is being unlocked at exit,
    * assumed to be locked by {@link #makeCurrent()}.

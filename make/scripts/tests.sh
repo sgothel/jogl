@@ -104,6 +104,7 @@ function jrun() {
     #D_ARGS="-Djogamp.debug=all"
     #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
+    #D_ARGS="-Djogl.debug.Animator"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.GLCanvas"
     #D_ARGS="-Djogl.debug.GLDrawable"
@@ -169,7 +170,6 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug.JAWT -Djogl.debug.Animator"
     #D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Xprof"
-    #D_ARGS="-Djogl.debug.Animator"
     #D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug.GLCanvas"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.Animator"
@@ -283,6 +283,14 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLPointsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug651NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestExclusiveContext01VSyncAnimNEWT $*
+#testawt   com.jogamp.opengl.test.junit.jogl.acore.TestExclusiveContext01VSyncAnimAWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestExclusiveContext02FPSAnimNEWT $*
+#testawt   com.jogamp.opengl.test.junit.jogl.acore.TestExclusiveContext02FPSAnimAWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestExclusiveContext11VSyncAnimNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestExclusiveContext12FPSAnimNEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOffscrnCapsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryOffscrnCapsNEWT $*
@@ -292,7 +300,6 @@ function testawtswt() {
 
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer01GLCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer02NewtCanvasAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableFactoryNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOOffThreadSharedContextMix2DemosES2NEWT $*
@@ -302,12 +309,12 @@ function testawtswt() {
 
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableDeadlockAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461FBOSupersamplingSwingAWT
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.glu.TestGluUnprojectFloatNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteWindow01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteGLWindows01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestOlympicES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
@@ -455,7 +462,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestPNGImage01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTexture01AWT
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileAWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite01AWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite02AWT $*

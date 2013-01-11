@@ -117,7 +117,7 @@ public interface GLAnimatorControl extends FPSCounter {
      * or in some cases from an implementation-internal thread like the
      * AWT event queue thread.
      *
-     * @return  false if if not started or already paused, otherwise true
+     * @return  false if not started, already paused or failed to pause, otherwise true
      *
      * @see #resume()
      * @see #isAnimating()
@@ -134,7 +134,7 @@ public interface GLAnimatorControl extends FPSCounter {
      * <P>
      * If resumed, all counters (time, frames, ..) are reset to zero.
      *
-     * @return false if if not started or not paused, otherwise true
+     * @return false if not started, not paused or unable to resume, otherwise true
      *
      * @see #pause()
      * @see #isAnimating()
@@ -142,13 +142,24 @@ public interface GLAnimatorControl extends FPSCounter {
     boolean resume();
 
     /**
+     * Adds a drawable to this animator's list of rendering drawables.<br>
+     * This allows the animator thread to become active, i.e. {@link #isAnimating()}==true, 
+     * in case the first drawable is added and {@link #isStarted()} and not {@link #isPaused()}.<br>
+     * 
+     * @param drawable the drawable to be added
+     * @throws IllegalArgumentException if drawable was already added to this animator
+     */
+    void add(GLAutoDrawable drawable);
+    
+    /**
      * Removes a drawable from the animator's list of rendering drawables.<br>
      * This method should get called in case a drawable becomes invalid,
      * and will not be recovered.<br>
-     * This allows the animator thread to become idle in case the last drawable
-     * has reached it's end of life.<br>
+     * This allows the animator thread to become idle, i.e. {@link #isAnimating()}==false, 
+     * in case the last drawable has reached it's end of life.<br>
      * 
-     * @param drawable the to be removed drawable
+     * @param drawable the drawable to be removed
+     * @throws IllegalArgumentException if drawable was not added to this animator
      */
     void remove(GLAutoDrawable drawable);
 }

@@ -31,6 +31,7 @@ package com.jogamp.opengl.test.junit.jogl.demos.es1.newt;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 
@@ -50,6 +51,7 @@ public class TestGearsES1NEWT extends UITestCase {
     static int width, height;
     static boolean forceES2 = false;
     static boolean forceFFPEmu = false;
+    static int swapInterval = 1;
 
     @BeforeClass
     public static void initClass() {
@@ -66,7 +68,7 @@ public class TestGearsES1NEWT extends UITestCase {
         Assert.assertNotNull(glWindow);
         glWindow.setTitle("Gears NEWT Test");
 
-        final GearsES1 demo = new GearsES1();
+        final GearsES1 demo = new GearsES1(swapInterval);
         demo.setForceFFPEmu(forceFFPEmu, forceFFPEmu, false, false);
         glWindow.addGLEventListener(demo);
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
@@ -117,7 +119,7 @@ public class TestGearsES1NEWT extends UITestCase {
         runTestGL(caps, forceFFPEmu);
     }
     
-    static long duration = 1000; // ms
+    static long duration = 500; // ms
     
     public static void main(String args[]) {
         for(int i=0; i<args.length; i++) {
@@ -126,6 +128,9 @@ public class TestGearsES1NEWT extends UITestCase {
                 try {
                     duration = Integer.parseInt(args[i]);
                 } catch (Exception ex) { ex.printStackTrace(); }
+            } else if(args[i].equals("-vsync")) {
+                i++;
+                swapInterval = MiscUtils.atoi(args[i], swapInterval);
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
             } else if(args[i].equals("-ffpemu")) {

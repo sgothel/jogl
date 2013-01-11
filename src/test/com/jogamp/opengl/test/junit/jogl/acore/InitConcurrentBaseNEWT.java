@@ -53,7 +53,7 @@ import com.jogamp.opengl.util.Animator;
  * Rendering is always lock-free and independent of the EDT.
  * </p>
  */
-public class InitConcurrentBaseNEWT extends UITestCase {
+public abstract class InitConcurrentBaseNEWT extends UITestCase {
 
     static final int demoSize = 128;
     

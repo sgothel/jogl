@@ -50,7 +50,6 @@ import javax.media.opengl.GLRunnable;
 
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.GLAutoDrawableDelegate;
-import com.jogamp.opengl.util.Animator;
 
 
 /**
@@ -407,6 +406,16 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     }
 
     @Override
+    public final Thread setExclusiveContextThread(Thread t) throws GLException {
+        return helper.setExclusiveContextThread(t, context);
+    }
+
+    @Override
+    public final Thread getExclusiveContextThread() {
+        return helper.getExclusiveContextThread();
+    }
+    
+    @Override
     public final boolean invoke(boolean wait, GLRunnable glRunnable) {
         return helper.invoke(this, wait, glRunnable);        
     }
@@ -530,25 +539,6 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     public int getHeight() {
         final GLDrawable _drawable = drawable;
         return null != _drawable ? _drawable.getHeight() : 0;
-    }
-
-    /**
-     * @param t the thread for which context release shall be skipped, usually the animation thread,
-     *          ie. {@link Animator#getThread()}.
-     * @deprecated This is an experimental feature,
-     *             intended for measuring performance in regards to GL context switch.
-     */
-    @Deprecated
-    public void setSkipContextReleaseThread(Thread t) {
-        helper.setSkipContextReleaseThread(t);
-    }
-
-    /**
-     * @deprecated see {@link #setSkipContextReleaseThread(Thread)}
-     */
-    @Deprecated
-    public Thread getSkipContextReleaseThread() {
-        return helper.getSkipContextReleaseThread();
     }
 
     @Override

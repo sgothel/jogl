@@ -65,7 +65,9 @@ public class GearsES2 implements GLEventListener {
 
     private int prevMouseX, prevMouseY;
     private boolean doRotate = true;
-    boolean ignoreFocus = false;
+    private boolean ignoreFocus = false;
+    private boolean clearBuffers = true;
+    private boolean verbose = true;
 
     public GearsES2(int swapInterval) {
         this.swapInterval = swapInterval;
@@ -77,6 +79,8 @@ public class GearsES2 implements GLEventListener {
 
     public void setIgnoreFocus(boolean v) { ignoreFocus = v; }
     public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
+    public void setClearBuffers(boolean v) { clearBuffers = v; }
+    public void setVerbose(boolean v) { verbose = v; }
     
     public void setPMVUseBackingArray(boolean pmvUseBackingArray) {
         this.pmvUseBackingArray = pmvUseBackingArray;
@@ -108,17 +112,19 @@ public class GearsES2 implements GLEventListener {
         System.err.println(Thread.currentThread()+" GearsES2.init ...");
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
-        System.err.println("GearsES2 init on "+Thread.currentThread());
-        System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
-        System.err.println("INIT GL IS: " + gl.getClass().getName());
-        System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
-        System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
-        System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
-        System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none")+", "+gl.getContext().getGLSLVersionNumber());
-        System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
-        System.err.println("GL Profile: "+gl.getGLProfile());
-        System.err.println("GL Renderer Quirks:" + gl.getContext().getRendererQuirks().toString());
-        System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
+        if(verbose) {
+            System.err.println("GearsES2 init on "+Thread.currentThread());
+            System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
+            System.err.println("INIT GL IS: " + gl.getClass().getName());
+            System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
+            System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
+            System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
+            System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none")+", "+gl.getContext().getGLSLVersionNumber());
+            System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
+            System.err.println("GL Profile: "+gl.getGLProfile());
+            System.err.println("GL Renderer Quirks:" + gl.getContext().getRendererQuirks().toString());
+            System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
+        }
 
         gl.glEnable(GL.GL_DEPTH_TEST);
         
@@ -153,26 +159,38 @@ public class GearsES2 implements GLEventListener {
 
         if(null == gear1) {
             gear1 = new GearsObjectES2(st, 1.0f, 4.0f, 1.0f, 20, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
-            System.err.println("gear1 created: "+gear1);
+            if(verbose) {
+                System.err.println("gear1 created: "+gear1);
+            }
         } else {
             gear1 = new GearsObjectES2(gear1, st, pmvMatrix, pmvMatrixUniform, colorU);
-            System.err.println("gear1 reused: "+gear1);
+            if(verbose) {
+                System.err.println("gear1 reused: "+gear1);
+            }
         }
                     
         if(null == gear2) {
             gear2 = new GearsObjectES2(st, 0.5f, 2.0f, 2.0f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
-            System.err.println("gear2 created: "+gear2);
+            if(verbose) {
+                System.err.println("gear2 created: "+gear2);
+            }
         } else {
             gear2 = new GearsObjectES2(gear2, st, pmvMatrix, pmvMatrixUniform, colorU);
-            System.err.println("gear2 reused: "+gear2);
+            if(verbose) {
+                System.err.println("gear2 reused: "+gear2);
+            }
         }
                 
         if(null == gear3) {
             gear3 = new GearsObjectES2(st, 1.3f, 2.0f, 0.5f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
-            System.err.println("gear3 created: "+gear3);
+            if(verbose) {
+                System.err.println("gear3 created: "+gear3);
+            }
         } else {
             gear3 = new GearsObjectES2(gear3, st, pmvMatrix, pmvMatrixUniform, colorU);
-            System.err.println("gear3 reused: "+gear3);
+            if(verbose) {
+                System.err.println("gear3 reused: "+gear3);
+            }
         }
     
         final Object upstreamWidget = drawable.getUpstreamWidget();
@@ -264,22 +282,23 @@ public class GearsES2 implements GLEventListener {
         
         gl.glEnable(GL.GL_CULL_FACE);
         
-        if( ignoreFocus || hasFocus ) {
-          gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-        } else {
-          gl.glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
-        }
-        
-        // Special handling for the case where the GLJPanel is translucent
-        // and wants to be composited with other Java 2D content
-        if (GLProfile.isAWTAvailable() && 
-            (drawable instanceof javax.media.opengl.awt.GLJPanel) &&
-            !((javax.media.opengl.awt.GLJPanel) drawable).isOpaque() &&
-            ((javax.media.opengl.awt.GLJPanel) drawable).shouldPreserveColorBufferIfTranslucent()) {
-          gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
-        } else {
-          gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-        }
+        if( clearBuffers ) {
+            if( ignoreFocus || hasFocus ) {
+              gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+            } else {
+              gl.glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
+            }
+            // Special handling for the case where the GLJPanel is translucent
+            // and wants to be composited with other Java 2D content
+            if (GLProfile.isAWTAvailable() && 
+                (drawable instanceof javax.media.opengl.awt.GLJPanel) &&
+                !((javax.media.opengl.awt.GLJPanel) drawable).isOpaque() &&
+                ((javax.media.opengl.awt.GLJPanel) drawable).shouldPreserveColorBufferIfTranslucent()) {
+              gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
+            } else {
+              gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+            }
+        }        
 
         st.useProgram(gl, true);
         pmvMatrix.glPushMatrix();

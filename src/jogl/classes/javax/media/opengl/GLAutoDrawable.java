@@ -311,13 +311,13 @@ public interface GLAutoDrawable extends GLDrawable {
   public GLEventListener removeGLEventListener(GLEventListener listener);
   
   /**
-   * <p>
    * Registers the usage of an animator, an {@link javax.media.opengl.GLAnimatorControl} implementation.
-   * The animator will be queried whether it's animating, ie periodically issuing {@link #display()} calls or not.</p><br>
+   * The animator will be queried whether it's animating, ie periodically issuing {@link #display()} calls or not.
    * <p>
    * This method shall be called by an animator implementation only,<br>
    * e.g. {@link com.jogamp.opengl.util.Animator#add(javax.media.opengl.GLAutoDrawable)}, passing it's control implementation,<br>
-   * and {@link com.jogamp.opengl.util.Animator#remove(javax.media.opengl.GLAutoDrawable)}, passing <code>null</code>.</p><br>
+   * and {@link com.jogamp.opengl.util.Animator#remove(javax.media.opengl.GLAutoDrawable)}, passing <code>null</code>.
+   * </p>
    * <p>
    * Impacts {@link #display()} and {@link #invoke(boolean, GLRunnable)} semantics.</p><br>
    *
@@ -340,6 +340,45 @@ public interface GLAutoDrawable extends GLDrawable {
    */
   public GLAnimatorControl getAnimator();
 
+  /**
+   * Dedicates this instance's {@link GLContext} to the given thread.<br/>
+   * The thread will exclusively claim the {@link GLContext} via {@link #display()} and not release it
+   * until {@link #destroy()} or <code>setExclusiveContextThread(null)</code> has been called. 
+   * <p>
+   * Default non-exclusive behavior is <i>requested</i> via <code>setExclusiveContextThread(null)</code>,
+   * which will cause the next call of {@link #display()} on the exclusive thread to 
+   * release the {@link GLContext}. Only after it's async release, {@link #getExclusiveContextThread()} 
+   * will return <code>null</code>.
+   * </p>
+   * <p>
+   * To release a previous made exclusive thread, a user issues <code>setExclusiveContextThread(null)</code>
+   * and may poll {@link #getExclusiveContextThread()} until it returns <code>null</code>, 
+   * <i>while</i> the exclusive thread is still running.  
+   * </p>
+   * <p>
+   * Note: Setting a new exclusive thread without properly releasing a previous one
+   * will throw an GLException.
+   * </p>
+   * <p>
+   * Note: Utilizing this feature w/ AWT could lead to an AWT-EDT deadlock, depending on the AWT implementation.
+   * Hence it is advised not to use it with native AWT GLAutoDrawable like GLCanvas.
+   * </p>
+   * <p>
+   * One scenario could be to dedicate the context to the {@link GLAnimatorControl#getThread() animator thread}
+   * and spare redundant context switches, see {@link com.jogamp.opengl.util.AnimatorBase#setExclusiveContext(boolean)}.
+   * </p>
+   * @param t the exclusive thread to claim the context, or <code>null</code> for default operation.
+   * @return previous exclusive context thread 
+   * @throws GLException If an exclusive thread is still active but a new one is attempted to be set
+   * @see com.jogamp.opengl.util.AnimatorBase#setExclusiveContext(boolean)
+   */
+  public Thread setExclusiveContextThread(Thread t) throws GLException;
+  
+  /**
+   * @see #setExclusiveContextThread(Thread) 
+   */
+  public Thread getExclusiveContextThread();
+  
   /**
    * Enqueues a one-shot {@link GLRunnable},
    * which will be executed within the next {@link #display()} call

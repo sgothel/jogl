@@ -39,15 +39,16 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLUniformData;
 
 public class RedSquareES2 implements GLEventListener {
-    ShaderState st;
-    PMVMatrix pmvMatrix;
-    GLUniformData pmvMatrixUniform;
-    GLArrayDataServer vertices ;
-    GLArrayDataServer colors ;
-    long t0;
+    private ShaderState st;
+    private PMVMatrix pmvMatrix;
+    private GLUniformData pmvMatrixUniform;
+    private GLArrayDataServer vertices ;
+    private GLArrayDataServer colors ;
+    private long t0;
     private int swapInterval = 0;
-    float aspect = 1.0f;
-    boolean doRotate = true;
+    private float aspect = 1.0f;
+    private boolean doRotate = true;
+    private boolean clearBuffers = true;
 
     public RedSquareES2(int swapInterval) {
         this.swapInterval = swapInterval;
@@ -59,6 +60,7 @@ public class RedSquareES2 implements GLEventListener {
         
     public void setAspect(float aspect) { this.aspect = aspect; }
     public void setDoRotation(boolean rotate) { this.doRotate = rotate; }
+    public void setClearBuffers(boolean v) { clearBuffers = v; }
     
     public void init(GLAutoDrawable glad) {
         System.err.println(Thread.currentThread()+" RedSquareES2.init ...");
@@ -131,8 +133,10 @@ public class RedSquareES2 implements GLEventListener {
         long t1 = System.currentTimeMillis();
 
         GL2ES2 gl = glad.getGL().getGL2ES2();
-        gl.glClearColor(0, 0, 0, 0);
-        gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        if( clearBuffers ) {
+            gl.glClearColor(0, 0, 0, 0);
+            gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        }
         st.useProgram(gl, true);
         // One rotation every four seconds
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);

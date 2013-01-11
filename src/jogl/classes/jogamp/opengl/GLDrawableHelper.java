@@ -58,8 +58,6 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLFBODrawable;
 import javax.media.opengl.GLRunnable;
 
-import com.jogamp.opengl.util.Animator;
-
 /** Encapsulates the implementation of most of the GLAutoDrawable's
     methods to be able to share it between GLCanvas and GLJPanel. */
 public class GLDrawableHelper {
@@ -73,7 +71,9 @@ public class GLDrawableHelper {
   private final Object glRunnablesLock = new Object();
   private volatile ArrayList<GLRunnableTask> glRunnables = new ArrayList<GLRunnableTask>();
   private boolean autoSwapBufferMode;
-  private Thread skipContextReleaseThread;
+  private volatile Thread exclusiveContextThread;
+  /** -1 release, 0 nop, 1 claim */
+  private volatile int exclusiveContextSwitch;
   private GLAnimatorControl animatorCtrl;
   private static Runnable nop = new Runnable() { public void run() {} };
 
@@ -87,7 +87,8 @@ public class GLDrawableHelper {
         listenersToBeInit.clear();
     }
     autoSwapBufferMode = true;
-    skipContextReleaseThread = null;
+    exclusiveContextThread = null;
+    exclusiveContextSwitch = 0;
     synchronized(glRunnablesLock) {
         glRunnables.clear();
     }
@@ -112,6 +113,23 @@ public class GLDrawableHelper {
     return sb.toString();
   }
 
+  /**
+   * Since GLContext's {@link GLContext#makeCurrent()} and {@link GLContext#release()}
+   * is recursive, a call to {@link GLContext#release()} may not natively release the context.
+   * <p>
+   * This methods continues calling {@link GLContext#release()} until the context has been natively released.
+   * </p>
+   * @param ctx
+   */
+  public static final void forceNativeRelease(GLContext ctx) {
+      do {
+          ctx.release();
+          if (DEBUG) {
+              System.err.println("GLDrawableHelper.forceNativeRelease() -- currentThread "+Thread.currentThread()+" -> "+GLContext.getCurrent());
+          }
+      } while( ctx == GLContext.getCurrent() );
+  }
+        
   /**
    * Associate a new context to the drawable and also propagates the context/drawable switch by 
    * calling {@link GLContext#setGLDrawable(GLDrawable, boolean) newCtx.setGLDrawable(drawable, true);}.
@@ -767,23 +785,72 @@ public class GLDrawableHelper {
     return autoSwapBufferMode;
   }
 
-  /**
-   * @param t the thread for which context release shall be skipped, usually the animation thread,
-   *          ie. {@link Animator#getThread()}.
-   * @deprecated this is an experimental feature, 
-   *             intended for measuring performance in regards to GL context switch
-   *             and only being used if {@link #PERF_STATS} is enabled
-   *             by defining property <code>jogl.debug.GLDrawable.PerfStats</code>.
-   */
-  public final void setSkipContextReleaseThread(Thread t) {
-    skipContextReleaseThread = t;
+  private final String getExclusiveContextSwitchString() {
+      return 0 == exclusiveContextSwitch ? "nop" : ( 0 > exclusiveContextSwitch ? "released" : "claimed" ) ;
   }
 
   /**
-   * @deprecated see {@link #setSkipContextReleaseThread(Thread)} 
+   * Dedicates this instance's {@link GLContext} to the given thread.<br/>
+   * The thread will exclusively claim the {@link GLContext} via {@link #display()} and not release it
+   * until {@link #destroy()} or <code>setExclusiveContextThread(null)</code> has been called. 
+   * <p>
+   * Default non-exclusive behavior is <i>requested</i> via <code>setExclusiveContextThread(null)</code>,
+   * which will cause the next call of {@link #display()} on the exclusive thread to 
+   * release the {@link GLContext}. Only after it's async release, {@link #getExclusiveContextThread()} 
+   * will return <code>null</code>.
+   * </p>
+   * <p>
+   * To release a previous made exclusive thread, a user issues <code>setExclusiveContextThread(null)</code>
+   * and may poll {@link #getExclusiveContextThread()} until it returns <code>null</code>, 
+   * <i>while</i> the exclusive thread is still running.  
+   * </p>
+   * <p>
+   * Note: Setting a new exclusive thread without properly releasing a previous one
+   * will throw an GLException.
+   * </p>
+   * <p>
+   * One scenario could be to dedicate the context to the {@link com.jogamp.opengl.util.AnimatorBase#getThread() animator thread}
+   * and spare redundant context switches.
+   * </p>
+   * @param t the exclusive thread to claim the context, or <code>null</code> for default operation.
+   * @return previous exclusive context thread 
+   * @throws GLException If an exclusive thread is still active but a new one is attempted to be set
    */
-  public final Thread getSkipContextReleaseThread() {
-    return skipContextReleaseThread;
+  public final Thread setExclusiveContextThread(Thread t, GLContext context) throws GLException {
+    if (DEBUG) {
+      System.err.println("GLDrawableHelper.setExclusiveContextThread(): START switch "+getExclusiveContextSwitchString()+", thread "+exclusiveContextThread+" -> "+t+" -- currentThread "+Thread.currentThread());
+    }
+    final Thread oldExclusiveContextThread = exclusiveContextThread;
+    if( exclusiveContextThread == t ) {
+        exclusiveContextSwitch =  0; // keep
+    } else if( null == t ) {
+        exclusiveContextSwitch = -1; // release
+    } else {
+        exclusiveContextSwitch =  1; // claim
+        if( null != exclusiveContextThread ) {
+            throw new GLException("Release current exclusive Context Thread "+exclusiveContextThread+" first");
+        }
+        if( null != context && GLContext.getCurrent() == context ) {
+            try {
+                forceNativeRelease(context);
+            } catch (Throwable ex) {
+                ex.printStackTrace();
+                throw new GLException(ex);
+            }
+        }        
+        exclusiveContextThread = t;
+    }
+    if (DEBUG) {
+      System.err.println("GLDrawableHelper.setExclusiveContextThread(): END switch "+getExclusiveContextSwitchString()+", thread "+exclusiveContextThread+" -- currentThread "+Thread.currentThread());
+    }
+    return oldExclusiveContextThread;
+  }
+  
+  /**
+   * @see #setExclusiveContextThread(Thread, GLContext) 
+   */
+  public final Thread getExclusiveContextThread() {
+    return exclusiveContextThread;
   }
   
   private static final ThreadLocal<Runnable> perThreadInitAction = new ThreadLocal<Runnable>();
@@ -828,7 +895,10 @@ public class GLDrawableHelper {
    * {@link #disposeAllGLEventListener(GLAutoDrawable, boolean) disposeAllGLEventListener(autoDrawable, false)} 
    * with the context made current.
    * <p>
-   * If <code>destroyContext</code> is <code>true</code> the context is destroyed in the end while holding the lock.<br/>
+   * If <code>destroyContext</code> is <code>true</code> the context is destroyed in the end while holding the lock.
+   * </p>
+   * <p>
+   * If <code>destroyContext</code> is <code>false</code> the context is natively released, i.e. released as often as locked before.
    * </p>
    * @param autoDrawable
    * @param context
@@ -842,14 +912,15 @@ public class GLDrawableHelper {
     Runnable  lastInitAction = null;
     if (lastContext != null) {
         if (lastContext == context) {
-            lastContext = null; // utilize recursive locking
+            lastContext = null;
         } else {
+            // utilize recursive locking
             lastInitAction = perThreadInitAction.get();
             lastContext.release();
         }
     }
-    int res = GLContext.CONTEXT_NOT_CURRENT;
-  
+
+    int res;    
     try {
       res = context.makeCurrent();
       if (GLContext.CONTEXT_NOT_CURRENT != res) {
@@ -865,7 +936,7 @@ public class GLDrawableHelper {
           if(destroyContext) {
               context.destroy();
           } else {
-              context.release();
+              forceNativeRelease(context);
           }
           flushGLRunnables();
       } catch (Exception e) {
@@ -880,136 +951,204 @@ public class GLDrawableHelper {
       }
     }
   }
-      
+
   private final void invokeGLImpl(final GLDrawable drawable,
-                                  final GLContext context,
-                                  final Runnable  runnable,
-                                  final Runnable  initAction) {                                  
-    // Support for recursive makeCurrent() calls as well as calling
-    // other drawables' display() methods from within another one's
-    GLContext lastContext = GLContext.getCurrent();
-    Runnable  lastInitAction = null;
-    if (lastContext != null) {
-        if (lastContext == context) {
-            lastContext = null; // utilize recursive locking
-        } else {
-            lastInitAction = perThreadInitAction.get();
-            lastContext.release();
-        }
-    }
-    int res = GLContext.CONTEXT_NOT_CURRENT;
-    
-    try {
-        res = context.makeCurrent();
-        if (GLContext.CONTEXT_NOT_CURRENT != res) {
-            try {
-                perThreadInitAction.set(initAction);
-                if (GLContext.CONTEXT_CURRENT_NEW == res) {
-                    if (DEBUG) {
-                        System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
-                    }
-                    initAction.run();
-                }
-                runnable.run();
-                if ( autoSwapBufferMode ) {
-                    drawable.swapBuffers();
-                }
-            } finally {
-                try {
-                    context.release();
-                } catch (Exception e) {
-                    System.err.println("Catched: "+e.getMessage());
-                    e.printStackTrace();
-                }
-            }
-        }
-    } finally {
-        if (lastContext != null) {
-            final int res2 = lastContext.makeCurrent();
-            if (null != lastInitAction && res2 == GLContext.CONTEXT_CURRENT_NEW) {
-                lastInitAction.run();
-            }
-        }
-    }
-  }
-  
-  private final void invokeGLImplStats(final GLDrawable drawable,
-                                       final GLContext context,
-                                       final Runnable  runnable,
-                                       final Runnable  initAction) {
-    final Thread currentThread = Thread.currentThread();
-    
-    // Support for recursive makeCurrent() calls as well as calling
-    // other drawables' display() methods from within another one's
-    int res = GLContext.CONTEXT_NOT_CURRENT;
-    GLContext lastContext = GLContext.getCurrent();
-    Runnable  lastInitAction = null;
-    if (lastContext != null) {
-        if (lastContext == context) {
-            if( currentThread == skipContextReleaseThread ) {
-                res = GLContext.CONTEXT_CURRENT;
-            } // else: utilize recursive locking
-            lastContext = null;
-        } else {
-            lastInitAction = perThreadInitAction.get();
-            lastContext.release();
-        }
-    }
-  
-    long t0 = System.currentTimeMillis();
-    long tdA = 0; // makeCurrent
-    long tdR = 0; // render time
-    long tdS = 0; // swapBuffers
-    long tdX = 0; // release
-    boolean ctxClaimed = false;
-    boolean ctxReleased = false;
-    boolean ctxDestroyed = false;    
-    try {
-      if (res == GLContext.CONTEXT_NOT_CURRENT) {
-          res = context.makeCurrent();
-          ctxClaimed = true;
-      }
-      if (res != GLContext.CONTEXT_NOT_CURRENT) {
-        perThreadInitAction.set(initAction);
-        if (res == GLContext.CONTEXT_CURRENT_NEW) {
-          if (DEBUG) {
-            System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
+          final GLContext context,
+          final Runnable  runnable,
+          final Runnable  initAction) {                                  
+      final Thread currentThread = Thread.currentThread();
+
+      // Exclusive Cases:
+      //   1: lock - unlock  : default
+      //   2: lock - -       : exclusive,    not locked yet
+      //   3: -    - -       : exclusive,    already locked
+      //   4: -    - unlock  : ex-exclusive, already locked
+      final boolean _isExclusiveThread, _releaseExclusiveThread;
+      if( null != exclusiveContextThread) {
+          if( currentThread == exclusiveContextThread ) {
+              _releaseExclusiveThread = 0 > exclusiveContextSwitch;
+              _isExclusiveThread = !_releaseExclusiveThread;
+              exclusiveContextSwitch = 0;
+          } else {
+              // Exclusive thread usage, but on other thread
+              return;
           }
-          initAction.run();
-        }
-        tdR = System.currentTimeMillis();        
-        tdA = tdR - t0; // makeCurrent
-        runnable.run();
-        tdS = System.currentTimeMillis();
-        tdR = tdS - tdR; // render time
-        if (autoSwapBufferMode) {
-            drawable.swapBuffers();
-            tdX = System.currentTimeMillis();
-            tdS = tdX - tdS; // swapBuffers
-        }
-      }
-    } finally {
-      try {
-          if( res != GLContext.CONTEXT_NOT_CURRENT &&
-              (null == skipContextReleaseThread || currentThread != skipContextReleaseThread) ) {
-              context.release();
-              ctxReleased = true;
-          }
-      } catch (Exception e) {
-          System.err.println("Catched: "+e.getMessage());
-          e.printStackTrace();
+      } else {
+          _releaseExclusiveThread = false;
+          _isExclusiveThread = false;
       }
 
-      tdX = System.currentTimeMillis() - tdX; // release / destroy
+      // Support for recursive makeCurrent() calls as well as calling
+      // other drawables' display() methods from within another one's
+      int res = GLContext.CONTEXT_NOT_CURRENT;
+      GLContext lastContext = GLContext.getCurrent();
+      Runnable  lastInitAction = null;
       if (lastContext != null) {
-        final int res2 = lastContext.makeCurrent();
-        if (null != lastInitAction && res2 == GLContext.CONTEXT_CURRENT_NEW) {
-          lastInitAction.run();
-        }
+          if (lastContext == context) {
+              res = GLContext.CONTEXT_CURRENT;
+              lastContext = null;
+          } else {
+              // utilize recursive locking
+              lastInitAction = perThreadInitAction.get();
+              lastContext.release();
+          }
       }
-    }
-    long td = System.currentTimeMillis() - t0;
-    System.err.println("td0 "+td+"ms, fps "+(1.0/(td/1000.0))+", td-makeCurrent: "+tdA+"ms, td-render "+tdR+"ms, td-swap "+tdS+"ms, td-release "+tdX+"ms, ctx claimed: "+ctxClaimed+", ctx release: "+ctxReleased+", ctx destroyed "+ctxDestroyed);
+      
+      try {
+          final boolean releaseContext;
+          if( GLContext.CONTEXT_NOT_CURRENT == res ) {
+              res = context.makeCurrent();
+              releaseContext = !_isExclusiveThread;
+          } else {
+              releaseContext = _releaseExclusiveThread;
+          }
+          if (GLContext.CONTEXT_NOT_CURRENT != res) {
+              try {
+                  perThreadInitAction.set(initAction);
+                  if (GLContext.CONTEXT_CURRENT_NEW == res) {
+                      if (DEBUG) {
+                          System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
+                      }
+                      initAction.run();
+                  }
+                  runnable.run();
+                  if ( autoSwapBufferMode ) {
+                      drawable.swapBuffers();
+                  }
+              } finally {
+                  if( _releaseExclusiveThread ) {
+                      exclusiveContextThread = null;
+                      if (DEBUG) {
+                          System.err.println("GLDrawableHelper.invokeGL() - Release ExclusiveContextThread -- currentThread "+Thread.currentThread());
+                      }
+                  }
+                  if( releaseContext ) {
+                      try {
+                          context.release();
+                      } catch (Exception e) {
+                          System.err.println("Catched: "+e.getMessage());
+                          e.printStackTrace();
+                      }
+                  }
+              }
+          }
+      } finally {
+          if (lastContext != null) {
+              final int res2 = lastContext.makeCurrent();
+              if (null != lastInitAction && res2 == GLContext.CONTEXT_CURRENT_NEW) {
+                  lastInitAction.run();
+              }
+          }
+      }
+  }
+
+  private final void invokeGLImplStats(final GLDrawable drawable,
+          final GLContext context,
+          final Runnable  runnable,
+          final Runnable  initAction) {
+      final Thread currentThread = Thread.currentThread();
+
+      // Exclusive Cases:
+      //   1: lock - unlock  : default
+      //   2: lock - -       : exclusive, not locked yet
+      //   3: -    - -       : exclusive, already locked
+      //   4: -    - unlock  : ex-exclusive, already locked
+      final boolean _isExclusiveThread, _releaseExclusiveThread;
+      if( null != exclusiveContextThread) {
+          if( currentThread == exclusiveContextThread ) {
+              _releaseExclusiveThread = 0 > exclusiveContextSwitch;
+              _isExclusiveThread = !_releaseExclusiveThread;
+          } else {
+              // Exclusive thread usage, but on other thread
+              return;
+          }
+      } else {
+          _releaseExclusiveThread = false;
+          _isExclusiveThread = false;
+      }
+
+      // Support for recursive makeCurrent() calls as well as calling
+      // other drawables' display() methods from within another one's
+      int res = GLContext.CONTEXT_NOT_CURRENT;
+      GLContext lastContext = GLContext.getCurrent();
+      Runnable  lastInitAction = null;
+      if (lastContext != null) {
+          if (lastContext == context) {
+              res = GLContext.CONTEXT_CURRENT;
+              lastContext = null;
+          } else {
+              // utilize recursive locking
+              lastInitAction = perThreadInitAction.get();
+              lastContext.release();
+          }
+      }
+
+      long t0 = System.currentTimeMillis();
+      long tdA = 0; // makeCurrent
+      long tdR = 0; // render time
+      long tdS = 0; // swapBuffers
+      long tdX = 0; // release
+      boolean ctxClaimed = false;
+      boolean ctxReleased = false;
+      boolean ctxDestroyed = false;    
+      try {
+          final boolean releaseContext;
+          if( GLContext.CONTEXT_NOT_CURRENT == res ) {
+              res = context.makeCurrent();
+              releaseContext = !_isExclusiveThread;
+              ctxClaimed = true;
+          } else {
+              releaseContext = _releaseExclusiveThread;
+          }
+          if (GLContext.CONTEXT_NOT_CURRENT != res) {
+              try {
+                  perThreadInitAction.set(initAction);
+                  if (GLContext.CONTEXT_CURRENT_NEW == res) {
+                      if (DEBUG) {
+                          System.err.println("GLDrawableHelper " + this + ".invokeGL(): Running initAction");
+                      }
+                      initAction.run();
+                  }
+                  tdR = System.currentTimeMillis();        
+                  tdA = tdR - t0; // makeCurrent
+                  runnable.run();
+                  tdS = System.currentTimeMillis();
+                  tdR = tdS - tdR; // render time
+                  if ( autoSwapBufferMode ) {
+                      drawable.swapBuffers();
+                      tdX = System.currentTimeMillis();
+                      tdS = tdX - tdS; // swapBuffers
+                  }
+              } finally {
+                  if( _releaseExclusiveThread ) {
+                      exclusiveContextSwitch = 0;
+                      exclusiveContextThread = null;
+                      if (DEBUG) {
+                          System.err.println("GLDrawableHelper.invokeGL() - Release ExclusiveContextThread -- currentThread "+Thread.currentThread());
+                      }
+                  }
+                  if( releaseContext ) {
+                      try {
+                          context.release();
+                          ctxReleased = true;
+                      } catch (Exception e) {
+                          System.err.println("Catched: "+e.getMessage());
+                          e.printStackTrace();
+                      }
+                  }
+              }
+          }
+      } finally {
+          tdX = System.currentTimeMillis() - tdX; // release / destroy
+          if (lastContext != null) {
+              final int res2 = lastContext.makeCurrent();
+              if (null != lastInitAction && res2 == GLContext.CONTEXT_CURRENT_NEW) {
+                  lastInitAction.run();
+              }
+          }
+      }
+      long td = System.currentTimeMillis() - t0;
+      System.err.println("td0 "+td+"ms, fps "+(1.0/(td/1000.0))+", td-makeCurrent: "+tdA+"ms, td-render "+tdR+"ms, td-swap "+tdS+"ms, td-release "+tdX+"ms, ctx claimed: "+ctxClaimed+", ctx release: "+ctxReleased+", ctx destroyed "+ctxDestroyed);
   }
     
 }
