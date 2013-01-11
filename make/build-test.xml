@@ -271,6 +271,8 @@
             <fileset dir="${classes}">
                 <include name="${java.dir.junit}/**/Test*NEWT*"/>
                 <exclude name="**/*$$*"/>
+                <exclude name="**/*AWT*"/>
+                <exclude name="**/*SWT*"/>
             </fileset>
           <sequential>
             <var name="test.class.path" unset="true"/>
