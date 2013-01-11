@@ -325,15 +325,12 @@ public abstract class GLContextImpl extends GLContext {
           try {
               // Must hold the lock around the destroy operation to make sure we
               // don't destroy the context while another thread renders to it.
-              lock.lock(); // holdCount++ -> 1 - 3 (1: not locked, 2-3: destroy while rendering)
+              lock.lock(); // holdCount++ -> 1 - n (1: not locked, 2-n: destroy while rendering)
               if ( lock.getHoldCount() > 2 ) {
                   final String msg = getThreadName() + ": GLContextImpl.destroy: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle);
                   if (DEBUG || TRACE_SWITCH) {
                       System.err.println(msg+" - Lock was hold more than once - makeCurrent/release imbalance: "+lock);
                       Thread.dumpStack();
-                  }
-                  if ( lock.getHoldCount() > 3 ) {
-                      throw new GLException(msg+" - Lock was hold more than twice - makeCurrent/release imbalance: "+lock);
                   }
               }
               try {
@@ -471,7 +468,7 @@ public abstract class GLContextImpl extends GLContext {
                 // and one thread can only have one context current!
                 final GLContext current = getCurrent();
                 if (current != null) {
-                    if (current == this) {
+                    if (current == this) { // implicit recursive locking!
                         // Assume we don't need to make this context current again
                         // For Mac OS X, however, we need to update the context to track resizes
                         drawableUpdatedNotify();
@@ -1724,7 +1721,7 @@ public abstract class GLContextImpl extends GLContext {
   public boolean hasWaiters() {
     return lock.getQueueLength()>0;
   }
-
+  
   //---------------------------------------------------------------------------
   // Special FBO hook
   //

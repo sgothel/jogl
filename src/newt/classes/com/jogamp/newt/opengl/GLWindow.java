@@ -548,7 +548,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         } finally {
             lock.unlock();
         }
-        if( !done && 0<getWidth()*getHeight() ) {
+        if( !done && ( 0 < getWidth() && 0 < getHeight() ) ) {
             // retry drawable and context creation, will itself issue resize -> display
             setVisible(true);
         }
