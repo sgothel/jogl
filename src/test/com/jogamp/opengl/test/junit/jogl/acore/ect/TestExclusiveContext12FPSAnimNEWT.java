@@ -26,25 +26,25 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.acore;
+package com.jogamp.opengl.test.junit.jogl.acore.ect;
 
 import java.io.IOException;
 
 import com.jogamp.opengl.test.junit.util.MiscUtils;
-import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
+import com.jogamp.opengl.util.FPSAnimator;
 
 
 /**
- * ExclusiveContextThread VSync Animator to test correctness of the ExclusiveContext feature _and_ Animator with NEWT. 
+ * ExclusiveContextThread base implementation to test performance impact of the ExclusiveContext feature with FPSAnimator and NEWT. 
  */
-public class TestExclusiveContext01VSyncAnimNEWT extends ExclusiveContextBase00NEWT {    
-
+public class TestExclusiveContext12FPSAnimNEWT extends ExclusiveContextBase10NEWT {    
+        
     @Override
     protected AnimatorBase createAnimator() {
-        return new Animator();
+        return new FPSAnimator(0);
     }
-
+    
     public static void main(String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -62,6 +62,6 @@ public class TestExclusiveContext01VSyncAnimNEWT extends ExclusiveContextBase00N
         System.err.println("showFPS "+showFPS);
         System.err.println("swapInterval "+swapInterval);
 
-        org.junit.runner.JUnitCore.main(TestExclusiveContext01VSyncAnimNEWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestExclusiveContext12FPSAnimNEWT.class.getName());
     }
 }

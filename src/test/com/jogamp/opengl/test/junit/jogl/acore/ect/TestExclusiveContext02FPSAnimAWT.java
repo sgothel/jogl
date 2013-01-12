@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.acore;
+package com.jogamp.opengl.test.junit.jogl.acore.ect;
 
 import java.io.IOException;
 
@@ -36,9 +36,9 @@ import com.jogamp.opengl.util.FPSAnimator;
 
 
 /**
- * ExclusiveContextThread base implementation to test performance impact of the ExclusiveContext feature with FPSAnimator and NEWT. 
+ * ExclusiveContextThread FPS Animator to test correctness of the ExclusiveContext feature _and_ FPSAnimator with AWT. 
  */
-public class TestExclusiveContext12FPSAnimNEWT extends ExclusiveContextBase10NEWT {    
+public class TestExclusiveContext02FPSAnimAWT extends ExclusiveContextBase00AWT {    
         
     @Override
     protected AnimatorBase createAnimator() {
@@ -56,12 +56,15 @@ public class TestExclusiveContext12FPSAnimNEWT extends ExclusiveContextBase10NEW
             } else if(args[i].equals("-showFPS")) {
                 i++;
                 showFPS = MiscUtils.atoi(args[i], showFPS ? 1 : 0) == 0 ? false : true ;
+            } else if(args[i].equals("-forceExclusiveTest")) {
+                testExclusiveWithAWT = true;
             }
         }
         System.err.println("duration "+duration);
         System.err.println("showFPS "+showFPS);
         System.err.println("swapInterval "+swapInterval);
+        System.err.println("testExclusiveWithAWT "+testExclusiveWithAWT);
 
-        org.junit.runner.JUnitCore.main(TestExclusiveContext12FPSAnimNEWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestExclusiveContext02FPSAnimAWT.class.getName());
     }
 }

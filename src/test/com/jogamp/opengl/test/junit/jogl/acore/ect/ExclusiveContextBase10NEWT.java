@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.acore;
+package com.jogamp.opengl.test.junit.jogl.acore.ect;
 
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
