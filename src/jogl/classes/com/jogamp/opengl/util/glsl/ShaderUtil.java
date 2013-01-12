@@ -40,6 +40,7 @@ import java.util.*;
 import javax.media.opengl.*;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.opengl.GLExtensions;
 
 public class ShaderUtil {
     public static String getShaderInfoLog(GL _gl, int shaderObj) {
@@ -209,6 +210,13 @@ public class ShaderUtil {
             }
         }
         return info.shaderCompilerAvailable.booleanValue();
+    }
+    
+    /** Returns true if GeometryShader is supported, i.e. whether GLContext is &ge; 3.2 or ARB_geometry_shader4 extension is available. */ 
+    public static boolean isGeometryShaderSupported(GL _gl) {
+      final GLContext ctx = _gl.getContext();
+      return ctx.getGLVersionNumber().compareTo(GLContext.Version32) >= 0 ||
+             ctx.isExtensionAvailable(GLExtensions.ARB_geometry_shader4);
     }
 
     public static void shaderSource(GL _gl, int shader, CharSequence[] source)

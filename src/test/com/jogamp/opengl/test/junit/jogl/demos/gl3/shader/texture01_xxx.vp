@@ -1,0 +1,20 @@
+// Copyright 2012 JogAmp Community. All rights reserved.
+// Requires version >= 130
+
+uniform mat4 mgl_PMVMatrix[2];
+
+in vec4  mgl_Vertex;
+in vec4  mgl_Color;
+in vec4  mgl_MultiTexCoord;
+
+out VertexData {
+    vec4 frontColor;
+    vec2 texCoord;
+} vp_data;
+
+void main(void)
+{
+  vp_data.frontColor = mgl_Color;
+  vp_data.texCoord = mgl_MultiTexCoord.st;
+  gl_Position = mgl_PMVMatrix[0] * mgl_PMVMatrix[1] * mgl_Vertex;
+}

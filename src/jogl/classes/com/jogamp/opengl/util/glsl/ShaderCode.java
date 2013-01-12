@@ -45,6 +45,7 @@ import java.util.Set;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GL3;
 import javax.media.opengl.GLES2;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
@@ -72,6 +73,12 @@ public class ShaderCode {
     /** Unique resource suffix for {@link GL2ES2#GL_VERTEX_SHADER} in binary: <code>bvp</code> */
     public static final String SUFFIX_VERTEX_BINARY   = "bvp" ;
     
+    /** Unique resource suffix for {@link GL3#GL_GEOMETRY_SHADER} in source code: <code>gp</code> */
+    public static final String SUFFIX_GEOMETRY_SOURCE =  "gp" ;
+    
+    /** Unique resource suffix for {@link GL3#GL_GEOMETRY_SHADER} in binary: <code>bgp</code> */
+    public static final String SUFFIX_GEOMETRY_BINARY = "bgp" ;
+    
     /** Unique resource suffix for {@link GL2ES2#GL_FRAGMENT_SHADER} in source code: <code>fp</code> */
     public static final String SUFFIX_FRAGMENT_SOURCE =  "fp" ;
     
@@ -82,7 +89,7 @@ public class ShaderCode {
     public static final String SUB_PATH_NVIDIA = "nvidia" ;
 
     /**
-     * @param type either {@link GL2ES2#GL_VERTEX_SHADER} or {@link GL2ES2#GL_FRAGMENT_SHADER}
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
      * @param count number of shaders
      * @param source CharSequence array containing the shader sources, organized as <code>source[count][strings-per-shader]</code>.
      *               May be either an immutable <code>String</code> - or mutable <code>StringBuilder</code> array.
@@ -96,6 +103,7 @@ public class ShaderCode {
         switch (type) {
             case GL2ES2.GL_VERTEX_SHADER:
             case GL2ES2.GL_FRAGMENT_SHADER:
+            case GL3.GL_GEOMETRY_SHADER:
                 break;
             default:
                 throw new GLException("Unknown shader type: "+type);
@@ -114,7 +122,7 @@ public class ShaderCode {
     }
 
     /**
-     * @param type either {@link GL2ES2#GL_VERTEX_SHADER} or {@link GL2ES2#GL_FRAGMENT_SHADER}
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
      * @param count number of shaders
      * @param binary binary buffer containing the shader binaries, 
      */
@@ -122,6 +130,7 @@ public class ShaderCode {
         switch (type) {
             case GL2ES2.GL_VERTEX_SHADER:
             case GL2ES2.GL_FRAGMENT_SHADER:
+            case GL3.GL_GEOMETRY_SHADER:
                 break;
             default:
                 throw new GLException("Unknown shader type: "+type);
@@ -139,7 +148,7 @@ public class ShaderCode {
      * which location is resolved using the <code>context</code> class, see {@link #readShaderSource(Class, String)}.
      * 
      * @param gl current GL object to determine whether a shader compiler is available. If null, no validation is performed.
-     * @param type either {@link GL2ES2#GL_VERTEX_SHADER} or {@link GL2ES2#GL_FRAGMENT_SHADER}
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
      * @param count number of shaders
      * @param context class used to help resolving the source location
      * @param sourceFiles array of source locations, organized as <code>sourceFiles[count]</code>
@@ -183,7 +192,7 @@ public class ShaderCode {
      * Creates a complete {@link ShaderCode} object while reading the shader binary of <code>binaryFile</code>,
      * which location is resolved using the <code>context</code> class, see {@link #readShaderBinary(Class, String)}.
      * 
-     * @param type either {@link GL2ES2#GL_VERTEX_SHADER} or {@link GL2ES2#GL_FRAGMENT_SHADER}
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
      * @param count number of shaders
      * @param context class used to help resolving the source location
      * @param binFormat a valid native binary format as they can be queried by {@link ShaderUtil#getShaderBinaryFormats(GL)}.
@@ -215,13 +224,15 @@ public class ShaderCode {
      * <ul>
      *   <li>Source<ul>
      *     <li>{@link GL2ES2#GL_VERTEX_SHADER vertex}: {@link #SUFFIX_VERTEX_SOURCE}</li>
-     *     <li>{@link GL2ES2#GL_FRAGMENT_SHADER fragment}: {@link #SUFFIX_FRAGMENT_SOURCE}</li></ul></li>
+     *     <li>{@link GL2ES2#GL_FRAGMENT_SHADER fragment}: {@link #SUFFIX_FRAGMENT_SOURCE}</li>
+     *     <li>{@link GL3#GL_GEOMETRY_SHADER geometry}: {@link #SUFFIX_GEOMETRY_SOURCE}</li></ul></li>
      *   <li>Binary<ul>
      *     <li>{@link GL2ES2#GL_VERTEX_SHADER vertex}: {@link #SUFFIX_VERTEX_BINARY}</li>
-     *     <li>{@link GL2ES2#GL_FRAGMENT_SHADER fragment}: {@link #SUFFIX_FRAGMENT_BINARY}</li></ul></li>
+     *     <li>{@link GL2ES2#GL_FRAGMENT_SHADER fragment}: {@link #SUFFIX_FRAGMENT_BINARY}</li>
+     *     <li>{@link GL3#GL_GEOMETRY_SHADER geometry}: {@link #SUFFIX_GEOMETRY_BINARY}</li></ul></li>
      * </ul> 
      * @param binary true for a binary resource, false for a source resource 
-     * @param type either {@link GL2ES2#GL_VERTEX_SHADER} or {@link GL2ES2#GL_FRAGMENT_SHADER}
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
      * 
      * @throws GLException if <code>type</code> is not supported
      * 
@@ -233,6 +244,8 @@ public class ShaderCode {
                 return binary?SUFFIX_VERTEX_BINARY:SUFFIX_VERTEX_SOURCE;
             case GL2ES2.GL_FRAGMENT_SHADER:
                 return binary?SUFFIX_FRAGMENT_BINARY:SUFFIX_FRAGMENT_SOURCE;
+            case GL3.GL_GEOMETRY_SHADER:
+                return binary?SUFFIX_GEOMETRY_BINARY:SUFFIX_GEOMETRY_SOURCE;
             default:
                 throw new GLException("illegal shader type: "+type);
         }
@@ -311,7 +324,7 @@ public class ShaderCode {
      * 
      * @param gl current GL object to determine whether a shader compiler is available (if <code>source</code> is used),
      *           or to determine the shader binary format (if <code>binary</code> is used).
-     * @param type either {@link GL2ES2#GL_VERTEX_SHADER} or {@link GL2ES2#GL_FRAGMENT_SHADER}
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
      * @param count number of shaders
      * @param context class used to help resolving the source and binary location
      * @param srcRoot relative <i>root</i> path for <code>srcBasenames</code>
@@ -411,7 +424,7 @@ public class ShaderCode {
      * 
      * @param gl current GL object to determine whether a shader compiler is available (if <code>source</code> is used),
      *           or to determine the shader binary format (if <code>binary</code> is used).
-     * @param type either {@link GL2ES2#GL_VERTEX_SHADER} or {@link GL2ES2#GL_FRAGMENT_SHADER}
+     * @param type either {@link GL2ES2#GL_VERTEX_SHADER}, {@link GL2ES2#GL_FRAGMENT_SHADER} or {@link GL3#GL_GEOMETRY_SHADER}
      * @param context class used to help resolving the source and binary location
      * @param srcRoot relative <i>root</i> path for <code>basename</code>
      * @param binRoot relative <i>root</i> path for <code>basename</code>
@@ -447,6 +460,8 @@ public class ShaderCode {
                 return "VERTEX_SHADER";
             case GL2ES2.GL_FRAGMENT_SHADER:
                 return "FRAGMENT_SHADER";
+            case GL3.GL_GEOMETRY_SHADER:
+                return "GEOMETRY_SHADER";
         }
         return "UNKNOWN_SHADER";
     }

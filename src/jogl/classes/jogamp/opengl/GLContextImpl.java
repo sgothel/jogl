@@ -568,7 +568,7 @@ public abstract class GLContextImpl extends GLContext {
         final boolean created;
         try {
             created = createImpl(shareWith); // may throws exception if fails!
-            if( created && isGL3core() && ( ctxMajorVersion>3 || ctxMajorVersion==3 && ctxMinorVersion>=1 ) ) {
+            if( created && isGL3core() ) {
                 // Due to GL 3.1 core spec: E.1. DEPRECATED AND REMOVED FEATURES (p 296),
                 //        GL 3.2 core spec: E.2. DEPRECATED AND REMOVED FEATURES (p 331)
                 // there is no more default VAO buffer 0 bound, hence generating and binding one
@@ -606,10 +606,10 @@ public abstract class GLContextImpl extends GLContext {
                 if( 0 == ( ctxOptions & GLContext.CTX_PROFILE_ES) ) {   // not ES profile
                     final int reqMajor;
                     final int reqProfile;
-                    if(ctxMajorVersion<3 || ctxMajorVersion==3 && ctxMinorVersion==0) {
+                    if( ctxVersion.compareTo(Version30) <= 0 ) {
                         reqMajor = 2;
                     } else {
-                        reqMajor = ctxMajorVersion;
+                        reqMajor = ctxVersion.getMajor();
                     }
                     if( 0 != ( ctxOptions & GLContext.CTX_PROFILE_CORE) ) {
                         reqProfile = GLContext.CTX_PROFILE_CORE;
@@ -617,7 +617,7 @@ public abstract class GLContextImpl extends GLContext {
                         reqProfile = GLContext.CTX_PROFILE_COMPAT;
                     }
                     GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile,
-                                                    ctxMajorVersion, ctxMinorVersion, ctxOptions);
+                                                    ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
                     GLContext.setAvailableGLVersionsSet(device);
                     
                     if (DEBUG) {
@@ -780,7 +780,7 @@ public abstract class GLContextImpl extends GLContext {
             success |= hasGL4;
             if(hasGL4) {
                 // Map all lower compatible profiles: GL3
-                GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE,   ctxMajorVersion, ctxMinorVersion, ctxOptions);                
+                GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);                
                 if(PROFILE_ALIASING) {
                     hasGL3   = true;
                 }
@@ -799,13 +799,13 @@ public abstract class GLContextImpl extends GLContext {
             success |= hasGL4bc;
             if(hasGL4bc) {
                 // Map all lower compatible profiles: GL3bc, GL2, GL4, GL3
-                GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_COMPAT, ctxMajorVersion, ctxMinorVersion, ctxOptions);
-                GLContext.mapAvailableGLVersion(device, 2, CTX_PROFILE_COMPAT, ctxMajorVersion, ctxMinorVersion, ctxOptions);
+                GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_COMPAT, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
+                GLContext.mapAvailableGLVersion(device, 2, CTX_PROFILE_COMPAT, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
                 if(!hasGL4) {
-                    GLContext.mapAvailableGLVersion(device, 4, CTX_PROFILE_CORE,   ctxMajorVersion, ctxMinorVersion, ctxOptions);
+                    GLContext.mapAvailableGLVersion(device, 4, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
                 }
                 if(!hasGL3) {
-                    GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE,   ctxMajorVersion, ctxMinorVersion, ctxOptions);
+                    GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
                 }
                 if(PROFILE_ALIASING) {
                     hasGL3bc = true;
@@ -821,9 +821,9 @@ public abstract class GLContextImpl extends GLContext {
             success |= hasGL3bc;
             if(hasGL3bc) {
                 // Map all lower compatible profiles: GL2 and GL3
-                GLContext.mapAvailableGLVersion(device, 2, CTX_PROFILE_COMPAT, ctxMajorVersion, ctxMinorVersion, ctxOptions);
+                GLContext.mapAvailableGLVersion(device, 2, CTX_PROFILE_COMPAT, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
                 if(!hasGL3) {
-                    GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE,   ctxMajorVersion, ctxMinorVersion, ctxOptions);
+                    GLContext.mapAvailableGLVersion(device, 3, CTX_PROFILE_CORE, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
                 }
                 if(PROFILE_ALIASING) {
                     hasGL2   = true;
@@ -915,7 +915,7 @@ public abstract class GLContextImpl extends GLContext {
         AbstractGraphicsDevice device = drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice();
         // ctxMajorVersion, ctxMinorVersion, ctxOptions is being set by
         //   createContextARBVersions(..) -> setGLFunctionAvailbility(..) -> setContextVersion(..)
-        GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile, ctxMajorVersion, ctxMinorVersion, ctxOptions);
+        GLContext.mapAvailableGLVersion(device, reqMajor, reqProfile, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
         destroyContextARBImpl(_context);
         if (DEBUG) {
           System.err.println(getThreadName() + ": createContextARB-MapVersionsAvailable HAVE: " +reqMajor+"."+reqProfile+ " -> "+getGLVersion());
@@ -978,13 +978,12 @@ public abstract class GLContextImpl extends GLContext {
       if (!GLContext.isValidGLVersion(major, minor)) {
         throw new GLException("Invalid GL Version "+major+"."+minor+", ctp "+toHexString(ctp));
       }
-      ctxMajorVersion = major;
-      ctxMinorVersion = minor;
+      ctxVersion = new VersionNumber(major, minor, 0);
       ctxOptions = ctp;
       if(setVersionString) {
-          ctxVersionString = getGLVersion(ctxMajorVersion, ctxMinorVersion, ctxOptions, gl.glGetString(GL.GL_VERSION));
+          ctxVersionString = getGLVersion(major, minor, ctxOptions, gl.glGetString(GL.GL_VERSION));
           ctxGLSLVersion = null;
-          if(ctxMajorVersion >= 2) { // >= ES2 || GL2.0
+          if(major >= 2) { // >= ES2 || GL2.0
               final String glslVersion = gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION);
               if( null != glslVersion ) {
                   ctxGLSLVersion = new VersionNumber(glslVersion, ".");
@@ -995,7 +994,7 @@ public abstract class GLContextImpl extends GLContext {
           } 
           if( null == ctxGLSLVersion ){
               final int[] sver = new int[2];
-              getStaticGLSLVersionNumber(ctxMajorVersion, ctxMinorVersion, ctxOptions, sver);
+              getStaticGLSLVersionNumber(major, minor, ctxOptions, sver);
               ctxGLSLVersion = new VersionNumber(sver[0], sver[1], 0);
           }
       }
@@ -1424,7 +1423,7 @@ public abstract class GLContextImpl extends GLContext {
     final int glErrX = gl.glGetError(); // clear GL error, maybe caused by above operations
     
     if(DEBUG) {
-        System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: OK "+contextFQN+" - "+GLContext.getGLVersion(ctxMajorVersion, ctxMinorVersion, ctxOptions, null)+" - glErr "+toHexString(glErrX));
+        System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: OK "+contextFQN+" - "+GLContext.getGLVersion(ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions, null)+" - glErr "+toHexString(glErrX));
     }
     return true;
   }

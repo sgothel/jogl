@@ -116,6 +116,15 @@ public abstract class GLContext {
   /** Indicates that a newly-created context was made current during the last call to {@link #makeCurrent makeCurrent}. */
   public static final int CONTEXT_CURRENT_NEW = 2;
 
+  /** Version 3.2. As an OpenGL version, it qualifies for geometry shader */
+  public static final VersionNumber Version32 = new VersionNumber(3, 2, 0);
+  
+  /** Version 3.1. As an OpenGL version, it qualifies for {@link #isGL3core()}, {@link #isGL3bc()} and {@link #isGL3()} */
+  public static final VersionNumber Version31 = new VersionNumber(3, 1, 0);
+  
+  /** Version 3.0. As an OpenGL version, it qualifies for {@link #isGL2()} only */
+  public static final VersionNumber Version30 = new VersionNumber(3, 0, 0);
+  
   /** <code>ARB_create_context</code> related: created via ARB_create_context. Cache key value. See {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
   protected static final int CTX_IS_ARB_CREATED  = 1 <<  0;
   /** <code>ARB_create_context</code> related: desktop compatibility profile. Cache key value. See {@link #isGLCompatibilityProfile()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
@@ -156,8 +165,7 @@ public abstract class GLContext {
       resetStates();
   }
 
-  protected int ctxMajorVersion;
-  protected int ctxMinorVersion;
+  protected VersionNumber ctxVersion;
   protected int ctxOptions;
   protected String ctxVersionString;
   protected VersionNumber ctxGLSLVersion;
@@ -172,8 +180,7 @@ public abstract class GLContext {
         System.err.println(getThreadName() + ": GLContext.resetStates()");
         // Thread.dumpStack();
       }
-      ctxMajorVersion=-1;
-      ctxMinorVersion=-1;
+      ctxVersion = new VersionNumber(-1, -1, -1);
       ctxOptions=0;
       ctxVersionString=null;
       ctxGLSLVersion=null;
@@ -629,8 +636,15 @@ public abstract class GLContext {
     return ctxVersionString;
   }
 
-  public final int getGLVersionMajor() { return ctxMajorVersion; }
-  public final int getGLVersionMinor() { return ctxMinorVersion; }
+  /** @deprecated Use {@link #getGLVersionNumber()} */
+  public final int getGLVersionMajor() { return ctxVersion.getMajor(); }
+  /** @deprecated Use {@link #getGLVersionNumber()} */
+  public final int getGLVersionMinor() { return ctxVersion.getMinor(); }
+  /**
+   * Returns this context OpenGL version. 
+   * @see #getGLSLVersionNumber() 
+   **/
+  public final VersionNumber getGLVersionNumber() { return ctxVersion; }
   public final boolean isGLCompatibilityProfile() { return ( 0 != ( CTX_PROFILE_COMPAT & ctxOptions ) ); }
   public final boolean isGLCoreProfile()          { return ( 0 != ( CTX_PROFILE_CORE   & ctxOptions ) ); }
   public final boolean isGLForwardCompatible()    { return ( 0 != ( CTX_OPTION_FORWARD & ctxOptions ) ); }
@@ -659,8 +673,7 @@ public abstract class GLContext {
    * 
    * @param GLSL version number if context has been made current at least once, otherwise <code>null</code>.
    *            
-   * @see #getGLVersionMajor()
-   * @see #getGLVersionMinor()
+   * @see #getGLVersionNumber()
    */
   public final VersionNumber getGLSLVersionNumber() {
       return ctxGLSLVersion;
@@ -733,7 +746,7 @@ public abstract class GLContext {
   public final boolean hasGLSL() {
       return isGLES2() ||
              isGL3() ||
-             isGL2() && ctxMajorVersion>1 ;
+             isGL2() && ctxVersion.getMajor()>1 ;
   }
 
   /** 
@@ -810,46 +823,46 @@ public abstract class GLContext {
 
   /** @see GLProfile#isGL4bc() */
   public final boolean isGL4bc() {
-      return ctxMajorVersion>=4 && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
-                                && 0 != (ctxOptions & CTX_PROFILE_COMPAT);
+      return ctxVersion.getMajor() >= 4 && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
+                                        && 0 != (ctxOptions & CTX_PROFILE_COMPAT);
   }
 
   /** @see GLProfile#isGL4() */
   public final boolean isGL4() {
-      return ctxMajorVersion>=4 && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
-                                && 0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE));
+      return ctxVersion.getMajor() >= 4 && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
+                                        && 0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE));
   }
 
   /** Indicates whether this profile is capable of GL4 (core only). <p>Includes [ GL4 ].</p> */
   public final boolean isGL4core() {
-      return ctxMajorVersion>=4 && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
-                                && 0 != (ctxOptions & CTX_PROFILE_CORE);
+      return ctxVersion.getMajor() >= 4 && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
+                                        && 0 != (ctxOptions & CTX_PROFILE_CORE);
   }
   
   /** @see GLProfile#isGL3bc() */
   public final boolean isGL3bc() {
-      return ( ctxMajorVersion>3 || ctxMajorVersion==3 && ctxMinorVersion>=1 )
+      return ctxVersion.compareTo(Version31) >= 0
              && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
              && 0 != (ctxOptions & CTX_PROFILE_COMPAT);
   }
 
   /** @see GLProfile#isGL3() */
   public final boolean isGL3() {
-      return ( ctxMajorVersion>3 || ctxMajorVersion==3 && ctxMinorVersion>=1 )
+      return ctxVersion.compareTo(Version31) >= 0
              && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
              && 0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE));
   }
   
-  /** Indicates whether this profile is capable of GL3 (core only). <p>Includes [ GL4, GL3 ].</p> */
+  /** Indicates whether this profile is capable of GL3 (core only). GL3 starts w/ OpenGL 3.1 <p>Includes [ GL4, GL3 ].</p> */
   public final boolean isGL3core() {
-      return ( ctxMajorVersion>3 || ctxMajorVersion==3 && ctxMinorVersion>=1 )
+      return ctxVersion.compareTo(Version31) >= 0
              && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
              && 0 != (ctxOptions & CTX_PROFILE_CORE);
   }
   
   /** @see GLProfile#isGL2() */
   public final boolean isGL2() {
-      return ctxMajorVersion>=1 && 0!=(ctxOptions & CTX_PROFILE_COMPAT);
+      return ctxVersion.getMajor()>=1 && 0!=(ctxOptions & CTX_PROFILE_COMPAT);
   }
 
   /** @see GLProfile#isGL2GL3() */  
@@ -859,12 +872,12 @@ public abstract class GLContext {
 
   /** @see GLProfile#isGLES1() */
   public final boolean isGLES1() {
-      return ctxMajorVersion==1 && 0 != ( ctxOptions & CTX_PROFILE_ES ) ;
+      return ctxVersion.getMajor() == 1 && 0 != ( ctxOptions & CTX_PROFILE_ES ) ;
   }
 
   /** @see GLProfile#isGLES2() */
   public final boolean isGLES2() {
-      return ctxMajorVersion==2 && 0 != ( ctxOptions & CTX_PROFILE_ES ) ;
+      return ctxVersion.getMajor() == 2 && 0 != ( ctxOptions & CTX_PROFILE_ES ) ;
   }
 
   /** @see GLProfile#isGLES() */

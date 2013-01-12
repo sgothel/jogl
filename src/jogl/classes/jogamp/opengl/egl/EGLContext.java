@@ -281,7 +281,7 @@ public abstract class EGLContext extends GLContextImpl {
     //
     
     /* pp */ void mapCurrentAvailableGLVersion(AbstractGraphicsDevice device) {
-        mapStaticGLVersion(device, ctxMajorVersion, ctxMinorVersion, ctxOptions);
+        mapStaticGLVersion(device, ctxVersion.getMajor(), ctxVersion.getMinor(), ctxOptions);
     }
     /* pp */ int getContextOptions() { return ctxOptions; }    
     /* pp */ static void mapStaticGLESVersion(AbstractGraphicsDevice device, GLCapabilitiesImmutable caps) {
