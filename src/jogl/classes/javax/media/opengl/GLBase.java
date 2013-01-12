@@ -435,7 +435,7 @@ public interface GLBase {
    
    /** 
     * Returns the default color buffer within the current bound 
-    * {@link #getDefaultReadFramebuffer()}, i.e. GL_READ_FRAMEBUFFER​,  
+    * {@link #getDefaultReadFramebuffer()}, i.e. GL_READ_FRAMEBUFFER,
     * which will be used as the source for pixel reading commands, 
     * like {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)} etc.
     * <p>
