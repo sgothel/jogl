@@ -36,36 +36,49 @@
 #import "KeyEvent.h"
 #import "MouseEvent.h"
 
-jint GetDeltaY(NSEvent *event, jint javaMods) {
-    CGFloat deltaY = 0.0;
+#include <math.h>
+
+static jfloat GetDelta(NSEvent *event, jint javaMods[]) {
     CGEventRef cgEvent = [event CGEvent];
+    CGFloat deltaY = 0.0;
+    CGFloat deltaX = 0.0;
+    CGFloat delta = 0.0;
 
     if (CGEventGetIntegerValueField(cgEvent, kCGScrollWheelEventIsContinuous)) {
         // mouse pad case
-        deltaY =
-            CGEventGetIntegerValueField(cgEvent, kCGScrollWheelEventPointDeltaAxis1);
-        // fprintf(stderr, "WHEEL/PAD: %lf\n", (double)deltaY);
+        deltaX = CGEventGetIntegerValueField(cgEvent, kCGScrollWheelEventPointDeltaAxis2);
+        deltaY = CGEventGetIntegerValueField(cgEvent, kCGScrollWheelEventPointDeltaAxis1);
+        // fprintf(stderr, "WHEEL/PAD: %lf/%lf - 0x%X\n", (double)deltaX, (double)deltaY, javaMods[0]);
+        if( fabsf(deltaX) > fabsf(deltaY) ) {
+            javaMods[0] |= EVENT_SHIFT_MASK;
+            delta = deltaX;
+        } else {
+            delta = deltaY;
+        }
     } else {
         // traditional mouse wheel case
+        deltaX = [event deltaX];
         deltaY = [event deltaY];
-        // fprintf(stderr, "WHEEL/TRAD: %lf\n", (double)deltaY);
-        if (deltaY == 0.0 && (javaMods & EVENT_SHIFT_MASK) != 0) {
+        // fprintf(stderr, "WHEEL/TRACK: %lf/%lf - 0x%X\n", (double)deltaX, (double)deltaY, javaMods[0]);
+        if (deltaY == 0.0 && (javaMods[0] & EVENT_SHIFT_MASK) != 0) {
             // shift+vertical wheel scroll produces horizontal scroll
             // we convert it to vertical
-            deltaY = [event deltaX];
-        }
-        if (-1.0 < deltaY && deltaY < 1.0) {
-            deltaY *= 10.0;
+            delta = deltaX;
         } else {
-            if (deltaY < 0.0) {
-                deltaY = deltaY - 0.5f;
+            delta = deltaY;
+        }
+        if (-1.0 < delta && delta < 1.0) {
+            delta *= 10.0;
+        } else {
+            if (delta < 0.0) {
+                delta = delta - 0.5f;
             } else {
-                deltaY = deltaY + 0.5f;
+                delta = delta + 0.5f;
             }
         }
     }
-    // fprintf(stderr, "WHEEL/res: %d\n", (int)deltaY);
-    return (jint) deltaY;
+    // fprintf(stderr, "WHEEL/RES: %lf - 0x%X\n", (double)delta, javaMods[0]);
+    return (jfloat) delta;
 }
 
 static jmethodID enqueueMouseEventID = NULL;
@@ -328,8 +341,8 @@ static jmethodID windowRepaintID = NULL;
 
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jclass) clazz
 {
-    enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZIIIIII)V");
-    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
+    enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZIIIIIF)V");
+    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIIF)V");
     enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZIIIC)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged",     "(ZIIZ)V");
@@ -686,15 +699,16 @@ static jint mods2JavaMods(NSUInteger mods)
         DBG_PRINT("sendMouseEvent: null JNIEnv\n");
         return;
     }
-    jint javaMods = mods2JavaMods([event modifierFlags]);
+    jint javaMods[] = { 0 } ;
+    javaMods[0] = mods2JavaMods([event modifierFlags]);
 
     // convert to 1-based button number (or use zero if no button is involved)
     // TODO: detect mouse button when mouse wheel scrolled  
     jint javaButtonNum = 0;
-    jint scrollDeltaY = 0;
+    jfloat scrollDeltaY = 0.0f;
     switch ([event type]) {
     case NSScrollWheel: {
-        scrollDeltaY = GetDeltaY(event, javaMods);
+        scrollDeltaY = GetDelta(event, javaMods);
         javaButtonNum = 1;
         break;
     }
@@ -727,12 +741,12 @@ static jint mods2JavaMods(NSUInteger mods)
 
     #ifdef USE_SENDIO_DIRECT
     (*env)->CallVoidMethod(env, javaWindowObject, sendMouseEventID,
-                           evType, javaMods,
+                           evType, javaMods[0],
                            (jint) location.x, (jint) location.y,
                            javaButtonNum, scrollDeltaY);
     #else
     (*env)->CallVoidMethod(env, javaWindowObject, enqueueMouseEventID, JNI_FALSE,
-                           evType, javaMods,
+                           evType, javaMods[0],
                            (jint) location.x, (jint) location.y,
                            javaButtonNum, scrollDeltaY);
     #endif

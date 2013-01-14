@@ -53,9 +53,13 @@
 #define WM_MOUSEWHEEL                   0x020A
 #endif //WM_MOUSEWHEEL
 
-#ifndef WHEEL_DELTA
-#define WHEEL_DELTA                     120
-#endif //WHEEL_DELTA
+#ifndef WM_MOUSEHWHEEL
+#define WM_MOUSEHWHEEL                  0x020E
+#endif //WM_MOUSEHWHEEL
+
+#ifndef WHEEL_DELTAf
+#define WHEEL_DELTAf                    (120.0f)
+#endif //WHEEL_DELTAf
 
 #ifndef WHEEL_PAGESCROLL
 #define WHEEL_PAGESCROLL                (UINT_MAX)
@@ -63,6 +67,23 @@
 
 #ifndef GET_WHEEL_DELTA_WPARAM  // defined for (_WIN32_WINNT >= 0x0500)
 #define GET_WHEEL_DELTA_WPARAM(wParam)  ((short)HIWORD(wParam))
+#endif
+#ifndef GET_KEYSTATE_WPARAM
+#define GET_KEYSTATE_WPARAM(wParam)  ((short)LOWORD(wParam))
+#endif
+
+#ifndef WM_HSCROLL
+#define WM_HSCROLL             0x0114
+#endif
+#ifndef WM_VSCROLL
+#define WM_VSCROLL             0x0115
+#endif
+
+#ifndef WH_MOUSE
+#define WH_MOUSE 7
+#endif
+#ifndef WH_MOUSE_LL
+#define WH_MOUSE_LL 14
 #endif
 
 #ifndef MONITOR_DEFAULTTONULL
@@ -796,6 +817,72 @@ static void WmSize(JNIEnv *env, jobject window, HWND wnd, UINT type)
     (*env)->CallVoidMethod(env, window, sizeChangedID, JNI_FALSE, w, h, JNI_FALSE);
 }
 
+#ifdef TEST_MOUSE_HOOKS
+
+static HHOOK hookLLMP;
+static HHOOK hookMP;
+
+static LRESULT CALLBACK HookLowLevelMouseProc (int code, WPARAM wParam, LPARAM lParam)
+{
+    // if (code == HC_ACTION)
+    {
+        const char *msg;
+        char msg_buff[128];
+        switch (wParam)
+        {
+            case WM_LBUTTONDOWN: msg = "WM_LBUTTONDOWN"; break;
+            case WM_LBUTTONUP: msg = "WM_LBUTTONUP"; break;
+            case WM_MOUSEMOVE: msg = "WM_MOUSEMOVE"; break;
+            case WM_MOUSEWHEEL: msg = "WM_MOUSEWHEEL"; break;
+            case WM_MOUSEHWHEEL: msg = "WM_MOUSEHWHEEL"; break;
+            case WM_RBUTTONDOWN: msg = "WM_RBUTTONDOWN"; break;
+            case WM_RBUTTONUP: msg = "WM_RBUTTONUP"; break;
+            default: 
+                sprintf(msg_buff, "Unknown msg: %u", wParam); 
+                msg = msg_buff;
+                break;
+        }//switch
+
+        const MSLLHOOKSTRUCT *p = (MSLLHOOKSTRUCT*)lParam;
+        DBG_PRINT("**** LLMP: Code: 0x%X: %s - %d/%d\n", code, msg, (int)p->pt.x, (int)p->pt.y);
+    //} else {
+    //    DBG_PRINT("**** LLMP: CODE: 0x%X\n", code);
+    }
+    return CallNextHookEx(hookLLMP, code, wParam, lParam); 
+}
+
+static LRESULT CALLBACK HookMouseProc (int code, WPARAM wParam, LPARAM lParam)
+{
+    // if (code == HC_ACTION)
+    {
+        const char *msg;
+        char msg_buff[128];
+        switch (wParam)
+        {
+            case WM_LBUTTONDOWN: msg = "WM_LBUTTONDOWN"; break;
+            case WM_LBUTTONUP: msg = "WM_LBUTTONUP"; break;
+            case WM_MOUSEMOVE: msg = "WM_MOUSEMOVE"; break;
+            case WM_MOUSEWHEEL: msg = "WM_MOUSEWHEEL"; break;
+            case WM_MOUSEHWHEEL: msg = "WM_MOUSEHWHEEL"; break;
+            case WM_RBUTTONDOWN: msg = "WM_RBUTTONDOWN"; break;
+            case WM_RBUTTONUP: msg = "WM_RBUTTONUP"; break;
+            default: 
+                sprintf(msg_buff, "Unknown msg: %u", wParam); 
+                msg = msg_buff;
+                break;
+        }//switch
+
+        const MOUSEHOOKSTRUCT *p = (MOUSEHOOKSTRUCT*)lParam;
+        DBG_PRINT("**** MP: Code: 0x%X: %s - hwnd %p, %d/%d\n", code, msg, p->hwnd, (int)p->pt.x, (int)p->pt.y);
+    //} else {
+    //    DBG_PRINT("**** MP: CODE: 0x%X\n", code);
+    }
+    return CallNextHookEx(hookMP, code, wParam, lParam); 
+}
+
+#endif
+
+
 static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) {
     LRESULT res = 0;
     int useDefWindowProc = 0;
@@ -817,7 +904,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
     env = wud->jenv;
     window = wud->jinstance;
 
-    // DBG_PRINT("*** WindowsWindow: thread 0x%X - window %p -> %p, 0x%X %d/%d\n", (int)GetCurrentThreadId(), wnd, window, message, (int)LOWORD(lParam), (int)HIWORD(lParam));
+    // DBG_PRINT("*** WindowsWindow: thread 0x%X - window %p -> %p, msg 0x%X, %d/%d\n", (int)GetCurrentThreadId(), wnd, window, message, (int)LOWORD(lParam), (int)HIWORD(lParam));
 
     if (NULL==window || NULL==env) {
         return DefWindowProc(wnd, message, wParam, lParam);
@@ -921,7 +1008,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                                (jint) EVENT_MOUSE_PRESSED,
                                GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jint) 1, (jint) 0);
+                               (jint) 1, (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
 
@@ -930,7 +1017,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                                (jint) EVENT_MOUSE_RELEASED,
                                GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jint) 1, (jint) 0);
+                               (jint) 1, (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
 
@@ -941,7 +1028,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                                (jint) EVENT_MOUSE_PRESSED,
                                GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jint) 2, (jint) 0);
+                               (jint) 2, (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
 
@@ -950,7 +1037,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                                (jint) EVENT_MOUSE_RELEASED,
                                GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jint) 2, (jint) 0);
+                               (jint) 2, (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
 
@@ -961,7 +1048,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                                (jint) EVENT_MOUSE_PRESSED,
                                GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jint) 3, (jint) 0);
+                               (jint) 3, (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
 
@@ -970,7 +1057,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                                (jint) EVENT_MOUSE_RELEASED,
                                GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jint) 3,  (jint) 0);
+                               (jint) 3,  (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
 
@@ -979,7 +1066,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                                (jint) EVENT_MOUSE_MOVED,
                                GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jint) 0,  (jint) 0);
+                               (jint) 0,  (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
     case WM_MOUSELEAVE:
@@ -987,24 +1074,64 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                                (jint) EVENT_MOUSE_EXITED,
                                0,
                                (jint) -1, (jint) -1, // fake
-                               (jint) 0,  (jint) 0);
+                               (jint) 0,  (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
     // Java synthesizes EVENT_MOUSE_ENTERED
 
-    case WM_MOUSEWHEEL: {
+    case WM_HSCROLL: { // Only delivered if windows has WS_HSCROLL, hence dead code!
+            int sb = LOWORD(wParam);
+            int modifiers = GetModifiers( FALSE, 0 ) | EVENT_SHIFT_MASK;
+            float rotation;
+            switch(sb) {
+                case SB_LINELEFT:
+                    rotation = 1.0f;
+                    break;
+                case SB_PAGELEFT:
+                    rotation = 2.0f;
+                    break;
+                case SB_LINERIGHT:
+                    rotation = -1.0f;
+                    break;
+                case SB_PAGERIGHT:
+                    rotation = -1.0f;
+                    break;
+            }
+            DBG_PRINT("*** WindowsWindow: WM_HSCROLL 0x%X, rotation %f, mods 0x%X\n", sb, rotation, modifiers);
+            (*env)->CallVoidMethod(env, window, sendMouseEventID,
+                                   (jint) EVENT_MOUSE_WHEEL_MOVED,
+                                   modifiers,
+                                   (jint) 0, (jint) 0,
+                                   (jint) 1,  (jfloat) rotation);
+            useDefWindowProc = 1;
+            break;
+        }
+    case WM_MOUSEHWHEEL: /* tilt */
+    case WM_MOUSEWHEEL: /* rotation */ {
         // need to convert the coordinates to component-relative
         int x = GET_X_LPARAM(lParam);
         int y = GET_Y_LPARAM(lParam);
+        int modifiers = GetModifiers( FALSE, 0 );
+        float rotationOrTilt = (float)(GET_WHEEL_DELTA_WPARAM(wParam))/WHEEL_DELTAf;
+        int vKeys = GET_KEYSTATE_WPARAM(wParam);
         POINT eventPt;
         eventPt.x = x;
         eventPt.y = y;
         ScreenToClient(wnd, &eventPt);
+
+        if( WM_MOUSEHWHEEL == message ) {
+            modifiers |= EVENT_SHIFT_MASK;
+            DBG_PRINT("*** WindowsWindow: WM_MOUSEHWHEEL %d/%d, tilt %f, vKeys 0x%X, mods 0x%X\n", 
+                (int)eventPt.x, (int)eventPt.y, rotationOrTilt, vKeys, modifiers);
+        } else {
+            DBG_PRINT("*** WindowsWindow: WM_MOUSEWHEEL %d/%d, rotation %f, vKeys 0x%X, mods 0x%X\n", 
+                (int)eventPt.x, (int)eventPt.y, rotationOrTilt, vKeys, modifiers);
+        }
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jint) EVENT_MOUSE_WHEEL_MOVED,
-                               GetModifiers( FALSE, 0 ),
+                               modifiers,
                                (jint) eventPt.x, (jint) eventPt.y,
-                               (jint) 1,  (jint) (GET_WHEEL_DELTA_WPARAM(wParam)/120.0f));
+                               (jint) 1,  (jfloat) rotationOrTilt);
         useDefWindowProc = 1;
         break;
     }
@@ -1057,8 +1184,9 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         useDefWindowProc = 1;
     }
 
-    if (useDefWindowProc)
+    if (useDefWindowProc) {
         return DefWindowProc(wnd, message, wParam, lParam);
+    }
     return res;
 }
 
@@ -1195,7 +1323,7 @@ static void NewtScreen_scanDisplayDevices() {
     int i = 0;
     LPCTSTR name;
     while(NULL != (name = NewtScreen_getDisplayDeviceName(&device, i))) {
-        fprintf(stderr, "*** [%d]: <%s> active %d\n", i, name, ( 0 != ( device.StateFlags & DISPLAY_DEVICE_ACTIVE ) ) );
+        DBG_PRINT("*** [%d]: <%s> active %d\n", i, name, ( 0 != ( device.StateFlags & DISPLAY_DEVICE_ACTIVE ) ) );
         i++;
     }
 }*/
@@ -1335,7 +1463,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_setScree
  * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
-  (JNIEnv *env, jclass clazz)
+  (JNIEnv *env, jclass clazz, jlong hInstance)
 {
     NewtCommon_init(env);
 
@@ -1346,8 +1474,8 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
-    enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZIIIIII)V");
-    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIII)V");
+    enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZIIIIIF)V");
+    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIIF)V");
     enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZIIIC)V");
     sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
@@ -1367,6 +1495,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
         return JNI_FALSE;
     }
     BuildDynamicKeyMapTable();
+
     return JNI_TRUE;
 }
 
@@ -1412,6 +1541,8 @@ static void NewtWindow_setVisiblePosSize(HWND hwnd, BOOL atop, BOOL visible,
     UpdateWindow(hwnd);
 }
 
+#define WS_DEFAULT_STYLES (WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_TABSTOP)
+
 /*
  * Class:     jogamp_newt_driver_windows_WindowDriver
  * Method:    CreateWindow
@@ -1425,7 +1556,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
     HWND parentWindow = (HWND) (intptr_t) parent;
     const TCHAR* wndClassName = NULL;
     const TCHAR* wndName = NULL;
-    DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE | WS_TABSTOP;
+    DWORD windowStyle = WS_DEFAULT_STYLES | WS_VISIBLE;
     int x=(int)jx, y=(int)jy;
     int width=(int)defaultWidth, height=(int)defaultHeight;
     HWND window = NULL;
@@ -1516,6 +1647,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
     (*env)->ReleaseStringUTFChars(env, jWndName, wndName);
 #endif
 
+#ifdef TEST_MOUSE_HOOKS
+    hookLLMP = SetWindowsHookEx(WH_MOUSE_LL, &HookLowLevelMouseProc, (HINSTANCE) (intptr_t) hInstance, 0);
+    hookMP = SetWindowsHookEx(WH_MOUSE_LL, &HookMouseProc, (HINSTANCE) (intptr_t) hInstance, 0);
+    DBG_PRINT("**** LLMP Hook %p, MP Hook %p\n", hookLLMP, hookMP);
+#endif
+
     return (jlong) (intptr_t) window;
 }
 
@@ -1563,7 +1700,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_reconfigureW
 {
     HWND hwndP = (HWND) (intptr_t) parent;
     HWND hwnd = (HWND) (intptr_t) window;
-    DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN ;
+    DWORD windowStyle = WS_DEFAULT_STYLES;
     BOOL styleChange = TST_FLAG_CHANGE_DECORATION(flags) || TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_PARENTING(flags) ;
 
     DBG_PRINT( "*** WindowsWindow: reconfigureWindow0 parent %p, window %p, %d/%d %dx%d, parentChange %d, hasParent %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, alwaysOnTopChange %d, alwaysOnTop %d, visibleChange %d, visible %d -> styleChange %d\n",

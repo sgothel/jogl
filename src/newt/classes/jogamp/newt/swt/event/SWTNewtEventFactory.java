@@ -95,11 +95,11 @@ public class SWTNewtEventFactory {
         }
         int type = eventTypeSWT2NEWT.get(event.type);
         if(0xFFFFFFFF != type) {
-            int rotation = 0;
+            float rotation = 0;
             if (SWT.MouseVerticalWheel == event.type) {
                 // SWT/NEWT rotation is reversed - AWT +1 is down, NEWT +1 is up.
                 // rotation = -1 * (int) event.rotation;
-                rotation = (int) event.rotation;
+                rotation = (float) event.rotation;
             }
 
             int mods = swtModifiers2Newt(event.stateMask, true);

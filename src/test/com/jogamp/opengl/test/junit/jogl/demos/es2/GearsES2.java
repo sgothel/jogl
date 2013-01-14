@@ -55,6 +55,7 @@ public class GearsES2 implements GLEventListener {
     private GLUniformData pmvMatrixUniform = null;
     private GLUniformData colorU = null;
     private float view_rotx = 20.0f, view_roty = 30.0f, view_rotz = 0.0f;
+    private float panX = 0.0f, panY = 0.0f;
     private GearsObjectES2 gear1=null, gear2=null, gear3=null;
     private float angle = 0.0f;
     private int swapInterval = 0;
@@ -302,6 +303,7 @@ public class GearsES2 implements GLEventListener {
 
         st.useProgram(gl, true);
         pmvMatrix.glPushMatrix();
+        pmvMatrix.glTranslatef(panX, panY, 0.0f);
         pmvMatrix.glRotatef(view_rotx, 1.0f, 0.0f, 0.0f);
         pmvMatrix.glRotatef(view_roty, 0.0f, 1.0f, 0.0f);
         pmvMatrix.glRotatef(view_rotz, 0.0f, 0.0f, 1.0f);
@@ -336,7 +338,32 @@ public class GearsES2 implements GLEventListener {
         }
     }
 
-    class GearsMouseAdapter extends MouseAdapter {
+    class GearsMouseAdapter implements MouseListener{
+        
+        @Override
+        public void mouseClicked(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseWheelMoved(MouseEvent e) {
+            float r = e.getWheelRotation() * 1.0f;
+            if( e.isShiftDown() ) {
+                // horizontal
+                panX -= r; // positive -> left
+            } else {
+                // vertical
+                panY += r; // positive -> up
+            }
+        }
+        
         public void mousePressed(MouseEvent e) {
             prevMouseX = e.getX();
             prevMouseY = e.getY();

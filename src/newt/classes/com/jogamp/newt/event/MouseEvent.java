@@ -65,7 +65,7 @@ public class MouseEvent extends InputEvent
 
     public MouseEvent(int eventType, Object source, long when,
             int modifiers, int x, int y, int clickCount, int button,
-            int rotation)
+            float rotation)
     {
         super(eventType, source, when, modifiers); 
         this.x = new int[]{x};
@@ -79,7 +79,7 @@ public class MouseEvent extends InputEvent
 
     public MouseEvent(int eventType, Object source, long when,
             int modifiers, int[] x, int[] y, float[] pressure, int[] pointerids, int clickCount, int button,
-            int rotation)
+            float rotation)
     {
         super(eventType, source, when, modifiers); 
         this.x = x;
@@ -154,20 +154,29 @@ public class MouseEvent extends InputEvent
     }
     
     /**
-     * <i>Usually</i> a wheel rotation of <b>&gt; 0 is up</b>,
-     * and  <b>&lt; 0 is down</b>.<br>
+     * <i>Usually</i> a wheel rotation of <b>&gt; 0.0f is up</b>,
+     * and <b>&lt; 0.0f is down</b>.
+     * <p>
+     * Usually a wheel rotations is considered a vertical scroll.<br/>
+     * If {@link #isShiftDown()}, a wheel rotations is
+     * considered a horizontal scroll, where <b>shift-up = left = &gt; 0.0f</b>,
+     * and <b>shift-down = right = &lt; 0.0f</b>.   
+     * </p>
+     * <p>
      * <i>However</i>, on some OS this might be flipped due to the OS <i>default</i> behavior.
      * The latter is true for OS X 10.7 (Lion) for example.
+     * </p>
      * <p>
-     * The events will be send usually in steps of one, ie. <i>-1</i> and <i>1</i>.
+     * The events will be send usually in steps of one, ie. <i>-1.0f</i> and <i>1.0f</i>.
      * Higher values may result due to fast scrolling.
+     * Fractional values may result due to slow scrolling with high resolution devices.  
      * </p>
      * <p>
      * The button number refers to the wheel number.
      * </p> 
      * @return
      */
-    public int getWheelRotation() {
+    public float getWheelRotation() {
         return wheelRotation;
     }
 
@@ -212,7 +221,8 @@ public class MouseEvent extends InputEvent
         default: return "unknown (" + type + ")";
         }
     }
-    private final int x[], y[], clickCount, button, wheelRotation;
+    private final int x[], y[], clickCount, button;
+    private final float wheelRotation;
     private final float pressure[];
     private final int pointerids[];
     

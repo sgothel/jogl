@@ -51,14 +51,19 @@ public class DisplayDriver extends DisplayImpl {
     static {
         NEWTJNILibLoader.loadNEWT();
 
-        if (!WindowDriver.initIDs0()) {
+        sharedClassFactory = new RegisteredClassFactory(newtClassBaseName, WindowDriver.getNewtWndProc0());
+        
+        if (!WindowDriver.initIDs0(RegisteredClassFactory.getHInstance())) {
             throw new NativeWindowException("Failed to initialize WindowsWindow jmethodIDs");
         }        
-        sharedClassFactory = new RegisteredClassFactory(newtClassBaseName, WindowDriver.getNewtWndProc0());
     }
 
     public static void initSingleton() {
         // just exist to ensure static init has been run
+    }
+
+    protected static long getHInstance() {
+        return RegisteredClassFactory.getHInstance();
     }
 
     private RegisteredClass sharedClass;
@@ -78,10 +83,6 @@ public class DisplayDriver extends DisplayImpl {
 
     protected void dispatchMessagesNative() {
         DispatchMessages0();
-    }
-
-    protected long getHInstance() {
-        return sharedClass.getHandle();
     }
 
     protected String getWindowClassName() {

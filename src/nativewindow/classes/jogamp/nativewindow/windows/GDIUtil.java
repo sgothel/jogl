@@ -34,7 +34,6 @@ import javax.media.nativewindow.NativeWindowFactory;
 import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.nativewindow.Debug;
 import jogamp.nativewindow.ToolkitProperties;
-import jogamp.nativewindow.x11.X11Util;
 
 public class GDIUtil implements ToolkitProperties {
     private static final boolean DEBUG = Debug.debug("GDIUtil");
@@ -49,7 +48,7 @@ public class GDIUtil implements ToolkitProperties {
      */
     public static synchronized void initSingleton() {
         if(!isInit) {
-            synchronized(X11Util.class) {
+            synchronized(GDIUtil.class) {
                 if(!isInit) {
                     if(DEBUG) {
                         System.out.println("GDI.initSingleton()");
@@ -92,7 +91,7 @@ public class GDIUtil implements ToolkitProperties {
     public static long CreateDummyWindow(int x, int y, int width, int height) {
         synchronized(dummyWindowSync) {
             dummyWindowClass = dummyWindowClassFactory.getSharedClass();
-            return CreateDummyWindow0(dummyWindowClass.getHandle(), dummyWindowClass.getName(), dummyWindowClass.getName(), x, y, width, height);
+            return CreateDummyWindow0(dummyWindowClass.getHInstance(), dummyWindowClass.getName(), dummyWindowClass.getName(), x, y, width, height);
         }
     }
   

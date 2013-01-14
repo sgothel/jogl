@@ -133,10 +133,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private ArrayList<WindowListener> windowListeners  = new ArrayList<WindowListener>();
     private boolean repaintQueued = false;
 
-    // Workaround for initialization order problems on Mac OS X
-    // between native Newt and (apparently) Fmod -- if Fmod is
-    // initialized first then the connection to the window server
-    // breaks, leading to errors from deep within the AppKit
+    /**
+     * Workaround for initialization order problems on Mac OS X
+     * between native Newt and (apparently) Fmod -- if Fmod is
+     * initialized first then the connection to the window server
+     * breaks, leading to errors from deep within the AppKit
+     */
     public static void init(String type) {
         if (NativeWindowFactory.TYPE_MACOSX.equals(type)) {
             try {
@@ -1974,16 +1976,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // MouseListener/Event Support
     //
     public void sendMouseEvent(int eventType, int modifiers,
-                               int x, int y, int button, int rotation) {
+                               int x, int y, int button, float rotation) {
         doMouseEvent(false, false, eventType, modifiers, x, y, button, rotation);
     }
     public void enqueueMouseEvent(boolean wait, int eventType, int modifiers,
-                                  int x, int y, int button, int rotation) {
+                                  int x, int y, int button, float rotation) {
         doMouseEvent(true, wait, eventType, modifiers, x, y, button, rotation);
     }
     
     protected void doMouseEvent(boolean enqueue, boolean wait, int eventType, int modifiers,
-                                int x, int y, int button, int rotation) {
+                                int x, int y, int button, float rotation) {
         if( eventType == MouseEvent.EVENT_MOUSE_ENTERED || eventType == MouseEvent.EVENT_MOUSE_EXITED ) {
             if( eventType == MouseEvent.EVENT_MOUSE_EXITED && x==-1 && y==-1 ) {
                 x = lastMousePosition.getX();

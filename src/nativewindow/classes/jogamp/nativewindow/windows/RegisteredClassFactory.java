@@ -33,8 +33,17 @@ import java.util.ArrayList;
 import javax.media.nativewindow.NativeWindowException;
 
 public class RegisteredClassFactory {
-    static final boolean DEBUG = Debug.debug("RegisteredClass");
-    private static ArrayList<RegisteredClassFactory> registeredFactories = new ArrayList<RegisteredClassFactory>();    
+    private static final boolean DEBUG = Debug.debug("RegisteredClass");
+    private static final ArrayList<RegisteredClassFactory> registeredFactories;    
+    private static final long hInstance;
+    
+    static {
+        hInstance = GDI.GetApplicationHandle();
+        if( 0 == hInstance ) {
+            throw new NativeWindowException("Error: Null ModuleHandle for Application");
+        }
+        registeredFactories = new ArrayList<RegisteredClassFactory>();
+    }
     
     private String classBaseName;
     private long wndProc;
@@ -43,7 +52,7 @@ public class RegisteredClassFactory {
     private int classIter = 0;
     private int sharedRefCount = 0;
     private final Object sync = new Object();
-
+    
     /**
      * Release the {@link RegisteredClass} of all {@link RegisteredClassFactory}. 
      */
@@ -53,7 +62,7 @@ public class RegisteredClassFactory {
                 final RegisteredClassFactory rcf = registeredFactories.get(j);
                 synchronized(rcf.sync) {
                     if(null != rcf.sharedClass) {
-                        GDIUtil.DestroyWindowClass(rcf.sharedClass.getHandle(), rcf.sharedClass.getName());
+                        GDIUtil.DestroyWindowClass(rcf.sharedClass.getHInstance(), rcf.sharedClass.getName());
                         rcf.sharedClass = null;
                         rcf.sharedRefCount = 0;
                         rcf.classIter = 0;                 
@@ -65,6 +74,9 @@ public class RegisteredClassFactory {
             }
         }
     }
+    
+    /** Application handle. */
+    public static long getHInstance() { return hInstance; }
 
     public RegisteredClassFactory(String classBaseName, long wndProc) {
         this.classBaseName = classBaseName;
@@ -79,10 +91,6 @@ public class RegisteredClassFactory {
           if( 0 == sharedRefCount ) {
               if( null != sharedClass ) {
                   throw new InternalError("Error ("+sharedRefCount+"): SharedClass not null: "+sharedClass);
-              }
-              long hInstance = GDI.GetApplicationHandle();
-              if( 0 == hInstance ) {
-                  throw new NativeWindowException("Error: Null ModuleHandle for Application");
               }
               String clazzName = null;
               boolean registered = false;
@@ -121,7 +129,7 @@ public class RegisteredClassFactory {
               throw new InternalError("Error ("+sharedRefCount+"): SharedClass is null");
           }
           if( 0 == sharedRefCount ) {
-              GDIUtil.DestroyWindowClass(sharedClass.getHandle(), sharedClass.getName());
+              GDIUtil.DestroyWindowClass(sharedClass.getHInstance(), sharedClass.getName());
               if(DEBUG) {
                   System.err.println("RegisteredClassFactory releaseSharedClass ("+sharedRefCount+") released: "+sharedClass);
               }

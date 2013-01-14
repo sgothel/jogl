@@ -132,13 +132,13 @@ public class WindowDriver extends WindowImpl {
         setGraphicsConfiguration(cfg);
         final int flags = getReconfigureFlags(0, true) & 
                           ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;
-        setWindowHandle(CreateWindow0(display.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),
+        setWindowHandle(CreateWindow0(DisplayDriver.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),
                                       getParentWindowHandle(), getX(), getY(), getWidth(), getHeight(), autoPosition(), flags)); 
         if (getWindowHandle() == 0) {
             throw new NativeWindowException("Error creating window");
         }
         windowHandleClose = getWindowHandle();
-        addMouseListener(new MouseTracker());
+        addMouseListener(mouseTracker);
         
         if(DEBUG_IMPLEMENTATION) {
             Exception e = new Exception("Info: Window new window handle "+Thread.currentThread().getName()+
@@ -146,13 +146,12 @@ public class WindowDriver extends WindowImpl {
                                         ") : HWND "+toHexString(getWindowHandle())+", "+Thread.currentThread());
             e.printStackTrace();
         }
-    }
-    
-    class MouseTracker extends MouseAdapter {
+    }    
+    private MouseAdapter mouseTracker = new MouseAdapter() {
         public void mouseEntered(MouseEvent e) {
             WindowDriver.trackPointerLeave0(WindowDriver.this.getWindowHandle());
         }
-    }
+    };
 
     protected void closeNativeImpl() {
         if(windowHandleClose != 0) {
@@ -334,8 +333,8 @@ public class WindowDriver extends WindowImpl {
     //----------------------------------------------------------------------
     // Internals only
     //
-    protected static native boolean initIDs0();
     protected static native long getNewtWndProc0();
+    protected static native boolean initIDs0(long hInstance);
 
     private native long CreateWindow0(long hInstance, String wndClassName, String wndName,
                                       long parentWindowHandle,

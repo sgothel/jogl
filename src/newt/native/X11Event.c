@@ -103,33 +103,33 @@ void X11EventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                 #ifdef USE_SENDIO_DIRECT
                 (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED, 
                                       modifiers,
-                                      (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
+                                      (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0.0f /*rotation*/);
                 #else
                 (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_PRESSED, 
                                       modifiers,
-                                      (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
+                                      (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0.0f /*rotation*/);
                 #endif
                 break;
             case ButtonRelease:
                 #ifdef USE_SENDIO_DIRECT
                 (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED, 
                                       modifiers,
-                                      (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
+                                      (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0.0f /*rotation*/);
                 #else
                 (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_RELEASED, 
                                       modifiers,
-                                      (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0 /*rotation*/);
+                                      (jint) evt.xbutton.x, (jint) evt.xbutton.y, (jint) evt.xbutton.button, 0.0f /*rotation*/);
                 #endif
                 break;
             case MotionNotify:
                 #ifdef USE_SENDIO_DIRECT
                 (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_MOVED, 
                                       modifiers,
-                                      (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jint) 0, 0 /*rotation*/); 
+                                      (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jint) 0, 0.0f /*rotation*/); 
                 #else
                 (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_MOVED, 
                                       modifiers,
-                                      (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jint) 0, 0 /*rotation*/); 
+                                      (jint) evt.xmotion.x, (jint) evt.xmotion.y, (jint) 0, 0.0f /*rotation*/); 
                 #endif
                 break;
             case EnterNotify:
@@ -137,11 +137,11 @@ void X11EventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                 #ifdef USE_SENDIO_DIRECT
                 (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_ENTERED, 
                                       modifiers,
-                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jint) 0, 0 /*rotation*/); 
+                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jint) 0, 0.0f /*rotation*/); 
                 #else
                 (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_ENTERED, 
                                       modifiers,
-                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jint) 0, 0 /*rotation*/); 
+                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jint) 0, 0.0f /*rotation*/); 
                 #endif
                 break;
             case LeaveNotify:
@@ -149,11 +149,11 @@ void X11EventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                 #ifdef USE_SENDIO_DIRECT
                 (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_EXITED, 
                                       modifiers,
-                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jint) 0, 0 /*rotation*/); 
+                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jint) 0, 0.0f /*rotation*/); 
                 #else
                 (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_EXITED, 
                                       modifiers,
-                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jint) 0, 0 /*rotation*/); 
+                                      (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jint) 0, 0.0f /*rotation*/); 
                 #endif
                 break;
             case KeyPress:

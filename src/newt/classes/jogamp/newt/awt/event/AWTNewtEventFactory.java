@@ -262,10 +262,10 @@ public class AWTNewtEventFactory {
     public static final com.jogamp.newt.event.MouseEvent createMouseEvent(java.awt.event.MouseEvent event, com.jogamp.newt.Window newtSource) {
         int type = eventTypeAWT2NEWT.get(event.getID());
         if(0xFFFFFFFF != type) {
-            int rotation = 0;
+            float rotation = 0;
             if (event instanceof java.awt.event.MouseWheelEvent) {
                 // AWT/NEWT rotation is reversed - AWT +1 is down, NEWT +1 is up.
-                rotation = -1 * ((java.awt.event.MouseWheelEvent)event).getWheelRotation();
+                rotation = -1f * ((java.awt.event.MouseWheelEvent)event).getWheelRotation();
             }
 
             final int newtButton = awtButton2Newt(event.getButton());

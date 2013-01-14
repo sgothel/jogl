@@ -44,8 +44,6 @@ import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowFactory;
 
-import com.jogamp.common.os.Platform;
-
 import jogamp.newt.Debug;
 import jogamp.newt.DisplayImpl;
 import jogamp.newt.ScreenImpl;
@@ -56,13 +54,15 @@ public class NewtFactory {
 
     public static final String DRIVER_DEFAULT_ROOT_PACKAGE = "jogamp.newt.driver";
     
-    // Work-around for initialization order problems on Mac OS X
-    // between native Newt and (apparently) Fmod
     static {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
                 NativeWindowFactory.initSingleton(); // last resort ..
+                
+                // Work-around for initialization order problems on Mac OS X
+                // between native Newt and (apparently) Fmod
                 WindowImpl.init(NativeWindowFactory.getNativeWindowType(true));
+                
                 return null;
             } } );
     }

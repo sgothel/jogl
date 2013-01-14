@@ -129,11 +129,11 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                     #ifdef USE_SENDIO_DIRECT
                     (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_PRESSED, 
                                           modifiers,
-                                          (jint) _evt->event_x, (jint) _evt->event_y, (jint) _evt->state, 0 /*rotation*/);
+                                          (jint) _evt->event_x, (jint) _evt->event_y, (jint) _evt->state, 0.0f /*rotation*/);
                     #else
                     (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_PRESSED, 
                                           modifiers,
-                                          (jint) _evt->event_x, (jint) _evt->event_y, (jint) _evt->state, 0 /*rotation*/);
+                                          (jint) _evt->event_x, (jint) _evt->event_y, (jint) _evt->state, 0.0f /*rotation*/);
                     #endif
                 } break;
             case XCB_BUTTON_RELEASE: {
@@ -141,11 +141,11 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                     #ifdef USE_SENDIO_DIRECT
                     (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_RELEASED, 
                                           modifiers,
-                                          (jint) _evt->event_x, (jint) _evt->event_y, (jint) _evt->state, 0 /*rotation*/);
+                                          (jint) _evt->event_x, (jint) _evt->event_y, (jint) _evt->state, 0.0f /*rotation*/);
                     #else
                     (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_RELEASED, 
                                           modifiers,
-                                          (jint) _evt->event_x, (jint) _evt->event_y, (jint) _evt->state, 0 /*rotation*/);
+                                          (jint) _evt->event_x, (jint) _evt->event_y, (jint) _evt->state, 0.0f /*rotation*/);
                     #endif
                 } break;
             case XCB_MOTION_NOTIFY: {
@@ -153,11 +153,11 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                     #ifdef USE_SENDIO_DIRECT
                     (*env)->CallVoidMethod(env, jwindow, sendMouseEventID, (jint) EVENT_MOUSE_MOVED, 
                                           modifiers,
-                                          (jint) _evt->event_x, (jint) _evt->event_y, (jint)0, 0 /*rotation*/);
+                                          (jint) _evt->event_x, (jint) _evt->event_y, (jint)0, 0.0f /*rotation*/);
                     #else
                     (*env)->CallVoidMethod(env, jwindow, enqueueMouseEventID, JNI_FALSE, (jint) EVENT_MOUSE_MOVED, 
                                           modifiers,
-                                          (jint) _evt->event_x, (jint) _evt->event_y, (jint)0, 0 /*rotation*/);
+                                          (jint) _evt->event_x, (jint) _evt->event_y, (jint)0, 0.0f /*rotation*/);
                     #endif
                 } break;
             case XCB_KEY_PRESS: {

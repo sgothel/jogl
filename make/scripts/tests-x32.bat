@@ -1,5 +1,5 @@
 REM scripts\java-win32-dbg.bat jogamp.newt.awt.opengl.VersionApplet
-scripts\java-win32-dbg.bat com.jogamp.newt.opengl.GLWindow
+REM scripts\java-win32-dbg.bat com.jogamp.newt.opengl.GLWindow
 REM scripts\java-win32-dbg.bat javax.media.opengl.awt.GLCanvas
 REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.acore.TestInitConcurrentNEWT %*
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT %*
@@ -16,12 +16,14 @@ REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT -time 30000
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT %*
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT %*
-REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %*
+scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %*
 REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 4000 -x 10 -y 10 -width 100 -height 100 -screen 0
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestRedSquareES2NEWT %*
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWTCardLayoutAnimatorStartStopBug532 %*
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT -time 5000
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT -time 5000
+REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT %*
+REM scripts\java-win32.bat com.jogamp.opengl.test.junit.jogl.demos.gl3.newt.TestGeomShader01TextureGL3NEWT %*
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestAWT03GLCanvasRecreate01
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411
 REM scripts\java-win32-dbg.bat com.jogamp.opengl.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT

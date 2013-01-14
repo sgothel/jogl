@@ -47,6 +47,7 @@ import javax.media.nativewindow.util.Point;
 
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
+import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.MouseEvent;
 
 public class WindowDriver extends WindowImpl {
@@ -231,8 +232,9 @@ public class WindowDriver extends WindowImpl {
         // nop - using event driven insetsChange(..)         
     }
     
+    @Override
     protected void doMouseEvent(boolean enqueue, boolean wait, int eventType, int modifiers,
-                                int x, int y, int button, int rotation) {
+                                int x, int y, int button, float rotation) {
         switch(eventType) {
             case MouseEvent.EVENT_MOUSE_PRESSED:
                 switch(button) {
@@ -256,15 +258,17 @@ public class WindowDriver extends WindowImpl {
                         button = 1;
                         rotation = -1;
                         break;
-                    case X11_WHEEL_TWO_UP_BUTTON:
+                    case X11_WHEEL_TWO_UP_BUTTON: // vertical scroll left
                         eventType = MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
-                        button = 2;
+                        button = 1;
                         rotation = 1;
+                        modifiers |= InputEvent.SHIFT_MASK;
                         break;
-                    case X11_WHEEL_TWO_DOWN_BUTTON:
+                    case X11_WHEEL_TWO_DOWN_BUTTON: // vertical scroll right
                         eventType = MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
-                        button = 2;
+                        button = 1;
                         rotation = -1;
+                        modifiers |= InputEvent.SHIFT_MASK;
                         break;
                 }                
                 break;
