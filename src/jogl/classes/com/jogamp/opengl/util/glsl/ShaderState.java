@@ -366,14 +366,13 @@ public class ShaderState {
         if(null==shaderProgram) throw new GLException("No program is attached");
         if(shaderProgram.linked()) throw new GLException("Program is already linked");
         final String name = data.getName();
-        final Integer loc = new Integer(location);
-        activeAttribLocationMap.put(name, loc);
+        activeAttribLocationMap.put(name, new Integer(location));
         data.setLocation(gl, shaderProgram.program(), location);
         activeAttribDataMap.put(data.getName(), data);
     }
 
     /**
-     * Gets the location of a shader attribute.<br>
+     * Gets the location of a shader attribute with given <code>name</code>.<br>
      * Uses either the cached value {@link #getCachedAttribLocation(String)} if valid,
      * or the GLSL queried via {@link GL2ES2#glGetAttribLocation(int, String)}.<br>
      * The location will be cached.
@@ -395,8 +394,7 @@ public class ShaderState {
             if(!shaderProgram.linked()) throw new GLException("Program is not linked");
             location = gl.glGetAttribLocation(shaderProgram.program(), name);
             if(0<=location) {
-                Integer idx = new Integer(location);
-                activeAttribLocationMap.put(name, idx);
+                activeAttribLocationMap.put(name, new Integer(location));
                 if(DEBUG) {
                     System.err.println("ShaderState: glGetAttribLocation: "+name+", loc: "+location);
                 }
@@ -409,7 +407,7 @@ public class ShaderState {
         }
         return location;
     }
-
+    
     /**
      * Validates and returns the location of a shader attribute.<br>
      * Uses either the cached value {@link #getCachedAttribLocation(String)} if valid, 
@@ -622,11 +620,12 @@ public class ShaderState {
     }
     
     /**
-     * Set the {@link GLArrayData} vertex attribute data.
-     * 
-     * This method uses the {@link GLArrayData}'s location if set.
-     * If data location is unset it will be retrieved via {@link #getAttribLocation(GL2ES2, GLArrayData)}, set
-     * and cached in this state.
+     * Set the {@link GLArrayData} vertex attribute data, if it's location is valid, i.e. &ge; 0.
+     * <p>
+     * This method uses the {@link GLArrayData}'s location if valid, i.e. &ge; 0.<br/>
+     * If data's location is invalid, it will be retrieved via {@link #getAttribLocation(GL2ES2, GLArrayData)}, 
+     * set and cached in this state.
+     * </p>
      * 
      * @return false, if the location could not be determined, otherwise true
      *
@@ -713,12 +712,14 @@ public class ShaderState {
     }
 
     private final void relocateAttribute(GL2ES2 gl, GLArrayData attribute) {
-        // get new location ..
+        // get new location .. note: 'activeAttribLocationMap' is cleared before 
         final String name = attribute.getName();
-        final int loc = getAttribLocation(gl, name);
-        attribute.setLocation(loc);
-
+        final int loc = attribute.setLocation(gl, shaderProgram.program());
         if(0<=loc) {
+            activeAttribLocationMap.put(name, new Integer(loc));
+            if(DEBUG) {
+                System.err.println("ShaderState: relocateAttribute: "+name+", loc: "+loc);
+            }
             if(isVertexAttribArrayEnabled(name)) {
                 // enable attrib, VBO and pass location/data
                 gl.glEnableVertexAttribArray(loc);
@@ -737,13 +738,20 @@ public class ShaderState {
     /**
      * Reset all previously enabled mapped vertex attribute data.
      * 
-     * <p>Attribute data is bound to the GL state</p>
-     * <p>Attribute location is bound to the program</p>
+     * <p>
+     * Attribute data is bound to the GL state, i.e. VBO data itself will not be updated.
+     * </p>
      * 
-     * <p>However, since binding an attribute to a location via {@link #bindAttribLocation(GL2ES2, int, GLArrayData)}
-     * <i>must</i> happen before linking <b>and</b> we try to promote the attributes to the new program,
-     * we have to gather the probably new location etc.</p>
-     *
+     * <p>
+     * Attribute location and it's data assignment is bound to the program,
+     * hence both are updated.
+     * </p>
+     * 
+     * <p>
+     * Note: Such update could only be prevented, 
+     * if tracking am attribute/program dirty flag.
+     * </p>
+     * 
      * @throws GLException is the program is not linked
      *
      * @see #attachShaderProgram(GL2ES2, ShaderProgram)
@@ -835,7 +843,7 @@ public class ShaderState {
     }
     
     /**
-     * Gets the location of a shader uniform.<br>
+     * Gets the location of a shader uniform with given <code>name</code>.<br>
      * Uses either the cached value {@link #getCachedUniformLocation(String)} if valid,
      * or the GLSL queried via {@link GL2ES2#glGetUniformLocation(int, String)}.<br>
      * The location will be cached.
@@ -902,8 +910,7 @@ public class ShaderState {
             if(!shaderProgram.linked()) throw new GLException("Program is not linked");
             location = data.setLocation(gl, shaderProgram.program());
             if(0<=location) {
-                Integer idx = new Integer(location);
-                activeUniformLocationMap.put(name, idx);
+                activeUniformLocationMap.put(name, new Integer(location));
             } else if(verbose) {
                 System.err.println("ShaderState: glUniform failed, no location for: "+name+", index: "+location);
                 if(DEBUG) {
@@ -916,19 +923,14 @@ public class ShaderState {
     }
     
     /**
-     * Set the uniform data.
+     * Set the uniform data, if it's location is valid, i.e. &ge; 0.
+     * <p>
+     * This method uses the {@link GLUniformData}'s location if valid, i.e. &ge; 0.<br/>
+     * If data's location is invalid, it will be retrieved via {@link #getUniformLocation(GL2ES2, GLUniformData)}, 
+     * set and cached in this state.
+     * </p>
      *
-     * Even if the uniform is not found in the current shader,
-     * it is stored in this state.
-     *
-     * @param data the GLUniforms's name must match the uniform one,
-     *      it's index will be set with the uniforms's location,
-     *      if found.
-     *
-     *
-     * @return false, if the name is not found, otherwise true
-     *
-     * @throws GLException if the program is not in use
+     * @return false, if the location could not be determined, otherwise true
      *
      * @see #glGetUniformLocation
      * @see javax.media.opengl.GL2ES2#glGetUniformLocation
@@ -948,10 +950,11 @@ public class ShaderState {
                 System.err.println("ShaderState: glUniform: "+data);
             }
             gl.glUniform(data);
+            return true;
         }
-        return true;
+        return false;
     }
-
+    
     /**
      * Get the uniform data, previously set.
      *
@@ -973,10 +976,15 @@ public class ShaderState {
         
     /**
      * Reset all previously mapped uniform data
-     * 
+     * <p>
      * Uniform data and location is bound to the program,
-     * hence both are updated here
-     *
+     * hence both are updated.
+     * </p>
+     * <p>
+     * Note: Such update could only be prevented, 
+     * if tracking a uniform/program dirty flag.
+     * </p>
+     * 
      * @throws GLException is the program is not in use
      * 
      * @see #attachShaderProgram(GL2ES2, ShaderProgram)
@@ -988,9 +996,16 @@ public class ShaderState {
             iter.next().setLocation(-1);
         }        
         for(Iterator<GLUniformData> iter = activeUniformDataMap.values().iterator(); iter.hasNext(); ) {
-            final GLUniformData uniform = iter.next();
-            uniform.setLocation(-1);
-            uniform(gl, uniform);
+            final GLUniformData data = iter.next();
+            final int loc = data.setLocation(gl, shaderProgram.program());
+            if( 0 <= loc ) {
+                // only pass the data, if the uniform exists in the current shader
+                activeUniformLocationMap.put(data.getName(), new Integer(loc));
+                if(DEBUG) {
+                    System.err.println("ShaderState: resetAllUniforms: "+data);
+                }
+                gl.glUniform(data);
+            }
         }
     }
 

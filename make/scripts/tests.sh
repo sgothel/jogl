@@ -165,7 +165,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.debug.Window"
     #D_ARGS="-Dnewt.debug.Window.KeyEvent"
-    D_ARGS="-Dnewt.debug.Window.MouseEvent"
+    #D_ARGS="-Dnewt.debug.Window.MouseEvent"
     #D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug.JAWT -Djogl.debug.Animator"
     #D_ARGS="-Dnewt.debug.Window"
@@ -261,7 +261,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen02BitmapNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestRedSquareES2NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl3.newt.TestGeomShader01TextureGL3NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFloatUtil01MatrixMatrixMultNOUI $*
@@ -481,7 +481,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLSimple01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
 
 #
