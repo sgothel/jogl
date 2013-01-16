@@ -152,7 +152,7 @@ public class LinuxMouseTracker implements WindowListener {
                 yd=b[2];
             
                 x+=xd;
-                y+=yd;
+                y-=yd;
                 
                 if(x<0) {
                     x=0;
@@ -161,6 +161,7 @@ public class LinuxMouseTracker implements WindowListener {
                     y=0;
                 }
                 
+                buttonDown = 0;
                 if(lb) {
                     buttonDown = MouseEvent.BUTTON1;
                 }
