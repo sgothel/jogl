@@ -89,6 +89,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.FBObject"
     #D_ARGS="-Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL -Djogl.debug.TraceGL"
+    #D_ARGS="-Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLState"
     #D_ARGS="-Djogl.debug.FixedFuncPipeline"
@@ -277,6 +278,8 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextSurfaceLockNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext01NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES1NEWT $*
@@ -481,7 +484,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestTransformFeedbackVaryingsBug407NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLSimple01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState01NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestGLSLShaderState02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.glsl.TestRulerNEWT01 $*
 
 #

@@ -49,6 +49,7 @@ import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
+import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.gluegen.runtime.FunctionAddressResolver;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLNameResolver;
@@ -270,14 +271,25 @@ public abstract class GLContextImpl extends GLContext {
   @Override
   public void release() throws GLException {
     release(false);
-  }
+  }  
   private void release(boolean inDestruction) throws GLException {
     if(TRACE_SWITCH) {
-        System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - release() - force: "+inDestruction+", "+lock);
+        System.err.println(getThreadName() +": GLContext.ContextSwitch[release.0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+", inDestruction: "+inDestruction+", "+lock);
     }
     if ( !lock.isOwner(Thread.currentThread()) ) {
-        throw new GLException("Context not current on current thread "+Thread.currentThread().getName()+": "+this);
+        final String msg = getThreadName() +": Context not current on current thread, obj " + toHexString(hashCode())+", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+", inDestruction: "+inDestruction+", "+lock;
+        if( DEBUG_TRACE_SWITCH ) {
+            System.err.println(msg);
+            if( null != lastCtxReleaseStack) {
+                System.err.print("Last release call: ");
+                lastCtxReleaseStack.printStackTrace();
+            } else {
+                System.err.println("Last release call: NONE");
+            }
+        }
+        throw new GLException(msg);
     }
+    
     Throwable drawableContextMadeCurrentException = null;
     final boolean actualRelease = ( inDestruction || lock.getHoldCount() == 1 ) && 0 != contextHandle;
     try {
@@ -298,8 +310,13 @@ public abstract class GLContextImpl extends GLContext {
       }
       drawable.unlockSurface();
       lock.unlock();
-      if(TRACE_SWITCH) {
-          System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - "+(actualRelease?"switch":"keep  ")+" - CONTEXT_RELEASE - "+lock);
+      if( DEBUG_TRACE_SWITCH ) {
+          final String msg = getThreadName() +": GLContext.ContextSwitch[release.X]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - "+(actualRelease?"switch":"keep  ")+" - "+lock;
+          lastCtxReleaseStack = new Throwable(msg);
+          if(TRACE_SWITCH) {
+              System.err.println(msg);
+              // Thread.dumpStack();
+          }
       }
     }
     if(null != drawableContextMadeCurrentException) {
@@ -307,11 +324,12 @@ public abstract class GLContextImpl extends GLContext {
     }
     
   }
+  private Throwable lastCtxReleaseStack = null;
   protected abstract void releaseImpl() throws GLException;
 
   @Override
   public final void destroy() {
-      if (DEBUG || TRACE_SWITCH) {
+      if (DEBUG_TRACE_SWITCH) {
           System.err.println(getThreadName() + ": GLContextImpl.destroy.0: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle) +
                   ", surf "+toHexString(drawable.getHandle())+", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
       }
@@ -328,7 +346,7 @@ public abstract class GLContextImpl extends GLContext {
               lock.lock(); // holdCount++ -> 1 - n (1: not locked, 2-n: destroy while rendering)
               if ( lock.getHoldCount() > 2 ) {
                   final String msg = getThreadName() + ": GLContextImpl.destroy: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle);
-                  if (DEBUG || TRACE_SWITCH) {
+                  if (DEBUG_TRACE_SWITCH) {
                       System.err.println(msg+" - Lock was hold more than once - makeCurrent/release imbalance: "+lock);
                       Thread.dumpStack();
                   }
@@ -445,14 +463,21 @@ public abstract class GLContextImpl extends GLContext {
    */
   @Override
   public int makeCurrent() throws GLException {
-    boolean unlockContextAndDrawable = true;
-    int res = CONTEXT_NOT_CURRENT;
+    if(TRACE_SWITCH) {
+        System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - "+lock);
+    }      
 
     // Note: the surface is locked within [makeCurrent .. swap .. release]
-    int lockRes = drawable.lockSurface();
+    final int lockRes = drawable.lockSurface();
     if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
+        if(DEBUG_TRACE_SWITCH) {
+            System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X1]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - Surface Not Ready - CONTEXT_NOT_CURRENT - "+lock);                        
+        }
         return CONTEXT_NOT_CURRENT;
     }
+    
+    boolean unlockContextAndSurface = true; // Must be cleared if successful, otherwise finally block will release context and surface!
+    int res = CONTEXT_NOT_CURRENT;
     try {
         if (0 == drawable.getHandle()) {
             throw new GLException("drawable has invalid handle: "+drawable);
@@ -472,8 +497,9 @@ public abstract class GLContextImpl extends GLContext {
                         // Assume we don't need to make this context current again
                         // For Mac OS X, however, we need to update the context to track resizes
                         drawableUpdatedNotify();
+                        unlockContextAndSurface = false; // success
                         if(TRACE_SWITCH) {
-                            System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - keep   - CONTEXT_CURRENT - "+lock);                        
+                            System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X2]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - keep   - CONTEXT_CURRENT - "+lock);                        
                         }
                         return CONTEXT_CURRENT;
                     } else {
@@ -481,7 +507,7 @@ public abstract class GLContextImpl extends GLContext {
                     }
                 }
                 res = makeCurrentWithinLock(lockRes);
-                unlockContextAndDrawable = CONTEXT_NOT_CURRENT == res;
+                unlockContextAndSurface = CONTEXT_NOT_CURRENT == res; // success ?
                 
                 /**
                  * FIXME: refactor dependence on Java 2D / JOGL bridge
@@ -491,28 +517,27 @@ public abstract class GLContextImpl extends GLContext {
                     }
                  */
             } catch (RuntimeException e) {
-              unlockContextAndDrawable = true;
+              unlockContextAndSurface = true;
               throw e;
             } finally {
-              if (unlockContextAndDrawable) {
+              if (unlockContextAndSurface) {
+                if(DEBUG_TRACE_SWITCH) {
+                  System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.1]: Context lock.unlock() due to error, res "+makeCurrentResultToString(res)+", "+lock);
+                }
                 lock.unlock();
               }
             }
         } /* if ( drawable.isRealized() ) */
     } catch (RuntimeException e) {
-      unlockContextAndDrawable = true;
+      unlockContextAndSurface = true;
       throw e;
     } finally {
-      if (unlockContextAndDrawable) {
+      if (unlockContextAndSurface) {
         drawable.unlockSurface();
       }
     }
 
-    if (res == CONTEXT_NOT_CURRENT) {
-      if(DEBUG || TRACE_SWITCH) {
-          System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+", drawable.isRealized() "+drawable.isRealized()+" - switch - CONTEXT_NOT_CURRENT - "+lock);
-      }
-    } else {
+    if (res != CONTEXT_NOT_CURRENT) {
       setCurrent(this);
       if(res == CONTEXT_CURRENT_NEW) {
         // check if the drawable's and the GL's GLProfile are equal
@@ -531,15 +556,9 @@ public abstract class GLContextImpl extends GLContext {
             gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) );
         }
         
-        contextRealized(true);
-        
-        if(DEBUG || TRACE_SWITCH) {
-            System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - switch - CONTEXT_CURRENT_NEW - "+lock);
-        }
-      } else if(TRACE_SWITCH) {
-         System.err.println(getThreadName() +": GLContext.ContextSwitch: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - switch - CONTEXT_CURRENT - "+lock);
+        contextRealized(true);        
       }
-
+      
       contextMadeCurrent(true);
       
       /* FIXME: refactor dependence on Java 2D / JOGL bridge
@@ -551,9 +570,12 @@ public abstract class GLContextImpl extends GLContext {
       }
       */
     }
+    if(TRACE_SWITCH) {
+        System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X3]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - switch - "+makeCurrentResultToString(res)+" - "+lock);
+    }      
     return res;
   }
-
+  
   private final int makeCurrentWithinLock(int surfaceLockRes) throws GLException {
       if (!isCreated()) {
         if(DEBUG_GL) {
@@ -584,7 +606,7 @@ public abstract class GLContextImpl extends GLContext {
                 shareWith.getDrawableImpl().unlockSurface();
             }
         }
-        if (DEBUG || TRACE_SWITCH) {
+        if (DEBUG_TRACE_SWITCH) {
             if(created) {
                 System.err.println(getThreadName() + ": Create GL context OK: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle) + ", surf "+toHexString(drawable.getHandle())+" for " + getClass().getName()+" - "+getGLVersion());
                 // Thread.dumpStack();
@@ -1641,7 +1663,7 @@ public abstract class GLContextImpl extends GLContext {
       return device.getUniqueID() + "-" + toHexString(composeBits(major, minor, ctxProfileBits));
   }
 
-  protected String getContextFQN() {
+  protected final String getContextFQN() {
       return contextFQN;
   }
 
@@ -1696,19 +1718,19 @@ public abstract class GLContextImpl extends GLContext {
   //----------------------------------------------------------------------
   // Helpers for buffer object optimizations
 
-  public void setBufferSizeTracker(GLBufferSizeTracker bufferSizeTracker) {
+  public final void setBufferSizeTracker(GLBufferSizeTracker bufferSizeTracker) {
     this.bufferSizeTracker = bufferSizeTracker;
   }
 
-  public GLBufferSizeTracker getBufferSizeTracker() {
+  public final GLBufferSizeTracker getBufferSizeTracker() {
     return bufferSizeTracker;
   }
 
-  public GLBufferStateTracker getBufferStateTracker() {
+  public final GLBufferStateTracker getBufferStateTracker() {
     return bufferStateTracker;
   }
 
-  public GLStateTracker getGLStateTracker() {
+  public final GLStateTracker getGLStateTracker() {
     return glStateTracker;
   }
 
@@ -1717,8 +1739,34 @@ public abstract class GLContextImpl extends GLContext {
   // current on the OpenGL worker thread
   //
 
-  public boolean hasWaiters() {
+  /** 
+   * Returns true if the given thread is owner, otherwise false.
+   * <p>
+   * Method exists merely for code validation of {@link #isCurrent()}.
+   * </p> 
+   */
+  public final boolean isOwner(Thread thread) {
+      return lock.isOwner(thread);
+  }
+  
+  /** 
+   * Returns true if there are other threads waiting for this GLContext to {@link #makeCurrent()}, otherwise false.
+   * <p>
+   * Since method does not perform any synchronization, accurate result are returned if lock is hold - only.
+   * </p> 
+   */
+  public final boolean hasWaiters() {
     return lock.getQueueLength()>0;
+  }
+  
+  /** 
+   * Returns the number of hold locks. See {@link RecursiveLock#getHoldCount()} for semantics.
+   * <p>
+   * Since method does not perform any synchronization, accurate result are returned if lock is hold - only.
+   * </p> 
+   */
+  public final int getLockCount() {
+      return lock.getHoldCount();
   }
   
   //---------------------------------------------------------------------------

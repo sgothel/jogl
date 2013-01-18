@@ -103,6 +103,7 @@ public abstract class GLContext {
   
   public static final boolean DEBUG = Debug.debug("GLContext");
   public static final boolean TRACE_SWITCH = Debug.isPropertyDefined("jogl.debug.GLContext.TraceSwitch", true);
+  public static final boolean DEBUG_TRACE_SWITCH = DEBUG || TRACE_SWITCH;  
 
   /** Reflects property jogl.debug.DebugGL. If true, the debug pipeline is enabled at context creation. */
   public static final boolean DEBUG_GL = Debug.isPropertyDefined("jogl.debug.DebugGL", true);
@@ -412,6 +413,16 @@ public abstract class GLContext {
     if(getCurrent() != this) {
         throw new GLException(getThreadName()+": This context is not current. Current context: "+getCurrent()+", this context "+this);
     }
+  }
+
+  /** Returns a String representation of the {@link #makeCurrent()} result. */
+  public static final String makeCurrentResultToString(int res) {
+      switch(res) {
+          case CONTEXT_NOT_CURRENT:   return "CONTEXT_NOT_CURRENT";
+          case CONTEXT_CURRENT:       return "CONTEXT_CURRENT";
+          case CONTEXT_CURRENT_NEW:   return "CONTEXT_NOT_CURRENT";
+          default: return "INVALID_VALUE";
+      }
   }
 
   /**
