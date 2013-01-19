@@ -79,13 +79,14 @@ public class NewtVersionActivity extends NewtBaseActivity {
             public void init(GLAutoDrawable drawable) {
                 GL gl = drawable.getGL();
                 final StringBuffer sb = new StringBuffer();
-                sb.append(JoglVersion.getGLInfo(gl, null)).append(Platform.NEWLINE);
+                sb.append(JoglVersion.getGLInfo(gl, null, true)).append(Platform.NEWLINE);
                 sb.append("Requested: ").append(Platform.NEWLINE);
                 sb.append(drawable.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities()).append(Platform.NEWLINE).append(Platform.NEWLINE);
                 sb.append("Chosen: ").append(Platform.NEWLINE);
                 sb.append(drawable.getChosenGLCapabilities()).append(Platform.NEWLINE).append(Platform.NEWLINE);
                 final String info2 = sb.toString();
-                Log.d(MD.TAG, info2);
+                // Log.d(MD.TAG, info2); // too big!
+                System.err.println(info2);
                 viewGroup.post(new Runnable() {
                     public void run() {
                         tv.append(info2);
