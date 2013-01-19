@@ -139,8 +139,10 @@ public abstract class Renderer {
             throw new GLException("Error setting PMVMatrix in shader: "+rs.getShaderState());
         }
         
-        if(!rs.getShaderState().uniform(gl, rs.getWeight())) {
-            throw new GLException("Error setting weight in shader: "+rs.getShaderState());
+        if( Region.isNonUniformWeight( getRenderModes() ) ) {
+            if(!rs.getShaderState().uniform(gl, rs.getWeight())) {
+                throw new GLException("Error setting weight in shader: "+rs.getShaderState());
+            }
         }
                 
         if(!rs.getShaderState().uniform(gl, rs.getAlpha())) {
@@ -181,7 +183,7 @@ public abstract class Renderer {
         	 throw new IllegalArgumentException("Weight out of range");
         }
         rs.getWeight().setData(v);
-        if(null != gl && rs.getShaderState().inUse()) {
+        if(null != gl && rs.getShaderState().inUse() && Region.isNonUniformWeight( getRenderModes() ) ) {
             rs.getShaderState().uniform(gl, rs.getWeight());
         }
     }

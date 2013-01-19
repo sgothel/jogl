@@ -295,7 +295,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext11VSyncAnimNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext12FPSAnimNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOffscrnCapsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryOffscrnCapsNEWT $*
@@ -492,7 +492,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT10 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT00 $*
-#testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
+testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestTextRendererNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.ui.UINewtDemo01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.demos.GPUTextNewtDemo01 $*
