@@ -29,6 +29,7 @@
 package jogamp.newt.driver.android;
 
 import jogamp.common.os.android.StaticContext;
+import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.android.event.AndroidNewtEventTranslator;
 
 import javax.media.nativewindow.Capabilities;
@@ -43,6 +44,8 @@ import javax.media.opengl.GLException;
 
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+import com.jogamp.newt.Screen;
+import com.jogamp.newt.ScreenMode;
 
 import jogamp.opengl.egl.EGL;
 import jogamp.opengl.egl.EGLGraphicsConfiguration;
@@ -52,11 +55,14 @@ import android.content.Context;
 import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.ResultReceiver;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback2;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.view.SurfaceView;
 
@@ -65,7 +71,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         DisplayDriver.initSingleton();
     }
 
-    public static CapabilitiesImmutable fixCaps(boolean matchFormatPrecise, int format, CapabilitiesImmutable rCaps) {
+    public static final CapabilitiesImmutable fixCaps(boolean matchFormatPrecise, int format, CapabilitiesImmutable rCaps) {
         PixelFormat pf = new PixelFormat(); 
         PixelFormat.getPixelFormatInfo(format, pf);
         final CapabilitiesImmutable res;        
@@ -104,7 +110,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         return res;
     }
     
-    public static int getFormat(CapabilitiesImmutable rCaps) {
+    public static final int getFormat(CapabilitiesImmutable rCaps) {
         int fmt = PixelFormat.UNKNOWN;
         
         if(!rCaps.isBackgroundOpaque()) {
@@ -130,7 +136,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         return fmt;
     }
     
-    public static boolean isAndroidFormatTransparent(int aFormat) {
+    public static final boolean isAndroidFormatTransparent(int aFormat) {
         switch (aFormat) {
             case PixelFormat.TRANSLUCENT:
             case PixelFormat.TRANSPARENT:
@@ -147,8 +153,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         reset();
     }
 
-    private void reset() {
-        ownAndroidWindow = false;
+    private final void reset() {
+        added2StaticViewGroup = false;
         androidView = null;
         nativeFormat = VisualIDHolder.VID_UNDEFINED;
         androidFormat = VisualIDHolder.VID_UNDEFINED;
@@ -157,10 +163,12 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         surfaceHandle = 0;
         eglSurface = 0;
         definePosition(0, 0); // default to 0/0
+        defineSize(0, 0); // default size -> TBD !
+        
         setBrokenFocusChange(true);
     }
     
-    private void setupInputListener(boolean enable) {
+    private final void setupInputListener(final boolean enable) {
         Log.d(MD.TAG, "setupInputListener(enable "+enable+") - "+Thread.currentThread().getName());
         
         final AndroidNewtEventTranslator eventTranslator = 
@@ -169,51 +177,104 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         androidView.setOnKeyListener(eventTranslator);
         androidView.setOnFocusChangeListener(eventTranslator);
         if(AndroidVersion.SDK_INT >= 12) { // API Level 12
-            Log.d(MD.TAG, "instantiationFinished() - enable GenericMotionListener - "+Thread.currentThread().getName());
+            Log.d(MD.TAG, "setupInputListener - enable GenericMotionListener - "+Thread.currentThread().getName());
             androidView.setOnGenericMotionListener(eventTranslator);
         }
-        androidView.setClickable(false);
-        androidView.setFocusable(enable);
-        androidView.setFocusableInTouchMode(enable);
+        if( enable ) {
+            androidView.post(new Runnable() {
+                public void run() {
+                    androidView.setClickable(false);
+                    androidView.setFocusable(true);
+                    androidView.setFocusableInTouchMode(true);
+                } } );
+        }
     }
     
-    @Override
-    protected void instantiationFinished() {
-        Log.d(MD.TAG, "instantiationFinished() - "+Thread.currentThread().getName());
-        
-        final Context ctx = StaticContext.getContext();        
-        if(null == ctx) {
-            throw new NativeWindowException("No static [Application] Context has been set. Call StaticContext.setContext(Context) first.");
-        }
+    private final void setupAndroidView(Context ctx) {
         androidView = new MSurfaceView(ctx);
                 
         final SurfaceHolder sh = androidView.getHolder();
         sh.addCallback(WindowDriver.this); 
-        sh.setFormat(getFormat(getRequestedCapabilities()));
-        
-        // default size -> TBD ! 
-        defineSize(0, 0);
+        sh.setFormat(getFormat(getRequestedCapabilities()));        
+    }
+    private final void removeAndroidView() {
+        final SurfaceHolder sh = androidView.getHolder();
+        sh.removeCallback(WindowDriver.this);
+        androidView = null;
     }
     
     public final SurfaceView getAndroidView() { return androidView; }
     
     @Override
-    protected boolean canCreateNativeImpl() {
-        final boolean b = 0 != surfaceHandle;
-        Log.d(MD.TAG, "canCreateNativeImpl: "+b);
+    protected final void instantiationFinished() {
+        Log.d(MD.TAG, "instantiationFinished() - "+Thread.currentThread().getName());
+                
+        final Context ctx = StaticContext.getContext();        
+        if(null == ctx) {
+            throw new NativeWindowException("No static [Application] Context has been set. Call StaticContext.setContext(Context) first.");
+        }
+        
+        if( null != Looper.myLooper() ) {
+            setupAndroidView(ctx);
+        }
+    }
+    
+    @Override
+    protected final boolean canCreateNativeImpl() {
+        Log.d(MD.TAG, "canCreateNativeImpl.0: surfaceHandle ready "+(0!=surfaceHandle)+" - on thread "+Thread.currentThread().getName());
+        if(WindowImpl.DEBUG_IMPLEMENTATION) {
+            Thread.dumpStack();
+        }
+        
+        if( isFullscreen() ) {
+            final Screen screen = getScreen();
+            final ScreenMode sm = screen.getCurrentScreenMode();            
+            definePosition(screen.getX(), screen.getY());
+            defineSize(sm.getRotatedWidth(), sm.getRotatedHeight());
+        }
+        
+        final boolean b;
+        
+        if( 0 == surfaceHandle ) {
+            // Static ViewGroup, i.e. self contained main code
+            final ViewGroup viewGroup = StaticContext.getContentViewGroup();
+            Log.d(MD.TAG, "canCreateNativeImpl: viewGroup "+viewGroup);
+            if( null != viewGroup && !added2StaticViewGroup ) {
+                added2StaticViewGroup = true;
+                viewGroup.post(new Runnable() {
+                    public void run() {
+                        if(null == androidView) {
+                            setupAndroidView( StaticContext.getContext() );
+                        }
+                        viewGroup.addView(androidView, new android.widget.FrameLayout.LayoutParams(getWidth(), getHeight(), Gravity.BOTTOM|Gravity.RIGHT));
+                        Log.d(MD.TAG, "canCreateNativeImpl: added to static ViewGroup - on thread "+Thread.currentThread().getName());                        
+                    } });
+                for(long sleep = TIMEOUT_NATIVEWINDOW; 0<sleep && 0 == surfaceHandle; sleep-=10 ) {
+                    try { Thread.sleep(10); } catch (InterruptedException ie) {}
+                }
+                b = 0 != surfaceHandle;
+                Log.d(MD.TAG, "canCreateNativeImpl: surfaceHandle ready(2) "+b+" - on thread "+Thread.currentThread().getName());                
+            } else {
+                // No surfaceHandle defined, No static ViewGroup to add ourselves
+                b = false;
+            }
+        } else {
+            // surfaceHandle already defined
+            b = true; 
+        }
         return b;
     }
 
     @Override
-    protected void createNativeImpl() {
+    protected final void createNativeImpl() {
         Log.d(MD.TAG, "createNativeImpl 0 - surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
-                    ", format [a "+androidFormat+", n "+nativeFormat+"], "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" - "+Thread.currentThread().getName());
+                    ", format [a "+androidFormat+", n "+nativeFormat+"], "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" - on thread "+Thread.currentThread().getName());
 
         if(0!=getParentWindowHandle()) {
             throw new NativeWindowException("Window parenting not supported (yet)");
         }
         if(0==surfaceHandle) {
-            throw new InternalError("XXX");
+            throw new InternalError("surfaceHandle null");
         }
        
         final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getScreen().getDisplay().getGraphicsDevice();
@@ -238,6 +299,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         // propagate data ..
         setGraphicsConfiguration(eglConfig);
         setWindowHandle(surfaceHandle);
+        visibleChanged(false, true);
         focusChanged(false, true);
         
         setupInputListener(true);
@@ -246,10 +308,13 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     }
 
     @Override
-    protected void closeNativeImpl() {
+    protected final void closeNativeImpl() {
         Log.d(MD.TAG, "closeNativeImpl 0 - surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
                     ", eglSurfaceHandle 0x"+Long.toHexString(eglSurface)+
-                    ", format [a "+androidFormat+", n "+nativeFormat+"], "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" - "+Thread.currentThread().getName());
+                    ", format [a "+androidFormat+", n "+nativeFormat+"], "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" - on thread "+Thread.currentThread().getName());
+        if(WindowImpl.DEBUG_IMPLEMENTATION) {
+            Thread.dumpStack();
+        }
         
         setupInputListener(false);
         
@@ -261,6 +326,26 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
             eglSurface = 0;        
         }        
         release0(surfaceHandle);
+
+        if( null != androidView ) {
+            if( added2StaticViewGroup ) {
+                added2StaticViewGroup = false;
+                final ViewGroup viewGroup = StaticContext.getContentViewGroup();
+                if( null != viewGroup) {
+                    viewGroup.post(new Runnable() {
+                        public void run() {
+                            if(null == androidView) {
+                                final Context ctx = StaticContext.getContext();        
+                                setupAndroidView(ctx);
+                            }
+                            viewGroup.removeView(androidView);
+                            Log.d(MD.TAG, "closeNativeImpl: removed from static ViewGroup - on thread "+Thread.currentThread().getName());
+                        } });
+                }
+            }
+            removeAndroidView();
+        }
+        
         surface = null;
         surfaceHandle = 0;
     }
@@ -278,12 +363,12 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
      * {@inheritDoc}
      */
     @Override
-    public void focusChanged(boolean defer, boolean focusGained) {
+    public final void focusChanged(boolean defer, boolean focusGained) {
         super.focusChanged(defer, focusGained);
     }
     
     @Override
-    protected void requestFocusImpl(boolean reparented) { 
+    protected final void requestFocusImpl(boolean reparented) { 
         if(null != androidView) {
             Log.d(MD.TAG, "requestFocusImpl: reparented "+reparented);
             androidView.post(new Runnable() {
@@ -296,7 +381,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     }
 
     @Override
-    protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {        
+    protected final boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {        
         boolean res = true;
         
         if( 0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
@@ -326,12 +411,12 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     }
 
     @Override
-    protected Point getLocationOnScreenImpl(int x, int y) {
+    protected final Point getLocationOnScreenImpl(int x, int y) {
         return new Point(x,y);
     }
 
     @Override
-    protected void updateInsetsImpl(Insets insets) {
+    protected final void updateInsetsImpl(Insets insets) {
         // nop ..        
     }
     
@@ -387,13 +472,16 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     //
     
     @Override
-    public void surfaceCreated(SurfaceHolder holder) {    
-        Log.d(MD.TAG, "surfaceCreated: "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
+    public final void surfaceCreated(SurfaceHolder holder) {    
+        Log.d(MD.TAG, "surfaceCreated: "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" - on thread "+Thread.currentThread().getName());
     }
 
     @Override
-    public void surfaceChanged(SurfaceHolder aHolder, int aFormat, int aWidth, int aHeight) {
-        Log.d(MD.TAG, "surfaceChanged: f "+nativeFormat+" -> "+aFormat+", "+aWidth+"x"+aHeight+", current surfaceHandle: 0x"+Long.toHexString(surfaceHandle));
+    public final void surfaceChanged(SurfaceHolder aHolder, int aFormat, int aWidth, int aHeight) {
+        Log.d(MD.TAG, "surfaceChanged: f "+nativeFormat+" -> "+aFormat+", "+aWidth+"x"+aHeight+", current surfaceHandle: 0x"+Long.toHexString(surfaceHandle)+" - on thread "+Thread.currentThread().getName());
+        if(WindowImpl.DEBUG_IMPLEMENTATION) {
+            Thread.dumpStack();
+        }
         if(0!=surfaceHandle && androidFormat != aFormat ) {
             // re-create
             Log.d(MD.TAG, "surfaceChanged (destroy old)");
@@ -437,18 +525,21 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     }
     
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        Log.d(MD.TAG, "surfaceDestroyed");
+    public final void surfaceDestroyed(SurfaceHolder holder) {
+        Log.d(MD.TAG, "surfaceDestroyed - on thread "+Thread.currentThread().getName());
+        if(WindowImpl.DEBUG_IMPLEMENTATION) {
+            Thread.dumpStack();
+        }
         windowDestroyNotify(true); // actually too late .. however ..
     }
 
     @Override
-    public void surfaceRedrawNeeded(SurfaceHolder holder) {
-        Log.d(MD.TAG, "surfaceRedrawNeeded");
+    public final void surfaceRedrawNeeded(SurfaceHolder holder) {
+        Log.d(MD.TAG, "surfaceRedrawNeeded  - on thread "+Thread.currentThread().getName());
         windowRepaint(0, 0, getWidth(), getHeight());
     }
         
-    private boolean ownAndroidWindow;
+    private boolean added2StaticViewGroup;
     private MSurfaceView androidView;
     private int nativeFormat; // chosen current native PixelFormat (suitable for EGL)
     private int androidFormat; // chosen current android PixelFormat (-1, -2 ..)

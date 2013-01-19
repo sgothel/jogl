@@ -38,11 +38,20 @@ TSTCLASS=com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT
 
 #D_FLAGS="\&newt.debug=all\&jogl.debug=all\&nativewindow.debug=all"
 #D_FLAGS="\&newt.debug=all\&jogl.debug=all"
-D_FLAGS="\&newt.debug=all"
+#D_FLAGS="\&newt.debug=all"
 
-#Screen: 1280 x 752
-#M_FLAGS="\&arg=-time\&arg=100000\&arg=-width\&arg=1280\&arg=-height\&arg=752"
-M_FLAGS="\&arg=-time\&arg=100000\&arg=-fullscreen"
+         
+M_FLAGS="\&arg=$TSTCLASS\
+\&arg=filtertrace=true\
+\&arg=haltOnError=false\
+\&arg=haltOnFailure=false\
+\&arg=showoutput=true\
+\&arg=outputtoformatters=true\
+\&arg=logfailedtests=true\
+\&arg=logtestlistenerevents=true\
+\&arg=formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter\
+\&arg=formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,/sdcard/$TARGET_ROOT/$TSTCLASS.xml\
+"
 
 LOGFILE=`basename $0 .sh`.log
 
@@ -63,7 +72,7 @@ if [ -e $TARGET_ROOT ] ; then rm -r $TARGET_ROOT ; fi ; \
 mkdir $TARGET_ROOT ; cd $TARGET_ROOT ; \
 setprop log.redirect-stdio true ; setprop log.redirect-stderr true ; \
 am kill-all ; \
-am start -W -S -a android.intent.action.MAIN -n jogamp.android.launcher/jogamp.android.launcher.MainLauncher -d launch://jogamp.org/$TSTCLASS/?pkg=com.jogamp.opengl.test$D_FLAGS$M_FLAGS \
+am start -W -S -a android.intent.action.MAIN -n jogamp.android.launcher/jogamp.android.launcher.MainLauncher -d launch://jogamp.org/org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner/?pkg=com.jogamp.opengl.test$D_FLAGS$M_FLAGS \
 "
 
 adb connect $TARGET_IP:$TARGET_ADB_PORT

@@ -278,12 +278,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         boolean postParentlockFocus = false;
         try {
             if(validateParentWindowHandle()) {
-                if(screenReferenceAdded) {
-                    throw new InternalError("XXX");
-                }
-                if(canCreateNativeImpl()) {
+                if( !screenReferenceAdded ) {
                     screen.addReference();
                     screenReferenceAdded = true;
+                }
+                if(canCreateNativeImpl()) {
                     createNativeImpl();
                     screen.addScreenModeListener(screenModeListenerImpl);
                     setTitleImpl(title);
