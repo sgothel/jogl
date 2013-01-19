@@ -33,6 +33,8 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.*;
 
 import java.lang.reflect.InvocationTargetException;
+
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLCapabilities;
@@ -157,7 +159,16 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         robot = new Robot();
         robot.setAutoWaitForIdle(true);
 
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
+        // NativeWindow/JOGL is not initialized yet ..
+        for (int wait=0; wait<AWTRobotUtil.POLL_DIVIDER && !frame.isVisible(); wait++) {
+            Thread.sleep(AWTRobotUtil.TIME_SLICE);
+        }
+        Assert.assertEquals(true,  frame.isVisible());
+        
+        System.err.println("TestSwingAWTRobotUsageBeforeJOGLInitBug411.setup(): Before NativeWindow init");
+        
+        NativeWindowFactory.initSingleton();
+        
         AWTRobotUtil.clearAWTFocus(robot);        
         AWTRobotUtil.toFrontAndRequestFocus(robot, frame);
         AWTRobotUtil.requestFocus(robot, button);
