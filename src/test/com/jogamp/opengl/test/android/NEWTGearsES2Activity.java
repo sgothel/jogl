@@ -47,6 +47,9 @@ import android.util.Log;
 public class NEWTGearsES2Activity extends NewtBaseActivity {
    static String TAG = "NEWTGearsES2Activity";
    
+   static final String forceRGBA5650 = "demo.force.rgba5650";
+   static final String forceECT = "demo.force.ect";
+   
    @Override
    public void onCreate(Bundle savedInstanceState) {
        Log.d(TAG, "onCreate - 0");
@@ -54,6 +57,11 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
        
        // create GLWindow (-> incl. underlying NEWT Display, Screen & Window)
        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
+       if( null != System.getProperty(forceRGBA5650) ) {
+           Log.d(TAG, "forceRGBA5650");
+           caps.setRedBits(5); caps.setGreenBits(6); caps.setBlueBits(5);           
+       }
+       
        Log.d(TAG, "req caps: "+caps);
        GLWindow glWindow = GLWindow.create(caps);
        glWindow.setFullscreen(true);
@@ -81,6 +89,11 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
        setAnimator(animator);
        // glWindow.setSkipContextReleaseThread(animator.getThread());
        
+       if( null != System.getProperty(forceECT) ) {
+           Log.d(TAG, "forceECT");
+           animator.setExclusiveContext(true);           
+       }
+       
        glWindow.setVisible(true);
        
        animator.setUpdateFPSFrames(60, System.err);
@@ -88,5 +101,5 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
        glWindow.resetFPSCounter();
 
        Log.d(TAG, "onCreate - X");
-   }   
+   }
 }

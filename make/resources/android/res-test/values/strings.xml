@@ -11,6 +11,10 @@
     <string name="activity_gearses1_descr">GearsES1</string>
     <string name="activity_gearses2_name">GearsES2</string>
     <string name="activity_gearses2_descr">GearsES2</string>
+    <string name="activity_gearses2rgb565_name">Gears565</string>
+    <string name="activity_gearses2rgb565_descr">Gears565</string>
+    <string name="activity_gearses2ect_name">GearsECT</string>
+    <string name="activity_gearses2ect_descr">GearsECT</string>
     <string name="activity_gearses2t_name">GearsES2T</string>
     <string name="activity_gearses2t_descr">GearsES2T</string>
     <string name="activity_graphui1p_name">GraphUI1p</string>

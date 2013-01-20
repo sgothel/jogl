@@ -707,10 +707,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         final RecursiveLock _lock = windowLock;
         _lock.lock();
         try {
-            if(null!=lifecycleHook) {
-                lifecycleHook.resetCounter();
-            }
-
             if(!visible && null!=childWindows && childWindows.size()>0) {
               synchronized(childWindowsLock) {
                 for(int i = 0; i < childWindows.size(); i++ ) {
@@ -756,6 +752,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 System.err.println("Window setVisible: END ("+getThreadName()+") "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible: "+WindowImpl.this.visible+", nativeWindowCreated: "+nativeWindowCreated+", madeVisible: "+madeVisible);
             }
         } finally {
+            if(null!=lifecycleHook) {
+                lifecycleHook.resetCounter();
+            }
             _lock.unlock();
         }
         if( nativeWindowCreated || madeVisible ) {
@@ -1014,10 +1013,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     System.err.println("Window.reparent: START ("+getThreadName()+") valid "+isNativeValid()+", windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+", visible "+wasVisible+", old parentWindow: "+Display.hashCodeNullSafe(parentWindow)+", new parentWindow: "+Display.hashCodeNullSafe(newParentWindow)+", forceDestroyCreate "+forceDestroyCreate+", "+x+"/"+y+" "+width+"x"+height);
                 }
 
-                if(null!=lifecycleHook) {
-                    lifecycleHook.resetCounter();
-                }
-
                 if(null!=newParentWindow) {
                     // reset position to 0/0 within parent space
                     x = 0;
@@ -1211,6 +1206,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     System.err.println("Window.reparentWindow: END-1 ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+ Display.hashCodeNullSafe(parentWindow)+" "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
                 }
             } finally {
+                if(null!=lifecycleHook) {
+                    lifecycleHook.resetCounter();
+                }
                 _lock.unlock();
             }
             if(wasVisible) {

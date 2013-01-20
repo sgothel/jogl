@@ -157,11 +157,9 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     }
     final CapabilitiesImmutable caps = (CapabilitiesImmutable) o; */
         
-    final int a = ( alphaBits > 0 ) ? alphaBits : 1;
-    final int rgba = redBits * greenBits * blueBits * a;
-
-    final int xa = ( caps.getAlphaBits() ) > 0 ? caps.getAlphaBits() : 1;
-    final int xrgba = caps.getRedBits() * caps.getGreenBits() * caps.getBlueBits() * xa;
+    final int rgba = redBits * greenBits * blueBits * ( alphaBits + 1 );
+    
+    final int xrgba = caps.getRedBits() * caps.getGreenBits() * caps.getBlueBits() * ( caps.getAlphaBits() + 1 );
 
     if(rgba > xrgba) {
         return 1;

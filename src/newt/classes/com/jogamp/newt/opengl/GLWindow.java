@@ -443,6 +443,10 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 System.err.println("GLWindow.resetCounter() "+WindowImpl.getThreadName());
             }
             GLWindow.this.resetFPSCounter();
+            final GLAnimatorControl animator = GLWindow.this.getAnimator();
+            if( null != animator ) {
+                animator.resetFPSCounter();
+            }
         }
 
         @Override

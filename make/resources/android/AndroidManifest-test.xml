@@ -28,6 +28,26 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="com.jogamp.opengl.test.android.NEWTGearsES2RGB565ActivityLauncher"
+                  android:label="@string/activity_gearses2rgb565_name"
+                  android:description="@string/activity_gearses2rgb565_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="com.jogamp.opengl.test.android.NEWTGearsES2ECTActivityLauncher"
+                  android:label="@string/activity_gearses2ect_name"
+                  android:description="@string/activity_gearses2ect_descr"
+                  android:theme="@android:style/Theme.NoDisplay"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity android:name="com.jogamp.opengl.test.android.NEWTGearsES1ActivityLauncher"
                   android:label="@string/activity_gearses1_name"
                   android:description="@string/activity_gearses1_descr"

@@ -71,6 +71,82 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         DisplayDriver.initSingleton();
     }
 
+    /**
+     * First stage of selecting an Android PixelFormat, 
+     * at construction via {@link SurfaceHolder#setFormat(int)} 
+     * before native realization!
+     * 
+     * @param rCaps requested Capabilities
+     * @return An Android PixelFormat number suitable for {@link SurfaceHolder#setFormat(int)}.
+     */
+    public static final int getSurfaceHolderFormat(CapabilitiesImmutable rCaps) {
+        int fmt = PixelFormat.UNKNOWN;
+        
+        if( !rCaps.isBackgroundOpaque() ) {
+            fmt = PixelFormat.TRANSLUCENT;
+        } else if( rCaps.getRedBits()<=5 &&
+                   rCaps.getGreenBits()<=6 &&
+                   rCaps.getBlueBits()<=5 &&
+                   rCaps.getAlphaBits()==0 ) {
+            fmt = PixelFormat.RGB_565;            
+        } else if( rCaps.getAlphaBits()==0 ) {
+            fmt = PixelFormat.RGB_888;
+        } else {        
+            fmt = PixelFormat.RGBA_8888;
+        }
+        Log.d(MD.TAG, "getSurfaceHolderFormat: requested: "+rCaps);
+        Log.d(MD.TAG, "getSurfaceHolderFormat:  returned: "+fmt);
+        
+        return fmt;
+    }
+    
+    
+    public static final int NATIVE_WINDOW_FORMAT_RGBA_8888          = 1;
+    public static final int NATIVE_WINDOW_FORMAT_RGBX_8888          = 2;
+    public static final int NATIVE_WINDOW_FORMAT_RGB_565            = 4;
+
+    /**
+     * Second stage of selecting an Android PixelFormat, 
+     * at right after native (surface) realization at {@link Callback2#surfaceChanged(SurfaceHolder, int, int, int)}.
+     * Selection happens via {@link #setSurfaceVisualID0(long, int)} before native EGL creation.
+     * 
+     * @param androidPixelFormat An Android PixelFormat delivered via {@link Callback2#surfaceChanged(SurfaceHolder, int, int, int)} params.
+     * @return A native Android PixelFormat number suitable for {@link #setSurfaceVisualID0(long, int)}.
+     */
+    public static final int getANativeWindowFormat(int androidPixelFormat) {
+        final int nativePixelFormat;
+        switch(androidPixelFormat) {
+            case PixelFormat.RGBA_8888:
+            case PixelFormat.RGBA_5551:
+            case PixelFormat.RGBA_4444:
+                nativePixelFormat = NATIVE_WINDOW_FORMAT_RGBA_8888; 
+                break;
+            
+            case PixelFormat.RGBX_8888:
+            case PixelFormat.RGB_888:   
+                nativePixelFormat = NATIVE_WINDOW_FORMAT_RGBX_8888; 
+                break;
+                
+            case PixelFormat.RGB_565:   
+            case PixelFormat.RGB_332:   
+                nativePixelFormat = NATIVE_WINDOW_FORMAT_RGB_565; 
+                break;
+            default: nativePixelFormat = NATIVE_WINDOW_FORMAT_RGBA_8888;
+        }
+        Log.d(MD.TAG, "getANativeWindowFormat: android: "+androidPixelFormat+" -> native "+nativePixelFormat);
+        return nativePixelFormat;
+    }
+    
+    /**
+     * Final stage of Android PixelFormat operation, 
+     * match the requested Capabilities w/ Android PixelFormat number. 
+     * This is done at native realization @ {@link Callback2#surfaceChanged(SurfaceHolder, int, int, int)}.
+     * 
+     * @param matchFormatPrecise
+     * @param format
+     * @param rCaps requested Capabilities
+     * @return The fixed Capabilities
+     */    
     public static final CapabilitiesImmutable fixCaps(boolean matchFormatPrecise, int format, CapabilitiesImmutable rCaps) {
         PixelFormat pf = new PixelFormat(); 
         PixelFormat.getPixelFormatInfo(format, pf);
@@ -78,10 +154,10 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         int r, g, b, a;
         
         switch(format) {
-            case PixelFormat.RGBA_8888: r=8; g=8; b=8; a=8; break;
-            case PixelFormat.RGBX_8888: r=8; g=8; b=8; a=0; break;
+            case PixelFormat.RGBA_8888: r=8; g=8; b=8; a=8; break; // NATIVE_WINDOW_FORMAT_RGBA_8888
+            case PixelFormat.RGBX_8888: r=8; g=8; b=8; a=0; break; // NATIVE_WINDOW_FORMAT_RGBX_8888
             case PixelFormat.RGB_888:   r=8; g=8; b=8; a=0; break;
-            case PixelFormat.RGB_565:   r=5; g=6; b=5; a=0; break;
+            case PixelFormat.RGB_565:   r=5; g=6; b=5; a=0; break; // NATIVE_WINDOW_FORMAT_RGB_565
             case PixelFormat.RGBA_5551: r=5; g=5; b=5; a=1; break;
             case PixelFormat.RGBA_4444: r=4; g=4; b=4; a=4; break;
             case PixelFormat.RGB_332:   r=3; g=3; b=2; a=0; break;
@@ -108,32 +184,6 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         Log.d(MD.TAG, "fixCaps:    chosen: "+res);
         
         return res;
-    }
-    
-    public static final int getFormat(CapabilitiesImmutable rCaps) {
-        int fmt = PixelFormat.UNKNOWN;
-        
-        if(!rCaps.isBackgroundOpaque()) {
-            fmt = PixelFormat.TRANSLUCENT;
-        } else if(rCaps.getRedBits()<=5 &&
-           rCaps.getGreenBits()<=6 &&
-           rCaps.getBlueBits()<=5 &&
-           rCaps.getAlphaBits()==0) {
-            fmt = PixelFormat.RGB_565;            
-        } 
-        /* else if(rCaps.getRedBits()<=5 &&
-           rCaps.getGreenBits()<=5 &&
-           rCaps.getBlueBits()<=5 &&
-           rCaps.getAlphaBits()==1) {
-            fmt = PixelFormat.RGBA_5551; // FIXME: Supported ?             
-        } */ 
-        else {        
-            fmt = PixelFormat.RGBA_8888;
-        }
-        Log.d(MD.TAG, "getFormat: requested: "+rCaps);
-        Log.d(MD.TAG, "getFormat:  returned: "+fmt);
-        
-        return fmt;
     }
     
     public static final boolean isAndroidFormatTransparent(int aFormat) {
@@ -195,12 +245,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
                 
         final SurfaceHolder sh = androidView.getHolder();
         sh.addCallback(WindowDriver.this); 
-        sh.setFormat(getFormat(getRequestedCapabilities()));        
-    }
-    private final void removeAndroidView() {
-        final SurfaceHolder sh = androidView.getHolder();
-        sh.removeCallback(WindowDriver.this);
-        androidView = null;
+        sh.setFormat(getSurfaceHolderFormat(getRequestedCapabilities()));        
     }
     
     public final SurfaceView getAndroidView() { return androidView; }
@@ -287,6 +332,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         }
         final int nativeVisualID = eglConfig.getVisualID(VisualIDHolder.VIDType.NATIVE);
         Log.d(MD.TAG, "nativeVisualID 0x"+Integer.toHexString(nativeVisualID));
+        Log.d(MD.TAG, "requestedCaps: "+eglConfig.getRequestedCapabilities());
+        Log.d(MD.TAG, "chosenCaps   : "+eglConfig.getChosenCapabilities());
         if(VisualIDHolder.VID_UNDEFINED != nativeVisualID) {
             setSurfaceVisualID0(surfaceHandle, nativeVisualID);
         }
@@ -334,16 +381,11 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
                 if( null != viewGroup) {
                     viewGroup.post(new Runnable() {
                         public void run() {
-                            if(null == androidView) {
-                                final Context ctx = StaticContext.getContext();        
-                                setupAndroidView(ctx);
-                            }
                             viewGroup.removeView(androidView);
                             Log.d(MD.TAG, "closeNativeImpl: removed from static ViewGroup - on thread "+Thread.currentThread().getName());
                         } });
                 }
             }
-            removeAndroidView();
         }
         
         surface = null;
@@ -504,7 +546,11 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
             surface = aHolder.getSurface();
             surfaceHandle = getSurfaceHandle0(surface);
             acquire0(surfaceHandle);
+            final int aNativeWindowFormat = getANativeWindowFormat(androidFormat);
+            setSurfaceVisualID0(surfaceHandle, aNativeWindowFormat);            
             nativeFormat = getSurfaceVisualID0(surfaceHandle);
+            Log.d(MD.TAG, "surfaceChanged: androidFormat "+androidFormat+" -- (set-native "+aNativeWindowFormat+") --> nativeFormat "+nativeFormat);
+
             final int nWidth = getWidth0(surfaceHandle);
             final int nHeight = getHeight0(surfaceHandle);
             capsByFormat = (GLCapabilitiesImmutable) fixCaps(true /* matchFormatPrecise */, nativeFormat, getRequestedCapabilities());
@@ -560,7 +606,9 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     //
     protected static native boolean initIDs0();
     protected static native long getSurfaceHandle0(Surface surface);
+    /** Return the native window format via <code>ANativeWindow_getFormat(..)</code>. */
     protected static native int getSurfaceVisualID0(long surfaceHandle);
+    /** Set the native window format via <code>ANativeWindow_setBuffersGeometry(..)</code>. */
     protected static native void setSurfaceVisualID0(long surfaceHandle, int nativeVisualID);
     protected static native int getWidth0(long surfaceHandle);
     protected static native int getHeight0(long surfaceHandle);

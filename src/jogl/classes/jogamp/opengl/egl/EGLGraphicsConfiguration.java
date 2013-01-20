@@ -72,7 +72,14 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         this.chooser = chooser;
     }
 
-    public static EGLGraphicsConfiguration create(GLCapabilitiesImmutable capsRequested, AbstractGraphicsScreen absScreen, int cfgID) {
+    /**
+     * @param capsRequested
+     * @param absScreen
+     * @param eglConfigID {@link EGL#EGL_CONFIG_ID} for which the config is being created for.
+     * @return
+     * @throws GLException if invalid EGL display. 
+     */
+    public static EGLGraphicsConfiguration create(GLCapabilitiesImmutable capsRequested, AbstractGraphicsScreen absScreen, int eglConfigID) {
         final AbstractGraphicsDevice absDevice = absScreen.getDevice();
         if(null==absDevice || !(absDevice instanceof EGLGraphicsDevice)) {
             throw new GLException("GraphicsDevice must be a valid EGLGraphicsDevice");
@@ -81,7 +88,7 @@ public class EGLGraphicsConfiguration extends MutableGraphicsConfiguration imple
         if (dpy == EGL.EGL_NO_DISPLAY) {
             throw new GLException("Invalid EGL display: "+absDevice);
         }
-        final long cfg = EGLConfigId2EGLConfig(dpy, cfgID);
+        final long cfg = EGLConfigId2EGLConfig(dpy, eglConfigID);
         if(0 < cfg) {
             final int winattrmask = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(capsRequested);
             final EGLGLCapabilities caps = EGLConfig2Capabilities((EGLGraphicsDevice)absDevice, capsRequested.getGLProfile(), cfg, winattrmask, false);

@@ -411,8 +411,13 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
         if( VisualIDHolder.VID_UNDEFINED != nativeVisualID ) {
             List<GLCapabilitiesImmutable> removedCaps = new ArrayList<GLCapabilitiesImmutable>();
             for(int i=0; i<availableCaps.size(); ) {
-                VisualIDHolder vidh = (VisualIDHolder) availableCaps.get(i);
-                if(vidh.getVisualID(VIDType.NATIVE) != nativeVisualID) {
+                final GLCapabilitiesImmutable aCap = availableCaps.get(i);
+                if(aCap.getVisualID(VIDType.NATIVE) != nativeVisualID) {
+                    if(DEBUG) { System.err.println("Remove["+i+"] (mismatch VisualID): "+aCap); }
+                    removedCaps.add(availableCaps.remove(i));
+                } if( 0 == aCap.getDepthBits() && 0 < capsChosen.getDepthBits() ) {
+                    // Hack for HiSilicon/Vivante/Immersion.16 Renderer ..
+                    if(DEBUG) { System.err.println("Remove["+i+"] (mismatch depth-bits): "+aCap); }
                     removedCaps.add(availableCaps.remove(i));
                 } else {
                     i++;
@@ -425,6 +430,9 @@ public class EGLGraphicsConfigurationFactory extends GLGraphicsConfigurationFact
                 }
             } else if(DEBUG) {
                 System.err.println("EGLGraphicsConfiguration.eglChooseConfig: post filter nativeVisualID "+toHexString(nativeVisualID)+" got configs: "+availableCaps.size());
+                for(int i=0; i<availableCaps.size(); i++) {
+                    System.err.println(i+": "+availableCaps.get(i));
+                }
             }
         }
 
