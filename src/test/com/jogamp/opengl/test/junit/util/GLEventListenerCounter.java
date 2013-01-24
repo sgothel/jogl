@@ -1,16 +1,16 @@
 /**
- * Copyright 2011 JogAmp Community. All rights reserved.
+ * Copyright 2013 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- *
+ * 
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- *
+ * 
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,31 +20,46 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * 
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.nativewindow;
+package com.jogamp.opengl.test.junit.util;
 
-import javax.media.nativewindow.AbstractGraphicsScreen;
-import javax.media.nativewindow.CapabilitiesImmutable;
-import javax.media.nativewindow.DefaultGraphicsConfiguration;
+import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLEventListener;
 
-public class MutableGraphicsConfiguration extends DefaultGraphicsConfiguration {
-    public MutableGraphicsConfiguration(AbstractGraphicsScreen screen,
-            CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested) {
-        super(screen, capsChosen, capsRequested);
-    }
-
-    @Override
-    public void setChosenCapabilities(CapabilitiesImmutable caps) {
-        super.setChosenCapabilities(caps);
+public class GLEventListenerCounter implements GLEventListener {
+    public int initCount = 0;
+    public int displayCount = 0;
+    public int reshapeCount = 0;
+    public int disposeCount = 0;
+    
+    public void reset() {
+        initCount = 0;
+        displayCount = 0;
+        reshapeCount = 0;
+        disposeCount = 0;            
     }
     
     @Override
-    public void setScreen(AbstractGraphicsScreen screen) {
-        super.setScreen(screen);
+    public void init(GLAutoDrawable drawable) {
+        initCount++;
     }
-    
+
+    @Override
+    public void dispose(GLAutoDrawable drawable) {
+        disposeCount++;            
+    }
+
+    @Override
+    public void display(GLAutoDrawable drawable) {
+        displayCount++;
+    }
+
+    @Override
+    public void reshape(GLAutoDrawable d, int x, int y, int width, int height) {
+        reshapeCount++;
+    }        
 }

@@ -130,37 +130,35 @@ public interface GLAutoDrawable extends GLDrawable {
   public GLContext getContext();
 
   /**
-   * Associate a new context to this drawable and also propagates the context/drawable switch by 
-   * calling {@link GLContext#setGLDrawable(GLDrawable, boolean) newCtx.setGLDrawable(drawable, true);}.
-   * <code>drawable</code> might be an inner GLDrawable instance if using a delegation pattern,
-   * or this GLAutoDrawable instance.
+   * Associate the new context, <code>newtCtx</code>, to this auto-drawable.
    * <p>
-   * If the old or new context was current on this thread, it is being released before switching the drawable.
+   * The current context will be dis-associated from this auto-drawable 
+   * via {@link GLContext#setGLDrawable(GLDrawable, boolean) setGLDrawable(null, true);} first.
+   * </p>
+   * <p>
+   * The new context will be associated with this auto-drawable 
+   * via {@link GLContext#setGLDrawable(GLDrawable, boolean) newCtx.setGLDrawable(drawable, true);}.
+   * </p> 
+   * <p>
+   * If the old or new context was current on this thread, it is being released before switching the association.
    * The new context will be made current afterwards, if it was current before. 
    * However the user shall take extra care that no other thread
    * attempts to make this context current.
    * </p>
    * <p>
-   * Be aware that the old context is still bound to the drawable, 
-   * and that one context can only be bound to one drawable at one time!
-   * </p>
-   * <p>
    * In case you do not intend to use the old context anymore, i.e. 
-   * not assigning it to another drawable, it shall be 
-   * destroyed before setting the new context, i.e.:
+   * not assigning it to another drawable, it shall be
+   * destroyed, i.e.:
    * <pre>
-            GLContext oldCtx = glad.getContext();
+            GLContext oldCtx = glad.setContext(newCtx);
             if(null != oldCtx) {
                 oldCtx.destroy();
             }
-            glad.setContext(newCtx);            
    * </pre> 
-   * This is required, since a context must have a valid drawable at all times
-   * and this API shall not restrict the user in any way. 
    * </p>
    * 
-   * @param newCtx the new context
-   * @return the replaced GLContext, maybe <code>null</code>
+   * @param newCtx the new context, maybe <code>null</code> for dis-association.
+   * @return the previous GLContext, maybe <code>null</code>
    *  
    * @see GLContext#setGLDrawable(GLDrawable, boolean)
    * @see GLContext#setGLReadDrawable(GLDrawable)

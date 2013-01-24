@@ -395,27 +395,12 @@ public class SWTAccessor {
     }
     
     /**
-     * 
      * @param device
      * @param screen -1 is default screen of the given device, e.g. maybe 0 or determined by native API. >= 0 is specific screen
      * @return
-     * @throws UnsupportedOperationException
      */
-    public static AbstractGraphicsScreen getScreen(AbstractGraphicsDevice device, int screen) throws UnsupportedOperationException {
-        if( isX11 ) {
-            X11GraphicsDevice x11Device = (X11GraphicsDevice)device;
-            if(0 > screen) {
-                screen = x11Device.getDefaultScreen();
-            }
-            return new X11GraphicsScreen(x11Device, screen);
-        }
-        if(0 > screen) {
-            screen = 0; // FIXME: Needs native API utilization
-        }
-        if( isWindows || isOSX ) {
-            return new DefaultGraphicsScreen(device, screen);
-        }
-        throw new UnsupportedOperationException("n/a for this windowing system: "+nwt);        
+    public static AbstractGraphicsScreen getScreen(AbstractGraphicsDevice device, int screen) {
+        return NativeWindowFactory.createScreen(nwt, device, screen);
     }
     
     public static int getNativeVisualID(AbstractGraphicsDevice device, long windowHandle) {

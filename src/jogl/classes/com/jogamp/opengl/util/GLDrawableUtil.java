@@ -27,17 +27,14 @@
  */
 package com.jogamp.opengl.util;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLEventListener;
-import javax.media.opengl.GLRunnable;
 
 import jogamp.opengl.Debug;
+import jogamp.opengl.GLEventListenerState;
 
 /**
  * Providing utility functions dealing w/ {@link GLDrawable}s, {@link GLAutoDrawable} and their {@link GLEventListener}.
@@ -83,7 +80,7 @@ public class GLDrawableUtil {
     dest.addGLEventListener(listener);
     if(preserveInitState && initialized) {
         dest.setGLEventListenerInitState(listener, true);
-        dest.invoke(false, new ReshapeGLEventListener(listener));
+        dest.invoke(false, new GLEventListenerState.ReshapeGLEventListener(listener));
     } // else .. !init state is default
   }
   
@@ -121,108 +118,13 @@ public class GLDrawableUtil {
    * @param b
    */
   public static final void swapGLContextAndAllGLEventListener(GLAutoDrawable a, GLAutoDrawable b) {
-    final List<GLRunnable> aGLCmds = new ArrayList<GLRunnable>();
-    final List<GLRunnable> bGLCmds = new ArrayList<GLRunnable>();
-    final GLAnimatorControl aAnim = a.getAnimator();
-    final GLAnimatorControl bAnim = b.getAnimator();    
-    final boolean aIsPaused = isAnimatorAnimatingOnOtherThread(aAnim) && aAnim.pause();
-    final boolean bIsPaused = isAnimatorAnimatingOnOtherThread(bAnim) && bAnim.pause();
+    final GLEventListenerState gllsA = GLEventListenerState.moveFrom(a);
+    final GLEventListenerState gllsB = GLEventListenerState.moveFrom(b);
     
-    //
-    // remove and cache all GLEventListener and their init-state
-    //
-    final int aSz = a.getGLEventListenerCount();
-    final GLEventListener[] aGLE = new GLEventListener[aSz];
-    final boolean[] aInit = new boolean[aSz];
-    for(int i=0; i<aSz; i++) {
-        final GLEventListener l = a.getGLEventListener(0);
-        aInit[i] = a.getGLEventListenerInitState(l);
-        aGLE[i] = a.removeGLEventListener( l );
-    }    
-    final int bSz = b.getGLEventListenerCount();
-    final GLEventListener[] bGLE = new GLEventListener[bSz];
-    final boolean[] bInit = new boolean[bSz];
-    for(int i=0; i<bSz; i++) {
-        final GLEventListener l = b.getGLEventListener(0);
-        bInit[i] = b.getGLEventListenerInitState(l);
-        bGLE[i] = b.removeGLEventListener( l );
-    }
-    
-    //
-    // trigger glFinish to sync GL ctx
-    //
-    a.invoke(true, glFinish);
-    b.invoke(true, glFinish);
-    
-    //
-    // switch context and
-    // trigger GL-Viewport reset and reshape of all initialized GLEventListeners
-    //
-    b.setContext( a.setContext( b.getContext() ) );
-    aGLCmds.add(setViewport);
-    bGLCmds.add(setViewport);
-    for(int i=0; i<aSz; i++) {
-        if( aInit[i] ) {
-            bGLCmds.add(new ReshapeGLEventListener(aGLE[i]));
-        }
-    }    
-    for(int i=0; i<bSz; i++) {
-        if( bInit[i] ) {
-            aGLCmds.add(new ReshapeGLEventListener(bGLE[i]));
-        }
-    }
-    aGLCmds.add(glFinish);
-    bGLCmds.add(glFinish);
-    a.invoke(true, aGLCmds);
-    b.invoke(true, bGLCmds);
-    
-    // add all cached GLEventListener to their destination and fix their init-state
-    for(int i=0; i<bSz; i++) {
-        final GLEventListener l = bGLE[i];
-        a.addGLEventListener( l );
-        if( bInit[i] ) {
-            a.setGLEventListenerInitState(l, true);
-        } // else uninitialized is default after add
-    }    
-    for(int i=0; i<aSz; i++) {
-        final GLEventListener l = aGLE[i];
-        b.addGLEventListener( l );
-        if( aInit[i] ) {
-            b.setGLEventListenerInitState(l, true);
-        } // else uninitialized is default after add
-    }
-    
-    if(aIsPaused) { aAnim.resume(); }
-    if(bIsPaused) { bAnim.resume(); }
+    gllsA.moveTo(b);
+    gllsB.moveTo(a);
   }
   
-  static GLRunnable setViewport = new GLRunnable() {
-    @Override
-    public boolean run(GLAutoDrawable drawable) {
-        drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
-        return true;
-    }            
-  };
-  static GLRunnable glFinish = new GLRunnable() {
-    @Override
-    public boolean run(GLAutoDrawable drawable) {
-        drawable.getGL().glFinish();
-        return true;
-    }            
-  };
-  
-  private static class ReshapeGLEventListener implements GLRunnable {
-    private GLEventListener listener;
-    ReshapeGLEventListener(GLEventListener listener) {
-        this.listener = listener;
-    }
-    @Override
-    public boolean run(GLAutoDrawable drawable) {
-        listener.reshape(drawable, 0, 0, drawable.getWidth(), drawable.getHeight());
-        return true;
-    }      
-  }
-
   /** 
    * Swaps the {@link GLContext} of given {@link GLAutoDrawable} 
    * and {@link GLAutoDrawable#disposeGLEventListener(GLEventListener, boolean) disposes} 
@@ -251,11 +153,11 @@ public class GLDrawableUtil {
     }
     dest.setContext( src.setContext( dest.getContext() ) );
     
-    src.invoke(true, setViewport);
-    dest.invoke(true, setViewport);
+    src.invoke(true, GLEventListenerState.setViewport);
+    dest.invoke(true, GLEventListenerState.setViewport);
     
     if(aIsPaused) { aAnim.resume(); }
     if(bIsPaused) { bAnim.resume(); }
   }
-
+    
 }

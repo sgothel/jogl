@@ -37,10 +37,10 @@ import jogamp.nativewindow.NativeWindowFactoryImpl;
 
 public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice {
     private static final String separator = "_";
-    private String type;
-    protected String connection;
-    protected int unitID;
-    protected String uniqueID;
+    private final String type;
+    protected final String connection;
+    protected final int unitID;
+    protected final String uniqueID;
     protected long handle;
     protected ToolkitLock toolkitLock;
 
@@ -171,8 +171,17 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
     }
 
     @Override
+    public boolean isHandleOwner() {
+        return false;
+    }
+    
+    @Override
+    public void clearHandleOwner() {        
+    }
+    
+    @Override
     public String toString() {
-        return getClass().getSimpleName()+"[type "+getType()+", connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+", "+toolkitLock+"]";
+        return getClass().getSimpleName()+"[type "+getType()+", connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+", owner "+isHandleOwner()+", "+toolkitLock+"]";
     }
 
     /**

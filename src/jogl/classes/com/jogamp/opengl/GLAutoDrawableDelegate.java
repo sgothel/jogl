@@ -65,7 +65,10 @@ import jogamp.opengl.GLDrawableImpl;
 public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAutoDrawable {
     /**
      * @param drawable a valid and already realized {@link GLDrawable}
-     * @param context a valid {@link GLContext}, may not be made current (created) yet.
+     * @param context a valid {@link GLContext}, 
+     *                may not have been made current (created) yet,
+     *                may not be associated w/ <code>drawable<code> yet, 
+     *                may be <code>null</code> for lazy initialization
      * @param upstreamWidget optional UI element holding this instance, see {@link #getUpstreamWidget()}.
      * @param ownDevice pass <code>true</code> if {@link AbstractGraphicsDevice#close()} shall be issued,
      *                  otherwise pass <code>false</code>. Closing the device is required in case
@@ -78,9 +81,6 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAuto
         if(null == drawable) {
             throw new IllegalArgumentException("null drawable");
         }
-        if(null == context) {
-            throw new IllegalArgumentException("null context");
-        }        
         if(!drawable.isRealized()) {
             throw new IllegalArgumentException("drawable not realized");
         }

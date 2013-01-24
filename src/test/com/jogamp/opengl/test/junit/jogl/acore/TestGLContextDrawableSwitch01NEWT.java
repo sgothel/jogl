@@ -59,7 +59,11 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class TestGLContextDrawableSwitchNEWT extends UITestCase {
+/**
+ * Test re-association (switching) of GLContext/GLDrawables,
+ * i.e. ctx1/draw1, ctx2/draw2 -> ctx1/draw2, ctx2/draw1.
+ */
+public class TestGLContextDrawableSwitch01NEWT extends UITestCase {
     static GLProfile glp;
     static GLCapabilities caps;
     static int width, height;
@@ -72,7 +76,6 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
         height = 256;
     }
 
-    /** Note: No GLContext is attached w/ this implementation ! */
     private GLAutoDrawable createGLAutoDrawable(GLCapabilities caps, int x, int y, int width, int height, WindowListener wl) throws InterruptedException {
         final Window window = NewtFactory.createWindow(caps);
         Assert.assertNotNull(window);
@@ -128,21 +131,23 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
         GLAutoDrawable glad2 = createGLAutoDrawable(caps, 2*64+width, 64, width+100, height+100, quitAdapter);
         
         // create single context using glad1 and assign it to glad1,
-        // after destroying the prev. context!
+        // destroy the prev. context afterwards.
         {
-            final GLContext oldCtx = glad1.getContext();
+            final GLContext newCtx = glad1.createContext(null);
+            Assert.assertNotNull(newCtx);        
+            final GLContext oldCtx = glad1.setContext(newCtx);
             Assert.assertNotNull(oldCtx);
             oldCtx.destroy();
-            final GLContext singleCtx = glad1.createContext(null);
-            Assert.assertNotNull(singleCtx);        
-            int res = singleCtx.makeCurrent();
+            final int res = newCtx.makeCurrent();
             Assert.assertTrue(GLContext.CONTEXT_CURRENT_NEW==res || GLContext.CONTEXT_CURRENT==res);
-            singleCtx.release();
-            glad1.setContext(singleCtx);
+            newCtx.release();
         }
         
+        final SnapshotGLEventListener snapshotGLEventListener = new SnapshotGLEventListener();        
         GearsES2 gears = new GearsES2(1);
         glad1.addGLEventListener(gears);
+        glad1.addGLEventListener(snapshotGLEventListener);
+        snapshotGLEventListener.setMakeSnapshot();
         
         Animator animator = new Animator();
         animator.add(glad1);
@@ -174,7 +179,8 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
     
     @Test(timeout=30000)
     public void testSwitch2GLWindowOneDemo() throws InterruptedException {
-        GearsES2 gears = new GearsES2(1);
+        final SnapshotGLEventListener snapshotGLEventListener = new SnapshotGLEventListener();        
+        final GearsES2 gears = new GearsES2(1);
         final QuitAdapter quitAdapter = new QuitAdapter();
         
         GLWindow glWindow1 = GLWindow.create(caps);        
@@ -182,6 +188,7 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
         glWindow1.setSize(width, height);
         glWindow1.setPosition(64, 64);
         glWindow1.addGLEventListener(0, gears);
+        glWindow1.addGLEventListener(snapshotGLEventListener);
         glWindow1.addWindowListener(quitAdapter);
         
         GLWindow glWindow2 = GLWindow.create(caps);                
@@ -198,6 +205,8 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
         glWindow1.setVisible(true);
         glWindow2.setVisible(true);
 
+        snapshotGLEventListener.setMakeSnapshot();
+         
         int s = 0;
         long t0 = System.currentTimeMillis();
         long t1 = t0;
@@ -215,6 +224,8 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
                 System.err.println(s+" - B w1-h 0x"+Long.toHexString(glWindow1.getHandle())+",-ctx 0x"+Long.toHexString(glWindow1.getContext().getHandle()));
                 System.err.println(s+" - B w2-h 0x"+Long.toHexString(glWindow2.getHandle())+",-ctx 0x"+Long.toHexString(glWindow2.getContext().getHandle()));
                 System.err.println(s+" - switch - END "+ ( t1 - t0 ));
+                
+                snapshotGLEventListener.setMakeSnapshot();
             }
             Thread.sleep(100);
             t1 = System.currentTimeMillis();
@@ -228,15 +239,18 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
     
     @Test(timeout=30000)
     public void testSwitch2GLWindowEachWithOwnDemo() throws InterruptedException {
-        GearsES2 gears = new GearsES2(1);
-        RedSquareES2 rsquare = new RedSquareES2(1);
+        final GearsES2 gears = new GearsES2(1);
+        final RedSquareES2 rsquare = new RedSquareES2(1);
         final QuitAdapter quitAdapter = new QuitAdapter();
+        final SnapshotGLEventListener snapshotGLEventListener1 = new SnapshotGLEventListener();        
+        final SnapshotGLEventListener snapshotGLEventListener2 = new SnapshotGLEventListener();        
         
         GLWindow glWindow1 = GLWindow.create(caps);        
         glWindow1.setTitle("win1");
         glWindow1.setSize(width, height);
         glWindow1.setPosition(64, 64);
         glWindow1.addGLEventListener(0, gears);
+        glWindow1.addGLEventListener(snapshotGLEventListener1);
         glWindow1.addWindowListener(quitAdapter);
         
         GLWindow glWindow2 = GLWindow.create(caps);                
@@ -244,6 +258,7 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
         glWindow2.setSize(width+100, height+100);
         glWindow2.setPosition(2*64+width, 64);
         glWindow2.addGLEventListener(0, rsquare);
+        glWindow2.addGLEventListener(snapshotGLEventListener2);
         glWindow2.addWindowListener(quitAdapter);
 
         Animator animator = new Animator();
@@ -254,6 +269,9 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
         glWindow1.setVisible(true);
         glWindow2.setVisible(true);
 
+        snapshotGLEventListener1.setMakeSnapshot();
+        snapshotGLEventListener2.setMakeSnapshot();
+        
         int s = 0;
         long t0 = System.currentTimeMillis();
         long t1 = t0;
@@ -268,6 +286,8 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
                 System.err.println(s+" - B w1-h 0x"+Long.toHexString(glWindow1.getHandle())+",-ctx 0x"+Long.toHexString(glWindow1.getContext().getHandle()));                
                 System.err.println(s+" - B w2-h 0x"+Long.toHexString(glWindow2.getHandle())+",-ctx 0x"+Long.toHexString(glWindow2.getContext().getHandle()));
                 System.err.println(s+" - switch - END "+ ( t1 - t0 ));
+                snapshotGLEventListener1.setMakeSnapshot();
+                snapshotGLEventListener2.setMakeSnapshot();
             }
             Thread.sleep(100);
             t1 = System.currentTimeMillis();
@@ -305,6 +325,6 @@ public class TestGLContextDrawableSwitchNEWT extends UITestCase {
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println("Press enter to continue");
         System.err.println(stdin.readLine()); */         
-        org.junit.runner.JUnitCore.main(TestGLContextDrawableSwitchNEWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGLContextDrawableSwitch01NEWT.class.getName());
     }
 }

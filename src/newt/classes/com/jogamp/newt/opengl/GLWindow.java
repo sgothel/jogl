@@ -458,24 +458,22 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
             } else {
                 t0 = 0;
             }
-
-            /* if (nativeWindowCreated && null != context) {
-                throw new GLException("InternalError: Native Windows has been just created, but context wasn't destroyed (is not null)");
-            } */
-            if (null == context && visible && 0 != window.getWindowHandle() && 0<getWidth()*getHeight()) {
-                NativeWindow nw;
+            
+            if (null == drawable && visible && 0 != window.getWindowHandle() && 0<getWidth()*getHeight()) {
+                if( ( null != context ) ) {
+                    throw new InternalError("GLWindow.LifecycleHook.setVisiblePost: "+WindowImpl.getThreadName()+" - Null drawable, but valid context - "+GLWindow.this);
+                }
+                final NativeWindow nw;
                 if (window.getWrappedWindow() != null) {
                     nw = NativeWindowFactory.getNativeWindow(window.getWrappedWindow(), window.getPrivateGraphicsConfiguration());
                 } else {
                     nw = window;
                 }
-                GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) nw.getGraphicsConfiguration().getChosenCapabilities();
+                final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) nw.getGraphicsConfiguration().getChosenCapabilities();
                 if(null==factory) {
                     factory = GLDrawableFactory.getFactory(glCaps.getGLProfile());
                 }
-                if(null==drawable) {
-                    drawable = (GLDrawableImpl) factory.createGLDrawable(nw);
-                }
+                drawable = (GLDrawableImpl) factory.createGLDrawable(nw);
                 drawable.setRealized(true);
                 context = (GLContextImpl) drawable.createContext(sharedContext);
                 context.setContextCreationFlags(additionalCtxCreationFlags);

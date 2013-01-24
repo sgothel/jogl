@@ -45,7 +45,7 @@ import javax.media.nativewindow.ToolkitLock;
  */
 
 public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
-    final boolean handleOwner;
+    /* final */ boolean handleOwner;
     final boolean isXineramaEnabled;
 
     /** Constructs a new X11GraphicsDevice corresponding to the given connection and default
@@ -153,5 +153,13 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
         }
         return super.close();
     }
+    
+    @Override
+    public boolean isHandleOwner() {
+        return handleOwner;
+    }    
+    @Override
+    public void clearHandleOwner() {
+        handleOwner = false;
+    }
 }
-

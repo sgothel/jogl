@@ -48,6 +48,10 @@ import jogamp.nativewindow.ResourceToolkitLock;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
+import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
+import com.jogamp.nativewindow.x11.X11GraphicsDevice;
+import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 /** Provides a pluggable mechanism for arbitrary window toolkits to
     adapt their components to the {@link NativeWindow} interface,
@@ -426,6 +430,29 @@ public abstract class NativeWindowFactory {
             return ResourceToolkitLock.create();
         }
         return NativeWindowFactoryImpl.getNullToolkitLock();
+    }
+    
+    /**
+     * @param device
+     * @param screen -1 is default screen of the given device, e.g. maybe 0 or determined by native API. >= 0 is specific screen
+     * @return newly created AbstractGraphicsScreen of given native type
+     */
+    public static AbstractGraphicsScreen createScreen(String type, AbstractGraphicsDevice device, int screen) {
+        if( TYPE_X11 == type ) {
+            final X11GraphicsDevice x11Device = (X11GraphicsDevice)device;
+            if(0 > screen) {
+                screen = x11Device.getDefaultScreen();
+            }
+            return new X11GraphicsScreen(x11Device, screen);
+        }
+        if(0 > screen) {
+            screen = 0; // FIXME: Needs native API utilization
+        }
+        if( TYPE_AWT == type ) {
+            final AWTGraphicsDevice awtDevice = (AWTGraphicsDevice) device;
+            return new AWTGraphicsScreen(awtDevice);
+        }
+        return new DefaultGraphicsScreen(device, screen);
     }
     
     /** Returns the appropriate NativeWindowFactory to handle window

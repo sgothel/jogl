@@ -131,30 +131,36 @@ public class GLDrawableHelper {
   }
         
   /**
-   * Associate a new context to the drawable and also propagates the context/drawable switch by 
-   * calling {@link GLContext#setGLDrawable(GLDrawable, boolean) newCtx.setGLDrawable(drawable, true);}.
-   * <p> 
-   * If the old or new context was current on this thread, it is being released before switching the drawable.
+   * Switch {@link GLContext} / {@link GLDrawable} association.
+   * <p>
+   * Dis-associate <code>oldCtx</code> from <code>drawable</code> 
+   * via {@link GLContext#setGLDrawable(GLDrawable, boolean) oldCtx.setGLDrawable(null, true);}.
    * </p>
    * <p>
-   * Be aware that the old context is still bound to the drawable, 
-   * and that one context can only bound to one drawable at one time! 
+   * Re-associate <code>newCtx</code> with <code>drawable</code> 
+   * via {@link GLContext#setGLDrawable(GLDrawable, boolean) newCtx.setGLDrawable(drawable, true);}.
+   * </p>
+   * <p> 
+   * If the old or new context was current on this thread, it is being released before switching the drawable.
    * </p>
    * <p>
    * No locking is being performed on the drawable, caller is required to take care of it.
    * </p>
    * 
    * @param drawable the drawable which context is changed
-   * @param oldCtx the old context
-   * @param newCtx the new context
+   * @param oldCtx the old context, maybe <code>null</code>.
+   * @param newCtx the new context, maybe <code>null</code> for dis-association.
    * @param newCtxCreationFlags additional creation flags if newCtx is not null and not been created yet, see {@link GLContext#setContextCreationFlags(int)}
    * @return true if the new context was current, otherwise false
    *  
    * @see GLAutoDrawable#setContext(GLContext)
    */
   public static final boolean switchContext(GLDrawable drawable, GLContext oldCtx, GLContext newCtx, int newCtxCreationFlags) {
-      if( null != oldCtx && oldCtx.isCurrent() ) {
-          oldCtx.release();
+      if( null != oldCtx ) {
+          if( oldCtx.isCurrent() ) {
+              oldCtx.release();
+          }
+          oldCtx.setGLDrawable(null, true); // dis-associate old pair
       }
       final boolean newCtxCurrent;
       if(null!=newCtx) {
@@ -163,8 +169,8 @@ public class GLDrawableHelper {
               newCtx.release();
           }
           newCtx.setContextCreationFlags(newCtxCreationFlags);
-          newCtx.setGLDrawable(drawable, true); // propagate context/drawable switch
-      } else {
+          newCtx.setGLDrawable(drawable, true); // re-associate new pair
+      } else {          
           newCtxCurrent = false;
       }
       return newCtxCurrent;
@@ -203,6 +209,7 @@ public class GLDrawableHelper {
           }
           context.getGL().glFinish();
           context.release();
+          context.setGLDrawable(null, true); // dis-associate
       }
       
       if(null != proxySurface) {

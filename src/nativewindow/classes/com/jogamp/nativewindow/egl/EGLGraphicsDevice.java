@@ -38,7 +38,7 @@ import javax.media.nativewindow.*;
  */
 public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneable {
     final long[] nativeDisplayID = new long[1];
-    final EGLDisplayLifecycleCallback eglLifecycleCallback;
+    /* final */ EGLDisplayLifecycleCallback eglLifecycleCallback;
 
     /**
      * Hack to allow inject a EGL termination call.
@@ -113,8 +113,13 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     }
     
     @Override
-    public String toString() {
-        return "EGLGraphicsDevice[type EGL, connection "+getConnection()+", unitID "+getUnitID()+", handle 0x"+Long.toHexString(getHandle())+", nativeDisplayID 0x"+Long.toHexString(nativeDisplayID[0])+", eglLifecycleCallback "+(null != eglLifecycleCallback)+"]";
+    public boolean isHandleOwner() {
+        return null != eglLifecycleCallback;
+    }    
+    @Override
+    public void clearHandleOwner() {
+        eglLifecycleCallback = null;
     }
+    
 }
 

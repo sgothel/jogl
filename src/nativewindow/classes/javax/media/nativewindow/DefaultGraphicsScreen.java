@@ -33,8 +33,8 @@
 package javax.media.nativewindow;
 
 public class DefaultGraphicsScreen implements Cloneable, AbstractGraphicsScreen {
-    AbstractGraphicsDevice device;
-    private int idx;
+    private final AbstractGraphicsDevice device;
+    private final int idx;
 
     public DefaultGraphicsScreen(AbstractGraphicsDevice device, int idx) {
         this.device = device;
@@ -57,7 +57,7 @@ public class DefaultGraphicsScreen implements Cloneable, AbstractGraphicsScreen 
     public AbstractGraphicsDevice getDevice() {
         return device;
     }
-
+    
     public int getIndex() {
       return idx;
     }

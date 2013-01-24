@@ -217,15 +217,20 @@ public abstract class GLContext {
   /**
    * Sets the read/write drawable for framebuffer operations.
    * <p>
+   * If the arguments reflect the current state of this context
+   * this method is a no-operation and returns the old and current {@link GLDrawable}.
+   * </p>
+   * <p>
    * If the context was current on this thread, it is being released before switching the drawable
    * and made current afterwards. However the user shall take extra care that not other thread
    * attempts to make this context current. Otherwise a race condition may happen.
    * </p>
-   * @param readWrite the read/write drawable for framebuffer operations.
-   * @param setWriteOnly if <code>true</code> and if the current read-drawable differs 
-   *        from the write-drawable ({@link #setGLReadDrawable(GLDrawable)}), 
-   *        only change the write-drawable. Otherwise set both drawables.
-   * @return the replaced read/write drawable
+   * @param readWrite The read/write drawable for framebuffer operations, maybe <code>null</code> to remove association.
+   * @param setWriteOnly Only change the write-drawable, if <code>setWriteOnly</code> is <code>true</code> and 
+   *                     if the {@link #getGLReadDrawable() read-drawable} differs 
+   *                     from the {@link #getGLDrawable() write-drawable}. 
+   *                     Otherwise set both drawables, read and write.
+   * @return The previous read/write drawable
    *
    * @throws GLException in case <code>null</code> is being passed or 
    *                     this context is made current on another thread.
@@ -239,6 +244,12 @@ public abstract class GLContext {
   
   /**
    * Returns the write-drawable this context uses for framebuffer operations.
+   * <p>
+   * If the read-drawable has not been changed manually via {@link #setGLReadDrawable(GLDrawable)},
+   * it equals to the write-drawable (default).
+   * </p> 
+   * @see #setGLDrawable(GLDrawable, boolean)
+   * @see #setGLReadDrawable(GLDrawable)
    */
   public abstract GLDrawable getGLDrawable();
 
@@ -259,7 +270,7 @@ public abstract class GLContext {
    *
    * @param read the read-drawable for read framebuffer operations.
    *             If null is passed, the default write drawable will be set.
-   * @return the replaced read-drawable
+   * @return the previous read-drawable
    *
    * @throws GLException in case a read drawable is not supported or
    *                     this context is made current on another thread.

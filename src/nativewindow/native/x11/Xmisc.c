@@ -180,7 +180,7 @@ static int errorHandlerThrowException = 0;
 
 static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
 {
-    if(!errorHandlerQuiet) {
+    if( !errorHandlerQuiet || errorHandlerDebug ) {
         const char * errnoStr = strerror(errno);
         char errCodeStr[80];
         char reqCodeStr[80];

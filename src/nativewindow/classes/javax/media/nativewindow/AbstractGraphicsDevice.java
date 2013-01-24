@@ -45,7 +45,6 @@ import jogamp.nativewindow.Debug;
 /** A interface describing a graphics device in a
     toolkit-independent manner.
  */
-
 public interface AbstractGraphicsDevice extends Cloneable {
     public static final boolean DEBUG = Debug.debug("GraphicsDevice");
     
@@ -58,6 +57,8 @@ public interface AbstractGraphicsDevice extends Cloneable {
     /** Default unit id for the 1st device: 0 */
     public static int DEFAULT_UNIT = 0;
 
+    public Object clone();
+    
     /**
      * Returns the type of the underlying subsystem, ie
      * NativeWindowFactory.TYPE_KD, NativeWindowFactory.TYPE_X11, ..
@@ -143,10 +144,17 @@ public interface AbstractGraphicsDevice extends Cloneable {
      * <p>
      * Example implementations like {@link com.jogamp.nativewindow.x11.X11GraphicsDevice} 
      * or {@link com.jogamp.nativewindow.egl.EGLGraphicsDevice} 
-     * issue the native close operation or skip it depending on the handles's ownership.
+     * issue the native close operation or skip it depending on the {@link #isHandleOwner() handles's ownership}.
      * </p> 
      *
      * @return true if the handle was not <code>null</code> and closing was successful, otherwise false.
      */
     public boolean close();
+    
+    /**
+     * @return <code>true</code> if instance owns the handle to issue {@link #close()}, otherwise <code>false</code>.
+     */
+    public boolean isHandleOwner();
+    
+    public void clearHandleOwner();
 }

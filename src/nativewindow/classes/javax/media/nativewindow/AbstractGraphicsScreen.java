@@ -44,6 +44,8 @@ package javax.media.nativewindow;
  */
 
 public interface AbstractGraphicsScreen extends Cloneable {
+    public Object clone();
+    
     /**
      * Return the device this graphics configuration is valid for
      */

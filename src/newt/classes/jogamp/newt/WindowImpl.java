@@ -629,10 +629,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     @Override
-    public long getDisplayHandle() {
-        // Actually: return getGraphicsConfiguration().getScreen().getDevice().getHandle();
-        return screen.getDisplay().getHandle(); // shortcut
-    }
+    public final long getDisplayHandle() {
+        return config.getNativeGraphicsConfiguration().getScreen().getDevice().getHandle();
+    }    
 
     @Override
     public final int  getScreenIndex() {
@@ -880,6 +879,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if( isNativeValid() ) {
                         screen.removeScreenModeListener(screenModeListenerImpl);
                         closeNativeImpl();
+                        config.getScreen().getDevice().close();
+                        setGraphicsConfiguration(null);
                         removeScreenReference();
                     }
                     Display dpy = screen.getDisplay();

@@ -203,8 +203,8 @@ public abstract class GLContextImpl extends GLContext {
 
   @Override
   public final GLDrawable setGLDrawable(GLDrawable readWrite, boolean setWriteOnly) {
-    if(null==readWrite) {
-        throw new GLException("Null read/write drawable not allowed");
+    if( drawable == readWrite && ( setWriteOnly || drawableRead == readWrite ) ) {
+        return drawable; // no change.
     }
     final boolean lockHeld = lock.isOwner(Thread.currentThread());
     if(lockHeld) {
@@ -212,16 +212,20 @@ public abstract class GLContextImpl extends GLContext {
     } else if(lock.isLockedByOtherThread()) { // still could glitch ..
         throw new GLException("GLContext current by other thread ("+lock.getOwner()+"), operation not allowed.");
     }    
-    if(!setWriteOnly || drawableRead==drawable) { // if !setWriteOnly || !explicitReadDrawable
+    if( !setWriteOnly || drawableRead == drawable ) { // if !setWriteOnly || !explicitReadDrawable
         drawableRead = (GLDrawableImpl) readWrite;
     }
     final GLDrawableImpl old = drawable;
-    old.associateContext(this, false);
-    drawableRetargeted = null != drawable;
+    if( null != old ) {
+        old.associateContext(this, false);
+    }
+    drawableRetargeted |= null != drawable && readWrite != drawable;
     drawable = (GLDrawableImpl) readWrite ;
-    drawable.associateContext(this, true);
-    if(lockHeld) {
-        makeCurrent();
+    if( null != drawable ) {
+        drawable.associateContext(this, true);
+        if( lockHeld ) {
+            makeCurrent();
+        }
     }
     return old;
   }
@@ -334,7 +338,7 @@ public abstract class GLContextImpl extends GLContext {
                   ", surf "+toHexString(drawable.getHandle())+", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
       }
       if (contextHandle != 0) {
-          int lockRes = drawable.lockSurface();
+          final int lockRes = drawable.lockSurface();
           if (NativeSurface.LOCK_SURFACE_NOT_READY == lockRes) {
                 // this would be odd ..
                 throw new GLException("Surface not ready to lock: "+drawable);
@@ -408,7 +412,7 @@ public abstract class GLContextImpl extends GLContext {
       throw new GLException("Destination OpenGL context has not been created");
     }
 
-    int lockRes = drawable.lockSurface();
+    final int lockRes = drawable.lockSurface();
     if (NativeSurface.LOCK_SURFACE_NOT_READY == lockRes) {
         // this would be odd ..
         throw new GLException("Surface not ready to lock");

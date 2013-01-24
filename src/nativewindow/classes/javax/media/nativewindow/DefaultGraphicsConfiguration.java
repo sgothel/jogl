@@ -93,25 +93,26 @@ public class DefaultGraphicsConfiguration implements Cloneable, AbstractGraphics
     /**
      * Set the capabilities to a new value.
      *
+     * <p>
      * The use case for setting the Capabilities at a later time is
-     * a change of the graphics device in a multi-screen environment.<br>
-     *
+     * a change or re-validation of capabilities.
+     * </p>
      * @see javax.media.nativewindow.GraphicsConfigurationFactory#chooseGraphicsConfiguration(Capabilities, CapabilitiesChooser, AbstractGraphicsScreen)
      */
     protected void setChosenCapabilities(CapabilitiesImmutable capsChosen) {
-        capabilitiesChosen = capsChosen;
+        this.capabilitiesChosen = capsChosen;
     }
 
     /**
      * Set a new screen.
      *
+     * <p>
      * the use case for setting a new screen at a later time is
-     * a change of the graphics device in a multi-screen environment.<br>
-     *
-     * A copy of the passed object is being used.
+     * a change of the graphics device in a multi-screen environment.
+     * </p>
      */
-    final protected void setScreen(DefaultGraphicsScreen screen) {
-        this.screen = (AbstractGraphicsScreen) screen.clone();
+    protected void setScreen(AbstractGraphicsScreen screen) {
+        this.screen = screen;
     }
 
     @Override

@@ -72,7 +72,7 @@ public class WindowDriver extends WindowImpl {
         // Decoupled X11 Device/Screen allowing X11 display lock-free off-thread rendering 
         final long renderDeviceHandle = X11Util.openDisplay(edtDevice.getConnection());
         if( 0 == renderDeviceHandle ) {
-            throw new RuntimeException("Error creating display(EDT): "+edtDevice.getConnection());
+            throw new RuntimeException("Error creating display(GfxCfg/Render): "+edtDevice.getConnection());
         }
         renderDevice = new X11GraphicsDevice(renderDeviceHandle, AbstractGraphicsDevice.DEFAULT_UNIT, true /* owner */);
         final AbstractGraphicsScreen renderScreen = new X11GraphicsScreen(renderDevice, screen.getIndex());
@@ -132,12 +132,6 @@ public class WindowDriver extends WindowImpl {
         }
     }
 
-    @Override
-    public long getDisplayHandle() {
-        // Actually: return getGraphicsConfiguration().getScreen().getDevice().getHandle();
-        return renderDevice.getHandle(); // shortcut
-    }
-    
     protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) { 
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("X11Window reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
@@ -304,5 +298,5 @@ public class WindowDriver extends WindowImpl {
     private static native void warpPointer0(long display, long windowHandle, int x, int y);
     
     private long   windowHandleClose;
-    private X11GraphicsDevice renderDevice;    
+    private X11GraphicsDevice renderDevice;
 }

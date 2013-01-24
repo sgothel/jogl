@@ -74,8 +74,12 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     protected volatile boolean sendDestroy = false; // volatile: maybe written by WindowManager thread w/o locking
 
     /**
-     * @param drawable upstream {@link GLDrawableImpl} instance, may be null for lazy initialization
-     * @param context upstream {@link GLContextImpl} instance, may be null for lazy initialization
+     * @param drawable upstream {@link GLDrawableImpl} instance, 
+     *                 may be <code>null</code> for lazy initialization
+     * @param context upstream {@link GLContextImpl} instance, 
+     *                may not have been made current (created) yet,
+     *                may not be associated w/ <code>drawable<code> yet,
+     *                may be <code>null</code> for lazy initialization
      * @param ownsDevice pass <code>true</code> if {@link AbstractGraphicsDevice#close()} shall be issued,
      *                   otherwise pass <code>false</code>. Closing the device is required in case
      *                   the drawable is created w/ it's own new instance, e.g. offscreen drawables,
@@ -85,6 +89,9 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
         this.drawable = drawable;
         this.context = context;
         this.ownsDevice = ownsDevice;
+        if(null != context && null != drawable) {
+            context.setGLDrawable(drawable, false);
+        }
         resetFPSCounter();        
     }
    
@@ -326,7 +333,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
             final GLContext oldCtx = context;
             final boolean newCtxCurrent = GLDrawableHelper.switchContext(drawable, oldCtx, newCtx, additionalCtxCreationFlags);
             context=(GLContextImpl)newCtx;
-            if(newCtxCurrent) {
+            if(newCtxCurrent) { // implies null != newCtx
                 context.makeCurrent();
             }
             return oldCtx;
