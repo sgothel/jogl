@@ -42,7 +42,6 @@ import com.jogamp.common.util.locks.RecursiveLock;
 
 public abstract class ProxySurfaceImpl implements ProxySurface {    
     private final SurfaceUpdatedHelper surfaceUpdatedHelper = new SurfaceUpdatedHelper();
-    protected long displayHandle; // convenient ref of config.screen.device.handle
     private AbstractGraphicsConfiguration config; // control access due to delegation
     private UpstreamSurfaceHook upstream;
     private long surfaceHandle_old;
@@ -65,7 +64,6 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
             throw new IllegalArgumentException("null UpstreamSurfaceHook");
         }
         this.config = cfg;
-        this.displayHandle=config.getNativeGraphicsConfiguration().getScreen().getDevice().getHandle();
         this.upstream = upstream;
         this.surfaceHandle_old = 0;
         this.implBitfield = 0;
@@ -76,8 +74,11 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
     }
 
     @Override
-    public final UpstreamSurfaceHook getUpstreamSurfaceHook() { return upstream; }
+    public NativeSurface getUpstreamSurface() { return null; }
     
+    @Override
+    public final UpstreamSurfaceHook getUpstreamSurfaceHook() { return upstream; }
+            
     @Override
     public void setUpstreamSurfaceHook(UpstreamSurfaceHook hook) {
         if(null == hook) {
@@ -96,7 +97,6 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
         if(upstreamSurfaceHookLifecycleEnabled) {
             upstream.create(this);
         }
-        this.displayHandle=config.getNativeGraphicsConfiguration().getScreen().getDevice().getHandle();
         this.surfaceHandle_old = 0;
     }
 
@@ -111,7 +111,6 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
             }
             invalidateImpl();
         }
-        this.displayHandle = 0;
         this.surfaceHandle_old = 0;
     }
     
@@ -123,11 +122,6 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
         throw new InternalError("UpstreamSurfaceHook given, but required method not implemented.");        
     }
     
-    @Override
-    public final long getDisplayHandle() {
-        return displayHandle;
-    }
-
     protected final AbstractGraphicsConfiguration getPrivateGraphicsConfiguration() {
         return config;
     }
@@ -135,6 +129,11 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
     @Override
     public final AbstractGraphicsConfiguration getGraphicsConfiguration() {
         return config.getNativeGraphicsConfiguration();
+    }
+
+    @Override
+    public final long getDisplayHandle() {
+        return config.getNativeGraphicsConfiguration().getScreen().getDevice().getHandle();
     }
 
     @Override
@@ -305,12 +304,15 @@ public abstract class ProxySurfaceImpl implements ProxySurface {
         if(null == sink) {
             sink = new StringBuilder();
         }
-        sink.append(getUpstreamSurfaceHook()).
-        append(", displayHandle 0x" + Long.toHexString(getDisplayHandle())).
-        append(", surfaceHandle 0x" + Long.toHexString(getSurfaceHandle())).
-        append(", size " + getWidth() + "x" + getHeight()).append(", ");
+        sink.append("displayHandle 0x" + Long.toHexString(getDisplayHandle())).
+        append("\n, surfaceHandle 0x" + Long.toHexString(getSurfaceHandle())).
+        append("\n, size " + getWidth() + "x" + getHeight()).append("\n, ");
         getUpstreamOptionBits(sink);
-        sink.append(", surfaceLock "+surfaceLock);
+        sink.append("\n, "+config).
+        append("\n, surfaceLock "+surfaceLock+"\n, ").
+        append(getUpstreamSurfaceHook()).
+        append("\n, upstreamSurface "+(null != getUpstreamSurface()));
+        // append("\n, upstreamSurface "+getUpstreamSurface());
         return sink;
     }
     

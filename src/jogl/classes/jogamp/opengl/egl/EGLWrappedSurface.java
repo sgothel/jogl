@@ -20,6 +20,7 @@ public class EGLWrappedSurface extends WrappedSurface {
         }
     }
 
+    @Override
     public final NativeSurface getUpstreamSurface() { 
         return ((EGLUpstreamSurfaceHook)super.getUpstreamSurfaceHook()).getUpstreamSurface(); 
     }    
