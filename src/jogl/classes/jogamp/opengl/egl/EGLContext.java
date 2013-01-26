@@ -113,9 +113,14 @@ public abstract class EGLContext extends GLContextImpl {
     @Override
     protected void makeCurrentImpl() throws GLException {
         if (EGL.eglGetCurrentContext() != contextHandle) {
-            if (!EGL.eglMakeCurrent(drawable.getNativeSurface().getDisplayHandle(), drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-                throw new GLException("Error making context 0x" +
-                                      Long.toHexString(contextHandle) + " current: error code 0x" + Integer.toHexString(EGL.eglGetError()));
+            final long dpy = drawable.getNativeSurface().getDisplayHandle();
+            if (!EGL.eglMakeCurrent(dpy, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
+                throw new GLException("Error making context " + toHexString(contextHandle) + 
+                                      " current on Thread " + getThreadName() +
+                                      " with display " + toHexString(dpy) +
+                                      ", drawableWrite " + toHexString(drawable.getHandle()) +
+                                      ", drawableRead "+ toHexString(drawableRead.getHandle()) +
+                                      " - Error code " + toHexString(EGL.eglGetError()) + ", " + this);
             }
         }
     }
@@ -123,8 +128,8 @@ public abstract class EGLContext extends GLContextImpl {
     @Override
     protected void releaseImpl() throws GLException {
       if (!EGL.eglMakeCurrent(drawable.getNativeSurface().getDisplayHandle(), EGL.EGL_NO_SURFACE, EGL.EGL_NO_SURFACE, EGL.EGL_NO_CONTEXT)) {
-            throw new GLException("Error freeing OpenGL context 0x" +
-                                  Long.toHexString(contextHandle) + ": error code 0x" + Integer.toHexString(EGL.eglGetError()));
+            throw new GLException("Error freeing OpenGL context " + toHexString(contextHandle) + 
+                                  ": error code " + toHexString(EGL.eglGetError()));
       }
     }
 
@@ -133,8 +138,8 @@ public abstract class EGLContext extends GLContextImpl {
       if (!EGL.eglDestroyContext(drawable.getNativeSurface().getDisplayHandle(), contextHandle)) {
           final int eglError = EGL.eglGetError();
           if(EGL.EGL_SUCCESS != eglError) { /* oops, Mesa EGL impl. may return false, but has no EGL error */
-              throw new GLException("Error destroying OpenGL context 0x" +
-                                    Long.toHexString(contextHandle) + ": error code 0x" + Integer.toHexString(eglError));
+              throw new GLException("Error destroying OpenGL context " + toHexString(contextHandle) + 
+                                    ": error code " + toHexString(eglError));
           }
       }
     }
@@ -167,7 +172,7 @@ public abstract class EGLContext extends GLContextImpl {
         try {
             // might be unavailable on EGL < 1.2
             if(!EGL.eglBindAPI(EGL.EGL_OPENGL_ES_API)) {
-                throw new GLException("Catched: eglBindAPI to ES failed , error 0x"+Integer.toHexString(EGL.eglGetError()));
+                throw new GLException("Catched: eglBindAPI to ES failed , error "+toHexString(EGL.eglGetError()));
             }
         } catch (GLException glex) {
             if (DEBUG) {

@@ -403,9 +403,14 @@ public abstract class X11GLXContext extends GLContextImpl {
   protected void makeCurrentImpl() throws GLException {
     long dpy = drawable.getNativeSurface().getDisplayHandle();
 
-    if (GLX.glXGetCurrentContext() != contextHandle) {        
+    if (GLX.glXGetCurrentContext() != contextHandle) {
         if (!glXMakeContextCurrent(dpy, drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-            throw new GLException(getThreadName()+": Error making context current: "+this);
+            throw new GLException("Error making context " + toHexString(contextHandle) + 
+                                  " current on Thread " + getThreadName() +
+                                  " with display " + toHexString(dpy) +
+                                  ", drawableWrite " + toHexString(drawable.getHandle()) +
+                                  ", drawableRead "+ toHexString(drawableRead.getHandle()) +
+                                  " - " + this);
         }
     }
   }
