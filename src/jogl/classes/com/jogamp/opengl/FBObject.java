@@ -1088,8 +1088,10 @@ public class FBObject {
                 
             case 0:                
             default:
-                System.err.println("Framebuffer " + fbName + " is incomplete, status = " + toHexString(vStatus) + 
-                        " : " + getStatusString(vStatus));
+                if(DEBUG) {
+                    System.err.println("Framebuffer " + fbName + " is incomplete, status = " + toHexString(vStatus) + 
+                            " : " + getStatusString(vStatus));
+                }
                 return false;
         }
     }

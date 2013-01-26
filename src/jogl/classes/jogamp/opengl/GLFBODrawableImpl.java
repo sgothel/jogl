@@ -53,8 +53,11 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     private int pendingFBOReset = -1;
     private boolean fboBound;
 
-    private static volatile boolean resetQuirkInfoDumped = false;
-    private static final int bufferCount = 2; // number of FBOs for double buffering. TODO: Possible to configure!
+    /** dump fboResetQuirk info only once pre ClassLoader and only in DEBUG mode */
+    private static volatile boolean resetQuirkInfoDumped = false; 
+    
+    /** number of FBOs for double buffering. TODO: Possible to configure! */
+    private static final int bufferCount = 2; 
     
     // private DoubleBufferMode doubleBufferMode; // TODO: Add or remove TEXTURE (only) DoubleBufferMode support
     
@@ -166,23 +169,23 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 }
                 return;
             } catch (GLException e) {
+                fboResetQuirk = true;
                 if(DEBUG) {
-                    e.printStackTrace();
-                }
-                if(!resetQuirkInfoDumped) { // dump info only once
-                    resetQuirkInfoDumped = true;
-                    System.err.println("GLFBODrawable: FBO Reset failed: "+e.getMessage());
-                    System.err.println("GLFBODrawable: Enabling FBOResetQuirk, due to GL driver bug.");
-                    final JoglVersion joglVersion = JoglVersion.getInstance();
-                    if(DEBUG) {
-                        System.err.println(VersionUtil.getPlatformInfo());
-                        System.err.println(joglVersion.toString());
-                        System.err.println(JoglVersion.getGLInfo(gl, null));
-                    } else {
-                        System.err.println(joglVersion.getBriefOSGLBuildInfo(gl, null));                        
+                    if(!resetQuirkInfoDumped) {
+                        resetQuirkInfoDumped = true;
+                        System.err.println("GLFBODrawable: FBO Reset failed: "+e.getMessage());
+                        System.err.println("GLFBODrawable: Enabling FBOResetQuirk, due to GL driver bug.");
+                        final JoglVersion joglVersion = JoglVersion.getInstance();
+                        if(DEBUG) {
+                            System.err.println(VersionUtil.getPlatformInfo());
+                            System.err.println(joglVersion.toString());
+                            System.err.println(JoglVersion.getGLInfo(gl, null));
+                        } else {
+                            System.err.println(joglVersion.getBriefOSGLBuildInfo(gl, null));                        
+                        }
+                        e.printStackTrace();
                     }
                 }
-                fboResetQuirk = true;
                 // 'fallthrough' intended
             }
         }
