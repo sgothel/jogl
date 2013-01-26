@@ -379,7 +379,11 @@ public class WindowsWGLContext extends GLContextImpl {
   protected void  makeCurrentImpl() throws GLException {
     if (WGL.wglGetCurrentContext() != contextHandle) {
       if (!wglMakeContextCurrent(drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
-        throw new GLException("Error making context current: 0x" + toHexString(contextHandle) + ", werr: " + GDI.GetLastError() + ", " + this);
+        throw new GLException("Error making context " + toHexString(contextHandle) + 
+                              " current on Thread " + getThreadName() +
+                              ", drawableWrite " + toHexString(drawable.getHandle()) +
+                              ", drawableRead "+ toHexString(drawableRead.getHandle()) +
+                              ", werr: " + GDI.GetLastError() + ", " + this);
       }
     }
   }
