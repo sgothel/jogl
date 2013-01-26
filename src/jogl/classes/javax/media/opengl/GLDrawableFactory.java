@@ -436,7 +436,7 @@ public abstract class GLDrawableFactory {
   // Methods to create high-level objects
 
   /**
-   * Returns a GLDrawable according to it's chosen {@link GLCapabilitiesImmutable},<br>
+   * Returns an {@link GLDrawable#isRealized() unrealized} GLDrawable according to it's chosen {@link GLCapabilitiesImmutable},<br>
    * which determines pixel format, on- and offscreen incl. PBuffer type.
    * <p>
    * The chosen {@link GLCapabilitiesImmutable} are referenced within the target
@@ -473,9 +473,11 @@ public abstract class GLDrawableFactory {
     throws IllegalArgumentException, GLException;
   
   /**
-   * Creates an {@link GLOffscreenAutoDrawable} incl it's offscreen {@link javax.media.nativewindow.NativeSurface} with the given capabilites and dimensions.
+   * Creates a {@link GLDrawable#isRealized() realized} {@link GLOffscreenAutoDrawable} 
+   * incl it's offscreen {@link javax.media.nativewindow.NativeSurface} with the given capabilites and dimensions.
    * <p>
-   * The {@link GLOffscreenAutoDrawable}'s {@link GLDrawable} is realized and it's {@link GLContext} assigned but not yet made current.
+   * The {@link GLOffscreenAutoDrawable}'s {@link GLDrawable} is {@link GLDrawable#isRealized() realized} 
+   * and it's {@link GLContext} assigned but not yet made current.
    * </p>
    * <p>
    * In case the passed {@link GLCapabilitiesImmutable} contains default values, i.e.
@@ -513,7 +515,8 @@ public abstract class GLDrawableFactory {
                                                                       int width, int height,
                                                                       GLContext shareWith) throws GLException;
   /**
-   * Creates a offscreen {@link GLDrawable} incl it's offscreen {@link javax.media.nativewindow.NativeSurface} with the given capabilites and dimensions.
+   * Creates an {@link GLDrawable#isRealized() unrealized} offscreen {@link GLDrawable} 
+   * incl it's offscreen {@link javax.media.nativewindow.NativeSurface} with the given capabilites and dimensions.
    * <p>
    * In case the passed {@link GLCapabilitiesImmutable} contains default values, i.e.
    * {@link GLCapabilitiesImmutable#isOnscreen() caps.isOnscreen()} <code> == true</code>,
@@ -557,7 +560,8 @@ public abstract class GLDrawableFactory {
    * <code>windowHandle</code>'s native visualID if set or the given {@link GLCapabilitiesImmutable}.
    * </p>
    * <p>
-   * Lifecycle (destruction) of the given surface handle shall be handled by the caller.
+   * Lifecycle (creation and destruction) of the given surface handle shall be handled by the caller
+   * via {@link ProxySurface#createNotify()} and {@link ProxySurface#destroyNotify()}.  
    * </p>
    * <p>
    * Such surface can be used to instantiate a GLDrawable. With the help of {@link GLAutoDrawableDelegate}

@@ -64,10 +64,10 @@ import jogamp.opengl.GLDrawableImpl;
  */
 public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAutoDrawable {
     /**
-     * @param drawable a valid and already realized {@link GLDrawable}
+     * @param drawable a valid {@link GLDrawable}, may not be {@link GLDrawable#isRealized() realized} yet.
      * @param context a valid {@link GLContext}, 
      *                may not have been made current (created) yet,
-     *                may not be associated w/ <code>drawable<code> yet, 
+     *                may not be associated w/ <code>drawable<code> yet,
      *                may be <code>null</code> for lazy initialization
      * @param upstreamWidget optional UI element holding this instance, see {@link #getUpstreamWidget()}.
      * @param ownDevice pass <code>true</code> if {@link AbstractGraphicsDevice#close()} shall be issued,
@@ -80,9 +80,6 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAuto
         super((GLDrawableImpl)drawable, (GLContextImpl)context, ownDevice);
         if(null == drawable) {
             throw new IllegalArgumentException("null drawable");
-        }
-        if(!drawable.isRealized()) {
-            throw new IllegalArgumentException("drawable not realized");
         }
         this.upstreamWidget = upstreamWidget;
         this.lock = ( null != lock ) ? lock : LockFactory.createRecursiveLock() ;
@@ -174,6 +171,7 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAuto
     
     @Override
     public final void setRealized(boolean realized) {
+        drawable.setRealized(realized);
     }
 
     @Override

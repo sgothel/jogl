@@ -44,8 +44,11 @@ import jogamp.opengl.GLFBODrawableImpl;
 public class GLOffscreenAutoDrawableImpl extends GLAutoDrawableDelegate implements GLOffscreenAutoDrawable {
   
     /**
-     * @param drawable a valid and already realized {@link GLDrawable}
-     * @param context a valid {@link GLContext}, may not be made current (created) yet.
+     * @param drawable a valid {@link GLDrawable}, may not be {@link GLDrawable#isRealized() realized} yet.
+     * @param context a valid {@link GLContext}, 
+     *                may not have been made current (created) yet,
+     *                may not be associated w/ <code>drawable<code> yet,
+     *                may be <code>null</code> for lazy initialization
      * @param upstreamWidget optional UI element holding this instance, see {@link #getUpstreamWidget()}.
      * @param lock optional upstream lock, may be null
      */
@@ -60,8 +63,11 @@ public class GLOffscreenAutoDrawableImpl extends GLAutoDrawableDelegate implemen
     
     public static class FBOImpl extends GLOffscreenAutoDrawableImpl implements GLOffscreenAutoDrawable.FBO {      
         /**
-         * @param drawable a valid and already realized {@link GLDrawable}
-         * @param context a valid {@link GLContext}, may not be made current (created) yet.
+         * @param drawable a valid {@link GLDrawable}, may not be {@link GLDrawable#isRealized() realized} yet.
+         * @param context a valid {@link GLContext}, 
+         *                may not have been made current (created) yet,
+         *                may not be associated w/ <code>drawable<code> yet,
+         *                may be <code>null</code> for lazy initialization
          * @param upstreamWidget optional UI element holding this instance, see {@link #getUpstreamWidget()}.
          * @param lock optional upstream lock, may be null
          */

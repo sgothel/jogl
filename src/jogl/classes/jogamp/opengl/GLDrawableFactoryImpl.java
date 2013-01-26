@@ -273,7 +273,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
                                                              GLCapabilitiesChooser chooser,
                                                              int width, int height,
                                                              GLContext shareWith) {
-    final GLDrawable drawable = createOffscreenDrawable( deviceReq, capsRequested, chooser, width, height ); 
+    final GLDrawable drawable = createOffscreenDrawable( deviceReq, capsRequested, chooser, width, height );
     drawable.setRealized(true);
     final GLContext context = drawable.createContext(shareWith);
     if(drawable instanceof GLFBODrawableImpl) {
@@ -318,13 +318,13 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     }
   }
 
-  /** Creates a platform independent FBO offscreen GLDrawable */ 
+  /** Creates a platform independent unrealized FBO offscreen GLDrawable */ 
   protected GLFBODrawable createFBODrawableImpl(NativeSurface dummySurface, GLCapabilitiesImmutable fboCaps, int textureUnit) {
     final GLDrawableImpl dummyDrawable = createOnscreenDrawableImpl(dummySurface);
     return new GLFBODrawableImpl(this, dummyDrawable, dummySurface, fboCaps, textureUnit);
   }
   
-  /** Creates a platform dependent offscreen pbuffer/pixmap GLDrawable implementation */  
+  /** Creates a platform dependent unrealized offscreen pbuffer/pixmap GLDrawable instance */  
   protected abstract GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) ;
 
   /**

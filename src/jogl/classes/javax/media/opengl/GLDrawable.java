@@ -126,7 +126,12 @@ public interface GLDrawable {
    */
   public void setRealized(boolean realized);
 
-  /** @return true if this drawable is realized, otherwise false */
+  /** 
+   * Returns <code>true</code> if this drawable is realized, otherwise <code>true</code>.
+   * <p>
+   * A drawable can be realized and unrealized via {@link #setRealized(boolean)}.
+   * </p>
+   */
   public boolean isRealized();
 
   /** Returns the current width of this GLDrawable. */
