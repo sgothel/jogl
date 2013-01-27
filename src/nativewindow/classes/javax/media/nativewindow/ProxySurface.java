@@ -44,6 +44,7 @@ public interface ProxySurface extends MutableSurface {
     /** 
      * Implementation specific bit-value stating this {@link ProxySurface} owns the upstream's surface handle
      * @see #addUpstreamOptionBits(int)
+     * @see #clearUpstreamOptionBits(int)
      * @see #getUpstreamOptionBits()
      */ 
     public static final int OPT_PROXY_OWNS_UPSTREAM_SURFACE = 1 << 6;
@@ -51,6 +52,7 @@ public interface ProxySurface extends MutableSurface {
     /** 
      * Implementation specific bit-value stating this {@link ProxySurface} owns the upstream's {@link AbstractGraphicsDevice}.
      * @see #addUpstreamOptionBits(int)
+     * @see #clearUpstreamOptionBits(int)
      * @see #getUpstreamOptionBits()
      */ 
     public static final int OPT_PROXY_OWNS_UPSTREAM_DEVICE = 1 << 7;
@@ -58,6 +60,7 @@ public interface ProxySurface extends MutableSurface {
     /** 
      * Implementation specific bitvalue stating the upstream's {@link NativeSurface} is an invisible window, i.e. maybe incomplete.
      * @see #addUpstreamOptionBits(int)
+     * @see #clearUpstreamOptionBits(int)
      * @see #getUpstreamOptionBits()
      */ 
     public static final int OPT_UPSTREAM_WINDOW_INVISIBLE = 1 << 8;

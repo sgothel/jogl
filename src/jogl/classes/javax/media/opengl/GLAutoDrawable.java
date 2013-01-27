@@ -382,7 +382,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * which will be executed within the next {@link #display()} call
    * after all registered {@link GLEventListener}s
    * {@link GLEventListener#display(GLAutoDrawable) display(GLAutoDrawable)}
-   * methods has been called.
+   * methods have been called.
    * <p>
    * If no {@link GLAnimatorControl} is animating (default),<br>
    * or if the current thread is the animator thread,<br>
@@ -391,7 +391,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * </p>
    * <p>
    * If an {@link GLAnimatorControl animator} is running,<br>
-   * no explicit {@link #display()} call is issued, allowing the {@link GLAnimatorControl animator} to perform it when it's due.<br>
+   * no explicit {@link #display()} call is issued, allowing the {@link GLAnimatorControl animator} to perform at due time.<br>
    * </p>
    * <p>
    * If <code>wait</code> is <code>true</code> the call blocks until the <code>glRunnable</code>

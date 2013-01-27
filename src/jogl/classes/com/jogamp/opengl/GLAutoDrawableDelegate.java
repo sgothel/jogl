@@ -48,7 +48,7 @@ import jogamp.opengl.GLDrawableImpl;
 
 /**
  * Fully functional {@link GLAutoDrawable} implementation
- * utilizing already created created {@link GLDrawable} and {@link GLContext} instances.
+ * utilizing already created {@link GLDrawable} and {@link GLContext} instances.
  * <p>
  * Since no native windowing system events are being processed, it is recommended
  * to handle at least:
