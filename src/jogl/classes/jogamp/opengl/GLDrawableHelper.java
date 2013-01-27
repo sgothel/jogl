@@ -744,9 +744,9 @@ public class GLDrawableHelper {
     synchronized(rTaskLock) {
         final boolean deferred;
         synchronized(glRunnablesLock) {
-            deferred = isAnimatorAnimatingOnOtherThread();
+            deferred = isAnimatorAnimatingOnOtherThread() || !drawable.isRealized();
             if(!deferred) {
-                wait = false; // don't wait if exec immediatly
+                wait = false; // don't wait if exec immediately
             }
             for(int i=0; i<count-1; i++) {
                 glRunnables.add( new GLRunnableTask(newGLRunnables.get(i), null, false) );
