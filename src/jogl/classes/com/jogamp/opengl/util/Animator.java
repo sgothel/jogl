@@ -157,6 +157,9 @@ public class Animator extends AnimatorBase {
                         // Pause; Also don't consume CPU unless there is work to be done and not paused
                         boolean ectCleared = false;
                         while (!stopIssued && (pauseIssued || drawablesEmpty)) {
+                            if( drawablesEmpty ) {
+                                pauseIssued = true;
+                            }
                             boolean wasPaused = pauseIssued;
                             if (DEBUG) {
                                 System.err.println("Animator pause:" + Thread.currentThread() + ": " + toString());

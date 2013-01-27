@@ -35,18 +35,18 @@ package javax.media.opengl;
 public interface GLAnimatorControl extends FPSCounter {
 
     /**
-     * Indicates whether this animator is running, ie. has been started and not stopped.
+     * Indicates whether this animator has been {@link #start() started}.
      *
      * @see #start()
      * @see #stop()
+     * @see #isPaused()
      * @see #pause()
      * @see #resume()
      */
     boolean isStarted();
 
     /**
-     * Indicates whether this animator is running and animating,<br>
-     * the latter is true if it has {@link GLAutoDrawable}s to render and is not paused.
+     * Indicates whether this animator {@link #isStarted() is started} and {@link #isPaused() is not paused}.
      *
      * @see #start()
      * @see #stop()
@@ -56,7 +56,9 @@ public interface GLAnimatorControl extends FPSCounter {
     boolean isAnimating();
 
     /**
-     * Indicates whether this animator is running and paused.
+     * Indicates whether this animator {@link #isStarted() is started} 
+     * and either {@link #pause() manually paused} or paused 
+     * automatically due to no {@link #add(GLAutoDrawable) added} {@link GLAutoDrawable}s.
      *
      * @see #start()
      * @see #stop()
@@ -75,30 +77,38 @@ public interface GLAnimatorControl extends FPSCounter {
 
     /**
      * Starts this animator, if not running.
-     * <P>
+     * <p>
      * In most situations this method blocks until
      * completion, except when called from the animation thread itself
      * or in some cases from an implementation-internal thread like the
      * AWT event queue thread.
-     * <P>
+     * </p>
+     * <p>
+     * Note that an animator w/o {@link #add(GLAutoDrawable) added drawables}
+     * will be paused automatically.
+     * </p>
+     * <p>
      * If started, all counters (time, frames, ..) are reset to zero.
+     * </p>
      *
      * @return true is started due to this call,
      *         otherwise false, ie started already or unable to start.
      *
      * @see #stop()
      * @see #isAnimating()
+     * @see #isPaused()
      * @see #getThread()
      */
     boolean start();
 
     /**
      * Stops this animator.
-     * <P>
+     * <p>
      * In most situations this method blocks until
      * completion, except when called from the animation thread itself
      * or in some cases from an implementation-internal thread like the
      * AWT event queue thread.
+     * </p>
      *
      * @return true is stopped due to this call,
      *         otherwise false, ie not started or unable to stop.
@@ -111,11 +121,12 @@ public interface GLAnimatorControl extends FPSCounter {
 
     /**
      * Pauses this animator.
-     * <P>
+     * <p>
      * In most situations this method blocks until
      * completion, except when called from the animation thread itself
      * or in some cases from an implementation-internal thread like the
      * AWT event queue thread.
+     * </p>
      *
      * @return  false if not started, already paused or failed to pause, otherwise true
      *
@@ -126,13 +137,15 @@ public interface GLAnimatorControl extends FPSCounter {
 
     /**
      * Resumes animation if paused.
-     * <P>
+     * <p>
      * In most situations this method blocks until
      * completion, except when called from the animation thread itself
      * or in some cases from an implementation-internal thread like the
      * AWT event queue thread.
-     * <P>
+     * </p>
+     * <p>
      * If resumed, all counters (time, frames, ..) are reset to zero.
+     * </p>
      *
      * @return false if not started, not paused or unable to resume, otherwise true
      *
@@ -142,9 +155,11 @@ public interface GLAnimatorControl extends FPSCounter {
     boolean resume();
 
     /**
-     * Adds a drawable to this animator's list of rendering drawables.<br>
-     * This allows the animator thread to become active, i.e. {@link #isAnimating()}==true, 
-     * in case the first drawable is added and {@link #isStarted()} and not {@link #isPaused()}.<br>
+     * Adds a drawable to this animator's list of rendering drawables.
+     * <p>
+     * This allows the animator thread to become {@link #isAnimating() animating}, 
+     * in case the first drawable is added and the animator {@link #isStarted() is started}.
+     * </p>
      * 
      * @param drawable the drawable to be added
      * @throws IllegalArgumentException if drawable was already added to this animator
@@ -152,11 +167,15 @@ public interface GLAnimatorControl extends FPSCounter {
     void add(GLAutoDrawable drawable);
     
     /**
-     * Removes a drawable from the animator's list of rendering drawables.<br>
+     * Removes a drawable from the animator's list of rendering drawables.
+     * <p>
      * This method should get called in case a drawable becomes invalid,
-     * and will not be recovered.<br>
-     * This allows the animator thread to become idle, i.e. {@link #isAnimating()}==false, 
-     * in case the last drawable has reached it's end of life.<br>
+     * and will not be recovered.
+     * </p>
+     * <p>
+     * This allows the animator thread to become {@link #isAnimating() not animating}, 
+     * in case the last drawable has been removed.
+     * </p>
      * 
      * @param drawable the drawable to be removed
      * @throws IllegalArgumentException if drawable was not added to this animator

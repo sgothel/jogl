@@ -179,14 +179,14 @@ public abstract class AnimatorBase implements GLAnimatorControl {
             throw new IllegalArgumentException("Drawable already added to animator: "+this+", "+drawable);
         }
         initImpl(false);
-        boolean paused = pause();
+        pause();
         if( isStarted() ) {
             drawable.setExclusiveContextThread( exclusiveContext ? getExclusiveContextThread() : null ); // if already running ..
         }
         drawables.add(drawable);
         drawablesEmpty = drawables.size() == 0;
         drawable.setAnimator(this);
-        if(paused) {
+        if( isPaused() ) { // either paused by pause() above, or if previously drawablesEmpty==true 
             resume();
         }
         final Condition waitForAnimatingAndECTCondition = new Condition() {
