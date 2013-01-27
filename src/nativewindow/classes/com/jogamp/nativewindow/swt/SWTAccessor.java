@@ -400,7 +400,7 @@ public class SWTAccessor {
      * @return
      */
     public static AbstractGraphicsScreen getScreen(AbstractGraphicsDevice device, int screen) {
-        return NativeWindowFactory.createScreen(nwt, device, screen);
+        return NativeWindowFactory.createScreen(device, screen);
     }
     
     public static int getNativeVisualID(AbstractGraphicsDevice device, long windowHandle) {

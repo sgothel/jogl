@@ -435,9 +435,10 @@ public abstract class NativeWindowFactory {
     /**
      * @param device
      * @param screen -1 is default screen of the given device, e.g. maybe 0 or determined by native API. >= 0 is specific screen
-     * @return newly created AbstractGraphicsScreen of given native type
+     * @return newly created AbstractGraphicsScreen matching device's native type
      */
-    public static AbstractGraphicsScreen createScreen(String type, AbstractGraphicsDevice device, int screen) {
+    public static AbstractGraphicsScreen createScreen(AbstractGraphicsDevice device, int screen) {
+        final String type = device.getType();
         if( TYPE_X11 == type ) {
             final X11GraphicsDevice x11Device = (X11GraphicsDevice)device;
             if(0 > screen) {

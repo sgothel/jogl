@@ -206,11 +206,12 @@ public abstract class GLContextImpl extends GLContext {
     if( drawable == readWrite && ( setWriteOnly || drawableRead == readWrite ) ) {
         return drawable; // no change.
     }
-    final boolean lockHeld = lock.isOwner(Thread.currentThread());
+    final Thread currentThread = Thread.currentThread();
+    final boolean lockHeld = lock.isOwner(currentThread);
     if(lockHeld) {
         release();
     } else if(lock.isLockedByOtherThread()) { // still could glitch ..
-        throw new GLException("GLContext current by other thread ("+lock.getOwner()+"), operation not allowed.");
+        throw new GLException("GLContext current by other thread "+lock.getOwner().getName()+", operation not allowed on this thread "+currentThread.getName());
     }    
     if( !setWriteOnly || drawableRead == drawable ) { // if !setWriteOnly || !explicitReadDrawable
         drawableRead = (GLDrawableImpl) readWrite;
@@ -339,7 +340,7 @@ public abstract class GLContextImpl extends GLContext {
       }
       if (contextHandle != 0) {
           final int lockRes = drawable.lockSurface();
-          if (NativeSurface.LOCK_SURFACE_NOT_READY == lockRes) {
+          if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
                 // this would be odd ..
                 throw new GLException("Surface not ready to lock: "+drawable);
           }
@@ -413,7 +414,7 @@ public abstract class GLContextImpl extends GLContext {
     }
 
     final int lockRes = drawable.lockSurface();
-    if (NativeSurface.LOCK_SURFACE_NOT_READY == lockRes) {
+    if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
         // this would be odd ..
         throw new GLException("Surface not ready to lock");
     }

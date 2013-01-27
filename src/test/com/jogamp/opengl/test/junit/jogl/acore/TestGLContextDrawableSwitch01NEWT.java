@@ -64,14 +64,18 @@ import org.junit.Test;
  * i.e. ctx1/draw1, ctx2/draw2 -> ctx1/draw2, ctx2/draw1.
  */
 public class TestGLContextDrawableSwitch01NEWT extends UITestCase {
-    static GLProfile glp;
-    static GLCapabilities caps;
     static int width, height;
 
+    static GLCapabilities getCaps(String profile) {
+        if( !GLProfile.isAvailable(profile) )  {
+            System.err.println("Profile "+profile+" n/a");
+            return null;
+        }
+        return new GLCapabilities(GLProfile.get(profile));
+    }
+    
     @BeforeClass
     public static void initClass() {
-        glp = GLProfile.getGL2ES2();
-        caps = new GLCapabilities(glp);
         width  = 256;
         height = 256;
     }
@@ -124,7 +128,20 @@ public class TestGLContextDrawableSwitch01NEWT extends UITestCase {
     }
         
     @Test(timeout=30000)
-    public void testSwitch2WindowSingleContext() throws InterruptedException {
+    public void testSwitch2WindowSingleContextGL2ES2() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2ES2);
+        if(null == reqGLCaps) return;
+        testSwitch2WindowSingleContextImpl(reqGLCaps);
+    }
+    
+    @Test(timeout=30000)
+    public void testSwitch2WindowSingleContextGLES2() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
+        if(null == reqGLCaps) return;
+        testSwitch2WindowSingleContextImpl(reqGLCaps);
+    }
+    
+    private void testSwitch2WindowSingleContextImpl(GLCapabilities caps) throws InterruptedException {
         final QuitAdapter quitAdapter = new QuitAdapter();
         
         GLAutoDrawable glad1 = createGLAutoDrawable(caps,         64, 64,     width,     height, quitAdapter);
@@ -178,7 +195,20 @@ public class TestGLContextDrawableSwitch01NEWT extends UITestCase {
     }
     
     @Test(timeout=30000)
-    public void testSwitch2GLWindowOneDemo() throws InterruptedException {
+    public void testSwitch2GLWindowOneDemoGL2ES2() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2ES2);
+        if(null == reqGLCaps) return;
+        testSwitch2GLWindowOneDemoImpl(reqGLCaps);
+    }
+    
+    @Test(timeout=30000)
+    public void testSwitch2GLWindowOneDemoGLES2() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
+        if(null == reqGLCaps) return;
+        testSwitch2GLWindowOneDemoImpl(reqGLCaps);
+    }
+    
+    private void testSwitch2GLWindowOneDemoImpl(GLCapabilities caps) throws InterruptedException {
         final SnapshotGLEventListener snapshotGLEventListener = new SnapshotGLEventListener();        
         final GearsES2 gears = new GearsES2(1);
         final QuitAdapter quitAdapter = new QuitAdapter();
@@ -238,7 +268,20 @@ public class TestGLContextDrawableSwitch01NEWT extends UITestCase {
     }
     
     @Test(timeout=30000)
-    public void testSwitch2GLWindowEachWithOwnDemo() throws InterruptedException {
+    public void testSwitch2GLWindowEachWithOwnDemoGL2ES2() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2ES2);
+        if(null == reqGLCaps) return;
+        testSwitch2GLWindowEachWithOwnDemoImpl(reqGLCaps);
+    }
+    
+    @Test(timeout=30000)
+    public void testSwitch2GLWindowEachWithOwnDemoGLES2() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
+        if(null == reqGLCaps) return;
+        testSwitch2GLWindowEachWithOwnDemoImpl(reqGLCaps);
+    }
+    
+    public void testSwitch2GLWindowEachWithOwnDemoImpl(GLCapabilities caps) throws InterruptedException {
         final GearsES2 gears = new GearsES2(1);
         final RedSquareES2 rsquare = new RedSquareES2(1);
         final QuitAdapter quitAdapter = new QuitAdapter();

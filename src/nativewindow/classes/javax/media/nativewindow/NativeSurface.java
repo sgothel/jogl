@@ -56,7 +56,7 @@ public interface NativeSurface extends SurfaceUpdatedListener {
    * ie return a value other than {@link #LOCK_SURFACE_UNLOCKED} and {@link #LOCK_SURFACE_NOT_READY},
    * which is 
    * <pre> 
-   *    boolean ok = lockSurface() > LOCK_SURFACE_NOT_READY; 
+   *    boolean ok = LOCK_SURFACE_NOT_READY < lockSurface(); 
    * </pre> 
    * </p>
    * <p>

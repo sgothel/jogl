@@ -33,7 +33,9 @@ import java.util.List;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
+import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
+import javax.media.nativewindow.ProxySurface;
 import javax.media.nativewindow.VisualIDHolder;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
@@ -43,6 +45,7 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLRunnable;
 
+import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 
 /**
@@ -68,7 +71,11 @@ import com.jogamp.nativewindow.MutableGraphicsConfiguration;
  * <p>
  */
 public class GLEventListenerState {
-    private GLEventListenerState(AbstractGraphicsScreen screen, GLCapabilitiesImmutable caps, GLContext context, int count, GLAnimatorControl anim) {
+    private static final boolean DEBUG = true;
+    
+    private GLEventListenerState(AbstractGraphicsScreen upstreamScreen, AbstractGraphicsScreen screen, GLCapabilitiesImmutable caps, 
+                                 GLContext context, int count, GLAnimatorControl anim) {
+        this.upstreamScreen = upstreamScreen;
         this.screen = screen;
         this.caps = caps;
         this.context = context;
@@ -89,6 +96,7 @@ public class GLEventListenerState {
     
     public final int listenerCount() { return listeners.length; }
 
+    public final AbstractGraphicsScreen upstreamScreen;
     public final AbstractGraphicsScreen screen;
     public final GLCapabilitiesImmutable caps;
     public final GLContext context;
@@ -111,6 +119,11 @@ public class GLEventListenerState {
             screen.getDevice().close();
             owner = false;
         }
+    }
+
+    private static AbstractGraphicsScreen cloneScreen(AbstractGraphicsScreen aScreen) {
+        final AbstractGraphicsDevice aDevice2 = (AbstractGraphicsDevice) aScreen.getDevice().clone();
+        return NativeWindowFactory.createScreen( aDevice2, aScreen.getIndex() );        
     }
     
     /**
@@ -138,19 +151,45 @@ public class GLEventListenerState {
 
         // Create new AbstractGraphicsScreen w/ cloned AbstractGraphicsDevice for future GLAutoDrawable
         // allowing this AbstractGraphicsDevice to loose ownership -> not closing display/device!
-        final AbstractGraphicsConfiguration aCfg1 = a.getNativeSurface().getGraphicsConfiguration();
-        final GLCapabilitiesImmutable caps1 = (GLCapabilitiesImmutable) aCfg1.getChosenCapabilities();
-        final AbstractGraphicsScreen aScreen1 = aCfg1.getScreen();
-        final AbstractGraphicsDevice aDevice1 = aScreen1.getDevice();
-        final AbstractGraphicsDevice aDevice2 = (AbstractGraphicsDevice) aDevice1.clone();
-        final AbstractGraphicsScreen aScreen2 = NativeWindowFactory.createScreen( NativeWindowFactory.getNativeWindowType(false), aDevice2, aScreen1.getIndex() );
+        final NativeSurface aSurface = a.getNativeSurface();
+        final AbstractGraphicsConfiguration aCfg = aSurface.getGraphicsConfiguration();
+        final AbstractGraphicsScreen aScreen1 = aCfg.getScreen();
+        final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable) aCfg.getChosenCapabilities();
+        final AbstractGraphicsScreen aScreen2 = cloneScreen(aScreen1);
+        if( DEBUG ) {
+            System.err.println("X00 NativeSurface:              "+aSurface.getClass().getName()+", "+aSurface);
+        }
+        aScreen1.getDevice().clearHandleOwner();  // don't close device handle
+
+        final AbstractGraphicsScreen aUpScreen2;         
+        {
+            AbstractGraphicsScreen _aUpScreen2=null;
+            if(aSurface instanceof ProxySurface) {
+                final ProxySurface aProxy = (ProxySurface)aSurface;
+                final NativeSurface aUpSurface = aProxy.getUpstreamSurface();
+                if(null != aUpSurface) {
+                    System.err.println("X00 UpstreamSurface:            "+aUpSurface.getClass().getName()+", "+aUpSurface);
+                }
+                aProxy.clearUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE ); // don't close device handle
+                if(null != aUpSurface) {
+                    final AbstractGraphicsScreen aUpScreen1 = aUpSurface.getGraphicsConfiguration().getScreen();
+                    _aUpScreen2 = cloneScreen(aUpScreen1);
+                    if(null != aUpScreen1) {
+                        aUpScreen1.getDevice().clearHandleOwner(); // don't close device handle
+                    }
+                    System.err.println("X0X NativeSurface:              "+aSurface.getClass().getName()+", "+aSurface);
+                    System.err.println("X0X UpstreamSurface:            "+aUpSurface.getClass().getName()+", "+aUpSurface);
+                }
+            }
+            aUpScreen2=_aUpScreen2;
+        }
         
         final GLAnimatorControl aAnim = a.getAnimator();    
         if( null != aAnim ) {
             aAnim.remove(a); // also handles ECT
         }
         
-        final GLEventListenerState glls = new GLEventListenerState(aScreen2, caps1, a.getContext(), aSz, aAnim); 
+        final GLEventListenerState glls = new GLEventListenerState(aUpScreen2, aScreen2, caps, a.getContext(), aSz, aAnim); 
 
         //
         // remove and cache all GLEventListener and their init-state
@@ -167,7 +206,6 @@ public class GLEventListenerState {
         a.invoke(true, glFinish);
 
         a.setContext( null );
-        aDevice1.clearHandleOwner();  // don't close handle      
         
         return glls;
     }
@@ -195,19 +233,71 @@ public class GLEventListenerState {
         final List<GLRunnable> aGLCmds = new ArrayList<GLRunnable>();
         final int aSz = listenerCount();
         
-        final MutableGraphicsConfiguration aCfg = (MutableGraphicsConfiguration) a.getNativeSurface().getGraphicsConfiguration();
+        final NativeSurface aSurface = a.getNativeSurface();
+        final MutableGraphicsConfiguration aCfg = (MutableGraphicsConfiguration) aSurface.getGraphicsConfiguration();
         final GLCapabilitiesImmutable aCaps = (GLCapabilitiesImmutable) aCfg.getChosenCapabilities();
-        if( caps.getVisualID(VisualIDHolder.VIDType.INTRINSIC) != aCaps.getVisualID(VisualIDHolder.VIDType.INTRINSIC) ) {
-            throw new GLException("XXX: Incompatible - Prev Holder: "+caps+", New Holder "+caps);
+        if( caps.getVisualID(VisualIDHolder.VIDType.INTRINSIC) != aCaps.getVisualID(VisualIDHolder.VIDType.INTRINSIC) || 
+            caps.getVisualID(VisualIDHolder.VIDType.NATIVE) != aCaps.getVisualID(VisualIDHolder.VIDType.NATIVE) ) {
+            throw new GLException("Incompatible Capabilities - Prev-Holder: "+caps+", New-Holder "+caps);
         }
-        final GLContext prevContext = a.getContext();
-        if( null != prevContext) {
-            prevContext.destroy();
+        // Destroy and remove currently associated GLContext, if any (will be replaced)
+        {
+            final GLContext ctx = a.getContext();
+            if( null != ctx) {
+                ctx.destroy();
+            }
+            a.setContext( null );
         }
-        final AbstractGraphicsScreen preScreen = aCfg.getScreen();
-        aCfg.setScreen( screen );
-        preScreen.getDevice().close();
-        a.setContext( context );
+        final boolean aRealized = a.isRealized();
+        if( aRealized ) {
+            a.setRealized(false);
+        }
+        // Set new Screen and close previous one
+        {
+            if( DEBUG ) {
+                System.err.println("XX0 NativeSurface:              "+aSurface.getClass().getName()+", "+aSurface);
+            }
+            final AbstractGraphicsScreen aScreen1 = aCfg.getScreen();
+            aCfg.setScreen( screen );
+            aScreen1.getDevice().close();
+            System.err.println("XXX NativeSurface:              "+aSurface.getClass().getName()+", "+aSurface);
+        }
+        // If using a ProxySurface w/ an upstream surface, set new Screen and close previous one on it
+        {
+            boolean upstreamSet = false;
+            if(aSurface instanceof ProxySurface) {
+                final ProxySurface aProxy = (ProxySurface)aSurface;
+                final NativeSurface aUpSurface = aProxy.getUpstreamSurface();            
+                if(null != aUpSurface) {
+                    final MutableGraphicsConfiguration aUpCfg = (MutableGraphicsConfiguration) aUpSurface.getGraphicsConfiguration();
+                    final AbstractGraphicsScreen aUpScreen1 = aUpCfg.getScreen();
+                    if( null != upstreamScreen ) {
+                        System.err.println("XX0 UpstreamSurface:            "+aUpSurface.getClass().getName()+", "+aUpSurface);
+                        aUpCfg.setScreen( upstreamScreen );
+                        aUpScreen1.getDevice().close();
+                        upstreamSet = true;
+                        System.err.println("XXX UpstreamSurface:            "+aUpSurface.getClass().getName()+", "+aUpSurface);
+                    } else {
+                        throw new GLException("Incompatible Surface config - Has Upstream-Surface: Prev-Holder = false, New-Holder = true");
+                    }
+                }
+            }
+            if( !upstreamSet && null != upstreamScreen ) {
+                throw new GLException("Incompatible Surface config - Has Upstream-Surface: Prev-Holder = true, New-Holder = false");
+            }
+        }
+        
+        if( aRealized ) {
+            a.setRealized(true);
+        }
+        final boolean surfaceLocked = false; // NativeSurface.LOCK_SURFACE_NOT_READY < aSurface.lockSurface();
+        try {
+            a.setContext( context );
+        } finally {
+            if( surfaceLocked ) {
+                aSurface.unlockSurface();
+            }
+        }
         owner = false;
         
         //
@@ -220,15 +310,13 @@ public class GLEventListenerState {
             }
         }
         aGLCmds.add(glFinish);
-        a.invoke(true, aGLCmds);
+        a.invoke(aRealized, aGLCmds); // only wait if already realized
 
         // add all cached GLEventListener to their destination and fix their init-state
         for(int i=0; i<aSz; i++) {
             final GLEventListener l = listeners[i];
             a.addGLEventListener( l );
-            if( listenersInit[i] ) {
-                a.setGLEventListenerInitState(l, true);
-            } // else uninitialized is default after add
+            a.setGLEventListenerInitState(l, listenersInit[i]);
             listeners[i] = null;
         }
         
