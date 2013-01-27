@@ -879,7 +879,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     if( isNativeValid() ) {
                         screen.removeScreenModeListener(screenModeListenerImpl);
                         closeNativeImpl();
-                        config.getScreen().getDevice().close();
+                        final AbstractGraphicsDevice cfgADevice = config.getScreen().getDevice();
+                        if( cfgADevice != screen.getDisplay().getGraphicsDevice() ) { // don't pull display's device
+                            cfgADevice.close(); // ensure a cfg's device is closed
+                        }
                         setGraphicsConfiguration(null);
                         removeScreenReference();
                     }
