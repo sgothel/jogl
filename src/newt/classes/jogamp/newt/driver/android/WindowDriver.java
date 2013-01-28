@@ -65,6 +65,7 @@ import android.view.SurfaceHolder.Callback2;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.view.SurfaceView;
+import android.view.KeyEvent;
 
 public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {    
     static {
@@ -594,11 +595,40 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     private volatile long surfaceHandle;
     private long eglSurface;
     
-    class MSurfaceView extends SurfaceView {
+    public interface SoftKeyboardBackListener {
+      void onBackPressed();
+    }
+    
+    public class MSurfaceView extends SurfaceView {
+        SoftKeyboardBackListener softKeyboardBackListener;
+      
         public MSurfaceView (Context ctx) {
             super(ctx);
             setBackgroundDrawable(null);
             // setBackgroundColor(Color.TRANSPARENT);
+        }
+        
+        public  boolean dispatchKeyEventPreIme(android.view.KeyEvent event) {
+          if (softKeyboardBackListener != null && 
+                              event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+                      KeyEvent.DispatcherState state = getKeyDispatcherState();
+                      if (state != null) {
+                          if (event.getAction() == KeyEvent.ACTION_DOWN
+                                  && event.getRepeatCount() == 0) {
+                              state.startTracking(event, this);
+                              return true;
+                          } else if (event.getAction() == KeyEvent.ACTION_UP
+                                  && !event.isCanceled() && state.isTracking(event)) {
+                              softKeyboardBackListener.onBackPressed();
+                              return true;
+                          }
+                      }
+                  }
+          return super.dispatchKeyEventPreIme(event);
+        }
+        
+        public void setSoftKeyboardBackListener(SoftKeyboardBackListener listener) {
+          softKeyboardBackListener = listener;
         }
     }
     //----------------------------------------------------------------------
