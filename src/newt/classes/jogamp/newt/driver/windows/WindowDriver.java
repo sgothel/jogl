@@ -273,51 +273,65 @@ public class WindowDriver extends WindowImpl {
     private IntIntHashMap typedKeyCode2KeyChar = new IntIntHashMap(KeyEvent.VK_CONTEXT_MENU+1); 
 
     private final void handleKeyEvent(boolean send, boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
-        final boolean isModifierKeyCode = KeyEvent.isModifierKey(keyCode);
-        // System.err.println("*** handleKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", keyCode "+toHexString(keyCode)+", keyChar <"+keyChar+">, mods "+toHexString(modifiers)+", was: pressed "+isKeyPressed(keyCode)+", repeat "+isKeyInAutoRepeat(keyCode)+", isModifierKeyCode "+isModifierKeyCode);
+        final boolean isPrintableKey = KeyEvent.isPrintableKey(keyCode);
+        final boolean isModifierKey = KeyEvent.isModifierKey(keyCode);
+        // System.err.println("*** handleKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", keyCode "+toHexString(keyCode)+", keyChar <"+keyChar+">, mods "+toHexString(modifiers)+", was: pressed "+isKeyPressed(keyCode)+", repeat "+isKeyInAutoRepeat(keyCode)+", printableKey "+isPrintableKey+" [modifierKey "+isModifierKey+"] - "+System.currentTimeMillis());
         
-        // Reorder: WINDOWS delivery order is PRESSED, TYPED and RELEASED -> NEWT order: PRESSED, RELEASED and TYPED
-        // Auto-Repeat: WINDOWS delivers only PRESSED and TYPED.        
+        // Reorder: WINDOWS delivery order is PRESSED (t0), TYPED (t0) and RELEASED (t1) -> NEWT order: PRESSED (t0), RELEASED (t1) and TYPED (t1)
+        // Auto-Repeat: WINDOWS delivers only PRESSED (t0) and TYPED (t0).        
         switch(eventType) {
             case KeyEvent.EVENT_KEY_RELEASED:
+                final int keyCharTyped = typedKeyCode2KeyChar.put(keyCode, 0);
+                if( 0 != keyCharTyped ) {
+                    keyChar = (char)keyCharTyped;
+                }
                 if( isKeyCodeTracked(keyCode) ) {
-                    if( keyRepeatState.put(keyCode, false) && !isModifierKeyCode ) {
+                    if( keyRepeatState.put(keyCode, false) && !isModifierKey ) {
                         // AR out - send out missing PRESSED
                         emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_PRESSED, modifiers | InputEvent.AUTOREPEAT_MASK, keyCode, keyChar);
                     }
                     keyPressedState.put(keyCode, false);
                 }
-                final int keyCharTyped = typedKeyCode2KeyChar.put(keyCode, 0);
-                if( 0 != keyCharTyped ) {
-                    keyChar = (char)keyCharTyped;
-                }
                 emitKeyEvent(send, wait, eventType, modifiers, keyCode, keyChar);
                 emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_TYPED, modifiers, keyCode, keyChar);
                 break;
             case KeyEvent.EVENT_KEY_PRESSED:
-                if( isKeyCodeTracked(keyCode) ) {
-                    if( keyPressedState.put(keyCode, true) ) {
-                        // key was already pressed
-                        if( keyRepeatState.put(keyCode, true) && !isModifierKeyCode ) {
-                            emitKeyEvent(send, wait, eventType, modifiers | InputEvent.AUTOREPEAT_MASK, keyCode, keyChar);
-                        } // else AR in - skip already send PRESSED ; or ALT
-                    } else {
-                        emitKeyEvent(send, wait, eventType, modifiers, keyCode, keyChar);
+                // TYPED is delivered right after PRESSED for printable keys and contains the key-char information,
+                // hence we only deliver non printable keys (action and modifier keys) here.
+                // Modifier keys shall not AR.
+                if( !isPrintableKey ) {
+                    if( !handlePressTypedAutoRepeat(isModifierKey, send, wait, modifiers, keyCode, keyChar) ) {
+                        emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_PRESSED, modifiers, keyCode, keyChar);
                     }
-                } else {
-                    emitKeyEvent(send, wait, eventType, modifiers, keyCode, keyChar);
                 }
                 break;
             case KeyEvent.EVENT_KEY_TYPED:
-                if( 1 == isKeyInAutoRepeat(keyCode) ) {
-                    modifiers |= InputEvent.AUTOREPEAT_MASK;
-                    emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keyChar);
-                    emitKeyEvent(send, wait, eventType, modifiers, keyCode, keyChar);
-                } else if( 0 != keyCode ) {
+                if( isPrintableKey ) {
                     typedKeyCode2KeyChar.put(keyCode, keyChar);
+                    if( !handlePressTypedAutoRepeat(isModifierKey, send, wait, modifiers, keyCode, keyChar) ) {
+                        emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_PRESSED, modifiers, keyCode, keyChar);
+                    }
                 }
                 break;
         }
+    }
+    
+    private final boolean handlePressTypedAutoRepeat(boolean isModifierKey, boolean send, boolean wait, int modifiers, int keyCode, char keyChar) {
+        if( isKeyCodeTracked(keyCode) && keyPressedState.put(keyCode, true) ) {
+            final boolean preKeyRepeatState = keyRepeatState.put(keyCode, true);
+            if( !isModifierKey ) {
+                // AR: Key was already pressed: Either [enter | within] AR mode
+                modifiers |= InputEvent.AUTOREPEAT_MASK;
+                if( preKeyRepeatState ) {
+                    // AR: Within AR mode
+                    emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_PRESSED, modifiers, keyCode, keyChar);
+                } // else { AR: Enter AR mode - skip already send PRESSED ; or ALT }
+                emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keyChar);
+                emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_TYPED, modifiers, keyCode, keyChar);
+            }
+            return true;
+        } 
+        return false;
     }
     
     @Override

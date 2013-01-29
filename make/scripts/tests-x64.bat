@@ -12,7 +12,7 @@ REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedCon
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile02NEWT %*
-scripts\java-win64-dbg.bat  com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitch01NEWT %*
+REM scripts\java-win64-dbg.bat  com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitch01NEWT %*
 REM scripts\java-win64-dbg.bat  com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitch11NEWT %*
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug00NEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLDebug01NEWT %*
@@ -50,7 +50,7 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.awt.TestIsReali
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT -time 30000
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestGearsES1NEWT %*
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %*
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 4000 -x 10 -y 10 -width 100 -height 100 -screen 0
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT -vsync -time 40000 -width 100 -height 100 -screen 0 %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT -time 5000
@@ -67,7 +67,7 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestListenerCom
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventOrderAWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventAutoRepeatAWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyPressReleaseUnmaskRepeatAWT %*
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodesAWT %*
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodesAWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodeModifiersAWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNEWTWindowAWT $*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersAWTCanvas %*

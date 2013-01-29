@@ -174,7 +174,7 @@ public class TestNewtKeyCodesAWT extends UITestCase {
                 robot.waitForIdle();
             }
             final int codeCount = codeSeg.max - codeSeg.min + 1;
-            for(int j=0; j < 10 && keyAdapter.getQueueSize() < 3 * codeCount; j++) { // wait until events are collected
+            for(int j=0; j < 20 && keyAdapter.getQueueSize() < 3 * codeCount; j++) { // wait until events are collected
                 robot.delay(100);
             }
             final ArrayList<EventObject> events = new ArrayList<EventObject>(keyAdapter.getQueued());

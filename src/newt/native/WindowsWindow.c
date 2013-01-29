@@ -605,7 +605,7 @@ static int WmKeyDown(JNIEnv *env, jobject window, UINT wkey, WORD repCnt, BYTE s
         (*env)->CallVoidMethod(env, window, sendKeyEventID,
                                (jint) EVENT_KEY_TYPED,
                                modifiers,
-                               (jint) 0,
+                               (jint) jkey,
                                (jchar) '\177');
     }
 

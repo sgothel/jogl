@@ -74,12 +74,7 @@ public class KeyEvent extends InputEvent
     }
 
     /** 
-     * Returns the character matching the {@link #getKeyCode() virtual key code}, if exist.
-     * <p>
-     * <b>Disclaimer</b>: Only valid on all platforms at {@link KeyListener#keyTyped(KeyEvent)}.
-     * Precisely, on the Windows platform we currently cannot deliver the proper character
-     * in case of shifted keys where no uppercase exists, e.g. 'shift + 1' doesn't produce '!'.
-     * </p> 
+     * Returns the character matching the {@link #getKeyCode() virtual key code}.
      */
     public char getKeyChar() {
         return keyChar;
@@ -111,7 +106,12 @@ public class KeyEvent extends InputEvent
         }
     }
 
-    /** Returns true if <code>keyCode</code> represents a modifier key, i.e. one of {@link #VK_SHIFT}, {@link #VK_CONTROL}, {@link #VK_ALT}, {@link #VK_ALT_GRAPH}, {@link #VK_META}. */
+    /** 
+     * Returns true if the given <code>keyCode</code> represents a non-printable modifier key. 
+     * <p>
+     * A modifier key is one of {@link #VK_SHIFT}, {@link #VK_CONTROL}, {@link #VK_ALT}, {@link #VK_ALT_GRAPH}, {@link #VK_META}.
+     * </p>
+     */
     public static boolean isModifierKey(int keyCode) {
         switch (keyCode) {
             case VK_SHIFT:
@@ -125,58 +125,116 @@ public class KeyEvent extends InputEvent
         }
     }
     
-    /** Returns true if {@link #getKeyCode()} represents a modifier key, i.e. one of {@link #VK_SHIFT}, {@link #VK_CONTROL}, {@link #VK_ALT}, {@link #VK_ALT_GRAPH}, {@link #VK_META}. */
+    /** 
+     * Returns true if {@link #getKeyCode()} represents a non-printable modifier key. 
+     * <p>
+     * See {@link #isModifierKey(int)} for details.
+     * </p>
+     */
     public boolean isModifierKey() {
         return isModifierKey(keyCode);
     }
-    
-    public boolean isActionKey() {
+
+    /** 
+     * Returns true if the given <code>keyCode</code> represents a non-printable action key, which is not a {@link #isModifierKey(int) modifier key}.
+     * <p>
+     * An action key is one of {@link #VK_HOME}, {@link #VK_END}, {@link #VK_PAGE_UP}, {@link #VK_PAGE_DOWN}, {@link #VK_UP}, {@link #VK_PAGE_DOWN}, 
+     * {@link #VK_LEFT}, {@link #VK_RIGHT}, {@link #VK_F1}-{@link #VK_F24}, {@link #VK_PRINTSCREEN}, {@link #VK_CAPS_LOCK}, {@link #VK_PAUSE}, 
+     * {@link #VK_INSERT}, {@link #VK_HELP}, {@link #VK_WINDOWS}, etc ...
+     * </p>
+     */
+    public static boolean isActionKey(int keyCode) {
+        if( ( VK_F1             <= keyCode && keyCode <= VK_F24                 ) ||
+            ( VK_ALL_CANDIDATES <= keyCode && keyCode <= VK_INPUT_METHOD_ON_OFF ) ||
+            ( VK_CUT            <= keyCode && keyCode <= VK_STOP                ) ) {
+            return true;
+        }
+                
         switch (keyCode) {
-            case VK_HOME:
-            case VK_END:
+            case VK_CANCEL:
+            case VK_CLEAR:
+            case VK_PAUSE:
+            case VK_CAPS_LOCK:
+            case VK_ESCAPE:
             case VK_PAGE_UP:
             case VK_PAGE_DOWN:
-            case VK_UP:
-            case VK_DOWN:
+            case VK_END:
+            case VK_HOME:
             case VK_LEFT:
+            case VK_UP:
             case VK_RIGHT:
-    
-            case VK_F1:
-            case VK_F2:
-            case VK_F3:
-            case VK_F4:
-            case VK_F5:
-            case VK_F6:
-            case VK_F7:
-            case VK_F8:
-            case VK_F9:
-            case VK_F10:
-            case VK_F11:
-            case VK_F12:
-            case VK_F13:
-            case VK_F14:
-            case VK_F15:
-            case VK_F16:
-            case VK_F17:
-            case VK_F18:
-            case VK_F19:
-            case VK_F20:
-            case VK_F21:
-            case VK_F22:
-            case VK_F23:
-            case VK_F24:
+            case VK_DOWN:
+            case VK_DELETE:
+            case VK_NUM_LOCK:
+            case VK_SCROLL_LOCK:
+                    
             case VK_PRINTSCREEN:
-            case VK_CAPS_LOCK:
-            case VK_PAUSE:
             case VK_INSERT:
-    
             case VK_HELP:
+            case VK_META:
+            case VK_KP_UP:
+            case VK_KP_DOWN:
+            case VK_KP_LEFT:
+            case VK_KP_RIGHT:
+                
+            case VK_DEAD_VOICED_SOUND:
+            case VK_DEAD_SEMIVOICED_SOUND:
+                
             case VK_WINDOWS:
+            case VK_CONTEXT_MENU:
+            case VK_FINAL:
+                
+            case VK_CONVERT: 
+            case VK_NONCONVERT:
+            case VK_ACCEPT:
+            case VK_MODECHANGE:
+
+            case VK_KANA:
+            case VK_KANJI:
+                
+            case VK_ALPHANUMERIC:
+            case VK_KATAKANA:
+            case VK_HIRAGANA:
+            case VK_FULL_WIDTH:
+            case VK_HALF_WIDTH:
+            case VK_ROMAN_CHARACTERS:
+                
+            case VK_COMPOSE:
+            case VK_BEGIN:
+                    
                 return true;
         }
         return false;
     }
+    
+    /** 
+     * Returns true if {@link #getKeyCode() keyCode} represents a non-printable action key, which is not a {@link #isModifierKey(int) modifier key}.
+     * <p>
+     * See {@link #isActionKey(int)} for details.
+     * </p>
+     */
+    public boolean isActionKey() {
+        return isActionKey(keyCode);
+    }
+    
+    /** 
+     * Returns true if given <code>keyKode</code> represents a printable character, which is neither a {@link #isModifierKey(int) modifier key}
+     * nor an {@link #isActionKey(int) action key}.
+     * Otherwise returns <code>false</code>.
+     */
+    public static boolean isPrintableKey(int keyCode) {
+        return !isModifierKey(keyCode) && !isActionKey(keyCode);
+    }
 
+    /** 
+     * Returns true if {@link #getKeyCode() keyCode} represents a printable character, which is neither a {@link #isModifierKey(int) modifier key}
+     * nor an {@link #isActionKey(int) action key}.
+     * Otherwise returns <code>false</code>.
+     */
+    public boolean isPrintableKey() {
+        return isPrintableKey(keyCode);
+    }
+    
     private final int keyCode;
     private final char keyChar;
 

@@ -189,7 +189,7 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
             robot.waitForIdle();
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_B, 250);
             robot.waitForIdle();
-            for(int j=0; j < 10 && keyAdapter.getQueueSize() < firstIdx+3; j++) { // wait until events are collected
+            for(int j=0; j < 20 && keyAdapter.getQueueSize() < firstIdx+3; j++) { // wait until events are collected
                 robot.delay(100);
             }
             firstIdx = keyEvents.size();
