@@ -607,7 +607,7 @@
         <antcall target="junit.run.swt.awt"       inheritRefs="true" inheritAll="true"/>
     </target>
 
-    <target name="junit.run.local.d32" if="isOSX">
+    <target name="junit.run.local.osx.d32" if="isOSX">
         <var name="jvmDataModel.arg" unset="true"/>
         <var name="jvmDataModel.arg" value="-d32"/>
         <var name="junit_extra_classpath" unset="true"/>
@@ -943,7 +943,8 @@ ${line.separator}
         </exec>
     </target>
 
-    <target name="junit.run.tests" depends="junit.run.local.d32, junit.run.local, junit.run.remote.ssh.all, junit.run.remote.adb"/>
+    <!-- target name="junit.run.tests" depends="junit.run.local.osx.d32, junit.run.local, junit.run.remote.ssh.all, junit.run.remote.adb"/-->
+    <target name="junit.run.tests" depends="junit.run.local, junit.run.remote.ssh.all, junit.run.remote.adb"/>
 
     <target name="junit.run.settings" depends="declare.common">
         <delete quiet="true">
