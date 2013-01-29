@@ -34,6 +34,8 @@
 
 package com.jogamp.newt.event;
 
+import javax.media.nativewindow.WindowClosingProtocol;
+
 public interface WindowListener extends NEWTEventListener {
     /** Window is resized, your application shall respect the new window dimension. A repaint is recommended. */
     public void windowResized(WindowEvent e);
@@ -41,7 +43,14 @@ public interface WindowListener extends NEWTEventListener {
     /** Window has been moved. */
     public void windowMoved(WindowEvent e);
 
-    /** Window will be destroyed. Release of resources is recommended. */
+    /** 
+     * Window destruction has been requested.
+     * <p>
+     * Depending on the {@link WindowClosingProtocol#getDefaultCloseOperation() default close operation},
+     * the window maybe destroyed or not.
+     * </p>
+     * In case the window will be destroyed (see above), release of resources is recommended. 
+     **/
     public void windowDestroyNotify(WindowEvent e);
 
     /** Window has been destroyed.*/
