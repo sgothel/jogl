@@ -46,6 +46,8 @@ import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.event.NEWTEventConsumer;
+import com.jogamp.newt.event.NEWTEvent;
 
 import jogamp.opengl.egl.EGL;
 import jogamp.opengl.egl.EGLGraphicsConfiguration;
@@ -66,6 +68,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.view.SurfaceView;
 import android.view.KeyEvent;
+
 
 public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {    
     static {
@@ -242,7 +245,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     }
     
     private final void setupAndroidView(Context ctx) {
-        androidView = new MSurfaceView(ctx);
+        androidView = new MSurfaceView(ctx, WindowDriver.this);
                 
         final SurfaceHolder sh = androidView.getHolder();
         sh.addCallback(WindowDriver.this); 
@@ -595,40 +598,61 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     private volatile long surfaceHandle;
     private long eglSurface;
     
-    public interface SoftKeyboardBackListener {
-      void onBackPressed();
-    }
-    
     public class MSurfaceView extends SurfaceView {
-        SoftKeyboardBackListener softKeyboardBackListener;
+        WindowDriver newtWindow;
       
-        public MSurfaceView (Context ctx) {
+        public MSurfaceView (Context ctx, WindowDriver newtWindow) {
             super(ctx);
+            this.newtWindow = newtWindow;
             setBackgroundDrawable(null);
             // setBackgroundColor(Color.TRANSPARENT);
         }
         
         public  boolean dispatchKeyEventPreIme(android.view.KeyEvent event) {
-          if (softKeyboardBackListener != null && 
-                              event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                      KeyEvent.DispatcherState state = getKeyDispatcherState();
-                      if (state != null) {
-                          if (event.getAction() == KeyEvent.ACTION_DOWN
-                                  && event.getRepeatCount() == 0) {
-                              state.startTracking(event, this);
-                              return true;
-                          } else if (event.getAction() == KeyEvent.ACTION_UP
-                                  && !event.isCanceled() && state.isTracking(event)) {
-                              softKeyboardBackListener.onBackPressed();
-                              return true;
-                          }
-                      }
-                  }
-          return super.dispatchKeyEventPreIme(event);
+            if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+                KeyEvent.DispatcherState state = getKeyDispatcherState();
+                if (state != null) {
+                    if (event.getAction() == KeyEvent.ACTION_DOWN
+                            && event.getRepeatCount() == 0) {
+                        state.startTracking(event, this);
+                        return true;
+                    } else if (event.getAction() == KeyEvent.ACTION_UP
+                        && !event.isCanceled() && state.isTracking(event)) {
+
+                        if(isSoftKeyboardVisible()) {
+                            enqueueEventKeyboardInvisible(event);
+                        } else {
+                            newtWindow.windowDestroyNotify(false);
+                        }
+                        return true;
+                    }
+                }
+            }
+            return super.dispatchKeyEventPreIme(event);
         }
         
-        public void setSoftKeyboardBackListener(SoftKeyboardBackListener listener) {
-          softKeyboardBackListener = listener;
+        protected boolean isSoftKeyboardVisible() {
+            final InputMethodManager imm = (InputMethodManager) getAndroidView().getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+            return null != imm && imm.isActive();
+        }
+        
+        protected void enqueueEventKeyboardInvisible(android.view.KeyEvent event) {
+            final long unixTime = System.currentTimeMillis() + ( event.getEventTime() - android.os.SystemClock.uptimeMillis() );
+
+            enqueueEventKeyboardInvisible(com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED, unixTime);
+            enqueueEventKeyboardInvisible(com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED, unixTime);
+            enqueueEventKeyboardInvisible(com.jogamp.newt.event.KeyEvent.EVENT_KEY_TYPED, unixTime);
+            }
+
+        protected void enqueueEventKeyboardInvisible(int keyCode, long unixTime) {
+          final Object src = newtWindow;
+          final int newtMods = 0;
+
+          final com.jogamp.newt.event.KeyEvent keyEvent = new com.jogamp.newt.event.KeyEvent(
+                              keyCode, src, unixTime, newtMods, com.jogamp.newt.event.KeyEvent.VK_KEYBOARD_INVISIBLE, (char) 0);
+
+          // copied from AndroidNewtEventTranslator
+          newtWindow.enqueueEvent(false, keyEvent);
         }
     }
     //----------------------------------------------------------------------

@@ -740,6 +740,11 @@ public class KeyEvent extends InputEvent
     public static final int VK_BEGIN                    = 0xFF58;
 
     /**
+     * Constant for the Android's soft keyboard Back button.
+     */
+    public static final int VK_KEYBOARD_INVISIBLE       = 0xBAC00BAC;
+
+    /**
      * This value is used to indicate that the keyCode is unknown.
      * KEY_TYPED events do not have a keyCode value; this value 
      * is used instead.  
