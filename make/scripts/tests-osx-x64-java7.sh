@@ -8,6 +8,6 @@ export JAVA_HOME PATH
 
 spath=`dirname $0`
 
-. $spath/tests.sh  $JAVA_HOME/bin/java -d64 ../build-macosx $*
+. $spath/tests.sh  $JAVA_HOME/bin/java -d64 ../build-macosx-java7 $*
 
 

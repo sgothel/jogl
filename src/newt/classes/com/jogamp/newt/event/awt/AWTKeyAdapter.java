@@ -30,6 +30,11 @@ package com.jogamp.newt.event.awt;
 
 import jogamp.newt.awt.event.AWTNewtEventFactory;
 
+/**
+ * AWT: 
+ *   printable:     PRESSED (t0), TYPED (t0), RELEASED (t1)
+ *   non-printable: PRESSED (t0), RELEASED (t1)
+ */
 public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListener
 {
     public AWTKeyAdapter(com.jogamp.newt.event.KeyListener newtListener) {
@@ -54,8 +59,9 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
         return this;
     }
 
+    @Override
     public void keyPressed(java.awt.event.KeyEvent e) {
-        com.jogamp.newt.event.KeyEvent event = AWTNewtEventFactory.createKeyEvent(e, newtWindow);
+        final com.jogamp.newt.event.KeyEvent event = AWTNewtEventFactory.createKeyEvent(com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED, e, newtWindow);
         if(null!=newtListener) {
             ((com.jogamp.newt.event.KeyListener)newtListener).keyPressed(event);
         } else {
@@ -63,22 +69,22 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
         }
     }
 
+    @Override
     public void keyReleased(java.awt.event.KeyEvent e) {
-        com.jogamp.newt.event.KeyEvent event = AWTNewtEventFactory.createKeyEvent(e, newtWindow);
+        com.jogamp.newt.event.KeyEvent keyReleaseEvt = AWTNewtEventFactory.createKeyEvent(com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED, e, newtWindow);
+        com.jogamp.newt.event.KeyEvent keyTypedEvt = AWTNewtEventFactory.createKeyEvent(com.jogamp.newt.event.KeyEvent.EVENT_KEY_TYPED, e, newtWindow);
         if(null!=newtListener) {
-            ((com.jogamp.newt.event.KeyListener)newtListener).keyReleased(event);
+            final com.jogamp.newt.event.KeyListener newtKeyListener = (com.jogamp.newt.event.KeyListener)newtListener;
+            newtKeyListener.keyReleased(keyReleaseEvt);
+            newtKeyListener.keyTyped(keyTypedEvt);            
         } else {
-            enqueueEvent(false, event);
+            enqueueEvent(false, keyReleaseEvt);
+            enqueueEvent(false, keyTypedEvt);
         }
     }
 
+    @Override
     public void keyTyped(java.awt.event.KeyEvent e) {
-        com.jogamp.newt.event.KeyEvent event = AWTNewtEventFactory.createKeyEvent(e, newtWindow);
-        if(null!=newtListener) {
-            ((com.jogamp.newt.event.KeyListener)newtListener).keyTyped(event);
-        } else {
-            enqueueEvent(false, event);
-        }
     }
 }
 
