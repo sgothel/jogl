@@ -33,6 +33,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.Integer;
+import java.lang.Runnable;
+import java.lang.String;
+import java.lang.Thread;
 import java.nio.ByteBuffer;
 
 import jogamp.newt.WindowImpl;
@@ -57,7 +61,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
 
 	static {
 		ledt = new LinuxEventDeviceTracker();
-		final Thread t = new Thread(ledt.eventDevicePoller, "NEWT-LinuxEventDeviceTracker");
+		final Thread t = new Thread(ledt.eventDeviceManager, "NEWT-LinuxEventDeviceManager");
 		t.setDaemon(true);
 		t.start();
 	}
@@ -66,9 +70,21 @@ public class LinuxEventDeviceTracker implements WindowListener {
 		return ledt;
 	}
 
-	private volatile boolean stop = false;
 	private WindowImpl focusedWindow = null;
-	private EventDevicePoller eventDevicePoller = new EventDevicePoller();
+    private EventDeviceManager eventDeviceManager = new EventDeviceManager();
+
+    /*
+      The devices are in /dev/input:
+
+	crw-r--r--   1 root     root      13,  64 Apr  1 10:49 event0
+	crw-r--r--   1 root     root      13,  65 Apr  1 10:50 event1
+	crw-r--r--   1 root     root      13,  66 Apr  1 10:50 event2
+	crw-r--r--   1 root     root      13,  67 Apr  1 10:50 event3
+	...
+
+      And so on up to event31.
+     */
+	private EventDevicePoller[] eventDevicePollers = new EventDevicePoller[32];
 
 	@Override
 	public void windowResized(WindowEvent e) { }
@@ -116,7 +132,45 @@ public class LinuxEventDeviceTracker implements WindowListener {
 	@Override
 	public void windowRepaint(WindowUpdateEvent e) { }
 
+    class EventDeviceManager implements Runnable {
+        @Override
+		public void run() {
+            File f = new File("/dev/input/");
+            int number;
+            for(String path:f.list()){
+                if(path.startsWith("event")) {
+                    String stringNumber = path.substring(5);
+                    number = Integer.parseInt(stringNumber);
+                    if(number<32&&number>=0) {
+                        if(eventDevicePollers[number]==null){
+                            eventDevicePollers[number] = new EventDevicePoller(number);
+                            Thread t = new Thread(eventDevicePollers[number], "NEWT-LinuxEventDeviceTracker-event"+number);
+                            t.setDaemon(true);
+                            t.start();
+                        } else if(eventDevicePollers[number].stop) {
+                            eventDevicePollers[number]=null;
+                        }
+                    }
+                }
+            }
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
+
 	class EventDevicePoller implements Runnable {
+
+        private volatile boolean stop = false;
+        private String eventDeviceName;
+
+        public EventDevicePoller(int eventDeviceNumber){
+            this.eventDeviceName="/dev/input/event"+eventDeviceNumber;
+        }
+
 		@Override
 		public void run() {
 			final byte[] b = new byte[16];
@@ -133,7 +187,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
 			 */
 			ByteBuffer bb = ByteBuffer.wrap(b);
 			StructAccessor s = new StructAccessor(bb);
-			final File f = new File("/dev/input/event2");
+			final File f = new File(eventDeviceName);
 			f.setReadOnly();
 			InputStream fis;
 			try {
