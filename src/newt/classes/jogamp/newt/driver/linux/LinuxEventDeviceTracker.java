@@ -133,31 +133,36 @@ public class LinuxEventDeviceTracker implements WindowListener {
 	public void windowRepaint(WindowUpdateEvent e) { }
 
     class EventDeviceManager implements Runnable {
+
+        private volatile boolean stop = false;
+
         @Override
 		public void run() {
             File f = new File("/dev/input/");
             int number;
-            for(String path:f.list()){
-                if(path.startsWith("event")) {
-                    String stringNumber = path.substring(5);
-                    number = Integer.parseInt(stringNumber);
-                    if(number<32&&number>=0) {
-                        if(eventDevicePollers[number]==null){
-                            eventDevicePollers[number] = new EventDevicePoller(number);
-                            Thread t = new Thread(eventDevicePollers[number], "NEWT-LinuxEventDeviceTracker-event"+number);
-                            t.setDaemon(true);
-                            t.start();
-                        } else if(eventDevicePollers[number].stop) {
-                            eventDevicePollers[number]=null;
+            while(!stop){
+                for(String path:f.list()){
+                    if(path.startsWith("event")) {
+                        String stringNumber = path.substring(5);
+                        number = Integer.parseInt(stringNumber);
+                        if(number<32&&number>=0) {
+                            if(eventDevicePollers[number]==null){
+                                eventDevicePollers[number] = new EventDevicePoller(number);
+                                Thread t = new Thread(eventDevicePollers[number], "NEWT-LinuxEventDeviceTracker-event"+number);
+                                t.setDaemon(true);
+                                t.start();
+                            } else if(eventDevicePollers[number].stop) {
+                                eventDevicePollers[number]=null;
+                            }
                         }
                     }
                 }
-            }
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
         }
     }
@@ -193,8 +198,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
 			try {
 				fis = new FileInputStream(f);
 			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+                stop=true;
 				return;
 			}
 
@@ -209,6 +213,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
 			int eventType=0;
 			int modifiers=0;
 
+            loop:
 			while(!stop) {
 				int remaining=16;
 				while(remaining>0) {
@@ -216,11 +221,12 @@ public class LinuxEventDeviceTracker implements WindowListener {
 					try {
 						read = fis.read(b, 0, remaining);
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+                        stop = true;
+                        break loop;
 					}
 					if(read<0) {
 						stop = true; // EOF of event device file !?
+                        break loop;
 					} else {
 						remaining -= read;
 					}
@@ -298,10 +304,9 @@ public class LinuxEventDeviceTracker implements WindowListener {
 				try {
 					fis.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
 			}
+            stop=true;
 		}
 
 		private char LinuxEVKey2Unicode(short EVKey) {
