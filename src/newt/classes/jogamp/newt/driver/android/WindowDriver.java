@@ -507,6 +507,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
                 // hide keyboard :
                 imm.hideSoftInputFromWindow(winid, 0, keyboardVisibleReceiver);
             }
+            softKeyboardVisible = visible;
             return visible;
         } else {
             return false; // nop
@@ -589,6 +590,10 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         windowRepaint(0, 0, getWidth(), getHeight());
     }
         
+    protected boolean isSoftKeyboardVisible() {
+        return softKeyboardVisible;
+    }
+
     private boolean added2StaticViewGroup;
     private MSurfaceView androidView;
     private int nativeFormat; // chosen current native PixelFormat (suitable for EGL)
@@ -597,6 +602,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     private Surface surface;
     private volatile long surfaceHandle;
     private long eglSurface;
+    private boolean softKeyboardVisible;
     
     public class MSurfaceView extends SurfaceView {
         WindowDriver newtWindow;
@@ -615,25 +621,21 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
                     if (event.getAction() == KeyEvent.ACTION_DOWN
                             && event.getRepeatCount() == 0) {
                         state.startTracking(event, this);
-                        return true;
+                        return false;
                     } else if (event.getAction() == KeyEvent.ACTION_UP
                         && !event.isCanceled() && state.isTracking(event)) {
 
-                        if(isSoftKeyboardVisible()) {
+                        if(newtWindow.isSoftKeyboardVisible()) {
                             enqueueEventKeyboardInvisible(event);
+                            return false;
                         } else {
                             newtWindow.windowDestroyNotify(false);
+                            return true;
                         }
-                        return true;
                     }
                 }
             }
             return super.dispatchKeyEventPreIme(event);
-        }
-        
-        protected boolean isSoftKeyboardVisible() {
-            final InputMethodManager imm = (InputMethodManager) getAndroidView().getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-            return null != imm && imm.isActive();
         }
         
         protected void enqueueEventKeyboardInvisible(android.view.KeyEvent event) {
