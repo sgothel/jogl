@@ -258,7 +258,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
 						break;
 					case 1: // EV_KEY
 						keyCode = LinuxEVKey2NewtVKey(code); // The device independent code.
-						keyChar = LinuxEVKey2Unicode(code); // The printable character w/o key modifiers.
+						keyChar = NewtVKey2Unicode(keyCode); // The printable character w/o key modifiers.
 						switch(value) {
 						case 0:
 							modifiers=0;
@@ -314,6 +314,13 @@ public class LinuxEventDeviceTracker implements WindowListener {
             stop=true;
 		}
 
+		private char NewtVKey2Unicode(int VK){
+			if(KeyEvent.isPrintableKey(VK)){
+				return (char)VK;
+			}
+			return 0;
+		}
+		
 		private char LinuxEVKey2Unicode(short EVKey) {
 			// This is the stuff normally mapped by a system keymap
 
