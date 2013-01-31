@@ -41,8 +41,8 @@ public class NEWTGearsES2ActivityLauncher extends LauncherUtil.BaseActivityLaunc
     @Override
     public void init() {
        final OrderedProperties props = getProperties();       
-       props.setProperty("jogamp.debug.JNILibLoader", "true");
-       props.setProperty("jogamp.debug.NativeLibrary", "true");
+       // props.setProperty("jogamp.debug.JNILibLoader", "true");
+       // props.setProperty("jogamp.debug.NativeLibrary", "true");
        // props.setProperty("jogamp.debug.IOUtil", "true");       
        // properties.setProperty("jogamp.debug.NativeLibrary.Lookup", "true");
        // props.setProperty("nativewindow.debug", "all");
