@@ -42,6 +42,7 @@ import java.nio.ByteBuffer;
 import jogamp.newt.WindowImpl;
 
 import com.jogamp.common.nio.StructAccessor;
+import com.jogamp.newt.Window;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
@@ -120,6 +121,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
 	}
 
 	public static void main(String[] args ){
+		System.setProperty("newt.debug.Window.KeyEvent", "true");
 		LinuxEventDeviceTracker.getSingleton();
 		try {
 			Thread.sleep(30000);
@@ -293,11 +295,14 @@ public class LinuxEventDeviceTracker implements WindowListener {
 						// TODO: handle headphone/hdmi connector events
 					}
 
-					//System.out.println("[time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
+					if(Window.DEBUG_KEY_EVENT) {
+					    System.out.println("[time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
+					}
 
 				} else {
-					//if(Window.DEBUG_KEY_EVENT)
-					System.out.println("[time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
+					if(Window.DEBUG_KEY_EVENT) {
+					    System.out.println("[time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
+					}
 				}
 			}
 			if(null != fis) {
@@ -546,7 +551,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
                 // TODO: add mappings for japanese special buttons
                 case 85: // zenkakuhankaku
                 case 86: // 102nd
-                    return 0; // FIXME
+                    break; // FIXME
 
                 case 87:
                     return KeyEvent.VK_F11;
@@ -561,13 +566,13 @@ public class LinuxEventDeviceTracker implements WindowListener {
                     return KeyEvent.VK_HIRAGANA;
 
                 case 92: // kenkan
-                    return 0; // FIXME
+                    break; // FIXME
                 case 93: // katakana hiragana
-                    return 0; // FIXME
+                    break; // FIXME
                 case 94: // mu henkan
-                    return 0; // FIXME
+                    break; // FIXME
                 case 95: // kp jp comma
-                    return 0; // FIXME
+                    break; // FIXME
 
                 case 97: // right ctrl
                     return KeyEvent.VK_CONTROL;
@@ -575,12 +580,12 @@ public class LinuxEventDeviceTracker implements WindowListener {
                     return KeyEvent.VK_SLASH;
 
                 case 99: // sysrq
-                    return 0; // FIXME
+                    break; // FIXME
 
                 case 100: // right alt
                     return KeyEvent.VK_ALT;
                 case 101: // linefeed
-                    return 0; // FIXME
+                    break; // FIXME
                 case 102: // home
                     return KeyEvent.VK_HOME;
                 case 103: // KEY_UP
@@ -603,39 +608,279 @@ public class LinuxEventDeviceTracker implements WindowListener {
                     return KeyEvent.VK_DELETE;
 
                 case 112: // macro
-                    return 0; //FIXME DEAD_MACRON?
+                    break; // FIXME DEAD_MACRON?
                 case 113: // mute
-                    return 0; //FIXME
+                    break; // FIXME
                 case 114: // vol up
-                    return 0; //FIXME
+                    break; // FIXME
                 case 115: // vol down
-                    return 0; //FIXME
+                    break; // FIXME
                 case 116: // power
-                    return 0; //FIXME
+                    break; // FIXME
 
                 case 117: // kp equals
                     return KeyEvent.VK_EQUALS;
                 case 118: // kp plus minux
-                    return 0; // FIXME
+                    break; // FIXME
                 case 119: // pause
                     return KeyEvent.VK_PAUSE;
                 case 120: // scale AL compiz scale expose
-                    return 0;
+                    break; // FIXME
                 case 121: // kp comma
                     return KeyEvent.VK_COMMA;
+                case 122: // hangeul
+                    break; // FIXME
+                case 123: // hanja
+                	break; // FIXME
+                case 124: // yen
+                	break; // FIXME
 
-                default:
-				//System.out.println("LinuxEVKey2NewtVKey: Unmapped EVKey "+EVKey);	
+                case 125: // left meta
+                case 126: // right meta
+                	return KeyEvent.VK_META;
+                case 127: // compose
+                	return KeyEvent.VK_COMPOSE;
+                	
+                case 128: // stop
+                	return KeyEvent.VK_STOP;
+                case 129: // again
+                	return KeyEvent.VK_AGAIN;
+                case 130: // properties
+                	return KeyEvent.VK_PROPS;
+                case 131: // undo
+                	return KeyEvent.VK_UNDO;
+                case 132: // front
+                	break; // FIXME
+                case 133: // copy
+                	return KeyEvent.VK_COPY;
+                case 134: // open
+                	break; // FIXME
+                case 135: // paste
+                	return KeyEvent.VK_PASTE;
+                case 136: // find
+                	return KeyEvent.VK_FIND;
+                case 137: // cut
+                	return KeyEvent.VK_CUT;
+                case 138: // help
+                	return KeyEvent.VK_HELP;
+                case 139: // menu
+                	break; // FIXME
+                case 140: // calc
+                	break; // FIXME
+                case 141: // setup
+                	break; // FIXME
+                case 142: // sleep
+                	break; // FIXME
+                case 143: // wakeup
+                	break; // FIXME
+                case 144: // file
+                	break; // FIXME
+                case 145: // send file
+                	break; // FIXME
+                case 146: // delete file
+                	break; // FIXME
+                case 147: // xfer
+                	break; // FIXME
+                case 148: // prog1
+                	break; // FIXME
+                case 149: // prog2
+                	break; // FIXME
+                case 150: // www
+                	break; // FIXME
+                case 151: // msdos
+                	break; // FIXME
+                case 152: // coffee
+                	break; // FIXME
+                case 153: // direction
+                	break; // FIXME
+                case 154: // cycle windows
+                	break; // FIXME
+                case 155: // mail
+                	break; // FIXME
+                case 156: // bookmarks
+                	break; // FIXME
+                case 157: // computer
+                	break; // FIXME
+                case 158: // back
+                	break; // FIXME
+                case 159: // forward
+                	break; // FIXME
+                case 160: // close cd
+                	break; // FIXME
+                case 161: // eject cd
+                	break; // FIXME
+                case 162: // eject close cd
+                	break; // FIXME
+                case 163: // next song
+                	break; // FIXME
+                case 164: // play pause
+                	break; // FIXME
+                case 165: // previous song
+                	break; // FIXME
+                case 166: // stop cd
+                	break; // FIXME
+                case 167: // record
+                	break; // FIXME
+                case 168: // rewind
+                	break; // FIXME
+                case 169: // phone
+                	break; // FIXME
+                case 170: // ISO
+                	break; // FIXME
+                case 171: // config
+                	break; // FIXME
+                case 172: // home page
+                	break; // FIXME
+                case 173: // refresh
+                	break; // FIXME
+                case 174: // exit
+                	break; // FIXME
+                case 175: // move
+                	break; // FIXME
+                case 176: // edit
+                	break; // FIXME
+                case 177: // scroll up
+                	break; // FIXME PAGE_UP?
+                case 178: // scroll down
+                	break; // FIXME PAGE_DOWN?
+                case 179: // kp left paren
+                	return KeyEvent.VK_LEFT_PARENTHESIS;
+                case 180: // kp right paren
+                	return KeyEvent.VK_RIGHT_PARENTHESIS;
+                case 181: // new
+                	break; // FIXME
+                case 182: // redo
+                	break; // FIXME
+                
+                case 183: // F13
+                	return KeyEvent.VK_F13;
+                case 184: // F14
+                	return KeyEvent.VK_F14;
+                case 185: // F15
+                	return KeyEvent.VK_F15;
+                case 186: // F16
+                	return KeyEvent.VK_F16;
+                case 187: // F17
+                	return KeyEvent.VK_F17;
+                case 188: // F18
+                	return KeyEvent.VK_F18;
+                case 189: // F19
+                	return KeyEvent.VK_F19;
+                case 190: // F20
+                	return KeyEvent.VK_F20;
+                case 191: // F21
+                	return KeyEvent.VK_F21;
+                case 192: // F22
+                	return KeyEvent.VK_F22;
+                case 193: // F23
+                	return KeyEvent.VK_F23;
+                case 194: // F24
+                	return KeyEvent.VK_F24;
+                	
+                case 200: // play cd
+                	break; // FIXME
+                case 201: // pause cd
+                	break; // FIXME
+                case 202: // prog 3
+                	break; // FIXME
+                case 203: // prog 4
+                	break; // FIXME
+                case 204: // dashboard
+                	break; // FIXME
+                case 205: // suspend
+                	break; // FIXME
+                case 206: // close
+                	break; // FIXME
+                case 207: // play
+                	break; // FIXME
+                case 208: // fast forward
+                	break; // FIXME
+                case 210: // print
+                	return KeyEvent.VK_PRINTSCREEN; // FIXME ?
+                case 211: // HP
+                	break; // FIXME
+                case 212: // camera
+                	break; // FIXME
+                case 213: // sound
+                	break; // FIXME
+                case 214: // question
+                	break; // FIXME
+                case 215: // email
+                	break; // FIXME
+                case 216: // chat
+                	break; // FIXME
+                case 217: // search
+                	break; // FIXME
+                case 218: // connect
+                	break; // FIXME
+                case 219: // finance
+                	break; // FIXME
+                case 220: // sport
+                	break; // FIXME
+                case 221: // shop
+                	break; // FIXME
+                case 222: // alt erase
+                	break; // FIXME
+                case 223: // cancel
+                	break; // FIXME
+                case 224: // brightness down
+                	break; // FIXME
+                case 225: // brightness up
+                	break; // FIXME
+                case 226: // media
+                	break; // FIXME
+                case 227: // switch video mode
+                	break; // FIXME
+                case 228: // kb dillum toggle
+                	break; // FIXME
+                case 229: // kb dillum down
+                	break; // FIXME
+                case 230: // kb dillum up
+                	break; // FIXME
+                case 231: // send
+                	break; // FIXME
+                case 232: // reply
+                	break; // FIXME
+                case 233: // forward mail
+                	break; // FIXME
+                case 234: // save
+                	break; // FIXME
+                case 235: // documents
+                	break; // FIXME
+                case 236: // battery
+                	break; // FIXME
+                case 237: // bluetooth
+                	break; // FIXME
+                case 238: // wlan
+                	break; // FIXME
+                case 239: // UWB
+                	break; // FIXME
+                case 240: // unknown
+                	return KeyEvent.VK_UNDEFINED; // FIXME ?
+                case 241: // video next
+                	break; // FIXME
+                case 242: // video prev
+                	break; // FIXME
+                case 243: // brightness cycle
+                	break; // FIXME
+                case 244: // brightness zero
+                	break; // FIXME
+                case 245: // display off
+                	break; // FIXME
+                case 246: // wimax
+                	break; // FIXME
+                case 247: // rf kill radio off
+                	break; // FIXME
+                case 248: // mic mute
+                	break; // FIXME
+
+                default:                    	
 			}
-
+			
+			if(Window.DEBUG_KEY_EVENT) {
+				System.out.println("LinuxEVKey2NewtVKey: Unmapped EVKey "+EVKey);
+			}					
 			return vkCode;
-		}
-
-		private boolean isLinuxEVKeyWithin(short eVKey, short min,
-				short max) {
-			if((eVKey>=min) && (eVKey<=max))
-				return true;
-			return false;
 		}
 	}    
 }
