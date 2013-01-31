@@ -365,90 +365,266 @@ public class LinuxEventDeviceTracker implements WindowListener {
 			return 0;
 		}
 
-		static final short KEY_F1 = 59;
-		static final short KEY_F10 = 68;
-		static final short KEY_1 = 2;
-		static final short KEY_0 = 1;
-
 		private int LinuxEVKey2NewtVKey(short EVKey) {
 			char vkCode = KeyEvent.VK_UNDEFINED;
 
-			// F1 - F10
-			if(isLinuxEVKeyWithin(EVKey, KEY_F1, KEY_F10))
-				return (EVKey-KEY_F1)+KeyEvent.VK_F1;
+			switch(EVKey) {
+                case 1: // ESC
+                    return KeyEvent.VK_ESCAPE;
+                case 2: // 1
+                    return KeyEvent.VK_1;
+                case 79: // Numpad 1
+                    return KeyEvent.VK_NUMPAD1;
+                case 3: // 2
+                    return KeyEvent.VK_2;
+                case 80: // Numpad 2
+                    return KeyEvent.VK_NUMPAD2;
+                case 4: // 3
+                    return KeyEvent.VK_3;
+                case 81: // Numpad 3
+                    return KeyEvent.VK_NUMPAD3;
+                case 5: // 4
+                    return KeyEvent.VK_4;
+                case 75: // Numpad 4
+                    return KeyEvent.VK_NUMPAD4;
+                case 6: // 5
+                    return KeyEvent.VK_5;
+                case 76: // Numpad 5
+                    return KeyEvent.VK_NUMPAD5;
+                case 7: // 6
+                    return KeyEvent.VK_6;
+                case 77: // Numpad 6
+                    return KeyEvent.VK_NUMPAD6;
+                case 8: // 7
+                    return KeyEvent.VK_7;
+                case 71: // Numpad 7
+                    return KeyEvent.VK_NUMPAD7;
+                case 9: // 8
+                    return KeyEvent.VK_8;
+                case 72: // Numpad 8
+                    return KeyEvent.VK_NUMPAD8;
+                case 10: // 9
+                    return KeyEvent.VK_9;
+                case 73: // Numpad 9
+                    return KeyEvent.VK_NUMPAD9;
+                case 11: // 0
+                    return KeyEvent.VK_0;
+                case 82: // Numpad 0
+                    return KeyEvent.VK_NUMPAD0;
+                case 12:
+                    return KeyEvent.VK_MINUS;
+                case 13:
+                    return KeyEvent.VK_EQUALS;
+                case 14: // Backspace
+                    return KeyEvent.VK_BACK_SPACE;
 
-			switch(EVKey){		    
-			case 103: // KEY_UP
-				return KeyEvent.VK_UP;
-			case 105: // KEY_LEFT
-				return KeyEvent.VK_LEFT;
-			case 106: // KEY_RIGHT
-				return KeyEvent.VK_RIGHT;
-			case 108: // KEY_DOWN
-				return KeyEvent.VK_DOWN;
+                case 15:
+                    return KeyEvent.VK_TAB;
+                case 16:
+                    return KeyEvent.VK_Q;
+                case 17: // w
+                    return KeyEvent.VK_W;
+                case 18:
+                    return KeyEvent.VK_E;
+                case 19:
+                    return KeyEvent.VK_R;
+                case 20:
+                    return KeyEvent.VK_T;
+                case 21:
+                    return KeyEvent.VK_Y;
+                case 22:
+                    return KeyEvent.VK_U;
+                case 23:
+                    return KeyEvent.VK_I;
+                case 24:
+                    return KeyEvent.VK_O;
+                case 25:
+                    return KeyEvent.VK_P;
+                case 26: // left brace
+                    return KeyEvent.VK_LEFT_PARENTHESIS;
+                case 27: // right brace
+                    return KeyEvent.VK_RIGHT_PARENTHESIS;
+                case 28: // Enter
+                case 96: // Keypad Enter
+                    return KeyEvent.VK_ENTER;
 
-			case 14: // Backspace
-				return KeyEvent.VK_BACK_SPACE;
-			case 111: // del
-				return KeyEvent.VK_DELETE;
+                case 29: // left ctrl
+                    return KeyEvent.VK_CONTROL;
+                case 30: // a
+                    return KeyEvent.VK_A;
+                case 31: // s
+                    return KeyEvent.VK_S;
+                case 32: // d
+                    return KeyEvent.VK_D;
+                case 33:
+                    return KeyEvent.VK_F;
+                case 34:
+                    return KeyEvent.VK_G;
+                case 35:
+                    return KeyEvent.VK_H;
+                case 36:
+                    return KeyEvent.VK_J;
+                case 37:
+                    return KeyEvent.VK_K;
+                case 38:
+                    return KeyEvent.VK_L;
+                case 39:
+                    return KeyEvent.VK_SEMICOLON;
+                case 40: // apostrophe
+                    return KeyEvent.VK_DEAD_ACUTE;
+                case 41: // grave
+                    return KeyEvent.VK_DEAD_GRAVE;
 
-			case 17: // w
-				return KeyEvent.VK_W;
-			case 31: // s
-				return KeyEvent.VK_S;
-			case 30: // a
-				return KeyEvent.VK_A;
-			case 32: // d
-				return KeyEvent.VK_D;
-			case 1: // ESC
-				return KeyEvent.VK_ESCAPE;
-			case 28: // Enter
-			case 96: // Keypad Enter
-				return KeyEvent.VK_ENTER;
-			case 57: // Space
-				return KeyEvent.VK_SPACE;
-			case 11: // 0
-				return KeyEvent.VK_0;
-			case 82: // Numpad 0
-				return KeyEvent.VK_NUMPAD0;
-			case 2: // 1
-				return KeyEvent.VK_1;
-			case 79: // Numpad 1
-				return KeyEvent.VK_NUMPAD1;
-			case 3: // 2
-				return KeyEvent.VK_2;
-			case 80: // Numpad 2
-				return KeyEvent.VK_NUMPAD2;
-			case 4: // 3
-				return KeyEvent.VK_3;
-			case 81: // Numpad 3
-				return KeyEvent.VK_NUMPAD3;
-			case 5: // 4
-				return KeyEvent.VK_4;
-			case 75: // Numpad 4
-				return KeyEvent.VK_NUMPAD4;
-			case 6: // 5
-				return KeyEvent.VK_5;
-			case 76: // Numpad 5
-				return KeyEvent.VK_NUMPAD5;
-			case 7: // 6
-				return KeyEvent.VK_6;
-			case 77: // Numpad 6
-				return KeyEvent.VK_NUMPAD6;
-			case 8: // 7
-				return KeyEvent.VK_7;
-			case 71: // Numpad 7
-				return KeyEvent.VK_NUMPAD7;
-			case 9: // 8
-				return KeyEvent.VK_8;
-			case 72: // Numpad 8
-				return KeyEvent.VK_NUMPAD8;
-			case 10: // 9
-				return KeyEvent.VK_9;
-			case 73: // Numpad 9
-				return KeyEvent.VK_NUMPAD9;
+                case 42: // left shift
+                    return KeyEvent.VK_SHIFT;
+                case 43:
+                    return KeyEvent.VK_BACK_SLASH;
+                case 44:
+                    return KeyEvent.VK_Z;
+                case 45:
+                    return KeyEvent.VK_X;
+                case 46:
+                    return KeyEvent.VK_C;
+                case 47:
+                    return KeyEvent.VK_V;
+                case 48:
+                    return KeyEvent.VK_B;
+                case 49:
+                    return KeyEvent.VK_N;
+                case 50:
+                    return KeyEvent.VK_M;
+                case 51:
+                    return KeyEvent.VK_COMMA;
+                case 52: // dot
+                    return KeyEvent.VK_PERIOD;
+                case 53:
+                    return KeyEvent.VK_SLASH;
+                case 54:
+                    return KeyEvent.VK_SHIFT;
+                case 55: // kp asterisk
+                    return KeyEvent.VK_ASTERISK;
+                case 56: // left alt
+                    return KeyEvent.VK_ALT;
+                case 57: // Space
+                    return KeyEvent.VK_SPACE;
+                case 58:
+                    return KeyEvent.VK_CAPS_LOCK;
 
-			default:
+                case 59:
+                    return KeyEvent.VK_F1;
+                case 60:
+                    return KeyEvent.VK_F2;
+                case 61:
+                    return KeyEvent.VK_F3;
+                case 62:
+                    return KeyEvent.VK_F4;
+                case 63:
+                    return KeyEvent.VK_F5;
+                case 64:
+                    return KeyEvent.VK_F6;
+                case 65:
+                    return KeyEvent.VK_F7;
+                case 66:
+                    return KeyEvent.VK_F8;
+                case 67:
+                    return KeyEvent.VK_F9;
+                case 68:
+                    return KeyEvent.VK_F10;
+
+                case 69:
+                    return KeyEvent.VK_NUM_LOCK;
+                case 70:
+                    return KeyEvent.VK_SCROLL_LOCK;
+
+                case 74: // kp minus
+                    return KeyEvent.VK_MINUS;
+                case 78: // kp plus
+                    return KeyEvent.VK_PLUS;
+                case 83: // kp dot
+                    return KeyEvent.VK_PERIOD;
+
+                // TODO: add mappings for japanese special buttons
+                case 85: // zenkakuhankaku
+                case 86: // 102nd
+                    return 0; // FIXME
+
+                case 87:
+                    return KeyEvent.VK_F11;
+                case 88:
+                    return KeyEvent.VK_F12;
+
+                case 89: // ro
+                    return KeyEvent.VK_ROMAN_CHARACTERS;
+                case 90: // Katakana
+                    return KeyEvent.VK_KATAKANA;
+                case 91:
+                    return KeyEvent.VK_HIRAGANA;
+
+                case 92: // kenkan
+                    return 0; // FIXME
+                case 93: // katakana hiragana
+                    return 0; // FIXME
+                case 94: // mu henkan
+                    return 0; // FIXME
+                case 95: // kp jp comma
+                    return 0; // FIXME
+
+                case 97: // right ctrl
+                    return KeyEvent.VK_CONTROL;
+                case 98: // kp slash
+                    return KeyEvent.VK_SLASH;
+
+                case 99: // sysrq
+                    return 0; // FIXME
+
+                case 100: // right alt
+                    return KeyEvent.VK_ALT;
+                case 101: // linefeed
+                    return 0; // FIXME
+                case 102: // home
+                    return KeyEvent.VK_HOME;
+                case 103: // KEY_UP
+                    return KeyEvent.VK_UP;
+                case 104:
+                    return KeyEvent.VK_PAGE_UP;
+                case 105: // KEY_LEFT
+                    return KeyEvent.VK_LEFT;
+                case 106: // KEY_RIGHT
+                    return KeyEvent.VK_RIGHT;
+                case 107:
+                    return KeyEvent.VK_END;
+                case 108: // KEY_DOWN
+                    return KeyEvent.VK_DOWN;
+                case 109:
+                    return KeyEvent.VK_PAGE_DOWN;
+                case 110:
+                    return KeyEvent.VK_INSERT;
+                case 111: // del
+                    return KeyEvent.VK_DELETE;
+
+                case 112: // macro
+                    return 0; //FIXME DEAD_MACRON?
+                case 113: // mute
+                    return 0; //FIXME
+                case 114: // vol up
+                    return 0; //FIXME
+                case 115: // vol down
+                    return 0; //FIXME
+                case 116: // power
+                    return 0; //FIXME
+
+                case 117: // kp equals
+                    return KeyEvent.VK_EQUALS;
+                case 118: // kp plus minux
+                    return 0; // FIXME
+                case 119: // pause
+                    return KeyEvent.VK_PAUSE;
+                case 120: // scale AL compiz scale expose
+                    return 0;
+                case 121: // kp comma
+                    return KeyEvent.VK_COMMA;
+
+                default:
 				//System.out.println("LinuxEVKey2NewtVKey: Unmapped EVKey "+EVKey);	
 			}
 
