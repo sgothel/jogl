@@ -30,14 +30,14 @@ if [ -z "$NDK_ROOT" ] ; then
     elif [ -e /opt/android-ndk ] ; then
         NDK_ROOT=/opt/android-ndk
     #
-    # Specific android-ndk-r7b
+    # Specific android-ndk-r8d
     #
-    elif [ -e /usr/local/android-ndk-r7b ] ; then
-        NDK_ROOT=/usr/local/android-ndk-r7b
-    elif [ -e /opt-linux-x86/android-ndk-r7b ] ; then
-        NDK_ROOT=/opt-linux-x86/android-ndk-r7b
-    elif [ -e /opt/android-ndk-r7b ] ; then
-        NDK_ROOT=/opt/android-ndk-r7b
+    elif [ -e /usr/local/android-ndk-r8d ] ; then
+        NDK_ROOT=/usr/local/android-ndk-r8d
+    elif [ -e /opt-linux-x86/android-ndk-r8d ] ; then
+        NDK_ROOT=/opt-linux-x86/android-ndk-r8d
+    elif [ -e /opt/android-ndk-r8d ] ; then
+        NDK_ROOT=/opt/android-ndk-r8d
     else 
         echo NDK_ROOT is not specified and does not exist in default locations
         exit 1
@@ -70,7 +70,8 @@ export SOURCE_LEVEL=1.6
 export TARGET_LEVEL=1.6
 export TARGET_RT_JAR=/opt-share/jre1.6.0_30/lib/rt.jar
 
-export GCC_VERSION=4.4.3
+#export GCC_VERSION=4.4.3
+export GCC_VERSION=4.7
 HOST_ARCH=linux-x86
 export TARGET_TRIPLE=arm-linux-androideabi
 
