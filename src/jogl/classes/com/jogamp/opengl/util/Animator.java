@@ -307,7 +307,7 @@ public class Animator extends AnimatorBase {
     private final Condition waitForPausedCondition = new Condition() {
         public boolean eval() {
             // end waiting if stopped as well
-            return isAnimating && isStartedImpl();
+            return isStartedImpl() && isAnimating;
         } };
 
     public synchronized boolean resume() {
@@ -320,6 +320,6 @@ public class Animator extends AnimatorBase {
     private final Condition waitForResumeCondition = new Condition() {
         public boolean eval() {
             // end waiting if stopped as well
-            return !drawablesEmpty && !isAnimating && isStartedImpl();
+            return isStartedImpl() && ( !drawablesEmpty && !isAnimating || drawablesEmpty && !pauseIssued ) ;
         } };
 }

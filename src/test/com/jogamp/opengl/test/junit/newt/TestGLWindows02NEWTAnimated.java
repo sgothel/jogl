@@ -132,7 +132,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         
         animator.remove(window);
         Assert.assertEquals(false, animator.isAnimating());
-        Assert.assertEquals(false, animator.isPaused());
+        Assert.assertEquals(true, animator.isPaused()); // zero drawables
         Assert.assertEquals(true, animator.isStarted());
         Assert.assertTrue(animator.stop());
     }
@@ -142,21 +142,24 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         GLWindow window = createWindow(null, caps, width, height, true /* onscreen */, false /* undecorated */, true /* vsync */);
-        Animator animator = new Animator(window);
+        Animator animator = new Animator();
         animator.setUpdateFPSFrames(1, null);        
         Assert.assertTrue(animator.start());
+        Assert.assertEquals(false, animator.isAnimating()); // zero drawables
+        Assert.assertEquals(true, animator.isPaused()); // zero drawables
+        animator.add(window);
         while(animator.isAnimating() && animator.getTotalFPSDuration()<durationPerTest) {
             Thread.sleep(100);
         }
         destroyWindow(window);
         destroyWindow(window);
         Assert.assertEquals(true, animator.isAnimating());
-        Assert.assertEquals(false, animator.isPaused());
         Assert.assertEquals(true, animator.isStarted());
+        Assert.assertEquals(false, animator.isPaused());
         animator.remove(window);
         Assert.assertEquals(false, animator.isAnimating());
-        Assert.assertEquals(false, animator.isPaused());
         Assert.assertEquals(true, animator.isStarted());
+        Assert.assertEquals(true, animator.isPaused()); // zero drawables
         Assert.assertTrue(animator.stop());
     }
 
@@ -181,13 +184,13 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Animator animator = new Animator();
         animator.setUpdateFPSFrames(1, null);        
         Assert.assertEquals(false, animator.isStarted());
-        Assert.assertEquals(false, animator.isAnimating());
-        Assert.assertEquals(false, animator.isPaused());
+        Assert.assertEquals(false, animator.isAnimating()); // zero drawables
+        Assert.assertEquals(false, animator.isPaused()); // zero drawables, but not started
 
         Assert.assertTrue(animator.start());
         Assert.assertEquals(true, animator.isStarted());
-        Assert.assertEquals(false, animator.isAnimating());
-        Assert.assertEquals(false, animator.isPaused());
+        Assert.assertEquals(false, animator.isAnimating()); // zero drawables
+        Assert.assertEquals(true, animator.isPaused()); // zero drawables
 
         animator.add(window1);
         Assert.assertEquals(true, animator.isStarted());
@@ -214,8 +217,8 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         window2.destroy();
         animator.remove(window2);
         Assert.assertEquals(true, animator.isStarted());
-        Assert.assertEquals(false, animator.isAnimating());
-        Assert.assertEquals(false, animator.isPaused());
+        Assert.assertEquals(false, animator.isAnimating()); // zero drawables
+        Assert.assertEquals(true, animator.isPaused()); // zero drawables
         Assert.assertTrue(animator.stop());
     }
 
@@ -250,8 +253,8 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
 
         Assert.assertTrue(animator.start());
         Assert.assertEquals(true, animator.isStarted());
-        Assert.assertEquals(false, animator.isAnimating());
-        Assert.assertEquals(false, animator.isPaused());
+        Assert.assertEquals(false, animator.isAnimating()); // zero drawables
+        Assert.assertEquals(true, animator.isPaused()); // zero drawables
 
         animator.add(window1);
         Assert.assertEquals(true, animator.isStarted());
@@ -275,21 +278,28 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         while(animator.isAnimating() && animator.getTotalFPSDuration()<durationPerTest+durationPerTest/10) {
             Thread.sleep(100);
         }
-        destroyWindow(window2);
-        animator.remove(window2);
-        Assert.assertEquals(true, animator.isStarted());
-        Assert.assertEquals(false, animator.isAnimating());
+        
+        Assert.assertEquals(true, animator.isStarted());                
+        Assert.assertEquals(true, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());
-
+        
         Assert.assertEquals(true, animator.pause());
+        
         Assert.assertEquals(true, animator.isStarted());                
         Assert.assertEquals(false, animator.isAnimating());
         Assert.assertEquals(true, animator.isPaused());
 
         Assert.assertEquals(true, animator.resume());
+        
         Assert.assertEquals(true, animator.isStarted());
-        Assert.assertEquals(false, animator.isAnimating());
+        Assert.assertEquals(true, animator.isAnimating());
         Assert.assertEquals(false, animator.isPaused());
+        
+        destroyWindow(window2);
+        animator.remove(window2);
+        Assert.assertEquals(true, animator.isStarted());
+        Assert.assertEquals(false, animator.isAnimating()); // zero drawables
+        Assert.assertEquals(true, animator.isPaused()); // zero drawables
 
         Assert.assertTrue(animator.stop());
         Assert.assertEquals(false, animator.isStarted());
