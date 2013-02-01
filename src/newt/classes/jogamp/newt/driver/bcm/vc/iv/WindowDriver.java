@@ -37,6 +37,7 @@ import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 
 import jogamp.newt.WindowImpl;
+import jogamp.newt.driver.linux.LinuxEventDeviceTracker;
 import jogamp.newt.driver.linux.LinuxMouseTracker;
 
 public class WindowDriver extends WindowImpl {
@@ -76,11 +77,13 @@ public class WindowDriver extends WindowImpl {
         }
         windowHandleClose = nativeWindowHandle;
         addWindowListener(LinuxMouseTracker.getSingleton());
+        addWindowListener(LinuxEventDeviceTracker.getSingleton());
         focusChanged(false, true);        
     }
 
     protected void closeNativeImpl() {
         removeWindowListener(LinuxMouseTracker.getSingleton());
+        removeWindowListener(LinuxEventDeviceTracker.getSingleton());
         
         if(0!=windowHandleClose) {
             CloseWindow(windowHandleClose, windowUserData);
