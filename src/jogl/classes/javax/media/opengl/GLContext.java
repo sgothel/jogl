@@ -442,7 +442,7 @@ public abstract class GLContext {
    * new GLContext implementations; not for use by end users.
    */
   protected static void setCurrent(GLContext cur) {
-    if(TRACE_SWITCH) {
+    if( TRACE_SWITCH ) {
        if(null == cur) {
            System.err.println(getThreadName()+": GLContext.ContextSwitch: - setCurrent() - NULL");
        } else {

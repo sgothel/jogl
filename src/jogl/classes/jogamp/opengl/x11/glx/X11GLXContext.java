@@ -166,7 +166,7 @@ public abstract class X11GLXContext extends GLContextImpl {
             throw new InternalError("Given readDrawable but no driver support");
         }
     } catch (RuntimeException re) {
-        if(DEBUG_TRACE_SWITCH) {
+        if( DEBUG_TRACE_SWITCH ) {
           System.err.println(getThreadName()+": Warning: X11GLXContext.glXMakeContextCurrent failed: "+re+", with "+
             "dpy "+toHexString(dpy)+
             ", write "+toHexString(writeDrawable)+
