@@ -94,11 +94,7 @@ public class AWTThreadingPlugin implements ToolkitThreadingPlugin {
         // QFT which is not allowed. For now, on X11 platforms,
         // continue to perform this work on the EDT.
         if (wait && Java2D.isOGLPipelineActive() && !ThreadingImpl.isX11()) {
-          if(wait) {
-              Java2D.invokeWithOGLContextCurrent(null, r);
-          } else {
-              
-          }
+          Java2D.invokeWithOGLContextCurrent(null, r);
         } else {
           AWTEDTExecutor.singleton.invoke(wait, r);
         }

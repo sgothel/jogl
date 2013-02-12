@@ -152,9 +152,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   // Used by all backends either directly or indirectly to hook up callbacks
   private Updater updater = new Updater();
 
-  // Indicates whether the Java 2D OpenGL pipeline is enabled
-  private boolean oglPipelineEnabled =
-    Java2D.isOGLPipelineActive() &&
+  // Indicates whether the Java 2D OpenGL pipeline is enabled and resource-compatible
+  private boolean oglPipelineUsable =
+    Java2D.isOGLPipelineResourceCompatible() &&
     !Debug.isPropertyDefined("jogl.gljpanel.noogl", true);
 
   // For handling reshape events lazily
@@ -180,7 +180,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     // Force eager initialization of part of the Java2D class since
     // otherwise it's likely it will try to be initialized while on
     // the Queue Flusher Thread, which is not allowed
-    if (Java2D.isOGLPipelineActive() && Java2D.isFBOEnabled()) {
+    if (Java2D.isOGLPipelineResourceCompatible() && Java2D.isFBOEnabled()) {
       Java2D.getShareContext(GraphicsEnvironment.
                              getLocalGraphicsEnvironment().
                              getDefaultScreenDevice());
@@ -608,7 +608,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       to perform OpenGL rendering using the GLJPanel into the same
       OpenGL drawable as the Swing implementation uses. */
   public boolean shouldPreserveColorBufferIfTranslucent() {
-    return oglPipelineEnabled;
+    return oglPipelineUsable;
   }
 
   @Override
@@ -662,7 +662,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     }
 
     if ( null == backend ) {
-        if (oglPipelineEnabled) {
+        if (oglPipelineUsable) {
             backend = new J2DOGLBackend();
         } else {
             backend = new OffscreenBackend();
@@ -1560,7 +1560,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                 }
                 isInitialized = false;
                 backend = null;
-                oglPipelineEnabled = false;
+                oglPipelineUsable = false;
                 handleReshape = true;
                 j2dContext.destroy();
                 j2dContext = null;
