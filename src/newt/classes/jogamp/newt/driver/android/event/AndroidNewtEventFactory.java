@@ -192,13 +192,13 @@ public class AndroidNewtEventFactory {
                 final int newtMods = aKeyModifiers2Newt(event.getMetaState());
                 
                 final com.jogamp.newt.event.KeyEvent ke1 = new com.jogamp.newt.event.KeyEvent(
-                                    type, src, unixTime, newtMods, newtKeyCode, event.getDisplayLabel());
+                                    type, src, unixTime, newtMods, newtKeyCode, (char) event.getUnicodeChar());
                 
                 if( com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED == type ) {
                     return new com.jogamp.newt.event.KeyEvent[] { ke1,
                             new com.jogamp.newt.event.KeyEvent(
                                     com.jogamp.newt.event.KeyEvent.EVENT_KEY_TYPED,
-                                    src, unixTime, newtMods, newtKeyCode, event.getDisplayLabel()) };
+                                    src, unixTime, newtMods, newtKeyCode, (char) event.getUnicodeChar()) };
                 } else {
                     return new com.jogamp.newt.event.KeyEvent[] { ke1 };
                 }
