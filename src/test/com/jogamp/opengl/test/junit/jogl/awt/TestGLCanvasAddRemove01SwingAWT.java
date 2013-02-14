@@ -1,0 +1,257 @@
+/**
+ * Copyright 2010 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
+ 
+package com.jogamp.opengl.test.junit.jogl.awt;
+
+import java.awt.AWTException;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
+
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.awt.GLCanvas;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.util.UITestCase;
+
+public class TestGLCanvasAddRemove01SwingAWT extends UITestCase {
+    static long durationPerTest = 50;
+    static int addRemoveCount = 15;
+    static boolean shallUseOffscreenFBOLayer = false;
+    static boolean shallUseOffscreenPBufferLayer = false;
+    static GLProfile glp;
+    static int width, height;
+    static boolean waitForKey = false;
+
+    @BeforeClass
+    public static void initClass() {
+        if(GLProfile.isAvailable(GLProfile.GL2)) {
+            glp = GLProfile.get(GLProfile.GL2);
+            Assert.assertNotNull(glp);
+            width  = 640;
+            height = 480;
+        } else {
+            setTestSupported(false);
+        }
+    }
+
+    @AfterClass
+    public static void releaseClass() {
+    }
+    
+    protected JPanel createParkingSlot(final JFrame[] top, final int width, final int height) 
+            throws InterruptedException, InvocationTargetException 
+    {
+        final JPanel[] jPanel = new JPanel[] { null };
+        SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    jPanel[0] = new JPanel();
+                    jPanel[0].setLayout(new BorderLayout());
+            
+                    final JFrame jFrame1 = new JFrame("Parking Slot");
+                    // jFrame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                    jFrame1.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
+                    jFrame1.getContentPane().add(jPanel[0]);
+                    jFrame1.setSize(width, height);
+                    
+                    top[0] = jFrame1;
+                } } );
+        return jPanel[0];        
+    }
+    
+    protected JPanel create(final JFrame[] top, final int width, final int height, final int num) 
+            throws InterruptedException, InvocationTargetException 
+    {
+        final JPanel[] jPanel = new JPanel[] { null };
+        SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    jPanel[0] = new JPanel();
+                    jPanel[0].setLayout(new BorderLayout());
+                    // jPanel[0].add(glcContainer[0], BorderLayout.CENTER);
+                    
+                    // final Container container2 = new Container();
+                    // container2.setLayout(new BorderLayout());
+                    // container2.add(jPanel1, BorderLayout.CENTER);
+            
+                    final JPanel jPanel2 = new JPanel();
+                    jPanel2.setLayout(new BorderLayout());
+                    // jPanel2.add(container2, BorderLayout.CENTER);
+                    jPanel2.add(jPanel[0], BorderLayout.CENTER);
+                    
+                    final JFrame jFrame1 = new JFrame("JFrame #"+num);
+                    // jFrame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                    jFrame1.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
+                    jFrame1.getContentPane().add(jPanel2);
+                    jFrame1.setSize(width, height);
+                    
+                    top[0] = jFrame1;
+                } } );
+        return jPanel[0];        
+    }
+
+    protected void add(final Container cont, final Component comp) 
+            throws InterruptedException, InvocationTargetException 
+    {
+        SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    cont.add(comp, BorderLayout.CENTER);                    
+                } } );
+    }
+    
+    protected void remove(final Container cont, final Component comp) 
+            throws InterruptedException, InvocationTargetException 
+    {
+        SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    cont.remove(comp);                    
+                } } );
+    }
+    protected void dispose(final GLCanvas glc) 
+            throws InterruptedException, InvocationTargetException 
+    {
+        SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    glc.destroy();                    
+                } } );
+    }
+    
+    protected void setVisible(final JFrame jFrame, final boolean visible) throws InterruptedException, InvocationTargetException {
+        SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    if( visible ) {
+                        jFrame.validate();
+                        jFrame.pack();
+                    }
+                    jFrame.setVisible(visible);
+                } } ) ;        
+    }
+    
+    protected void dispose(final JFrame jFrame) throws InterruptedException, InvocationTargetException {
+        SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    jFrame.dispose();
+                } } ) ;        
+    }
+    
+    protected void runTestGL(GLCapabilities caps, int addRemoveOpCount)
+            throws AWTException, InterruptedException, InvocationTargetException
+    {
+
+        // final JFrame[] parkingFrame = new JFrame[] { null };
+        // final JPanel parkingPanel = createParkingSlot(parkingFrame, 2, 2);
+        
+        for(int i=0; i<addRemoveOpCount; i++) {
+            final GLCanvas glc = new GLCanvas(caps);
+            Assert.assertNotNull(glc);
+            Dimension glc_sz = new Dimension(width, height);
+            glc.setMinimumSize(glc_sz);
+            glc.setPreferredSize(glc_sz);
+            glc.setSize(glc_sz);
+            glc.addGLEventListener(new Gears());
+            glc.setAutoSwapBufferMode(false);
+            // add(parkingPanel, glc);
+            // remove(parkingPanel, glc);
+            
+            final JFrame[] top = new JFrame[] { null };
+            final Container glcCont = create(top, width, height, i);
+            add(glcCont, glc);
+            
+            setVisible(top[0], true);
+                        
+            final long t0 = System.currentTimeMillis();
+            do {
+                glc.display();
+                glc.swapBuffers();
+                Thread.sleep(10);
+            } while ( ( System.currentTimeMillis() - t0 ) < durationPerTest ) ;
+            
+            System.err.println("GLCanvas isOffscreenLayerSurfaceEnabled: "+glc.isOffscreenLayerSurfaceEnabled()+": "+glc.getChosenGLCapabilities());
+            
+            // glc.destroy();
+            dispose(top[0]);            
+        }        
+    }
+
+    @Test
+    public void test01()
+            throws AWTException, InterruptedException, InvocationTargetException
+    {
+        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        if(shallUseOffscreenFBOLayer) {
+            caps.setOnscreen(false);
+        }
+        if(shallUseOffscreenPBufferLayer) {
+            caps.setPBuffer(true);
+        }
+        runTestGL(caps, addRemoveCount);
+    }
+
+    public static void main(String args[]) throws IOException {
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-time")) {
+                i++;
+                try {
+                    durationPerTest = Integer.parseInt(args[i]);
+                } catch (Exception ex) { ex.printStackTrace(); }
+            } else if(args[i].equals("-loops")) {
+                i++;
+                try {
+                    addRemoveCount = Integer.parseInt(args[i]);
+                } catch (Exception ex) { ex.printStackTrace(); }
+            } else if(args[i].equals("-layeredFBO")) {
+                shallUseOffscreenFBOLayer = true;
+            } else if(args[i].equals("-layeredPBuffer")) {
+                shallUseOffscreenPBufferLayer = true;
+            } else if(args[i].equals("-wait")) {
+                waitForKey = true;
+            }            
+        }
+        System.err.println("shallUseOffscreenFBOLayer     "+shallUseOffscreenFBOLayer);
+        System.err.println("shallUseOffscreenPBufferLayer "+shallUseOffscreenPBufferLayer);
+        if(waitForKey) {
+            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+            System.err.println("Press enter to continue");
+            System.err.println(stdin.readLine());
+        }
+        org.junit.runner.JUnitCore.main(TestGLCanvasAddRemove01SwingAWT.class.getName());
+    }
+}

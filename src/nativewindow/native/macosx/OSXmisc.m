@@ -49,6 +49,16 @@
     #define DBG_PRINT(...)
 #endif
 
+// #define VERBOSE2 1
+//
+#ifdef VERBOSE2
+    #define DBG_PRINT2(...) fprintf(stderr, __VA_ARGS__); fflush(stderr)
+#else
+    #define DBG_PRINT2(...)
+#endif
+
+// #define DBG_LIFECYCLE 1
+
 static const char * const ClazzNameRunnable = "java/lang/Runnable";
 static jmethodID runnableRunID = NULL;
 
@@ -324,7 +334,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
     CALayer* layer = [[CALayer alloc] init];
-    DBG_PRINT("CALayer::CreateCALayer.0: %p %d/%d %dx%d (refcnt %d)\n", layer, (int)x, (int)y, (int)width, (int)height, (int)[layer retainCount]);
+    DBG_PRINT("CALayer::CreateCALayer.0: root %p %d/%d %dx%d (refcnt %d)\n", layer, (int)x, (int)y, (int)width, (int)height, (int)[layer retainCount]);
     // avoid zero size
     if(0 == width) { width = 32; }
     if(0 == height) { height = 32; }
@@ -341,8 +351,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
     [layer removeAllAnimations];
     [layer setAutoresizingMask: (kCALayerWidthSizable|kCALayerHeightSizable)];
     [layer setNeedsDisplayOnBoundsChange: YES];
-    DBG_PRINT("CALayer::CreateCALayer.1: %p %lf/%lf %lfx%lf\n", layer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
-    DBG_PRINT("CALayer::CreateCALayer.X: %p (refcnt %d)\n", layer, (int)[layer retainCount]);
+    DBG_PRINT("CALayer::CreateCALayer.1: root %p %lf/%lf %lfx%lf\n", layer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+    DBG_PRINT("CALayer::CreateCALayer.X: root %p (refcnt %d)\n", layer, (int)[layer retainCount]);
 
     [pool release];
 
@@ -367,30 +377,28 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
     if(lRectRoot.origin.x!=0 || lRectRoot.origin.y!=0) {
         lRectRoot.origin.x = 0;
         lRectRoot.origin.y = 0;
-        [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
-            [rootLayer setFrame: lRectRoot];
-        }];
+        [rootLayer setFrame: lRectRoot];
         DBG_PRINT("CALayer::AddCASublayer0.1: Origin %p frame*: %lf/%lf %lfx%lf\n", 
             rootLayer, lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height);
     }
-    DBG_PRINT("CALayer::AddCASublayer0.2: %p . %p %lf/%lf %lfx%lf (refcnt %d)\n", 
-        rootLayer, subLayer, lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height, (int)[subLayer retainCount]);
+    DBG_PRINT("CALayer::AddCASublayer0.2: root %p (refcnt %d) .sub %p %lf/%lf %lfx%lf (refcnt %d)\n", 
+        rootLayer, (int)[rootLayer retainCount],
+        subLayer, lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height, (int)[subLayer retainCount]);
 
-    [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
-        // simple 1:1 layout !
-        [subLayer setFrame:lRectRoot];
-        [rootLayer addSublayer:subLayer];
+    // simple 1:1 layout !
+    [subLayer setFrame:lRectRoot];
+    [rootLayer addSublayer:subLayer];
 
-        // no animations for add/remove/swap sublayers etc 
-        // doesn't work: [layer removeAnimationForKey: kCAOnOrderIn, kCAOnOrderOut, kCATransition]
-        [rootLayer removeAllAnimations];
-        [rootLayer setAutoresizingMask: (kCALayerWidthSizable|kCALayerHeightSizable)];
-        [rootLayer setNeedsDisplayOnBoundsChange: YES];
-        [subLayer removeAllAnimations];
-        [subLayer setAutoresizingMask: (kCALayerWidthSizable|kCALayerHeightSizable)];
-        [subLayer setNeedsDisplayOnBoundsChange: YES];
-    }];
-    DBG_PRINT("CALayer::AddCASublayer0.X: %p . %p (refcnt %d)\n", rootLayer, subLayer, (int)[subLayer retainCount]);
+    // no animations for add/remove/swap sublayers etc 
+    // doesn't work: [layer removeAnimationForKey: kCAOnOrderIn, kCAOnOrderOut, kCATransition]
+    [rootLayer removeAllAnimations];
+    [rootLayer setAutoresizingMask: (kCALayerWidthSizable|kCALayerHeightSizable)];
+    [rootLayer setNeedsDisplayOnBoundsChange: YES];
+    [subLayer removeAllAnimations];
+    [subLayer setAutoresizingMask: (kCALayerWidthSizable|kCALayerHeightSizable)];
+    [subLayer setNeedsDisplayOnBoundsChange: YES];
+    DBG_PRINT("CALayer::AddCASublayer0.X: root %p (refcnt %d) .sub %p (refcnt %d)\n", 
+        rootLayer, (int)[rootLayer retainCount], subLayer, (int)[subLayer retainCount]);
     JNF_COCOA_EXIT(env);
 }
 
@@ -408,11 +416,12 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RemoveCASublayer0
 
     (void)rootLayer; // no warnings
 
-    DBG_PRINT("CALayer::RemoveCASublayer0.0: %p . %p (refcnt %d)\n", rootLayer, subLayer, (int)[subLayer retainCount]);
-    [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
-        [subLayer removeFromSuperlayer];
-    }];
-    DBG_PRINT("CALayer::RemoveCASublayer0.X: %p . %p\n", rootLayer, subLayer);
+    DBG_PRINT("CALayer::RemoveCASublayer0.0: root %p (refcnt %d) .sub %p (refcnt %d)\n", 
+        rootLayer, (int)[rootLayer retainCount], subLayer, (int)[subLayer retainCount]);
+    [subLayer removeFromSuperlayer];
+    [subLayer release];
+    DBG_PRINT("CALayer::RemoveCASublayer0.X: root %p (refcnt %d) .sub %p (refcnt %d)\n", 
+        rootLayer, (int)[rootLayer retainCount], subLayer, (int)[subLayer retainCount]);
     JNF_COCOA_EXIT(env);
 }
 
@@ -427,11 +436,10 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyCALayer0
     JNF_COCOA_ENTER(env);
     CALayer* layer = (CALayer*) ((intptr_t) caLayer);
 
-    DBG_PRINT("CALayer::DestroyCALayer0.0: %p (refcnt %d)\n", layer, (int)[layer retainCount]);
-    [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
-        [layer release]; // performs release!
-    }];
-    DBG_PRINT("CALayer::DestroyCALayer0.X: %p\n", layer);
+    DBG_PRINT("CALayer::DestroyCALayer0.0: root %p (refcnt %d)\n", layer, (int)[layer retainCount]);
+    [layer release]; // Var.A
+    // [layer dealloc]; // Var.B -> SIGSEGV
+    DBG_PRINT("CALayer::DestroyCALayer0.X: root %p\n", layer);
     JNF_COCOA_EXIT(env);
 }
 
@@ -450,12 +458,10 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
         return JNI_FALSE;
     }
     CALayer* layer = (CALayer*) (intptr_t) caLayer;
-    [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
-        id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
-        DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.0: %p -> %p (refcnt %d)\n", surfaceLayers.layer, layer, (int)[layer retainCount]);
-        surfaceLayers.layer = layer; // already incr. retain count
-        DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.X: %p (refcnt %d)\n", layer, (int)[layer retainCount]);
-    }];
+    id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
+    DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.0: pre %p -> root %p (refcnt %d)\n", surfaceLayers.layer, layer, (int)[layer retainCount]);
+    surfaceLayers.layer = layer; // already incr. retain count
+    DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.X: root %p (refcnt %d)\n", layer, (int)[layer retainCount]);
     JNF_COCOA_EXIT(env);
     return JNI_TRUE;
 }
@@ -464,6 +470,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
  * Class:     Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
  * Method:    UnsetJAWTRootSurfaceLayer0
  * Signature: (JJ)Z
+ */
 JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_UnsetJAWTRootSurfaceLayer0
   (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
 {
@@ -474,23 +481,18 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
         return JNI_FALSE;
     }
     CALayer* layer = (CALayer*) (intptr_t) caLayer;
-    {
-        id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
-        if(layer != surfaceLayers.layer) {
-            NativewindowCommon_throwNewRuntimeException(env, "Attached layer %p doesn't match given layer %p\n", surfaceLayers.layer, layer);
-            return JNI_FALSE;
-        }
+    id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
+    if(layer != surfaceLayers.layer) {
+        NativewindowCommon_throwNewRuntimeException(env, "Attached layer %p doesn't match given layer %p\n", surfaceLayers.layer, layer);
+        return JNI_FALSE;
     }
-    // [JNFRunLoop performOnMainThreadWaiting:YES withBlock:^(){
-        id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
-        DBG_PRINT("CALayer::detachJAWTSurfaceLayer: (%p) %p -> NULL\n", layer, surfaceLayers.layer);
-        surfaceLayers.layer = NULL;
-        [layer release];
-    // }];
+    DBG_PRINT("CALayer::UnsetJAWTRootSurfaceLayer.0: root %p (refcnt %d) -> nil\n", layer, (int)[layer retainCount]);
+    surfaceLayers.layer = NULL;
+    [layer release]; // Var.A
+    DBG_PRINT("CALayer::UnsetJAWTRootSurfaceLayer.X: root %p (refcnt %d) -> nil\n", layer, (int)[layer retainCount]);
     JNF_COCOA_EXIT(env);
     return JNI_TRUE;
 }
- */
 
 @interface MainRunnable : NSObject
 
@@ -502,6 +504,13 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
 
 - (id) initWithRunnable: (jobject)runnable jvmHandle: (JavaVM*)jvm jvmVersion: (int)jvmVers;
 - (void) jRun;
+
+#ifdef DBG_LIFECYCLE
+- (id)retain;
+- (oneway void)release;
+- (void)dealloc;
+#endif
+
 
 @end
 
@@ -519,19 +528,46 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
 {
     int shallBeDetached = 0;
     JNIEnv* env = NativewindowCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
-    DBG_PRINT("MainRunnable.0 env: %d\n", (int)(NULL!=env));
+    DBG_PRINT2("MainRunnable.1 env: %d\n", (int)(NULL!=env));
     if(NULL!=env) {
-        DBG_PRINT("MainRunnable.1.0\n");
+        DBG_PRINT2("MainRunnable.1.0\n");
         (*env)->CallVoidMethod(env, runnableObj, runnableRunID);
-        DBG_PRINT("MainRunnable.1.1\n");
+        DBG_PRINT2("MainRunnable.1.1\n");
+        (*env)->DeleteGlobalRef(env, runnableObj);
 
         if (shallBeDetached) {
-            DBG_PRINT("MainRunnable.1.2\n");
+            DBG_PRINT2("MainRunnable.1.3\n");
             (*jvmHandle)->DetachCurrentThread(jvmHandle);
         }
     }
-    DBG_PRINT("MainRunnable.X\n");
+    DBG_PRINT2("MainRunnable.X\n");
 }
+
+#ifdef DBG_LIFECYCLE
+
+- (id)retain
+{
+    DBG_PRINT2("MainRunnable::retain.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
+    id o = [super retain];
+    DBG_PRINT2("MainRunnable::retain.X: %p (refcnt %d)\n", o, (int)[o retainCount]);
+    return o;
+}
+
+- (oneway void)release
+{
+    DBG_PRINT2("MainRunnable::release.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
+    [super release];
+    // DBG_PRINT2("MainRunnable::release.X: %p (refcnt %d)\n", self, (int)[self retainCount]);
+}
+
+- (void)dealloc
+{
+    DBG_PRINT2("MainRunnable::dealloc.0 %p (refcnt %d)\n", self, (int)[self retainCount]);
+    [super dealloc];
+    // DBG_PRINT2("MainRunnable.dealloc.X: %p\n", self);
+}
+
+#endif
 
 @end
 
@@ -546,11 +582,11 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RunOnMainThread0
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    DBG_PRINT( "RunOnMainThread0: isMainThread %d, NSApp %d, NSApp-isRunning %d\n", 
+    DBG_PRINT2( "RunOnMainThread0: isMainThread %d, NSApp %d, NSApp-isRunning %d\n", 
         (int)([NSThread isMainThread]), (int)(NULL!=NSApp), (int)([NSApp isRunning]));
 
     if ( NO == [NSThread isMainThread] ) {
-        jobject runnableGlob = (*env)->NewGlobalRef(env, runnable);
+        jobject runnableObj = (*env)->NewGlobalRef(env, runnable);
 
         JavaVM *jvmHandle = NULL;
         int jvmVersion = 0;
@@ -561,18 +597,18 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RunOnMainThread0
             jvmVersion = (*env)->GetVersion(env);
         }
 
-        DBG_PRINT( "RunOnMainThread0.1.0\n");
-        MainRunnable * mr = [[MainRunnable alloc] initWithRunnable: runnableGlob jvmHandle: jvmHandle jvmVersion: jvmVersion];
+        DBG_PRINT2( "RunOnMainThread0.1.0\n");
+        MainRunnable * mr = [[MainRunnable alloc] initWithRunnable: runnableObj jvmHandle: jvmHandle jvmVersion: jvmVersion];
         [mr performSelectorOnMainThread:@selector(jRun) withObject:nil waitUntilDone:NO];
+        DBG_PRINT2( "RunOnMainThread0.1.1\n");
         [mr release];
-        DBG_PRINT( "RunOnMainThread0.1.1\n");
+        DBG_PRINT2( "RunOnMainThread0.1.2\n");
 
-        (*env)->DeleteGlobalRef(env, runnableGlob);
     } else {
-        DBG_PRINT( "RunOnMainThread0.2\n");
+        DBG_PRINT2( "RunOnMainThread0.2\n");
         (*env)->CallVoidMethod(env, runnable, runnableRunID);
     }
-    DBG_PRINT( "RunOnMainThread0.X\n");
+    DBG_PRINT2( "RunOnMainThread0.X\n");
 
     [pool release];
 }
@@ -644,7 +680,7 @@ JNIEXPORT jint JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetScreenRefreshR
     if(0 == res) {
         res = 60; // default .. (experienced on OSX 10.6.8)
     }
-    DBG_PRINT(stderr, "GetScreenRefreshRate.X: %d\n", (int)res);
+    DBG_PRINT("GetScreenRefreshRate.X: %d\n", (int)res);
     // [pool release];
     JNF_COCOA_EXIT(env);
     return res;

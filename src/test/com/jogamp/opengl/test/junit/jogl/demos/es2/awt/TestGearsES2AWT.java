@@ -63,7 +63,7 @@ public class TestGearsES2AWT extends UITestCase {
     static int width, height;
     static boolean forceES2 = false;
     static boolean forceGL3 = false;
-    static boolean shallUseOffscreenLayer = false;
+    static boolean shallUseOffscreenFBOLayer = false;
     static boolean shallUseOffscreenPBufferLayer = false;
     static boolean useMSAA = false;
     static boolean useStencil = false;
@@ -184,7 +184,7 @@ public class TestGearsES2AWT extends UITestCase {
         if(useStencil) {
             caps.setStencilBits(1);
         }
-        if(shallUseOffscreenLayer) {
+        if(shallUseOffscreenFBOLayer) {
             caps.setOnscreen(false);
         }
         if(shallUseOffscreenPBufferLayer) {
@@ -213,8 +213,8 @@ public class TestGearsES2AWT extends UITestCase {
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);
             } else if(args[i].equals("-exclctx")) {
                 exclusiveContext = true;
-            } else if(args[i].equals("-layered")) {
-                shallUseOffscreenLayer = true;
+            } else if(args[i].equals("-layeredFBO")) {
+                shallUseOffscreenFBOLayer = true;
             } else if(args[i].equals("-layeredPBuffer")) {
                 shallUseOffscreenPBufferLayer = true;
             } else if(args[i].equals("-msaa")) {
@@ -240,7 +240,8 @@ public class TestGearsES2AWT extends UITestCase {
         System.err.println("forceGL3 "+forceGL3);
         System.err.println("swapInterval "+swapInterval);
         System.err.println("exclusiveContext "+exclusiveContext);
-        System.err.println("shallUseOffscreenLayer "+shallUseOffscreenLayer);
+        System.err.println("shallUseOffscreenFBOLayer     "+shallUseOffscreenFBOLayer);
+        System.err.println("shallUseOffscreenPBufferLayer "+shallUseOffscreenPBufferLayer);
         
         if(waitForKey) {
             BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));

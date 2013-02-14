@@ -41,6 +41,8 @@ extern GLboolean glIsVertexArray (GLuint array);
 //
 // #define DBG_PERF 1
 
+// #define DBG_LIFECYCLE 1
+
 /**
  * Capture setView(NULL), which produces a 'invalid drawable' message
  *
@@ -52,6 +54,10 @@ extern GLboolean glIsVertexArray (GLuint array);
 - (id)initWithFormat:(NSOpenGLPixelFormat *)format shareContext:(NSOpenGLContext *)share;
 - (void)setView:(NSView *)view;
 - (void)update;
+#ifdef DBG_LIFECYCLE
+- (id)retain;
+- (oneway void)release;
+#endif
 - (void)dealloc;
 
 @end
@@ -82,11 +88,36 @@ extern GLboolean glIsVertexArray (GLuint array);
     DBG_PRINT("MyNSOpenGLContext.update.X\n");
 }
 
+#ifdef DBG_LIFECYCLE
+
+- (id)retain
+{
+    DBG_PRINT("MyNSOpenGLContext::retain.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
+    // NSLog(@"MyNSOpenGLContext::retain: %@",[NSThread callStackSymbols]);
+    id o = [super retain];
+    DBG_PRINT("MyNSOpenGLContext::retain.X: %p (refcnt %d)\n", o, (int)[o retainCount]);
+    return o;
+}
+
+- (oneway void)release
+{
+    DBG_PRINT("MyNSOpenGLContext::release.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
+    [super release];
+    // DBG_PRINT("MyNSOpenGLContext::release.X: %p (refcnt %d)\n", self, (int)[self retainCount]);
+}
+
+#endif
+
 - (void)dealloc
 {
-    DBG_PRINT("MyNSOpenGLContext.dealloc: this.0 %p\n", self);
+    CGLContextObj cglCtx = [self CGLContextObj];
+    DBG_PRINT("MyNSOpenGLContext::dealloc.0 %p (refcnt %d) - CGL-Ctx %p\n", self, (int)[self retainCount], cglCtx);
+    [self clearDrawable];
+    if( NULL != cglCtx ) {
+        CGLDestroyContext( cglCtx );
+    }
     [super dealloc];
-    DBG_PRINT("MyNSOpenGLContext.dealloc.X: %p\n", self);
+    // DBG_PRINT("MyNSOpenGLContext.dealloc.X: %p\n", self);
 }
 
 @end
@@ -95,6 +126,7 @@ extern GLboolean glIsVertexArray (GLuint array);
 {
 @private
     GLfloat gl_texCoords[8];
+    NSOpenGLContext* myCtx;
 
 @protected
     NSOpenGLContext* parentCtx;
@@ -150,6 +182,10 @@ extern GLboolean glIsVertexArray (GLuint array);
 - (void)pauseAnimation:(Bool)pause;
 - (void)deallocPBuffer;
 - (void)releaseLayer;
+#ifdef DBG_LIFECYCLE
+- (id)retain;
+- (oneway void)release;
+#endif
 - (void)dealloc;
 - (void)setSwapInterval:(int)interval;
 - (void)tick;
@@ -209,6 +245,7 @@ static const GLfloat gl_verts[] = {
     pthread_mutex_init(&renderLock, &renderLockAttr); // recursive
     pthread_cond_init(&renderSignal, NULL); // no attribute
 
+    myCtx = NULL;
     {
         int i;
         for(i=0; i<8; i++) {
@@ -418,15 +455,15 @@ static const GLfloat gl_verts[] = {
 {
     DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.0: %p (refcnt %d) - pfmt %p, parent %p\n",
         self, (int)[self retainCount], pixelFormat, parentCtx);
-    NSOpenGLContext * nctx = [[MyNSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:parentCtx];
-    DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.X: new-ctx %p\n", nctx);
-    return nctx;
+    // NSLog(@"MyNSOpenGLLayer::openGLContextForPixelFormat: %@",[NSThread callStackSymbols]);
+    myCtx = [[MyNSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:parentCtx];
+    DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.X: new-ctx %p\n", myCtx);
+    return myCtx;
 }
 
 - (void)disableAnimation
 {
-    DBG_PRINT("MyNSOpenGLLayer::disableAnimation: %p (refcnt %d) - displayLink %p\n", self, (int)[self retainCount], displayLink);
-    pthread_mutex_lock(&renderLock);
+    DBG_PRINT("MyNSOpenGLLayer::disableAnimation.0: %p (refcnt %d) - displayLink %p\n", self, (int)[self retainCount], displayLink);
     [self setAsynchronous: NO];
     if(NULL != displayLink) {
 #ifdef HAS_CADisplayLink
@@ -438,35 +475,63 @@ static const GLfloat gl_verts[] = {
 #endif
         displayLink = NULL;
     }
-    pthread_mutex_unlock(&renderLock);
+    DBG_PRINT("MyNSOpenGLLayer::disableAnimation.X: %p (refcnt %d) - displayLink %p\n", self, (int)[self retainCount], displayLink);
 }
 
 - (void)releaseLayer
 {
     DBG_PRINT("MyNSOpenGLLayer::releaseLayer.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
-    pthread_mutex_lock(&renderLock);
     [self disableAnimation];
+    pthread_mutex_lock(&renderLock);
     [self deallocPBuffer];
-    [[self openGLContext] release];
+    // [[self openGLContext] release];
+    if( NULL != myCtx ) {
+        [myCtx release];
+        // [myCtx dealloc];
+        myCtx = NULL;
+    }
+    parentCtx = NULL;
     [parentPixelFmt release];
-    [self release];
-    DBG_PRINT("MyNSOpenGLLayer::releaseLayer.X: %p (refcnt %d)\n", self, (int)[self retainCount]);
     pthread_mutex_unlock(&renderLock);
+    [self release];
+    DBG_PRINT("MyNSOpenGLLayer::releaseLayer.X: %p\n", self);
 }
+
+#ifdef DBG_LIFECYCLE
+
+- (id)retain
+{
+    DBG_PRINT("MyNSOpenGLLayer::retain.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
+    // NSLog(@"MyNSOpenGLLayer::retain: %@",[NSThread callStackSymbols]);
+    id o = [super retain];
+    DBG_PRINT("MyNSOpenGLLayer::retain.X: %p (refcnt %d)\n", o, (int)[o retainCount]);
+    return o;
+}
+
+- (oneway void)release
+{
+    DBG_PRINT("MyNSOpenGLLayer::release.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
+    // NSLog(@"MyNSOpenGLLayer::release: %@",[NSThread callStackSymbols]);
+    [super release];
+    // DBG_PRINT("MyNSOpenGLLayer::release.X: %p (refcnt %d)\n", self, (int)[self retainCount]);
+}
+
+#endif
 
 - (void)dealloc
 {
     DBG_PRINT("MyNSOpenGLLayer::dealloc.0 %p (refcnt %d)\n", self, (int)[self retainCount]);
     // NSLog(@"MyNSOpenGLLayer::dealloc: %@",[NSThread callStackSymbols]);
 
-    pthread_mutex_lock(&renderLock);
     [self disableAnimation];
+    pthread_mutex_lock(&renderLock);
     [self deallocPBuffer];
+    // [[self openGLContext] dealloc];
     pthread_mutex_unlock(&renderLock);
     pthread_cond_destroy(&renderSignal);
     pthread_mutex_destroy(&renderLock);
     [super dealloc];
-    DBG_PRINT("MyNSOpenGLLayer::dealloc.X %p\n", self);
+    // DBG_PRINT("MyNSOpenGLLayer::dealloc.X %p\n", self);
 }
 
 - (Bool)isGLSourceValid
@@ -752,32 +817,27 @@ static const GLfloat gl_verts[] = {
 @end
 
 NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, int gl3ShaderProgramName, NSOpenGLPixelFormat* fmt, NSOpenGLPixelBuffer* p, uint32_t texID, Bool opaque, int texWidth, int texHeight) {
-  // This simply crashes after dealloc() has been called .. ie. ref-count -> 0 too early ?
-  // However using alloc/init, actual dealloc happens at JAWT destruction, hence too later IMHO.
-  // return [[MyNSOpenGLLayer layer] setupWithContext:ctx pixelFormat: fmt pbuffer: p texIDArg: (GLuint)texID
-  //                                                      opaque: opaque texWidth: texWidth texHeight: texHeight];
-
   return [[[MyNSOpenGLLayer alloc] init] setupWithContext:ctx gl3ShaderProgramName: (GLuint)gl3ShaderProgramName pixelFormat: fmt pbuffer: p texIDArg: (GLuint)texID
                                                               opaque: opaque texWidth: texWidth texHeight: texHeight];
 }
 
 void setNSOpenGLLayerSwapInterval(NSOpenGLLayer* layer, int interval) {
-    MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
     [l setSwapInterval: interval];
     [pool release];
 }
 
 void waitUntilNSOpenGLLayerIsReady(NSOpenGLLayer* layer, long to_micros) {
-    MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
     [l waitUntilRenderSignal: to_micros];
     [pool release];
 }
 
 void setNSOpenGLLayerNeedsDisplayFBO(NSOpenGLLayer* layer, uint32_t texID) {
-    MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
     Bool shallDraw;
 
     // volatile OK
@@ -799,8 +859,8 @@ void setNSOpenGLLayerNeedsDisplayFBO(NSOpenGLLayer* layer, uint32_t texID) {
 }
 
 void setNSOpenGLLayerNeedsDisplayPBuffer(NSOpenGLLayer* layer, NSOpenGLPixelBuffer* p) {
-    MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
     Bool shallDraw;
 
     if( NO == [l isSamePBuffer: p] ) {
@@ -825,16 +885,10 @@ void setNSOpenGLLayerNeedsDisplayPBuffer(NSOpenGLLayer* layer, NSOpenGLPixelBuff
 }
 
 void releaseNSOpenGLLayer(NSOpenGLLayer* layer) {
-    MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
     DBG_PRINT("MyNSOpenGLLayer::releaseNSOpenGLLayer.0: %p\n", l);
-
-    if ( [NSThread isMainThread] == YES ) {
-        [l releaseLayer];
-    } else { 
-        [l performSelectorOnMainThread:@selector(releaseLayer) withObject:nil waitUntilDone:NO];
-    }
-
+    [l releaseLayer];
     DBG_PRINT("MyNSOpenGLLayer::releaseNSOpenGLLayer.X: %p\n", l);
     [pool release];
 }

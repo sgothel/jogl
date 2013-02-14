@@ -205,7 +205,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       }
       try {
           if(DEBUG) {
-            System.err.println("JAWTWindow.attachSurfaceHandle(): 0x"+Long.toHexString(layerHandle) + ", bounds "+bounds);
+            System.err.println("JAWTWindow.attachSurfaceHandle(): "+toHexString(layerHandle) + ", bounds "+bounds);
           }
           attachSurfaceLayerImpl(layerHandle);
           offscreenSurfaceLayer = layerHandle;
@@ -229,7 +229,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       }
       try {
           if(DEBUG) {
-            System.err.println("JAWTWindow.detachSurfaceHandle(): 0x"+Long.toHexString(offscreenSurfaceLayer));
+            System.err.println("JAWTWindow.detachSurfaceHandle(): osh "+toHexString(offscreenSurfaceLayer));
           }
           detachSurfaceLayerImpl(offscreenSurfaceLayer);
           offscreenSurfaceLayer = 0;
@@ -341,7 +341,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
                     if(LOCK_SUCCESS == res && drawable_old != drawable) {
                         res = LOCK_SURFACE_CHANGED;
                         if(DEBUG) {
-                            System.err.println("JAWTWindow: surface change 0x"+Long.toHexString(drawable_old)+" -> 0x"+Long.toHexString(drawable));
+                            System.err.println("JAWTWindow: surface change "+toHexString(drawable_old)+" -> "+toHexString(drawable));
                             // Thread.dumpStack();
                         }
                     }
@@ -549,8 +549,8 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     StringBuilder sb = new StringBuilder();
 
     sb.append("JAWT-Window["+
-                "windowHandle 0x"+Long.toHexString(getWindowHandle())+
-                ", surfaceHandle 0x"+Long.toHexString(getSurfaceHandle())+
+                "windowHandle "+toHexString(getWindowHandle())+
+                ", surfaceHandle "+toHexString(getSurfaceHandle())+
                 ", bounds "+bounds+", insets "+insets+
                 ", shallUseOffscreenLayer "+shallUseOffscreenLayer+", isOffscreenLayerSurface "+isOffscreenLayerSurface);
     if(null!=component) {
@@ -565,5 +565,9 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
               ",\n\tsurfaceLock "+surfaceLock+"]");
 
     return sb.toString();
+  }
+  
+  protected final String toHexString(long l) {
+      return "0x"+Long.toHexString(l);
   }
 }

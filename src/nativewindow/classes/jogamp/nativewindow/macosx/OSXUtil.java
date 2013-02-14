@@ -32,6 +32,8 @@ import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 
+import com.jogamp.common.util.Function;
+import com.jogamp.common.util.FunctionTask;
 import com.jogamp.common.util.RunnableTask;
 
 import jogamp.nativewindow.Debug;
@@ -137,23 +139,33 @@ public class OSXUtil implements ToolkitProperties {
     public static long CreateCALayer(int x, int y, int width, int height) {
         return CreateCALayer0(x, y, width, height);
     }
-    public static void AddCASublayer(long rootCALayer, long subCALayer) {
+    public static void AddCASublayer(final long rootCALayer, final long subCALayer) {
         if(0==rootCALayer || 0==subCALayer) {
             throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
         }
-        AddCASublayer0(rootCALayer, subCALayer);
+        RunOnMainThread(true, new Runnable() {
+           public void run() {
+               AddCASublayer0(rootCALayer, subCALayer);               
+           }
+        });
     }
-    public static void RemoveCASublayer(long rootCALayer, long subCALayer) {
+    public static void RemoveCASublayer(final long rootCALayer, final long subCALayer) {
         if(0==rootCALayer || 0==subCALayer) {
             throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
         }
-        RemoveCASublayer0(rootCALayer, subCALayer);
+        RunOnMainThread(true, new Runnable() {
+           public void run() {
+               RemoveCASublayer0(rootCALayer, subCALayer);
+           } } );
     }
-    public static void DestroyCALayer(long caLayer) {
+    public static void DestroyCALayer(final long caLayer) {
         if(0==caLayer) {
             throw new IllegalArgumentException("caLayer 0x"+Long.toHexString(caLayer));
         }
-        DestroyCALayer0(caLayer);    
+        RunOnMainThread(true, new Runnable() {
+           public void run() {        
+               DestroyCALayer0(caLayer);
+           } } );
     }
     
     /**
@@ -169,14 +181,14 @@ public class OSXUtil implements ToolkitProperties {
         if( IsMainThread0() ) {
             runnable.run(); // don't leave the JVM
         } else {
-            if( waitUntilDone ) {
-                // Utilize Java side lock/wait and simply pass the Runnable async to OSX main thread,
-                // otherwise we may freeze the OSX main thread.            
-                Throwable throwable = null;
-                final Object sync = new Object();
-                final RunnableTask rt = new RunnableTask( runnable, sync, true ); 
-                synchronized(sync) {
-                    RunOnMainThread0(rt);
+            // Utilize Java side lock/wait and simply pass the Runnable async to OSX main thread,
+            // otherwise we may freeze the OSX main thread.            
+            Throwable throwable = null;
+            final Object sync = new Object();
+            final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true ); 
+            synchronized(sync) {
+                RunOnMainThread0(rt);
+                if( waitUntilDone ) {
                     try {
                         sync.wait();
                     } catch (InterruptedException ie) {
@@ -188,10 +200,47 @@ public class OSXUtil implements ToolkitProperties {
                     if(null!=throwable) {
                         throw new RuntimeException(throwable);
                     }
-                }                
-            } else {
-                RunOnMainThread0(runnable);
+                }
             }
+        }
+    }
+    
+    /**
+     * Run on OSX UI main thread.
+     * <p> 
+     * 'waitUntilDone' is implemented on Java site via lock/wait on {@link FunctionTask} to not freeze OSX main thread.
+     * </p>
+     * 
+     * @param waitUntilDone
+     * @param func
+     */
+    public static <R,A> R RunOnMainThread(boolean waitUntilDone, Function<R,A> func, A... args) {
+        if( IsMainThread0() ) {
+            return func.eval(args); // don't leave the JVM
+        } else {
+            // Utilize Java side lock/wait and simply pass the Runnable async to OSX main thread,
+            // otherwise we may freeze the OSX main thread.            
+            Throwable throwable = null;
+            final Object sync = new Object();
+            final FunctionTask<R,A> rt = new FunctionTask<R,A>( func, waitUntilDone ? sync : null, true ); 
+            synchronized(sync) {
+                rt.setArgs(args);
+                RunOnMainThread0(rt);
+                if( waitUntilDone ) {
+                    try {
+                        sync.wait();
+                    } catch (InterruptedException ie) {
+                        throwable = ie;
+                    }
+                    if(null==throwable) {
+                        throwable = rt.getThrowable();
+                    }
+                    if(null!=throwable) {
+                        throw new RuntimeException(throwable);
+                    }
+                }
+            }
+            return rt.getResult();
         }
     }
     
