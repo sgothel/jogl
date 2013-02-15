@@ -299,6 +299,10 @@ function testawtswt() {
 #testawt   com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext02FPSAnimAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext11VSyncAnimNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext12FPSAnimNEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer01GLCanvasAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer02NewtCanvasAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAddRemove01SwingAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAddRemove02NewtCanvasAWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOffscrnCapsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryOffscrnCapsNEWT $*
@@ -308,11 +312,6 @@ function testawtswt() {
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitch01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitch11NEWT $*
-
-#testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer01GLCanvasAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer02NewtCanvasAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAddRemove01SwingAWT $*
-testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAddRemove02NewtCanvasAWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableFactoryNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOOffThreadSharedContextMix2DemosES2NEWT $*
@@ -361,6 +360,7 @@ testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAddRemove02NewtCanvasA
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestPBufferDeadlockAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestShutdownCompleteAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.x11.TestGLXCallsOnAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug675BeansInDesignTimeAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug551AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug572AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug611AWT $*
