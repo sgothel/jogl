@@ -28,7 +28,10 @@
  
 package com.jogamp.opengl.test.junit.util;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.List;
 
@@ -139,6 +142,14 @@ public abstract class UITestCase {
     @After
     public void tearDown() {
         System.err.println("++++ UITestCase.tearDown: "+getFullTestName(" - "));
+    }
+    
+    public static void waitForKey(String preMessage) {
+        BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+        System.err.println(preMessage+"> Press enter to continue");
+        try {
+            System.err.println(stdin.readLine());
+        } catch (IOException e) { }
     }
     
     static final String unsupportedTestMsg = "Test not supported on this platform.";

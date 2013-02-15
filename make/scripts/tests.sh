@@ -34,7 +34,7 @@ uname -a | grep -i Darwin && MOSX=1
 if [ $MOSX -eq 1 ] ; then
     echo setup OSX environment vars
     #export NSZombieEnabled=YES
-    export NSTraceEvents=YES
+    #export NSTraceEvents=YES
     #export OBJC_PRINT_EXCEPTIONS=YES
     echo NSZombieEnabled $NSZombieEnabled 2>&1 | tee -a java-run.log
     echo NSTraceEvents $NSTraceEvents  2>&1 | tee -a java-run.log
@@ -89,7 +89,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.FBObject"
     #D_ARGS="-Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL -Djogl.debug.TraceGL"
-    #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLContext.TraceSwitch -Dnativewindow.debug.JAWT"
+    #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.JAWT -Dnewt.debug.Window"
     #D_ARGS="-Djogl.debug.GLContext.TraceSwitch"
     #D_ARGS="-Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLCode"
     #D_ARGS="-Djogl.debug.FixedFuncPipeline -Djogl.debug.GLSLState"
@@ -311,6 +311,8 @@ function testawtswt() {
 
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer01GLCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer02NewtCanvasAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAddRemove01SwingAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAddRemove02NewtCanvasAWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableFactoryNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOOffThreadSharedContextMix2DemosES2NEWT $*
@@ -415,11 +417,6 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyPressReleaseUnmaskRepeatAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodesAWT $*
-
-#testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT $*
-testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAddRemove01SwingAWT $*
 
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodeModifiersAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNEWTWindowAWT $*

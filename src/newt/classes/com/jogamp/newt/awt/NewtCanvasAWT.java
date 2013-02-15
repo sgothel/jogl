@@ -397,11 +397,12 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         if(DEBUG) {
             System.err.println("NewtCanvasAWT.removeNotify: "+newtChild+", from "+cont);
         }
+        // Detach OLS early..
         final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(newtChild, true);
         if(null != ols && ols.isSurfaceLayerAttached()) {
             ols.detachSurfaceLayer();
-        }      
-        reparentWindow(false, cont);
+        }    
+        reparentWindow(false, cont); // will destroy context (offscreen -> onscreen) and implicit detachSurfaceLayer (if still attached)
         
         if(null != jawtWindow) {
             NewtFactoryAWT.destroyNativeWindow(jawtWindow);

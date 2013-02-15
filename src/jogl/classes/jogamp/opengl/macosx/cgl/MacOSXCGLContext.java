@@ -709,10 +709,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                       // still having a valid OLS attached to surface (parent OLS could have been removed)
                       ols.detachSurfaceLayer();
                   }
-                  OSXUtil.RunOnMainThread(true, new Runnable() {
-                      public void run() {
-                          CGL.releaseNSOpenGLLayer(nsOpenGLLayer);
-                      } } );                  
+                  CGL.releaseNSOpenGLLayer(nsOpenGLLayer);
                   if( null != gl3ShaderProgram ) {
                       gl3ShaderProgram.destroy(MacOSXCGLContext.this.gl.getGL3());
                       gl3ShaderProgram = null;

@@ -48,10 +48,12 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.jogamp.newt.awt.NewtCanvasAWT;
+import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
-public class TestGLCanvasAddRemove01SwingAWT extends UITestCase {
+public class TestGLCanvasAddRemove02NewtCanvasAWT extends UITestCase {
     static long durationPerTest = 50;
     static int addRemoveCount = 15;
     static boolean shallUseOffscreenFBOLayer = false;
@@ -104,7 +106,7 @@ public class TestGLCanvasAddRemove01SwingAWT extends UITestCase {
                 public void run() {
                     jPanel[0] = new JPanel();
                     jPanel[0].setLayout(new BorderLayout());
-
+                    
                     final JFrame jFrame1 = new JFrame("JFrame #"+num);
                     // jFrame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                     jFrame1.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
@@ -157,7 +159,9 @@ public class TestGLCanvasAddRemove01SwingAWT extends UITestCase {
     {
 
         for(int i=0; i<addRemoveOpCount; i++) {
-            final GLCanvas glc = new GLCanvas(caps);
+            final GLWindow glw = GLWindow.create(caps);
+            
+            final NewtCanvasAWT glc = new NewtCanvasAWT(glw);
             Assert.assertNotNull(glc);
             if(shallUseOffscreenFBOLayer || shallUseOffscreenPBufferLayer) {
                 glc.setShallUseOffscreenLayer(true);
@@ -166,7 +170,7 @@ public class TestGLCanvasAddRemove01SwingAWT extends UITestCase {
             glc.setMinimumSize(glc_sz);
             glc.setPreferredSize(glc_sz);
             glc.setSize(glc_sz);
-            glc.addGLEventListener(new Gears());
+            glw.addGLEventListener(new Gears());
             
             final JFrame[] top = new JFrame[] { null };
             final Container glcCont = create(top, width, height, i);
@@ -176,13 +180,14 @@ public class TestGLCanvasAddRemove01SwingAWT extends UITestCase {
                         
             final long t0 = System.currentTimeMillis();
             do {
-                glc.display();
+                glw.display();
                 Thread.sleep(10);
             } while ( ( System.currentTimeMillis() - t0 ) < durationPerTest ) ;
             
-            System.err.println("GLCanvas isOffscreenLayerSurfaceEnabled: "+glc.isOffscreenLayerSurfaceEnabled()+": "+glc.getChosenGLCapabilities());
+            System.err.println("GLCanvas isOffscreenLayerSurfaceEnabled: "+glc.isOffscreenLayerSurfaceEnabled()+": "+glw.getChosenGLCapabilities());
             
-            dispose(top[0]);            
+            dispose(top[0]);
+            glw.destroy();
         }
     }
 
@@ -193,8 +198,9 @@ public class TestGLCanvasAddRemove01SwingAWT extends UITestCase {
         GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         if(shallUseOffscreenPBufferLayer) {
             caps.setPBuffer(true);
-            caps.setOnscreen(true); // simulate normal behavior ..
+            caps.setOnscreen(true); // get native NEWT Window, not OffscreenWindow
         }
+        
         runTestGL(caps, addRemoveCount);
     }
 
@@ -227,6 +233,6 @@ public class TestGLCanvasAddRemove01SwingAWT extends UITestCase {
         if(waitForKey) {
             UITestCase.waitForKey("Start");
         }
-        org.junit.runner.JUnitCore.main(TestGLCanvasAddRemove01SwingAWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGLCanvasAddRemove02NewtCanvasAWT.class.getName());
     }
 }

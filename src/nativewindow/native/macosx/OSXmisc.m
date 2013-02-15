@@ -32,6 +32,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <AppKit/AppKit.h>
+#import <QuartzCore/QuartzCore.h>
 
 #include "NativewindowCommon.h"
 #include "jogamp_nativewindow_macosx_OSXUtil.h"
@@ -323,6 +324,64 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
     return res;
 }
 
+/**
+ * Track lifecycle via DBG_PRINT messages, if VERBOSE is enabled!
+ */
+@interface MyCALayer: CALayer
+{
+}
+- (id)init;
+#ifdef DBG_LIFECYCLE
+- (id)retain;
+- (oneway void)release;
+- (void)dealloc;
+#endif
+
+@end
+
+@implementation MyCALayer
+
+- (id)init
+{
+    DBG_PRINT("MyCALayer.0\n");
+    MyCALayer * o = [super init];
+    DBG_PRINT("MyNSOpenGLContext.init.X: new %p\n", o);
+    DBG_PRINT("MyCALayer.0\n");
+    return o;
+}
+
+#ifdef DBG_LIFECYCLE
+
+- (id)retain
+{
+    DBG_PRINT("MyCALayer::retain.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
+    // NSLog(@"MyCALayer::retain: %@",[NSThread callStackSymbols]);
+    id o = [super retain];
+    DBG_PRINT("MyCALayer::retain.X: %p (refcnt %d)\n", o, (int)[o retainCount]);
+    return o;
+}
+
+- (oneway void)release
+{
+    DBG_PRINT("MyCALayer::release.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
+    // NSLog(@"MyCALayer::release: %@",[NSThread callStackSymbols]);
+    [super release];
+    // DBG_PRINT("MyCALayer::release.X: %p (refcnt %d)\n", self, (int)[self retainCount]);
+}
+
+- (void)dealloc
+{
+    DBG_PRINT("MyCALayer::dealloc.0 %p (refcnt %d)\n", self, (int)[self retainCount]);
+    // NSLog(@"MyCALayer::dealloc: %@",[NSThread callStackSymbols]);
+    [super dealloc];
+    // DBG_PRINT("MyCALayer.dealloc.X: %p\n", self);
+}
+
+#endif
+
+
+@end
+
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    CreateCALayer0
@@ -333,7 +392,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
-    CALayer* layer = [[CALayer alloc] init];
+    MyCALayer* layer = [[MyCALayer alloc] init];
     DBG_PRINT("CALayer::CreateCALayer.0: root %p %d/%d %dx%d (refcnt %d)\n", layer, (int)x, (int)y, (int)width, (int)height, (int)[layer retainCount]);
     // avoid zero size
     if(0 == width) { width = 32; }
@@ -349,12 +408,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
     // no animations for add/remove/swap sublayers etc 
     // doesn't work: [layer removeAnimationForKey: kCAOnOrderIn, kCAOnOrderOut, kCATransition]
     [layer removeAllAnimations];
+    // [layer addAnimation:nil forKey:kCATransition];
     [layer setAutoresizingMask: (kCALayerWidthSizable|kCALayerHeightSizable)];
     [layer setNeedsDisplayOnBoundsChange: YES];
     DBG_PRINT("CALayer::CreateCALayer.1: root %p %lf/%lf %lfx%lf\n", layer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
-    DBG_PRINT("CALayer::CreateCALayer.X: root %p (refcnt %d)\n", layer, (int)[layer retainCount]);
-
     [pool release];
+    DBG_PRINT("CALayer::CreateCALayer.X: root %p (refcnt %d)\n", layer, (int)[layer retainCount]);
 
     return (jlong) ((intptr_t) layer);
 }
@@ -367,8 +426,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_CreateCALayer0
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
   (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer)
 {
-    JNF_COCOA_ENTER(env);
-    CALayer* rootLayer = (CALayer*) ((intptr_t) rootCALayer);
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    MyCALayer* rootLayer = (MyCALayer*) ((intptr_t) rootCALayer);
     CALayer* subLayer = (CALayer*) ((intptr_t) subCALayer);
 
     CGRect lRectRoot = [rootLayer frame];
@@ -385,6 +444,9 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
         rootLayer, (int)[rootLayer retainCount],
         subLayer, lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height, (int)[subLayer retainCount]);
 
+    [CATransaction begin];
+    [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+
     // simple 1:1 layout !
     [subLayer setFrame:lRectRoot];
     [rootLayer addSublayer:subLayer];
@@ -392,14 +454,19 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
     // no animations for add/remove/swap sublayers etc 
     // doesn't work: [layer removeAnimationForKey: kCAOnOrderIn, kCAOnOrderOut, kCATransition]
     [rootLayer removeAllAnimations];
+    // [rootLayer addAnimation:nil forKey:kCATransition];
     [rootLayer setAutoresizingMask: (kCALayerWidthSizable|kCALayerHeightSizable)];
     [rootLayer setNeedsDisplayOnBoundsChange: YES];
     [subLayer removeAllAnimations];
+    // [sublayer addAnimation:nil forKey:kCATransition];
     [subLayer setAutoresizingMask: (kCALayerWidthSizable|kCALayerHeightSizable)];
     [subLayer setNeedsDisplayOnBoundsChange: YES];
+
+    [CATransaction commit];
+
+    [pool release];
     DBG_PRINT("CALayer::AddCASublayer0.X: root %p (refcnt %d) .sub %p (refcnt %d)\n", 
         rootLayer, (int)[rootLayer retainCount], subLayer, (int)[subLayer retainCount]);
-    JNF_COCOA_EXIT(env);
 }
 
 /*
@@ -410,19 +477,26 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RemoveCASublayer0
   (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer)
 {
-    JNF_COCOA_ENTER(env);
-    CALayer* rootLayer = (CALayer*) ((intptr_t) rootCALayer);
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    MyCALayer* rootLayer = (MyCALayer*) ((intptr_t) rootCALayer);
     CALayer* subLayer = (CALayer*) ((intptr_t) subCALayer);
 
     (void)rootLayer; // no warnings
 
     DBG_PRINT("CALayer::RemoveCASublayer0.0: root %p (refcnt %d) .sub %p (refcnt %d)\n", 
         rootLayer, (int)[rootLayer retainCount], subLayer, (int)[subLayer retainCount]);
+
+    [CATransaction begin];
+    [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+
     [subLayer removeFromSuperlayer];
-    [subLayer release];
+    // [subLayer release] is called explicitly, e.g. via CGL.releaseNSOpenGLLayer(..) (MyNSOpenGLLayer::releaseLayer)
+
+    [CATransaction commit];
+
+    [pool release];
     DBG_PRINT("CALayer::RemoveCASublayer0.X: root %p (refcnt %d) .sub %p (refcnt %d)\n", 
         rootLayer, (int)[rootLayer retainCount], subLayer, (int)[subLayer retainCount]);
-    JNF_COCOA_EXIT(env);
 }
 
 /*
@@ -433,14 +507,13 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RemoveCASublayer0
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyCALayer0
   (JNIEnv *env, jclass unused, jlong caLayer)
 {
-    JNF_COCOA_ENTER(env);
-    CALayer* layer = (CALayer*) ((intptr_t) caLayer);
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    MyCALayer* layer = (MyCALayer*) ((intptr_t) caLayer);
 
     DBG_PRINT("CALayer::DestroyCALayer0.0: root %p (refcnt %d)\n", layer, (int)[layer retainCount]);
-    [layer release]; // Var.A
-    // [layer dealloc]; // Var.B -> SIGSEGV
+    [layer release]; // Trigger release of root CALayer
+    [pool release];
     DBG_PRINT("CALayer::DestroyCALayer0.X: root %p\n", layer);
-    JNF_COCOA_EXIT(env);
 }
 
 /*
@@ -451,18 +524,18 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyCALayer0
 JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_SetJAWTRootSurfaceLayer0
   (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
 {
-    JNF_COCOA_ENTER(env);
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     JAWT_DrawingSurfaceInfo* dsi = (JAWT_DrawingSurfaceInfo*) (*env)->GetDirectBufferAddress(env, jawtDrawingSurfaceInfoBuffer);
     if (NULL == dsi) {
         NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
         return JNI_FALSE;
     }
-    CALayer* layer = (CALayer*) (intptr_t) caLayer;
+    MyCALayer* layer = (MyCALayer*) (intptr_t) caLayer;
     id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
     DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.0: pre %p -> root %p (refcnt %d)\n", surfaceLayers.layer, layer, (int)[layer retainCount]);
-    surfaceLayers.layer = layer; // already incr. retain count
+    surfaceLayers.layer = [layer retain]; // Pairs w/ Unset
+    [pool release];
     DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.X: root %p (refcnt %d)\n", layer, (int)[layer retainCount]);
-    JNF_COCOA_EXIT(env);
     return JNI_TRUE;
 }
 
@@ -474,23 +547,23 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
 JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_UnsetJAWTRootSurfaceLayer0
   (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
 {
-    JNF_COCOA_ENTER(env);
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     JAWT_DrawingSurfaceInfo* dsi = (JAWT_DrawingSurfaceInfo*) (*env)->GetDirectBufferAddress(env, jawtDrawingSurfaceInfoBuffer);
     if (NULL == dsi) {
         NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
         return JNI_FALSE;
     }
-    CALayer* layer = (CALayer*) (intptr_t) caLayer;
+    MyCALayer* layer = (MyCALayer*) (intptr_t) caLayer;
     id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
     if(layer != surfaceLayers.layer) {
         NativewindowCommon_throwNewRuntimeException(env, "Attached layer %p doesn't match given layer %p\n", surfaceLayers.layer, layer);
         return JNI_FALSE;
     }
     DBG_PRINT("CALayer::UnsetJAWTRootSurfaceLayer.0: root %p (refcnt %d) -> nil\n", layer, (int)[layer retainCount]);
+    [layer release]; // Pairs w/ Set
     surfaceLayers.layer = NULL;
-    [layer release]; // Var.A
+    [pool release];
     DBG_PRINT("CALayer::UnsetJAWTRootSurfaceLayer.X: root %p (refcnt %d) -> nil\n", layer, (int)[layer retainCount]);
-    JNF_COCOA_EXIT(env);
     return JNI_TRUE;
 }
 

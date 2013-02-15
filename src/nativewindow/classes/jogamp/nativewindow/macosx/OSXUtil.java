@@ -136,8 +136,11 @@ public class OSXUtil implements ToolkitProperties {
       return GetNSWindow0(nsView);
     }
     
-    public static long CreateCALayer(int x, int y, int width, int height) {
-        return CreateCALayer0(x, y, width, height);
+    public static long CreateCALayer(final int x, final int y, final int width, final int height) {
+      return OSXUtil.RunOnMainThread(true, new Function<Long, Object>() {
+       public Long eval(Object... args) {
+           return Long.valueOf( CreateCALayer0(x, y, width, height) );
+       } } ).longValue();
     }
     public static void AddCASublayer(final long rootCALayer, final long subCALayer) {
         if(0==rootCALayer || 0==subCALayer) {
@@ -145,7 +148,7 @@ public class OSXUtil implements ToolkitProperties {
         }
         RunOnMainThread(true, new Runnable() {
            public void run() {
-               AddCASublayer0(rootCALayer, subCALayer);               
+               AddCASublayer0(rootCALayer, subCALayer);
            }
         });
     }
@@ -203,6 +206,13 @@ public class OSXUtil implements ToolkitProperties {
                 }
             }
         }
+    }
+    
+    private static Runnable _nop = new Runnable() { public void run() {}; };
+    
+    /** Issues a {@link #RunOnMainThread(boolean, Runnable)} w/ an <i>NOP</i> runnable, while waiting until done. */ 
+    public static void WaitUntilFinish() {
+        RunOnMainThread(true, _nop);
     }
     
     /**

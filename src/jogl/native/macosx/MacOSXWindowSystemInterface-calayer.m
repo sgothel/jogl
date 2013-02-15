@@ -75,8 +75,11 @@ extern GLboolean glIsVertexArray (GLuint array);
 - (void)setView:(NSView *)view
 {
     DBG_PRINT("MyNSOpenGLContext.setView: this.0 %p, view %p\n", self, view);
+    // NSLog(@"MyNSOpenGLContext::setView: %@",[NSThread callStackSymbols]);
     if(NULL != view) {
         [super setView:view];
+    } else {
+        [self clearDrawable];
     }
     DBG_PRINT("MyNSOpenGLContext.setView.X\n");
 }
@@ -302,13 +305,6 @@ static const GLfloat gl_verts[] = {
         }
     }
     if(NULL != displayLink) {
-        cvres = CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(displayLink, [parentCtx CGLContextObj], [parentPixelFmt CGLPixelFormatObj]);
-        if(kCVReturnSuccess != cvres) {
-            DBG_PRINT("MyNSOpenGLLayer::init %p, CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext failed: %d\n", self, cvres);
-            displayLink = NULL;
-        }
-    }
-    if(NULL != displayLink) {
         cvres = CVDisplayLinkSetOutputCallback(displayLink, renderMyNSOpenGLLayer, self);
         if(kCVReturnSuccess != cvres) {
             DBG_PRINT("MyNSOpenGLLayer::init %p, CVDisplayLinkSetOutputCallback failed: %d\n", self, cvres);
@@ -453,10 +449,20 @@ static const GLfloat gl_verts[] = {
 
 - (NSOpenGLContext *)openGLContextForPixelFormat:(NSOpenGLPixelFormat *)pixelFormat
 {
-    DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.0: %p (refcnt %d) - pfmt %p, parent %p\n",
-        self, (int)[self retainCount], pixelFormat, parentCtx);
+    DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.0: %p (refcnt %d) - pfmt %p, parent %p, DisplayLink %p\n",
+        self, (int)[self retainCount], pixelFormat, parentCtx, displayLink);
     // NSLog(@"MyNSOpenGLLayer::openGLContextForPixelFormat: %@",[NSThread callStackSymbols]);
     myCtx = [[MyNSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:parentCtx];
+#ifndef HAS_CADisplayLink
+    if(NULL != displayLink) {
+        CVReturn cvres;
+        DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.1: setup DisplayLink %p\n", displayLink);
+        cvres = CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(displayLink, [myCtx CGLContextObj], [pixelFormat CGLPixelFormatObj]);
+        if(kCVReturnSuccess != cvres) {
+            DBG_PRINT("MyNSOpenGLLayer::init %p, CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext failed: %d\n", self, cvres);
+        }
+    }
+#endif
     DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.X: new-ctx %p\n", myCtx);
     return myCtx;
 }
@@ -487,7 +493,6 @@ static const GLfloat gl_verts[] = {
     // [[self openGLContext] release];
     if( NULL != myCtx ) {
         [myCtx release];
-        // [myCtx dealloc];
         myCtx = NULL;
     }
     parentCtx = NULL;
