@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.awt;
+package com.jogamp.opengl.test.junit.jogl.acore;
 
 import java.awt.AWTException;
 import java.awt.BorderLayout;
@@ -43,6 +43,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import jogamp.nativewindow.jawt.JAWTUtil;
+
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -51,7 +53,7 @@ import org.junit.Test;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
-public class TestGLCanvasAddRemove01SwingAWT extends UITestCase {
+public class TestAddRemove01GLCanvasSwingAWT extends UITestCase {
     static long durationPerTest = 50;
     static int addRemoveCount = 15;
     static boolean shallUseOffscreenFBOLayer = false;
@@ -152,14 +154,14 @@ public class TestGLCanvasAddRemove01SwingAWT extends UITestCase {
                 } } ) ;        
     }
     
-    protected void runTestGL(GLCapabilities caps, int addRemoveOpCount)
+    protected void runTestGL(boolean onscreen, GLCapabilities caps, int addRemoveOpCount)
             throws AWTException, InterruptedException, InvocationTargetException
     {
 
         for(int i=0; i<addRemoveOpCount; i++) {
             final GLCanvas glc = new GLCanvas(caps);
             Assert.assertNotNull(glc);
-            if(shallUseOffscreenFBOLayer || shallUseOffscreenPBufferLayer) {
+            if( !onscreen ) {
                 glc.setShallUseOffscreenLayer(true);
             }
             Dimension glc_sz = new Dimension(width, height);
@@ -187,17 +189,37 @@ public class TestGLCanvasAddRemove01SwingAWT extends UITestCase {
     }
 
     @Test
-    public void test01()
+    public void test01Onscreen()
             throws AWTException, InterruptedException, InvocationTargetException
     {
+        if( shallUseOffscreenFBOLayer || shallUseOffscreenPBufferLayer || JAWTUtil.isOffscreenLayerRequired() ) {
+            System.err.println("Offscreen test requested or platform requires it.");
+            return;
+        }
         GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
         if(shallUseOffscreenPBufferLayer) {
             caps.setPBuffer(true);
             caps.setOnscreen(true); // simulate normal behavior ..
         }
-        runTestGL(caps, addRemoveCount);
+        runTestGL(true, caps, addRemoveCount);
     }
 
+    @Test
+    public void test02Offscreen()
+            throws AWTException, InterruptedException, InvocationTargetException
+    {
+        if( !JAWTUtil.isOffscreenLayerSupported() ) {
+            System.err.println("Platform doesn't support offscreen test.");
+            return;
+        }
+        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        if(shallUseOffscreenPBufferLayer) {
+            caps.setPBuffer(true);
+            caps.setOnscreen(true); // simulate normal behavior ..
+        }
+        runTestGL(false, caps, addRemoveCount);
+    }
+    
     public static void main(String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -227,6 +249,6 @@ public class TestGLCanvasAddRemove01SwingAWT extends UITestCase {
         if(waitForKey) {
             UITestCase.waitForKey("Start");
         }
-        org.junit.runner.JUnitCore.main(TestGLCanvasAddRemove01SwingAWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestAddRemove01GLCanvasSwingAWT.class.getName());
     }
 }
