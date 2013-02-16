@@ -537,7 +537,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
             remaining -= System.currentTimeMillis() - t1 ;
             nok = waitCondition.eval();
         }
-        if(DEBUG || nok) {
+        if(DEBUG || blocking && nok) { // Info only if DEBUG or ( blocking && not-ok ) ; !blocking possible if AWT
             if( remaining<=0 && nok ) {
                 System.err.println("finishLifecycleAction(" + waitCondition.getClass().getName() + "): ++++++ timeout reached ++++++ " + Thread.currentThread().getName());
             }

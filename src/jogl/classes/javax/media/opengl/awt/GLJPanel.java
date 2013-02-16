@@ -250,17 +250,19 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   
   @Override
   public void display() {
-    if (EventQueue.isDispatchThread()) {
-      // Want display() to be synchronous, so call paintImmediately()
-      paintImmediately(0, 0, getWidth(), getHeight());
-    } else {
-      // Multithreaded redrawing of Swing components is not allowed,
-      // so do everything on the event dispatch thread
-      try {
-        EventQueue.invokeAndWait(paintImmediatelyAction);
-      } catch (Exception e) {
-        throw new GLException(e);
-      }
+    if( isVisible() ) {
+        if (EventQueue.isDispatchThread()) {
+          // Want display() to be synchronous, so call paintImmediately()
+          paintImmediately(0, 0, getWidth(), getHeight());
+        } else {
+          // Multithreaded redrawing of Swing components is not allowed,
+          // so do everything on the event dispatch thread
+          try {
+            EventQueue.invokeAndWait(paintImmediatelyAction);
+          } catch (Exception e) {
+            throw new GLException(e);
+          }
+        }
     }
   }
 
@@ -350,9 +352,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       sendReshape = handleReshape();
     }
 
-    updater.setGraphics(g);
-
-    backend.doPaintComponent(g);
+    if( isVisible() ) {
+        updater.setGraphics(g);
+    
+        backend.doPaintComponent(g);
+    }
   }
 
 

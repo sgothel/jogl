@@ -457,7 +457,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         }
         return; // not yet available ..
     }
-    Threading.invoke(true, displayOnEDTAction, getTreeLock());
+    if( isVisible() ) {
+        Threading.invoke(true, displayOnEDTAction, getTreeLock());
+    }
     awtWindowClosingProtocol.addClosingListenerOneShot();
   }
 

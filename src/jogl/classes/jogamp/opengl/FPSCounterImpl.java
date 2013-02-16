@@ -103,6 +103,7 @@ public class FPSCounterImpl implements FPSCounter {
         fpsLastPeriod = 0;
         fpsTotalFrames = 0;
         fpsLast = 0f; fpsTotal = 0f;
+        fpsLastPeriod = 0; fpsTotalDuration=0;
     }
 
     public final synchronized int getUpdateFPSFrames() {
