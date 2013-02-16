@@ -346,7 +346,7 @@ public class WindowsWGLContext extends GLContextImpl {
         if(glCaps.getGLProfile().isGL3()) {
           WGL.wglMakeCurrent(0, 0);
           WGL.wglDeleteContext(temp_ctx);
-          throw new GLException("WindowsWGLContext.createContext ctx !ARB, context > GL2 requested "+getGLVersion());
+          throw new GLException(getThreadName()+": WindowsWGLContex.createContextImpl ctx !ARB, profile > GL2 requested (OpenGL >= 3.0.1). Requested: "+glCaps.getGLProfile()+", current: "+getGLVersion());
         }
         if(DEBUG) {
           System.err.println("WindowsWGLContext.createContext failed, fall back to !ARB context "+getGLVersion());
