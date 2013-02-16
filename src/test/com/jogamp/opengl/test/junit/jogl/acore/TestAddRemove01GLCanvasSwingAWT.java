@@ -78,26 +78,6 @@ public class TestAddRemove01GLCanvasSwingAWT extends UITestCase {
     public static void releaseClass() {
     }
     
-    protected JPanel createParkingSlot(final JFrame[] top, final int width, final int height) 
-            throws InterruptedException, InvocationTargetException 
-    {
-        final JPanel[] jPanel = new JPanel[] { null };
-        SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    jPanel[0] = new JPanel();
-                    jPanel[0].setLayout(new BorderLayout());
-            
-                    final JFrame jFrame1 = new JFrame("Parking Slot");
-                    // jFrame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                    jFrame1.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
-                    jFrame1.getContentPane().add(jPanel[0]);
-                    jFrame1.setSize(width, height);
-                    
-                    top[0] = jFrame1;
-                } } );
-        return jPanel[0];        
-    }
-    
     protected JPanel create(final JFrame[] top, final int width, final int height, final int num) 
             throws InterruptedException, InvocationTargetException 
     {
