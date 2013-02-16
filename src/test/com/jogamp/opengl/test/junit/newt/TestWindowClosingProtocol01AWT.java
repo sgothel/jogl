@@ -89,7 +89,6 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         Assert.assertEquals(WindowClosingMode.DISPOSE_ON_CLOSE, op);
 
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false)); // no frame close
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, false));
         Assert.assertEquals(true,  frame.isDisplayable());
         Assert.assertEquals(true,  frame.isVisible());
         Assert.assertEquals(false, glCanvas.isRealized());
