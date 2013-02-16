@@ -85,6 +85,8 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
         WindowClosingMode op = newtCanvas.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingMode.DO_NOTHING_ON_CLOSE, op);
 
+        Thread.sleep(300);
+        
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false));
         Assert.assertEquals(true,  frame.isDisplayable());
         Assert.assertEquals(false, frame.isVisible());
@@ -109,6 +111,8 @@ public class TestWindowClosingProtocol03NewtAWT extends UITestCase {
         Assert.assertEquals(JFrame.DISPOSE_ON_CLOSE, frame.getDefaultCloseOperation());
         op = newtCanvas.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingMode.DISPOSE_ON_CLOSE, op);
+        
+        Thread.sleep(300);
 
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true));
         Assert.assertEquals(false, frame.isDisplayable());

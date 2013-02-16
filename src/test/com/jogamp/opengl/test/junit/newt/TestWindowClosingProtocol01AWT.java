@@ -87,10 +87,16 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         glCanvas.setDefaultCloseOperation(WindowClosingMode.DISPOSE_ON_CLOSE);
         op = glCanvas.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingMode.DISPOSE_ON_CLOSE, op);
+        
+        Thread.sleep(300);
 
-        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false)); // no frame close
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false)); // no frame close, but GLCanvas's GL resources will be destroyed
+        Thread.sleep(100);
         Assert.assertEquals(true,  frame.isDisplayable());
         Assert.assertEquals(true,  frame.isVisible());
+        for (int wait=0; wait<AWTRobotUtil.POLL_DIVIDER && glCanvas.isRealized(); wait++) {
+            Thread.sleep(AWTRobotUtil.TIME_SLICE);
+        }
         Assert.assertEquals(false, glCanvas.isRealized());
 
         SwingUtilities.invokeAndWait(new Runnable() {
@@ -125,6 +131,8 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         WindowClosingMode op = glCanvas.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingMode.DO_NOTHING_ON_CLOSE, op);
 
+        Thread.sleep(300);
+        
         Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false)); // nop
         Thread.sleep(100);
         Assert.assertEquals(true,  frame.isDisplayable());

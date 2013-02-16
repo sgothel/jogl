@@ -69,6 +69,8 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
         glWindow.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE);
         op = glWindow.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingMode.DO_NOTHING_ON_CLOSE, op);
+        
+        Thread.sleep(300);
 
         Assert.assertEquals(true, AWTRobotUtil.closeWindow(glWindow, false)); // nop
         Assert.assertEquals(true, glWindow.isNativeValid());

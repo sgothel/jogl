@@ -344,7 +344,6 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01bNEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.ManualScreenMode03NEWT
-#testnoawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT $*
 #testnoawt -Djava.awt.headless=true com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
 
 #
@@ -370,7 +369,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestAWT02WindowClosing
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestJScrollPaneMixHwLw01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug642JSplitPaneMixHwLw01AWT $*
-testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug664GLCanvasSetVisibleSwingAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug664GLCanvasSetVisibleSwingAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestIsRealizedConcurrency01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.text.TestAWTTextRendererUseVertexArrayBug464
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWT $*
@@ -435,7 +434,7 @@ testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug664GLCanvasSetVisibleSwingA
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestBug605FlippedImageAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.glsl.TestShaderCompilationBug459AWT
 
-#testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol01AWT $*
+testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol01AWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol03NewtAWT $*
 
