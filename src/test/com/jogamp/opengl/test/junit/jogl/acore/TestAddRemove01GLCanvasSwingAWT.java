@@ -140,8 +140,8 @@ public class TestAddRemove01GLCanvasSwingAWT extends UITestCase {
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     if( visible ) {
-                        jFrame.validate();
                         jFrame.pack();
+                        jFrame.validate();
                     }
                     jFrame.setVisible(visible);
                 } } ) ;        

@@ -130,6 +130,7 @@ extern GLboolean glIsVertexArray (GLuint array);
 @private
     GLfloat gl_texCoords[8];
     NSOpenGLContext* myCtx;
+    Bool isGLEnabled;
 
 @protected
     NSOpenGLContext* parentCtx;
@@ -171,6 +172,7 @@ extern GLboolean glIsVertexArray (GLuint array);
        texWidth: (int) texWidth 
        texHeight: (int) texHeight;
 
+- (void) setGLEnabled: (Bool) enable;
 - (Bool) validateTexSizeWithNewSize;
 - (Bool) validateTexSize: (int) _texWidth texHeight: (int) _texHeight;
 - (void) setTextureID: (int) _texID;
@@ -266,6 +268,7 @@ static const GLfloat gl_verts[] = {
     swapIntervalCounter = 0;
     timespec_now(&lastWaitTime);
     shallDraw = NO;
+    isGLEnabled = YES;
     newTexWidth = _texWidth;
     newTexHeight = _texHeight;
     [self validateTexSizeWithNewSize];
@@ -333,6 +336,12 @@ static const GLfloat gl_verts[] = {
     }
 #endif
     return self;
+}
+
+- (void) setGLEnabled: (Bool) enable
+{
+    DBG_PRINT("MyNSOpenGLLayer::setGLEnabled: %p, %d -> %d\n", self, (int)isGLEnabled, (int)enable);
+    isGLEnabled = enable;
 }
 
 - (Bool) validateTexSizeWithNewSize
@@ -444,6 +453,7 @@ static const GLfloat gl_verts[] = {
 {
     DBG_PRINT("MyNSOpenGLLayer::openGLPixelFormatForDisplayMask: %p (refcnt %d) - parent-pfmt %p -> new-pfmt %p\n", 
         self, (int)[self retainCount], parentPixelFmt, parentPixelFmt);
+    // We simply take over ownership of parent PixelFormat ..
     return parentPixelFmt;
 }
 
@@ -531,7 +541,6 @@ static const GLfloat gl_verts[] = {
     [self disableAnimation];
     pthread_mutex_lock(&renderLock);
     [self deallocPBuffer];
-    // [[self openGLContext] dealloc];
     pthread_mutex_unlock(&renderLock);
     pthread_cond_destroy(&renderSignal);
     pthread_mutex_destroy(&renderLock);
@@ -548,8 +557,8 @@ static const GLfloat gl_verts[] = {
  {
     CGRect lRectS = [[self superlayer] bounds];
 
-    DBG_PRINT("MyNSOpenGLLayer::resizeWithOldSuperlayerSize: %p, texSize %dx%d, bounds: %lfx%lf -> %lfx%lf (refcnt %d)\n", 
-        self, texWidth, texHeight, size.width, size.height, lRectS.size.width, lRectS.size.height, (int)[self retainCount]);
+    DBG_PRINT("MyNSOpenGLLayer::resizeWithOldSuperlayerSize: %p, texSize %dx%d, bounds: %lfx%lf -> %lf/%lf %lfx%lf (refcnt %d)\n", 
+        self, texWidth, texHeight, size.width, size.height, lRectS.origin.x, lRectS.origin.y, lRectS.size.width, lRectS.size.height, (int)[self retainCount]);
 
     newTexWidth = lRectS.size.width;
     newTexHeight = lRectS.size.height;
@@ -562,8 +571,8 @@ static const GLfloat gl_verts[] = {
 - (BOOL)canDrawInOpenGLContext:(NSOpenGLContext *)context pixelFormat:(NSOpenGLPixelFormat *)pixelFormat 
         forLayerTime:(CFTimeInterval)timeInterval displayTime:(const CVTimeStamp *)timeStamp
 {
-    SYNC_PRINT("<? %d>", (int)shallDraw);
-    return shallDraw;
+    SYNC_PRINT("<? %d, %d>", (int)shallDraw, (int)isGLEnabled);
+    return shallDraw && isGLEnabled;
 }
 
 - (void)drawInOpenGLContext:(NSOpenGLContext *)context pixelFormat:(NSOpenGLPixelFormat *)pixelFormat 
@@ -573,7 +582,7 @@ static const GLfloat gl_verts[] = {
     SYNC_PRINT("<* ");
     // NSLog(@"MyNSOpenGLLayer::DRAW: %@",[NSThread callStackSymbols]);
 
-    if( shallDraw && ( NULL != pbuffer || NULL != newPBuffer || 0 != textureID ) ) {
+    if( isGLEnabled && shallDraw && ( NULL != pbuffer || NULL != newPBuffer || 0 != textureID ) ) {
         [context makeCurrentContext];
 
         if( NULL != newPBuffer ) { // volatile OK
@@ -824,6 +833,13 @@ static const GLfloat gl_verts[] = {
 NSOpenGLLayer* createNSOpenGLLayer(NSOpenGLContext* ctx, int gl3ShaderProgramName, NSOpenGLPixelFormat* fmt, NSOpenGLPixelBuffer* p, uint32_t texID, Bool opaque, int texWidth, int texHeight) {
   return [[[MyNSOpenGLLayer alloc] init] setupWithContext:ctx gl3ShaderProgramName: (GLuint)gl3ShaderProgramName pixelFormat: fmt pbuffer: p texIDArg: (GLuint)texID
                                                               opaque: opaque texWidth: texWidth texHeight: texHeight];
+}
+ 
+void setNSOpenGLLayerEnabled(NSOpenGLLayer* layer, Bool enable) {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
+    [l setGLEnabled: enable];
+    [pool release];
 }
 
 void setNSOpenGLLayerSwapInterval(NSOpenGLLayer* layer, int interval) {

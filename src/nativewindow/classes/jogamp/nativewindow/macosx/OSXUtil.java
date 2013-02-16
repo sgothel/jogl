@@ -136,12 +136,31 @@ public class OSXUtil implements ToolkitProperties {
       return GetNSWindow0(nsView);
     }
     
+    /** 
+     * Create a CALayer suitable to act as a root CALayer on the main-thread.
+     * @see #DestroyCALayer(long)
+     * @see #AddCASublayer(long, long) 
+     */
     public static long CreateCALayer(final int x, final int y, final int width, final int height) {
       return OSXUtil.RunOnMainThread(true, new Function<Long, Object>() {
        public Long eval(Object... args) {
            return Long.valueOf( CreateCALayer0(x, y, width, height) );
        } } ).longValue();
     }
+    
+    /** 
+     * Attach a sub CALayer to the root CALayer on the main-thread.
+     * <p>
+     * Method will trigger a <code>display</code>
+     * call to the CALayer hierarchy to enforce resource creation if required, e.g. an NSOpenGLContext.
+     * </p>
+     * <p>
+     * It is mandatory that any related resources, e.g. a shared NSOpenGLContext,
+     * are not locked while calling this method. 
+     * </p>
+     * @see #CreateCALayer(int, int, int, int)
+     * @see #RemoveCASublayer(long, long)
+     */
     public static void AddCASublayer(final long rootCALayer, final long subCALayer) {
         if(0==rootCALayer || 0==subCALayer) {
             throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
@@ -152,6 +171,10 @@ public class OSXUtil implements ToolkitProperties {
            }
         });
     }
+    
+    /** 
+     * Detach a sub CALayer from the root CALayer on the main-thread.
+     */
     public static void RemoveCASublayer(final long rootCALayer, final long subCALayer) {
         if(0==rootCALayer || 0==subCALayer) {
             throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
@@ -161,6 +184,11 @@ public class OSXUtil implements ToolkitProperties {
                RemoveCASublayer0(rootCALayer, subCALayer);
            } } );
     }
+    
+    /** 
+     * Destroy a CALayer on the main-thread.
+     * @see #CreateCALayer(int, int, int, int)
+     */    
     public static void DestroyCALayer(final long caLayer) {
         if(0==caLayer) {
             throw new IllegalArgumentException("caLayer 0x"+Long.toHexString(caLayer));

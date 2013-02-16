@@ -430,6 +430,9 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
     MyCALayer* rootLayer = (MyCALayer*) ((intptr_t) rootCALayer);
     CALayer* subLayer = (CALayer*) ((intptr_t) subCALayer);
 
+    [CATransaction begin];
+    [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+
     CGRect lRectRoot = [rootLayer frame];
     DBG_PRINT("CALayer::AddCASublayer0.0: Origin %p frame0: %lf/%lf %lfx%lf\n", 
         rootLayer, lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height);
@@ -444,9 +447,6 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
         rootLayer, (int)[rootLayer retainCount],
         subLayer, lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height, (int)[subLayer retainCount]);
 
-    [CATransaction begin];
-    [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
-
     // simple 1:1 layout !
     [subLayer setFrame:lRectRoot];
     [rootLayer addSublayer:subLayer];
@@ -454,13 +454,19 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
     // no animations for add/remove/swap sublayers etc 
     // doesn't work: [layer removeAnimationForKey: kCAOnOrderIn, kCAOnOrderOut, kCATransition]
     [rootLayer removeAllAnimations];
-    // [rootLayer addAnimation:nil forKey:kCATransition];
+    // [rootLayer addAnimation:nil forKey:kCATransition]; // JAU
     [rootLayer setAutoresizingMask: (kCALayerWidthSizable|kCALayerHeightSizable)];
     [rootLayer setNeedsDisplayOnBoundsChange: YES];
     [subLayer removeAllAnimations];
-    // [sublayer addAnimation:nil forKey:kCATransition];
+    // [subLayer addAnimation:nil forKey:kCATransition]; // JAU
     [subLayer setAutoresizingMask: (kCALayerWidthSizable|kCALayerHeightSizable)];
     [subLayer setNeedsDisplayOnBoundsChange: YES];
+
+    // Trigger display and hence ctx creation.
+    // The latter is essential since since the parent-context lock is cleared
+    // only for this window of time (method call).
+    [rootLayer setNeedsDisplay];
+    [rootLayer displayIfNeeded];
 
     [CATransaction commit];
 

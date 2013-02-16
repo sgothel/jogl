@@ -687,13 +687,32 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   } else {
                       gl3ShaderProgramName = 0;
                   }
-                  nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, gl3ShaderProgramName, nsOpenGLLayerPFmt, pbufferHandle, texID, chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight);
-                  nsOpenGLLayerPFmt = 0; // NSOpenGLLayer will release pfmt
-                  if (DEBUG) {
-                      System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer)+" w/ pbuffer "+toHexString(pbufferHandle)+", texID "+texID+", texSize "+lastWidth+"x"+lastHeight+", "+drawable);
+                   
+                  /**
+                   * Perform NSOpenGLLayer creation and attaching on main-thread,
+                   * hence release the lock on our context - which will be used to 
+                   * create a shared context within NSOpenGLLayer.
+                   */
+                  final long cglCtx = CGL.getCGLContext(ctx);
+                  if(0 == cglCtx) {
+                      throw new InternalError("Null CGLContext for: "+this);
                   }
-                  backingLayerHost.attachSurfaceLayer(nsOpenGLLayer);
-                  setSwapInterval(1); // enabled per default in layered surface                
+                  final boolean ctxUnlocked = CGL.kCGLNoError == CGL.CGLUnlockContext(cglCtx);
+                  try {                  
+                      nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, gl3ShaderProgramName, nsOpenGLLayerPFmt, pbufferHandle, texID, chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight);
+                      nsOpenGLLayerPFmt = 0; // NSOpenGLLayer will release pfmt
+                      if (DEBUG) {
+                          System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer)+" w/ pbuffer "+toHexString(pbufferHandle)+", texID "+texID+", texSize "+lastWidth+"x"+lastHeight+", "+drawable);
+                      }
+                      backingLayerHost.attachSurfaceLayer(nsOpenGLLayer);
+                      setSwapInterval(1); // enabled per default in layered surface
+                  } finally {
+                      if( ctxUnlocked ) {
+                          if( CGL.kCGLNoError != CGL.CGLLockContext(cglCtx) ) {
+                              throw new InternalError("Could not re-lock CGLContext for: "+this);
+                          }
+                      }
+                  }
               } else {
                   lastWidth = drawable.getWidth();
                   lastHeight = drawable.getHeight();                  
