@@ -50,6 +50,7 @@ import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.DriverClearFocus;
 import jogamp.newt.driver.DriverUpdatePosition;
 
+import com.jogamp.common.util.Function;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
 
@@ -86,7 +87,10 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             sscSurfaceHandle = 0;
             isOffscreenInstance = false;            
             if (0 != handle) {
-                close0(handle);
+                OSXUtil.RunOnMainThread(true, new Runnable() {
+                   public void run() {
+                       close0( handle );
+                   } } );
             }
         } catch (Throwable t) {
             if(DEBUG_IMPLEMENTATION) { 
@@ -378,24 +382,36 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         try {
             if(0!=getWindowHandle()) {
                 // save the view .. close the window
-                surfaceHandle = changeContentView0(getParentWindowHandle(), getWindowHandle(), 0);
+                surfaceHandle = OSXUtil.RunOnMainThread(true, new Function<Long, Object>() {
+                    public Long eval(Object... args) {
+                        return Long.valueOf( 
+                                changeContentView0(getParentWindowHandle(), getWindowHandle(), 0) );
+                    } } ).longValue();
                 if(recreate && 0==surfaceHandle) {
                     throw new NativeWindowException("Internal Error - recreate, window but no view");
                 }
-                close0(getWindowHandle());
+                OSXUtil.RunOnMainThread(true, new Runnable() {
+                   public void run() {
+                       close0( getWindowHandle() );
+                   } } );
                 setWindowHandle(0);
             } else {
                 surfaceHandle = 0;
             }
-            setWindowHandle(createWindow0(getParentWindowHandle(),
-                                 pS.getX(), pS.getY(), width, height,
-                                 (getGraphicsConfiguration().getChosenCapabilities().isBackgroundOpaque() && !offscreenInstance),
-                                 fullscreen,
-                                 ((isUndecorated() || offscreenInstance) ?
-                                   NSBorderlessWindowMask :
-                                   NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask),
-                                 NSBackingStoreBuffered, 
-                                 getScreen().getIndex(), surfaceHandle));
+            
+            setWindowHandle( OSXUtil.RunOnMainThread(true, new Function<Long, Object>() {
+                public Long eval(Object... args) {
+                    return Long.valueOf(
+                            createWindow0( getParentWindowHandle(),
+                                    pS.getX(), pS.getY(), width, height,
+                                    (getGraphicsConfiguration().getChosenCapabilities().isBackgroundOpaque() && !offscreenInstance),
+                                    fullscreen,
+                                    ( (isUndecorated() || offscreenInstance) ? NSBorderlessWindowMask :
+                                      NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask ),
+                                    NSBackingStoreBuffered, 
+                                    getScreen().getIndex(), surfaceHandle) );
+                } } ).longValue() );                
+            
             if (getWindowHandle() == 0) {
                 throw new NativeWindowException("Could create native window "+Thread.currentThread().getName()+" "+this);
             }
@@ -411,6 +427,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
     
     protected static native boolean initIDs0();
+    /** Must be called on Main-Thread */
     private native long createWindow0(long parentWindowHandle, int x, int y, int w, int h,
                                      boolean opaque, boolean fullscreen, int windowStyle,
                                      int backingStoreType,
@@ -422,9 +439,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     /** in case of a child window, it actually only issues orderBack(..) */
     private native void orderOut0(long window);
     private native void orderFront0(long window);
+    /** Must be called on Main-Thread */
     private native void close0(long window);
     private native void setTitle0(long window, String title);
     private native long contentView0(long window);
+    /** Must be called on Main-Thread */
     private native long changeContentView0(long parentWindowOrViewHandle, long window, long view);
     private native void setContentSize0(long window, int w, int h);
     private native void setFrameTopLeftPoint0(long parentWindowHandle, long window, int x, int y);

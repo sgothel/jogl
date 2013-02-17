@@ -34,8 +34,8 @@ uname -a | grep -i Darwin && MOSX=1
 if [ $MOSX -eq 1 ] ; then
     echo setup OSX environment vars
     #export NSZombieEnabled=YES
-    #export NSTraceEvents=YES
-    #export OBJC_PRINT_EXCEPTIONS=YES
+    export NSTraceEvents=YES
+    export OBJC_PRINT_EXCEPTIONS=YES
     echo NSZombieEnabled $NSZombieEnabled 2>&1 | tee -a java-run.log
     echo NSTraceEvents $NSTraceEvents  2>&1 | tee -a java-run.log
     echo OBJC_PRINT_EXCEPTIONS $OBJC_PRINT_EXCEPTIONS  2>&1 | tee -a java-run.log
@@ -302,7 +302,8 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer01GLCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer02NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestAddRemove01GLCanvasSwingAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.acore.TestAddRemove02GLWindowNewtCanvasAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.acore.TestAddRemove02GLWindowNewtCanvasAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.TestAddRemove03GLWindowNEWT $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOffscrnCapsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryOffscrnCapsNEWT $*
@@ -434,7 +435,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestBug605FlippedImageAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.glsl.TestShaderCompilationBug459AWT
 
-testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol01AWT $*
+#testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol01AWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol02NEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.TestWindowClosingProtocol03NewtAWT $*
 

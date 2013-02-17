@@ -172,7 +172,9 @@ public class TestBug664GLCanvasSetVisibleSwingAWT extends UITestCase {
                 @Override
                 public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
             });
-            glc.addGLEventListener(new GearsES2());
+            final GearsES2 gears = new GearsES2(1);
+            gears.setVerbose(false);
+            glc.addGLEventListener(gears);
             
             final JFrame[] top = new JFrame[] { null };
             final Container glcCont = create(top, width, height, i);

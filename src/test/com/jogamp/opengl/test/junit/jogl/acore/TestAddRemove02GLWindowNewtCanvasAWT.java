@@ -52,13 +52,14 @@ import org.junit.Test;
 
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 public class TestAddRemove02GLWindowNewtCanvasAWT extends UITestCase {
     static long durationPerTest = 50;
     static int addRemoveCount = 15;
-    static boolean shallUseOffscreenFBOLayer = false;
+    static boolean noOnscreenTest = false;
+    static boolean noOffscreenTest = false;
     static boolean shallUseOffscreenPBufferLayer = false;
     static GLProfile glp;
     static int width, height;
@@ -66,8 +67,8 @@ public class TestAddRemove02GLWindowNewtCanvasAWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
-        if(GLProfile.isAvailable(GLProfile.GL2)) {
-            glp = GLProfile.get(GLProfile.GL2);
+        if(GLProfile.isAvailable(GLProfile.GL2ES2)) {
+            glp = GLProfile.get(GLProfile.GL2ES2);
             Assert.assertNotNull(glp);
             width  = 640;
             height = 480;
@@ -141,8 +142,9 @@ public class TestAddRemove02GLWindowNewtCanvasAWT extends UITestCase {
     {
 
         for(int i=0; i<addRemoveOpCount; i++) {
+            System.err.println("Loop # "+i+" / "+addRemoveCount);
             final GLWindow glw = GLWindow.create(caps);
-            
+            Assert.assertNotNull(glw);            
             final NewtCanvasAWT glc = new NewtCanvasAWT(glw);
             Assert.assertNotNull(glc);
             if( !onscreen ) {
@@ -152,7 +154,9 @@ public class TestAddRemove02GLWindowNewtCanvasAWT extends UITestCase {
             glc.setMinimumSize(glc_sz);
             glc.setPreferredSize(glc_sz);
             glc.setSize(glc_sz);
-            glw.addGLEventListener(new Gears());
+            final GearsES2 gears = new GearsES2(1);
+            gears.setVerbose(false);
+            glw.addGLEventListener(gears);
             
             final JFrame[] top = new JFrame[] { null };
             final Container glcCont = create(top, width, height, i);
@@ -177,11 +181,11 @@ public class TestAddRemove02GLWindowNewtCanvasAWT extends UITestCase {
     public void test01Onscreen()
             throws AWTException, InterruptedException, InvocationTargetException
     {
-        if( shallUseOffscreenFBOLayer || shallUseOffscreenPBufferLayer || JAWTUtil.isOffscreenLayerRequired() ) {
-            System.err.println("Offscreen test requested or platform requires it.");
+        if( noOnscreenTest || JAWTUtil.isOffscreenLayerRequired() ) {
+            System.err.println("No onscreen test requested or platform doesn't support onscreen rendering.");
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        GLCapabilities caps = new GLCapabilities(glp);
         if(shallUseOffscreenPBufferLayer) {
             caps.setPBuffer(true);
             caps.setOnscreen(true); // simulate normal behavior ..
@@ -193,11 +197,11 @@ public class TestAddRemove02GLWindowNewtCanvasAWT extends UITestCase {
     public void test02Offscreen()
             throws AWTException, InterruptedException, InvocationTargetException
     {
-        if( !JAWTUtil.isOffscreenLayerSupported() ) {
-            System.err.println("Platform doesn't support offscreen test.");
+        if( noOffscreenTest || !JAWTUtil.isOffscreenLayerSupported() ) {
+            System.err.println("No offscreen test requested or platform doesn't support offscreen rendering.");
             return;
         }
-        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        GLCapabilities caps = new GLCapabilities(glp);
         if(shallUseOffscreenPBufferLayer) {
             caps.setPBuffer(true);
             caps.setOnscreen(true); // simulate normal behavior ..
@@ -217,8 +221,10 @@ public class TestAddRemove02GLWindowNewtCanvasAWT extends UITestCase {
                 try {
                     addRemoveCount = Integer.parseInt(args[i]);
                 } catch (Exception ex) { ex.printStackTrace(); }
-            } else if(args[i].equals("-layeredFBO")) {
-                shallUseOffscreenFBOLayer = true;
+            } else if(args[i].equals("-noOnscreen")) {
+                noOnscreenTest = true;
+            } else if(args[i].equals("-noOffscreen")) {
+                noOffscreenTest = true;
             } else if(args[i].equals("-layeredPBuffer")) {
                 shallUseOffscreenPBufferLayer = true;
             } else if(args[i].equals("-wait")) {
@@ -229,7 +235,8 @@ public class TestAddRemove02GLWindowNewtCanvasAWT extends UITestCase {
         
         System.err.println("addRemoveCount                "+addRemoveCount);
         
-        System.err.println("shallUseOffscreenFBOLayer     "+shallUseOffscreenFBOLayer);
+        System.err.println("noOnscreenTest                "+noOnscreenTest);
+        System.err.println("noOffscreenTest               "+noOffscreenTest);
         System.err.println("shallUseOffscreenPBufferLayer "+shallUseOffscreenPBufferLayer);
         if(waitForKey) {
             UITestCase.waitForKey("Start");

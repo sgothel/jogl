@@ -553,7 +553,9 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_initIDs0
     return (jboolean) res;
 }
 
-/*
+/**
+ * Method is called on Main-Thread, hence no special invocation required inside method.
+ *
  * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    createWindow0
  * Signature: (JIIIIZIIIJ)J
@@ -706,19 +708,10 @@ NS_ENDHANDLER
 
     return (jlong) ((intptr_t) myWindow);
 }
-// Footnote: Our view handling produces random 'Assertion failure' even w/o parenting:
-//
-// [NSThemeFrame lockFocus], /SourceCache/AppKit/AppKit-1138.23/AppKit.subproj/NSView.m:6053
-// [NSThemeFrame(0x7fe94bc72c80) lockFocus] failed with window=0x7fe94bc445a0, windowNumber=9425, [self isHiddenOrHasHiddenAncestor]=0
-//                       ..
-// AppKit                0x00007fff89621001 -[NSView lockFocus] + 250
-// AppKit                0x00007fff8961eafa -[NSView _displayRectIgnoringOpacity:isVisibleRect:rectIsVisibleRectForView:] + 3780
-// AppKit                0x00007fff8961793e -[NSView displayIfNeeded] + 1676
-// AppKit                0x00007fff8961707d _handleWindowNeedsDisplayOrLayoutOrUpdateConstraints + 648
-//                       
 
-
-/*
+/**
+ * Method is called on Main-Thread, hence no special invocation required inside method.
+ *
  * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    close0
  * Signature: (J)V
@@ -761,8 +754,6 @@ NS_DURING
             [mView exitFullScreenModeWithOptions: NULL];
         }
         // Note: mWin's release will also release it's mView!
-        // [mWin setContentView: nil];
-        // [mView release];
     }
 NS_HANDLER
 NS_ENDHANDLER
@@ -770,7 +761,8 @@ NS_ENDHANDLER
     if(NULL!=pWin) {
         [mWin detachFromParent: pWin];
     }
-    [mWin performSelectorOnMainThread:@selector(orderOut:) withObject:mWin waitUntilDone:NO];
+    // [mWin performSelectorOnMainThread:@selector(orderOut:) withObject:mWin waitUntilDone:NO];
+    [mWin orderOut: mWin];
 
     DBG_PRINT( "windowClose.1 - %p,%d view %p,%d, parent %p\n", 
         mWin, getRetainCount(mWin), mView, getRetainCount(mView), pWin);
@@ -778,7 +770,8 @@ NS_ENDHANDLER
     // Only release window, if release is not yet in process.
     // E.g. destroyNotifySent:=true set by NewtMacWindow::windowWillClose(), i.e. window-close was clicked.
     if(!destroyNotifySent) { 
-        [mWin performSelectorOnMainThread:@selector(release) withObject:nil waitUntilDone:NO];
+        // [mWin performSelectorOnMainThread:@selector(release) withObject:nil waitUntilDone:NO];
+        [mWin release];
     }
 
     DBG_PRINT( "windowClose.X - %p,%d, released %d, view %p,%d, parent %p\n", 
@@ -960,7 +953,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_contentView0
     return res;
 }
 
-/*
+/**
+ * Method is called on Main-Thread, hence no special invocation required inside method.
+ *
  * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    changeContentView
  * Signature: (J)J

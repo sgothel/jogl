@@ -107,6 +107,7 @@ static jmethodID windowRepaintID = NULL;
 
 - (id)initWithFrame:(NSRect)frameRect
 {
+    id res = [super initWithFrame:frameRect];
     javaWindowObject = NULL;
 
     jvmHandle = NULL;
@@ -129,28 +130,35 @@ static jmethodID windowRepaintID = NULL;
     */
     myCursor = NULL;
 
-    return [super initWithFrame:frameRect];
+    DBG_PRINT("NewtView::create: %p (refcnt %d)\n", res, (int)[res retainCount]);
+    return res;
 }
 
 - (void) release
 {
+    DBG_PRINT("NewtView::release.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
 #ifdef VERBOSE_ON
-    NSLog(@"NewtView::release\n");
-    NSLog(@"%@",[NSThread callStackSymbols]);
+    // NSLog(@"%@",[NSThread callStackSymbols]);
 #endif
     [super release];
 }
 
 - (void) dealloc
 {
+    DBG_PRINT("NewtView::dealloc.0: %p (refcnt %d), ptrTrackingTag %d\n", self, (int)[self retainCount], (int)ptrTrackingTag);
     if(softLocked) {
         NSLog(@"NewtView::dealloc: softLock still hold @ dealloc!\n");
     }
+    if(0 != ptrTrackingTag) {
+        // [self removeCursorRect: ptrRect cursor: myCursor];
+        [self removeTrackingRect: ptrTrackingTag];
+        ptrTrackingTag = 0;
+    }
     pthread_mutex_destroy(&softLockSync);
 #ifdef VERBOSE_ON
-    NSLog(@"NewtView::dealloc\n");
-    NSLog(@"%@",[NSThread callStackSymbols]);
+    //NSLog(@"%@",[NSThread callStackSymbols]);
 #endif
+    DBG_PRINT("NewtView::dealloc.X: %p\n", self);
     [super dealloc];
 }
 
@@ -390,25 +398,31 @@ static jmethodID windowRepaintID = NULL;
     mouseInside = NO;
     cursorIsHidden = NO;
     realized = YES;
+    DBG_PRINT("NewtWindow::create: %p (refcnt %d)\n", res, (int)[res retainCount]);
     return res;
 }
 
 - (void) release
 {
+    DBG_PRINT("NewtWindow::release.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
 #ifdef VERBOSE_ON
-    NSLog(@"NewtWindow::release\n");
-    NSLog(@"%@",[NSThread callStackSymbols]);
+    // NSLog(@"%@",[NSThread callStackSymbols]);
 #endif
     [super release];
 }
 
 - (void) dealloc
 {
+    DBG_PRINT("NewtWindow::dealloc.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
 #ifdef VERBOSE_ON
-    NSLog(@"NewtWindow::dealloc\n");
-    NSLog(@"%@",[NSThread callStackSymbols]);
+    // NSLog(@"%@",[NSThread callStackSymbols]);
 #endif
+    NewtView* mView = (NewtView *)[self contentView];
+    if( NULL != mView ) {
+        [mView release];
+    }
     [super dealloc];
+    DBG_PRINT("NewtWindow::dealloc.X: %p\n", self);
 }
 
 - (void) setUnrealized

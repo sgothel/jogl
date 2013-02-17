@@ -10,4 +10,3 @@ spath=`dirname $0`
 
 . $spath/tests.sh  $JAVA_HOME/bin/java -d64 ../build-macosx $*
 
-
