@@ -196,7 +196,7 @@
             </pathconvert>
             <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.log"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
-            <apply dir="." executable="${java.home}/bin/java" 
+            <apply dir="." executable="${jvmJava.exe}"
                  parallel="false" 
                  timeout="${batchtest.timeout}"
                  vmlauncher="false"
@@ -225,7 +225,7 @@
 
     <target name="junit.run.noui" depends="test.compile">
         <!-- Test*NOUI* -->
-        <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="${junit.run.arg0}"/>
             <jvmarg value="${junit.run.arg1}"/>
@@ -287,7 +287,7 @@
             </pathconvert>
             <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
-            <apply dir="." executable="${java.home}/bin/java" 
+            <apply dir="." executable="${jvmJava.exe}"
                  parallel="false" 
                  timeout="${batchtest.timeout}"
                  vmlauncher="false"
@@ -330,7 +330,7 @@
       -->
     <target name="junit.run.newt" depends="test.compile">
         <!-- Test*NEWT* -->
-        <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="${junit.run.arg0}"/>
             <jvmarg value="${junit.run.arg1}"/>
@@ -369,7 +369,7 @@
 
     <target name="junit.run.awt" depends="test.compile">
         <!-- Test*AWT* -->
-        <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="${junit.run.arg0}"/>
             <jvmarg value="${junit.run.arg1}"/>
@@ -406,11 +406,11 @@
 
     <target name="junit.run.newt.awt" depends="test.compile">
         <!-- Test*AWT* -->
-        <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="${junit.run.arg0}"/>
             <jvmarg value="${junit.run.arg1}"/>
             <jvmarg value="${jvmDataModel.arg}"/>
-            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
 
             <!--
@@ -444,7 +444,7 @@
 
     <target name="junit.run.awt.singletest" depends="test.compile">
         <!-- Test*AWT* -->
-        <junit forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${obj.all.paths}"/>
             <jvmarg value="${junit.run.arg0}"/>
             <jvmarg value="${junit.run.arg1}"/>
@@ -496,7 +496,7 @@
             </pathconvert>
             <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
-            <apply dir="." executable="${java.home}/bin/java" 
+            <apply dir="." executable="${jvmJava.exe}"
                  parallel="false" 
                  timeout="${batchtest.timeout}"
                  vmlauncher="false"
@@ -560,7 +560,7 @@
             </pathconvert>
             <var name="test.class.result.file" value="${results.test}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
-            <apply dir="." executable="${java.home}/bin/java" 
+            <apply dir="." executable="${jvmJava.exe}"
                  parallel="false" 
                  timeout="${batchtest.timeout}"
                  vmlauncher="false"
@@ -632,6 +632,29 @@
         <var name="jvmDataModel.arg" value="-d64"/>
         <var name="junit_extra_classpath" unset="true"/>
         <var name="junit_extra_classpath" value=""/>
+    </target>
+
+    <target name="junit.run.local.java7" if="jvmJava7.exe">
+        <var name="jvmJavaOrig.exe" value="${jvmJava.exe}"/>
+        <var name="jvmJava.exe" unset="true"/>
+        <var name="jvmJava.exe" value="${jvmJava7.exe}"/>
+
+        <antcall target="junit.run.local" inheritRefs="true" inheritAll="true"/>
+
+        <mkdir dir="${build}/test/results-java7"/>
+        <move todir="${build}/test/results-java7">
+            <fileset dir="." includes="*.png" />
+            <fileset dir="." includes="*.pam" />
+            <fileset dir="." includes="*.tga" />
+        </move>
+        <move todir="${build}/test/results-java7">
+            <fileset dir="${results.test}" includes="**" />
+        </move>
+        <mkdir dir="${results.test}"/>
+
+        <var name="jvmJava.exe" unset="true"/>
+        <var name="jvmJava.exe" value="${jvmJavaOrig.exe}"/>
+        <var name="jvmJavaOrig.exe" unset="true"/>
     </target>
 
     <target name="junit.run.remote.ssh.all" if="isCrosscompilation" unless="isAndroid">
@@ -946,7 +969,7 @@ ${line.separator}
     </target>
 
     <!-- target name="junit.run.tests" depends="junit.run.local.osx.d32, junit.run.local, junit.run.remote.ssh.all, junit.run.remote.adb"/-->
-    <target name="junit.run.tests" depends="junit.run.local, junit.run.remote.ssh.all, junit.run.remote.adb"/>
+    <target name="junit.run.tests" depends="junit.run.local, junit.run.local.java7, junit.run.remote.ssh.all, junit.run.remote.adb"/>
 
     <target name="junit.run.settings" depends="declare.common">
         <delete quiet="true">
