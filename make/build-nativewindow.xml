@@ -361,7 +361,6 @@
       </compiler>
 
       <compiler id="compiler.cfg.macosx.nativewindow" extends="compiler.cfg.macosx">
-        <compilerarg value="-I${java.osx.frameworks.dir}/JavaNativeFoundation.framework/Headers" />
       </compiler>
 
       <!-- linker configuration -->
@@ -446,9 +445,6 @@
         <linkerarg value="QuartzCore" />
         <linkerarg value="-weak_framework" />
         <linkerarg value="Cocoa" />
-        <linkerarg value="-weak_framework" />
-        <linkerarg value="JavaNativeFoundation" />
-        <linkerarg value="-F${java.osx.frameworks.dir}" />
       </linker>
 
       <linker id="linker.cfg.hpux.nativewindow" extends="linker.cfg.hpux">
@@ -735,20 +731,6 @@
       </sequential>
     </macrodef>  
 
-    <target name="c.fixup.jawt.version.macosx" if="isOSX" unless="setup.noNativeAWT">
-      <!-- Edit the link to the JAWT version in the resulting jnilib
-           file; this isn't strictly needed but seems to allow the
-           universal binaries to work on 10.3 machines as well, which
-           is desirable for some end users -->
-      <apply executable="install_name_tool">
-        <arg value="-change" />
-        <arg value="/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Libraries/libjawt.dylib" />
-        <arg value="/System/Library/Frameworks/JavaVM.framework/Libraries/libjawt.dylib" />
-        <srcfile />
-        <fileset dir="${obj.nativewindow}" includes="libnativewindow_awt.jnilib" />
-      </apply>
-    </target>
-
     <target name="c.build.nativewindow.awt" unless="setup.noNativeAWT">
       <c.build c.compiler.src.files="c.src.files.awt"
                c.compiler.use-jawt="true"
@@ -796,7 +778,6 @@
     </target>
 
     <target name="c.build.nativewindow" depends="c.configure,c.build.nativewindow.windowlib,c.build.nativewindow.awt">
-      <antcall target="c.fixup.jawt.version.macosx" inheritrefs="true" />
       <antcall target="c.manifest" inheritRefs="true" />
     </target>
 

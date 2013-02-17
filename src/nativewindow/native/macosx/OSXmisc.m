@@ -39,7 +39,6 @@
 #include "jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow.h"
 
 #include <jawt_md.h>
-#import <JavaNativeFoundation.h>
 
 // #define VERBOSE 1
 //
@@ -740,8 +739,7 @@ JNIEXPORT jint JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetScreenRefreshR
   (JNIEnv *env, jclass unused, jint scrn_idx)
 {
     int res = 0;
-    JNF_COCOA_ENTER(env);
-    // NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NSScreen *screen = NewtScreen_getNSScreenByIndex((int)scrn_idx);
     DBG_PRINT("GetScreenRefreshRate.0: screen %p\n", (void *)screen);
     if(NULL != screen) {
@@ -760,8 +758,7 @@ JNIEXPORT jint JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetScreenRefreshR
         res = 60; // default .. (experienced on OSX 10.6.8)
     }
     DBG_PRINT("GetScreenRefreshRate.X: %d\n", (int)res);
-    // [pool release];
-    JNF_COCOA_EXIT(env);
+    [pool release];
     return res;
 }
 

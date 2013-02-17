@@ -13,7 +13,7 @@ fi
 #    -Dtarget.targetlevel=1.6 \
 #    -Dtarget.rt.jar=/opt-share/jre1.6.0_30/lib/rt.jar \
 
-JAVA_HOME=`/usr/libexec/java_home -version 1.7`
+JAVA_HOME=`/usr/libexec/java_home -version 1.7.0_12`
 PATH=$JAVA_HOME/bin:$PATH
 export JAVA_HOME PATH
 
@@ -22,4 +22,4 @@ ant \
     -Dtarget.targetlevel=1.6 \
     -Dtarget.rt.jar=/opt-share/jre1.6.0_30/lib/rt.jar \
     -Drootrel.build=build-macosx-java7 \
-    $* 2>&1 | tee make.jogl.all.macosx-java7.log
+    $* 2>&1 | tee make.jogl.all.macosx-java7u12ea.log
