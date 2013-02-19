@@ -32,7 +32,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
-import com.jogamp.common.util.IntIntHashMap;
 import com.jogamp.newt.event.InputEvent;
 
 /**
@@ -43,26 +42,22 @@ import com.jogamp.newt.event.InputEvent;
  */
 public class SWTNewtEventFactory {
 
-    protected static final IntIntHashMap eventTypeSWT2NEWT;
+    public static final short eventTypeSWT2NEWT(int swtType) {
+        switch( swtType ) {
+            // case SWT.MouseXXX: return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_CLICKED;
+            case SWT.MouseDown: return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_PRESSED;
+            case SWT.MouseUp: return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED;
+            case SWT.MouseMove: return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_MOVED;
+            case SWT.MouseEnter: return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_ENTERED;
+            case SWT.MouseExit: return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_EXITED;
+            // case SWT.MouseXXX: return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_DRAGGED;
+            case SWT.MouseVerticalWheel: return com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
 
-    static {
-        IntIntHashMap map = new IntIntHashMap();
-        map.setKeyNotFoundValue(0xFFFFFFFF);
-        
-        // map.put(SWT.MouseXXX, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_CLICKED);
-        map.put(SWT.MouseDown, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_PRESSED);
-        map.put(SWT.MouseUp, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED);
-        map.put(SWT.MouseMove, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_MOVED);
-        map.put(SWT.MouseEnter, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_ENTERED);
-        map.put(SWT.MouseExit, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_EXITED);
-        // map.put(SWT.MouseXXX, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_DRAGGED);
-        map.put(SWT.MouseVerticalWheel, com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_WHEEL_MOVED);
-
-        map.put(SWT.KeyDown, com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED);
-        map.put(SWT.KeyUp, com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED);
-        // map.put(SWT.KeyXXX, com.jogamp.newt.event.KeyEvent.EVENT_KEY_TYPED);
-
-        eventTypeSWT2NEWT = map;
+            case SWT.KeyDown: return com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED;
+            case SWT.KeyUp: return com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED;
+            // case SWT.KeyXXX: return com.jogamp.newt.event.KeyEvent.EVENT_KEY_TYPED;
+        }
+        return (short)0;
     }
 
     public static final int swtModifiers2Newt(int awtMods, boolean mouseHint) {
@@ -93,8 +88,8 @@ public class SWTNewtEventFactory {
             default:
                 return null;
         }
-        int type = eventTypeSWT2NEWT.get(event.type);
-        if(0xFFFFFFFF != type) {
+        final short type = eventTypeSWT2NEWT(event.type);
+        if( (short)0 != type ) {
             float rotation = 0;
             if (SWT.MouseVerticalWheel == event.type) {
                 // SWT/NEWT rotation is reversed - AWT +1 is down, NEWT +1 is up.
@@ -116,7 +111,7 @@ public class SWTNewtEventFactory {
             
             return new com.jogamp.newt.event.MouseEvent(
                            type, (null==source)?(Object)event.data:source, (0xFFFFFFFFL & (long)event.time),
-                           mods, event.x, event.y, event.count, event.button, rotation);
+                           mods, event.x, event.y, (short)event.count, (short)event.button, rotation);
         }
         return null; // no mapping ..
     }
@@ -129,12 +124,12 @@ public class SWTNewtEventFactory {
             default:
                 return null;
         }
-        int type = eventTypeSWT2NEWT.get(event.type);
-        if(0xFFFFFFFF != type) {
+        final short type = eventTypeSWT2NEWT(event.type);
+        if( (short)0 != type ) {
             return new com.jogamp.newt.event.KeyEvent(
                            type, (null==source)?(Object)event.data:source, (0xFFFFFFFFL & (long)event.time),
                            swtModifiers2Newt(event.stateMask, false), 
-                           event.keyCode, event.character);
+                           (short)event.keyCode, (short)event.keyCode, event.character);
         }
         return null; // no mapping ..
     }
@@ -143,7 +138,7 @@ public class SWTNewtEventFactory {
     //
     //
     
-    int dragButtonDown = 0;
+    short dragButtonDown = 0;
     
     public SWTNewtEventFactory() {
         resetButtonsDown();
@@ -159,7 +154,7 @@ public class SWTNewtEventFactory {
             if(null != l) {
                 switch(event.type) {
                     case SWT.MouseDown:               
-                        dragButtonDown = event.button;
+                        dragButtonDown = (short) event.button;
                         l.mousePressed(res); break;
                     case SWT.MouseUp:
                         dragButtonDown = 0;
@@ -214,7 +209,6 @@ public class SWTNewtEventFactory {
                         break;
                     case SWT.KeyUp:
                         l.keyReleased(res);
-                        l.keyTyped(res); 
                         break;
                 }
             }

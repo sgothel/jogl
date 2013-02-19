@@ -50,8 +50,6 @@ static jmethodID windowCreatedID = NULL;
 static jmethodID sizeChangedID = NULL;
 static jmethodID visibleChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
-static jmethodID sendMouseEventID = NULL;
-static jmethodID sendKeyEventID = NULL;
 
 /**
  * Display
@@ -117,14 +115,10 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_bcm_vc_iv_WindowDriver_initID
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged", "(ZIIZ)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
-    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIIF)V");
-    sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
     if (windowCreatedID == NULL ||
         sizeChangedID == NULL ||
         visibleChangedID == NULL ||
-        windowDestroyNotifyID == NULL ||
-        sendMouseEventID == NULL ||
-        sendKeyEventID == NULL) {
+        windowDestroyNotifyID == NULL) {
         DBG_PRINT( "initIDs failed\n" );
         return JNI_FALSE;
     }

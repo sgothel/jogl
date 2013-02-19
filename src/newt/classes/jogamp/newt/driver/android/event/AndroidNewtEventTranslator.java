@@ -38,11 +38,9 @@ public class AndroidNewtEventTranslator implements View.OnKeyListener, View.OnTo
         
         @Override
         public boolean onKey(View v, int keyCode, android.view.KeyEvent event) {
-            final com.jogamp.newt.event.KeyEvent[] newtEvents = factory.createKeyEvents(keyCode, event, newtWindow);
-            if(null != newtEvents) {
-                for(int i=0; i<newtEvents.length; i++) {
-                    newtWindow.enqueueEvent(false, newtEvents[i]);
-                }
+            final com.jogamp.newt.event.KeyEvent newtEvent = factory.createKeyEvent(keyCode, event, newtWindow);
+            if(null != newtEvent) {
+                newtWindow.enqueueEvent(false, newtEvent);
                 return true;
             }
             return false;

@@ -48,10 +48,13 @@ import javax.swing.JFrame;
 
 import java.io.IOException;
 
+import jogamp.nativewindow.jawt.JAWTUtil;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.newt.awt.NewtCanvasAWT;
+import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
@@ -99,12 +102,14 @@ public class TestNewtKeyCodesAWT extends UITestCase {
         glWindow.destroy();
     }
         
-    @Test
-    public void test02NewtCanvasAWT() throws AWTException, InterruptedException, InvocationTargetException {
+    private void testNewtCanvasAWT_Impl(boolean onscreen) throws AWTException, InterruptedException, InvocationTargetException {
         GLWindow glWindow = GLWindow.create(glCaps);
         
         // Wrap the window in a canvas.
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
+        if( !onscreen ) {
+            newtCanvasAWT.setShallUseOffscreenLayer(true);
+        }
         
         // Add the canvas to a frame, and make it all visible.
         final JFrame frame1 = new JFrame("Swing AWT Parent Frame: "+ glWindow.getTitle());
@@ -131,7 +136,25 @@ public class TestNewtKeyCodesAWT extends UITestCase {
         }        
         glWindow.destroy();
     }
+    
+    @Test
+    public void test02NewtCanvasAWT_Onscreen() throws AWTException, InterruptedException, InvocationTargetException {
+        if( JAWTUtil.isOffscreenLayerRequired() ) {
+            System.err.println("Platform doesn't support onscreen rendering.");
+            return;
+        }
+        testNewtCanvasAWT_Impl(true);
+    }
         
+    @Test
+    public void test03NewtCanvasAWT_Offsccreen() throws AWTException, InterruptedException, InvocationTargetException {
+        if( !JAWTUtil.isOffscreenLayerSupported() ) {
+            System.err.println("Platform doesn't support offscreen rendering.");
+            return;
+        }
+        testNewtCanvasAWT_Impl(false);
+    }
+    
     static CodeSeg[] codeSegments = new CodeSeg[] {
       new CodeSeg(0x008, 0x008, "bs"),
       // new CodeSeg(0x009, 0x009, "tab"), // TAB functions as focus traversal key
@@ -167,14 +190,29 @@ public class TestNewtKeyCodesAWT extends UITestCase {
             keyAdapter.reset();
             final CodeSeg codeSeg = codeSegments[i];
             // System.err.println("*** Segment "+codeSeg.description);
-            for(int c=codeSeg.min; c<=codeSeg.max; c++) {
+            int eventCount = 0;
+            for(short c=codeSeg.min; c<=codeSeg.max; c++) {
                 // System.err.println("*** KeyCode 0x"+Integer.toHexString(c));
-                AWTRobotUtil.keyPress(0, robot, true, c, 10);
-                AWTRobotUtil.keyPress(0, robot, false, c, 100);
+                try {
+                    AWTRobotUtil.keyPress(0, robot, true, c, 10);
+                } catch (Exception e) {
+                    System.err.println("Exception @ AWT Robot.PRESS "+MiscUtils.toHexString(c)+" - "+e.getMessage());
+                    break;
+                }
+                eventCount++;
+                try {
+                    AWTRobotUtil.keyPress(0, robot, false, c, 100);
+                } catch (Exception e) {
+                    System.err.println("Exception @ AWT Robot.RELEASE "+MiscUtils.toHexString(c)+" - "+e.getMessage());
+                    break;
+                }
+                eventCount++;
+                if( KeyEvent.isPrintableKey(c) ) {
+                    eventCount++;
+                }
                 robot.waitForIdle();
             }
-            final int codeCount = codeSeg.max - codeSeg.min + 1;
-            for(int j=0; j < 20 && keyAdapter.getQueueSize() < 3 * codeCount; j++) { // wait until events are collected
+            for(int j=0; j < 20 && keyAdapter.getQueueSize() < eventCount; j++) { // wait until events are collected
                 robot.delay(100);
             }
             final ArrayList<EventObject> events = new ArrayList<EventObject>(keyAdapter.getQueued());

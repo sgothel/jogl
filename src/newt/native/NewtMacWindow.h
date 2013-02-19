@@ -145,9 +145,9 @@
 - (void) setMouseConfined:(BOOL)v;
 - (void) setMousePosition:(NSPoint)p;
 
-- (void) sendKeyEvent: (NSEvent*) event eventType: (jint) evType;
-- (void) sendKeyEvent: (jint) keyCode characters: (NSString*) chars modifiers: (NSUInteger)mods eventType: (jint) evType;
-- (void) sendMouseEvent: (NSEvent*) event eventType: (jint) evType;
+- (void) sendKeyEvent: (NSEvent*) event eventType: (jshort) evType;
+- (void) sendKeyEvent: (jshort) keyCode characters: (NSString*) chars modifiers: (NSUInteger)mods eventType: (jshort) evType;
+- (void) sendMouseEvent: (NSEvent*) event eventType: (jshort) evType;
 - (void) focusChanged: (BOOL) gained;
 
 - (BOOL) becomeFirstResponder;

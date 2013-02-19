@@ -349,10 +349,10 @@ static jmethodID windowRepaintID = NULL;
 
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jclass) clazz
 {
-    enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZIIIIIF)V");
-    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIIF)V");
-    enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZIIIC)V");
-    sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
+    enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZSIIISF)V");
+    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(SIIISF)V");
+    enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZSISSC)V");
+    sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(SISSC)V");
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged",     "(ZIIZ)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
@@ -626,15 +626,15 @@ static jint mods2JavaMods(NSUInteger mods)
     return javaMods;
 }
 
-- (void) sendKeyEvent: (NSEvent*) event eventType: (jint) evType
+- (void) sendKeyEvent: (NSEvent*) event eventType: (jshort) evType
 {
-    jint keyCode = (jint) [event keyCode];
+    jshort keyCode = (jshort) [event keyCode];
     NSString* chars = [event charactersIgnoringModifiers];
     NSUInteger mods = [event modifierFlags];
     [self sendKeyEvent: keyCode characters: chars modifiers: mods eventType: evType];
 }
 
-- (void) sendKeyEvent: (jint) keyCode characters: (NSString*) chars modifiers: (NSUInteger)mods eventType: (jint) evType
+- (void) sendKeyEvent: (jshort) keyCode characters: (NSString*) chars modifiers: (NSUInteger)mods eventType: (jshort) evType
 {
     NSView* nsview = [self contentView];
     if( ! [nsview isMemberOfClass:[NewtView class]] ) {
@@ -668,10 +668,10 @@ static jint mods2JavaMods(NSUInteger mods)
 
             #ifdef USE_SENDIO_DIRECT
             (*env)->CallVoidMethod(env, javaWindowObject, sendKeyEventID,
-                                   evType, javaMods, keyCode, keyChar);
+                                   evType, javaMods, keyCode, keyCode, keyChar);
             #else
             (*env)->CallVoidMethod(env, javaWindowObject, enqueueKeyEventID, JNI_FALSE,
-                                   evType, javaMods, keyCode, keyChar);
+                                   evType, javaMods, keyCode, keyCode, keyChar);
             #endif
         }
     } else {
@@ -682,10 +682,10 @@ static jint mods2JavaMods(NSUInteger mods)
 
         #ifdef USE_SENDIO_DIRECT
         (*env)->CallVoidMethod(env, javaWindowObject, sendKeyEventID,
-                               evType, javaMods, keyCode, keyChar);
+                               evType, javaMods, keyCode, keyCode, keyChar);
         #else
         (*env)->CallVoidMethod(env, javaWindowObject, enqueueKeyEventID, JNI_FALSE,
-                               evType, javaMods, keyCode, keyChar);
+                               evType, javaMods, keyCode, keyCode, keyChar);
         #endif
     }
 
@@ -694,7 +694,7 @@ static jint mods2JavaMods(NSUInteger mods)
     }
 }
 
-- (void) sendMouseEvent: (NSEvent*) event eventType: (jint) evType
+- (void) sendMouseEvent: (NSEvent*) event eventType: (jshort) evType
 {
     NSView* nsview = [self contentView];
     if( ! [nsview isMemberOfClass:[NewtView class]] ) {
@@ -718,7 +718,7 @@ static jint mods2JavaMods(NSUInteger mods)
 
     // convert to 1-based button number (or use zero if no button is involved)
     // TODO: detect mouse button when mouse wheel scrolled  
-    jint javaButtonNum = 0;
+    jshort javaButtonNum = 0;
     jfloat scrollDeltaY = 0.0f;
     switch ([event type]) {
     case NSScrollWheel: {
@@ -850,13 +850,12 @@ static jint mods2JavaMods(NSUInteger mods)
 
 - (void) keyDown: (NSEvent*) theEvent
 {
-    [self sendKeyEvent: theEvent eventType: EVENT_KEY_PRESSED];
+    [self sendKeyEvent: theEvent eventType: (jshort)EVENT_KEY_PRESSED];
 }
 
 - (void) keyUp: (NSEvent*) theEvent
 {
-    [self sendKeyEvent: theEvent eventType: EVENT_KEY_RELEASED];
-    [self sendKeyEvent: theEvent eventType: EVENT_KEY_TYPED];
+    [self sendKeyEvent: theEvent eventType: (jshort)EVENT_KEY_RELEASED];
 }
 
 #define kVK_Shift     0x38
@@ -868,11 +867,10 @@ static jint mods2JavaMods(NSUInteger mods)
 {
     if ( NO == modsDown[keyIdx] && 0 != ( mods & keyMask ) )  {
         modsDown[keyIdx] = YES;
-        [self sendKeyEvent: keyCode characters: NULL modifiers: mods|keyMask eventType: EVENT_KEY_PRESSED];
+        [self sendKeyEvent: (jshort)keyCode characters: NULL modifiers: mods|keyMask eventType: (jshort)EVENT_KEY_PRESSED];
     } else if ( YES == modsDown[keyIdx] && 0 == ( mods & keyMask ) )  {
         modsDown[keyIdx] = NO;
-        [self sendKeyEvent: keyCode characters: NULL modifiers: mods|keyMask eventType: EVENT_KEY_RELEASED];
-        [self sendKeyEvent: keyCode characters: NULL modifiers: mods|keyMask eventType: EVENT_KEY_TYPED];
+        [self sendKeyEvent: (jshort)keyCode characters: NULL modifiers: mods|keyMask eventType: (jshort)EVENT_KEY_RELEASED];
     }
 }
 

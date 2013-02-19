@@ -51,6 +51,22 @@ public class MiscUtils {
         return def;
     }
 
+    public static String toHexString(byte hex) {
+        return "0x" + Integer.toHexString( (int)hex & 0x000000FF );
+    }
+    
+    public static String toHexString(short hex) {
+        return "0x" + Integer.toHexString( (int)hex & 0x0000FFFF );
+    }
+    
+    public static String toHexString(int hex) {
+        return "0x" + Integer.toHexString( hex );
+    }
+    
+    public static String toHexString(long hex) {
+        return "0x" + Long.toHexString( hex );
+    }
+    
     public static void assertFloatBufferEquals(String errmsg, FloatBuffer expected, FloatBuffer actual, float delta) {
         if(null == expected && null == actual) {
             return;

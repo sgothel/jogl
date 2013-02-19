@@ -28,6 +28,9 @@ fi
 #    -Dtarget.sourcelevel=1.6 \
 #    -Dtarget.targetlevel=1.6 \
 #    -Dtarget.rt.jar=/opt-share/jre1.6.0_30/lib/rt.jar \
+#
+#    -Dsetup.addNativeOpenMAX=true \
+#    -Dsetup.addNativeKD=true \
 
 
 #LD_LIBRARY_PATH=/opt-linux-x86_64/mesa-7.8.1/lib64
@@ -52,9 +55,6 @@ ant  \
     -Dtarget.sourcelevel=1.6 \
     -Dtarget.targetlevel=1.6 \
     -Dtarget.rt.jar=/opt-share/jre1.6.0_30/lib/rt.jar \
-    -Djavacdebuglevel="source,lines,vars" \
     -Drootrel.build=build-x86_64 \
-    -Dsetup.addNativeOpenMAX=true \
-    -Dsetup.addNativeKD=true \
     $* 2>&1 | tee -a $LOGF
 

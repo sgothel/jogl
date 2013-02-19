@@ -65,10 +65,10 @@ public class LinuxMouseTracker implements WindowListener {
     private volatile boolean stop = false;
     private int x = 0;
     private int y = 0;
-    private int buttonDown = 0;
+    private short buttonDown = 0;
     private int old_x = 0;
     private int old_y = 0;
-    private int old_buttonDown = 0;
+    private short old_buttonDown = 0;
     private WindowImpl focusedWindow = null;
     private MouseDevicePoller mouseDevicePoller = new MouseDevicePoller();
     
@@ -183,19 +183,15 @@ public class LinuxMouseTracker implements WindowListener {
                     
                     if(old_x != x || old_y != y) {
                         // mouse moved
-                        focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_MOVED, 0, wx, wy, 0, 0 ); 
+                        focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_MOVED, 0, wx, wy, (short)0, 0 ); 
                     }
                     
                     if(old_buttonDown != buttonDown) {
                         // press/release
                         if( 0 != buttonDown ) {
-                            focusedWindow.sendMouseEvent(                            
-                                    MouseEvent.EVENT_MOUSE_PRESSED, 
-                                    0, wx, wy, buttonDown, 0 ); 
+                            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_PRESSED, 0, wx, wy, buttonDown, 0 ); 
                         } else {
-                            focusedWindow.sendMouseEvent(                            
-                                    MouseEvent.EVENT_MOUSE_RELEASED, 
-                                    0, wx, wy, old_buttonDown, 0 ); 
+                            focusedWindow.sendMouseEvent(MouseEvent.EVENT_MOUSE_RELEASED, 0, wx, wy, old_buttonDown, 0 ); 
                         }
                     }                
                 } else {

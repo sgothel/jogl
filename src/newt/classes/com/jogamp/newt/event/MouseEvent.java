@@ -38,47 +38,47 @@ package com.jogamp.newt.event;
 public class MouseEvent extends InputEvent
 {
     /** ID for button 1, value <code>1</code> */
-    public static final int BUTTON1 = 1;
+    public static final short BUTTON1 = 1;
     /** ID for button 2, value <code>2</code> */
-    public static final int BUTTON2 = 2;
+    public static final short BUTTON2 = 2;
     /** ID for button 3, value <code>3</code> */
-    public static final int BUTTON3 = 3;
+    public static final short BUTTON3 = 3;
     /** ID for button 4, value <code>4</code> */
-    public static final int BUTTON4 = 4;
+    public static final short BUTTON4 = 4;
     /** ID for button 5, value <code>5</code> */
-    public static final int BUTTON5 = 5;
+    public static final short BUTTON5 = 5;
     /** ID for button 6, value <code>6</code> */
-    public static final int BUTTON6 = 6;
+    public static final short BUTTON6 = 6;
     /** ID for button 6, value <code>7</code> */
-    public static final int BUTTON7 = 7;
+    public static final short BUTTON7 = 7;
     /** ID for button 6, value <code>8</code> */
-    public static final int BUTTON8 = 8;
+    public static final short BUTTON8 = 8;
     /** ID for button 6, value <code>9</code> */
-    public static final int BUTTON9 = 9;
+    public static final short BUTTON9 = 9;
     
     /** Maximum number of buttons, value <code>16</code> */
-    public static final int BUTTON_NUMBER =  16;
+    public static final short BUTTON_NUMBER =  16;
 
-    public static final int getClickTimeout() { 
+    public static final short getClickTimeout() { 
         return 300; 
     }
 
-    public MouseEvent(int eventType, Object source, long when,
-            int modifiers, int x, int y, int clickCount, int button,
+    public MouseEvent(short eventType, Object source, long when,
+            int modifiers, int x, int y, short clickCount, short button,
             float rotation)
     {
         super(eventType, source, when, modifiers); 
         this.x = new int[]{x};
         this.y = new int[]{y};
         this.pressure = new float[]{0};
-        this.pointerids = new int[]{-1};
+        this.pointerids = new short[]{-1};
         this.clickCount=clickCount;
         this.button=button;
         this.wheelRotation = rotation;
     }
 
-    public MouseEvent(int eventType, Object source, long when,
-            int modifiers, int[] x, int[] y, float[] pressure, int[] pointerids, int clickCount, int button,
+    public MouseEvent(short eventType, Object source, long when,
+            int modifiers, int[] x, int[] y, float[] pressure, short[] pointerids, short clickCount, short button,
             float rotation)
     {
         super(eventType, source, when, modifiers); 
@@ -107,17 +107,17 @@ public class MouseEvent extends InputEvent
      * @return the pointer id for the data at index.
      *  return -1 if index not available.
      */
-    public int getPointerId(int index) {
+    public short getPointerId(int index) {
         if(index >= pointerids.length)
             return -1;
         return pointerids[index];
     }
     
-    public int getButton() {
+    public short getButton() {
         return button;
     }
     
-    public int getClickCount() {
+    public short getClickCount() {
         return clickCount;
     }
     public int getX() {
@@ -208,7 +208,7 @@ public class MouseEvent extends InputEvent
         return super.toString(sb).append("]");
     }
 
-    public static String getEventTypeString(int type) {
+    public static String getEventTypeString(short type) {
         switch(type) {
         case EVENT_MOUSE_CLICKED: return "EVENT_MOUSE_CLICKED";
         case EVENT_MOUSE_ENTERED: return "EVENT_MOUSE_ENTERED";
@@ -221,17 +221,18 @@ public class MouseEvent extends InputEvent
         default: return "unknown (" + type + ")";
         }
     }
-    private final int x[], y[], clickCount, button;
+    private final int x[], y[];;
+    private final short clickCount, button;
     private final float wheelRotation;
     private final float pressure[];
-    private final int pointerids[];
+    private final short pointerids[];
     
-    public static final int EVENT_MOUSE_CLICKED  = 200;
-    public static final int EVENT_MOUSE_ENTERED  = 201;
-    public static final int EVENT_MOUSE_EXITED   = 202;
-    public static final int EVENT_MOUSE_PRESSED  = 203;
-    public static final int EVENT_MOUSE_RELEASED = 204;
-    public static final int EVENT_MOUSE_MOVED    = 205;
-    public static final int EVENT_MOUSE_DRAGGED  = 206;
-    public static final int EVENT_MOUSE_WHEEL_MOVED = 207;
+    public static final short EVENT_MOUSE_CLICKED  = 200;
+    public static final short EVENT_MOUSE_ENTERED  = 201;
+    public static final short EVENT_MOUSE_EXITED   = 202;
+    public static final short EVENT_MOUSE_PRESSED  = 203;
+    public static final short EVENT_MOUSE_RELEASED = 204;
+    public static final short EVENT_MOUSE_MOVED    = 205;
+    public static final short EVENT_MOUSE_DRAGGED  = 206;
+    public static final short EVENT_MOUSE_WHEEL_MOVED = 207;
 }

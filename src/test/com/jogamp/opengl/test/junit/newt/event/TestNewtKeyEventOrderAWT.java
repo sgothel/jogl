@@ -45,6 +45,8 @@ import javax.swing.JFrame;
 
 import java.io.IOException;
 
+import jogamp.nativewindow.jawt.JAWTUtil;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -104,12 +106,14 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
         glWindow.destroy();
     }
         
-    @Test
-    public void test02NewtCanvasAWT() throws AWTException, InterruptedException, InvocationTargetException {
+    private void testNewtCanvasAWT_Impl(boolean onscreen) throws AWTException, InterruptedException, InvocationTargetException {
         GLWindow glWindow = GLWindow.create(glCaps);
         
         // Wrap the window in a canvas.
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
+        if( !onscreen ) {
+            newtCanvasAWT.setShallUseOffscreenLayer(true);
+        }
         
         // Add the canvas to a frame, and make it all visible.
         final JFrame frame1 = new JFrame("Swing AWT Parent Frame: "+ glWindow.getTitle());
@@ -135,6 +139,24 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
             Assume.assumeNoException( throwable );
         }        
         glWindow.destroy();
+    }
+    
+    @Test
+    public void test02NewtCanvasAWT_Onscreen() throws AWTException, InterruptedException, InvocationTargetException {
+        if( JAWTUtil.isOffscreenLayerRequired() ) {
+            System.err.println("Platform doesn't support onscreen rendering.");
+            return;
+        }
+        testNewtCanvasAWT_Impl(true);
+    }
+        
+    @Test
+    public void test03NewtCanvasAWT_Offsccreen() throws AWTException, InterruptedException, InvocationTargetException {
+        if( !JAWTUtil.isOffscreenLayerSupported() ) {
+            System.err.println("Platform doesn't support offscreen rendering.");
+            return;
+        }
+        testNewtCanvasAWT_Impl(false);
     }
     
     static void testKeyEventOrder(Robot robot, NEWTKeyAdapter keyAdapter, int loops) {
@@ -167,7 +189,11 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
         
         NEWTKeyUtil.validateKeyEventOrder(keyAdapter.getQueued());
         
-        NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, 6*3*loops, 0);        
+        final int expTotal = 6*loops; // all typed events
+        NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, 
+                                            expTotal /* press-SI */, expTotal /* release-SI */, expTotal /* typed-SI */,
+                                            0 /* press-AR */, 0 /* release-AR */, 0 /* typed-AR */ );
+        
     }
         
     void testImpl(GLWindow glWindow) throws AWTException, InterruptedException, InvocationTargetException {

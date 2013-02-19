@@ -210,9 +210,9 @@ public class LinuxEventDeviceTracker implements WindowListener {
 			short code;
 			int value;
 
-			int keyCode=KeyEvent.VK_UNDEFINED;
+			short keyCode=KeyEvent.VK_UNDEFINED;
 			char keyChar=' ';
-			int eventType=0;
+			short eventType=0;
 			int modifiers=0;
 
             loop:
@@ -263,24 +263,20 @@ public class LinuxEventDeviceTracker implements WindowListener {
 						case 0:
 							modifiers=0;
 							eventType=KeyEvent.EVENT_KEY_RELEASED;
-							focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyChar);
-							//Send syntetic typed
-							focusedWindow.sendKeyEvent(KeyEvent.EVENT_KEY_TYPED, modifiers, keyCode, (char) keyChar);
+							focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
 							break;
 						case 1:
 							eventType=KeyEvent.EVENT_KEY_PRESSED;
-							focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyChar);
+							focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
 							break;
 						case 2:
 							eventType=KeyEvent.EVENT_KEY_PRESSED;
 							modifiers=InputEvent.AUTOREPEAT_MASK;
 
 							//Send syntetic autorepeat release
-							focusedWindow.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keyChar);
-							//Send syntetic typed
-							focusedWindow.sendKeyEvent(KeyEvent.EVENT_KEY_TYPED, modifiers, keyCode, keyChar);
+							focusedWindow.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keyCode, keyChar);
 
-							focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyChar);
+							focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
 							break;
 						}
 						break;
@@ -314,14 +310,15 @@ public class LinuxEventDeviceTracker implements WindowListener {
             stop=true;
 		}
 
-		private char NewtVKey2Unicode(int VK){
-			if(KeyEvent.isPrintableKey(VK)){
+		private char NewtVKey2Unicode(short VK){
+			if( KeyEvent.isPrintableKey(VK) ){
 				return (char)VK;
 			}
 			return 0;
 		}
 		
-		private char LinuxEVKey2Unicode(short EVKey) {
+		@SuppressWarnings("unused")
+        private char LinuxEVKey2Unicode(short EVKey) {
 			// This is the stuff normally mapped by a system keymap
 
 			switch(EVKey){
@@ -377,9 +374,8 @@ public class LinuxEventDeviceTracker implements WindowListener {
 			return 0;
 		}
 
-		private int LinuxEVKey2NewtVKey(short EVKey) {
-			char vkCode = KeyEvent.VK_UNDEFINED;
-
+		private short LinuxEVKey2NewtVKey(short EVKey) {
+		    
 			switch(EVKey) {
                 case 1: // ESC
                     return KeyEvent.VK_ESCAPE;
@@ -886,8 +882,9 @@ public class LinuxEventDeviceTracker implements WindowListener {
 			
 			if(Window.DEBUG_KEY_EVENT) {
 				System.out.println("LinuxEVKey2NewtVKey: Unmapped EVKey "+EVKey);
-			}					
-			return vkCode;
+			}
+			
+            return KeyEvent.VK_UNDEFINED;
 		}
 	}    
 }

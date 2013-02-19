@@ -132,9 +132,7 @@ static jmethodID focusChangedID = NULL;
 static jmethodID visibleChangedID = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowRepaintID = NULL;
-static jmethodID enqueueMouseEventID = NULL;
 static jmethodID sendMouseEventID = NULL;
-static jmethodID enqueueKeyEventID = NULL;
 static jmethodID sendKeyEventID = NULL;
 static jmethodID requestFocusID = NULL;
 
@@ -146,345 +144,294 @@ typedef struct {
 } WindowUserData;
     
 typedef struct {
-    UINT javaKey;
-    UINT windowsKey;
+    USHORT javaKey;
+    USHORT windowsKey;
+    USHORT windowsScanCodeUS;
 } KeyMapEntry;
 
 // Static table, arranged more or less spatially.
 static KeyMapEntry keyMapTable[] = {
     // Modifier keys
-    {J_VK_CAPS_LOCK,        VK_CAPITAL},
-    {J_VK_SHIFT,            VK_SHIFT},
-    {J_VK_CONTROL,          VK_CONTROL},
-    {J_VK_ALT,              VK_MENU},
-    {J_VK_NUM_LOCK,         VK_NUMLOCK},
+    {J_VK_CAPS_LOCK,        VK_CAPITAL, 0},
+    {J_VK_SHIFT,            VK_SHIFT, 0},
+    {J_VK_SHIFT,            VK_LSHIFT, 0},
+    {J_VK_SHIFT,            VK_RSHIFT, 0},
+    {J_VK_CONTROL,          VK_CONTROL, 0},
+    {J_VK_CONTROL,          VK_LCONTROL, 0},
+    {J_VK_CONTROL,          VK_RCONTROL, 0},
+    {J_VK_ALT,              VK_MENU, 0},
+    {J_VK_ALT,              VK_LMENU, 0},
+    {J_VK_ALT,              VK_RMENU, 0},
+    {J_VK_NUM_LOCK,         VK_NUMLOCK, 0},
 
     // Miscellaneous Windows keys
-    {J_VK_WINDOWS,          VK_LWIN},
-    {J_VK_WINDOWS,          VK_RWIN},
-    {J_VK_CONTEXT_MENU,     VK_APPS},
+    {J_VK_WINDOWS,          VK_LWIN, 0},
+    {J_VK_WINDOWS,          VK_RWIN, 0},
+    {J_VK_CONTEXT_MENU,     VK_APPS, 0},
 
     // Alphabet
-    {J_VK_A,                'A'},
-    {J_VK_B,                'B'},
-    {J_VK_C,                'C'},
-    {J_VK_D,                'D'},
-    {J_VK_E,                'E'},
-    {J_VK_F,                'F'},
-    {J_VK_G,                'G'},
-    {J_VK_H,                'H'},
-    {J_VK_I,                'I'},
-    {J_VK_J,                'J'},
-    {J_VK_K,                'K'},
-    {J_VK_L,                'L'},
-    {J_VK_M,                'M'},
-    {J_VK_N,                'N'},
-    {J_VK_O,                'O'},
-    {J_VK_P,                'P'},
-    {J_VK_Q,                'Q'},
-    {J_VK_R,                'R'},
-    {J_VK_S,                'S'},
-    {J_VK_T,                'T'},
-    {J_VK_U,                'U'},
-    {J_VK_V,                'V'},
-    {J_VK_W,                'W'},
-    {J_VK_X,                'X'},
-    {J_VK_Y,                'Y'},
-    {J_VK_Z,                'Z'},
-    {J_VK_0,                '0'},
-    {J_VK_1,                '1'},
-    {J_VK_2,                '2'},
-    {J_VK_3,                '3'},
-    {J_VK_4,                '4'},
-    {J_VK_5,                '5'},
-    {J_VK_6,                '6'},
-    {J_VK_7,                '7'},
-    {J_VK_8,                '8'},
-    {J_VK_9,                '9'},
-    {J_VK_ENTER,            VK_RETURN},
-    {J_VK_SPACE,            VK_SPACE},
-    {J_VK_BACK_SPACE,       VK_BACK},
-    {J_VK_TAB,              VK_TAB},
-    {J_VK_ESCAPE,           VK_ESCAPE},
-    {J_VK_INSERT,           VK_INSERT},
-    {J_VK_DELETE,           VK_DELETE},
-    {J_VK_HOME,             VK_HOME},
-    {J_VK_END,              VK_END},
-    {J_VK_PAGE_UP,          VK_PRIOR},
-    {J_VK_PAGE_DOWN,        VK_NEXT},
-    {J_VK_CLEAR,            VK_CLEAR}, // NumPad 5
+    {J_VK_A,                'A', 0},
+    {J_VK_B,                'B', 0},
+    {J_VK_C,                'C', 0},
+    {J_VK_D,                'D', 0},
+    {J_VK_E,                'E', 0},
+    {J_VK_F,                'F', 0},
+    {J_VK_G,                'G', 0},
+    {J_VK_H,                'H', 0},
+    {J_VK_I,                'I', 0},
+    {J_VK_J,                'J', 0},
+    {J_VK_K,                'K', 0},
+    {J_VK_L,                'L', 0},
+    {J_VK_M,                'M', 0},
+    {J_VK_N,                'N', 0},
+    {J_VK_O,                'O', 0},
+    {J_VK_P,                'P', 0},
+    {J_VK_Q,                'Q', 0},
+    {J_VK_R,                'R', 0},
+    {J_VK_S,                'S', 0},
+    {J_VK_T,                'T', 0},
+    {J_VK_U,                'U', 0},
+    {J_VK_V,                'V', 0},
+    {J_VK_W,                'W', 0},
+    {J_VK_X,                'X', 0},
+    {J_VK_Y,                'Y', 0},
+    {J_VK_Z,                'Z', 0},
+    {J_VK_0,                '0', 0},
+    {J_VK_1,                '1', 0},
+    {J_VK_2,                '2', 0},
+    {J_VK_3,                '3', 0},
+    {J_VK_4,                '4', 0},
+    {J_VK_5,                '5', 0},
+    {J_VK_6,                '6', 0},
+    {J_VK_7,                '7', 0},
+    {J_VK_8,                '8', 0},
+    {J_VK_9,                '9', 0},
+    {J_VK_ENTER,            VK_RETURN, 0},
+    {J_VK_SPACE,            VK_SPACE, 0},
+    {J_VK_BACK_SPACE,       VK_BACK, 0},
+    {J_VK_TAB,              VK_TAB, 0},
+    {J_VK_ESCAPE,           VK_ESCAPE, 0},
+    {J_VK_INSERT,           VK_INSERT, 0},
+    {J_VK_DELETE,           VK_DELETE, 0},
+    {J_VK_HOME,             VK_HOME, 0},
+    {J_VK_END,              VK_END, 0},
+    {J_VK_PAGE_UP,          VK_PRIOR, 0},
+    {J_VK_PAGE_DOWN,        VK_NEXT, 0},
+    {J_VK_CLEAR,            VK_CLEAR, 0}, // NumPad 5
 
     // NumPad with NumLock off & extended arrows block (triangular)
-    {J_VK_LEFT,             VK_LEFT},
-    {J_VK_RIGHT,            VK_RIGHT},
-    {J_VK_UP,               VK_UP},
-    {J_VK_DOWN,             VK_DOWN},
+    {J_VK_LEFT,             VK_LEFT, 0},
+    {J_VK_RIGHT,            VK_RIGHT, 0},
+    {J_VK_UP,               VK_UP, 0},
+    {J_VK_DOWN,             VK_DOWN, 0},
 
     // NumPad with NumLock on: numbers
-    {J_VK_NUMPAD0,          VK_NUMPAD0},
-    {J_VK_NUMPAD1,          VK_NUMPAD1},
-    {J_VK_NUMPAD2,          VK_NUMPAD2},
-    {J_VK_NUMPAD3,          VK_NUMPAD3},
-    {J_VK_NUMPAD4,          VK_NUMPAD4},
-    {J_VK_NUMPAD5,          VK_NUMPAD5},
-    {J_VK_NUMPAD6,          VK_NUMPAD6},
-    {J_VK_NUMPAD7,          VK_NUMPAD7},
-    {J_VK_NUMPAD8,          VK_NUMPAD8},
-    {J_VK_NUMPAD9,          VK_NUMPAD9},
+    {J_VK_NUMPAD0,          VK_NUMPAD0, 0},
+    {J_VK_NUMPAD1,          VK_NUMPAD1, 0},
+    {J_VK_NUMPAD2,          VK_NUMPAD2, 0},
+    {J_VK_NUMPAD3,          VK_NUMPAD3, 0},
+    {J_VK_NUMPAD4,          VK_NUMPAD4, 0},
+    {J_VK_NUMPAD5,          VK_NUMPAD5, 0},
+    {J_VK_NUMPAD6,          VK_NUMPAD6, 0},
+    {J_VK_NUMPAD7,          VK_NUMPAD7, 0},
+    {J_VK_NUMPAD8,          VK_NUMPAD8, 0},
+    {J_VK_NUMPAD9,          VK_NUMPAD9, 0},
 
     // NumPad with NumLock on
-    {J_VK_MULTIPLY,         VK_MULTIPLY},
-    {J_VK_ADD,              VK_ADD},
-    {J_VK_SEPARATOR,        VK_SEPARATOR},
-    {J_VK_SUBTRACT,         VK_SUBTRACT},
-    {J_VK_DECIMAL,          VK_DECIMAL},
-    {J_VK_DIVIDE,           VK_DIVIDE},
+    {J_VK_MULTIPLY,         VK_MULTIPLY, 0},
+    {J_VK_ADD,              VK_ADD, 0},
+    {J_VK_SEPARATOR,        VK_SEPARATOR, 0},
+    {J_VK_SUBTRACT,         VK_SUBTRACT, 0},
+    {J_VK_DECIMAL,          VK_DECIMAL, 0},
+    {J_VK_DIVIDE,           VK_DIVIDE, 0},
 
     // Functional keys
-    {J_VK_F1,               VK_F1},
-    {J_VK_F2,               VK_F2},
-    {J_VK_F3,               VK_F3},
-    {J_VK_F4,               VK_F4},
-    {J_VK_F5,               VK_F5},
-    {J_VK_F6,               VK_F6},
-    {J_VK_F7,               VK_F7},
-    {J_VK_F8,               VK_F8},
-    {J_VK_F9,               VK_F9},
-    {J_VK_F10,              VK_F10},
-    {J_VK_F11,              VK_F11},
-    {J_VK_F12,              VK_F12},
-    {J_VK_F13,              VK_F13},
-    {J_VK_F14,              VK_F14},
-    {J_VK_F15,              VK_F15},
-    {J_VK_F16,              VK_F16},
-    {J_VK_F17,              VK_F17},
-    {J_VK_F18,              VK_F18},
-    {J_VK_F19,              VK_F19},
-    {J_VK_F20,              VK_F20},
-    {J_VK_F21,              VK_F21},
-    {J_VK_F22,              VK_F22},
-    {J_VK_F23,              VK_F23},
-    {J_VK_F24,              VK_F24},
+    {J_VK_F1,               VK_F1, 0},
+    {J_VK_F2,               VK_F2, 0},
+    {J_VK_F3,               VK_F3, 0},
+    {J_VK_F4,               VK_F4, 0},
+    {J_VK_F5,               VK_F5, 0},
+    {J_VK_F6,               VK_F6, 0},
+    {J_VK_F7,               VK_F7, 0},
+    {J_VK_F8,               VK_F8, 0},
+    {J_VK_F9,               VK_F9, 0},
+    {J_VK_F10,              VK_F10, 0},
+    {J_VK_F11,              VK_F11, 0},
+    {J_VK_F12,              VK_F12, 0},
+    {J_VK_F13,              VK_F13, 0},
+    {J_VK_F14,              VK_F14, 0},
+    {J_VK_F15,              VK_F15, 0},
+    {J_VK_F16,              VK_F16, 0},
+    {J_VK_F17,              VK_F17, 0},
+    {J_VK_F18,              VK_F18, 0},
+    {J_VK_F19,              VK_F19, 0},
+    {J_VK_F20,              VK_F20, 0},
+    {J_VK_F21,              VK_F21, 0},
+    {J_VK_F22,              VK_F22, 0},
+    {J_VK_F23,              VK_F23, 0},
+    {J_VK_F24,              VK_F24, 0},
 
-    {J_VK_PRINTSCREEN,      VK_SNAPSHOT},
-    {J_VK_SCROLL_LOCK,      VK_SCROLL},
-    {J_VK_PAUSE,            VK_PAUSE},
-    {J_VK_CANCEL,           VK_CANCEL},
-    {J_VK_HELP,             VK_HELP},
+    {J_VK_PRINTSCREEN,      VK_SNAPSHOT, 0},
+    {J_VK_SCROLL_LOCK,      VK_SCROLL, 0},
+    {J_VK_PAUSE,            VK_PAUSE, 0},
+    {J_VK_CANCEL,           VK_CANCEL, 0},
+    {J_VK_HELP,             VK_HELP, 0},
+
+    // Since we unify mappings via US kbd layout .. this is valid:
+    {J_VK_SEMICOLON,        VK_OEM_1, 0}, // US only ';:'
+    {J_VK_EQUALS,           VK_OEM_PLUS, 0}, // '=+'
+    {J_VK_COMMA,            VK_OEM_COMMA, 0}, // ',<'
+    {J_VK_MINUS,            VK_OEM_MINUS, 0}, // '-_'
+    {J_VK_PERIOD,           VK_OEM_PERIOD, 0}, // '.>'
+    {J_VK_SLASH,            VK_OEM_2, 0}, // US only '/?'
+    {J_VK_BACK_QUOTE,       VK_OEM_3, 0}, // US only '`~'
+    {J_VK_OPEN_BRACKET,     VK_OEM_4, 0}, // US only '[}'
+    {J_VK_BACK_SLASH,       VK_OEM_5, 0}, // US only '\|'
+    {J_VK_CLOSE_BRACKET,    VK_OEM_6, 0}, // US only ']}'
+    {J_VK_QUOTE,            VK_OEM_7, 0}, // US only ''"'
+    // {J_VK_????,       VK_OEM_8, 0}, // varies ..
+    // {J_VK_????,       VK_OEM_102, 0}, // angle-bracket or backslash key on RT 102-key kbd
 
     // Japanese
 /*
-    {J_VK_CONVERT,          VK_CONVERT},
-    {J_VK_NONCONVERT,       VK_NONCONVERT},
-    {J_VK_INPUT_METHOD_ON_OFF, VK_KANJI},
-    {J_VK_ALPHANUMERIC,     VK_DBE_ALPHANUMERIC},
-    {J_VK_KATAKANA,         VK_DBE_KATAKANA},
-    {J_VK_HIRAGANA,         VK_DBE_HIRAGANA},
-    {J_VK_FULL_WIDTH,       VK_DBE_DBCSCHAR},
-    {J_VK_HALF_WIDTH,       VK_DBE_SBCSCHAR},
-    {J_VK_ROMAN_CHARACTERS, VK_DBE_ROMAN},
+    {J_VK_CONVERT,          VK_CONVERT, 0},
+    {J_VK_NONCONVERT,       VK_NONCONVERT, 0},
+    {J_VK_INPUT_METHOD_ON_OFF, VK_KANJI, 0},
+    {J_VK_ALPHANUMERIC,     VK_DBE_ALPHANUMERIC, 0},
+    {J_VK_KATAKANA,         VK_DBE_KATAKANA, 0},
+    {J_VK_HIRAGANA,         VK_DBE_HIRAGANA, 0},
+    {J_VK_FULL_WIDTH,       VK_DBE_DBCSCHAR, 0},
+    {J_VK_HALF_WIDTH,       VK_DBE_SBCSCHAR, 0},
+    {J_VK_ROMAN_CHARACTERS, VK_DBE_ROMAN, 0},
 */
 
-    {J_VK_UNDEFINED,        0}
+    {J_VK_UNDEFINED,        0, 0}
 };
 
-/*
-Dynamic mapping table for OEM VK codes.  This table is refilled
-by BuildDynamicKeyMapTable when keyboard layout is switched.
-(see NT4 DDK src/input/inc/vkoem.h for OEM VK_ values).
-*/
-typedef struct {
-    // OEM VK codes known in advance
-    UINT windowsKey;
-    // depends on input langauge (kbd layout)
-    UINT javaKey;
-} DynamicKeyMapEntry;
+#ifndef KLF_ACTIVATE
+    #define KLF_ACTIVATE 0x00000001
+#endif
+#ifndef MAPVK_VK_TO_VSC
+    #define MAPVK_VK_TO_VSC 0
+#endif
+#ifndef MAPVK_VSC_TO_VK
+    #define MAPVK_VSC_TO_VK 1
+#endif
+#ifndef MAPVK_VK_TO_CHAR
+    #define MAPVK_VK_TO_CHAR 2
+#endif
+#ifndef MAPVK_VSC_TO_VK_EX
+    #define MAPVK_VSC_TO_VK_EX 3
+#endif
+#ifndef MAPVK_VK_TO_VSC_EX
+    #define MAPVK_VK_TO_VSC_EX 4
+#endif
 
-static DynamicKeyMapEntry dynamicKeyMapTable[] = {
-    {0x00BA,  J_VK_UNDEFINED}, // VK_OEM_1
-    {0x00BB,  J_VK_UNDEFINED}, // VK_OEM_PLUS
-    {0x00BC,  J_VK_UNDEFINED}, // VK_OEM_COMMA
-    {0x00BD,  J_VK_UNDEFINED}, // VK_OEM_MINUS
-    {0x00BE,  J_VK_UNDEFINED}, // VK_OEM_PERIOD
-    {0x00BF,  J_VK_UNDEFINED}, // VK_OEM_2
-    {0x00C0,  J_VK_UNDEFINED}, // VK_OEM_3
-    {0x00DB,  J_VK_UNDEFINED}, // VK_OEM_4
-    {0x00DC,  J_VK_UNDEFINED}, // VK_OEM_5
-    {0x00DD,  J_VK_UNDEFINED}, // VK_OEM_6
-    {0x00DE,  J_VK_UNDEFINED}, // VK_OEM_7
-    {0x00DF,  J_VK_UNDEFINED}, // VK_OEM_8
-    {0x00E2,  J_VK_UNDEFINED}, // VK_OEM_102
-    {0, 0}
-};
+static HKL kbdLayoutUS = 0;
+static const LPCSTR US_LAYOUT_NAME = "00000409";
 
-// Auxiliary tables used to fill the above dynamic table.  We first
-// find the character for the OEM VK code using ::MapVirtualKey and
-// then go through these auxiliary tables to map it to Java VK code.
+static BYTE kbdState[256];
+static USHORT spaceScanCode;
 
-typedef struct {
-    WCHAR c;
-    UINT  javaKey;
-} CharToVKEntry;
-
-static const CharToVKEntry charToVKTable[] = {
-    {L'!',   J_VK_EXCLAMATION_MARK},
-    {L'"',   J_VK_QUOTEDBL},
-    {L'#',   J_VK_NUMBER_SIGN},
-    {L'$',   J_VK_DOLLAR},
-    {L'&',   J_VK_AMPERSAND},
-    {L'\'',  J_VK_QUOTE},
-    {L'(',   J_VK_LEFT_PARENTHESIS},
-    {L')',   J_VK_RIGHT_PARENTHESIS},
-    {L'*',   J_VK_ASTERISK},
-    {L'+',   J_VK_PLUS},
-    {L',',   J_VK_COMMA},
-    {L'-',   J_VK_MINUS},
-    {L'.',   J_VK_PERIOD},
-    {L'/',   J_VK_SLASH},
-    {L':',   J_VK_COLON},
-    {L';',   J_VK_SEMICOLON},
-    {L'<',   J_VK_LESS},
-    {L'=',   J_VK_EQUALS},
-    {L'>',   J_VK_GREATER},
-    {L'@',   J_VK_AT},
-    {L'[',   J_VK_OPEN_BRACKET},
-    {L'\\',  J_VK_BACK_SLASH},
-    {L']',   J_VK_CLOSE_BRACKET},
-    {L'^',   J_VK_CIRCUMFLEX},
-    {L'_',   J_VK_UNDERSCORE},
-    {L'`',   J_VK_BACK_QUOTE},
-    {L'{',   J_VK_BRACELEFT},
-    {L'}',   J_VK_BRACERIGHT},
-    {0x00A1, J_VK_INVERTED_EXCLAMATION_MARK},
-    {0x20A0, J_VK_EURO_SIGN}, // ????
-    {0,0}
-};
-
-// For dead accents some layouts return ASCII punctuation, while some
-// return spacing accent chars, so both should be listed.  NB: MS docs
-// say that conversion routings return spacing accent character, not
-// combining.
-static const CharToVKEntry charToDeadVKTable[] = {
-    {L'`',   J_VK_DEAD_GRAVE},
-    {L'\'',  J_VK_DEAD_ACUTE},
-    {0x00B4, J_VK_DEAD_ACUTE},
-    {L'^',   J_VK_DEAD_CIRCUMFLEX},
-    {L'~',   J_VK_DEAD_TILDE},
-    {0x02DC, J_VK_DEAD_TILDE},
-    {0x00AF, J_VK_DEAD_MACRON},
-    {0x02D8, J_VK_DEAD_BREVE},
-    {0x02D9, J_VK_DEAD_ABOVEDOT},
-    {L'"',   J_VK_DEAD_DIAERESIS},
-    {0x00A8, J_VK_DEAD_DIAERESIS},
-    {0x02DA, J_VK_DEAD_ABOVERING},
-    {0x02DD, J_VK_DEAD_DOUBLEACUTE},
-    {0x02C7, J_VK_DEAD_CARON},            // aka hacek
-    {L',',   J_VK_DEAD_CEDILLA},
-    {0x00B8, J_VK_DEAD_CEDILLA},
-    {0x02DB, J_VK_DEAD_OGONEK},
-    {0x037A, J_VK_DEAD_IOTA},             // ASCII ???
-    {0x309B, J_VK_DEAD_VOICED_SOUND},
-    {0x309C, J_VK_DEAD_SEMIVOICED_SOUND},
-    {0,0}
-};
-
-// ANSI CP identifiers are no longer than this
-#define MAX_ACP_STR_LEN 7
-
-static void BuildDynamicKeyMapTable()
-{
+static void InitKeyMapTableScanCode(JNIEnv *env) {
     HKL hkl = GetKeyboardLayout(0);
-    // Will need this to reset layout after dead keys.
-    UINT spaceScanCode = MapVirtualKeyEx(VK_SPACE, 0, hkl);
-    DynamicKeyMapEntry *dynamic;
+    int i;
 
-    LANGID idLang = LOWORD(GetKeyboardLayout(0));
-    UINT codePage;
-    TCHAR strCodePage[MAX_ACP_STR_LEN];
-    // use the LANGID to create a LCID
-    LCID idLocale = MAKELCID(idLang, SORT_DEFAULT);
-    // get the ANSI code page associated with this locale
-    if (GetLocaleInfo(idLocale, LOCALE_IDEFAULTANSICODEPAGE,
-    strCodePage, sizeof(strCodePage)/sizeof(TCHAR)) > 0 )
-    {
-        codePage = _ttoi(strCodePage);
-    } else {
-        codePage = GetACP();
+    kbdLayoutUS = LoadKeyboardLayout( US_LAYOUT_NAME, 0 /* ? KLF_ACTIVATE ? */ );
+    if( 0 == kbdLayoutUS ) {
+        int lastError = (int) GetLastError();
+        kbdLayoutUS = hkl; // use prev. layout .. well
+        STD_PRINT("Warning: NEWT Windows: LoadKeyboardLayout(US, ..) failed: winErr 0x%X %d\n", lastError, lastError);
     }
+    ActivateKeyboardLayout(hkl, 0);
 
-    // Entries in dynamic table that maps between Java VK and Windows
-    // VK are built in three steps:
-    //   1. Map windows VK to ANSI character (cannot map to unicode
-    //      directly, since ::ToUnicode is not implemented on win9x)
-    //   2. Convert ANSI char to Unicode char
-    //   3. Map Unicode char to Java VK via two auxilary tables.
+    spaceScanCode = MapVirtualKeyEx(VK_SPACE, MAPVK_VK_TO_VSC, hkl);
 
-    for (dynamic = dynamicKeyMapTable; dynamic->windowsKey != 0; ++dynamic)
-    {
-        char cbuf[2] = { '\0', '\0'};
-        WCHAR ucbuf[2] = { L'\0', L'\0' };
-        int nchars;
-        UINT scancode;
-        const CharToVKEntry *charMap;
-        int nconverted;
-        WCHAR uc;
-        BYTE kbdState[256];
-
-        // Defaults to J_VK_UNDEFINED
-        dynamic->javaKey = J_VK_UNDEFINED;
-
-        GetKeyboardState(kbdState);
-
-        kbdState[dynamic->windowsKey] |=  0x80; // Press the key.
-
-        // Unpress modifiers, since they are most likely pressed as
-        // part of the keyboard switching shortcut.
-        kbdState[VK_CONTROL] &= ~0x80;
-        kbdState[VK_SHIFT]   &= ~0x80;
-        kbdState[VK_MENU]    &= ~0x80;
-
-        scancode = MapVirtualKeyEx(dynamic->windowsKey, 0, hkl);
-        nchars = ToAsciiEx(dynamic->windowsKey, scancode, kbdState,
-                                 (WORD*)cbuf, 0, hkl);
-
-        // Auxiliary table used to map Unicode character to Java VK.
-        // Will assign a different table for dead keys (below).
-        charMap = charToVKTable;
-
-        if (nchars < 0) { // Dead key
-            char junkbuf[2] = { '\0', '\0'};
-            // Use a different table for dead chars since different layouts
-            // return different characters for the same dead key.
-            charMap = charToDeadVKTable;
-
-            // We also need to reset layout so that next translation
-            // is unaffected by the dead status.  We do this by
-            // translating <SPACE> key.
-            kbdState[dynamic->windowsKey] &= ~0x80;
-            kbdState[VK_SPACE] |= 0x80;
-
-            ToAsciiEx(VK_SPACE, spaceScanCode, kbdState,
-                      (WORD*)junkbuf, 0, hkl);
+    // Setup keyMapTable's windowsScanCodeUS
+    for (i = 0; keyMapTable[i].windowsKey != 0; i++) {
+        USHORT scancode = (USHORT) MapVirtualKeyEx(keyMapTable[i].windowsKey, MAPVK_VK_TO_VSC_EX, kbdLayoutUS);
+        #ifdef DEBUG_KEYS
+        if( 0 == scancode ) {
+            int lastError = (int) GetLastError();
+            STD_PRINT("*** WindowsWindow: InitKeyMapTableScanCode: No ScanCode for windows vkey 0x%X (item %d), winErr 0x%X %d\n", 
+                keyMapTable[i].windowsKey, i, lastError, lastError);
         }
-
-        nconverted = MultiByteToWideChar(codePage, 0,
-                                         cbuf, 1, ucbuf, 2);
-
-        uc = ucbuf[0];
-        {
-            const CharToVKEntry *map;
-            for (map = charMap;  map->c != 0;  ++map) {
-                if (uc == map->c) {
-                    dynamic->javaKey = map->javaKey;
-                    break;
-                }
-            }
-        }
-
-    } // for each VK_OEM_*
+        STD_PRINT("*** WindowsWindow: InitKeyMapTableScanCode: %3.3d windows vkey 0x%X -> scancode 0x%X\n", 
+            i, keyMapTable[i].windowsKey, scancode);
+        #endif
+        keyMapTable[i].windowsScanCodeUS = scancode;
+    }
 }
 
-static jint GetModifiers(BOOL altKeyFlagged, UINT jkey) {
+static void ParseWmVKeyAndScanCode(USHORT winVKey, BYTE winScanCode, BYTE flags, USHORT *outJavaVKeyUS, USHORT *outJavaVKeyXX, USHORT *outUTF16Char) {
+    wchar_t uniChars[2] = { L'\0', L'\0' }; // uint16_t
+    USHORT winVKeyUS = 0;
+    int nUniChars, i, j;
+    USHORT javaVKeyUS = J_VK_UNDEFINED;
+    USHORT javaVKeyXX = J_VK_UNDEFINED;
+
+    HKL hkl = GetKeyboardLayout(0);
+
+    //
+    // winVKey, winScanCode -> UTF16 w/ current KeyboardLayout
+    //
+    GetKeyboardState(kbdState); 
+    kbdState[winVKey] |=  0x80;
+    nUniChars = ToUnicodeEx(winVKey, winScanCode, kbdState, uniChars, 2, 0, hkl);
+    kbdState[winVKey] &= ~0x80;
+
+    *outUTF16Char = (USHORT)(uniChars[0]); // Note: Even dead key are written in uniChar's ..
+
+    if ( 0 > nUniChars ) { // Dead key
+        char junkbuf[2] = { '\0', '\0'};
+
+        // We need to reset layout so that next translation
+        // is unaffected by the dead status.  We do this by
+        // translating <SPACE> key.
+        kbdState[VK_SPACE] |= 0x80;
+        ToAsciiEx(VK_SPACE, spaceScanCode, kbdState, (WORD*)junkbuf, 0, hkl);
+        kbdState[VK_SPACE] &= ~0x80;
+    }
+
+    // Assume extended scan code 0xE0 if extended flags is set (no 0xE1 from WM_KEYUP/WM_KEYDOWN)
+    USHORT winScanCodeExt = winScanCode;
+    if( 0 != ( 0x01 & flags ) ) {
+        winScanCodeExt |= 0xE000;
+    }
+
+    //
+    // winVKey, winScanCodeExt -> javaVKeyUS w/ US KeyboardLayout
+    //
+    for (i = 0; keyMapTable[i].windowsKey != 0; i++) {
+        if ( keyMapTable[i].windowsScanCodeUS == winScanCodeExt ) {
+            javaVKeyUS = keyMapTable[i].javaKey;
+            winVKeyUS = keyMapTable[i].windowsKey;
+            break;
+        }
+    }
+
+    //
+    // winVKey -> javaVKeyXX
+    //
+    for (i = 0; keyMapTable[i].windowsKey != 0; i++) {
+        if ( keyMapTable[i].windowsKey == winVKey ) {
+            javaVKeyXX = keyMapTable[i].javaKey;
+            break;
+        }
+    }
+
+    *outJavaVKeyUS = javaVKeyUS;
+    *outJavaVKeyXX = javaVKeyXX;
+
+#ifdef DEBUG_KEYS
+    STD_PRINT("*** WindowsWindow: ParseWmVKeyAndScanCode winVKey 0x%X, winScanCode 0x%X, winScanCodeExt 0x%X, flags 0x%X -> UTF(0x%X, %c, res %d, sizeof %d), vKeys( US(win 0x%X, java 0x%X), XX(win 0x%X, java 0x%X))\n", 
+        (int)winVKey, (int)winScanCode, winScanCodeExt, (int)flags,
+        *outUTF16Char, *outUTF16Char, nUniChars, sizeof(uniChars[0]),
+        winVKeyUS, javaVKeyUS, winVKey, javaVKeyXX);
+#endif
+}
+
+static jint GetModifiers(BOOL altKeyFlagged, USHORT jkey) {
     jint modifiers = 0;
     // have to do &0xFFFF to avoid runtime assert caused by compiling with
     // /RTCcsu
@@ -516,121 +463,38 @@ static BOOL IsAltKeyDown(BYTE flags, BOOL system) {
     return system && ( flags & (1<<5) ) != 0;
 }
 
-UINT WindowsKeyToJavaKey(UINT windowsKey)
-{
-    int i, j, javaKey = J_VK_UNDEFINED;
-    // for the general case, use a bi-directional table
-    for (i = 0; keyMapTable[i].windowsKey != 0; i++) {
-        if (keyMapTable[i].windowsKey == windowsKey) {
-            javaKey = keyMapTable[i].javaKey;
-        }
-    }
-    if( J_VK_UNDEFINED == javaKey ) {
-        for (j = 0; dynamicKeyMapTable[j].windowsKey != 0; j++) {
-            if (dynamicKeyMapTable[j].windowsKey == windowsKey) {
-                if (dynamicKeyMapTable[j].javaKey != J_VK_UNDEFINED) {
-                    javaKey = dynamicKeyMapTable[j].javaKey;
-                } else {
-                    break;
-                }
-            }
-        }
-    }
-
-#ifdef DEBUG_KEYS
-    STD_PRINT("*** WindowsWindow: WindowsKeyToJavaKey 0x%X -> 0x%X\n", windowsKey, javaKey);
-#endif
-    return javaKey;
-}
-
-#ifndef MAPVK_VSC_TO_VK
-    #define MAPVK_VSC_TO_VK 1
-#endif
-#ifndef MAPVK_VK_TO_CHAR
-    #define MAPVK_VK_TO_CHAR 2
-#endif
-
-static UINT WmVKey2ShiftedChar(UINT wkey, UINT modifiers) {
-    UINT c = MapVirtualKey(wkey, MAPVK_VK_TO_CHAR);
-    if( 0 != ( modifiers & EVENT_SHIFT_MASK ) ) {
-        return islower(c) ? toupper(c) : c;
-    }
-    return isupper(c) ? tolower(c) : c;
-}
-
-static int WmChar(JNIEnv *env, jobject window, UINT character, WORD repCnt, BYTE scanCode, BYTE flags, BOOL system) {
-    UINT modifiers = 0, jkey = 0, wkey = 0;
-
-    wkey = MapVirtualKey(scanCode, MAPVK_VSC_TO_VK);
-    jkey = WindowsKeyToJavaKey(wkey);
-    modifiers = GetModifiers( IsAltKeyDown(flags, system), 0 );
-
-    if (character == VK_RETURN) {
-        character = J_VK_ENTER;
-    }
-
-    (*env)->CallVoidMethod(env, window, sendKeyEventID,
-                           (jint) EVENT_KEY_TYPED,
-                           modifiers,
-                           (jint) jkey,
-                           (jchar) character);
-    return 1;
-}
-
-static int WmKeyDown(JNIEnv *env, jobject window, UINT wkey, WORD repCnt, BYTE scanCode, BYTE flags, BOOL system) {
-    UINT modifiers = 0, jkey = 0, character = 0;
+static int WmKeyDown(JNIEnv *env, jobject window, USHORT wkey, WORD repCnt, BYTE scanCode, BYTE flags, BOOL system) {
+    UINT modifiers = 0;
+    USHORT javaVKeyUS=0, javaVKeyXX=0, utf16Char=0;
     if (wkey == VK_PROCESSKEY) {
         return 1;
     }
 
-    jkey = WindowsKeyToJavaKey(wkey);
-    modifiers = GetModifiers( IsAltKeyDown(flags, system), jkey );
-    character = WmVKey2ShiftedChar(wkey, modifiers);
+    ParseWmVKeyAndScanCode(wkey, scanCode, flags, &javaVKeyUS, &javaVKeyXX, &utf16Char);
 
-/*
-    character = WindowsKeyToJavaChar(wkey, modifiers, SAVE);
-*/
+    modifiers = GetModifiers( IsAltKeyDown(flags, system), javaVKeyXX );
 
     (*env)->CallVoidMethod(env, window, sendKeyEventID,
-                           (jint) EVENT_KEY_PRESSED,
-                           modifiers,
-                           (jint) jkey,
-                           (jchar) character);
-
-    /* windows does not create a WM_CHAR for the Del key
-       for some reason, so we need to create the KEY_TYPED event on the
-       WM_KEYDOWN.
-     */
-    if (jkey == J_VK_DELETE) {
-        (*env)->CallVoidMethod(env, window, sendKeyEventID,
-                               (jint) EVENT_KEY_TYPED,
-                               modifiers,
-                               (jint) jkey,
-                               (jchar) '\177');
-    }
+                           (jshort) EVENT_KEY_PRESSED,
+                           (jint) modifiers, (jshort) javaVKeyUS, (jshort) javaVKeyXX, (jchar) utf16Char);
 
     return 0;
 }
 
-static int WmKeyUp(JNIEnv *env, jobject window, UINT wkey, WORD repCnt, BYTE scanCode, BYTE flags, BOOL system) {
-    UINT modifiers = 0, jkey = 0, character = 0;
+static int WmKeyUp(JNIEnv *env, jobject window, USHORT wkey, WORD repCnt, BYTE scanCode, BYTE flags, BOOL system) {
+    UINT modifiers = 0;
+    USHORT javaVKeyUS=0, javaVKeyXX=0, utf16Char=0;
     if (wkey == VK_PROCESSKEY) {
         return 1;
     }
 
-    jkey = WindowsKeyToJavaKey(wkey);
-    modifiers = GetModifiers( IsAltKeyDown(flags, system), jkey );
-    character = WmVKey2ShiftedChar(wkey, modifiers);
+    ParseWmVKeyAndScanCode(wkey, scanCode, flags, &javaVKeyUS, &javaVKeyXX, &utf16Char);
 
-/*
-    character = WindowsKeyToJavaChar(wkey, modifiers, SAVE);
-*/
+    modifiers = GetModifiers( IsAltKeyDown(flags, system), javaVKeyXX );
 
     (*env)->CallVoidMethod(env, window, sendKeyEventID,
-                           (jint) EVENT_KEY_RELEASED,
-                           modifiers,
-                           (jint) jkey,
-                           (jchar) character);
+                           (jshort) EVENT_KEY_RELEASED,
+                           (jint) modifiers, (jshort) javaVKeyUS, (jshort) javaVKeyXX, (jchar) utf16Char);
 
     return 0;
 }
@@ -933,46 +797,35 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         break;
 
     case WM_SYSCHAR:
-        repCnt = HIWORD(lParam); scanCode = LOBYTE(repCnt); flags = HIBYTE(repCnt);
-        repCnt = LOWORD(lParam);
-#ifdef DEBUG_KEYS
-        STD_PRINT("*** WindowsWindow: windProc WM_SYSCHAR sending window %p -> %p, char 0x%X, repCnt %d, scanCode 0x%X, flags 0x%X\n", wnd, window, (int)wParam, (int)repCnt, (int)scanCode, (int)flags);
-#endif
-        useDefWindowProc = WmChar(env, window, wParam, repCnt, scanCode, flags, TRUE);
+        useDefWindowProc = 1;
         break;
 
     case WM_SYSKEYDOWN:
         repCnt = HIWORD(lParam); scanCode = LOBYTE(repCnt); flags = HIBYTE(repCnt);
         repCnt = LOWORD(lParam);
 #ifdef DEBUG_KEYS
-        STD_PRINT("*** WindowsWindow: windProc WM_SYSKEYDOWN sending window %p -> %p, code 0x%X, repCnt %d, scanCode 0x%X, flags 0x%X\n", wnd, window, (int)wParam, (int)repCnt, (int)scanCode, (int)flags);
+        DBG_PRINT("*** WindowsWindow: windProc WM_SYSKEYDOWN sending window %p -> %p, code 0x%X, repCnt %d, scanCode 0x%X, flags 0x%X\n", wnd, window, (int)wParam, (int)repCnt, (int)scanCode, (int)flags);
 #endif
-        useDefWindowProc = WmKeyDown(env, window, wParam, repCnt, scanCode, flags, TRUE);
+        useDefWindowProc = WmKeyDown(env, window, (USHORT)wParam, repCnt, scanCode, flags, TRUE);
         break;
 
     case WM_SYSKEYUP:
         repCnt = HIWORD(lParam); scanCode = LOBYTE(repCnt); flags = HIBYTE(repCnt);
         repCnt = LOWORD(lParam);
 #ifdef DEBUG_KEYS
-        STD_PRINT("*** WindowsWindow: windProc WM_SYSKEYUP sending window %p -> %p, code 0x%X, repCnt %d, scanCode 0x%X, flags 0x%X\n", wnd, window, (int)wParam, (int)repCnt, (int)scanCode, (int)flags);
+        DBG_PRINT("*** WindowsWindow: windProc WM_SYSKEYUP sending window %p -> %p, code 0x%X, repCnt %d, scanCode 0x%X, flags 0x%X\n", wnd, window, (int)wParam, (int)repCnt, (int)scanCode, (int)flags);
 #endif
-        useDefWindowProc = WmKeyUp(env, window, wParam, repCnt, scanCode, flags, TRUE);
+        useDefWindowProc = WmKeyUp(env, window, (USHORT)wParam, repCnt, scanCode, flags, TRUE);
         break;
 
     case WM_CHAR:
-        repCnt = HIWORD(lParam); scanCode = LOBYTE(repCnt); flags = HIBYTE(repCnt);
-        repCnt = LOWORD(lParam);
-#ifdef DEBUG_KEYS
-        STD_PRINT("*** WindowsWindow: windProc WM_CHAR sending window %p -> %p, char 0x%X, repCnt %d, scanCode 0x%X, flags 0x%X\n", wnd, window, (int)wParam, (int)repCnt, (int)scanCode, (int)flags);
-#endif
-        useDefWindowProc = WmChar(env, window, wParam, repCnt, scanCode, flags, FALSE);
+        useDefWindowProc = 1;
         break;
         
     case WM_KEYDOWN:
         repCnt = HIWORD(lParam); scanCode = LOBYTE(repCnt); flags = HIBYTE(repCnt);
-        repCnt = LOWORD(lParam);
 #ifdef DEBUG_KEYS
-        STD_PRINT("*** WindowsWindow: windProc WM_KEYDOWN sending window %p -> %p, code 0x%X, repCnt %d, scanCode 0x%X, flags 0x%X\n", wnd, window, (int)wParam, (int)repCnt, (int)scanCode, (int)flags);
+        DBG_PRINT("*** WindowsWindow: windProc WM_KEYDOWN sending window %p -> %p, code 0x%X, repCnt %d, scanCode 0x%X, flags 0x%X\n", wnd, window, (int)wParam, (int)repCnt, (int)scanCode, (int)flags);
 #endif
         useDefWindowProc = WmKeyDown(env, window, wParam, repCnt, scanCode, flags, FALSE);
         break;
@@ -981,7 +834,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         repCnt = HIWORD(lParam); scanCode = LOBYTE(repCnt); flags = HIBYTE(repCnt);
         repCnt = LOWORD(lParam);
 #ifdef DEBUG_KEYS
-        STD_PRINT("*** WindowsWindow: windProc WM_KEYUP sending window %p -> %p, code 0x%X, repCnt %d, scanCode 0x%X, flags 0x%X\n", wnd, window, (int)wParam, (int)repCnt, (int)scanCode, (int)flags);
+        DBG_PRINT("*** WindowsWindow: windProc WM_KEYUP sending window %p -> %p, code 0x%X, repCnt %d, scanCode 0x%X, flags 0x%X\n", wnd, window, (int)wParam, (int)repCnt, (int)scanCode, (int)flags);
 #endif
         useDefWindowProc = WmKeyUp(env, window, wParam, repCnt, scanCode, flags, FALSE);
         break;
@@ -1005,19 +858,19 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         DBG_PRINT("*** WindowsWindow: LBUTTONDOWN\n");
         (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                               (jint) EVENT_MOUSE_PRESSED,
+                               (jshort) EVENT_MOUSE_PRESSED,
                                GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jint) 1, (jfloat) 0.0f);
+                               (jshort) 1, (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
 
     case WM_LBUTTONUP:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                               (jint) EVENT_MOUSE_RELEASED,
+                               (jshort) EVENT_MOUSE_RELEASED,
                                GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jint) 1, (jfloat) 0.0f);
+                               (jshort) 1, (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
 
@@ -1025,19 +878,19 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         DBG_PRINT("*** WindowsWindow: MBUTTONDOWN\n");
         (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                               (jint) EVENT_MOUSE_PRESSED,
+                               (jshort) EVENT_MOUSE_PRESSED,
                                GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jint) 2, (jfloat) 0.0f);
+                               (jshort) 2, (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
 
     case WM_MBUTTONUP:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                               (jint) EVENT_MOUSE_RELEASED,
+                               (jshort) EVENT_MOUSE_RELEASED,
                                GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jint) 2, (jfloat) 0.0f);
+                               (jshort) 2, (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
 
@@ -1045,36 +898,36 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         DBG_PRINT("*** WindowsWindow: RBUTTONDOWN\n");
         (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                               (jint) EVENT_MOUSE_PRESSED,
+                               (jshort) EVENT_MOUSE_PRESSED,
                                GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jint) 3, (jfloat) 0.0f);
+                               (jshort) 3, (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
 
     case WM_RBUTTONUP:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                               (jint) EVENT_MOUSE_RELEASED,
+                               (jshort) EVENT_MOUSE_RELEASED,
                                GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jint) 3,  (jfloat) 0.0f);
+                               (jshort) 3,  (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
 
     case WM_MOUSEMOVE:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                               (jint) EVENT_MOUSE_MOVED,
+                               (jshort) EVENT_MOUSE_MOVED,
                                GetModifiers( FALSE, 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
-                               (jint) 0,  (jfloat) 0.0f);
+                               (jshort) 0,  (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
     case WM_MOUSELEAVE:
-        (*env)->CallVoidMethod(env, window, enqueueMouseEventID, JNI_FALSE,
-                               (jint) EVENT_MOUSE_EXITED,
+        (*env)->CallVoidMethod(env, window, sendMouseEventID, JNI_FALSE,
+                               (jshort) EVENT_MOUSE_EXITED,
                                0,
                                (jint) -1, (jint) -1, // fake
-                               (jint) 0,  (jfloat) 0.0f);
+                               (jshort) 0,  (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
     // Java synthesizes EVENT_MOUSE_ENTERED
@@ -1099,10 +952,10 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
             }
             DBG_PRINT("*** WindowsWindow: WM_HSCROLL 0x%X, rotation %f, mods 0x%X\n", sb, rotation, modifiers);
             (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                                   (jint) EVENT_MOUSE_WHEEL_MOVED,
+                                   (jshort) EVENT_MOUSE_WHEEL_MOVED,
                                    modifiers,
                                    (jint) 0, (jint) 0,
-                                   (jint) 1,  (jfloat) rotation);
+                                   (jshort) 1,  (jfloat) rotation);
             useDefWindowProc = 1;
             break;
         }
@@ -1128,10 +981,10 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
                 (int)eventPt.x, (int)eventPt.y, rotationOrTilt, vKeys, modifiers);
         }
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
-                               (jint) EVENT_MOUSE_WHEEL_MOVED,
+                               (jshort) EVENT_MOUSE_WHEEL_MOVED,
                                modifiers,
                                (jint) eventPt.x, (jint) eventPt.y,
-                               (jint) 1,  (jfloat) rotationOrTilt);
+                               (jshort) 1,  (jfloat) rotationOrTilt);
         useDefWindowProc = 1;
         break;
     }
@@ -1208,7 +1061,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_DisplayDriver_DispatchMes
         // DBG_PRINT("*** WindowsWindow.DispatchMessages0: thread 0x%X - gotOne %d\n", (int)GetCurrentThreadId(), (int)gotOne);
         if (gotOne) {
             ++i;
-            TranslateMessage(&msg);
+            // TranslateMessage(&msg); // No more needed: We translate V_KEY -> UTF Char manually in key up/down
             DispatchMessage(&msg);
         }
     } while (gotOne && i < 100);
@@ -1474,10 +1327,8 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
-    enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZIIIIIF)V");
-    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(IIIIIF)V");
-    enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZIIIC)V");
-    sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(IIIC)V");
+    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(SIIISF)V");
+    sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(SISSC)V");
     requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
 
     if (insetsChangedID == NULL ||
@@ -1487,14 +1338,12 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_initIDs0
         visibleChangedID == NULL ||
         windowDestroyNotifyID == NULL ||
         windowRepaintID == NULL ||
-        enqueueMouseEventID == NULL ||
         sendMouseEventID == NULL ||
-        enqueueKeyEventID == NULL ||
         sendKeyEventID == NULL ||
         requestFocusID == NULL) {
         return JNI_FALSE;
     }
-    BuildDynamicKeyMapTable();
+    InitKeyMapTableScanCode(env);
 
     return JNI_TRUE;
 }

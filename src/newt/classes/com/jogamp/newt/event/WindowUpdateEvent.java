@@ -34,7 +34,7 @@ import javax.media.nativewindow.util.Rectangle;
 public class WindowUpdateEvent extends WindowEvent {
     final Rectangle bounds;
 
-    public WindowUpdateEvent(int eventType, Object source, long when, Rectangle bounds)
+    public WindowUpdateEvent(short eventType, Object source, long when, Rectangle bounds)
     {
         super(eventType, source, when);
         this.bounds = bounds;

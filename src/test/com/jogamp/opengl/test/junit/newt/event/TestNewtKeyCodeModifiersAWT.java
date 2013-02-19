@@ -47,6 +47,8 @@ import javax.swing.JFrame;
 
 import java.io.IOException;
 
+import jogamp.nativewindow.jawt.JAWTUtil;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -61,6 +63,11 @@ import com.jogamp.opengl.test.junit.util.*;
 
 /**
  * Testing combinations of key code modifiers of key event.
+ * 
+ * <p>
+ * Due to limitation of AWT Robot, the test machine needs to have US keyboard enabled,
+ * even though we do unify VK codes to US keyboard across all layouts.
+ * </p>
  */
 public class TestNewtKeyCodeModifiersAWT extends UITestCase {
     static int width, height;
@@ -99,12 +106,14 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
         glWindow.destroy();
     }
         
-    @Test
-    public void test02NewtCanvasAWT() throws AWTException, InterruptedException, InvocationTargetException {
+    private void testNewtCanvasAWT_Impl(boolean onscreen) throws AWTException, InterruptedException, InvocationTargetException {
         GLWindow glWindow = GLWindow.create(glCaps);
         
         // Wrap the window in a canvas.
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
+        if( !onscreen ) {
+            newtCanvasAWT.setShallUseOffscreenLayer(true);
+        }
         
         // Add the canvas to a frame, and make it all visible.
         final JFrame frame1 = new JFrame("Swing AWT Parent Frame: "+ glWindow.getTitle());
@@ -129,42 +138,63 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }        
-        glWindow.destroy();
+        glWindow.destroy();        
+    }
+    
+    @Test
+    public void test02NewtCanvasAWT_Onscreen() throws AWTException, InterruptedException, InvocationTargetException {
+        if( JAWTUtil.isOffscreenLayerRequired() ) {
+            System.err.println("Platform doesn't support onscreen rendering.");
+            return;
+        }
+        testNewtCanvasAWT_Impl(true);
     }
         
-    static void testKeyCodeModifier(Robot robot, NEWTKeyAdapter keyAdapter, int modifierKey, int modifierMask) {
+    @Test
+    public void test03NewtCanvasAWT_Offsccreen() throws AWTException, InterruptedException, InvocationTargetException {
+        if( !JAWTUtil.isOffscreenLayerSupported() ) {
+            System.err.println("Platform doesn't support offscreen rendering.");
+            return;
+        }
+        testNewtCanvasAWT_Impl(false);
+    }
+        
+    @SuppressWarnings("deprecation")
+    static void testKeyCodeModifier(Robot robot, NEWTKeyAdapter keyAdapter, int modifierKey, int modifierMask, int keyCode, char keyCharOnly, char keyCharMod) {
         keyAdapter.reset();
-        AWTRobotUtil.keyPress(0, robot, true, KeyEvent.VK_P, 10);   // press P
-        AWTRobotUtil.keyPress(0, robot, false, KeyEvent.VK_P, 100); // release+typed P
+        AWTRobotUtil.keyPress(0, robot, true, keyCode, 10);   // press keyCode
+        AWTRobotUtil.keyPress(0, robot, false, keyCode, 100); // release+typed keyCode
         robot.waitForIdle();        
-        for(int j=0; j < 10 && keyAdapter.getQueueSize() < 3; j++) { // wait until events are collected
+        for(int j=0; j < 40 && keyAdapter.getQueueSize() < 3; j++) { // wait until events are collected
             robot.delay(100);
         }
         
         AWTRobotUtil.keyPress(0, robot, true, modifierKey, 10);     // press MOD
-        AWTRobotUtil.keyPress(0, robot, true, KeyEvent.VK_P, 10);   // press P
-        AWTRobotUtil.keyPress(0, robot, false, KeyEvent.VK_P, 10);  // release+typed P 
-        AWTRobotUtil.keyPress(0, robot, false, modifierKey, 100);   // release+typed MOD
+        AWTRobotUtil.keyPress(0, robot, true, keyCode, 10);   // press keyCode
+        AWTRobotUtil.keyPress(0, robot, false, keyCode, 10);  // release+typed keyCode 
+        AWTRobotUtil.keyPress(0, robot, false, modifierKey, 100);   // release MOD
         robot.waitForIdle();        
-        for(int j=0; j < 20 && keyAdapter.getQueueSize() < 3+6; j++) { // wait until events are collected
+        for(int j=0; j < 40 && keyAdapter.getQueueSize() < 3+5; j++) { // wait until events are collected
             robot.delay(100);
         }
-        NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, 3+6, 0);        
+        NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, 
+                                            3 /* press-SI */, 3 /* release-SI */, 2 /* typed-SI */,
+                                            0 /* press-AR */, 0 /* release-AR */, 0 /* typed-AR */ );
         
         final List<EventObject> queue = keyAdapter.getQueued();        
         int i=0;
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED, 0, KeyEvent.VK_P);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, 0, KeyEvent.VK_P);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_TYPED, 0, KeyEvent.VK_P);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED, 0, keyCode, keyCharOnly);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, 0, keyCode, keyCharOnly);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_TYPED, 0, keyCode, keyCharOnly);
         
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED, modifierMask, modifierKey);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED, modifierMask, KeyEvent.VK_P);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, modifierMask, KeyEvent.VK_P);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_TYPED, modifierMask, KeyEvent.VK_P);                
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, modifierMask, modifierKey);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_TYPED, modifierMask, modifierKey);                
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED, modifierMask, modifierKey, (char)0);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED, modifierMask, keyCode, keyCharMod);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, modifierMask, keyCode, keyCharMod);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_TYPED, modifierMask, keyCode, keyCharMod);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, modifierMask, modifierKey, (char)0);
     }
     
+    @SuppressWarnings("deprecation")
     static void testKeyCodeAllModifierV1(Robot robot, NEWTKeyAdapter keyAdapter) {
         final int m1k = KeyEvent.VK_ALT;
         final int m1m = InputEvent.ALT_MASK;
@@ -180,32 +210,31 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
         AWTRobotUtil.keyPress(0, robot, true, KeyEvent.VK_P, 10);   // press P
         
         AWTRobotUtil.keyPress(0, robot, false, KeyEvent.VK_P, 100);  // release+typed P        
-        AWTRobotUtil.keyPress(0, robot, false, m3k, 10);   // release+typed MOD
-        AWTRobotUtil.keyPress(0, robot, false, m2k, 10);   // release+typed MOD
-        AWTRobotUtil.keyPress(0, robot, false, m1k, 10);   // release+typed MOD
+        AWTRobotUtil.keyPress(0, robot, false, m3k, 10);   // release MOD
+        AWTRobotUtil.keyPress(0, robot, false, m2k, 10);   // release MOD
+        AWTRobotUtil.keyPress(0, robot, false, m1k, 10);   // release MOD
         
         robot.waitForIdle();        
-        for(int j=0; j < 20 && keyAdapter.getQueueSize() < 3*4; j++) { // wait until events are collected
+        for(int j=0; j < 40 && keyAdapter.getQueueSize() < 4+4+1; j++) { // wait until events are collected
             robot.delay(100);
         }
-        NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, 3*4, 0);        
+        NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, 
+                                            4 /* press-SI */, 4 /* release-SI */, 1 /* typed-SI */,
+                                            0 /* press-AR */, 0 /* release-AR */, 0 /* typed-AR */ );
         
         final List<EventObject> queue = keyAdapter.getQueued();        
         int i=0;
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m,         m1k);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m|m2m,     m2k);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m|m2m|m3m, m3k);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m,         m1k, (char)0);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m|m2m,     m2k, (char)0);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m|m2m|m3m, m3k, (char)0);
         
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m|m2m|m3m, KeyEvent.VK_P);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, m1m|m2m|m3m, KeyEvent.VK_P);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_TYPED,    m1m|m2m|m3m, KeyEvent.VK_P);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m|m2m|m3m, KeyEvent.VK_P, (char)0);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, m1m|m2m|m3m, KeyEvent.VK_P, (char)0);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_TYPED,    m1m|m2m|m3m, KeyEvent.VK_P, (char)0);
         
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, m1m|m2m|m3m, m3k);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_TYPED,    m1m|m2m|m3m, m3k);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, m1m|m2m,     m2k);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_TYPED,    m1m|m2m,     m2k);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, m1m,         m1k);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_TYPED,    m1m,         m1k);                
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, m1m|m2m|m3m, m3k, (char)0);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, m1m|m2m,     m2k, (char)0);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, m1m,         m1k, (char)0);
     }
     
     void testImpl(GLWindow glWindow) throws AWTException, InterruptedException, InvocationTargetException {
@@ -233,9 +262,11 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
         AWTRobotUtil.requestFocus(robot, glWindow, false); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
         glWindow1KA.reset();        
 
-        testKeyCodeModifier(robot, glWindow1KA, KeyEvent.VK_SHIFT, InputEvent.SHIFT_MASK);
-        testKeyCodeModifier(robot, glWindow1KA, KeyEvent.VK_CONTROL, InputEvent.CTRL_MASK);
-        testKeyCodeModifier(robot, glWindow1KA, KeyEvent.VK_ALT, InputEvent.ALT_MASK);
+        testKeyCodeModifier(robot, glWindow1KA, KeyEvent.VK_SHIFT, InputEvent.SHIFT_MASK, KeyEvent.VK_1, '1', '!');
+        testKeyCodeModifier(robot, glWindow1KA, KeyEvent.VK_SHIFT, InputEvent.SHIFT_MASK, KeyEvent.VK_Y, 'y', 'Y'); // US: Y, DE: Z
+        testKeyCodeModifier(robot, glWindow1KA, KeyEvent.VK_SHIFT, InputEvent.SHIFT_MASK, KeyEvent.VK_P, 'p', 'P');
+        testKeyCodeModifier(robot, glWindow1KA, KeyEvent.VK_CONTROL, InputEvent.CTRL_MASK, KeyEvent.VK_P, 'p', (char)0);
+        testKeyCodeModifier(robot, glWindow1KA, KeyEvent.VK_ALT, InputEvent.ALT_MASK, KeyEvent.VK_P, 'p', (char)0);
         
         testKeyCodeAllModifierV1(robot, glWindow1KA);
         

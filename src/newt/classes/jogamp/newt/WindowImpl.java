@@ -121,10 +121,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private ArrayList<NativeWindow> childWindows = new ArrayList<NativeWindow>();
 
     private ArrayList<MouseListener> mouseListeners = new ArrayList<MouseListener>();
-    private int  mouseButtonPressed = 0;  // current pressed mouse button number
-    private int  mouseButtonModMask = 0;  // current pressed mouse button modifier mask
+    private short mouseButtonPressed = (short)0;  // current pressed mouse button number
+    private int mouseButtonModMask = 0;  // current pressed mouse button modifier mask
     private long lastMousePressed = 0;    // last time when a mouse button was pressed
-    private int  lastMouseClickCount = 0; // last mouse button click count
+    private short lastMouseClickCount = (short)0; // last mouse button click count
     private boolean mouseInWindow = false;// mouse entered window - is inside the window (may be synthetic)
     private Point lastMousePosition = new Point();
 
@@ -1976,17 +1976,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
     // MouseListener/Event Support
     //
-    public void sendMouseEvent(int eventType, int modifiers,
-                               int x, int y, int button, float rotation) {
+    public void sendMouseEvent(short eventType, int modifiers,
+                               int x, int y, short button, float rotation) {
         doMouseEvent(false, false, eventType, modifiers, x, y, button, rotation);
     }
-    public void enqueueMouseEvent(boolean wait, int eventType, int modifiers,
-                                  int x, int y, int button, float rotation) {
+    public void enqueueMouseEvent(boolean wait, short eventType, int modifiers,
+                                  int x, int y, short button, float rotation) {
         doMouseEvent(true, wait, eventType, modifiers, x, y, button, rotation);
     }
     
-    protected void doMouseEvent(boolean enqueue, boolean wait, int eventType, int modifiers,
-                                int x, int y, int button, float rotation) {
+    protected void doMouseEvent(boolean enqueue, boolean wait, short eventType, int modifiers,
+                                int x, int y, short button, float rotation) {
         if( eventType == MouseEvent.EVENT_MOUSE_ENTERED || eventType == MouseEvent.EVENT_MOUSE_EXITED ) {
             if( eventType == MouseEvent.EVENT_MOUSE_EXITED && x==-1 && y==-1 ) {
                 x = lastMousePosition.getX();
@@ -1996,9 +1996,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             x = Math.min(Math.max(x,  0), getWidth()-1);
             y = Math.min(Math.max(y,  0), getHeight()-1);
             mouseInWindow = eventType == MouseEvent.EVENT_MOUSE_ENTERED;
-            lastMousePressed = 0;   // clear state
-            mouseButtonPressed = 0; // clear state
-            mouseButtonModMask = 0; // clear state
+            // clear states
+            lastMousePressed = 0;
+            lastMouseClickCount = (short)0; 
+            mouseButtonPressed = 0;
+            mouseButtonModMask = 0;
         }
         if( x < 0 || y < 0 || x >= getWidth() || y >= getHeight() ) {
             return; // .. invalid ..
@@ -2013,10 +2015,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(!mouseInWindow) {
                 mouseInWindow = true;
                 eEntered = new MouseEvent(MouseEvent.EVENT_MOUSE_ENTERED, this, when,
-                                          modifiers, x, y, lastMouseClickCount, button, 0);
-                lastMousePressed = 0;   // clear state
-                mouseButtonPressed = 0; // clear state
-                mouseButtonModMask = 0; // clear state
+                                          modifiers, x, y, (short)0, (short)0, (short)0);
+                // clear states
+                lastMousePressed = 0;
+                lastMouseClickCount = (short)0; 
+                mouseButtonPressed = 0;
+                mouseButtonModMask = 0;
             } else if( lastMousePosition.getX() == x && lastMousePosition.getY()==y ) { 
                 if(DEBUG_MOUSE_EVENT) {
                     System.err.println("doMouseEvent: skip EVENT_MOUSE_MOVED w/ same position: "+lastMousePosition);
@@ -2046,7 +2050,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if( when - lastMousePressed < MouseEvent.getClickTimeout() ) {
                 lastMouseClickCount++;
             } else {
-                lastMouseClickCount=1;
+                lastMouseClickCount=(short)1;
             }
             lastMousePressed = when;
             mouseButtonPressed = button;
@@ -2060,7 +2064,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 eClicked = new MouseEvent(MouseEvent.EVENT_MOUSE_CLICKED, this, when,
                                           modifiers, x, y, lastMouseClickCount, button, 0);
             } else {
-                lastMouseClickCount = 0;
+                lastMouseClickCount = (short)0;
                 lastMousePressed = 0;
             }
             mouseButtonPressed = 0;
@@ -2068,15 +2072,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         } else if( MouseEvent.EVENT_MOUSE_MOVED == eventType ) {
             if ( mouseButtonPressed > 0 ) {
                 e = new MouseEvent(MouseEvent.EVENT_MOUSE_DRAGGED, this, when,
-                                   modifiers, x, y, 1, mouseButtonPressed, 0);
+                                   modifiers, x, y, (short)1, mouseButtonPressed, 0);
             } else {
                 e = new MouseEvent(eventType, this, when,
-                                   modifiers, x, y, 0, button, 0);
+                                   modifiers, x, y, (short)0, button, (short)0);
             }
         } else if( MouseEvent.EVENT_MOUSE_WHEEL_MOVED == eventType ) {
-            e = new MouseEvent(eventType, this, when, modifiers, x, y, 0, button, rotation);
+            e = new MouseEvent(eventType, this, when, modifiers, x, y, (short)0, button, rotation);
         } else {
-            e = new MouseEvent(eventType, this, when, modifiers, x, y, 0, button, 0);
+            e = new MouseEvent(eventType, this, when, modifiers, x, y, (short)0, button, 0);
         }
         if( null != eEntered ) {
             if(DEBUG_MOUSE_EVENT) {
@@ -2203,23 +2207,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return 0 <= keyCode && keyCode < keyRepeatState.capacity();
     }
         
-    public void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
-        doKeyEvent(false, false, eventType, modifiers, keyCode, keyChar);
+    public void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
+        // Always add currently pressed mouse buttons to modifier mask
+        consumeKeyEvent(new KeyEvent(eventType, this, System.currentTimeMillis(), modifiers | mouseButtonModMask, keyCode, keySym, keyChar) );
     }
 
-    public void enqueueKeyEvent(boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
-        doKeyEvent(true, wait, eventType, modifiers, keyCode, keyChar);
+    public void enqueueKeyEvent(boolean wait, short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
+        // Always add currently pressed mouse buttons to modifier mask
+        enqueueEvent(wait, new KeyEvent(eventType, this, System.currentTimeMillis(), modifiers | mouseButtonModMask, keyCode, keySym, keyChar) );
     }
     
-    protected void doKeyEvent(boolean enqueue, boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
-        modifiers |= mouseButtonModMask; // Always add currently pressed mouse buttons to modifier mask
-        if( enqueue ) {
-            enqueueEvent(wait, new KeyEvent(eventType, this, System.currentTimeMillis(), modifiers, keyCode, keyChar) );
-        } else {
-            consumeKeyEvent(new KeyEvent(eventType, this, System.currentTimeMillis(), modifiers, keyCode, keyChar) );
-        }
-    }
-
     public void addKeyListener(KeyListener l) {
         addKeyListener(-1, l);
     }
@@ -2290,6 +2287,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return keyListeners.toArray(new KeyListener[keyListeners.size()]);
     }
 
+    @SuppressWarnings("deprecation")
     private final boolean propagateKeyEvent(KeyEvent e, KeyListener l) {
         switch(e.getEventType()) {
             case KeyEvent.EVENT_KEY_PRESSED:
@@ -2307,21 +2305,49 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return InputEvent.consumedTag == e.getAttachment();
     }
     
+    @SuppressWarnings("deprecation")
     protected void consumeKeyEvent(KeyEvent e) {
-        boolean consumed;
-        if(null != keyboardFocusHandler) {
-            consumed = propagateKeyEvent(e, keyboardFocusHandler);
-            if(DEBUG_KEY_EVENT) {
-                System.err.println("consumeKeyEvent: "+e+", keyboardFocusHandler consumed: "+consumed);
-            }
+        boolean consumedE = false, consumedTyped = false;
+        if( KeyEvent.EVENT_KEY_TYPED == e.getEventType() ) {
+            throw new InternalError("Deprecated KeyEvent.EVENT_KEY_TYPED is synthesized - don't send/enqueue it!");
+        }
+        
+        // Synthesize deprecated event KeyEvent.EVENT_KEY_TYPED
+        final KeyEvent eTyped;
+        if( KeyEvent.EVENT_KEY_RELEASED == e.getEventType() && e.isPrintableKey() && !e.isAutoRepeat() ) {
+            eTyped = new KeyEvent(KeyEvent.EVENT_KEY_TYPED, e.getSource(), e.getWhen(), e.getModifiers(), e.getKeyCode(), e.getKeySymbol(), e.getKeyChar());
         } else {
-            consumed = false;
+            eTyped = null;
+        }
+        if(null != keyboardFocusHandler) {
+            consumedE = propagateKeyEvent(e, keyboardFocusHandler);
             if(DEBUG_KEY_EVENT) {
+                System.err.println("consumeKeyEvent: "+e+", keyboardFocusHandler consumed: "+consumedE);
+            }
+            if( null != eTyped ) {
+                consumedTyped = propagateKeyEvent(eTyped, keyboardFocusHandler);
+                if(DEBUG_KEY_EVENT) {
+                    System.err.println("consumeKeyEvent: "+eTyped+", keyboardFocusHandler consumed: "+consumedTyped);
+                }                
+            }
+        }
+        if(DEBUG_KEY_EVENT) {
+            if( !consumedE ) {
                 System.err.println("consumeKeyEvent: "+e);
             }
         }
-        for(int i = 0; !consumed && i < keyListeners.size(); i++ ) {
-            consumed = propagateKeyEvent(e, keyListeners.get(i));
+        for(int i = 0; !consumedE && i < keyListeners.size(); i++ ) {
+            consumedE = propagateKeyEvent(e, keyListeners.get(i));
+        }
+        if( null != eTyped ) {
+            if(DEBUG_KEY_EVENT) {
+                if( !consumedTyped ) {
+                    System.err.println("consumeKeyEvent: "+eTyped);
+                }
+            }
+            for(int i = 0; !consumedTyped && i < keyListeners.size(); i++ ) {
+                consumedTyped = propagateKeyEvent(eTyped, keyListeners.get(i));
+            }            
         }
     }
 
@@ -2329,11 +2355,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // WindowListener/Event Support
     //
     public void sendWindowEvent(int eventType) {
-        consumeWindowEvent( new WindowEvent(eventType, this, System.currentTimeMillis()) );
+        consumeWindowEvent( new WindowEvent((short)eventType, this, System.currentTimeMillis()) ); // FIXME
     }
 
     public void enqueueWindowEvent(boolean wait, int eventType) {
-        enqueueEvent( wait, new WindowEvent(eventType, this, System.currentTimeMillis()) );
+        enqueueEvent( wait, new WindowEvent((short)eventType, this, System.currentTimeMillis()) ); // FIXME
     }
 
     public void addWindowListener(WindowListener l) {

@@ -72,14 +72,11 @@ public class AWTKeyAdapter extends AWTAdapter implements java.awt.event.KeyListe
     @Override
     public void keyReleased(java.awt.event.KeyEvent e) {
         com.jogamp.newt.event.KeyEvent keyReleaseEvt = AWTNewtEventFactory.createKeyEvent(com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED, e, newtWindow);
-        com.jogamp.newt.event.KeyEvent keyTypedEvt = AWTNewtEventFactory.createKeyEvent(com.jogamp.newt.event.KeyEvent.EVENT_KEY_TYPED, e, newtWindow);
         if(null!=newtListener) {
             final com.jogamp.newt.event.KeyListener newtKeyListener = (com.jogamp.newt.event.KeyListener)newtListener;
             newtKeyListener.keyReleased(keyReleaseEvt);
-            newtKeyListener.keyTyped(keyTypedEvt);            
         } else {
             enqueueEvent(false, keyReleaseEvt);
-            enqueueEvent(false, keyTypedEvt);
         }
     }
 

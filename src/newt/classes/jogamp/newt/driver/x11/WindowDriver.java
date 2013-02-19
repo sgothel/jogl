@@ -48,6 +48,7 @@ import javax.media.nativewindow.util.Point;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 import com.jogamp.newt.event.InputEvent;
+import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.MouseEvent;
 
 public class WindowDriver extends WindowImpl {
@@ -227,8 +228,8 @@ public class WindowDriver extends WindowImpl {
     }
     
     @Override
-    protected void doMouseEvent(boolean enqueue, boolean wait, int eventType, int modifiers,
-                                int x, int y, int button, float rotation) {
+    protected final void doMouseEvent(boolean enqueue, boolean wait, short eventType, int modifiers,
+                                int x, int y, short button, float rotation) {
         switch(eventType) {
             case MouseEvent.EVENT_MOUSE_PRESSED:
                 switch(button) {
@@ -270,6 +271,34 @@ public class WindowDriver extends WindowImpl {
         super.doMouseEvent(enqueue, wait, eventType, modifiers, x, y, button, rotation);        
     }
     
+    @Override
+    public final void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
+        // handleKeyEvent(true, false, eventType, modifiers, keyCode, keyChar);
+        final boolean isModifierKey = KeyEvent.isModifierKey(keyCode);
+        final boolean isAutoRepeat = 0 != ( KeyEvent.AUTOREPEAT_MASK & modifiers );
+        // System.err.println("*** sendKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", keyCode "+toHexString(keyCode)+", keyChar <"+keyChar+">, mods "+toHexString(modifiers)+
+        //                   ", isKeyCodeTracked "+isKeyCodeTracked(keyCode)+", was: pressed "+isKeyPressed(keyCode)+", repeat "+isAutoRepeat+", [modifierKey "+isModifierKey+"] - "+System.currentTimeMillis());
+        
+        if( !isAutoRepeat || !isModifierKey ) { // ! (  isModifierKey && isAutoRepeat )
+            switch(eventType) {
+                case KeyEvent.EVENT_KEY_PRESSED:
+                    super.sendKeyEvent(KeyEvent.EVENT_KEY_PRESSED, modifiers, keyCode, keySym, keyChar);
+                    break;
+                    
+                case KeyEvent.EVENT_KEY_RELEASED:
+                    super.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keySym, keyChar);
+                    break;
+                    
+                // case KeyEvent.EVENT_KEY_TYPED:
+                //    break;
+            }
+        }
+    }
+    
+    @Override
+    public final void enqueueKeyEvent(boolean wait, short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
+        throw new InternalError("XXX: Adapt Java Code to Native Code Changes");
+    }
     
     //----------------------------------------------------------------------
     // Internals only

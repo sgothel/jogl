@@ -34,10 +34,22 @@
 
 package com.jogamp.newt.event;
 
+/**
+ * Listener for {@link KeyEvent}s.
+ * 
+ * @see KeyEvent
+ */
 public interface KeyListener extends NEWTEventListener
 {
- public void keyPressed(KeyEvent e);
- public void keyReleased(KeyEvent e);
- public void keyTyped(KeyEvent e) ;
+    /** A key has been {@link KeyEvent#EVENT_KEY_PRESSED pressed}, excluding {@link #isAutoRepeat() auto-repeat} {@link #isModifierKey() modifier} keys. See {@link KeyEvent}. */
+    public void keyPressed(KeyEvent e);
+    /** A key has been {@link KeyEvent#EVENT_KEY_RELEASED released}, excluding {@link #isAutoRepeat() auto-repeat} {@link #isModifierKey() modifier} keys. See {@link KeyEvent}. */
+    public void keyReleased(KeyEvent e);
+    
+    /** 
+     * A {@link #isPrintableKey() printable} key has been {@link KeyEvent#EVENT_KEY_TYPED typed} (pressed and released), excluding {@link #isAutoRepeat() auto-repeat}. See {@link KeyEvent}.
+     * @deprecated Redundant, will be removed soon. Use {@link #keyReleased(KeyEvent)} and exclude non {@link #isPrintableKey() printable} keys and {@link #isAutoRepeat() auto-repeat}.
+     */ 
+    public void keyTyped(KeyEvent e) ;
 }
 

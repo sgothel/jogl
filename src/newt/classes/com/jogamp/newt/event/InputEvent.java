@@ -86,7 +86,7 @@ public abstract class InputEvent extends NEWTEvent
   */
  public static final Object consumedTag = new Object();
  
- protected InputEvent(int eventType, Object source, long when, int modifiers) {
+ protected InputEvent(short eventType, Object source, long when, int modifiers) {
     super(eventType, source, when);
     this.modifiers=modifiers;
  }
@@ -154,16 +154,16 @@ public abstract class InputEvent extends NEWTEvent
   * @return Array of pressed mouse buttons  [{@link MouseEvent#BUTTON1} .. {@link MouseEvent#BUTTON6}]. 
   *         If none is down, the resulting array is of length 0.
   */
- public final int[] getButtonsDown()  {
+ public final short[] getButtonsDown()  {
      int len = 0;
      for(int i=1; i<=MouseEvent.BUTTON_NUMBER; i++) {
-         if(isButtonDown(i)) { len++; }
+         if( isButtonDown(i) ) { len++; }
      }
      
-     int[] res = new int[len];
+     short[] res = new short[len];
      int j = 0;
      for(int i=1; i<=MouseEvent.BUTTON_NUMBER; i++) {
-         if(isButtonDown(i)) { res[j++] = ( MouseEvent.BUTTON1 - 1 ) + i; }
+         if( isButtonDown(i) ) { res[j++] = (short) ( ( MouseEvent.BUTTON1 - 1 ) + i ); }
      }
      return res;
  }

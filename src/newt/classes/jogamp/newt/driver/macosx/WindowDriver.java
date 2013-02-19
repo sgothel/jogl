@@ -316,20 +316,21 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         } // else may need offscreen solution ? FIXME
     }
     
-    private final void emitKeyEvent(boolean send, boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
-        if( send ) {
-            super.sendKeyEvent(eventType, modifiers, keyCode, keyChar);
-        } else {
-            super.enqueueKeyEvent(wait, eventType, modifiers, keyCode, keyChar);
-        }
+    @Override
+    public final void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
+        throw new InternalError("XXX: Adapt Java Code to Native Code Changes");
     }
-
-    private final void handleKeyEvent(boolean send, boolean wait, int eventType, int modifiers, int _keyCode, char keyChar) {
+    
+    @Override
+    public final void enqueueKeyEvent(boolean wait, short eventType, int modifiers, short _keyCode, short keySym, char keyChar) {
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
-        final int keyCode = MacKeyUtil.validateKeyCode(_keyCode, keyChar);
-        // final boolean isModifierKeyCode = KeyEvent.isModifierKey(keyCode);
-        // System.err.println("*** handleKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", key 0x"+Integer.toHexString(_keyCode)+" -> 0x"+Integer.toHexString(keyCode)+", mods "+toHexString(modifiers)+", was: pressed "+isKeyPressed(keyCode)+", repeat "+isKeyInAutoRepeat(keyCode)+", isModifierKeyCode "+isModifierKeyCode);
+        final short keyCode = MacKeyUtil.validateKeyCode(_keyCode, keyChar);
+        /* {
+            final boolean isModifierKeyCode = KeyEvent.isModifierKey(keyCode);
+            System.err.println("*** handleKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", key 0x"+Integer.toHexString(_keyCode)+" -> 0x"+Integer.toHexString(keyCode)+", mods "+toHexString(modifiers)+
+                               ", was: pressed "+isKeyPressed(keyCode)+", repeat "+isKeyInAutoRepeat(keyCode)+", isModifierKeyCode "+isModifierKeyCode);
+        } */
             
         // 1:1 Order: OSX and NEWT delivery order is PRESSED, RELEASED and TYPED            
         // Auto-Repeat: OSX delivers only PRESSED, inject auto-repeat RELEASE and TYPED keys _before_ PRESSED
@@ -346,25 +347,12 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                         // key was already pressed
                         keyRepeatState.put(keyCode, true); // prev == false ->  AR in
                         modifiers |= InputEvent.AUTOREPEAT_MASK;
-                        emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keyChar); // RELEASED
-                        emitKeyEvent(send, wait, KeyEvent.EVENT_KEY_TYPED, modifiers, keyCode, keyChar); // TYPED
+                        super.enqueueKeyEvent(wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keyCode, keyChar); // RELEASED
                     }
                 }
                 break;
-            case KeyEvent.EVENT_KEY_TYPED:
-                break;
         }
-        emitKeyEvent(send, wait, eventType, modifiers, keyCode, keyChar);
-    }
-    
-    @Override
-    public void sendKeyEvent(int eventType, int modifiers, int keyCode, char keyChar) {
-        handleKeyEvent(true, false, eventType, modifiers, keyCode, keyChar);
-    }
-    
-    @Override
-    public void enqueueKeyEvent(boolean wait, int eventType, int modifiers, int keyCode, char keyChar) {
-        handleKeyEvent(false, wait, eventType, modifiers, keyCode, keyChar);
+        super.enqueueKeyEvent(wait, eventType, modifiers, keyCode, keyCode, keyChar);
     }
 
     //----------------------------------------------------------------------
