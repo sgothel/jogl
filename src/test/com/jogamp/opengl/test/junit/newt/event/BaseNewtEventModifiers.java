@@ -677,7 +677,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
     ////////////////////////////////////////////////////////////////////////////
 
-    public static void baseAfterClass() throws Exception {
+    public static void clearKeyboadAndMouse() throws Exception {
 
         // Make sure all modifiers are released, otherwise the user's
         // desktop can get locked up (ask me how I know this).

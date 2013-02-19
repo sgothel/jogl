@@ -58,17 +58,20 @@ public class TestNewtEventModifiersNEWTWindowAWT extends BaseNewtEventModifiers 
         _glWindow.setPosition(TEST_FRAME_X, TEST_FRAME_Y);
         _glWindow.setVisible(true);
         
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(_glWindow, true));
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(_glWindow, true));
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(_glWindow, true));
+        
         AWTRobotUtil.assertRequestFocusAndWait(null, _glWindow, _glWindow, null, null);  // programmatic
         Assert.assertNotNull(_robot);
         AWTRobotUtil.requestFocus(_robot, _glWindow, false); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
+        clearKeyboadAndMouse();
     }
 
     ////////////////////////////////////////////////////////////////////////////
 
     @AfterClass
     public static void afterClass() throws Exception {
-        baseAfterClass();
+        clearKeyboadAndMouse();
         _glWindow.destroy();
     }
 

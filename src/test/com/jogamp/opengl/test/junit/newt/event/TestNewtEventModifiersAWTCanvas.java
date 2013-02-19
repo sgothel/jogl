@@ -62,25 +62,29 @@ public class TestNewtEventModifiersAWTCanvas extends BaseNewtEventModifiers {
 
         _testFrame = new JFrame( "Event Modifier Test AWTCanvas" ) ;
         _testFrame.setDefaultCloseOperation( WindowConstants.EXIT_ON_CLOSE ) ;
-        _testFrame.getContentPane().add( canvas ) ;
 
         SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                _testFrame.getContentPane().add( canvas ) ;
                 _testFrame.setBounds( TEST_FRAME_X, TEST_FRAME_Y, TEST_FRAME_WIDTH, TEST_FRAME_HEIGHT ) ;
                 _testFrame.setVisible( true ) ;
             }
         }) ;
-        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(_testFrame, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(_testFrame, true));        
+        Assert.assertTrue(AWTRobotUtil.waitForVisible(canvas, true));
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(canvas, true));
+        
         AWTRobotUtil.assertRequestFocusAndWait(null, canvas, canvas, null, null);  // programmatic
         Assert.assertNotNull(_robot);
-        AWTRobotUtil.requestFocus(_robot, canvas, false); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input        
+        AWTRobotUtil.requestFocus(_robot, canvas, false); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
+        clearKeyboadAndMouse();
     }
 
     ////////////////////////////////////////////////////////////////////////////
 
     @AfterClass
     public static void afterClass() throws Exception {
-        baseAfterClass();
+        clearKeyboadAndMouse();
         SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 _testFrame.dispose() ;
