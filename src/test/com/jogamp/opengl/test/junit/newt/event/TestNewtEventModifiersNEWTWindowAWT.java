@@ -64,14 +64,12 @@ public class TestNewtEventModifiersNEWTWindowAWT extends BaseNewtEventModifiers 
         AWTRobotUtil.assertRequestFocusAndWait(null, _glWindow, _glWindow, null, null);  // programmatic
         Assert.assertNotNull(_robot);
         AWTRobotUtil.requestFocus(_robot, _glWindow, false); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
-        clearKeyboadAndMouse();
     }
 
     ////////////////////////////////////////////////////////////////////////////
 
     @AfterClass
     public static void afterClass() throws Exception {
-        clearKeyboadAndMouse();
         _glWindow.destroy();
     }
 

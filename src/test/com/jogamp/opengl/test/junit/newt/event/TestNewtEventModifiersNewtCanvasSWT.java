@@ -133,15 +133,12 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
         eventDispatch2xImpl();
         
         _glWindow.addMouseListener( _testMouseListener ) ;
-        clearKeyboadAndMouse();
     }
 
     ////////////////////////////////////////////////////////////////////////////
 
     @AfterClass
     public static void afterClass() throws Exception {
-        clearKeyboadAndMouse();
-        
         _glWindow.destroy() ;
 
         try {

@@ -33,6 +33,7 @@ import java.util.ArrayList ;
 
 import javax.media.opengl.GLProfile ;
 
+import org.junit.After;
 import org.junit.Assert ;
 import org.junit.BeforeClass ;
 import org.junit.Test ;
@@ -317,6 +318,11 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         _testMouseListener = new TestMouseListener() ;
     }
 
+    @After
+    public void afterTest() throws Exception {
+        clearKeyboadAndMouse();        
+    }
+    
     ////////////////////////////////////////////////////////////////////////////
     // Following both methods are mandatory to deal with SWT's requirement
     // to run the SWT event dispatch on the TK thread - which must be the main thread on OSX.
@@ -340,6 +346,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             eventDispatch(); eventDispatch(); eventDispatch();
             Thread.sleep( MS_ROBOT_POST_TEST_DELAY ) ;
             eventDispatch(); eventDispatch(); eventDispatch();
+            _testMouseListener.clear();
         }
         _testMouseListener.setModifierCheckEnabled( true ) ;
         
@@ -685,6 +692,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         _releaseModifiers() ;
         _escape() ;
         Thread.sleep( MS_ROBOT_POST_TEST_DELAY ) ;
+        _testMouseListener.clear();
     }
 
     ////////////////////////////////////////////////////////////////////////////

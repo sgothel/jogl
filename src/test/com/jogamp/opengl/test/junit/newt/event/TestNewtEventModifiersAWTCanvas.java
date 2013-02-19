@@ -77,14 +77,12 @@ public class TestNewtEventModifiersAWTCanvas extends BaseNewtEventModifiers {
         AWTRobotUtil.assertRequestFocusAndWait(null, canvas, canvas, null, null);  // programmatic
         Assert.assertNotNull(_robot);
         AWTRobotUtil.requestFocus(_robot, canvas, false); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
-        clearKeyboadAndMouse();
     }
 
     ////////////////////////////////////////////////////////////////////////////
 
     @AfterClass
     public static void afterClass() throws Exception {
-        clearKeyboadAndMouse();
         SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 _testFrame.dispose() ;

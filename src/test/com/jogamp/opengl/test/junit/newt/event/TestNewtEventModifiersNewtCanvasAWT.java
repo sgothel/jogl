@@ -90,14 +90,12 @@ public class TestNewtEventModifiersNewtCanvasAWT extends BaseNewtEventModifiers 
         AWTRobotUtil.requestFocus(_robot, _glWindow, false); // within unit framework, prev. tests (TestFocus02SwingAWTRobot) 'confuses' Windows keyboard input
         
         _glWindow.addMouseListener( _testMouseListener ) ;
-        clearKeyboadAndMouse();
     }
 
     ////////////////////////////////////////////////////////////////////////////
 
     @AfterClass
     public static void afterClass() throws Exception {
-        clearKeyboadAndMouse();
         SwingUtilities.invokeAndWait( new Runnable() {
             public void run() {
                 _testFrame.dispose() ;
