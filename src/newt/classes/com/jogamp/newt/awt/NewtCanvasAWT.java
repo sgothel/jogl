@@ -432,19 +432,23 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
           final int w;
           final int h;
           if(isPreferredSizeSet()) {
+             // 1st: Component's PreferedSize
              java.awt.Dimension d = getPreferredSize();
              w = d.width;
              h = d.height;
           } else {
-             final java.awt.Dimension min;
+             final java.awt.Dimension min1, min2;
+             // 2nd: Component's Max( Max( comp.min, newt.size ), cont.size )             
              if(this.isMinimumSizeSet()) {
-                 min = getMinimumSize();
+                 min1 = getMinimumSize();
              } else {
-                 min = new java.awt.Dimension(0, 0);
+                 min1 = new java.awt.Dimension(0, 0);
              }
+             min2 = new java.awt.Dimension( Math.max( min1.width,  newtChild.getWidth() ), 
+                                            Math.max( min1.height, newtChild.getHeight() ) );
              java.awt.Insets ins = cont.getInsets();
-             w = Math.max(min.width, cont.getWidth() - ins.left - ins.right);
-             h = Math.max(min.height, cont.getHeight() - ins.top - ins.bottom);
+             w = Math.max(min2.width, cont.getWidth() - ins.left - ins.right);
+             h = Math.max(min2.height, cont.getHeight() - ins.top - ins.bottom);
           }
           setSize(w, h);
           newtChild.setSize(w, h);
@@ -455,7 +459,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
           
           // force this AWT Canvas to be focus-able, 
           // since this it is completely covered by the newtChild (z-order).
-          setFocusable(true);        
+          setFocusable(true);
       } else {
           configureNewtChild(false);
           newtChild.setVisible(false);
