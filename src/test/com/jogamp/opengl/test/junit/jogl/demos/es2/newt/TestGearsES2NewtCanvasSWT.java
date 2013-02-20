@@ -28,25 +28,17 @@
  
 package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 
-import java.awt.BorderLayout;
-import java.awt.Button;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Frame;
-import java.awt.TextArea;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
-import com.jogamp.common.os.Platform;
-import com.jogamp.newt.Display;
+import com.jogamp.nativewindow.swt.SWTAccessor;
 import com.jogamp.newt.NewtFactory;
-import com.jogamp.newt.Screen;
-import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.opengl.GLWindow;
+import com.jogamp.newt.swt.NewtCanvasSWT;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -64,18 +56,21 @@ import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLProfile;
-import javax.swing.SwingUtilities;
 
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Assume;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
 
-public class TestGearsES2NewtCanvasAWT extends UITestCase {    
-    public enum FrameLayout { None, TextOnBottom, BorderBottom, BorderCenter, BorderCenterSurrounded, DoubleBorderCenterSurrounded };
-    public enum ResizeBy { GLWindow, Component, Frame };
-    
+public class TestGearsES2NewtCanvasSWT extends UITestCase {    
     static int screenIdx = 0;
     static PointImmutable wpos;
     static DimensionImmutable wsize, rwsize;
@@ -89,7 +84,6 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
     static boolean showFPS = false;
     static int loops = 1;
     static boolean loop_shutdown = false;
-    static boolean shallUseOffscreenFBOLayer = false;
     static boolean forceES2 = false;
     static boolean forceGL3 = false;
     static boolean mainRun = false;
@@ -99,7 +93,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
     public static void initClass() {
         if(null == wsize) {
             wsize = new Dimension(640, 480);
-            rwsize = null;
+            rwsize = new Dimension(-1, -1);
         }
     }
 
@@ -107,133 +101,59 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
     public static void releaseClass() {
     }
 
-    static void setGLWindowSize(final Frame frame, final GLWindow glw, final DimensionImmutable new_sz) {
-        try {
-            glw.setSize(new_sz.getWidth(), new_sz.getHeight());
-            if( null != frame ) {
-                javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-                    public void run() {
-                        frame.pack();
-                    } } );
-            }
-        } catch( Throwable throwable ) {
-            throwable.printStackTrace();
-            Assume.assumeNoException( throwable );
-        }       
+    Display display = null;
+    Shell shell = null;
+    Composite composite = null;
+    
+    @Before
+    public void init() {
+        SWTAccessor.invoke(true, new Runnable() {
+            public void run() {        
+                display = new Display();
+                Assert.assertNotNull( display );
+            }});
+        display.syncExec(new Runnable() {
+            public void run() {        
+                shell = new Shell( display );
+                Assert.assertNotNull( shell );
+                shell.setLayout( new FillLayout() );
+                composite = new Composite( shell, SWT.NONE );
+                composite.setLayout( new FillLayout() );
+                Assert.assertNotNull( composite );
+            }});
     }
-    static void setComponentSize(final Frame frame, final Component comp, final DimensionImmutable new_sz) {
+
+    @After
+    public void release() {
+        Assert.assertNotNull( display );
+        Assert.assertNotNull( shell );
+        Assert.assertNotNull( composite );
         try {
-            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    java.awt.Dimension d = new java.awt.Dimension(new_sz.getWidth(), new_sz.getHeight());
-                    comp.setMinimumSize(d);
-                    comp.setPreferredSize(d);
-                    comp.setSize(d);
-                    if( null != frame ) {
-                        frame.pack();
-                    }
-                } } );
-        } catch( Throwable throwable ) {
+            display.syncExec(new Runnable() {
+               public void run() {
+                composite.dispose();
+                shell.dispose();
+               }});
+            SWTAccessor.invoke(true, new Runnable() {
+               public void run() {
+                display.dispose();
+               }});
+        }
+        catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }       
-    }
-    static void setFrameSize(final Frame frame, final boolean frameLayout, final DimensionImmutable new_sz) {
-        try {
-            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
-                public void run() {
-                    java.awt.Dimension d = new java.awt.Dimension(new_sz.getWidth(), new_sz.getHeight());
-                    frame.setSize(d);
-                    if( frameLayout ) {
-                        frame.validate();
-                    }
-                } } );
-        } catch( Throwable throwable ) {
-            throwable.printStackTrace();
-            Assume.assumeNoException( throwable );
-        }       
+        }
+        display = null;
+        shell = null;
+        composite = null;
     }
     
-    static void setSize(final ResizeBy resizeBy, final Frame frame, final boolean frameLayout, final Component comp, final GLWindow glw, final DimensionImmutable new_sz) {
-        switch( resizeBy ) {
-            case GLWindow:
-                setGLWindowSize(frameLayout ? frame : null, glw, new_sz);
-                break;
-            case Component:
-                setComponentSize(frameLayout ? frame : null, comp, new_sz);
-                break;
-            case Frame:
-                setFrameSize(frame, frameLayout, new_sz);
-                break;
-        }        
-    }
-    
-    // public enum ResizeBy { GLWindow, Component, Frame };
-    protected void runTestGL(final GLCapabilitiesImmutable caps, final ResizeBy resizeBy, final FrameLayout frameLayout) throws InterruptedException, InvocationTargetException {
+    protected void runTestGL(GLCapabilitiesImmutable caps) throws InterruptedException, InvocationTargetException {
         System.err.println("requested: vsync "+swapInterval+", "+caps);
-        Display dpy = NewtFactory.createDisplay(null);
-        Screen screen = NewtFactory.createScreen(dpy, screenIdx);
+        com.jogamp.newt.Display dpy = NewtFactory.createDisplay(null);
+        com.jogamp.newt.Screen screen = NewtFactory.createScreen(dpy, screenIdx);
         final GLWindow glWindow = GLWindow.create(screen, caps);
         Assert.assertNotNull(glWindow);
-        
-        final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow);
-        if ( shallUseOffscreenFBOLayer ) {
-            newtCanvasAWT.setShallUseOffscreenLayer(true);
-        }
-        
-        final Frame frame = new Frame("AWT Parent Frame");
-        
-        setSize(resizeBy, frame, false, newtCanvasAWT, glWindow, wsize);
-
-        switch( frameLayout) {
-            case None:
-                frame.add(newtCanvasAWT);
-                break;
-            case TextOnBottom:
-                final TextArea ta = new TextArea(2, 20);
-                ta.append("0123456789");
-                ta.append(Platform.getNewline());
-                ta.append("Some Text");
-                ta.append(Platform.getNewline());
-                frame.setLayout(new BorderLayout());
-                frame.add(ta, BorderLayout.SOUTH);
-                frame.add(newtCanvasAWT, BorderLayout.CENTER);
-                break;                
-            case BorderBottom:
-                frame.setLayout(new BorderLayout());
-                frame.add(newtCanvasAWT, BorderLayout.SOUTH);
-                break;
-            case BorderCenter:
-                frame.setLayout(new BorderLayout());
-                frame.add(newtCanvasAWT, BorderLayout.CENTER);
-                break;
-            case BorderCenterSurrounded:
-                frame.setLayout(new BorderLayout());
-                frame.add(new Button("NORTH"), BorderLayout.NORTH);
-                frame.add(new Button("SOUTH"), BorderLayout.SOUTH);
-                frame.add(new Button("EAST"), BorderLayout.EAST);
-                frame.add(new Button("WEST"), BorderLayout.WEST);
-                frame.add(newtCanvasAWT, BorderLayout.CENTER);
-                break;
-            case DoubleBorderCenterSurrounded:
-                Container c = new Container();
-                c.setLayout(new BorderLayout());
-                c.add(new Button("north"), BorderLayout.NORTH);
-                c.add(new Button("south"), BorderLayout.SOUTH);
-                c.add(new Button("east"), BorderLayout.EAST);
-                c.add(new Button("west"), BorderLayout.WEST);
-                c.add(newtCanvasAWT, BorderLayout.CENTER);
-                
-                frame.setLayout(new BorderLayout());
-                frame.add(new Button("NORTH"), BorderLayout.NORTH);
-                frame.add(new Button("SOUTH"), BorderLayout.SOUTH);
-                frame.add(new Button("EAST"), BorderLayout.EAST);
-                frame.add(new Button("WEST"), BorderLayout.WEST);
-                frame.add(c, BorderLayout.CENTER);
-                break;
-        }
-        
-        frame.setTitle("Gears NewtCanvasAWT Test (translucent "+!caps.isBackgroundOpaque()+"), swapInterval "+swapInterval+", size "+wsize+", pos "+wpos);
         
         final GearsES2 demo = new GearsES2(swapInterval);
         demo.setPMVUseBackingArray(pmvUseBackingArray);
@@ -279,14 +199,17 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         Assert.assertTrue(animator.isAnimating());
         Assert.assertEquals(exclusiveContext ? animator.getThread() : null, glWindow.getExclusiveContextThread());
 
-        SwingUtilities.invokeAndWait(new Runnable() {
+        final NewtCanvasSWT canvas1 = NewtCanvasSWT.create( composite, 0, glWindow );
+        Assert.assertNotNull( canvas1 );
+
+        display.syncExec( new Runnable() {
            public void run() {
-               if( ResizeBy.Frame == resizeBy ) {
-                   frame.validate();
-               } else {
-                   frame.pack();                   
-               }                
-               frame.setVisible(true);               
+              shell.setText( getSimpleTestName(".") );
+              shell.setSize( wsize.getWidth(), wsize.getHeight() );
+              if( null != wpos ) {
+                  shell.setLocation( wpos.getX(), wpos.getY() );
+              }
+              shell.open();
            }
         });
         
@@ -296,14 +219,26 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
         System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
                 
-        if( null != rwsize ) {
-            Thread.sleep(500); // 500ms delay 
-            setSize(resizeBy, frame, true, newtCanvasAWT, glWindow, rwsize);
-            System.err.println("window resize "+rwsize+" -> pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+        if( 0 < rwsize.getWidth() && 0 < rwsize.getHeight() ) {
+            for(int i=0; i<50; i++) { // 500 ms dispatched delay
+                if( !display.readAndDispatch() ) {
+                    // blocks on linux .. display.sleep();
+                    Thread.sleep(10);
+                }
+            }
+            display.syncExec( new Runnable() {
+               public void run() {
+                  shell.setSize( rwsize.getWidth(), rwsize.getHeight() );
+               }
+            });
+            System.err.println("window resize pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
         }
         
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
-            Thread.sleep(100);
+            if( !display.readAndDispatch() ) {
+                // blocks on linux .. display.sleep();
+                Thread.sleep(10);
+            }
         }
 
         Assert.assertEquals(exclusiveContext ? animator.getThread() : null, glWindow.getExclusiveContextThread());
@@ -311,11 +246,8 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         Assert.assertFalse(animator.isAnimating());
         Assert.assertFalse(animator.isStarted());
         Assert.assertEquals(null, glWindow.getExclusiveContextThread());
-        SwingUtilities.invokeAndWait(new Runnable() {
-           public void run() {               
-               frame.dispose();               
-           }
-        });
+        
+        canvas1.dispose();
         glWindow.destroy();
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
     }
@@ -337,7 +269,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
             if(-1 < forceAlpha) {
                 caps.setAlphaBits(forceAlpha); 
             }
-            runTestGL(caps, resizeBy, frameLayout);
+            runTestGL(caps);
             if(loop_shutdown) {
                 GLProfile.shutdown();
             }
@@ -353,35 +285,19 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         }
         final GLProfile glp = GLProfile.get(GLProfile.GL3);
         final GLCapabilities caps = new GLCapabilities( glp );
-        runTestGL(caps, resizeBy, frameLayout);
+        runTestGL(caps);
     }
-    
-    static FrameLayout frameLayout = FrameLayout.None;
-    static ResizeBy resizeBy = ResizeBy.Component;
     
     public static void main(String args[]) throws IOException {
         mainRun = true;
         
-        int x=0, y=0, w=640, h=480;
-        int rw=-1, rh=-1;
+        int x=0, y=0, w=640, h=480, rw=-1, rh=-1;
         boolean usePos = false;
         
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
                 duration = MiscUtils.atol(args[i], duration);
-            } else if(args[i].equals("-rwidth")) {
-                i++;
-                rw = MiscUtils.atoi(args[i], rw);
-            } else if(args[i].equals("-rheight")) {
-                i++;
-                rh = MiscUtils.atoi(args[i], rh);
-            } else if(args[i].equals("-layout")) {
-                i++;
-                frameLayout = FrameLayout.valueOf(args[i]);
-            } else if(args[i].equals("-resizeBy")) {
-                i++;
-                resizeBy = ResizeBy.valueOf(args[i]);
             } else if(args[i].equals("-translucent")) {
                 opaque = false;
             } else if(args[i].equals("-forceAlpha")) {
@@ -394,8 +310,6 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
             } else if(args[i].equals("-vsync")) {
                 i++;
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);
-            } else if(args[i].equals("-layeredFBO")) {
-                shallUseOffscreenFBOLayer = true;
             } else if(args[i].equals("-exclctx")) {
                 exclusiveContext = true;
             } else if(args[i].equals("-es2")) {
@@ -418,6 +332,12 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                 i++;
                 y = MiscUtils.atoi(args[i], y);
                 usePos = true;
+            } else if(args[i].equals("-rwidth")) {
+                i++;
+                rw = MiscUtils.atoi(args[i], rw);
+            } else if(args[i].equals("-rheight")) {
+                i++;
+                rh = MiscUtils.atoi(args[i], rh);
             } else if(args[i].equals("-screen")) {
                 i++;
                 screenIdx = MiscUtils.atoi(args[i], 0);
@@ -429,19 +349,14 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
             }
         }
         wsize = new Dimension(w, h);
-        if( 0 < rw && 0 < rh ) {
-            rwsize = new Dimension(rw, rh);
-        }
+        rwsize = new Dimension(rw, rh);
         
         if(usePos) {
             wpos = new Point(x, y);
         }
-        
-        System.err.println("frameLayout "+frameLayout);
-        System.err.println("resizeBy "+resizeBy);
         System.err.println("position "+wpos);
         System.err.println("size "+wsize);
-        System.err.println("resize "+rwsize);
+        System.err.println("resize "+rwsize);        
         System.err.println("screen "+screenIdx);
         System.err.println("translucent "+(!opaque));
         System.err.println("forceAlpha "+forceAlpha);        
@@ -449,12 +364,11 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         System.err.println("pmvDirect "+(!pmvUseBackingArray));        
         System.err.println("loops "+loops);
         System.err.println("loop shutdown "+loop_shutdown);
-        System.err.println("shallUseOffscreenFBOLayer     "+shallUseOffscreenFBOLayer);
         System.err.println("forceES2 "+forceES2);
         System.err.println("forceGL3 "+forceGL3);
         System.err.println("swapInterval "+swapInterval);
         System.err.println("exclusiveContext "+exclusiveContext);
 
-        org.junit.runner.JUnitCore.main(TestGearsES2NewtCanvasAWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGearsES2NewtCanvasSWT.class.getName());
     }
 }

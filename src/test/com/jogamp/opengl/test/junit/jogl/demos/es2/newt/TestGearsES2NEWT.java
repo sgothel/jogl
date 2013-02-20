@@ -71,7 +71,7 @@ import org.junit.Test;
 public class TestGearsES2NEWT extends UITestCase {    
     static int screenIdx = 0;
     static PointImmutable wpos;
-    static DimensionImmutable wsize;
+    static DimensionImmutable wsize, rwsize;
 
     static long duration = 500; // ms
     static boolean opaque = true;
@@ -96,6 +96,7 @@ public class TestGearsES2NEWT extends UITestCase {
     public static void initClass() {
         if(null == wsize) {
             wsize = new Dimension(640, 480);
+            rwsize = null;
         }
     }
 
@@ -265,6 +266,11 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
         System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
         
+        if( null != rwsize ) {
+            Thread.sleep(500); // 500ms delay 
+            glWindow.setSize(rwsize.getWidth(), rwsize.getHeight());
+            System.err.println("window resize pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
+        }
         
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
@@ -318,7 +324,7 @@ public class TestGearsES2NEWT extends UITestCase {
     public static void main(String args[]) throws IOException {
         mainRun = true;
         
-        int x=0, y=0, w=640, h=480;
+        int x=0, y=0, w=640, h=480, rw=-1, rh=-1;
         boolean usePos = false;
         
         for(int i=0; i<args.length; i++) {
@@ -369,6 +375,12 @@ public class TestGearsES2NEWT extends UITestCase {
                 i++;
                 y = MiscUtils.atoi(args[i], y);
                 usePos = true;
+            } else if(args[i].equals("-rwidth")) {
+                i++;
+                rw = MiscUtils.atoi(args[i], rw);
+            } else if(args[i].equals("-rheight")) {
+                i++;
+                rh = MiscUtils.atoi(args[i], rh);
             } else if(args[i].equals("-screen")) {
                 i++;
                 screenIdx = MiscUtils.atoi(args[i], 0);
@@ -380,12 +392,16 @@ public class TestGearsES2NEWT extends UITestCase {
             }
         }
         wsize = new Dimension(w, h);
+        if( 0 < rw && 0 < rh ) {
+            rwsize = new Dimension(rw, rh);
+        }
         
         if(usePos) {
             wpos = new Point(x, y);
         }
         System.err.println("position "+wpos);
         System.err.println("size "+wsize);
+        System.err.println("resize "+rwsize);
         System.err.println("screen "+screenIdx);
         System.err.println("translucent "+(!opaque));
         System.err.println("forceAlpha "+forceAlpha);        

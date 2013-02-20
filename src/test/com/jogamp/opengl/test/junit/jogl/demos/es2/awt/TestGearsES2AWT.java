@@ -45,6 +45,8 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 
 import java.awt.BorderLayout;
+import java.awt.Button;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Frame;
@@ -55,11 +57,13 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
 
 public class TestGearsES2AWT extends UITestCase {
+    public enum FrameLayout { None, TextOnBottom, BorderCenterSurrounded, DoubleBorderCenterSurrounded };
     static int width, height;
     static boolean forceES2 = false;
     static boolean forceGL3 = false;
@@ -67,18 +71,19 @@ public class TestGearsES2AWT extends UITestCase {
     static boolean shallUseOffscreenPBufferLayer = false;
     static boolean useMSAA = false;
     static boolean useStencil = false;
-    static boolean addComp = true;
     static boolean shutdownRemoveGLCanvas = true;
     static boolean shutdownDisposeFrame = true;
     static boolean shutdownSystemExit = false;
     static int swapInterval = 1;
     static boolean exclusiveContext = false;
     static Thread awtEDT;
+    static Dimension rwsize;
 
     @BeforeClass
     public static void initClass() {
         width  = 640;
         height = 480;
+        rwsize = null;
         try {
             EventQueue.invokeAndWait(new Runnable() {
                 public void run() {
@@ -94,25 +99,70 @@ public class TestGearsES2AWT extends UITestCase {
     public static void releaseClass() {
     }
 
-    protected void runTestGL(GLCapabilities caps) throws InterruptedException, InvocationTargetException {
+    static void setGLCanvasSize(final Frame frame, final GLCanvas glc, final Dimension new_sz) {
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    glc.setMinimumSize(new_sz);
+                    glc.setPreferredSize(new_sz);
+                    glc.setSize(new_sz);
+                    if( null != frame ) {
+                        frame.pack();
+                    }
+                } } );
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }       
+    }
+    
+    protected void runTestGL(GLCapabilities caps, FrameLayout frameLayout) throws InterruptedException, InvocationTargetException {
         final Frame frame = new Frame("GearsES2 AWT Test");
         Assert.assertNotNull(frame);
 
         final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
-        Dimension glc_sz = new Dimension(width, height);
-        glCanvas.setMinimumSize(glc_sz);
-        glCanvas.setPreferredSize(glc_sz);
-        glCanvas.setSize(glc_sz);
-        if(addComp) {
-            final TextArea ta = new TextArea(2, 20);
-            ta.append("0123456789");
-            ta.append(Platform.getNewline());
-            ta.append("Some Text");
-            ta.append(Platform.getNewline());
-            frame.add(ta, BorderLayout.SOUTH);
+        setGLCanvasSize(null, glCanvas, new Dimension(width, height));
+        
+        switch( frameLayout) {
+            case None:
+                frame.add(glCanvas);
+                break;
+            case TextOnBottom:
+                final TextArea ta = new TextArea(2, 20);
+                ta.append("0123456789");
+                ta.append(Platform.getNewline());
+                ta.append("Some Text");
+                ta.append(Platform.getNewline());
+                frame.setLayout(new BorderLayout());
+                frame.add(ta, BorderLayout.SOUTH);
+                frame.add(glCanvas, BorderLayout.CENTER);
+                break;                
+            case BorderCenterSurrounded:
+                frame.setLayout(new BorderLayout());
+                frame.add(new Button("NORTH"), BorderLayout.NORTH);
+                frame.add(new Button("SOUTH"), BorderLayout.SOUTH);
+                frame.add(new Button("EAST"), BorderLayout.EAST);
+                frame.add(new Button("WEST"), BorderLayout.WEST);
+                frame.add(glCanvas, BorderLayout.CENTER);
+                break;
+            case DoubleBorderCenterSurrounded:
+                Container c = new Container();
+                c.setLayout(new BorderLayout());
+                c.add(new Button("north"), BorderLayout.NORTH);
+                c.add(new Button("south"), BorderLayout.SOUTH);
+                c.add(new Button("east"), BorderLayout.EAST);
+                c.add(new Button("west"), BorderLayout.WEST);
+                c.add(glCanvas, BorderLayout.CENTER);
+                
+                frame.setLayout(new BorderLayout());
+                frame.add(new Button("NORTH"), BorderLayout.NORTH);
+                frame.add(new Button("SOUTH"), BorderLayout.SOUTH);
+                frame.add(new Button("EAST"), BorderLayout.EAST);
+                frame.add(new Button("WEST"), BorderLayout.WEST);
+                frame.add(c, BorderLayout.CENTER);
+                break;
         }
-        frame.add(glCanvas, BorderLayout.CENTER);
         frame.setTitle("Gears AWT Test (translucent "+!caps.isBackgroundOpaque()+"), swapInterval "+swapInterval);
 
         glCanvas.addGLEventListener(new GearsES2(swapInterval));
@@ -136,6 +186,14 @@ public class TestGearsES2AWT extends UITestCase {
         Assert.assertTrue(animator.isAnimating());
         Assert.assertEquals(exclusiveContext ? awtEDT : null, glCanvas.getExclusiveContextThread());
         animator.setUpdateFPSFrames(60, System.err);
+        
+        System.err.println("canvas pos/siz: "+glCanvas.getX()+"/"+glCanvas.getY()+" "+glCanvas.getWidth()+"x"+glCanvas.getHeight());
+        
+        if( null != rwsize ) {
+            Thread.sleep(500); // 500ms delay 
+            setGLCanvasSize(frame, glCanvas, rwsize);
+            System.err.println("window resize pos/siz: "+glCanvas.getX()+"/"+glCanvas.getY()+" "+glCanvas.getWidth()+"x"+glCanvas.getHeight());
+        }
         
         while(!quitAdapter.shouldQuit() /* && animator.isAnimating() */ && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
@@ -190,13 +248,15 @@ public class TestGearsES2AWT extends UITestCase {
         if(shallUseOffscreenPBufferLayer) {
             caps.setPBuffer(true);
         }
-        runTestGL(caps);
+        runTestGL(caps, frameLayout);
     }
 
     static long duration = 500; // ms
-
+    static FrameLayout frameLayout = FrameLayout.None;
+    
     public static void main(String args[]) {
         boolean waitForKey = false;
+        int rw=-1, rh=-1;
         
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -204,6 +264,15 @@ public class TestGearsES2AWT extends UITestCase {
                 try {
                     duration = Integer.parseInt(args[i]);
                 } catch (Exception ex) { ex.printStackTrace(); }
+            } else if(args[i].equals("-rwidth")) {
+                i++;
+                rw = MiscUtils.atoi(args[i], rw);
+            } else if(args[i].equals("-rheight")) {
+                i++;
+                rh = MiscUtils.atoi(args[i], rh);
+            } else if(args[i].equals("-layout")) {
+                i++;
+                frameLayout = FrameLayout.valueOf(args[i]);
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
             } else if(args[i].equals("-gl3")) {
@@ -223,8 +292,6 @@ public class TestGearsES2AWT extends UITestCase {
                 useStencil = true;
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
-            } else if(args[i].equals("-justGears")) {
-                addComp = false;
             } else if(args[i].equals("-shutdownKeepGLCanvas")) {
                 shutdownRemoveGLCanvas = false;
             } else if(args[i].equals("-shutdownKeepFrame")) {
@@ -236,6 +303,12 @@ public class TestGearsES2AWT extends UITestCase {
                 shutdownSystemExit = true;
             }
         }
+        if( 0 < rw && 0 < rh ) {
+            rwsize = new Dimension(rw, rh);
+        }
+        
+        System.err.println("resize "+rwsize);
+        System.err.println("frameLayout "+frameLayout);
         System.err.println("forceES2 "+forceES2);
         System.err.println("forceGL3 "+forceGL3);
         System.err.println("swapInterval "+swapInterval);
