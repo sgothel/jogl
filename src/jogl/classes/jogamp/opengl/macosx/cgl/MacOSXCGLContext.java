@@ -793,7 +793,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       @Override
       public boolean release(long ctx) {
           try {
-              gl.glFlush(); // w/o glFlush()/glFinish() OSX < 10.7 (NVidia driver) may freeze
+              if( null != MacOSXCGLContext.this.getGLProcAddressTable() ) { // gl successfully initialized ?
+                  gl.glFlush(); // w/o glFlush()/glFinish() OSX < 10.7 (NVidia driver) may freeze
+              }
           } catch (GLException gle) {
               if(DEBUG) {
                   System.err.println("MacOSXCGLContext.NSOpenGLImpl.release: INFO: glFlush() catched exception:");

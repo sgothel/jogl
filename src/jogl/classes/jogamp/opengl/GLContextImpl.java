@@ -811,7 +811,7 @@ public abstract class GLContextImpl extends GLContext {
                 if(PROFILE_ALIASING) {
                     hasGL3   = true;
                 }
-                resetStates(); // clean this context states, since creation was temporary
+                resetStates(); // clean context states, since creation was temporary
             }
         }
         if(!hasGL3) {
