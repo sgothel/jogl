@@ -713,6 +713,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                           }
                       }
                   }
+                  backingLayerHost.layoutSurfaceLayer();
               } else {
                   lastWidth = drawable.getWidth();
                   lastHeight = drawable.getHeight();                  

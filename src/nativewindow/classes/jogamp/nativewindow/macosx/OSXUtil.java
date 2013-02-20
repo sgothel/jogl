@@ -149,7 +149,7 @@ public class OSXUtil implements ToolkitProperties {
     }
     
     /** 
-     * Attach a sub CALayer to the root CALayer on the main-thread.
+     * Attach a sub CALayer to the root CALayer on the main-thread w/ blocking.
      * <p>
      * Method will trigger a <code>display</code>
      * call to the CALayer hierarchy to enforce resource creation if required, e.g. an NSOpenGLContext.
@@ -173,7 +173,30 @@ public class OSXUtil implements ToolkitProperties {
     }
     
     /** 
-     * Detach a sub CALayer from the root CALayer on the main-thread.
+     * Fix root and sub CALayer position to 0/0 on the main-thread w/o blocking.
+     * <p>
+     * For an unknown reason, on OSX/Java7 our root CALayer's frame position gets corrupted
+     * and is moved out of 'sight' .. or oddly half way to the upper right corner.
+     * </p>
+     * 
+     * @param rootCALayer the root surface layer, maybe null.
+     * @param subCALayer the client surface layer, maybe null.
+     * @param width the expected width
+     * @param height the expected height
+     */
+    public static void FixCALayerPosition(final long rootCALayer, final long subCALayer, final int width, final int height) {
+        if( 0==rootCALayer && 0==subCALayer ) {
+            return;
+        }
+        RunOnMainThread(false, new Runnable() {
+           public void run() {
+               FixCALayerPosition0(rootCALayer, subCALayer, width, height);
+           }
+        });
+    }
+    
+    /** 
+     * Detach a sub CALayer from the root CALayer on the main-thread w/ blocking.
      */
     public static void RemoveCASublayer(final long rootCALayer, final long subCALayer) {
         if(0==rootCALayer || 0==subCALayer) {
@@ -186,7 +209,7 @@ public class OSXUtil implements ToolkitProperties {
     }
     
     /** 
-     * Destroy a CALayer on the main-thread.
+     * Destroy a CALayer on the main-thread w/ blocking.
      * @see #CreateCALayer(int, int, int, int)
      */    
     public static void DestroyCALayer(final long caLayer) {
@@ -323,6 +346,7 @@ public class OSXUtil implements ToolkitProperties {
     private static native long GetNSWindow0(long nsView);
     private static native long CreateCALayer0(int x, int y, int width, int height);
     private static native void AddCASublayer0(long rootCALayer, long subCALayer);
+    private static native void FixCALayerPosition0(long rootCALayer, long subCALayer, int width, int height);
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
     private static native void DestroyCALayer0(long caLayer);
     private static native void RunOnMainThread0(Runnable runnable);

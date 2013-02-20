@@ -227,7 +227,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             } // else offscreen size is realized via recreation
             // no native event (fullscreen, some reparenting)
             positionChanged(true,  x, y);
-            sizeChanged(true, width, height, false); // incl. validation (incl. repositioning)
+            sizeChanged(true, width, height, false);
         }
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 != ( FLAG_IS_VISIBLE & flags) ) {
             if( !isOffscreenInstance ) {                

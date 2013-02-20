@@ -77,13 +77,12 @@ public class TestGearsES2AWT extends UITestCase {
     static int swapInterval = 1;
     static boolean exclusiveContext = false;
     static Thread awtEDT;
-    static Dimension rwsize;
+    static Dimension rwsize = null;
 
     @BeforeClass
     public static void initClass() {
         width  = 640;
         height = 480;
-        rwsize = null;
         try {
             EventQueue.invokeAndWait(new Runnable() {
                 public void run() {

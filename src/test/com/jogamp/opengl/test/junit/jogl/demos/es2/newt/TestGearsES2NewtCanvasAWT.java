@@ -78,7 +78,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
     
     static int screenIdx = 0;
     static PointImmutable wpos;
-    static DimensionImmutable wsize, rwsize;
+    static DimensionImmutable wsize, rwsize = null;
 
     static long duration = 500; // ms
     static boolean opaque = true;
@@ -99,7 +99,6 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
     public static void initClass() {
         if(null == wsize) {
             wsize = new Dimension(640, 480);
-            rwsize = null;
         }
     }
 

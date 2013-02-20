@@ -130,7 +130,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     if(changed) {
         if(DEBUG) {
             System.err.println("JAWTWindow.updateBounds: "+bounds+" -> "+jb);
-            Thread.dumpStack();
+            // Thread.dumpStack();
         }
         bounds.setX(jawtBounds.getX());
         bounds.setY(jawtBounds.getY());
@@ -205,7 +205,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       }
       try {
           if(DEBUG) {
-            System.err.println("JAWTWindow.attachSurfaceHandle(): "+toHexString(layerHandle) + ", bounds "+bounds);
+            System.err.println("JAWTWindow.attachSurfaceHandle: "+toHexString(layerHandle) + ", bounds "+bounds);
           }
           attachSurfaceLayerImpl(layerHandle);
           offscreenSurfaceLayer = layerHandle;
@@ -215,6 +215,17 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
   protected abstract void attachSurfaceLayerImpl(final long layerHandle);
 
+  @Override
+  public void layoutSurfaceLayer() throws NativeWindowException {
+      if( !isOffscreenLayerSurfaceEnabled() ) {
+          throw new NativeWindowException("Not an offscreen layer surface");
+      }
+      if( 0 != offscreenSurfaceLayer) {
+          layoutSurfaceLayerImpl();
+      }
+  }
+  protected void layoutSurfaceLayerImpl() {}
+  
   @Override
   public final void detachSurfaceLayer() throws NativeWindowException {
       if( !isOffscreenLayerSurfaceEnabled() ) {

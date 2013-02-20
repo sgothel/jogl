@@ -73,7 +73,7 @@ import org.junit.Test;
 public class TestGearsES2NewtCanvasSWT extends UITestCase {    
     static int screenIdx = 0;
     static PointImmutable wpos;
-    static DimensionImmutable wsize, rwsize;
+    static DimensionImmutable wsize, rwsize = null;
 
     static long duration = 500; // ms
     static boolean opaque = true;
@@ -93,7 +93,6 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
     public static void initClass() {
         if(null == wsize) {
             wsize = new Dimension(640, 480);
-            rwsize = new Dimension(-1, -1);
         }
     }
 
@@ -219,7 +218,7 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
         System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
                 
-        if( 0 < rwsize.getWidth() && 0 < rwsize.getHeight() ) {
+        if( null != rwsize ) {
             for(int i=0; i<50; i++) { // 500 ms dispatched delay
                 if( !display.readAndDispatch() ) {
                     // blocks on linux .. display.sleep();
@@ -349,7 +348,9 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
             }
         }
         wsize = new Dimension(w, h);
-        rwsize = new Dimension(rw, rh);
+        if( 0 < rw && 0 < rh ) {
+            rwsize = new Dimension(rw, rh);
+        }
         
         if(usePos) {
             wpos = new Point(x, y);

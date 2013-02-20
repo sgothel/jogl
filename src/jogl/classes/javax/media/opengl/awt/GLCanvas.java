@@ -702,6 +702,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                 }
             }
             sendReshape = true; // async if display() doesn't get called below, but avoiding deadlock
+            if(null != jawtWindow && jawtWindow.isOffscreenLayerSurfaceEnabled() ) {
+                jawtWindow.layoutSurfaceLayer();
+            }
         }
     }
   }

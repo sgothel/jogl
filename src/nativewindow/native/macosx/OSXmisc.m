@@ -429,11 +429,13 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
     MyCALayer* rootLayer = (MyCALayer*) ((intptr_t) rootCALayer);
     CALayer* subLayer = (CALayer*) ((intptr_t) subCALayer);
 
+    [subLayer retain]; // Pairs w/ RemoveCASublayer
+
     [CATransaction begin];
     [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
 
     CGRect lRectRoot = [rootLayer frame];
-    DBG_PRINT("CALayer::AddCASublayer0.0: Origin %p frame0: %lf/%lf %lfx%lf\n", 
+    DBG_PRINT("CALayer::AddCASublayer0.0: Origin %p frame0: %lf/%lf %lfx%lf\n",
         rootLayer, lRectRoot.origin.x, lRectRoot.origin.y, lRectRoot.size.width, lRectRoot.size.height);
     if(lRectRoot.origin.x!=0 || lRectRoot.origin.y!=0) {
         lRectRoot.origin.x = 0;
@@ -476,6 +478,57 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
 
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    FixCALayerPosition0
+ * Signature: (JJII)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_FixCALayerPosition0
+  (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jint width, jint height)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    MyCALayer* rootLayer = (MyCALayer*) ((intptr_t) rootCALayer);
+    CALayer* subLayer = (CALayer*) ((intptr_t) subCALayer);
+
+    [CATransaction begin];
+    [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+
+    if( NULL != rootLayer ) {
+        CGRect lRect = [rootLayer frame];
+        DBG_PRINT("CALayer::FixCALayerPosition0.0: Root Origin %p exp 0/0 %dx%d frame0: %lf/%lf %lfx%lf\n",
+            rootLayer, width, height, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+        if(lRect.origin.x!=0 || lRect.origin.y!=0 || lRect.size.width!=width || lRect.size.height!=height) {
+            lRect.origin.x = 0;
+            lRect.origin.y = 0;
+            lRect.size.width = width;
+            lRect.size.height = height;
+            [rootLayer setFrame: lRect];
+            DBG_PRINT("CALayer::FixCALayerPosition0.1: Root Origin %p frame*: %lf/%lf %lfx%lf\n", 
+                rootLayer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+        }
+    }
+    if( NULL != subLayer ) {
+        CGRect lRect = [subLayer frame];
+        DBG_PRINT("CALayer::FixCALayerPosition0.0: SubL %p exp 0/0 %dx%d frame0: %lf/%lf %lfx%lf\n",
+            subLayer, width, height, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+        if(lRect.origin.x!=0 || lRect.origin.y!=0 || lRect.size.width!=width || lRect.size.height!=height) {
+            lRect.origin.x = 0;
+            lRect.origin.y = 0;
+            lRect.size.width = width;
+            lRect.size.height = height;
+            [subLayer setFrame: lRect];
+            DBG_PRINT("CALayer::FixCALayerPosition0.1: SubL Origin %p frame*: %lf/%lf %lfx%lf\n", 
+                subLayer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+        } 
+    }
+
+    [CATransaction commit];
+
+    [pool release];
+    DBG_PRINT("CALayer::FixCALayerPosition0.X: root %p (refcnt %d) .sub %p (refcnt %d)\n", 
+        rootLayer, (int)[rootLayer retainCount], subLayer, (int)[subLayer retainCount]);
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    RemoveCASublayer0
  * Signature: (JJ)V
  */
@@ -495,7 +548,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RemoveCASublayer0
     [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
 
     [subLayer removeFromSuperlayer];
-    // [subLayer release] is called explicitly, e.g. via CGL.releaseNSOpenGLLayer(..) (MyNSOpenGLLayer::releaseLayer)
+    [subLayer release]; // Pairs w/ AddCASublayer
 
     [CATransaction commit];
 

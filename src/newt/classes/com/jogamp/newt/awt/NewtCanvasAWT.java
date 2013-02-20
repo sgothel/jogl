@@ -391,6 +391,18 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         reparentWindow(true, cont);
     }
 
+    @SuppressWarnings("deprecation")
+    @Override
+    public void reshape(int x, int y, int width, int height) {
+        super.reshape(x, y, width, height);
+        if(DEBUG) {
+            System.err.println("NewtCanvasAWT.reshape: "+x+"/"+y+" "+width+"x"+height);
+        }
+        if(null != jawtWindow && jawtWindow.isOffscreenLayerSurfaceEnabled() ) {
+            jawtWindow.layoutSurfaceLayer();
+        }
+    }
+    
     @Override
     public void removeNotify() {
         java.awt.Container cont = AWTMisc.getContainer(this);
@@ -459,7 +471,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
           
           // force this AWT Canvas to be focus-able, 
           // since this it is completely covered by the newtChild (z-order).
-          setFocusable(true);
+          setFocusable(true);          
       } else {
           configureNewtChild(false);
           newtChild.setVisible(false);

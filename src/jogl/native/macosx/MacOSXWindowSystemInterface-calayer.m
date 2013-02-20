@@ -114,6 +114,7 @@ extern GLboolean glIsVertexArray (GLuint array);
 - (void)dealloc
 {
     CGLContextObj cglCtx = [self CGLContextObj];
+
     DBG_PRINT("MyNSOpenGLContext::dealloc.0 %p (refcnt %d) - CGL-Ctx %p\n", self, (int)[self retainCount], cglCtx);
     [self clearDrawable];
     if( NULL != cglCtx ) {
@@ -537,7 +538,6 @@ static const GLfloat gl_verts[] = {
 {
     DBG_PRINT("MyNSOpenGLLayer::dealloc.0 %p (refcnt %d)\n", self, (int)[self retainCount]);
     // NSLog(@"MyNSOpenGLLayer::dealloc: %@",[NSThread callStackSymbols]);
-
     [self disableAnimation];
     pthread_mutex_lock(&renderLock);
     [self deallocPBuffer];
@@ -555,13 +555,23 @@ static const GLfloat gl_verts[] = {
 
 - (void)resizeWithOldSuperlayerSize:(CGSize)size
  {
-    CGRect lRectS = [[self superlayer] bounds];
+    CALayer * superL = [self superlayer];
+    CGRect lRectSFrame = [superL frame];
 
-    DBG_PRINT("MyNSOpenGLLayer::resizeWithOldSuperlayerSize: %p, texSize %dx%d, bounds: %lfx%lf -> %lf/%lf %lfx%lf (refcnt %d)\n", 
-        self, texWidth, texHeight, size.width, size.height, lRectS.origin.x, lRectS.origin.y, lRectS.size.width, lRectS.size.height, (int)[self retainCount]);
+    DBG_PRINT("MyNSOpenGLLayer::resizeWithOldSuperlayerSize: %p, texSize %dx%d -> size: %lfx%lf ; Super Frame[%lf/%lf %lfx%lf] (refcnt %d)\n",
+        self, texWidth, texHeight, size.width, size.height, 
+        lRectSFrame.origin.x, lRectSFrame.origin.y, lRectSFrame.size.width, lRectSFrame.size.height,
+        (int)[self retainCount]);
 
-    newTexWidth = lRectS.size.width;
-    newTexHeight = lRectS.size.height;
+    // With Java7 our root CALayer's frame gets off-limit -> force 0/0 origin!
+    if( lRectSFrame.origin.x!=0 || lRectSFrame.origin.y!=0 ) {
+        lRectSFrame.origin.x = 0;
+        lRectSFrame.origin.y = 0;
+        [superL setPosition: lRectSFrame.origin];
+    }
+
+    newTexWidth = lRectSFrame.size.width;
+    newTexHeight = lRectSFrame.size.height;
     shallDraw = [self isGLSourceValid];
     SYNC_PRINT("<SZ %dx%d>", newTexWidth, newTexHeight);
 
