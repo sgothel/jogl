@@ -62,12 +62,23 @@ static NSString* jstringToNSString(JNIEnv* env, jstring jstr)
     return str;
 }
 
-static void setFrameTopLeftPoint(NSWindow* pWin, NewtMacWindow* mWin, jint x, jint y) {
-    NSPoint pS = [mWin newtScreenWinPos2OSXScreenPos: NSMakePoint(x, y)];
+static void setWindowClientTopLeftPoint(NewtMacWindow* mWin, jint x, jint y) {
+    NSPoint pS = [mWin newtAbsClientTLWinPos2AbsBLScreenPos: NSMakePoint(x, y)];
     [mWin setFrameOrigin: pS];
 
     NSView* mView = [mWin contentView];
     [mWin invalidateCursorRectsForView: mView];
+}
+
+static void setWindowClientTopLeftPointAndSize(NewtMacWindow* mWin, jint x, jint y, jint width, jint height) {
+    NSSize sz = NSMakeSize(width, height);
+    NSPoint pS = [mWin newtAbsClientTLWinPos2AbsBLScreenPos: NSMakePoint(x, y) size: sz];
+    NSRect rect = { pS, sz };
+    [mWin setFrame: rect display:YES];
+
+    // -> display:YES
+    // NSView* mView = [mWin contentView];
+    // [mWin invalidateCursorRectsForView: mView];
 }
 
 #ifdef VERBOSE_ON
@@ -575,21 +586,21 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_createWindow
     if(screen_idx<0) screen_idx=0;
     if(screen_idx>=[screens count]) screen_idx=0;
     NSScreen *myScreen = (NSScreen *) [screens objectAtIndex: screen_idx];
-    NSRect rect;
+    NSRect rectWin;
 
     if (fullscreen) {
         styleMask = NSBorderlessWindowMask;
-        rect = [myScreen frame];
+        rectWin = [myScreen frame];
         x = 0;
         y = 0;
-        w = (jint) (rect.size.width);
-        h = (jint) (rect.size.height);
+        w = (jint) (rectWin.size.width);
+        h = (jint) (rectWin.size.height);
     } else {
-        rect = NSMakeRect(x, y, w, h);
+        rectWin = NSMakeRect(x, y, w, h);
     }
 
     // Allocate the window
-    NewtMacWindow* myWindow = [[NewtMacWindow alloc] initWithContentRect: rect
+    NewtMacWindow* myWindow = [[NewtMacWindow alloc] initWithContentRect: rectWin
                                                styleMask: (NSUInteger) styleMask
                                                backing: (NSBackingStoreType) bufferingType
                                                defer: NO
@@ -646,7 +657,8 @@ NS_ENDHANDLER
 
     // Use given NewtView or allocate an NewtView if NULL
     if(NULL == myView) {
-        myView = [[NewtView alloc] initWithFrame: rect] ;
+        NSRect rectView = NSMakeRect(0, 0, w, h);
+        myView = [[NewtView alloc] initWithFrame: rectView] ;
         DBG_PRINT( "createWindow0.%d - use new view: %p,%d\n", dbgIdx++, myView, getRetainCount(myView));
     } else {
         DBG_PRINT( "createWindow0.%d - use given view: %p,%d\n", dbgIdx++, myView, getRetainCount(myView));
@@ -666,7 +678,7 @@ NS_ENDHANDLER
     }
 
     // Immediately re-position the window based on an upper-left coordinate system
-    setFrameTopLeftPoint(parentWindow, myWindow, x, y);
+    setWindowClientTopLeftPoint(myWindow, x, y);
 
     // force surface creation
     [myView lockFocus];
@@ -1000,50 +1012,40 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_changeConten
 
 /*
  * Class:     jogamp_newt_driver_macosx_WindowDriver
- * Method:    setContentSize
- * Signature: (JII)V
+ * Method:    setWindowClientTopLeftPointAndSize0
+ * Signature: (JIIII)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setContentSize0
-  (JNIEnv *env, jobject unused, jlong window, jint w, jint h)
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setWindowClientTopLeftPointAndSize0
+  (JNIEnv *env, jobject unused, jlong window, jint x, jint y, jint w, jint h)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    NSWindow* win = (NSWindow*) ((intptr_t) window);
+    NewtMacWindow* mWin = (NewtMacWindow*) ((intptr_t) window);
 
-    DBG_PRINT( "setContentSize0 - window: %p (START)\n", win);
+    DBG_PRINT( "setWindowClientTopLeftPointAndSize - window: %p (START)\n", mWin);
 
-    NSSize sz = NSMakeSize(w, h);
-    [win setContentSize: sz];
+    setWindowClientTopLeftPointAndSize(mWin, x, y, w, h);
 
-    DBG_PRINT( "setContentSize0 - window: %p (END)\n", win);
+    DBG_PRINT( "setWindowClientTopLeftPointAndSize - window: %p (END)\n", mWin);
 
     [pool release];
 }
 
 /*
  * Class:     jogamp_newt_driver_macosx_WindowDriver
- * Method:    setFrameTopLeftPoint
- * Signature: (JJII)V
+ * Method:    setWindowClientTopLeftPoint0
+ * Signature: (JII)V
  */
-JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setFrameTopLeftPoint0
-  (JNIEnv *env, jobject unused, jlong parent, jlong window, jint x, jint y)
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setWindowClientTopLeftPoint0
+  (JNIEnv *env, jobject unused, jlong window, jint x, jint y)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtMacWindow* mWin = (NewtMacWindow*) ((intptr_t) window);
 
-    NSObject *nsParentObj = (NSObject*) ((intptr_t) parent);
-    NSWindow* pWin = NULL;
-    if( nsParentObj != NULL && [nsParentObj isKindOfClass:[NSWindow class]] ) {
-        pWin = (NSWindow*) nsParentObj;
-    } else if( nsParentObj != NULL && [nsParentObj isKindOfClass:[NSView class]] ) {
-        NSView* pView = (NSView*) nsParentObj;
-        pWin = [pView window];
-    }
+    DBG_PRINT( "setWindowClientTopLeftPoint - window: %p (START)\n", mWin);
 
-    DBG_PRINT( "setFrameTopLeftPoint0 - window: %p, parent %p (START)\n", mWin, pWin);
+    setWindowClientTopLeftPoint(mWin, x, y);
 
-    setFrameTopLeftPoint(pWin, mWin, x, y);
-
-    DBG_PRINT( "setFrameTopLeftPoint0 - window: %p, parent %p (END)\n", mWin, pWin);
+    DBG_PRINT( "setWindowClientTopLeftPoint - window: %p (END)\n", mWin);
 
     [pool release];
 }
@@ -1129,6 +1131,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_warpPointer0
   (JNIEnv *env, jclass clazz, jlong window, jint x, jint y)
 {
     NewtMacWindow *mWin = (NewtMacWindow*) ((intptr_t) window);
-    [mWin setMousePosition: [mWin newtClientWinPos2OSXScreenPos: NSMakePoint(x, y)]];
+    [mWin setMousePosition: [mWin newtRelClientTLWinPos2AbsBLScreenPos: NSMakePoint(x, y)]];
 }
 

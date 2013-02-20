@@ -300,6 +300,7 @@
                 <arg line="${jvmDataModel.arg}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <arg line="${jvmarg.headless}"/>
+                <arg line="${jvmarg.mainthrd}"/>
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>
                 -->
@@ -550,7 +551,6 @@
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>
                 -->
-                <!-- arg line="com.jogamp.newt.util.MainThread"/-->
                 <arg line="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner"/>
                 <srcfile/>
                 <arg line="filtertrace=true"/>
@@ -609,15 +609,14 @@
                 <arg line="${junit.run.arg0}"/>
                 <arg line="${junit.run.arg1}"/>
                 <arg line="${jvmDataModel.arg}"/>
-                <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <arg line="${jvmarg.mainthrd}"/>
+                <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>
                 <arg line="-Dnativewindow.debug=all"/>
                 <arg line="-Djogl.debug=all"/>
                 <arg line="-Dnewt.debug=all"/>
                 -->
-                <!-- arg line="com.jogamp.newt.util.MainThread"/-->
                 <arg line="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner"/>
                 <srcfile/>
                 <arg line="filtertrace=true"/>

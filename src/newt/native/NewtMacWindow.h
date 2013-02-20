@@ -134,8 +134,9 @@
 - (void) attachToParent: (NSWindow*) parent;
 - (void) detachFromParent: (NSWindow*) parent;
 
-- (NSPoint) newtScreenWinPos2OSXScreenPos: (NSPoint) p;
-- (NSPoint) newtClientWinPos2OSXScreenPos: (NSPoint) p;
+- (NSPoint) newtAbsClientTLWinPos2AbsBLScreenPos: (NSPoint) p;
+- (NSPoint) newtAbsClientTLWinPos2AbsBLScreenPos: (NSPoint) p size: (NSSize) nsz;
+- (NSPoint) newtRelClientTLWinPos2AbsBLScreenPos: (NSPoint) p;
 - (NSPoint) getLocationOnScreen: (NSPoint) p;
 - (NSPoint) screenPos2NewtClientWinPos: (NSPoint) p;
 

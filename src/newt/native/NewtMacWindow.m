@@ -356,7 +356,7 @@ static jmethodID windowRepaintID = NULL;
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged",     "(ZIIZ)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
-    positionChangedID = (*env)->GetMethodID(env, clazz, "positionChanged", "(ZII)V");
+    positionChangedID = (*env)->GetMethodID(env, clazz, "screenPositionChanged", "(ZII)V");
     focusChangedID = (*env)->GetMethodID(env, clazz, "focusChanged", "(ZZ)V");
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
@@ -484,19 +484,28 @@ static jmethodID windowRepaintID = NULL;
 }
 
 /**
- * p abs screen position w/ top-left origin
+ * p abs screen position of client-area pos w/ top-left origin, using contentView's client NSSize
  * returns: abs screen position w/ bottom-left origin
  */
-- (NSPoint) newtScreenWinPos2OSXScreenPos: (NSPoint) p
+- (NSPoint) newtAbsClientTLWinPos2AbsBLScreenPos: (NSPoint) p
 {
     NSView* mView = [self contentView];
     NSRect mViewFrame = [mView frame]; 
-    int totalHeight = mViewFrame.size.height + cachedInsets[2] + cachedInsets[3]; // height + insets[top+bottom]
+    return [self newtAbsClientTLWinPos2AbsBLScreenPos: p size: mViewFrame.size];
+}
+
+/**
+ * p abs screen position of client-area pos w/ top-left origin, using given client NSSize
+ * returns: abs screen position w/ bottom-left origin
+ */
+- (NSPoint) newtAbsClientTLWinPos2AbsBLScreenPos: (NSPoint) p size: (NSSize) nsz
+{
+    int totalHeight = nsz.height + cachedInsets[3]; // height + insets.bottom
 
     NSScreen* screen = [self screen];
     NSRect screenFrame = [screen frame];
 
-    return NSMakePoint(screenFrame.origin.x + p.x + cachedInsets[0],
+    return NSMakePoint(screenFrame.origin.x + p.x,
                        screenFrame.origin.y + screenFrame.size.height - p.y - totalHeight);
 }
 
@@ -504,7 +513,7 @@ static jmethodID windowRepaintID = NULL;
  * p rel client window position w/ top-left origin
  * returns: abs screen position w/ bottom-left origin
  */
-- (NSPoint) newtClientWinPos2OSXScreenPos: (NSPoint) p
+- (NSPoint) newtRelClientTLWinPos2AbsBLScreenPos: (NSPoint) p
 {
     NSRect winFrame = [self frame];
 
