@@ -29,6 +29,9 @@
 package jogamp.opengl;
 
 import java.util.StringTokenizer;
+
+import javax.media.opengl.GLContext;
+
 import com.jogamp.common.util.VersionNumber;
 
 /**
@@ -90,9 +93,11 @@ class GLVersionNumber extends VersionNumber {
                                     // Avoid possibly confusing situations by putting some
                                     // constraints on the upgrades we do to the major and
                                     // minor versions
-                                    if ((altMajor == val[0] && altMinor > val[1]) || altMajor == val[0] + 1) {
-                                        val[0] = altMajor;
-                                        val[1] = altMinor;
+                                    if ( (altMajor == val[0] && altMinor > val[1]) || altMajor == val[0] + 1 ) {
+                                        if( GLContext.isValidGLVersion(altMajor, altMinor) ) {
+                                            val[0] = altMajor;
+                                            val[1] = altMinor;
+                                        }
                                     }
                                 }
                             }
