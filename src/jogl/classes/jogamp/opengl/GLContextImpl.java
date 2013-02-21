@@ -1301,7 +1301,7 @@ public abstract class GLContextImpl extends GLContext {
         // Only validate if a valid int version was fetched, otherwise cont. w/ version-string method -> 3.0 > Version || Version > MAX!
         if ( GLContext.isValidGLVersion(glIntMajor[0], glIntMinor[0]) ) {
             if( glIntMajor[0]<major || ( glIntMajor[0]==major && glIntMinor[0]<minor ) || 0 == major ) {        
-                if( strictMatch && 0 < major ) {
+                if( strictMatch && 2 < major ) { // relaxed match for versions major < 3 requests, last resort!
                     if(DEBUG) {
                         System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, GL version mismatch (Int): "+GLContext.getGLVersion(major, minor, ctxProfileBits, null)+" -> "+glVersion+", "+glIntMajor[0]+"."+glIntMinor[0]);
                     }
@@ -1326,7 +1326,7 @@ public abstract class GLContextImpl extends GLContext {
         // Only validate if a valid string version was fetched -> MIN > Version || Version > MAX!
         if( null != strGLVersionNumber ) {
             if( strGLVersionNumber.compareTo(setGLVersionNumber) < 0 || 0 == major ) {
-                if( strictMatch && 0 < major ) {
+                if( strictMatch && 2 < major ) { // relaxed match for versions major < 3 requests, last resort!
                     if(DEBUG) {
                         System.err.println(getThreadName() + ": GLContext.setGLFuncAvail.X: FAIL, GL version mismatch (String): "+GLContext.getGLVersion(major, minor, ctxProfileBits, null)+" -> "+glVersion+", "+strGLVersionNumber);
                     }
