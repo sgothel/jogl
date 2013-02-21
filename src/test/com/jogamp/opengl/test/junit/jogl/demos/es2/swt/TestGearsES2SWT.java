@@ -172,6 +172,12 @@ public class TestGearsES2SWT extends UITestCase {
         
         animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
         
+        while(animator.isAnimating() && !canvas.isRealized() && animator.getTotalFPSDuration()<duration) {
+            if( !display.readAndDispatch() ) {
+                // blocks on linux .. display.sleep();
+                Thread.sleep(10);
+            }
+        }
         System.err.println("NW chosen: "+canvas.getDelegatedDrawable().getChosenGLCapabilities());
         System.err.println("GL chosen: "+canvas.getChosenGLCapabilities());
         System.err.println("window pos/siz: "+canvas.getLocation()+" "+canvas.getWidth()+"x"+canvas.getHeight());
