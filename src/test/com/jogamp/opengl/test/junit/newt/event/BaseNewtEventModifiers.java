@@ -318,11 +318,6 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         _testMouseListener = new TestMouseListener() ;
     }
 
-    @After
-    public void afterTest() throws Exception {
-        clearKeyboadAndMouse();        
-    }
-    
     ////////////////////////////////////////////////////////////////////////////
     // Following both methods are mandatory to deal with SWT's requirement
     // to run the SWT event dispatch on the TK thread - which must be the main thread on OSX.
@@ -341,34 +336,32 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         _robot.setAutoDelay( MS_ROBOT_AUTO_DELAY ) ;
         {        
             // Make sure all the buttons and modifier keys are released.
-            _releaseModifiers() ;
-            _escape() ;
-            eventDispatch(); eventDispatch(); eventDispatch();
-            Thread.sleep( MS_ROBOT_POST_TEST_DELAY ) ;
-            eventDispatch(); eventDispatch(); eventDispatch();
-            _testMouseListener.clear();
+            clearKeyboadAndMouse();
         }
         _testMouseListener.setModifierCheckEnabled( true ) ;
         
         Throwable throwable = null;
-        final Object sync = new Object();
-        final RunnableTask rt = new RunnableTask( testAction, sync, true );
+        // final Object sync = new Object();
+        final RunnableTask rt = new RunnableTask( testAction, null, true );
         try {
-            new Thread(rt, "Test-Thread").start();
-            while( !rt.isExecuted() && null == throwable ) {
-                eventDispatch();
-            }
-            if(null==throwable) {
-                throwable = rt.getThrowable();
-            }
-            if(null!=throwable) {
-                throw new RuntimeException(throwable);
-            }
+            // synchronized(sync) {
+                new Thread(rt, "Test-Thread").start();
+                int i=0;
+                while( !rt.isExecuted() && null == throwable ) {
+                    System.err.println("WAIT-till-done: eventDispatch() #"+i++);
+                    eventDispatch();
+                }
+                if(null==throwable) {
+                    throwable = rt.getThrowable();
+                }
+                if(null!=throwable) {
+                    throw new RuntimeException(throwable);
+                }
+            // }
         } finally {        
-            _testMouseListener.setModifierCheckEnabled( false ) ;            
-            eventDispatch(); eventDispatch(); eventDispatch();
-            Thread.sleep( MS_ROBOT_POST_TEST_DELAY ) ;
-            eventDispatch(); eventDispatch(); eventDispatch();
+            System.err.println("WAIT-till-done: DONE");
+            _testMouseListener.setModifierCheckEnabled( false ) ; 
+            clearKeyboadAndMouse();
         }
     }
     
@@ -684,20 +677,24 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
     ////////////////////////////////////////////////////////////////////////////
 
-    public static void clearKeyboadAndMouse() throws Exception {
-
+    public void eventDispatchedPostTestDelay() throws Exception {
+        eventDispatch(); eventDispatch(); eventDispatch();
+        Thread.sleep( MS_ROBOT_POST_TEST_DELAY ) ;
+        eventDispatch(); eventDispatch(); eventDispatch();
+        _testMouseListener.clear();        
+    }
+    
+    public void clearKeyboadAndMouse() throws Exception {
         // Make sure all modifiers are released, otherwise the user's
         // desktop can get locked up (ask me how I know this).
-
         _releaseModifiers() ;
         _escape() ;
-        Thread.sleep( MS_ROBOT_POST_TEST_DELAY ) ;
-        _testMouseListener.clear();
+        eventDispatchedPostTestDelay();
     }
 
     ////////////////////////////////////////////////////////////////////////////
 
-    private static void _releaseModifiers() {
+    private void _releaseModifiers() {
 
         if (_robot != null) {
 
@@ -722,7 +719,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         }
     }
 
-    private static void _escape() {
+    private void _escape() {
         if (_robot != null) {
             _robot.keyPress( java.awt.event.KeyEvent.VK_ESCAPE ) ;
             _robot.keyRelease( java.awt.event.KeyEvent.VK_ESCAPE ) ;

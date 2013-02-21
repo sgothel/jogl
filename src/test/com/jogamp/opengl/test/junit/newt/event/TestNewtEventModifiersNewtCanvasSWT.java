@@ -62,22 +62,23 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
 
     ////////////////////////////////////////////////////////////////////////////
     
-    protected static void eventDispatch2xImpl() {
-        eventDispatchImpl();
+    protected static void eventDispatchImpl() {
+        final int maxEvents = 10;
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) { }
-        eventDispatchImpl();
-    }
-    
-    protected static void eventDispatchImpl() {
-        if( !_display.isDisposed() ) {
-            if( !_display.readAndDispatch() ) {
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException e) { }
-            }
-        }                
+        final boolean[] res = { false };
+        int i=0;
+        do {
+            SWTAccessor.invoke(_display, true, new Runnable() {
+               public void run() {
+                   if( !_display.isDisposed() ) {
+                       res[0] = _display.readAndDispatch();
+                   } else {
+                       res[0] = false;
+                   }
+               } } );
+        } while( i<maxEvents && res[0] );
     }
     
     @Override
@@ -96,7 +97,7 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
             }});
         Assert.assertNotNull( _display );
         
-        _display.syncExec(new Runnable() {
+        SWTAccessor.invoke(_display, true, new Runnable() {
             public void run() {        
                 _shell = new Shell( _display );
                 Assert.assertNotNull( _shell );
@@ -115,7 +116,7 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
             NewtCanvasSWT.create( _composite, SWT.NO_BACKGROUND, _glWindow ) ;
         }
         
-        _display.syncExec( new Runnable() {
+        SWTAccessor.invoke(_display, true, new Runnable() {
            public void run() {
               _shell.setBounds( TEST_FRAME_X, TEST_FRAME_Y, TEST_FRAME_WIDTH, TEST_FRAME_HEIGHT ) ;
               _shell.open();
@@ -128,9 +129,9 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
         
         // no waiting for results ..
         AWTRobotUtil.requestFocus(null, _glWindow, false); // programmatic
-        eventDispatch2xImpl();
+        eventDispatchImpl();
         AWTRobotUtil.requestFocus(_robot, _glWindow, INITIAL_MOUSE_X, INITIAL_MOUSE_Y);
-        eventDispatch2xImpl();
+        eventDispatchImpl();
         
         _glWindow.addMouseListener( _testMouseListener ) ;
     }
@@ -142,18 +143,14 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
         _glWindow.destroy() ;
 
         try {
-            _display.syncExec(new Runnable() {
-               public void run() {
-                _composite.dispose();
-                _shell.dispose();
-               }});
-            
-            if(!_display.isDisposed()) {
-                SWTAccessor.invoke(true, new Runnable() {
-                    public void run() {        
+            SWTAccessor.invoke(_display, true, new Runnable() {
+                public void run() { 
+                    _composite.dispose();
+                    _shell.dispose();
+                    if(!_display.isDisposed()) {
                         _display.dispose();
-                    }});
-            }            
+                    }
+                }});
         }
         catch( Throwable throwable ) {
             throwable.printStackTrace();

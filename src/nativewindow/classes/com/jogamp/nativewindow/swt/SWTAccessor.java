@@ -482,6 +482,23 @@ public class SWTAccessor {
         }        
     }
     
+   /**
+    * Runs the specified action on the SWT UI thread.
+    * <p>
+    * If <code>display</code> is disposed or the current thread is the SWT UI thread
+    * {@link #invoke(boolean, Runnable)} is being used.
+    * @see #invoke(boolean, Runnable)
+    */
+    public static void invoke(org.eclipse.swt.widgets.Display display, boolean wait, Runnable runnable) {
+        if( display.isDisposed() || Thread.currentThread() == display.getThread() ) {
+            invoke(wait, runnable);
+        } else if( wait ) {            
+            display.syncExec(runnable);
+        } else {
+            display.asyncExec(runnable);
+        }
+    }
+    
     //
     // Specific X11 GTK ChildWindow - Using plain X11 native parenting (works well)
     //
