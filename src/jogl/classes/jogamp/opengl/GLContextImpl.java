@@ -1462,29 +1462,55 @@ public abstract class GLContextImpl extends GLContext {
     final boolean hwAccel = 0 == ( ctp & GLContext.CTX_IMPL_ACCEL_SOFT );
     final boolean compatCtx = 0 != ( ctp & GLContext.CTX_PROFILE_COMPAT );
     
+    //
     // OS related quirks
+    //
     if( Platform.getOSType() == Platform.OSType.MACOS ) {
-        final int quirk1 = GLRendererQuirks.NoOffscreenBitmap;
-        if(DEBUG) {
-            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk1)+": cause: OS "+Platform.getOSType());
+        //
+        // OSX
+        //
+        {
+            final int quirk = GLRendererQuirks.NoOffscreenBitmap;
+            if(DEBUG) {
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType());
+            }
+            quirks[i++] = quirk;
         }
-        quirks[i++] = quirk1;
+        
+        final VersionNumber OSXVersion173 = new VersionNumber(1,7,3);
+        if( Platform.getOSVersionNumber().compareTo(OSXVersion173) < 0 && glRendererLowerCase.contains("nvidia") ) {
+            final int quirk = GLRendererQuirks.GLFlushBeforeRelease;
+            if(DEBUG) {
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType()+", OS Version "+Platform.getOSVersionNumber()+", Renderer "+glRenderer);
+            }
+            quirks[i++] = quirk;
+        }
     } else if( Platform.getOSType() == Platform.OSType.WINDOWS ) {
+        //
+        // WINDOWS
+        //
         final int quirk = GLRendererQuirks.NoDoubleBufferedBitmap;
         if(DEBUG) {
             System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType());
         }
         quirks[i++] = quirk;
+    } else if( Platform.OSType.ANDROID == Platform.getOSType() ) {    
+        //
+        // ANDROID
+        //
+        // Renderer related quirks, may also involve OS
+        if( glRendererLowerCase.contains("powervr") ) {
+            final int quirk = GLRendererQuirks.NoSetSwapInterval;
+            if(DEBUG) {
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType() + " / Renderer " + glRenderer);
+            }
+            quirks[i++] = quirk;
+        }
     }
     
-    // Renderer related quirks, may also involve OS
-    if( Platform.OSType.ANDROID == Platform.getOSType() && glRendererLowerCase.contains("powervr") ) {
-        final int quirk = GLRendererQuirks.NoSetSwapInterval;
-        if(DEBUG) {
-            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType() + " / Renderer " + glRenderer);
-        }
-        quirks[i++] = quirk;
-    }
+    //
+    // RENDERER related quirks
+    //
     if( glRendererLowerCase.contains("mesa") || glRendererLowerCase.contains("gallium") ) {
         {
             final int quirk = GLRendererQuirks.NoSetSwapIntervalPostRetarget;

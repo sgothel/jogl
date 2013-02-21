@@ -74,6 +74,7 @@ import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import com.jogamp.opengl.GLExtensions;
+import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
@@ -793,8 +794,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       @Override
       public boolean release(long ctx) {
           try {
-              if( null != MacOSXCGLContext.this.getGLProcAddressTable() ) { // gl successfully initialized ?
-                  gl.glFlush(); // w/o glFlush()/glFinish() OSX < 10.7 (NVidia driver) may freeze
+              if( hasRendererQuirk(GLRendererQuirks.GLFlushBeforeRelease) && null != MacOSXCGLContext.this.getGLProcAddressTable() ) {
+                  gl.glFlush();
               }
           } catch (GLException gle) {
               if(DEBUG) {
@@ -975,7 +976,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       @Override
       public boolean release(long ctx) {
           try {
-              gl.glFlush(); // w/o glFlush()/glFinish() OSX < 10.7 (NVidia driver) may freeze
+              if( hasRendererQuirk(GLRendererQuirks.GLFlushBeforeRelease) && null != MacOSXCGLContext.this.getGLProcAddressTable() ) {
+                  gl.glFlush();
+              }
           } catch (GLException gle) {
               if(DEBUG) {
                   System.err.println("MacOSXCGLContext.CGLImpl.release: INFO: glFlush() catched exception:");

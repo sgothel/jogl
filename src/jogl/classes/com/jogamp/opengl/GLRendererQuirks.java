@@ -73,12 +73,20 @@ public class GLRendererQuirks {
      */
     public static final int GLNonCompliant = 6;
     
+    /**
+     * The OpenGL Context needs a <code>glFlush()</code> before releasing it, otherwise driver may freeze:
+     * <ul>
+     *   <li>OSX < 10.7.3 - NVidia Driver. Bug 533 and Bug 548 @ https://jogamp.org/bugzilla/.</li>
+     * </ul>  
+     */
+    public static final int GLFlushBeforeRelease = 7;
+    
     /** Number of quirks known. */
-    public static final int COUNT = 7;
+    public static final int COUNT = 8;
     
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
-                                                          "GLNonCompliant"
+                                                          "GLNonCompliant", "GLFlushBeforeRelease"
                                                         };
 
     private final int _bitmask;
