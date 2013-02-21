@@ -543,8 +543,20 @@ public class GLProfile {
      * </ul>
      *
      */
-    public static final String[] GL_PROFILE_LIST_MAX_PROGSHADER   = new String[] { GL4bc, GL4, GL3bc, GL3, GL2, GLES2 };
+    public static final String[] GL_PROFILE_LIST_MAX_PROGSHADER = new String[] { GL4bc, GL4, GL3bc, GL3, GL2, GLES2 };
 
+    /**
+     * Order of maximum programmable shader <i>core only</i> profiles
+     *
+     * <ul>
+     *  <li> GL4
+     *  <li> GL3
+     *  <li> GLES2
+     * </ul>
+     *
+     */
+    public static final String[] GL_PROFILE_LIST_MAX_PROGSHADER_CORE = new String[] { GL4, GL3, GLES2 };
+    
     /** Returns a default GLProfile object, reflecting the best for the running platform.
      * It selects the first of the set {@link GLProfile#GL_PROFILE_LIST_ALL}
      * and favors hardware acceleration.
@@ -659,6 +671,29 @@ public class GLProfile {
         return get(GL_PROFILE_LIST_MAX_PROGSHADER, favorHardwareRasterizer);
     }
 
+    /**
+     * Returns the highest profile, implementing the programmable shader <i>core</i> pipeline <i>only</i>.
+     * It selects the first of the set: {@link GLProfile#GL_PROFILE_LIST_MAX_PROGSHADER_CORE}
+     *
+     * @throws GLException if no programmable core profile is available for the device.
+     * @see #GL_PROFILE_LIST_MAX_PROGSHADER_CORE
+     */
+    public static GLProfile getMaxProgrammableCore(AbstractGraphicsDevice device, boolean favorHardwareRasterizer)
+        throws GLException
+    {            
+        return get(device, GL_PROFILE_LIST_MAX_PROGSHADER_CORE, favorHardwareRasterizer);
+    }
+
+    /** Uses the default device 
+     * @throws GLException if no programmable core profile is available for the default device.
+     * @see #GL_PROFILE_LIST_MAX_PROGSHADER_CORE
+     */
+    public static GLProfile getMaxProgrammableCore(boolean favorHardwareRasterizer)
+        throws GLException
+    {
+        return get(GL_PROFILE_LIST_MAX_PROGSHADER_CORE, favorHardwareRasterizer);
+    }
+    
     /** 
      * Returns the GL2ES1 profile implementation, hence compatible w/ GL2ES1.<br/>
      * It returns:
