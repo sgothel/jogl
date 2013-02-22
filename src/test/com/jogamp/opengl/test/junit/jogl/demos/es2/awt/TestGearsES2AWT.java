@@ -40,6 +40,7 @@ import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
@@ -179,7 +180,10 @@ public class TestGearsES2AWT extends UITestCase {
             public void run() {
                 frame.pack();
                 frame.setVisible(true);
-            }});
+            }});        
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true)); 
+        
         animator.start();
         Assert.assertTrue(animator.isStarted());
         Assert.assertTrue(animator.isAnimating());

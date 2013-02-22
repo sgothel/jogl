@@ -527,9 +527,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     protected void setTitleImpl(String title) {}
 
     /**
-     * Return screen coordinates of the given coordinates
-     * or null, in which case a NativeWindow traversal shall being used
+     * Translates the given window client-area coordinates with top-left origin
+     * to screen coordinates.
+     * <p>
+     * Since the position reflects the client area, it does not include the insets.
+     * </p>
+     * <p>
+     * May return <code>null</code>, in which case the caller shall traverse through the NativeWindow tree
      * as demonstrated in {@link #getLocationOnScreen(javax.media.nativewindow.util.Point)}.
+     * </p>
      *
      * @return if not null, the screen location of the given coordinates
      */
@@ -644,14 +650,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     // public final void destroy() - see below
 
+    @Override
     public final NativeWindow getParent() {
         return parentWindow;
     }
 
+    @Override
     public final long getWindowHandle() {
         return windowHandle;
     }
 
+    @Override
     public Point getLocationOnScreen(Point storage) {
         if(isNativeValid()) {
             Point d;
@@ -688,14 +697,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // Window
     //
 
+    @Override
     public final boolean isNativeValid() {
         return 0 != windowHandle ;
     }
 
+    @Override
     public final Screen getScreen() {
         return screen;
     }
-
+    
     protected final void setVisibleImpl(boolean visible, int x, int y, int width, int height) {
         reconfigureWindowImpl(x, y, width, height, getReconfigureFlags(FLAG_CHANGE_VISIBILITY, visible));           
     }    
@@ -778,7 +789,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
         runOnEDTIfAvail(wait, new VisibleAction(visible));        
     }
-    
+
+    @Override
     public void setVisible(boolean visible) {
         setVisible(true, visible);
     }
@@ -830,9 +842,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
+    @Override
     public void setSize(int width, int height) {
         runOnEDTIfAvail(true, new SetSizeAction(width, height));
     }    
+    @Override
     public void setTopLevelSize(int width, int height) {
         setSize(width - getInsets().getTotalWidth(), height - getInsets().getTotalHeight());
     }
@@ -932,6 +946,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     private final DestroyAction destroyAction = new DestroyAction();
 
+    @Override
     public void destroy() {
         visible = false; // Immediately mark synchronized visibility flag, avoiding possible recreation 
         runOnEDTIfAvail(true, destroyAction);
@@ -1253,6 +1268,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     private final ReparentActionRecreate reparentActionRecreate = new ReparentActionRecreate();
 
+    @Override
     public final ReparentOperation reparentWindow(NativeWindow newParent) {
         return reparentWindow(newParent, false);
     }
@@ -1263,16 +1279,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return reparentAction.getOp();
     }
 
+    @Override
     public CapabilitiesChooser setCapabilitiesChooser(CapabilitiesChooser chooser) {
         CapabilitiesChooser old = this.capabilitiesChooser;
         this.capabilitiesChooser = chooser;
         return old;
     }
 
+    @Override
     public final CapabilitiesImmutable getChosenCapabilities() {
         return getGraphicsConfiguration().getChosenCapabilities();
     }
 
+    @Override
     public final CapabilitiesImmutable getRequestedCapabilities() {
         return capsRequested;
     }
@@ -1312,10 +1331,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
+    @Override
     public void setUndecorated(boolean value) {
         runOnEDTIfAvail(true, new DecorationAction(value));
     }
 
+    @Override
     public final boolean isUndecorated() {
         return 0 != parentWindowHandle || undecorated || fullscreen ;
     }
@@ -1355,17 +1376,21 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
+    @Override
     public final void setAlwaysOnTop(boolean value) {
         runOnEDTIfAvail(true, new AlwaysOnTopAction(value));
     }
     
+    @Override
     public final boolean isAlwaysOnTop() {
         return alwaysOnTop;
     }
         
+    @Override
     public String getTitle() {
         return title;
     }
+    @Override
     public void setTitle(String title) {
         if (title == null) {
             title = "";
@@ -1376,9 +1401,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
+    @Override
     public boolean isPointerVisible() {
         return pointerVisible;
     }
+    @Override
     public void setPointerVisible(boolean pointerVisible) {
         if(this.pointerVisible != pointerVisible) {
             boolean setVal = 0 == getWindowHandle();
@@ -1390,10 +1417,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             }
         }
     }
+    @Override
     public boolean isPointerConfined() {
         return pointerConfined;
     }
     
+    @Override
     public void confinePointer(boolean confine) {
         if(this.pointerConfined != confine) {
             boolean setVal = 0 == getWindowHandle();
@@ -1417,12 +1446,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }        
     }
     
+    @Override
     public void warpPointer(int x, int y) {
         if(0 != getWindowHandle()) {
             warpPointerImpl(x, y);
         }
     }
     
+    @Override
     public final InsetsImmutable getInsets() {
         if(isUndecorated()) {
             return Insets.getZero();
@@ -1431,18 +1462,22 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return insets;
     }
     
+    @Override
     public final int getWidth() {
         return width;
     }
 
+    @Override
     public final int getHeight() {
         return height;
     }
 
+    @Override
     public final int getX() {
         return x;
     }
 
+    @Override
     public final int getY() {
         return y;
     }
@@ -1468,16 +1503,27 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         this.width = width; this.height = height;
     }
     
+    @Override
     public final boolean isVisible() {
         return visible;
     }
 
+    @Override
     public final boolean isFullscreen() {
         return fullscreen;
     }
 
     //----------------------------------------------------------------------
     // Window
+    //
+
+    @Override
+    public final Window getDelegatedWindow() {
+        return this;
+    }
+    
+    //----------------------------------------------------------------------
+    // WindowImpl
     //
 
     /**
@@ -1504,10 +1550,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return null;
     }
     
-    public final Window getDelegatedWindow() {
-        return this;
-    }
-    
     /**
      * If set to true, the default value, this NEWT Window implementation will
      * handle the destruction (ie {@link #destroy()} call) within {@link #windowDestroyNotify(boolean)} implementation.<br>
@@ -1516,10 +1558,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public void setHandleDestroyNotify(boolean b) {
         handleDestroyNotify = b;
     }
-
-    //----------------------------------------------------------------------
-    // WindowImpl
-    //
 
     /** 
      * Returns the non delegated {@link AbstractGraphicsConfiguration}, 

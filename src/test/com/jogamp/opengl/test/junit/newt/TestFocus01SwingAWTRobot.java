@@ -115,7 +115,8 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
 
         // Wrap the window in a canvas.
         final NewtCanvasAWT newtCanvasAWT = new NewtCanvasAWT(glWindow1);
-
+        // newtCanvasAWT.setShallUseOffscreenLayer(true);
+        
         // Monitor AWT focus and keyboard events.
         AWTKeyAdapter newtCanvasAWTKA = new AWTKeyAdapter("NewtCanvasAWT");
         newtCanvasAWT.addKeyListener(newtCanvasAWTKA);
@@ -146,7 +147,7 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
                 frame1.setVisible(true);
             } } );
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame1, true));
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow1, true));        
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow1, true)); 
         AWTRobotUtil.clearAWTFocus(robot);
         Assert.assertTrue(AWTRobotUtil.toFrontAndRequestFocus(robot, frame1));
 

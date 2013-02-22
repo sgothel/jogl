@@ -98,7 +98,7 @@ public class AWTParentWindowAdapter
             public void run() {
                 int cw = comp.getWidth();
                 int ch = comp.getHeight();
-                if( 0 < cw * ch ) {
+                if( 0 < cw && 0 < ch ) {
                     if( newtWindow.getWidth() != cw || newtWindow.getHeight() != ch ) {
                         newtWindow.setSize(cw, ch);
                         if(comp.isVisible() != newtWindow.isVisible()) {

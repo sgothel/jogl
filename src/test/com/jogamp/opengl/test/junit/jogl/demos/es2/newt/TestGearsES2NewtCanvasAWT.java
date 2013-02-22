@@ -73,7 +73,7 @@ import org.junit.AfterClass;
 import org.junit.Test;
 
 public class TestGearsES2NewtCanvasAWT extends UITestCase {    
-    public enum FrameLayout { None, TextOnBottom, BorderBottom, BorderCenter, BorderCenterSurrounded, DoubleBorderCenterSurrounded };
+    public enum FrameLayout { None, TextOnBottom, BorderBottom, BorderBottom2, BorderCenter, BorderCenterSurrounded, DoubleBorderCenterSurrounded };
     public enum ResizeBy { GLWindow, Component, Frame };
     
     static int screenIdx = 0;
@@ -202,6 +202,11 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                 frame.setLayout(new BorderLayout());
                 frame.add(newtCanvasAWT, BorderLayout.SOUTH);
                 break;
+            case BorderBottom2:
+                frame.setLayout(new BorderLayout());
+                frame.add(newtCanvasAWT, BorderLayout.SOUTH);
+                frame.add(new Button("North"), BorderLayout.NORTH);
+                break;
             case BorderCenter:
                 frame.setLayout(new BorderLayout());
                 frame.add(newtCanvasAWT, BorderLayout.CENTER);
@@ -287,7 +292,9 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                }                
                frame.setVisible(true);               
            }
-        });
+        });        
+        Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true)); 
         
         animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
         

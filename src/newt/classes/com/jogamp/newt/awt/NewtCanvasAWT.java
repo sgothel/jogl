@@ -34,6 +34,7 @@ import java.awt.Canvas;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.KeyboardFocusManager;
+import java.beans.Beans;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Method;
@@ -84,6 +85,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     private JAWTWindow jawtWindow = null;
     private boolean shallUseOffscreenLayer = false;
     private Window newtChild = null;
+    private boolean newtChildAttached = false;
     private boolean isOnscreen = true;
     private WindowClosingMode newtChildCloseOp;
     private AWTAdapter awtAdapter = null;
@@ -180,6 +182,10 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     private FocusAction focusAction = new FocusAction();
     
     WindowListener clearAWTMenusOnNewtFocus = new WindowAdapter() {
+          @Override
+          public void windowResized(WindowEvent e) {
+              updateLayoutSize();
+          }
           @Override
           public void windowGainedFocus(WindowEvent arg0) {
               if( isParent() && !isFullscreen() ) {
@@ -292,15 +298,25 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         final java.awt.Container cont = AWTMisc.getContainer(this);
         // remove old one
         if(null != newtChild) {
-            reparentWindow( false, cont );
+            detachNewtChild( cont );
             newtChild = null;
         }
         // add new one, reparent only if ready
         newtChild = newChild;
-        if( isDisplayable() && null != newChild) {
-            reparentWindow( true, cont );
-        }
+
+        updateLayoutSize();
+        // will be done later at paint/display/..: attachNewtChild(cont);
+        
         return prevChild;
+    }
+    
+    private final void updateLayoutSize() {
+        if( null != newtChild ) {
+            // use NEWT child's size for min/pref size!
+            java.awt.Dimension minSize = new java.awt.Dimension(newtChild.getWidth(), newtChild.getHeight());
+            setMinimumSize(minSize);
+            setPreferredSize(minSize);
+        }        
     }
 
     /** @return the current NEWT child */
@@ -320,7 +336,181 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         return awtWindowClosingProtocol.setDefaultCloseOperation(op);
     }
 
-    /* package */ void configureNewtChild(boolean attach) {
+    @Override
+    public void addNotify() {
+        if( Beans.isDesignTime() ) {
+            super.addNotify();
+        } else {
+            // before native peer is valid: X11
+            disableBackgroundErase();
+    
+            // creates the native peer
+            super.addNotify();
+    
+            // after native peer is valid: Windows
+            disableBackgroundErase();
+    
+            jawtWindow = NewtFactoryAWT.getNativeWindow(this, newtChild.getRequestedCapabilities());          
+            jawtWindow.setShallUseOffscreenLayer(shallUseOffscreenLayer);
+            
+            if(DEBUG) {
+                // if ( isShowing() == false ) -> Container was not visible yet.
+                // if ( isShowing() == true  ) -> Container is already visible.
+                System.err.println("NewtCanvasAWT.addNotify: win "+newtWinHandleToHexString(newtChild)+
+                                   ", comp "+this+", visible "+isVisible()+", showing "+isShowing()+
+                                   ", displayable "+isDisplayable()+", cont "+AWTMisc.getContainer(this));
+            }
+        }
+    }
+
+    @Override
+    public void removeNotify() {
+        if( Beans.isDesignTime() ) {
+            super.removeNotify();
+        } else {
+            java.awt.Container cont = AWTMisc.getContainer(this);
+            if(DEBUG) {
+                System.err.println("NewtCanvasAWT.removeNotify: "+newtChild+", from "+cont);
+            }
+            // Detach OLS early..
+            final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(newtChild, true);
+            if(null != ols && ols.isSurfaceLayerAttached()) {
+                ols.detachSurfaceLayer();
+            }    
+            detachNewtChild(cont); // will destroy context (offscreen -> onscreen) and implicit detachSurfaceLayer (if still attached)
+            
+            NewtFactoryAWT.destroyNativeWindow(jawtWindow);
+            jawtWindow=null;
+            
+            super.removeNotify();
+        }
+    }
+
+    /**
+     * Destroys this resource:
+     * <ul>
+     *   <li> Make the NEWT Child invisible </li>
+     *   <li> Disconnects the NEWT Child from this Canvas NativeWindow, reparent to NULL </li>
+     *   <li> Issues <code>destroy()</code> on the NEWT Child</li>
+     *   <li> Remove reference to the NEWT Child</li>
+     * </ul>
+     * @see Window#destroy()
+     */
+    public final void destroy() {
+        if( null !=newtChild ) {
+            java.awt.Container cont = AWTMisc.getContainer(this);
+            if(DEBUG) {
+                System.err.println("NewtCanvasAWT.destroy(): "+newtChild+", from "+cont);
+            }
+            // Detach OLS early..
+            final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(newtChild, true);
+            if(null != ols && ols.isSurfaceLayerAttached()) {
+                ols.detachSurfaceLayer();
+            }    
+            detachNewtChild(cont); // will destroy context (offscreen -> onscreen) and implicit detachSurfaceLayer (if still attached)
+            newtChild.destroy();
+            newtChild=null;
+        }
+    }
+    
+    @Override
+    public void paint(Graphics g) {
+        if( validateComponent(true, null) ) {
+            newtChild.windowRepaint(0, 0, getWidth(), getHeight());
+        }
+    }
+    @Override
+    public void update(Graphics g) {
+        if( validateComponent(true, null) ) {
+            newtChild.windowRepaint(0, 0, getWidth(), getHeight());
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void reshape(int x, int y, int width, int height) {
+        synchronized (getTreeLock()) { // super.reshape(..) claims tree lock, so we do extend it's lock over reshape
+            super.reshape(x, y, width, height);
+            if(DEBUG) {
+                System.err.println("NewtCanvasAWT.reshape: "+x+"/"+y+" "+width+"x"+height);
+            }
+            if( validateComponent(true, null) ) {
+                // newtChild.setSize(width, height);
+                if(null != jawtWindow && jawtWindow.isOffscreenLayerSurfaceEnabled() ) {
+                    jawtWindow.layoutSurfaceLayer();
+                }
+            }
+        }
+    }
+        
+    private final void requestFocusNEWTChild() {
+        if(null!=newtChild) {
+            newtChild.setFocusAction(null);
+            if(isOnscreen) {                    
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+            }
+            newtChild.requestFocus();
+            newtChild.setFocusAction(focusAction);
+        }
+    }
+
+    @Override
+    public void requestFocus() {
+        super.requestFocus();
+        requestFocusNEWTChild();
+    }
+
+    @Override
+    public boolean requestFocus(boolean temporary) {
+        final boolean res = super.requestFocus(temporary);
+        if(res) {
+            requestFocusNEWTChild();
+        }
+        return res;
+    }
+
+    @Override
+    public boolean requestFocusInWindow() {
+        final boolean res = super.requestFocusInWindow();
+        if(res) {
+            requestFocusNEWTChild();
+        }
+        return res;
+    }
+
+    @Override
+    public boolean requestFocusInWindow(boolean temporary) {
+        final boolean res = super.requestFocusInWindow(temporary);
+        if(res) {
+            requestFocusNEWTChild();
+        }
+        return res;
+    }
+
+    private final boolean validateComponent(boolean attachNewtChild, java.awt.Container cont) {
+        if( Beans.isDesignTime() || !isDisplayable() ) {
+            return false;
+        }
+        if ( null == newtChild || null == jawtWindow ) {
+            return false;
+        }
+        if( null == cont ) {
+            cont = AWTMisc.getContainer(this);
+        }
+        if( 0 >= getWidth() || 0 >= getHeight() ) {
+            return false;
+        }
+        
+        awtWindowClosingProtocol.addClosingListenerOneShot();
+        
+        if( attachNewtChild && !newtChildAttached && null != newtChild ) {
+            attachNewtChild(cont);
+        }
+
+        return true;
+    }
+    
+    private final void configureNewtChild(boolean attach) {
         if(null!=awtAdapter) {
           awtAdapter.removeFrom(this);
           awtAdapter=null;
@@ -369,208 +559,62 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
         }
     }
 
-    @Override
-    public void addNotify() {
+    private final void attachNewtChild(java.awt.Container cont) {
+      if( null == newtChild || null == jawtWindow || newtChildAttached ) {
+          return; // nop
+      }
+      if(DEBUG) {
+          // if ( isShowing() == false ) -> Container was not visible yet.
+          // if ( isShowing() == true  ) -> Container is already visible.
+          System.err.println("NewtCanvasAWT.attachNewtChild.0: win "+newtWinHandleToHexString(newtChild)+
+                             ", EDTUtil: cur "+newtChild.getScreen().getDisplay().getEDTUtil()+
+                             ", comp "+this+", visible "+isVisible()+", showing "+isShowing()+", displayable "+isDisplayable()+
+                             ", cont "+cont);
+      }
 
-        // before native peer is valid: X11
-        disableBackgroundErase();
-
-        // creates the native peer
-        super.addNotify();
-
-        // after native peer is valid: Windows
-        disableBackgroundErase();
-
-        java.awt.Container cont = AWTMisc.getContainer(this);
-        if(DEBUG) {
-            // if ( isShowing() == false ) -> Container was not visible yet.
-            // if ( isShowing() == true  ) -> Container is already visible.
-            System.err.println("NewtCanvasAWT.addNotify: "+newtChild+", "+this+", visible "+isVisible()+", showing "+isShowing()+
-                               ", displayable "+isDisplayable()+" -> "+cont);
-        }
-        reparentWindow(true, cont);
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public void reshape(int x, int y, int width, int height) {
-        super.reshape(x, y, width, height);
-        if(DEBUG) {
-            System.err.println("NewtCanvasAWT.reshape: "+x+"/"+y+" "+width+"x"+height);
-        }
-        if(null != jawtWindow && jawtWindow.isOffscreenLayerSurfaceEnabled() ) {
-            jawtWindow.layoutSurfaceLayer();
-        }
+      newtChildAttached = true;
+      newtChild.setFocusAction(null); // no AWT focus traversal ..
+      if(DEBUG) {
+        System.err.println("NewtCanvasAWT.attachNewtChild.1: newtChild: "+newtChild);
+      }
+      final int w = getWidth();
+      final int h = getHeight();
+      System.err.println("NewtCanvasAWT.attachNewtChild.2: size "+w+"x"+h);
+      newtChild.setSize(w, h);
+      newtChild.reparentWindow(jawtWindow);
+      newtChild.setVisible(true);
+      configureNewtChild(true);
+      newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
+      
+      // force this AWT Canvas to be focus-able, 
+      // since this it is completely covered by the newtChild (z-order).
+      setFocusable(true);          
+      if(DEBUG) {
+          System.err.println("NewtCanvasAWT.attachNewtChild.X: win "+newtWinHandleToHexString(newtChild)+", EDTUtil: cur "+newtChild.getScreen().getDisplay().getEDTUtil()+", comp "+this);
+      }
     }
     
-    @Override
-    public void removeNotify() {
-        java.awt.Container cont = AWTMisc.getContainer(this);
-        if(DEBUG) {
-            System.err.println("NewtCanvasAWT.removeNotify: "+newtChild+", from "+cont);
-        }
-        // Detach OLS early..
-        final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(newtChild, true);
-        if(null != ols && ols.isSurfaceLayerAttached()) {
-            ols.detachSurfaceLayer();
-        }    
-        reparentWindow(false, cont); // will destroy context (offscreen -> onscreen) and implicit detachSurfaceLayer (if still attached)
-        
-        if(null != jawtWindow) {
-            NewtFactoryAWT.destroyNativeWindow(jawtWindow);
-            jawtWindow=null;
-        }
-        
-        super.removeNotify();
-    }
-
-    void reparentWindow(boolean add, java.awt.Container cont) {
-      if(null==newtChild) {
-        return; // nop
+    private final void detachNewtChild(java.awt.Container cont) {
+      if( null == newtChild || null == jawtWindow || !newtChildAttached ) {
+          return; // nop
       }
       if(DEBUG) {
-          System.err.println("NewtCanvasAWT.reparentWindow.0: add="+add+", win "+newtWinHandleToHexString(newtChild)+", EDTUtil: cur "+newtChild.getScreen().getDisplay().getEDTUtil());
+          // if ( isShowing() == false ) -> Container was not visible yet.
+          // if ( isShowing() == true  ) -> Container is already visible.
+          System.err.println("NewtCanvasAWT.detachNewtChild.0: win "+newtWinHandleToHexString(newtChild)+
+                             ", EDTUtil: cur "+newtChild.getScreen().getDisplay().getEDTUtil()+
+                             ", comp "+this+", visible "+isVisible()+", showing "+isShowing()+", displayable "+isDisplayable()+
+                             ", cont "+cont);
       }
 
+      newtChildAttached = false;
       newtChild.setFocusAction(null); // no AWT focus traversal ..
-      if(add) {
-          if(DEBUG) {
-            System.err.println("NewtCanvasAWT.reparentWindow: newtChild: "+newtChild);
-          }
-          if(null == jawtWindow) {
-              jawtWindow = NewtFactoryAWT.getNativeWindow(this, newtChild.getRequestedCapabilities());          
-              jawtWindow.setShallUseOffscreenLayer(shallUseOffscreenLayer);
-          }            
-          final int w;
-          final int h;
-          if(isPreferredSizeSet()) {
-             // 1st: Component's PreferedSize
-             java.awt.Dimension d = getPreferredSize();
-             w = d.width;
-             h = d.height;
-          } else {
-             final java.awt.Dimension min1, min2;
-             // 2nd: Component's Max( Max( comp.min, newt.size ), cont.size )             
-             if(this.isMinimumSizeSet()) {
-                 min1 = getMinimumSize();
-             } else {
-                 min1 = new java.awt.Dimension(0, 0);
-             }
-             min2 = new java.awt.Dimension( Math.max( min1.width,  newtChild.getWidth() ), 
-                                            Math.max( min1.height, newtChild.getHeight() ) );
-             java.awt.Insets ins = cont.getInsets();
-             w = Math.max(min2.width, cont.getWidth() - ins.left - ins.right);
-             h = Math.max(min2.height, cont.getHeight() - ins.top - ins.bottom);
-          }
-          setSize(w, h);
-          newtChild.setSize(w, h);
-          newtChild.reparentWindow(jawtWindow);
-          newtChild.setVisible(true);
-          configureNewtChild(true);
-          newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
-          
-          // force this AWT Canvas to be focus-able, 
-          // since this it is completely covered by the newtChild (z-order).
-          setFocusable(true);          
-      } else {
-          configureNewtChild(false);
-          newtChild.setVisible(false);
-          newtChild.reparentWindow(null);
-      }
+      configureNewtChild(false);
+      newtChild.setVisible(false);
+      newtChild.reparentWindow(null);
       if(DEBUG) {
-          System.err.println("NewtCanvasAWT.reparentWindow.X: add="+add+", win "+newtWinHandleToHexString(newtChild)+", EDTUtil: cur "+newtChild.getScreen().getDisplay().getEDTUtil());
+          System.err.println("NewtCanvasAWT.detachNewtChild.X: win "+newtWinHandleToHexString(newtChild)+", EDTUtil: cur "+newtChild.getScreen().getDisplay().getEDTUtil()+", comp "+this);
       }
-    }
-
-    /**
-     * Destroys this resource:
-     * <ul>
-     *   <li> Make the NEWT Child invisible </li>
-     *   <li> Disconnects the NEWT Child from this Canvas NativeWindow, reparent to NULL </li>
-     *   <li> Issues <code>destroy()</code> on the NEWT Child</li>
-     *   <li> Remove reference to the NEWT Child</li>
-     *   <li> Remove this Canvas from it's parent.</li>
-     * </ul>
-     * @see Window#destroy()
-     */
-    public final void destroy() {
-        if(null!=newtChild) {
-            java.awt.Container cont = AWTMisc.getContainer(this);
-            if(DEBUG) {
-                System.err.println("NewtCanvasAWT.destroy(): "+newtChild+", from "+cont);
-            }
-            configureNewtChild(false);
-            if(null!=jawtWindow) {
-                NewtFactoryAWT.destroyNativeWindow(jawtWindow);
-                jawtWindow=null;
-            }
-            newtChild.setVisible(false);
-            newtChild.reparentWindow(null);
-            newtChild.destroy();
-            newtChild=null;
-            if(null!=cont) {
-                cont.remove(this);
-            }
-        }
-    }    
-
-    @Override
-    public void paint(Graphics g) {
-        awtWindowClosingProtocol.addClosingListenerOneShot();
-        if(null!=newtChild) {
-            newtChild.windowRepaint(0, 0, getWidth(), getHeight());
-        }
-    }
-    @Override
-    public void update(Graphics g) {
-        awtWindowClosingProtocol.addClosingListenerOneShot();
-        if(null!=newtChild) {
-            newtChild.windowRepaint(0, 0, getWidth(), getHeight());
-        }
-    }
-
-    private final void requestFocusNEWTChild() {
-        if(null!=newtChild) {
-            newtChild.setFocusAction(null);
-            if(isOnscreen) {                    
-                KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
-            }
-            newtChild.requestFocus();
-            newtChild.setFocusAction(focusAction);
-        }
-    }
-
-    @Override
-    public void requestFocus() {
-        super.requestFocus();
-        requestFocusNEWTChild();
-    }
-
-    @Override
-    public boolean requestFocus(boolean temporary) {
-        final boolean res = super.requestFocus(temporary);
-        if(res) {
-            requestFocusNEWTChild();
-        }
-        return res;
-    }
-
-    @Override
-    public boolean requestFocusInWindow() {
-        final boolean res = super.requestFocusInWindow();
-        if(res) {
-            requestFocusNEWTChild();
-        }
-        return res;
-    }
-
-    @Override
-    public boolean requestFocusInWindow(boolean temporary) {
-        final boolean res = super.requestFocusInWindow(temporary);
-        if(res) {
-            requestFocusNEWTChild();
-        }
-        return res;
     }
 
   // Disables the AWT's erasing of this Canvas's background on Windows

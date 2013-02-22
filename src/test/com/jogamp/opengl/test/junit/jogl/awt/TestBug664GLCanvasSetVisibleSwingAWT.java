@@ -183,6 +183,7 @@ public class TestBug664GLCanvasSetVisibleSwingAWT extends UITestCase {
             frameCount = 0;
             setFrameVisible(top[0], true);
             Assert.assertTrue("Component didn't become visible", AWTRobotUtil.waitForVisible(glc, true));
+            Assert.assertTrue("Component didn't become realized", AWTRobotUtil.waitForRealized(glc, true));
                         
             anim.setUpdateFPSFrames(60, null);
             anim.start();
