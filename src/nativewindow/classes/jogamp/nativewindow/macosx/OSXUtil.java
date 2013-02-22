@@ -173,10 +173,14 @@ public class OSXUtil implements ToolkitProperties {
     }
     
     /** 
-     * Fix root and sub CALayer position to 0/0 on the main-thread w/o blocking.
+     * Fix root and sub CALayer position to 0/0 and size on the main-thread w/o blocking.
      * <p>
-     * For an unknown reason, on OSX/Java7 our root CALayer's frame position gets corrupted
-     * and is moved out of 'sight' .. or oddly half way to the upper right corner.
+     * If the sub CALayer implements the Objective-C NativeWindow protocol NWDedicatedSize (e.g. JOGL's MyNSOpenGLLayer),
+     * the dedicated size is passed to the layer, which propagates it appropriately. 
+     * </p>
+     * <p>
+     * On OSX/Java7 our root CALayer's frame position and size gets corrupted by its NSView,
+     * hence we have created the NWDedicatedSize protocol.
      * </p>
      * 
      * @param rootCALayer the root surface layer, maybe null.
@@ -184,13 +188,13 @@ public class OSXUtil implements ToolkitProperties {
      * @param width the expected width
      * @param height the expected height
      */
-    public static void FixCALayerPosition(final long rootCALayer, final long subCALayer, final int width, final int height) {
+    public static void FixCALayerLayout(final long rootCALayer, final long subCALayer, final int width, final int height) {
         if( 0==rootCALayer && 0==subCALayer ) {
             return;
         }
         RunOnMainThread(false, new Runnable() {
            public void run() {
-               FixCALayerPosition0(rootCALayer, subCALayer, width, height);
+               FixCALayerLayout0(rootCALayer, subCALayer, width, height);
            }
         });
     }
@@ -346,7 +350,7 @@ public class OSXUtil implements ToolkitProperties {
     private static native long GetNSWindow0(long nsView);
     private static native long CreateCALayer0(int x, int y, int width, int height);
     private static native void AddCASublayer0(long rootCALayer, long subCALayer);
-    private static native void FixCALayerPosition0(long rootCALayer, long subCALayer, int width, int height);
+    private static native void FixCALayerLayout0(long rootCALayer, long subCALayer, int width, int height);
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
     private static native void DestroyCALayer0(long caLayer);
     private static native void RunOnMainThread0(Runnable runnable);

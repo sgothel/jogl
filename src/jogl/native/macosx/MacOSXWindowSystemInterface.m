@@ -575,7 +575,6 @@ void setContextView(NSOpenGLContext* ctx, NSView* view) {
         [ctx setView:view];
     }
     [pool release];
-    return ctx;
 }
 
 Bool makeCurrentContext(NSOpenGLContext* ctx) {

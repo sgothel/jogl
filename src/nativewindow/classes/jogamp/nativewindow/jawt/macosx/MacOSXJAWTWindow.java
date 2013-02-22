@@ -125,7 +125,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
       if(DEBUG) {
         System.err.println("JAWTWindow.fixSurfaceLayerLayout: "+toHexString(osl) + ", bounds "+bounds+", "+w+"x"+h);
       }
-      OSXUtil.FixCALayerPosition(rootSurfaceLayerHandle, osl, w, h);
+      OSXUtil.FixCALayerLayout(rootSurfaceLayerHandle, osl, w, h);
   }
   
   protected void detachSurfaceLayerImpl(final long layerHandle) {

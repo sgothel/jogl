@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <AppKit/AppKit.h>
 #import <QuartzCore/QuartzCore.h>
+#import "NativeWindowProtocols.h"
 
 #include "NativewindowCommon.h"
 #include "jogamp_nativewindow_macosx_OSXUtil.h"
@@ -335,6 +336,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
 - (oneway void)release;
 - (void)dealloc;
 #endif
+- (id<CAAction>)actionForKey:(NSString *)key ;
 
 @end
 
@@ -378,6 +380,12 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
 
 #endif
 
+- (id<CAAction>)actionForKey:(NSString *)key 
+{
+    DBG_PRINT("MyCALayer::actionForKey.0 %p key %s -> NIL\n", self, [key UTF8String]);
+    return nil;
+    // return [super actionForKey: key];
+}
 
 @end
 
@@ -478,10 +486,10 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_AddCASublayer0
 
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
- * Method:    FixCALayerPosition0
+ * Method:    FixCALayerLayout0
  * Signature: (JJII)V
  */
-JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_FixCALayerPosition0
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_FixCALayerLayout0
   (JNIEnv *env, jclass unused, jlong rootCALayer, jlong subCALayer, jint width, jint height)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
@@ -493,38 +501,37 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_FixCALayerPositio
 
     if( NULL != rootLayer ) {
         CGRect lRect = [rootLayer frame];
-        DBG_PRINT("CALayer::FixCALayerPosition0.0: Root Origin %p exp 0/0 %dx%d frame0: %lf/%lf %lfx%lf\n",
-            rootLayer, width, height, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
         if(lRect.origin.x!=0 || lRect.origin.y!=0 || lRect.size.width!=width || lRect.size.height!=height) {
+            DBG_PRINT("CALayer::FixCALayerLayout0.0: Root %p exp 0/0 %dx%d -> frame0: %lf/%lf %lfx%lf\n",
+                rootLayer, (int)width, (int)height, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
             lRect.origin.x = 0;
             lRect.origin.y = 0;
             lRect.size.width = width;
             lRect.size.height = height;
             [rootLayer setFrame: lRect];
-            DBG_PRINT("CALayer::FixCALayerPosition0.1: Root Origin %p frame*: %lf/%lf %lfx%lf\n", 
-                rootLayer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
         }
     }
     if( NULL != subLayer ) {
         CGRect lRect = [subLayer frame];
-        DBG_PRINT("CALayer::FixCALayerPosition0.0: SubL %p exp 0/0 %dx%d frame0: %lf/%lf %lfx%lf\n",
-            subLayer, width, height, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
         if(lRect.origin.x!=0 || lRect.origin.y!=0 || lRect.size.width!=width || lRect.size.height!=height) {
+            DBG_PRINT("CALayer::FixCALayerLayout0.0: SubL %p exp 0/0 %dx%d -> frame0: %lf/%lf %lfx%lf\n",
+                subLayer, (int)width, (int)height, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
             lRect.origin.x = 0;
             lRect.origin.y = 0;
             lRect.size.width = width;
             lRect.size.height = height;
-            [subLayer setFrame: lRect];
-            DBG_PRINT("CALayer::FixCALayerPosition0.1: SubL Origin %p frame*: %lf/%lf %lfx%lf\n", 
-                subLayer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+            if( [subLayer conformsToProtocol:@protocol(NWDedicatedSize)] ) {
+                CALayer <NWDedicatedSize> * subLayerDS = (CALayer <NWDedicatedSize> *) subLayer;
+                [subLayerDS setDedicatedSize: lRect.size];
+            } else {
+                [subLayer setFrame: lRect];
+            }
         } 
     }
 
     [CATransaction commit];
 
     [pool release];
-    DBG_PRINT("CALayer::FixCALayerPosition0.X: root %p (refcnt %d) .sub %p (refcnt %d)\n", 
-        rootLayer, (int)[rootLayer retainCount], subLayer, (int)[subLayer retainCount]);
 }
 
 /*

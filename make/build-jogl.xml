@@ -224,8 +224,9 @@
         <property name="rootrel.generated.c.cg"   value="${rootrel.src.generated}/native/jogl_cg" />
 
         <!-- The source directories. -->
-        <property name="src.java" value="${project.root}/${rootrel.src.java}" />
-        <property name="src.c"    value="${project.root}/${rootrel.src.c}" />
+        <property name="src.java"            value="${project.root}/${rootrel.src.java}" />
+        <property name="src.c"               value="${project.root}/${rootrel.src.c}" />
+        <property name="nativewindow.src.c"  value="${project.root}/src/nativewindow/native" />
         
         <!-- The generated source directories. -->
         <property name="src.generated"            value="${build.jogl}/gensrc" />
@@ -1439,12 +1440,13 @@
       
                 <!-- This is for the generated headers for handwritten C code -->
                 <includepath path="${src.c}"/>
+                <includepath path="${nativewindow.src.c}/macosx" if="isOSX"/>
                 <includepath path="${src.generated.c}" />
-                <includepath path="${src.generated.c}/X11" if="isX11"/>
-                <includepath path="${src.generated.c}/MacOSX" if="isOSX"/>
-                <includepath path="${src.generated.c}/Windows" if="isWindows"/>
+                <includepath path="${src.generated.c}/X11"       if="isX11"/>
+                <includepath path="${src.generated.c}/MacOSX"    if="isOSX"/>
+                <includepath path="${src.generated.c}/Windows"   if="isWindows"/>
                 <includepath path="${src.generated.c.libav}" />
-                <includepath path="${src.generated.c.openmax}" if="setup.addNativeOpenMAX"/>
+                <includepath path="${src.generated.c.openmax}"   if="setup.addNativeOpenMAX"/>
       
                 <!-- This must come last to not override real include paths -->
                 <!-- includepath path="stub_includes/macosx" if="isOSX" / -->

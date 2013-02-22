@@ -1,6 +1,7 @@
 #import "MacOSXWindowSystemInterface.h"
 #import <QuartzCore/QuartzCore.h>
 #import <pthread.h>
+#import "NativeWindowProtocols.h"
 #include "timespec.h"
 
 #import <OpenGL/glext.h>
@@ -126,7 +127,7 @@ extern GLboolean glIsVertexArray (GLuint array);
 
 @end
 
-@interface MyNSOpenGLLayer: NSOpenGLLayer
+@interface MyNSOpenGLLayer: NSOpenGLLayer <NWDedicatedSize>
 {
 @private
     GLfloat gl_texCoords[8];
@@ -143,8 +144,8 @@ extern GLboolean glIsVertexArray (GLuint array);
     NSOpenGLPixelFormat* parentPixelFmt;
     int texWidth;
     int texHeight;
-    int newTexWidth;
-    int newTexHeight;
+    int dedicatedWidth;
+    int dedicatedHeight;
     volatile NSOpenGLPixelBuffer* pbuffer;
     volatile GLuint textureID;
     volatile NSOpenGLPixelBuffer* newPBuffer;
@@ -173,8 +174,17 @@ extern GLboolean glIsVertexArray (GLuint array);
        texWidth: (int) texWidth 
        texHeight: (int) texHeight;
 
+- (void)releaseLayer;
+- (void)deallocPBuffer;
+- (void)disableAnimation;
+- (void)pauseAnimation:(Bool)pause;
+- (void)setSwapInterval:(int)interval;
+- (void)tick;
+- (void)waitUntilRenderSignal: (long) to_micros;
+- (Bool)isGLSourceValid;
+
 - (void) setGLEnabled: (Bool) enable;
-- (Bool) validateTexSizeWithNewSize;
+- (Bool) validateTexSizeWithDedicatedSize;
 - (Bool) validateTexSize: (int) _texWidth texHeight: (int) _texHeight;
 - (void) setTextureID: (int) _texID;
 
@@ -182,21 +192,22 @@ extern GLboolean glIsVertexArray (GLuint array);
 - (void) setNewPBuffer: (NSOpenGLPixelBuffer*)p;
 - (void) applyNewPBuffer;
 
+- (void)setDedicatedSize:(CGSize)size; // @NWDedicatedSize
+- (CGRect)fixMyFrame;
+- (CGRect)fixSuperPosition;
+- (id<CAAction>)actionForKey:(NSString *)key ;
 - (NSOpenGLPixelFormat *)openGLPixelFormatForDisplayMask:(uint32_t)mask;
 - (NSOpenGLContext *)openGLContextForPixelFormat:(NSOpenGLPixelFormat *)pixelFormat;
-- (void)disableAnimation;
-- (void)pauseAnimation:(Bool)pause;
-- (void)deallocPBuffer;
-- (void)releaseLayer;
+- (BOOL)canDrawInOpenGLContext:(NSOpenGLContext *)context pixelFormat:(NSOpenGLPixelFormat *)pixelFormat
+        forLayerTime:(CFTimeInterval)timeInterval displayTime:(const CVTimeStamp *)timeStamp;
+- (void)drawInOpenGLContext:(NSOpenGLContext *)context pixelFormat:(NSOpenGLPixelFormat *)pixelFormat
+        forLayerTime:(CFTimeInterval)timeInterval displayTime:(const CVTimeStamp *)timeStamp;
+
 #ifdef DBG_LIFECYCLE
 - (id)retain;
 - (oneway void)release;
 #endif
 - (void)dealloc;
-- (void)setSwapInterval:(int)interval;
-- (void)tick;
-- (void)waitUntilRenderSignal: (long) to_micros;
-- (Bool)isGLSourceValid;
 
 @end
 
@@ -270,9 +281,9 @@ static const GLfloat gl_verts[] = {
     timespec_now(&lastWaitTime);
     shallDraw = NO;
     isGLEnabled = YES;
-    newTexWidth = _texWidth;
-    newTexHeight = _texHeight;
-    [self validateTexSizeWithNewSize];
+    dedicatedWidth = _texWidth;
+    dedicatedHeight = _texHeight;
+    [self validateTexSizeWithDedicatedSize];
     [self setTextureID: texID];
 
     newPBuffer = NULL;
@@ -345,9 +356,9 @@ static const GLfloat gl_verts[] = {
     isGLEnabled = enable;
 }
 
-- (Bool) validateTexSizeWithNewSize
+- (Bool) validateTexSizeWithDedicatedSize
 {
-    return [self validateTexSize: newTexWidth texHeight: newTexHeight];
+    return [self validateTexSize: dedicatedWidth texHeight: dedicatedHeight];
 }
 
 - (Bool) validateTexSize: (int) _texWidth texHeight: (int) _texHeight
@@ -355,12 +366,14 @@ static const GLfloat gl_verts[] = {
     if(_texHeight != texHeight || _texWidth != texWidth) {
         texWidth = _texWidth;
         texHeight = _texHeight;
+        /**
         CGRect lRect = [self bounds];
         lRect.origin.x = 0;
         lRect.origin.y = 0;
         lRect.size.width = texWidth;
         lRect.size.height = texHeight;
-        [self setFrame: lRect];
+        [self setFrame: lRect]; */
+        CGRect lRect = [self fixMyFrame];
 
         GLfloat texCoordWidth, texCoordHeight;
         if(NULL != pbuffer) {
@@ -382,8 +395,14 @@ static const GLfloat gl_verts[] = {
         gl_texCoords[5] = texCoordHeight;
         gl_texCoords[4] = texCoordWidth;
         gl_texCoords[6] = texCoordWidth;
+#ifdef VERBOSE_ON
+        DBG_PRINT("MyNSOpenGLLayer::validateTexSize %p -> tex %dx%d, bounds: %lf/%lf %lfx%lf\n", 
+            self, texWidth, texHeight,
+            lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+#endif
         return YES;
     } else {
+        [self fixMyFrame];
         return NO;
     }
 }
@@ -448,34 +467,6 @@ static const GLfloat gl_verts[] = {
             DBG_PRINT("MyNSOpenGLLayer::deallocPBuffer (w/o ctx) %p (refcnt %d) - context %p, pbuffer %p, texID %d\n", self, (int)[self retainCount], context, pbuffer, (int)textureID);
         }
     }
-}
-
-- (NSOpenGLPixelFormat *)openGLPixelFormatForDisplayMask:(uint32_t)mask
-{
-    DBG_PRINT("MyNSOpenGLLayer::openGLPixelFormatForDisplayMask: %p (refcnt %d) - parent-pfmt %p -> new-pfmt %p\n", 
-        self, (int)[self retainCount], parentPixelFmt, parentPixelFmt);
-    // We simply take over ownership of parent PixelFormat ..
-    return parentPixelFmt;
-}
-
-- (NSOpenGLContext *)openGLContextForPixelFormat:(NSOpenGLPixelFormat *)pixelFormat
-{
-    DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.0: %p (refcnt %d) - pfmt %p, parent %p, DisplayLink %p\n",
-        self, (int)[self retainCount], pixelFormat, parentCtx, displayLink);
-    // NSLog(@"MyNSOpenGLLayer::openGLContextForPixelFormat: %@",[NSThread callStackSymbols]);
-    myCtx = [[MyNSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:parentCtx];
-#ifndef HAS_CADisplayLink
-    if(NULL != displayLink) {
-        CVReturn cvres;
-        DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.1: setup DisplayLink %p\n", displayLink);
-        cvres = CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(displayLink, [myCtx CGLContextObj], [pixelFormat CGLPixelFormatObj]);
-        if(kCVReturnSuccess != cvres) {
-            DBG_PRINT("MyNSOpenGLLayer::init %p, CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext failed: %d\n", self, cvres);
-        }
-    }
-#endif
-    DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.X: new-ctx %p\n", myCtx);
-    return myCtx;
 }
 
 - (void)disableAnimation
@@ -553,29 +544,107 @@ static const GLfloat gl_verts[] = {
     return NULL != pbuffer || NULL != newPBuffer || 0 != textureID ;
 }
 
-- (void)resizeWithOldSuperlayerSize:(CGSize)size
- {
-    CALayer * superL = [self superlayer];
-    CGRect lRectSFrame = [superL frame];
+// @NWDedicatedSize
+- (void)setDedicatedSize:(CGSize)size {
+    DBG_PRINT("MyNSOpenGLLayer::setDedicatedSize: %p, texSize %dx%d <- %lfx%lf\n",
+        self, texWidth, texHeight, size.width, size.height);
+    
+    [CATransaction begin];
+    [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
 
-    DBG_PRINT("MyNSOpenGLLayer::resizeWithOldSuperlayerSize: %p, texSize %dx%d -> size: %lfx%lf ; Super Frame[%lf/%lf %lfx%lf] (refcnt %d)\n",
-        self, texWidth, texHeight, size.width, size.height, 
-        lRectSFrame.origin.x, lRectSFrame.origin.y, lRectSFrame.size.width, lRectSFrame.size.height,
-        (int)[self retainCount]);
+    dedicatedWidth = size.width;
+    dedicatedHeight = size.height;
+
+    CGRect rect = CGRectMake(0, 0, dedicatedWidth, dedicatedHeight); 
+    [self setFrame: rect];
+
+    [CATransaction commit];
+}
+
+- (void) setFrame:(CGRect) frame {
+    CGRect rect = CGRectMake(0, 0, dedicatedWidth, dedicatedHeight); 
+    [super setFrame: rect];
+}
+
+- (CGRect)fixMyFrame
+{
+    CGRect lRect = [self frame];
 
     // With Java7 our root CALayer's frame gets off-limit -> force 0/0 origin!
-    if( lRectSFrame.origin.x!=0 || lRectSFrame.origin.y!=0 ) {
-        lRectSFrame.origin.x = 0;
-        lRectSFrame.origin.y = 0;
-        [superL setPosition: lRectSFrame.origin];
+    if( lRect.origin.x!=0 || lRect.origin.y!=0 || lRect.size.width!=texWidth || lRect.size.height!=texHeight) {
+        DBG_PRINT("MyNSOpenGLLayer::fixMyFrame: %p, 0/0 texSize %dx%d -> Frame[%lf/%lf %lfx%lf]\n",
+            self, texWidth, texHeight,
+            lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+
+        [CATransaction begin];
+        [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+
+        lRect.origin.x = 0;
+        lRect.origin.y = 0;
+        lRect.size.width=texWidth;
+        lRect.size.height=texHeight;
+        [self setFrame: lRect];
+
+        [CATransaction commit];
     }
+    return lRect;
+}
 
-    newTexWidth = lRectSFrame.size.width;
-    newTexHeight = lRectSFrame.size.height;
-    shallDraw = [self isGLSourceValid];
-    SYNC_PRINT("<SZ %dx%d>", newTexWidth, newTexHeight);
+- (CGRect)fixSuperPosition
+{
+    CALayer * superL = [self superlayer];
+    CGRect lRect = [superL frame];
 
-    [super resizeWithOldSuperlayerSize: size];
+    // With Java7 our root CALayer's frame gets off-limit -> force 0/0 origin!
+    if( lRect.origin.x!=0 || lRect.origin.y!=0 ) {
+        DBG_PRINT("MyNSOpenGLLayer::fixSuperPosition: %p, 0/0 -> Super Frame[%lf/%lf %lfx%lf]\n",
+            self, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+
+        [CATransaction begin];
+        [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+
+        lRect.origin.x = 0;
+        lRect.origin.y = 0;
+        [superL setPosition: lRect.origin];
+
+        [CATransaction commit];
+    }
+    return lRect;
+}
+
+- (id<CAAction>)actionForKey:(NSString *)key
+{
+    DBG_PRINT("MyNSOpenGLLayer::actionForKey.0 %p key %s -> NIL\n", self, [key UTF8String]);
+    return nil;
+    // return [super actionForKey: key];
+}
+
+- (NSOpenGLPixelFormat *)openGLPixelFormatForDisplayMask:(uint32_t)mask
+{
+    DBG_PRINT("MyNSOpenGLLayer::openGLPixelFormatForDisplayMask: %p (refcnt %d) - parent-pfmt %p -> new-pfmt %p\n", 
+        self, (int)[self retainCount], parentPixelFmt, parentPixelFmt);
+    // We simply take over ownership of parent PixelFormat ..
+    return parentPixelFmt;
+}
+
+- (NSOpenGLContext *)openGLContextForPixelFormat:(NSOpenGLPixelFormat *)pixelFormat
+{
+    DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.0: %p (refcnt %d) - pfmt %p, parent %p, DisplayLink %p\n",
+        self, (int)[self retainCount], pixelFormat, parentCtx, displayLink);
+    // NSLog(@"MyNSOpenGLLayer::openGLContextForPixelFormat: %@",[NSThread callStackSymbols]);
+    myCtx = [[MyNSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:parentCtx];
+#ifndef HAS_CADisplayLink
+    if(NULL != displayLink) {
+        CVReturn cvres;
+        DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.1: setup DisplayLink %p\n", displayLink);
+        cvres = CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(displayLink, [myCtx CGLContextObj], [pixelFormat CGLPixelFormatObj]);
+        if(kCVReturnSuccess != cvres) {
+            DBG_PRINT("MyNSOpenGLLayer::init %p, CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext failed: %d\n", self, cvres);
+        }
+    }
+#endif
+    DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.X: new-ctx %p\n", myCtx);
+    return myCtx;
 }
 
 - (BOOL)canDrawInOpenGLContext:(NSOpenGLContext *)context pixelFormat:(NSOpenGLPixelFormat *)pixelFormat 
@@ -601,7 +670,7 @@ static const GLfloat gl_verts[] = {
 
         GLenum textureTarget;
 
-        Bool texSizeChanged = [self validateTexSizeWithNewSize];
+        Bool texSizeChanged = [self validateTexSizeWithDedicatedSize];
 
         if( NULL != pbuffer ) {
             if( texSizeChanged && 0 != textureID ) {
