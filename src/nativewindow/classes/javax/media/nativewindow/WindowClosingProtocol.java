@@ -37,6 +37,10 @@ package javax.media.nativewindow;
  * this protocol default behavior {@link WindowClosingMode#DISPOSE_ON_CLOSE DISPOSE_ON_CLOSE} shall be used.</p>
  */
 public interface WindowClosingProtocol {
+    
+    /**
+     * Window closing mode if triggered by toolkit close operation.
+     */
     public enum WindowClosingMode {
         /**
          * Do nothing on native window close operation.<br>

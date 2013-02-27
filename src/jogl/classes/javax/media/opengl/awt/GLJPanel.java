@@ -174,7 +174,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                 public void run() {
                     GLJPanel.this.destroy();
                 }
-            });
+            }, null);
 
   static {
     // Force eager initialization of part of the Java2D class since
@@ -369,6 +369,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   @Override
   public void addNotify() {
     super.addNotify();
+    awtWindowClosingProtocol.addClosingListener();
     if (DEBUG) {
       System.err.println(getThreadName()+": GLJPanel.addNotify()");
     }
@@ -677,8 +678,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     if (!isInitialized) {
         backend.initialize();
     }
-
-    awtWindowClosingProtocol.addClosingListenerOneShot();
   }
 
   @Override

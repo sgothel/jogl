@@ -54,8 +54,7 @@ import javax.media.nativewindow.util.Point;
 public interface NativeWindow extends NativeSurface {
 
   /**
-   * destroys the window and releases
-   * windowing related resources.
+   * Destroys this window incl. releasing all related resources.
    */
   public void destroy();
 

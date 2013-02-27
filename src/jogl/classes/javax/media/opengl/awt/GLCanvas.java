@@ -176,7 +176,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                 public void run() {
                     GLCanvas.this.destroyImpl( true );
                 }
-            });
+            }, null);
 
   /** Creates a new GLCanvas component with a default set of OpenGL
       capabilities, using the default OpenGL capabilities selection
@@ -460,7 +460,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     if( isVisible() ) {
         Threading.invoke(true, displayOnEDTAction, getTreeLock());
     }
-    awtWindowClosingProtocol.addClosingListenerOneShot();
   }
 
   /**
@@ -568,7 +567,8 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
             // for all launch flavors (applet/javaws/..)
             // validateGLDrawable();            
         }
-    
+        awtWindowClosingProtocol.addClosingListener();
+
         if(DEBUG) {
             System.err.println(getThreadName()+": Info: addNotify - end: peer: "+getPeer());
         }

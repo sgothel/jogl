@@ -42,9 +42,7 @@ import com.jogamp.newt.event.awt.AWTWindowAdapter;
  * Specialized parent/client adapter,
  * where the NEWT child window really gets resized,
  * and the parent move window event gets discarded. */
-public class AWTParentWindowAdapter 
-    extends AWTWindowAdapter 
-    implements java.awt.event.HierarchyListener
+public class AWTParentWindowAdapter extends AWTWindowAdapter implements java.awt.event.HierarchyListener
 {
     NativeWindow downstreamParent;
     

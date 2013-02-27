@@ -45,6 +45,7 @@ import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil.WindowClosingListener;
 
 public class TestCloseNewtAWT extends UITestCase {
 
@@ -107,9 +108,11 @@ public class TestCloseNewtAWT extends UITestCase {
                 frame.setVisible(true);
             }
         });
-        Thread.sleep(500);
+        Assert.assertEquals(true, AWTRobotUtil.waitForVisible(frame, true));
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(newtWindow, true));
+        final WindowClosingListener closingListener = AWTRobotUtil.addClosingListener(frame);
 
-        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true));
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true, closingListener));
     }
 
     public static void main(String[] args) {

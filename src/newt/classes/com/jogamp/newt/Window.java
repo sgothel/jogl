@@ -28,12 +28,15 @@
 
 package com.jogamp.newt;
 
+import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.MouseListener;
 import jogamp.newt.Debug;
+import jogamp.newt.WindowImpl;
+
 import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindow;
@@ -104,19 +107,41 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     CapabilitiesImmutable getChosenCapabilities();
 
     /**
-     * Destroy the Window and it's children, incl. native destruction.<br>
-     * The Window can be recreate via {@link #setVisible(boolean) setVisible(true)}.
-     * <p>Visibility is set to false.</p>
+     * {@inheritDoc}
+     * <p>
+     * Also iterates through this window's children and destroys them.
+     * </p>
+     * <p>
+     * Visibility is set to false.
+     * </p>
+     * <p>
+     * Method sends out {@link WindowEvent#EVENT_WINDOW_DESTROY_NOTIFY pre-} and 
+     * {@link WindowEvent#EVENT_WINDOW_DESTROYED post-} destruction events
+     * to all of it's {@link WindowListener}.
+     * </p>
      * <p>
      * This method invokes {@link Screen#removeReference()} after it's own destruction,<br>
      * which will issue {@link Screen#destroy()} if the reference count becomes 0.<br>
      * This destruction sequence shall end up in {@link Display#destroy()}, if all reference counts become 0.
+     * </p>
+     * <p>
+     * The Window can be recreate via {@link #setVisible(boolean) setVisible(true)}.
      * </p>
      * @see #destroy()
      * @see #setVisible(boolean)
      */
     @Override
     void destroy();
+
+    /**
+     * Set a custom action handling destruction issued by a {@link WindowImpl#windowDestroyNotify(boolean) toolkit triggered window destroy}
+     * replacing the default {@link #destroy()} action.
+     * <p>
+     * The custom action shall call {@link #destroy()} 
+     * but may perform further tasks before and after.
+     * </p>
+     */
+    void setWindowDestroyNotifyAction(Runnable r);
 
     /**
      * <code>setVisible</code> makes the window and children visible if <code>visible</code> is true,
@@ -383,10 +408,13 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     // WindowListener
     //
 
+    /**
+     * Send a {@link WindowEvent} to all {@link WindowListener}.
+     * @param eventType a {@link WindowEvent} type, e.g. {@link WindowEvent#EVENT_WINDOW_REPAINT}. 
+     */
     public void sendWindowEvent(int eventType);
 
     /**
-     *
      * Appends the given {@link com.jogamp.newt.event.WindowListener} to the end of
      * the list.
      */

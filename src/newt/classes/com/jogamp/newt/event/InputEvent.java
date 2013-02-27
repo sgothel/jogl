@@ -81,11 +81,6 @@ public abstract class InputEvent extends NEWTEvent
      return 0;
  }
  
- /** Object when attached via {@link #setAttachment(Object)} marks the event consumed,
-  * ie. stops propagating the event any further to the event listener. 
-  */
- public static final Object consumedTag = new Object();
- 
  protected InputEvent(short eventType, Object source, long when, int modifiers) {
     super(eventType, source, when);
     this.modifiers=modifiers;

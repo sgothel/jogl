@@ -46,13 +46,14 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil.WindowClosingListener;
 
 public class TestWindowClosingProtocol01AWT extends UITestCase {
 
     @Test
     public void testCloseFrameGLCanvas() throws InterruptedException, InvocationTargetException {
         final Frame frame = new Frame("testCloseFrameGLCanvas AWT");
-
+        final WindowClosingListener closingListener = AWTRobotUtil.addClosingListener(frame);
         GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
         final GLCanvas glCanvas = new GLCanvas(caps);
@@ -74,12 +75,14 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         WindowClosingMode op = glCanvas.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingMode.DO_NOTHING_ON_CLOSE, op);
 
-        Assert.assertEquals(true, AWTRobotUtil.closeWindow(frame, false)); // nop
+        Assert.assertEquals(true, AWTRobotUtil.closeWindow(frame, false, closingListener)); // nop
         Thread.sleep(100);
-        Assert.assertEquals(true, frame.isDisplayable());
+        Assert.assertEquals(true,  frame.isDisplayable());
         Assert.assertEquals(true,  frame.isVisible());
-        Assert.assertEquals(true, glCanvas.isValid());
-        Assert.assertEquals(true, glCanvas.isDisplayable());
+        Assert.assertEquals(true,  glCanvas.isValid());
+        Assert.assertEquals(true,  glCanvas.isDisplayable());
+        Assert.assertEquals(true,  closingListener.isWindowClosing());
+        Assert.assertEquals(false, closingListener.isWindowClosed());
 
         //
         // close with op (GLCanvas): DISPOSE_ON_CLOSE -> dispose
@@ -90,10 +93,12 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         
         Thread.sleep(300);
 
-        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false)); // no frame close, but GLCanvas's GL resources will be destroyed
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false, closingListener)); // no frame close, but GLCanvas's GL resources will be destroyed
         Thread.sleep(100);
         Assert.assertEquals(true,  frame.isDisplayable());
         Assert.assertEquals(true,  frame.isVisible());
+        Assert.assertEquals(true,  closingListener.isWindowClosing());
+        Assert.assertEquals(false, closingListener.isWindowClosed());
         for (int wait=0; wait<AWTRobotUtil.POLL_DIVIDER && glCanvas.isRealized(); wait++) {
             Thread.sleep(AWTRobotUtil.TIME_SLICE);
         }
@@ -108,7 +113,8 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
     @Test
     public void testCloseJFrameGLCanvas() throws InterruptedException, InvocationTargetException {
         final JFrame frame = new JFrame("testCloseJFrameGLCanvas AWT");
-
+        final WindowClosingListener closingListener = AWTRobotUtil.addClosingListener(frame);
+        
         GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
         GLCanvas glCanvas = new GLCanvas(caps);
@@ -133,7 +139,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
 
         Thread.sleep(300);
         
-        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false)); // nop
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, false, closingListener)); // nop
         Thread.sleep(100);
         Assert.assertEquals(true,  frame.isDisplayable());
         Assert.assertEquals(true,  glCanvas.isValid());
@@ -154,7 +160,7 @@ public class TestWindowClosingProtocol01AWT extends UITestCase {
         op = glCanvas.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingMode.DISPOSE_ON_CLOSE, op);
 
-        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true));
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(frame, true, closingListener));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, false));
         Assert.assertEquals(false, frame.isDisplayable());
         Assert.assertEquals(false, glCanvas.isValid());

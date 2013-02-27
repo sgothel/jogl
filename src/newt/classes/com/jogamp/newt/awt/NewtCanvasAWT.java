@@ -51,6 +51,7 @@ import javax.swing.MenuSelectionManager;
 
 import jogamp.nativewindow.awt.AWTMisc;
 import jogamp.newt.Debug;
+import jogamp.newt.WindowImpl;
 import jogamp.newt.awt.NewtFactoryAWT;
 import jogamp.newt.awt.event.AWTParentWindowAdapter;
 import jogamp.newt.driver.DriverClearFocus;
@@ -59,9 +60,9 @@ import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.nativewindow.awt.JAWTWindow;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.Window;
-import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
+import com.jogamp.newt.event.NEWTEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
@@ -88,16 +89,22 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     private boolean newtChildAttached = false;
     private boolean isOnscreen = true;
     private WindowClosingMode newtChildCloseOp;
-    private AWTAdapter awtAdapter = null;
+    private AWTParentWindowAdapter awtAdapter = null;
     private AWTAdapter awtMouseAdapter = null;
     private AWTAdapter awtKeyAdapter = null;
     
     private AWTWindowClosingProtocol awtWindowClosingProtocol =
           new AWTWindowClosingProtocol(this, new Runnable() {
                 public void run() {
-                    NewtCanvasAWT.this.destroy();
+                    NewtCanvasAWT.this.destroyImpl(false /* removeNotify */, true /* windowClosing */);
                 }
-            });
+            }, new Runnable() {
+                public void run() {
+                    if( newtChild != null ) {
+                        newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
+                    }
+                }                
+            } );
 
     /**
      * Instantiates a NewtCanvas without a NEWT child.<br>
@@ -209,7 +216,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
          }
          public void keyTyped(KeyEvent e) {
              if(suppress) {
-                 e.setAttachment(InputEvent.consumedTag);
+                 e.setAttachment(NEWTEvent.consumedTag);
                  suppress = false; // reset
              }             
          }
@@ -239,7 +246,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                  }
              }
              if(suppress) {
-                 evt.setAttachment(InputEvent.consumedTag);                 
+                 evt.setAttachment(NEWTEvent.consumedTag);                 
              }
              if(DEBUG) {
                  System.err.println("NewtCanvasAWT.focusKey: XXX: "+ks);
@@ -361,27 +368,17 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                                    ", displayable "+isDisplayable()+", cont "+AWTMisc.getContainer(this));
             }
         }
+        awtWindowClosingProtocol.addClosingListener();
     }
 
     @Override
     public void removeNotify() {
+        awtWindowClosingProtocol.removeClosingListener();
+        
         if( Beans.isDesignTime() ) {
             super.removeNotify();
         } else {
-            java.awt.Container cont = AWTMisc.getContainer(this);
-            if(DEBUG) {
-                System.err.println("NewtCanvasAWT.removeNotify: "+newtChild+", from "+cont);
-            }
-            // Detach OLS early..
-            final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(newtChild, true);
-            if(null != ols && ols.isSurfaceLayerAttached()) {
-                ols.detachSurfaceLayer();
-            }    
-            detachNewtChild(cont); // will destroy context (offscreen -> onscreen) and implicit detachSurfaceLayer (if still attached)
-            
-            NewtFactoryAWT.destroyNativeWindow(jawtWindow);
-            jawtWindow=null;
-            
+            destroyImpl(true /* removeNotify */, false /* windowClosing */);
             super.removeNotify();
         }
     }
@@ -397,20 +394,32 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
      * @see Window#destroy()
      */
     public final void destroy() {
+        destroyImpl(false /* removeNotify */, false /* windowClosing */);
+    }
+    
+    private final void destroyImpl(boolean removeNotify, boolean windowClosing) {
         if( null !=newtChild ) {
             java.awt.Container cont = AWTMisc.getContainer(this);
             if(DEBUG) {
-                System.err.println("NewtCanvasAWT.destroy(): "+newtChild+", from "+cont);
+                System.err.println("NewtCanvasAWT.destroy(removeNotify "+removeNotify+", windowClosing "+windowClosing+"): nw "+newtWinHandleToHexString(newtChild)+", from "+cont);
             }
-            // Detach OLS early..
-            final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(newtChild, true);
-            if(null != ols && ols.isSurfaceLayerAttached()) {
-                ols.detachSurfaceLayer();
-            }    
-            detachNewtChild(cont); // will destroy context (offscreen -> onscreen) and implicit detachSurfaceLayer (if still attached)
-            newtChild.destroy();
-            newtChild=null;
+            detachNewtChild(cont);
+            
+            if( !removeNotify ) {
+                final Window cWin = newtChild;
+                final Window dWin = cWin.getDelegatedWindow();
+                newtChild=null;
+                if( windowClosing && dWin instanceof WindowImpl ) {
+                    ((WindowImpl)dWin).windowDestroyNotify(true);
+                } else {
+                    cWin.destroy();
+                }
+            }            
         }
+        if( ( removeNotify || windowClosing ) && null!=jawtWindow) {
+            NewtFactoryAWT.destroyNativeWindow(jawtWindow);
+            jawtWindow=null;
+        }        
     }
     
     @Override
@@ -501,8 +510,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
             return false;
         }
         
-        awtWindowClosingProtocol.addClosingListenerOneShot();
-        
         if( attachNewtChild && !newtChildAttached && null != newtChild ) {
             attachNewtChild(cont);
         }
@@ -535,11 +542,11 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                     throw new InternalError("XXX");
                 }                
                 isOnscreen = jawtWindow.getGraphicsConfiguration().getChosenCapabilities().isOnscreen();
-                awtAdapter = new AWTParentWindowAdapter(jawtWindow, newtChild).addTo(this);
+                awtAdapter = (AWTParentWindowAdapter) new AWTParentWindowAdapter(jawtWindow, newtChild).addTo(this);
+                awtAdapter.removeWindowClosingFrom(this); // we utilize AWTWindowClosingProtocol triggered destruction!
                 newtChild.addWindowListener(clearAWTMenusOnNewtFocus);
                 newtChild.setFocusAction(focusAction); // enable AWT focus traversal
                 newtChildCloseOp = newtChild.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE);
-                awtWindowClosingProtocol.addClosingListenerOneShot();
                 keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
                 keyboardFocusManager.addPropertyChangeListener("focusOwner", focusPropertyChangeListener);
                 if(isOnscreen) {
@@ -554,7 +561,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 newtChild.removeWindowListener(clearAWTMenusOnNewtFocus);
                 newtChild.setFocusAction(null);
                 newtChild.setDefaultCloseOperation(newtChildCloseOp);
-                awtWindowClosingProtocol.removeClosingListener();
             }
         }
     }
@@ -611,7 +617,14 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       newtChild.setFocusAction(null); // no AWT focus traversal ..
       configureNewtChild(false);
       newtChild.setVisible(false);
-      newtChild.reparentWindow(null);
+      
+      // Detach OLS early..
+      final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(newtChild, true);
+      if(null != ols && ols.isSurfaceLayerAttached()) {
+          ols.detachSurfaceLayer();
+      }                  
+      newtChild.reparentWindow(null); // will destroy context (offscreen -> onscreen) and implicit detachSurfaceLayer (if still attached)
+      
       if(DEBUG) {
           System.err.println("NewtCanvasAWT.detachNewtChild.X: win "+newtWinHandleToHexString(newtChild)+", EDTUtil: cur "+newtChild.getScreen().getDisplay().getEDTUtil()+", comp "+this);
       }

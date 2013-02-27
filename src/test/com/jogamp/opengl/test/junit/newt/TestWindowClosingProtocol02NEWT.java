@@ -52,7 +52,7 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
         GLProfile glp = GLProfile.getGL2ES2();
         GLCapabilities caps = new GLCapabilities(glp);
         final GLWindow glWindow = GLWindow.create(caps);
-        final AWTRobotUtil.WindowClosingListener windowClosingListener = AWTRobotUtil.addClosingListener(glWindow);
+        final AWTRobotUtil.WindowClosingListener closingListener = AWTRobotUtil.addClosingListener(glWindow);
 
         glWindow.addGLEventListener(new GearsES2());
         glWindow.setSize(512, 512);
@@ -72,10 +72,10 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
         
         Thread.sleep(300);
 
-        Assert.assertEquals(true, AWTRobotUtil.closeWindow(glWindow, false)); // nop
+        Assert.assertEquals(true, AWTRobotUtil.closeWindow(glWindow, false, closingListener)); // nop
         Assert.assertEquals(true, glWindow.isNativeValid());
-        Assert.assertEquals(true, windowClosingListener.isWindowClosing());
-        windowClosingListener.reset();
+        Assert.assertEquals(true, closingListener.isWindowClosing());
+        closingListener.reset();
 
         //
         // close with op (GLCanvas): DISPOSE_ON_CLOSE -> dispose
@@ -84,9 +84,9 @@ public class TestWindowClosingProtocol02NEWT extends UITestCase {
         op = glWindow.getDefaultCloseOperation();
         Assert.assertEquals(WindowClosingMode.DISPOSE_ON_CLOSE, op);
 
-        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(glWindow, true));
+        Assert.assertEquals(true,  AWTRobotUtil.closeWindow(glWindow, true, closingListener));
         Assert.assertEquals(false, glWindow.isNativeValid());
-        Assert.assertEquals(true,  windowClosingListener.isWindowClosing());
+        Assert.assertEquals(true,  closingListener.isWindowClosing());
     }
 
     public static void main(String[] args) {

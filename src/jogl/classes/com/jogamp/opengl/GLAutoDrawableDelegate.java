@@ -51,12 +51,12 @@ import jogamp.opengl.GLDrawableImpl;
  * utilizing already created {@link GLDrawable} and {@link GLContext} instances.
  * <p>
  * Since no native windowing system events are being processed, it is recommended
- * to handle at least:
+ * to handle at least the {@link com.jogamp.newt.event.WindowEvent window events}:
  * <ul>
  *   <li>{@link com.jogamp.newt.event.WindowListener#windowRepaint(com.jogamp.newt.event.WindowUpdateEvent) repaint} using {@link #windowRepaintOp()}</li>
  *   <li>{@link com.jogamp.newt.event.WindowListener#windowResized(com.jogamp.newt.event.WindowEvent) resize} using {@link #windowResizedOp()}</li>
- *   <li>{@link com.jogamp.newt.event.WindowListener#windowDestroyNotify(com.jogamp.newt.event.WindowEvent) destroy-notify}  using {@link #windowDestroyNotifyOp()}</li> 
- * </ul> 
+ * </ul>
+ * and setup a {@link com.jogamp.newt.Window#setWindowDestroyNotifyAction(Runnable) custom toolkit destruction} issuing {@link #windowDestroyNotifyOp()}.
  * </p>
  * <p> 
  * See example {@link com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateNEWT TestGLAutoDrawableDelegateNEWT}.

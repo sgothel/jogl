@@ -370,15 +370,8 @@ public abstract class DisplayImpl extends Display {
             DisplayImpl.this.dispatchMessages();
         } };
 
-    final void dispatchMessage(final NEWTEventTask eventTask) {
-        final NEWTEvent event = eventTask.get();
+    final void dispatchMessage(final NEWTEvent event) {
         try { 
-            if(null == event) {
-                // Ooops ?
-                System.err.println("Warning: event of eventTask is NULL");
-                Thread.dumpStack();
-                return;
-            }
             final Object source = event.getSource();        
             if(source instanceof NEWTEventConsumer) {
                 final NEWTEventConsumer consumer = (NEWTEventConsumer) source ;
@@ -396,6 +389,21 @@ public abstract class DisplayImpl extends Display {
             } else {
                 re = new RuntimeException(t);
             }
+            throw re;
+        }
+    }
+    
+    final void dispatchMessage(final NEWTEventTask eventTask) {
+        final NEWTEvent event = eventTask.get();
+        try { 
+            if(null == event) {
+                // Ooops ?
+                System.err.println("Warning: event of eventTask is NULL");
+                Thread.dumpStack();
+                return;
+            }
+            dispatchMessage(event);
+        } catch (RuntimeException re) {
             if( eventTask.isCallerWaiting() ) {
                 // propagate exception to caller
                 eventTask.setException(re);
@@ -451,7 +459,7 @@ public abstract class DisplayImpl extends Display {
         
         // can't wait if we are on EDT or NEDT -> consume right away
         if(wait && edtUtil.isCurrentThreadEDTorNEDT() ) {
-            dispatchMessage(new NEWTEventTask(e, null));
+            dispatchMessage(e);
             return;
         }
         

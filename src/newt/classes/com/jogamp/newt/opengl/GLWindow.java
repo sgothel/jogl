@@ -100,7 +100,10 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     protected GLWindow(Window window) {
         super(null, null, false /* always handle device lifecycle ourselves */);
         this.window = (WindowImpl) window;
-        this.window.setHandleDestroyNotify(false);
+        this.window.setWindowDestroyNotifyAction( new Runnable() {
+            public void run() {
+                defaultWindowDestroyNotifyOp();
+            } } );
         window.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowRepaint(WindowUpdateEvent e) {
@@ -112,10 +115,6 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                     defaultWindowResizedOp(getWidth(), getHeight());
                 }
 
-                @Override
-                public void windowDestroyNotify(WindowEvent e) {
-                    defaultWindowDestroyNotifyOp();
-                }
             });
         this.window.setLifecycleHook(new GLLifecycleHook());
     }
@@ -389,6 +388,11 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         window.destroy();
     }
 
+    @Override
+    public void setWindowDestroyNotifyAction(Runnable r) {
+        window.setWindowDestroyNotifyAction(r);
+    }
+    
     @Override
     public final void setVisible(boolean visible) {
         window.setVisible(visible);

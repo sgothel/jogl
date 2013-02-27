@@ -181,8 +181,13 @@ public abstract class AWTAdapter implements java.util.EventListener
     /** @see #addTo(java.awt.Component) */
     public abstract AWTAdapter removeFrom(java.awt.Component awtComponent);
 
+    /**
+     * Enqueues the event to the {@link #getNewtWindow()} is not null.
+     */
     void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
-        newtWindow.enqueueEvent(wait, event);
+        if( null != newtWindow ) {
+            newtWindow.enqueueEvent(wait, event);
+        }
     }
 }
 

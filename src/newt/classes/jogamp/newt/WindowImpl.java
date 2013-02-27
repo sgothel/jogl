@@ -110,7 +110,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private boolean pointerConfined = false;
     private LifecycleHook lifecycleHook = null;
 
-    private boolean handleDestroyNotify = true;
+    private Runnable windowDestroyNotifyAction = null;
 
     private FocusRunnable focusAction = null;
     private KeyListener keyboardFocusHandler = null;
@@ -864,8 +864,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             _lock.lock();
             try {
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("Window DestroyAction() "+getThreadName());
+                    System.err.println("Window DestroyAction() hasScreen "+(null != screen)+", isNativeValid "+isNativeValid()+" - "+getThreadName());
                 }
+                
+                // send synced destroy-notify notification
+                sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
+                
                 // Childs first ..
                 synchronized(childWindowsLock) {
                   if(childWindows.size()>0) {
@@ -875,8 +879,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     while( clonedChildWindows.size() > 0 ) {
                       NativeWindow nw = clonedChildWindows.remove(0);
                       if(nw instanceof WindowImpl) {
-                          ((WindowImpl)nw).sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
-                          ((WindowImpl)nw).destroy();
+                          ((WindowImpl)nw).windowDestroyNotify(true);
                       } else {
                           nw.destroy();
                       }
@@ -1549,14 +1552,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     public Object getWrappedWindow() {
         return null;
     }
-    
-    /**
-     * If set to true, the default value, this NEWT Window implementation will
-     * handle the destruction (ie {@link #destroy()} call) within {@link #windowDestroyNotify(boolean)} implementation.<br>
-     * If set to false, it's up to the caller/owner to handle destruction within {@link #windowDestroyNotify(boolean)}.
-     */
-    public void setHandleDestroyNotify(boolean b) {
-        handleDestroyNotify = b;
+
+    @Override
+    public void setWindowDestroyNotifyAction(Runnable r) {
+        windowDestroyNotifyAction = r;
     }
 
     /** 
@@ -2211,7 +2210,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 default:
                     throw new NativeWindowException("Unexpected mouse event type " + e.getEventType());
             }
-            consumed = InputEvent.consumedTag == e.getAttachment();
+            consumed = NEWTEvent.consumedTag == e.getAttachment();
         }
     }
 
@@ -2340,7 +2339,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             default:
                 throw new NativeWindowException("Unexpected key event type " + e.getEventType());
         }
-        return InputEvent.consumedTag == e.getAttachment();
+        return NEWTEvent.consumedTag == e.getAttachment();
     }
     
     @SuppressWarnings("deprecation")
@@ -2446,7 +2445,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("consumeWindowEvent: "+e+", visible "+isVisible()+" "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
         }
-        for(int i = 0; i < windowListeners.size(); i++ ) {
+        boolean consumed = false;
+        for(int i = 0; !consumed && i < windowListeners.size(); i++ ) {
             WindowListener l = windowListeners.get(i);
             switch(e.getEventType()) {
                 case WindowEvent.EVENT_WINDOW_RESIZED:
@@ -2475,6 +2475,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         new NativeWindowException("Unexpected window event type "
                                                   + e.getEventType());
             }
+            consumed = NEWTEvent.consumedTag == e.getAttachment();
         }
     }
 
@@ -2615,32 +2616,45 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     
     /**
-     * Triggered by implementation's WM events or programmatically
+     * Triggered by implementation's WM events or programmatic while respecting {@link #getDefaultCloseOperation()}.
      * 
      * @param force if true, overrides {@link #setDefaultCloseOperation(WindowClosingMode)} with {@link WindowClosingProtocol#DISPOSE_ON_CLOSE}
      *              and hence force destruction. Otherwise is follows the user settings.
      * @return true if this window is no more valid and hence has been destroyed, otherwise false.
      */
-    protected boolean windowDestroyNotify(boolean force) {
+    public boolean windowDestroyNotify(boolean force) {
+        final WindowClosingMode defMode = getDefaultCloseOperation();
+        final WindowClosingMode mode = force ? WindowClosingMode.DISPOSE_ON_CLOSE : defMode;
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.windowDestroyNotify(force: "+force+") START "+getThreadName()+": "+this);
+            System.err.println("Window.windowDestroyNotify(force: "+force+", mode "+defMode+" -> "+mode+") "+getThreadName()+": "+this);
         }
-        if(force) {
-            setDefaultCloseOperation(WindowClosingMode.DISPOSE_ON_CLOSE);
-        }
-
-        // send synced destroy notifications
-        enqueueWindowEvent(true, WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
-
-        if(handleDestroyNotify && WindowClosingMode.DISPOSE_ON_CLOSE == getDefaultCloseOperation()) {
-            destroy();
+        
+        if( WindowClosingMode.DISPOSE_ON_CLOSE == mode ) {
+            if(force) {
+                setDefaultCloseOperation(mode);
+            }
+            try {
+                if( null == windowDestroyNotifyAction ) {
+                    destroy();
+                } else {
+                    windowDestroyNotifyAction.run();
+                }
+            } finally {
+                if(force) {
+                    setDefaultCloseOperation(defMode);
+                }
+            }
+        } else {
+            // send synced destroy notifications
+            sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
         }
         
         final boolean destroyed = !isNativeValid();
 
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.windowDestroyNotify(force: "+force+") END "+getThreadName()+": destroyed "+destroyed+", "+this);
-        }
+            System.err.println("Window.windowDestroyNotify(force: "+force+", mode "+mode+") END "+getThreadName()+": destroyed "+destroyed+", "+this);
+        }        
+        
         return destroyed;
     }
 

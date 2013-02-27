@@ -256,10 +256,7 @@ public class WindowDriver extends WindowImpl {
         }
         @Override
         public void windowDestroyed(WindowEvent e) {
-            if(isNativeValid()) {
-                WindowDriver.this.windowDestroyNotify(true);
-            }
-            
+            // Not fwd by AWTWindowAdapter, synthesized by NEWT
         }
         @Override
         public void windowGainedFocus(WindowEvent e) {

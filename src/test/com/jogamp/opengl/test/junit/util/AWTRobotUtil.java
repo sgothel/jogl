@@ -28,6 +28,7 @@
  
 package com.jogamp.opengl.test.junit.util;
 
+import jogamp.common.awt.AWTEDTExecutor;
 import jogamp.newt.WindowImplAccess;
 
 import java.lang.reflect.InvocationTargetException;
@@ -40,6 +41,8 @@ import javax.media.opengl.GLDrawable;
 import javax.media.opengl.awt.GLCanvas;
 
 import org.junit.Assert;
+
+import com.jogamp.newt.event.WindowEvent;
 
 public class AWTRobotUtil {
 
@@ -646,16 +649,19 @@ public class AWTRobotUtil {
      *
      * @param obj either an AWT Window (Frame, JFrame) or NEWT Window
      * @param willClose indicating that the window will close, hence this method waits for the window to be closed
+     * @param wcl the WindowClosingListener to determine whether the AWT or NEWT widget has been closed. It should be attached 
+     *            to the widget ASAP before any other listener, e.g. via {@link #addClosingListener(Object)}. 
+     *            The WindowClosingListener will be reset before attempting to close the widget.   
      * @return True if the Window is closing and closed (if willClose is true), each within TIME_OUT
      * @throws InterruptedException
      */
-    public static boolean closeWindow(Object obj, boolean willClose) throws InterruptedException, InvocationTargetException {
-        WindowClosingListener closingListener = addClosingListener(obj);
+    public static boolean closeWindow(Object obj, boolean willClose, WindowClosingListener closingListener) throws InterruptedException {
+        closingListener.reset();
         if(obj instanceof java.awt.Window) {
             final java.awt.Window win = (java.awt.Window) obj;
             java.awt.Toolkit tk = java.awt.Toolkit.getDefaultToolkit();
             final java.awt.EventQueue evtQ = tk.getSystemEventQueue();
-            java.awt.EventQueue.invokeAndWait(new Runnable() {
+            AWTEDTExecutor.singleton.invoke(true, new Runnable() {
                 public void run() {
                     evtQ.postEvent(new java.awt.event.WindowEvent(win, java.awt.event.WindowEvent.WINDOW_CLOSING));
                 } });
@@ -675,12 +681,15 @@ public class AWTRobotUtil {
         return wait<POLL_DIVIDER;
     }
 
-    public static WindowClosingListener addClosingListener(Object obj) throws InterruptedException {
+    public static WindowClosingListener addClosingListener(Object obj) {
         WindowClosingListener cl = null;
         if(obj instanceof java.awt.Window) {
-            java.awt.Window win = (java.awt.Window) obj;
-            AWTWindowClosingAdapter acl = new AWTWindowClosingAdapter();
-            win.addWindowListener(acl);
+            final java.awt.Window win = (java.awt.Window) obj;
+            final AWTWindowClosingAdapter acl = new AWTWindowClosingAdapter();
+            AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+                public void run() {
+                    win.addWindowListener(acl);
+                } } );
             cl = acl;
         } else if(obj instanceof com.jogamp.newt.Window) {
             com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
@@ -694,53 +703,77 @@ public class AWTRobotUtil {
     }
     public static interface WindowClosingListener {
         void reset();
+        public int getWindowClosingCount();
+        public int getWindowClosedCount();
         public boolean isWindowClosing();
         public boolean isWindowClosed();
     }
     static class AWTWindowClosingAdapter
             extends java.awt.event.WindowAdapter implements WindowClosingListener
     {
-        volatile boolean closing = false;
-        volatile boolean closed = false;
+        volatile int closing = 0;
+        volatile int closed = 0;
 
         public void reset() {
-            closing = false;
-            closed = false;
+            closing = 0;
+            closed = 0;
         }
-        public boolean isWindowClosing() {
+        public int getWindowClosingCount() {
             return closing;
         }
-        public boolean isWindowClosed() {
+        public int getWindowClosedCount() {
             return closed;
         }
+        public boolean isWindowClosing() {
+            return 0 < closing;
+        }
+        public boolean isWindowClosed() {
+            return 0 < closed;
+        }
         public void windowClosing(java.awt.event.WindowEvent e) {
-            closing = true;
+            closing++;
+            System.err.println("AWTWindowClosingAdapter.windowClosing: "+this);
         }
         public void windowClosed(java.awt.event.WindowEvent e) {
-            closed = true;
+            closed++;
+            System.err.println("AWTWindowClosingAdapter.windowClosed: "+this);
+        }
+        public String toString() {
+            return "AWTWindowClosingAdapter[closing "+closing+", closed "+closed+"]";
         }
     }
     static class NEWTWindowClosingAdapter
             extends com.jogamp.newt.event.WindowAdapter implements WindowClosingListener
     {
-        volatile boolean closing = false;
-        volatile boolean closed = false;
+        volatile int closing = 0;
+        volatile int closed = 0;
 
         public void reset() {
-            closing = false;
-            closed = false;
+            closing = 0;
+            closed = 0;
         }
-        public boolean isWindowClosing() {
+        public int getWindowClosingCount() {
             return closing;
         }
-        public boolean isWindowClosed() {
+        public int getWindowClosedCount() {
             return closed;
         }
-        public void windowDestroyNotify(com.jogamp.newt.event.WindowEvent e) {
-            closing = true;
+        public boolean isWindowClosing() {
+            return 0 < closing;
         }
-        public void windowDestroyed(com.jogamp.newt.event.WindowEvent e) {
-            closed = true;
+        public boolean isWindowClosed() {
+            return 0 < closed;
+        }
+        public void windowDestroyNotify(WindowEvent e) {
+            closing++;
+            System.err.println("NEWTWindowClosingAdapter.windowDestroyNotify: "+this);
+        }
+        public void windowDestroyed(WindowEvent e) {
+            closed++;
+            System.err.println("NEWTWindowClosingAdapter.windowDestroyed: "+this);
+        }
+        public String toString() {
+            return "NEWTWindowClosingAdapter[closing "+closing+", closed "+closed+"]";
         }
     }
 

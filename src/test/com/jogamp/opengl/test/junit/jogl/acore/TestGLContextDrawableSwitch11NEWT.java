@@ -109,6 +109,11 @@ public class TestGLContextDrawableSwitch11NEWT extends UITestCase {
             }            
         };
         
+        window.setWindowDestroyNotifyAction( new Runnable() {
+            public void run() {
+                glad.windowDestroyNotifyOp();
+            } } );
+        
         // add basic window interaction
         window.addWindowListener(new WindowAdapter() {
             @Override
@@ -118,10 +123,6 @@ public class TestGLContextDrawableSwitch11NEWT extends UITestCase {
             @Override
             public void windowResized(WindowEvent e) {
                 glad.windowResizedOp(window.getWidth(), window.getHeight());
-            }
-            @Override
-            public void windowDestroyNotify(WindowEvent e) {
-                glad.windowDestroyNotifyOp();
             }
         });
         window.addWindowListener(wl);

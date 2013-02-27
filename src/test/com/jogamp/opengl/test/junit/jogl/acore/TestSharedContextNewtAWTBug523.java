@@ -68,6 +68,7 @@ import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil.WindowClosingListener;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLBuffers;
 
@@ -507,6 +508,8 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
      */
     public void testContextSharingCreateVisibleDestroy(final boolean useNewt, final boolean shareContext) throws InterruptedException, InvocationTargetException {
         final JFrame frame = new JFrame("Simple JOGL App for testing context sharing");
+        final WindowClosingListener awtClosingListener = AWTRobotUtil.addClosingListener(frame);
+
         //
         // GLDrawableFactory factory = GLDrawableFactory.getFactory(GLProfile.get(GLProfile.GL2));
         // GLContext sharedContext = factory.getOrCreateSharedContext(factory.getDefaultDevice());
@@ -699,7 +702,7 @@ public class TestSharedContextNewtAWTBug523 extends UITestCase {
             while(animator.isAnimating() && animator.getTotalFPSDuration() < durationPerTest) {
                 Thread.sleep(100);
             }
-            AWTRobotUtil.closeWindow(frame, true);
+            AWTRobotUtil.closeWindow(frame, true, awtClosingListener);
             boolean windowClosed = closingSemaphore.tryAcquire(5000, TimeUnit.MILLISECONDS);
             Assert.assertEquals(true, windowClosed);
         } catch (InterruptedException e) {

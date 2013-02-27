@@ -55,6 +55,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import jogamp.newt.WindowImpl;
 
 /**
  * Tests using a NEWT {@link Window} for on- and offscreen cases.
@@ -169,6 +170,11 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
                 }
             };
         
+        window.setWindowDestroyNotifyAction( new Runnable() {
+            public void run() {
+                glad.windowDestroyNotifyOp();
+            } } );
+                
         window.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowRepaint(WindowUpdateEvent e) {
@@ -178,11 +184,6 @@ public class TestGLAutoDrawableDelegateOnOffscrnCapsNEWT extends UITestCase {
                 @Override
                 public void windowResized(WindowEvent e) {
                     glad.windowResizedOp(window.getWidth(), window.getHeight());
-                }
-
-                @Override
-                public void windowDestroyNotify(WindowEvent e) {
-                    glad.windowDestroyNotifyOp();
                 }
             });
 

@@ -36,6 +36,7 @@ package com.jogamp.newt.event;
 
 import javax.media.nativewindow.WindowClosingProtocol;
 
+/** NEWT {@link WindowEvent} listener. */
 public interface WindowListener extends NEWTEventListener {
     /** Window is resized, your application shall respect the new window dimension. A repaint is recommended. */
     public void windowResized(WindowEvent e);
@@ -53,7 +54,9 @@ public interface WindowListener extends NEWTEventListener {
      **/
     public void windowDestroyNotify(WindowEvent e);
 
-    /** Window has been destroyed.*/
+    /** 
+     * Window has been destroyed.
+     */
     public void windowDestroyed(WindowEvent e);
 
     /** Window gained focus. */

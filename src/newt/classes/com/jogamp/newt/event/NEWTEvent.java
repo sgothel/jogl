@@ -48,6 +48,12 @@ package com.jogamp.newt.event;
  */
 @SuppressWarnings("serial")
 public class NEWTEvent extends java.util.EventObject {
+    /** 
+     * Object when attached via {@link #setAttachment(Object)} marks the event consumed,
+     * ie. stops propagating the event any further to the <i>other</i> event listener. 
+     */
+    public static final Object consumedTag = new Object();
+
     private final short eventType;
     private final long when;
     private Object attachment;
