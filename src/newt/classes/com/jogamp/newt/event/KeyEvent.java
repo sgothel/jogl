@@ -872,6 +872,11 @@ public class KeyEvent extends InputEvent
     public static final short VK_BEGIN                    = (short) 0xFF58;
 
     /**
+     * Constant for Keyboard became invisible, e.g. Android's soft keyboard Back button hit while keyboard is visible.
+     */
+    public static final short VK_KEYBOARD_INVISIBLE       = (short) 0xDEAD;
+
+    /**
      * This value is used to indicate that the keyCode is unknown.
      * KEY_TYPED events do not have a keyCode value; this value 
      * is used instead.  

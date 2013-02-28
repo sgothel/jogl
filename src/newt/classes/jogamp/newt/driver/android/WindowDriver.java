@@ -30,6 +30,7 @@ package jogamp.newt.driver.android;
 
 import jogamp.common.os.android.StaticContext;
 import jogamp.newt.WindowImpl;
+import jogamp.newt.driver.android.event.AndroidNewtEventFactory;
 import jogamp.newt.driver.android.event.AndroidNewtEventTranslator;
 
 import javax.media.nativewindow.Capabilities;
@@ -65,6 +66,8 @@ import android.view.SurfaceHolder.Callback2;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.view.SurfaceView;
+import android.view.KeyEvent;
+
 
 public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {    
     static {
@@ -573,10 +576,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     @Override
     public final void surfaceDestroyed(SurfaceHolder holder) {
         Log.d(MD.TAG, "surfaceDestroyed - on thread "+Thread.currentThread().getName());
-        if(WindowImpl.DEBUG_IMPLEMENTATION) {
-            Thread.dumpStack();
-        }
         windowDestroyNotify(true); // actually too late .. however ..
+        Thread.dumpStack();
     }
 
     @Override
@@ -585,6 +586,27 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         windowRepaint(0, 0, getWidth(), getHeight());
     }
         
+    protected boolean handleKeyCodeBack(KeyEvent.DispatcherState state, android.view.KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() == 0) {
+            state.startTracking(event, this);
+        } else if (event.getAction() == KeyEvent.ACTION_UP && !event.isCanceled() && state.isTracking(event)) {
+            if( isKeyboardVisible() ) {
+                keyboardVisibilityChanged(false);
+                enqueueAKey2NKeyUpDown(event);
+            } else {
+                Log.d(MD.TAG, "handleKeyCodeBack : "+event);
+                windowDestroyNotify(true);
+            }
+        }
+        return false; // cont. processing
+    }
+    private void enqueueAKey2NKeyUpDown(android.view.KeyEvent aEvent) {
+        final com.jogamp.newt.event.KeyEvent eDown = AndroidNewtEventFactory.createKeyEvent(aEvent, com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED, this, true);
+        final com.jogamp.newt.event.KeyEvent eUp = AndroidNewtEventFactory.createKeyEvent(aEvent, com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED, this, true);
+        enqueueEvent(false, eDown);
+        enqueueEvent(false, eUp);
+    }
+    
     private boolean added2StaticViewGroup;
     private MSurfaceView androidView;
     private int nativeFormat; // chosen current native PixelFormat (suitable for EGL)
@@ -600,6 +622,17 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
             setBackgroundDrawable(null);
             // setBackgroundColor(Color.TRANSPARENT);
         }
+
+        @Override
+        public boolean onKeyPreIme(int keyCode, KeyEvent event) {
+            if ( event.getKeyCode() == KeyEvent.KEYCODE_BACK ) {
+                final KeyEvent.DispatcherState state = getKeyDispatcherState();
+                if (state != null) {
+                    return handleKeyCodeBack(state, event);
+                }
+            }
+            return false; // cont. processing
+        }        
     }
     //----------------------------------------------------------------------
     // Internals only

@@ -31,6 +31,7 @@ package jogamp.newt.driver.android.event;
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.InputEvent;
+import com.jogamp.newt.event.NEWTEvent;
 
 public class AndroidNewtEventFactory {
 
@@ -86,7 +87,7 @@ public class AndroidNewtEventFactory {
         return (short)0;
     }
     
-    private static final short aKeyCode2NewtKeyCode(int androidKeyCode) {
+    private static final short aKeyCode2NewtKeyCode(int androidKeyCode, boolean inclSysKeys) {
         if(android.view.KeyEvent.KEYCODE_0 <= androidKeyCode && androidKeyCode <= android.view.KeyEvent.KEYCODE_9) {
             return (short) ( com.jogamp.newt.event.KeyEvent.VK_0 + ( androidKeyCode - android.view.KeyEvent.KEYCODE_0 ) ); 
         }
@@ -122,11 +123,19 @@ public class AndroidNewtEventFactory {
             // case android.view.KeyEvent.KEYCODE_MUTE: ??
             case android.view.KeyEvent.KEYCODE_PAGE_UP: return com.jogamp.newt.event.KeyEvent.VK_PAGE_UP;
             case android.view.KeyEvent.KEYCODE_PAGE_DOWN: return com.jogamp.newt.event.KeyEvent.VK_PAGE_DOWN;
-            // case android.view.KeyEvent.KEYCODE_HOME: return com.jogamp.newt.event.KeyEvent.VK_HOME;
-            // case android.view.KeyEvent.KEYCODE_BACK: return com.jogamp.newt.event.KeyEvent.VK_BACK_SPACE;
             case android.view.KeyEvent.KEYCODE_ESCAPE: return com.jogamp.newt.event.KeyEvent.VK_ESCAPE;
             case android.view.KeyEvent.KEYCODE_CTRL_LEFT: return com.jogamp.newt.event.KeyEvent.VK_CONTROL;
             case android.view.KeyEvent.KEYCODE_CTRL_RIGHT: return com.jogamp.newt.event.KeyEvent.VK_CONTROL; // ??
+            case android.view.KeyEvent.KEYCODE_BACK: 
+                if( inclSysKeys ) {
+                    return com.jogamp.newt.event.KeyEvent.VK_KEYBOARD_INVISIBLE;
+                }
+                break;
+            case android.view.KeyEvent.KEYCODE_HOME:
+                if( inclSysKeys ) {
+                    return com.jogamp.newt.event.KeyEvent.VK_HOME;
+                }
+                break;
         }        
         return (short)0;
     }
@@ -138,6 +147,53 @@ public class AndroidNewtEventFactory {
         if ((androidMods & android.view.KeyEvent.META_ALT_ON)   != 0)   newtMods |= com.jogamp.newt.event.InputEvent.ALT_MASK;
         
         return newtMods;
+    }
+    
+    public static com.jogamp.newt.event.WindowEvent createWindowEvent(android.view.accessibility.AccessibilityEvent event, com.jogamp.newt.Window newtSource) {
+        final int aType = event.getEventType();
+        final short nType = aAccessibilityEventType2Newt(aType);
+        
+        if( (short)0 != nType) {
+            return new com.jogamp.newt.event.WindowEvent(nType, ((null==newtSource)?null:(Object)newtSource), event.getEventTime());
+        }
+        return null; // no mapping ..
+    }
+
+    
+    public static com.jogamp.newt.event.KeyEvent createKeyEvent(android.view.KeyEvent aEvent, com.jogamp.newt.Window newtSource, boolean inclSysKeys) {
+        final com.jogamp.newt.event.KeyEvent res;
+        final short newtType = aKeyEventType2NewtEventType(aEvent.getAction());        
+        if( (short)0 != newtType) {
+            final short newtKeyCode = aKeyCode2NewtKeyCode(aEvent.getKeyCode(), inclSysKeys);
+            res = createKeyEventImpl(aEvent, newtType, newtKeyCode, newtSource);
+        } else {
+            res = null;
+        }
+        if(Window.DEBUG_KEY_EVENT) {
+            System.err.println("createKeyEvent0: "+aEvent+" -> "+res);
+        }
+        return res;
+    }
+
+    public static com.jogamp.newt.event.KeyEvent createKeyEvent(android.view.KeyEvent aEvent, short newtType, com.jogamp.newt.Window newtSource, boolean inclSysKeys) {
+        final short newtKeyCode = aKeyCode2NewtKeyCode(aEvent.getKeyCode(), inclSysKeys);
+        final com.jogamp.newt.event.KeyEvent res = createKeyEventImpl(aEvent, newtType, newtKeyCode, newtSource);
+        if(Window.DEBUG_KEY_EVENT) {
+            System.err.println("createKeyEvent1: newtType "+NEWTEvent.toHexString(newtType)+", "+aEvent+" -> "+res);
+        }
+        return res;
+    }
+    
+    private static com.jogamp.newt.event.KeyEvent createKeyEventImpl(android.view.KeyEvent aEvent, short newtType, short newtKeyCode, com.jogamp.newt.Window newtSource) {
+        if( (short)0 != newtType && (short)0 != newtKeyCode ) {
+            final Object src = null==newtSource ? null : newtSource;
+            final long unixTime = System.currentTimeMillis() + ( aEvent.getEventTime() - android.os.SystemClock.uptimeMillis() );
+            final int newtMods = aKeyModifiers2Newt(aEvent.getMetaState());
+            
+            return new com.jogamp.newt.event.KeyEvent(
+                                newtType, src, unixTime, newtMods, newtKeyCode, newtKeyCode, (char) aEvent.getUnicodeChar());
+        }
+        return null;
     }
     
     private final NewtGestureListener gestureListener;
@@ -152,36 +208,6 @@ public class AndroidNewtEventFactory {
         touchSlop = configuration.getScaledTouchSlop();
     }
         
-    public com.jogamp.newt.event.WindowEvent createWindowEvent(android.view.accessibility.AccessibilityEvent event, com.jogamp.newt.Window newtSource) {
-        final int aType = event.getEventType();
-        final short nType = aAccessibilityEventType2Newt(aType);
-        
-        if( (short)0 != nType) {
-            return new com.jogamp.newt.event.WindowEvent(nType, ((null==newtSource)?null:(Object)newtSource), event.getEventTime());
-        }
-        return null; // no mapping ..
-    }
-
-    
-    public com.jogamp.newt.event.KeyEvent createKeyEvent(int keyCode, android.view.KeyEvent event, com.jogamp.newt.Window newtSource) {
-        final short type = aKeyEventType2NewtEventType(event.getAction());        
-        if(Window.DEBUG_MOUSE_EVENT) {
-            System.err.println("createKeyEvent: type 0x"+Integer.toHexString(type)+", keyCode 0x"+Integer.toHexString(keyCode)+", "+event);
-        }
-        if( (short)0 != type) {
-            final short newtKeyCode = aKeyCode2NewtKeyCode(keyCode);
-            if( (short)0 != newtKeyCode ) {
-                final Object src = (null==newtSource)?null:(Object)newtSource;
-                final long unixTime = System.currentTimeMillis() + ( event.getEventTime() - android.os.SystemClock.uptimeMillis() );
-                final int newtMods = aKeyModifiers2Newt(event.getMetaState());
-                
-                return new com.jogamp.newt.event.KeyEvent(
-                                    type, src, unixTime, newtMods, newtKeyCode, newtKeyCode, (char) event.getUnicodeChar());
-            }
-        }
-        return null;
-    }
-
     private int gestureScrollPointerDown = 0;
     
     public com.jogamp.newt.event.MouseEvent[] createMouseEvents(boolean isOnTouchEvent, 

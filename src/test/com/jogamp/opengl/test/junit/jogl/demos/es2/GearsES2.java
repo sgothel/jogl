@@ -366,6 +366,10 @@ public class GearsES2 implements GLEventListener {
         public void mousePressed(MouseEvent e) {
             prevMouseX = e.getX();
             prevMouseY = e.getY();
+            Object src = e.getSource();
+            if(e.getPressure()>0.6f && src instanceof Window) { // show Keyboard
+               ((Window) src).setKeyboardVisible(true);
+            }            
         }
 
         public void mouseReleased(MouseEvent e) {

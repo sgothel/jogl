@@ -107,7 +107,7 @@ public class NEWTEvent extends java.util.EventObject {
         return sb.append("NEWTEvent[source:").append(getSource().getClass().getName()).append(", when:").append(getWhen()).append(" d ").append((System.currentTimeMillis()-getWhen())).append("ms]");
     }
 
-    static String toHexString(short hex) {
+    public static String toHexString(short hex) {
         return "0x" + Integer.toHexString( (int)hex & 0x0000FFFF );
     }
 }

@@ -66,14 +66,6 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
        GLWindow glWindow = GLWindow.create(caps);
        glWindow.setFullscreen(true);
        setContentView(getWindow(), glWindow);
-       glWindow.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mousePressed(MouseEvent e) {
-           if(e.getPressure()>2f) { // show Keyboard
-               ((com.jogamp.newt.Window) e.getSource()).setKeyboardVisible(true);
-           }
-        }
-       });
        
        GearsES2 demo = new GearsES2(-1);
        // demo.enableAndroidTrace(true);
