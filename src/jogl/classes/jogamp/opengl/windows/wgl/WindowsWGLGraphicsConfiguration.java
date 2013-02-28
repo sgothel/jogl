@@ -361,7 +361,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
             }
             return null;
         }
-        final int numFormats = numFormatsTmp.get(0);
+        final int numFormats = Math.min(numFormatsTmp.get(0), WindowsWGLGraphicsConfiguration.MAX_PFORMATS);
         final int[] pformats;
         if( 0 < numFormats ) {
             pformats = new int[numFormats];

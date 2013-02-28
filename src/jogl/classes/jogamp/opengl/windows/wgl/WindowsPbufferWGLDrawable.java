@@ -173,7 +173,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
                                             pformats, nformatsTmp)) {
           throw new GLException("pbuffer creation error: wglChoosePixelFormat() failed");
         }
-        final int nformats = nformatsTmp.get(0);
+        final int nformats = Math.min(nformatsTmp.get(0), WindowsWGLGraphicsConfiguration.MAX_PFORMATS);
         if (nformats <= 0) {
           throw new GLException("pbuffer creation error: Couldn't find a suitable pixel format");
         }
