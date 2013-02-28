@@ -28,6 +28,7 @@
  
 package com.jogamp.opengl.test.junit.jogl.awt;
 
+import java.awt.Dimension;
 import java.awt.Window;
 import java.lang.reflect.InvocationTargetException;
 
@@ -47,9 +48,11 @@ import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
- * Tests context creation + display on various kinds of Window implementations.
+ * Test realize GLCanvas and setVisible(true) AWT-Frames on AWT-EDT and on current thread (non AWT-EDT)
  */
 public class TestBug572AWT extends UITestCase {
+     static long durationPerTest = 150; // ms
+     
      static class Cleanup implements Runnable {
         Window window;
         
@@ -69,9 +72,8 @@ public class TestBug572AWT extends UITestCase {
             window.dispose();
         }
     }
-
-    @Test
-    public void test01RealizeGLCanvasOnAWTEDT() throws InterruptedException, InvocationTargetException {
+     
+    private void testRealizeGLCanvas(final boolean onAWTEDT, final boolean setFrameSize) throws InterruptedException, InvocationTargetException {
         final Window window = new JFrame(this.getSimpleTestName(" - "));
         final GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());        
         final GLCanvas glCanvas = new GLCanvas(caps);
@@ -81,22 +83,37 @@ public class TestBug572AWT extends UITestCase {
         glCanvas.addGLEventListener(snapshooter);
         window.add(glCanvas);
 
-        // Revalidate size/layout.
-        // Always validate if component added/removed.
-        // Ensure 1st paint of GLCanvas will have a valid size, hence drawable gets created.
-        window.setSize(512, 512);
-        window.validate();
-
-        // trigger realization on AWT-EDT, otherwise it won't immediatly ..
-        SwingUtilities.invokeAndWait(new Runnable() {
+        final Runnable realizeAction = new Runnable() {
             @Override
             public void run() {
+                // Revalidate size/layout.
+                // Always validate if component added/removed.
+                // Ensure 1st paint of GLCanvas will have a valid size, hence drawable gets created.
+                if( setFrameSize ) {
+                    window.setSize(512, 512);
+                    window.validate();
+                } else {                
+                    Dimension size = new Dimension(512, 512);
+                    glCanvas.setPreferredSize(size);
+                    glCanvas.setMinimumSize(size);
+                    window.pack();
+                }
                 window.setVisible(true);
-            }            
-        } );
+            } };
+        if( onAWTEDT ) {
+            // trigger realization on AWT-EDT, otherwise it won't immediatly ..
+            SwingUtilities.invokeAndWait( realizeAction );
+        } else {
+            // trigger realization on non AWT-EDT, realization will happen at a later time ..
+            realizeAction.run();
+            
+            // Wait until it's displayable after issuing initial setVisible(true) on current thread (non AWT-EDT)!
+            Assert.assertTrue("GLCanvas didn't become visible", AWTRobotUtil.waitForVisible(glCanvas, true));
+            Assert.assertTrue("GLCanvas didn't become realized", AWTRobotUtil.waitForRealized(glCanvas, true)); // implies displayable                
+        }
+        
         System.err.println("XXXX-0 "+glCanvas.getDelegatedDrawable().isRealized()+", "+glCanvas);
         
-        // Immediately displayable after issuing initial setVisible(true) on AWT-EDT!
         Assert.assertTrue("GLCanvas didn't become displayable", glCanvas.isDisplayable());
         Assert.assertTrue("GLCanvas didn't become realized", glCanvas.isRealized());
         
@@ -116,59 +133,33 @@ public class TestBug572AWT extends UITestCase {
         Assert.assertTrue("GLCanvas didn't reshape", snapshooter.getReshapeCount()>0);
         Assert.assertTrue("GLCanvas didn't display", snapshooter.getDisplayCount()>0);
         
+        Thread.sleep(durationPerTest);
+        
         // After initial 'setVisible(true)' all AWT manipulation needs to be done
         // via the AWT EDT, according to the AWT spec.
 
         // AWT / Swing on EDT..
         SwingUtilities.invokeAndWait(new Cleanup(window));
     }
+    
+    @Test(timeout = 10000) // 10s timeout
+    public void test01RealizeGLCanvasOnAWTEDTUseFrameSize() throws InterruptedException, InvocationTargetException {
+        testRealizeGLCanvas(true, true);
+    }
 
-    @Test
-    public void test02RealizeGLCanvasOnCurrentThread() throws InterruptedException, InvocationTargetException {
-        final Window window = new JFrame(this.getSimpleTestName(" - "));
-        final GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());        
-        final GLCanvas glCanvas = new GLCanvas(caps);
-        final SnapshotGLEventListener snapshooter = new SnapshotGLEventListener();
-        snapshooter.setMakeSnapshotAlways(true);
-        glCanvas.addGLEventListener(new GearsES2());
-        glCanvas.addGLEventListener(snapshooter);
-        window.add(glCanvas);
+    @Test(timeout = 10000) // 10s timeout
+    public void test02RealizeGLCanvasOnAWTEDTUseGLCanvasSize() throws InterruptedException, InvocationTargetException {
+        testRealizeGLCanvas(true, false);
+    }
+    
+    @Test(timeout = 10000) // 10s timeout
+    public void test11RealizeGLCanvasOnMainTUseFrameSize() throws InterruptedException, InvocationTargetException {
+        testRealizeGLCanvas(false, true);
+    }
 
-        // Revalidate size/layout.
-        // Always validate if component added/removed.
-        // Ensure 1st paint of GLCanvas will have a valid size, hence drawable gets created.
-        window.setSize(512, 512);
-        window.validate();
-
-        // trigger realization on non AWT-EDT, realization will happen at a later time ..
-        window.setVisible(true);
-        System.err.println("XXXX-0 "+glCanvas.getDelegatedDrawable().isRealized()+", "+glCanvas);
-        
-        // Wait until it's displayable after issuing initial setVisible(true) on current thread (non AWT-EDT)!
-        Assert.assertTrue("GLCanvas didn't become visible", AWTRobotUtil.waitForVisible(glCanvas, true));
-        Assert.assertTrue("GLCanvas didn't become realized", AWTRobotUtil.waitForRealized(glCanvas, true)); // implies displayable        
-        
-        // The AWT-EDT reshape/repaint events happen offthread later ..
-        System.err.println("XXXX-1 reshapeCount "+snapshooter.getReshapeCount());
-        System.err.println("XXXX-1 displayCount "+snapshooter.getDisplayCount());
-        
-        // Wait unitl AWT-EDT has issued reshape/repaint
-        for (int wait=0; wait<AWTRobotUtil.POLL_DIVIDER &&
-                         ( 0 == snapshooter.getReshapeCount() || 0 == snapshooter.getDisplayCount() ); 
-             wait++) {
-            Thread.sleep(AWTRobotUtil.TIME_SLICE);
-        }
-        System.err.println("XXXX-2 reshapeCount "+snapshooter.getReshapeCount());
-        System.err.println("XXXX-2 displayCount "+snapshooter.getDisplayCount());
-        
-        Assert.assertTrue("GLCanvas didn't reshape", snapshooter.getReshapeCount()>0);
-        Assert.assertTrue("GLCanvas didn't display", snapshooter.getDisplayCount()>0);
-        
-        // After initial 'setVisible(true)' all AWT manipulation needs to be done
-        // via the AWT EDT, according to the AWT spec.
-
-        // AWT / Swing on EDT..
-        SwingUtilities.invokeAndWait(new Cleanup(window));
+    @Test(timeout = 10000) // 10s timeout
+    public void test12RealizeGLCanvasOnMainTUseGLCanvasSize() throws InterruptedException, InvocationTargetException {
+        testRealizeGLCanvas(false, false);
     }
     
     public static void main(String args[]) {
