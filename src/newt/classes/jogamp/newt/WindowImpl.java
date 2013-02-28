@@ -892,21 +892,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     lifecycleHook.destroyActionInLock();
                 }
 
-                if( null != screen ) {
-                    if( isNativeValid() ) {
-                        screen.removeScreenModeListener(screenModeListenerImpl);
-                        closeNativeImpl();
-                        final AbstractGraphicsDevice cfgADevice = config.getScreen().getDevice();
-                        if( cfgADevice != screen.getDisplay().getGraphicsDevice() ) { // don't pull display's device
-                            cfgADevice.close(); // ensure a cfg's device is closed
-                        }
-                        setGraphicsConfiguration(null);
-                        removeScreenReference();
+                if( isNativeValid() ) {
+                    screen.removeScreenModeListener(screenModeListenerImpl);
+                    closeNativeImpl();
+                    final AbstractGraphicsDevice cfgADevice = config.getScreen().getDevice();
+                    if( cfgADevice != screen.getDisplay().getGraphicsDevice() ) { // don't pull display's device
+                        cfgADevice.close(); // ensure a cfg's device is closed
                     }
-                    Display dpy = screen.getDisplay();
-                    if(null != dpy) {
-                        dpy.validateEDT();
-                    }
+                    setGraphicsConfiguration(null);
+                }
+                removeScreenReference();
+                Display dpy = screen.getDisplay();
+                if(null != dpy) {
+                    dpy.validateEDT();
                 }
 
                 // send synced destroyed notification
@@ -2626,33 +2624,40 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         final WindowClosingMode defMode = getDefaultCloseOperation();
         final WindowClosingMode mode = force ? WindowClosingMode.DISPOSE_ON_CLOSE : defMode;
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.windowDestroyNotify(force: "+force+", mode "+defMode+" -> "+mode+") "+getThreadName()+": "+this);
+            System.err.println("Window.windowDestroyNotify(isNativeValid: "+isNativeValid()+", force: "+force+", mode "+defMode+" -> "+mode+") "+getThreadName()+": "+this);
+            // Thread.dumpStack();
         }
         
-        if( WindowClosingMode.DISPOSE_ON_CLOSE == mode ) {
-            if(force) {
-                setDefaultCloseOperation(mode);
-            }
-            try {
-                if( null == windowDestroyNotifyAction ) {
-                    destroy();
-                } else {
-                    windowDestroyNotifyAction.run();
-                }
-            } finally {
+        final boolean destroyed;
+        
+        if( isNativeValid() ) {
+            if( WindowClosingMode.DISPOSE_ON_CLOSE == mode ) {
                 if(force) {
-                    setDefaultCloseOperation(defMode);
+                    setDefaultCloseOperation(mode);
                 }
+                try {
+                    if( null == windowDestroyNotifyAction ) {
+                        destroy();
+                    } else {
+                        windowDestroyNotifyAction.run();
+                    }
+                } finally {
+                    if(force) {
+                        setDefaultCloseOperation(defMode);
+                    }
+                }
+            } else {
+                // send synced destroy notifications
+                sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
             }
+            
+            destroyed = !isNativeValid();
         } else {
-            // send synced destroy notifications
-            sendWindowEvent(WindowEvent.EVENT_WINDOW_DESTROY_NOTIFY);
+            destroyed = true;
         }
-        
-        final boolean destroyed = !isNativeValid();
 
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("Window.windowDestroyNotify(force: "+force+", mode "+mode+") END "+getThreadName()+": destroyed "+destroyed+", "+this);
+            System.err.println("Window.windowDestroyNotify(isNativeValid: "+isNativeValid()+", force: "+force+", mode "+mode+") END "+getThreadName()+": destroyed "+destroyed+", "+this);
         }        
         
         return destroyed;
