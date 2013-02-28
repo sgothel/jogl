@@ -72,15 +72,20 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
     static GLCapabilities glCaps;
 
     @BeforeClass
-    public static void initClass() throws AWTException {
+    public static void initClass() throws AWTException, InterruptedException, InvocationTargetException {
         width  = 640;
         height = 480;
 
-        JFrame f = new JFrame();
-        f.setSize(100,100);
-        f.setVisible(true);
-        f.dispose();
-        f=null;
+        final JFrame f = new JFrame();
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                f.setSize(100,100);
+                f.setVisible(true);
+            } } );
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                f.dispose();
+            } } );
 
         glCaps = new GLCapabilities(null);
     }
@@ -126,7 +131,7 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         AWTMouseAdapter buttonNorthInnerMA = new AWTMouseAdapter("ButtonNorthInner");
         buttonNorthInner.addMouseListener(buttonNorthInnerMA);
         eventCountAdapters.add(buttonNorthInnerMA);
-        Container container1 = new Container();
+        final Container container1 = new Container();
         container1.setLayout(new BorderLayout());
         container1.add(buttonNorthInner, BorderLayout.NORTH);
         container1.add(new Button("south"), BorderLayout.SOUTH);
@@ -143,7 +148,7 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         AWTMouseAdapter buttonNorthOuterMA = new AWTMouseAdapter("ButtonNorthOuter");
         buttonNorthOuter.addMouseListener(buttonNorthOuterMA);
         eventCountAdapters.add(buttonNorthOuterMA);
-        JPanel jPanel1 = new JPanel();
+        final JPanel jPanel1 = new JPanel();
         jPanel1.setLayout(new BorderLayout());
         jPanel1.add(buttonNorthOuter, BorderLayout.NORTH);
         jPanel1.add(new Button("south"), BorderLayout.SOUTH);
@@ -249,14 +254,11 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         animator1.stop();
         Assert.assertEquals(false, animator1.isAnimating());
 
-        final JFrame _jFrame1 = jFrame1;
-        final JPanel _jPanel1 = jPanel1;
-        final Container _container1 = container1;
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    _jFrame1.setVisible(false);
-                    _jPanel1.remove(_container1);
-                    _jFrame1.dispose();
+                    jFrame1.setVisible(false);
+                    jPanel1.remove(container1);
+                    jFrame1.dispose();
                 } });
 
         glWindow1.destroy();

@@ -183,10 +183,10 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
         frame1.add(newtCanvasAWT1, BorderLayout.CENTER);
         frame1.add(cEast, BorderLayout.EAST);
 
-        frame1.setLocation(0, 0);
-        frame1.setSize(fSize);
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                frame1.setLocation(0, 0);
+                frame1.setSize(fSize);
                 frame1.validate();                
                 frame1.setVisible(true);
             }});

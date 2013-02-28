@@ -114,9 +114,9 @@ public class TestNewtKeyCodesAWT extends UITestCase {
         // Add the canvas to a frame, and make it all visible.
         final JFrame frame1 = new JFrame("Swing AWT Parent Frame: "+ glWindow.getTitle());
         frame1.getContentPane().add(newtCanvasAWT, BorderLayout.CENTER);
-        frame1.setSize(width, height);
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                frame1.setSize(width, height);
                 frame1.setVisible(true);
             } } );
         

@@ -116,11 +116,11 @@ public class TestMultisampleES1AWT extends UITestCase {
     final Frame frame = new Frame("Multi Samples "+reqSamples);
     frame.setLayout(new BorderLayout());
     canvas.setSize(512, 512);
-    frame.add(canvas, BorderLayout.CENTER);
-    frame.pack();
 
     javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
         public void run() {
+            frame.add(canvas, BorderLayout.CENTER);
+            frame.pack();
             frame.setVisible(true);
             canvas.requestFocus();
             canvas.display();

@@ -211,7 +211,10 @@ public class TestGearsES2AWT extends UITestCase {
         Assert.assertFalse(animator.isAnimating());
         Assert.assertFalse(animator.isStarted());
         Assert.assertEquals(null, glCanvas.getExclusiveContextThread());
-        frame.setVisible(false);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame.setVisible(false);
+            }});
         Assert.assertEquals(false, frame.isVisible());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {

@@ -89,10 +89,10 @@ public class TestParenting01bAWT extends UITestCase {
         frame1.add(new Button("South"), BorderLayout.SOUTH);
         frame1.add(new Button("East"), BorderLayout.EAST);
         frame1.add(new Button("West"), BorderLayout.WEST);
-        frame1.setSize(width, height);
-        frame1.setLocation(0, 0);
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
+               frame1.setSize(width, height);
+               frame1.setLocation(0, 0);
                frame1.setVisible(true);               
            }
         });
@@ -103,10 +103,10 @@ public class TestParenting01bAWT extends UITestCase {
         frame2.add(new Button("South"), BorderLayout.SOUTH);
         frame2.add(new Button("East"), BorderLayout.EAST);
         frame2.add(new Button("West"), BorderLayout.WEST);
-        frame2.setSize(width, height);
-        frame2.setLocation(640, 480);
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
+               frame2.setSize(width, height);
+               frame2.setLocation(640, 480);
                frame2.setVisible(true);               
            }
         });

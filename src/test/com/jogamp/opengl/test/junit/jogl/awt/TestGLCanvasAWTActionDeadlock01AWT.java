@@ -36,6 +36,7 @@ import javax.media.opengl.awt.GLCanvas;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionNumber;
+import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.util.FPSAnimator;
@@ -51,6 +52,7 @@ import java.awt.Frame;
 import java.awt.Insets;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
 import org.junit.Assume;
@@ -70,6 +72,9 @@ import org.junit.Test;
  * Similar deadlock has been experienced w/ other mutable operation on an AWT Container owning a GLCanvas child,
  * e.g. setResizable*().
  * </p>
+ * <p>
+ * Users shall make sure all mutable AWT calls are performed on the EDT, even before 1st setVisible(true) ! 
+ * </p>
  */
 public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
     static long durationPerTest = 1000; // ms
@@ -80,40 +85,45 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
     GLEventListener gle2 = null;
     
     @Test
-    public void test00NoAnimator() throws InterruptedException {
+    public void test00NoAnimator() throws InterruptedException, InvocationTargetException {
         testImpl(null, 0, false);
     }
     
     @Test
-    public void test01Animator() throws InterruptedException {
+    public void test01Animator() throws InterruptedException, InvocationTargetException {
         testImpl(new Animator(), 0, false);
     }
     
     @Test
-    public void test02FPSAnimator() throws InterruptedException {
+    public void test02FPSAnimator() throws InterruptedException, InvocationTargetException {
         testImpl(new FPSAnimator(30), 0, false);
     }
     
     @Test
-    public void test02FPSAnimator_RestartOnAWTEDT() throws InterruptedException {
+    public void test02FPSAnimator_RestartOnAWTEDT() throws InterruptedException, InvocationTargetException {
         testImpl(new FPSAnimator(30), 200, false);
     }
     
     /** May crash due to invalid thread usage, i.e. non AWT-EDT
+     * @throws InvocationTargetException 
+     * @throws InterruptedException 
     @Test
     public void test02FPSAnimator_RestartOnCurrentThread() throws InterruptedException {
         testImpl(new FPSAnimator(30), 200, true);
     } */
 
-    private static void setFrameTitle(Frame frame, String msg) {
+    private static void setFrameTitle(final Frame frame, final String msg) {
         System.err.println("About to setTitle: <"+msg+"> CT "+Thread.currentThread().getName()+", "+
                            frame+", displayable "+frame.isDisplayable()+
                            ", valid "+frame.isValid()+", visible "+frame.isVisible());
         // Thread.dumpStack();
-        frame.setTitle(msg);        
+        AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+            public void run() {
+                frame.setTitle(msg);
+            } } );
     }
     
-    void testImpl(final AnimatorBase animator, int restartPeriod, boolean restartOnCurrentThread) throws InterruptedException {
+    void testImpl(final AnimatorBase animator, int restartPeriod, boolean restartOnCurrentThread) throws InterruptedException, InvocationTargetException {
         final Frame frame1 = new Frame("Frame 1");
         final Applet applet1 = new Applet() {
             private static final long serialVersionUID = 1L;            
@@ -127,20 +137,23 @@ public class TestGLCanvasAWTActionDeadlock01AWT extends UITestCase {
         System.err.println("Java Version "+Platform.getJavaVersionNumber());
         
         Assert.assertNotNull(frame1);
-        frame1.setLayout(null);
-        frame1.pack();        
-        {
-            Insets insets = frame1.getInsets();
-            int w = width + insets.left + insets.right;
-            int h = height + insets.top + insets.bottom;
-            frame1.setSize(w, h);
-            
-            int usableH = h - insets.top - insets.bottom;
-            applet1.setBounds((w - width)/2, insets.top + (usableH - height)/2, width, height);      
-        }
-        frame1.setLocation(0, 0);
-        frame1.setTitle("Generic Title");
-        frame1.add(applet1);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame1.setLayout(null);
+                frame1.pack();
+                {
+                    Insets insets = frame1.getInsets();
+                    int w = width + insets.left + insets.right;
+                    int h = height + insets.top + insets.bottom;
+                    frame1.setSize(w, h);
+                    
+                    int usableH = h - insets.top - insets.bottom;
+                    applet1.setBounds((w - width)/2, insets.top + (usableH - height)/2, width, height);      
+                }
+                frame1.setLocation(0, 0);
+                frame1.setTitle("Generic Title");
+                frame1.add(applet1);
+            }});
                         
         frame1.addWindowListener(new WindowAdapter() {
           public void windowClosing(WindowEvent e) {

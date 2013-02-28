@@ -87,10 +87,10 @@ public class TestGLJPanelAWTBug450 extends UITestCase {
             throws AWTException, InterruptedException, InvocationTargetException
     {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
-        JFrame frame = new JFrame("Swing GLJPanel");
+        final JFrame frame = new JFrame("Swing GLJPanel");
         Assert.assertNotNull(frame);
 
-        GLJPanel glJPanel = new GLJPanel(caps);
+        final GLJPanel glJPanel = new GLJPanel(caps);
         Assert.assertNotNull(glJPanel);
         RedSquareES2 demo = new RedSquareES2();
         demo.setAspect((float)width/(float)height);
@@ -129,13 +129,11 @@ public class TestGLJPanelAWTBug450 extends UITestCase {
 
         FPSAnimator animator = new FPSAnimator(glJPanel, 60);
 
-        final JFrame _frame = frame;
-        final GLJPanel _glJPanel = glJPanel;
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    _frame.getContentPane().add(_glJPanel, BorderLayout.CENTER);
-                    _frame.setSize(width, height);
-                    _frame.setVisible(true);
+                    frame.getContentPane().add(glJPanel, BorderLayout.CENTER);
+                    frame.setSize(width, height);
+                    frame.setVisible(true);
                 } } ) ;
 
         animator.setUpdateFPSFrames(1, null);        
@@ -154,11 +152,11 @@ public class TestGLJPanelAWTBug450 extends UITestCase {
         Assert.assertEquals(false, animator.isAnimating());
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    _frame.setVisible(false);
-                    _frame.getContentPane().remove(_glJPanel);
-                    _frame.remove(_glJPanel);
-                    _glJPanel.destroy();
-                    _frame.dispose();
+                    frame.setVisible(false);
+                    frame.getContentPane().remove(glJPanel);
+                    frame.remove(glJPanel);
+                    glJPanel.destroy();
+                    frame.dispose();
                 } } );
 
         Assert.assertFalse( failed );

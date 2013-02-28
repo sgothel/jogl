@@ -165,10 +165,10 @@ public class TestParenting01cSwingAWT extends UITestCase {
         // jFrame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jFrame1.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
         jFrame1.setContentPane(jPanel1);
-        jFrame1.setSize(width, height);
         System.err.println("Demos: 1 - Visible");
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
+               jFrame1.setSize(width, height);
                jFrame1.setVisible(true);
            }
         });
@@ -292,10 +292,10 @@ public class TestParenting01cSwingAWT extends UITestCase {
         // jFrame1.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jFrame1.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
         jFrame1.setContentPane(jPanel1);
-        jFrame1.setLocation(0, 0);
-        jFrame1.setSize(width, height);
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
+               jFrame1.setLocation(0, 0);
+               jFrame1.setSize(width, height);
                jFrame1.setVisible(true);
            }
         });
@@ -311,10 +311,10 @@ public class TestParenting01cSwingAWT extends UITestCase {
         // jFrame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jFrame2.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // equivalent to Frame, use windowClosing event!
         jFrame2.setContentPane(jPanel2);
-        jFrame2.setLocation(640, 480);
-        jFrame2.setSize(width, height);
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
+               jFrame2.setLocation(640, 480);
+               jFrame2.setSize(width, height);
                jFrame2.setVisible(true);
            }
         });

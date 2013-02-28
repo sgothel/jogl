@@ -137,10 +137,10 @@ public class TestTranslucentParentingAWT extends UITestCase {
         frame1.setLayout(new BorderLayout());
         frame1.add(cont1, BorderLayout.EAST);
         frame1.add(new Label("center"), BorderLayout.CENTER);
-        frame1.setLocation(0, 0);
-        frame1.setSize((int)size.getWidth(), (int)size.getHeight());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                frame1.setLocation(0, 0);
+                frame1.setSize((int)size.getWidth(), (int)size.getHeight());
                 frame1.pack();
                 frame1.setVisible(true);
             }});
@@ -157,7 +157,10 @@ public class TestTranslucentParentingAWT extends UITestCase {
         Assert.assertEquals(false, animator1.isPaused());
         Assert.assertEquals(null, animator1.getThread());
 
-        frame1.dispose();
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame1.dispose();
+            } } );
         glWindow1.destroy();
     }
 

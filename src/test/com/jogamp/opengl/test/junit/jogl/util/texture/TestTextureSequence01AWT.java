@@ -42,7 +42,6 @@ public class TestTextureSequence01AWT extends UITestCase {
         final Frame frame = new Frame("TestTextureSequence01AWT");
         Assert.assertNotNull(frame);
         frame.add(glc);
-        frame.setSize(width, height);
         
         final TextureSequenceDemo01 texSource = new TextureSequenceDemo01(useBuildInTexLookup);
         glc.addGLEventListener(new GLEventListener() {
@@ -63,7 +62,16 @@ public class TestTextureSequence01AWT extends UITestCase {
         QuitAdapter quitAdapter = new QuitAdapter();
         new com.jogamp.newt.event.awt.AWTKeyAdapter(quitAdapter).addTo(glc);
         new com.jogamp.newt.event.awt.AWTWindowAdapter(quitAdapter).addTo(glc);
-        frame.setVisible(true);
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setSize(width, height);
+                    frame.setVisible(true);
+                }});
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }                
         animator.start();
         
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {

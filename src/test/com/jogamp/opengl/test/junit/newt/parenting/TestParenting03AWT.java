@@ -133,11 +133,11 @@ public class TestParenting03AWT extends UITestCase {
         frame1.add(new Button("CENTER"), BorderLayout.CENTER);
         frame1.add(new Button("SOUTH"), BorderLayout.SOUTH);
         frame1.add(cont1, BorderLayout.EAST);
-        frame1.setLocation(0, 0);
-        frame1.setSize(fSize);
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 System.err.println("******* Frame setVisible");
+                frame1.setLocation(0, 0);
+                frame1.setSize(fSize);
                 frame1.validate();                
                 frame1.setVisible(true);
             }});

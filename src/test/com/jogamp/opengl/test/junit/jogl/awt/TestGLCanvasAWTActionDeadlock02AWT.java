@@ -55,6 +55,7 @@ import org.junit.Test;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionNumber;
+import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.opengl.util.AnimatorBase;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -76,6 +77,9 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * <p>
  * Similar deadlock has been experienced w/ other mutable operation on an AWT Container owning a GLCanvas child,
  * e.g. setResizable*().
+ * </p>
+ * <p>
+ * Users shall make sure all mutable AWT calls are performed on the EDT, even before 1st setVisible(true) ! 
  * </p>
  */
 public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
@@ -193,52 +197,76 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         
         width = 300;
         height = 300;    
-        MiniPApplet applet = this;
-        Rectangle fullScreenRect = null;
+        final MiniPApplet applet = this;
         
         GraphicsEnvironment environment =
           GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice displayDevice = environment.getDefaultScreenDevice();
         frame = new Frame(displayDevice.getDefaultConfiguration());
         
-        frame.setTitle("MiniPApplet");
+        final Rectangle fullScreenRect;
         if (fullScreen) {
-          frame.setUndecorated(true);
-          frame.setBackground(Color.GRAY);
           DisplayMode mode = displayDevice.getDisplayMode();
           fullScreenRect = new Rectangle(0, 0, mode.getWidth(), mode.getHeight());
-          frame.setBounds(fullScreenRect);
-          frame.setVisible(true);
-        }
-        frame.setLayout(null);
-        frame.add(applet);
-        if (fullScreen) {
-          frame.invalidate();
         } else {
-          frame.pack();
+          fullScreenRect = null;
         }
-        frame.setResizable(resizeableFrame);
+        // All AWT Mods on AWT-EDT, especially due to the follow-up complicated code!
+        AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+            public void run() {
+                frame.setTitle("MiniPApplet");
+            } } );
+        if (fullScreen) {
+            try {
+                javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                    public void run() {
+                        frame.setUndecorated(true);
+                        frame.setBackground(Color.GRAY);
+                        frame.setBounds(fullScreenRect);
+                        frame.setVisible(true);
+                    }});
+            } catch (Throwable t) {
+                t.printStackTrace();
+                Assume.assumeNoException(t);
+            }            
+        }
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setLayout(null);
+                    frame.add(applet);
+                    if (fullScreen) {
+                      frame.invalidate();
+                    } else {
+                      frame.pack();
+                    }
+                    frame.setResizable(resizeableFrame);
+                    if (fullScreen) {
+                      // After the pack(), the screen bounds are gonna be 0s
+                      frame.setBounds(fullScreenRect);
+                      applet.setBounds((fullScreenRect.width - applet.width) / 2,
+                                       (fullScreenRect.height - applet.height) / 2,
+                                       applet.width, applet.height);
+                    } else {
+                      Insets insets = frame.getInsets();
+                
+                      int windowW = applet.width + insets.left + insets.right;
+                      int windowH = applet.height + insets.top + insets.bottom;
+                      int locationX = 100; 
+                      int locationY = 100;
+                      
+                      frame.setSize(windowW, windowH);
+                      frame.setLocation(locationX, locationY);
+                      
+                      int usableWindowH = windowH - insets.top - insets.bottom;
+                      applet.setBounds((windowW - width)/2, insets.top + (usableWindowH - height)/2, width, height);      
+                    }
+                }});
+        } catch (Throwable t) {
+            t.printStackTrace();
+            Assume.assumeNoException(t);
+        }
         
-        if (fullScreen) {
-          // After the pack(), the screen bounds are gonna be 0s
-          frame.setBounds(fullScreenRect);
-          applet.setBounds((fullScreenRect.width - applet.width) / 2,
-                           (fullScreenRect.height - applet.height) / 2,
-                           applet.width, applet.height);
-        } else {
-          Insets insets = frame.getInsets();
-    
-          int windowW = applet.width + insets.left + insets.right;
-          int windowH = applet.height + insets.top + insets.bottom;
-          int locationX = 100; 
-          int locationY = 100;
-          
-          frame.setSize(windowW, windowH);
-          frame.setLocation(locationX, locationY);
-          
-          int usableWindowH = windowH - insets.top - insets.bottom;
-          applet.setBounds((windowW - width)/2, insets.top + (usableWindowH - height)/2, width, height);      
-        }
         
         frame.add(this);
         frame.addWindowListener(new WindowAdapter() {
@@ -253,7 +281,7 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
         
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-                frame.setVisible(true); // from here on all AWT mods must be done on AWT-EDT !
+                frame.setVisible(true);
             } } );
     
         // Canvas setup ----------------------------------------------------------
@@ -359,7 +387,10 @@ public class TestGLCanvasAWTActionDeadlock02AWT extends UITestCase {
             
       void draw(GL2 gl) {
         if( !osxCALayerAWTModBug || !justInitialized ) {
-            frame.setTitle("frame " + frameCount);
+            AWTEDTExecutor.singleton.invoke(true, new Runnable() {
+                public void run() {
+                    frame.setTitle("frame " + frameCount);
+                } } );
         }
         
         if (printThreadInfo) System.out.println("Current thread at draw(): " + Thread.currentThread());      

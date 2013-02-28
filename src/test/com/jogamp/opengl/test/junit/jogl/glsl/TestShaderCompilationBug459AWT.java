@@ -81,7 +81,6 @@ public class TestShaderCompilationBug459AWT extends UITestCase {
         final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
         frame.add(glCanvas);
-        frame.setSize(512, 512);
 
         glCanvas.addGLEventListener(new GLEventListener() {
             /* @Override */
@@ -131,7 +130,15 @@ public class TestShaderCompilationBug459AWT extends UITestCase {
         });
 
         Animator animator = new Animator(glCanvas);
-        frame.setVisible(true);
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setSize(512, 512);
+                    frame.setVisible(true);
+                } } );
+        } catch(Exception ex) {
+            throw new RuntimeException(ex);
+        }
         animator.setUpdateFPSFrames(1, null);        
         animator.start();
 

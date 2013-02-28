@@ -118,11 +118,10 @@ public class TestParenting02AWT extends UITestCase {
             }
         }
 
-        // frame.setSize(width, height);
-        frame.setBounds(100, 100, width, height);
-
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                // frame.setSize(width, height);
+                frame.setBounds(100, 100, width, height);
                 frame.setVisible(true);
             }});
         // X11: true, Windows: false - Assert.assertEquals(true, glWindow.isVisible());

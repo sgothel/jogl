@@ -119,18 +119,21 @@ public class TestTranslucencyAWT extends UITestCase {
         GLAnimatorControl animator1 = new Animator(glCanvas);
         animator1.start();
 
-        Container cont1 = new Container();
+        final Container cont1 = new Container();
         cont1.setLayout(new BorderLayout());
         cont1.add(glCanvas, BorderLayout.CENTER);
-        cont1.setVisible(true);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                cont1.setVisible(true);
+            }});
 
         frame1.setLayout(new BorderLayout());
         frame1.add(cont1, BorderLayout.EAST);
         frame1.add(new Label("center"), BorderLayout.CENTER);
-        frame1.setLocation(0, 0);
-        frame1.setSize((int)size.getWidth(), (int)size.getHeight());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                frame1.setLocation(0, 0);
+                frame1.setSize((int)size.getWidth(), (int)size.getHeight());
                 frame1.pack();
                 frame1.setVisible(true);
             }});

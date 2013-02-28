@@ -106,13 +106,13 @@ public class TestJScrollPaneMixHwLw01AWT extends UITestCase {
         panel.add(textArea, BorderLayout.NORTH);
 
         frame.add(panel);
-        frame.setLocationRelativeTo(null);
-        frame.setTitle("GLCanvas in JScrollPane example");
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
+                    frame.setLocationRelativeTo(null);
+                    frame.setTitle("GLCanvas in JScrollPane example");
                     frame.setSize(f_sz);
                     frame.setVisible(true);
                 }});

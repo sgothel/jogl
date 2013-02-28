@@ -57,7 +57,6 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  *
  * @author Wade Walker (from code sample provided by Owen Dimond)
  */
-@SuppressWarnings("deprecation")
 public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GLEventListener {
     JFrame jframe;
     GLOffscreenAutoDrawable offScreenBuffer;
@@ -92,8 +91,15 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
         BufferedImage outputImage = com.jogamp.opengl.util.awt.Screenshot.readToBufferedImage(200, 200, false);        
         Assert.assertNotNull(outputImage);
         ImageIcon imageIcon = new ImageIcon(outputImage);
-        JLabel imageLabel = new JLabel(imageIcon);        
-        jframe.getContentPane().add(imageLabel);
+        final JLabel imageLabel = new JLabel(imageIcon);        
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    jframe.getContentPane().add(imageLabel);
+                }});
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /* @Override */
@@ -113,7 +119,6 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
     public void testOffscreenSupersampling() throws InterruptedException, InvocationTargetException {
         jframe = new JFrame("Offscreen Supersampling");
         Assert.assertNotNull(jframe);
-        jframe.setSize( 300, 300);
         jframe.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 System.exit(0);
@@ -147,6 +152,7 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
         offScreenBuffer.display();
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                jframe.setSize( 300, 300);
                 jframe.setVisible(true);
             }});
         offScreenBuffer.destroy();

@@ -142,15 +142,15 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
             }
         });
         frame.setContentPane(panel);
-        frame.setSize(512, 512);
-        frame.setLocation(0, 0);
-        frame.pack();
 
         // AWT/Swing: From here on (post setVisible(true)
         //            you need to use AWT/Swing's invokeAndWait()
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                frame.setSize(512, 512);
+                frame.setLocation(0, 0);
+                frame.pack();
                 frame.setVisible(true);
                 colorPanel.setBackground(Color.white);
                 colorPanel.repaint();

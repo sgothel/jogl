@@ -29,16 +29,12 @@
 package com.jogamp.opengl.test.junit.jogl.awt;
 
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import javax.media.opengl.GLProfile;
 
 import java.awt.*;
 import java.awt.event.*;
 
 import org.junit.Assert;
 import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.After;
 import org.junit.Test;
 
 public class TestAWT02WindowClosing extends UITestCase {
@@ -47,15 +43,14 @@ public class TestAWT02WindowClosing extends UITestCase {
 
     @Test
     public void test01WindowClosing() throws InterruptedException {
-        Frame frame = new Frame();
-        frame.setSize(500, 500);
+        final Frame frame = new Frame();
         ClosingWindowAdapter closingWindowAdapter = new ClosingWindowAdapter(frame);
         frame.addWindowListener(closingWindowAdapter);
-        final Frame _frame = frame;
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    _frame.setVisible(true);
+                    frame.setSize(500, 500);
+                    frame.setVisible(true);
                 }});
         } catch (Throwable t) {
             t.printStackTrace();

@@ -111,14 +111,22 @@ public class TestTexture01AWT extends UITestCase {
         final Frame frame = new Frame("Texture Test");
         Assert.assertNotNull(frame);
         frame.add(glCanvas);
-        frame.setSize(512, 512);
 
         // create texture    
         TextureData textureData = AWTTextureIO.newTextureData(caps.getGLProfile(), textureImage, false);
         glCanvas.addGLEventListener(new TextureDraw01GL2Listener(textureData));
 
         Animator animator = new Animator(glCanvas);
-        frame.setVisible(true);
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setSize(512, 512);
+                    frame.setVisible(true);
+                }});
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }                
         animator.start();
 
         Thread.sleep(500); // 500 ms

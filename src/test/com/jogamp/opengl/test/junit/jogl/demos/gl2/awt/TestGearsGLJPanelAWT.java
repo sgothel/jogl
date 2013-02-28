@@ -70,10 +70,10 @@ public class TestGearsGLJPanelAWT extends UITestCase {
     protected void runTestGL(GLCapabilities caps)
             throws AWTException, InterruptedException, InvocationTargetException
     {
-        JFrame frame = new JFrame("Swing GLJPanel");
+        final JFrame frame = new JFrame("Swing GLJPanel");
         Assert.assertNotNull(frame);
 
-        GLJPanel glJPanel = new GLJPanel(caps);
+        final GLJPanel glJPanel = new GLJPanel(caps);
         Assert.assertNotNull(glJPanel);
         Dimension glc_sz = new Dimension(width, height);
         glJPanel.setMinimumSize(glc_sz);
@@ -83,14 +83,12 @@ public class TestGearsGLJPanelAWT extends UITestCase {
 
         FPSAnimator animator = new FPSAnimator(glJPanel, 60);
 
-        final JFrame _frame = frame;
-        final GLJPanel _glJPanel = glJPanel;
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    _frame.getContentPane().add(_glJPanel, BorderLayout.CENTER);
-                    _frame.getContentPane().validate();
-                    _frame.pack();
-                    _frame.setVisible(true);
+                    frame.getContentPane().add(glJPanel, BorderLayout.CENTER);
+                    frame.getContentPane().validate();
+                    frame.pack();
+                    frame.setVisible(true);
                 } } ) ;
 
         animator.setUpdateFPSFrames(1, null);        
@@ -109,11 +107,11 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         Assert.assertEquals(false, animator.isAnimating());
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    _frame.setVisible(false);
-                    _frame.getContentPane().remove(_glJPanel);
-                    _frame.remove(_glJPanel);
-                    _glJPanel.destroy();
-                    _frame.dispose();
+                    frame.setVisible(false);
+                    frame.getContentPane().remove(glJPanel);
+                    frame.remove(glJPanel);
+                    glJPanel.destroy();
+                    frame.dispose();
                 } } );
     }
 

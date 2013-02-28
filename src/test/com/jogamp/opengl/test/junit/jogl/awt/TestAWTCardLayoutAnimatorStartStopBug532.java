@@ -167,11 +167,10 @@ public class TestAWTCardLayoutAnimatorStartStopBug532 extends UITestCase {
       
       frame.add(comboBoxPanel, BorderLayout.PAGE_START);
       frame.add(cards, BorderLayout.CENTER);
-      
-      frame.pack(); 
-      
+            
       javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
         public void run() {
+            frame.pack(); 
             frame.setVisible(true);
         }});
     

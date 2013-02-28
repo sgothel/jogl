@@ -60,15 +60,15 @@ public class TestAWT01GLn extends UITestCase {
         glCanvas.addGLEventListener(new GearsES2());
         frame.add(glCanvas);
 
-        // Revalidate size/layout.
-        // Always validate if component added/removed.
-        // Ensure 1st paint of GLCanvas will have a valid size, hence drawable gets created.
-        frame.setSize(512, 512);
-        frame.validate();
-
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
+                    // Revalidate size/layout.
+                    // Always validate if component added/removed.
+                    // Ensure 1st paint of GLCanvas will have a valid size, hence drawable gets created.
+                    frame.setSize(512, 512);
+                    frame.validate();
+            
                     frame.setVisible(true);
                 }});
         } catch (Throwable t) {

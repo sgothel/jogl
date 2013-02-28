@@ -114,7 +114,10 @@ public class TestGearsAWT extends UITestCase {
 
         animator.stop();
         Assert.assertEquals(false, animator.isAnimating());
-        frame.setVisible(false);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame.setVisible(false);
+            }});
         Assert.assertEquals(false, frame.isVisible());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {

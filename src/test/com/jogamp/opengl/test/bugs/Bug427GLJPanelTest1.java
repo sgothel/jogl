@@ -13,9 +13,16 @@ public class Bug427GLJPanelTest1 extends JFrame implements GLEventListener {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        setSize(600, 600);
-        setLocation(40, 40);
-        setVisible(true);
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    setSize(600, 600);
+                    setLocation(40, 40);
+                    setVisible(true);
+                } } );
+        } catch(Exception ex) {
+            throw new RuntimeException(ex);
+        }
 
         GLProfile glp = GLProfile.get(GLProfile.GL2);
         GLCapabilities caps = new GLCapabilities(glp);
@@ -29,8 +36,15 @@ public class Bug427GLJPanelTest1 extends JFrame implements GLEventListener {
     }
 
     public static void main(String[] args) {
-        Bug427GLJPanelTest1 demo = new Bug427GLJPanelTest1();
-        demo.setVisible(true);
+        final Bug427GLJPanelTest1 demo = new Bug427GLJPanelTest1();
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    demo.setVisible(true);
+                } } );
+        } catch(Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     public void display(GLAutoDrawable drawable) {

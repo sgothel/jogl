@@ -105,7 +105,6 @@ public class TestGearsAWTAnalyzeBug455 extends UITestCase {
         Assert.assertNotNull(glCanvas);
         glCanvas.setAutoSwapBufferMode(!altSwap);
         frame.add(glCanvas);
-        frame.setSize(512, 512);
 
         glCanvas.addGLEventListener(new Gears(0));
         glCanvas.addGLEventListener(new Swapper());
@@ -118,6 +117,7 @@ public class TestGearsAWTAnalyzeBug455 extends UITestCase {
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                frame.setSize(512, 512);
                 frame.setVisible(true);
             }});
         animator.setUpdateFPSFrames(60, System.err);        
@@ -133,7 +133,10 @@ public class TestGearsAWTAnalyzeBug455 extends UITestCase {
 
         animator.stop();
         Assert.assertEquals(false, animator.isAnimating());
-        frame.setVisible(false);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame.setVisible(false);
+            }});
         Assert.assertEquals(false, frame.isVisible());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {

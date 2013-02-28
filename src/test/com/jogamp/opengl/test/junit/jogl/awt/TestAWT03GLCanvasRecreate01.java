@@ -139,7 +139,7 @@ public class TestAWT03GLCanvasRecreate01 extends UITestCase {
     }
 
     private void setVisible(final Frame frame, final boolean v) {
-            try {
+        try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     frame.setVisible(v);

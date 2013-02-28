@@ -54,7 +54,6 @@ public class TestShutdownCompleteAWT extends UITestCase {
         final GLCanvas glCanvas = new GLCanvas(new GLCapabilities(GLProfile.getGL2ES2()));
         Assert.assertNotNull(glCanvas);
         frame.add(glCanvas);
-        frame.setSize(256, 256);
 
         glCanvas.addGLEventListener(new GearsES2(1));
 
@@ -62,6 +61,7 @@ public class TestShutdownCompleteAWT extends UITestCase {
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
+                frame.setSize(256, 256);
                 frame.setVisible(true);
             }});
         
@@ -78,7 +78,10 @@ public class TestShutdownCompleteAWT extends UITestCase {
 
         animator.stop();
         Assert.assertEquals(false, animator.isAnimating());
-        frame.setVisible(false);
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                frame.setVisible(false);
+            }});
         Assert.assertEquals(false, frame.isVisible());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
