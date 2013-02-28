@@ -28,7 +28,6 @@
  
 package com.jogamp.opengl.test.junit.util;
 
-import jogamp.common.awt.AWTEDTExecutor;
 import jogamp.newt.WindowImplAccess;
 
 import java.lang.reflect.InvocationTargetException;
@@ -42,6 +41,7 @@ import javax.media.opengl.awt.GLCanvas;
 
 import org.junit.Assert;
 
+import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.newt.event.WindowEvent;
 
 public class AWTRobotUtil {

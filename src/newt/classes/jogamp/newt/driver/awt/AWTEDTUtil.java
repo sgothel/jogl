@@ -33,9 +33,9 @@ import java.awt.EventQueue;
 import javax.media.nativewindow.NativeWindowException;
 
 import com.jogamp.common.util.RunnableTask;
+import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.newt.util.EDTUtil;
 
-import jogamp.common.awt.AWTEDTExecutor;
 import jogamp.newt.Debug;
 
 public class AWTEDTUtil implements EDTUtil {

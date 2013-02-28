@@ -44,7 +44,8 @@ import java.awt.EventQueue;
 
 import javax.media.opengl.GLException;
 
-import jogamp.common.awt.AWTEDTExecutor;
+import com.jogamp.common.util.awt.AWTEDTExecutor;
+
 import jogamp.opengl.GLWorkerThread;
 import jogamp.opengl.ThreadingImpl;
 import jogamp.opengl.ToolkitThreadingPlugin;

@@ -86,6 +86,7 @@ import javax.media.opengl.Threading;
 
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.VersionUtil;
+import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
@@ -95,7 +96,6 @@ import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.nativewindow.awt.JAWTWindow;
 import com.jogamp.opengl.JoglVersion;
 
-import jogamp.common.awt.AWTEDTExecutor;
 import jogamp.opengl.Debug;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableHelper;
