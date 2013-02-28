@@ -36,7 +36,6 @@ import java.awt.event.WindowListener;
 
 import javax.media.nativewindow.WindowClosingProtocol;
 
-import jogamp.common.awt.AWTEDTExecutor;
 import jogamp.nativewindow.awt.AWTMisc;
 
 public class AWTWindowClosingProtocol implements WindowClosingProtocol {
@@ -92,10 +91,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
           }
           final Window w = AWTMisc.getWindow(comp);
           if(null!=w) {
-              AWTEDTExecutor.singleton.invoke(true, new Runnable() {
-                public void run() {
-                    w.addWindowListener(windowClosingAdapter);
-                } } );
+              w.addWindowListener(windowClosingAdapter);
               closingListenerSet = true;
               return true;
           }
@@ -108,10 +104,7 @@ public class AWTWindowClosingProtocol implements WindowClosingProtocol {
           if(closingListenerSet) {
               final Window w = AWTMisc.getWindow(comp);
               if(null!=w) {
-                  AWTEDTExecutor.singleton.invoke(true, new Runnable() {
-                    public void run() {
-                        w.removeWindowListener(windowClosingAdapter);
-                    } } );
+                  w.removeWindowListener(windowClosingAdapter);
                   closingListenerSet = false;
                   return true;
               }
