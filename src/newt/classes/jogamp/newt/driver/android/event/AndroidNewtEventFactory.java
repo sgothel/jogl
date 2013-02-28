@@ -196,6 +196,28 @@ public class AndroidNewtEventFactory {
         return null;
     }
     
+    private static float maxPressure = 0.7f; // experienced maximum value (Amazon HD = 0.8f)
+    
+    /**
+     * Dynamic calibration of maximum MotionEvent pressure, starting from 0.7f
+     * <p>
+     * Specification says no pressure is 0.0f and
+     * normal pressure is 1.0f, where &gt; 1.0f denominates very high pressure.
+     * </p>
+     * <p>
+     * Some devices exceed this spec, or better, most devices do.
+     * <ul>
+     *   <li>Asus TF2*: Pressure always &gt; 1.0f</li>
+     *   <li>Amazon HD: Pressure always &le; 0.8f</li>
+     * </ul>
+     * </p>
+     *   
+     * @return
+     */
+    public static float getMaxPressure() {
+        return maxPressure;
+    }
+    
     private final NewtGestureListener gestureListener;
     private final android.view.GestureDetector gestureDetector;
     private final float touchSlop;
@@ -209,13 +231,17 @@ public class AndroidNewtEventFactory {
     }
         
     private int gestureScrollPointerDown = 0;
-    
+        
     public com.jogamp.newt.event.MouseEvent[] createMouseEvents(boolean isOnTouchEvent, 
                                                                 android.view.MotionEvent event, com.jogamp.newt.Window newtSource) {
         if(Window.DEBUG_MOUSE_EVENT) {
             System.err.println("createMouseEvent: "+toString(event));                               
         }
 
+        if( event.getPressure() > maxPressure ) {
+            maxPressure = event.getPressure();
+        }
+        
         //
         // Prefilter Android Event (Gesture, ..) and determine final type
         //
@@ -340,6 +366,9 @@ public class AndroidNewtEventFactory {
                     y[j] = (int)event.getY(i);
                     pressure[j] = event.getPressure(i);
                     pointerIds[j] = (short)event.getPointerId(i);
+                    if( pressure[j] > maxPressure ) {
+                        maxPressure = pressure[j];
+                    }
                     if(Window.DEBUG_MOUSE_EVENT) {
                         System.err.println("createMouseEvent: ptr-data["+i+" -> "+j+"] "+x[j]+"/"+y[j]+", pressure "+pressure[j]+", id "+pointerIds[j]);
                     }
@@ -362,15 +391,15 @@ public class AndroidNewtEventFactory {
             
             final com.jogamp.newt.event.MouseEvent me1 = new com.jogamp.newt.event.MouseEvent(
                            nType,  src, unixTime,
-                           modifiers, x, y, pressure, pointerIds, clickCount, 
-                           button, rotation);
+                           modifiers, x, y, pressure, maxPressure, pointerIds, 
+                           clickCount, button, rotation);
             
             if( com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED == nType ) {
                 return new com.jogamp.newt.event.MouseEvent[] { me1, 
                     new com.jogamp.newt.event.MouseEvent(
                            com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_CLICKED, 
-                           src, unixTime, modifiers, x, y, pressure, pointerIds, clickCount, 
-                           button, rotation) };
+                           src, unixTime, modifiers, x, y, pressure, maxPressure, pointerIds, 
+                           clickCount, button, rotation) };
             } else {
                 return new com.jogamp.newt.event.MouseEvent[] { me1 };
             }

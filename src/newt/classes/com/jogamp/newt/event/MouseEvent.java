@@ -70,7 +70,8 @@ public class MouseEvent extends InputEvent
         super(eventType, source, when, modifiers); 
         this.x = new int[]{x};
         this.y = new int[]{y};
-        this.pressure = new float[]{0};
+        this.pressure = new float[]{0f};
+        this.maxPressure= 1.0f;
         this.pointerids = new short[]{-1};
         this.clickCount=clickCount;
         this.button=button;
@@ -78,8 +79,8 @@ public class MouseEvent extends InputEvent
     }
 
     public MouseEvent(short eventType, Object source, long when,
-            int modifiers, int[] x, int[] y, float[] pressure, short[] pointerids, short clickCount, short button,
-            float rotation)
+                      int modifiers, int[] x, int[] y, float[] pressure, float maxPressure, short[] pointerids, short clickCount,
+                      short button, float rotation)
     {
         super(eventType, source, when, modifiers); 
         this.x = x;
@@ -89,7 +90,11 @@ public class MouseEvent extends InputEvent
            pointerids.length != y.length) {
             throw new IllegalArgumentException("All multiple pointer arrays must be of same size");
         }
+        if( 0.0f >= maxPressure ) {
+            throw new IllegalArgumentException("maxPressure must be > 0.0f");
+        }
         this.pressure = pressure;
+        this.maxPressure= maxPressure;
         this.pointerids = pointerids;
         this.clickCount=clickCount;
         this.button=button;
@@ -129,28 +134,59 @@ public class MouseEvent extends InputEvent
     }
 
     /** 
-     * @return x-coord at index where index refers to the 
-     * data coming from a pointer. 
+     * @param index pointer-index within [0 .. {@link #getPointerCount()}-1]
+     * @return X-Coord associated with the pointer-index.
      * @see getPointerId(index)
      */
     public int getX(int index) {
         return x[index];
     }
 
+    /** 
+     * @param index pointer-index within [0 .. {@link #getPointerCount()}-1]
+     * @return Y-Coord associated with the pointer-index.
+     * @see getPointerId(index)
+     */
     public int getY(int index) {
         return y[index];
     }
     
-    public float getPressure(){
-        return pressure[0];
+    /**
+     * @param normalized if true, method returns the normalized pressure, i.e. <code>pressure / maxPressure</code> 
+     * @return The pressure associated with the pointer-index 0.
+     *         The value of zero is return if not available.
+     * @see #getMaxPressure()
+     */
+    public float getPressure(boolean normalized){
+        return normalized ? pressure[0] / maxPressure : pressure[0];
+    }
+    
+    /** 
+     * Returns the maximum pressure known for the input device generating this event.
+     * <p>
+     * This value may be self calibrating on devices/OS, where no known maximum pressure is known.
+     * Hence subsequent events may return a higher value. 
+     * </p>
+     * <p>
+     * Self calibrating maximum pressure is performed on:
+     * <ul>
+     *   <li>Android</li>
+     * </ul>
+     * </p>
+     */
+    public float getMaxPressure() {
+        return maxPressure;
     }
     
     /**
-     * @return the pressure associated with the pointer at index.
-     * the value of zero is return if not available.
+     * @param index pointer-index within [0 .. {@link #getPointerCount()}-1]
+     * @param normalized if true, method returns the normalized pressure, i.e. <code>pressure / maxPressure</code> 
+     * @return The pressure associated with the pointer-index.
+     *         The value of zero is return if not available.
+     * @see #getMaxPressure()
      */
-    public float getPressure(int index){
-        return pressure[index];
+    public float getPressure(int index, boolean normalized){
+        return normalized ? pressure[index] / maxPressure : pressure[index];
     }
     
     /**
@@ -199,8 +235,8 @@ public class MouseEvent extends InputEvent
                     sb.append(", ");
                 }
                 sb.append(pointerids[i]).append(": ")
-                .append(x[i]).append(" / ").append(y[i]).append(" ")
-                .append(pressure[i]).append("p");
+                .append(x[i]).append("/").append(y[i]).append(", ")
+                .append("p[").append(pressure[i]).append("/").append(maxPressure).append("=").append(pressure[i]/maxPressure).append("]");
             }
             sb.append("]");
         }        
@@ -225,6 +261,7 @@ public class MouseEvent extends InputEvent
     private final short clickCount, button;
     private final float wheelRotation;
     private final float pressure[];
+    private final float maxPressure;
     private final short pointerids[];
     
     public static final short EVENT_MOUSE_CLICKED  = 200;
