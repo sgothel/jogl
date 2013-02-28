@@ -176,7 +176,7 @@ public class AndroidNewtEventFactory {
                 final int newtMods = aKeyModifiers2Newt(event.getMetaState());
                 
                 return new com.jogamp.newt.event.KeyEvent(
-                                    type, src, unixTime, newtMods, newtKeyCode, newtKeyCode, event.getDisplayLabel());
+                                    type, src, unixTime, newtMods, newtKeyCode, newtKeyCode, (char) event.getUnicodeChar());
             }
         }
         return null;
