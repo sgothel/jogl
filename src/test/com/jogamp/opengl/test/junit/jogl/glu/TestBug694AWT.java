@@ -49,7 +49,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * 
  * @author Julien Gouesse
  */
-public class TestBug694 extends UITestCase implements GLEventListener {
+public class TestBug694AWT extends UITestCase implements GLEventListener {
 
     /* @Override */
     public void init(GLAutoDrawable drawable) {
@@ -123,6 +123,6 @@ public class TestBug694 extends UITestCase implements GLEventListener {
    }
 
     public static void main(String args[]) {
-        org.junit.runner.JUnitCore.main(TestBug694.class.getName());
+        org.junit.runner.JUnitCore.main(TestBug694AWT.class.getName());
     }
 }
