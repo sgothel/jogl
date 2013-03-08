@@ -104,18 +104,20 @@ import com.jogamp.opengl.util.GLPixelStorageModes;
     #setOpaque}(false). Pixels with resulting OpenGL alpha values less
     than 1.0 will be overlaid on any underlying Swing rendering. </P>
     <P>
-    Notes specific to the Reference Implementation: This component
-    attempts to use hardware-accelerated rendering via pbuffers and
-    falls back on to software rendering if problems occur.
-    Note that because this component attempts to use pbuffers for
-    rendering, and because pbuffers can not be resized, somewhat
-    surprising behavior may occur during resize operations; the {@link
-    GLEventListener#init} method may be called multiple times as the
-    pbuffer is resized to be able to cover the size of the GLJPanel.
-    This behavior is correct, as the textures and display lists for
-    the GLJPanel will have been lost during the resize operation. The
-    application should attempt to make its GLEventListener.init()
-    methods as side-effect-free as possible. </P>
+    This component attempts to use hardware-accelerated rendering via FBO or pbuffers and
+    falls back on to software rendering if none of the former are available
+    using {@link GLDrawableFactory#createOffscreenDrawable(AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int) GLDrawableFactory.createOffscreenDrawable(..)}.<br/>
+    </P>
+    <P>
+    The OpenGL rendered pixels are copied to an {@link BufferedImage} via {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer) glReadPixels(..)}
+    which is drawn to the Swing <i>space</i> via {@link Graphics#drawImage(java.awt.Image, int, int, int, int, java.awt.image.ImageObserver) Graphics.drawImage(...)}.
+    </p>
+    <P>
+    If FBO is being used and GLSL is available, a fragment shader is utilized
+    to flip the OpenGL pixels vertically before <code>glReadPixels(..)</code>,
+    if not disabled via system property <code>jogl.gljpanel.noglsl</code>.<br/>
+    Otherwise {@link System#arraycopy(Object, int, Object, int, int) System.arraycopy(..)} is used line by line, causing more CPU load per frame.
+    </P>
     <P>
  *  Please read <A HREF="GLCanvas.html#java2dgl">Java2D OpenGL Remarks</A>.
  *  </P>
