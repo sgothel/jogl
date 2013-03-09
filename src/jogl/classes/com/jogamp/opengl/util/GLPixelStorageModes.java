@@ -43,32 +43,56 @@ public class GLPixelStorageModes {
     private int[] savedAlignment = new int[2];
     private boolean saved = false;
 
+    /** Create instance w/o {@link #save(GL)} */
+    public GLPixelStorageModes() {}
+    
+    /** Create instance w/ {@link #save(GL)} */
+    public GLPixelStorageModes(GL gl) { save(gl); }
+    
     /**
-     * Sets the {@link GL2ES2.GL_PACK_ALIGNMENT}. Saves the pixel storage modes if not saved yet.
+     * Sets the {@link GL2ES2.GL_PACK_ALIGNMENT}.
+     * <p> 
+     * Saves the pixel storage modes if not saved yet.
+     * </p>
      */
     public final void setPackAlignment(GL gl, int packAlignment) {
-        if(!saved) { save(gl); }
+        save(gl);
         gl.glPixelStorei(GL2ES2.GL_PACK_ALIGNMENT, packAlignment);        
     }
 
     /**
-     * Sets the {@link GL2ES2.GL_UNPACK_ALIGNMENT}. Saves the pixel storage modes if not saved yet.
+     * Sets the {@link GL2ES2.GL_UNPACK_ALIGNMENT}.
+     * <p> 
+     * Saves the pixel storage modes if not saved yet.
+     * </p>
      */
     public final void setUnpackAlignment(GL gl, int unpackAlignment) {
-        if(!saved) { save(gl); }
+        save(gl);
         gl.glPixelStorei(GL2ES2.GL_UNPACK_ALIGNMENT, unpackAlignment);        
     }
     
     /**
      * Sets the {@link GL2ES2.GL_PACK_ALIGNMENT} and {@link GL2ES2.GL_UNPACK_ALIGNMENT}. 
+     * <p> 
      * Saves the pixel storage modes if not saved yet.
+     * </p>
      */
     public final void setAlignment(GL gl, int packAlignment, int unpackAlignment) {
         setPackAlignment(gl, packAlignment);
         setUnpackAlignment(gl, unpackAlignment);
     }
     
-    private final void save(GL gl) {
+    /**
+     * Save the pixel storage mode, if not saved yet.
+     * <p>
+     * Restore via {@link #restore(GL)}
+     * </p>
+     */
+    public final void save(GL gl) {
+        if(saved) {
+            return;
+        }
+        
         if(gl.isGL2GL3()) {  
             if(gl.isGL2()) {
                 gl.getGL2().glPushClientAttrib(GL2.GL_CLIENT_PIXEL_STORE_BIT);

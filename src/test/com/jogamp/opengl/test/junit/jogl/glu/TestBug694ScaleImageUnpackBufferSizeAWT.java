@@ -44,12 +44,14 @@ import org.junit.Test;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.GLBuffers;
+import com.jogamp.opengl.util.GLPixelStorageModes;
 
 /**
- * 
- * @author Julien Gouesse
+ * Demonstrates how to use {@link GLBuffers#sizeof(GL, int[], int, int, int, int, int, boolean)}
+ * to determine the unpack buffer size for {@link GLU#gluScaleImage(int, int, int, int, java.nio.Buffer, int, int, int, java.nio.Buffer)}.
  */
-public class TestBug694AWT extends UITestCase implements GLEventListener {
+public class TestBug694ScaleImageUnpackBufferSizeAWT extends UITestCase implements GLEventListener {
 
     /* @Override */
     public void init(GLAutoDrawable drawable) {
@@ -57,21 +59,51 @@ public class TestBug694AWT extends UITestCase implements GLEventListener {
 
     /* @Override */
     public void display(GLAutoDrawable drawable) {
-        int widthin = 213;
-        int heightin = 213;
+        if( !testDone ) {
+            testDone = true;
+            
+            final GL gl = drawable.getGL();
+            GLU glu = GLU.createGLU(gl);
+            testGLUScaleImage(gl, glu, 0); // default 4
+            testGLUScaleImage(gl, glu, 1);
+            testGLUScaleImage(gl, glu, 4);
+            testGLUScaleImage(gl, glu, 8);
+            glu.destroy();
+        }
+    }
+    
+    boolean testDone = false;
+    
+    private void testGLUScaleImage(GL gl, GLU glu, int unpackAlignment) {
+        final GLPixelStorageModes psm = new GLPixelStorageModes(gl);
+        if(0 < unpackAlignment) {
+            psm.setUnpackAlignment(gl, unpackAlignment);
+        }
         
-        int widthout = 256;
-        int heightout = 256;
+        final int widthin = 213;
+        final int heightin = 213;
         
-        int textureInLength = 45369;
-        int textureOutLength = 66560;
+        final int widthout = 256;
+        final int heightout = 256;
         
-        ByteBuffer bufferIn  = Buffers.newDirectByteBuffer(textureInLength);
-        ByteBuffer bufferOut = Buffers.newDirectByteBuffer(textureOutLength);
-        GLU glu = GLU.createGLU(drawable.getGL());
+        final int glFormat = GL.GL_LUMINANCE;
+        final int glType = GL.GL_UNSIGNED_BYTE;
+        final int tmp[] = new int[1];
+        
+        final int unpackSizeInLen = GLBuffers.sizeof(gl, tmp, glFormat, glType, widthin, heightin, 1, false);
+        final int unpackSizeOutLen = GLBuffers.sizeof(gl, tmp, glFormat, glType, widthout, heightout, 1, false);
+        
+        System.err.println("Unpack-Alignment "+unpackAlignment+":  in-size "+unpackSizeInLen);
+        System.err.println("Unpack-Alignment "+unpackAlignment+": out-size "+unpackSizeOutLen);
+        
+        ByteBuffer bufferIn  = Buffers.newDirectByteBuffer(unpackSizeInLen);
+        ByteBuffer bufferOut = Buffers.newDirectByteBuffer(unpackSizeOutLen);
+        
         glu.gluScaleImage( GL.GL_LUMINANCE,
                            widthin, heightin, GL.GL_UNSIGNED_BYTE, bufferIn,
                            widthout, heightout, GL.GL_UNSIGNED_BYTE, bufferOut );
+        
+        psm.restore(gl);
     }
 
     /* @Override */
@@ -123,6 +155,6 @@ public class TestBug694AWT extends UITestCase implements GLEventListener {
    }
 
     public static void main(String args[]) {
-        org.junit.runner.JUnitCore.main(TestBug694AWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestBug694ScaleImageUnpackBufferSizeAWT.class.getName());
     }
 }
