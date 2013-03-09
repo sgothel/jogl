@@ -42,7 +42,8 @@ public class Mix2TexturesES2 implements GLEventListener {
     private final PMVMatrix pmvMatrix;
     private final GLUniformData texUnit0, texUnit1;
     
-    private volatile int texID0, texID1;
+    private Object syncTexIDs = new Object();
+    private int texID0, texID1;
     private ShaderProgram sp0;
     private GLUniformData pmvMatrixUniform;
     private GLArrayDataServer interleavedVBO;
@@ -66,10 +67,14 @@ public class Mix2TexturesES2 implements GLEventListener {
     }
     
     public void setTexID0(int texID) {
-        this.texID0 = texID;
+        synchronized( syncTexIDs ) {
+            this.texID0 = texID;
+        }
     }
     public void setTexID1(int texID) {
-        this.texID1 = texID;
+        synchronized( syncTexIDs ) {
+            this.texID1 = texID;
+        }
     }
         
     static final String[] es2_prelude = { "#version 100\n", "precision mediump float;\n" };
@@ -156,19 +161,21 @@ public class Mix2TexturesES2 implements GLEventListener {
         
         interleavedVBO.enableBuffer(gl, true);
         
-        if(0<texID0) {
-            gl.glActiveTexture(GL.GL_TEXTURE0 + texUnit0.intValue());
-            gl.glBindTexture(GL.GL_TEXTURE_2D, texID0);
+        synchronized( syncTexIDs ) {
+            if(0<texID0) {
+                gl.glActiveTexture(GL.GL_TEXTURE0 + texUnit0.intValue());
+                gl.glBindTexture(GL.GL_TEXTURE_2D, texID0);
+            }
+            
+            if(0<texID1 && null != texUnit1) {
+                gl.glActiveTexture(GL.GL_TEXTURE0 + texUnit1.intValue());
+                gl.glBindTexture(GL.GL_TEXTURE_2D, texID1);
+            }
+            
+            gl.glEnable(GL.GL_TEXTURE_2D);
+            
+            gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
         }
-        
-        if(0<texID1 && null != texUnit1) {
-            gl.glActiveTexture(GL.GL_TEXTURE0 + texUnit1.intValue());
-            gl.glBindTexture(GL.GL_TEXTURE_2D, texID1);
-        }
-        
-        gl.glEnable(GL.GL_TEXTURE_2D);
-        
-        gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
         
         interleavedVBO.enableBuffer(gl, false);
         

@@ -43,6 +43,7 @@ import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
+import com.jogamp.opengl.test.junit.jogl.demos.GLFinishOnDisplay;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.Mix2TexturesES2;
 
@@ -133,6 +134,7 @@ public class TestFBOOnThreadSharedContext1DemoES2NEWT extends UITestCase {
         {
             GearsES2 demo0 = new GearsES2(-1);
             fbod1.addGLEventListener(demo0);
+            fbod1.addGLEventListener(new GLFinishOnDisplay());
             demo0.setIgnoreFocus(true);
         }
         fbod1.getNativeSurface().addSurfaceUpdatedListener(new SurfaceUpdatedListener() {

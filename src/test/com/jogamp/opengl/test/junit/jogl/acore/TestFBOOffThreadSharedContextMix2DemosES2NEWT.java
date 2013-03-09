@@ -44,6 +44,7 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureIO;
+import com.jogamp.opengl.test.junit.jogl.demos.GLFinishOnDisplay;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.Mix2TexturesES2;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
@@ -136,6 +137,7 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
         {
             GearsES2 demo0 = new GearsES2(-1);
             fbod1.addGLEventListener(demo0);
+            fbod1.addGLEventListener(new GLFinishOnDisplay());            
             demo0.setIgnoreFocus(true);
         }
         fbod1.getNativeSurface().addSurfaceUpdatedListener(new SurfaceUpdatedListener() {
@@ -152,6 +154,7 @@ public class TestFBOOffThreadSharedContextMix2DemosES2NEWT extends UITestCase {
                 factory.createOffscreenAutoDrawable(null, fbodCaps, null, glWindow.getWidth(), glWindow.getHeight(), glWindow.getContext());        
         fbod2.setTextureUnit(fbod2_texUnit);
         fbod2.addGLEventListener(new RedSquareES2(-1));
+        fbod2.addGLEventListener(new GLFinishOnDisplay());        
         fbod2.getNativeSurface().addSurfaceUpdatedListener(new SurfaceUpdatedListener() {
             @Override
             public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
