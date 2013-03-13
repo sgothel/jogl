@@ -34,7 +34,6 @@ import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLEventListener;
 
 import jogamp.opengl.Debug;
-import jogamp.opengl.GLEventListenerState;
 
 /**
  * Providing utility functions dealing w/ {@link GLDrawable}s, {@link GLAutoDrawable} and their {@link GLEventListener}.

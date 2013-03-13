@@ -41,7 +41,6 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
 
 import jogamp.nativewindow.jawt.JAWTUtil;
-import jogamp.opengl.GLEventListenerState;
 
 import com.jogamp.newt.opengl.GLWindow;
 
@@ -49,6 +48,7 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.GLEventListenerCounter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.GLEventListenerState;
 
 import org.junit.Assert;
 import org.junit.Assume;

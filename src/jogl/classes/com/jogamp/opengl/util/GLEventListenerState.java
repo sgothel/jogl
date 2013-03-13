@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.opengl;
+package com.jogamp.opengl.util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +45,8 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLRunnable;
 
+import jogamp.opengl.Debug;
+
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 
 /**
@@ -52,12 +54,11 @@ import com.jogamp.nativewindow.MutableGraphicsConfiguration;
  * to relocating all its {@link GLEventListener} w/ their operating {@link GLContext}, etc.
  * The components are:
  * <ul>
- *   <li>{@link AbstractGraphicsScreen}</li>
- *   <li>{@link GLCapabilitiesImmutable}</li>
- *   <li>{@link GLContext} operating all {@link GLEventListener}</li>
- *   <li>All {@link GLEventListener}</li>
- *   <li>All {@link GLEventListener}'s init state</li>
+ *   <li>{@link GLContext}</li>
+ *   <li>All {@link GLEventListener}, incl. their init state</li>
  *   <li>{@link GLAnimatorControl}</li>
+ *   <li>{@link GLCapabilitiesImmutable} for compatibility check</li>
+ *   <li>{@link AbstractGraphicsScreen} for compatibility check and preserving the {@link AbstractGraphicsDevice}</li>
  * </ul>
  * <p>
  * A GLEventListenerState instance can be created while components are {@link #moveFrom(GLAutoDrawable) moved from} a {@link GLAutoDrawable}
@@ -70,7 +71,7 @@ import com.jogamp.nativewindow.MutableGraphicsConfiguration;
  * <p>
  */
 public class GLEventListenerState {
-    private static final boolean DEBUG = GLDrawableImpl.DEBUG;
+    private static final boolean DEBUG = Debug.debug("GLDrawable");
     
     private GLEventListenerState(AbstractGraphicsScreen upstreamScreen, boolean proxyOwnsUpstreamDevice, AbstractGraphicsScreen screen, GLCapabilitiesImmutable caps, 
                                  GLContext context, int count, GLAnimatorControl anim) {

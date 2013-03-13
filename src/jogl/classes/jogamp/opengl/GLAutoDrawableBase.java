@@ -50,6 +50,7 @@ import javax.media.opengl.GLRunnable;
 
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.GLAutoDrawableDelegate;
+import com.jogamp.opengl.util.GLEventListenerState;
 
 
 /**

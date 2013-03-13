@@ -34,9 +34,9 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.jawt.JAWTUtil;
-import jogamp.opengl.GLEventListenerState;
 
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.GLEventListenerState;
 
 import com.jogamp.opengl.test.junit.util.GLEventListenerCounter;
 
