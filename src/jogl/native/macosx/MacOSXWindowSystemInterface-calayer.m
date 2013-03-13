@@ -275,7 +275,7 @@ static const GLfloat gl_verts[] = {
     vboBufTexCoord = 0;
     vertAttrLoc = 0;
     texCoordAttrLoc = 0;
-    parentPixelFmt = _parentPixelFmt;
+    parentPixelFmt = [_parentPixelFmt retain]; // until destruction
     swapInterval = 1; // defaults to on (as w/ new GL profiles)
     swapIntervalCounter = 0;
     timespec_now(&lastWaitTime);
@@ -338,13 +338,13 @@ static const GLfloat gl_verts[] = {
 #ifdef VERBOSE_ON
     CGRect lRect = [self bounds];
     if(NULL != pbuffer) {
-        DBG_PRINT("MyNSOpenGLLayer::init (pbuffer) %p, ctx %p, pfmt %p, pbuffer %p, opaque %d, pbuffer %dx%d -> tex %dx%d, bounds: %lf/%lf %lfx%lf (refcnt %d)\n", 
+        DBG_PRINT("MyNSOpenGLLayer::init (pbuffer) %p, ctx %p, pfmt %p, pbuffer %p, opaque %d, pbuffer %dx%d -> tex %dx%d, bounds: %lf/%lf %lfx%lf, displayLink %p (refcnt %d)\n", 
             self, parentCtx, parentPixelFmt, pbuffer, opaque, [pbuffer pixelsWide], [pbuffer pixelsHigh], texWidth, texHeight,
-            lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height, (int)[self retainCount]);
+            lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height, displayLink, (int)[self retainCount]);
     } else {
-        DBG_PRINT("MyNSOpenGLLayer::init (texture) %p, ctx %p, pfmt %p, opaque %d, tex[id %d, %dx%d], bounds: %lf/%lf %lfx%lf (refcnt %d)\n", 
+        DBG_PRINT("MyNSOpenGLLayer::init (texture) %p, ctx %p, pfmt %p, opaque %d, tex[id %d, %dx%d], bounds: %lf/%lf %lfx%lf, displayLink %p (refcnt %d)\n", 
             self, parentCtx, parentPixelFmt, opaque, (int)textureID, texWidth, texHeight,
-            lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height, (int)[self retainCount]);
+            lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height, displayLink, (int)[self retainCount]);
     }
 #endif
     return self;
@@ -498,7 +498,10 @@ static const GLfloat gl_verts[] = {
         myCtx = NULL;
     }
     parentCtx = NULL;
-    [parentPixelFmt release];
+    if( NULL != parentPixelFmt ) {
+        [parentPixelFmt release];
+        parentPixelFmt = NULL;
+    }
     pthread_mutex_unlock(&renderLock);
     [self release];
     DBG_PRINT("MyNSOpenGLLayer::releaseLayer.X: %p\n", self);
@@ -623,7 +626,7 @@ static const GLfloat gl_verts[] = {
 {
     DBG_PRINT("MyNSOpenGLLayer::openGLPixelFormatForDisplayMask: %p (refcnt %d) - parent-pfmt %p -> new-pfmt %p\n", 
         self, (int)[self retainCount], parentPixelFmt, parentPixelFmt);
-    // We simply take over ownership of parent PixelFormat ..
+    // We simply take over ownership of parent PixelFormat until releaseLayer..
     return parentPixelFmt;
 }
 

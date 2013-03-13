@@ -59,7 +59,7 @@ import javax.media.opengl.GLFBODrawable;
 import javax.media.opengl.GLRunnable;
 
 /** Encapsulates the implementation of most of the GLAutoDrawable's
-    methods to be able to share it between GLCanvas and GLJPanel. */
+    methods to be able to share it between GLAutoDrawable implementations like GLAutoDrawableBase, GLCanvas and GLJPanel. */
 public class GLDrawableHelper {
   /** true if property <code>jogl.debug.GLDrawable.PerfStats</code> is defined. */
   private static final boolean PERF_STATS = Debug.isPropertyDefined("jogl.debug.GLDrawable.PerfStats", true);
@@ -113,6 +113,9 @@ public class GLDrawableHelper {
     return sb.toString();
   }
 
+  /** Limit release calls of {@link #forceNativeRelease(GLContext)} to {@value}. */
+  private static final int MAX_RELEASE_ITER = 512;
+  
   /**
    * Since GLContext's {@link GLContext#makeCurrent()} and {@link GLContext#release()}
    * is recursive, a call to {@link GLContext#release()} may not natively release the context.
@@ -122,18 +125,25 @@ public class GLDrawableHelper {
    * @param ctx
    */
   public static final void forceNativeRelease(GLContext ctx) {
+      int releaseCount = 0;
       do {
           ctx.release();
+          releaseCount++;
           if (DEBUG) {
-              System.err.println("GLDrawableHelper.forceNativeRelease() -- currentThread "+Thread.currentThread()+" -> "+GLContext.getCurrent());
+              System.err.println("GLDrawableHelper.forceNativeRelease() #"+releaseCount+" -- currentThread "+Thread.currentThread()+" -> "+GLContext.getCurrent());
           }
-      } while( ctx == GLContext.getCurrent() );
+      } while( MAX_RELEASE_ITER > releaseCount && ctx.isCurrent() );
+      
+      if( ctx.isCurrent() ) {
+          throw new GLException("Context still current after "+MAX_RELEASE_ITER+" releases: "+ctx);
+      }
   }
         
   /**
    * Switch {@link GLContext} / {@link GLDrawable} association.
    * <p>
-   * Dis-associate <code>oldCtx</code> from <code>drawable</code> 
+   * The <code>oldCtx</code> will be destroyed if <code>destroyPrevCtx</code> is <code>true</code>,
+   * otherwise dis-associate <code>oldCtx</code> from <code>drawable</code> 
    * via {@link GLContext#setGLDrawable(GLDrawable, boolean) oldCtx.setGLDrawable(null, true);}.
    * </p>
    * <p>
@@ -149,31 +159,25 @@ public class GLDrawableHelper {
    * 
    * @param drawable the drawable which context is changed
    * @param oldCtx the old context, maybe <code>null</code>.
+   * @param destroyOldCtx if <code>true</code>, destroy the <code>oldCtx</code>
    * @param newCtx the new context, maybe <code>null</code> for dis-association.
    * @param newCtxCreationFlags additional creation flags if newCtx is not null and not been created yet, see {@link GLContext#setContextCreationFlags(int)}
-   * @return true if the new context was current, otherwise false
    *  
-   * @see GLAutoDrawable#setContext(GLContext)
+   * @see GLAutoDrawable#setContext(GLContext, boolean)
    */
-  public static final boolean switchContext(GLDrawable drawable, GLContext oldCtx, GLContext newCtx, int newCtxCreationFlags) {
+  public static final void switchContext(GLDrawable drawable, GLContext oldCtx, boolean destroyOldCtx, GLContext newCtx, int newCtxCreationFlags) {
       if( null != oldCtx ) {
-          if( oldCtx.isCurrent() ) {
-              oldCtx.release();
+          if( destroyOldCtx ) {
+              oldCtx.destroy();
+          } else {
+              oldCtx.setGLDrawable(null, true); // dis-associate old pair
           }
-          oldCtx.setGLDrawable(null, true); // dis-associate old pair
       }
-      final boolean newCtxCurrent;
+      
       if(null!=newCtx) {
-          newCtxCurrent = newCtx.isCurrent();
-          if(newCtxCurrent) {
-              newCtx.release();
-          }
           newCtx.setContextCreationFlags(newCtxCreationFlags);
-          newCtx.setGLDrawable(drawable, true); // re-associate new pair
-      } else {          
-          newCtxCurrent = false;
+          newCtx.setGLDrawable(drawable, true); // re-associate new pair          
       }
-      return newCtxCurrent;
   }
   
   /**
@@ -208,7 +212,6 @@ public class GLDrawableHelper {
               context.makeCurrent();
           }
           context.getGL().glFinish();
-          context.release();
           context.setGLDrawable(null, true); // dis-associate
       }
       
@@ -837,7 +840,7 @@ public class GLDrawableHelper {
         if( null != exclusiveContextThread ) {
             throw new GLException("Release current exclusive Context Thread "+exclusiveContextThread+" first");
         }
-        if( null != context && GLContext.getCurrent() == context ) {
+        if( null != context && context.isCurrent() ) {
             try {
                 forceNativeRelease(context);
             } catch (Throwable ex) {

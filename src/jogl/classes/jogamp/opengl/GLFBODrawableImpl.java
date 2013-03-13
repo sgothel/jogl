@@ -38,6 +38,7 @@ import com.jogamp.opengl.JoglVersion;
  */
 public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     protected static final boolean DEBUG = GLDrawableImpl.DEBUG || Debug.debug("FBObject");
+    protected static final boolean DEBUG_SWAP = Debug.isPropertyDefined("jogl.debug.FBObject.Swap", true);
     
     private final GLDrawableImpl parent;
     private GLCapabilitiesImmutable origParentChosenCaps;
@@ -92,6 +93,9 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     }
     
     private final void initialize(boolean realize, GL gl) {
+        if( initialized == realize ) {
+            throw new InternalError("Already set to initialize := "+realize+": "+this);
+        }
         if(realize) {
             final GLCapabilities chosenFBOCaps = (GLCapabilities) getChosenGLCapabilities(); // cloned at setRealized(true)
             
@@ -323,8 +327,8 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     }
     
     @Override
-    protected final void contextRealized(GLContext glc, boolean realized) {
-        initialize(realized, glc.getGL());
+    protected void associateContext(GLContext glc, boolean bound) {
+        initialize(bound, glc.getGL());        
     }
     
     @Override
@@ -338,7 +342,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 swapFBOImpl(glc);
                 swapFBOImplPost(glc);
                 fboBound=false;
-                if(DEBUG) {
+                if(DEBUG_SWAP) {
                     System.err.println("Post FBO swap(@release): done");
                 }
             }
@@ -354,7 +358,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 swapFBOImpl(ctx);
                 doPostSwap = true;
                 fboBound=false;
-                if(DEBUG) {
+                if(DEBUG_SWAP) {
                     System.err.println("Post FBO swap(@swap): done");
                 }
             }
@@ -406,7 +410,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 gl.glBindFramebuffer(GL2GL3.GL_READ_FRAMEBUFFER, fbos[fboIFront].getReadFramebuffer());
         } */
         
-        if(DEBUG) {
+        if(DEBUG_SWAP) {
             System.err.println("Post FBO swap(X): fboI back "+fboIBack+", front "+fboIFront+", num "+fbos.length);
         }
     }

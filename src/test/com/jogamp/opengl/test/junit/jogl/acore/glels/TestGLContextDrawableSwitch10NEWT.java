@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.acore;
+package com.jogamp.opengl.test.junit.jogl.acore.glels;
 
 import java.io.IOException;
 
@@ -36,7 +36,6 @@ import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.WindowUpdateEvent;
-import com.jogamp.newt.opengl.GLWindow;
 
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -62,13 +61,24 @@ import org.junit.Test;
 
 /**
  * Test re-association of GLContext/GLDrawables,
- * here GLContext's survival of GLDrawable desctruction 
+ * here GLContext's survival of GLDrawable destruction 
  * and reuse w/ new or recreated GLDrawable.
+ * <p>
+ * Test utilizes {@link GLEventListenerState} for preserving the 
+ * GLAutoDrawable state, i.e. GLContext, all GLEventListener 
+ * and the GLAnimatorControl association.
+ * </p>
+ * <p>
+ * This test is using NEWT's plain Window w/ GLAutoDrawableDelegate.
+ * </p>
  * <p>
  * See Bug 665 - https://jogamp.org/bugzilla/show_bug.cgi?id=665.
  * </p>
  */
-public class TestGLContextDrawableSwitch11NEWT extends UITestCase {
+public class TestGLContextDrawableSwitch10NEWT extends UITestCase {
+    // default period for 1 GLAD cycle
+    static long duration = 1000; // ms
+
     static int width, height;
 
     static GLCapabilities getCaps(String profile) {
@@ -134,33 +144,31 @@ public class TestGLContextDrawableSwitch11NEWT extends UITestCase {
     public void test01GLADDelegateGL2ES2() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2ES2);
         if(null == reqGLCaps) return;
-        test01GLADDelegateImpl(reqGLCaps);
+        testGLADDelegateImpl(reqGLCaps);
     }
     
     @Test(timeout=30000)
-    public void test01GLADDelegateGLES2() throws InterruptedException {
+    public void test02GLADDelegateGLES2() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
         if(null == reqGLCaps) return;
-        test01GLADDelegateImpl(reqGLCaps);
+        testGLADDelegateImpl(reqGLCaps);
     }
     
-    private void test01GLADDelegateImpl(GLCapabilities caps) throws InterruptedException {
-        final QuitAdapter quitAdapter = new QuitAdapter();
-        
+    private void testGLADDelegateImpl(GLCapabilities caps) throws InterruptedException {
         final GLEventListenerCounter glelCounter = new GLEventListenerCounter();
         final SnapshotGLEventListener snapshotGLEventListener = new SnapshotGLEventListener();        
         final Animator animator = new Animator();
         animator.start();
         
-        final long t0 = System.currentTimeMillis();
         final GLEventListenerState glls1;
         
         // - create glad1 w/o context
         // - create context using glad1 and assign it to glad1
         {
+            final QuitAdapter quitAdapter = new QuitAdapter();        
             final GLAutoDrawable glad1 = createGLAutoDrawableWithoutContext(caps,         64, 64,     width,     height, quitAdapter);
             final GLContext context1 = glad1.createContext(null);
-            glad1.setContext(context1);
+            glad1.setContext(context1, true);
             animator.add(glad1);
             
             glad1.addGLEventListener(glelCounter);
@@ -168,9 +176,10 @@ public class TestGLContextDrawableSwitch11NEWT extends UITestCase {
             glad1.addGLEventListener(snapshotGLEventListener);
             snapshotGLEventListener.setMakeSnapshot();
             
-            long t1 = System.currentTimeMillis();
+            final long t0 = System.currentTimeMillis();
+            long t1 = t0;
             
-            while( !quitAdapter.shouldQuit() && ( t1 - t0 ) < duration/2 ) {
+            while( !quitAdapter.shouldQuit() && ( t1 - t0 ) < duration ) {
                 Thread.sleep(100);
                 t1 = System.currentTimeMillis();
             }
@@ -209,6 +218,7 @@ public class TestGLContextDrawableSwitch11NEWT extends UITestCase {
         
         // - create glad2 w/ survived context
         {
+            final QuitAdapter quitAdapter = new QuitAdapter();        
             final GLAutoDrawable glad2 = createGLAutoDrawableWithoutContext(caps, 2*64+width, 64, width+100, height+100, quitAdapter);
             snapshotGLEventListener.setMakeSnapshot();
             
@@ -229,9 +239,10 @@ public class TestGLContextDrawableSwitch11NEWT extends UITestCase {
             Assert.assertEquals(glls1.context.getGLDrawable(), glad2.getDelegatedDrawable());
             Assert.assertEquals(false, glls1.isOwner());
             
-            long t1 = System.currentTimeMillis();
+            final long t0 = System.currentTimeMillis();
+            long t1 = t0;
             
-            while( !quitAdapter.shouldQuit() && ( t1 - t0 ) < duration/1 ) {
+            while( !quitAdapter.shouldQuit() && ( t1 - t0 ) < duration ) {
                 Thread.sleep(100);
                 t1 = System.currentTimeMillis();
             }
@@ -245,129 +256,6 @@ public class TestGLContextDrawableSwitch11NEWT extends UITestCase {
         animator.stop();
     }
     
-    @Test(timeout=30000)
-    public void test02GLWindowGL2ES2() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2ES2);
-        if(null == reqGLCaps) return;
-        test02GLWindowImpl(reqGLCaps);
-    }
-    
-    @Test(timeout=30000)
-    public void test02GLWindowGLES2() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
-        if(null == reqGLCaps) return;
-        test02GLWindowImpl(reqGLCaps);
-    }
-    
-    private void test02GLWindowImpl(GLCapabilities caps) throws InterruptedException {
-        final QuitAdapter quitAdapter = new QuitAdapter();
-        
-        final SnapshotGLEventListener snapshotGLEventListener = new SnapshotGLEventListener();        
-        final GLEventListenerCounter glelTracker = new GLEventListenerCounter();
-        final Animator animator = new Animator();
-        animator.start();
-        
-        final long t0 = System.currentTimeMillis();
-        final GLEventListenerState glls1;
-        
-        // - create glad1 w/o context
-        // - create context using glad1 and assign it to glad1
-        {
-            final GLWindow glad1 = GLWindow.create(caps);
-            glad1.setSize(width, height);
-            glad1.setPosition(64, 64);
-            glad1.addWindowListener(quitAdapter);
-            animator.add(glad1);
-            
-            glad1.addGLEventListener(glelTracker);
-            glad1.addGLEventListener(new GearsES2(1));
-            glad1.addGLEventListener(snapshotGLEventListener);
-            snapshotGLEventListener.setMakeSnapshot();
-                        
-            glad1.setVisible(true);
-            
-            long t1 = System.currentTimeMillis();
-            
-            while( !quitAdapter.shouldQuit() && ( t1 - t0 ) < duration/2 ) {
-                Thread.sleep(100);
-                t1 = System.currentTimeMillis();
-            }
-    
-            // - dis-associate context from glad1
-            // - destroy glad1
-            Assert.assertEquals(1, glelTracker.initCount);
-            Assert.assertTrue(1 <= glelTracker.reshapeCount);
-            Assert.assertTrue(1 <= glelTracker.displayCount);
-            Assert.assertEquals(0, glelTracker.disposeCount);
-            Assert.assertEquals(3, glad1.getGLEventListenerCount());
-            Assert.assertEquals(glad1.getContext().getGLReadDrawable(), glad1.getDelegatedDrawable());
-            Assert.assertEquals(glad1.getContext().getGLDrawable(), glad1.getDelegatedDrawable());
-            
-            final GLContext context1 = glad1.getContext();
-            glls1 = GLEventListenerState.moveFrom(glad1);
-            
-            Assert.assertEquals(1, glelTracker.initCount);
-            Assert.assertTrue(1 <= glelTracker.reshapeCount);
-            Assert.assertTrue(1 <= glelTracker.displayCount);
-            Assert.assertEquals(0, glelTracker.disposeCount);
-            Assert.assertEquals(context1, glls1.context);
-            Assert.assertNull(context1.getGLReadDrawable());
-            Assert.assertNull(context1.getGLDrawable());
-            Assert.assertEquals(3, glls1.listenerCount());
-            Assert.assertEquals(true, glls1.isOwner());
-            Assert.assertEquals(null, glad1.getContext());
-            Assert.assertEquals(0, glad1.getGLEventListenerCount());
-            
-            glad1.destroy();
-            Assert.assertEquals(1, glelTracker.initCount);
-            Assert.assertTrue(1 <= glelTracker.reshapeCount);
-            Assert.assertTrue(1 <= glelTracker.displayCount);
-            Assert.assertEquals(0, glelTracker.disposeCount);
-        }
-        
-        // - create glad2 w/ survived context
-        {
-            final GLWindow glad2 = GLWindow.create(caps);
-            glad2.setSize(width+100, height+100);
-            glad2.setPosition(2*64+width, 64);
-            glad2.addWindowListener(quitAdapter);
-            snapshotGLEventListener.setMakeSnapshot();
-            glad2.setVisible(true);
-            
-            Assert.assertNotNull(glad2.getContext());
-            Assert.assertEquals(0, glad2.getGLEventListenerCount());
-            
-            glls1.moveTo(glad2);            
-            
-            Assert.assertEquals(1, glelTracker.initCount);
-            Assert.assertTrue(1 <= glelTracker.reshapeCount);
-            Assert.assertTrue(1 <= glelTracker.displayCount);
-            Assert.assertEquals(0, glelTracker.disposeCount);
-            Assert.assertEquals(glls1.context, glad2.getContext());
-            Assert.assertEquals(3, glad2.getGLEventListenerCount());
-            Assert.assertEquals(glls1.context.getGLReadDrawable(), glad2.getDelegatedDrawable());
-            Assert.assertEquals(glls1.context.getGLDrawable(), glad2.getDelegatedDrawable());
-            Assert.assertEquals(false, glls1.isOwner());
-            
-            long t1 = System.currentTimeMillis();
-            
-            while( !quitAdapter.shouldQuit() && ( t1 - t0 ) < duration/1 ) {
-                Thread.sleep(100);
-                t1 = System.currentTimeMillis();
-            }
-    
-            glad2.destroy();
-            Assert.assertEquals(1, glelTracker.initCount);
-            Assert.assertTrue(1 <= glelTracker.reshapeCount);
-            Assert.assertTrue(1 <= glelTracker.displayCount);
-            Assert.assertEquals(1, glelTracker.disposeCount);
-        }
-        animator.stop();
-    }
-    
-    // default timing for 2 switches
-    static long duration = 2200; // ms
-
     public static void main(String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
@@ -381,6 +269,6 @@ public class TestGLContextDrawableSwitch11NEWT extends UITestCase {
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println("Press enter to continue");
         System.err.println(stdin.readLine()); */         
-        org.junit.runner.JUnitCore.main(TestGLContextDrawableSwitch11NEWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGLContextDrawableSwitch10NEWT.class.getName());
     }
 }

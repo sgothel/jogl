@@ -705,16 +705,13 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    }
 
    @Override
-   public GLContext setContext(GLContext newCtx) {
+   public GLContext setContext(GLContext newCtx, boolean destroyPrevCtx) {
       final RecursiveLock _lock = lock;
       _lock.lock();
       try {            
           final GLContext oldCtx = context;
-          final boolean newCtxCurrent = GLDrawableHelper.switchContext(drawable, oldCtx, newCtx, additionalCtxCreationFlags);
+          GLDrawableHelper.switchContext(drawable, oldCtx, destroyPrevCtx, newCtx, additionalCtxCreationFlags);
           context=(GLContextImpl)newCtx;
-          if(newCtxCurrent) {
-              context.makeCurrent();
-          }
           return oldCtx;
       } finally {
           _lock.unlock();

@@ -85,10 +85,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   // NSOpenGL-based or CGL-based)
   protected interface GLBackendImpl {
         boolean isNSContext();
-        void drawableChangedNotify();
         long create(long share, int ctp, int major, int minor);
         boolean destroy(long ctx);
-        boolean contextRealized(boolean realized);
+        void associateDrawable(boolean bound);
         boolean copyImpl(long src, int mask);
         boolean makeCurrent(long ctx);
         boolean release(long ctx);
@@ -328,20 +327,15 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   }
   
   @Override
-  protected void contextRealized(boolean realized) {
+  protected void associateDrawable(boolean bound) {
       // context stuff depends on drawable stuff
-      if(realized) {
-          super.contextRealized(true);   // 1) init drawable stuff
-          impl.contextRealized(true);    // 2) init context stuff
+      System.err.println("MaxOSXCGLContext.associateDrawable: "+bound);
+      if(bound) {
+          super.associateDrawable(true);   // 1) init drawable stuff
+          impl.associateDrawable(true);    // 2) init context stuff
       } else {
-          impl.contextRealized(false);   // 1) free context stuff
-          super.contextRealized(false);  // 2) free drawable stuff
-      }
-  }
-  
-  /* pp */ void drawableChangedNotify() {
-      if( 0 != contextHandle) {
-          impl.drawableChangedNotify();
+          impl.associateDrawable(false);   // 1) free context stuff
+          super.associateDrawable(false);  // 2) free drawable stuff
       }
   }
   
@@ -467,9 +461,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
   // NSOpenGLContext-based implementation
   class NSOpenGLImpl implements GLBackendImpl {
-      private OffscreenLayerSurface backingLayerHost = null;
-      private long nsOpenGLLayer = 0;
-      private long nsOpenGLLayerPFmt = 0; // lifecycle:  [create - contextRealized]
+      private long pixelFormat = 0; // lifecycle:  [create - destroy]
+      private long nsOpenGLLayer = 0; // lifecycle:  [associateDrawable_true - associateDrawable_false]
       private float screenVSyncTimeout; // microSec
       private int vsyncTimeout;    // microSec - for nsOpenGLLayer mode
       private int lastWidth=0, lastHeight=0; // allowing to detect size change
@@ -478,18 +471,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       
       @Override
       public boolean isNSContext() { return true; }
-
-      @Override
-      public void drawableChangedNotify() {          
-          backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(drawable.getNativeSurface(), true);
-          if( null == backingLayerHost ) {
-              boolean[] isPBuffer = { false };
-              boolean[] isFBO = { false };
-              CGL.setContextView(contextHandle, getNSViewHandle(isPBuffer, isFBO));
-          } else {
-              nsOpenGLLayer = backingLayerHost.getAttachedSurfaceLayer();
-          }
-      }
 
       private long getNSViewHandle(boolean[] isPBuffer, boolean[] isFBO) {
           final long nsViewHandle;
@@ -549,13 +530,12 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               isPBuffer = _isPBuffer[0];
               isFBO = _isFBO[0];
           }
-          backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(surface, true);
+          final OffscreenLayerSurface backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(surface, true);
 
           boolean incompleteView = null != backingLayerHost;
           if( !incompleteView && surface instanceof ProxySurface ) {
               incompleteView = ((ProxySurface)surface).containsUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE );
           }
-          long pixelFormat;
           {
               final GLCapabilitiesImmutable targetCaps;
               if( isFBO ) {
@@ -606,48 +586,54 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           }
           config.setChosenCapabilities(fixedCaps);
           
-          try {
-              final IntBuffer viewNotReady = Buffers.newDirectIntBuffer(1);
-              // Try to allocate a context with this
-              ctx = CGL.createContext(share,
-                      nsViewHandle, incompleteView,
-                      pixelFormat,
-                      chosenCaps.isBackgroundOpaque(),
-                      viewNotReady);
-              if (0 == ctx) {
-                  if(DEBUG) {
-                      System.err.println("NS create failed: viewNotReady: "+ (1 == viewNotReady.get(0)));
-                  }
-                  return 0;
+          final IntBuffer viewNotReady = Buffers.newDirectIntBuffer(1);
+          // Try to allocate a context with this
+          ctx = CGL.createContext(share, nsViewHandle, incompleteView,
+                  pixelFormat, chosenCaps.isBackgroundOpaque(), viewNotReady);
+          if (0 == ctx) {
+              if(DEBUG) {
+                  System.err.println("NS create failed: viewNotReady: "+ (1 == viewNotReady.get(0)));
               }
+              return 0;
+          }
 
-              if(null != backingLayerHost) {
-                  nsOpenGLLayerPFmt = pixelFormat;
-                  pixelFormat = 0;
-              }
-              
-              if (chosenCaps.isOnscreen() && !chosenCaps.isBackgroundOpaque()) {
-                  // Set the context opacity
-                  CGL.setContextOpacity(ctx, 0);
-              }
-          } finally {
-              if(0!=pixelFormat) {
-                  CGL.deletePixelFormat(pixelFormat);
-                  pixelFormat = 0;
-              }
+          if (chosenCaps.isOnscreen() && !chosenCaps.isBackgroundOpaque()) {
+              // Set the context opacity
+              CGL.setContextOpacity(ctx, 0);
           }
           return ctx;
       }
 
       @Override
       public boolean destroy(long ctx) {
+          if(0!=pixelFormat) {
+              CGL.deletePixelFormat(pixelFormat);
+              pixelFormat = 0;
+          }
           return CGL.deleteContext(ctx, true);
+          
       }
 
       @Override
-      public boolean contextRealized(boolean realized) {
-          if( realized ) {
+      public void associateDrawable(boolean bound) {
+          final OffscreenLayerSurface backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(drawable.getNativeSurface(), true);
+          
+          if(DEBUG) {
+              System.err.println("MaxOSXCGLContext.NSOpenGLImpl.associateDrawable: "+bound+", ctx "+toHexString(contextHandle)+", hasBackingLayerHost "+(null!=backingLayerHost));
+          }          
+          
+          if( bound ) {
+              
               if( null != backingLayerHost ) {
+                  
+                  if( 0 != nsOpenGLLayer ) { // FIXME: redundant
+                      throw new InternalError("Lifecycle: bound=true, hasBackingLayerHost=true, but 'nsOpenGLLayer' is already/still set local: "+nsOpenGLLayer+", "+this);
+                  }
+                  nsOpenGLLayer = backingLayerHost.getAttachedSurfaceLayer();
+                  if( 0 != nsOpenGLLayer ) { // FIXME: redundant
+                      throw new InternalError("Lifecycle: bound=true, hasBackingLayerHost=true, but 'nsOpenGLLayer' is already/still set on backingLayerHost: "+nsOpenGLLayer+", "+this);
+                  }
+                  
                   //
                   // handled layered surface
                   //
@@ -700,8 +686,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   }
                   final boolean ctxUnlocked = CGL.kCGLNoError == CGL.CGLUnlockContext(cglCtx);
                   try {                  
-                      nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, gl3ShaderProgramName, nsOpenGLLayerPFmt, pbufferHandle, texID, chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight);
-                      nsOpenGLLayerPFmt = 0; // NSOpenGLLayer will release pfmt
+                      nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, gl3ShaderProgramName, pixelFormat, pbufferHandle, texID, chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight);
                       if (DEBUG) {
                           System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer)+" w/ pbuffer "+toHexString(pbufferHandle)+", texID "+texID+", texSize "+lastWidth+"x"+lastHeight+", "+drawable);
                       }
@@ -718,17 +703,22 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               } else {
                   lastWidth = drawable.getWidth();
                   lastHeight = drawable.getHeight();                  
+                  boolean[] isPBuffer = { false };
+                  boolean[] isFBO = { false };
+                  CGL.setContextView(contextHandle, getNSViewHandle(isPBuffer, isFBO));
               }
           } else {
               if( 0 != nsOpenGLLayer ) {
-                  final NativeSurface surface = drawable.getNativeSurface();
+                  if( null == backingLayerHost ) { // FIXME: redundant
+                      throw new InternalError("Lifecycle: bound=false, hasNSOpneGLLayer=true, but 'backingLayerHost' is null local: "+nsOpenGLLayer+", "+this);
+                  }
+                  
                   if (DEBUG) {
                       System.err.println("NS destroy nsOpenGLLayer "+toHexString(nsOpenGLLayer)+", "+drawable);
                   }
-                  final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(surface, true);
-                  if(null != ols && ols.isSurfaceLayerAttached()) {
+                  if( backingLayerHost.isSurfaceLayerAttached() ) {
                       // still having a valid OLS attached to surface (parent OLS could have been removed)
-                      ols.detachSurfaceLayer();
+                      backingLayerHost.detachSurfaceLayer();
                   }
                   CGL.releaseNSOpenGLLayer(nsOpenGLLayer);
                   if( null != gl3ShaderProgram ) {
@@ -738,8 +728,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   nsOpenGLLayer = 0;
               }
           }
-          backingLayerHost = null;
-          return true;
       }
 
       private final void validatePBufferConfig(long ctx) {
@@ -889,11 +877,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       public boolean isNSContext() { return false; }
 
       @Override
-      public void drawableChangedNotify() {
-          // FIXME
-      }
-      
-      @Override
       public long create(long share, int ctp, int major, int minor) {
           long ctx = 0;
           MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
@@ -947,8 +930,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       }
 
       @Override
-      public boolean contextRealized(boolean realized) {
-          return true;
+      public void associateDrawable(boolean bound) {
       }
 
       @Override

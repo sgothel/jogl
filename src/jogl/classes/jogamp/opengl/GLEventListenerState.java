@@ -45,7 +45,6 @@ import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLRunnable;
 
-import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 
 /**
@@ -71,11 +70,12 @@ import com.jogamp.nativewindow.MutableGraphicsConfiguration;
  * <p>
  */
 public class GLEventListenerState {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = GLDrawableImpl.DEBUG;
     
-    private GLEventListenerState(AbstractGraphicsScreen upstreamScreen, AbstractGraphicsScreen screen, GLCapabilitiesImmutable caps, 
+    private GLEventListenerState(AbstractGraphicsScreen upstreamScreen, boolean proxyOwnsUpstreamDevice, AbstractGraphicsScreen screen, GLCapabilitiesImmutable caps, 
                                  GLContext context, int count, GLAnimatorControl anim) {
         this.upstreamScreen = upstreamScreen;
+        this.proxyOwnsUpstreamDevice = proxyOwnsUpstreamDevice;
         this.screen = screen;
         this.caps = caps;
         this.context = context;
@@ -97,6 +97,7 @@ public class GLEventListenerState {
     public final int listenerCount() { return listeners.length; }
 
     public final AbstractGraphicsScreen upstreamScreen;
+    public final boolean proxyOwnsUpstreamDevice;
     public final AbstractGraphicsScreen screen;
     public final GLCapabilitiesImmutable caps;
     public final GLContext context;
@@ -161,25 +162,30 @@ public class GLEventListenerState {
         }
         aScreen1.getDevice().clearHandleOwner();  // don't close device handle
 
-        final AbstractGraphicsScreen aUpScreen2;         
+        final AbstractGraphicsScreen aUpScreen2;
+        final boolean proxyOwnsUpstreamDevice;
         {
             AbstractGraphicsScreen _aUpScreen2=null;
             if(aSurface instanceof ProxySurface) {
                 final ProxySurface aProxy = (ProxySurface)aSurface;
+                proxyOwnsUpstreamDevice = aProxy.containsUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );
                 final NativeSurface aUpSurface = aProxy.getUpstreamSurface();
-                if(null != aUpSurface) {
+                if(DEBUG && null != aUpSurface) {
                     System.err.println("X00 UpstreamSurface:            "+aUpSurface.getClass().getName()+", "+aUpSurface);
                 }
-                aProxy.clearUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE ); // don't close device handle
                 if(null != aUpSurface) {
                     final AbstractGraphicsScreen aUpScreen1 = aUpSurface.getGraphicsConfiguration().getScreen();
                     _aUpScreen2 = cloneScreen(aUpScreen1);
                     if(null != aUpScreen1) {
                         aUpScreen1.getDevice().clearHandleOwner(); // don't close device handle
                     }
-                    System.err.println("X0X NativeSurface:              "+aSurface.getClass().getName()+", "+aSurface);
-                    System.err.println("X0X UpstreamSurface:            "+aUpSurface.getClass().getName()+", "+aUpSurface);
+                    if(DEBUG) {
+                        System.err.println("X0X NativeSurface:              "+aSurface.getClass().getName()+", "+aSurface);
+                        System.err.println("X0X UpstreamSurface:            "+aUpSurface.getClass().getName()+", "+aUpSurface);
+                    }
                 }
+            } else {
+                proxyOwnsUpstreamDevice = false;
             }
             aUpScreen2=_aUpScreen2;
         }
@@ -189,7 +195,7 @@ public class GLEventListenerState {
             aAnim.remove(a); // also handles ECT
         }
         
-        final GLEventListenerState glls = new GLEventListenerState(aUpScreen2, aScreen2, caps, a.getContext(), aSz, aAnim); 
+        final GLEventListenerState glls = new GLEventListenerState(aUpScreen2, proxyOwnsUpstreamDevice, aScreen2, caps, a.getContext(), aSz, aAnim); 
 
         //
         // remove and cache all GLEventListener and their init-state
@@ -205,7 +211,7 @@ public class GLEventListenerState {
         //
         a.invoke(true, glFinish);
 
-        a.setContext( null );
+        a.setContext( null, false );
         
         return glls;
     }
@@ -241,13 +247,7 @@ public class GLEventListenerState {
             throw new GLException("Incompatible Capabilities - Prev-Holder: "+caps+", New-Holder "+caps);
         }
         // Destroy and remove currently associated GLContext, if any (will be replaced)
-        {
-            final GLContext ctx = a.getContext();
-            if( null != ctx) {
-                ctx.destroy();
-            }
-            a.setContext( null );
-        }
+        a.setContext( null, true );
         final boolean aRealized = a.isRealized();
         if( aRealized ) {
             a.setRealized(false);
@@ -260,8 +260,11 @@ public class GLEventListenerState {
             final AbstractGraphicsScreen aScreen1 = aCfg.getScreen();
             aCfg.setScreen( screen );
             aScreen1.getDevice().close();
-            System.err.println("XXX NativeSurface:              "+aSurface.getClass().getName()+", "+aSurface);
+            if( DEBUG ) {
+                System.err.println("XXX NativeSurface:              "+aSurface.getClass().getName()+", "+aSurface);
+            }
         }
+        
         // If using a ProxySurface w/ an upstream surface, set new Screen and close previous one on it
         {
             boolean upstreamSet = false;
@@ -270,13 +273,19 @@ public class GLEventListenerState {
                 final NativeSurface aUpSurface = aProxy.getUpstreamSurface();            
                 if(null != aUpSurface) {
                     final MutableGraphicsConfiguration aUpCfg = (MutableGraphicsConfiguration) aUpSurface.getGraphicsConfiguration();
-                    final AbstractGraphicsScreen aUpScreen1 = aUpCfg.getScreen();
                     if( null != upstreamScreen ) {
-                        System.err.println("XX0 UpstreamSurface:            "+aUpSurface.getClass().getName()+", "+aUpSurface);
+                        if( DEBUG ) {
+                            System.err.println("XX0 UpstreamSurface:            "+aUpSurface.getClass().getName()+", "+aUpSurface+", "+aProxy.getUpstreamOptionBits(null).toString());
+                        }
+                        aUpCfg.getScreen().getDevice().close();
                         aUpCfg.setScreen( upstreamScreen );
-                        aUpScreen1.getDevice().close();
+                        if( proxyOwnsUpstreamDevice ) {
+                            aProxy.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );
+                        }
                         upstreamSet = true;
-                        System.err.println("XXX UpstreamSurface:            "+aUpSurface.getClass().getName()+", "+aUpSurface);
+                        if( DEBUG ) {
+                            System.err.println("XXX UpstreamSurface:            "+aUpSurface.getClass().getName()+", "+aUpSurface+", "+aProxy.getUpstreamOptionBits(null).toString());
+                        }
                     } else {
                         throw new GLException("Incompatible Surface config - Has Upstream-Surface: Prev-Holder = false, New-Holder = true");
                     }
@@ -292,7 +301,7 @@ public class GLEventListenerState {
         }
         final boolean surfaceLocked = false; // NativeSurface.LOCK_SURFACE_NOT_READY < aSurface.lockSurface();
         try {
-            a.setContext( context );
+            a.setContext( context, false );
         } finally {
             if( surfaceLocked ) {
                 aSurface.unlockSurface();

@@ -429,8 +429,29 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     }
   }
     
+  private final void setRealizedImpl(boolean realized) {
+      final RecursiveLock _lock = lock;
+      _lock.lock();
+      try {            
+          final GLDrawable _drawable = drawable;
+          if( null == _drawable || realized && ( 0 >= _drawable.getWidth() || 0 >= _drawable.getHeight() ) ) {
+              return; 
+          }
+         _drawable.setRealized(realized);
+          if( realized && _drawable.isRealized() ) {
+              sendReshape=true; // ensure a reshape is being send ..
+          }
+      } finally {
+          _lock.unlock();
+      }
+  }  
+  private final Runnable realizeOnEDTAction = new Runnable() { public void run() { setRealizedImpl(true); } };
+  private final Runnable unrealizeOnEDTAction = new Runnable() { public void run() { setRealizedImpl(false); } };
+  
   @Override
-  public void setRealized(boolean realized) {
+  public final void setRealized(boolean realized) {
+      // Make sure drawable realization happens on AWT-EDT and only there. Consider the AWTTree lock!
+      AWTEDTExecutor.singleton.invoke(getTreeLock(), false /* allowOnNonEDT */, true /* wait */, realized ? realizeOnEDTAction : unrealizeOnEDTAction);
   }
 
   @Override
@@ -595,46 +616,28 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }  
 
   private boolean validateGLDrawable() {
-    if( Beans.isDesignTime() || !isDisplayable() ) {
-        return false; // early out!
-    }
-    final GLDrawable _drawable = drawable;
-    if ( null != _drawable ) {
-        if( _drawable.isRealized() ) {
-            return true;
-        }
-        if( 0 >= _drawable.getWidth() || 0 >= _drawable.getHeight() ) {
-            return false; // early out!
-        }
-        // Make sure drawable realization happens on AWT-EDT and only there. Consider the AWTTree lock!
-        final boolean res0 = AWTEDTExecutor.singleton.invoke(getTreeLock(), false /* allowOnNonEDT */, true /* wait */, setRealizedOnEDTAction);
-        final boolean res1 = res0 && _drawable.isRealized();
-        if(DEBUG) {
-            System.err.println(getThreadName()+": Realized Drawable: invoked "+res0+", probedIsRealized "+res1+", "+_drawable.toString());
-            Thread.dumpStack();
-        }
-        return res1;
-    }
-    return false;
-  }
-  private Runnable setRealizedOnEDTAction = new Runnable() { 
-      public void run() { 
-          final RecursiveLock _lock = lock;
-          _lock.lock();
-          try {            
-              final GLDrawable _drawable = drawable;
-              if( null == _drawable || 0 >= _drawable.getWidth() || 0 >= _drawable.getHeight() ) {
-                  return; 
-              }
-              _drawable.setRealized(true);
-              if( _drawable.isRealized() ) {
-                  sendReshape=true; // ensure a reshape is being send ..
-              }
-          } finally {
-              _lock.unlock();
+      if( Beans.isDesignTime() || !isDisplayable() ) {
+          return false; // early out!
+      }
+      final GLDrawable _drawable = drawable;
+      if ( null != _drawable ) {
+          if( _drawable.isRealized() ) {
+              return true;
           }
-      } };
-
+          if( 0 >= _drawable.getWidth() || 0 >= _drawable.getHeight() ) {
+              return false; // early out!
+          }
+          setRealized(true);
+          final boolean res = _drawable.isRealized();
+          if(DEBUG) {
+              System.err.println(getThreadName()+": Realized Drawable: isRealized "+res+", "+_drawable.toString());
+              Thread.dumpStack();
+          }
+          return res;
+      }
+      return false;
+  }
+  
   /** <p>Overridden to track when this component is removed from a
       container. Subclasses which override this method must call
       super.removeNotify() in their removeNotify() method in order to
@@ -791,16 +794,13 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
   
   @Override
-  public GLContext setContext(GLContext newCtx) {
+  public GLContext setContext(GLContext newCtx, boolean destroyPrevCtx) {
       final RecursiveLock _lock = lock;
       _lock.lock();
       try {
           final GLContext oldCtx = context;
-          final boolean newCtxCurrent = GLDrawableHelper.switchContext(drawable, oldCtx, newCtx, additionalCtxCreationFlags);
+          GLDrawableHelper.switchContext(drawable, oldCtx, destroyPrevCtx, newCtx, additionalCtxCreationFlags);
           context=(GLContextImpl)newCtx;
-          if(newCtxCurrent) {
-              context.makeCurrent();
-          }
           return oldCtx;
       } finally {
           _lock.unlock();

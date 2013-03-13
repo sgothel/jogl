@@ -86,9 +86,10 @@ public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
   // 
     
   @Override
-  public final void setRealized(boolean realized) {
+  public final void swapBuffers() throws GLException {
+      defaultSwapBuffers();
   }
-
+  
   //
   // GLAutoDrawable completion
   //
@@ -125,11 +126,6 @@ public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
     }
   }
 
-  @Override
-  public final void swapBuffers() throws GLException {
-      defaultSwapBuffers();
-  }
-  
   //----------------------------------------------------------------------
   // Internals only below this point
   //

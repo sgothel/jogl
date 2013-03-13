@@ -132,7 +132,8 @@ public interface GLAutoDrawable extends GLDrawable {
   /**
    * Associate the new context, <code>newtCtx</code>, to this auto-drawable.
    * <p>
-   * The current context will be dis-associated from this auto-drawable 
+   * The current context will be destroyed if <code>destroyPrevCtx</code> is <code>true</code>,
+   * otherwise it will be dis-associated from this auto-drawable 
    * via {@link GLContext#setGLDrawable(GLDrawable, boolean) setGLDrawable(null, true);} first.
    * </p>
    * <p>
@@ -145,26 +146,16 @@ public interface GLAutoDrawable extends GLDrawable {
    * However the user shall take extra care that no other thread
    * attempts to make this context current.
    * </p>
-   * <p>
-   * In case you do not intend to use the old context anymore, i.e. 
-   * not assigning it to another drawable, it shall be
-   * destroyed, i.e.:
-   * <pre>
-            GLContext oldCtx = glad.setContext(newCtx);
-            if(null != oldCtx) {
-                oldCtx.destroy();
-            }
-   * </pre> 
-   * </p>
    * 
    * @param newCtx the new context, maybe <code>null</code> for dis-association.
+   * @param destroyPrevCtx if <code>true</code>, destroy the previous context if exists  
    * @return the previous GLContext, maybe <code>null</code>
    *  
    * @see GLContext#setGLDrawable(GLDrawable, boolean)
    * @see GLContext#setGLReadDrawable(GLDrawable)
-   * @see jogamp.opengl.GLDrawableHelper#switchContext(GLDrawable, GLContext, GLContext, int)
+   * @see jogamp.opengl.GLDrawableHelper#switchContext(GLDrawable, GLContext, boolean, GLContext, int)
    */
-  public GLContext setContext(GLContext newCtx);
+  public GLContext setContext(GLContext newCtx, boolean destroyPrevCtx);
   
   /**
    * Adds the given {@link GLEventListener listener} to the end of this drawable queue.
@@ -500,7 +491,7 @@ public interface GLAutoDrawable extends GLDrawable {
    * <p>
    * This GLAutoDrawable implementation holds it's own GLContext reference,
    * thus created a GLContext using this methods won't replace it implicitly.
-   * To replace or set this GLAutoDrawable's GLContext you need to call {@link #setContext(GLContext)}. 
+   * To replace or set this GLAutoDrawable's GLContext you need to call {@link #setContext(GLContext, boolean)}. 
    * </p>
    * <p>
    * The GLAutoDrawable implementation shall also set the 

@@ -151,7 +151,7 @@ public class GLDrawableUtil {
     for(int i = dest.getGLEventListenerCount() - 1; 0 <= i; i--) {
         dest.disposeGLEventListener(dest.getGLEventListener(i), false);
     }
-    dest.setContext( src.setContext( dest.getContext() ) );
+    dest.setContext( src.setContext( dest.getContext(), false ), false );
     
     src.invoke(true, GLEventListenerState.setViewport);
     dest.invoke(true, GLEventListenerState.setViewport);

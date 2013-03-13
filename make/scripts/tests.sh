@@ -106,10 +106,11 @@ function jrun() {
     #D_ARGS="-Djogamp.debug=all"
     #D_ARGS="-Djogamp.debug=all -Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
     #D_ARGS="-Dnativewindow.debug=all -Djogl.debug=all -Dnewt.debug=all"
-    #D_ARGS="-Dnativewindow.debug.X11Util -Djogl.debug.EGLDisplayUtil -Djogl.debug.GLDrawable"
+    #D_ARGS="-Dnativewindow.debug.X11Util -Dnativewindow.debug.X11Util.TraceDisplayLifecycle -Djogl.debug.EGLDisplayUtil -Djogl.debug.GLDrawable"
     #D_ARGS="-Dnativewindow.debug.X11Util"
     #D_ARGS="-Djogl.debug.Animator"
     #D_ARGS="-Djogl.debug=all -Dnewt.debug=all"
+    #D_ARGS="-Djogl.debug.EGLDisplayUtil -Djogl.debug.GLDrawable"
     #D_ARGS="-Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.GLCanvas"
     #D_ARGS="-Djogl.debug.GLDrawable"
     #D_ARGS="-Djogl.fbo.force.none"
@@ -193,7 +194,6 @@ function jrun() {
     #D_ARGS="-Dnewt.debug=all -Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
     #D_ARGS="-Djogl.debug.GLContext -Dnewt.debug=all -Djogamp.debug.Lock -Djogamp.common.utils.locks.Lock.timeout=10000"
     #D_ARGS="-Djogl.debug.GLContext -Dnewt.debug=all"
-    #D_ARGS="-Dnewt.debug=all"
     #D_ARGS="-Dnewt.debug=all"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GLJPanel"
     #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=True -Dsun.java2d.xrender=false"
@@ -312,17 +312,9 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextListNEWT2 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestSharedContextVBOES2NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitch01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitch02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLPointsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug651NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLMesaBug658NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimNEWT $*
-#testawt   com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimAWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext02FPSAnimNEWT $*
-#testawt   com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext02FPSAnimAWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext11VSyncAnimNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext12FPSAnimNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer01GLCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestOffscreenLayer02NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestAddRemove01GLCanvasSwingAWT $*
@@ -339,14 +331,26 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableNewtCanvasAWTOnOffscrnCapsAWT $*
 
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitch01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitch11NEWT $*
-
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableFactoryNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOOffThreadSharedContextMix2DemosES2NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOOnThreadSharedContext1DemoES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOOnThreadSharedContext1DemoES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMix2DemosES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMRTNEWT01 $*
+
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimNEWT $*
+#testawt   com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimAWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext02FPSAnimNEWT $*
+#testawt   com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext02FPSAnimAWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext11VSyncAnimNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext12FPSAnimNEWT $*
+
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch10NEWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch11NewtAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch12AWT $*
+testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch21Newt2AWT $*
+
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableDeadlockAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461FBOSupersamplingSwingAWT
@@ -560,9 +564,6 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOOnThreadSharedContext1D
 # Child too low
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
 
-# NPE:
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLContextDrawableSwitch11NEWT $*
-
 # test rotation change
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
 
@@ -579,6 +580,16 @@ testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOOnThreadSharedContext1D
 #           Most likely this is a multi-threaded client and XInitThreads has not been called
 #           ../../src/xcb_io.c:178: dequeue_pending_request: Assertion `!xcb_xlib_unknown_req_in_deq' failed.
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04AWT $*
+
+# NEW
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableFactoryNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestBug605FlippedImageNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestBug605FlippedImageAWT $*
+
+#testnoawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch11NEWT $*
+
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04AWT $*
+
 
 $spath/count-edt-start.sh java-run.log
 

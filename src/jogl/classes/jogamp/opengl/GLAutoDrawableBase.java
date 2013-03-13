@@ -326,16 +326,13 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     }
 
     @Override
-    public final GLContext setContext(GLContext newCtx) {
+    public final GLContext setContext(GLContext newCtx, boolean destroyPrevCtx) {
         final RecursiveLock lock = getLock();
         lock.lock();
         try {
             final GLContext oldCtx = context;
-            final boolean newCtxCurrent = GLDrawableHelper.switchContext(drawable, oldCtx, newCtx, additionalCtxCreationFlags);
+            GLDrawableHelper.switchContext(drawable, oldCtx, destroyPrevCtx, newCtx, additionalCtxCreationFlags);
             context=(GLContextImpl)newCtx;
-            if(newCtxCurrent) { // implies null != newCtx
-                context.makeCurrent();
-            }
             return oldCtx;
         } finally {
             lock.unlock();
@@ -530,6 +527,24 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
         }
     }
 
+    @Override
+    public final void setRealized(boolean realized) {
+        final RecursiveLock _lock = getLock();
+        _lock.lock();
+        try {            
+            final GLDrawable _drawable = drawable;
+            if( null == _drawable || realized && ( 0 >= _drawable.getWidth() || 0 >= _drawable.getHeight() ) ) {
+                return; 
+            }
+            _drawable.setRealized(realized);
+            if( realized && _drawable.isRealized() ) {
+                sendReshape=true; // ensure a reshape is being send ..
+            }
+        } finally {
+            _lock.unlock();
+        }
+    }
+    
     @Override
     public final boolean isRealized() {
         final GLDrawable _drawable = drawable;

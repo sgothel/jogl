@@ -519,16 +519,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
-  public GLContext setContext(GLContext newCtx) {
+  public GLContext setContext(GLContext newCtx, boolean destroyPrevCtx) {
       if (backend == null) {
           return null;
       }
       final GLContext oldCtx = backend.getContext();
-      final boolean newCtxCurrent = GLDrawableHelper.switchContext(backend.getDrawable(), oldCtx, newCtx, additionalCtxCreationFlags);
+      GLDrawableHelper.switchContext(backend.getDrawable(), oldCtx, destroyPrevCtx, newCtx, additionalCtxCreationFlags);
       backend.setContext(newCtx);
-      if(newCtxCurrent) {
-          newCtx.makeCurrent();
-      }
       return oldCtx;
   }
 

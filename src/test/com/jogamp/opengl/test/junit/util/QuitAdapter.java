@@ -32,18 +32,27 @@ import com.jogamp.newt.event.*;
 
 public class QuitAdapter extends WindowAdapter implements WindowListener, KeyListener {
     boolean shouldQuit = false;
+    boolean enabled = true;
 
+    public void enable(boolean v) { enabled = v; }
+    
+    public void clear() { shouldQuit = false; }
+    
     public boolean shouldQuit() { return shouldQuit; }
 
     public void windowDestroyNotify(WindowEvent e) {
-        System.err.println("QUIT Window "+Thread.currentThread());
-        shouldQuit = true;
+        if( enabled ) {
+            System.err.println("QUIT Window "+Thread.currentThread());
+            shouldQuit = true;
+        }
     }
 
     public void keyTyped(KeyEvent e) {
-        if(e.getKeyChar()=='q') {
-            System.err.println("QUIT Key "+Thread.currentThread());
-            shouldQuit = true;
+        if( enabled ) {
+            if(e.getKeyChar()=='q') {
+                System.err.println("QUIT Key "+Thread.currentThread());
+                shouldQuit = true;
+            }
         }
     }
     public void keyPressed(KeyEvent e) {}

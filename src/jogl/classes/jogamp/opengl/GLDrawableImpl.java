@@ -164,13 +164,14 @@ public abstract class GLDrawableImpl implements GLDrawable {
   @Override
   public final void setRealized(boolean realizedArg) {
     if ( realized != realizedArg ) { // volatile: OK (locked below)
+        final boolean isProxySurface = surface instanceof ProxySurface;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": setRealized: "+getClass().getSimpleName()+" "+realized+" -> "+realizedArg);
+            System.err.println(getThreadName() + ": setRealized: drawable "+getClass().getSimpleName()+", surface "+surface.getClass().getSimpleName()+", isProxySurface "+isProxySurface+": "+realized+" -> "+realizedArg);
             Thread.dumpStack();
         }
         AbstractGraphicsDevice aDevice = surface.getGraphicsConfiguration().getScreen().getDevice();
         if(realizedArg) {
-            if(surface instanceof ProxySurface) {
+            if(isProxySurface) {
                 ((ProxySurface)surface).createNotify();
             }
             if(NativeSurface.LOCK_SURFACE_NOT_READY >= lockSurface()) {
@@ -195,7 +196,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
                 unlockSurface();
             } else {
                 aDevice.unlock();
-                if(surface instanceof ProxySurface) {
+                if(isProxySurface) {
                     ((ProxySurface)surface).destroyNotify();
                 }
             }
@@ -210,18 +211,26 @@ public abstract class GLDrawableImpl implements GLDrawable {
    */
   protected abstract void setRealizedImpl();
 
-  /** 
-   * Callback for special implementations, allowing GLContext to trigger GL related lifecycle: <code>construct</code>, <code>destroy</code>.
+  /**
+   * Callback for special implementations, allowing
+   * <ul>
+   *   <li>to associate bound context to this drawable (bound == true) 
+   *       or to remove such association (bound == false).</li>
+   *   <li>to trigger GLContext/GLDrawable related lifecycle: <code>construct</code>, <code>destroy</code>.</li>
+   * </ul>
    * <p>
-   * If <code>realized</code> is <code>true</code>, the context has just been created and made current.
+   * If <code>bound</code> is <code>true</code>, the context is current and being newly associated w/ this drawable.
    * </p>
    * <p>
-   * If <code>realized</code> is <code>false</code>, the context is still current and will be released and destroyed after this method returns.
+   * If <code>bound</code> is <code>false</code>, the context is still current and will be unbound (released and destroyed, or simply disassociated).
    * </p>
    * <p>
-   * @see #contextMadeCurrent(GLContext, boolean)
+   * Being called by {@link GLContextImpl#associateDrawable(boolean)}.
+   * </p>
+   * @param ctx the just bounded or unbounded context
+   * @param bound if <code>true</code> create an association, otherwise remove it
    */
-  protected void contextRealized(GLContext glc, boolean realized) {}
+  protected void associateContext(GLContext ctx, boolean bound) { }
   
   /** 
    * Callback for special implementations, allowing GLContext to trigger GL related lifecycle: <code>makeCurrent</code>, <code>release</code>.
@@ -232,21 +241,12 @@ public abstract class GLDrawableImpl implements GLDrawable {
    * If <code>current</code> is <code>false</code>, the context is still current and will be release after this method returns.
    * </p>
    * <p>
-   * Note: Will also be called after {@link #contextRealized(GLContext, boolean) contextRealized(ctx, true)}
-   * but not at context destruction, i.e. {@link #contextRealized(GLContext, boolean) contextRealized(ctx, false)}.
+   * Being called by {@link GLContextImpl#contextMadeCurrent(boolean)}.
    * </p>
-   * @see #contextRealized(GLContext, boolean)
+   * @see #associateContext(GLContext, boolean)
    */ 
   protected void contextMadeCurrent(GLContext glc, boolean current) { }
 
-  /**
-   * Callback for special implementations, allowing to associate bound context to this drawable (bound == true) 
-   * or to remove such association (bound == false).
-   * @param ctx the just bounded or unbounded context
-   * @param bound if <code>true</code> create an association, otherwise remove it
-   */
-  protected void associateContext(GLContext ctx, boolean bound) { }
-  
   /** Callback for special implementations, allowing GLContext to fetch a custom default render framebuffer. Defaults to zero.*/
   protected int getDefaultDrawFramebuffer() { return 0; }
   /** Callback for special implementations, allowing GLContext to fetch a custom default read framebuffer. Defaults to zero. */

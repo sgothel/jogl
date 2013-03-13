@@ -57,6 +57,7 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
 import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
 import javax.media.nativewindow.util.DimensionImmutable;
@@ -247,7 +248,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
         animator.setExclusiveContext(exclusiveContext);
         
-        QuitAdapter quitAdapter = new QuitAdapter();
+        final QuitAdapter quitAdapter = new QuitAdapter();
         //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         //glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
         glWindow.addKeyListener(quitAdapter);
@@ -265,6 +266,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         glWindow.addKeyListener(new KeyAdapter() {
             public void keyTyped(KeyEvent e) {
                 if(e.getKeyChar()=='f') {
+                    quitAdapter.enable(false);
                     new Thread() {
                         public void run() {
                             final Thread t = glWindow.setExclusiveContextThread(null);
@@ -272,7 +274,32 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                             glWindow.setFullscreen(!glWindow.isFullscreen());
                             System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setExclusiveContextThread(t);
+                            quitAdapter.clear();
+                            quitAdapter.enable(true);
                     } }.start();
+                } else if(e.getKeyChar()=='r') {
+                    quitAdapter.enable(false);
+                    if(glWindow.getParent()==null) {
+                        System.err.println("XXX glWin to home");
+                        glWindow.reparentWindow(newtCanvasAWT.getNativeWindow());
+                    } else {
+                        final InsetsImmutable nInsets = glWindow.getInsets();
+                        java.awt.Insets aInsets = frame.getInsets();
+                        System.err.println("XXX glWin to TOP - insets " + nInsets + ", " + aInsets);
+                        glWindow.reparentWindow(null);
+                        int dx, dy;
+                        if(nInsets.getTotalHeight()==0) {
+                            dx = aInsets.left;
+                            dy = aInsets.top;
+                        } else {
+                            dx = nInsets.getLeftWidth();
+                            dy = nInsets.getTopHeight();
+                        }
+                        glWindow.setPosition(frame.getX()+frame.getWidth()+dx, frame.getY()+dy);
+                    }
+                    glWindow.requestFocus();
+                    quitAdapter.clear();
+                    quitAdapter.enable(true);
                 }
             }
         });
@@ -308,7 +335,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
             System.err.println("window resize "+rwsize+" -> pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
         }
         
-        while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
+        while(!quitAdapter.shouldQuit() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
         }
 

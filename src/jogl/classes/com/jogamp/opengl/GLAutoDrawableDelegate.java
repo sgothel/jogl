@@ -170,11 +170,6 @@ public class GLAutoDrawableDelegate extends GLAutoDrawableBase implements GLAuto
     }
     
     @Override
-    public final void setRealized(boolean realized) {
-        drawable.setRealized(realized);
-    }
-
-    @Override
     public final void swapBuffers() throws GLException {
          defaultSwapBuffers();
     }

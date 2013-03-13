@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.acore;
+package com.jogamp.opengl.test.junit.jogl.acore.glels;
 
 import java.io.IOException;
 
@@ -153,9 +153,9 @@ public class TestGLContextDrawableSwitch01NEWT extends UITestCase {
         {
             final GLContext newCtx = glad1.createContext(null);
             Assert.assertNotNull(newCtx);        
-            final GLContext oldCtx = glad1.setContext(newCtx);
+            final GLContext oldCtx = glad1.setContext(newCtx, true);
             Assert.assertNotNull(oldCtx);
-            oldCtx.destroy();
+            Assert.assertFalse(oldCtx.isCreated());
             final int res = newCtx.makeCurrent();
             Assert.assertTrue(GLContext.CONTEXT_CURRENT_NEW==res || GLContext.CONTEXT_CURRENT==res);
             newCtx.release();

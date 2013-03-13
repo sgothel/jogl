@@ -47,7 +47,7 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
     public final void create(ProxySurface surface) {
         final String dbgPrefix;
         if(DEBUG) {
-            dbgPrefix = getThreadName() + ": EGLUpstreamSurfaceHook.create("+surface.getClass().getSimpleName()+"): "; 
+            dbgPrefix = getThreadName() + ": EGLUpstreamSurfaceHook.create( up "+upstreamSurface.getClass().getSimpleName()+" -> this "+surface.getClass().getSimpleName()+" ): ";
             System.err.println(dbgPrefix+this);            
         } else {
             dbgPrefix = null;
@@ -76,24 +76,51 @@ public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
         
         boolean isEGLSurfaceValid = true; // assume yes
         
-        final AbstractGraphicsConfiguration aConfig = upstreamSurface.getGraphicsConfiguration();        
-        final AbstractGraphicsDevice aDevice = aConfig.getScreen().getDevice();
-        
         final EGLGraphicsDevice eglDevice;
-        if( aDevice instanceof EGLGraphicsDevice ) {
-            eglDevice = (EGLGraphicsDevice) aDevice;
+        final AbstractGraphicsConfiguration aConfig;
+        {
+            final AbstractGraphicsConfiguration surfaceConfig = surface.getGraphicsConfiguration();
+            final AbstractGraphicsDevice surfaceDevice = null != surfaceConfig ? surfaceConfig.getScreen().getDevice() : null;
             if(DEBUG) {
-                System.err.println(dbgPrefix+"Reusing eglDevice: "+eglDevice);
+                System.err.println(dbgPrefix+"SurfaceDevice: "+surfaceDevice.getClass().getSimpleName()+", hash 0x"+Integer.toHexString(surfaceDevice.hashCode())+", "+surfaceDevice);
+                System.err.println(dbgPrefix+"SurfaceConfig: "+surfaceConfig.getClass().getSimpleName()+", hash 0x"+Integer.toHexString(surfaceConfig.hashCode())+", "+surfaceConfig);
             }
-            if(EGL.EGL_NO_DISPLAY == eglDevice.getHandle()) {
-                eglDevice.open();
+    
+            final AbstractGraphicsConfiguration upstreamConfig = upstreamSurface.getGraphicsConfiguration();        
+            final AbstractGraphicsDevice upstreamDevice = upstreamConfig.getScreen().getDevice();
+            if(DEBUG) {
+                System.err.println(dbgPrefix+"UpstreamDevice: "+upstreamDevice.getClass().getSimpleName()+", hash 0x"+Integer.toHexString(upstreamDevice.hashCode())+", "+upstreamDevice);
+                System.err.println(dbgPrefix+"UpstreamConfig: "+upstreamConfig.getClass().getSimpleName()+", hash 0x"+Integer.toHexString(upstreamConfig.hashCode())+", "+upstreamConfig);
+            }
+            
+            if( surfaceDevice instanceof EGLGraphicsDevice ) {
+                eglDevice = (EGLGraphicsDevice) surfaceDevice;
+                aConfig = surfaceConfig;
+                if(DEBUG) {
+                    System.err.println(dbgPrefix+"Reusing this eglDevice: "+eglDevice+", using this config "+aConfig.getClass().getSimpleName()+" "+aConfig);
+                }
+                if(EGL.EGL_NO_DISPLAY == eglDevice.getHandle()) {
+                    eglDevice.open();
+                    isEGLSurfaceValid = false;
+                    surface.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );
+                }
+            } else if( upstreamDevice instanceof EGLGraphicsDevice ) {
+                eglDevice = (EGLGraphicsDevice) upstreamDevice;
+                aConfig = upstreamConfig;
+                if(DEBUG) {
+                    System.err.println(dbgPrefix+"Reusing upstream eglDevice: "+eglDevice+", using upstream config "+aConfig.getClass().getSimpleName()+" "+aConfig);
+                }
+                if(EGL.EGL_NO_DISPLAY == eglDevice.getHandle()) {
+                    eglDevice.open();
+                    isEGLSurfaceValid = false;
+                    surface.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );
+                }
+            } else {
+                eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(upstreamSurface);
+                aConfig = upstreamConfig;
                 isEGLSurfaceValid = false;
                 surface.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );
             }
-        } else {
-            eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(upstreamSurface);
-            isEGLSurfaceValid = false;
-            surface.addUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_DEVICE );                
         }
         
         final GLCapabilitiesImmutable capsRequested = (GLCapabilitiesImmutable) aConfig.getRequestedCapabilities();

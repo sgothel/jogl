@@ -133,9 +133,6 @@ public abstract class GLContextImpl extends GLContext {
     GLContextShareSet.synchronizeBufferObjectSharing(shareWith, this);
 
     this.drawable = drawable;
-    if(null != drawable) {
-        drawable.associateContext(this, true);
-    }
     this.drawableRead = drawable;
 
     this.glDebugHandler = new GLDebugMessageHandler(this);
@@ -207,25 +204,36 @@ public abstract class GLContextImpl extends GLContext {
         return drawable; // no change.
     }
     final Thread currentThread = Thread.currentThread();
-    final boolean lockHeld = lock.isOwner(currentThread);
-    if(lockHeld) {
-        release();
-    } else if(lock.isLockedByOtherThread()) { // still could glitch ..
+    if( lock.isLockedByOtherThread() ) {
         throw new GLException("GLContext current by other thread "+lock.getOwner().getName()+", operation not allowed on this thread "+currentThread.getName());
     }    
+    final boolean lockHeld = lock.isOwner(currentThread);
+    if( lockHeld && lock.getHoldCount() > 1 ) {
+        // would need to makeCurrent * holdCount
+        throw new GLException("GLContext is recursively locked - unsupported for setGLDrawable(..)");
+    }
+    final GLDrawableImpl old = drawable;
+    if( isCreated() && null != old && old.isRealized() ) {
+        if(!lockHeld) {
+            makeCurrent();
+        }
+        associateDrawable(false);
+        if(!lockHeld) {
+            release();
+        }
+    }
+    if(lockHeld) {
+        release();
+    }
     if( !setWriteOnly || drawableRead == drawable ) { // if !setWriteOnly || !explicitReadDrawable
         drawableRead = (GLDrawableImpl) readWrite;
     }
-    final GLDrawableImpl old = drawable;
-    if( null != old ) {
-        old.associateContext(this, false);
-    }
     drawableRetargeted |= null != drawable && readWrite != drawable;
     drawable = (GLDrawableImpl) readWrite ;
-    if( null != drawable ) {
-        drawable.associateContext(this, true);
-        if( lockHeld ) {
-            makeCurrent();
+    if( isCreated() && null != drawable && drawable.isRealized() ) {
+        makeCurrent(true); // implicit: associateDrawable(true)
+        if( !lockHeld ) {
+            release();
         }
     }
     return old;
@@ -363,8 +371,7 @@ public abstract class GLContextImpl extends GLContext {
                       makeCurrent();
                   }
                   try {
-                      contextRealized(false);
-                      drawable.associateContext(this, false);
+                      associateDrawable(false);
                   } catch (Throwable t) {
                       drawableContextRealizedException = t;
                   }
@@ -467,7 +474,11 @@ public abstract class GLContextImpl extends GLContext {
    * @see #destroyContextARBImpl
    */
   @Override
-  public int makeCurrent() throws GLException {
+  public final int makeCurrent() throws GLException {
+      return makeCurrent(false);
+  }
+  
+  protected final int makeCurrent(boolean forceDrawableAssociation) throws GLException {
     if( TRACE_SWITCH ) {
         System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - "+lock);
     }      
@@ -561,7 +572,11 @@ public abstract class GLContextImpl extends GLContext {
             gl = gl.getContext().setGL( GLPipelineFactory.create("javax.media.opengl.Trace", null, gl, new Object[] { System.err } ) );
         }
         
-        contextRealized(true);        
+        forceDrawableAssociation = true;
+      }
+      
+      if( forceDrawableAssociation ) {
+          associateDrawable(true);
       }
       
       contextMadeCurrent(true);
@@ -662,14 +677,14 @@ public abstract class GLContextImpl extends GLContext {
   protected abstract void makeCurrentImpl() throws GLException;
 
   /**
-   * @see GLDrawableImpl#contextRealized(GLContext, boolean) 
+   * Calls {@link GLDrawableImpl#associateContext(GLContext, boolean)} 
    */ 
-  protected void contextRealized(boolean realized) {
-      drawable.contextRealized(this, realized);
+  protected void associateDrawable(boolean bound) { 
+      drawable.associateContext(this, bound);      
   }
   
   /**
-   * @see GLDrawableImpl#contextMadeCurrent(GLContext, boolean) 
+   * Calls {@link GLDrawableImpl#contextMadeCurrent(GLContext, boolean)} 
    */ 
   protected void contextMadeCurrent(boolean current) {
       drawable.contextMadeCurrent(this, current);      
