@@ -38,7 +38,7 @@ import javax.media.opengl.GLException;
 
 import jogamp.opengl.Debug;
 
-import com.jogamp.common.util.LongIntHashMap;
+import com.jogamp.common.util.LongObjectHashMap;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
 /** 
@@ -54,11 +54,26 @@ import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 public class EGLDisplayUtil {
     protected static final boolean DEBUG = Debug.debug("EGLDisplayUtil");
     
-    static LongIntHashMap eglDisplayCounter;
+    private static class DpyCounter {
+        final long eglDisplay;
+        final Throwable createdStack;
+        int refCount;
+        
+        private DpyCounter(long eglDisplay) {
+            this.eglDisplay = eglDisplay;
+            this.refCount = 0;
+            this.createdStack = DEBUG ? new Throwable() : null;
+        }
+        
+        public String toString() {
+            return "EGLDisplay[0x"+Long.toHexString(eglDisplay)+": refCnt "+refCount+"]";
+        }
+    }
+    static final LongObjectHashMap eglDisplayCounter;
     
     static {
-        eglDisplayCounter = new LongIntHashMap();
-        eglDisplayCounter.setKeyNotFoundValue(0);
+        eglDisplayCounter = new LongObjectHashMap();
+        eglDisplayCounter.setKeyNotFoundValue(null);
     }
 
     /** 
@@ -80,9 +95,13 @@ public class EGLDisplayUtil {
     public static void dumpOpenDisplayConnections() {
         System.err.println("EGLDisplayUtil: Open EGL Display Connections: "+eglDisplayCounter.size());
         int i=0;
-        for(Iterator<LongIntHashMap.Entry> iter = eglDisplayCounter.iterator(); iter.hasNext(); i++) {
-            final LongIntHashMap.Entry e = iter.next();
-            System.err.println("EGLDisplayUtil: Open["+i+"]: 0x"+Long.toHexString(e.key)+": refCnt "+e.value);
+        for(Iterator<LongObjectHashMap.Entry> iter = eglDisplayCounter.iterator(); iter.hasNext(); i++) {
+            final LongObjectHashMap.Entry e = iter.next();
+            final DpyCounter v = (DpyCounter) e.value;
+            System.err.println("EGLDisplayUtil: Open["+i+"]: 0x"+Long.toHexString(e.key)+": "+v);
+            if(null != v.createdStack) {
+                v.createdStack.printStackTrace();
+            }
         }
     }
     
@@ -108,18 +127,32 @@ public class EGLDisplayUtil {
         if( EGL.EGL_NO_DISPLAY == eglDisplay) {
             return false;
         }
-        final boolean res;    
-        final int refCnt = eglDisplayCounter.get(eglDisplay) + 1; // 0 + 1 = 1 -> 1st init
+        final int refCnt;
+        final DpyCounter d;
+        {
+            DpyCounter _d = (DpyCounter) eglDisplayCounter.get(eglDisplay);
+            if(null == _d) {
+                _d = new DpyCounter(eglDisplay);
+                refCnt = 1; // 1st init
+            } else {
+                refCnt = _d.refCount + 1;
+            }
+            d = _d;
+        }
+        final boolean res;
         if(1==refCnt) { // only initialize once
             res = EGL.eglInitialize(eglDisplay, major, minor);
         } else {
             res = true;
-        }        
-        if(res) { // map if successfully initialized, only  
-            eglDisplayCounter.put(eglDisplay, refCnt);
+        }
+        if(res) { // update refCount and map if successfully initialized, only
+            d.refCount = refCnt;
+            if(1 == refCnt) {
+                eglDisplayCounter.put(eglDisplay, d);
+            }
         }
         if(DEBUG) {
-            System.err.println("EGLDisplayUtil.eglInitialize2("+EGLContext.toHexString(eglDisplay)+" ...): #"+refCnt+" = "+res);
+            System.err.println("EGLDisplayUtil.eglInitialize("+EGLContext.toHexString(eglDisplay)+" ...): #"+refCnt+", "+d+" = "+res);
             // Thread.dumpStack();
         }
         return res;
@@ -186,13 +219,24 @@ public class EGLDisplayUtil {
             return false;
         }
         final boolean res;    
-        final int refCnt = eglDisplayCounter.get(eglDisplay) - 1; // 1 - 1 = 0 -> final terminate
-        if(0==refCnt) { // no terminate if still in use or already terminated
+        final int refCnt;
+        final DpyCounter d;
+        {
+            DpyCounter _d = (DpyCounter) eglDisplayCounter.get(eglDisplay);
+            if(null == _d) {
+                _d = null;
+                refCnt = -1; // n/a
+            } else {
+                refCnt = _d.refCount - 1; // 1 - 1 = 0 -> final terminate
+            }
+            d = _d;
+        }
+        if( 0 == refCnt ) { // no terminate if still in use or already terminated
             res = EGL.eglTerminate(eglDisplay);
             eglDisplayCounter.remove(eglDisplay);
         } else {
             if(0 < refCnt) { // no negative refCount
-                eglDisplayCounter.put(eglDisplay, refCnt);
+                d.refCount = refCnt;
             } 
             res = true;
         }

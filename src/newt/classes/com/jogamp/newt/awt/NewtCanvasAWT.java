@@ -416,7 +416,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 }
             }            
         }
-        if( ( removeNotify || windowClosing ) && null!=jawtWindow) {
+        if( ( removeNotify || windowClosing ) && null!=jawtWindow ) {
             NewtFactoryAWT.destroyNativeWindow(jawtWindow);
             jawtWindow=null;
         }        

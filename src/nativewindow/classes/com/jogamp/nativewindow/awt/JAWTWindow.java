@@ -315,13 +315,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   protected abstract int lockSurfaceImpl() throws NativeWindowException;
 
   protected void dumpJAWTInfo() {
-      if(null != jawt) {
-          System.err.println("JAWT version: 0x"+Integer.toHexString(jawt.getCachedVersion())+
-                             ", CA_LAYER: "+ JAWTUtil.isJAWTUsingOffscreenLayer(jawt)+
-                             ", isLayeredSurface "+isOffscreenLayerSurfaceEnabled()+", bounds "+bounds+", insets "+insets);
-      } else {
-          System.err.println("JAWT n/a, bounds "+bounds+", insets "+insets);
-      }
+      System.err.println(jawt2String(null).toString());
       // Thread.dumpStack();
   }
 
@@ -555,15 +549,32 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       return component.hasFocus();
   }
 
+  protected StringBuilder jawt2String(StringBuilder sb) {
+      if( null == sb ) {
+          sb = new StringBuilder();
+      }
+      if(null != jawt) {
+          sb.append("JAWT version: 0x").append(Integer.toHexString(jawt.getCachedVersion())).
+          append(", CA_LAYER: ").append(JAWTUtil.isJAWTUsingOffscreenLayer(jawt)).
+          append(", isLayeredSurface ").append(isOffscreenLayerSurfaceEnabled()).append(", bounds ").append(bounds).append(", insets ").append(insets);
+      } else {
+          sb.append("JAWT n/a, bounds ").append(bounds).append(", insets ").append(insets);
+      }
+      return sb;
+  }
+  
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
 
-    sb.append("JAWT-Window["+
-                "windowHandle "+toHexString(getWindowHandle())+
+    sb.append("JAWT-Window[");
+    jawt2String(sb);
+    sb.append(  ", shallUseOffscreenLayer "+shallUseOffscreenLayer+", isOffscreenLayerSurface "+isOffscreenLayerSurface+
+                ", attachedSurfaceLayer "+toHexString(getAttachedSurfaceLayer())+
+                ", windowHandle "+toHexString(getWindowHandle())+
                 ", surfaceHandle "+toHexString(getSurfaceHandle())+
-                ", bounds "+bounds+", insets "+insets+
-                ", shallUseOffscreenLayer "+shallUseOffscreenLayer+", isOffscreenLayerSurface "+isOffscreenLayerSurface);
+                ", bounds "+bounds+", insets "+insets
+                );
     if(null!=component) {
       sb.append(", pos "+getX()+"/"+getY()+", size "+getWidth()+"x"+getHeight()+
                 ", visible "+component.isVisible());

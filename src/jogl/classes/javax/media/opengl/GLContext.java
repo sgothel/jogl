@@ -477,12 +477,12 @@ public abstract class GLContext {
   public abstract GL setGL(GL gl);
 
   /**
-   * Returns the native GL context handle
+   * Returns the underlying native OpenGL context handle
    */
   public final long getHandle() { return contextHandle; }
 
   /**
-   * Indicates whether the underlying OpenGL context has been created.
+   * Indicates whether the underlying native OpenGL context has been created.
    */
   public final boolean isCreated() {
     return 0 != contextHandle;
