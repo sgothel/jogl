@@ -68,6 +68,8 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     
     protected volatile GLDrawableImpl drawable; // volatile: avoid locking for read-only access
     protected GLContextImpl context;
+    protected boolean preserveGLELSAtDestroy;
+    protected GLEventListenerState glels;
     protected final boolean ownsDevice;
     protected int additionalCtxCreationFlags = 0;
     protected volatile boolean sendReshape = false; // volatile: maybe written by WindowManager thread w/o locking
@@ -88,6 +90,8 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     public GLAutoDrawableBase(GLDrawableImpl drawable, GLContextImpl context, boolean ownsDevice) {
         this.drawable = drawable;
         this.context = context;
+        this.preserveGLELSAtDestroy = false;
+        this.glels = null;
         this.ownsDevice = ownsDevice;
         if(null != context && null != drawable) {
             context.setGLDrawable(drawable, false);
@@ -97,6 +101,54 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
    
     /** Returns the recursive lock object of the upstream implementation, which synchronizes multithreaded access. */ 
     protected abstract RecursiveLock getLock();
+
+    
+    /**
+     * If set to <code>true</code>, the next {@link #destroy()} operation will 
+     * {@link #pullGLEventListenerState() pull} to preserve the {@link GLEventListenerState}.
+     */
+    public final void setPreserveGLStateAtDestroy(boolean value) {
+        preserveGLELSAtDestroy = value;
+    }
+    
+    /**
+     * Pulls the {@link GLEventListenerState} from this {@link GLAutoDrawable}.
+     * 
+     * @return <code>true</code> if the {@link GLEventListenerState} is pulled successfully from this {@link GLAutoDrawable},
+     *         otherwise <code>false</code>.
+     * 
+     * @throws IllegalStateException if the {@link GLEventListenerState} is already pulled
+     * 
+     * @see #pushGLEventListenerState()
+     */
+    protected final boolean pullGLEventListenerState() throws IllegalStateException {
+        if( null != glels ) {
+            throw new IllegalStateException("GLEventListenerState already pulled");            
+        }
+        if( null != context && context.isCreated() ) {
+            glels = GLEventListenerState.moveFrom(this);
+            return null != glels;
+        }
+        return false;
+    }
+    
+    /**
+     * Pushes a previously {@link #pullGLEventListenerState() pulled} {@link GLEventListenerState} to this {@link GLAutoDrawable}.
+     * 
+     * @return <code>true</code> if the {@link GLEventListenerState} was previously {@link #pullGLEventListenerState() pulled} 
+     *         and is pushed successfully to this {@link GLAutoDrawable},
+     *         otherwise <code>false</code>.
+     * 
+     * @see #pullGLEventListenerState()
+     */
+    protected final boolean pushGLEventListenerState() {
+        if( null != glels ) {
+            glels.moveTo(this);
+            glels = null;
+            return true;
+        }
+        return false;        
+    }
     
     /** Default implementation to handle repaint events from the windowing system */
     protected final void defaultWindowRepaintOp() {
@@ -229,6 +281,10 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
      * In such case call <code>super.destroyImplInLock</code> first.</p>
      */
     protected void destroyImplInLock() {
+        if( preserveGLELSAtDestroy ) {
+            preserveGLELSAtDestroy = false;
+            pullGLEventListenerState();
+        }
         if( null != context ) {
             if( context.isCreated() ) {        
                 // Catch dispose GLExceptions by GLEventListener, just 'print' them

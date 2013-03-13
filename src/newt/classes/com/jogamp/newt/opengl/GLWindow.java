@@ -421,6 +421,11 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     protected class GLLifecycleHook implements WindowImpl.LifecycleHook {
 
         @Override
+        public void setPreserveResourcesAtDestroy() {
+            GLWindow.this.setPreserveGLStateAtDestroy(true);
+        }
+        
+        @Override
         public synchronized void destroyActionPreLock() {
             // nop
         }
@@ -433,7 +438,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 //Exception e1 = new Exception(msg);
                 //e1.printStackTrace();
             }
-
+                    
             destroyImplInLock();
 
             if(Window.DEBUG_IMPLEMENTATION) {
@@ -479,8 +484,11 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 }
                 drawable = (GLDrawableImpl) factory.createGLDrawable(nw);
                 drawable.setRealized(true);
-                context = (GLContextImpl) drawable.createContext(sharedContext);
-                context.setContextCreationFlags(additionalCtxCreationFlags);
+                
+                if( !GLWindow.this.pushGLEventListenerState() ) {
+                    context = (GLContextImpl) drawable.createContext(sharedContext);
+                    context.setContextCreationFlags(additionalCtxCreationFlags);
+                }
             }
             if(Window.DEBUG_IMPLEMENTATION) {
                 System.err.println("GLWindow.setVisibleActionPost("+visible+", "+nativeWindowCreated+") "+WindowImpl.getThreadName()+", fin: dt "+ (System.nanoTime()-t0)/1e6 +"ms");
@@ -512,7 +520,7 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     //
 
     private GLContext sharedContext = null;
-
+    
     @Override
     protected final RecursiveLock getLock() {
         return window.getLock();
@@ -568,10 +576,6 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     @Override
     public final GLDrawableFactory getFactory() {
         return factory;
-    }
-
-    @Override
-    public final void setRealized(boolean realized) {
     }
 
     @Override
