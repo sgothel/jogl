@@ -36,40 +36,17 @@
 package jogamp.opengl.egl;
 
 import javax.media.opengl.*;
+
 import jogamp.opengl.*;
 import javax.media.nativewindow.*;
 
 public class EGLExternalContext extends EGLContext {
-    private GLContext lastContext;
 
     public EGLExternalContext(AbstractGraphicsScreen screen) {
         super(null, null);
         GLContextShareSet.contextCreated(this);
         setGLFunctionAvailability(false, 0, 0, CTX_PROFILE_ES, false);
         getGLStateTracker().setEnabled(false); // external context usage can't track state in Java
-    }
-
-    @Override
-    public int makeCurrent() throws GLException {
-        // Save last context if necessary to allow external GLContexts to
-        // talk to other GLContexts created by this library
-        GLContext cur = getCurrent();
-        if (cur != null && cur != this) {
-            lastContext = cur;
-            setCurrent(null);
-        }
-        return super.makeCurrent();
-    }
-
-    @Override
-    public void release() throws GLException {
-        super.release();
-        setCurrent(lastContext);
-        lastContext = null;
-    }
-
-    @Override
-    protected void makeCurrentImpl() throws GLException {
     }
 
     @Override

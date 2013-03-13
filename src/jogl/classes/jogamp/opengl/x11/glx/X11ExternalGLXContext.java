@@ -58,7 +58,6 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 
 public class X11ExternalGLXContext extends X11GLXContext {
-  private GLContext lastContext;
 
   private X11ExternalGLXContext(Drawable drawable, long ctx) {
     super(drawable, null);
@@ -115,25 +114,6 @@ public class X11ExternalGLXContext extends X11GLXContext {
   @Override
   protected boolean createImpl(GLContextImpl shareWith) {
       return true;
-  }
-
-  @Override
-  public int makeCurrent() throws GLException {
-    // Save last context if necessary to allow external GLContexts to
-    // talk to other GLContexts created by this library
-    GLContext cur = getCurrent();
-    if (cur != null && cur != this) {
-      lastContext = cur;
-      setCurrent(null);
-    }
-    return super.makeCurrent();
-  }
-
-  @Override
-  public void release() throws GLException {
-    super.release();
-    setCurrent(lastContext);
-    lastContext = null;
   }
 
   @Override

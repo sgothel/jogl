@@ -56,8 +56,7 @@ import jogamp.nativewindow.windows.GDI;
 import jogamp.opengl.GLContextShareSet;
 
 public class WindowsExternalWGLContext extends WindowsWGLContext {
-  private GLContext lastContext;
-
+    
   private WindowsExternalWGLContext(Drawable drawable, long ctx, WindowsWGLGraphicsConfiguration cfg) {
     super(drawable, null);
     this.contextHandle = ctx;
@@ -103,25 +102,6 @@ public class WindowsExternalWGLContext extends WindowsWGLContext {
         }
     }
     return new WindowsExternalWGLContext(new Drawable(factory, new WrappedSurface(cfg, hdc, 64, 64, true)), ctx, cfg);
-  }
-
-  @Override
-  public int makeCurrent() throws GLException {
-    // Save last context if necessary to allow external GLContexts to
-    // talk to other GLContexts created by this library
-    GLContext cur = getCurrent();
-    if (cur != null && cur != this) {
-      lastContext = cur;
-      setCurrent(null);
-    }
-    return super.makeCurrent();
-  }
-
-  @Override
-  public void release() throws GLException {
-    super.release();
-    setCurrent(lastContext);
-    lastContext = null;
   }
 
   @Override

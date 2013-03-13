@@ -57,7 +57,6 @@ import jogamp.opengl.macosx.cgl.MacOSXCGLDrawable.GLBackendType;
 
 
 public class MacOSXExternalCGLContext extends MacOSXCGLContext {
-  private GLContext lastContext;
 
   private MacOSXExternalCGLContext(Drawable drawable, boolean isNSContext, long handle) {
     super(drawable, null);
@@ -120,25 +119,6 @@ public class MacOSXExternalCGLContext extends MacOSXCGLContext {
   @Override
   protected boolean createImpl(GLContextImpl shareWith) throws GLException {
       return true;
-  }
-
-  @Override
-  public int makeCurrent() throws GLException {
-    // Save last context if necessary to allow external GLContexts to
-    // talk to other GLContexts created by this library
-    GLContext cur = getCurrent();
-    if (cur != null && cur != this) {
-      lastContext = cur;
-      setCurrent(null);
-    }
-    return super.makeCurrent();
-  }
-
-  @Override
-  public void release() throws GLException {
-    super.release();
-    setCurrent(lastContext);
-    lastContext = null;
   }
 
   @Override
