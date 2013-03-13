@@ -1178,21 +1178,26 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     AWTGraphicsConfiguration config = null;
 
     if( EventQueue.isDispatchThread() || Thread.holdsLock(getTreeLock()) ) {
-        config = (AWTGraphicsConfiguration)
-                GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class, GLCapabilitiesImmutable.class).chooseGraphicsConfiguration(capsChosen,
-                                                                                                             capsRequested,
-                                                                                                             chooser, aScreen, VisualIDHolder.VID_UNDEFINED);
+    	AbstractGraphicsConfiguration a = GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class, GLCapabilitiesImmutable.class).chooseGraphicsConfiguration(capsChosen,
+                capsRequested,
+                chooser, aScreen, VisualIDHolder.VID_UNDEFINED);
+    	if (a instanceof AWTGraphicsConfiguration) {
+            config = (AWTGraphicsConfiguration) a;
+    	}
+                
     } else {
         try {
             final ArrayList<AWTGraphicsConfiguration> bucket = new ArrayList<AWTGraphicsConfiguration>(1);
             EventQueue.invokeAndWait(new Runnable() {
                 @Override
                 public void run() {
-                    AWTGraphicsConfiguration c = (AWTGraphicsConfiguration)
-                            GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class, GLCapabilitiesImmutable.class).chooseGraphicsConfiguration(capsChosen,
-                                                                                                                         capsRequested,
-                                                                                                                         chooser, aScreen, VisualIDHolder.VID_UNDEFINED);
-                    bucket.add(c);
+                	AbstractGraphicsConfiguration a = GraphicsConfigurationFactory.getFactory(AWTGraphicsDevice.class, GLCapabilitiesImmutable.class).chooseGraphicsConfiguration(capsChosen,
+                            capsRequested,
+                            chooser, aScreen, VisualIDHolder.VID_UNDEFINED);
+                	if (a instanceof AWTGraphicsConfiguration) {
+                		AWTGraphicsConfiguration c = (AWTGraphicsConfiguration) a;
+                        bucket.add(c);
+                	}
                 }
             });
             config = ( bucket.size() > 0 ) ? bucket.get(0) : null ;
