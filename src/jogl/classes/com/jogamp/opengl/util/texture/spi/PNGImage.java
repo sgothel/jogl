@@ -12,8 +12,11 @@ import javax.media.opengl.GL;
 
 import jogamp.opengl.util.pngj.ImageInfo;
 import jogamp.opengl.util.pngj.ImageLine;
+import jogamp.opengl.util.pngj.ImageLineHelper;
 import jogamp.opengl.util.pngj.PngReader;
 import jogamp.opengl.util.pngj.PngWriter;
+import jogamp.opengl.util.pngj.chunks.PngChunkPLTE;
+import jogamp.opengl.util.pngj.chunks.PngChunkTRNS;
 import jogamp.opengl.util.pngj.chunks.PngChunkTextVar;
 
 import com.jogamp.common.nio.Buffers;
@@ -35,15 +38,24 @@ public class PNGImage {
     }
     
     /** Reverse read and store, implicitly flip image to GL coords. */
-    private static final int getPixelRGBA8(ByteBuffer d, int dOff, ImageLine line, int lineOff, boolean hasAlpha) {
-        if(hasAlpha) {
-            d.put(dOff--, (byte)line.scanline[lineOff + 3]); // A
-        }
-        d.put(dOff--, (byte)line.scanline[lineOff + 2]); // B
-        d.put(dOff--, (byte)line.scanline[lineOff + 1]); // G        
-        d.put(dOff--, (byte)line.scanline[lineOff    ]); // R
+    private static final int getPixelRGBA8Unindexed(ByteBuffer d, int dOff, ImageLine line, int lineOff, boolean hasAlpha) {
+    	dOff = getPixelRG8Common(d, dOff, line.scanline, lineOff, hasAlpha);
         return dOff;
-    }    
+    }
+    private static final int getPixelRGBA8Indexed(ByteBuffer d, int dOff, ImageLine line, int lineOff, boolean hasAlpha, PngChunkPLTE plte, PngChunkTRNS trns) {
+        final int[] scanline = ImageLineHelper.palette2rgb(line, plte, trns, null);
+        dOff = getPixelRG8Common(d, dOff, scanline, lineOff, hasAlpha);
+        return dOff;
+    }
+    private static final int getPixelRG8Common(ByteBuffer d, int dOff, int[] scanline, int lineOff, boolean hasAlpha) {
+    	if(hasAlpha) {
+            d.put(dOff--, (byte)scanline[lineOff + 3]); // A
+        }
+        d.put(dOff--, (byte)scanline[lineOff + 2]); // B
+        d.put(dOff--, (byte)scanline[lineOff + 1]); // G        
+        d.put(dOff--, (byte)scanline[lineOff    ]); // R
+        return dOff;
+    }
     /** Reverse read and store, implicitly flip image from GL coords. Handle reversed channels (BGR[A])*/
     private static int setPixelRGBA8(ImageLine line, int lineOff, ByteBuffer d, int dOff, boolean hasAlpha, boolean reversedChannels) {
         if(reversedChannels) {
@@ -82,12 +94,16 @@ public class PNGImage {
     
     private PNGImage(InputStream in) {
         final PngReader pngr = new PngReader(new BufferedInputStream(in), null);
-        final int channels = pngr.imgInfo.channels;
-        if ( ! ( 1 == channels || 3 == channels || 4 == channels ) ) {
-            throw new RuntimeException("PNGImage can only handle Lum/RGB/RGBA [1/3/4 channels] images for now. Channels "+channels);
+        final ImageInfo imgInfo = pngr.imgInfo;
+        final PngChunkPLTE plte = pngr.getMetadata().getPLTE();
+        final PngChunkTRNS trns = pngr.getMetadata().getTRNS();
+        final boolean hasAlpha = (imgInfo.indexed) ? (trns != null) : imgInfo.alpha;
+        final int channels = imgInfo.channels;
+        if ( ! ( imgInfo.indexed || 1 == channels || 3 == channels || 4 == channels ) ) {
+            throw new RuntimeException("PNGImage can only handle Lum/RGB/RGBA [1/3/4 channels] images for now. Channels "+channels + " Paletted: " + imgInfo.indexed);
         }
-        bytesPerPixel=pngr.imgInfo.bytesPixel;
-        if ( ! ( 1 == bytesPerPixel || 3 == bytesPerPixel || 4 == bytesPerPixel ) ) {
+        bytesPerPixel=imgInfo.indexed?(hasAlpha?4:3):pngr.imgInfo.bytesPixel;
+        if ( ! ( imgInfo.indexed || 1 == bytesPerPixel || 3 == bytesPerPixel || 4 == bytesPerPixel ) ) {
             throw new RuntimeException("PNGImage can only handle Lum/RGB/RGBA [1/3/4 bpp] images for now. BytesPerPixel "+bytesPerPixel);
         }
         if(channels != bytesPerPixel) {
@@ -101,26 +117,38 @@ public class PNGImage {
             dpi[0]=dpi2[0];
             dpi[1]=dpi2[1];
         }
-        switch(channels) {
-            case 1: glFormat = GL.GL_LUMINANCE; break;
-            case 3: glFormat = GL.GL_RGB; break;
-            case 4: glFormat = GL.GL_RGBA; break;
-            default: throw new InternalError("XXX: channels: "+channels+", bytesPerPixel "+bytesPerPixel);
+        if (imgInfo.indexed) {
+        	if (hasAlpha) {
+        		glFormat = GL.GL_RGBA;
+        	} else {
+        		glFormat = GL.GL_RGB;
+        	}
+        } else {
+        	switch(channels) {
+                case 1: glFormat = GL.GL_LUMINANCE; break;
+                case 3: glFormat = GL.GL_RGB; break;
+                case 4: glFormat = GL.GL_RGBA; break;
+                default: throw new InternalError("XXX: channels: "+channels+", bytesPerPixel "+bytesPerPixel);
+            }
         }
+        
         data = Buffers.newDirectByteBuffer(bytesPerPixel * pixelWidth * pixelHeight);
         reversedChannels = false; // RGB[A]
-        final boolean hasAlpha = 4 == channels;
         int dataOff = bytesPerPixel * pixelWidth * pixelHeight - 1; // start at end-of-buffer, reverse store
         for (int row = 0; row < pixelHeight; row++) {
             final ImageLine l1 = pngr.readRow(row);
             int lineOff = ( pixelWidth - 1 ) * bytesPerPixel ;      // start w/ last pixel in line, reverse read
-            if(1 == channels) {
+            if(1 == channels && !imgInfo.indexed) {
                 for (int j = pixelWidth - 1; j >= 0; j--) {
                     data.put(dataOff--, (byte)l1.scanline[lineOff--]); // Luminance, 1 bytesPerPixel
                 }
             } else {
                 for (int j = pixelWidth - 1; j >= 0; j--) {
-                    dataOff = getPixelRGBA8(data, dataOff, l1, lineOff, hasAlpha);
+                	if (imgInfo.indexed) {
+                        dataOff = getPixelRGBA8Indexed(data, dataOff, l1, lineOff, hasAlpha, plte, trns);
+                	} else {
+                		dataOff = getPixelRGBA8Unindexed(data, dataOff, l1, lineOff, hasAlpha);
+                	}
                     lineOff -= bytesPerPixel;
                 }
             }
