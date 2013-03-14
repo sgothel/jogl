@@ -192,8 +192,6 @@ extern GLboolean glIsVertexArray (GLuint array);
 - (void) applyNewPBuffer;
 
 - (void)setDedicatedSize:(CGSize)size; // @NWDedicatedSize
-- (CGRect)fixMyFrame;
-- (CGRect)fixSuperPosition;
 - (id<CAAction>)actionForKey:(NSString *)key ;
 - (NSOpenGLPixelFormat *)openGLPixelFormatForDisplayMask:(uint32_t)mask;
 - (NSOpenGLContext *)openGLContextForPixelFormat:(NSOpenGLPixelFormat *)pixelFormat;
@@ -364,14 +362,6 @@ static const GLfloat gl_verts[] = {
     if(_texHeight != texHeight || _texWidth != texWidth) {
         texWidth = _texWidth;
         texHeight = _texHeight;
-        /**
-        CGRect lRect = [self bounds];
-        lRect.origin.x = 0;
-        lRect.origin.y = 0;
-        lRect.size.width = texWidth;
-        lRect.size.height = texHeight;
-        [self setFrame: lRect]; */
-        CGRect lRect = [self fixMyFrame];
 
         GLfloat texCoordWidth, texCoordHeight;
         if(NULL != pbuffer) {
@@ -394,13 +384,13 @@ static const GLfloat gl_verts[] = {
         gl_texCoords[4] = texCoordWidth;
         gl_texCoords[6] = texCoordWidth;
 #ifdef VERBOSE_ON
+        CGRect lRect = [self bounds];
         DBG_PRINT("MyNSOpenGLLayer::validateTexSize %p -> tex %dx%d, bounds: %lf/%lf %lfx%lf\n", 
             self, texWidth, texHeight,
             lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
 #endif
         return YES;
     } else {
-        [self fixMyFrame];
         return NO;
     }
 }
@@ -549,67 +539,16 @@ static const GLfloat gl_verts[] = {
     DBG_PRINT("MyNSOpenGLLayer::setDedicatedSize: %p, texSize %dx%d <- %lfx%lf\n",
         self, texWidth, texHeight, size.width, size.height);
     
-    [CATransaction begin];
-    [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
-
     dedicatedWidth = size.width;
     dedicatedHeight = size.height;
 
     CGRect rect = CGRectMake(0, 0, dedicatedWidth, dedicatedHeight); 
     [self setFrame: rect];
-
-    [CATransaction commit];
 }
 
 - (void) setFrame:(CGRect) frame {
     CGRect rect = CGRectMake(0, 0, dedicatedWidth, dedicatedHeight); 
     [super setFrame: rect];
-}
-
-- (CGRect)fixMyFrame
-{
-    CGRect lRect = [self frame];
-
-    // With Java7 our root CALayer's frame gets off-limit -> force 0/0 origin!
-    if( lRect.origin.x!=0 || lRect.origin.y!=0 || lRect.size.width!=texWidth || lRect.size.height!=texHeight) {
-        DBG_PRINT("MyNSOpenGLLayer::fixMyFrame: %p, 0/0 texSize %dx%d -> Frame[%lf/%lf %lfx%lf]\n",
-            self, texWidth, texHeight,
-            lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
-
-        [CATransaction begin];
-        [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
-
-        lRect.origin.x = 0;
-        lRect.origin.y = 0;
-        lRect.size.width=texWidth;
-        lRect.size.height=texHeight;
-        [self setFrame: lRect];
-
-        [CATransaction commit];
-    }
-    return lRect;
-}
-
-- (CGRect)fixSuperPosition
-{
-    CALayer * superL = [self superlayer];
-    CGRect lRect = [superL frame];
-
-    // With Java7 our root CALayer's frame gets off-limit -> force 0/0 origin!
-    if( lRect.origin.x!=0 || lRect.origin.y!=0 ) {
-        DBG_PRINT("MyNSOpenGLLayer::fixSuperPosition: %p, 0/0 -> Super Frame[%lf/%lf %lfx%lf]\n",
-            self, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
-
-        [CATransaction begin];
-        [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
-
-        lRect.origin.x = 0;
-        lRect.origin.y = 0;
-        [superL setPosition: lRect.origin];
-
-        [CATransaction commit];
-    }
-    return lRect;
 }
 
 - (id<CAAction>)actionForKey:(NSString *)key

@@ -158,13 +158,14 @@ public class OSXUtil implements ToolkitProperties {
      * @see #CreateCALayer(int, int, int, int)
      * @see #RemoveCASublayer(long, long)
      */
-    public static void AddCASublayer(final long rootCALayer, final long subCALayer) {
+    public static void AddCASublayer(final long rootCALayer, final long subCALayer, final int width, final int height) {
         if(0==rootCALayer || 0==subCALayer) {
             throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
         }
         RunOnMainThread(false, new Runnable() {
            public void run() {
                AddCASublayer0(rootCALayer, subCALayer);
+               FixCALayerLayout0(rootCALayer, subCALayer, width, height);
            }
         });
     }

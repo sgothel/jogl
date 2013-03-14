@@ -42,21 +42,6 @@ public interface OffscreenLayerSurface {
    */
   public void attachSurfaceLayer(final long layerHandle) throws NativeWindowException;
   
-  /**
-   * Layout the offscreen layer according to the implementing class's constraints.
-   * <p>
-   * This method allows triggering a re-layout of the offscreen surface
-   * in case the implementation requires it.   
-   * </p>
-   * <p> 
-   * Call this method if any parent or ancestor's layout has been changed,
-   * which could affects the layout of this surface.
-   * </p>
-   * @see #isOffscreenLayerSurfaceEnabled()
-   * @throws NativeWindowException if {@link #isOffscreenLayerSurfaceEnabled()} == false
-   */
-  public void layoutSurfaceLayer() throws NativeWindowException;
-  
   /** 
    * Detaches a previously attached offscreen layer from this offscreen layer surface.
    * @see #attachSurfaceLayer(long)

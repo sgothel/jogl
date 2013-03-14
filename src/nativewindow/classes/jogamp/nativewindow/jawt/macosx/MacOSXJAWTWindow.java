@@ -117,7 +117,7 @@ public class MacOSXJAWTWindow extends JAWTWindow implements MutableSurface {
   }
 
   protected void attachSurfaceLayerImpl(final long layerHandle) {
-      OSXUtil.AddCASublayer(rootSurfaceLayerHandle, layerHandle);
+      OSXUtil.AddCASublayer(rootSurfaceLayerHandle, layerHandle, getWidth(), getHeight());
   }
   
   protected void layoutSurfaceLayerImpl() {

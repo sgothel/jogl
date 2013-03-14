@@ -434,8 +434,9 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
       _lock.lock();
       try {            
           final GLDrawable _drawable = drawable;
-          if( null == _drawable || realized && ( 0 >= _drawable.getWidth() || 0 >= _drawable.getHeight() ) ) {
-              return; 
+          if( null == _drawable || realized == _drawable.isRealized() ||
+              realized && ( 0 >= _drawable.getWidth() || 0 >= _drawable.getHeight() ) ) {
+              return;
           }
          _drawable.setRealized(realized);
           if( realized && _drawable.isRealized() ) {
@@ -705,9 +706,6 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                 }
             }
             sendReshape = true; // async if display() doesn't get called below, but avoiding deadlock
-            if(null != jawtWindow && jawtWindow.isOffscreenLayerSurfaceEnabled() ) {
-                jawtWindow.layoutSurfaceLayer();
-            }
         }
     }
   }

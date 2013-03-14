@@ -43,6 +43,8 @@ import com.jogamp.nativewindow.MutableGraphicsConfiguration;
 
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.applet.Applet;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -110,6 +112,25 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
     this.component = windowObject;
     this.isApplet = false;
     this.offscreenSurfaceLayer = 0;
+    this.component.addComponentListener(new ComponentListener() {
+        @Override
+        public void componentResized(ComponentEvent e) {
+            layoutSurfaceLayerIfEnabled();
+        }
+
+        @Override
+        public void componentMoved(ComponentEvent e) {
+            layoutSurfaceLayerIfEnabled();
+        }
+
+        @Override
+        public void componentShown(ComponentEvent e) {
+            layoutSurfaceLayerIfEnabled();
+        }
+
+        @Override
+        public void componentHidden(ComponentEvent e) { }       
+    });
   }
 
   protected synchronized void invalidate() {
@@ -215,16 +236,27 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
   protected abstract void attachSurfaceLayerImpl(final long layerHandle);
 
-  @Override
-  public void layoutSurfaceLayer() throws NativeWindowException {
-      if( !isOffscreenLayerSurfaceEnabled() ) {
-          throw new NativeWindowException("Not an offscreen layer surface");
-      }
-      if( 0 != offscreenSurfaceLayer) {
+  /**
+   * Layout the offscreen layer according to the implementing class's constraints.
+   * <p>
+   * This method allows triggering a re-layout of the offscreen surface
+   * in case the implementation requires it.   
+   * </p>
+   * <p> 
+   * Call this method if any parent or ancestor's layout has been changed,
+   * which could affects the layout of this surface.
+   * </p>
+   * @see #isOffscreenLayerSurfaceEnabled()
+   * @throws NativeWindowException if {@link #isOffscreenLayerSurfaceEnabled()} == false
+   */
+  protected void layoutSurfaceLayerImpl() {}
+  
+  private final void layoutSurfaceLayerIfEnabled() throws NativeWindowException {
+      if( isOffscreenLayerSurfaceEnabled() && 0 != offscreenSurfaceLayer ) {
           layoutSurfaceLayerImpl();
       }
   }
-  protected void layoutSurfaceLayerImpl() {}
+  
   
   @Override
   public final void detachSurfaceLayer() throws NativeWindowException {
