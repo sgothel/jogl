@@ -1066,9 +1066,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         if(null==newParentWindowNEWT) {
                             throw new NativeWindowException("Reparenting with non NEWT Window type only available after it's realized: "+newParentWindow);
                         }
-                        // Destroy this window and use parent's Screen, while trying to preserve resources.
+                        // Destroy this window and use parent's Screen.
                         // It may be created properly when the parent is made visible.
-                        destroy(true);
+                        destroy(false);
                         setScreen( (ScreenImpl) newParentWindowNEWT.getScreen() );
                         operation = ReparentOperation.ACTION_NATIVE_CREATION_PENDING;
                     } else if(newParentWindow != getParent()) {
@@ -1091,8 +1091,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                 operation = ReparentOperation.ACTION_NATIVE_CREATION_PENDING;
                             }
                         } else if ( forceDestroyCreate || !NewtFactory.isScreenCompatible(newParentWindow, screen) ) {
-                            // Destroy this window, may create a new compatible Screen/Display, while trying to preserve resources.                            
-                            destroy(true);
+                            // Destroy this window, may create a new compatible Screen/Display, while trying to preserve resources if becoming visible again.                            
+                            destroy( wasVisible );
                             if(null!=newParentWindowNEWT) {
                                 setScreen( (ScreenImpl) newParentWindowNEWT.getScreen() );
                             } else {
@@ -1121,8 +1121,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         // Already Top Window
                         operation = ReparentOperation.ACTION_NOP;
                     } else if( !isNativeValid() || forceDestroyCreate ) {
-                        // Destroy this window and mark it for [pending] creation, while trying to preserve resources.
-                        destroy(true);
+                        // Destroy this window and mark it for [pending] creation.
+                        // If isNativeValid() and becoming visible again - try to preserve resources, i.e. b/c on-/offscreen switch.
+                        destroy( isNativeValid() && wasVisible );
                         if( 0 < width && 0 < height ) {
                             operation = ReparentOperation.ACTION_NATIVE_CREATION;
                         } else {
@@ -1225,11 +1226,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
                     
                     if(!ok) {
-                        // native reparent failed -> try creation, while trying to preserve resources.
+                        // native reparent failed -> try creation, while trying to preserve resources if becoming visible again.
                         if(DEBUG_IMPLEMENTATION) {
                             System.err.println("Window.reparent: native reparenting failed ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+" parentWindowHandle "+toHexString(parentWindowHandle)+" -> "+toHexString(newParentWindowHandle)+" - Trying recreation");
                         }
-                        destroy(true);
+                        destroy( wasVisible );
                         operation = ReparentOperation.ACTION_NATIVE_CREATION ;
                     }
                 }

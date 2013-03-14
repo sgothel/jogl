@@ -109,6 +109,9 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
      * {@link #pullGLEventListenerState() pull} to preserve the {@link GLEventListenerState}.
      */
     public final void setPreserveGLStateAtDestroy(boolean value) {
+        if( DEBUG ) {
+            System.err.println("GLAutoDrawableBase.setPreserveGLStateAtDestroy: ("+Thread.currentThread().getName()+"): "+preserveGLELSAtDestroy+" -> "+value+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
+        }
         preserveGLELSAtDestroy = value;
     }
     
@@ -283,7 +286,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
      */
     protected void destroyImplInLock() {
         if( preserveGLELSAtDestroy ) {
-            preserveGLELSAtDestroy = false;
+            setPreserveGLStateAtDestroy(false);
             pullGLEventListenerState();
         }
         if( null != context ) {
