@@ -64,6 +64,10 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
     InputStream testTextureStreamN;
     InputStream testTextureStreamI;
     InputStream testTextureStreamIG;
+    InputStream testTextureStreamPRGB;
+    InputStream testTextureStreamPRGBA;
+    InputStream testTextureStreamNRGBA;
+    InputStream testTextureStreamIRGBA;
 
     @Before
     public void initTest() throws IOException {
@@ -87,6 +91,30 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
             testTextureStreamIG = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStreamIG);
         }
+        {
+            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscP301-160x90.png");
+            Assert.assertNotNull(testTextureUrlConn);
+            testTextureStreamPRGB = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStreamPRGB);
+        }
+        {
+            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscP401-160x90.png");
+            Assert.assertNotNull(testTextureUrlConn);
+            testTextureStreamPRGBA = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStreamPRGBA);
+        }
+        {
+            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN401-160x90.png");
+            Assert.assertNotNull(testTextureUrlConn);
+            testTextureStreamNRGBA = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStreamNRGBA);
+        }
+        {
+            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscI401-160x90.png");
+            Assert.assertNotNull(testTextureUrlConn);
+            testTextureStreamIRGBA = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStreamIRGBA);
+        }
     }
 
     @After
@@ -95,6 +123,10 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
         testTextureStreamN = null;
         testTextureStreamI = null;
         testTextureStreamIG = null;
+        testTextureStreamPRGB = null;
+        testTextureStreamPRGBA = null;
+        testTextureStreamNRGBA = null;
+        testTextureStreamIRGBA = null;
     }
 
     public void testImpl(boolean useFFP, final InputStream istream) throws InterruptedException, IOException {
@@ -188,6 +220,42 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
     @Test
     public void testTestIG_PNGJLoaderES2() throws InterruptedException, IOException {
         testImpl(false, testTextureStreamIG);        
+    }
+    
+    @Test
+    public void testTestPRGB_PNGJLoaderGL2() throws InterruptedException, IOException {
+        testImpl(true, testTextureStreamPRGB);        
+    }    
+    @Test
+    public void testTestPRGB_PNGJLoaderES2() throws InterruptedException, IOException {
+        testImpl(false, testTextureStreamPRGB);        
+    }
+    
+    @Test
+    public void testTestPRGBA_PNGJLoaderGL2() throws InterruptedException, IOException {
+        testImpl(true, testTextureStreamPRGBA);        
+    }    
+    @Test
+    public void testTestPRGBA_PNGJLoaderES2() throws InterruptedException, IOException {
+        testImpl(false, testTextureStreamPRGBA);        
+    }
+    
+    @Test
+    public void testTestNRGBA_PNGJLoaderGL2() throws InterruptedException, IOException {
+        testImpl(true, testTextureStreamPRGBA);        
+    }    
+    @Test
+    public void testTestNRGBA_PNGJLoaderES2() throws InterruptedException, IOException {
+        testImpl(false, testTextureStreamPRGBA);        
+    }
+    
+    @Test
+    public void testTestIRGBA_PNGJLoaderGL2() throws InterruptedException, IOException {
+        testImpl(true, testTextureStreamIRGBA);        
+    }    
+    @Test
+    public void testTestIRGBA_PNGJLoaderES2() throws InterruptedException, IOException {
+        testImpl(false, testTextureStreamIRGBA);        
     }
     
     public static void main(String args[]) throws IOException {
