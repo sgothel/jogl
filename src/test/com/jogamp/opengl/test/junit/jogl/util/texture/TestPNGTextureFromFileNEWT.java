@@ -242,11 +242,11 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
     
     @Test
     public void testTestNRGBA_PNGJLoaderGL2() throws InterruptedException, IOException {
-        testImpl(true, testTextureStreamPRGBA);        
+        testImpl(true, testTextureStreamNRGBA);        
     }    
     @Test
     public void testTestNRGBA_PNGJLoaderES2() throws InterruptedException, IOException {
-        testImpl(false, testTextureStreamPRGBA);        
+        testImpl(false, testTextureStreamNRGBA);        
     }
     
     @Test
