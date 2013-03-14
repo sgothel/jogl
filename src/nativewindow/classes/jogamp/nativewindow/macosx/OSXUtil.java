@@ -137,26 +137,23 @@ public class OSXUtil implements ToolkitProperties {
     }
     
     /** 
-     * Create a CALayer suitable to act as a root CALayer on the main-thread.
+     * Create a CALayer suitable to act as a root CALayer.
      * @see #DestroyCALayer(long)
      * @see #AddCASublayer(long, long) 
      */
     public static long CreateCALayer(final int x, final int y, final int width, final int height) {
-      return OSXUtil.RunOnMainThread(true, new Function<Long, Object>() {
-       public Long eval(Object... args) {
-           return Long.valueOf( CreateCALayer0(x, y, width, height) );
-       } } ).longValue();
+      return CreateCALayer0(x, y, width, height);
     }
     
     /** 
-     * Attach a sub CALayer to the root CALayer on the main-thread w/ blocking.
+     * Attach a sub CALayer to the root CALayer on the main-thread w/o blocking.
      * <p>
      * Method will trigger a <code>display</code>
      * call to the CALayer hierarchy to enforce resource creation if required, e.g. an NSOpenGLContext.
      * </p>
      * <p>
-     * It is mandatory that any related resources, e.g. a shared NSOpenGLContext,
-     * are not locked while calling this method. 
+     * Hence it is important that related resources are not locked <i>if</i>
+     * they will be used for creation.  
      * </p>
      * @see #CreateCALayer(int, int, int, int)
      * @see #RemoveCASublayer(long, long)
@@ -165,7 +162,7 @@ public class OSXUtil implements ToolkitProperties {
         if(0==rootCALayer || 0==subCALayer) {
             throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
         }
-        RunOnMainThread(true, new Runnable() {
+        RunOnMainThread(false, new Runnable() {
            public void run() {
                AddCASublayer0(rootCALayer, subCALayer);
            }
@@ -173,7 +170,7 @@ public class OSXUtil implements ToolkitProperties {
     }
     
     /** 
-     * Fix root and sub CALayer position to 0/0 and size on the main-thread w/o blocking.
+     * Fix root and sub CALayer position to 0/0 and size
      * <p>
      * If the sub CALayer implements the Objective-C NativeWindow protocol NWDedicatedSize (e.g. JOGL's MyNSOpenGLLayer),
      * the dedicated size is passed to the layer, which propagates it appropriately. 
@@ -192,38 +189,28 @@ public class OSXUtil implements ToolkitProperties {
         if( 0==rootCALayer && 0==subCALayer ) {
             return;
         }
-        RunOnMainThread(false, new Runnable() {
-           public void run() {
-               FixCALayerLayout0(rootCALayer, subCALayer, width, height);
-           }
-        });
+        FixCALayerLayout0(rootCALayer, subCALayer, width, height);
     }
     
     /** 
-     * Detach a sub CALayer from the root CALayer on the main-thread w/ blocking.
+     * Detach a sub CALayer from the root CALayer
      */
     public static void RemoveCASublayer(final long rootCALayer, final long subCALayer) {
         if(0==rootCALayer || 0==subCALayer) {
             throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
         }
-        RunOnMainThread(true, new Runnable() {
-           public void run() {
-               RemoveCASublayer0(rootCALayer, subCALayer);
-           } } );
+        RemoveCASublayer0(rootCALayer, subCALayer);
     }
     
     /** 
-     * Destroy a CALayer on the main-thread w/ blocking.
+     * Destroy a CALayer
      * @see #CreateCALayer(int, int, int, int)
      */    
     public static void DestroyCALayer(final long caLayer) {
         if(0==caLayer) {
             throw new IllegalArgumentException("caLayer 0x"+Long.toHexString(caLayer));
         }
-        RunOnMainThread(true, new Runnable() {
-           public void run() {        
-               DestroyCALayer0(caLayer);
-           } } );
+        DestroyCALayer0(caLayer);
     }
     
     /**

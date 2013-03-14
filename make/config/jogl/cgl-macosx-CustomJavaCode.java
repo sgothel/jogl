@@ -1,9 +1,9 @@
 
 /**
- * Creates the NSOpenGLLayer for FBO/PBuffer w/ optional GL3 shader program on Main-Thread
+ * Creates the NSOpenGLLayer for FBO/PBuffer w/ optional GL3 shader program
  * <p>
- * It is mandatory that the shared context handle <code>ctx</code>
- * is not locked while calling this method. 
+ * The NSOpenGLLayer will immediatly create a OpenGL context sharing the given ctx,
+ * which will be used to render the texture offthread.
  * </p>
  * <p>
  * The NSOpenGLLayer starts in enabled mode, 
@@ -12,10 +12,7 @@
  */
 public static long createNSOpenGLLayer(final long ctx, final int gl3ShaderProgramName, final long fmt, final long p, 
                                        final int texID, final boolean opaque, final int texWidth, final int texHeight) {
-  return OSXUtil.RunOnMainThread(true, new Function<Long, Object>() {
-   public Long eval(Object... args) {
-       return Long.valueOf( createNSOpenGLLayerImpl(ctx, gl3ShaderProgramName, fmt, p, texID, opaque, texWidth, texHeight) );
-   } } ).longValue();
+   return createNSOpenGLLayerImpl(ctx, gl3ShaderProgramName, fmt, p, texID, opaque, texWidth, texHeight);
 }
 
 /**
@@ -26,19 +23,13 @@ public static long createNSOpenGLLayer(final long ctx, final int gl3ShaderProgra
  * </p>
  */
 public static void setNSOpenGLLayerEnabled(final long nsOpenGLLayer, final boolean enable) {
-  OSXUtil.RunOnMainThread(true, new Runnable() {
-      public void run() {
-          setNSOpenGLLayerEnabledImpl(nsOpenGLLayer, enable);
-      } } );
+  setNSOpenGLLayerEnabledImpl(nsOpenGLLayer, enable);
 }
 
 /**
- * Releases the NSOpenGLLayer on Main-Thread
+ * Releases the NSOpenGLLayer
  */
 public static void releaseNSOpenGLLayer(final long nsOpenGLLayer) {
-  OSXUtil.RunOnMainThread(true, new Runnable() {
-      public void run() {
-          releaseNSOpenGLLayerImpl(nsOpenGLLayer);
-      } } );
+  releaseNSOpenGLLayerImpl(nsOpenGLLayer);
 }
 

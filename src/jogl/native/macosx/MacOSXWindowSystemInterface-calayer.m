@@ -131,11 +131,10 @@ extern GLboolean glIsVertexArray (GLuint array);
 {
 @private
     GLfloat gl_texCoords[8];
-    NSOpenGLContext* myCtx;
+    NSOpenGLContext* glContext;
     Bool isGLEnabled;
 
 @protected
-    NSOpenGLContext* parentCtx;
     GLuint gl3ShaderProgramName;
     GLuint vboBufVert;
     GLuint vboBufTexCoord;
@@ -247,7 +246,7 @@ static const GLfloat gl_verts[] = {
 
 @implementation MyNSOpenGLLayer
 
-- (id) setupWithContext: (NSOpenGLContext*) _parentCtx
+- (id) setupWithContext: (NSOpenGLContext*) parentCtx
        gl3ShaderProgramName: (GLuint) _gl3ShaderProgramName
        pixelFormat: (NSOpenGLPixelFormat*) _parentPixelFmt
        pbuffer: (NSOpenGLPixelBuffer*) p
@@ -262,20 +261,19 @@ static const GLfloat gl_verts[] = {
     pthread_mutex_init(&renderLock, &renderLockAttr); // recursive
     pthread_cond_init(&renderSignal, NULL); // no attribute
 
-    myCtx = NULL;
     {
         int i;
         for(i=0; i<8; i++) {
             gl_texCoords[i] = 0.0f;
         }
     }
-    parentCtx = _parentCtx;
+    parentPixelFmt = [_parentPixelFmt retain]; // until destruction
+    glContext = [[MyNSOpenGLContext alloc] initWithFormat:parentPixelFmt shareContext:parentCtx];
     gl3ShaderProgramName = _gl3ShaderProgramName;
     vboBufVert = 0;
     vboBufTexCoord = 0;
     vertAttrLoc = 0;
     texCoordAttrLoc = 0;
-    parentPixelFmt = [_parentPixelFmt retain]; // until destruction
     swapInterval = 1; // defaults to on (as w/ new GL profiles)
     swapIntervalCounter = 0;
     timespec_now(&lastWaitTime);
@@ -338,12 +336,12 @@ static const GLfloat gl_verts[] = {
 #ifdef VERBOSE_ON
     CGRect lRect = [self bounds];
     if(NULL != pbuffer) {
-        DBG_PRINT("MyNSOpenGLLayer::init (pbuffer) %p, ctx %p, pfmt %p, pbuffer %p, opaque %d, pbuffer %dx%d -> tex %dx%d, bounds: %lf/%lf %lfx%lf, displayLink %p (refcnt %d)\n", 
-            self, parentCtx, parentPixelFmt, pbuffer, opaque, [pbuffer pixelsWide], [pbuffer pixelsHigh], texWidth, texHeight,
+        DBG_PRINT("MyNSOpenGLLayer::init (pbuffer) %p, pctx %p, pfmt %p, pbuffer %p, ctx %p, opaque %d, pbuffer %dx%d -> tex %dx%d, bounds: %lf/%lf %lfx%lf, displayLink %p (refcnt %d)\n", 
+            self, parentCtx, parentPixelFmt, pbuffer, glContext, opaque, [pbuffer pixelsWide], [pbuffer pixelsHigh], texWidth, texHeight,
             lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height, displayLink, (int)[self retainCount]);
     } else {
-        DBG_PRINT("MyNSOpenGLLayer::init (texture) %p, ctx %p, pfmt %p, opaque %d, tex[id %d, %dx%d], bounds: %lf/%lf %lfx%lf, displayLink %p (refcnt %d)\n", 
-            self, parentCtx, parentPixelFmt, opaque, (int)textureID, texWidth, texHeight,
+        DBG_PRINT("MyNSOpenGLLayer::init (texture) %p, pctx %p, pfmt %p, ctx %p, opaque %d, tex[id %d, %dx%d], bounds: %lf/%lf %lfx%lf, displayLink %p (refcnt %d)\n", 
+            self, parentCtx, parentPixelFmt, glContext, opaque, (int)textureID, texWidth, texHeight,
             lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height, displayLink, (int)[self retainCount]);
     }
 #endif
@@ -493,11 +491,10 @@ static const GLfloat gl_verts[] = {
     pthread_mutex_lock(&renderLock);
     [self deallocPBuffer];
     // [[self openGLContext] release];
-    if( NULL != myCtx ) {
-        [myCtx release];
-        myCtx = NULL;
+    if( NULL != glContext ) {
+        [glContext release];
+        glContext = NULL;
     }
-    parentCtx = NULL;
     if( NULL != parentPixelFmt ) {
         [parentPixelFmt release];
         parentPixelFmt = NULL;
@@ -632,22 +629,19 @@ static const GLfloat gl_verts[] = {
 
 - (NSOpenGLContext *)openGLContextForPixelFormat:(NSOpenGLPixelFormat *)pixelFormat
 {
-    DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.0: %p (refcnt %d) - pfmt %p, parent %p, DisplayLink %p\n",
-        self, (int)[self retainCount], pixelFormat, parentCtx, displayLink);
-    // NSLog(@"MyNSOpenGLLayer::openGLContextForPixelFormat: %@",[NSThread callStackSymbols]);
-    myCtx = [[MyNSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:parentCtx];
+    DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.0: %p (refcnt %d) - pfmt %p, ctx %p, DisplayLink %p\n",
+        self, (int)[self retainCount], pixelFormat, glContext, displayLink);
 #ifndef HAS_CADisplayLink
     if(NULL != displayLink) {
         CVReturn cvres;
         DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.1: setup DisplayLink %p\n", displayLink);
-        cvres = CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(displayLink, [myCtx CGLContextObj], [pixelFormat CGLPixelFormatObj]);
+        cvres = CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(displayLink, [glContext CGLContextObj], [pixelFormat CGLPixelFormatObj]);
         if(kCVReturnSuccess != cvres) {
             DBG_PRINT("MyNSOpenGLLayer::init %p, CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext failed: %d\n", self, cvres);
         }
     }
 #endif
-    DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.X: new-ctx %p\n", myCtx);
-    return myCtx;
+    return glContext;
 }
 
 - (BOOL)canDrawInOpenGLContext:(NSOpenGLContext *)context pixelFormat:(NSOpenGLPixelFormat *)pixelFormat 

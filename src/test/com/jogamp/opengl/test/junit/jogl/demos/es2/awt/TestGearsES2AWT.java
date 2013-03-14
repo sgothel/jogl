@@ -77,6 +77,7 @@ public class TestGearsES2AWT extends UITestCase {
     static boolean shutdownSystemExit = false;
     static int swapInterval = 1;
     static boolean exclusiveContext = false;
+    static boolean useAnimator = true;
     static Thread awtEDT;
     static Dimension rwsize = null;
 
@@ -167,8 +168,8 @@ public class TestGearsES2AWT extends UITestCase {
 
         glCanvas.addGLEventListener(new GearsES2(swapInterval));
 
-        Animator animator = new Animator(glCanvas);
-        if( exclusiveContext ) {
+        final Animator animator = useAnimator ? new Animator(glCanvas) : null;
+        if( useAnimator && exclusiveContext ) {
             animator.setExclusiveContext(awtEDT);
         }
         QuitAdapter quitAdapter = new QuitAdapter();
@@ -184,11 +185,13 @@ public class TestGearsES2AWT extends UITestCase {
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true)); 
         
-        animator.start();
-        Assert.assertTrue(animator.isStarted());
-        Assert.assertTrue(animator.isAnimating());
-        Assert.assertEquals(exclusiveContext ? awtEDT : null, glCanvas.getExclusiveContextThread());
-        animator.setUpdateFPSFrames(60, System.err);
+        if( useAnimator ) {
+            animator.start();
+            Assert.assertTrue(animator.isStarted());
+            Assert.assertTrue(animator.isAnimating());
+            Assert.assertEquals(exclusiveContext ? awtEDT : null, glCanvas.getExclusiveContextThread());
+            animator.setUpdateFPSFrames(60, System.err);
+        }
         
         System.err.println("canvas pos/siz: "+glCanvas.getX()+"/"+glCanvas.getY()+" "+glCanvas.getWidth()+"x"+glCanvas.getHeight());
         
@@ -198,19 +201,25 @@ public class TestGearsES2AWT extends UITestCase {
             System.err.println("window resize pos/siz: "+glCanvas.getX()+"/"+glCanvas.getY()+" "+glCanvas.getWidth()+"x"+glCanvas.getHeight());
         }
         
-        while(!quitAdapter.shouldQuit() /* && animator.isAnimating() */ && animator.getTotalFPSDuration()<duration) {
+        final long t0 = System.currentTimeMillis();
+        long t1 = t0;
+        while(!quitAdapter.shouldQuit() && t1 - t0 < duration) {
             Thread.sleep(100);
+            t1 = System.currentTimeMillis();
         }
 
         Assert.assertNotNull(frame);
         Assert.assertNotNull(glCanvas);
-        Assert.assertNotNull(animator);
+        
+        if( useAnimator ) {
+            Assert.assertNotNull(animator);
+            Assert.assertEquals(exclusiveContext ? awtEDT : null, glCanvas.getExclusiveContextThread());
+            animator.stop();
+            Assert.assertFalse(animator.isAnimating());
+            Assert.assertFalse(animator.isStarted());
+            Assert.assertEquals(null, glCanvas.getExclusiveContextThread());
+        }
 
-        Assert.assertEquals(exclusiveContext ? awtEDT : null, glCanvas.getExclusiveContextThread());
-        animator.stop();
-        Assert.assertFalse(animator.isAnimating());
-        Assert.assertFalse(animator.isStarted());
-        Assert.assertEquals(null, glCanvas.getExclusiveContextThread());
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 frame.setVisible(false);
@@ -288,6 +297,8 @@ public class TestGearsES2AWT extends UITestCase {
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);
             } else if(args[i].equals("-exclctx")) {
                 exclusiveContext = true;
+            } else if(args[i].equals("-noanim")) {
+                useAnimator  = false;
             } else if(args[i].equals("-layeredFBO")) {
                 shallUseOffscreenFBOLayer = true;
             } else if(args[i].equals("-layeredPBuffer")) {
@@ -319,6 +330,8 @@ public class TestGearsES2AWT extends UITestCase {
         System.err.println("forceGL3 "+forceGL3);
         System.err.println("swapInterval "+swapInterval);
         System.err.println("exclusiveContext "+exclusiveContext);
+        System.err.println("useAnimator "+useAnimator);
+        
         System.err.println("shallUseOffscreenFBOLayer     "+shallUseOffscreenFBOLayer);
         System.err.println("shallUseOffscreenPBufferLayer "+shallUseOffscreenPBufferLayer);
         

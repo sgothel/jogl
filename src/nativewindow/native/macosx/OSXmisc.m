@@ -584,16 +584,16 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyCALayer0
 /*
  * Class:     Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
  * Method:    SetJAWTRootSurfaceLayer0
- * Signature: (JJ)Z
+ * Signature: (JJ)V
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_SetJAWTRootSurfaceLayer0
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_SetJAWTRootSurfaceLayer0
   (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     JAWT_DrawingSurfaceInfo* dsi = (JAWT_DrawingSurfaceInfo*) (*env)->GetDirectBufferAddress(env, jawtDrawingSurfaceInfoBuffer);
     if (NULL == dsi) {
         NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
-        return JNI_FALSE;
+        return;
     }
     MyCALayer* layer = (MyCALayer*) (intptr_t) caLayer;
     id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
@@ -601,35 +601,33 @@ JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
     surfaceLayers.layer = [layer retain]; // Pairs w/ Unset
     [pool release];
     DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.X: root %p (refcnt %d)\n", layer, (int)[layer retainCount]);
-    return JNI_TRUE;
 }
 
 /*
  * Class:     Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
  * Method:    UnsetJAWTRootSurfaceLayer0
- * Signature: (JJ)Z
+ * Signature: (JJ)V
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_UnsetJAWTRootSurfaceLayer0
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_UnsetJAWTRootSurfaceLayer0
   (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     JAWT_DrawingSurfaceInfo* dsi = (JAWT_DrawingSurfaceInfo*) (*env)->GetDirectBufferAddress(env, jawtDrawingSurfaceInfoBuffer);
     if (NULL == dsi) {
         NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
-        return JNI_FALSE;
+        return;
     }
     MyCALayer* layer = (MyCALayer*) (intptr_t) caLayer;
     id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
     if(layer != surfaceLayers.layer) {
         NativewindowCommon_throwNewRuntimeException(env, "Attached layer %p doesn't match given layer %p\n", surfaceLayers.layer, layer);
-        return JNI_FALSE;
+        return;
     }
     DBG_PRINT("CALayer::UnsetJAWTRootSurfaceLayer.0: root %p (refcnt %d) -> nil\n", layer, (int)[layer retainCount]);
     [layer release]; // Pairs w/ Set
     surfaceLayers.layer = NULL;
     [pool release];
     DBG_PRINT("CALayer::UnsetJAWTRootSurfaceLayer.X: root %p (refcnt %d) -> nil\n", layer, (int)[layer retainCount]);
-    return JNI_TRUE;
 }
 
 @interface MainRunnable : NSObject

@@ -36,10 +36,6 @@ public interface OffscreenLayerSurface {
    * <p>
    * Implementation may realize all required resources at this point.
    * </p>
-   * <p>
-   * It is mandatory that any related resources, e.g. a shared context,
-   * are not locked while calling this method. 
-   * </p>
    * 
    * @see #isOffscreenLayerSurfaceEnabled()
    * @throws NativeWindowException if {@link #isOffscreenLayerSurfaceEnabled()} == false

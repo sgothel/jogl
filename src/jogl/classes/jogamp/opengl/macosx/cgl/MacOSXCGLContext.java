@@ -676,30 +676,24 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   }
                    
                   /**
-                   * Perform NSOpenGLLayer creation and attaching on main-thread,
-                   * hence release the lock on our context - which will be used to 
-                   * create a shared context within NSOpenGLLayer.
+                   * NSOpenGLLayer creation is performed on the current thread,
+                   * which immediately creates it's own GL ctx sharing this ctx
+                   * not causing any locking issues.
+                   * 
+                   * Subsequent attaching is performed on main-thread w/o blocking.
+                   * 
+                   * This is a lock free operation.
                    */
                   final long cglCtx = CGL.getCGLContext(ctx);
                   if(0 == cglCtx) {
                       throw new InternalError("Null CGLContext for: "+this);
                   }
-                  final boolean ctxUnlocked = CGL.kCGLNoError == CGL.CGLUnlockContext(cglCtx);
-                  try {                  
-                      nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, gl3ShaderProgramName, pixelFormat, pbufferHandle, texID, chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight);
-                      if (DEBUG) {
-                          System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer)+" w/ pbuffer "+toHexString(pbufferHandle)+", texID "+texID+", texSize "+lastWidth+"x"+lastHeight+", "+drawable);
-                      }
-                      backingLayerHost.attachSurfaceLayer(nsOpenGLLayer);
-                      setSwapInterval(1); // enabled per default in layered surface
-                  } finally {
-                      if( ctxUnlocked ) {
-                          if( CGL.kCGLNoError != CGL.CGLLockContext(cglCtx) ) {
-                              throw new InternalError("Could not re-lock CGLContext for: "+this);
-                          }
-                      }
+                  nsOpenGLLayer = CGL.createNSOpenGLLayer(ctx, gl3ShaderProgramName, pixelFormat, pbufferHandle, texID, chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight);
+                  if (DEBUG) {
+                      System.err.println("NS create nsOpenGLLayer "+toHexString(nsOpenGLLayer)+" w/ pbuffer "+toHexString(pbufferHandle)+", texID "+texID+", texSize "+lastWidth+"x"+lastHeight+", "+drawable);
                   }
-                  backingLayerHost.layoutSurfaceLayer();
+                  backingLayerHost.attachSurfaceLayer(nsOpenGLLayer);
+                  setSwapInterval(1); // enabled per default in layered surface
               } else {
                   lastWidth = drawable.getWidth();
                   lastHeight = drawable.getHeight();                  
