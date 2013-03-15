@@ -41,11 +41,14 @@ import org.junit.Test;
 
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 public class TestAddRemove03GLWindowNEWT extends UITestCase {
     static long durationPerTest = 50;
     static int addRemoveCount = 15;
+    static int pauseEach = 0;
+    static int pauseDuration = 500;
     static GLProfile glp;
     static int width, height;
     static boolean waitForKey = false;
@@ -91,6 +94,11 @@ public class TestAddRemove03GLWindowNEWT extends UITestCase {
             System.err.println("GLWindow: "+glw.getChosenGLCapabilities());
             
             glw.destroy();
+            
+            if( 0 < pauseEach && 0 == i % pauseEach ) {
+                System.err.println("******* P A U S E ********");
+                Thread.sleep(pauseDuration);
+            }
         }
     }
 
@@ -111,9 +119,13 @@ public class TestAddRemove03GLWindowNEWT extends UITestCase {
                 } catch (Exception ex) { ex.printStackTrace(); }
             } else if(args[i].equals("-loops")) {
                 i++;
-                try {
-                    addRemoveCount = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                addRemoveCount = MiscUtils.atoi(args[i], addRemoveCount);
+            } else if(args[i].equals("-pauseEach")) {
+                i++;
+                pauseEach = MiscUtils.atoi(args[i], pauseEach);
+            } else if(args[i].equals("-pauseDuration")) {
+                i++;
+                pauseDuration = MiscUtils.atoi(args[i], pauseDuration);
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
             }            
@@ -121,6 +133,8 @@ public class TestAddRemove03GLWindowNEWT extends UITestCase {
         System.err.println("waitForKey                    "+waitForKey);
         
         System.err.println("addRemoveCount                "+addRemoveCount);
+        System.err.println("pauseEach                     "+pauseEach);
+        System.err.println("pauseDuration                 "+pauseDuration);        
         
         if(waitForKey) {
             UITestCase.waitForKey("Start");

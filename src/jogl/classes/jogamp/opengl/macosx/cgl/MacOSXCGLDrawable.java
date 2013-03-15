@@ -106,10 +106,6 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
   protected void setRealizedImpl() {
   }
   
-  protected long getNSViewHandle() {
-      return GLBackendType.NSOPENGL == openGLMode ? getHandle() : 0;
-  }
-
   @Override
   protected void associateContext(GLContext ctx, boolean bound) {
     // NOTE: we need to keep track of the created contexts in order to

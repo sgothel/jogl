@@ -92,12 +92,6 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     return new MacOSXPbufferCGLContext(this, shareWith);
   }
   
-  @Override
-  protected long getNSViewHandle() {
-    // pbuffer handle is NSOpenGLPixelBuffer
-    return 0;
-  }
-
   protected int getTextureTarget() { return pBufferTexTarget;  }
   protected int getTextureWidth() { return pBufferTexWidth; }
   protected int getTextureHeight() { return pBufferTexHeight; }

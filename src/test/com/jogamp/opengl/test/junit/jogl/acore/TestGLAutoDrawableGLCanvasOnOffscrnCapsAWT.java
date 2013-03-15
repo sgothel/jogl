@@ -64,6 +64,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
     static final int widthStep = 800/4;
     static final int heightStep = 600/4;
+    static boolean waitForKey = false;
     volatile int szStep = 2;
 
     static GLCapabilities getCaps(String profile) {
@@ -331,6 +332,14 @@ public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
     }
     
     public static void main(String args[]) throws IOException {
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-wait")) {
+                waitForKey = true;
+            }
+        }
+        if(waitForKey) {
+            UITestCase.waitForKey("Start");
+        }
         org.junit.runner.JUnitCore.main(TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT.class.getName());
     }
 

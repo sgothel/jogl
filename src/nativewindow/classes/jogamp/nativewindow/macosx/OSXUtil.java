@@ -83,11 +83,11 @@ public class OSXUtil implements ToolkitProperties {
     public static final boolean hasThreadingIssues() { return false; }
     
     public static boolean isNSView(long object) {
-        return isNSView0(object);
+        return 0 != object ? isNSView0(object) : false;
     }
     
     public static boolean isNSWindow(long object) {
-        return isNSWindow0(object);
+        return 0 != object ? isNSWindow0(object) : false;
     }
     
     /**
@@ -164,8 +164,7 @@ public class OSXUtil implements ToolkitProperties {
         }
         RunOnMainThread(false, new Runnable() {
            public void run() {
-               AddCASublayer0(rootCALayer, subCALayer);
-               FixCALayerLayout0(rootCALayer, subCALayer, width, height);
+               AddCASublayer0(rootCALayer, subCALayer, width, height);
            }
         });
     }
@@ -194,24 +193,32 @@ public class OSXUtil implements ToolkitProperties {
     }
     
     /** 
-     * Detach a sub CALayer from the root CALayer
+     * Detach a sub CALayer from the root CALayer on the main-thread w/o blocking.
      */
     public static void RemoveCASublayer(final long rootCALayer, final long subCALayer) {
         if(0==rootCALayer || 0==subCALayer) {
             throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
         }
-        RemoveCASublayer0(rootCALayer, subCALayer);
+        RunOnMainThread(false, new Runnable() {
+           public void run() {
+               RemoveCASublayer0(rootCALayer, subCALayer);
+           }
+        });
     }
     
     /** 
-     * Destroy a CALayer
+     * Destroy a CALayer on main-thread w/o blocking.
      * @see #CreateCALayer(int, int, int, int)
      */    
     public static void DestroyCALayer(final long caLayer) {
         if(0==caLayer) {
             throw new IllegalArgumentException("caLayer 0x"+Long.toHexString(caLayer));
         }
-        DestroyCALayer0(caLayer);
+        RunOnMainThread(false, new Runnable() {
+           public void run() {
+               DestroyCALayer0(caLayer);
+           }
+        });
     }
     
     /**
@@ -337,7 +344,7 @@ public class OSXUtil implements ToolkitProperties {
     private static native long GetNSView0(long nsWindow);
     private static native long GetNSWindow0(long nsView);
     private static native long CreateCALayer0(int x, int y, int width, int height);
-    private static native void AddCASublayer0(long rootCALayer, long subCALayer);
+    private static native void AddCASublayer0(long rootCALayer, long subCALayer, int width, int height);
     private static native void FixCALayerLayout0(long rootCALayer, long subCALayer, int width, int height);
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
     private static native void DestroyCALayer0(long caLayer);

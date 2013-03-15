@@ -946,6 +946,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
                 animatorPaused = false;
             }
             
+            // OLS will be detached by disposeGL's context destruction below
             if( null != context ) {
                 if( context.isCreated() ) {
                     // Catch dispose GLExceptions by GLEventListener, just 'print' them

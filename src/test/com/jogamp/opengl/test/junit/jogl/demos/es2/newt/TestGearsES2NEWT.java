@@ -28,9 +28,7 @@
  
 package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
@@ -130,11 +128,7 @@ public class TestGearsES2NEWT extends UITestCase {
                 public void display(GLAutoDrawable drawable) {
                     GLAnimatorControl  actrl = drawable.getAnimator();
                     if(waitForKey && actrl.getTotalFPSFrames() == 60*3) {
-                        BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-                        System.err.println("Press enter to continue");
-                        try {
-                            System.err.println(stdin.readLine());
-                        } catch (IOException e) { }
+                        UITestCase.waitForKey("3s mark");
                         actrl.resetFPSCounter();
                         waitForKey = false;
                     }
@@ -418,11 +412,7 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("exclusiveContext "+exclusiveContext);
 
         if(waitForKey) {
-            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-            System.err.println("Press enter to continue");
-            try {
-                System.err.println(stdin.readLine());
-            } catch (IOException e) { }
+            UITestCase.waitForKey("Start");
         }
         org.junit.runner.JUnitCore.main(TestGearsES2NEWT.class.getName());
     }

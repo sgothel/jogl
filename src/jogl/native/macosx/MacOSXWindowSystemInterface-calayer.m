@@ -117,6 +117,7 @@ extern GLboolean glIsVertexArray (GLuint array);
     CGLContextObj cglCtx = [self CGLContextObj];
 
     DBG_PRINT("MyNSOpenGLContext::dealloc.0 %p (refcnt %d) - CGL-Ctx %p\n", self, (int)[self retainCount], cglCtx);
+    // NSLog(@"MyNSOpenGLContext::dealloc: %@",[NSThread callStackSymbols]);
     [self clearDrawable];
     if( NULL != cglCtx ) {
         CGLDestroyContext( cglCtx );
@@ -143,8 +144,8 @@ extern GLboolean glIsVertexArray (GLuint array);
     NSOpenGLPixelFormat* parentPixelFmt;
     int texWidth;
     int texHeight;
-    int dedicatedWidth;
-    int dedicatedHeight;
+    volatile int dedicatedWidth;
+    volatile int dedicatedHeight;
     volatile NSOpenGLPixelBuffer* pbuffer;
     volatile GLuint textureID;
     volatile NSOpenGLPixelBuffer* newPBuffer;
@@ -184,7 +185,6 @@ extern GLboolean glIsVertexArray (GLuint array);
 
 - (void) setGLEnabled: (Bool) enable;
 - (Bool) validateTexSizeWithDedicatedSize;
-- (Bool) validateTexSize: (int) _texWidth texHeight: (int) _texHeight;
 - (void) setTextureID: (int) _texID;
 
 - (Bool) isSamePBuffer: (NSOpenGLPixelBuffer*) p;
@@ -316,6 +316,14 @@ static const GLfloat gl_verts[] = {
         }
     }
     if(NULL != displayLink) {
+        CVReturn cvres;
+        DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.1: setup DisplayLink %p\n", displayLink);
+        cvres = CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(displayLink, [glContext CGLContextObj], [parentPixelFmt CGLPixelFormatObj]);
+        if(kCVReturnSuccess != cvres) {
+            DBG_PRINT("MyNSOpenGLLayer::init %p, CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext failed: %d\n", self, cvres);
+        }
+    }
+    if(NULL != displayLink) {
         cvres = CVDisplayLinkSetOutputCallback(displayLink, renderMyNSOpenGLLayer, self);
         if(kCVReturnSuccess != cvres) {
             DBG_PRINT("MyNSOpenGLLayer::init %p, CVDisplayLinkSetOutputCallback failed: %d\n", self, cvres);
@@ -354,14 +362,9 @@ static const GLfloat gl_verts[] = {
 
 - (Bool) validateTexSizeWithDedicatedSize
 {
-    return [self validateTexSize: dedicatedWidth texHeight: dedicatedHeight];
-}
-
-- (Bool) validateTexSize: (int) _texWidth texHeight: (int) _texHeight
-{
-    if(_texHeight != texHeight || _texWidth != texWidth) {
-        texWidth = _texWidth;
-        texHeight = _texHeight;
+    if( dedicatedHeight != texHeight || dedicatedWidth != texWidth ) {
+        texWidth = dedicatedWidth;
+        texHeight = dedicatedHeight;
 
         GLfloat texCoordWidth, texCoordHeight;
         if(NULL != pbuffer) {
@@ -477,10 +480,10 @@ static const GLfloat gl_verts[] = {
 - (void)releaseLayer
 {
     DBG_PRINT("MyNSOpenGLLayer::releaseLayer.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
+    [self setGLEnabled: NO];
     [self disableAnimation];
     pthread_mutex_lock(&renderLock);
     [self deallocPBuffer];
-    // [[self openGLContext] release];
     if( NULL != glContext ) {
         [glContext release];
         glContext = NULL;
@@ -570,16 +573,6 @@ static const GLfloat gl_verts[] = {
 {
     DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.0: %p (refcnt %d) - pfmt %p, ctx %p, DisplayLink %p\n",
         self, (int)[self retainCount], pixelFormat, glContext, displayLink);
-#ifndef HAS_CADisplayLink
-    if(NULL != displayLink) {
-        CVReturn cvres;
-        DBG_PRINT("MyNSOpenGLLayer::openGLContextForPixelFormat.1: setup DisplayLink %p\n", displayLink);
-        cvres = CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(displayLink, [glContext CGLContextObj], [pixelFormat CGLPixelFormatObj]);
-        if(kCVReturnSuccess != cvres) {
-            DBG_PRINT("MyNSOpenGLLayer::init %p, CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext failed: %d\n", self, cvres);
-        }
-    }
-#endif
     return glContext;
 }
 
@@ -607,6 +600,9 @@ static const GLfloat gl_verts[] = {
         GLenum textureTarget;
 
         Bool texSizeChanged = [self validateTexSizeWithDedicatedSize];
+        if( texSizeChanged ) {
+            [context update];
+        }
 
         if( NULL != pbuffer ) {
             if( texSizeChanged && 0 != textureID ) {
@@ -812,29 +808,23 @@ static const GLfloat gl_verts[] = {
                 struct timespec t0, t1, td, td2;
                 timespec_now(&t0);
             #endif
-            if(0 < to_micros) {
-                struct timespec to_abs = lastWaitTime;
-                timespec_addmicros(&to_abs, to_micros);
-                #ifdef DBG_SYNC
-                    timespec_subtract(&td, &to_abs, &t0);
-                    fprintf(stderr, ", (%ld) / ", timespec_milliseconds(&td));
-                #endif
-                wr = pthread_cond_timedwait(&renderSignal, &renderLock, &to_abs);
-                #ifdef DBG_SYNC
-                    timespec_now(&t1);
-                    timespec_subtract(&td, &t1, &t0);
-                    timespec_subtract(&td2, &t1, &lastWaitTime);
-                    fprintf(stderr, "(%ld) / (%ld) ms", timespec_milliseconds(&td), timespec_milliseconds(&td2));
-                #endif
-            } else {
-                pthread_cond_wait (&renderSignal, &renderLock);
-                #ifdef DBG_SYNC
-                    timespec_now(&t1);
-                    timespec_subtract(&td, &t1, &t0);
-                    timespec_subtract(&td2, &t1, &lastWaitTime);
-                    fprintf(stderr, "(%ld) / (%ld) ms", timespec_milliseconds(&td), timespec_milliseconds(&td2));
-                #endif
+            if( 0 >= to_micros ) {
+                to_micros = 16666 + 1000; // defaults to 1/60s + 1ms
+                NSLog(@"MyNSOpenGLContext::waitUntilRenderSignal: to_micros was zero, using defaults");
             }
+            struct timespec to_abs = lastWaitTime;
+            timespec_addmicros(&to_abs, to_micros);
+            #ifdef DBG_SYNC
+                timespec_subtract(&td, &to_abs, &t0);
+                fprintf(stderr, ", (%ld) / ", timespec_milliseconds(&td));
+            #endif
+            wr = pthread_cond_timedwait(&renderSignal, &renderLock, &to_abs);
+            #ifdef DBG_SYNC
+                timespec_now(&t1);
+                timespec_subtract(&td, &t1, &t0);
+                timespec_subtract(&td2, &t1, &lastWaitTime);
+                fprintf(stderr, "(%ld) / (%ld) ms", timespec_milliseconds(&td), timespec_milliseconds(&td2));
+            #endif
             ready = YES;
         }
     } while (NO == ready && 0 == wr) ;
@@ -923,9 +913,16 @@ void setNSOpenGLLayerNeedsDisplayPBuffer(NSOpenGLLayer* layer, NSOpenGLPixelBuff
 void releaseNSOpenGLLayer(NSOpenGLLayer* layer) {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     MyNSOpenGLLayer* l = (MyNSOpenGLLayer*) layer;
+
+    [CATransaction begin];
+    [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+
     DBG_PRINT("MyNSOpenGLLayer::releaseNSOpenGLLayer.0: %p\n", l);
     [l releaseLayer];
     DBG_PRINT("MyNSOpenGLLayer::releaseNSOpenGLLayer.X: %p\n", l);
+
+    [CATransaction commit];
+
     [pool release];
 }
 

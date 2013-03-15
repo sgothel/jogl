@@ -501,6 +501,28 @@ NSView* getNSView(NSOpenGLContext* ctx) {
   return view;
 }
 
+static Bool lockViewIfReady(NSView *view) {
+    Bool viewReady = false;
+
+    if (view != nil) {
+        if ([view lockFocusIfCanDraw] == NO) {
+            DBG_PRINT("lockViewIfReady.1 [view lockFocusIfCanDraw] failed\n");
+        } else {
+            NSRect frame = [view frame];
+            if ((frame.size.width == 0) || (frame.size.height == 0)) {
+                [view unlockFocus];
+                DBG_PRINT("lockViewIfReady.2 view.frame size %dx%d\n", (int)frame.size.width, (int)frame.size.height);
+            } else {
+                DBG_PRINT("lockViewIfReady.X ready and locked\n");
+                viewReady = true;
+            }
+        }
+    } else {
+        DBG_PRINT("lockViewIfReady.3 nil view\n");
+    }
+    return viewReady;
+}
+
 NSOpenGLContext* createContext(NSOpenGLContext* share,
                     NSView* view,
                     Bool incompleteView,
@@ -515,40 +537,18 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
     DBG_PRINT("createContext.0: share %p, view %p, incompleteView %d, pixfmt %p, opaque %d\n",
         share, view, (int)incompleteView, fmt, opaque);
 
-    if (view != nil) {
-        Bool viewReady = true;
+    Bool viewReadyAndLocked = incompleteView ? false : lockViewIfReady(view);
 
-        if(!incompleteView) {
-            if ([view lockFocusIfCanDraw] == NO) {
-                DBG_PRINT("createContext.1 [view lockFocusIfCanDraw] failed\n");
-                viewReady = false;
-            }
-        }
-        if(viewReady) {
-            NSRect frame = [view frame];
-            if ((frame.size.width == 0) || (frame.size.height == 0)) {
-                if(!incompleteView) {
-                    [view unlockFocus];
-                }
-                DBG_PRINT("createContext.2 view.frame size %dx%d\n", (int)frame.size.width, (int)frame.size.height);
-                viewReady = false;
-            }
-        }
-
-        if (!viewReady)
-        {
-            if (viewNotReady != NULL)
-            {
-                *viewNotReady = 1;
-            }
-
-            // the view is not ready yet
-            DBG_PRINT("createContext.X: view not ready yet\n");
-            [pool release];
-            return NULL;
-        }
+    if (nil != viewNotReady) {
+        *viewNotReady = 1;
     }
-    
+
+    if (nil != view && !incompleteView && !viewReadyAndLocked) {
+        DBG_PRINT("createContext.X: Assumed complete view not ready yet\n");
+        [pool release];
+        return NULL;
+    }
+
     NSOpenGLContext* ctx = [[NSOpenGLContext alloc] initWithFormat:fmt shareContext:share];
         
     if ( nil != ctx && nil != view ) {
@@ -556,10 +556,8 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
             GLint zeroOpacity = 0;
             [ctx setValues:&zeroOpacity forParameter:NSOpenGLCPSurfaceOpacity];
         }
-        if(!incompleteView) {
-            DBG_PRINT("createContext.3.0: setView\n");
+        if( viewReadyAndLocked ) {
             [ctx setView:view];
-            DBG_PRINT("createContext.3.X: setView\n");
             [view unlockFocus];        
         }
     }
@@ -571,8 +569,19 @@ NSOpenGLContext* createContext(NSOpenGLContext* share,
 
 void setContextView(NSOpenGLContext* ctx, NSView* view) {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    if ( nil != ctx && nil != view ) {
-        [ctx setView:view];
+    if ( nil != ctx ) {
+        if ( nil != view ) {
+            Bool viewReadyAndLocked = lockViewIfReady(view);
+            DBG_PRINT("setContextView.0: ctx %p, view %p: setView: %d\n", ctx, view, viewReadyAndLocked);
+            if( viewReadyAndLocked ) {
+                [ctx setView:view];
+                [view unlockFocus];        
+            }
+        } else {
+            DBG_PRINT("setContextView.1: ctx %p, view nil: clearDrawable\n", ctx);
+            [ctx clearDrawable];
+        }
+        DBG_PRINT("setContextView.X\n");
     }
     [pool release];
 }
@@ -725,7 +734,7 @@ void setContextTextureImageToPBuffer(NSOpenGLContext* ctx, NSOpenGLPixelBuffer* 
 Bool isNSOpenGLPixelBuffer(uint64_t object) {
   NSObject *nsObj = (NSObject*) (intptr_t) object;
   DBG_PRINT("isNSOpenGLPixelBuffer.0: obj %p\n", object);
-  Bool res = [nsObj isMemberOfClass:[NSOpenGLPixelBuffer class]];
+  Bool res = [nsObj isKindOfClass:[NSOpenGLPixelBuffer class]];
   DBG_PRINT("isNSOpenGLPixelBuffer.X: res %d\n", (int)res);
   return res;
 }

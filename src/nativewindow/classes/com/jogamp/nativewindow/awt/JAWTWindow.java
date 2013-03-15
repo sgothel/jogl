@@ -134,6 +134,13 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   }
 
   protected synchronized void invalidate() {
+    if(DEBUG) {
+        System.err.println("JAWTWindow.invalidate()");
+        // Thread.dumpStack();
+    }
+    if( isSurfaceLayerAttached() ) {
+        detachSurfaceLayer();
+    }
     invalidateNative();
     jawt = null;
     isOffscreenLayerSurface = false;
