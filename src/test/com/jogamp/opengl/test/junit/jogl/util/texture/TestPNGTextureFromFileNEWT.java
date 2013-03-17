@@ -65,9 +65,9 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
     InputStream testTextureStreamI;
     InputStream testTextureStreamIG;
     InputStream testTextureStreamPRGB;
-    InputStream testTextureStreamPRGBA;
+    InputStream testTextureStreamPRGBA;/*
     InputStream testTextureStreamNRGBA;
-    InputStream testTextureStreamIRGBA;
+    InputStream testTextureStreamIRGBA;*/
 
     @Before
     public void initTest() throws IOException {
@@ -103,7 +103,7 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
             testTextureStreamPRGBA = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStreamPRGBA);
         }
-        {
+        /*{
             URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN401-160x90.png");
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStreamNRGBA = testTextureUrlConn.getInputStream();
@@ -114,7 +114,7 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStreamIRGBA = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStreamIRGBA);
-        }
+        }*/
     }
 
     @After
@@ -124,9 +124,9 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
         testTextureStreamI = null;
         testTextureStreamIG = null;
         testTextureStreamPRGB = null;
-        testTextureStreamPRGBA = null;
+        testTextureStreamPRGBA = null;/*
         testTextureStreamNRGBA = null;
-        testTextureStreamIRGBA = null;
+        testTextureStreamIRGBA = null;*/
     }
 
     public void testImpl(boolean useFFP, final InputStream istream) throws InterruptedException, IOException {
@@ -240,7 +240,7 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
         testImpl(false, testTextureStreamPRGBA);        
     }
     
-    @Test
+    /*@Test
     public void testTestNRGBA_PNGJLoaderGL2() throws InterruptedException, IOException {
         testImpl(true, testTextureStreamNRGBA);        
     }    
@@ -256,7 +256,7 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
     @Test
     public void testTestIRGBA_PNGJLoaderES2() throws InterruptedException, IOException {
         testImpl(false, testTextureStreamIRGBA);        
-    }
+    }*/
     
     public static void main(String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {

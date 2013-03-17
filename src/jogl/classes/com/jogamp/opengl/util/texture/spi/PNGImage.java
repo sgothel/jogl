@@ -106,7 +106,7 @@ public class PNGImage {
         if ( ! ( imgInfo.indexed || 1 == bytesPerPixel || 3 == bytesPerPixel || 4 == bytesPerPixel ) ) {
             throw new RuntimeException("PNGImage can only handle Lum/RGB/RGBA [1/3/4 bpp] images for now. BytesPerPixel "+bytesPerPixel);
         }
-        if(channels != bytesPerPixel) {
+        if(channels != bytesPerPixel && !imgInfo.indexed) {
             throw new RuntimeException("PNGImage currently only handles Channels [1/3/4] == BytePerPixel [1/3/4], channels: "+channels+", bytesPerPixel "+bytesPerPixel);
         }
         pixelWidth=pngr.imgInfo.cols;
