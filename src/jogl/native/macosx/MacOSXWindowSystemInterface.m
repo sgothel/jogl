@@ -577,11 +577,18 @@ void setContextView(NSOpenGLContext* ctx, NSView* view) {
                 [ctx setView:view];
                 [view unlockFocus];        
             }
-        } else {
-            DBG_PRINT("setContextView.1: ctx %p, view nil: clearDrawable\n", ctx);
-            [ctx clearDrawable];
         }
         DBG_PRINT("setContextView.X\n");
+    }
+    [pool release];
+}
+
+void clearDrawable(NSOpenGLContext* ctx) {
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    if ( nil != ctx ) {
+        DBG_PRINT("clearDrawable.0: %p\n", ctx);
+        [ctx clearDrawable];
+        DBG_PRINT("clearDrawable.X\n");
     }
     [pool release];
 }
