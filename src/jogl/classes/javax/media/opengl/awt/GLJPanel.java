@@ -1128,7 +1128,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         g.drawImage(offscreenImage, 0, 0,
                     offscreenImage.getWidth(),
                     offscreenImage.getHeight(),
-                    GLJPanel.this);
+                    null /* Null ImageObserver since image data is ready. */);
       }
     }
 
