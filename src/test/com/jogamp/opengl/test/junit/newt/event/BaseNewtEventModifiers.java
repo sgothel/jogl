@@ -33,7 +33,6 @@ import java.util.ArrayList ;
 
 import javax.media.opengl.GLProfile ;
 
-import org.junit.After;
 import org.junit.Assert ;
 import org.junit.BeforeClass ;
 import org.junit.Test ;
@@ -342,7 +341,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
         
         Throwable throwable = null;
         // final Object sync = new Object();
-        final RunnableTask rt = new RunnableTask( testAction, null, true );
+        final RunnableTask rt = new RunnableTask( testAction, null, true, System.err );
         try {
             // synchronized(sync) {
                 new Thread(rt, "Test-Thread").start();

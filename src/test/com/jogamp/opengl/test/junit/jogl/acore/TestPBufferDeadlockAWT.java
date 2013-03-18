@@ -81,7 +81,7 @@ public class TestPBufferDeadlockAWT extends UITestCase {
             Assert.assertTrue(EventQueue.isDispatchThread());
             JAWTUtil.lockToolkit();
             try {
-                final RunnableTask rTask = new RunnableTask(pbufferCreationAction, new Object(), false);                    
+                final RunnableTask rTask = new RunnableTask(pbufferCreationAction, new Object(), false, null);                    
                 System.err.println("BB.0: "+rTask.getSyncObject());
                 synchronized (rTask.getSyncObject()) {
                     System.err.println("BB.1: "+rTask.getSyncObject());

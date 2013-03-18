@@ -160,7 +160,8 @@ public class AWTEDTUtil implements EDTUtil {
                 } else {            
                     rTask = new RunnableTask(task,
                                              wait ? rTaskLock : null,
-                                             true /* always catch and report Exceptions, don't disturb EDT */);
+                                             true /* always catch and report Exceptions, don't disturb EDT */, 
+                                             wait ? null : System.err);
                     AWTEDTExecutor.singleton.invoke(false, rTask);
                 }
             }

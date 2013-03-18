@@ -178,7 +178,7 @@ public class DefaultEDTUtil implements EDTUtil {
                             // drop task and don't wait
                             task = null;
                             System.err.println(Thread.currentThread()+": Warning: Default-EDT is about (3) to stop and stopped already, dropping task. Remaining tasks: "+edt.tasks.size()+" - "+edt);
-                            if(true || DEBUG) {
+                            if(DEBUG) {
                                 Thread.dumpStack();
                             }
                         }
@@ -190,7 +190,8 @@ public class DefaultEDTUtil implements EDTUtil {
                         synchronized(edt.tasks) {
                             rTask = new RunnableTask(task,
                                                      wait ? rTaskLock : null,
-                                                     true /* always catch and report Exceptions, don't disturb EDT */);
+                                                     true /* always catch and report Exceptions, don't disturb EDT */, 
+                                                     wait ? null : System.err);
                             if(stop) {
                                 rTask.setAttachment(new Boolean(true)); // mark final task, will imply shouldStop:=true
                             }
