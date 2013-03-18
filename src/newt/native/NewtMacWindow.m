@@ -113,7 +113,7 @@ static jmethodID windowRepaintID = NULL;
     jvmHandle = NULL;
     jvmVersion = 0;
     destroyNotifySent = NO;
-    softLocked = NO;
+    softLockCount = 0;
 
     pthread_mutexattr_t softLockSyncAttr;
     pthread_mutexattr_init(&softLockSyncAttr);
@@ -134,19 +134,21 @@ static jmethodID windowRepaintID = NULL;
     return res;
 }
 
+#ifdef DBG_LIFECYCLE
 - (void) release
 {
     DBG_PRINT("NewtView::release.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
-#ifdef VERBOSE_ON
-    // NSLog(@"%@",[NSThread callStackSymbols]);
-#endif
     [super release];
 }
+#endif
 
 - (void) dealloc
 {
     DBG_PRINT("NewtView::dealloc.0: %p (refcnt %d), ptrTrackingTag %d\n", self, (int)[self retainCount], (int)ptrTrackingTag);
-    if(softLocked) {
+#ifdef DBG_LIFECYCLE
+    NSLog(@"%@",[NSThread callStackSymbols]);
+#endif
+    if( 0 < softLockCount ) {
         NSLog(@"NewtView::dealloc: softLock still hold @ dealloc!\n");
     }
     if(0 != ptrTrackingTag) {
@@ -155,9 +157,6 @@ static jmethodID windowRepaintID = NULL;
         ptrTrackingTag = 0;
     }
     pthread_mutex_destroy(&softLockSync);
-#ifdef VERBOSE_ON
-    //NSLog(@"%@",[NSThread callStackSymbols]);
-#endif
     DBG_PRINT("NewtView::dealloc.X: %p\n", self);
     [super dealloc];
 }
@@ -206,6 +205,7 @@ static jmethodID windowRepaintID = NULL;
     if(0 != ptrTrackingTag) {
         // [self removeCursorRect: ptrRect cursor: myCursor];
         [self removeTrackingRect: ptrTrackingTag];
+        ptrTrackingTag = 0;
     }
     ptrRect = [self bounds]; 
     // [self addCursorRect: ptrRect cursor: myCursor];
@@ -230,18 +230,27 @@ static jmethodID windowRepaintID = NULL;
 - (BOOL) softLock
 {
     // DBG_PRINT("*************** softLock.0: %p\n", (void*)pthread_self());
-    // NSLog(@"NewtView::softLock: %@",[NSThread callStackSymbols]);
-    pthread_mutex_lock(&softLockSync);
-    softLocked = YES;
+    int err;
+    if( 0 != ( err = pthread_mutex_lock(&softLockSync) ) ) {
+        NSLog(@"NewtView::softLock failed: errCode %d - %@", err, [NSThread callStackSymbols]);
+        return NO;
+    }
+    softLockCount++;
     // DBG_PRINT("*************** softLock.X: %p\n", (void*)pthread_self());
-    return softLocked;
+    return 0 < softLockCount;
 }
 
-- (void) softUnlock
+- (BOOL) softUnlock
 {
     // DBG_PRINT("*************** softUnlock: %p\n", (void*)pthread_self());
-    softLocked = NO;
-    pthread_mutex_unlock(&softLockSync);
+    softLockCount--;
+    int err;
+    if( 0 != ( err = pthread_mutex_unlock(&softLockSync) ) ) {
+        softLockCount++;
+        NSLog(@"NewtView::softUnlock failed: Not locked by current thread - errCode %d -  %@", err, [NSThread callStackSymbols]);
+        return NO;
+    }
+    return YES;
 }
 
 - (BOOL) needsDisplay
@@ -398,25 +407,26 @@ static jmethodID windowRepaintID = NULL;
     mouseInside = NO;
     cursorIsHidden = NO;
     realized = YES;
-    DBG_PRINT("NewtWindow::create: %p (refcnt %d)\n", res, (int)[res retainCount]);
+    DBG_PRINT("NewtWindow::create: %p, realized %d (refcnt %d)\n", res, realized, (int)[res retainCount]);
     return res;
 }
 
+#ifdef DBG_LIFECYCLE
 - (void) release
 {
     DBG_PRINT("NewtWindow::release.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
-#ifdef VERBOSE_ON
     // NSLog(@"%@",[NSThread callStackSymbols]);
-#endif
     [super release];
 }
+#endif
 
 - (void) dealloc
 {
     DBG_PRINT("NewtWindow::dealloc.0: %p (refcnt %d)\n", self, (int)[self retainCount]);
-#ifdef VERBOSE_ON
-    // NSLog(@"%@",[NSThread callStackSymbols]);
+#ifdef DBG_LIFECYCLE
+    NSLog(@"%@",[NSThread callStackSymbols]);
 #endif
+
     NewtView* mView = (NewtView *)[self contentView];
     if( NULL != mView ) {
         [mView release];
@@ -425,9 +435,9 @@ static jmethodID windowRepaintID = NULL;
     DBG_PRINT("NewtWindow::dealloc.X: %p\n", self);
 }
 
-- (void) setUnrealized
+- (void) setRealized: (BOOL)v
 {
-    realized = NO;
+    realized = v;
 }
 
 - (BOOL) isRealized
@@ -435,18 +445,8 @@ static jmethodID windowRepaintID = NULL;
     return realized;
 }
 
-- (void) updateInsets: (JNIEnv*) env
+- (void) updateInsets: (JNIEnv*) env jwin: (jobject) javaWin
 {
-    NSView* nsview = [self contentView];
-    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
-        return;
-    }
-    NewtView* view = (NewtView *) nsview;
-    jobject javaWindowObject = [view getJavaWindowObject];
-    if (env==NULL || javaWindowObject == NULL) {
-        return;
-    }
-    
     NSRect frameRect = [self frame];
     NSRect contentRect = [self contentRectForFrameRect: frameRect];
 
@@ -460,7 +460,9 @@ static jmethodID windowRepaintID = NULL;
 
     DBG_PRINT( "updateInsets: [ l %d, r %d, t %d, b %d ]\n", cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3]);
 
-    (*env)->CallVoidMethod(env, javaWindowObject, insetsChangedID, JNI_FALSE, cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3]);
+    if( NULL != env && NULL != javaWin ) {
+        (*env)->CallVoidMethod(env, javaWin, insetsChangedID, JNI_FALSE, cachedInsets[0], cachedInsets[1], cachedInsets[2], cachedInsets[3]);
+    }
 }
 
 - (void) attachToParent: (NSWindow*) parent
@@ -502,11 +504,21 @@ static jmethodID windowRepaintID = NULL;
 {
     int totalHeight = nsz.height + cachedInsets[3]; // height + insets.bottom
 
+    DBG_PRINT( "newtAbsClientTLWinPos2AbsBLScreenPos: given %d/%d %dx%d, insets bottom %d -> totalHeight %d\n", 
+        (int)p.x, (int)p.y, (int)nsz.width, (int)nsz.height, cachedInsets[3], totalHeight);
+
     NSScreen* screen = [self screen];
     NSRect screenFrame = [screen frame];
 
-    return NSMakePoint(screenFrame.origin.x + p.x,
-                       screenFrame.origin.y + screenFrame.size.height - p.y - totalHeight);
+    DBG_PRINT( "newtAbsClientTLWinPos2AbsBLScreenPos: screen %d/%d %dx%d\n", 
+        (int)screenFrame.origin.x, (int)screenFrame.origin.y, (int)screenFrame.size.width, (int)screenFrame.size.height);
+
+    NSPoint r = NSMakePoint(screenFrame.origin.x + p.x,
+                            screenFrame.origin.y + screenFrame.size.height - p.y - totalHeight);
+
+    DBG_PRINT( "newtAbsClientTLWinPos2AbsBLScreenPos: result %d/%d\n", (int)r.x, (int)r.y); 
+
+    return r;
 }
 
 /**
@@ -522,6 +534,12 @@ static jmethodID windowRepaintID = NULL;
 
     return NSMakePoint(winFrame.origin.x + p.x,
                        winFrame.origin.y + ( mViewFrame.size.height - p.y ) ); // y-flip in view
+}
+
+- (NSSize) newtClientSize2TLSize: (NSSize) nsz
+{
+    NSSize topSZ = { nsz.width, nsz.height + cachedInsets[2] + cachedInsets[3] }; // height + insets.top + insets.bottom
+    return topSZ;
 }
 
 /**
@@ -646,7 +664,7 @@ static jint mods2JavaMods(NSUInteger mods)
 - (void) sendKeyEvent: (jshort) keyCode characters: (NSString*) chars modifiers: (NSUInteger)mods eventType: (jshort) evType
 {
     NSView* nsview = [self contentView];
-    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
+    if( ! [nsview isKindOfClass:[NewtView class]] ) {
         return;
     }
     NewtView* view = (NewtView *) nsview;
@@ -706,7 +724,7 @@ static jint mods2JavaMods(NSUInteger mods)
 - (void) sendMouseEvent: (NSEvent*) event eventType: (jshort) evType
 {
     NSView* nsview = [self contentView];
-    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
+    if( ! [nsview isKindOfClass:[NewtView class]] ) {
         return;
     }
     NewtView* view = (NewtView *) nsview;
@@ -783,7 +801,7 @@ static jint mods2JavaMods(NSUInteger mods)
 {
     DBG_PRINT( "focusChanged: gained %d\n", gained);
     NSView* nsview = [self contentView];
-    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
+    if( ! [nsview isKindOfClass:[NewtView class]] ) {
         return;
     }
     NewtView* view = (NewtView *) nsview;
@@ -981,43 +999,42 @@ static jint mods2JavaMods(NSUInteger mods)
 
 - (void)windowDidResize: (NSNotification*) notification
 {
-    NSView* nsview = [self contentView];
-    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
-        return;
-    }
-    NewtView* view = (NewtView *) nsview;
-    jobject javaWindowObject = [view getJavaWindowObject];
-    if (javaWindowObject == NULL) {
-        DBG_PRINT("windowDidResize: null javaWindowObject\n");
-        return;
-    }
+    JNIEnv* env = NULL;
+    jobject javaWindowObject = NULL;
     int shallBeDetached = 0;
-    JavaVM *jvmHandle = [view getJVMHandle];
-    JNIEnv* env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
-    if(NULL==env) {
-        DBG_PRINT("windowDidResize: null JNIEnv\n");
-        return;
+    JavaVM *jvmHandle = NULL;
+
+    NSView* nsview = [self contentView];
+    if( [nsview isKindOfClass:[NewtView class]] ) {
+        NewtView* view = (NewtView *) nsview;
+        javaWindowObject = [view getJavaWindowObject];
+        if (javaWindowObject != NULL) {
+            jvmHandle = [view getJVMHandle];
+            env = NewtCommon_GetJNIEnv(jvmHandle, [view getJVMVersion], &shallBeDetached);
+        }
     }
 
     // update insets on every window resize for lack of better hook place
-    [self updateInsets: env];
+    [self updateInsets: env jwin:javaWindowObject];
 
-    NSRect frameRect = [self frame];
-    NSRect contentRect = [self contentRectForFrameRect: frameRect];
+    if( NULL != env && NULL != javaWindowObject ) {
+        NSRect frameRect = [self frame];
+        NSRect contentRect = [self contentRectForFrameRect: frameRect];
 
-    (*env)->CallVoidMethod(env, javaWindowObject, sizeChangedID, JNI_FALSE,
-                           (jint) contentRect.size.width,
-                           (jint) contentRect.size.height, JNI_FALSE);
+        (*env)->CallVoidMethod(env, javaWindowObject, sizeChangedID, JNI_FALSE,
+                               (jint) contentRect.size.width,
+                               (jint) contentRect.size.height, JNI_FALSE);
 
-    if (shallBeDetached) {
-        (*jvmHandle)->DetachCurrentThread(jvmHandle);
+        if (shallBeDetached) {
+            (*jvmHandle)->DetachCurrentThread(jvmHandle);
+        }
     }
 }
 
 - (void)windowDidMove: (NSNotification*) notification
 {
     NSView* nsview = [self contentView];
-    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
+    if( ! [nsview isKindOfClass:[NewtView class]] ) {
         return;
     }
     NewtView* view = (NewtView *) nsview;
@@ -1061,7 +1078,7 @@ static jint mods2JavaMods(NSUInteger mods)
     [self cursorHide: NO];
 
     NSView* nsview = [self contentView];
-    if( ! [nsview isMemberOfClass:[NewtView class]] ) {
+    if( ! [nsview isKindOfClass:[NewtView class]] ) {
         return NO;
     }
     NewtView* view = (NewtView *) nsview;

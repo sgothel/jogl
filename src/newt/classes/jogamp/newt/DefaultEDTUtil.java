@@ -332,6 +332,7 @@ public class DefaultEDTUtil implements EDTUtil {
                         validateNoRecursiveLocksHold();
                         if(!task.hasWaiter() && null != task.getThrowable()) {
                             // at least dump stack-trace in case nobody waits for result
+                            System.err.println("DefaultEDT.run(): Catched exception occured on thread "+Thread.currentThread().getName()+": "+task.toString());
                             task.getThrowable().printStackTrace();
                         }
                     }

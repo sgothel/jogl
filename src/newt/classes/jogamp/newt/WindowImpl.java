@@ -82,9 +82,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     
     /** Timeout of queued events (repaint and resize) */
     static final long QUEUED_EVENT_TO = 1200; // ms    
-    
+
+    //
+    // Volatile: Multithread Mutable Access
+    //    
     private volatile long windowHandle = 0; // lifecycle critical
     private volatile boolean visible = false; // lifecycle critical
+    private volatile boolean hasFocus = false;    
+    private volatile int width = 128, height = 128; // client-area size w/o insets, default: may be overwritten by user
+    private volatile int x = 64, y = 64; // client-area pos w/o insets
+    private volatile Insets insets = new Insets(); // insets of decoration (if top-level && decorated)
+        
     private RecursiveLock windowLock = LockFactory.createRecursiveLock();  // Window instance wide lock
     private int surfaceLockCount = 0; // surface lock recursion count
     
@@ -95,12 +103,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private AbstractGraphicsConfiguration config = null; // control access due to delegation
     protected CapabilitiesImmutable capsRequested = null;
     protected CapabilitiesChooser capabilitiesChooser = null; // default null -> default
-    private boolean fullscreen = false, hasFocus = false, brokenFocusChange = false;    
-    private int width = 128, height = 128; // client-area size w/o insets, default: may be overwritten by user
-    private int x = 64, y = 64; // client-area pos w/o insets
+    private boolean fullscreen = false, brokenFocusChange = false;    
     private boolean autoPosition = true; // default: true (allow WM to choose top-level position, if not set by user)
-    private Insets insets = new Insets(); // insets of decoration (if top-level && decorated)
-        
+    
     private int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen client-area size/pos w/o insets
     private NativeWindow nfs_parent = null;          // non fullscreen parent, in case explicit reparenting is performed (offscreen)
     private String title = "Newt Window";

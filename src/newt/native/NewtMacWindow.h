@@ -47,6 +47,8 @@
     #define DBG_PRINT(...)
 #endif
 
+// #define DBG_LIFECYCLE 1
+
 @interface NewtView : NSView
 {
     jobject javaWindowObject;
@@ -56,16 +58,19 @@
     int jvmVersion;
 
     volatile BOOL destroyNotifySent;
-    volatile BOOL softLocked;
+    volatile int softLockCount;
     pthread_mutex_t softLockSync;
 
-    NSTrackingRectTag ptrTrackingTag;
+    volatile NSTrackingRectTag ptrTrackingTag;
     NSRect ptrRect;
     NSCursor * myCursor;
 }
 
 - (id)initWithFrame:(NSRect)frameRect;
+
+#ifdef DBG_LIFECYCLE
 - (void) release;
+#endif
 - (void) dealloc;
 
 /* Set during event dispatching cycle */
@@ -87,7 +92,7 @@
 - (BOOL) getDestroyNotifySent;
 
 - (BOOL) softLock;
-- (void) softUnlock;
+- (BOOL) softUnlock;
 
 - (BOOL) needsDisplay;
 - (void) displayIfNeeded;
@@ -125,18 +130,21 @@
        defer: (BOOL) deferCreation
        screen:(NSScreen *)screen
        isFullscreenWindow:(BOOL)isfs;
+#ifdef DBG_LIFECYCLE
 - (void) release;
+#endif
 - (void) dealloc;
-- (void) setUnrealized;
+- (void) setRealized: (BOOL)v;
 - (BOOL) isRealized;
 
-- (void) updateInsets: (JNIEnv*) env;
+- (void) updateInsets: (JNIEnv*) env jwin: (jobject) javaWin;
 - (void) attachToParent: (NSWindow*) parent;
 - (void) detachFromParent: (NSWindow*) parent;
 
 - (NSPoint) newtAbsClientTLWinPos2AbsBLScreenPos: (NSPoint) p;
 - (NSPoint) newtAbsClientTLWinPos2AbsBLScreenPos: (NSPoint) p size: (NSSize) nsz;
 - (NSPoint) newtRelClientTLWinPos2AbsBLScreenPos: (NSPoint) p;
+- (NSSize) newtClientSize2TLSize: (NSSize) nsz;
 - (NSPoint) getLocationOnScreen: (NSPoint) p;
 - (NSPoint) screenPos2NewtClientWinPos: (NSPoint) p;
 
