@@ -433,8 +433,8 @@ static void FixCALayerLayout0(MyCALayer* rootLayer, CALayer* subLayer, jint widt
     if( NULL != rootLayer ) {
         CGRect lRect = [rootLayer frame];
         if(lRect.origin.x!=0 || lRect.origin.y!=0 || lRect.size.width!=width || lRect.size.height!=height) {
-            DBG_PRINT("CALayer::FixCALayerLayout0.0: Root %p exp 0/0 %dx%d -> frame0: %lf/%lf %lfx%lf\n",
-                rootLayer, (int)width, (int)height, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+            DBG_PRINT("CALayer::FixCALayerLayout0.0: Root %p frame %lf/%lf %lfx%lf -> 0/0 %dx%d\n",
+                rootLayer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height, (int)width, (int)height);
             lRect.origin.x = 0;
             lRect.origin.y = 0;
             lRect.size.width = width;
@@ -445,8 +445,8 @@ static void FixCALayerLayout0(MyCALayer* rootLayer, CALayer* subLayer, jint widt
     if( NULL != subLayer ) {
         CGRect lRect = [subLayer frame];
         if(lRect.origin.x!=0 || lRect.origin.y!=0 || lRect.size.width!=width || lRect.size.height!=height) {
-            DBG_PRINT("CALayer::FixCALayerLayout0.0: SubL %p exp 0/0 %dx%d -> frame0: %lf/%lf %lfx%lf\n",
-                subLayer, (int)width, (int)height, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height);
+            DBG_PRINT("CALayer::FixCALayerLayout0.0: SubL %p frame %lf/%lf %lfx%lf -> 0/0 %dx%d\n",
+                subLayer, lRect.origin.x, lRect.origin.y, lRect.size.width, lRect.size.height, (int)width, (int)height);
             lRect.origin.x = 0;
             lRect.origin.y = 0;
             lRect.size.width = width;
