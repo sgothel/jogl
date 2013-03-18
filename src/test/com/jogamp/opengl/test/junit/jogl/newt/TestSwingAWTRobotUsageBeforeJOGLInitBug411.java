@@ -155,7 +155,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
                 colorPanel.setBackground(Color.white);
                 colorPanel.repaint();
             }});
-
+        
         robot = new Robot();
         robot.setAutoWaitForIdle(true);
 
@@ -210,6 +210,8 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
 
         AWTRobotUtil.toFrontAndRequestFocus(robot, frame);
 
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(drawable, true));
+
         drawable.addGLEventListener(new GearsES2());
 
         for(int i=0; i<100; i++) {
@@ -262,6 +264,8 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         GLWindow win0 = GLWindow.create(caps);
         win0.setSize(100,100);
         win0.setVisible(true);
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(win0, true));
+        
         Screen screen = win0.getScreen();
         win0.setPosition(screen.getWidth()-150, 0);
         win0.addGLEventListener(new GearsES2());
@@ -274,6 +278,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         runTestGL(newtCanvasAWT, win1);
 
         win0.destroy();
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(win0, false));
         Assert.assertEquals(false, win0.isNativeValid());        
         Assert.assertEquals(true, anim.isAnimating()); // due to newtCanvasAWT/win1
 
@@ -313,8 +318,7 @@ public class TestSwingAWTRobotUsageBeforeJOGLInitBug411 extends UITestCase {
         GLCanvas glCanvas = new GLCanvas(caps);
         anim.add(glCanvas);
         runTestGL(glCanvas, glCanvas);
-
-        Assert.assertEquals(true, anim.isAnimating());
+        
         anim.remove(glCanvas);
         Assert.assertEquals(false, anim.isAnimating());
         

@@ -367,7 +367,7 @@ public abstract class GLContextImpl extends GLContext {
               try {
                   // release current context
                   if(lock.getHoldCount() == 1) {
-                      // needs current context to disable debug handler
+                      // needs current context to call associateDrawable(..) and to disable debug handler
                       makeCurrent();
                   }
                   try {

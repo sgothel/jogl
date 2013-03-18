@@ -85,7 +85,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   protected long drawable;
   protected Rectangle bounds;
   protected Insets insets;
-  private long offscreenSurfaceLayer;
+  private volatile long offscreenSurfaceLayer;
 
   private long drawable_old;
 
@@ -135,11 +135,11 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
 
   protected synchronized void invalidate() {
     if(DEBUG) {
-        System.err.println("JAWTWindow.invalidate()");
+        System.err.println("JAWTWindow.invalidate() - "+Thread.currentThread().getName());
+        if( isSurfaceLayerAttached() ) {
+            System.err.println("OffscreenSurfaceLayer still attached: 0x"+Long.toHexString(offscreenSurfaceLayer));        
+        }
         // Thread.dumpStack();
-    }
-    if( isSurfaceLayerAttached() ) {
-        detachSurfaceLayer();
     }
     invalidateNative();
     jawt = null;
@@ -227,21 +227,16 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       if( !isOffscreenLayerSurfaceEnabled() ) {
           throw new NativeWindowException("Not an offscreen layer surface");
       }
-      int lockRes = lockSurface();
-      if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
-          throw new NativeWindowException("Could not lock (offscreen layer): "+this);
+      if(DEBUG) {
+        System.err.println("JAWTWindow.attachSurfaceHandle: "+toHexString(layerHandle) + ", bounds "+bounds);
       }
-      try {
-          if(DEBUG) {
-            System.err.println("JAWTWindow.attachSurfaceHandle: "+toHexString(layerHandle) + ", bounds "+bounds);
-          }
-          attachSurfaceLayerImpl(layerHandle);
-          offscreenSurfaceLayer = layerHandle;
-      } finally {
-          unlockSurface();
-      }
+      attachSurfaceLayerImpl(layerHandle);
+      offscreenSurfaceLayer = layerHandle;
+      layoutSurfaceLayerImpl(layerHandle, getWidth(), getHeight());
   }
-  protected abstract void attachSurfaceLayerImpl(final long layerHandle);
+  protected void attachSurfaceLayerImpl(final long layerHandle) {
+      throw new UnsupportedOperationException("offscreen layer not supported");
+  }
 
   /**
    * Layout the offscreen layer according to the implementing class's constraints.
@@ -256,38 +251,39 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
    * @see #isOffscreenLayerSurfaceEnabled()
    * @throws NativeWindowException if {@link #isOffscreenLayerSurfaceEnabled()} == false
    */
-  protected void layoutSurfaceLayerImpl() {}
+  protected void layoutSurfaceLayerImpl(long layerHandle, int width, int height) {}
   
   private final void layoutSurfaceLayerIfEnabled() throws NativeWindowException {
       if( isOffscreenLayerSurfaceEnabled() && 0 != offscreenSurfaceLayer ) {
-          layoutSurfaceLayerImpl();
+          layoutSurfaceLayerImpl(offscreenSurfaceLayer, getWidth(), getHeight());
       }
   }
   
   
   @Override
   public final void detachSurfaceLayer() throws NativeWindowException {
-      if( !isOffscreenLayerSurfaceEnabled() ) {
-          throw new java.lang.UnsupportedOperationException("Not an offscreen layer surface");
-      }
       if( 0 == offscreenSurfaceLayer) {
           throw new NativeWindowException("No offscreen layer attached: "+this);
       }
-      int lockRes = lockSurface();
-      if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
-          throw new NativeWindowException("Could not lock (offscreen layer): "+this);
+      if(DEBUG) {
+        System.err.println("JAWTWindow.detachSurfaceHandle(): osh "+toHexString(offscreenSurfaceLayer));
       }
-      try {
-          if(DEBUG) {
-            System.err.println("JAWTWindow.detachSurfaceHandle(): osh "+toHexString(offscreenSurfaceLayer));
-          }
-          detachSurfaceLayerImpl(offscreenSurfaceLayer);
-          offscreenSurfaceLayer = 0;
-      } finally {
-          unlockSurface();
-      }
+      detachSurfaceLayerImpl(offscreenSurfaceLayer, detachSurfaceLayerNotify);
   }
-  protected abstract void detachSurfaceLayerImpl(final long layerHandle);
+  private final Runnable detachSurfaceLayerNotify = new Runnable() {
+    @Override
+    public void run() {
+        offscreenSurfaceLayer = 0;
+    }
+  };
+
+  /** 
+   * @param detachNotify Runnable to be called before native detachment
+   */
+  protected void detachSurfaceLayerImpl(final long layerHandle, final Runnable detachNotify) {
+      throw new UnsupportedOperationException("offscreen layer not supported");
+  }
+  
 
   @Override
   public final long getAttachedSurfaceLayer() {
@@ -303,6 +299,11 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
   public final void setChosenCapabilities(CapabilitiesImmutable caps) {
       ((MutableGraphicsConfiguration)getGraphicsConfiguration()).setChosenCapabilities(caps);
       getPrivateGraphicsConfiguration().setChosenCapabilities(caps);      
+  }
+  
+  @Override
+  public final RecursiveLock getLock() {
+      return surfaceLock;
   }
   
   //

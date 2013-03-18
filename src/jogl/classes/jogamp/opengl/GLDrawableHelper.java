@@ -190,7 +190,7 @@ public class GLDrawableHelper {
    *  <li>make context current, if it was current</li>
    * </ul>
    * <p>
-   * No locking is being performed, caller is required to take care of it.
+   * Locking is performed via {@link GLContext#makeCurrent()} on the passed <code>context</code>.
    * </p>
    * 
    * @param drawable

@@ -159,6 +159,8 @@ public class TestParenting04AWT extends UITestCase {
                            }
                            canvas1.setNEWTChild(glWindow2); // put g2 -> w1. free g1 of w1
                            canvas2.setNEWTChild(glWindow1); // put g1 -> w2
+                           frame1.invalidate();
+                           frame2.invalidate();
                            frame1.validate();
                            frame2.validate();
                        }
@@ -176,6 +178,8 @@ public class TestParenting04AWT extends UITestCase {
                            }
                            canvas1.setNEWTChild(glWindow1);
                            canvas2.setNEWTChild(glWindow2);
+                           frame1.invalidate();
+                           frame2.invalidate();
                            frame1.validate();
                            frame2.validate();
                        }

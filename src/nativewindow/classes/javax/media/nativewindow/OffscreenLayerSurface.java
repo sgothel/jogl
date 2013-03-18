@@ -27,6 +27,8 @@
  */
 package javax.media.nativewindow;
 
+import com.jogamp.common.util.locks.RecursiveLock;
+
 /**
  * Interface specifying the offscreen layer surface protocol.
  */
@@ -59,5 +61,8 @@ public interface OffscreenLayerSurface {
   
   /** Sets the capabilities of this instance, allowing upstream API's to refine it, i.e. OpenGL related settings. */
   public void setChosenCapabilities(CapabilitiesImmutable caps);
+  
+  /** Returns the recursive lock object of this surface, which synchronizes multithreaded access. */ 
+  public RecursiveLock getLock();
   
 }

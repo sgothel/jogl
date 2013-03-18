@@ -138,11 +138,15 @@ public class OSXUtil implements ToolkitProperties {
     
     /** 
      * Create a CALayer suitable to act as a root CALayer.
-     * @see #DestroyCALayer(long)
+     * @see #DestroyCALayer(long, boolean)
      * @see #AddCASublayer(long, long) 
      */
     public static long CreateCALayer(final int x, final int y, final int width, final int height) {
-      return CreateCALayer0(x, y, width, height);
+      final long l = CreateCALayer0(x, y, width, height);
+      if(DEBUG) {
+          System.err.println("OSXUtil.CreateCALayer: 0x"+Long.toHexString(l)+" - "+Thread.currentThread().getName());
+      }
+      return l;
     }
     
     /** 
@@ -156,7 +160,7 @@ public class OSXUtil implements ToolkitProperties {
      * they will be used for creation.  
      * </p>
      * @see #CreateCALayer(int, int, int, int)
-     * @see #RemoveCASublayer(long, long)
+     * @see #RemoveCASublayer(long, long, boolean)
      */
     public static void AddCASublayer(final long rootCALayer, final long subCALayer, final int width, final int height) {
         if(0==rootCALayer || 0==subCALayer) {
@@ -164,6 +168,9 @@ public class OSXUtil implements ToolkitProperties {
         }
         RunOnMainThread(false, new Runnable() {
            public void run() {
+               if(DEBUG) {
+                   System.err.println("OSXUtil.AttachCALayer: 0x"+Long.toHexString(subCALayer)+" - "+Thread.currentThread().getName());
+               }
                AddCASublayer0(rootCALayer, subCALayer, width, height);
            }
         });
@@ -193,32 +200,48 @@ public class OSXUtil implements ToolkitProperties {
     }
     
     /** 
-     * Detach a sub CALayer from the root CALayer on the main-thread w/o blocking.
+     * Detach a sub CALayer from the root CALayer.
+     * @param onMainThread if <code>true</code> method will be performed on the main-thread w/o blocking. 
      */
-    public static void RemoveCASublayer(final long rootCALayer, final long subCALayer) {
+    public static void RemoveCASublayer(final long rootCALayer, final long subCALayer, boolean onMainThread) {
         if(0==rootCALayer || 0==subCALayer) {
             throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
         }
-        RunOnMainThread(false, new Runnable() {
+        final Runnable action = new Runnable() {
            public void run() {
+               if(DEBUG) {
+                   System.err.println("OSXUtil.DetachCALayer: 0x"+Long.toHexString(subCALayer)+" - "+Thread.currentThread().getName());
+               }
                RemoveCASublayer0(rootCALayer, subCALayer);
-           }
-        });
+           } };
+        if( onMainThread ) {
+            RunOnMainThread(false, action);
+        } else {
+           action.run();
+        }
     }
     
     /** 
-     * Destroy a CALayer on main-thread w/o blocking.
+     * Destroy a CALayer.
+     * @param onMainThread if <code>true</code> method will be performed on the main-thread w/o blocking. 
      * @see #CreateCALayer(int, int, int, int)
      */    
-    public static void DestroyCALayer(final long caLayer) {
+    public static void DestroyCALayer(final long caLayer, boolean onMainThread) {
         if(0==caLayer) {
             throw new IllegalArgumentException("caLayer 0x"+Long.toHexString(caLayer));
         }
-        RunOnMainThread(false, new Runnable() {
+        final Runnable action = new Runnable() {
            public void run() {
+               if(DEBUG) {
+                   System.err.println("OSXUtil.DestroyCALayer: 0x"+Long.toHexString(caLayer)+" - "+Thread.currentThread().getName());
+               }
                DestroyCALayer0(caLayer);
-           }
-        });
+           } };
+        if( onMainThread ) {
+            RunOnMainThread(false, action);
+        } else {
+           action.run();
+        }
     }
     
     /**
@@ -238,7 +261,7 @@ public class OSXUtil implements ToolkitProperties {
             // otherwise we may freeze the OSX main thread.            
             Throwable throwable = null;
             final Object sync = new Object();
-            final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true ); 
+            final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err ); 
             synchronized(sync) {
                 RunOnMainThread0(rt);
                 if( waitUntilDone ) {
@@ -256,6 +279,16 @@ public class OSXUtil implements ToolkitProperties {
                 }
             }
         }
+    }
+    
+    /**
+     * Run later on current OSX thread.
+     * 
+     * @param runnable
+     * @param delay delay to run the runnable in milliseconds
+     */
+    public static void RunLater(Runnable runnable, int delay) {
+        RunLater0(new RunnableTask( runnable, null, true, System.err ), delay);
     }
     
     private static Runnable _nop = new Runnable() { public void run() {}; };
@@ -282,7 +315,7 @@ public class OSXUtil implements ToolkitProperties {
             // otherwise we may freeze the OSX main thread.            
             Throwable throwable = null;
             final Object sync = new Object();
-            final FunctionTask<R,A> rt = new FunctionTask<R,A>( func, waitUntilDone ? sync : null, true ); 
+            final FunctionTask<R,A> rt = new FunctionTask<R,A>( func, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err ); 
             synchronized(sync) {
                 rt.setArgs(args);
                 RunOnMainThread0(rt);
@@ -349,6 +382,7 @@ public class OSXUtil implements ToolkitProperties {
     private static native void RemoveCASublayer0(long rootCALayer, long subCALayer);
     private static native void DestroyCALayer0(long caLayer);
     private static native void RunOnMainThread0(Runnable runnable);
+    private static native void RunLater0(Runnable runnable, int delay);
     private static native boolean IsMainThread0();
     private static native int GetScreenRefreshRate0(int scrn_idx);
 }

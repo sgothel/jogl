@@ -63,10 +63,12 @@ public class TestAddRemove02GLWindowNewtCanvasAWT extends UITestCase {
     static int pauseDuration = 500;
     static boolean noOnscreenTest = false;
     static boolean noOffscreenTest = false;
-    static boolean shallUseOffscreenPBufferLayer = false;
+    static boolean offscreenPBufferOnly = false;
+    static boolean offscreenFBOOnly = false;
     static GLProfile glp;
     static int width, height;
     static boolean waitForKey = false;
+    static boolean waitForKeyPost = false;
 
     @BeforeClass
     public static void initClass() {
@@ -183,6 +185,9 @@ public class TestAddRemove02GLWindowNewtCanvasAWT extends UITestCase {
                 Thread.sleep(pauseDuration);
             }
         }
+        if(waitForKeyPost) {
+            UITestCase.waitForKey("End");
+        }        
     }
 
     @Test
@@ -194,26 +199,40 @@ public class TestAddRemove02GLWindowNewtCanvasAWT extends UITestCase {
             return;
         }
         GLCapabilities caps = new GLCapabilities(glp);
-        if(shallUseOffscreenPBufferLayer) {
-            caps.setPBuffer(true);
-            caps.setOnscreen(true); // simulate normal behavior ..
-        }
         runTestGL(true, caps, addRemoveCount);
     }
 
     @Test
-    public void test02Offscreen()
+    public void test02OffscreenFBO()
             throws AWTException, InterruptedException, InvocationTargetException
     {
         if( noOffscreenTest || !JAWTUtil.isOffscreenLayerSupported() ) {
             System.err.println("No offscreen test requested or platform doesn't support offscreen rendering.");
             return;
         }
-        GLCapabilities caps = new GLCapabilities(glp);
-        if(shallUseOffscreenPBufferLayer) {
-            caps.setPBuffer(true);
-            caps.setOnscreen(true); // simulate normal behavior ..
+        if( offscreenPBufferOnly ) {
+            System.err.println("Only PBuffer test is requested.");
+            return;
         }
+        GLCapabilities caps = new GLCapabilities(glp);
+        runTestGL(false, caps, addRemoveCount);
+    }
+    
+    @Test
+    public void test03OffscreenPBuffer()
+            throws AWTException, InterruptedException, InvocationTargetException
+    {
+        if( noOffscreenTest || !JAWTUtil.isOffscreenLayerSupported() ) {
+            System.err.println("No offscreen test requested or platform doesn't support offscreen rendering.");
+            return;
+        }
+        if( offscreenFBOOnly ) {
+            System.err.println("Only FBO test is requested.");
+            return;
+        }
+        GLCapabilities caps = new GLCapabilities(glp);
+        caps.setPBuffer(true);
+        caps.setOnscreen(true); // simulate normal behavior ..
         runTestGL(false, caps, addRemoveCount);
     }
     
@@ -237,13 +256,18 @@ public class TestAddRemove02GLWindowNewtCanvasAWT extends UITestCase {
                 noOnscreenTest = true;
             } else if(args[i].equals("-noOffscreen")) {
                 noOffscreenTest = true;
+            } else if(args[i].equals("-layeredFBO")) {
+                offscreenFBOOnly = true;
             } else if(args[i].equals("-layeredPBuffer")) {
-                shallUseOffscreenPBufferLayer = true;
+                offscreenPBufferOnly = true;
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
+            } else if(args[i].equals("-waitPost")) {
+                waitForKeyPost = true;
             }            
         }
         System.err.println("waitForKey                    "+waitForKey);
+        System.err.println("waitForKeyPost                "+waitForKeyPost);
         
         System.err.println("addRemoveCount                "+addRemoveCount);
         System.err.println("pauseEach                     "+pauseEach);
@@ -251,7 +275,8 @@ public class TestAddRemove02GLWindowNewtCanvasAWT extends UITestCase {
         
         System.err.println("noOnscreenTest                "+noOnscreenTest);
         System.err.println("noOffscreenTest               "+noOffscreenTest);
-        System.err.println("shallUseOffscreenPBufferLayer "+shallUseOffscreenPBufferLayer);
+        System.err.println("offscreenPBufferOnly          "+offscreenPBufferOnly);
+        System.err.println("offscreenFBOOnly              "+offscreenFBOOnly);
         if(waitForKey) {
             UITestCase.waitForKey("Start");
         }

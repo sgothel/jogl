@@ -59,13 +59,6 @@ public class X11JAWTWindow extends JAWTWindow {
 
   protected void invalidateNative() { }
 
-  protected void attachSurfaceLayerImpl(final long layerHandle) {
-      throw new UnsupportedOperationException("offscreen layer not supported");
-  }
-  protected void detachSurfaceLayerImpl(final long layerHandle) {
-      throw new UnsupportedOperationException("offscreen layer not supported");
-  }
-  
   protected JAWT fetchJAWTImpl() throws NativeWindowException {
       return JAWTUtil.getJAWT(false); // no offscreen
   }

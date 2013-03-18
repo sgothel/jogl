@@ -43,9 +43,7 @@ import java.security.PrivilegedAction;
 import java.util.Set;
 
 import javax.media.nativewindow.NativeWindow;
-import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.OffscreenLayerOption;
-import javax.media.nativewindow.OffscreenLayerSurface;
 import javax.media.nativewindow.WindowClosingProtocol;
 import javax.swing.MenuSelectionManager;
 
@@ -615,12 +613,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       configureNewtChild(false);
       newtChild.setVisible(false);
       
-      // Detach OLS early..
-      final OffscreenLayerSurface ols = NativeWindowFactory.getOffscreenLayerSurface(newtChild, true);
-      if(null != ols && ols.isSurfaceLayerAttached()) {
-          ols.detachSurfaceLayer();
-      }                  
-      newtChild.reparentWindow(null); // will destroy context (offscreen -> onscreen) and implicit detachSurfaceLayer (if still attached)
+      newtChild.reparentWindow(null); // will destroy context (offscreen -> onscreen) and implicit detachSurfaceLayer
       
       if(DEBUG) {
           System.err.println("NewtCanvasAWT.detachNewtChild.X: win "+newtWinHandleToHexString(newtChild)+", EDTUtil: cur "+newtChild.getScreen().getDisplay().getEDTUtil()+", comp "+this);
