@@ -197,7 +197,7 @@ static int x11ErrorHandler(Display *dpy, XErrorEvent *e)
         fflush(stderr);
 
         if( NULL != jvmHandle && ( errorHandlerDebug || errorHandlerThrowException ) ) {
-            jniEnv = NativewindowCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
+            jniEnv = NativewindowCommon_GetJNIEnv(jvmHandle, jvmVersion, 0 /* asDaemon */, &shallBeDetached);
             if(NULL == jniEnv) {
                 fprintf(stderr, "Nativewindow X11 Error: null JNIEnv");
                 fflush(stderr);
@@ -262,7 +262,7 @@ static int x11IOErrorHandler(Display *dpy)
     fflush(stderr);
 
     if( NULL != jvmHandle ) {
-        jniEnv = NativewindowCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
+        jniEnv = NativewindowCommon_GetJNIEnv(jvmHandle, jvmVersion, 0 /* asDaemon */, &shallBeDetached);
         if (NULL != jniEnv) {
             NativewindowCommon_FatalError(jniEnv, "Nativewindow X11 IOError: Display %p (%s): %s", dpy, dpyName, errnoStr);
             if (shallBeDetached) {

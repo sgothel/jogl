@@ -689,7 +689,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Uns
 - (void) jRun
 {
     int shallBeDetached = 0;
-    JNIEnv* env = NativewindowCommon_GetJNIEnv(jvmHandle, jvmVersion, &shallBeDetached);
+    JNIEnv* env = NativewindowCommon_GetJNIEnv(jvmHandle, jvmVersion, 1 /* asDaemon */, &shallBeDetached);
     DBG_PRINT2("MainRunnable.1 env: %d\n", (int)(NULL!=env));
     if(NULL!=env) {
         DBG_PRINT2("MainRunnable.1.0\n");
@@ -699,7 +699,8 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Uns
 
         if (shallBeDetached) {
             DBG_PRINT2("MainRunnable.1.3\n");
-            (*jvmHandle)->DetachCurrentThread(jvmHandle);
+            // Keep attached on main thread !
+            // (*jvmHandle)->DetachCurrentThread(jvmHandle);
         }
     }
     DBG_PRINT2("MainRunnable.X\n");
@@ -733,21 +734,12 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Uns
 
 @end
 
-
-/*
- * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
- * Method:    RunOnMainThread0
- * Signature: (ZLjava/lang/Runnable;)V
- */
-JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RunOnMainThread0
-  (JNIEnv *env, jclass unused, jobject runnable)
+static void RunOnThread (JNIEnv *env, jobject runnable, BOOL onMain, jint delayInMS)
 {
-    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    DBG_PRINT2( "RunOnThread0: isMainThread %d, NSApp %d, NSApp-isRunning %d, onMain %d, delay %dms\n", 
+        (int)([NSThread isMainThread]), (int)(NULL!=NSApp), (int)([NSApp isRunning]), (int)onMain, (int)delayInMS);
 
-    DBG_PRINT2( "RunOnMainThread0: isMainThread %d, NSApp %d, NSApp-isRunning %d\n", 
-        (int)([NSThread isMainThread]), (int)(NULL!=NSApp), (int)([NSApp isRunning]));
-
-    if ( NO == [NSThread isMainThread] ) {
+    if ( !onMain || NO == [NSThread isMainThread] ) {
         jobject runnableObj = (*env)->NewGlobalRef(env, runnable);
 
         JavaVM *jvmHandle = NULL;
@@ -759,27 +751,56 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RunOnMainThread0
             jvmVersion = (*env)->GetVersion(env);
         }
 
-        DBG_PRINT2( "RunOnMainThread0.1.0\n");
+        DBG_PRINT2( "RunOnThread.1.0\n");
         MainRunnable * mr = [[MainRunnable alloc] initWithRunnable: runnableObj jvmHandle: jvmHandle jvmVersion: jvmVersion];
 
-        [mr performSelectorOnMainThread:@selector(jRun) withObject:nil waitUntilDone:NO];
-        DBG_PRINT2( "RunOnMainThread0.1.1\n");
+        if( onMain ) {
+            [mr performSelectorOnMainThread:@selector(jRun) withObject:nil waitUntilDone:NO];
+        } else {
+            NSTimeInterval delay = (double)delayInMS/1000.0;
+            [mr performSelector:@selector(jRun) withObject:nil afterDelay:delay];
+        }
+        DBG_PRINT2( "RunOnThread.1.1\n");
 
         [mr release];
-        DBG_PRINT2( "RunOnMainThread0.1.2\n");
+        DBG_PRINT2( "RunOnThread.1.2\n");
 
     } else {
-        DBG_PRINT2( "RunOnMainThread0.2\n");
+        DBG_PRINT2( "RunOnThread.2\n");
         (*env)->CallVoidMethod(env, runnable, runnableRunID);
     }
-    DBG_PRINT2( "RunOnMainThread0.X\n");
-
-    [pool release];
+    DBG_PRINT2( "RunOnThread.X\n");
 }
 
 /*
  * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
  * Method:    RunOnMainThread0
+ * Signature: (ZLjava/lang/Runnable;)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RunOnMainThread0
+  (JNIEnv *env, jclass unused, jobject runnable)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    RunOnThread (env, runnable, YES, 0);
+    [pool release];
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    RunLater0
+ * Signature: (ZLjava/lang/Runnable;I)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_RunLater0
+  (JNIEnv *env, jclass unused, jobject runnable, jint delay)
+{
+    NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+    RunOnThread (env, runnable, NO, delay);
+    [pool release];
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_macosx_OSXUtil
+ * Method:    IsMainThread0
  * Signature: (V)V
  */
 JNIEXPORT jboolean JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_IsMainThread0
