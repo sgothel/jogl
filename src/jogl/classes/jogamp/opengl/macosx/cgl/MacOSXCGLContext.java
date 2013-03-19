@@ -330,7 +330,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   @Override
   protected void associateDrawable(boolean bound) {
       // context stuff depends on drawable stuff
-      System.err.println("MaxOSXCGLContext.associateDrawable: "+bound);
       if(bound) {
           super.associateDrawable(true);   // 1) init drawable stuff
           impl.associateDrawable(true);    // 2) init context stuff
