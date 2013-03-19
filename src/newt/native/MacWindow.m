@@ -62,30 +62,36 @@ static NSString* jstringToNSString(JNIEnv* env, jstring jstr)
     return str;
 }
 
-static void setWindowClientTopLeftPoint(NewtMacWindow* mWin, jint x, jint y) {
+static void setWindowClientTopLeftPoint(NewtMacWindow* mWin, jint x, jint y, BOOL doDisplay) {
+    DBG_PRINT( "setWindowClientTopLeftPoint.0 - window: %p %d/%d, display %d\n", mWin, (int)x, (int)y, (int)doDisplay);
     NSPoint pS = [mWin newtAbsClientTLWinPos2AbsBLScreenPos: NSMakePoint(x, y)];
-    [mWin setFrameOrigin: pS];
+    DBG_PRINT( "setWindowClientTopLeftPoint.1: %d/%d\n", (int)pS.x, (int)pS.y);
 
-    NSView* mView = [mWin contentView];
-    [mWin invalidateCursorRectsForView: mView];
+    [mWin setFrameOrigin: pS];
+    DBG_PRINT( "setWindowClientTopLeftPoint.X: %d/%d\n", (int)pS.x, (int)pS.y);
+
+    if( doDisplay ) {
+        NSView* mView = [mWin contentView];
+        [mWin invalidateCursorRectsForView: mView];
+    }
 }
 
 static void setWindowClientTopLeftPointAndSize(NewtMacWindow* mWin, jint x, jint y, jint width, jint height, BOOL doDisplay) {
-    DBG_PRINT( "setWindowClientTopLeftPointAndSize.0 - window: %p %d/%d %dx%d\n", 
-        mWin, (int)x, (int)y, (int)width, (int)height);
+    DBG_PRINT( "setWindowClientTopLeftPointAndSize.0 - window: %p %d/%d %dx%d, display %d\n", mWin, (int)x, (int)y, (int)width, (int)height, (int)doDisplay);
     NSSize clientSZ = NSMakeSize(width, height);
     NSPoint pS = [mWin newtAbsClientTLWinPos2AbsBLScreenPos: NSMakePoint(x, y) size: clientSZ];
     NSSize topSZ = [mWin newtClientSize2TLSize: clientSZ];
     NSRect rect = { pS, topSZ };
-
-    DBG_PRINT( "setWindowClientTopLeftPointAndSize.X: %d/%d %dx%d\n", 
-        (int)rect.origin.x, (int)rect.origin.y, (int)rect.size.width, (int)rect.size.height);
+    DBG_PRINT( "setWindowClientTopLeftPointAndSize.1: %d/%d %dx%d\n", (int)rect.origin.x, (int)rect.origin.y, (int)rect.size.width, (int)rect.size.height);
 
     [mWin setFrame: rect display:doDisplay];
+    DBG_PRINT( "setWindowClientTopLeftPointAndSize.X: %d/%d %dx%d\n", (int)rect.origin.x, (int)rect.origin.y, (int)rect.size.width, (int)rect.size.height);
 
     // -> display:YES
-    // NSView* mView = [mWin contentView];
-    // [mWin invalidateCursorRectsForView: mView];
+    // if( doDisplay ) {
+    //   NSView* mView = [mWin contentView];
+    //   [mWin invalidateCursorRectsForView: mView];
+    // }
 }
 
 #ifdef VERBOSE_ON
@@ -665,19 +671,19 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_createWindow
  *
  * Class:     jogamp_newt_driver_macosx_WindowDriver
  * Method:    initWindow0
- * Signature: (JJIIIIZZZIIJ)V
+ * Signature: (JJIIIIZZZZIIJ)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_initWindow0
   (JNIEnv *env, jobject jthis, jlong parent, jlong window, jint x, jint y, jint w, jint h, 
-   jboolean opaque, jboolean fullscreen, jboolean offscreen, jint screen_idx, jlong jview)
+   jboolean opaque, jboolean fullscreen, jboolean visible, jboolean offscreen, jint screen_idx, jlong jview)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
     NewtMacWindow* myWindow = (NewtMacWindow*) ((intptr_t) window);
     NewtView* myView = (NewtView*) (intptr_t) jview ;
 
-    DBG_PRINT( "initWindow0 - %p (this), %p (parent), %p (window), %d/%d %dx%d, opaque %d, fs %d, offscreen %d, screenidx %d, view %p (START)\n",
-        (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, (int)x, (int)y, (int)w, (int)h, (int) opaque, (int)fullscreen, 
-        (int)offscreen, (int)screen_idx, myView);
+    DBG_PRINT( "initWindow0 - %p (this), %p (parent), %p (window), %d/%d %dx%d, opaque %d, fs %d, visible %d, offscreen %d, screenidx %d, view %p (START)\n",
+        (void*)(intptr_t)jthis, (void*)(intptr_t)parent, myWindow, (int)x, (int)y, (int)w, (int)h, 
+        (int) opaque, (int)fullscreen, (int)visible, (int)offscreen, (int)screen_idx, myView);
 
     NSArray *screens = [NSScreen screens];
     if(screen_idx<0) screen_idx=0;
@@ -759,8 +765,11 @@ NS_ENDHANDLER
     DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d\n", 
         dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible]);
 
-    // Immediately re-position the window based on an upper-left coordinate system
+    // Immediately re-position this window based on an upper-left coordinate system
     setWindowClientTopLeftPointAndSize(myWindow, x, y, w, h, NO);
+
+    DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d\n", 
+        dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible]);
 
 NS_DURING
     // concurrent view rendering
@@ -768,6 +777,10 @@ NS_DURING
     if ( [myWindow respondsToSelector:@selector(setAllowsConcurrentViewDrawing:)] ) {
         [myWindow setAllowsConcurrentViewDrawing: YES];
     }
+
+    DBG_PRINT( "initWindow0.%d - %p,%d view %p,%d, isVisible %d\n", 
+        dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible]);
+
     if ( [myView respondsToSelector:@selector(setCanDrawConcurrently:)] ) {
         [myView setCanDrawConcurrently: YES];
     }
@@ -778,7 +791,7 @@ NS_ENDHANDLER
         dbgIdx++, myWindow, getRetainCount(myWindow), myView, getRetainCount(myView), [myWindow isVisible]);
 
     // visible on front
-    if( JNI_FALSE == offscreen ) {
+    if( JNI_TRUE == visible && JNI_FALSE == offscreen ) {
         [myWindow orderFront: myWindow];
     }
 
@@ -861,7 +874,6 @@ NS_ENDHANDLER
     if(NULL!=pWin) {
         [mWin detachFromParent: pWin];
     }
-    // [mWin performSelectorOnMainThread:@selector(orderOut:) withObject:mWin waitUntilDone:NO];
     [mWin orderOut: mWin];
 
     DBG_PRINT( "windowClose.1 - %p,%d view %p,%d, parent %p\n", 
@@ -870,7 +882,6 @@ NS_ENDHANDLER
     // Only release window, if release is not yet in process.
     // E.g. destroyNotifySent:=true set by NewtMacWindow::windowWillClose(), i.e. window-close was clicked.
     if(!destroyNotifySent) { 
-        // [mWin performSelectorOnMainThread:@selector(release) withObject:nil waitUntilDone:NO];
         [mWin release];
     }
 
@@ -930,8 +941,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_requestFocus0
     DBG_PRINT( "requestFocus - window: %p, force %d, hasFocus %d (START)\n", mWin, force, hasFocus);
 
     [mWin makeFirstResponder: nil];
-    [mWin performSelectorOnMainThread:@selector(orderFrontRegardless) withObject:nil waitUntilDone:NO];
-    [mWin performSelectorOnMainThread:@selector(makeKeyWindow) withObject:nil waitUntilDone:NO];
+    [mWin orderFrontRegardless];
+    [mWin makeKeyWindow];
 
     DBG_PRINT( "requestFocus - window: %p, force %d (END)\n", mWin, force);
 
@@ -954,10 +965,10 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_resignFocus0
     DBG_PRINT( "requestFocusParent0 - window: %p, parent %p, hasFocus %d (START)\n", mWin, pWin, hasFocus );
     if( hasFocus ) {
         if(NULL != pWin) {
-            // [mWin performSelectorOnMainThread:@selector(makeFirstResponder:) withObject:pWin waitUntilDone:NO];
-            [pWin performSelectorOnMainThread:@selector(makeKeyWindow) withObject:nil waitUntilDone:NO];
+            // [mWin makeFirstResponder: pWin];
+            [pWin makeKeyWindow];
         } else {
-            [mWin performSelectorOnMainThread:@selector(resignKeyWindow) withObject:nil waitUntilDone:NO];
+            [pWin resignKeyWindow];
         }
     }
     DBG_PRINT( "requestFocusParent0 - window: %p (END)\n", mWin);
@@ -978,7 +989,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderFront0
 
     DBG_PRINT( "orderFront0 - window: %p (START)\n", win);
 
-    [win performSelectorOnMainThread:@selector(orderFrontRegardless) withObject:nil waitUntilDone:NO];
+    [win orderFrontRegardless];
 
     DBG_PRINT( "orderFront0 - window: %p (END)\n", win);
 
@@ -1000,9 +1011,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_orderOut0
     DBG_PRINT( "orderOut0 - window: (parent %p) %p (START)\n", pWin, mWin);
 
     if(NULL == pWin) {
-        [mWin performSelectorOnMainThread:@selector(orderOut:) withObject:mWin waitUntilDone:NO];
+        [mWin orderOut: mWin];
     } else {
-        [mWin performSelectorOnMainThread:@selector(orderBack:) withObject:mWin waitUntilDone:NO];
+        [mWin orderBack: mWin];
     }
 
     DBG_PRINT( "orderOut0 - window: (parent %p) %p (END)\n", pWin, mWin);
@@ -1126,7 +1137,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_macosx_WindowDriver_setWindowClie
 
     DBG_PRINT( "setWindowClientTopLeftPoint - window: %p (START)\n", mWin);
 
-    setWindowClientTopLeftPoint(mWin, x, y);
+    setWindowClientTopLeftPoint(mWin, x, y, YES);
 
     DBG_PRINT( "setWindowClientTopLeftPoint - window: %p (END)\n", mWin);
 
