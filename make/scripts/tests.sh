@@ -352,7 +352,6 @@ testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasA
 #testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch11NewtAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch12AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch21Newt2AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableDeadlockAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461FBOSupersamplingSwingAWT
@@ -560,7 +559,6 @@ testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasA
 #
 
 # Freeze
-#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
 
 # Cut-off top
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.TestPNGImage01NEWT $*

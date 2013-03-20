@@ -80,10 +80,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         try {
             if(DEBUG_IMPLEMENTATION) { System.err.println("MacWindow.CloseAction "+Thread.currentThread().getName()); }
             final long handle = getWindowHandle(); 
+            visibleChanged(true, false);
             setWindowHandle(0);
             surfaceHandle = 0;
             sscSurfaceHandle = 0;
-            isOffscreenInstance = false;            
+            isOffscreenInstance = false;
             if (0 != handle) {
                 OSXUtil.RunOnMainThread(false, new Runnable() {
                    public void run() {
@@ -284,7 +285,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             0 != ( FLAG_CHANGE_PARENTING & flags) ||
             0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
             if(isOffscreenInstance) {
-                createWindow(true, 0 != getWindowHandle(), pClientLevelOnSreen, 64, 64, false, false, false);
+                createWindow(true, 0 != getWindowHandle(), pClientLevelOnSreen, 64, 64, false, setVisible, false);
             } else {
                 createWindow(false, 0 != getWindowHandle(), pClientLevelOnSreen, width, height, 
                                     0 != ( FLAG_IS_FULLSCREEN & flags), setVisible, 0 != ( FLAG_IS_ALWAYSONTOP & flags));
@@ -488,7 +489,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 public void run() {
                     initWindow0( parentWin, newWin,
                                  pS.getX(), pS.getY(), width, height,
-                                 isOpaque, fullscreen, visible, getScreen().getIndex(), surfaceHandle);
+                                 isOpaque, fullscreen, visible && !offscreenInstance, getScreen().getIndex(), surfaceHandle);
                     if( offscreenInstance ) {
                         orderOut0(0!=parentWin ? parentWin : newWin);
                     } else {

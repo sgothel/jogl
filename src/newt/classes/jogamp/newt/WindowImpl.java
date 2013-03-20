@@ -1275,7 +1275,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             final RecursiveLock _lock = windowLock;
             _lock.lock();
             try {
-                visible = true;
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window.reparentWindow: ReparentActionRecreate ("+getThreadName()+") windowHandle "+toHexString(windowHandle)+", visible: "+visible+", parentWindowHandle "+toHexString(parentWindowHandle)+", parentWindow "+Display.hashCodeNullSafe(parentWindow));
                 }
