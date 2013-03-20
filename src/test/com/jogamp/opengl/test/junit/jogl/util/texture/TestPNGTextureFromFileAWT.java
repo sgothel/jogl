@@ -84,7 +84,7 @@ public class TestPNGTextureFromFileAWT extends UITestCase {
         grayTextureStream = TestPNGTextureFromFileAWT.class.getResourceAsStream( "grayscale_texture.png" );
         Assert.assertNotNull(grayTextureStream);
         {
-            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN01-160x90.png");
+            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN_3-01-160x90.png");
             Assert.assertNotNull(testTextureUrlConn);
             testTextureStream = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream);
