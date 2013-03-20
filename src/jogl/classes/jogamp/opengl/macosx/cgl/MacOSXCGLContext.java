@@ -718,12 +718,12 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                     }
                     CGL.releaseNSOpenGLLayer(cmd.nsOpenGLLayer);
                     if(DEBUG) {
-                        System.err.println("NSOpenGLLayer.Detach: OK, layer "+toHexString(cmd.nsOpenGLLayer)+", drawableHandle "+toHexString(drawable.getHandle())+" - "+Thread.currentThread().getName());
+                        System.err.println("NSOpenGLLayer.Detach: OK, layer "+toHexString(cmd.nsOpenGLLayer)+" - "+Thread.currentThread().getName());
                     }
                     cmd.nsOpenGLLayer = 0;
                     cmd.valid = false;
                 } else if(DEBUG) {
-                    System.err.println("NSOpenGLLayer.Detach: Skipped "+toHexString(cmd.nsOpenGLLayer)+", drawableHandle "+toHexString(drawable.getHandle())+" - "+Thread.currentThread().getName());                    
+                    System.err.println("NSOpenGLLayer.Detach: Skipped "+toHexString(cmd.nsOpenGLLayer)+" - "+Thread.currentThread().getName());                    
                 }
             }
         }          
