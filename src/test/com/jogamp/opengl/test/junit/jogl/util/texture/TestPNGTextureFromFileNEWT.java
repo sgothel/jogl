@@ -61,72 +61,90 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
     static boolean showFPS = false;
     static long duration = 100; // ms
     InputStream grayTextureStream;
-    InputStream testTextureStreamN;
-    InputStream testTextureStreamI;
-    InputStream testTextureStreamIG;
-    InputStream testTextureStreamPRGB;
-    InputStream testTextureStreamPRGBA;/*
-    InputStream testTextureStreamNRGBA;
-    InputStream testTextureStreamIRGBA;*/
+    
+    InputStream testTextureStreamN_3;
+    InputStream testTextureStreamN_4;
+    InputStream testTextureStreamNG4;
+    
+    InputStream testTextureStreamI_3;
+    InputStream testTextureStreamIG3;
+    InputStream testTextureStreamI_4;
+    InputStream testTextureStreamIG4;
+    
+    InputStream testTextureStreamP_3;
+    InputStream testTextureStreamP_4;
 
     @Before
     public void initTest() throws IOException {
         grayTextureStream = TestPNGTextureFromFileNEWT.class.getResourceAsStream( "grayscale_texture.png" );
         Assert.assertNotNull(grayTextureStream);
         {
-            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN01-160x90.png");
+            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN_3-01-160x90.png");
             Assert.assertNotNull(testTextureUrlConn);
-            testTextureStreamN = testTextureUrlConn.getInputStream();
-            Assert.assertNotNull(testTextureStreamN);
+            testTextureStreamN_3 = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStreamN_3);
         }
         {
-            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscI01-160x90.png");
+            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN_4-01-160x90.png");
             Assert.assertNotNull(testTextureUrlConn);
-            testTextureStreamI = testTextureUrlConn.getInputStream();
-            Assert.assertNotNull(testTextureStreamI);
+            testTextureStreamN_4 = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStreamN_4);
         }
         {
-            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscIG01-160x90.png");
+            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscNG4-01-160x90.png");
             Assert.assertNotNull(testTextureUrlConn);
-            testTextureStreamIG = testTextureUrlConn.getInputStream();
-            Assert.assertNotNull(testTextureStreamIG);
+            testTextureStreamNG4 = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStreamNG4);
+        }
+        
+        {
+            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscI_3-01-160x90.png");
+            Assert.assertNotNull(testTextureUrlConn);
+            testTextureStreamI_3 = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStreamI_3);
         }
         {
-            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscP301-160x90.png");
+            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscIG3-01-160x90.png");
             Assert.assertNotNull(testTextureUrlConn);
-            testTextureStreamPRGB = testTextureUrlConn.getInputStream();
-            Assert.assertNotNull(testTextureStreamPRGB);
+            testTextureStreamIG3 = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStreamIG3);
         }
         {
-            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscP401-160x90.png");
+            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscI_4-01-160x90.png");
             Assert.assertNotNull(testTextureUrlConn);
-            testTextureStreamPRGBA = testTextureUrlConn.getInputStream();
-            Assert.assertNotNull(testTextureStreamPRGBA);
-        }
-        /*{
-            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscN401-160x90.png");
-            Assert.assertNotNull(testTextureUrlConn);
-            testTextureStreamNRGBA = testTextureUrlConn.getInputStream();
-            Assert.assertNotNull(testTextureStreamNRGBA);
+            testTextureStreamI_4 = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStreamI_4);
         }
         {
-            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscI401-160x90.png");
+            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscIG4-01-160x90.png");
             Assert.assertNotNull(testTextureUrlConn);
-            testTextureStreamIRGBA = testTextureUrlConn.getInputStream();
-            Assert.assertNotNull(testTextureStreamIRGBA);
-        }*/
+            testTextureStreamIG4 = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStreamIG4);
+        }
+        
+        
+        {
+            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscP_3-01-160x90.png");
+            Assert.assertNotNull(testTextureUrlConn);
+            testTextureStreamP_3 = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStreamP_3);
+        }
+        {
+            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "test-ntscP_4-01-160x90.png");
+            Assert.assertNotNull(testTextureUrlConn);
+            testTextureStreamP_4 = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStreamP_4);
+        }
     }
 
     @After
     public void cleanupTest() {
         grayTextureStream = null;
-        testTextureStreamN = null;
-        testTextureStreamI = null;
-        testTextureStreamIG = null;
-        testTextureStreamPRGB = null;
-        testTextureStreamPRGBA = null;/*
-        testTextureStreamNRGBA = null;
-        testTextureStreamIRGBA = null;*/
+        testTextureStreamN_3 = null;
+        testTextureStreamI_3 = null;
+        testTextureStreamIG3 = null;
+        testTextureStreamP_3 = null;
+        testTextureStreamP_4 = null;
     }
 
     public void testImpl(boolean useFFP, final InputStream istream) throws InterruptedException, IOException {
@@ -141,8 +159,10 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
             return;
         }
         final GLCapabilities caps = new GLCapabilities(glp);
+        caps.setAlphaBits(1);
+        
         final TextureData texData = TextureIO.newTextureData(glp, istream, false /* mipmap */, TextureIO.PNG);
-        System.err.println("TextureData: "+texData);
+        System.err.println("TextureData: "+texData);        
         
         final GLWindow glad = GLWindow.create(caps);
         glad.setTitle("TestPNGTextureGL2FromFileNEWT");
@@ -187,76 +207,60 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
     }
     
     @Test
-    public void testGrayPNGJLoaderGL2() throws InterruptedException, IOException {
+    public void testGray__GL2() throws InterruptedException, IOException {
         testImpl(true, grayTextureStream);        
     }    
     @Test
-    public void testGrayPNGJLoaderES2() throws InterruptedException, IOException {
+    public void testGray__ES2() throws InterruptedException, IOException {
         testImpl(false, grayTextureStream);        
     }
     
     @Test
-    public void testTestN_PNGJLoaderGL2() throws InterruptedException, IOException {
-        testImpl(true, testTextureStreamN);        
+    public void testRGB3__GL2() throws InterruptedException, IOException {
+        testImpl(true, testTextureStreamN_3);        
     }    
     @Test
-    public void testTestN_PNGJLoaderES2() throws InterruptedException, IOException {
-        testImpl(false, testTextureStreamN);        
+    public void testRGB3__ES2() throws InterruptedException, IOException {
+        testImpl(false, testTextureStreamN_3);        
+    }    
+    @Test
+    public void testRGB4__GL2() throws InterruptedException, IOException {
+        testImpl(true, testTextureStreamN_4);        
+    }    
+    @Test
+    public void testRGB4__ES2() throws InterruptedException, IOException {
+        testImpl(false, testTextureStreamN_4);        
+    }    
+    @Test
+    public void testRGB4G_ES2() throws InterruptedException, IOException {
+        testImpl(false, testTextureStreamNG4);        
     }
     
     @Test
-    public void testTestI_PNGJLoaderGL2() throws InterruptedException, IOException {
-        testImpl(true, testTextureStreamI);        
+    public void testInterl3__ES2() throws InterruptedException, IOException {
+        testImpl(false, testTextureStreamI_3);        
     }    
     @Test
-    public void testTestI_PNGJLoaderES2() throws InterruptedException, IOException {
-        testImpl(false, testTextureStreamI);        
+    public void testInterl4__ES2() throws InterruptedException, IOException {
+        testImpl(false, testTextureStreamI_4);        
+    }
+    @Test
+    public void testInterl3G_ES2() throws InterruptedException, IOException {
+        testImpl(false, testTextureStreamIG3);        
+    }    
+    @Test
+    public void testInterl4G_ES2() throws InterruptedException, IOException {
+        testImpl(false, testTextureStreamIG4);        
     }
     
     @Test
-    public void testTestIG_PNGJLoaderGL2() throws InterruptedException, IOException {
-        testImpl(true, testTextureStreamIG);        
+    public void testPalette3__ES2() throws InterruptedException, IOException {
+        testImpl(false, testTextureStreamP_3);        
     }    
     @Test
-    public void testTestIG_PNGJLoaderES2() throws InterruptedException, IOException {
-        testImpl(false, testTextureStreamIG);        
-    }
-    
-    @Test
-    public void testTestPRGB_PNGJLoaderGL2() throws InterruptedException, IOException {
-        testImpl(true, testTextureStreamPRGB);        
+    public void testPalette4__ES2() throws InterruptedException, IOException {
+        testImpl(false, testTextureStreamP_4);        
     }    
-    @Test
-    public void testTestPRGB_PNGJLoaderES2() throws InterruptedException, IOException {
-        testImpl(false, testTextureStreamPRGB);        
-    }
-    
-    @Test
-    public void testTestPRGBA_PNGJLoaderGL2() throws InterruptedException, IOException {
-        testImpl(true, testTextureStreamPRGBA);        
-    }    
-    @Test
-    public void testTestPRGBA_PNGJLoaderES2() throws InterruptedException, IOException {
-        testImpl(false, testTextureStreamPRGBA);        
-    }
-    
-    /*@Test
-    public void testTestNRGBA_PNGJLoaderGL2() throws InterruptedException, IOException {
-        testImpl(true, testTextureStreamNRGBA);        
-    }    
-    @Test
-    public void testTestNRGBA_PNGJLoaderES2() throws InterruptedException, IOException {
-        testImpl(false, testTextureStreamNRGBA);        
-    }
-    
-    @Test
-    public void testTestIRGBA_PNGJLoaderGL2() throws InterruptedException, IOException {
-        testImpl(true, testTextureStreamIRGBA);        
-    }    
-    @Test
-    public void testTestIRGBA_PNGJLoaderES2() throws InterruptedException, IOException {
-        testImpl(false, testTextureStreamIRGBA);        
-    }*/
     
     public static void main(String args[]) throws IOException {
         for(int i=0; i<args.length; i++) {
