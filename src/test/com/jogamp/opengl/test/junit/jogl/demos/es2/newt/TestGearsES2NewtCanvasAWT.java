@@ -95,6 +95,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
     static boolean forceGL3 = false;
     static boolean mainRun = false;
     static boolean exclusiveContext = false;
+    static boolean useAnimator = true;
     
     @BeforeClass
     public static void initClass() {
@@ -244,9 +245,11 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         demo.setPMVUseBackingArray(pmvUseBackingArray);
         glWindow.addGLEventListener(demo);
         
-        Animator animator = new Animator();
-        animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
-        animator.setExclusiveContext(exclusiveContext);
+        final Animator animator = useAnimator ? new Animator() : null;
+        if( useAnimator ) {
+            animator.setModeBits(false, Animator.MODE_EXPECT_AWT_RENDERING_THREAD);
+            animator.setExclusiveContext(exclusiveContext);
+        }
         
         final QuitAdapter quitAdapter = new QuitAdapter();
         //glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
@@ -304,11 +307,13 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
             }
         });
 
-        animator.add(glWindow);
-        animator.start();
-        Assert.assertTrue(animator.isStarted());
-        Assert.assertTrue(animator.isAnimating());
-        Assert.assertEquals(exclusiveContext ? animator.getThread() : null, glWindow.getExclusiveContextThread());
+        if( useAnimator ) {
+            animator.add(glWindow);
+            animator.start();
+            Assert.assertTrue(animator.isStarted());
+            Assert.assertTrue(animator.isAnimating());
+            Assert.assertEquals(exclusiveContext ? animator.getThread() : null, glWindow.getExclusiveContextThread());
+        }
 
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
@@ -323,7 +328,9 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, true)); 
         
-        animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
+        if( useAnimator ) {
+            animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
+        }
         
         System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
@@ -335,14 +342,19 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
             System.err.println("window resize "+rwsize+" -> pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
         }
         
-        while(!quitAdapter.shouldQuit() && animator.getTotalFPSDuration()<duration) {
+        final long t0 = System.currentTimeMillis();
+        long t1 = t0;
+        while(!quitAdapter.shouldQuit() && t1-t0<duration) {
             Thread.sleep(100);
+            t1 = System.currentTimeMillis();
         }
 
-        Assert.assertEquals(exclusiveContext ? animator.getThread() : null, glWindow.getExclusiveContextThread());
-        animator.stop();
-        Assert.assertFalse(animator.isAnimating());
-        Assert.assertFalse(animator.isStarted());
+        if( useAnimator ) {
+            Assert.assertEquals(exclusiveContext ? animator.getThread() : null, glWindow.getExclusiveContextThread());
+            animator.stop();
+            Assert.assertFalse(animator.isAnimating());
+            Assert.assertFalse(animator.isStarted());
+        }
         Assert.assertEquals(null, glWindow.getExclusiveContextThread());
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {               
@@ -431,6 +443,8 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
                 shallUseOffscreenFBOLayer = true;
             } else if(args[i].equals("-exclctx")) {
                 exclusiveContext = true;
+            } else if(args[i].equals("-noanim")) {
+                useAnimator  = false;
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
             } else if(args[i].equals("-gl3")) {
@@ -487,6 +501,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         System.err.println("forceGL3 "+forceGL3);
         System.err.println("swapInterval "+swapInterval);
         System.err.println("exclusiveContext "+exclusiveContext);
+        System.err.println("useAnimator "+useAnimator);
 
         org.junit.runner.JUnitCore.main(TestGearsES2NewtCanvasAWT.class.getName());
     }
