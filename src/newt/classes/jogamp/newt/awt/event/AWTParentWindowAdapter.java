@@ -115,7 +115,7 @@ public class AWTParentWindowAdapter extends AWTWindowAdapter implements java.awt
         }
         final Window newtWindow = getNewtWindow();
         if(newtWindow.getDelegatedWindow() instanceof DriverUpdatePosition) {
-            ((DriverUpdatePosition)newtWindow.getDelegatedWindow()).updatePosition();
+            ((DriverUpdatePosition)newtWindow.getDelegatedWindow()).updatePosition(0, 0);
         }            
     }
 

@@ -191,20 +191,25 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         }
     }
     
+    private boolean useParent(NativeWindow parent) { return null != parent && 0 != parent.getWindowHandle(); }
+    
     @Override
-    public void updatePosition() {
+    public void updatePosition(int x, int y) {
         final long handle = getWindowHandle();
         if( 0 != handle && !isOffscreenInstance ) {
-            final Point pS = getLocationOnScreenImpl(0, 0);
+            final NativeWindow parent = getParent();
+            final boolean useParent = useParent(parent);
+            final int pX=parent.getX(), pY=parent.getY();
+            final Point p0S = getLocationOnScreenImpl(x, y, parent, useParent);
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("MacWindow: updatePosition() ->  abs child-client-pos: "+pS);
+                System.err.println("MacWindow: updatePosition() parent["+useParent+" "+pX+"/"+pY+"] "+x+"/"+y+" ->  "+x+"/"+y+" rel-client-pos, "+p0S+" screen-client-pos");
             }
             OSXUtil.RunOnMainThread(false, new Runnable() {
                 public void run() {
-                    setWindowClientTopLeftPoint0(handle, pS.getX(), pS.getY());
+                    setWindowClientTopLeftPoint0(handle, p0S.getX(), p0S.getY(), isVisible());
                 } } );
             // no native event (fullscreen, some reparenting)
-            positionChanged(true, pS.getX(), pS.getY());
+            positionChanged(true, x, y);
         }
     }    
     
@@ -213,15 +218,16 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         final long handle = getWindowHandle();
         if( 0 != handle && !isOffscreenInstance ) {
             final NativeWindow parent = getParent();
-            final boolean useParent = null != parent && 0 != parent.getWindowHandle() ;
+            final boolean useParent = useParent(parent);
             if( useParent && ( getWidth() != newWidth || getHeight() != newHeight ) ) {
-                final Point p0S = getLocationOnScreenImpl(0, 0);
+                final int x=getX(), y=getY();
+                final Point p0S = getLocationOnScreenImpl(x, y, parent, useParent);
                 if(DEBUG_IMPLEMENTATION) {
-                    System.err.println("MacWindow: sizeChanged() "+newWidth+"x"+newHeight+" -> abs child-client-pos "+p0S);
+                    System.err.println("MacWindow: sizeChanged() parent["+useParent+" "+x+"/"+y+"] "+getX()+"/"+getY()+" "+newWidth+"x"+newHeight+" ->  "+p0S+" screen-client-pos");
                 }
                 OSXUtil.RunOnMainThread(false, new Runnable() {
                     public void run() {
-                        setWindowClientTopLeftPoint0(getWindowHandle(), p0S.getX(), p0S.getY());
+                        setWindowClientTopLeftPoint0(getWindowHandle(), p0S.getX(), p0S.getY(), isVisible());
                     } } );
             }
         }
@@ -237,9 +243,9 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             pClientLevelOnSreen = new Point(0, 0);
         } else  {
             final NativeWindow parent = getParent();
-            final boolean useParent = null != parent && 0 != parent.getWindowHandle() ;
+            final boolean useParent = useParent(parent);
             if( useParent ) {
-                pClientLevelOnSreen = getLocationOnScreenImpl(x, y);
+                pClientLevelOnSreen = getLocationOnScreenImpl(x, y, parent, useParent);
             } else {            
                 pClientLevelOnSreen = new Point(x, y);
             }
@@ -260,7 +266,9 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             // Thread.dumpStack();
         }
         
-        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 == ( FLAG_IS_VISIBLE & flags) ) {
+        final boolean setVisible = 0 != ( FLAG_IS_VISIBLE & flags);
+        
+        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && !setVisible ) {
             if ( !isOffscreenInstance ) {
                 OSXUtil.RunOnMainThread(false, new Runnable() {
                     public void run() {
@@ -271,13 +279,12 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 visibleChanged(true, false);
             }
         }
-        if( 0 == getWindowHandle() && 0 != ( FLAG_IS_VISIBLE & flags) ||
+        if( 0 == getWindowHandle() && setVisible ||
             0 != ( FLAG_CHANGE_DECORATION & flags) ||
             0 != ( FLAG_CHANGE_PARENTING & flags) ||
             0 != ( FLAG_CHANGE_FULLSCREEN & flags) ) {
-            final boolean setVisible = 0 != ( FLAG_IS_VISIBLE & flags);
             if(isOffscreenInstance) {
-                createWindow(true, 0 != getWindowHandle(), pClientLevelOnSreen, 64, 64, false, setVisible, false);
+                createWindow(true, 0 != getWindowHandle(), pClientLevelOnSreen, 64, 64, false, false, false);
             } else {
                 createWindow(false, 0 != getWindowHandle(), pClientLevelOnSreen, width, height, 
                                     0 != ( FLAG_IS_FULLSCREEN & flags), setVisible, 0 != ( FLAG_IS_ALWAYSONTOP & flags));
@@ -287,14 +294,14 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 if( !isOffscreenInstance ) {
                     OSXUtil.RunOnMainThread(false, new Runnable() {
                         public void run() {
-                            setWindowClientTopLeftPointAndSize0(getWindowHandle(), pClientLevelOnSreen.getX(), pClientLevelOnSreen.getY(), width, height);
+                            setWindowClientTopLeftPointAndSize0(getWindowHandle(), pClientLevelOnSreen.getX(), pClientLevelOnSreen.getY(), width, height, setVisible);
                         } } );
                 } // else offscreen size is realized via recreation
                 // no native event (fullscreen, some reparenting)
                 positionChanged(true,  x, y);
                 sizeChanged(true, width, height, false);
             }
-            if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && 0 != ( FLAG_IS_VISIBLE & flags) ) {
+            if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) && setVisible ) {
                 if( !isOffscreenInstance ) {                
                     OSXUtil.RunOnMainThread(false, new Runnable() {
                         public void run() {
@@ -318,18 +325,18 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     @Override
     protected Point getLocationOnScreenImpl(int x, int y) {
         final NativeWindow parent = getParent();
-        final boolean useParent = null != parent && 0 != parent.getWindowHandle() ;
+        final boolean useParent = useParent(parent);
+        return getLocationOnScreenImpl(x, y, parent, useParent);
+    }
         
+    private Point getLocationOnScreenImpl(final int x, final int y, final NativeWindow parent, final boolean useParent) {
         if( !useParent && !isOffscreenInstance && 0 != surfaceHandle) {
             return OSXUtil.GetLocationOnScreen(surfaceHandle, true, x, y);
         }
         
         final Point p = new Point(x, y);
-        // min val is 0
-        p.setX(Math.max(p.getX(), 0));
-        p.setY(Math.max(p.getY(), 0));
         if( useParent ) {
-            p.translate(parent.getLocationOnScreen(null));
+            p.translate( parent.getLocationOnScreen(null) );
         }
         return p;
     }
@@ -434,10 +441,6 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                               final PointImmutable pS, final int width, final int height, 
                               final boolean fullscreen, final boolean visible, final boolean alwaysOnTop) {
 
-        if( 0 != getWindowHandle() && !recreate ) {
-            return;
-        }
-        
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("MacWindow.createWindow on thread "+Thread.currentThread().getName()+
                                ": offscreen "+offscreenInstance+", recreate "+recreate+
@@ -485,7 +488,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 public void run() {
                     initWindow0( parentWin, newWin,
                                  pS.getX(), pS.getY(), width, height,
-                                 isOpaque, fullscreen, visible, offscreenInstance, getScreen().getIndex(), surfaceHandle);
+                                 isOpaque, fullscreen, visible, getScreen().getIndex(), surfaceHandle);
                     if( offscreenInstance ) {
                         orderOut0(0!=parentWin ? parentWin : newWin);
                     } else {
@@ -504,15 +507,14 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     private native long createWindow0(int x, int y, int w, int h, boolean fullscreen, int windowStyle, int backingStoreType, int screen_idx, long view);
     /** Must be called on Main-Thread */
     private native void initWindow0(long parentWindow, long window, int x, int y, int w, int h,
-                                    boolean opaque, boolean fullscreen, boolean visible, boolean offscreen, 
-                                    int screen_idx, long view);
+                                    boolean opaque, boolean fullscreen, boolean visible, int screen_idx, long view);
     private native boolean lockSurface0(long window, long view);
     private native boolean unlockSurface0(long window, long view);
     /** Must be called on Main-Thread */
     private native void requestFocus0(long window, boolean force);
     /** Must be called on Main-Thread */
     private native void resignFocus0(long window);
-    /** Must be called on Main-Thread. In case of a child window, it actually only issues orderBack(..) */
+    /** Must be called on Main-Thread. In case this is a child window and parent is still visible, orderBack(..) is issued instead of orderOut(). */
     private native void orderOut0(long window);
     /** Must be called on Main-Thread */
     private native void orderFront0(long window);
@@ -524,9 +526,9 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     /** Must be called on Main-Thread */
     private native void changeContentView0(long parentWindowOrView, long window, long view);
     /** Must be called on Main-Thread */
-    private native void setWindowClientTopLeftPointAndSize0(long window, int x, int y, int w, int h);
+    private native void setWindowClientTopLeftPointAndSize0(long window, int x, int y, int w, int h, boolean display);
     /** Must be called on Main-Thread */    
-    private native void setWindowClientTopLeftPoint0(long window, int x, int y);
+    private native void setWindowClientTopLeftPoint0(long window, int x, int y, boolean display);
     /** Must be called on Main-Thread */
     private native void setAlwaysOnTop0(long window, boolean atop);
     private static native Object getLocationOnScreen0(long windowHandle, int src_x, int src_y);
