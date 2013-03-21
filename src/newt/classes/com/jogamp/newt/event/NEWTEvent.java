@@ -137,7 +137,7 @@ public class NEWTEvent extends java.util.EventObject {
         if(null == sb) {
             sb = new StringBuilder();
         }
-        return sb.append("NEWTEvent[source:").append(getSource().getClass().getName()).append(", when:").append(getWhen()).append(" d ").append((System.currentTimeMillis()-getWhen())).append("ms]");
+        return sb.append("NEWTEvent[source:").append(getSource().getClass().getName()).append("consumed ").append(isConsumed()).append(", when:").append(getWhen()).append(" d ").append((System.currentTimeMillis()-getWhen())).append("ms]");
     }
 
     public static String toHexString(short hex) {

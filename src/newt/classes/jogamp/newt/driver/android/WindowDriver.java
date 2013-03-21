@@ -47,12 +47,15 @@ import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.event.NEWTEvent;
 
 import jogamp.opengl.egl.EGL;
 import jogamp.opengl.egl.EGLGraphicsConfiguration;
 import jogamp.opengl.egl.EGLGraphicsConfigurationFactory;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -205,6 +208,11 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
     public WindowDriver() {
         reset();
     }
+    
+    public void registerActivity(Activity activity) {
+        this.activity = activity;
+    }
+    protected Activity activity = null;
 
     private final void reset() {
         added2StaticViewGroup = false;
@@ -499,14 +507,15 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         if(null != androidView) {
             final InputMethodManager imm = (InputMethodManager) getAndroidView().getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
             final IBinder winid = getAndroidView().getWindowToken();
+            final boolean result;
             if(visible) {
                 // Show soft-keyboard:
-                imm.showSoftInput(androidView, 0, keyboardVisibleReceiver);
+                result = imm.showSoftInput(androidView, 0, keyboardVisibleReceiver);
             } else {
                 // hide keyboard :
-                imm.hideSoftInputFromWindow(winid, 0, keyboardVisibleReceiver);
+                result = imm.hideSoftInputFromWindow(winid, 0, keyboardVisibleReceiver);
             }
-            return visible;
+            return result;
         } else {
             return false; // nop
         }
@@ -588,23 +597,72 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         
     protected boolean handleKeyCodeBack(KeyEvent.DispatcherState state, android.view.KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() == 0) {
+            Log.d(MD.TAG, "handleKeyCodeBack.0 : "+event);
             state.startTracking(event, this);
         } else if (event.getAction() == KeyEvent.ACTION_UP && !event.isCanceled() && state.isTracking(event)) {
-            if( isKeyboardVisible() ) {
-                keyboardVisibilityChanged(false);
-                enqueueAKey2NKeyUpDown(event);
+            // Since we cannot trust the visibility state 'completly', 
+            // assume an already invisible state if the invisible operation fails. 
+            final boolean wasVisible = setKeyboardVisibleImpl(false);
+            Log.d(MD.TAG, "handleKeyCodeBack.1 : wasVisible "+wasVisible+": "+event);
+            keyboardVisibilityChanged(false);
+            if( wasVisible ) {
+                // event processed, just send invisible event, no activity.finished()
+                enqueueAKey2NKeyUpDown(event, com.jogamp.newt.event.KeyEvent.VK_KEYBOARD_INVISIBLE);
+                return true;
+            } else if( null != activity ) {
+                // process event on our own, since we have an activity to call finish()
+                // and decide in overriden consumeKeyEvent(..) whether we suppress or proceed w/ activity.finish().
+                enqueueAKey2NKeyUpDown(event, com.jogamp.newt.event.KeyEvent.VK_ESCAPE);
+                return true;
             } else {
-                Log.d(MD.TAG, "handleKeyCodeBack : "+event);
+                Log.d(MD.TAG, "handleKeyCodeBack.X1 : "+event);
                 windowDestroyNotify(true);
+                // -> default BACK action, usually activity.finish() 
             }
         }
-        return false; // cont. processing
+        return false; // continue w/ further processing
     }
-    private void enqueueAKey2NKeyUpDown(android.view.KeyEvent aEvent) {
-        final com.jogamp.newt.event.KeyEvent eDown = AndroidNewtEventFactory.createKeyEvent(aEvent, com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED, this, true);
-        final com.jogamp.newt.event.KeyEvent eUp = AndroidNewtEventFactory.createKeyEvent(aEvent, com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED, this, true);
+    protected boolean handleKeyCodeHome(KeyEvent.DispatcherState state, android.view.KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() == 0) {
+            Log.d(MD.TAG, "handleKeyCodeHome.0 : "+event);
+            state.startTracking(event, this);
+        } else if (event.getAction() == KeyEvent.ACTION_UP && !event.isCanceled() && state.isTracking(event)) {
+            Log.d(MD.TAG, "handleKeyCodeHome.1 : "+event);
+            enqueueAKey2NKeyUpDown(event, com.jogamp.newt.event.KeyEvent.VK_HOME);
+            return true; // we handle further processing
+        }
+        return false; // continue w/ further processing
+    }
+    private void enqueueAKey2NKeyUpDown(android.view.KeyEvent aEvent, short newtKeyCode) {
+        final com.jogamp.newt.event.KeyEvent eDown = AndroidNewtEventFactory.createKeyEvent(aEvent, newtKeyCode, com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED, this);
+        final com.jogamp.newt.event.KeyEvent eUp = AndroidNewtEventFactory.createKeyEvent(aEvent, newtKeyCode, com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED, this);
         enqueueEvent(false, eDown);
         enqueueEvent(false, eUp);
+    }
+    
+    // private GLEventListenerState glels = null;
+    
+    @Override
+    protected void consumeKeyEvent(com.jogamp.newt.event.KeyEvent e) {
+        super.consumeKeyEvent(e); // consume event, i.e. call all KeyListener
+        if( com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED == e.getEventType() && !e.isConsumed() ) {
+            if( com.jogamp.newt.event.KeyEvent.VK_ESCAPE == e.getKeyCode() ) {
+                Log.d(MD.TAG, "handleKeyCodeBack.X2 : "+e);
+                activity.finish();
+            } else if( com.jogamp.newt.event.KeyEvent.VK_HOME == e.getKeyCode() ) {
+                Log.d(MD.TAG, "handleKeyCodeHome.X2 : "+e);
+                triggerHome();
+            }
+        }
+    }    
+    private void triggerHome() {
+       Context ctx = StaticContext.getContext();
+       if(null == ctx) {
+           throw new NativeWindowException("No static [Application] Context has been set. Call StaticContext.setContext(Context) first.");
+       }
+       Intent showOptions = new Intent(Intent.ACTION_MAIN);
+       showOptions.addCategory(Intent.CATEGORY_HOME);
+       ctx.startActivity(showOptions);
     }
     
     private boolean added2StaticViewGroup;
@@ -625,10 +683,16 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
 
         @Override
         public boolean onKeyPreIme(int keyCode, KeyEvent event) {
+            Log.d(MD.TAG, "onKeyPreIme : "+event);
             if ( event.getKeyCode() == KeyEvent.KEYCODE_BACK ) {
                 final KeyEvent.DispatcherState state = getKeyDispatcherState();
                 if (state != null) {
                     return handleKeyCodeBack(state, event);
+                }
+            } else if ( event.getKeyCode() == KeyEvent.KEYCODE_HOME ) {
+                final KeyEvent.DispatcherState state = getKeyDispatcherState();
+                if (state != null) {
+                    return handleKeyCodeHome(state, event);
                 }
             }
             return false; // cont. processing

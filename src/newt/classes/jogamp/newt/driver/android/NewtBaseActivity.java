@@ -126,6 +126,9 @@ public class NewtBaseActivity extends Activity {
     * @see #addContentView(android.view.Window, Window, android.view.ViewGroup.LayoutParams)
     */
    public void registerNEWTWindow(Window newtWindow) {
+       newtWindow = newtWindow.getDelegatedWindow();
+       WindowDriver newtAWindow = (WindowDriver)newtWindow;
+       newtAWindow.registerActivity(getActivity());
        newtWindows.add(newtWindow);
    }
    

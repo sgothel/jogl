@@ -1625,6 +1625,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         windowHandle = handle;
     }
 
+    @Override
     public void runOnEDTIfAvail(boolean wait, final Runnable task) {
         if( windowLock.isOwner( Thread.currentThread() ) ) {
             task.run();
@@ -1650,14 +1651,17 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     };
 
+    @Override
     public final boolean hasFocus() {
         return hasFocus;
     }
 
+    @Override
     public void requestFocus() {
         requestFocus(true);
     }
 
+    @Override
     public void requestFocus(boolean wait) {
         requestFocus(wait /* wait */, false /* skipFocusAction */, brokenFocusChange /* force */);
     }
@@ -1680,6 +1684,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }        
     }
     
+    @Override
     public void setFocusAction(FocusRunnable focusAction) {
         this.focusAction = focusAction;
     }
@@ -1704,6 +1709,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         brokenFocusChange = v;
     }
     
+    @Override
     public void setKeyboardFocusHandler(KeyListener l) {
         keyboardFocusHandler = l;
     }
@@ -1737,11 +1743,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
+    @Override
     public void setPosition(int x, int y) {
         autoPosition = false;
         runOnEDTIfAvail(true, new SetPositionAction(x, y));
     }
     
+    @Override
     public void setTopLevelPosition(int x, int y) {
         setPosition(x + getInsets().getLeftWidth(), y + getInsets().getTopHeight());
     }
@@ -1848,6 +1856,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     private final FullScreenAction fullScreenAction = new FullScreenAction();
 
+    @Override
     public boolean setFullscreen(boolean fullscreen) {
         synchronized(fullScreenAction) {
             if( fullScreenAction.init(fullscreen) ) {               
@@ -1921,12 +1930,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     // Child Window Management
     // 
 
+    @Override
     public final boolean removeChild(NativeWindow win) {
         synchronized(childWindowsLock) {
             return childWindows.remove(win);
         }
     }
 
+    @Override
     public final boolean addChild(NativeWindow win) {
         if (win == null) {
             return false;
@@ -1952,12 +1963,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
+    @Override
     public void enqueueEvent(boolean wait, com.jogamp.newt.event.NEWTEvent event) {
         if(isNativeValid()) {
             ((DisplayImpl)screen.getDisplay()).enqueueEvent(wait, event);
         }
     }
 
+    @Override
     public boolean consumeEvent(NEWTEvent e) {
         switch(e.getEventType()) {
             // special repaint treatment
@@ -2009,18 +2022,22 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
     // SurfaceUpdatedListener Support
     //
+    @Override
     public void addSurfaceUpdatedListener(SurfaceUpdatedListener l) {
         surfaceUpdatedHelper.addSurfaceUpdatedListener(l);
     }
 
+    @Override
     public void addSurfaceUpdatedListener(int index, SurfaceUpdatedListener l) throws IndexOutOfBoundsException {
         surfaceUpdatedHelper.addSurfaceUpdatedListener(index, l);
     }
 
+    @Override
     public void removeSurfaceUpdatedListener(SurfaceUpdatedListener l) {
         surfaceUpdatedHelper.removeSurfaceUpdatedListener(l);
     }
 
+    @Override
     public void surfaceUpdated(Object updater, NativeSurface ns, long when) {
         surfaceUpdatedHelper.surfaceUpdated(updater, ns, when);
     }
@@ -2149,11 +2166,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
-
+    @Override
     public void addMouseListener(MouseListener l) {
         addMouseListener(-1, l);
     }
 
+    @Override
     public void addMouseListener(int index, MouseListener l) {
         if(l == null) {
             return;
@@ -2167,6 +2185,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         mouseListeners = clonedListeners;
     }
 
+    @Override
     public void removeMouseListener(MouseListener l) {
         if (l == null) {
             return;
@@ -2177,6 +2196,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         mouseListeners = clonedListeners;
     }
 
+    @Override
     public MouseListener getMouseListener(int index) {
         @SuppressWarnings("unchecked")
         ArrayList<MouseListener> clonedListeners = (ArrayList<MouseListener>) mouseListeners.clone();
@@ -2186,6 +2206,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return clonedListeners.get(index);
     }
 
+    @Override
     public MouseListener[] getMouseListeners() {
         return mouseListeners.toArray(new MouseListener[mouseListeners.size()]);
     }
@@ -2267,26 +2288,31 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         enqueueEvent(wait, new KeyEvent(eventType, this, System.currentTimeMillis(), modifiers | mouseButtonModMask, keyCode, keySym, keyChar) );
     }
     
-    public void addKeyListener(KeyListener l) {
-        addKeyListener(-1, l);
-    }
-
+    @Override
     public final void setKeyboardVisible(boolean visible) {
         if(isNativeValid()) {
             // We don't skip the impl. if it seems that there is no state change,
             // since we cannot assume the impl. reliably gives us it's current state. 
-            final boolean n = setKeyboardVisibleImpl(visible);
+            final boolean ok = setKeyboardVisibleImpl(visible);
             if(DEBUG_IMPLEMENTATION || DEBUG_KEY_EVENT) {
-                System.err.println("setKeyboardVisible(native): visible "+keyboardVisible+" -> "+visible +" -> "+n);
+                System.err.println("setKeyboardVisible(native): visible "+keyboardVisible+" -- op[visible:"+visible +", ok "+ok+"] -> "+(visible && ok));
             }
-            keyboardVisible = n;
+            keyboardVisibilityChanged( visible && ok );
         } else {
-            keyboardVisible = visible; // earmark for creation
+            keyboardVisibilityChanged( visible ); // earmark for creation
         }
     }
+    @Override
     public final boolean isKeyboardVisible() {
         return keyboardVisible;
-    }    
+    }
+    /** 
+     * Returns <code>true</code> if operation was successful, otherwise <code>false</code>.
+     * <p>
+     * We assume that a failed invisible operation is due to an already invisible keyboard,
+     * hence even if an invisible operation failed, the keyboard is considered invisible!  
+     * </p> 
+     */ 
     protected boolean setKeyboardVisibleImpl(boolean visible) {
         return false; // nop
     }
@@ -2301,6 +2327,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
     protected boolean keyboardVisible = false;
     
+    @Override
+    public void addKeyListener(KeyListener l) {
+        addKeyListener(-1, l);
+    }
+
+    @Override
     public void addKeyListener(int index, KeyListener l) {
         if(l == null) {
             return;
@@ -2314,6 +2346,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         keyListeners = clonedListeners;
     }
 
+    @Override
     public void removeKeyListener(KeyListener l) {
         if (l == null) {
             return;
@@ -2324,6 +2357,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         keyListeners = clonedListeners;
     }
 
+    @Override
     public KeyListener getKeyListener(int index) {
         @SuppressWarnings("unchecked")
         ArrayList<KeyListener> clonedListeners = (ArrayList<KeyListener>) keyListeners.clone();
@@ -2333,6 +2367,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return clonedListeners.get(index);
     }
 
+    @Override
     public KeyListener[] getKeyListeners() {
         return keyListeners.toArray(new KeyListener[keyListeners.size()]);
     }
@@ -2404,6 +2439,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
     // WindowListener/Event Support
     //
+    @Override
     public void sendWindowEvent(int eventType) {
         consumeWindowEvent( new WindowEvent((short)eventType, this, System.currentTimeMillis()) ); // FIXME
     }
@@ -2412,10 +2448,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         enqueueEvent( wait, new WindowEvent((short)eventType, this, System.currentTimeMillis()) ); // FIXME
     }
 
+    @Override
     public void addWindowListener(WindowListener l) {
         addWindowListener(-1, l);
     }
 
+    @Override
     public void addWindowListener(int index, WindowListener l) 
         throws IndexOutOfBoundsException
     {
@@ -2431,6 +2469,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         windowListeners = clonedListeners;
     }
 
+    @Override
     public final void removeWindowListener(WindowListener l) {
         if (l == null) {
             return;
@@ -2441,6 +2480,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         windowListeners = clonedListeners;
     }
 
+    @Override
     public WindowListener getWindowListener(int index) {
         @SuppressWarnings("unchecked")
         ArrayList<WindowListener> clonedListeners = (ArrayList<WindowListener>) windowListeners.clone();
@@ -2450,6 +2490,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return clonedListeners.get(index);
     }
 
+    @Override
     public WindowListener[] getWindowListeners() {
         return windowListeners.toArray(new WindowListener[windowListeners.size()]);
     }
@@ -2676,6 +2717,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return destroyed;
     }
 
+    @Override
     public void windowRepaint(int x, int y, int width, int height) {
         windowRepaint(false, x, y, width, height); 
     }

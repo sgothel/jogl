@@ -110,7 +110,7 @@ public class AndroidNewtEventFactory {
             case android.view.KeyEvent.KEYCODE_TAB: return com.jogamp.newt.event.KeyEvent.VK_TAB;
             case android.view.KeyEvent.KEYCODE_SPACE: return com.jogamp.newt.event.KeyEvent.VK_SPACE;
             case android.view.KeyEvent.KEYCODE_ENTER: return com.jogamp.newt.event.KeyEvent.VK_ENTER;
-            case android.view.KeyEvent.KEYCODE_DEL: return com.jogamp.newt.event.KeyEvent.VK_DELETE;
+            case android.view.KeyEvent.KEYCODE_DEL: return com.jogamp.newt.event.KeyEvent.VK_BACK_SPACE;
             case android.view.KeyEvent.KEYCODE_MINUS: return com.jogamp.newt.event.KeyEvent.VK_MINUS;
             case android.view.KeyEvent.KEYCODE_EQUALS: return com.jogamp.newt.event.KeyEvent.VK_EQUALS;
             case android.view.KeyEvent.KEYCODE_LEFT_BRACKET: return com.jogamp.newt.event.KeyEvent.VK_LEFT_PARENTHESIS;
@@ -128,11 +128,16 @@ public class AndroidNewtEventFactory {
             case android.view.KeyEvent.KEYCODE_CTRL_RIGHT: return com.jogamp.newt.event.KeyEvent.VK_CONTROL; // ??
             case android.view.KeyEvent.KEYCODE_BACK: 
                 if( inclSysKeys ) {
-                    return com.jogamp.newt.event.KeyEvent.VK_KEYBOARD_INVISIBLE;
+                    // Note that manual mapping is performed, based on the keyboard state.
+                    // I.e. we map to VK_KEYBOARD_INVISIBLE if keyboard was visible and now becomes invisible!
+                    // Otherwise we map to VK_ESCAPE, and if not consumed by user, the application will be terminated.
+                    return com.jogamp.newt.event.KeyEvent.VK_ESCAPE;
                 }
                 break;
             case android.view.KeyEvent.KEYCODE_HOME:
                 if( inclSysKeys ) {
+                    // If not consumed by user, the application will be 'paused',
+                    // i.e. resources (GLEventListener) pulled before surface gets destroyed!
                     return com.jogamp.newt.event.KeyEvent.VK_HOME;
                 }
                 break;
@@ -180,6 +185,14 @@ public class AndroidNewtEventFactory {
         final com.jogamp.newt.event.KeyEvent res = createKeyEventImpl(aEvent, newtType, newtKeyCode, newtSource);
         if(Window.DEBUG_KEY_EVENT) {
             System.err.println("createKeyEvent1: newtType "+NEWTEvent.toHexString(newtType)+", "+aEvent+" -> "+res);
+        }
+        return res;
+    }
+    
+    public static com.jogamp.newt.event.KeyEvent createKeyEvent(android.view.KeyEvent aEvent, short newtKeyCode, short newtType, com.jogamp.newt.Window newtSource) {
+        final com.jogamp.newt.event.KeyEvent res = createKeyEventImpl(aEvent, newtType, newtKeyCode, newtSource);
+        if(Window.DEBUG_KEY_EVENT) {
+            System.err.println("createKeyEvent2: newtType "+NEWTEvent.toHexString(newtType)+", "+aEvent+" -> "+res);
         }
         return res;
     }
