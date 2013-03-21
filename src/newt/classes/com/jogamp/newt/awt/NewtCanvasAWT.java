@@ -60,7 +60,6 @@ import com.jogamp.newt.Display;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
-import com.jogamp.newt.event.NEWTEvent;
 import com.jogamp.newt.event.WindowAdapter;
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
@@ -214,7 +213,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
          }
          public void keyTyped(KeyEvent e) {
              if(suppress) {
-                 e.setAttachment(NEWTEvent.consumedTag);
+                 e.setConsumed(true);
                  suppress = false; // reset
              }             
          }
@@ -244,7 +243,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                  }
              }
              if(suppress) {
-                 evt.setAttachment(NEWTEvent.consumedTag);                 
+                 evt.setConsumed(true);                 
              }
              if(DEBUG) {
                  System.err.println("NewtCanvasAWT.focusKey: XXX: "+ks);

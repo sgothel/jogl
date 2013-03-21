@@ -2194,8 +2194,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(DEBUG_MOUSE_EVENT) {
             System.err.println("consumeMouseEvent: event:         "+e);
         }
-        boolean consumed = false;
-        for(int i = 0; !consumed && i < mouseListeners.size(); i++ ) {
+        for(int i = 0; !e.isConsumed() && i < mouseListeners.size(); i++ ) {
             MouseListener l = mouseListeners.get(i);
             switch(e.getEventType()) {
                 case MouseEvent.EVENT_MOUSE_CLICKED:
@@ -2225,7 +2224,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 default:
                     throw new NativeWindowException("Unexpected mouse event type " + e.getEventType());
             }
-            consumed = NEWTEvent.consumedTag == e.getAttachment();
         }
     }
 
@@ -2354,7 +2352,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             default:
                 throw new NativeWindowException("Unexpected key event type " + e.getEventType());
         }
-        return NEWTEvent.consumedTag == e.getAttachment();
+        return e.isConsumed();
     }
     
     @SuppressWarnings("deprecation")
@@ -2460,8 +2458,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("consumeWindowEvent: "+e+", visible "+isVisible()+" "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight());
         }
-        boolean consumed = false;
-        for(int i = 0; !consumed && i < windowListeners.size(); i++ ) {
+        for(int i = 0; !e.isConsumed() && i < windowListeners.size(); i++ ) {
             WindowListener l = windowListeners.get(i);
             switch(e.getEventType()) {
                 case WindowEvent.EVENT_WINDOW_RESIZED:
@@ -2490,7 +2487,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         new NativeWindowException("Unexpected window event type "
                                                   + e.getEventType());
             }
-            consumed = NEWTEvent.consumedTag == e.getAttachment();
         }
     }
 

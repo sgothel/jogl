@@ -49,8 +49,7 @@ package com.jogamp.newt.event;
 @SuppressWarnings("serial")
 public class NEWTEvent extends java.util.EventObject {
     /** 
-     * Object when attached via {@link #setAttachment(Object)} marks the event consumed,
-     * ie. stops propagating the event any further to the <i>other</i> event listener. 
+     * See {@link #setConsumed(boolean)} for description.
      */
     public static final Object consumedTag = new Object();
 
@@ -86,7 +85,7 @@ public class NEWTEvent extends java.util.EventObject {
      * @param attachment User application specific object
      */
     public final void setAttachment(Object attachment) {
-        this.attachment=attachment;
+        this.attachment = attachment;
     }
 
     /** 
@@ -95,7 +94,41 @@ public class NEWTEvent extends java.util.EventObject {
     public final Object getAttachment() {
         return attachment;
     }
-
+    
+    /** 
+     * Returns <code>true</code> if this events has been {@link #setConsumed(boolean) consumed},
+     * otherwise <code>false</code>.
+     * @see #setConsumed(boolean)
+     */
+    public final boolean isConsumed() {
+        return consumedTag == attachment;
+    }
+    
+    /** 
+     * If <code>consumed</code> is <code>true</code>, this event is marked as consumed,
+     * ie. the event will not be propagated any further to potential <i>other</i> event listener.
+     * Otherwise the event will be propagated to other event listener, the default.
+     * <p>
+     * The event is marked as being consumed while {@link #setAttachment(Object) attaching}
+     * the {@link #consumedTag}.
+     * </p>
+     * <p>
+     * Events with platform specific actions will be supressed if marked as consumed.
+     * Examples are:
+     * <ul>
+     *   <li>{@link KeyEvent#VK_ESCAPE} on Android's BACK button w/ Activity::finish()</li>
+     *   <li>{@link KeyEvent#VK_HOME} on Android's HOME button w/ Intend.ACTION_MAIN[Intend.CATEGORY_HOME]</li>
+     * </ul>
+     * </p>
+     */
+    public final void setConsumed(boolean consumed) {
+        if( consumed ) {
+            setAttachment( consumedTag );
+        } else if( consumedTag == attachment ) {
+            setAttachment( null );
+        }
+    }
+    
     public String toString() {
         return toString(null).toString();
     }
