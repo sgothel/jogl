@@ -145,7 +145,7 @@ public class Animator extends AnimatorBase {
         public void run() {
             try {
                 if(DEBUG) {
-                    System.err.println("Animator start:" + Thread.currentThread() + ": " + toString());
+                    System.err.println("Animator start on " + Thread.currentThread().getName() + ": " + toString());
                 }
                 fpsCounter.resetFPSCounter();
                 animThread = Thread.currentThread();
@@ -162,7 +162,7 @@ public class Animator extends AnimatorBase {
                             }
                             boolean wasPaused = pauseIssued;
                             if (DEBUG) {
-                                System.err.println("Animator pause:" + Thread.currentThread() + ": " + toString());
+                                System.err.println("Animator pause on " + animThread.getName() + ": " + toString());
                             }
                             if ( exclusiveContext && !drawablesEmpty && !ectCleared ) {
                                 ectCleared = true;
@@ -179,7 +179,7 @@ public class Animator extends AnimatorBase {
                                 // resume from pause -> reset counter
                                 fpsCounter.resetFPSCounter();
                                 if (DEBUG) {
-                                    System.err.println("Animator resume:" + Thread.currentThread() + ": " + toString());
+                                    System.err.println("Animator resume on " + animThread.getName() + ": " + toString());
                                 }
                             }
                         }
@@ -208,7 +208,7 @@ public class Animator extends AnimatorBase {
                 }
                 synchronized (Animator.this) {
                     if(DEBUG) {
-                        System.err.println("Animator stop " + Thread.currentThread() + ": " + toString());
+                        System.err.println("Animator stop on " + animThread.getName() + ": " + toString());
                     }
                     stopIssued = false;
                     pauseIssued = false;
