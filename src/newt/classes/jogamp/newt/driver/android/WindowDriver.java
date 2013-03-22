@@ -47,7 +47,6 @@ import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.ScreenMode;
-import com.jogamp.newt.event.NEWTEvent;
 
 import jogamp.opengl.egl.EGL;
 import jogamp.opengl.egl.EGLGraphicsConfiguration;
@@ -622,25 +621,12 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         }
         return false; // continue w/ further processing
     }
-    protected boolean handleKeyCodeHome(KeyEvent.DispatcherState state, android.view.KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() == 0) {
-            Log.d(MD.TAG, "handleKeyCodeHome.0 : "+event);
-            state.startTracking(event, this);
-        } else if (event.getAction() == KeyEvent.ACTION_UP && !event.isCanceled() && state.isTracking(event)) {
-            Log.d(MD.TAG, "handleKeyCodeHome.1 : "+event);
-            enqueueAKey2NKeyUpDown(event, com.jogamp.newt.event.KeyEvent.VK_HOME);
-            return true; // we handle further processing
-        }
-        return false; // continue w/ further processing
-    }
     private void enqueueAKey2NKeyUpDown(android.view.KeyEvent aEvent, short newtKeyCode) {
         final com.jogamp.newt.event.KeyEvent eDown = AndroidNewtEventFactory.createKeyEvent(aEvent, newtKeyCode, com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED, this);
         final com.jogamp.newt.event.KeyEvent eUp = AndroidNewtEventFactory.createKeyEvent(aEvent, newtKeyCode, com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED, this);
         enqueueEvent(false, eDown);
         enqueueEvent(false, eUp);
     }
-    
-    // private GLEventListenerState glels = null;
     
     @Override
     protected void consumeKeyEvent(com.jogamp.newt.event.KeyEvent e) {
@@ -688,11 +674,6 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
                 final KeyEvent.DispatcherState state = getKeyDispatcherState();
                 if (state != null) {
                     return handleKeyCodeBack(state, event);
-                }
-            } else if ( event.getKeyCode() == KeyEvent.KEYCODE_HOME ) {
-                final KeyEvent.DispatcherState state = getKeyDispatcherState();
-                if (state != null) {
-                    return handleKeyCodeHome(state, event);
                 }
             }
             return false; // cont. processing
