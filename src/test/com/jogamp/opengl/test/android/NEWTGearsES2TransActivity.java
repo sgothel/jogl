@@ -72,7 +72,6 @@ public class NEWTGearsES2TransActivity extends NewtBaseActivity {
         }
        });
        Animator animator = new Animator(glWindow);
-       setAnimator(animator);
        // glWindow.setSkipContextReleaseThread(animator.getThread());
        
        glWindow.setVisible(true);

@@ -28,18 +28,18 @@
 
 package jogamp.newt.driver.android;
 
-import javax.media.nativewindow.*;
+import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.Point;
-
-import com.jogamp.newt.ScreenMode;
-import com.jogamp.newt.util.ScreenModeUtil;
 
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.util.DisplayMetrics;
 import android.view.Surface;
 import android.view.WindowManager;
+
+import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.util.ScreenModeUtil;
 
 public class ScreenDriver extends jogamp.newt.ScreenImpl {
 

@@ -71,7 +71,6 @@ public class NEWTGearsES1Activity extends NewtBaseActivity {
        });
        glWindow.setVisible(true);
        Animator animator = new Animator(glWindow);
-       setAnimator(animator);
        
        animator.setUpdateFPSFrames(60, System.err);
        animator.resetFPSCounter();

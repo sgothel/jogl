@@ -33,8 +33,10 @@ import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.android.event.AndroidNewtEventFactory;
 import jogamp.newt.driver.android.event.AndroidNewtEventTranslator;
 
+import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.Capabilities;
 import javax.media.nativewindow.CapabilitiesImmutable;
+import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.VisualIDHolder;
 import javax.media.nativewindow.util.Insets;
@@ -49,6 +51,7 @@ import com.jogamp.newt.Screen;
 import com.jogamp.newt.ScreenMode;
 
 import jogamp.opengl.egl.EGL;
+import jogamp.opengl.egl.EGLDisplayUtil;
 import jogamp.opengl.egl.EGLGraphicsConfiguration;
 import jogamp.opengl.egl.EGLGraphicsConfigurationFactory;
 
@@ -322,7 +325,14 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
 
     @Override
     protected final void createNativeImpl() {
-        Log.d(MD.TAG, "createNativeImpl 0 - surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
+        // Create own screen/device resource instance allowing independent ownership,
+        // while still utilizing shared EGL resources.
+        final AbstractGraphicsScreen aScreen = getScreen().getGraphicsScreen();
+        final EGLGraphicsDevice aDevice = (EGLGraphicsDevice) aScreen.getDevice();
+        final EGLGraphicsDevice eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(aDevice.getNativeDisplayID(), aDevice.getConnection(), aDevice.getUnitID());
+        final DefaultGraphicsScreen eglScreen = new DefaultGraphicsScreen(eglDevice, aScreen.getIndex());
+        
+        Log.d(MD.TAG, "createNativeImpl 0 - eglDevice 0x"+Integer.toHexString(eglDevice.hashCode())+", "+eglDevice+", surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
                     ", format [a "+androidFormat+", n "+nativeFormat+"], "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" - on thread "+Thread.currentThread().getName());
 
         if(0!=getParentWindowHandle()) {
@@ -332,11 +342,9 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
             throw new InternalError("surfaceHandle null");
         }
        
-        final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getScreen().getDisplay().getGraphicsDevice();
         final EGLGraphicsConfiguration eglConfig = EGLGraphicsConfigurationFactory.chooseGraphicsConfigurationStatic(
                 capsByFormat, (GLCapabilitiesImmutable) getRequestedCapabilities(), 
-                (GLCapabilitiesChooser)capabilitiesChooser, getScreen().getGraphicsScreen(), nativeFormat, 
-                isAndroidFormatTransparent(androidFormat));
+                (GLCapabilitiesChooser)capabilitiesChooser, eglScreen, nativeFormat, isAndroidFormatTransparent(androidFormat));
         if (eglConfig == null) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
@@ -361,12 +369,14 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         
         setupInputListener(true);
         
-        Log.d(MD.TAG, "createNativeImpl X: eglSurfaceHandle 0x"+Long.toHexString(eglSurface));
+        Log.d(MD.TAG, "createNativeImpl X: eglDevice 0x"+Integer.toHexString(eglDevice.hashCode())+", "+eglDevice+", eglSurfaceHandle 0x"+Long.toHexString(eglSurface));
     }
 
     @Override
     protected final void closeNativeImpl() {
-        Log.d(MD.TAG, "closeNativeImpl 0 - surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
+        final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getGraphicsConfiguration().getScreen().getDevice();
+        
+        Log.d(MD.TAG, "closeNativeImpl 0 - eglDevice 0x"+Integer.toHexString(eglDevice.hashCode())+", "+eglDevice+", surfaceHandle 0x"+Long.toHexString(surfaceHandle)+
                     ", eglSurfaceHandle 0x"+Long.toHexString(eglSurface)+
                     ", format [a "+androidFormat+", n "+nativeFormat+"], "+getX()+"/"+getY()+" "+getWidth()+"x"+getHeight()+" - on thread "+Thread.currentThread().getName());
         if(WindowImpl.DEBUG_IMPLEMENTATION) {
@@ -377,7 +387,6 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         
         if(0 != eglSurface) {
             try {
-                final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getScreen().getDisplay().getGraphicsDevice();
                 if (!EGL.eglDestroySurface(eglDevice.getHandle(), eglSurface)) {
                     throw new GLException("Error destroying window surface (eglDestroySurface)");
                 }
@@ -389,6 +398,8 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
             }
         }        
         release0(surfaceHandle);
+        
+        eglDevice.close();
 
         if( null != androidView ) {
             if( added2StaticViewGroup ) {

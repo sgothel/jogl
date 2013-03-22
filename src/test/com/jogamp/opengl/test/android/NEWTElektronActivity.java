@@ -66,7 +66,6 @@ public class NEWTElektronActivity extends NewtBaseActivity {
        });
        glWindow.setVisible(true);
        Animator animator = new Animator(glWindow);
-       setAnimator(animator);
        
        animator.setUpdateFPSFrames(60, System.err);
        animator.resetFPSCounter();

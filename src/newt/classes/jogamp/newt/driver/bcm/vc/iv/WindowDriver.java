@@ -29,16 +29,21 @@
 package jogamp.newt.driver.bcm.vc.iv;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
+import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.Capabilities;
+import javax.media.nativewindow.DefaultGraphicsScreen;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.VisualIDHolder;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
 
+import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
+
 import jogamp.newt.WindowImpl;
 import jogamp.newt.driver.linux.LinuxEventDeviceTracker;
 import jogamp.newt.driver.linux.LinuxMouseTracker;
+import jogamp.opengl.egl.EGLDisplayUtil;
 
 public class WindowDriver extends WindowImpl {
     private static final String WINDOW_CLASS_NAME = "NewtWindow";
@@ -54,9 +59,15 @@ public class WindowDriver extends WindowImpl {
         if(0!=getParentWindowHandle()) {
             throw new RuntimeException("Window parenting not supported (yet)");
         }
+        // Create own screen/device resource instance allowing independent ownership,
+        // while still utilizing shared EGL resources.
+        final AbstractGraphicsScreen aScreen = getScreen().getGraphicsScreen();
+        final EGLGraphicsDevice aDevice = (EGLGraphicsDevice) aScreen.getDevice();
+        final EGLGraphicsDevice eglDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(aDevice.getNativeDisplayID(), aDevice.getConnection(), aDevice.getUnitID());
+        final DefaultGraphicsScreen eglScreen = new DefaultGraphicsScreen(eglDevice, aScreen.getIndex());
         
         final AbstractGraphicsConfiguration cfg = GraphicsConfigurationFactory.getFactory(getScreen().getDisplay().getGraphicsDevice(), capsRequested).chooseGraphicsConfiguration(
-                capsRequested, capsRequested, capabilitiesChooser, getScreen().getGraphicsScreen(), VisualIDHolder.VID_UNDEFINED);
+                capsRequested, capsRequested, capabilitiesChooser, eglScreen, VisualIDHolder.VID_UNDEFINED);
         if (null == cfg) {
             throw new NativeWindowException("Error choosing GraphicsConfiguration creating window: "+this);
         }
@@ -82,6 +93,8 @@ public class WindowDriver extends WindowImpl {
     }
 
     protected void closeNativeImpl() {
+        final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getGraphicsConfiguration().getScreen().getDevice();
+        
         removeWindowListener(LinuxMouseTracker.getSingleton());
         removeWindowListener(LinuxEventDeviceTracker.getSingleton());
         
@@ -89,6 +102,8 @@ public class WindowDriver extends WindowImpl {
             CloseWindow(windowHandleClose, windowUserData);
             windowUserData=0;
         }
+        
+        eglDevice.close();
     }
 
     protected void requestFocusImpl(boolean reparented) { 

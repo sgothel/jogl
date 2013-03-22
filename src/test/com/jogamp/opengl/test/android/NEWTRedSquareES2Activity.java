@@ -70,7 +70,6 @@ public class NEWTRedSquareES2Activity extends NewtBaseActivity {
        });
        Animator animator = new Animator(glWindow);
        // animator.setRunAsFastAsPossible(true);
-       setAnimator(animator);
        // glWindow.setSkipContextReleaseThread(animator.getThread());
        glWindow.setVisible(true);
        

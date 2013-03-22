@@ -82,7 +82,6 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
               
        try {
            final Animator animator = new Animator();
-           setAnimator(animator);
            
            // Main           
            final MovieSimple demoMain = new MovieSimple(urlConnection0);

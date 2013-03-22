@@ -32,9 +32,12 @@ import java.util.List;
 
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.opengl.FPSCounter;
+import javax.media.opengl.GLAnimatorControl;
+import javax.media.opengl.GLAutoDrawable;
 
 import com.jogamp.newt.Window;
-import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.GLEventListenerState;
+import com.jogamp.opengl.GLStateKeeper;
 
 import jogamp.newt.driver.android.WindowDriver;
 
@@ -46,12 +49,46 @@ import android.view.WindowManager;
 
 public class NewtBaseActivity extends Activity {
    List<Window> newtWindows = new ArrayList<Window>();
-   Animator animator = null;
+   List<GLAutoDrawable> glAutoDrawables = new ArrayList<GLAutoDrawable>();
+   
+   GLAnimatorControl animator = null;
     
    boolean isDelegatedActivity;
    Activity rootActivity;
    boolean setThemeCalled = false;
       
+   protected void startAnimation(boolean start) {
+     if(null != animator) {
+         final boolean res;
+         if( start ) {
+             if( animator.isPaused() ) { 
+                 res = animator.resume(); 
+             } else { 
+                 res = animator.start(); 
+             }
+         } else {
+             res = animator.stop();
+         }
+         Log.d(MD.TAG, "Animator global: start "+start+", result "+res);
+     }
+     for(int i=0; i<glAutoDrawables.size(); i++) {
+         final GLAnimatorControl anim = glAutoDrawables.get(i).getAnimator();
+         if(null != anim) {
+             final boolean res;
+             if( start ) {
+                 if( anim.isPaused() ) { 
+                     res = anim.resume(); 
+                 } else { 
+                     res = anim.start(); 
+                 }
+             } else {
+                 res = anim.stop();
+             }
+             Log.d(MD.TAG, "Animator glad["+i+"]: start "+start+", result "+res);
+         }
+     }
+   }
+       
    public NewtBaseActivity() {
        super();
        isDelegatedActivity = false;
@@ -79,19 +116,21 @@ public class NewtBaseActivity extends Activity {
     * </p>  
     * @param androidWindow
     * @param newtWindow
+    * @throws IllegalArgumentException if the <code>newtWindow</code>'s {@link Window#getDelegatedWindow() delegate} is not an AndroidDriver.
+    * @see #registerNEWTWindow(Window)
     * @see #addContentView(android.view.Window, Window, android.view.ViewGroup.LayoutParams)
     */
-   public void setContentView(android.view.Window androidWindow, Window newtWindow) {
-       newtWindow = newtWindow.getDelegatedWindow();
-       if(newtWindow instanceof WindowDriver) {
-           adaptTheme4Transparency(newtWindow.getRequestedCapabilities());
-           layoutForNEWTWindow(androidWindow, newtWindow);
-           WindowDriver newtAWindow = (WindowDriver)newtWindow;
+   public void setContentView(final android.view.Window androidWindow, final Window newtWindow) throws IllegalArgumentException {
+       final Window delegateWindow = newtWindow.getDelegatedWindow();
+       if(delegateWindow instanceof WindowDriver) {
+           adaptTheme4Transparency(delegateWindow.getRequestedCapabilities());
+           layoutForNEWTWindow(androidWindow, delegateWindow);
+           final WindowDriver newtAWindow = (WindowDriver)delegateWindow;
            androidWindow.setContentView(newtAWindow.getAndroidView());
-           registerNEWTWindow(newtAWindow);
        } else {
-           throw new IllegalArgumentException("Given NEWT Window is not an Android Window: "+newtWindow.getClass()); 
+           throw new IllegalArgumentException("Given NEWT Window is not an Android Window: "+newtWindow.getClass().getName()); 
        }
+       registerNEWTWindow(newtWindow);
    }
    /**
     * This is one of the three registration methods (see below).
@@ -102,35 +141,67 @@ public class NewtBaseActivity extends Activity {
     * @param androidWindow
     * @param newtWindow
     * @param params
-    * @see #setContentView(android.view.Window, Window)
+    * @throws IllegalArgumentException if the <code>newtWindow</code>'s {@link Window#getDelegatedWindow() delegate} is not an AndroidDriver.
     * @see #registerNEWTWindow(Window)
+    * @see #setContentView(android.view.Window, Window)
     */
-   public void addContentView(android.view.Window androidWindow, Window newtWindow, android.view.ViewGroup.LayoutParams params) {
-       newtWindow = newtWindow.getDelegatedWindow();
-       if(newtWindow instanceof WindowDriver) {
-           WindowDriver newtAWindow = (WindowDriver)newtWindow;
+   public void addContentView(final android.view.Window androidWindow, final Window newtWindow, final android.view.ViewGroup.LayoutParams params) throws IllegalArgumentException {
+       final Window delegateWindow = newtWindow.getDelegatedWindow();
+       if(delegateWindow instanceof WindowDriver) {
+           final WindowDriver newtAWindow = (WindowDriver)delegateWindow;
            androidWindow.addContentView(newtAWindow.getAndroidView(), params);
-           registerNEWTWindow(newtAWindow);
        } else {
-           throw new IllegalArgumentException("Given NEWT Window is not an Android Window: "+newtWindow.getClass()); 
+           throw new IllegalArgumentException("Given NEWT Window's Delegate is not an Android Window: "+delegateWindow.getClass().getName()); 
        }       
+       registerNEWTWindow(newtWindow);
    }
    /**
     * This is one of the three registration methods (see below).
     * <p>
-    * This methods simply registers the given NEWT window to ensure it's destruction at {@link #onDestroy()}.
-    * </p>  
+    * This methods registers the given NEWT window to ensure it's destruction at {@link #onDestroy()}.
+    * </p>
+    * <p>
+    * If adding a {@link GLAutoDrawable} implementation, the {@link GLAnimatorControl} retrieved by {@link GLAutoDrawable#getAnimator()} 
+    * will be used for {@link #onPause()} and {@link #onResume()}.
+    * </p>
+    * <p>
+    * If adding a {@link GLAutoDrawable} implementation, the {@link GLEventListenerState} will preserve it's state 
+    * when {@link #onPause()} is being called while not {@link #isFinishing()}. A later {@link #onResume()} will 
+    * reinstate the {@link GLEventListenerState}.
+    * </p>
     * 
     * @param newtWindow
+    * @throws IllegalArgumentException if the <code>newtWindow</code>'s {@link Window#getDelegatedWindow() delegate} is not an AndroidDriver.
     * @see #setContentView(android.view.Window, Window)
     * @see #addContentView(android.view.Window, Window, android.view.ViewGroup.LayoutParams)
     */
-   public void registerNEWTWindow(Window newtWindow) {
-       newtWindow = newtWindow.getDelegatedWindow();
-       WindowDriver newtAWindow = (WindowDriver)newtWindow;
-       newtAWindow.registerActivity(getActivity());
+   public void registerNEWTWindow(final Window newtWindow) throws IllegalArgumentException {
+       final Window delegateWindow = newtWindow.getDelegatedWindow();
+       Log.d(MD.TAG, "registerNEWTWindow: Type "+newtWindow.getClass().getName()+", delegate "+delegateWindow.getClass().getName());
+       if(delegateWindow instanceof WindowDriver) {
+           final WindowDriver newtAWindow = (WindowDriver)delegateWindow;
+           newtAWindow.registerActivity(getActivity());
+       } else {
+           throw new IllegalArgumentException("Given NEWT Window's Delegate is not an Android Window: "+delegateWindow.getClass().getName()); 
+       }       
        newtWindows.add(newtWindow);
+       if(newtWindow instanceof GLAutoDrawable) {
+           glAutoDrawables.add((GLAutoDrawable)newtWindow);
+       }
+       if(newtWindow instanceof GLStateKeeper) {
+           ((GLStateKeeper)newtWindow).setGLStateKeeperListener(glStateKeeperListener);
+       }
    }
+   private final GLStateKeeper.Listener glStateKeeperListener = new GLStateKeeper.Listener() {
+       @Override
+       public void glStatePreserveNotify(GLStateKeeper glsk) {
+           Log.d(MD.TAG, "GLStateKeeper Preserving: 0x"+Integer.toHexString(glsk.hashCode()));
+       }
+       @Override
+       public void glStateRestored(GLStateKeeper glsk) {
+           Log.d(MD.TAG, "GLStateKeeper Restored: 0x"+Integer.toHexString(glsk.hashCode()));
+       }
+   };
    
    /**
     * Convenient method to set the Android window's flags to fullscreen or size-layout depending on the given NEWT window. 
@@ -224,7 +295,19 @@ public class NewtBaseActivity extends Activity {
        }
    }
    
-   public void setAnimator(Animator animator) {
+   /**
+    * Setting up a global {@Link GLAnimatorControl} for {@link #onPause()} and {@link #onResume()}.
+    * <p>
+    * Note that if adding a {@link GLAutoDrawable} implementation via {@link #registerNEWTWindow(Window)},
+    * {@link #setContentView(android.view.Window, Window)} or {@link #addContentView(android.view.Window, Window, android.view.ViewGroup.LayoutParams)}
+    * their {@link GLAnimatorControl} retrieved by {@link GLAutoDrawable#getAnimator()} will be used as well.
+    * In this case, using this global {@Link GLAnimatorControl} is redundant. 
+    * </p>
+    * @see #registerNEWTWindow(Window)
+    * @see #setContentView(android.view.Window, Window)
+    * @see #addContentView(android.view.Window, Window, android.view.ViewGroup.LayoutParams)
+    */
+   public void setAnimator(GLAnimatorControl animator) {
        this.animator = animator;
        if(!animator.isStarted()) {
            animator.start();
@@ -279,23 +362,33 @@ public class NewtBaseActivity extends Activity {
              ((FPSCounter)win).resetFPSCounter();
          }
      }
-     if(null != animator) {
-         animator.resume();
-         animator.resetFPSCounter();
-     }
+     startAnimation(true);
    }
 
    @Override
    public void onPause() {
      Log.d(MD.TAG, "onPause");
-     if(null != animator) {
-         animator.pause();
+     if( !getActivity().isFinishing() ) {
+         int ok=0, fail=0;
+         for(int i=0; i<glAutoDrawables.size(); i++) {
+             final GLAutoDrawable glad = glAutoDrawables.get(i);
+             if(glad instanceof GLStateKeeper) {
+                 if( ((GLStateKeeper)glad).preserveGLStateAtDestroy(true) ) {
+                     ok++;
+                 } else {
+                     fail++;
+                 }
+             }
+         }
+         Log.d(MD.TAG, "GLStateKeeper.Preserving: Total "+glAutoDrawables.size()+", OK "+ok+", Fail "+fail);
      }
      for(int i=0; i<newtWindows.size(); i++) {
          final Window win = newtWindows.get(i);
          win.setVisible(false);
+         win.destroy();
      }
-     if(!isDelegatedActivity()) {
+     startAnimation(false);
+     if( !isDelegatedActivity() ) {
          super.onPause();
      }
    }
@@ -303,7 +396,7 @@ public class NewtBaseActivity extends Activity {
    @Override
    public void onStop() {
      Log.d(MD.TAG, "onStop");
-     if(!isDelegatedActivity()) {
+     if( !isDelegatedActivity() ) {
          super.onStop();  
      }
    }
@@ -311,14 +404,8 @@ public class NewtBaseActivity extends Activity {
    @Override
    public void onDestroy() {
      Log.d(MD.TAG, "onDestroy");
-     if(null != animator) {
-         animator.stop();
-         animator = null;
-     }
-     while(newtWindows.size()>0) {
-         final Window win = newtWindows.remove(newtWindows.size()-1);
-         win.destroy();
-     }
+     newtWindows.clear();
+     glAutoDrawables.clear();
      jogamp.common.os.android.StaticContext.clear();
      if(!isDelegatedActivity()) {
          super.onDestroy(); 

@@ -82,7 +82,6 @@ public class MovieCubeActivity0 extends NewtBaseActivity {
               
        try {
            final Animator animator = new Animator();
-           setAnimator(animator);
            
            // Main           
            final MovieCube demoMain = new MovieCube(urlConnection0, -2.3f, 0f, 0f);

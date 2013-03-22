@@ -78,7 +78,6 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
        });
        Animator animator = new Animator(glWindow);
        // animator.setRunAsFastAsPossible(true);
-       setAnimator(animator);
        // glWindow.setSkipContextReleaseThread(animator.getThread());
        
        if( null != System.getProperty(forceECT) ) {
