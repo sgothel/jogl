@@ -50,7 +50,8 @@ import javax.media.opengl.GLRunnable;
 
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.GLAutoDrawableDelegate;
-import com.jogamp.opengl.util.GLEventListenerState;
+import com.jogamp.opengl.GLEventListenerState;
+import com.jogamp.opengl.GLStateKeeper;
 
 
 /**
@@ -61,7 +62,7 @@ import com.jogamp.opengl.util.GLEventListenerState;
  * @see GLPBufferImpl
  * @see GLWindow
  */
-public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
+public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeeper, FPSCounter {
     public static final boolean DEBUG = GLDrawableImpl.DEBUG;
     
     protected final GLDrawableHelper helper = new GLDrawableHelper();
@@ -71,6 +72,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     protected GLContextImpl context;
     protected boolean preserveGLELSAtDestroy;
     protected GLEventListenerState glels;
+    protected GLStateKeeper.Listener glStateKeeperListener;
     protected final boolean ownsDevice;
     protected int additionalCtxCreationFlags = 0;
     protected volatile boolean sendReshape = false; // volatile: maybe written by WindowManager thread w/o locking
@@ -93,6 +95,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
         this.context = context;
         this.preserveGLELSAtDestroy = false;
         this.glels = null;
+        this.glStateKeeperListener = null;
         this.ownsDevice = ownsDevice;
         if(null != context && null != drawable) {
             context.setGLDrawable(drawable, false);
@@ -103,18 +106,35 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
     /** Returns the recursive lock object of the upstream implementation, which synchronizes multithreaded access. */ 
     protected abstract RecursiveLock getLock();
 
-    
-    /**
-     * If set to <code>true</code>, the next {@link #destroy()} operation will 
-     * {@link #pullGLEventListenerState() pull} to preserve the {@link GLEventListenerState}.
-     */
-    public final void setPreserveGLStateAtDestroy(boolean value) {
-        if( DEBUG ) {
-            System.err.println("GLAutoDrawableBase.setPreserveGLStateAtDestroy: ("+Thread.currentThread().getName()+"): "+preserveGLELSAtDestroy+" -> "+value+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
-        }
-        preserveGLELSAtDestroy = value;
+    @Override
+    public final GLStateKeeper.Listener setGLStateKeeperListener(Listener l) {
+        final GLStateKeeper.Listener pre = glStateKeeperListener;
+        glStateKeeperListener = l;
+        return pre;        
     }
     
+    @Override
+    public final boolean preserveGLStateAtDestroy(boolean value) {
+        final boolean res = isGLStatePreservationSupported() ? true : false;
+        if( res ) {
+            if( DEBUG ) {
+                System.err.println("GLAutoDrawableBase.setPreserveGLStateAtDestroy: ("+Thread.currentThread().getName()+"): "+preserveGLELSAtDestroy+" -> "+value+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
+            }
+            preserveGLELSAtDestroy = value;
+        } else {
+            
+        }
+        return res;
+    }
+    
+    @Override
+    public boolean isGLStatePreservationSupported() { return false; }
+    
+    @Override
+    public final GLEventListenerState getPreservedGLState() {
+        return glels;
+    }
+
     /**
      * Pulls the {@link GLEventListenerState} from this {@link GLAutoDrawable}.
      * 
@@ -130,6 +150,9 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
             throw new IllegalStateException("GLEventListenerState already pulled");            
         }
         if( null != context && context.isCreated() ) {
+            if( null!= glStateKeeperListener) {
+                glStateKeeperListener.glStatePreserveNotify(this);
+            }
             glels = GLEventListenerState.moveFrom(this);
             return null != glels;
         }
@@ -149,6 +172,9 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
         if( null != glels ) {
             glels.moveTo(this);
             glels = null;
+            if( null!= glStateKeeperListener) {
+                glStateKeeperListener.glStateRestored(this);
+            }            
             return true;
         }
         return false;        
@@ -286,7 +312,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, FPSCounter {
      */
     protected void destroyImplInLock() {
         if( preserveGLELSAtDestroy ) {
-            setPreserveGLStateAtDestroy(false);
+            preserveGLStateAtDestroy(false);
             pullGLEventListenerState();
         }
         if( null != context ) {

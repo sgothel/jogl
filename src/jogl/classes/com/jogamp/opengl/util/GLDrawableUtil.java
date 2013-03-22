@@ -33,6 +33,8 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLEventListener;
 
+import com.jogamp.opengl.GLEventListenerState;
+
 import jogamp.opengl.Debug;
 
 /**

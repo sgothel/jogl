@@ -46,8 +46,8 @@ import javax.media.opengl.GLProfile;
 
 
 import com.jogamp.opengl.GLAutoDrawableDelegate;
+import com.jogamp.opengl.GLEventListenerState;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.GLEventListenerState;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;

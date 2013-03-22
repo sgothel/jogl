@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.opengl.util;
+package com.jogamp.opengl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +74,7 @@ public class GLEventListenerState {
     private static final boolean DEBUG = Debug.debug("GLDrawable");
     
     private GLEventListenerState(AbstractGraphicsScreen upstreamScreen, boolean proxyOwnsUpstreamDevice, AbstractGraphicsScreen screen, GLCapabilitiesImmutable caps, 
-                                 GLContext context, int count, GLAnimatorControl anim) {
+                                 GLContext context, int count, GLAnimatorControl anim, boolean animStarted) {
         this.upstreamScreen = upstreamScreen;
         this.proxyOwnsUpstreamDevice = proxyOwnsUpstreamDevice;
         this.screen = screen;
@@ -83,6 +83,8 @@ public class GLEventListenerState {
         this.listeners = new GLEventListener[count];
         this.listenersInit = new boolean[count];
         this.anim = anim;
+        this.animStarted = animStarted;
+        
         this.owner = true;
     }
     /**
@@ -105,6 +107,7 @@ public class GLEventListenerState {
     public final GLEventListener[] listeners;
     public final boolean[] listenersInit;    
     public final GLAnimatorControl anim;
+    public final boolean animStarted;
     
     private boolean owner;
 
@@ -191,12 +194,16 @@ public class GLEventListenerState {
             aUpScreen2=_aUpScreen2;
         }
         
-        final GLAnimatorControl aAnim = a.getAnimator();    
+        final GLAnimatorControl aAnim = a.getAnimator();
+        final boolean aAnimStarted;
         if( null != aAnim ) {
+            aAnimStarted = aAnim.isStarted();
             aAnim.remove(a); // also handles ECT
+        } else {        
+            aAnimStarted = false;
         }
         
-        final GLEventListenerState glls = new GLEventListenerState(aUpScreen2, proxyOwnsUpstreamDevice, aScreen2, caps, a.getContext(), aSz, aAnim); 
+        final GLEventListenerState glls = new GLEventListenerState(aUpScreen2, proxyOwnsUpstreamDevice, aScreen2, caps, a.getContext(), aSz, aAnim, aAnimStarted); 
 
         //
         // remove and cache all GLEventListener and their init-state
@@ -332,6 +339,9 @@ public class GLEventListenerState {
         
         if( null != anim && null == a.getAnimator() ) {
             anim.add(a); // also handles ECT
+            if(animStarted) {
+                anim.start();
+            }
         }
     }
 

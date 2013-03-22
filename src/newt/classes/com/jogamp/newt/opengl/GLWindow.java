@@ -421,8 +421,8 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     protected class GLLifecycleHook implements WindowImpl.LifecycleHook {
 
         @Override
-        public void setPreserveResourcesAtDestroy() {
-            GLWindow.this.setPreserveGLStateAtDestroy(true);
+        public void preserveGLStateAtDestroy() {
+            GLWindow.this.preserveGLStateAtDestroy(true);
         }
         
         @Override
@@ -567,6 +567,9 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
             setVisible(true);
         }
     }
+    
+    @Override
+    public final boolean isGLStatePreservationSupported() { return true; }
 
     //----------------------------------------------------------------------
     // GLDrawable methods

@@ -231,7 +231,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
          * Notifies the receiver to preserve resources (GL, ..)
          * for the next destroy*() calls (only).
          */
-        void setPreserveResourcesAtDestroy();
+        void preserveGLStateAtDestroy();
         
         /** 
          * Invoked before Window destroy action, 
@@ -966,7 +966,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     protected void destroy(boolean preserveResources) {
         if( preserveResources && null != WindowImpl.this.lifecycleHook ) {
-            WindowImpl.this.lifecycleHook.setPreserveResourcesAtDestroy();
+            WindowImpl.this.lifecycleHook.preserveGLStateAtDestroy();
         }
         destroy();
     }
