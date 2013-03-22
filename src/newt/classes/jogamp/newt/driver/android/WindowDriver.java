@@ -376,11 +376,17 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         setupInputListener(false);
         
         if(0 != eglSurface) {
-            final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getScreen().getDisplay().getGraphicsDevice();
-            if (!EGL.eglDestroySurface(eglDevice.getHandle(), eglSurface)) {
-                throw new GLException("Error destroying window surface (eglDestroySurface)");
+            try {
+                final EGLGraphicsDevice eglDevice = (EGLGraphicsDevice) getScreen().getDisplay().getGraphicsDevice();
+                if (!EGL.eglDestroySurface(eglDevice.getHandle(), eglSurface)) {
+                    throw new GLException("Error destroying window surface (eglDestroySurface)");
+                }
+            } catch (Throwable t) {
+                Log.d(MD.TAG, "closeNativeImpl: Catch exception "+t.getMessage());
+                t.printStackTrace();
+            } finally {
+                eglSurface = 0;
             }
-            eglSurface = 0;        
         }        
         release0(surfaceHandle);
 
