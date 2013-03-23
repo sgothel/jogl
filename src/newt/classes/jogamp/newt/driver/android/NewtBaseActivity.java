@@ -200,6 +200,7 @@ public class NewtBaseActivity extends Activity {
        @Override
        public void glStateRestored(GLStateKeeper glsk) {
            Log.d(MD.TAG, "GLStateKeeper Restored: 0x"+Integer.toHexString(glsk.hashCode()));
+           startAnimation(true);
        }
    };
    
@@ -380,12 +381,11 @@ public class NewtBaseActivity extends Activity {
                  }
              }
          }
-         Log.d(MD.TAG, "GLStateKeeper.Preserving: Total "+glAutoDrawables.size()+", OK "+ok+", Fail "+fail);
+         Log.d(MD.TAG, "GLStateKeeper.Mark2Preserve: Total "+glAutoDrawables.size()+", OK "+ok+", Fail "+fail);
      }
      for(int i=0; i<newtWindows.size(); i++) {
          final Window win = newtWindows.get(i);
          win.setVisible(false);
-         win.destroy();
      }
      startAnimation(false);
      if( !isDelegatedActivity() ) {
@@ -404,6 +404,10 @@ public class NewtBaseActivity extends Activity {
    @Override
    public void onDestroy() {
      Log.d(MD.TAG, "onDestroy");
+     for(int i=0; i<newtWindows.size(); i++) {
+         final Window win = newtWindows.get(i);
+         win.destroy();
+     }
      newtWindows.clear();
      glAutoDrawables.clear();
      jogamp.common.os.android.StaticContext.clear();
