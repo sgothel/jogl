@@ -434,12 +434,15 @@ public class GearsES2 implements GLEventListener {
         }
         
         public void mousePressed(MouseEvent e) {
-            if( !gesture2PtrZoom.isWithinGesture() && e.getPointerCount()==1 ) {
-                prevMouseX = e.getX();
-                prevMouseY = e.getY();
-                Object src = e.getSource();
-                if(e.getPressure(true)>0.8f && src instanceof Window) { // show Keyboard
-                   ((Window) src).setKeyboardVisible(true);
+            if( !gesture2PtrZoom.isWithinGesture() ) {
+                if( e.getPointerCount()==1 ) {
+                    prevMouseX = e.getX();
+                    prevMouseY = e.getY();
+                } else if( e.getPointerCount() == 4 ) {
+                    final Object src = e.getSource();
+                    if( e.getPressure(true) > 0.7f && src instanceof Window) { // show Keyboard
+                       ((Window) src).setKeyboardVisible(true);
+                    }
                 }
             }
         }
