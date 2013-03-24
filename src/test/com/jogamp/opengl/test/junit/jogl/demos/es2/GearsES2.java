@@ -420,23 +420,16 @@ public class GearsES2 implements GLEventListener {
 
         @Override
         public void mouseWheelMoved(MouseEvent e) {
-            float r = e.getWheelRotation() * 0.5f;
+            float[] rot = e.getRotation();
             if( e.isControlDown() ) {
                 // alternative zoom
-                panZ += r;
-                if( e.isShiftDown() ) {
-                    panZ += r;
-                }
-                System.err.println("panZ.2: incr "+r+", dblZoom "+e.isShiftDown()+" -> "+panZ);
+                final float incr = e.isShiftDown() ? rot[0] : rot[1] * 0.5f ;
+                panZ += incr;
+                System.err.println("panZ.2: incr "+incr+", dblZoom "+e.isShiftDown()+" -> "+panZ);
             } else {
                 // panning 
-                if( e.isShiftDown() ) {
-                    // horizontal
-                    panX -= r; // positive -> left
-                } else {
-                    // vertical
-                    panY += r; // positive -> up
-                }
+                panX -= rot[0]; // positive -> left
+                panY += rot[1]; // positive -> up
             }
         }
         

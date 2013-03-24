@@ -45,7 +45,7 @@ public class AndroidNewtEventFactory {
     private static final com.jogamp.newt.event.MouseEvent.PointerType aToolType2PointerType(int aToolType) {
         switch( aToolType ) {
             case MotionEvent.TOOL_TYPE_FINGER:
-                return com.jogamp.newt.event.MouseEvent.PointerType.Touch;
+                return com.jogamp.newt.event.MouseEvent.PointerType.TouchScreen;
             case MotionEvent.TOOL_TYPE_MOUSE:
                 return com.jogamp.newt.event.MouseEvent.PointerType.Mouse;
             case MotionEvent.TOOL_TYPE_STYLUS:
@@ -288,7 +288,8 @@ public class AndroidNewtEventFactory {
         //
         final int aType;
         final short nType;
-        float[] rotationXY = null;
+        final float rotationScale = touchSlop;
+        final float[] rotationXYZ = new float[] { 0f, 0f, 0f };
         int rotationSource = 0; // 1 - Gesture, 2 - ACTION_SCROLL        
         {
             final int aType0 = event.getActionMasked();
@@ -314,7 +315,9 @@ public class AndroidNewtEventFactory {
             }
                         
             if( gesture2FingerScrl.isWithinGesture() ) {
-                rotationXY = gesture2FingerScrl.getScrollDistanceXY();
+                final float[] rot = gesture2FingerScrl.getScrollDistanceXY();            
+                rotationXYZ[0] = rot[0] / rotationScale;
+                rotationXYZ[1] = rot[1] / rotationScale;
                 aType = ACTION_SCROLL; // 8
                 rotationSource = 1;
             } else {
@@ -327,30 +330,20 @@ public class AndroidNewtEventFactory {
             final short clickCount = 1;
             int modifiers = 0;
             
-            if( null == rotationXY && AndroidVersion.SDK_INT >= 12 && ACTION_SCROLL == aType ) { // API Level 12
-                rotationXY = new float[] { event.getAxisValue(android.view.MotionEvent.AXIS_X),
-                                           event.getAxisValue(android.view.MotionEvent.AXIS_Y) };
+            if( 0 == rotationSource && AndroidVersion.SDK_INT >= 12 && ACTION_SCROLL == aType ) { // API Level 12
+                rotationXYZ[0] = event.getAxisValue(android.view.MotionEvent.AXIS_X) / rotationScale;
+                rotationXYZ[1] = event.getAxisValue(android.view.MotionEvent.AXIS_Y) / rotationScale;
                 rotationSource = 2;
             }
             
-            final float rotation;
-            final float rotationScale = touchSlop;
-            if( null != rotationXY ) {
-                final float _rotation;
-                if( rotationXY[0]*rotationXY[0] > rotationXY[1]*rotationXY[1] ) {
+            if( 0 != rotationSource ) {
+                if( rotationXYZ[0]*rotationXYZ[0] > rotationXYZ[1]*rotationXYZ[1] ) {
                     // Horizontal
                     modifiers |= com.jogamp.newt.event.InputEvent.SHIFT_MASK;
-                    _rotation = rotationXY[0];
-                } else {
-                    // Vertical
-                    _rotation = rotationXY[1];
                 }
-                rotation =  _rotation / rotationScale;                
                 if(DEBUG_MOUSE_EVENT) {
-                    System.err.println("createMouseEvent: Scroll "+rotationXY[0]+"/"+rotationXY[1]+" -> "+_rotation+" / "+rotationScale+" -> "+rotation+" scaled -- mods "+modifiers+", source "+rotationSource);
+                    System.err.println("createMouseEvent: Scroll "+rotationXYZ[0]+"/"+rotationXYZ[1]+", "+rotationScale+", mods "+modifiers+", source "+rotationSource);
                 }      
-            } else {
-                rotation = 0.0f;
             }
             
             //
@@ -414,14 +407,14 @@ public class AndroidNewtEventFactory {
             final com.jogamp.newt.event.MouseEvent me1 = new com.jogamp.newt.event.MouseEvent(
                            nType,  src, unixTime,
                            modifiers, x, y, pressure, maxPressure, pointerTypes, pointerIds, 
-                           clickCount, button, rotation, rotationScale);
+                           clickCount, button, rotationXYZ, rotationScale);
             
             if( com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_RELEASED == nType ) {
                 return new com.jogamp.newt.event.MouseEvent[] { me1, 
                     new com.jogamp.newt.event.MouseEvent(
                            com.jogamp.newt.event.MouseEvent.EVENT_MOUSE_CLICKED, 
                            src, unixTime, modifiers, x, y, pressure, maxPressure, pointerTypes, pointerIds, 
-                           clickCount, button, rotation, rotationScale) };
+                           clickCount, button, rotationXYZ, rotationScale) };
             } else {
                 return new com.jogamp.newt.event.MouseEvent[] { me1 };
             }

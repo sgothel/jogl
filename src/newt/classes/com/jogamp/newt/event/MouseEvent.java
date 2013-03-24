@@ -52,7 +52,15 @@ public class MouseEvent extends InputEvent
     
     /** Type of pointer devices */
     public static enum PointerType{
-        Mouse(PointerClass.Offscreen), Pen(PointerClass.Onscreen), Touch(PointerClass.Onscreen), Undefined(PointerClass.Undefined);
+        /** {@link PointerClass#Offscreen} mouse. */
+        Mouse(PointerClass.Offscreen),
+        /** {@link PointerClass#Offscreen} touch pad, usually using fingers. */
+        TouchPad(PointerClass.Offscreen),
+        /** {@link PointerClass#Onscreen} touch screen, usually using fingers. */
+        TouchScreen(PointerClass.Onscreen),
+        /** {@link PointerClass#Onscreen} pen on screen ?. */
+        Pen(PointerClass.Onscreen),
+        Undefined(PointerClass.Undefined);
         
         public PointerClass getPointerClass() { return pc; }
         
@@ -101,15 +109,20 @@ public class MouseEvent extends InputEvent
         this.pointerIDs = constMousePointerIDs;
         this.clickCount=clickCount;
         this.button=button;
-        this.wheelRotation = rotation;
-        this.wheelScale = 1f;
+        this.rotationXYZ = new float[] { 0f, 0f, 0f };
+        if( isShiftDown() ) {
+            this.rotationXYZ[0] = rotation;
+        } else {
+            this.rotationXYZ[1] = rotation;
+        }
+        this.rotationScale = 1f;
         this.pointerTypes = constMousePointerTypes;
     }
 
     /** Constructor for multi-touch pointer events. */ 
     public MouseEvent(short eventType, Object source, long when,
                       int modifiers, int[] x, int[] y, float[] pressure, float maxPressure, PointerType pointerTypes[], short[] pointerids, short clickCount,
-                      short button, float rotation, float rotationScale)
+                      short button, float[] rotationXYZ, float rotationScale)
     {
         super(eventType, source, when, modifiers); 
         this.x = x;
@@ -127,8 +140,8 @@ public class MouseEvent extends InputEvent
         this.pointerIDs = pointerids;
         this.clickCount=clickCount;
         this.button=button;
-        this.wheelRotation = rotation;
-        this.wheelScale = rotationScale;
+        this.rotationXYZ = rotationXYZ;
+        this.rotationScale = rotationScale;
         this.pointerTypes = pointerTypes;
     }
     
@@ -252,18 +265,62 @@ public class MouseEvent extends InputEvent
      * </p>
      * <p>
      * The button number refers to the wheel number.
-     * </p> 
-     * @return
+     * </p>
+     * @deprecated Use {@link #getRotation()}
      */
     public float getWheelRotation() {
-        return wheelRotation;
+        return isShiftDown() ? rotationXYZ[0] : rotationXYZ[1] ;
     }
 
+    /**
+     * Returns a 3-component float array filled with the values of the rotational axis
+     * in the following order: horizontal-, vertical- and z-axis.
+     * <p> 
+     * A vertical rotation of <b>&gt; 0.0f is up</b> and <b>&lt; 0.0f is down</b>.
+     * </p>
+     * <p>
+     * A horizontal rotation of <b>&gt; 0.0f is left</b> and <b>&lt; 0.0f is right</b>.   
+     * </p>
+     * <p>
+     * A z-axis rotation of <b>&gt; 0.0f is back</b> and <b>&lt; 0.0f is front</b>.   
+     * </p>
+     * <p>
+     * <i>However</i>, on some OS this might be flipped due to the OS <i>default</i> behavior.
+     * The latter is true for OS X 10.7 (Lion) for example.
+     * </p>
+     * <p>
+     * On PointerClass {@link PointerClass#Onscreen onscreen} devices, i.e. {@link PointerType#TouchScreen touch screens}, 
+     * rotation events are usually produced by a 2-finger movement, where horizontal and vertical rotation values are filled.
+     * </p>
+     * <p>
+     * On PointerClass {@link PointerClass#Offscreen offscreen} devices, i.e. {@link PointerType#Mouse mouse},
+     * either the horizontal or the vertical rotation value is filled.
+     * </p>
+     * <p>
+     * The {@link InputEvent#SHIFT_MASK} modifier is set in case <b>|horizontal| &gt; |vertical|</b> value.<br/>
+     * This can be utilized to implement only one 2d rotation direction, you may use {@link #isShiftDown()} to query it.  
+     * </p>
+     * <p>
+     * In case the pointer type is {@link PointerType#Mouse mouse},
+     * events are usually send in steps of one, ie. <i>-1.0f</i> and <i>1.0f</i>.
+     * Higher values may result due to fast scrolling.
+     * Fractional values may result due to slow scrolling with high resolution devices.<br/>  
+     * Here the button number refers to the wheel number.
+     * </p>
+     * <p>
+     * In case the pointer type is of class {@link PointerClass#Onscreen}, e.g. {@link PointerType#TouchScreen touch screen},
+     * see {@link #getRotationScale()} for semantics.
+     * </p>
+     */
+    public float[] getRotation() {
+        return rotationXYZ;
+    }
+    
     /** 
-     * Returns the scale used to determine the {@link #getWheelRotation() wheel rotation},
+     * Returns the scale used to determine the {@link #getRotation() rotation value},
      * which semantics depends on the {@link #getPointerType() pointer type's} {@link PointerClass}.
      * <p>
-     * For {@link PointerClass#Offscreen}, the scale is always <code>1.0f</code> and denominates
+     * For {@link PointerClass#Offscreen}, the scale is usually <code>1.0f</code> and denominates
      * an abstract value without association to a physical value.
      * </p> 
      * <p>
@@ -272,8 +329,8 @@ public class MouseEvent extends InputEvent
      * Hence <code>scale * rotation</code> reproduces the screen distance in pixels the finger[s] have moved. 
      * </p> 
      */
-    public float getWheelScale() {
-        return wheelScale;
+    public float getRotationScale() {
+        return rotationScale;
     }
     
     public String toString() {
@@ -287,7 +344,7 @@ public class MouseEvent extends InputEvent
         sb.append("MouseEvent[").append(getEventTypeString(getEventType()))
         .append(", ").append(x).append("/").append(y)
         .append(", button ").append(button).append(", count ")
-        .append(clickCount).append(", wheel rotation ").append(wheelRotation).append(" * ").append(wheelScale);
+        .append(clickCount).append(", rotation [").append(rotationXYZ[0]).append(", ").append(rotationXYZ[1]).append(", ").append(rotationXYZ[2]).append("] * ").append(rotationScale);
         if(pointerIDs.length>0) {
             sb.append(", pointer<").append(pointerIDs.length).append(">[");
             for(int i=0; i<pointerIDs.length; i++) {
@@ -320,8 +377,8 @@ public class MouseEvent extends InputEvent
     private final int x[], y[];
     // private final short tiltX[], tiltY[]; // TODO: A generic way for pointer axis information, see Android MotionEvent!
     private final short clickCount, button;
-    private final float wheelRotation;
-    private final float wheelScale;
+    private final float[] rotationXYZ;
+    private final float rotationScale;
     private final float pressure[];
     private final float maxPressure;
     private final short pointerIDs[];
