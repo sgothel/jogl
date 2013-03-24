@@ -54,7 +54,8 @@ public class GearsES2 implements GLEventListener {
     private GLUniformData pmvMatrixUniform = null;
     private GLUniformData colorU = null;
     private float view_rotx = 20.0f, view_roty = 30.0f, view_rotz = 0.0f;
-    private float panX = 0.0f, panY = 0.0f;
+    private float panX = 0.0f, panY = 0.0f, panZ=0.0f;
+    private int drawableHeight = 1;
     private GearsObjectES2 gear1=null, gear2=null, gear3=null;
     private float angle = 0.0f;
     private int swapInterval = 0;
@@ -63,7 +64,6 @@ public class GearsES2 implements GLEventListener {
     public MouseListener gearsMouse = new GearsMouseAdapter();    
     public KeyListener gearsKeys = new GearsKeyAdapter();
 
-    private int prevMouseX, prevMouseY;
     private boolean doRotate = true;
     private boolean ignoreFocus = false;
     private boolean clearBuffers = true;
@@ -210,6 +210,9 @@ public class GearsES2 implements GLEventListener {
 
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
         System.err.println(Thread.currentThread()+" GearsES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(drawable.getHandle()));
+        
+        drawableHeight = height;
+        
         // Thread.dumpStack();
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
@@ -223,10 +226,10 @@ public class GearsES2 implements GLEventListener {
         
         if(height>width) {
             float h = (float)height / (float)width;
-            pmvMatrix.glFrustumf(-1.0f, 1.0f, -h, h, 5.0f, 60.0f);
+            pmvMatrix.glFrustumf(-1.0f, 1.0f, -h, h, 5.0f, 200.0f);
         } else {
             float h = (float)width / (float)height;
-            pmvMatrix.glFrustumf(-h, h, -1.0f, 1.0f, 5.0f, 60.0f);
+            pmvMatrix.glFrustumf(-h, h, -1.0f, 1.0f, 5.0f, 200.0f);
         }
 
         pmvMatrix.glMatrixMode(PMVMatrix.GL_MODELVIEW);
@@ -302,7 +305,7 @@ public class GearsES2 implements GLEventListener {
 
         st.useProgram(gl, true);
         pmvMatrix.glPushMatrix();
-        pmvMatrix.glTranslatef(panX, panY, 0.0f);
+        pmvMatrix.glTranslatef(panX, panY, panZ);
         pmvMatrix.glRotatef(view_rotx, 1.0f, 0.0f, 0.0f);
         pmvMatrix.glRotatef(view_roty, 0.0f, 1.0f, 0.0f);
         pmvMatrix.glRotatef(view_rotz, 0.0f, 0.0f, 1.0f);
@@ -337,7 +340,71 @@ public class GearsES2 implements GLEventListener {
         }
     }
 
+    interface GestureHandler {
+        /** Returns true if within the gesture */ 
+        public boolean isWithinGesture();
+        /** Returns true if within the gesture */
+        public boolean onReleased(MouseEvent e);
+        /** Returns true if within the gesture */
+        public boolean onDragged(MouseEvent e);
+    }
+    final GestureHandler gesture2PtrZoom = new GestureHandler() {
+        private int zoomLastYDist;
+        private boolean zoomFirstTouch = true;
+        private boolean zoomMode = false;
+        
+        @Override
+        public boolean isWithinGesture() {
+            return zoomMode;
+        }
+
+        @Override
+        public boolean onReleased(MouseEvent e) {
+            if( zoomMode && e.getPointerCount()==1 ) {
+                zoomFirstTouch = true;
+                zoomMode = false;
+                System.err.println("panZ.X: "+e);
+            }
+            return zoomMode;
+        }
+
+        @Override
+        public boolean onDragged(MouseEvent e) {
+            if( e.getPointerCount() >=2 ) {
+                // 2 pointers zoom .. [ -15 .. 15 ], range 30
+                /** 
+                // Simple 1:1 Zoom: finger-distance to screen-coord
+                final int dy = Math.abs(e.getY(0)-e.getY(1));
+                float scale =  (float)dy / (float)drawableHeight;
+                panZ = 30f * scale - 15f; 
+                System.err.println("panZ: scale "+scale+" ["+dy+"/"+drawableHeight+"] -> "+panZ);
+                 */
+                // Diff. 1:1 Zoom: finger-distance to screen-coord
+                if(zoomFirstTouch) {
+                    zoomLastYDist = Math.abs(e.getY(0)-e.getY(1));
+                    zoomFirstTouch=false;
+                    zoomMode = true;
+                    System.err.println("panZ: 1st pinch "+zoomLastYDist+", "+e);
+                } else if( zoomMode ) {
+                    final int dy = Math.abs(e.getY(0)-e.getY(1));
+                    final int ddy = dy - zoomLastYDist;
+                    
+                    final float incr =  ( (float)ddy / (float)drawableHeight ) * 15.0f;                    
+                    panZ += incr; 
+                    if( e.getPointerCount() > 2 ) {
+                        panZ += incr;
+                    }
+                    System.err.println("panZ.1: ddy "+ddy+", incr "+incr+" ["+dy+"/"+drawableHeight+"], dblZoom "+(e.getPointerCount() > 2)+" -> "+panZ);
+                    
+                    zoomLastYDist = dy;
+                }
+            }
+            return zoomMode;
+        }        
+    };
+    
     class GearsMouseAdapter implements MouseListener{
+        private int prevMouseX, prevMouseY;
         
         @Override
         public void mouseClicked(MouseEvent e) {
@@ -353,41 +420,58 @@ public class GearsES2 implements GLEventListener {
 
         @Override
         public void mouseWheelMoved(MouseEvent e) {
-            float r = e.getWheelRotation() * 1.0f;
-            if( e.isShiftDown() ) {
-                // horizontal
-                panX -= r; // positive -> left
+            float r = e.getWheelRotation() * 0.5f;
+            if( e.isControlDown() ) {
+                // alternative zoom
+                panZ += r;
+                if( e.isShiftDown() ) {
+                    panZ += r;
+                }
+                System.err.println("panZ.2: incr "+r+", dblZoom "+e.isShiftDown()+" -> "+panZ);
             } else {
-                // vertical
-                panY += r; // positive -> up
+                // panning 
+                if( e.isShiftDown() ) {
+                    // horizontal
+                    panX -= r; // positive -> left
+                } else {
+                    // vertical
+                    panY += r; // positive -> up
+                }
             }
         }
         
         public void mousePressed(MouseEvent e) {
-            prevMouseX = e.getX();
-            prevMouseY = e.getY();
-            Object src = e.getSource();
-            if(e.getPressure(true)>0.8f && src instanceof Window) { // show Keyboard
-               ((Window) src).setKeyboardVisible(true);
-            }            
+            if( !gesture2PtrZoom.isWithinGesture() && e.getPointerCount()==1 ) {
+                prevMouseX = e.getX();
+                prevMouseY = e.getY();
+                Object src = e.getSource();
+                if(e.getPressure(true)>0.8f && src instanceof Window) { // show Keyboard
+                   ((Window) src).setKeyboardVisible(true);
+                }
+            }
         }
 
         public void mouseReleased(MouseEvent e) {
+            gesture2PtrZoom.onReleased(e);
         }
 
-        public void mouseMoved(MouseEvent e) {          
-            if(e.isConfined()) {
-                navigate(e);                                    
-            } else {
-                // track prev. position so we don't have 'jumps'
-                // in case we move to confined navigation.
-                prevMouseX = e.getX();
-                prevMouseY = e.getY();
+        public void mouseMoved(MouseEvent e) {
+            if( !gesture2PtrZoom.isWithinGesture() && e.getPointerCount()==1 ) {
+                if( e.isConfined() ) {
+                    navigate(e);
+                } else {
+                    // track prev. position so we don't have 'jumps'
+                    // in case we move to confined navigation.
+                    prevMouseX = e.getX();
+                    prevMouseY = e.getY();
+                }
             }
         }
         
         public void mouseDragged(MouseEvent e) {
-            navigate(e);
+            if( !gesture2PtrZoom.onDragged(e) && e.getPointerCount()==1 ) {
+                navigate(e);
+            }
         }
         
         private void navigate(MouseEvent e) {
@@ -423,6 +507,7 @@ public class GearsES2 implements GLEventListener {
             }
             prevMouseX = x;
             prevMouseY = y;
+            System.err.println("rotXY.1: "+view_rotx+"/"+view_roty+", source "+e);
         }
     }
 }
