@@ -34,9 +34,34 @@
 
 package com.jogamp.newt.event;
 
+/**
+ * Pointer event of type {@link PointerType}.
+ * <p>
+ * In case an instance represents multi-touch events, i.e. {@link #getPointerCount()} is &gt; 1,
+ * the first data element represents the pointer which triggered the action if individual to one pointer.<br/>
+ * For example {@link #getX(int) e.getX(0)} at {@link #EVENT_MOUSE_PRESSED} returns the data of the pressed pointer, etc.
+ * </p>
+ */
 @SuppressWarnings("serial")
 public class MouseEvent extends InputEvent
 {
+    /** Class of pointer types */
+    public static enum PointerClass{
+        Offscreen, Onscreen, Undefined;
+    }
+    
+    /** Type of pointer devices */
+    public static enum PointerType{
+        Mouse(PointerClass.Offscreen), Pen(PointerClass.Onscreen), Touch(PointerClass.Onscreen), Undefined(PointerClass.Undefined);
+        
+        public PointerClass getPointerClass() { return pc; }
+        
+        private PointerType(PointerClass pc) {
+            this.pc = pc;
+        }
+        PointerClass pc;
+    }
+    
     /** ID for button 1, value <code>1</code> */
     public static final short BUTTON1 = 1;
     /** ID for button 2, value <code>2</code> */
@@ -62,7 +87,8 @@ public class MouseEvent extends InputEvent
     public static final short getClickTimeout() { 
         return 300; 
     }
-
+        
+    /** Constructor for tradition 1-pointer mouse events. */ 
     public MouseEvent(short eventType, Object source, long when,
             int modifiers, int x, int y, short clickCount, short button,
             float rotation)
@@ -70,17 +96,20 @@ public class MouseEvent extends InputEvent
         super(eventType, source, when, modifiers); 
         this.x = new int[]{x};
         this.y = new int[]{y};
-        this.pressure = new float[]{0f};
+        this.pressure = constMousePressure;
         this.maxPressure= 1.0f;
-        this.pointerids = new short[]{-1};
+        this.pointerIDs = constMousePointerIDs;
         this.clickCount=clickCount;
         this.button=button;
         this.wheelRotation = rotation;
+        this.wheelScale = 1f;
+        this.pointerTypes = constMousePointerTypes;
     }
 
+    /** Constructor for multi-touch pointer events. */ 
     public MouseEvent(short eventType, Object source, long when,
-                      int modifiers, int[] x, int[] y, float[] pressure, float maxPressure, short[] pointerids, short clickCount,
-                      short button, float rotation)
+                      int modifiers, int[] x, int[] y, float[] pressure, float maxPressure, PointerType pointerTypes[], short[] pointerids, short clickCount,
+                      short button, float rotation, float rotationScale)
     {
         super(eventType, source, when, modifiers); 
         this.x = x;
@@ -95,10 +124,12 @@ public class MouseEvent extends InputEvent
         }
         this.pressure = pressure;
         this.maxPressure= maxPressure;
-        this.pointerids = pointerids;
+        this.pointerIDs = pointerids;
         this.clickCount=clickCount;
         this.button=button;
         this.wheelRotation = rotation;
+        this.wheelScale = rotationScale;
+        this.pointerTypes = pointerTypes;
     }
     
     /**
@@ -109,13 +140,25 @@ public class MouseEvent extends InputEvent
     }
     
     /**
+     * @return the {@link PointerType} for the data at index.
+     *  return null if index not available.
+     */
+    public PointerType getPointerType(int index) {
+        if(index >= pointerIDs.length) {
+            return null;
+        }
+        return pointerTypes[index];
+    }
+    
+    /**
      * @return the pointer id for the data at index.
      *  return -1 if index not available.
      */
     public short getPointerId(int index) {
-        if(index >= pointerids.length)
+        if(index >= pointerIDs.length) {
             return -1;
-        return pointerids[index];
+        }
+        return pointerIDs[index];
     }
     
     public short getButton() {
@@ -216,6 +259,23 @@ public class MouseEvent extends InputEvent
         return wheelRotation;
     }
 
+    /** 
+     * Returns the scale used to determine the {@link #getWheelRotation() wheel rotation},
+     * which semantics depends on the {@link #getPointerType() pointer type's} {@link PointerClass}.
+     * <p>
+     * For {@link PointerClass#Offscreen}, the scale is always <code>1.0f</code> and denominates
+     * an abstract value without association to a physical value.
+     * </p> 
+     * <p>
+     * For {@link PointerClass#Onscreen}, the scale varies and denominates
+     * the divisor of the distance the finger[s] have moved on the screen. 
+     * Hence <code>scale * rotation</code> reproduces the screen distance in pixels the finger[s] have moved. 
+     * </p> 
+     */
+    public float getWheelScale() {
+        return wheelScale;
+    }
+    
     public String toString() {
         return toString(null).toString();
     }
@@ -227,14 +287,14 @@ public class MouseEvent extends InputEvent
         sb.append("MouseEvent[").append(getEventTypeString(getEventType()))
         .append(", ").append(x).append("/").append(y)
         .append(", button ").append(button).append(", count ")
-        .append(clickCount).append(", wheel rotation ").append(wheelRotation);
-        if(pointerids.length>0) {
-            sb.append(", pointer<").append(pointerids.length).append(">[");
-            for(int i=0; i<pointerids.length; i++) {
+        .append(clickCount).append(", wheel rotation ").append(wheelRotation).append(" * ").append(wheelScale);
+        if(pointerIDs.length>0) {
+            sb.append(", pointer<").append(pointerIDs.length).append(">[");
+            for(int i=0; i<pointerIDs.length; i++) {
                 if(i>0) {
                     sb.append(", ");
                 }
-                sb.append(pointerids[i]).append(": ")
+                sb.append(pointerIDs[i]).append("/").append(pointerTypes[i]).append(": ")
                 .append(x[i]).append("/").append(y[i]).append(", ")
                 .append("p[").append(pressure[i]).append("/").append(maxPressure).append("=").append(pressure[i]/maxPressure).append("]");
             }
@@ -257,12 +317,19 @@ public class MouseEvent extends InputEvent
         default: return "unknown (" + type + ")";
         }
     }
-    private final int x[], y[];;
+    private final int x[], y[];
+    // private final short tiltX[], tiltY[]; // TODO: A generic way for pointer axis information, see Android MotionEvent!
     private final short clickCount, button;
     private final float wheelRotation;
+    private final float wheelScale;
     private final float pressure[];
     private final float maxPressure;
-    private final short pointerids[];
+    private final short pointerIDs[];
+    private final PointerType pointerTypes[];
+    
+    private static final float[] constMousePressure = new float[]{0f};
+    private static final short[] constMousePointerIDs = new short[]{0};
+    private static final PointerType[] constMousePointerTypes = new PointerType[] { PointerType.Mouse };
     
     public static final short EVENT_MOUSE_CLICKED  = 200;
     public static final short EVENT_MOUSE_ENTERED  = 201;
