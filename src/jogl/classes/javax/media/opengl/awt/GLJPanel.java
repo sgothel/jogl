@@ -109,15 +109,22 @@ import com.jogamp.opengl.util.GLPixelStorageModes;
     using {@link GLDrawableFactory#createOffscreenDrawable(AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int) GLDrawableFactory.createOffscreenDrawable(..)}.<br/>
     </P>
     <P>
-    The OpenGL rendered pixels are copied to an {@link BufferedImage} via {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer) glReadPixels(..)}
-    which is drawn to the Swing <i>space</i> via {@link Graphics#drawImage(java.awt.Image, int, int, int, int, java.awt.image.ImageObserver) Graphics.drawImage(...)}.
-    </p>
-    <P>
-    If FBO is being used and GLSL is available, a fragment shader is utilized
-    to flip the OpenGL pixels vertically before <code>glReadPixels(..)</code>,
-    if not disabled via system property <code>jogl.gljpanel.noglsl</code>.<br/>
-    Otherwise {@link System#arraycopy(Object, int, Object, int, int) System.arraycopy(..)} is used line by line, causing more CPU load per frame.
+    In case FBO is used and GLSL is available, a fragment shader is utilized
+    to flip the FBO texture vertically. This hardware-accelerated step can be disabled via system property <code>jogl.gljpanel.noglsl</code>.
     </P>
+    <P>
+    The OpenGL path is concluded by copying the rendered pixels an {@link BufferedImage} via {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer) glReadPixels(..)}
+    for later Java2D composition.
+    </p>
+    <p>
+    In case the above mentioned GLSL vertical-flipping is not performed,
+    {@link System#arraycopy(Object, int, Object, int, int) System.arraycopy(..)} is used line by line. 
+    This step causes more CPU load per frame and is not hardware-accelerated.
+    </p>
+    <p>
+    Finally the Java2D compositioning takes place via via {@link Graphics#drawImage(java.awt.Image, int, int, int, int, java.awt.image.ImageObserver) Graphics.drawImage(...)}
+    on the prepared {@link BufferedImage} as described above.
+    </p>
     <P>
  *  Please read <A HREF="GLCanvas.html#java2dgl">Java2D OpenGL Remarks</A>.
  *  </P>
