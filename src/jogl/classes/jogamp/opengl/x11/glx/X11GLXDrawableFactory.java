@@ -250,9 +250,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
             try {
                 final X11GraphicsScreen sharedScreen = new X11GraphicsScreen(sharedDevice, sharedDevice.getDefaultScreen());
                 
-                if(!GLXUtil.isGLXAvailableOnServer(sharedDevice)) {
-                    throw new GLException("GLX not available on device/server: "+sharedDevice);
-                }
                 GLXUtil.initGLXClientDataSingleton(sharedDevice);
                 final String glXServerVendorName = GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_VENDOR);
                 final VersionNumber glXServerVersion = GLXUtil.getGLXServerVersionNumber(sharedDevice);
