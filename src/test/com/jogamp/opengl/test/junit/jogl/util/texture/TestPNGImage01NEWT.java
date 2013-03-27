@@ -1,4 +1,4 @@
-package com.jogamp.opengl.test.junit.jogl.util;
+package com.jogamp.opengl.test.junit.jogl.util.texture;
 
 import java.io.File;
 import java.io.IOException;
