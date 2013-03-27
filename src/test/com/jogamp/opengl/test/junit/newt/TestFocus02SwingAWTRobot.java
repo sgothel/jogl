@@ -262,6 +262,7 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
                 } });
 
         glWindow1.destroy();
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow1, false));
     }
 
     @Test

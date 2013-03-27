@@ -393,6 +393,19 @@ public class AWTRobotUtil {
         Assert.assertTrue("Did not gain focus", hasFocus);
     }
 
+    private static void awtRobotKeyPress(final Robot robot, final int keyCode, final int msDelay) {
+        robot.waitForIdle();
+        robot.keyPress(keyCode);
+        robot.delay(msDelay);
+        robot.waitForIdle();
+    }
+    private static void awtRobotKeyRelease(final Robot robot, final int keyCode, final int msDelay) {
+        robot.waitForIdle();                        
+        robot.keyRelease(keyCode);
+        robot.delay(msDelay);
+        robot.waitForIdle();
+    }
+    
     public static int keyType(int i, Robot robot, int keyCode,
                               Object obj, KeyEventCountAdapter counter) throws InterruptedException, AWTException, InvocationTargetException 
     {
@@ -404,24 +417,23 @@ public class AWTRobotUtil {
         for(j=0; 1 > tc && j<RETRY_NUMBER; j++) {
             if(!hasFocus(obj)) {
                 // focus lost for some reason, regain it programmatic
-                if(DEBUG) { System.err.println(i+":"+j+" KC1.0: "+counter+" - regain focus"); }
+                if(DEBUG) { System.err.println(i+":"+j+" KC1.0: "+counter+" - regain focus on thread "+Thread.currentThread().getName()); }
                 requestFocus(null, obj);
             }
-            if(DEBUG) { System.err.println(i+":"+j+" KC1.1: "+counter); }
-            robot.waitForIdle();
-            robot.keyPress(keyCode);
-            robot.delay(10);
-            robot.keyRelease(keyCode);
-            robot.delay(100);
-            if(DEBUG) { System.err.println(i+":"+j+" KC1.2: "+counter); }
+            if(DEBUG) { System.err.println(i+":"+j+" KC1.1: "+counter+" on thread "+Thread.currentThread().getName()); }
+            awtRobotKeyPress(robot, keyCode, 50);
+            if(DEBUG) { System.err.println(i+":"+j+" KC1.2: "+counter+" on thread "+Thread.currentThread().getName()); }
+            awtRobotKeyRelease(robot, keyCode, 100);
+            if(DEBUG) { System.err.println(i+":"+j+" KC1.3: "+counter); }
             tc = ( null!=counter ? counter.getCount() : 1 ) - c0;
             for (int wait=0; wait<POLL_DIVIDER && 1 > tc; wait++) {
+                if(DEBUG) { System.err.println(i+":"+j+" KC1.4."+wait+": "+counter+", sleep for "+TIME_OUT+"ms"); }
                 robot.delay(TIME_SLICE);
                 tc = counter.getCount() - c0;
             }
-            if(DEBUG) { System.err.println(i+":"+j+" KC1.X: tc "+tc+", "+counter); }
+            if(DEBUG) { System.err.println(i+":"+j+" KC1.X: tc "+tc+", "+counter+" on thread "+Thread.currentThread().getName()); }
         }
-        Assert.assertEquals("Key ("+i+":"+j+") not typed one time", 1, tc);
+        Assert.assertEquals("Key ("+i+":"+j+") not typed one time on thread "+Thread.currentThread().getName(), 1, tc);
         return (int) ( System.currentTimeMillis() - t0 ) ;
     }
 
@@ -429,11 +441,10 @@ public class AWTRobotUtil {
     public static int keyPress(int i, Robot robot, boolean press, int keyCode, int msDelay) {
         final long t0 = System.currentTimeMillis();        
         if(press) {
-            robot.keyPress(keyCode);
+            awtRobotKeyPress(robot, keyCode, msDelay);
         } else {
-            robot.keyRelease(keyCode);
+            awtRobotKeyRelease(robot, keyCode, msDelay);
         }
-        robot.delay(msDelay);
         
         return (int) ( System.currentTimeMillis() - t0 ) ;
     }

@@ -208,6 +208,7 @@ public class TestFocus01SwingAWTRobot extends UITestCase {
             Assume.assumeNoException( throwable );
         }        
         glWindow1.destroy();
+        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow1, false));
     }
 
     static int atoi(String a) {

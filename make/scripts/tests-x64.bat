@@ -69,12 +69,10 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtK
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventAutoRepeatAWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyPressReleaseUnmaskRepeatAWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodesAWT %*
-
-REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNEWTWindowAWT $*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersAWTCanvas %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasAWT %*
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasSWT %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasSWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT %*
@@ -98,11 +96,10 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTBug6
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestWindows01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated
-REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot %*
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.nativewindow.TestRecursiveToolkitLockCORE
 
-REM scripts\java-win64.bat com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
