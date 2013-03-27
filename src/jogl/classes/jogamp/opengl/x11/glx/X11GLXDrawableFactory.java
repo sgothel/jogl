@@ -228,6 +228,22 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         @Override
+        public boolean isDeviceSupported(String connection) {
+            final boolean res;
+            final X11GraphicsDevice x11Device = new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT, true /* owner */);
+            x11Device.lock();
+            try {
+                res = GLXUtil.isGLXAvailableOnServer(x11Device);
+            } finally {
+                x11Device.unlock();
+            }
+            if(DEBUG) {
+                System.err.println("GLX "+(res ? "is" : "not")+" available on device/server: "+x11Device);
+            }
+            return res;
+        }
+        
+        @Override
         public SharedResourceRunner.Resource createSharedResource(String connection) {
             final X11GraphicsDevice sharedDevice = new X11GraphicsDevice(X11Util.openDisplay(connection), AbstractGraphicsDevice.DEFAULT_UNIT, true /* owner */);
             sharedDevice.lock();

@@ -46,6 +46,12 @@ public class SharedResourceRunner implements Runnable {
     public static interface Implementation {
         /**
          * @param connection for creation a {@link AbstractGraphicsDevice} instance. 
+         * @return <code>true</code> if the device supports all protocols required for the implementation, otherwise <code>false</code>. 
+         */
+        boolean isDeviceSupported(String connection);
+        
+        /**
+         * @param connection for creation a {@link AbstractGraphicsDevice} instance. 
          * @return A new shared resource instance 
          */
         Resource createSharedResource(String connection);
@@ -157,8 +163,10 @@ public class SharedResourceRunner implements Runnable {
                 if (DEBUG) {
                     System.err.println("SharedResourceRunner.getOrCreateShared() " + connection + ": trying - "+Thread.currentThread().getName());
                 }
-                doAndWait(connection, null);
-                sr = impl.mapGet(connection);
+                if ( impl.isDeviceSupported(connection) ) {
+                    doAndWait(connection, null);
+                    sr = impl.mapGet(connection);
+                }
                 if (DEBUG) {
                     System.err.println("SharedResourceRunner.getOrCreateShared() " + connection + ": "+ ( ( null != sr ) ? "success" : "failed" ) +" - "+Thread.currentThread().getName());
                 }

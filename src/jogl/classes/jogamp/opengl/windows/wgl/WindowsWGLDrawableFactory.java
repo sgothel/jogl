@@ -309,6 +309,11 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         }
 
         @Override
+        public boolean isDeviceSupported(String connection) {
+            return true;
+        }
+        
+        @Override
         public SharedResourceRunner.Resource createSharedResource(String connection) {
             final WindowsGraphicsDevice sharedDevice = new WindowsGraphicsDevice(connection, AbstractGraphicsDevice.DEFAULT_UNIT);
             sharedDevice.lock();
