@@ -327,32 +327,40 @@ public class NewtBaseActivity extends Activity {
    
    @Override
    public void onCreate(Bundle savedInstanceState) {
-       Log.d(MD.TAG, "onCreate");
+       Log.d(MD.TAG, "onCreate.0");
        if(!isDelegatedActivity()) {
            super.onCreate(savedInstanceState);
        }
+       // Extraordinary cleanup, for cases of 'onCreate()' calls w/ valid states, 
+       // i.e. w/o having onDestroy() being called.
+       // Could happened due to spec when App process is killed for memory exhaustion or other reasons.
+       cleanup();
+       
        jogamp.common.os.android.StaticContext.init(rootActivity.getApplicationContext());
+       Log.d(MD.TAG, "onCreate.X");
    }
    
    @Override
    public void onStart() {
-     Log.d(MD.TAG, "onStart");
+     Log.d(MD.TAG, "onStart.0");
      if(!isDelegatedActivity()) {
          super.onStart();
      }
+     Log.d(MD.TAG, "onStart.X");
    }
      
    @Override
    public void onRestart() {
-     Log.d(MD.TAG, "onRestart");
+     Log.d(MD.TAG, "onRestart.0");
      if(!isDelegatedActivity()) {
          super.onRestart();
      }
+     Log.d(MD.TAG, "onRestart.X");
    }
 
    @Override
    public void onResume() {
-     Log.d(MD.TAG, "onResume");
+     Log.d(MD.TAG, "onResume.0");
      if(!isDelegatedActivity()) {
          super.onResume();
      }
@@ -364,11 +372,12 @@ public class NewtBaseActivity extends Activity {
          }
      }
      startAnimation(true);
+     Log.d(MD.TAG, "onResume.X");
    }
 
    @Override
    public void onPause() {
-     Log.d(MD.TAG, "onPause");
+     Log.d(MD.TAG, "onPause.0");
      if( !getActivity().isFinishing() ) {
          int ok=0, fail=0;
          for(int i=0; i<glAutoDrawables.size(); i++) {
@@ -391,28 +400,64 @@ public class NewtBaseActivity extends Activity {
      if( !isDelegatedActivity() ) {
          super.onPause();
      }
+     Log.d(MD.TAG, "onPause.X");
    }
 
    @Override
    public void onStop() {
-     Log.d(MD.TAG, "onStop");
+     Log.d(MD.TAG, "onStop.0");
      if( !isDelegatedActivity() ) {
          super.onStop();  
      }
+     Log.d(MD.TAG, "onStop.X");
    }
-
-   @Override
-   public void onDestroy() {
-     Log.d(MD.TAG, "onDestroy");
+   
+   /**
+    * Performs cleaning up all references,
+    * <p>
+    * Cleaning and destroying up all preserved GLEventListenerState
+    * and clearing the preserve-flag of all GLStateKeeper.
+    * </p>
+    * <p>
+    * Destroying all GLWindow.
+    * </p>
+    */
+   private void cleanup() {
+     Log.d(MD.TAG, "cleanup.0");
+     int glelsKilled = 0, glelsClean = 0;
+     for(int i=0; i<glAutoDrawables.size(); i++) {
+         final GLAutoDrawable glad = glAutoDrawables.get(i);
+         if(glad instanceof GLStateKeeper) {
+             final GLStateKeeper glsk = (GLStateKeeper)glad;
+             glsk.preserveGLStateAtDestroy(false);
+             final GLEventListenerState glels = glsk.clearPreservedGLState();
+             if( null != glels) {
+                 glels.destroy();
+                 glelsKilled++;
+             } else {
+                 glelsClean++;
+             }
+         }
+     }
+     Log.d(MD.TAG, "cleanup.1: GLStateKeeper.ForceDestroy: Total "+glAutoDrawables.size()+", destroyed "+glelsKilled+", clean "+glelsClean);
      for(int i=0; i<newtWindows.size(); i++) {
          final Window win = newtWindows.get(i);
          win.destroy();
      }
      newtWindows.clear();
      glAutoDrawables.clear();
+     Log.d(MD.TAG, "cleanup.1: StaticContext.getContext: "+jogamp.common.os.android.StaticContext.getContext());
      jogamp.common.os.android.StaticContext.clear();
+     Log.d(MD.TAG, "cleanup.X");
+   }
+   
+   @Override
+   public void onDestroy() {
+     Log.d(MD.TAG, "onDestroy.0");
+     cleanup(); // normal cleanup
      if(!isDelegatedActivity()) {
          super.onDestroy(); 
      }
+     Log.d(MD.TAG, "onDestroy.X");
    }   
 }
