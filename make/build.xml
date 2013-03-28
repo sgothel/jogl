@@ -165,8 +165,8 @@
             androidmanifest.path="resources/android/AndroidManifest-jogl.xml"
             androidresources.path="resources/android/res-jogl"
             jarmanifest.path="${build.jogl}/manifest.mf"
-            version.code="${jogl_int_version}"
-            version.name="${jogl.version.plus}" />
+            version.code="${jogamp.version.int}"
+            version.name="${jogamp.version}" />
     </target>
 
     <target name="one.dir.skip.check" depends="init,gluegen.cpptasks.detect.os">
@@ -241,10 +241,11 @@
             tofile="${archive}/README.txt"
             overwrite="true">
             <filterset>
-                <filter token="VERSION"  value="${jogl.version}"/>
+                <filter token="VERSION" value="${jogamp.version}"/>
+                <filter token="BUILD_VERSION" value="${jogl.version}"/>
                 <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
                 <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
-                <filter token="BASEVERSION" value="${jogl_base_version}"/>
+                <filter token="BASEVERSION" value="${jogamp.version.base}"/>
             </filterset>
         </copy>
         <mkdir dir="${archive}/jar" />
@@ -343,10 +344,10 @@
         <property name="javadoc.overview" value="doc/jogl/spec-overview.html" />
 
         <property name="javadoc.nw.overview" value="../src/nativewindow/classes/javax/media/nativewindow/package.html" />
-        <property name="javadoc.nw.spec.windowtitle" value="NativeWindow API -- ${nativewindow_base_version} Specification" />
+        <property name="javadoc.nw.spec.windowtitle" value="NativeWindow API -- ${jogamp.version.base} Specification" />
         <property name="javadoc.nw.spec.packagenames" value="javax.media.nativewindow.*" />
 
-        <property name="javadoc.spec.windowtitle" value="JOGL API -- JSR-231 ${jogl_base_version} Specification" />
+        <property name="javadoc.spec.windowtitle" value="JOGL API -- JSR-231 ${jogamp.version.base} Specification" />
         <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
 
         <property name="javadoc.windowtitle" value="JOGL, NativeWindow and NEWT APIs" />

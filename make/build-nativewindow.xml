@@ -149,7 +149,7 @@
         <property name="javadoc" value="${project.root}/javadoc_nativewindow_public" />
         <property name="javadoc.spec" value="${project.root}/javadoc_nativewindow_spec" />
         <property name="javadoc.dev" value="${project.root}/javadoc_nativewindow_dev" />
-        <property name="javadoc.windowtitle" value="Native Windowing Interface (NativeWindow) API -- ${nativewindow_base_version} Specification" />
+        <property name="javadoc.windowtitle" value="Native Windowing Interface (NativeWindow) API -- ${jogamp.version.base} Specification" />
         <property name="javadoc.overview" value="../src/nativewindow/classes/javax/media/nativewindow/package.html" />
         <property name="javadoc.spec.packagenames" value="javax.media.nativewindow.*" />
 
@@ -794,10 +794,11 @@
           tofile="${build.nativewindow}/manifest.mf"
           overwrite="true">
           <filterset>
-              <filter token="VERSION" value="${nativewindow.version}"/>
+              <filter token="VERSION" value="${jogamp.version}"/>
+              <filter token="BUILD_VERSION" value="${jogl.version}"/>
               <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
               <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
-              <filter token="BASEVERSION" value="${nativewindow_base_version}"/>
+              <filter token="BASEVERSION" value="${jogamp.version.base}"/>
           </filterset>
         </copy>
     </target>
@@ -934,7 +935,7 @@
 
     <target name="generate.version.txt" depends="init">
         <!-- Create a version.txt file indicating which version we just built -->
-        <echo message="${nativewindow.version}" file="${build.nativewindow}/version.txt" />
+        <echo message="${jogl.version}" file="${build.nativewindow}/version.txt" />
     </target>
 
 </project>

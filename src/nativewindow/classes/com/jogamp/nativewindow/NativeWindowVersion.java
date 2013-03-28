@@ -31,6 +31,7 @@ package com.jogamp.nativewindow;
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.JogampVersion;
 import com.jogamp.common.util.VersionUtil;
+
 import java.util.jar.Manifest;
 
 public class NativeWindowVersion extends JogampVersion {
@@ -45,9 +46,10 @@ public class NativeWindowVersion extends JogampVersion {
         if(null == jogampCommonVersionInfo) { // volatile: ok
             synchronized(NativeWindowVersion.class) {
                 if( null == jogampCommonVersionInfo ) {
-                    final String packageName = "javax.media.nativewindow";
-                    final Manifest mf = VersionUtil.getManifest(NativeWindowVersion.class.getClassLoader(), packageName);
-                    jogampCommonVersionInfo = new NativeWindowVersion(packageName, mf);
+                    final String packageName1 = "javax.media.nativewindow"; // atomic packaging - and identity
+                    final String packageName2 = "javax.media.opengl"; // all packaging
+                    final Manifest mf = VersionUtil.getManifest(NativeWindowVersion.class.getClassLoader(), new String[]{ packageName1, packageName2 } );
+                    jogampCommonVersionInfo = new NativeWindowVersion(packageName1, mf);
                 }
             }
         }

@@ -46,9 +46,10 @@ public class NewtVersion extends JogampVersion {
         if(null == jogampCommonVersionInfo) { // volatile: ok
             synchronized(NewtVersion.class) {
                 if( null == jogampCommonVersionInfo ) {
-                    final String packageName = "com.jogamp.newt";
-                    final Manifest mf = VersionUtil.getManifest(NewtVersion.class.getClassLoader(), packageName);
-                    jogampCommonVersionInfo = new NewtVersion(packageName, mf);
+                    final String packageName1 = "com.jogamp.newt"; // atomic packaging - and identity
+                    final String packageName2 = "javax.media.opengl"; // all packaging
+                    final Manifest mf = VersionUtil.getManifest(NativeWindowVersion.class.getClassLoader(), new String[]{ packageName1, packageName2 } );
+                    jogampCommonVersionInfo = new NewtVersion(packageName1, mf);
                 }
             }
         }

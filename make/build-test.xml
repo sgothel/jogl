@@ -78,10 +78,11 @@
             tofile="${build.test}/manifest-test.mf"
             overwrite="true">
             <filterset>
-                <filter token="VERSION" value="${jogl.version}"/>
+                <filter token="VERSION" value="${jogamp.version}"/>
+                <filter token="BUILD_VERSION" value="${jogl.version}"/>
                 <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
                 <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
-                <filter token="BASEVERSION" value="${jogl_base_version}"/>
+                <filter token="BASEVERSION" value="${jogamp.version.base}"/>
             </filterset>
         </copy>
 
@@ -114,10 +115,11 @@
             tofile="${build.test}/manifest-test-android.mf"
             overwrite="true">
             <filterset>
-                <filter token="VERSION" value="${jogl.version}"/>
+                <filter token="VERSION" value="${jogamp.version}"/>
+                <filter token="BUILD_VERSION" value="${jogl.version}"/>
                 <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
                 <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
-                <filter token="BASEVERSION" value="${jogl_base_version}"/>
+                <filter token="BASEVERSION" value="${jogamp.version.base}"/>
             </filterset>
         </copy>
 
@@ -142,8 +144,8 @@
             androidmanifest.path="resources/android/AndroidManifest-test.xml"
             androidresources.path="resources/android/res-test"
             jarmanifest.path="${build.test}/manifest-test-android.mf"
-            version.code="${jogl_int_version}"
-            version.name="${jogl.version.plus}" />
+            version.code="${jogamp.version.int}"
+            version.name="${jogamp.version}" />
     </target>
 
     <target name="test.compile.check" depends="declare.common">

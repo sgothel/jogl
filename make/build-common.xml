@@ -27,8 +27,6 @@
       </not>
     </condition>
 
-    <import file="versions.xml" />
-
     <!-- ================================================================== -->
     <!-- 
        - Base initialization of properties and detection of operating system.
@@ -63,10 +61,6 @@
         <property name="stub.includes.gluegen.gg"  value="${gluegen.root}/make/stub_includes/gluegen" />
         <property name="stub.includes.gluegen.cc"  value="${gluegen.root}/make/stub_includes/platform" />
 
-        <tstamp>
-             <format property="version.timestamp" pattern="yyyyMMdd"/>
-        </tstamp>
-
         <property name="jogl.build.number" value="manual"/>
         <property name="jogl.build.id"     value="${version.timestamp}"/>
         <mkdir dir="${tempdir}" />
@@ -85,10 +79,7 @@
         </exec>
         <property name="jogl.build.commit" value="manual"/> <!-- fallback -->
 
-        <property name="nativewindow.version" value="${nativewindow_base_version}-b${jogl.build.number}-${version.timestamp}" />
-        <property name="jogl.version"         value="${jogl_base_version}-b${jogl.build.number}-${version.timestamp}" />
-        <property name="newt.version"         value="${newt_base_version}-b${jogl.build.number}-${version.timestamp}" />
-        <property name="jogl.version.plus"    value="${jogl_base_version}-${jogl.build.branch}-b${jogl.build.number}-${version.timestamp}" />
+        <property name="jogl.version"         value="${jogamp.version.base}-b${jogl.build.number}-${version.timestamp}" />
 
         <property name="archive.name"         value="jogl-${jogl.version}-${os.and.arch}" />
         <property name="archive"              value="${build}/${archive.name}" />

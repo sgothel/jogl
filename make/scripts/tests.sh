@@ -170,7 +170,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.GLContext"
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.Animator -Dnewt.debug.Screen"
     #D_ARGS="-Dnativewindow.debug.JAWT -Dnewt.debug.Window"
-    D_ARGS="-Dnewt.debug.Window.KeyEvent"
+    #D_ARGS="-Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Dnewt.debug.Window.MouseEvent"
     #D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug.JAWT -Djogl.debug.Animator"
@@ -294,7 +294,7 @@ function testawtswt() {
 #
 #testnoawt com.jogamp.nativewindow.NativeWindowVersion $*
 #testnoawt com.jogamp.opengl.JoglVersion $*
-#testnoawt com.jogamp.newt.NewtVersion $*
+testnoawt com.jogamp.newt.NewtVersion $*
 #testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFloatUtil01MatrixMatrixMultNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestPMVMatrix01NEWT $*
@@ -433,7 +433,7 @@ function testawtswt() {
 #
 #testawt com.jogamp.opengl.test.junit.jogl.newt.TestSwingAWTRobotUsageBeforeJOGLInitBug411 $*
 #testawt com.jogamp.opengl.test.junit.newt.TestEventSourceNotAWTBug
-testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
+#testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventOrderAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventAutoRepeatAWT $*
@@ -494,8 +494,9 @@ testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
 #
 # Texture / TextureUtils
 #
-#testnoawt com.jogamp.opengl.test.junit.jogl.util.TestPNGImage01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTexture01AWT
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGImage01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGImage01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite01AWT $*
@@ -544,9 +545,6 @@ testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
 #
 # regressions
 #
-#Windows
-#testawt com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot $*
-#testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
 
 # osx:
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDrawable02NEWT $*

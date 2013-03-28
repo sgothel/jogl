@@ -11,7 +11,7 @@ public class NewtVersionActivityLauncher extends Activity {
        public void onCreate(Bundle savedInstanceState) {
            super.onCreate(savedInstanceState);
            
-           final Uri uri = Uri.parse("launch://jogamp.org/jogamp.newt.driver.android.NewtVersionActivity");
+           final Uri uri = Uri.parse("launch://jogamp.org/jogamp.newt.driver.android.NewtVersionActivity?sys=com.jogamp.common&sys=javax.media.opengl&pkg=com.jogamp.opengl.test");
            final Intent intent = new Intent("org.jogamp.launcher.action.LAUNCH_ACTIVITY_NORMAL", uri);           
            Log.d(getClass().getSimpleName(), "Launching Activity: "+intent);
            startActivity (intent);
