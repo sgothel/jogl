@@ -60,7 +60,9 @@ public class NEWTGearsES2ActivityLauncher extends LauncherUtil.BaseActivityLaunc
        props.setProperty("newt.debug.Window", "true");
        props.setProperty("newt.debug.Window.MouseEvent", "true");
        props.setProperty("newt.debug.Window.KeyEvent", "true");
-       // props.setProperty("newt.debug.Android.MouseEvent", "true");       
+       // props.setProperty("newt.debug.Android.MouseEvent", "true");
+       
+       // props.setProperty("demo.force.killProcessTest", "true");
     }
     
     @Override

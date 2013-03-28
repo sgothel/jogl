@@ -27,6 +27,10 @@
  */
 package com.jogamp.opengl.test.android;
 
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
@@ -49,6 +53,7 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
    
    static final String forceRGBA5650 = "demo.force.rgba5650";
    static final String forceECT = "demo.force.ect";
+   static final String forceKillProcessTest = "demo.force.killProcessTest";
    
    @Override
    public void onCreate(Bundle savedInstanceState) {
@@ -76,6 +81,35 @@ public class NEWTGearsES2Activity extends NewtBaseActivity {
             System.err.println("ScreenMode Changed: "+sm);
         }
        });
+       if( null != System.getProperty(forceKillProcessTest) ) {
+           Log.d(TAG, "forceKillProcessTest");
+           glWindow.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if( e.getPointerCount() == 3 ) {
+                    Log.d(TAG, "MemoryHog");
+                    new Thread(new Runnable() {
+                        public void run() {
+                            ArrayList<Buffer> buffers = new ArrayList<Buffer>();
+                            while(true) {
+                                final int halfMB = 512 * 1024; 
+                                final float osizeMB = buffers.size() * 0.5f;
+                                final float nsizeMB = osizeMB + 0.5f;
+                                System.err.println("MemoryHog: ****** +4k: "+osizeMB+" MB +"+nsizeMB+" MB - Try");
+                                buffers.add(ByteBuffer.allocateDirect(halfMB)); // 0.5 MB each
+                                System.err.println("MemoryHog: ****** +4k: "+osizeMB+" MB +"+nsizeMB+" MB - Done");
+                                try {
+                                    Thread.sleep(500);
+                                } catch (Exception e) {};                            
+                            }
+                        } }, "MemoryHog").start();
+                } else if( e.getPointerCount() == 4 ) {
+                    Log.d(TAG, "ForceKill");
+                    android.os.Process.killProcess( android.os.Process.myPid() );
+                }                
+            }
+           });
+       }
        Animator animator = new Animator(glWindow);
        // animator.setRunAsFastAsPossible(true);
        // glWindow.setSkipContextReleaseThread(animator.getThread());
