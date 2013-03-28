@@ -121,8 +121,6 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
                 System.err.println("GLAutoDrawableBase.setPreserveGLStateAtDestroy: ("+Thread.currentThread().getName()+"): "+preserveGLELSAtDestroy+" -> "+value+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
             }
             preserveGLELSAtDestroy = value;
-        } else {
-            
         }
         return res;
     }
@@ -135,6 +133,13 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
         return glels;
     }
 
+    @Override
+    public final GLEventListenerState clearPreservedGLState() {
+        final GLEventListenerState r = glels;
+        glels = null;
+        return r;
+    }
+    
     /**
      * Pulls the {@link GLEventListenerState} from this {@link GLAutoDrawable}.
      * 

@@ -56,6 +56,7 @@ public interface GLStateKeeper {
      * @return <code>true</code> if GL state preservation is supported in implementation and on current platform, <code>false</code> otherwise.
      * @see #preserveGLStateAtDestroy(boolean)
      * @see #getPreservedGLState()
+     * @see #clearPreservedGLState()
      */
     public boolean isGLStatePreservationSupported();
     
@@ -73,6 +74,7 @@ public interface GLStateKeeper {
      * @return <code>true</code> if supported and successful, <code>false</code> otherwise.
      * @see #isGLStatePreservationSupported()
      * @see #getPreservedGLState()
+     * @see #clearPreservedGLState()
      */
     public boolean preserveGLStateAtDestroy(boolean value);
     
@@ -81,7 +83,18 @@ public interface GLStateKeeper {
      * otherwise <code>null</code>. 
      * @see #isGLStatePreservationSupported()
      * @see #preserveGLStateAtDestroy(boolean)
+     * @see #clearPreservedGLState()
      */
     public GLEventListenerState getPreservedGLState();
-
+    
+    /**
+     * Clears the preserved {@link GLEventListenerState} from this {@link GLStateKeeper}, without destroying it.
+     *  
+     * @return the preserved and cleared {@link GLEventListenerState} if preservation was performed,
+     *         otherwise <code>null</code>. 
+     * @see #isGLStatePreservationSupported()
+     * @see #preserveGLStateAtDestroy(boolean)
+     * @see #getPreservedGLState()
+     */
+    public GLEventListenerState clearPreservedGLState();
 }
