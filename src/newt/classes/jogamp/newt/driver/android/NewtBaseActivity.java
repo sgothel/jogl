@@ -392,10 +392,6 @@ public class NewtBaseActivity extends Activity {
          }
          Log.d(MD.TAG, "GLStateKeeper.Mark2Preserve: Total "+glAutoDrawables.size()+", OK "+ok+", Fail "+fail);
      }
-     for(int i=0; i<newtWindows.size(); i++) {
-         final Window win = newtWindows.get(i);
-         win.setVisible(false);
-     }
      startAnimation(false);
      if( !isDelegatedActivity() ) {
          super.onPause();
@@ -406,6 +402,10 @@ public class NewtBaseActivity extends Activity {
    @Override
    public void onStop() {
      Log.d(MD.TAG, "onStop.0");
+     for(int i=0; i<newtWindows.size(); i++) {
+         final Window win = newtWindows.get(i);
+         win.setVisible(false);
+     }
      if( !isDelegatedActivity() ) {
          super.onStop();  
      }
