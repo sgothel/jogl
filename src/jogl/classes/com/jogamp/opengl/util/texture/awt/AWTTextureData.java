@@ -37,15 +37,35 @@
 package com.jogamp.opengl.util.texture.awt;
 
 import java.awt.AlphaComposite;
-import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Transparency;
-import java.awt.color.*;
-import java.awt.image.*;
-import java.nio.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.ComponentColorModel;
+import java.awt.image.ComponentSampleModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
+import java.awt.image.DataBufferDouble;
+import java.awt.image.DataBufferFloat;
+import java.awt.image.DataBufferInt;
+import java.awt.image.DataBufferShort;
+import java.awt.image.DataBufferUShort;
+import java.awt.image.MultiPixelPackedSampleModel;
+import java.awt.image.SampleModel;
+import java.awt.image.SinglePixelPackedSampleModel;
+import java.awt.image.WritableRaster;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 
-import javax.media.opengl.*;
-import com.jogamp.opengl.util.texture.*;
+import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
+import javax.media.opengl.GL2GL3;
+import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
+
+import com.jogamp.opengl.util.texture.TextureData;
 
 public class AWTTextureData extends TextureData {
     // Mechanism for lazily converting input BufferedImages with custom
@@ -56,13 +76,13 @@ public class AWTTextureData extends TextureData {
     private boolean expectingEXTABGR;
     private boolean expectingGL12;
 
-    private static final ColorModel rgbaColorModel =
-        new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
+    private static final java.awt.image.ColorModel rgbaColorModel =
+        new ComponentColorModel(java.awt.color.ColorSpace.getInstance(java.awt.color.ColorSpace.CS_sRGB),
                                 new int[] {8, 8, 8, 8}, true, true, 
                                 Transparency.TRANSLUCENT,
                                 DataBuffer.TYPE_BYTE);
-    private static final ColorModel rgbColorModel =
-        new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
+    private static final java.awt.image.ColorModel rgbColorModel =
+        new ComponentColorModel(java.awt.color.ColorSpace.getInstance(java.awt.color.ColorSpace.CS_sRGB),
                                 new int[] {8, 8, 8, 0}, false, false,
                                 Transparency.OPAQUE,
                                 DataBuffer.TYPE_BYTE);
@@ -282,7 +302,7 @@ public class AWTTextureData extends TextureData {
                 case BufferedImage.TYPE_BYTE_INDEXED:
                 case BufferedImage.TYPE_CUSTOM:
                 default:
-                    ColorModel cm = image.getColorModel();
+                    java.awt.image.ColorModel cm = image.getColorModel();
                     if (cm.equals(rgbColorModel)) {
                         pixelFormat = GL.GL_RGB;
                         pixelType = GL.GL_UNSIGNED_BYTE;
@@ -350,7 +370,7 @@ public class AWTTextureData extends TextureData {
                 case BufferedImage.TYPE_BYTE_INDEXED:
                 case BufferedImage.TYPE_CUSTOM:
                 default:
-                    ColorModel cm = image.getColorModel();
+                    java.awt.image.ColorModel cm = image.getColorModel();
                     if (cm.equals(rgbColorModel)) {
                         pixelFormat = GL.GL_RGB;
                         pixelType = GL.GL_UNSIGNED_BYTE;
@@ -409,7 +429,7 @@ public class AWTTextureData extends TextureData {
 
         // create a temporary image that is compatible with OpenGL
         boolean hasAlpha = image.getColorModel().hasAlpha();
-        ColorModel cm = null;
+        java.awt.image.ColorModel cm = null;
         int dataBufferType = image.getRaster().getDataBuffer().getDataType();
         // Don't use integer components for packed int images
         if (isPackedInt(image)) {
@@ -419,12 +439,12 @@ public class AWTTextureData extends TextureData {
             cm = hasAlpha ? rgbaColorModel : rgbColorModel;
         } else {
             if (hasAlpha) {
-                cm = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
+                cm = new ComponentColorModel(java.awt.color.ColorSpace.getInstance(java.awt.color.ColorSpace.CS_sRGB),
                                              null, true, true,
                                              Transparency.TRANSLUCENT,
                                              dataBufferType);
             } else {
-                cm = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB),
+                cm = new ComponentColorModel(java.awt.color.ColorSpace.getInstance(java.awt.color.ColorSpace.CS_sRGB),
                                              null, false, false,
                                              Transparency.OPAQUE,
                                              dataBufferType);

@@ -199,6 +199,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug=all"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.GLJPanel"
     #D_ARGS="-Djogl.debug.PNGImage"
+    #D_ARGS="-Djogl.debug.JPEGImage"
     #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=True -Dsun.java2d.xrender=false"
     #X_ARGS="-Dsun.java2d.noddraw=True -Dsun.java2d.opengl=false -Dsun.java2d.xrender=false"
     #X_ARGS="-verbose:jni"
@@ -294,7 +295,7 @@ function testawtswt() {
 #
 #testnoawt com.jogamp.nativewindow.NativeWindowVersion $*
 #testnoawt com.jogamp.opengl.JoglVersion $*
-testnoawt com.jogamp.newt.NewtVersion $*
+#testnoawt com.jogamp.newt.NewtVersion $*
 #testnoawt com.jogamp.newt.opengl.GLWindow $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFloatUtil01MatrixMatrixMultNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestPMVMatrix01NEWT $*
@@ -495,7 +496,11 @@ testnoawt com.jogamp.newt.NewtVersion $*
 # Texture / TextureUtils
 #
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTexture01AWT
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGImage00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGImage01NEWT $*
+testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGJoglAWTCompareNewtAWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGJoglAWTBenchmarkNewtAWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGTextureFromFileNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGImage01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileNEWT $*

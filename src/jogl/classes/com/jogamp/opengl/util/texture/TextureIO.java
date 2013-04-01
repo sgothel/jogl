@@ -63,6 +63,7 @@ import jogamp.opengl.Debug;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.util.texture.spi.DDSImage;
+import com.jogamp.opengl.util.texture.spi.JPEGImage;
 import com.jogamp.opengl.util.texture.spi.NetPbmTextureWriter;
 import com.jogamp.opengl.util.texture.spi.PNGImage;
 import com.jogamp.opengl.util.texture.spi.SGIImage;
@@ -714,8 +715,12 @@ public class TextureIO {
     // SPI support
     //
 
-    /** Adds a TextureProvider to support reading of a new file
-        format. */
+    /** 
+     * Adds a TextureProvider to support reading of a new file format.
+     * <p>
+     * The last provider added, will be the first provider to be tested.
+     * </p>
+     */
     public static void addTextureProvider(TextureProvider provider) {
         // Must always add at the front so the ImageIO provider is last,
         // so we don't accidentally use it instead of a user's possibly
@@ -723,8 +728,12 @@ public class TextureIO {
         textureProviders.add(0, provider);
     }
 
-    /** Adds a TextureWriter to support writing of a new file
-        format. */
+    /** 
+     * Adds a TextureWriter to support writing of a new file format.
+     * <p>
+     * The last provider added, will be the first provider to be tested.
+     * </p>
+     */
     public static void addTextureWriter(TextureWriter writer) {
         // Must always add at the front so the ImageIO writer is last,
         // so we don't accidentally use it instead of a user's possibly
@@ -768,7 +777,7 @@ public class TextureIO {
     private static List<TextureProvider> textureProviders = new ArrayList<TextureProvider>();
     private static List<TextureWriter>   textureWriters   = new ArrayList<TextureWriter>();
 
-    static {
+    static {        
         // ImageIO provider, the fall-back, must be the first one added
         if(GLProfile.isAWTAvailable()) {
             try {
@@ -787,6 +796,7 @@ public class TextureIO {
         addTextureProvider(new DDSTextureProvider());
         addTextureProvider(new SGITextureProvider());
         addTextureProvider(new TGATextureProvider());
+        addTextureProvider(new JPGTextureProvider());
         addTextureProvider(new PNGTextureProvider());
 
         // ImageIO writer, the fall-back, must be the first one added
@@ -1173,6 +1183,43 @@ public class TextureIO {
         }
     }
 
+    //----------------------------------------------------------------------
+    // JPEG image provider
+    static class JPGTextureProvider extends StreamBasedTextureProvider {
+        public TextureData newTextureData(GLProfile glp, InputStream stream,
+                                          int internalFormat,
+                                          int pixelFormat,
+                                          boolean mipmap,
+                                          String fileSuffix) throws IOException {
+            if (JPG.equals(fileSuffix)) {
+                JPEGImage image = JPEGImage.read(/*glp, */ stream);
+                if (pixelFormat == 0) {
+                    pixelFormat = image.getGLFormat();
+                }
+                if (internalFormat == 0) {
+                    if(glp.isGL2GL3()) {
+                        internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA8:GL.GL_RGB8;
+                    } else {
+                        internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA:GL.GL_RGB;
+                    }
+                }
+                return new TextureData(glp, internalFormat,
+                                       image.getWidth(),
+                                       image.getHeight(),
+                                       0,
+                                       pixelFormat,
+                                       image.getGLType(),
+                                       mipmap,
+                                       false,
+                                       false,
+                                       image.getData(),
+                                       null);
+            }
+
+            return null;
+        }
+    }
+    
     //----------------------------------------------------------------------
     // DDS texture writer
     //

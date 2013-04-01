@@ -54,6 +54,8 @@ import com.jogamp.opengl.util.GLBuffers;
  */
 
 public class TextureData {
+    public static enum ColorSpace { RGB, YCbCr, YCCK, CMYK };
+    
     protected int width;
     protected int height;
     private int border;
@@ -77,6 +79,7 @@ public class TextureData {
     protected boolean haveEXTABGR;
     protected boolean haveGL12;
     protected GLProfile glProfile;
+    protected ColorSpace pixelCS = ColorSpace.RGB;
 
     /** 
      * Constructs a new TextureData object with the specified parameters
@@ -217,6 +220,18 @@ public class TextureData {
         }
     }
 
+    /** 
+     * Returns the color space of the pixel data.
+     * @see #setColorSpace(ColorSpace) 
+     */
+    public ColorSpace getColorSpace() { return pixelCS; }
+
+    /** 
+     * Set the color space of the pixel data, which defaults to {@link ColorSpace#RGB}.
+     * @see #getColorSpace() 
+     */
+    public void setColorSpace(ColorSpace cs) { pixelCS = cs; }
+    
     /** Used only by subclasses */
     protected TextureData(GLProfile glp) { this.glProfile = glp; }
 
