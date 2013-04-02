@@ -1562,9 +1562,41 @@ public abstract class GLContextImpl extends GLContext {
             quirks[i++] = quirk;
         }
     }
+    
+    //
+    // Mesa RENDERER related quirks
+    //
+    if( glRendererLowerCase.contains("mesa") ) {
+	// Added March 30, 2013
+	// Martin C. Hegedus
+	if ( glRendererLowerCase.contains("x11") && getMesaMajorVersion(glVersion) < 8.0 ) {
+            final int quirk = GLRendererQuirks.DontCloseX11DisplayConnection;
+            if(DEBUG) {
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Mesa X11 < 8 : Renderer=" + glRenderer + ", Version=" +glVersion);
+            }
+            quirks[i++] = quirk;
+	}
+    }
 
     glRendererQuirks = new GLRendererQuirks(quirks, 0, i);
   }
+    
+    // Added by Martin C. Hegedus, March 30, 2013
+    private static final int getMesaMajorVersion(String version) {
+	if (version == null || version.length() <= 0) return -1;
+	String[] strings = version.trim().split("\\s+");
+	if (strings.length <= 0) return -1;
+	version = strings[strings.length-1];
+	int index = version.indexOf(".");
+	if (index ==  0) return -1;
+	if (index != -1) version = version.substring(0,index);
+	try {
+	    Integer iNumber = new Integer(version);
+	    return (iNumber == null) ? -1 : iNumber.intValue();
+	} catch (Throwable t) {
+	    return -1;
+	}
+    }
   
   
   private static final boolean hasFBOImpl(int major, int ctp, ExtensionAvailabilityCache extCache) {
