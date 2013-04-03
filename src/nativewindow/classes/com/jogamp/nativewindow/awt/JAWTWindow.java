@@ -232,7 +232,7 @@ public abstract class JAWTWindow implements NativeWindow, OffscreenLayerSurface,
       }
       attachSurfaceLayerImpl(layerHandle);
       offscreenSurfaceLayer = layerHandle;
-      layoutSurfaceLayerImpl(layerHandle, getWidth(), getHeight());
+      component.repaint();
   }
   protected void attachSurfaceLayerImpl(final long layerHandle) {
       throw new UnsupportedOperationException("offscreen layer not supported");
