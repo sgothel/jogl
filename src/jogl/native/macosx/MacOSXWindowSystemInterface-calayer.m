@@ -214,6 +214,7 @@ extern GLboolean glIsVertexArray (GLuint array);
 - (void) applyNewPBuffer;
 
 - (void)setDedicatedSize:(CGSize)size; // @NWDedicatedSize
+- (void) setFrame:(CGRect) frame;
 - (id<CAAction>)actionForKey:(NSString *)key ;
 - (NSOpenGLPixelFormat *)openGLPixelFormatForDisplayMask:(uint32_t)mask;
 - (NSOpenGLContext *)openGLContextForPixelFormat:(NSOpenGLPixelFormat *)pixelFormat;
@@ -568,7 +569,7 @@ static const GLfloat gl_verts[] = {
     dedicatedHeight = size.height;
 
     CGRect rect = CGRectMake(0, 0, dedicatedWidth, dedicatedHeight); 
-    [self setFrame: rect];
+    [super setFrame: rect];
 }
 
 - (void) setFrame:(CGRect) frame {
