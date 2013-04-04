@@ -37,6 +37,7 @@ import java.nio.FloatBuffer;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
@@ -267,6 +268,10 @@ public class GearsES2 implements GLEventListener {
     }
 
     public void display(GLAutoDrawable drawable) {
+        GLAnimatorControl anim = drawable.getAnimator();
+        if( verbose && ( null == anim || !anim.isAnimating() ) ) {
+            System.err.println(Thread.currentThread()+" GearsES2.display"+drawable.getWidth()+"x"+drawable.getHeight()+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(drawable.getHandle()));
+        }
         // Turn the gears' teeth
         if(doRotate) {
             angle += 2.0f;

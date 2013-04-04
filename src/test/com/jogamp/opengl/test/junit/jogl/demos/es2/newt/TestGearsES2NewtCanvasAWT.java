@@ -80,7 +80,9 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
     static int screenIdx = 0;
     static PointImmutable wpos;
     static DimensionImmutable wsize, rwsize = null;
-
+    static FrameLayout frameLayout = FrameLayout.None;
+    static ResizeBy resizeBy = ResizeBy.Component;
+    
     static long duration = 500; // ms
     static boolean opaque = true;
     static int forceAlpha = -1;
@@ -400,9 +402,6 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         final GLCapabilities caps = new GLCapabilities( glp );
         runTestGL(caps, resizeBy, frameLayout);
     }
-    
-    static FrameLayout frameLayout = FrameLayout.None;
-    static ResizeBy resizeBy = ResizeBy.Component;
     
     public static void main(String args[]) throws IOException {
         mainRun = true;

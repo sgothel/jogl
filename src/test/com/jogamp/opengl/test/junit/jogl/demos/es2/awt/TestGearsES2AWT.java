@@ -47,6 +47,7 @@ import com.jogamp.opengl.test.junit.util.QuitAdapter;
 
 import java.awt.BorderLayout;
 import java.awt.Button;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -65,7 +66,13 @@ import org.junit.Test;
 
 public class TestGearsES2AWT extends UITestCase {
     public enum FrameLayout { None, TextOnBottom, BorderCenterSurrounded, DoubleBorderCenterSurrounded };
+    public enum ResizeBy { Component, Frame };
+    
+    static long duration = 500; // ms    
     static int width, height;
+    static FrameLayout frameLayout = FrameLayout.None;
+    static ResizeBy resizeBy = ResizeBy.Component;
+    
     static boolean forceES2 = false;
     static boolean forceGL3 = false;
     static boolean shallUseOffscreenFBOLayer = false;
@@ -79,7 +86,7 @@ public class TestGearsES2AWT extends UITestCase {
     static boolean exclusiveContext = false;
     static boolean useAnimator = true;
     static Thread awtEDT;
-    static Dimension rwsize = null;
+    static java.awt.Dimension rwsize = null;
 
     @BeforeClass
     public static void initClass() {
@@ -100,13 +107,13 @@ public class TestGearsES2AWT extends UITestCase {
     public static void releaseClass() {
     }
 
-    static void setGLCanvasSize(final Frame frame, final GLCanvas glc, final Dimension new_sz) {
+    static void setComponentSize(final Frame frame, final Component comp, final java.awt.Dimension new_sz) {
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    glc.setMinimumSize(new_sz);
-                    glc.setPreferredSize(new_sz);
-                    glc.setSize(new_sz);
+                    comp.setMinimumSize(new_sz);
+                    comp.setPreferredSize(new_sz);
+                    comp.setSize(new_sz);
                     if( null != frame ) {
                         frame.pack();
                     }
@@ -116,14 +123,39 @@ public class TestGearsES2AWT extends UITestCase {
             Assume.assumeNoException( throwable );
         }       
     }
+    static void setFrameSize(final Frame frame, final boolean frameLayout, final java.awt.Dimension new_sz) {
+        try {
+            javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setSize(new_sz);
+                    if( frameLayout ) {
+                        frame.validate();
+                    }
+                } } );
+        } catch( Throwable throwable ) {
+            throwable.printStackTrace();
+            Assume.assumeNoException( throwable );
+        }       
+    }
     
-    protected void runTestGL(GLCapabilities caps, FrameLayout frameLayout) throws InterruptedException, InvocationTargetException {
+    static void setSize(final ResizeBy resizeBy, final Frame frame, final boolean frameLayout, final Component comp, final java.awt.Dimension new_sz) {
+        switch( resizeBy ) {
+            case Component:
+                setComponentSize(frameLayout ? frame : null, comp, new_sz);
+                break;
+            case Frame:
+                setFrameSize(frame, frameLayout, new_sz);
+                break;
+        }        
+    }
+    
+    protected void runTestGL(GLCapabilities caps, final ResizeBy resizeBy, FrameLayout frameLayout) throws InterruptedException, InvocationTargetException {
         final Frame frame = new Frame("GearsES2 AWT Test");
         Assert.assertNotNull(frame);
 
         final GLCanvas glCanvas = new GLCanvas(caps);
         Assert.assertNotNull(glCanvas);
-        setGLCanvasSize(null, glCanvas, new Dimension(width, height));
+        setSize(resizeBy, frame, false, glCanvas, new Dimension(width, height));
         
         switch( frameLayout) {
             case None:
@@ -179,8 +211,12 @@ public class TestGearsES2AWT extends UITestCase {
 
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-                frame.pack();
-                frame.setVisible(true);
+               if( ResizeBy.Frame == resizeBy ) {
+                   frame.validate();
+               } else {
+                   frame.pack();                   
+               }                
+               frame.setVisible(true);
             }});        
         Assert.assertEquals(true,  AWTRobotUtil.waitForVisible(frame, true));
         Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glCanvas, true)); 
@@ -197,7 +233,7 @@ public class TestGearsES2AWT extends UITestCase {
         
         if( null != rwsize ) {
             Thread.sleep(500); // 500ms delay 
-            setGLCanvasSize(frame, glCanvas, rwsize);
+            setSize(resizeBy, frame, true, glCanvas, rwsize);
             System.err.println("window resize pos/siz: "+glCanvas.getX()+"/"+glCanvas.getY()+" "+glCanvas.getWidth()+"x"+glCanvas.getHeight());
         }
         
@@ -263,12 +299,9 @@ public class TestGearsES2AWT extends UITestCase {
         if(shallUseOffscreenPBufferLayer) {
             caps.setPBuffer(true);
         }
-        runTestGL(caps, frameLayout);
+        runTestGL(caps, resizeBy, frameLayout);
     }
 
-    static long duration = 500; // ms
-    static FrameLayout frameLayout = FrameLayout.None;
-    
     public static void main(String args[]) {
         boolean waitForKey = false;
         int rw=-1, rh=-1;
@@ -288,6 +321,9 @@ public class TestGearsES2AWT extends UITestCase {
             } else if(args[i].equals("-layout")) {
                 i++;
                 frameLayout = FrameLayout.valueOf(args[i]);
+            } else if(args[i].equals("-resizeBy")) {
+                i++;
+                resizeBy = ResizeBy.valueOf(args[i]);
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
             } else if(args[i].equals("-gl3")) {
@@ -326,6 +362,7 @@ public class TestGearsES2AWT extends UITestCase {
         
         System.err.println("resize "+rwsize);
         System.err.println("frameLayout "+frameLayout);
+        System.err.println("resizeBy "+resizeBy);
         System.err.println("forceES2 "+forceES2);
         System.err.println("forceGL3 "+forceGL3);
         System.err.println("swapInterval "+swapInterval);

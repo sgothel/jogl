@@ -272,7 +272,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestOlympicES1NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es1.newt.TestRedSquareES1NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2AWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
+testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
@@ -498,7 +498,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTexture01AWT
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGImage00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGImage01NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGJoglAWTCompareNewtAWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGJoglAWTCompareNewtAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGJoglAWTBenchmarkNewtAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGTextureFromFileNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGImage01NEWT $*
@@ -543,35 +543,17 @@ testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGJoglAWTCompareN
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMapBufferRead01NEWT $*
 
 #
-# osx bugs
+# OSX bugs
 #
 #testawt com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
+
+# test rotation change
+#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
 
 #
 # regressions
 #
-
-# osx:
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLDrawable02NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBODrawableNEWT $*
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
-
-#
-# OSX Java6 NEWT
-#
-
-# Freeze
-
-# Cut-off top
-#testnoawt com.jogamp.opengl.test.junit.jogl.util.TestPNGImage01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileNEWT $*
-
-# Child too low
-#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
-
-# test rotation change
-#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
 
 #linux:
 

@@ -54,6 +54,8 @@ import jogamp.newt.awt.NewtFactoryAWT;
 import jogamp.newt.awt.event.AWTParentWindowAdapter;
 import jogamp.newt.driver.DriverClearFocus;
 
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.awt.AWTEDTExecutor;
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.nativewindow.awt.JAWTWindow;
 import com.jogamp.newt.Display;
@@ -561,7 +563,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       if(DEBUG) {
           // if ( isShowing() == false ) -> Container was not visible yet.
           // if ( isShowing() == true  ) -> Container is already visible.
-          System.err.println("NewtCanvasAWT.attachNewtChild.0: win "+newtWinHandleToHexString(newtChild)+
+          System.err.println("NewtCanvasAWT.attachNewtChild.0 @ "+Thread.currentThread().getName()+": win "+newtWinHandleToHexString(newtChild)+
                              ", EDTUtil: cur "+newtChild.getScreen().getDisplay().getEDTUtil()+
                              ", comp "+this+", visible "+isVisible()+", showing "+isShowing()+", displayable "+isDisplayable()+
                              ", cont "+AWTMisc.getContainer(this));
@@ -575,9 +577,13 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       final int w = getWidth();
       final int h = getHeight();
       System.err.println("NewtCanvasAWT.attachNewtChild.2: size "+w+"x"+h);
+      newtChild.setVisible(false);
       newtChild.setSize(w, h);
       newtChild.reparentWindow(jawtWindow);
       newtChild.addSurfaceUpdatedListener(jawtWindow);
+      if( Platform.OSType.MACOS == Platform.getOSType() && jawtWindow.isOffscreenLayerSurfaceEnabled() ) {
+          AWTEDTExecutor.singleton.invoke(false, forceRelayout);
+      }
       newtChild.setVisible(true);
       configureNewtChild(true);
       newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
@@ -589,6 +595,21 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
           System.err.println("NewtCanvasAWT.attachNewtChild.X: win "+newtWinHandleToHexString(newtChild)+", EDTUtil: cur "+newtChild.getScreen().getDisplay().getEDTUtil()+", comp "+this);
       }
     }
+    private final Runnable forceRelayout = new Runnable() {
+        public void run() {
+            if(DEBUG) {
+                System.err.println("NewtCanvasAWT.forceRelayout.0");
+            }
+            // Hack to force proper native AWT layout incl. CALayer components on OSX
+            final java.awt.Component component = NewtCanvasAWT.this;
+            final int cW = component.getWidth();
+            final int cH = component.getHeight();
+            component.setSize(cW+1, cH+1);
+            component.setSize(cW, cH);
+            if(DEBUG) {
+                System.err.println("NewtCanvasAWT.forceRelayout.X");
+            }
+        }  };
     
     private final void detachNewtChild(java.awt.Container cont) {
       if( null == newtChild || null == jawtWindow || !newtChildAttached ) {
