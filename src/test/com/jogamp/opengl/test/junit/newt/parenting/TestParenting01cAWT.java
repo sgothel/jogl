@@ -126,19 +126,25 @@ public class TestParenting01cAWT extends UITestCase {
         });
         Assert.assertEquals(true, glWindow1.isNativeValid());
 
+        final boolean wasOnscreen = glWindow1.getChosenCapabilities().isOnscreen();
+        
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame1.remove(newtCanvasAWT);
            }
         });
         // Assert.assertNull(glWindow1.getParent());
-        Assert.assertEquals(true, glWindow1.isNativeValid());
+        if( wasOnscreen ) {
+            Assert.assertEquals(true, glWindow1.isNativeValid());
+        } // else OK to be destroyed - due to offscreen/onscreen transition
 
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                frame1.dispose();
            } } );
-        Assert.assertEquals(true, glWindow1.isNativeValid());
+        if( wasOnscreen ) {
+            Assert.assertEquals(true, glWindow1.isNativeValid());
+        } // else OK to be destroyed - due to offscreen/onscreen transition
 
         glWindow1.destroy();
         Assert.assertEquals(false, glWindow1.isNativeValid());

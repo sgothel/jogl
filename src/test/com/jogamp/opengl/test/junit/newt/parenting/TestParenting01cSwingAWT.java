@@ -169,6 +169,7 @@ public class TestParenting01cSwingAWT extends UITestCase {
         SwingUtilities.invokeAndWait(new Runnable() {
            public void run() {
                jFrame1.setSize(width, height);
+               jFrame1.validate();
                jFrame1.setVisible(true);
            }
         });
@@ -199,6 +200,8 @@ public class TestParenting01cSwingAWT extends UITestCase {
                 } });
         Assert.assertEquals(true, AWTRobotUtil.waitForVisible(glWindow1, true));
 
+        final boolean wasOnscreen = glWindow1.getChosenCapabilities().isOnscreen();
+        
         // Always recommended to remove our native parented Window
         // from the AWT resources before destruction, since it could lead
         // to a BadMatch X11 error w/o.
@@ -208,14 +211,18 @@ public class TestParenting01cSwingAWT extends UITestCase {
                     jPanel1.remove(container1);
                     jFrame1.validate();
                 } });
-        Assert.assertEquals(true, glWindow1.isNativeValid());
+        if( wasOnscreen ) {
+            Assert.assertEquals(true, glWindow1.isNativeValid());
+        } // else OK to be destroyed - due to offscreen/onscreen transition
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     System.err.println("Demos: 6 - X Frame");
                     jFrame1.dispose();
                 } });
-        Assert.assertEquals(true, glWindow1.isNativeValid());
+        if( wasOnscreen ) {
+            Assert.assertEquals(true, glWindow1.isNativeValid());
+        } // else OK to be destroyed - due to offscreen/onscreen transition
 
         System.err.println("Demos: 7 - X GLWindow");        
         glWindow1.destroy();
@@ -322,6 +329,8 @@ public class TestParenting01cSwingAWT extends UITestCase {
         // visible test
         Assert.assertEquals(newtCanvasAWT.getNativeWindow(),glWindow1.getParent());
 
+        final boolean wasOnscreen = glWindow1.getChosenCapabilities().isOnscreen();
+        
         int state = 0;
         while(animator1.isAnimating() && animator1.getTotalFPSDuration()<3*durationPerTest) {
             Thread.sleep(durationPerTest);
@@ -385,7 +394,9 @@ public class TestParenting01cSwingAWT extends UITestCase {
                     System.err.println("Demos: 5 - X frame");
                     jFrame2.dispose();
                 } });
-        Assert.assertEquals(true, glWindow1.isNativeValid());
+        if( wasOnscreen ) {
+            Assert.assertEquals(true, glWindow1.isNativeValid());
+        } // else OK to be destroyed - due to offscreen/onscreen transition
 
         System.err.println("Demos: 6 - X GLWindow");        
         glWindow1.destroy();

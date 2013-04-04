@@ -148,6 +148,8 @@ public class TestParenting02AWT extends UITestCase {
             glWindow.display();
         } while(!glWindow.isNativeValid()) ;
 
+        final boolean wasOnscreen = glWindow.getChosenCapabilities().isOnscreen();
+        
         Assert.assertEquals(true, glWindow.isNativeValid());
         Assert.assertNotNull(glWindow.getParent());
         if(verbose) {
@@ -163,7 +165,9 @@ public class TestParenting02AWT extends UITestCase {
                     frame.validate();
                 }});
             Assert.assertEquals(false, glWindow.isVisible());
-            Assert.assertEquals(true, glWindow.isNativeValid());
+            if( wasOnscreen ) {
+                Assert.assertEquals(true, glWindow.isNativeValid());
+            } // else OK to be destroyed - due to offscreen/onscreen transition
             Assert.assertNull(glWindow.getParent());
             if(verbose) {
                 System.out.println("+++++++++++++++++++ REMOVED!");
