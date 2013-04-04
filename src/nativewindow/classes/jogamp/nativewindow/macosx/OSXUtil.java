@@ -138,7 +138,7 @@ public class OSXUtil implements ToolkitProperties {
     
     /** 
      * Create a CALayer suitable to act as a root CALayer.
-     * @see #DestroyCALayer(long, boolean)
+     * @see #DestroyCALayer(long)
      * @see #AddCASublayer(long, long) 
      */
     public static long CreateCALayer(final int x, final int y, final int width, final int height) {
@@ -150,7 +150,7 @@ public class OSXUtil implements ToolkitProperties {
     }
     
     /** 
-     * Attach a sub CALayer to the root CALayer on the main-thread w/o blocking.
+     * Attach a sub CALayer to the root CALayer
      * <p>
      * Method will trigger a <code>display</code>
      * call to the CALayer hierarchy to enforce resource creation if required, e.g. an NSOpenGLContext.
@@ -166,14 +166,10 @@ public class OSXUtil implements ToolkitProperties {
         if(0==rootCALayer || 0==subCALayer) {
             throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
         }
-        RunOnMainThread(false, new Runnable() {
-           public void run() {
-               if(DEBUG) {
-                   System.err.println("OSXUtil.AttachCALayer: 0x"+Long.toHexString(subCALayer)+" - "+Thread.currentThread().getName());
-               }
-               AddCASublayer0(rootCALayer, subCALayer, width, height);
-           }
-        });
+        if(DEBUG) {
+            System.err.println("OSXUtil.AttachCALayer: 0x"+Long.toHexString(subCALayer)+" - "+Thread.currentThread().getName());
+        }
+        AddCASublayer0(rootCALayer, subCALayer, width, height);
     }
     
     /** 
@@ -201,47 +197,29 @@ public class OSXUtil implements ToolkitProperties {
     
     /** 
      * Detach a sub CALayer from the root CALayer.
-     * @param onMainThread if <code>true</code> method will be performed on the main-thread w/o blocking. 
      */
-    public static void RemoveCASublayer(final long rootCALayer, final long subCALayer, boolean onMainThread) {
+    public static void RemoveCASublayer(final long rootCALayer, final long subCALayer) {
         if(0==rootCALayer || 0==subCALayer) {
             throw new IllegalArgumentException("rootCALayer 0x"+Long.toHexString(rootCALayer)+", subCALayer 0x"+Long.toHexString(subCALayer));
         }
-        final Runnable action = new Runnable() {
-           public void run() {
-               if(DEBUG) {
-                   System.err.println("OSXUtil.DetachCALayer: 0x"+Long.toHexString(subCALayer)+" - "+Thread.currentThread().getName());
-               }
-               RemoveCASublayer0(rootCALayer, subCALayer);
-           } };
-        if( onMainThread ) {
-            RunOnMainThread(false, action);
-        } else {
-           action.run();
+        if(DEBUG) {
+            System.err.println("OSXUtil.DetachCALayer: 0x"+Long.toHexString(subCALayer)+" - "+Thread.currentThread().getName());
         }
+        RemoveCASublayer0(rootCALayer, subCALayer);
     }
     
     /** 
      * Destroy a CALayer.
-     * @param onMainThread if <code>true</code> method will be performed on the main-thread w/o blocking. 
      * @see #CreateCALayer(int, int, int, int)
      */    
-    public static void DestroyCALayer(final long caLayer, boolean onMainThread) {
+    public static void DestroyCALayer(final long caLayer) {
         if(0==caLayer) {
             throw new IllegalArgumentException("caLayer 0x"+Long.toHexString(caLayer));
         }
-        final Runnable action = new Runnable() {
-           public void run() {
-               if(DEBUG) {
-                   System.err.println("OSXUtil.DestroyCALayer: 0x"+Long.toHexString(caLayer)+" - "+Thread.currentThread().getName());
-               }
-               DestroyCALayer0(caLayer);
-           } };
-        if( onMainThread ) {
-            RunOnMainThread(false, action);
-        } else {
-           action.run();
+        if(DEBUG) {
+            System.err.println("OSXUtil.DestroyCALayer: 0x"+Long.toHexString(caLayer)+" - "+Thread.currentThread().getName());
         }
+        DestroyCALayer0(caLayer);
     }
     
     /**

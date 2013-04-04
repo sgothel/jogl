@@ -348,10 +348,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_GetNSWindow0
 
 - (id)init
 {
-    DBG_PRINT("MyCALayer.0\n");
+    DBG_PRINT("MyCALayer::init.0\n");
     MyCALayer * o = [super init];
-    DBG_PRINT("MyNSOpenGLContext.init.X: new %p\n", o);
-    DBG_PRINT("MyCALayer.0\n");
+    DBG_PRINT("MyCALayer::init.X: new %p\n", o);
     return o;
 }
 
@@ -595,25 +594,37 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_macosx_OSXUtil_DestroyCALayer0
 
 /*
  * Class:     Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
+ * Method:    GetJAWTSurfaceLayersHandle0
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_GetJAWTSurfaceLayersHandle0
+  (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer)
+{
+    JAWT_DrawingSurfaceInfo* dsi = (JAWT_DrawingSurfaceInfo*) (*env)->GetDirectBufferAddress(env, jawtDrawingSurfaceInfoBuffer);
+    if (NULL == dsi) {
+        NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
+        return 0;
+    }
+    id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
+    return (jlong) ((intptr_t) surfaceLayers);
+}
+
+/*
+ * Class:     Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow
  * Method:    SetJAWTRootSurfaceLayer0
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_SetJAWTRootSurfaceLayer0
-  (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
+  (JNIEnv *env, jclass unused, jlong jawtSurfaceLayersHandle, jlong caLayer)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
     [CATransaction begin];
     [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
 
-    JAWT_DrawingSurfaceInfo* dsi = (JAWT_DrawingSurfaceInfo*) (*env)->GetDirectBufferAddress(env, jawtDrawingSurfaceInfoBuffer);
-    if (NULL == dsi) {
-        NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
-        return;
-    }
+    id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)(intptr_t)jawtSurfaceLayersHandle;
     MyCALayer* layer = (MyCALayer*) (intptr_t) caLayer;
-    id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
-    DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.0: pre %p -> root %p (refcnt %d)\n", surfaceLayers.layer, layer, (int)[layer retainCount]);
+    DBG_PRINT("CALayer::SetJAWTRootSurfaceLayer.0: pre %p -> root %p (refcnt %d)\n", [surfaceLayers layer], layer, (int)[layer retainCount]);
     [surfaceLayers setLayer: [layer retain]]; // Pairs w/ Unset
 
     [CATransaction commit];
@@ -628,21 +639,16 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_Set
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_jawt_macosx_MacOSXJAWTWindow_UnsetJAWTRootSurfaceLayer0
-  (JNIEnv *env, jclass unused, jobject jawtDrawingSurfaceInfoBuffer, jlong caLayer)
+  (JNIEnv *env, jclass unused, jlong jawtSurfaceLayersHandle, jlong caLayer)
 {
     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
 
     [CATransaction begin];
     [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
 
-    JAWT_DrawingSurfaceInfo* dsi = (JAWT_DrawingSurfaceInfo*) (*env)->GetDirectBufferAddress(env, jawtDrawingSurfaceInfoBuffer);
-    if (NULL == dsi) {
-        NativewindowCommon_throwNewRuntimeException(env, "Argument \"jawtDrawingSurfaceInfoBuffer\" was not a direct buffer");
-        return;
-    }
+    id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)(intptr_t)jawtSurfaceLayersHandle;
     MyCALayer* layer = (MyCALayer*) (intptr_t) caLayer;
-    id <JAWT_SurfaceLayers> surfaceLayers = (id <JAWT_SurfaceLayers>)dsi->platformInfo;
-    if(layer != surfaceLayers.layer) {
+    if(layer != [surfaceLayers layer]) {
         NativewindowCommon_throwNewRuntimeException(env, "Attached layer %p doesn't match given layer %p\n", surfaceLayers.layer, layer);
         return;
     }

@@ -67,29 +67,29 @@ extern GLboolean glIsVertexArray (GLuint array);
 
 - (id)initWithFormat:(NSOpenGLPixelFormat *)format shareContext:(NSOpenGLContext *)share
 {
-    DBG_PRINT("MyNSOpenGLContext.initWithFormat.0: format %p, share %p\n", format, share);
+    DBG_PRINT("MyNSOpenGLContext::initWithFormat.0: format %p, share %p\n", format, share);
     MyNSOpenGLContext * o = [super initWithFormat:format shareContext:share];
-    DBG_PRINT("MyNSOpenGLContext.initWithFormat.X: new %p\n", o);
+    DBG_PRINT("MyNSOpenGLContext::initWithFormat.X: new %p\n", o);
     return o;
 }
 
 - (void)setView:(NSView *)view
 {
-    DBG_PRINT("MyNSOpenGLContext.setView: this.0 %p, view %p\n", self, view);
+    DBG_PRINT("MyNSOpenGLContext::setView: this.0 %p, view %p\n", self, view);
     // NSLog(@"MyNSOpenGLContext::setView: %@",[NSThread callStackSymbols]);
     if(NULL != view) {
         [super setView:view];
     } else {
         [self clearDrawable];
     }
-    DBG_PRINT("MyNSOpenGLContext.setView.X\n");
+    DBG_PRINT("MyNSOpenGLContext::setView.X\n");
 }
 
 - (void)update
 {
-    DBG_PRINT("MyNSOpenGLContext.update: this.0 %p, view %p\n", self, [self view]);
+    DBG_PRINT("MyNSOpenGLContext::update: this.0 %p, view %p\n", self, [self view]);
     [super update];
-    DBG_PRINT("MyNSOpenGLContext.update.X\n");
+    DBG_PRINT("MyNSOpenGLContext::update.X\n");
 }
 
 #ifdef DBG_LIFECYCLE
@@ -132,20 +132,20 @@ extern GLboolean glIsVertexArray (GLuint array);
     // NSLog(@"MyNSOpenGLContext::dealloc: %@",[NSThread callStackSymbols]);
 
     [self clearDrawable];
-    DBG_PRINT("MyNSOpenGLContext.dealloc.1 %d\n", CGLRETAINCOUNT(cglCtx));
+    DBG_PRINT("MyNSOpenGLContext::dealloc.1 %d\n", CGLRETAINCOUNT(cglCtx));
     if( NULL != cglCtx ) {
         CGLRetainContext( cglCtx );
-        DBG_PRINT("MyNSOpenGLContext.dealloc.2 %d\n", CGLRETAINCOUNT(cglCtx));
+        DBG_PRINT("MyNSOpenGLContext::dealloc.2 %d\n", CGLRETAINCOUNT(cglCtx));
     }
     [super dealloc];
-    DBG_PRINT("MyNSOpenGLContext.dealloc.3 %d\n", CGLRETAINCOUNT(cglCtx));
+    DBG_PRINT("MyNSOpenGLContext::dealloc.3 %d\n", CGLRETAINCOUNT(cglCtx));
     if( NULL != cglCtx ) {
         CGLReleaseContext( cglCtx );
-        DBG_PRINT("MyNSOpenGLContext.dealloc.4 %d\n", CGLRETAINCOUNT(cglCtx));
+        DBG_PRINT("MyNSOpenGLContext::dealloc.4 %d\n", CGLRETAINCOUNT(cglCtx));
         CGLDestroyContext( cglCtx );
-        DBG_PRINT("MyNSOpenGLContext.dealloc.5 %d\n", CGLRETAINCOUNT(cglCtx));
+        DBG_PRINT("MyNSOpenGLContext::dealloc.5 %d\n", CGLRETAINCOUNT(cglCtx));
     }
-    DBG_PRINT("MyNSOpenGLContext.dealloc.X\n");
+    DBG_PRINT("MyNSOpenGLContext::dealloc.X\n");
 }
 
 @end
