@@ -28,7 +28,6 @@
 
 package com.jogamp.opengl.test.junit.jogl.swt;
 
-import java.awt.AWTException;
 import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.swt.SWT ;
@@ -207,7 +206,7 @@ public class TestSWTBug643AsyncExec extends UITestCase {
         }
     }
     
-    private void testImpl(boolean useJOGLGLCanvas, boolean useNewtCanvasSWT, boolean glWindowPreVisible) throws InterruptedException, AWTException, InvocationTargetException {
+    private void testImpl(boolean useJOGLGLCanvas, boolean useNewtCanvasSWT, boolean glWindowPreVisible) throws InterruptedException, InvocationTargetException {
         resetSWTAndNEWTEDTCounter();
         
         final SWT_DSC dsc = new SWT_DSC();
@@ -314,17 +313,17 @@ public class TestSWTBug643AsyncExec extends UITestCase {
     }
 
     @Test
-    public void test01JOGLGLCanvas() throws InterruptedException, AWTException, InvocationTargetException {
+    public void test01JOGLGLCanvas() throws InterruptedException, InvocationTargetException {
         testImpl(true /* useJOGLGLCanvas */, false /* useNewtCanvasSWT */, false /* glWindowPreVisible */);
     }
     
     @Test
-    public void test02NewtCanvasSWTSimple() throws InterruptedException, AWTException, InvocationTargetException {
+    public void test02NewtCanvasSWTSimple() throws InterruptedException, InvocationTargetException {
         testImpl(false /* useJOGLGLCanvas */, true /* useNewtCanvasSWT */, false /* glWindowPreVisible */);
     }
     
     @Test
-    public void test02NewtCanvasSWTPreVisible() throws InterruptedException, AWTException, InvocationTargetException {
+    public void test02NewtCanvasSWTPreVisible() throws InterruptedException, InvocationTargetException {
         testImpl(false /* useJOGLGLCanvas */, true /* useNewtCanvasSWT */, true /* glWindowPreVisible */);
     }
     

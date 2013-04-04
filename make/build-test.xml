@@ -521,7 +521,8 @@
         <for param="test.class.path.m" keepgoing="true">
             <!-- results in absolute path -->
             <fileset dir="${classes}">
-                <include name="${java.dir.junit}/**/Test*SWTHeadless*"/>
+                <include name="${java.dir.junit}/**/Test*SWT*"/>
+                <exclude name="**/*AWT*"/>
                 <exclude name="**/*$$*"/>
             </fileset>
           <sequential>
@@ -550,6 +551,7 @@
                 <arg line="${jvmDataModel.arg}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <arg line="${jvmarg.headless}"/>
+                <arg line="${jvmarg.mainthrd}"/>
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>
                 -->
@@ -583,9 +585,8 @@
         <for param="test.class.path.m" keepgoing="true">
             <!-- results in absolute path -->
             <fileset dir="${classes}">
-                <include name="${java.dir.junit}/**/Test*SWT*"/>
+                <include name="${java.dir.junit}/**/Test*SWT*AWT*"/>
                 <exclude name="**/*$$*"/>
-                <exclude name="**/Test*SWTHeadless*"/>
             </fileset>
           <sequential>
             <var name="test.class.path" unset="true"/>
@@ -611,7 +612,6 @@
                 <arg line="${junit.run.arg0}"/>
                 <arg line="${junit.run.arg1}"/>
                 <arg line="${jvmDataModel.arg}"/>
-                <arg line="${jvmarg.mainthrd}"/>
                 <arg value="-Djava.library.path=${obj.all.paths}"/>
                 <!--
                 <arg line="-Dnewt.debug.EDT"/>

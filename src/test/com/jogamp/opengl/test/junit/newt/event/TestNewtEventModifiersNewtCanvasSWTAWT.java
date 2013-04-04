@@ -53,7 +53,7 @@ import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
  * the canvas is a NewtCanvasSWT.
  */
 
-public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers {
+public class TestNewtEventModifiersNewtCanvasSWTAWT extends BaseNewtEventModifiers {
 
     private static Display _display = null;
     private static Shell _shell = null;
@@ -78,6 +78,7 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
                        res[0] = false;
                    }
                } } );
+            i++;
         } while( i<maxEvents && res[0] );
     }
     
@@ -161,7 +162,7 @@ public class TestNewtEventModifiersNewtCanvasSWT extends BaseNewtEventModifiers 
     ////////////////////////////////////////////////////////////////////////////
 
     public static void main(String args[]) throws Exception {
-        String testName = TestNewtEventModifiersNewtCanvasSWT.class.getName() ;
+        String testName = TestNewtEventModifiersNewtCanvasSWTAWT.class.getName() ;
         org.junit.runner.JUnitCore.main( testName ) ;
     }
 

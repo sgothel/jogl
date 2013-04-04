@@ -63,7 +63,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 ////////////////////////////////////////////////////////////////////////////////
 
 
-public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
+public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
     
     static int duration = 500;
     
@@ -246,9 +246,9 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
     private volatile boolean shallStop = false;
     
     static class SWT_DSC {
-        Display display;
-        Shell shell;
-        Composite composite;
+        volatile Display display;
+        volatile Shell shell;
+        volatile Composite composite;
         
         public void init() {
             SWTAccessor.invoke(true, new Runnable() {
@@ -358,7 +358,9 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
                         keyfire.join();
                     } catch( InterruptedException e ) { }
                     shallStop = true;
-                    dsc.display.wake();
+                    if( null != dsc.display && !dsc.display.isDisposed() )  {
+                        dsc.display.wake();
+                    }
                 } } );
             t.setDaemon(true);
             t.start();
@@ -366,10 +368,15 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
                 
         try {
             while( !shallStop && !dsc.display.isDisposed() ) {
-                if( !dsc.display.readAndDispatch() && !shallStop ) {
-                    // blocks on linux .. dsc.display.sleep();
-                    Thread.sleep(10);
-                }
+                dsc.display.syncExec( new Runnable() {
+                    public void run() {
+                       if( !dsc.display.isDisposed() && !dsc.display.readAndDispatch() && !shallStop ) {
+                           // blocks on linux .. dsc.display.sleep();
+                           try {
+                               Thread.sleep(10);
+                           } catch (InterruptedException ie) { ie.printStackTrace(); }
+                       }
+                    } } );
             }
         } catch (Exception e0) {
             e0.printStackTrace();
@@ -388,7 +395,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlock extends UITestCase {
             }
         }
         System.out.println("durationPerTest: "+duration);
-        org.junit.runner.JUnitCore.main(TestNewtCanvasSWTBug628ResizeDeadlock.class.getName());        
+        org.junit.runner.JUnitCore.main(TestNewtCanvasSWTBug628ResizeDeadlockAWT.class.getName());        
     }
     
 }
