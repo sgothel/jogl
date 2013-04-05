@@ -57,9 +57,6 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 
 /**
  * Tests using an AWT {@link GLCanvas} {@link GLAutoDrawable auto drawable} for on- and offscreen cases.
- * <p>
- * The NEWT  {@link GLAutoDrawable} is being used to run the {@link GLEventListener}.  
- * </p> 
  */
 public class TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT extends UITestCase {
     static final int widthStep = 800/4;
