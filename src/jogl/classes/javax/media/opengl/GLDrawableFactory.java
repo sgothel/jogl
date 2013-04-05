@@ -45,8 +45,6 @@ import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.jogamp.common.JogampRuntimeException;
-
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.opengl.GLAutoDrawableDelegate;
 import com.jogamp.opengl.GLRendererQuirks;
@@ -174,7 +172,7 @@ public abstract class GLDrawableFactory {
       }
       try {
           tmp = (GLDrawableFactory) ReflectionUtil.createInstance(factoryClassName, cl);
-      } catch (JogampRuntimeException jre) { 
+      } catch (Exception jre) { 
           if (DEBUG || GLProfile.DEBUG) {
               System.err.println("Info: GLDrawableFactory.static - Native Platform: "+nwt+" - not available: "+factoryClassName);
               jre.printStackTrace();
@@ -189,7 +187,7 @@ public abstract class GLDrawableFactory {
     if(!disableOpenGLES) {
         try {
             tmp = (GLDrawableFactory) ReflectionUtil.createInstance("jogamp.opengl.egl.EGLDrawableFactory", cl);
-        } catch (JogampRuntimeException jre) {
+        } catch (Exception jre) {
             if (DEBUG || GLProfile.DEBUG) {
                 System.err.println("Info: GLDrawableFactory.static - EGLDrawableFactory - not available");
                 jre.printStackTrace();

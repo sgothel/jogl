@@ -69,7 +69,6 @@ import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
-import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
@@ -112,7 +111,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
             try {
               ReflectionUtil.callStaticMethod("jogamp.opengl.macosx.cgl.awt.MacOSXAWTCGLGraphicsConfigurationFactory",
                                               "registerFactory", null, null, getClass().getClassLoader());
-            } catch (JogampRuntimeException jre) { /* n/a .. */ }
+            } catch (Exception jre) { /* n/a .. */ }
         }
 
         sharedMap = new HashMap<String, SharedResource>();

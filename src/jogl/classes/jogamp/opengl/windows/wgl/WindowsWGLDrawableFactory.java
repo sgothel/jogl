@@ -75,7 +75,6 @@ import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.SharedResourceRunner;
 
-import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
@@ -116,7 +115,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
             try {
               ReflectionUtil.callStaticMethod("jogamp.opengl.windows.wgl.awt.WindowsAWTWGLGraphicsConfigurationFactory",
                                               "registerFactory", null, null, getClass().getClassLoader());
-            } catch (JogampRuntimeException jre) { /* n/a .. */ }
+            } catch (Exception jre) { /* n/a .. */ }
         }
 
         sharedMap = new HashMap<String, SharedResourceRunner.Resource>();

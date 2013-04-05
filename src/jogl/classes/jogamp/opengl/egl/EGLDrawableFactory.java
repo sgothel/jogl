@@ -72,7 +72,6 @@ import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
-import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.os.Platform;
@@ -116,7 +115,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true)) {
             try {
                 ReflectionUtil.createInstance("jogamp.opengl.x11.glx.X11GLXGraphicsConfigurationFactory", EGLDrawableFactory.class.getClassLoader());
-            } catch (JogampRuntimeException jre) { /* n/a .. */ }
+            } catch (Exception jre) { /* n/a .. */ }
         }
 
         // FIXME: Probably need to move EGL from a static model
