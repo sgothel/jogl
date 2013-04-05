@@ -524,14 +524,14 @@ static void NewtWindows_requestFocus (JNIEnv *env, jobject window, HWND hwnd, jb
     DBG_PRINT("*** WindowsWindow: requestFocus.XX\n");
 }
 
-static void NewtWindows_trackPointerLeave(HWND hwnd) {
+static BOOL NewtWindows_trackPointerLeave(HWND hwnd) {
     TRACKMOUSEEVENT tme;
     memset(&tme, 0, sizeof(TRACKMOUSEEVENT));
     tme.cbSize = sizeof(TRACKMOUSEEVENT);
     tme.dwFlags = TME_LEAVE;
     tme.hwndTrack = hwnd;
     tme.dwHoverTime = 0; // we don't use TME_HOVER
-    TrackMouseEvent(&tme);
+    return TrackMouseEvent(&tme);
 }
 
 #if 0
@@ -915,6 +915,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         break;
 
     case WM_MOUSEMOVE:
+        DBG_PRINT("*** WindowsWindow: WM_MOUSEMOVE %d/%d\n", (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam));
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jshort) EVENT_MOUSE_MOVED,
                                GetModifiers( FALSE, 0 ),
@@ -923,7 +924,8 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         useDefWindowProc = 1;
         break;
     case WM_MOUSELEAVE:
-        (*env)->CallVoidMethod(env, window, sendMouseEventID, JNI_FALSE,
+        DBG_PRINT("*** WindowsWindow: WM_MOUSELEAVE\n");
+        (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jshort) EVENT_MOUSE_EXITED,
                                0,
                                (jint) -1, (jint) -1, // fake
@@ -1739,7 +1741,14 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_WindowDriver_trackPointer
   (JNIEnv *env, jclass clazz, jlong window)
 {
     HWND hwnd = (HWND) (intptr_t) window;
-    DBG_PRINT( "*** WindowsWindow: trackMouseLeave0\n");
-    NewtWindows_trackPointerLeave(hwnd);
+    BOOL ok = NewtWindows_trackPointerLeave(hwnd);
+    DBG_PRINT( "*** WindowsWindow: trackMouseLeave0: %d\n", ok);
+    #ifdef VERBOSE_ON
+    if(!ok) {
+        int lastError = (int) GetLastError();
+        DBG_PRINT( "*** WindowsWindow: trackMouseLeave0: lastError 0x%X %d\n", lastError, lastError);
+    }
+    #endif
+    (void)ok;
 }
 

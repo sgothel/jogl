@@ -131,18 +131,19 @@ public class WindowDriver extends WindowImpl {
         setGraphicsConfiguration(cfg);
         final int flags = getReconfigureFlags(0, true) & 
                           ( FLAG_IS_ALWAYSONTOP | FLAG_IS_UNDECORATED ) ;
-        setWindowHandle(CreateWindow0(DisplayDriver.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),
-                                      getParentWindowHandle(), getX(), getY(), getWidth(), getHeight(), autoPosition(), flags)); 
-        if (getWindowHandle() == 0) {
+        final long _windowHandle = CreateWindow0(DisplayDriver.getHInstance(), display.getWindowClassName(), display.getWindowClassName(),
+                                                 getParentWindowHandle(), getX(), getY(), getWidth(), getHeight(), autoPosition(), flags); 
+        if ( 0 == _windowHandle ) {
             throw new NativeWindowException("Error creating window");
         }
-        windowHandleClose = getWindowHandle();
+        setWindowHandle(_windowHandle);
+        windowHandleClose = _windowHandle;
         addMouseListener(mouseTracker);
         
         if(DEBUG_IMPLEMENTATION) {
             Exception e = new Exception("Info: Window new window handle "+Thread.currentThread().getName()+
                                         " (Parent HWND "+toHexString(getParentWindowHandle())+
-                                        ") : HWND "+toHexString(getWindowHandle())+", "+Thread.currentThread());
+                                        ") : HWND "+toHexString(_windowHandle)+", "+Thread.currentThread());
             e.printStackTrace();
         }
     }    
