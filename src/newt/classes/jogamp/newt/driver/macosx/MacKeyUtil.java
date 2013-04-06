@@ -317,7 +317,7 @@ public class MacKeyUtil {
             case kVK_Option:               return KeyEvent.VK_ALT;
             case kVK_Control:              return KeyEvent.VK_CONTROL;
             case kVK_RightShift:           return KeyEvent.VK_SHIFT;
-            case kVK_RightOption:          return KeyEvent.VK_ALT;
+            case kVK_RightOption:          return KeyEvent.VK_ALT_GRAPH;
             case kVK_RightControl:         return KeyEvent.VK_CONTROL;
             // case kVK_Function:             return KeyEvent.VK_F;
             case kVK_F17:                  return KeyEvent.VK_F17;

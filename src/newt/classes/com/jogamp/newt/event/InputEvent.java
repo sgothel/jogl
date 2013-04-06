@@ -133,7 +133,7 @@ public abstract class InputEvent extends NEWTEvent
     if(isControlDown()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("ctrl"); }
     if(isMetaDown()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("meta"); }    
     if(isAltDown()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("alt"); }
-    if(isAltGraphDown()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("altg"); }
+    if(isAltGraphDown()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("altgr"); }
     if(isAutoRepeat()) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("repeat"); }
     for(int i=1; i<=MouseEvent.BUTTON_NUMBER; i++) {
         if(isButtonDown(i)) { if(!isFirst) { sb.append(", "); } isFirst = false; sb.append("button").append(i); }

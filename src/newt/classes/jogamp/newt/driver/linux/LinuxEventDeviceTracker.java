@@ -586,7 +586,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
                     break; // FIXME
 
                 case 100: // right alt
-                    return KeyEvent.VK_ALT;
+                    return KeyEvent.VK_ALT_GRAPH;
                 case 101: // linefeed
                     break; // FIXME
                 case 102: // home

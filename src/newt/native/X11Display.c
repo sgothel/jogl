@@ -52,9 +52,11 @@ static jmethodID requestFocusID = NULL;
  * Keycode
  */
 
+// #define DEBUG_KEYS 1
+
 #define IS_WITHIN(k,a,b) ((a)<=(k)&&(k)<=(b))
 
-static jint X11KeySym2NewtVKey(KeySym keySym) {
+static short X11KeySym2NewtVKey(KeySym keySym) {
     if( IS_WITHIN( keySym, XK_a, XK_z ) ) {
         return ( keySym - XK_a ) + J_VK_A ;
     }
@@ -89,8 +91,9 @@ static jint X11KeySym2NewtVKey(KeySym keySym) {
         case XK_Control_R:
             return J_VK_CONTROL;
         case XK_Alt_L:
-        case XK_Alt_R:
             return J_VK_ALT;
+        case XK_Alt_R:
+            return J_VK_ALT_GRAPH;
         case XK_Pause:
             return J_VK_PAUSE;
         case XK_Caps_Lock:
@@ -158,7 +161,9 @@ static jint X11KeySym2NewtVKey(KeySym keySym) {
     return keySym;
 }
 
-static jint X11InputState2NewtModifiers(unsigned int xstate, int javaVKey) {
+static jboolean altGraphDown = JNI_FALSE;
+
+static jint X11InputState2NewtModifiers(unsigned int xstate, jshort javaVKey, jboolean keyDown) {
     jint modifiers = 0;
     if ( (ControlMask & xstate) != 0 || J_VK_CONTROL == javaVKey ) {
         modifiers |= EVENT_CTRL_MASK;
@@ -166,8 +171,15 @@ static jint X11InputState2NewtModifiers(unsigned int xstate, int javaVKey) {
     if ( (ShiftMask & xstate) != 0 || J_VK_SHIFT == javaVKey ) {
         modifiers |= EVENT_SHIFT_MASK;
     }
-    if ( (Mod1Mask & xstate) != 0 || J_VK_ALT == javaVKey ) {
+    if ( J_VK_ALT == javaVKey ) {
+        altGraphDown = JNI_FALSE;
         modifiers |= EVENT_ALT_MASK;
+    } else if ( (short)J_VK_ALT_GRAPH == javaVKey ) {
+        altGraphDown = keyDown;
+        modifiers |= EVENT_ALT_GRAPH_MASK;
+    } else if ( (Mod1Mask & xstate) != 0 ) {
+        // XK_Alt_L or XK_Alt_R
+        modifiers |= altGraphDown ? EVENT_ALT_GRAPH_MASK : EVENT_ALT_MASK;
     }
     if ( (Button1Mask & xstate) != 0 ) {
         modifiers |= EVENT_BUTTON1_MASK;
@@ -401,17 +413,21 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
 
                     javaVKeyNN = X11KeySym2NewtVKey(keySym);
                     javaVKeyUS = javaVKeyNN; // FIXME!
-                    modifiers |= X11InputState2NewtModifiers(evt.xkey.state, javaVKeyNN) | autoRepeatModifiers;
+                    modifiers |= X11InputState2NewtModifiers(evt.xkey.state, javaVKeyNN, evt.type == KeyPress) | autoRepeatModifiers;
 
-                    fprintf(stderr, "NEWT X11 Key: keyCode 0x%X keySym 0x%X (shifted: 0x%X), keyChar '%c', javaVKey[US 0x%X, NN 0x%X]\n",
-                        (int)keyCode, (int)keySym, (int)shiftedKeySym, (int)keyChar, (int)javaVKeyUS, (int)javaVKeyNN);
+                    #ifdef DEBUG_KEYS
+                    fprintf(stderr, "NEWT X11 Key: keyCode 0x%X keySym 0x%X (shifted: 0x%X), keyChar '%c', javaVKey[US 0x%X, NN 0x%X], xstate 0x%X %u, jmods 0x%X\n",
+                        (int)keyCode, (int)keySym, (int)shiftedKeySym, keyChar, 
+                        (int)javaVKeyUS, (int)javaVKeyNN,
+                        (int)evt.xkey.state, (int)evt.xkey.state, (int)modifiers);
+                    #endif
                 }
                 break;
 
             case ButtonPress:
             case ButtonRelease:
             case MotionNotify:
-                modifiers |= X11InputState2NewtModifiers(evt.xbutton.state, 0);
+                modifiers |= X11InputState2NewtModifiers(evt.xbutton.state, 0, JNI_FALSE);
                 break;
 
             default:

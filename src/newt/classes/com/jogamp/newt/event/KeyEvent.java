@@ -325,6 +325,9 @@ public class KeyEvent extends InputEvent
     public static final short VK_CLEAR          = (short) 0x0C;
     public static final short VK_SHIFT          = (short) 0x10;
     public static final short VK_CONTROL        = (short) 0x11;
+    /**
+     * Constant for the ALT function key, i.e. left ALT key.
+     */
     public static final short VK_ALT            = (short) 0x12;
     public static final short VK_PAUSE          = (short) 0x13;
     public static final short VK_CAPS_LOCK      = (short) 0x14;
@@ -862,7 +865,7 @@ public class KeyEvent extends InputEvent
     public static final short VK_COMPOSE                  = (short) 0xFF20;
 
     /**
-     * Constant for the AltGraph function key.
+     * Constant for the ALT_GRAPH function key, i.e. right ALT key.
      */
     public static final short VK_ALT_GRAPH                = (short) 0xFF7E;
 

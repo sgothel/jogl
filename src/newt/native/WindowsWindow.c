@@ -161,7 +161,7 @@ static KeyMapEntry keyMapTable[] = {
     {J_VK_CONTROL,          VK_RCONTROL, 0},
     {J_VK_ALT,              VK_MENU, 0},
     {J_VK_ALT,              VK_LMENU, 0},
-    {J_VK_ALT,              VK_RMENU, 0},
+    {J_VK_ALT_GRAPH,        VK_RMENU, 0},
     {J_VK_NUM_LOCK,         VK_NUMLOCK, 0},
 
     // Miscellaneous Windows keys
@@ -431,7 +431,7 @@ static void ParseWmVKeyAndScanCode(USHORT winVKey, BYTE winScanCode, BYTE flags,
 #endif
 }
 
-static jint GetModifiers(BOOL altKeyFlagged, USHORT jkey) {
+static jint GetModifiers(USHORT jkey) {
     jint modifiers = 0;
     // have to do &0xFFFF to avoid runtime assert caused by compiling with
     // /RTCcsu
@@ -441,8 +441,11 @@ static jint GetModifiers(BOOL altKeyFlagged, USHORT jkey) {
     if ( HIBYTE((GetKeyState(VK_SHIFT) & 0xFFFF)) != 0 || J_VK_SHIFT == jkey ) {
         modifiers |= EVENT_SHIFT_MASK;
     }
-    if ( altKeyFlagged || HIBYTE((GetKeyState(VK_MENU) & 0xFFFF)) != 0 || J_VK_ALT == jkey ) {
+    if ( HIBYTE((GetKeyState(VK_LMENU) & 0xFFFF)) != 0 || J_VK_ALT == jkey ) {
         modifiers |= EVENT_ALT_MASK;
+    }
+    if ( HIBYTE((GetKeyState(VK_RMENU) & 0xFFFF)) != 0 || (USHORT)J_VK_ALT_GRAPH == jkey ) {
+        modifiers |= EVENT_ALT_GRAPH_MASK;
     }
     if ( HIBYTE((GetKeyState(VK_LBUTTON) & 0xFFFF)) != 0 ) {
         modifiers |= EVENT_BUTTON1_MASK;
@@ -457,11 +460,12 @@ static jint GetModifiers(BOOL altKeyFlagged, USHORT jkey) {
     return modifiers;
 }
 
+/**
 static BOOL IsAltKeyDown(BYTE flags, BOOL system) {
     // The Alt modifier is reported in the 29th bit of the lParam,
     // i.e., it is the 5th bit of `flags' (which is HIBYTE(HIWORD(lParam))).
     return system && ( flags & (1<<5) ) != 0;
-}
+} */
 
 static int WmKeyDown(JNIEnv *env, jobject window, USHORT wkey, WORD repCnt, BYTE scanCode, BYTE flags, BOOL system) {
     UINT modifiers = 0;
@@ -472,7 +476,7 @@ static int WmKeyDown(JNIEnv *env, jobject window, USHORT wkey, WORD repCnt, BYTE
 
     ParseWmVKeyAndScanCode(wkey, scanCode, flags, &javaVKeyUS, &javaVKeyXX, &utf16Char);
 
-    modifiers = GetModifiers( IsAltKeyDown(flags, system), javaVKeyXX );
+    modifiers = GetModifiers( javaVKeyUS );
 
     (*env)->CallVoidMethod(env, window, sendKeyEventID,
                            (jshort) EVENT_KEY_PRESSED,
@@ -490,7 +494,7 @@ static int WmKeyUp(JNIEnv *env, jobject window, USHORT wkey, WORD repCnt, BYTE s
 
     ParseWmVKeyAndScanCode(wkey, scanCode, flags, &javaVKeyUS, &javaVKeyXX, &utf16Char);
 
-    modifiers = GetModifiers( IsAltKeyDown(flags, system), javaVKeyXX );
+    modifiers = GetModifiers( javaVKeyUS );
 
     (*env)->CallVoidMethod(env, window, sendKeyEventID,
                            (jshort) EVENT_KEY_RELEASED,
@@ -859,7 +863,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jshort) EVENT_MOUSE_PRESSED,
-                               GetModifiers( FALSE, 0 ),
+                               GetModifiers( 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jshort) 1, (jfloat) 0.0f);
         useDefWindowProc = 1;
@@ -868,7 +872,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
     case WM_LBUTTONUP:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jshort) EVENT_MOUSE_RELEASED,
-                               GetModifiers( FALSE, 0 ),
+                               GetModifiers( 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jshort) 1, (jfloat) 0.0f);
         useDefWindowProc = 1;
@@ -879,7 +883,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jshort) EVENT_MOUSE_PRESSED,
-                               GetModifiers( FALSE, 0 ),
+                               GetModifiers( 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jshort) 2, (jfloat) 0.0f);
         useDefWindowProc = 1;
@@ -888,7 +892,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
     case WM_MBUTTONUP:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jshort) EVENT_MOUSE_RELEASED,
-                               GetModifiers( FALSE, 0 ),
+                               GetModifiers( 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jshort) 2, (jfloat) 0.0f);
         useDefWindowProc = 1;
@@ -899,7 +903,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         (*env)->CallVoidMethod(env, window, requestFocusID, JNI_FALSE);
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jshort) EVENT_MOUSE_PRESSED,
-                               GetModifiers( FALSE, 0 ),
+                               GetModifiers( 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jshort) 3, (jfloat) 0.0f);
         useDefWindowProc = 1;
@@ -908,17 +912,17 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
     case WM_RBUTTONUP:
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jshort) EVENT_MOUSE_RELEASED,
-                               GetModifiers( FALSE, 0 ),
+                               GetModifiers( 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jshort) 3,  (jfloat) 0.0f);
         useDefWindowProc = 1;
         break;
 
     case WM_MOUSEMOVE:
-        DBG_PRINT("*** WindowsWindow: WM_MOUSEMOVE %d/%d\n", (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam));
+        // DBG_PRINT("*** WindowsWindow: WM_MOUSEMOVE %d/%d\n", (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam));
         (*env)->CallVoidMethod(env, window, sendMouseEventID,
                                (jshort) EVENT_MOUSE_MOVED,
-                               GetModifiers( FALSE, 0 ),
+                               GetModifiers( 0 ),
                                (jint) GET_X_LPARAM(lParam), (jint) GET_Y_LPARAM(lParam),
                                (jshort) 0,  (jfloat) 0.0f);
         useDefWindowProc = 1;
@@ -936,7 +940,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
 
     case WM_HSCROLL: { // Only delivered if windows has WS_HSCROLL, hence dead code!
             int sb = LOWORD(wParam);
-            int modifiers = GetModifiers( FALSE, 0 ) | EVENT_SHIFT_MASK;
+            int modifiers = GetModifiers( 0 ) | EVENT_SHIFT_MASK;
             float rotation;
             switch(sb) {
                 case SB_LINELEFT:
@@ -966,7 +970,7 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         // need to convert the coordinates to component-relative
         int x = GET_X_LPARAM(lParam);
         int y = GET_Y_LPARAM(lParam);
-        int modifiers = GetModifiers( FALSE, 0 );
+        int modifiers = GetModifiers( 0 );
         float rotationOrTilt = (float)(GET_WHEEL_DELTA_WPARAM(wParam))/WHEEL_DELTAf;
         int vKeys = GET_KEYSTATE_WPARAM(wParam);
         POINT eventPt;

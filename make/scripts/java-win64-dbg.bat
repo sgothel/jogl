@@ -42,6 +42,7 @@ REM set D_ARGS="-Djogl.debug.GLCanvas" "-Djogl.debug.Animator" "-Djogl.debug.GLC
 REM set D_ARGS="-Dnewt.debug.Window"
 set D_ARGS="-Dnewt.debug.Window.KeyEvent"
 REM set D_ARGS="-Dnewt.debug.Window.MouseEvent"
+REM set D_ARGS="-Dnewt.debug.Window.MouseEvent" "-Dnewt.debug.Window.KeyEvent"
 REM set D_ARGS="-Dnewt.debug.Window" "-Dnewt.debug.Display"
 REM set D_ARGS="-Djogl.debug.GLDebugMessageHandler" "-Djogl.debug.DebugGL" "-Djogl.debug.TraceGL"
 REM set D_ARGS="-Djogl.debug.DebugGL" "-Djogl.debug.GLDebugMessageHandler" "-Djogl.debug.GLSLCode"
