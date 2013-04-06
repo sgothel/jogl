@@ -141,6 +141,7 @@ static RECT* UpdateInsets(JNIEnv *env, jobject window, HWND hwnd);
 typedef struct {
     JNIEnv* jenv;
     jobject jinstance;
+    int pointerVisible;
 } WindowUserData;
     
 typedef struct {
@@ -1037,8 +1038,26 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         useDefWindowProc = 0;
         res = 1; // return 1 == done, OpenGL, etc .. erases the background, hence we claim to have just done this
         break;
-
-
+    case WM_SETCURSOR :
+        if (0 != wud->pointerVisible) {
+            BOOL visibilityChangeSuccessful;
+            if (1 == wud->pointerVisible) {
+                visibilityChangeSuccessful = SafeShowCursor(TRUE);
+            } else {
+                if (-1 == wud->pointerVisible) {
+                    visibilityChangeSuccessful = SafeShowCursor(FALSE);
+                } else {
+                    // it should never happen
+                    visibilityChangeSuccessful = FALSE;
+                }
+            }
+            useDefWindowProc = visibilityChangeSuccessful ? 1 : 0;
+            pointerVisible = 0;
+            DBG_PRINT("*** WindowsWindow: WM_SETCURSOR requested visibility: %d success: %d\n", wud->pointerVisible, visibilityChangeSuccessful);
+        } else {
+            useDefWindowProc = 0;
+        }
+        break;
     default:
         useDefWindowProc = 1;
     }
@@ -1047,6 +1066,28 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         return DefWindowProc(wnd, message, wParam, lParam);
     }
     return res;
+}
+
+static BOOL SafeShowCursor(BOOL show) {
+    int attempt = 0, maxAttempt, previousDisplayCount, currentDisplayCount;
+    currentDisplayCount = ShowCursor(show);
+    if (show) {
+        success = currentDisplayCount >= 0;
+        maxAttempt = -currentDisplayCount;
+    } else {
+        success = currentDisplayCount < 0;
+        maxAttempt = currentDisplayCount + 1;
+    }
+    while (!success && attempt < maxAttempt) {
+        previousDisplayCount = currentDisplayCount;
+        currentDisplayCount = ShowCursor(show);
+        success = show ? currentDisplayCount >= 0 : currentDisplayCount < 0;
+        attempt++;
+        if (previousDisplayCount == currentDisplayCount) {
+            break;
+        }
+    }
+    return success;
 }
 
 /*
@@ -1460,6 +1501,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
         WindowUserData * wud = (WindowUserData *) malloc(sizeof(WindowUserData));
         wud->jinstance = (*env)->NewGlobalRef(env, obj);
         wud->jenv = env;
+        wud->pointerVisible = 0;
 #if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
         SetWindowLong(window, GWL_USERDATA, (intptr_t) wud);
 #else
@@ -1668,34 +1710,16 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_setPoint
   (JNIEnv *env, jclass clazz, jlong window, jboolean mouseVisible)
 {
     HWND hwnd = (HWND) (intptr_t) window;
-    int res, resOld, i;
-    jboolean b;
+    WindowUserData * wud;
+#if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
+    wud = (WindowUserData *) GetWindowLong(hwnd, GWL_USERDATA);
+#else
+    wud = (WindowUserData *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
+#endif
+    wud->pointerVisible = mouseVisible ? 1 : -1;
+    SendMessage(hwnd, WM_SETCURSOR, 0, 0);
 
-    if(JNI_TRUE == mouseVisible) {
-        res = ShowCursor(TRUE);
-        if(res < 0) {
-            i=0;
-            do {
-                resOld = res;
-                res = ShowCursor(TRUE);
-            } while(res!=resOld && res<0 && ++i<10);
-        }
-        b = res>=0 ? JNI_TRUE : JNI_FALSE;
-    } else {
-        res = ShowCursor(FALSE);
-        if(res >= 0) {
-            i=0;
-            do {
-                resOld = res;
-                res = ShowCursor(FALSE);
-            } while(res!=resOld && res>=0 && ++i<10);
-        }
-        b = res<0 ? JNI_TRUE : JNI_FALSE;
-    }
-
-    DBG_PRINT( "*** WindowsWindow: setPointerVisible0: %d, res %d/%d\n", mouseVisible, res, b);
-
-    return b;
+    return JNI_TRUE;
 }
 
 /*
