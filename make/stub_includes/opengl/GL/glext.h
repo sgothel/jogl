@@ -1859,7 +1859,9 @@ extern "C" {
 #endif
 
 #ifndef GL_ARB_copy_buffer
+#define GL_COPY_READ_BUFFER_BINDING       0x8F36
 #define GL_COPY_READ_BUFFER               0x8F36
+#define GL_COPY_WRITE_BUFFER_BINDING      0x8F37
 #define GL_COPY_WRITE_BUFFER              0x8F37
 #endif
 
