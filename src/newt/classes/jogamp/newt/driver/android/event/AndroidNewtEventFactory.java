@@ -155,7 +155,7 @@ public class AndroidNewtEventFactory {
                 }
                 break;
         }        
-        return (short)0;
+        return com.jogamp.newt.event.KeyEvent.VK_UNDEFINED;
     }
     
     private static final int aKeyModifiers2Newt(int androidMods) {
@@ -211,7 +211,7 @@ public class AndroidNewtEventFactory {
     }
     
     private static com.jogamp.newt.event.KeyEvent createKeyEventImpl(android.view.KeyEvent aEvent, short newtType, short newtKeyCode, com.jogamp.newt.Window newtSource) {
-        if( (short)0 != newtType && (short)0 != newtKeyCode ) {
+        if( (short)0 != newtType && com.jogamp.newt.event.KeyEvent.VK_UNDEFINED != newtKeyCode ) {
             final Object src = null==newtSource ? null : newtSource;
             final long unixTime = System.currentTimeMillis() + ( aEvent.getEventTime() - android.os.SystemClock.uptimeMillis() );
             final int newtMods = aKeyModifiers2Newt(aEvent.getMetaState());

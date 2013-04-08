@@ -94,6 +94,9 @@ public class KeyEvent extends InputEvent
             if( isActionKey(keySym) ) {
                 _flags |= F_ACTION_MASK;
             }
+            if( 0 == _flags && VK_UNDEFINED != keySym && NULL_CHAR != keyChar ) {
+                _flags |= F_PRINTABLE_MASK;
+            }
             flags = _flags;
         }
     }
@@ -261,7 +264,7 @@ public class KeyEvent extends InputEvent
                 
             case VK_COMPOSE:
             case VK_BEGIN:
-                    
+            case VK_KEYBOARD_INVISIBLE:
                 return true;
         }
         return false;
@@ -279,23 +282,26 @@ public class KeyEvent extends InputEvent
     }
     
     /** 
-     * Returns <code>true</code> if given <code>virtualKey</code> represents a printable character, 
-     * i.e. neither a {@link #isModifierKey(short) modifier key}
+     * Returns <code>true</code> if given <code>virtualKey</code> represents a printable character,
+     * i.e. a value other than {@link #VK_UNDEFINED} and neither a {@link #isModifierKey(short) modifier key}
      * nor an {@link #isActionKey(short) action key}.
      * Otherwise returns <code>false</code>.
      */
     public static boolean isPrintableKey(short vKey) {
-        return !isModifierKey(vKey) && !isActionKey(vKey);
+        return VK_UNDEFINED != vKey && !isModifierKey(vKey) && !isActionKey(vKey);
     }
 
     /** 
-     * Returns <code>true</code> if {@link #getKeySymbol() key symbol} represents a printable character, 
-     * i.e. neither a {@link #isModifierKey(short) modifier key}
-     * nor an {@link #isActionKey(short) action key}.
+     * Returns <code>true</code> if {@link #getKeySymbol() key symbol} represents a printable character,
+     * i.e. a value other than {@link #VK_UNDEFINED} and neither a {@link #isModifierKey(short) modifier key}
+     * nor an {@link #isActionKey(short) action key}. The {@link #getKeyChar() key char} value must also be 
+     * different than {@link #NULL_CHAR}.
+     * <p>
      * Otherwise returns <code>false</code>.
+     * </p>
      */
     public final boolean isPrintableKey() {
-        return 0 == ( F_NON_PRINT_MASK & flags ) ;
+        return 0 != ( F_PRINTABLE_MASK & flags ) ;
     }
     
     private final short keyCode;
@@ -304,7 +310,7 @@ public class KeyEvent extends InputEvent
     private final byte flags;
     private static final byte F_MODIFIER_MASK   = 1 << 0;
     private static final byte F_ACTION_MASK     = 1 << 1;
-    private static final byte F_NON_PRINT_MASK  = F_MODIFIER_MASK | F_ACTION_MASK ;
+    private static final byte F_PRINTABLE_MASK  = 1 << 2;
 
     /** A key has been pressed, excluding {@link #isAutoRepeat() auto-repeat} {@link #isModifierKey() modifier} keys. */
     public static final short EVENT_KEY_PRESSED = 300;
@@ -880,10 +886,14 @@ public class KeyEvent extends InputEvent
     public static final short VK_KEYBOARD_INVISIBLE       = (short) 0xDEAD;
 
     /**
-     * This value is used to indicate that the keyCode is unknown.
-     * KEY_TYPED events do not have a keyCode value; this value 
-     * is used instead.  
+     * This value, {@value}, is used to indicate that the keyCode is unknown.
      */
-    public static final short VK_UNDEFINED      = (short) 0x0;
+    public static final short VK_UNDEFINED                = (short) 0x0;
+    
+    /**
+     * This value, {@code '\0'}, is used to indicate that the keyChar is unknown or not printable.
+     */
+    public static final char  NULL_CHAR                   = '\0';
+
 }
 

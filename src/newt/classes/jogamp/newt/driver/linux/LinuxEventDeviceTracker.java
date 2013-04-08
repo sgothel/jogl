@@ -859,7 +859,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
                 case 239: // UWB
                 	break; // FIXME
                 case 240: // unknown
-                	return KeyEvent.VK_UNDEFINED; // FIXME ?
+                	return KeyEvent.VK_UNDEFINED;
                 case 241: // video next
                 	break; // FIXME
                 case 242: // video prev
