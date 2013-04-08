@@ -124,7 +124,9 @@ public class LinuxEventDeviceTracker implements WindowListener {
 		System.setProperty("newt.debug.Window.KeyEvent", "true");
 		LinuxEventDeviceTracker.getSingleton();
 		try {
-			Thread.sleep(30000);
+			while(true) {
+                             Thread.sleep(1000);
+                        } 
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -240,7 +242,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
 				code = s.getShortAt(10);
 				value = s.getIntAt(12);
 
-				if(null != focusedWindow) {
+				
 					/*
 					 * Linux sends Keyboard events in the following order:
 					 * EV_MSC (optional, contains scancode)
@@ -254,53 +256,83 @@ public class LinuxEventDeviceTracker implements WindowListener {
 						eventType = 0;
 						keyCode = KeyEvent.VK_UNDEFINED;
 						keyChar = 0; // Print null for unprintable char.
-						modifiers = 0;
+                                                if(Window.DEBUG_KEY_EVENT) {
+                                                    System.out.println("[SYN_REPORT----]");
+                                                }
 						break;
 					case 1: // EV_KEY
 						keyCode = LinuxEVKey2NewtVKey(code); // The device independent code.
-						keyChar = NewtVKey2Unicode(keyCode); // The printable character w/o key modifiers.
+						keyChar = NewtVKey2Unicode(keyCode, modifiers); // The printable character w/ key modifiers.						
+					        if(Window.DEBUG_KEY_EVENT) {
+                                                    System.out.println("[EV_KEY: [time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
+                                                }
+	
 						switch(value) {
 						case 0:
-							modifiers=0;
 							eventType=KeyEvent.EVENT_KEY_RELEASED;
-							focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
+
+                                                        if(keyCode == KeyEvent.VK_SHIFT){
+                                                             System.out.println("release-shift");
+                                                             modifiers &= ~InputEvent.SHIFT_MASK;
+                                                        }
+
+							if(null != focusedWindow) {
+								focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
+							}
+							if(Window.DEBUG_KEY_EVENT) {
+								System.out.println("[event released] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
+							}
 							break;
 						case 1:
 							eventType=KeyEvent.EVENT_KEY_PRESSED;
-							focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
+
+                                                        if(keyCode == KeyEvent.VK_SHIFT){
+                                                             modifiers |= InputEvent.SHIFT_MASK;
+                                                        }
+ 
+							if(null != focusedWindow) {
+								focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
+							}
+							if(Window.DEBUG_KEY_EVENT) {
+								System.out.println("[event pressed] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
+							}
 							break;
 						case 2:
 							eventType=KeyEvent.EVENT_KEY_PRESSED;
-							modifiers=InputEvent.AUTOREPEAT_MASK;
+							modifiers |= InputEvent.AUTOREPEAT_MASK;
+                                                        if(keyCode == KeyEvent.VK_SHIFT){
+                                                             modifiers |= InputEvent.SHIFT_MASK;
+                                                        }
 
-							//Send syntetic autorepeat release
-							focusedWindow.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keyCode, keyChar);
-
-							focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
+							if(null != focusedWindow) {
+								//Send syntetic autorepeat release							
+								focusedWindow.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keyCode, keyChar);
+								
+								focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
+							}
+							if(Window.DEBUG_KEY_EVENT) {
+								System.out.println("[event released auto] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
+								System.out.println("[event pressed auto] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
+							}
+						        modifiers &= ~InputEvent.AUTOREPEAT_MASK;
 							break;
 						}
 						break;
 					case 4: // EV_MSC
 						if(code==4) { // MSC_SCAN
 							// scancode ignore, linux kernel specific
-							// keyCode = value;
 						}
 						break;
 						// TODO: handle joystick events
 						// TODO: handle mouse events
 						// TODO: handle headphone/hdmi connector events
-					}
-
-					if(Window.DEBUG_KEY_EVENT) {
-					    System.out.println("[time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
-					}
-
-				} else {
-					if(Window.DEBUG_KEY_EVENT) {
-					    System.out.println("[time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
+                                        default: // Print number.
+                                                if(Window.DEBUG_KEY_EVENT) {
+                                                    System.out.println("TODO EventDevicePoller: [time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
+                                                }
 					}
 				}
-			}
+			
 			if(null != fis) {
 				try {
 					fis.close();
@@ -310,9 +342,13 @@ public class LinuxEventDeviceTracker implements WindowListener {
             stop=true;
 		}
 
-		private char NewtVKey2Unicode(short VK){
+		private char NewtVKey2Unicode(short VK, int modifiers){
 			if( KeyEvent.isPrintableKey(VK) ){
-				return (char)VK;
+				if((modifiers & InputEvent.SHIFT_MASK) == InputEvent.SHIFT_MASK) {
+					return (char)VK;
+				} else {
+					return (((char)VK) + "").toLowerCase().charAt(0);
+				}				
 			}
 			return 0;
 		}
@@ -881,7 +917,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
 			}
 			
 			if(Window.DEBUG_KEY_EVENT) {
-				System.out.println("LinuxEVKey2NewtVKey: Unmapped EVKey "+EVKey);
+				System.out.println("TODO LinuxEVKey2NewtVKey: Unmapped EVKey "+EVKey);
 			}
 			
             return KeyEvent.VK_UNDEFINED;
