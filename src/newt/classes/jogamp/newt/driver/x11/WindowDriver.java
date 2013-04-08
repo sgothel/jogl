@@ -116,7 +116,7 @@ public class WindowDriver extends WindowImpl {
             edtDevice.lock();
             try {
                 CloseWindow0(edtDevice.getHandle(), windowHandleClose, 
-                             display.getJavaObjectAtom(), display.getWindowDeleteAtom());
+                             display.getJavaObjectAtom(), display.getWindowDeleteAtom() /* , display.getKbdHandle() */); // XKB disabled for now
             } catch (Throwable t) {
                 if(DEBUG_IMPLEMENTATION) { 
                     Exception e = new Exception("Warning: closeNativeImpl failed - "+Thread.currentThread().getName(), t);
@@ -271,13 +271,13 @@ public class WindowDriver extends WindowImpl {
         super.doMouseEvent(enqueue, wait, eventType, modifiers, x, y, button, rotation);        
     }
     
-    @Override
-    public final void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
+    protected final void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar0, String keyString) {
         // handleKeyEvent(true, false, eventType, modifiers, keyCode, keyChar);
         final boolean isModifierKey = KeyEvent.isModifierKey(keyCode);
         final boolean isAutoRepeat = 0 != ( KeyEvent.AUTOREPEAT_MASK & modifiers );
-        // System.err.println("*** sendKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", keyCode "+toHexString(keyCode)+", keyChar <"+keyChar+">, mods "+toHexString(modifiers)+
-        //                   ", isKeyCodeTracked "+isKeyCodeTracked(keyCode)+", was: pressed "+isKeyPressed(keyCode)+", repeat "+isAutoRepeat+", [modifierKey "+isModifierKey+"] - "+System.currentTimeMillis());
+        final char keyChar =  ( null != keyString ) ? keyString.charAt(0) : keyChar0;        
+        // System.err.println("*** sendKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", keyCode "+toHexString(keyCode)+", keyChar <"+keyChar0+">/<"+keyChar+">, keyString "+keyString+", mods "+toHexString(modifiers)+
+        //                    ", isKeyCodeTracked "+isKeyCodeTracked(keyCode)+", was: pressed "+isKeyPressed(keyCode)+", repeat "+isAutoRepeat+", [modifierKey "+isModifierKey+"] - "+System.currentTimeMillis());
         
         if( !isAutoRepeat || !isModifierKey ) { // ! (  isModifierKey && isAutoRepeat )
             switch(eventType) {
@@ -295,6 +295,10 @@ public class WindowDriver extends WindowImpl {
         }
     }
     
+    @Override
+    public final void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
+        throw new InternalError("XXX: Adapt Java Code to Native Code Changes");
+    }
     @Override
     public final void enqueueKeyEvent(boolean wait, short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
         throw new InternalError("XXX: Adapt Java Code to Native Code Changes");
@@ -315,7 +319,7 @@ public class WindowDriver extends WindowImpl {
     private native long CreateWindow0(long parentWindowHandle, long display, int screen_index, 
                                       int visualID, long javaObjectAtom, long windowDeleteAtom, 
                                       int x, int y, int width, int height, boolean autoPosition, int flags); 
-    private native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom);
+    private native void CloseWindow0(long display, long windowHandle, long javaObjectAtom, long windowDeleteAtom /*, long kbdHandle*/ ); // XKB disabled for now
     private native void reconfigureWindow0(long display, int screen_index, long parentWindowHandle, long windowHandle,
                                            long windowDeleteAtom, int x, int y, int width, int height, int flags);    
     private native void requestFocus0(long display, long windowHandle, boolean force);

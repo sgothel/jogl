@@ -28,6 +28,8 @@
 
 #include "X11Common.h"
 
+// #include <X11/XKBlib.h> // XKB disabled for now
+
 jclass X11NewtWindowClazz = NULL;
 jmethodID insetsChangedID = NULL;
 jmethodID visibleChangedID = NULL;
@@ -223,6 +225,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
         }
     }
 
+    // displayCompletedID = (*env)->GetMethodID(env, clazz, "displayCompleted", "(JJJ)V"); // Variant using XKB
     displayCompletedID = (*env)->GetMethodID(env, clazz, "displayCompleted", "(JJ)V");
     getCurrentThreadNameID = (*env)->GetStaticMethodID(env, X11NewtWindowClazz, "getCurrentThreadName", "()Ljava/lang/String;");
     dumpStackID = (*env)->GetStaticMethodID(env, X11NewtWindowClazz, "dumpStack", "()V");
@@ -235,7 +238,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_initIDs0
     windowDestroyNotifyID = (*env)->GetMethodID(env, X11NewtWindowClazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, X11NewtWindowClazz, "windowRepaint", "(ZIIII)V");
     sendMouseEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendMouseEvent", "(SIIISF)V");
-    sendKeyEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendKeyEvent", "(SISSC)V");
+    sendKeyEventID = (*env)->GetMethodID(env, X11NewtWindowClazz, "sendKeyEvent", "(SISSCLjava/lang/String;)V");
     requestFocusID = (*env)->GetMethodID(env, X11NewtWindowClazz, "requestFocus", "(Z)V");
 
     if (displayCompletedID == NULL ||
@@ -270,6 +273,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_CompleteDisplay
     Display * dpy = (Display *)(intptr_t)display;
     jlong javaObjectAtom;
     jlong windowDeleteAtom;
+    // jlong kbdHandle; // XKB disabled for now
 
     if(dpy==NULL) {
         NewtCommon_FatalError(env, "invalid display connection..");
@@ -288,10 +292,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_CompleteDisplay
     }
 
     // XSetCloseDownMode(dpy, RetainTemporary); // Just a try ..
+    // kbdHandle = (jlong) (intptr_t) XkbGetKeyboard(dpy, XkbAllComponentsMask, XkbUseCoreKbd); // XKB disabled for now
 
     DBG_PRINT("X11: X11Display_completeDisplay dpy %p\n", dpy);
 
-    (*env)->CallVoidMethod(env, obj, displayCompletedID, javaObjectAtom, windowDeleteAtom);
+    (*env)->CallVoidMethod(env, obj, displayCompletedID, javaObjectAtom, windowDeleteAtom /*, kbdHandle*/); // XKB disabled for now
 }
 
 /*
@@ -300,11 +305,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_CompleteDisplay
  * Signature: (JJJ)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DisplayRelease0
-  (JNIEnv *env, jobject obj, jlong display, jlong javaObjectAtom, jlong windowDeleteAtom)
+  (JNIEnv *env, jobject obj, jlong display, jlong javaObjectAtom, jlong windowDeleteAtom /*, jlong kbdHandle*/)
 {
     Display * dpy = (Display *)(intptr_t)display;
     Atom wm_javaobject_atom = (Atom)javaObjectAtom;
     Atom wm_delete_atom = (Atom)windowDeleteAtom;
+    // XkbDescPtr kbdDesc = (XkbDescPtr)(intptr_t)kbdHandle; // XKB disabled for now
 
     if(dpy==NULL) {
         NewtCommon_FatalError(env, "invalid display connection..");
@@ -314,6 +320,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DisplayRelease0
     (void) wm_javaobject_atom;
     (void) wm_delete_atom;
 
+    // XkbFreeKeyboard(kbdDesc, XkbAllNamesMask, True); // XKB disabled for now
+
     XSync(dpy, True); // discard all pending events
     DBG_PRINT("X11: X11Display_DisplayRelease dpy %p\n", dpy);
 }
@@ -321,19 +329,26 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DisplayRelease0
 /*
  * Class:     jogamp_newt_driver_x11_DisplayDriver
  * Method:    DispatchMessages
- * Signature: (JIJJ)V
+ * Signature: (JJJ)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessages0
-  (JNIEnv *env, jobject obj, jlong display, jlong javaObjectAtom, jlong windowDeleteAtom)
+  (JNIEnv *env, jobject obj, jlong display, jlong javaObjectAtom, jlong windowDeleteAtom /*, jlong kbdHandle*/)
 {
     Display * dpy = (Display *) (intptr_t) display;
     Atom wm_delete_atom = (Atom)windowDeleteAtom;
+    // XkbDescPtr kbdDesc = (XkbDescPtr)(intptr_t)kbdHandle; // XKB disabled for now
     int num_events = 100;
     int autoRepeatModifiers = 0;
 
     if ( NULL == dpy ) {
         return;
     }
+
+    /** XKB disabled for now
+    if( NULL == kbdDesc) {
+        NewtCommon_throwNewRuntimeException(env, "NULL kbd handle, bail out!");
+        return;
+    } */
 
     // Periodically take a break
     while( num_events > 0 ) {
@@ -344,7 +359,8 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
         jshort javaVKeyUS = 0;
         jshort javaVKeyNN = 0;
         jint modifiers = 0;
-        char keyChar = 0;
+        uint16_t keyChar = 0;
+        jstring keyString = NULL;
         char text[255];
 
         // XEventsQueued(dpy, X):
@@ -403,23 +419,43 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                 // fall through intended
             case KeyPress: {
                     KeySym shiftedKeySym; // layout depending keySym w/ SHIFT
+                    KeySym unShiftedKeySym; // layout depending keySym w/o SHIFT
+                    unsigned int xkey_state = evt.xkey.state;
 
                     keyCode = evt.xkey.keycode;
-                    keySym = XkbKeycodeToKeysym(dpy, keyCode, 0 /* group */, 0 /* shift level */); // layout depending keySym w/o SHIFT
 
-                    if( XLookupString(&evt.xkey, text, 255, &shiftedKeySym, 0) == 1 ) {
-                        keyChar=text[0];
+                    // Layout depending keySym w/o SHIFT,
+                    // using fixed group 0 (US default layout)
+                    //
+                    // unsigned int mods_rtrn = 0;
+                    // Bool res = XkbTranslateKeyCode (kbdDesc, keyCode, 0, &mods_rtrn, &keySym); // XKB disabled for now
+                    // if( !res ) {
+                        keySym = XkbKeycodeToKeysym(dpy, keyCode, 0 /* group */, 0 /* shift level */);
+                    // }
+
+                    text[0] = 0; text[1] = 0; text[2] = 0;
+                    int charCount = XLookupString(&evt.xkey, text, 2, &shiftedKeySym, NULL);
+                    if( 1 == charCount ) {
+                        keyChar = 0x00FF & (uint16_t) (text[0]);
+                    } else if( 2 == charCount ) {
+                        // Example: UTF-16: 00DF, UTF-8: c3 9f, LATIN SMALL LETTER SHARP S
+                        keyChar = ( 0x00FF & (uint16_t)(text[0]) ) << 8 | ( 0x00FF & (uint16_t)(text[1]) ); // UTF-16BE
+                        keyString = (*env)->NewStringUTF(env, text);
                     }
 
-                    javaVKeyNN = X11KeySym2NewtVKey(keySym);
-                    javaVKeyUS = javaVKeyNN; // FIXME!
-                    modifiers |= X11InputState2NewtModifiers(evt.xkey.state, javaVKeyNN, evt.type == KeyPress) | autoRepeatModifiers;
+                    evt.xkey.state = evt.xkey.state & ~ShiftMask; // clear shift
+                    XLookupString(&evt.xkey, text, 0, &unShiftedKeySym, NULL);
+                    // unShiftedKeySym = XLookupKeysym(&evt.xkey, 0 /* index ? */);
+
+                    javaVKeyNN = X11KeySym2NewtVKey(unShiftedKeySym);
+                    javaVKeyUS = X11KeySym2NewtVKey(keySym);
+                    modifiers |= X11InputState2NewtModifiers(xkey_state, javaVKeyNN, evt.type == KeyPress) | autoRepeatModifiers;
 
                     #ifdef DEBUG_KEYS
-                    fprintf(stderr, "NEWT X11 Key: keyCode 0x%X keySym 0x%X (shifted: 0x%X), keyChar '%c', javaVKey[US 0x%X, NN 0x%X], xstate 0x%X %u, jmods 0x%X\n",
-                        (int)keyCode, (int)keySym, (int)shiftedKeySym, keyChar, 
+                    fprintf(stderr, "NEWT X11 Key: keyCode 0x%X keySym 0x%X, (0x%X, shifted: 0x%X), keyChar '%c' 0x%X %d, javaVKey[US 0x%X, NN 0x%X], xstate 0x%X %u, jmods 0x%X\n",
+                        (int)keyCode, (int)keySym, (int) unShiftedKeySym, (int)shiftedKeySym, keyChar, keyChar, charCount,
                         (int)javaVKeyUS, (int)javaVKeyNN,
-                        (int)evt.xkey.state, (int)evt.xkey.state, (int)modifiers);
+                        (int)xkey_state, (int)xkey_state, (int)modifiers);
                     #endif
                 }
                 break;
@@ -463,13 +499,17 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                                       modifiers,
                                       (jint) evt.xcrossing.x, (jint) evt.xcrossing.y, (jshort) 0, 0.0f /*rotation*/); 
                 break;
+            case MappingNotify:
+                DBG_PRINT( "X11: event . MappingNotify call %p type %d\n", (void*)evt.xmapping.window, evt.xmapping.type);
+                XRefreshKeyboardMapping(&evt.xmapping);
+                break;
             case KeyPress:
                 (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jshort) EVENT_KEY_PRESSED, 
-                                      modifiers, javaVKeyUS, javaVKeyNN, (jchar) keyChar);
+                                      modifiers, javaVKeyUS, javaVKeyNN, (jchar) keyChar, keyString);
                 break;
             case KeyRelease:
                 (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jshort) EVENT_KEY_RELEASED, 
-                                      modifiers, javaVKeyUS, javaVKeyNN, (jchar) keyChar);
+                                      modifiers, javaVKeyUS, javaVKeyNN, (jchar) keyChar, keyString);
                 break;
             case DestroyNotify:
                 DBG_PRINT( "X11: event . DestroyNotify call %p, parent %p, child-event: %d\n", 

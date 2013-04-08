@@ -91,9 +91,10 @@ public class DisplayDriver extends DisplayImpl {
 
     @Override
     protected void closeNativeImpl() {
-        DisplayRelease0(aDevice.getHandle(), javaObjectAtom, windowDeleteAtom);
+        DisplayRelease0(aDevice.getHandle(), javaObjectAtom, windowDeleteAtom /*, kbdHandle */); // XKB disabled for now
         javaObjectAtom = 0;
         windowDeleteAtom = 0;
+        // kbdHandle = 0;
         aDevice.close(); // closes X11 display
     }
 
@@ -103,7 +104,7 @@ public class DisplayDriver extends DisplayImpl {
         try {
             final long handle = aDevice.getHandle();
             if(0 != handle) {
-                DispatchMessages0(handle, javaObjectAtom, windowDeleteAtom);
+                DispatchMessages0(handle, javaObjectAtom, windowDeleteAtom /*, kbdHandle */); // XKB disabled for now
             }
         } finally {
             if(null != aDevice) { // could be pulled by destroy event
@@ -114,6 +115,7 @@ public class DisplayDriver extends DisplayImpl {
 
     protected long getJavaObjectAtom() { return javaObjectAtom; }
     protected long getWindowDeleteAtom() { return windowDeleteAtom; }
+    // protected long getKbdHandle() { return kbdHandle; } // XKB disabled for now
     
     /** Returns <code>null</code> if !{@link #isNativeValid()}, otherwise the Boolean value of {@link X11GraphicsDevice#isXineramaEnabled()}. */ 
     protected Boolean isXineramaEnabled() { return isNativeValid() ? Boolean.valueOf(((X11GraphicsDevice)aDevice).isXineramaEnabled()) : null; }
@@ -126,18 +128,22 @@ public class DisplayDriver extends DisplayImpl {
 
     private native void CompleteDisplay0(long handle);
 
-    private void displayCompleted(long javaObjectAtom, long windowDeleteAtom) {
+    private void displayCompleted(long javaObjectAtom, long windowDeleteAtom /*, long kbdHandle */) {
         this.javaObjectAtom=javaObjectAtom;
         this.windowDeleteAtom=windowDeleteAtom;
+        // this.kbdHandle = kbdHandle; // XKB disabled for now
     }
-    private native void DisplayRelease0(long handle, long javaObjectAtom, long windowDeleteAtom);
+    private native void DisplayRelease0(long handle, long javaObjectAtom, long windowDeleteAtom /*, long kbdHandle */); // XKB disabled for now
 
-    private native void DispatchMessages0(long display, long javaObjectAtom, long windowDeleteAtom);
+    private native void DispatchMessages0(long display, long javaObjectAtom, long windowDeleteAtom /* , long kbdHandle */); // XKB disabled for now
 
     /** X11 Window delete atom marker used on EDT */
     private long windowDeleteAtom;
     
     /** X11 Window java object property used on EDT */
     private long javaObjectAtom;    
+    
+    /** X11 Keyboard handle used on EDT */
+    // private long kbdHandle; // XKB disabled for now
 }
 

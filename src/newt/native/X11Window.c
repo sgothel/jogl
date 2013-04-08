@@ -671,7 +671,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWindow0
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CloseWindow0
-  (JNIEnv *env, jobject obj, jlong display, jlong window, jlong javaObjectAtom, jlong windowDeleteAtom)
+  (JNIEnv *env, jobject obj, jlong display, jlong window, jlong javaObjectAtom, jlong windowDeleteAtom /*, jlong kbdHandle*/) // XKB disabled for now
 {
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
@@ -698,7 +698,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CloseWindow0
     XUnmapWindow(dpy, w);
 
     // Drain all events related to this window ..
-    Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessages0(env, obj, display, javaObjectAtom, windowDeleteAtom);
+    Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessages0(env, obj, display, javaObjectAtom, windowDeleteAtom /*, kbdHandle */); // XKB disabled for now
 
     XDestroyWindow(dpy, w);
     XSync(dpy, True); // discard all events now, no more handler
