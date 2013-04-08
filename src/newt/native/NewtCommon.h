@@ -76,6 +76,6 @@ void NewtCommon_throwNewRuntimeException(JNIEnv *env, const char* msg, ...);
         (*jvmHandle)->DetachCurrentThread(jvmHandle);
     }
  */
-JNIEnv* NewtCommon_GetJNIEnv (JavaVM * jvmHandle, int jvmVersion, int * shallBeDetached);
+JNIEnv* NewtCommon_GetJNIEnv (JavaVM * jvmHandle, int jvmVersion, int asDaemon, int * shallBeDetached);
 
 #endif
