@@ -96,6 +96,9 @@ static short X11KeySym2NewtVKey(KeySym keySym) {
             return J_VK_ALT;
         case XK_Alt_R:
             return J_VK_ALT_GRAPH;
+        case XK_Super_L:
+        case XK_Super_R:
+            return J_VK_WINDOWS;
         case XK_Pause:
             return J_VK_PAUSE;
         case XK_Caps_Lock:
@@ -162,6 +165,8 @@ static short X11KeySym2NewtVKey(KeySym keySym) {
     }
     return keySym;
 }
+
+#define ShiftCtrlModMask ( ShiftMask | ControlMask | Mod1Mask | Mod2Mask | Mod3Mask | Mod4Mask | Mod5Mask )
 
 static jboolean altGraphDown = JNI_FALSE;
 
@@ -443,9 +448,17 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                         keyString = (*env)->NewStringUTF(env, text);
                     }
 
-                    evt.xkey.state = evt.xkey.state & ~ShiftMask; // clear shift
-                    XLookupString(&evt.xkey, text, 0, &unShiftedKeySym, NULL);
-                    // unShiftedKeySym = XLookupKeysym(&evt.xkey, 0 /* index ? */);
+                    if( 0 == keyChar ) {
+                        // Use keyCode's keySym for dead-key (aka modifiers, etc)
+                        unShiftedKeySym = keySym;
+                    } else if( 0 == ( evt.xkey.state & ShiftCtrlModMask ) ) {
+                        // Use non modded keySym
+                        unShiftedKeySym = shiftedKeySym;
+                    } else {
+                        evt.xkey.state = evt.xkey.state & ~ShiftCtrlModMask; // clear shift, ctrl and Mod*
+                        XLookupString(&evt.xkey, text, 0, &unShiftedKeySym, NULL);
+                        // unShiftedKeySym = XLookupKeysym(&evt.xkey, 0 /* index ? */);
+                    }
 
                     javaVKeyNN = X11KeySym2NewtVKey(unShiftedKeySym);
                     javaVKeyUS = X11KeySym2NewtVKey(keySym);
