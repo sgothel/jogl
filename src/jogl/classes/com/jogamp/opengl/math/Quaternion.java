@@ -265,42 +265,51 @@ public class Quaternion {
     }
     
     /** Set this quaternion from a Sphereical interpolation
-     *  of two param quaternion, used mostly for rotational animation
+     *  of two param quaternion, used mostly for rotational animation.
+     *  <p>
+     *  Note: Method does not normalize this quaternion!
+     *  </p>
+     *  <p>
+     *  See http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/
+     *  </p>
      * @param a initial quaternion
      * @param b target quaternion
      * @param t float between 0 and 1 representing interp.
      */
-    public void slerp(Quaternion a,Quaternion b, float t)
-    {
-        float omega, cosom, sinom, sclp, sclq;
-        cosom = a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w;
-        if ((1.0f+cosom) > FloatUtil.E) {
-            if ((1.0f-cosom) > FloatUtil.E) {
-                omega = (float)FloatUtil.acos(cosom);
-                sinom = (float)FloatUtil.sin(omega);
-                sclp = (float)FloatUtil.sin((1.0f-t)*omega) / sinom;
-                sclq = (float)FloatUtil.sin(t*omega) / sinom;
-            }
-            else {
-                sclp = 1.0f - t;
-                sclq = t;
-            }
-            x = sclp*a.x + sclq*b.x;
-            y = sclp*a.y + sclq*b.y;
-            z = sclp*a.z + sclq*b.z;
-            w = sclp*a.w + sclq*b.w;
+    public void slerp(Quaternion a, Quaternion b, float t) {
+        final float cosom = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+        final float t1 = 1.0f - t;
+    
+        // if the two quaternions are close, just use linear interpolation
+        if (cosom >= 0.95f) {
+            x = a.x * t1 + b.x * t;
+            y = a.y * t1 + b.y * t;
+            z = a.z * t1 + b.z * t;
+            w = a.w * t1 + b.w * t;
+            return;
         }
-        else {
-            x =-a.y;
-            y = a.x;
-            z =-a.w;
-            w = a.z;
-            sclp = FloatUtil.sin((1.0f-t) * FloatUtil.PI * 0.5f);
-            sclq = FloatUtil.sin(t * FloatUtil.PI * 0.5f);
-            x = sclp*a.x + sclq*b.x;
-            y = sclp*a.y + sclq*b.y;
-            z = sclp*a.z + sclq*b.z;
+    
+        // the quaternions are nearly opposite, we can pick any axis normal to a,b
+        // to do the rotation
+        if (cosom <= -0.99f) {
+            x = 0.5f * (a.x + b.x);
+            y = 0.5f * (a.y + b.y);
+            z = 0.5f * (a.z + b.z);
+            w = 0.5f * (a.w + b.w);
+            return;
         }
+    
+        // cosom is now withion range of acos, do a SLERP
+        final float sinom = FloatUtil.sqrt(1.0f - cosom * cosom);
+        final float omega = FloatUtil.acos(cosom);
+    
+        final float scla = FloatUtil.sin(t1 * omega) / sinom;
+        final float sclb = FloatUtil.sin( t * omega) / sinom;
+    
+        x = a.x * scla + b.x * sclb;
+        y = a.y * scla + b.y * sclb;
+        z = a.z * scla + b.z * sclb;
+        w = a.w * scla + b.w * sclb;
     }
     
     /** Check if this quaternion is empty, ie (0,0,0,1)
