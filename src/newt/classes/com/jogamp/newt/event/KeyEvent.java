@@ -112,6 +112,11 @@ public class KeyEvent extends InputEvent
 
     /** 
      * Returns the virtual <i>key symbol</i> reflecting the current <i>keyboard layout</i>.
+     * <p>
+     * For {@link #isPrintableKey() printable keys}, the <i>key symbol</i> is the unshifted
+     * representation of the {@link #getKeyChar() UTF-16 key char}.
+     * </p>
+     * @see #isPrintableKey()
      * @see #getKeyChar()
      * @see #getKeyCode()
      */
@@ -151,7 +156,7 @@ public class KeyEvent extends InputEvent
             sb = new StringBuilder();
         }
         sb.append("KeyEvent[").append(getEventTypeString(getEventType())).append(", code ").append(toHexString(keyCode)).append(", sym ").append(toHexString(keySym)).append(", char '").append(keyChar).append("' (").append(toHexString((short)keyChar))
-        .append("), isModifierKey ").append(isModifierKey()).append(", isActionKey ").append(isActionKey()).append(", ");
+        .append("), printable ").append(isPrintableKey()).append(", modifier ").append(isModifierKey()).append(", action ").append(isActionKey()).append(", ");
         return super.toString(sb).append("]");
     }
 
