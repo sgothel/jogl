@@ -271,9 +271,19 @@ public class LinuxEventDeviceTracker implements WindowListener {
                         case 0:
                             eventType=KeyEvent.EVENT_KEY_RELEASED;
 
-                            if(keyCode == KeyEvent.VK_SHIFT){
-                                System.out.println("release-shift");
+                            switch(keyCode) {
+                            case KeyEvent.VK_SHIFT:
                                 modifiers &= ~InputEvent.SHIFT_MASK;
+                                break;
+                            case KeyEvent.VK_ALT:
+                                modifiers &= ~InputEvent.ALT_MASK;
+                                break;
+                            case KeyEvent.VK_ALT_GRAPH:
+                                modifiers &= ~InputEvent.ALT_GRAPH_MASK;
+                                break;
+                            case KeyEvent.VK_CONTROL:
+                                modifiers &= ~InputEvent.CTRL_MASK;
+                                break;
                             }
 
                             if(null != focusedWindow) {
@@ -286,8 +296,19 @@ public class LinuxEventDeviceTracker implements WindowListener {
                         case 1:
                             eventType=KeyEvent.EVENT_KEY_PRESSED;
 
-                            if(keyCode == KeyEvent.VK_SHIFT){
+                            switch(keyCode) {
+                            case KeyEvent.VK_SHIFT:
                                 modifiers |= InputEvent.SHIFT_MASK;
+                                break;
+                            case KeyEvent.VK_ALT:
+                                modifiers |= InputEvent.ALT_MASK;
+                                break;
+                            case KeyEvent.VK_ALT_GRAPH:
+                                modifiers |= InputEvent.ALT_GRAPH_MASK;
+                                break;
+                            case KeyEvent.VK_CONTROL:
+                                modifiers |= InputEvent.CTRL_MASK;
+                                break;
                             }
 
                             if(null != focusedWindow) {
@@ -300,8 +321,20 @@ public class LinuxEventDeviceTracker implements WindowListener {
                         case 2:
                             eventType=KeyEvent.EVENT_KEY_PRESSED;
                             modifiers |= InputEvent.AUTOREPEAT_MASK;
-                            if(keyCode == KeyEvent.VK_SHIFT){
+
+                            switch(keyCode) {
+                            case KeyEvent.VK_SHIFT:
                                 modifiers |= InputEvent.SHIFT_MASK;
+                                break;
+                            case KeyEvent.VK_ALT:
+                                modifiers |= InputEvent.ALT_MASK;
+                                break;
+                            case KeyEvent.VK_ALT_GRAPH:
+                                modifiers |= InputEvent.ALT_GRAPH_MASK;
+                                break;
+                            case KeyEvent.VK_CONTROL:
+                                modifiers |= InputEvent.CTRL_MASK;
+                                break;
                             }
 
                             if(null != focusedWindow) {
