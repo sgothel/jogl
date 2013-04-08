@@ -36,6 +36,9 @@
 #import "KeyEvent.h"
 #import "MouseEvent.h"
 
+#include <CoreFoundation/CoreFoundation.h>
+#include <Carbon/Carbon.h> /* For kVK_ constants, and TIS functions. */
+
 #include <math.h>
 
 static jfloat GetDelta(NSEvent *event, jint javaMods[]) {
@@ -350,12 +353,71 @@ static jmethodID windowRepaintID = NULL;
 
 @end
 
+static CFStringRef CKCH_CreateStringForKey(CGKeyCode keyCode, const UCKeyboardLayout *keyboardLayout) {
+    UInt32 keysDown = 0;
+    UniChar chars[4];
+    UniCharCount realLength;
+
+    UCKeyTranslate(keyboardLayout, keyCode,
+                   kUCKeyActionDisplay, 0,
+                   LMGetKbdType(), kUCKeyTranslateNoDeadKeysBit,
+                   &keysDown, sizeof(chars) / sizeof(chars[0]), &realLength, chars);
+
+    return CFStringCreateWithCharacters(kCFAllocatorDefault, chars, 1);
+}
+
+static CFMutableDictionaryRef CKCH_CreateCodeToCharDict(TISInputSourceRef keyboard) {
+    CFDataRef layoutData = (CFDataRef) TISGetInputSourceProperty(keyboard, kTISPropertyUnicodeKeyLayoutData);
+    const UCKeyboardLayout *keyboardLayout = (const UCKeyboardLayout *)CFDataGetBytePtr(layoutData);
+
+    CFMutableDictionaryRef codeToCharDict = CFDictionaryCreateMutable(kCFAllocatorDefault, 128, NULL, NULL);
+    if ( NULL != codeToCharDict ) {
+        intptr_t i;
+        for (i = 0; i < 128; ++i) {
+            CFStringRef string = CKCH_CreateStringForKey((CGKeyCode)i, keyboardLayout);
+            if( NULL != string ) {
+                CFIndex stringLen = CFStringGetLength (string);
+                if ( 0 < stringLen ) {
+                    UniChar character = CFStringGetCharacterAtIndex(string, 0);
+                    DBG_PRINT("CKCH: MAP 0x%X -> %c\n", (int)i, character);
+                    CFDictionaryAddValue(codeToCharDict, (const void *)i, (const void *)(intptr_t)character);
+                }
+                CFRelease(string);
+            }
+        }
+    }
+    return codeToCharDict;
+}
+
+static CFMutableDictionaryRef CKCH_USCodeToNNChar = NULL;
+
+static void CKCH_CreateDictionaries() {
+    TISInputSourceRef currentKeyboard = TISCopyCurrentKeyboardInputSource();
+    CKCH_USCodeToNNChar = CKCH_CreateCodeToCharDict(currentKeyboard);
+    CFRelease(currentKeyboard);
+}
+
+static UniChar CKCH_CharForKeyCode(jshort keyCode) {
+    UniChar rChar = 0;
+
+    if ( NULL != CKCH_USCodeToNNChar ) {
+        intptr_t code = (intptr_t) keyCode;
+        intptr_t character = 0;
+
+        if ( CFDictionaryGetValueIfPresent(CKCH_USCodeToNNChar, (void *)code, (const void **)&character) ) {
+            rChar = (UniChar) character;
+            DBG_PRINT("CKCH: OK 0x%X -> 0x%X\n", (int)keyCode, (int)rChar);
+        }
+    }
+    return rChar;
+}
+
 @implementation NewtMacWindow
 
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jclass) clazz
 {
     enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZSIIISF)V");
-    enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZSISSC)V");
+    enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZSISCC)V");
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged",     "(ZIIZ)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
@@ -367,6 +429,7 @@ static jmethodID windowRepaintID = NULL;
     if (enqueueMouseEventID && enqueueKeyEventID && sizeChangedID && visibleChangedID && insetsChangedID &&
         positionChangedID && focusChangedID && windowDestroyNotifyID && requestFocusID && windowRepaintID)
     {
+        CKCH_CreateDictionaries();
         return YES;
     }
     return NO;
@@ -683,21 +746,22 @@ static jint mods2JavaMods(NSUInteger mods)
         // printable chars
         for (i = 0; i < len; i++) {
             // Note: the key code in the NSEvent does not map to anything we can use
-            jchar keyChar = (jchar) [chars characterAtIndex: i];
+            UniChar keyChar = (UniChar) [chars characterAtIndex: i];
+            UniChar keySymChar = CKCH_CharForKeyCode(keyCode);
 
-            DBG_PRINT("sendKeyEvent: %d/%d char 0x%X, code 0x%X\n", i, len, (int)keyChar, (int)keyCode);
+            DBG_PRINT("sendKeyEvent: %d/%d code 0x%X, char 0x%X -> keySymChar 0x%X\n", i, len, (int)keyCode, (int)keyChar, (int)keySymChar);
 
             (*env)->CallVoidMethod(env, javaWindowObject, enqueueKeyEventID, JNI_FALSE,
-                                   evType, javaMods, keyCode, keyCode, keyChar);
+                                   evType, javaMods, keyCode, (jchar)keyChar, (jchar)keySymChar);
         }
     } else {
         // non-printable chars
-        jchar keyChar = (jchar) -1;
+        jchar keyChar = (jchar) 0;
 
         DBG_PRINT("sendKeyEvent: code 0x%X\n", (int)keyCode);
 
         (*env)->CallVoidMethod(env, javaWindowObject, enqueueKeyEventID, JNI_FALSE,
-                               evType, javaMods, keyCode, keyCode, keyChar);
+                               evType, javaMods, keyCode, keyChar, keyChar);
     }
 
     /* if (shallBeDetached) {
@@ -1094,3 +1158,4 @@ static jint mods2JavaMods(NSUInteger mods)
 }
 
 @end
+

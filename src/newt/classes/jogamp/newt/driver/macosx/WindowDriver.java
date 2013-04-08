@@ -51,6 +51,7 @@ import jogamp.newt.driver.DriverUpdatePosition;
 
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.UTFKeyUtil;
 
 public class WindowDriver extends WindowImpl implements MutableSurface, DriverClearFocus, DriverUpdatePosition {
     
@@ -401,13 +402,25 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
     
     @Override
-    public final void enqueueKeyEvent(boolean wait, short eventType, int modifiers, short _keyCode, short keySym, char keyChar) {
+    public final void enqueueKeyEvent(boolean wait, short eventType, int modifiers, short _keyCode, short _keySym, char keyChar) {
+        throw new InternalError("XXX: Adapt Java Code to Native Code Changes");    
+    }
+    
+    protected final void enqueueKeyEvent(boolean wait, short eventType, int modifiers, short _keyCode, char keyChar, char keySymChar) {
         // Note that we send the key char for the key code on this
         // platform -- we do not get any useful key codes out of the system
         final short keyCode = MacKeyUtil.validateKeyCode(_keyCode, keyChar);
+        final short keySym;
+        {
+            short _keySym = KeyEvent.NULL_CHAR != keySymChar ? UTFKeyUtil.utf16ToVKey(keySymChar) : KeyEvent.VK_UNDEFINED;
+            keySym = KeyEvent.VK_UNDEFINED != _keySym ? _keySym : keyCode;
+        }
         /* {
             final boolean isModifierKeyCode = KeyEvent.isModifierKey(keyCode);
-            System.err.println("*** handleKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", key 0x"+Integer.toHexString(_keyCode)+" -> 0x"+Integer.toHexString(keyCode)+", mods "+toHexString(modifiers)+
+            System.err.println("*** handleKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+
+                               ", keyCode 0x"+Integer.toHexString(_keyCode)+" -> 0x"+Integer.toHexString(keyCode)+
+                               ", keySymChar '"+keySymChar+"', 0x"+Integer.toHexString(keySymChar)+" -> 0x"+Integer.toHexString(keySym)+
+                               ", mods "+toHexString(modifiers)+
                                ", was: pressed "+isKeyPressed(keyCode)+", repeat "+isKeyInAutoRepeat(keyCode)+", isModifierKeyCode "+isModifierKeyCode);
         } */
             
@@ -426,12 +439,12 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                         // key was already pressed
                         keyRepeatState.put(keyCode, true); // prev == false ->  AR in
                         modifiers |= InputEvent.AUTOREPEAT_MASK;
-                        super.enqueueKeyEvent(wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keyCode, keyChar); // RELEASED
+                        super.enqueueKeyEvent(wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keySym, keyChar); // RELEASED
                     }
                 }
                 break;
         }
-        super.enqueueKeyEvent(wait, eventType, modifiers, keyCode, keyCode, keyChar);
+        super.enqueueKeyEvent(wait, eventType, modifiers, keyCode, keySym, keyChar);
     }
 
     //----------------------------------------------------------------------

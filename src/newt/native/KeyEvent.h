@@ -33,7 +33,6 @@
 #define EVENT_KEY_RELEASED 301
 #define EVENT_KEY_TYPED 302
 
-#define J_CHAR_UNDEFINED 0xFFFF;
 #define J_VK_ENTER          '\n'
 #define J_VK_BACK_SPACE     '\b'
 #define J_VK_TAB            '\t'
@@ -221,7 +220,7 @@
 #define J_VK_COMPOSE                  0xFF20
 #define J_VK_ALT_GRAPH                0xFF7E
 #define J_VK_BEGIN                    0xFF58
-#define J_VK_UNDEFINED      0x0
+#define J_VK_UNDEFINED                0x0
 
 #endif
 

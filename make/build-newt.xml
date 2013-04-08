@@ -364,6 +364,8 @@
         <linkerarg value="-weak_framework" />
         <linkerarg value="AppKit" />
         <linkerarg value="-weak_framework" />
+        <linkerarg value="Carbon" />
+        <linkerarg value="-weak_framework" />
         <linkerarg value="Cocoa" />
       </linker>
 
@@ -583,7 +585,8 @@
           <include name="${rootrel.src.c}/NewtCommon.c" />
           <!-- include name="${rootrel.src.c}/timespec.c"   /--> <!-- currently used for X11 and OSX with special PERF DEBUG MODE-->
           <include name="${rootrel.src.c}/WindowsWindow.c" if="isWindows"/>
-          <include name="${rootrel.src.c}/*.m"             if="isOSX"/>
+          <include name="${rootrel.src.c}/MacWindow.m"     if="isOSX"/>
+          <include name="${rootrel.src.c}/NewtMacWindow.m" if="isOSX"/>
           <include name="${rootrel.src.c}/AndroidWindow.c" if="isAndroid"/>
           <include name="${rootrel.src.c}/X11Display.c"    if="isX11"/>
           <!-- include name="${rootrel.src.c}/X11Event.c"      if="isX11"/-->
