@@ -82,9 +82,7 @@ static jfloat GetDelta(NSEvent *event, jint javaMods[]) {
 }
 
 static jmethodID enqueueMouseEventID = NULL;
-static jmethodID sendMouseEventID = NULL;
 static jmethodID enqueueKeyEventID = NULL;
-static jmethodID sendKeyEventID = NULL;
 static jmethodID requestFocusID = NULL;
 
 static jmethodID insetsChangedID   = NULL;
@@ -95,13 +93,11 @@ static jmethodID focusChangedID    = NULL;
 static jmethodID windowDestroyNotifyID = NULL;
 static jmethodID windowRepaintID = NULL;
 
-// Can't use USE_SENDIO_DIRECT, ie w/o enqueueing to EDT,
+// Need to enqueue all events to EDT,
 // since we may operate on AWT-AppKit (Main Thread)
 // and direct issuing 'requestFocus()' would deadlock:
 //     AWT-AppKit
 //     AWT-EventQueue-0
-//
-// #define USE_SENDIO_DIRECT 1
 
 @implementation NewtView
 
@@ -359,9 +355,7 @@ static jmethodID windowRepaintID = NULL;
 + (BOOL) initNatives: (JNIEnv*) env forClass: (jclass) clazz
 {
     enqueueMouseEventID = (*env)->GetMethodID(env, clazz, "enqueueMouseEvent", "(ZSIIISF)V");
-    sendMouseEventID = (*env)->GetMethodID(env, clazz, "sendMouseEvent", "(SIIISF)V");
     enqueueKeyEventID = (*env)->GetMethodID(env, clazz, "enqueueKeyEvent", "(ZSISSC)V");
-    sendKeyEventID = (*env)->GetMethodID(env, clazz, "sendKeyEvent", "(SISSC)V");
     sizeChangedID = (*env)->GetMethodID(env, clazz, "sizeChanged",     "(ZIIZ)V");
     visibleChangedID = (*env)->GetMethodID(env, clazz, "visibleChanged", "(ZZ)V");
     insetsChangedID = (*env)->GetMethodID(env, clazz, "insetsChanged", "(ZIIII)V");
@@ -370,7 +364,7 @@ static jmethodID windowRepaintID = NULL;
     windowDestroyNotifyID = (*env)->GetMethodID(env, clazz, "windowDestroyNotify", "(Z)Z");
     windowRepaintID = (*env)->GetMethodID(env, clazz, "windowRepaint", "(ZIIII)V");
     requestFocusID = (*env)->GetMethodID(env, clazz, "requestFocus", "(Z)V");
-    if (enqueueMouseEventID && sendMouseEventID && enqueueKeyEventID && sendKeyEventID && sizeChangedID && visibleChangedID && insetsChangedID &&
+    if (enqueueMouseEventID && enqueueKeyEventID && sizeChangedID && visibleChangedID && insetsChangedID &&
         positionChangedID && focusChangedID && windowDestroyNotifyID && requestFocusID && windowRepaintID)
     {
         return YES;
@@ -693,13 +687,8 @@ static jint mods2JavaMods(NSUInteger mods)
 
             DBG_PRINT("sendKeyEvent: %d/%d char 0x%X, code 0x%X\n", i, len, (int)keyChar, (int)keyCode);
 
-            #ifdef USE_SENDIO_DIRECT
-            (*env)->CallVoidMethod(env, javaWindowObject, sendKeyEventID,
-                                   evType, javaMods, keyCode, keyCode, keyChar);
-            #else
             (*env)->CallVoidMethod(env, javaWindowObject, enqueueKeyEventID, JNI_FALSE,
                                    evType, javaMods, keyCode, keyCode, keyChar);
-            #endif
         }
     } else {
         // non-printable chars
@@ -707,13 +696,8 @@ static jint mods2JavaMods(NSUInteger mods)
 
         DBG_PRINT("sendKeyEvent: code 0x%X\n", (int)keyCode);
 
-        #ifdef USE_SENDIO_DIRECT
-        (*env)->CallVoidMethod(env, javaWindowObject, sendKeyEventID,
-                               evType, javaMods, keyCode, keyCode, keyChar);
-        #else
         (*env)->CallVoidMethod(env, javaWindowObject, enqueueKeyEventID, JNI_FALSE,
                                evType, javaMods, keyCode, keyCode, keyChar);
-        #endif
     }
 
     /* if (shallBeDetached) {
@@ -780,17 +764,10 @@ static jint mods2JavaMods(NSUInteger mods)
 
     NSPoint location = [self screenPos2NewtClientWinPos: [NSEvent mouseLocation]];
 
-    #ifdef USE_SENDIO_DIRECT
-    (*env)->CallVoidMethod(env, javaWindowObject, sendMouseEventID,
-                           evType, javaMods[0],
-                           (jint) location.x, (jint) location.y,
-                           javaButtonNum, scrollDeltaY);
-    #else
     (*env)->CallVoidMethod(env, javaWindowObject, enqueueMouseEventID, JNI_FALSE,
                            evType, javaMods[0],
                            (jint) location.x, (jint) location.y,
                            javaButtonNum, scrollDeltaY);
-    #endif
 
     /* if (shallBeDetached) {
         (*jvmHandle)->DetachCurrentThread(jvmHandle);
