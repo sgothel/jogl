@@ -832,9 +832,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     return tmp[0];
   }
 
-  protected static String getThreadName() {
-    return Thread.currentThread().getName();
-  }
+  protected static String getThreadName() { return Thread.currentThread().getName(); }
 
   //----------------------------------------------------------------------
   // Implementations of the various backends

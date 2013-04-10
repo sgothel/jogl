@@ -138,7 +138,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
                 baseName = getBaseName("");
             }
             if(DEBUG) {
-                System.err.println("Animator.initImpl: baseName "+baseName+", implClazz "+impl.getClass().getName()+" - "+toString()+" - "+Thread.currentThread().getName());
+                System.err.println("Animator.initImpl: baseName "+baseName+", implClazz "+impl.getClass().getName()+" - "+toString()+" - "+getThreadName());
             }
         }
     }
@@ -173,7 +173,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     @Override
     public synchronized void add(final GLAutoDrawable drawable) {
         if(DEBUG) {
-            System.err.println("Animator add: 0x"+Integer.toHexString(drawable.hashCode())+" - "+toString()+" - "+Thread.currentThread().getName());
+            System.err.println("Animator add: 0x"+Integer.toHexString(drawable.hashCode())+" - "+toString()+" - "+getThreadName());
         }
         if( drawables.contains(drawable) ) {
             throw new IllegalArgumentException("Drawable already added to animator: "+this+", "+drawable);
@@ -204,7 +204,7 @@ public abstract class AnimatorBase implements GLAnimatorControl {
     @Override
     public synchronized void remove(final GLAutoDrawable drawable) {
         if(DEBUG) {
-            System.err.println("Animator remove: 0x"+Integer.toHexString(drawable.hashCode())+" - "+toString()+" - "+Thread.currentThread().getName());
+            System.err.println("Animator remove: 0x"+Integer.toHexString(drawable.hashCode())+" - "+toString()+" - "+getThreadName());
         }
         if( !drawables.contains(drawable) ) {
             throw new IllegalArgumentException("Drawable not added to animator: "+this+", "+drawable);
@@ -539,14 +539,14 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         }
         if(DEBUG || blocking && nok) { // Info only if DEBUG or ( blocking && not-ok ) ; !blocking possible if AWT
             if( remaining<=0 && nok ) {
-                System.err.println("finishLifecycleAction(" + waitCondition.getClass().getName() + "): ++++++ timeout reached ++++++ " + Thread.currentThread().getName());
+                System.err.println("finishLifecycleAction(" + waitCondition.getClass().getName() + "): ++++++ timeout reached ++++++ " + getThreadName());
             }
             stateSync.lock(); // avoid too many lock/unlock ops 
             try {
                 System.err.println("finishLifecycleAction(" + waitCondition.getClass().getName() + "): OK "+(!nok)+
                         "- pollPeriod "+pollPeriod+", blocking "+blocking+
                         ", waited " + (blocking ? ( TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION - remaining ) : 0 ) + "/" + TO_WAIT_FOR_FINISH_LIFECYCLE_ACTION +                         
-                        " - " + Thread.currentThread().getName());
+                        " - " + getThreadName());
                 System.err.println(" - "+toString());
             } finally {
                 stateSync.unlock();
@@ -570,6 +570,8 @@ public abstract class AnimatorBase implements GLAnimatorControl {
             stateSync.unlock();
         }
     }
+
+    protected static String getThreadName() { return Thread.currentThread().getName(); }
 
     public String toString() {
         return getClass().getName()+"[started "+isStarted()+", animating "+isAnimating()+", paused "+isPaused()+", drawable "+drawables.size()+

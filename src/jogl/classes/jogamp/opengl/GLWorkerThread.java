@@ -219,9 +219,7 @@ public class GLWorkerThread {
     return (Thread.currentThread() == thread);
   }
 
-  protected static String getThreadName() {
-    return Thread.currentThread().getName();
-  }
+  protected static String getThreadName() { return Thread.currentThread().getName(); }
   
   static class WorkerRunnable implements Runnable {
     public void run() {

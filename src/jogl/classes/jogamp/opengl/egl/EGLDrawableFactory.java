@@ -456,7 +456,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             }
         } catch (Throwable t) {
             if(DEBUG) {
-                System.err.println("Catched Exception:");
+                System.err.println("Catched Exception on thread "+getThreadName()); 
                 t.printStackTrace();
             }
             success = false;
@@ -597,7 +597,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             }
         } catch (GLException gle) {
             if(DEBUG) {
-                System.err.println("Catched Exception while EGL Shared Resource initialization");
+                System.err.println("Catched Exception on thread "+getThreadName()); 
                 gle.printStackTrace();
             }
         }
@@ -658,8 +658,6 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return new EGLOnscreenDrawable(this, EGLWrappedSurface.get(target));
     }
     
-    static String getThreadName() { return Thread.currentThread().getName(); }
-
     @Override
     protected GLDrawableImpl createOffscreenDrawableImpl(NativeSurface target) {
         if (target == null) {

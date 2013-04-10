@@ -255,6 +255,8 @@ public abstract class GLDrawableFactory {
     }
   }
   
+  protected static String getThreadName() { return Thread.currentThread().getName(); }
+  
   /** Returns true if this factory is complete, i.e. ready to be used. Otherwise return false. */
   protected abstract boolean isComplete();
 

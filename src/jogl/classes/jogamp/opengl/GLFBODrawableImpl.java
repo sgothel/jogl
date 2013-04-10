@@ -546,7 +546,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         @Override
         public final void setSize(GLContext context, int newWidth, int newHeight) throws NativeWindowException, GLException {
             if(DEBUG) {
-                System.err.println("GLFBODrawableImpl.ResizeableImpl setSize: ("+Thread.currentThread().getName()+"): "+newWidth+"x"+newHeight+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
+                System.err.println("GLFBODrawableImpl.ResizeableImpl setSize: ("+getThreadName()+"): "+newWidth+"x"+newHeight+" - surfaceHandle 0x"+Long.toHexString(getNativeSurface().getSurfaceHandle()));
             }
             int lockRes = lockSurface();
             if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {

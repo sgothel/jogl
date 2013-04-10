@@ -887,7 +887,7 @@ public class GLDrawableHelper {
                              final Runnable  initAction) {
     if(null==context) {
         if (DEBUG) {
-            Exception e = new GLException(Thread.currentThread().getName()+" Info: GLDrawableHelper " + this + ".invokeGL(): NULL GLContext");
+            Exception e = new GLException(getThreadName()+" Info: GLDrawableHelper " + this + ".invokeGL(): NULL GLContext");
             e.printStackTrace();
         }
         return;
@@ -935,7 +935,7 @@ public class GLDrawableHelper {
       res = context.makeCurrent();
       if (GLContext.CONTEXT_NOT_CURRENT != res) {
         if(GLContext.CONTEXT_CURRENT_NEW == res) {
-            throw new GLException(Thread.currentThread().getName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context was not created (new ctx): "+context);
+            throw new GLException(getThreadName()+" GLDrawableHelper " + this + ".invokeGL(): Dispose case (no init action given): Native context was not created (new ctx): "+context);
         }
         if( listeners.size() > 0 && null != autoDrawable ) {
             disposeAllGLEventListener(autoDrawable, false);
@@ -950,7 +950,7 @@ public class GLDrawableHelper {
           }
           flushGLRunnables();
       } catch (Exception e) {
-          System.err.println("Catched: "+e.getMessage());
+          System.err.println("Catched Exception on thread "+getThreadName());
           e.printStackTrace();
       }
       if (lastContext != null) {
@@ -1036,7 +1036,7 @@ public class GLDrawableHelper {
                       try {
                           context.release();
                       } catch (Exception e) {
-                          System.err.println("Catched: "+e.getMessage());
+                          System.err.println("Catched Exception on thread "+getThreadName());
                           e.printStackTrace();
                       }
                   }
@@ -1142,7 +1142,7 @@ public class GLDrawableHelper {
                           context.release();
                           ctxReleased = true;
                       } catch (Exception e) {
-                          System.err.println("Catched: "+e.getMessage());
+                          System.err.println("Catched Exception on thread "+getThreadName());
                           e.printStackTrace();
                       }
                   }
@@ -1160,5 +1160,7 @@ public class GLDrawableHelper {
       long td = System.currentTimeMillis() - t0;
       System.err.println("td0 "+td+"ms, fps "+(1.0/(td/1000.0))+", td-makeCurrent: "+tdA+"ms, td-render "+tdR+"ms, td-swap "+tdS+"ms, td-release "+tdX+"ms, ctx claimed: "+ctxClaimed+", ctx release: "+ctxReleased+", ctx destroyed "+ctxDestroyed);
   }
+
+  protected static String getThreadName() { return Thread.currentThread().getName(); }
     
 }

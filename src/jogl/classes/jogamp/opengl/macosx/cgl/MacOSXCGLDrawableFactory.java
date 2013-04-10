@@ -291,7 +291,7 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     } catch (GLException gle) {
         if(DEBUG) {
-            System.err.println("Catched Exception while MaxOSXCGL Shared Resource initialization:");
+            System.err.println("Catched Exception on thread "+getThreadName()); 
             gle.printStackTrace();
         }
     }

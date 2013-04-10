@@ -152,10 +152,6 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
     return getFactoryImpl().getGLDynamicLookupHelper(0);
   }
 
-  protected static String getThreadName() {
-    return Thread.currentThread().getName();
-  }
-
   // Support for "mode switching" as described in MacOSXCGLDrawable
   public void setOpenGLMode(GLBackendType mode) {
       if (mode == openGLMode) {

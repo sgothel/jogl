@@ -669,7 +669,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                                           setSwapIntervalImpl(nsOpenGLLayer, interval); // enabled per default in layered surface
                                           valid = true;
                                           if (DEBUG) {
-                                              System.err.println("NSOpenGLLayer.Attach: OK, layer "+toHexString(nsOpenGLLayer)+" w/ pbuffer "+toHexString(pbuffer)+", texID "+texID+", texSize "+lastWidth+"x"+lastHeight+", drawableHandle "+toHexString(drawable.getHandle())+" - "+Thread.currentThread().getName());
+                                              System.err.println("NSOpenGLLayer.Attach: OK, layer "+toHexString(nsOpenGLLayer)+" w/ pbuffer "+toHexString(pbuffer)+", texID "+texID+", texSize "+lastWidth+"x"+lastHeight+", drawableHandle "+toHexString(drawable.getHandle())+" - "+getThreadName());
                                           }
                                       } finally {
                                           MacOSXCGLContext.this.lock.unlock();
@@ -685,7 +685,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                       if( !valid ) {
                           // could not acquire lock, re-queue
                           if (DEBUG) {
-                              System.err.println("NSOpenGLLayer.Attach: Re-Queue, drawableHandle "+toHexString(drawable.getHandle())+" - "+Thread.currentThread().getName());
+                              System.err.println("NSOpenGLLayer.Attach: Re-Queue, drawableHandle "+toHexString(drawable.getHandle())+" - "+getThreadName());
                           }
                           OSXUtil.RunLater(this, 1);
                       }
@@ -713,17 +713,17 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                             ols.detachSurfaceLayer();
                         }
                     } catch(Throwable t) {
-                        System.err.println("Catched exception @ "+Thread.currentThread().getName()+": ");
+                        System.err.println("Catched Exception on thread "+getThreadName()); 
                         t.printStackTrace();
                     }
                     CGL.releaseNSOpenGLLayer(cmd.nsOpenGLLayer);
                     if(DEBUG) {
-                        System.err.println("NSOpenGLLayer.Detach: OK, layer "+toHexString(cmd.nsOpenGLLayer)+" - "+Thread.currentThread().getName());
+                        System.err.println("NSOpenGLLayer.Detach: OK, layer "+toHexString(cmd.nsOpenGLLayer)+" - "+getThreadName());
                     }
                     cmd.nsOpenGLLayer = 0;
                     cmd.valid = false;
                 } else if(DEBUG) {
-                    System.err.println("NSOpenGLLayer.Detach: Skipped "+toHexString(cmd.nsOpenGLLayer)+" - "+Thread.currentThread().getName());                    
+                    System.err.println("NSOpenGLLayer.Detach: Skipped "+toHexString(cmd.nsOpenGLLayer)+" - "+getThreadName());
                 }
             }
         }          

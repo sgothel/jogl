@@ -145,7 +145,7 @@ public class Animator extends AnimatorBase {
         public void run() {
             try {
                 if(DEBUG) {
-                    System.err.println("Animator start on " + Thread.currentThread().getName() + ": " + toString());
+                    System.err.println("Animator start on " + getThreadName() + ": " + toString());
                 }
                 fpsCounter.resetFPSCounter();
                 animThread = Thread.currentThread();
@@ -265,7 +265,7 @@ public class Animator extends AnimatorBase {
             runnable = new MainLoop();
         }
         fpsCounter.resetFPSCounter();
-        String threadName = Thread.currentThread().getName()+"-"+baseName;
+        String threadName = getThreadName()+"-"+baseName;
         Thread thread;
         if(null==threadGroup) {
             thread = new Thread(runnable, threadName);

@@ -687,7 +687,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
         if(DEBUG) {
             final NativeSurface ns = getNativeSurface();
             final long nsH = null != ns ? ns.getSurfaceHandle() : 0;
-            System.err.println("GLCanvas.sizeChanged: ("+Thread.currentThread().getName()+"): "+width+"x"+height+" - surfaceHandle 0x"+Long.toHexString(nsH));
+            System.err.println("GLCanvas.sizeChanged: ("+getThreadName()+"): "+width+"x"+height+" - surfaceHandle 0x"+Long.toHexString(nsH));
             // Thread.dumpStack();
         }            
         if( validateGLDrawable() ) {
@@ -1209,9 +1209,7 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
     return config;
   }
 
-  protected static String getThreadName() {
-    return Thread.currentThread().getName();
-  }
+  protected static String getThreadName() { return Thread.currentThread().getName(); }
 
   /**
    * A most simple JOGL AWT test entry

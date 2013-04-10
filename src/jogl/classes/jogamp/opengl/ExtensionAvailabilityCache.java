@@ -247,8 +247,6 @@ final class ExtensionAvailabilityCache {
   private int glXExtensionCount = 0;
   private HashSet<String> availableExtensionCache = new HashSet<String>(50);
 
-  static String getThreadName() {
-    return Thread.currentThread().getName();
-  }
+  static String getThreadName() { return Thread.currentThread().getName(); }
 
 }

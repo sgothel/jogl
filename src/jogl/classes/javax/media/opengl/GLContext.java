@@ -1559,9 +1559,7 @@ public abstract class GLContext {
     return needColon;
   }
 
-  protected static String getThreadName() {
-    return Thread.currentThread().getName();
-  }
+  protected static String getThreadName() { return Thread.currentThread().getName(); }
   
 }
 

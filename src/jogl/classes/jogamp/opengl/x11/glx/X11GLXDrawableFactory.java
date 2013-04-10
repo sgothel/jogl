@@ -360,7 +360,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
         }
     } catch (GLException gle) {
         if(DEBUG) {
-            System.err.println("Catched Exception while X11GLX Shared Resource initialization");
+            System.err.println("Catched Exception on thread "+getThreadName()); 
             gle.printStackTrace();
         }
     }

@@ -174,7 +174,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
             long pid = GDI.GetCurrentProcess();
             if ( GDI.GetProcessAffinityMask(pid, procMask, sysMask) ) {
                 if(DEBUG) {
-                    System.err.println("WindowsWGLDrawableFactory.enterThreadCriticalZone() - 0x" + Long.toHexString(pid) + " - " + Thread.currentThread().getName());
+                    System.err.println("WindowsWGLDrawableFactory.enterThreadCriticalZone() - 0x" + Long.toHexString(pid) + " - " + getThreadName());
                     // Thread.dumpStack();
                 }
                 processAffinityChanges = pid;
@@ -194,7 +194,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
                                                        " this PID 0x" + Long.toHexString(pid) );
             }
             if(DEBUG) {
-                System.err.println("WindowsWGLDrawableFactory.leaveThreadCriticalZone() - 0x" + Long.toHexString(pid) + " - " + Thread.currentThread().getName());
+                System.err.println("WindowsWGLDrawableFactory.leaveThreadCriticalZone() - 0x" + Long.toHexString(pid) + " - " + getThreadName());
             }
             GDI.SetProcessAffinityMask(pid, sysMask.get(0));
         }
@@ -432,7 +432,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
         }
     } catch (GLException gle) {
         if(DEBUG) {
-            System.err.println("Catched Exception while WindowsWGL Shared Resource initialization");
+            System.err.println("Catched Exception on thread "+getThreadName()); 
             gle.printStackTrace();
         }
     }

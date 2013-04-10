@@ -172,7 +172,10 @@ public class ShaderUtil {
                             info.shaderBinaryFormats.add(new Integer(formats[i]));
                         }
                     }
-                } catch (GLException gle) { System.err.println("Catched Exception: "+gle.getMessage()); gle.printStackTrace(); }                    
+                } catch (GLException gle) { 
+                    System.err.println("Catched Exception on thread "+Thread.currentThread().getName()); 
+                    gle.printStackTrace(); 
+                }
             }
         }
         return info.shaderBinaryFormats;
@@ -199,7 +202,10 @@ public class ShaderUtil {
                     }
                     info.shaderCompilerAvailable = new Boolean(v);
                     queryOK = true;
-                } catch (GLException gle) { System.err.println("Catched Exception: "+gle.getMessage()); gle.printStackTrace(); }
+                } catch (GLException gle) { 
+                    System.err.println("Catched Exception on thread "+Thread.currentThread().getName()); 
+                    gle.printStackTrace(); 
+                }
                 if(!queryOK) {
                     info.shaderCompilerAvailable = new Boolean(true);
                 }                

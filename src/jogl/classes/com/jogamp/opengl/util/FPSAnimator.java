@@ -235,7 +235,7 @@ public class FPSAnimator extends AnimatorBase {
         if ( null != timer || null != task || isStartedImpl() ) {
             return false;
         }
-        timer = new Timer( Thread.currentThread().getName()+"-"+baseName+"-Timer"+(timerNo++) );
+        timer = new Timer( getThreadName()+"-"+baseName+"-Timer"+(timerNo++) );
         task = new MainTask();
         if(DEBUG) {
             System.err.println("FPSAnimator.start() START: "+task+", "+ Thread.currentThread() + ": " + toString());
