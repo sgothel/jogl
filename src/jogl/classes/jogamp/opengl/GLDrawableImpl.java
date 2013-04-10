@@ -79,14 +79,11 @@ public abstract class GLDrawableImpl implements GLDrawable {
     if( !realized ) { // volatile OK (locked below)
         return; // destroyed already
     }
-    int lockRes = lockSurface(); // it's recursive, so it's ok within [makeCurrent .. release]
+    final int lockRes = lockSurface(); // it's recursive, so it's ok within [makeCurrent .. release]
     if (NativeSurface.LOCK_SURFACE_NOT_READY == lockRes) {
         return;
     }
     try {
-        if (NativeSurface.LOCK_SURFACE_CHANGED == lockRes) {
-            updateHandle();
-        }
         if( realized ) { // volatile OK
             final GLCapabilitiesImmutable caps = (GLCapabilitiesImmutable)surface.getGraphicsConfiguration().getChosenCapabilities();
             if ( caps.getDoubleBuffered() ) {
@@ -145,11 +142,21 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return surface;
   }
 
-  /** called with locked surface @ setRealized(false) */
+  /** 
+   * called with locked surface @ setRealized(false) or @ lockSurface(..) when surface changed
+   * <p>
+   * Must be paired w/ {@link #createHandle()}.
+   * </p> 
+   */
   protected void destroyHandle() {}
 
-  /** called with locked surface @ setRealized(true) or @ lockSurface(..) when surface changed */
-  protected void updateHandle() {}
+  /** 
+   * called with locked surface @ setRealized(true) or @ lockSurface(..) when surface changed
+   * <p>
+   * Must be paired w/ {@link #destroyHandle()}.
+   * </p> 
+   */
+  protected void createHandle() {}
 
   @Override
   public long getHandle() {
@@ -174,7 +181,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
             if(isProxySurface) {
                 ((ProxySurface)surface).createNotify();
             }
-            if(NativeSurface.LOCK_SURFACE_NOT_READY >= lockSurface()) {
+            if(NativeSurface.LOCK_SURFACE_NOT_READY >= surface.lockSurface()) {
                 throw new GLException("GLDrawableImpl.setRealized(true): Surface not ready (lockSurface)");
             }
         } else {
@@ -185,7 +192,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
                 realized = realizedArg;
                 if(realizedArg) {
                     setRealizedImpl();
-                    updateHandle();
+                    createHandle();
                 } else {
                     destroyHandle();
                     setRealizedImpl();
@@ -193,7 +200,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
             }
         } finally {
             if(realizedArg) {
-                unlockSurface();
+                surface.unlockSurface();
             } else {
                 aDevice.unlock();
                 if(isProxySurface) {
@@ -276,12 +283,47 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return surface.getHeight();
   }
 
-  /** @see NativeSurface#lockSurface() */
+  /** 
+   * {@link NativeSurface#lockSurface() Locks} the underlying windowing toolkit's {@link NativeSurface surface}.
+   * <p>
+   * <i>If</i> drawable is {@link #setRealized(boolean) realized},
+   * the {@link #getHandle() drawable handle} is valid after successfully {@link NativeSurface#lockSurface() locking} 
+   * it's {@link NativeSurface surface} until being {@link #unlockSurface() unlocked}.
+   * </p>
+   * <p>
+   * In case the {@link NativeSurface surface} has changed as indicated by it's 
+   * {@link NativeSurface#lockSurface() lock} result {@link NativeSurface#LOCK_SURFACE_CHANGED},
+   * the implementation is required to update this information as needed within it's implementation. 
+   * </p>
+   * 
+   * @see NativeSurface#lockSurface()
+   * @see #getHandle()
+   */
   public final int lockSurface() throws GLException {
-    return surface.lockSurface();
+    final int lockRes = surface.lockSurface();
+    if ( NativeSurface.LOCK_SURFACE_CHANGED == lockRes && realized ) {
+        // Update the drawable handle, in case the surface handle has changed.
+        final long _handle1 = getHandle();
+        destroyHandle();
+        createHandle();
+        final long _handle2 = getHandle();        
+        if(DEBUG) {
+            if( _handle1 != _handle2) {
+                System.err.println(getThreadName() + ": Drawable handle changed: "+toHexString(_handle1)+" -> "+toHexString(_handle2));
+            }
+        }
+    }
+    return lockRes;
+    
   }
 
-  /** @see NativeSurface#unlockSurface() */
+  /** 
+   * {@link NativeSurface#unlockSurface() Unlocks} the underlying windowing toolkit {@link NativeSurface surface},
+   * which may render the {@link #getHandle() drawable handle} invalid.
+   * 
+   * @see NativeSurface#unlockSurface() 
+   * @see #getHandle()
+   */
   public final void unlockSurface() {
     surface.unlockSurface();
   }
@@ -294,9 +336,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
                 ",\n\tSurface   "+getNativeSurface()+"]";
   }
 
-  protected static String getThreadName() {
-    return Thread.currentThread().getName();
-  }
+  protected static String getThreadName() { return Thread.currentThread().getName(); }
 
   protected GLDrawableFactory factory;
   protected NativeSurface surface;

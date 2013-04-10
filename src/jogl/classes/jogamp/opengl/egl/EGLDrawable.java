@@ -100,10 +100,10 @@ public abstract class EGLDrawable extends GLDrawableImpl {
     }
 
     @Override
-    protected final void updateHandle() {
+    protected final void createHandle() {
         final EGLWrappedSurface eglws = (EGLWrappedSurface) surface;
         if(DEBUG) {
-            System.err.println(getThreadName() + ": updateHandle of "+eglws);
+            System.err.println(getThreadName() + ": createHandle of "+eglws);
         }        
         if( eglws.containsUpstreamOptionBits( ProxySurface.OPT_PROXY_OWNS_UPSTREAM_SURFACE ) ) {
             if( EGL.EGL_NO_SURFACE != eglws.getSurfaceHandle() ) {

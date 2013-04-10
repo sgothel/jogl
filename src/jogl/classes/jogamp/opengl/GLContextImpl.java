@@ -258,7 +258,7 @@ public abstract class GLContextImpl extends GLContext {
     if(DEBUG) {
         String sgl1 = (null!=this.gl)?this.gl.getClass().getSimpleName()+", "+this.gl.toString():"<null>";
         String sgl2 = (null!=gl)?gl.getClass().getSimpleName()+", "+gl.toString():"<null>";
-        Exception e = new Exception("Info: setGL (OpenGL "+getGLVersion()+"): "+Thread.currentThread().getName()+", "+sgl1+" -> "+sgl2);
+        Exception e = new Exception("Info: setGL (OpenGL "+getGLVersion()+"): "+getThreadName()+", "+sgl1+" -> "+sgl2);
         e.printStackTrace();
     }
     this.gl = gl;
@@ -495,14 +495,10 @@ public abstract class GLContextImpl extends GLContext {
     boolean unlockContextAndSurface = true; // Must be cleared if successful, otherwise finally block will release context and surface!
     int res = CONTEXT_NOT_CURRENT;
     try {
-        if (0 == drawable.getHandle()) {
-            throw new GLException("drawable has invalid handle: "+drawable);
-        }
-        if (NativeSurface.LOCK_SURFACE_CHANGED == lockRes) {
-            drawable.updateHandle();
-        }
-
         if ( drawable.isRealized() ) {
+            if ( 0 == drawable.getHandle() ) {
+                throw new GLException("drawable has invalid handle: "+drawable);
+            }
             lock.lock();
             try {
                 // One context can only be current by one thread,

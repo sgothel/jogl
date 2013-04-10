@@ -56,7 +56,7 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
     glXWindow=0;
     useGLXWindow=false;
     if(realized) {
-        updateHandle();
+        createHandle();
     }
   }
 
@@ -82,7 +82,7 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
   }
 
   @Override
-  protected final void updateHandle() {
+  protected final void createHandle() {
     if(USE_GLXWINDOW) {
         X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)getNativeSurface().getGraphicsConfiguration();
         if(config.getFBConfig()>=0) {

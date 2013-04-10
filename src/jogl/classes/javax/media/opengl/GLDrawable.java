@@ -65,29 +65,31 @@ public interface GLDrawable {
   public GLContext createContext(GLContext shareWith);
 
   /**
-   * Indicates to on-screen GLDrawable implementations whether the
-   * underlying window has been created and can be drawn into. End
-   * users do not need to call this method; it is not necessary to
-   * call <code>setRealized</code> on a GLCanvas, a GLJPanel, or a
-   * GLPbuffer, as these perform the appropriate calls on their
-   * underlying GLDrawables internally.
-   *
-   * <P>
-   *
+   * Indicates to GLDrawable implementations whether the
+   * underlying {@link NativeSurface surface} has been created and can be drawn into.
+   * <p>
+   * If realized, the {@link #getHandle() drawable handle} may become
+   * valid while it's {@link NativeSurface surface} is being {@link NativeSurface#lockSurface() locked}.
+   * </p>
+   * <p>
+   * End users do not need to call this method; it is not necessary to
+   * call <code>setRealized</code> on a {@link GLAutoDrawable} 
+   * as these perform the appropriate calls on their underlying GLDrawables internally.
+   * </p>
+   * <p>
    * Developers implementing new OpenGL components for various window
    * toolkits need to call this method against GLDrawables obtained
-   * from the GLDrawableFactory via the {@link
-   * GLDrawableFactory#getGLDrawable
-   * GLDrawableFactory.getGLDrawable()} method. It must typically be
+   * from the GLDrawableFactory via the 
+   * {@link GLDrawableFactory#createGLDrawable(NativeSurface)} method.
+   * It must typically be
    * called with an argument of <code>true</code> when the component
    * associated with the GLDrawable is realized and with an argument
    * of <code>false</code> just before the component is unrealized.
    * For the AWT, this means calling <code>setRealized(true)</code> in
    * the <code>addNotify</code> method and with an argument of
    * <code>false</code> in the <code>removeNotify</code> method.
-   *
-   * <P>
-   *
+   * </p>
+   * <p>   
    * <code>GLDrawable</code> implementations should handle multiple
    * cycles of <code>setRealized(true)</code> /
    * <code>setRealized(false)</code> calls. Most, if not all, Java
@@ -101,12 +103,11 @@ public interface GLDrawable {
    * <code>GLDrawable</code> to re-initialize and destroy any
    * associated resources as the component becomes realized and
    * unrealized, respectively.
-   *
-   * <P>
-   *
+   * </p>
+   * <p>   
    * With an argument of <code>true</code>,
    * the minimum implementation shall call
-   * {@link NativeSurface#lockSurface() NativeSurface's lockSurface()} and if successfull:
+   * {@link NativeSurface#lockSurface() NativeSurface's lockSurface()} and if successful:
    * <ul>
    *    <li> Update the {@link GLCapabilities}, which are associated with
    *         the attached {@link NativeSurface}'s {@link AbstractGraphicsConfiguration}.</li>
@@ -115,14 +116,17 @@ public interface GLDrawable {
    * This is important since {@link NativeSurface#lockSurface() NativeSurface's lockSurface()}
    * ensures resolving the window/surface handles, and the drawable's {@link GLCapabilities}
    * might have changed.
-   *
-   * <P>
-   *
+   * </p>
+   * <p>   
    * Calling this method has no other effects. For example, if
    * <code>removeNotify</code> is called on a Canvas implementation
    * for which a GLDrawable has been created, it is also necessary to
    * destroy all OpenGL contexts associated with that GLDrawable. This
    * is not done automatically by the implementation.
+   * </p>
+   * @see #isRealized()
+   * @see #getHandle()
+   * @see NativeSurface#lockSurface()
    */
   public void setRealized(boolean realized);
 
@@ -131,6 +135,7 @@ public interface GLDrawable {
    * <p>
    * A drawable can be realized and unrealized via {@link #setRealized(boolean)}.
    * </p>
+   * @see #setRealized(boolean)
    */
   public boolean isRealized();
 
@@ -172,11 +177,22 @@ public interface GLDrawable {
   public NativeSurface getNativeSurface();
 
   /**
-   * This is the GL/Windowing drawable handle.<br>
-   * It is usually the {@link javax.media.nativewindow.NativeSurface#getSurfaceHandle()},
-   * ie the native surface handle of the underlying windowing toolkit.<br>
-   * However, on X11/GLX this reflects a GLXDrawable, which represents a GLXWindow, GLXPixmap, or GLXPbuffer.<br>
-   * On EGL, this represents the EGLSurface.<br>
+   * Returns the GL drawable handle, 
+   * guaranteed to be valid after {@link #setRealized(boolean) realization}
+   * <i>and</i> while it's {@link NativeSurface surface} is being {@link NativeSurface#lockSurface() locked}.
+   * <p>
+   * It is usually identical to the underlying windowing toolkit {@link NativeSurface surface}'s 
+   * {@link javax.media.nativewindow.NativeSurface#getSurfaceHandle() handle}
+   * or an intermediate layer to suite GL, e.g. an EGL surface.
+   * </p>
+   * <p>
+   * On EGL it is represented by the EGLSurface.<br>
+   * On X11/GLX it is represented by either the Window XID, GLXPixmap, or GLXPbuffer.<br>
+   * On Windows it is represented by the HDC, which may change with each {@link #lockSurface()}.<br>
+   * </p>
+   * @see #setRealized(boolean)
+   * @see NativeSurface#lockSurface()
+   * @see NativeSurface#unlockSurface()
    */
   public long getHandle();
 
