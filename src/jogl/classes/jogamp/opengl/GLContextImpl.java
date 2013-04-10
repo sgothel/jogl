@@ -342,18 +342,24 @@ public abstract class GLContextImpl extends GLContext {
 
   @Override
   public final void destroy() {
+      if ( null == drawable ) {
+          throw new GLException("Drawable is null: "+toString());
+      }
       if ( DEBUG_TRACE_SWITCH ) {
           System.err.println(getThreadName() + ": GLContextImpl.destroy.0: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle) +
                   ", surf "+toHexString(drawable.getHandle())+", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
       }
-      if (contextHandle != 0) {
+      if ( 0 != contextHandle ) {
           final int lockRes = drawable.lockSurface();
-          if (NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes) {
+          if ( NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes ) {
                 // this would be odd ..
                 throw new GLException("Surface not ready to lock: "+drawable);
           }
           Throwable drawableContextRealizedException = null;
           try {
+              if ( !drawable.isRealized() ) {
+                  throw new GLException("Drawable not realized: "+toString());
+              }
               // Must hold the lock around the destroy operation to make sure we
               // don't destroy the context while another thread renders to it.
               lock.lock(); // holdCount++ -> 1 - n (1: not locked, 2-n: destroy while rendering)
@@ -365,17 +371,18 @@ public abstract class GLContextImpl extends GLContext {
                   }
               }
               try {
-                  // release current context
-                  if(lock.getHoldCount() == 1) {
-                      // needs current context to call associateDrawable(..) and to disable debug handler
-                      makeCurrent();
+                  // if not current, makeCurrent(), to call associateDrawable(..) and to disable debug handler
+                  if ( lock.getHoldCount() == 1 ) {
+                      if ( GLContext.CONTEXT_NOT_CURRENT == makeCurrent() ) {
+                          throw new GLException("GLContext.makeCurrent() failed: "+toString());
+                      }
                   }
                   try {
                       associateDrawable(false);
                   } catch (Throwable t) {
                       drawableContextRealizedException = t;
                   }
-                  if(0 != defaultVAO) {
+                  if ( 0 != defaultVAO ) {
                       int[] tmp = new int[] { defaultVAO };
                       gl.getGL2GL3().glBindVertexArray(0);
                       gl.getGL2GL3().glDeleteVertexArrays(1, tmp, 0);
@@ -492,7 +499,7 @@ public abstract class GLContextImpl extends GLContext {
         return CONTEXT_NOT_CURRENT;
     }
     
-    boolean unlockContextAndSurface = true; // Must be cleared if successful, otherwise finally block will release context and surface!
+    boolean unlockResources = true; // Must be cleared if successful, otherwise finally block will release context and/or surface!
     int res = CONTEXT_NOT_CURRENT;
     try {
         if ( drawable.isRealized() ) {
@@ -509,7 +516,7 @@ public abstract class GLContextImpl extends GLContext {
                         // Assume we don't need to make this context current again
                         // For Mac OS X, however, we need to update the context to track resizes
                         drawableUpdatedNotify();
-                        unlockContextAndSurface = false; // success
+                        unlockResources = false; // success
                         if( TRACE_SWITCH ) {
                             System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.X2]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+" - keep   - CONTEXT_CURRENT - "+lock);                        
                         }
@@ -519,7 +526,7 @@ public abstract class GLContextImpl extends GLContext {
                     }
                 }
                 res = makeCurrentWithinLock(lockRes);
-                unlockContextAndSurface = CONTEXT_NOT_CURRENT == res; // success ?
+                unlockResources = CONTEXT_NOT_CURRENT == res; // success ?
                 
                 /**
                  * FIXME: refactor dependence on Java 2D / JOGL bridge
@@ -529,10 +536,10 @@ public abstract class GLContextImpl extends GLContext {
                     }
                  */
             } catch (RuntimeException e) {
-              unlockContextAndSurface = true;
+              unlockResources = true;
               throw e;
             } finally {
-              if (unlockContextAndSurface) {
+              if (unlockResources) {
                 if( DEBUG_TRACE_SWITCH ) {
                   System.err.println(getThreadName() +": GLContext.ContextSwitch[makeCurrent.1]: Context lock.unlock() due to error, res "+makeCurrentResultToString(res)+", "+lock);
                 }
@@ -541,10 +548,10 @@ public abstract class GLContextImpl extends GLContext {
             }
         } /* if ( drawable.isRealized() ) */
     } catch (RuntimeException e) {
-      unlockContextAndSurface = true;
+      unlockResources = true;
       throw e;
     } finally {
-      if (unlockContextAndSurface) {
+      if (unlockResources) {
         drawable.unlockSurface();
       }
     }
