@@ -141,7 +141,8 @@ static RECT* UpdateInsets(JNIEnv *env, jobject window, HWND hwnd);
 typedef struct {
     JNIEnv* jenv;
     jobject jinstance;
-    int pointerVisible;
+    /** Tristate: -1 HIDE, 0 NOP, 1 SHOW */
+    int setPointerVisible;
 } WindowUserData;
     
 typedef struct {
@@ -751,6 +752,31 @@ static LRESULT CALLBACK HookMouseProc (int code, WPARAM wParam, LPARAM lParam)
 
 #endif
 
+static BOOL SafeShowCursor(BOOL show) {
+    int count, countPre;
+    BOOL b;
+
+    if( show ) {
+        count = ShowCursor(TRUE);
+        if(count < 0) {
+            do {
+                countPre = count;
+                count = ShowCursor(TRUE);
+            } while( count > countPre && count < 0 );
+        }
+        b = count>=0 ? TRUE : FALSE;
+    } else {
+        count = ShowCursor(FALSE);
+        if(count >= 0) {
+            do {
+                countPre = count;
+                count = ShowCursor(FALSE);
+            } while( count < countPre && count >= 0 );
+        }
+        b = count<0 ? TRUE : FALSE;
+    }
+    return b;
+}
 
 static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lParam) {
     LRESULT res = 0;
@@ -1039,18 +1065,19 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         res = 1; // return 1 == done, OpenGL, etc .. erases the background, hence we claim to have just done this
         break;
     case WM_SETCURSOR :
-        if (0 != wud->pointerVisible) {
+        if (0 != wud->setPointerVisible) { // Tristate, -1, 0, 1
             BOOL visibilityChangeSuccessful;
-            if (1 == wud->pointerVisible) {
+            if (1 == wud->setPointerVisible) {
                 visibilityChangeSuccessful = SafeShowCursor(TRUE);
-            } else /* -1 == wud->pointerVisible */ {
+            } else /* -1 == wud->setPointerVisible */ {
                 visibilityChangeSuccessful = SafeShowCursor(FALSE);
             }
             useDefWindowProc = visibilityChangeSuccessful ? 1 : 0;
-            pointerVisible = 0;
-            DBG_PRINT("*** WindowsWindow: WM_SETCURSOR requested visibility: %d success: %d\n", wud->pointerVisible, visibilityChangeSuccessful);
+            DBG_PRINT("*** WindowsWindow: WM_SETCURSOR requested visibility: %d success: %d\n", wud->setPointerVisible, visibilityChangeSuccessful);
+            wud->setPointerVisible = 0;
+            useDefWindowProc = 0; // own signal, consumed
         } else {
-            useDefWindowProc = 0;
+            useDefWindowProc = 1; // NOP for us, allow parent to act
         }
         break;
     default:
@@ -1061,28 +1088,6 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
         return DefWindowProc(wnd, message, wParam, lParam);
     }
     return res;
-}
-
-static BOOL SafeShowCursor(BOOL show) {
-    int attempt = 0, maxAttempt, previousDisplayCount, currentDisplayCount;
-    currentDisplayCount = ShowCursor(show);
-    if (show) {
-        success = currentDisplayCount >= 0;
-        maxAttempt = -currentDisplayCount;
-    } else {
-        success = currentDisplayCount < 0;
-        maxAttempt = currentDisplayCount + 1;
-    }
-    while (!success && attempt < maxAttempt) {
-        previousDisplayCount = currentDisplayCount;
-        currentDisplayCount = ShowCursor(show);
-        success = show ? currentDisplayCount >= 0 : currentDisplayCount < 0;
-        attempt++;
-        if (previousDisplayCount == currentDisplayCount) {
-            break;
-        }
-    }
-    return success;
 }
 
 /*
@@ -1496,7 +1501,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_windows_WindowDriver_CreateWindo
         WindowUserData * wud = (WindowUserData *) malloc(sizeof(WindowUserData));
         wud->jinstance = (*env)->NewGlobalRef(env, obj);
         wud->jenv = env;
-        wud->pointerVisible = 0;
+        wud->setPointerVisible = 0;
 #if !defined(__MINGW64__) && ( defined(UNDER_CE) || _MSC_VER <= 1200 )
         SetWindowLong(window, GWL_USERDATA, (intptr_t) wud);
 #else
@@ -1711,7 +1716,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_WindowDriver_setPoint
 #else
     wud = (WindowUserData *) GetWindowLongPtr(hwnd, GWLP_USERDATA);
 #endif
-    wud->pointerVisible = mouseVisible ? 1 : -1;
+    wud->setPointerVisible = mouseVisible ? 1 : -1;
     SendMessage(hwnd, WM_SETCURSOR, 0, 0);
 
     return JNI_TRUE;
