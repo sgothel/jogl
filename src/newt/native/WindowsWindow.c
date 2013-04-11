@@ -1043,13 +1043,8 @@ static LRESULT CALLBACK wndProc(HWND wnd, UINT message, WPARAM wParam, LPARAM lP
             BOOL visibilityChangeSuccessful;
             if (1 == wud->pointerVisible) {
                 visibilityChangeSuccessful = SafeShowCursor(TRUE);
-            } else {
-                if (-1 == wud->pointerVisible) {
-                    visibilityChangeSuccessful = SafeShowCursor(FALSE);
-                } else {
-                    // it should never happen
-                    visibilityChangeSuccessful = FALSE;
-                }
+            } else /* -1 == wud->pointerVisible */ {
+                visibilityChangeSuccessful = SafeShowCursor(FALSE);
             }
             useDefWindowProc = visibilityChangeSuccessful ? 1 : 0;
             pointerVisible = 0;
