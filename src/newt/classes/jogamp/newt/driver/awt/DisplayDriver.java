@@ -38,7 +38,6 @@ import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.util.EDTUtil;
 
-import jogamp.newt.DefaultEDTUtil;
 import jogamp.newt.DisplayImpl;
 
 public class DisplayDriver extends DisplayImpl {

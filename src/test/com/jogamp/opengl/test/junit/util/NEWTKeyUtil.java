@@ -104,7 +104,7 @@ public class NEWTKeyUtil {
                     missCodes.add(new CodeEvent(c, codeSeg.description, e));
                     misses++;
                 }
-                if( KeyEvent.isPrintableKey(c) ) {
+                if( KeyEvent.isPrintableKey(c, false) ) {
                     evtIdx += 3; // w/ TYPED
                 } else {
                     evtIdx += 2;         
@@ -118,17 +118,17 @@ public class NEWTKeyUtil {
         return res;
     }
     
-    public static void validateKeyEvent(KeyEvent e, int eventType, int modifier, int keyCode, char keyChar) {
+    public static void validateKeyEvent(KeyEvent e, short eventType, int modifiers, short keyCode, char keyChar) {
         if(0 <= eventType) {
             Assert.assertTrue("KeyEvent type mismatch, expected 0x"+Integer.toHexString(eventType)+", has "+e, eventType == e.getEventType());
         }
-        if(0 <= modifier) {
-            Assert.assertTrue("KeyEvent modifier mismatch, expected 0x"+Integer.toHexString(modifier)+", has "+e, modifier == e.getModifiers());
+        if(0 <= modifiers) {
+            Assert.assertTrue("KeyEvent modifier mismatch, expected 0x"+Integer.toHexString(modifiers)+", has "+e, modifiers == e.getModifiers());
         }
-        if(0 < keyCode) {
+        if(KeyEvent.VK_UNDEFINED !=  keyCode) {
             Assert.assertTrue("KeyEvent code mismatch, expected 0x"+Integer.toHexString(keyCode)+", has "+e, keyCode == e.getKeyCode());
         }
-        if(0 < keyChar) {
+        if(KeyEvent.NULL_CHAR != keyChar) {
             Assert.assertTrue("KeyEvent char mismatch, expected 0x"+Integer.toHexString(keyChar)+", has "+e, keyChar == e.getKeyChar());
         }        
     }
@@ -168,17 +168,17 @@ public class NEWTKeyUtil {
      * @param keyAdapter
      * @param expPressedCountSI number of single key press events
      * @param expReleasedCountSI number of single key release events
-     * @param expTypedCountSI number of single key types events
+     * @param expTypedCountSI number of single key types events, set to -1 to ignore
      * @param expPressedCountAR number of auto-repeat key press events
      * @param expReleasedCountAR number of auto-repeat key release events
-     * @param expTypedCountAR number of auto-repeat key types events
+     * @param expTypedCountAR number of auto-repeat key types events, set to -1 to ignore
      */
     public static void validateKeyAdapterStats(NEWTKeyAdapter keyAdapter, 
                                                int expPressedCountSI, int expReleasedCountSI, int expTypedCountSI, 
                                                int expPressedCountAR, int expReleasedCountAR, int expTypedCountAR) {
-        final int expTotalCountSI = expPressedCountSI + expReleasedCountSI + expTypedCountSI;
-        final int expTotalCountAR = expPressedCountAR + expReleasedCountAR + expTypedCountAR;
-        final int expTotalCountALL = expTotalCountSI + expTotalCountAR;
+        final int expPressReleaseCountSI = expPressedCountSI + expReleasedCountSI;
+        final int expPressReleaseCountAR = expPressedCountAR + expReleasedCountAR;
+        final int expPressReleaseCountALL = expPressReleaseCountSI + expPressReleaseCountAR;
         
         final int keyPressedALL = keyAdapter.getKeyPressedCount(false);
         final int keyPressedAR = keyAdapter.getKeyPressedCount(true);
@@ -191,35 +191,39 @@ public class NEWTKeyUtil {
         final int keyReleasedSI = keyReleasedALL-keyReleasedAR;
         final int keyTypedSI = keyTypedALL-keyTypedAR;
         
-        final int totalCountALL = keyPressedALL + keyReleasedALL + keyTypedALL;
-        final int totalCountSI = keyPressedSI + keyReleasedSI + keyTypedSI;
-        final int totalCountAR = keyPressedAR + keyReleasedAR + keyTypedAR;
+        final int pressReleaseCountALL = keyPressedALL + keyReleasedALL;
+        final int pressReleaseCountSI = keyPressedSI + keyReleasedSI;
+        final int pressReleaseCountAR = keyPressedAR + keyReleasedAR;
 
-        System.err.println("Expec Single Press "+expPressedCountSI +", Release "+expReleasedCountSI +", Typed "+expTypedCountSI +", Events "+expTotalCountSI);
-        System.err.println("Expec AutoRp Press "+expPressedCountAR +", Release "+expReleasedCountAR +", Typed "+expTypedCountAR +", Events "+expTotalCountAR);
+        System.err.println("Expec Single Press "+expPressedCountSI +", Release "+expReleasedCountSI +", Typed "+expTypedCountSI);
+        System.err.println("Expec AutoRp Press "+expPressedCountAR +", Release "+expReleasedCountAR +", Typed "+expTypedCountAR);
         
-        System.err.println("Total Single Press "+keyPressedSI   +", Release "+keyReleasedSI   +", Typed "+keyTypedSI +", Events "+totalCountSI);
-        System.err.println("Total AutoRp Press "+keyPressedAR   +", Release "+keyReleasedAR   +", Typed "+keyTypedAR +", Events "+totalCountAR);
-        System.err.println("Total ALL    Press "+keyPressedALL  +", Release "+keyReleasedALL  +", Typed "+keyTypedALL+", Events "+totalCountALL);
+        System.err.println("Total Single Press "+keyPressedSI   +", Release "+keyReleasedSI   +", Typed "+keyTypedSI +", Events "+pressReleaseCountSI);
+        System.err.println("Total AutoRp Press "+keyPressedAR   +", Release "+keyReleasedAR   +", Typed "+keyTypedAR +", Events "+pressReleaseCountAR);
+        System.err.println("Total ALL    Press "+keyPressedALL  +", Release "+keyReleasedALL  +", Typed "+keyTypedALL+", Events "+pressReleaseCountALL);
         
-        Assert.assertEquals("Internal Error: totalSI != totalALL - totalAR", totalCountSI, totalCountALL - totalCountAR);
+        Assert.assertEquals("Internal Error: pressReleaseSI != pressReleaseALL - pressReleaseAR", pressReleaseCountSI, pressReleaseCountALL - pressReleaseCountAR);
         
         Assert.assertEquals("Invalid: Has AR Typed events", 0, keyTypedAR);
-        Assert.assertEquals("Invalid: Exp AR Typed events", 0, expTypedCountAR);
+        if( 0 <= expTypedCountAR ) {
+            Assert.assertEquals("Invalid: Exp AR Typed events", 0, expTypedCountAR);
+        }
         
         Assert.assertEquals("Key press count failure (SI)", expPressedCountSI, keyPressedSI);
         Assert.assertEquals("Key released count failure (SI)", expReleasedCountSI, keyReleasedSI);
-        Assert.assertEquals("Key typed count failure (SI)", expTypedCountSI, keyTypedSI);
+        if( 0 <= expTypedCountSI ) {
+            Assert.assertEquals("Key typed count failure (SI)", expTypedCountSI, keyTypedSI);
+        }
 
         Assert.assertEquals("Key press count failure (AR)", expPressedCountAR, keyPressedAR);
         Assert.assertEquals("Key released count failure (AR)", expReleasedCountAR, keyReleasedAR);
         
-        Assert.assertEquals("Key total count failure (SI)", expTotalCountSI, totalCountSI);
-        Assert.assertEquals("Key total count failure (AR)", expTotalCountAR, totalCountAR);
+        Assert.assertEquals("Key pressRelease count failure (SI)", expPressReleaseCountSI, pressReleaseCountSI);
+        Assert.assertEquals("Key pressRelease count failure (AR)", expPressReleaseCountAR, pressReleaseCountAR);
         
         final List<EventObject> keyEvents = keyAdapter.getQueued();
         
-        Assert.assertEquals("Key total count failure (ALL) w/ list sum  ", expTotalCountALL, totalCountALL);
-        Assert.assertEquals("Key total count failure (ALL) w/ list size ", expTotalCountALL, keyEvents.size());                
+        Assert.assertEquals("Key pressRelease count failure (ALL) w/ list sum  ", expPressReleaseCountALL, pressReleaseCountALL);
+        Assert.assertEquals("Key total count failure (ALL) w/ list size ", pressReleaseCountALL + keyTypedALL, keyEvents.size());
     }    
 }

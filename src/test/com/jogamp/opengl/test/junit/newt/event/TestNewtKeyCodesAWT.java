@@ -155,32 +155,35 @@ public class TestNewtKeyCodesAWT extends UITestCase {
         testNewtCanvasAWT_Impl(false);
     }
     
+    /** Almost all keyCodes reachable w/o modifiers [shift, alt, ..] on US keyboard! */
     static CodeSeg[] codeSegments = new CodeSeg[] {
-      new CodeSeg(0x008, 0x008, "bs"),
-      // new CodeSeg(0x009, 0x009, "tab"), // TAB functions as focus traversal key
-      new CodeSeg(0x00a, 0x00a, "cr"),
-      new CodeSeg(0x010, 0x012, "shift, ctrl, alt"),
-      new CodeSeg(0x01B, 0x01B, "esc"),
-      new CodeSeg(0x020, 0x024, "space, up, down, end, home"),
-      new CodeSeg(0x025, 0x028, "cursor"),
-      new CodeSeg(0x02C, 0x02F, ", - . /"),
-      new CodeSeg(0x030, 0x039, "0 - 9"),
-      new CodeSeg(0x03B, 0x03B, ";"),
-      new CodeSeg(0x03D, 0x03D, "="),
-      new CodeSeg(0x041, 0x05A, "a - z"),
-      new CodeSeg(0x05B, 0x05D, "[ \\ ]"),
-      // new CodeSeg(0x060, 0x06B, "numpad1"), // can be mapped to normal keycodes
-      // new CodeSeg(0x06D, 0x06F, "numpad2"), // can be mapped to normal keycodes
-      new CodeSeg(0x07F, 0x07F, "del"),
-      // new CodeSeg(0x090, 0x091, "num lock, scroll lock"),
-      // new CodeSeg(0x070, 0x07B, "F1 - F12"),
-      // new CodeSeg(0x09A, 0x09D, "prt ins hlp meta"),
-      new CodeSeg(0x0C0, 0x0C0, "back quote"),
-      new CodeSeg(0x0DE, 0x0DE, "quote"),
-      // new CodeSeg(0x0E0, 0x0E3, "cursor kp"),
-      // new CodeSeg(0x080, 0x08F, "dead-1"),
-      // new CodeSeg(0x096, 0x0A2, "& ^ \" < > { }"), 
-      // new CodeSeg(0x200, 0x20D, "extra-2"), // @ ; ..
+      // new CodeSeg(KeyEvent.VK_HOME, KeyEvent.VK_PRINTSCREEN, "home, end, final, prnt"),
+      new CodeSeg(KeyEvent.VK_BACK_SPACE, KeyEvent.VK_BACK_SPACE, "bs"),
+      // new CodeSeg(KeyEvent.VK_TAB, KeyEvent.VK_TAB, "tab"), // TAB functions as focus traversal key
+      new CodeSeg(KeyEvent.VK_ENTER, KeyEvent.VK_ENTER, "cr"),
+      new CodeSeg(KeyEvent.VK_PAGE_DOWN, KeyEvent.VK_PAGE_DOWN, "pg_down"),
+      new CodeSeg(KeyEvent.VK_SHIFT, KeyEvent.VK_ALT, "shift, pg_up, ctrl, alt"),
+      // new CodeSeg(KeyEvent.VK_ALT_GRAPH, KeyEvent.VK_ALT_GRAPH, "alt_gr"), // AWT Robot produces 0xff7e on X11
+      // new CodeSeg(KeyEvent.VK_SCROLL_LOCK, KeyEvent.VK_SCROLL_LOCK, "scroll lock"),
+      new CodeSeg(KeyEvent.VK_ESCAPE, KeyEvent.VK_ESCAPE, "esc"),
+      new CodeSeg(KeyEvent.VK_SPACE, KeyEvent.VK_SPACE, "space"),
+      new CodeSeg(KeyEvent.VK_QUOTE, KeyEvent.VK_QUOTE, "quote"),
+      new CodeSeg(KeyEvent.VK_COMMA, KeyEvent.VK_SLASH, ", - . /"),
+      new CodeSeg(KeyEvent.VK_0, KeyEvent.VK_9, "0 - 9"),
+      new CodeSeg(KeyEvent.VK_SEMICOLON, KeyEvent.VK_SEMICOLON, ";"),
+      new CodeSeg(KeyEvent.VK_EQUALS, KeyEvent.VK_EQUALS, "="),
+      new CodeSeg(KeyEvent.VK_A, KeyEvent.VK_Z, "a - z"),
+      new CodeSeg(KeyEvent.VK_OPEN_BRACKET, KeyEvent.VK_CLOSE_BRACKET, "[ \\ ]"),
+      new CodeSeg(KeyEvent.VK_BACK_QUOTE, KeyEvent.VK_BACK_QUOTE, "`"),
+      new CodeSeg(KeyEvent.VK_F1, KeyEvent.VK_F8, "f1..f8"),
+      // new CodeSeg(KeyEvent.VK_F1, KeyEvent.VK_F12, "f1..f12"), // f9-f12 may cause some odd desktop functions!
+      new CodeSeg(KeyEvent.VK_DELETE, KeyEvent.VK_DELETE, "del"),
+      // new CodeSeg(KeyEvent.VK_NUMPAD0, KeyEvent.VK_NUMPAD9, "numpad0-9"), // can be mapped to normal keycodes
+      // new CodeSeg(KeyEvent.VK_DECIMAL, KeyEvent.VK_DIVIDE, "numpad ops"), // can be mapped to normal keycodes
+      // new CodeSeg(KeyEvent.VK_NUM_LOCK, KeyEvent.VK_NUM_LOCK, "num lock"),
+      // new CodeSeg(KeyEvent.VK_KP_LEFT, KeyEvent.VK_KP_DOWN, "numpad cursor arrows"),
+      new CodeSeg(KeyEvent.VK_LEFT, KeyEvent.VK_DOWN, "cursor arrows"),
+      // new CodeSeg(KeyEvent.VK_WINDOWS, KeyEvent.VK_HELP, "windows, meta, hlp"),
     };
     
     static void testKeyCodes(Robot robot, NEWTKeyAdapter keyAdapter) {
@@ -191,23 +194,23 @@ public class TestNewtKeyCodesAWT extends UITestCase {
             final CodeSeg codeSeg = codeSegments[i];
             // System.err.println("*** Segment "+codeSeg.description);
             int eventCount = 0;
-            for(short c=codeSeg.min; c<=codeSeg.max; c++) {
+            for(short c=codeSeg.min; c<=codeSeg.max; c++) {                
                 // System.err.println("*** KeyCode 0x"+Integer.toHexString(c));
                 try {
-                    AWTRobotUtil.keyPress(0, robot, true, c, 10);
+                    AWTRobotUtil.newtKeyPress(0, robot, true, c, 10);
                 } catch (Exception e) {
                     System.err.println("Exception @ AWT Robot.PRESS "+MiscUtils.toHexString(c)+" - "+e.getMessage());
                     break;
                 }
                 eventCount++;
                 try {
-                    AWTRobotUtil.keyPress(0, robot, false, c, 100);
+                    AWTRobotUtil.newtKeyPress(0, robot, false, c, 100);
                 } catch (Exception e) {
                     System.err.println("Exception @ AWT Robot.RELEASE "+MiscUtils.toHexString(c)+" - "+e.getMessage());
                     break;
                 }
                 eventCount++;
-                if( KeyEvent.isPrintableKey(c) ) {
+                if( KeyEvent.isPrintableKey(c, false) ) {
                     eventCount++;
                 }
                 robot.waitForIdle();

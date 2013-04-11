@@ -51,7 +51,6 @@ import jogamp.newt.driver.DriverUpdatePosition;
 
 import com.jogamp.newt.event.InputEvent;
 import com.jogamp.newt.event.KeyEvent;
-import com.jogamp.newt.event.UTFKeyUtil;
 
 public class WindowDriver extends WindowImpl implements MutableSurface, DriverClearFocus, DriverUpdatePosition {
     
@@ -412,7 +411,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         final short keyCode = MacKeyUtil.validateKeyCode(_keyCode, keyChar);
         final short keySym;
         {
-            short _keySym = KeyEvent.NULL_CHAR != keySymChar ? UTFKeyUtil.utf16ToVKey(keySymChar) : KeyEvent.VK_UNDEFINED;
+            short _keySym = KeyEvent.NULL_CHAR != keySymChar ? KeyEvent.utf16ToVKey(keySymChar) : KeyEvent.VK_UNDEFINED;
             keySym = KeyEvent.VK_UNDEFINED != _keySym ? _keySym : keyCode;
         }
         /* {
@@ -421,7 +420,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                                ", keyCode 0x"+Integer.toHexString(_keyCode)+" -> 0x"+Integer.toHexString(keyCode)+
                                ", keySymChar '"+keySymChar+"', 0x"+Integer.toHexString(keySymChar)+" -> 0x"+Integer.toHexString(keySym)+
                                ", mods "+toHexString(modifiers)+
-                               ", was: pressed "+isKeyPressed(keyCode)+", repeat "+isKeyInAutoRepeat(keyCode)+", isModifierKeyCode "+isModifierKeyCode);
+                               ", was: pressed "+isKeyPressed(keyCode)+", isModifierKeyCode "+isModifierKeyCode);
         } */
             
         // 1:1 Order: OSX and NEWT delivery order is PRESSED, RELEASED and TYPED            
@@ -429,15 +428,13 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
         switch(eventType) {
             case KeyEvent.EVENT_KEY_RELEASED:
                 if( isKeyCodeTracked(keyCode) ) {
-                    keyRepeatState.put(keyCode, false); // prev == true -> AR out
-                    keyPressedState.put(keyCode, false);
+                    setKeyPressed(keyCode, false);
                 }
                 break;
             case KeyEvent.EVENT_KEY_PRESSED:
                 if( isKeyCodeTracked(keyCode) ) {
-                    if( keyPressedState.put(keyCode, true) ) {
+                    if( setKeyPressed(keyCode, true) ) {
                         // key was already pressed
-                        keyRepeatState.put(keyCode, true); // prev == false ->  AR in
                         modifiers |= InputEvent.AUTOREPEAT_MASK;
                         super.enqueueKeyEvent(wait, KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keySym, keyChar); // RELEASED
                     }

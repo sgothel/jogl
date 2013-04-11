@@ -2251,41 +2251,45 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
     // KeyListener/Event Support
     //
-    protected IntBitfield keyPressedState = new IntBitfield(KeyEvent.VK_CONTEXT_MENU+1);
-    protected IntBitfield keyRepeatState = new IntBitfield(KeyEvent.VK_CONTEXT_MENU+1);
+    private static final int keyTrackingRange = 255;
+    private final IntBitfield keyPressedState = new IntBitfield( keyTrackingRange + 1 );
+    
+    protected final boolean isKeyCodeTracked(final short keyCode) {
+        return ( 0xFFFF & (int)keyCode ) <= keyTrackingRange;
+    }
     
     /**
-     * @param keyCode
-     * @return 1 if pressed, 0 if not pressed, -1 if not handled. 
+     * @param keyCode the keyCode to set pressed state
+     * @param pressed true if pressed, otherwise false
+     * @return the previus pressed value 
      */
-    protected final int isKeyPressed(int keyCode) { 
-        if( 0 <= keyCode && keyCode < keyPressedState.capacity() ) {
-            return keyPressedState.get(keyCode) ? 1 : 0;
+    protected final boolean setKeyPressed(short keyCode, boolean pressed) {
+        final int v = 0xFFFF & (int)keyCode;
+        if( v <= keyTrackingRange ) {
+            return keyPressedState.put(v, pressed);
         }
-        return -1;
+        return false;
     }
     /**
-     * @param keyCode
-     * @return 1 if pressed, 0 if not pressed, -1 if not handled. 
+     * @param keyCode the keyCode to test pressed state
+     * @return true if pressed, otherwise false 
      */
-    protected final int isKeyInAutoRepeat(int keyCode) { 
-        if( 0 <= keyCode && keyCode < keyRepeatState.capacity() ) {
-            return keyRepeatState.get(keyCode) ? 1 : 0;
+    protected final boolean isKeyPressed(short keyCode) {
+        final int v = 0xFFFF & (int)keyCode;
+        if( v <= keyTrackingRange ) {
+            return keyPressedState.get(v);
         }
-        return -1;
-    }
-    protected final boolean isKeyCodeTracked(int keyCode) { 
-        return 0 <= keyCode && keyCode < keyRepeatState.capacity();
+        return false;
     }
         
     public void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
         // Always add currently pressed mouse buttons to modifier mask
-        consumeKeyEvent(new KeyEvent(eventType, this, System.currentTimeMillis(), modifiers | mouseButtonModMask, keyCode, keySym, keyChar) );
+        consumeKeyEvent( KeyEvent.create(eventType, this, System.currentTimeMillis(), modifiers | mouseButtonModMask, keyCode, keySym, keyChar) );
     }
 
     public void enqueueKeyEvent(boolean wait, short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
         // Always add currently pressed mouse buttons to modifier mask
-        enqueueEvent(wait, new KeyEvent(eventType, this, System.currentTimeMillis(), modifiers | mouseButtonModMask, keyCode, keySym, keyChar) );
+        enqueueEvent(wait, KeyEvent.create(eventType, this, System.currentTimeMillis(), modifiers | mouseButtonModMask, keyCode, keySym, keyChar) );
     }
     
     @Override
@@ -2400,7 +2404,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         // Synthesize deprecated event KeyEvent.EVENT_KEY_TYPED
         final KeyEvent eTyped;
         if( KeyEvent.EVENT_KEY_RELEASED == e.getEventType() && e.isPrintableKey() && !e.isAutoRepeat() ) {
-            eTyped = new KeyEvent(KeyEvent.EVENT_KEY_TYPED, e.getSource(), e.getWhen(), e.getModifiers(), e.getKeyCode(), e.getKeySymbol(), e.getKeyChar());
+            eTyped = KeyEvent.create(KeyEvent.EVENT_KEY_TYPED, e.getSource(), e.getWhen(), e.getModifiers(), e.getKeyCode(), e.getKeySymbol(), e.getKeyChar());
         } else {
             eTyped = null;
         }

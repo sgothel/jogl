@@ -99,6 +99,8 @@ static short X11KeySym2NewtVKey(KeySym keySym) {
         case XK_Super_L:
         case XK_Super_R:
             return J_VK_WINDOWS;
+        case XK_Menu:
+            return J_VK_CONTEXT_MENU;
         case XK_Pause:
             return J_VK_PAUSE;
         case XK_Caps_Lock:

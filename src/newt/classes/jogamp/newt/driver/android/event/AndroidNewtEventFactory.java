@@ -216,7 +216,7 @@ public class AndroidNewtEventFactory {
             final long unixTime = System.currentTimeMillis() + ( aEvent.getEventTime() - android.os.SystemClock.uptimeMillis() );
             final int newtMods = aKeyModifiers2Newt(aEvent.getMetaState());
             
-            return new com.jogamp.newt.event.KeyEvent(
+            return com.jogamp.newt.event.KeyEvent.create(
                                 newtType, src, unixTime, newtMods, newtKeyCode, newtKeyCode, (char) aEvent.getUnicodeChar());
         }
         return null;

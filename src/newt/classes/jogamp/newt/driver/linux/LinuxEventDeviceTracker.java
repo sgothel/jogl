@@ -311,7 +311,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
 		}
 
 		private char NewtVKey2Unicode(short VK){
-			if( KeyEvent.isPrintableKey(VK) ){
+			if( KeyEvent.isPrintableKey(VK, false) ){
 				return (char)VK;
 			}
 			return 0;
@@ -479,9 +479,9 @@ public class LinuxEventDeviceTracker implements WindowListener {
                 case 39:
                     return KeyEvent.VK_SEMICOLON;
                 case 40: // apostrophe
-                    return KeyEvent.VK_DEAD_ACUTE;
+                    return KeyEvent.VK_QUOTE;
                 case 41: // grave
-                    return KeyEvent.VK_DEAD_GRAVE;
+                    return KeyEvent.VK_BACK_QUOTE;
 
                 case 42: // left shift
                     return KeyEvent.VK_SHIFT;

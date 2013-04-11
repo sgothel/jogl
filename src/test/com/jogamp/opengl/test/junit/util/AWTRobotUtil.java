@@ -29,6 +29,7 @@
 package com.jogamp.opengl.test.junit.util;
 
 import jogamp.newt.WindowImplAccess;
+import jogamp.newt.awt.event.AWTNewtEventFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.awt.AWTException;
@@ -439,6 +440,19 @@ public class AWTRobotUtil {
 
     /** No validation is performed .. */ 
     public static int keyPress(int i, Robot robot, boolean press, int keyCode, int msDelay) {
+        final long t0 = System.currentTimeMillis();        
+        if(press) {
+            awtRobotKeyPress(robot, keyCode, msDelay);
+        } else {
+            awtRobotKeyRelease(robot, keyCode, msDelay);
+        }
+        
+        return (int) ( System.currentTimeMillis() - t0 ) ;
+    }
+    
+    /** No validation is performed .. */ 
+    public static int newtKeyPress(int i, Robot robot, boolean press, short newtKeyCode, int msDelay) {
+        final int keyCode = AWTNewtEventFactory.newtKeyCode2AWTKeyCode(newtKeyCode);
         final long t0 = System.currentTimeMillis();        
         if(press) {
             awtRobotKeyPress(robot, keyCode, msDelay);

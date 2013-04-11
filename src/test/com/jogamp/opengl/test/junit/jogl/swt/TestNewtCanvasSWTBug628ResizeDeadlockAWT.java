@@ -226,8 +226,8 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
             {
                 try {
                     System.err.println("[K-"+_n+"]");
-                    AWTRobotUtil.keyPress(_n, _robot, true, KeyEvent.VK_0, 10);
-                    AWTRobotUtil.keyPress(_n, _robot, false, KeyEvent.VK_0, 0);
+                    AWTRobotUtil.newtKeyPress(_n, _robot, true, KeyEvent.VK_0, 10);
+                    AWTRobotUtil.newtKeyPress(_n, _robot, false, KeyEvent.VK_0, 0);
                     Thread.sleep( 40L ) ;
                     _n++;
                     if(!_display.isDisposed()) {

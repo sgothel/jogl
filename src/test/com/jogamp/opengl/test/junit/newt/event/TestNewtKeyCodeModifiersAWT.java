@@ -160,81 +160,90 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
     }
         
     @SuppressWarnings("deprecation")
-    static void testKeyCodeModifier(Robot robot, NEWTKeyAdapter keyAdapter, int modifierKey, int modifierMask, int keyCode, char keyCharOnly, char keyCharMod) {
+    static void testKeyCodeModifier(Robot robot, NEWTKeyAdapter keyAdapter, short modifierKey, int modifierMask, short keyCode, 
+                                    char keyCharOnly, char keyCharMod) {        
         keyAdapter.reset();
-        AWTRobotUtil.keyPress(0, robot, true, keyCode, 10);   // press keyCode
-        AWTRobotUtil.keyPress(0, robot, false, keyCode, 100); // release+typed keyCode
+        AWTRobotUtil.newtKeyPress(0, robot, true, keyCode, 10);   // press keyCode
+        AWTRobotUtil.newtKeyPress(0, robot, false, keyCode, 100); // release+typed keyCode
         robot.waitForIdle();        
-        for(int j=0; j < 40 && keyAdapter.getQueueSize() < 3; j++) { // wait until events are collected
+        for(int j=0; j < 100 && keyAdapter.getQueueSize() < 3; j++) { // wait until events are collected
             robot.delay(100);
         }
         
-        AWTRobotUtil.keyPress(0, robot, true, modifierKey, 10);     // press MOD
-        AWTRobotUtil.keyPress(0, robot, true, keyCode, 10);   // press keyCode
-        AWTRobotUtil.keyPress(0, robot, false, keyCode, 10);  // release+typed keyCode 
-        AWTRobotUtil.keyPress(0, robot, false, modifierKey, 100);   // release MOD
+        AWTRobotUtil.newtKeyPress(0, robot, true, modifierKey, 10);     // press MOD
+        AWTRobotUtil.newtKeyPress(0, robot, true, keyCode, 10);   // press keyCode
+        AWTRobotUtil.newtKeyPress(0, robot, false, keyCode, 10);  // release+typed keyCode 
+        AWTRobotUtil.newtKeyPress(0, robot, false, modifierKey, 100);   // release MOD
         robot.waitForIdle();        
-        for(int j=0; j < 40 && keyAdapter.getQueueSize() < 3+5; j++) { // wait until events are collected
+        for(int j=0; j < 100 && keyAdapter.getQueueSize() < 3+5; j++) { // wait until events are collected
             robot.delay(100);
         }
-        NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, 
-                                            3 /* press-SI */, 3 /* release-SI */, 2 /* typed-SI */,
+        final int modTypedCount = KeyEvent.NULL_CHAR != keyCharMod ? 2 : -1 ; // ignore due to mods 'isPrintable' impact.
+        NEWTKeyUtil.validateKeyAdapterStats(keyAdapter,
+                                            3 /* press-SI */, 3 /* release-SI */, modTypedCount /* typed-SI */,
                                             0 /* press-AR */, 0 /* release-AR */, 0 /* typed-AR */ );
         
-        final List<EventObject> queue = keyAdapter.getQueued();        
+        final List<EventObject> queue = keyAdapter.getQueued();
         int i=0;
         NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED, 0, keyCode, keyCharOnly);
         NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, 0, keyCode, keyCharOnly);
         NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_TYPED, 0, keyCode, keyCharOnly);
         
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED, modifierMask, modifierKey, (char)0);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED, modifierMask, modifierKey, KeyEvent.NULL_CHAR);
         NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED, modifierMask, keyCode, keyCharMod);
         NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, modifierMask, keyCode, keyCharMod);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_TYPED, modifierMask, keyCode, keyCharMod);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, modifierMask, modifierKey, (char)0);
+        KeyEvent e = (KeyEvent) queue.get(i++);
+        if( KeyEvent.EVENT_KEY_TYPED == e.getEventType() ) { // optional, due to mods 'isPrintable' impact. 
+            NEWTKeyUtil.validateKeyEvent(e, KeyEvent.EVENT_KEY_TYPED, modifierMask, keyCode, keyCharMod);
+            e = (KeyEvent) queue.get(i++);
+        }
+        NEWTKeyUtil.validateKeyEvent(e, KeyEvent.EVENT_KEY_RELEASED, modifierMask, modifierKey, KeyEvent.NULL_CHAR);
     }
     
     @SuppressWarnings("deprecation")
     static void testKeyCodeAllModifierV1(Robot robot, NEWTKeyAdapter keyAdapter) {
-        final int m1k = KeyEvent.VK_ALT;
-        final int m1m = InputEvent.ALT_MASK;
-        final int m2k = KeyEvent.VK_CONTROL;
-        final int m2m = InputEvent.CTRL_MASK;
-        final int m3k = KeyEvent.VK_SHIFT;
-        final int m3m = InputEvent.SHIFT_MASK;
+        final short m1k = KeyEvent.VK_ALT;
+        final int   m1m = InputEvent.ALT_MASK;
+        final short m2k = KeyEvent.VK_CONTROL;
+        final int   m2m = InputEvent.CTRL_MASK;
+        final short m3k = KeyEvent.VK_SHIFT;
+        final int   m3m = InputEvent.SHIFT_MASK;
         
         keyAdapter.reset();
-        AWTRobotUtil.keyPress(0, robot, true, m1k, 10);     // press MOD1
-        AWTRobotUtil.keyPress(0, robot, true, m2k, 10);     // press MOD2
-        AWTRobotUtil.keyPress(0, robot, true, m3k, 10);     // press MOD3
-        AWTRobotUtil.keyPress(0, robot, true, KeyEvent.VK_P, 10);   // press P
+        AWTRobotUtil.newtKeyPress(0, robot, true, m1k, 10);     // press MOD1
+        AWTRobotUtil.newtKeyPress(0, robot, true, m2k, 10);     // press MOD2
+        AWTRobotUtil.newtKeyPress(0, robot, true, m3k, 10);     // press MOD3
+        AWTRobotUtil.newtKeyPress(0, robot, true, KeyEvent.VK_1, 10);   // press P
         
-        AWTRobotUtil.keyPress(0, robot, false, KeyEvent.VK_P, 100);  // release+typed P        
-        AWTRobotUtil.keyPress(0, robot, false, m3k, 10);   // release MOD
-        AWTRobotUtil.keyPress(0, robot, false, m2k, 10);   // release MOD
-        AWTRobotUtil.keyPress(0, robot, false, m1k, 10);   // release MOD
+        AWTRobotUtil.newtKeyPress(0, robot, false, KeyEvent.VK_1, 100);  // release+typed P        
+        AWTRobotUtil.newtKeyPress(0, robot, false, m3k, 10);   // release MOD
+        AWTRobotUtil.newtKeyPress(0, robot, false, m2k, 10);   // release MOD
+        AWTRobotUtil.newtKeyPress(0, robot, false, m1k, 10);   // release MOD
         
         robot.waitForIdle();        
-        for(int j=0; j < 40 && keyAdapter.getQueueSize() < 4+4+1; j++) { // wait until events are collected
+        for(int j=0; j < 100 && keyAdapter.getQueueSize() < 4+4+1; j++) { // wait until events are collected
             robot.delay(100);
         }
         NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, 
-                                            4 /* press-SI */, 4 /* release-SI */, 1 /* typed-SI */,
-                                            0 /* press-AR */, 0 /* release-AR */, 0 /* typed-AR */ );
+                                            4 /* press-SI */, 4 /* release-SI */, -1 /* typed-SI - ignored, since unknow whether printable w/ all mods */,
+                                            0 /* press-AR */, 0 /* release-AR */,  0 /* typed-AR */ );
         
         final List<EventObject> queue = keyAdapter.getQueued();        
         int i=0;
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m,         m1k, (char)0);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m|m2m,     m2k, (char)0);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m|m2m|m3m, m3k, (char)0);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m,         m1k, KeyEvent.NULL_CHAR);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m|m2m,     m2k, KeyEvent.NULL_CHAR);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m|m2m|m3m, m3k, KeyEvent.NULL_CHAR);
         
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m|m2m|m3m, KeyEvent.VK_P, (char)0);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, m1m|m2m|m3m, KeyEvent.VK_P, (char)0);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_TYPED,    m1m|m2m|m3m, KeyEvent.VK_P, (char)0);
-        
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, m1m|m2m|m3m, m3k, (char)0);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, m1m|m2m,     m2k, (char)0);
-        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, m1m,         m1k, (char)0);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_PRESSED,  m1m|m2m|m3m, KeyEvent.VK_1, KeyEvent.NULL_CHAR);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, m1m|m2m|m3m, KeyEvent.VK_1, KeyEvent.NULL_CHAR);
+        KeyEvent e = (KeyEvent) queue.get(i++);
+        if( KeyEvent.EVENT_KEY_TYPED == e.getEventType() ) { // optional, due to mods 'isPrintable' impact.         
+            NEWTKeyUtil.validateKeyEvent(e, KeyEvent.EVENT_KEY_TYPED,    m1m|m2m|m3m, KeyEvent.VK_1, KeyEvent.NULL_CHAR);
+            e = (KeyEvent) queue.get(i++);
+        }        
+        NEWTKeyUtil.validateKeyEvent(e, KeyEvent.EVENT_KEY_RELEASED, m1m|m2m|m3m, m3k, KeyEvent.NULL_CHAR);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, m1m|m2m,     m2k, KeyEvent.NULL_CHAR);
+        NEWTKeyUtil.validateKeyEvent((KeyEvent) queue.get(i++), KeyEvent.EVENT_KEY_RELEASED, m1m,         m1k, KeyEvent.NULL_CHAR);
     }
     
     void testImpl(GLWindow glWindow) throws AWTException, InterruptedException, InvocationTargetException {
@@ -265,8 +274,8 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
         testKeyCodeModifier(robot, glWindow1KA, KeyEvent.VK_SHIFT, InputEvent.SHIFT_MASK, KeyEvent.VK_1, '1', '!');
         testKeyCodeModifier(robot, glWindow1KA, KeyEvent.VK_SHIFT, InputEvent.SHIFT_MASK, KeyEvent.VK_Y, 'y', 'Y'); // US: Y, DE: Z
         testKeyCodeModifier(robot, glWindow1KA, KeyEvent.VK_SHIFT, InputEvent.SHIFT_MASK, KeyEvent.VK_P, 'p', 'P');
-        testKeyCodeModifier(robot, glWindow1KA, KeyEvent.VK_CONTROL, InputEvent.CTRL_MASK, KeyEvent.VK_P, 'p', (char)0);
-        testKeyCodeModifier(robot, glWindow1KA, KeyEvent.VK_ALT, InputEvent.ALT_MASK, KeyEvent.VK_P, 'p', (char)0);
+        testKeyCodeModifier(robot, glWindow1KA, KeyEvent.VK_CONTROL, InputEvent.CTRL_MASK, KeyEvent.VK_1, '1', KeyEvent.NULL_CHAR);
+        testKeyCodeModifier(robot, glWindow1KA, KeyEvent.VK_ALT, InputEvent.ALT_MASK, KeyEvent.VK_1, '1', KeyEvent.NULL_CHAR);
         
         testKeyCodeAllModifierV1(robot, glWindow1KA);
         

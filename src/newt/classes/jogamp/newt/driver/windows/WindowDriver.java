@@ -261,13 +261,17 @@ public class WindowDriver extends WindowImpl {
         // nop - using event driven insetsChange(..)         
     }
     
+    private short repeatedKey = KeyEvent.VK_UNDEFINED;
+    
     private final boolean handlePressTypedAutoRepeat(boolean isModifierKey, int modifiers, short keyCode, short keySym, char keyChar) {
-        if( isKeyCodeTracked(keyCode) && keyPressedState.put(keyCode, true) ) {
-            final boolean preKeyRepeatState = keyRepeatState.put(keyCode, true);
+        if( setKeyPressed(keyCode, true) ) {
+            // AR: Key was already pressed: Either [enter | within] AR mode
+            final boolean withinAR = repeatedKey == keyCode;
+            repeatedKey = keyCode;
             if( !isModifierKey ) {
                 // AR: Key was already pressed: Either [enter | within] AR mode
                 modifiers |= InputEvent.AUTOREPEAT_MASK;
-                if( preKeyRepeatState ) {
+                if( withinAR ) {
                     // AR: Within AR mode
                     super.sendKeyEvent(KeyEvent.EVENT_KEY_PRESSED, modifiers, keyCode, keySym, keyChar);
                 } // else { AR: Enter AR mode - skip already send PRESSED ; or ALT }
@@ -289,11 +293,12 @@ public class WindowDriver extends WindowImpl {
         switch(eventType) {
             case KeyEvent.EVENT_KEY_RELEASED:
                 if( isKeyCodeTracked(keyCode) ) {
-                    if( keyRepeatState.put(keyCode, false) && !isModifierKey ) {
+                    if( repeatedKey == keyCode && !isModifierKey ) {
                         // AR out - send out missing PRESSED
                         super.sendKeyEvent(KeyEvent.EVENT_KEY_PRESSED, modifiers | InputEvent.AUTOREPEAT_MASK, keyCode, keySym, keyChar);
                     }
-                    keyPressedState.put(keyCode, false);
+                    setKeyPressed(keyCode, false);
+                    repeatedKey = KeyEvent.VK_UNDEFINED;
                 }
                 super.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keySym, keyChar);
                 break;
