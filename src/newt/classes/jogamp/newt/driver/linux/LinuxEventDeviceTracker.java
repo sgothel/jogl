@@ -376,11 +376,11 @@ public class LinuxEventDeviceTracker implements WindowListener {
         }
 
         private char NewtVKey2Unicode(short VK, int modifiers) {
-            if( KeyEvent.isPrintableKey(VK) ) {
+            if( KeyEvent.isPrintableKey(VK, true) ) {
                 if((modifiers & InputEvent.SHIFT_MASK) == InputEvent.SHIFT_MASK) {
                     return (char)VK;
                 } else {
-                    return (((char)VK) + "").toLowerCase().charAt(0);
+                    return String.valueOf((char)VK).toLowerCase().charAt(0);
                 }
             }
             return 0;
@@ -548,9 +548,9 @@ public class LinuxEventDeviceTracker implements WindowListener {
             case 39:
                 return KeyEvent.VK_SEMICOLON;
             case 40: // apostrophe
-                return KeyEvent.VK_DEAD_ACUTE;
+                return KeyEvent.VK_QUOTE;
             case 41: // grave
-                return KeyEvent.VK_DEAD_GRAVE;
+                return KeyEvent.VK_BACK_QUOTE;
 
             case 42: // left shift
                 return KeyEvent.VK_SHIFT;
