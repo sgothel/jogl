@@ -57,21 +57,21 @@ import com.jogamp.newt.event.KeyEvent;
 
 public class LinuxEventDeviceTracker implements WindowListener {
 
-	private static final LinuxEventDeviceTracker ledt;
+    private static final LinuxEventDeviceTracker ledt;
 
 
-	static {
-		ledt = new LinuxEventDeviceTracker();
-		final Thread t = new Thread(ledt.eventDeviceManager, "NEWT-LinuxEventDeviceManager");
-		t.setDaemon(true);
-		t.start();
-	}
+    static {
+        ledt = new LinuxEventDeviceTracker();
+        final Thread t = new Thread(ledt.eventDeviceManager, "NEWT-LinuxEventDeviceManager");
+        t.setDaemon(true);
+        t.start();
+    }
 
-	public static LinuxEventDeviceTracker getSingleton() {
-		return ledt;
-	}
+    public static LinuxEventDeviceTracker getSingleton() {
+        return ledt;
+    }
 
-	private WindowImpl focusedWindow = null;
+    private WindowImpl focusedWindow = null;
     private EventDeviceManager eventDeviceManager = new EventDeviceManager();
 
     /*
@@ -85,61 +85,63 @@ public class LinuxEventDeviceTracker implements WindowListener {
 
       And so on up to event31.
      */
-	private EventDevicePoller[] eventDevicePollers = new EventDevicePoller[32];
+    private EventDevicePoller[] eventDevicePollers = new EventDevicePoller[32];
 
-	@Override
-	public void windowResized(WindowEvent e) { }
+    @Override
+    public void windowResized(WindowEvent e) { }
 
-	@Override
-	public void windowMoved(WindowEvent e) { }
+    @Override
+    public void windowMoved(WindowEvent e) { }
 
-	@Override
-	public void windowDestroyNotify(WindowEvent e) {
-		Object s = e.getSource();
-		if(focusedWindow == s) {
-			focusedWindow = null;
-		}
-	}
+    @Override
+    public void windowDestroyNotify(WindowEvent e) {
+        Object s = e.getSource();
+        if(focusedWindow == s) {
+            focusedWindow = null;
+        }
+    }
 
-	@Override
-	public void windowDestroyed(WindowEvent e) { }
+    @Override
+    public void windowDestroyed(WindowEvent e) { }
 
-	@Override
-	public void windowGainedFocus(WindowEvent e) {
-		Object s = e.getSource();
-		if(s instanceof WindowImpl) {
-			focusedWindow = (WindowImpl) s;
-		}
-	}
+    @Override
+    public void windowGainedFocus(WindowEvent e) {
+        Object s = e.getSource();
+        if(s instanceof WindowImpl) {
+            focusedWindow = (WindowImpl) s;
+        }
+    }
 
-	@Override
-	public void windowLostFocus(WindowEvent e) {
-		Object s = e.getSource();
-		if(focusedWindow == s) {
-			focusedWindow = null;
-		}
-	}
+    @Override
+    public void windowLostFocus(WindowEvent e) {
+        Object s = e.getSource();
+        if(focusedWindow == s) {
+            focusedWindow = null;
+        }
+    }
 
-	public static void main(String[] args ){
-		System.setProperty("newt.debug.Window.KeyEvent", "true");
-		LinuxEventDeviceTracker.getSingleton();
-		try {
-			Thread.sleep(30000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+    public static void main(String[] args ){
+        System.setProperty("newt.debug.Window.KeyEvent", "true");
+        LinuxEventDeviceTracker.getSingleton();
+        try {
+            while(true) {
+                Thread.sleep(1000);
+            } 
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 
-	@Override
-	public void windowRepaint(WindowUpdateEvent e) { }
+    @Override
+    public void windowRepaint(WindowUpdateEvent e) { }
 
     class EventDeviceManager implements Runnable {
 
         private volatile boolean stop = false;
 
         @Override
-		public void run() {
+        public void run() {
             File f = new File("/dev/input/");
             int number;
             while(!stop){
@@ -169,7 +171,7 @@ public class LinuxEventDeviceTracker implements WindowListener {
         }
     }
 
-	class EventDevicePoller implements Runnable {
+    class EventDevicePoller implements Runnable {
 
         private volatile boolean stop = false;
         private String eventDeviceName;
@@ -178,713 +180,780 @@ public class LinuxEventDeviceTracker implements WindowListener {
             this.eventDeviceName="/dev/input/event"+eventDeviceNumber;
         }
 
-		@Override
-		public void run() {
-			final byte[] b = new byte[16];
-			/**
-			 * The Linux input event interface.
-			 * http://www.kernel.org/doc/Documentation/input/input.txt
-			 * 
-			 * struct input_event {
-			 *  struct timeval time;
-			 *	unsigned short type;
-			 *	unsigned short code;
-			 *	unsigned int value;
-			 * };
-			 */
-			ByteBuffer bb = ByteBuffer.wrap(b);
-			StructAccessor s = new StructAccessor(bb);
-			final File f = new File(eventDeviceName);
-			f.setReadOnly();
-			InputStream fis;
-			try {
-				fis = new FileInputStream(f);
-			} catch (FileNotFoundException e) {
+        @Override
+        public void run() {
+            final byte[] b = new byte[16];
+            /**
+             * The Linux input event interface.
+             * http://www.kernel.org/doc/Documentation/input/input.txt
+             * 
+             * struct input_event {
+             *  struct timeval time;
+             *	unsigned short type;
+             *	unsigned short code;
+             *	unsigned int value;
+             * };
+             */
+            ByteBuffer bb = ByteBuffer.wrap(b);
+            StructAccessor s = new StructAccessor(bb);
+            final File f = new File(eventDeviceName);
+            f.setReadOnly();
+            InputStream fis;
+            try {
+                fis = new FileInputStream(f);
+            } catch (FileNotFoundException e) {
                 stop=true;
-				return;
-			}
+                return;
+            }
 
-			int timeSeconds;
-			int timeSecondFraction;
-			short type;
-			short code;
-			int value;
+            int timeSeconds;
+            int timeSecondFraction;
+            short type;
+            short code;
+            int value;
 
-			short keyCode=KeyEvent.VK_UNDEFINED;
-			char keyChar=' ';
-			short eventType=0;
-			int modifiers=0;
+            short keyCode=KeyEvent.VK_UNDEFINED;
+            char keyChar=' ';
+            short eventType=0;
+            int modifiers=0;
 
             loop:
-			while(!stop) {
-				int remaining=16;
-				while(remaining>0) {
-					int read = 0;
-					try {
-						read = fis.read(b, 0, remaining);
-					} catch (IOException e) {
-                        stop = true;
-                        break loop;
-					}
-					if(read<0) {
-						stop = true; // EOF of event device file !?
-                        break loop;
-					} else {
-						remaining -= read;
-					}
-				}
+                while(!stop) {
+                    int remaining=16;
+                    while(remaining>0) {
+                        int read = 0;
+                        try {
+                            read = fis.read(b, 0, remaining);
+                        } catch (IOException e) {
+                            stop = true;
+                            break loop;
+                        }
+                        if(read<0) {
+                            stop = true; // EOF of event device file !?
+                            break loop;
+                        } else {
+                            remaining -= read;
+                        }
+                    }
 
-				timeSeconds = s.getIntAt(0);
-				timeSecondFraction = s.getShortAt(4);
-				type = s.getShortAt(8);
-				code = s.getShortAt(10);
-				value = s.getIntAt(12);
+                    timeSeconds = s.getIntAt(0);
+                    timeSecondFraction = s.getShortAt(4);
+                    type = s.getShortAt(8);
+                    code = s.getShortAt(10);
+                    value = s.getIntAt(12);
 
-				if(null != focusedWindow) {
-					/*
-					 * Linux sends Keyboard events in the following order:
-					 * EV_MSC (optional, contains scancode)
-					 * EV_KEY
-					 * SYN_REPORT (sent before next key)
-					 */
 
-					switch(type) {
-					case 0: // SYN_REPORT
-						// Clear
-						eventType = 0;
-						keyCode = KeyEvent.VK_UNDEFINED;
-						keyChar = 0; // Print null for unprintable char.
-						modifiers = 0;
-						break;
-					case 1: // EV_KEY
-						keyCode = LinuxEVKey2NewtVKey(code); // The device independent code.
-						keyChar = NewtVKey2Unicode(keyCode); // The printable character w/o key modifiers.
-						switch(value) {
-						case 0:
-							modifiers=0;
-							eventType=KeyEvent.EVENT_KEY_RELEASED;
-							focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
-							break;
-						case 1:
-							eventType=KeyEvent.EVENT_KEY_PRESSED;
-							focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
-							break;
-						case 2:
-							eventType=KeyEvent.EVENT_KEY_PRESSED;
-							modifiers=InputEvent.AUTOREPEAT_MASK;
+                    /*
+                     * Linux sends Keyboard events in the following order:
+                     * EV_MSC (optional, contains scancode)
+                     * EV_KEY
+                     * SYN_REPORT (sent before next key)
+                     */
 
-							//Send syntetic autorepeat release
-							focusedWindow.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keyCode, keyChar);
+                    switch(type) {
+                    case 0: // SYN_REPORT
+                        // Clear
+                        eventType = 0;
+                        keyCode = KeyEvent.VK_UNDEFINED;
+                        keyChar = 0; // Print null for unprintable char.
+                        if(Window.DEBUG_KEY_EVENT) {
+                            System.out.println("[SYN_REPORT----]");
+                        }
+                        break;
+                    case 1: // EV_KEY
+                        keyCode = LinuxEVKey2NewtVKey(code); // The device independent code.
+                        keyChar = NewtVKey2Unicode(keyCode, modifiers); // The printable character w/ key modifiers.						
+                        if(Window.DEBUG_KEY_EVENT) {
+                            System.out.println("[EV_KEY: [time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
+                        }
 
-							focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
-							break;
-						}
-						break;
-					case 4: // EV_MSC
-						if(code==4) { // MSC_SCAN
-							// scancode ignore, linux kernel specific
-							// keyCode = value;
-						}
-						break;
-						// TODO: handle joystick events
-						// TODO: handle mouse events
-						// TODO: handle headphone/hdmi connector events
-					}
+                        switch(value) {
+                        case 0:
+                            eventType=KeyEvent.EVENT_KEY_RELEASED;
 
-					if(Window.DEBUG_KEY_EVENT) {
-					    System.out.println("[time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
-					}
+                            switch(keyCode) {
+                            case KeyEvent.VK_SHIFT:
+                                modifiers &= ~InputEvent.SHIFT_MASK;
+                                break;
+                            case KeyEvent.VK_ALT:
+                                modifiers &= ~InputEvent.ALT_MASK;
+                                break;
+                            case KeyEvent.VK_ALT_GRAPH:
+                                modifiers &= ~InputEvent.ALT_GRAPH_MASK;
+                                break;
+                            case KeyEvent.VK_CONTROL:
+                                modifiers &= ~InputEvent.CTRL_MASK;
+                                break;
+                            }
 
-				} else {
-					if(Window.DEBUG_KEY_EVENT) {
-					    System.out.println("[time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
-					}
-				}
-			}
-			if(null != fis) {
-				try {
-					fis.close();
-				} catch (IOException e) {
-				}
-			}
+                            if(null != focusedWindow) {
+                                focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
+                            }
+                            if(Window.DEBUG_KEY_EVENT) {
+                                System.out.println("[event released] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
+                            }
+                            break;
+                        case 1:
+                            eventType=KeyEvent.EVENT_KEY_PRESSED;
+
+                            switch(keyCode) {
+                            case KeyEvent.VK_SHIFT:
+                                modifiers |= InputEvent.SHIFT_MASK;
+                                break;
+                            case KeyEvent.VK_ALT:
+                                modifiers |= InputEvent.ALT_MASK;
+                                break;
+                            case KeyEvent.VK_ALT_GRAPH:
+                                modifiers |= InputEvent.ALT_GRAPH_MASK;
+                                break;
+                            case KeyEvent.VK_CONTROL:
+                                modifiers |= InputEvent.CTRL_MASK;
+                                break;
+                            }
+
+                            if(null != focusedWindow) {
+                                focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
+                            }
+                            if(Window.DEBUG_KEY_EVENT) {
+                                System.out.println("[event pressed] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
+                            }
+                            break;
+                        case 2:
+                            eventType=KeyEvent.EVENT_KEY_PRESSED;
+                            modifiers |= InputEvent.AUTOREPEAT_MASK;
+
+                            switch(keyCode) {
+                            case KeyEvent.VK_SHIFT:
+                                modifiers |= InputEvent.SHIFT_MASK;
+                                break;
+                            case KeyEvent.VK_ALT:
+                                modifiers |= InputEvent.ALT_MASK;
+                                break;
+                            case KeyEvent.VK_ALT_GRAPH:
+                                modifiers |= InputEvent.ALT_GRAPH_MASK;
+                                break;
+                            case KeyEvent.VK_CONTROL:
+                                modifiers |= InputEvent.CTRL_MASK;
+                                break;
+                            }
+
+                            if(null != focusedWindow) {
+                                //Send syntetic autorepeat release
+                                focusedWindow.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keyCode, keyChar);
+
+                                focusedWindow.sendKeyEvent(eventType, modifiers, keyCode, keyCode, keyChar);
+                            }
+                            if(Window.DEBUG_KEY_EVENT) {
+                                System.out.println("[event released auto] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
+                                System.out.println("[event pressed auto] keyCode: "+keyCode+" keyChar: "+keyChar+ " modifiers: "+modifiers);
+                            }
+                            modifiers &= ~InputEvent.AUTOREPEAT_MASK;
+                            break;
+                        }
+                        break;
+                    case 4: // EV_MSC
+                        if(code==4) { // MSC_SCAN
+                            // scancode ignore, linux kernel specific
+                        }
+                        break;
+                        // TODO: handle joystick events
+                        // TODO: handle mouse events
+                        // TODO: handle headphone/hdmi connector events
+                    default: // Print number.
+                        if(Window.DEBUG_KEY_EVENT) {
+                            System.out.println("TODO EventDevicePoller: [time "+timeSeconds+":"+timeSecondFraction+"] type "+type+" / code "+code+" = value "+value);
+                        }
+                    }
+                }
+
+            if(null != fis) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                }
+            }
             stop=true;
-		}
+        }
 
-		private char NewtVKey2Unicode(short VK){
-			if( KeyEvent.isPrintableKey(VK, false) ){
-				return (char)VK;
-			}
-			return 0;
-		}
-		
-		@SuppressWarnings("unused")
+        private char NewtVKey2Unicode(short VK, int modifiers) {
+            if( KeyEvent.isPrintableKey(VK) ) {
+                if((modifiers & InputEvent.SHIFT_MASK) == InputEvent.SHIFT_MASK) {
+                    return (char)VK;
+                } else {
+                    return (((char)VK) + "").toLowerCase().charAt(0);
+                }
+            }
+            return 0;
+        }
+
+        @SuppressWarnings("unused")
         private char LinuxEVKey2Unicode(short EVKey) {
-			// This is the stuff normally mapped by a system keymap
+            // This is the stuff normally mapped by a system keymap
 
-			switch(EVKey){
-			case 17: // w
-				return 'w';
-			case 31: // s
-				return 's';
-			case 30: // a
-				return 'a';
-			case 32: // d
-				return 'd';
-			case 1: // ESC
-				return 27;
-			case 28: // Enter
-			case 96: // Keypad Enter
-				return '\n';
-			case 57: // Space
-				return ' ';
-			case 11: // 0
-			case 82: // Numpad 0
-				return '0';
-			case 2: // 1
-			case 79: // Numpad 1
-				return '1';
-			case 3: // 2
-			case 80: // Numpad 1
-				return '2';
-			case 4: // 3
-			case 81: // Numpad 3
-				return '3';
-			case 5: // 4
-			case 75: // Numpad 4
-				return '4';
-			case 6: // 5
-			case 76: // Numpad 5
-				return '5';
-			case 7: // 6
-			case 77: // Numpad 6
-				return '6';
-			case 8: // 7
-			case 71: // Numpad 7
-				return '7';
-			case 9: // 8
-			case 72: // Numpad 8
-				return '8';
-			case 10: // 9
-			case 73: // Numpad 9
-				return '9';
+            switch(EVKey) {
+            case 17: // w
+                return 'w';
+            case 31: // s
+                return 's';
+            case 30: // a
+                return 'a';
+            case 32: // d
+                return 'd';
+            case 1: // ESC
+                return 27;
+            case 28: // Enter
+            case 96: // Keypad Enter
+                return '\n';
+            case 57: // Space
+                return ' ';
+            case 11: // 0
+            case 82: // Numpad 0
+                return '0';
+            case 2: // 1
+            case 79: // Numpad 1
+                return '1';
+            case 3: // 2
+            case 80: // Numpad 1
+                return '2';
+            case 4: // 3
+            case 81: // Numpad 3
+                return '3';
+            case 5: // 4
+            case 75: // Numpad 4
+                return '4';
+            case 6: // 5
+            case 76: // Numpad 5
+                return '5';
+            case 7: // 6
+            case 77: // Numpad 6
+                return '6';
+            case 8: // 7
+            case 71: // Numpad 7
+                return '7';
+            case 9: // 8
+            case 72: // Numpad 8
+                return '8';
+            case 10: // 9
+            case 73: // Numpad 9
+                return '9';
 
-			default:
-			}
+            default:
+            }
 
-			return 0;
-		}
+            return 0;
+        }
 
-		private short LinuxEVKey2NewtVKey(short EVKey) {
-		    
-			switch(EVKey) {
-                case 1: // ESC
-                    return KeyEvent.VK_ESCAPE;
-                case 2: // 1
-                    return KeyEvent.VK_1;
-                case 79: // Numpad 1
-                    return KeyEvent.VK_NUMPAD1;
-                case 3: // 2
-                    return KeyEvent.VK_2;
-                case 80: // Numpad 2
-                    return KeyEvent.VK_NUMPAD2;
-                case 4: // 3
-                    return KeyEvent.VK_3;
-                case 81: // Numpad 3
-                    return KeyEvent.VK_NUMPAD3;
-                case 5: // 4
-                    return KeyEvent.VK_4;
-                case 75: // Numpad 4
-                    return KeyEvent.VK_NUMPAD4;
-                case 6: // 5
-                    return KeyEvent.VK_5;
-                case 76: // Numpad 5
-                    return KeyEvent.VK_NUMPAD5;
-                case 7: // 6
-                    return KeyEvent.VK_6;
-                case 77: // Numpad 6
-                    return KeyEvent.VK_NUMPAD6;
-                case 8: // 7
-                    return KeyEvent.VK_7;
-                case 71: // Numpad 7
-                    return KeyEvent.VK_NUMPAD7;
-                case 9: // 8
-                    return KeyEvent.VK_8;
-                case 72: // Numpad 8
-                    return KeyEvent.VK_NUMPAD8;
-                case 10: // 9
-                    return KeyEvent.VK_9;
-                case 73: // Numpad 9
-                    return KeyEvent.VK_NUMPAD9;
-                case 11: // 0
-                    return KeyEvent.VK_0;
-                case 82: // Numpad 0
-                    return KeyEvent.VK_NUMPAD0;
-                case 12:
-                    return KeyEvent.VK_MINUS;
-                case 13:
-                    return KeyEvent.VK_EQUALS;
-                case 14: // Backspace
-                    return KeyEvent.VK_BACK_SPACE;
+        private short LinuxEVKey2NewtVKey(short EVKey) {
 
-                case 15:
-                    return KeyEvent.VK_TAB;
-                case 16:
-                    return KeyEvent.VK_Q;
-                case 17: // w
-                    return KeyEvent.VK_W;
-                case 18:
-                    return KeyEvent.VK_E;
-                case 19:
-                    return KeyEvent.VK_R;
-                case 20:
-                    return KeyEvent.VK_T;
-                case 21:
-                    return KeyEvent.VK_Y;
-                case 22:
-                    return KeyEvent.VK_U;
-                case 23:
-                    return KeyEvent.VK_I;
-                case 24:
-                    return KeyEvent.VK_O;
-                case 25:
-                    return KeyEvent.VK_P;
-                case 26: // left brace
-                    return KeyEvent.VK_LEFT_PARENTHESIS;
-                case 27: // right brace
-                    return KeyEvent.VK_RIGHT_PARENTHESIS;
-                case 28: // Enter
-                case 96: // Keypad Enter
-                    return KeyEvent.VK_ENTER;
+            switch(EVKey) {
+            case 1: // ESC
+                return KeyEvent.VK_ESCAPE;
+            case 2: // 1
+                return KeyEvent.VK_1;
+            case 79: // Numpad 1
+                return KeyEvent.VK_NUMPAD1;
+            case 3: // 2
+                return KeyEvent.VK_2;
+            case 80: // Numpad 2
+                return KeyEvent.VK_NUMPAD2;
+            case 4: // 3
+                return KeyEvent.VK_3;
+            case 81: // Numpad 3
+                return KeyEvent.VK_NUMPAD3;
+            case 5: // 4
+                return KeyEvent.VK_4;
+            case 75: // Numpad 4
+                return KeyEvent.VK_NUMPAD4;
+            case 6: // 5
+                return KeyEvent.VK_5;
+            case 76: // Numpad 5
+                return KeyEvent.VK_NUMPAD5;
+            case 7: // 6
+                return KeyEvent.VK_6;
+            case 77: // Numpad 6
+                return KeyEvent.VK_NUMPAD6;
+            case 8: // 7
+                return KeyEvent.VK_7;
+            case 71: // Numpad 7
+                return KeyEvent.VK_NUMPAD7;
+            case 9: // 8
+                return KeyEvent.VK_8;
+            case 72: // Numpad 8
+                return KeyEvent.VK_NUMPAD8;
+            case 10: // 9
+                return KeyEvent.VK_9;
+            case 73: // Numpad 9
+                return KeyEvent.VK_NUMPAD9;
+            case 11: // 0
+                return KeyEvent.VK_0;
+            case 82: // Numpad 0
+                return KeyEvent.VK_NUMPAD0;
+            case 12:
+                return KeyEvent.VK_MINUS;
+            case 13:
+                return KeyEvent.VK_EQUALS;
+            case 14: // Backspace
+                return KeyEvent.VK_BACK_SPACE;
 
-                case 29: // left ctrl
-                    return KeyEvent.VK_CONTROL;
-                case 30: // a
-                    return KeyEvent.VK_A;
-                case 31: // s
-                    return KeyEvent.VK_S;
-                case 32: // d
-                    return KeyEvent.VK_D;
-                case 33:
-                    return KeyEvent.VK_F;
-                case 34:
-                    return KeyEvent.VK_G;
-                case 35:
-                    return KeyEvent.VK_H;
-                case 36:
-                    return KeyEvent.VK_J;
-                case 37:
-                    return KeyEvent.VK_K;
-                case 38:
-                    return KeyEvent.VK_L;
-                case 39:
-                    return KeyEvent.VK_SEMICOLON;
-                case 40: // apostrophe
-                    return KeyEvent.VK_QUOTE;
-                case 41: // grave
-                    return KeyEvent.VK_BACK_QUOTE;
+            case 15:
+                return KeyEvent.VK_TAB;
+            case 16:
+                return KeyEvent.VK_Q;
+            case 17: // w
+                return KeyEvent.VK_W;
+            case 18:
+                return KeyEvent.VK_E;
+            case 19:
+                return KeyEvent.VK_R;
+            case 20:
+                return KeyEvent.VK_T;
+            case 21:
+                return KeyEvent.VK_Y;
+            case 22:
+                return KeyEvent.VK_U;
+            case 23:
+                return KeyEvent.VK_I;
+            case 24:
+                return KeyEvent.VK_O;
+            case 25:
+                return KeyEvent.VK_P;
+            case 26: // left brace
+                return KeyEvent.VK_LEFT_PARENTHESIS;
+            case 27: // right brace
+                return KeyEvent.VK_RIGHT_PARENTHESIS;
+            case 28: // Enter
+            case 96: // Keypad Enter
+                return KeyEvent.VK_ENTER;
 
-                case 42: // left shift
-                    return KeyEvent.VK_SHIFT;
-                case 43:
-                    return KeyEvent.VK_BACK_SLASH;
-                case 44:
-                    return KeyEvent.VK_Z;
-                case 45:
-                    return KeyEvent.VK_X;
-                case 46:
-                    return KeyEvent.VK_C;
-                case 47:
-                    return KeyEvent.VK_V;
-                case 48:
-                    return KeyEvent.VK_B;
-                case 49:
-                    return KeyEvent.VK_N;
-                case 50:
-                    return KeyEvent.VK_M;
-                case 51:
-                    return KeyEvent.VK_COMMA;
-                case 52: // dot
-                    return KeyEvent.VK_PERIOD;
-                case 53:
-                    return KeyEvent.VK_SLASH;
-                case 54:
-                    return KeyEvent.VK_SHIFT;
-                case 55: // kp asterisk
-                    return KeyEvent.VK_ASTERISK;
-                case 56: // left alt
-                    return KeyEvent.VK_ALT;
-                case 57: // Space
-                    return KeyEvent.VK_SPACE;
-                case 58:
-                    return KeyEvent.VK_CAPS_LOCK;
+            case 29: // left ctrl
+                return KeyEvent.VK_CONTROL;
+            case 30: // a
+                return KeyEvent.VK_A;
+            case 31: // s
+                return KeyEvent.VK_S;
+            case 32: // d
+                return KeyEvent.VK_D;
+            case 33:
+                return KeyEvent.VK_F;
+            case 34:
+                return KeyEvent.VK_G;
+            case 35:
+                return KeyEvent.VK_H;
+            case 36:
+                return KeyEvent.VK_J;
+            case 37:
+                return KeyEvent.VK_K;
+            case 38:
+                return KeyEvent.VK_L;
+            case 39:
+                return KeyEvent.VK_SEMICOLON;
+            case 40: // apostrophe
+                return KeyEvent.VK_DEAD_ACUTE;
+            case 41: // grave
+                return KeyEvent.VK_DEAD_GRAVE;
 
-                case 59:
-                    return KeyEvent.VK_F1;
-                case 60:
-                    return KeyEvent.VK_F2;
-                case 61:
-                    return KeyEvent.VK_F3;
-                case 62:
-                    return KeyEvent.VK_F4;
-                case 63:
-                    return KeyEvent.VK_F5;
-                case 64:
-                    return KeyEvent.VK_F6;
-                case 65:
-                    return KeyEvent.VK_F7;
-                case 66:
-                    return KeyEvent.VK_F8;
-                case 67:
-                    return KeyEvent.VK_F9;
-                case 68:
-                    return KeyEvent.VK_F10;
+            case 42: // left shift
+                return KeyEvent.VK_SHIFT;
+            case 43:
+                return KeyEvent.VK_BACK_SLASH;
+            case 44:
+                return KeyEvent.VK_Z;
+            case 45:
+                return KeyEvent.VK_X;
+            case 46:
+                return KeyEvent.VK_C;
+            case 47:
+                return KeyEvent.VK_V;
+            case 48:
+                return KeyEvent.VK_B;
+            case 49:
+                return KeyEvent.VK_N;
+            case 50:
+                return KeyEvent.VK_M;
+            case 51:
+                return KeyEvent.VK_COMMA;
+            case 52: // dot
+                return KeyEvent.VK_PERIOD;
+            case 53:
+                return KeyEvent.VK_SLASH;
+            case 54:
+                return KeyEvent.VK_SHIFT;
+            case 55: // kp asterisk
+                return KeyEvent.VK_ASTERISK;
+            case 56: // left alt
+                return KeyEvent.VK_ALT;
+            case 57: // Space
+                return KeyEvent.VK_SPACE;
+            case 58:
+                return KeyEvent.VK_CAPS_LOCK;
 
-                case 69:
-                    return KeyEvent.VK_NUM_LOCK;
-                case 70:
-                    return KeyEvent.VK_SCROLL_LOCK;
+            case 59:
+                return KeyEvent.VK_F1;
+            case 60:
+                return KeyEvent.VK_F2;
+            case 61:
+                return KeyEvent.VK_F3;
+            case 62:
+                return KeyEvent.VK_F4;
+            case 63:
+                return KeyEvent.VK_F5;
+            case 64:
+                return KeyEvent.VK_F6;
+            case 65:
+                return KeyEvent.VK_F7;
+            case 66:
+                return KeyEvent.VK_F8;
+            case 67:
+                return KeyEvent.VK_F9;
+            case 68:
+                return KeyEvent.VK_F10;
 
-                case 74: // kp minus
-                    return KeyEvent.VK_MINUS;
-                case 78: // kp plus
-                    return KeyEvent.VK_PLUS;
-                case 83: // kp dot
-                    return KeyEvent.VK_PERIOD;
+            case 69:
+                return KeyEvent.VK_NUM_LOCK;
+            case 70:
+                return KeyEvent.VK_SCROLL_LOCK;
 
-                // TODO: add mappings for japanese special buttons
-                case 85: // zenkakuhankaku
-                case 86: // 102nd
-                    break; // FIXME
+            case 74: // kp minus
+                return KeyEvent.VK_MINUS;
+            case 78: // kp plus
+                return KeyEvent.VK_PLUS;
+            case 83: // kp dot
+                return KeyEvent.VK_PERIOD;
 
-                case 87:
-                    return KeyEvent.VK_F11;
-                case 88:
-                    return KeyEvent.VK_F12;
+            // TODO: add mappings for japanese special buttons
+            case 85: // zenkakuhankaku
+            case 86: // 102nd
+                break; // FIXME
 
-                case 89: // ro
-                    return KeyEvent.VK_ROMAN_CHARACTERS;
-                case 90: // Katakana
-                    return KeyEvent.VK_KATAKANA;
-                case 91:
-                    return KeyEvent.VK_HIRAGANA;
+            case 87:
+                return KeyEvent.VK_F11;
+            case 88:
+                return KeyEvent.VK_F12;
 
-                case 92: // kenkan
-                    break; // FIXME
-                case 93: // katakana hiragana
-                    break; // FIXME
-                case 94: // mu henkan
-                    break; // FIXME
-                case 95: // kp jp comma
-                    break; // FIXME
+            case 89: // ro
+                return KeyEvent.VK_ROMAN_CHARACTERS;
+            case 90: // Katakana
+                return KeyEvent.VK_KATAKANA;
+            case 91:
+                return KeyEvent.VK_HIRAGANA;
 
-                case 97: // right ctrl
-                    return KeyEvent.VK_CONTROL;
-                case 98: // kp slash
-                    return KeyEvent.VK_SLASH;
+            case 92: // kenkan
+                break; // FIXME
+            case 93: // katakana hiragana
+                break; // FIXME
+            case 94: // mu henkan
+                break; // FIXME
+            case 95: // kp jp comma
+                break; // FIXME
 
-                case 99: // sysrq
-                    break; // FIXME
+            case 97: // right ctrl
+                return KeyEvent.VK_CONTROL;
+            case 98: // kp slash
+                return KeyEvent.VK_SLASH;
 
-                case 100: // right alt
-                    return KeyEvent.VK_ALT_GRAPH;
-                case 101: // linefeed
-                    break; // FIXME
-                case 102: // home
-                    return KeyEvent.VK_HOME;
-                case 103: // KEY_UP
-                    return KeyEvent.VK_UP;
-                case 104:
-                    return KeyEvent.VK_PAGE_UP;
-                case 105: // KEY_LEFT
-                    return KeyEvent.VK_LEFT;
-                case 106: // KEY_RIGHT
-                    return KeyEvent.VK_RIGHT;
-                case 107:
-                    return KeyEvent.VK_END;
-                case 108: // KEY_DOWN
-                    return KeyEvent.VK_DOWN;
-                case 109:
-                    return KeyEvent.VK_PAGE_DOWN;
-                case 110:
-                    return KeyEvent.VK_INSERT;
-                case 111: // del
-                    return KeyEvent.VK_DELETE;
+            case 99: // sysrq
+                break; // FIXME
 
-                case 112: // macro
-                    break; // FIXME DEAD_MACRON?
-                case 113: // mute
-                    break; // FIXME
-                case 114: // vol up
-                    break; // FIXME
-                case 115: // vol down
-                    break; // FIXME
-                case 116: // power
-                    break; // FIXME
+            case 100: // right alt
+                return KeyEvent.VK_ALT;
+            case 101: // linefeed
+                break; // FIXME
+            case 102: // home
+                return KeyEvent.VK_HOME;
+            case 103: // KEY_UP
+                return KeyEvent.VK_UP;
+            case 104:
+                return KeyEvent.VK_PAGE_UP;
+            case 105: // KEY_LEFT
+                return KeyEvent.VK_LEFT;
+            case 106: // KEY_RIGHT
+                return KeyEvent.VK_RIGHT;
+            case 107:
+                return KeyEvent.VK_END;
+            case 108: // KEY_DOWN
+                return KeyEvent.VK_DOWN;
+            case 109:
+                return KeyEvent.VK_PAGE_DOWN;
+            case 110:
+                return KeyEvent.VK_INSERT;
+            case 111: // del
+                return KeyEvent.VK_DELETE;
 
-                case 117: // kp equals
-                    return KeyEvent.VK_EQUALS;
-                case 118: // kp plus minux
-                    break; // FIXME
-                case 119: // pause
-                    return KeyEvent.VK_PAUSE;
-                case 120: // scale AL compiz scale expose
-                    break; // FIXME
-                case 121: // kp comma
-                    return KeyEvent.VK_COMMA;
-                case 122: // hangeul
-                    break; // FIXME
-                case 123: // hanja
-                	break; // FIXME
-                case 124: // yen
-                	break; // FIXME
+            case 112: // macro
+                break; // FIXME DEAD_MACRON?
+            case 113: // mute
+                break; // FIXME
+            case 114: // vol up
+                break; // FIXME
+            case 115: // vol down
+                break; // FIXME
+            case 116: // power
+                break; // FIXME
 
-                case 125: // left meta
-                case 126: // right meta
-                	return KeyEvent.VK_META;
-                case 127: // compose
-                	return KeyEvent.VK_COMPOSE;
-                	
-                case 128: // stop
-                	return KeyEvent.VK_STOP;
-                case 129: // again
-                	return KeyEvent.VK_AGAIN;
-                case 130: // properties
-                	return KeyEvent.VK_PROPS;
-                case 131: // undo
-                	return KeyEvent.VK_UNDO;
-                case 132: // front
-                	break; // FIXME
-                case 133: // copy
-                	return KeyEvent.VK_COPY;
-                case 134: // open
-                	break; // FIXME
-                case 135: // paste
-                	return KeyEvent.VK_PASTE;
-                case 136: // find
-                	return KeyEvent.VK_FIND;
-                case 137: // cut
-                	return KeyEvent.VK_CUT;
-                case 138: // help
-                	return KeyEvent.VK_HELP;
-                case 139: // menu
-                	break; // FIXME
-                case 140: // calc
-                	break; // FIXME
-                case 141: // setup
-                	break; // FIXME
-                case 142: // sleep
-                	break; // FIXME
-                case 143: // wakeup
-                	break; // FIXME
-                case 144: // file
-                	break; // FIXME
-                case 145: // send file
-                	break; // FIXME
-                case 146: // delete file
-                	break; // FIXME
-                case 147: // xfer
-                	break; // FIXME
-                case 148: // prog1
-                	break; // FIXME
-                case 149: // prog2
-                	break; // FIXME
-                case 150: // www
-                	break; // FIXME
-                case 151: // msdos
-                	break; // FIXME
-                case 152: // coffee
-                	break; // FIXME
-                case 153: // direction
-                	break; // FIXME
-                case 154: // cycle windows
-                	break; // FIXME
-                case 155: // mail
-                	break; // FIXME
-                case 156: // bookmarks
-                	break; // FIXME
-                case 157: // computer
-                	break; // FIXME
-                case 158: // back
-                	break; // FIXME
-                case 159: // forward
-                	break; // FIXME
-                case 160: // close cd
-                	break; // FIXME
-                case 161: // eject cd
-                	break; // FIXME
-                case 162: // eject close cd
-                	break; // FIXME
-                case 163: // next song
-                	break; // FIXME
-                case 164: // play pause
-                	break; // FIXME
-                case 165: // previous song
-                	break; // FIXME
-                case 166: // stop cd
-                	break; // FIXME
-                case 167: // record
-                	break; // FIXME
-                case 168: // rewind
-                	break; // FIXME
-                case 169: // phone
-                	break; // FIXME
-                case 170: // ISO
-                	break; // FIXME
-                case 171: // config
-                	break; // FIXME
-                case 172: // home page
-                	break; // FIXME
-                case 173: // refresh
-                	break; // FIXME
-                case 174: // exit
-                	break; // FIXME
-                case 175: // move
-                	break; // FIXME
-                case 176: // edit
-                	break; // FIXME
-                case 177: // scroll up
-                	break; // FIXME PAGE_UP?
-                case 178: // scroll down
-                	break; // FIXME PAGE_DOWN?
-                case 179: // kp left paren
-                	return KeyEvent.VK_LEFT_PARENTHESIS;
-                case 180: // kp right paren
-                	return KeyEvent.VK_RIGHT_PARENTHESIS;
-                case 181: // new
-                	break; // FIXME
-                case 182: // redo
-                	break; // FIXME
-                
-                case 183: // F13
-                	return KeyEvent.VK_F13;
-                case 184: // F14
-                	return KeyEvent.VK_F14;
-                case 185: // F15
-                	return KeyEvent.VK_F15;
-                case 186: // F16
-                	return KeyEvent.VK_F16;
-                case 187: // F17
-                	return KeyEvent.VK_F17;
-                case 188: // F18
-                	return KeyEvent.VK_F18;
-                case 189: // F19
-                	return KeyEvent.VK_F19;
-                case 190: // F20
-                	return KeyEvent.VK_F20;
-                case 191: // F21
-                	return KeyEvent.VK_F21;
-                case 192: // F22
-                	return KeyEvent.VK_F22;
-                case 193: // F23
-                	return KeyEvent.VK_F23;
-                case 194: // F24
-                	return KeyEvent.VK_F24;
-                	
-                case 200: // play cd
-                	break; // FIXME
-                case 201: // pause cd
-                	break; // FIXME
-                case 202: // prog 3
-                	break; // FIXME
-                case 203: // prog 4
-                	break; // FIXME
-                case 204: // dashboard
-                	break; // FIXME
-                case 205: // suspend
-                	break; // FIXME
-                case 206: // close
-                	break; // FIXME
-                case 207: // play
-                	break; // FIXME
-                case 208: // fast forward
-                	break; // FIXME
-                case 210: // print
-                	return KeyEvent.VK_PRINTSCREEN; // FIXME ?
-                case 211: // HP
-                	break; // FIXME
-                case 212: // camera
-                	break; // FIXME
-                case 213: // sound
-                	break; // FIXME
-                case 214: // question
-                	break; // FIXME
-                case 215: // email
-                	break; // FIXME
-                case 216: // chat
-                	break; // FIXME
-                case 217: // search
-                	break; // FIXME
-                case 218: // connect
-                	break; // FIXME
-                case 219: // finance
-                	break; // FIXME
-                case 220: // sport
-                	break; // FIXME
-                case 221: // shop
-                	break; // FIXME
-                case 222: // alt erase
-                	break; // FIXME
-                case 223: // cancel
-                	break; // FIXME
-                case 224: // brightness down
-                	break; // FIXME
-                case 225: // brightness up
-                	break; // FIXME
-                case 226: // media
-                	break; // FIXME
-                case 227: // switch video mode
-                	break; // FIXME
-                case 228: // kb dillum toggle
-                	break; // FIXME
-                case 229: // kb dillum down
-                	break; // FIXME
-                case 230: // kb dillum up
-                	break; // FIXME
-                case 231: // send
-                	break; // FIXME
-                case 232: // reply
-                	break; // FIXME
-                case 233: // forward mail
-                	break; // FIXME
-                case 234: // save
-                	break; // FIXME
-                case 235: // documents
-                	break; // FIXME
-                case 236: // battery
-                	break; // FIXME
-                case 237: // bluetooth
-                	break; // FIXME
-                case 238: // wlan
-                	break; // FIXME
-                case 239: // UWB
-                	break; // FIXME
-                case 240: // unknown
-                	return KeyEvent.VK_UNDEFINED;
-                case 241: // video next
-                	break; // FIXME
-                case 242: // video prev
-                	break; // FIXME
-                case 243: // brightness cycle
-                	break; // FIXME
-                case 244: // brightness zero
-                	break; // FIXME
-                case 245: // display off
-                	break; // FIXME
-                case 246: // wimax
-                	break; // FIXME
-                case 247: // rf kill radio off
-                	break; // FIXME
-                case 248: // mic mute
-                	break; // FIXME
+            case 117: // kp equals
+                return KeyEvent.VK_EQUALS;
+            case 118: // kp plus minux
+                break; // FIXME
+            case 119: // pause
+                return KeyEvent.VK_PAUSE;
+            case 120: // scale AL compiz scale expose
+                break; // FIXME
+            case 121: // kp comma
+                return KeyEvent.VK_COMMA;
+            case 122: // hangeul
+                break; // FIXME
+            case 123: // hanja
+                break; // FIXME
+            case 124: // yen
+                break; // FIXME
 
-                default:                    	
-			}
-			
-			if(Window.DEBUG_KEY_EVENT) {
-				System.out.println("LinuxEVKey2NewtVKey: Unmapped EVKey "+EVKey);
-			}
-			
+            case 125: // left meta
+            case 126: // right meta
+                return KeyEvent.VK_META;
+            case 127: // compose
+                return KeyEvent.VK_COMPOSE;
+
+            case 128: // stop
+                return KeyEvent.VK_STOP;
+            case 129: // again
+                return KeyEvent.VK_AGAIN;
+            case 130: // properties
+                return KeyEvent.VK_PROPS;
+            case 131: // undo
+                return KeyEvent.VK_UNDO;
+            case 132: // front
+                break; // FIXME
+            case 133: // copy
+                return KeyEvent.VK_COPY;
+            case 134: // open
+                break; // FIXME
+            case 135: // paste
+                return KeyEvent.VK_PASTE;
+            case 136: // find
+                return KeyEvent.VK_FIND;
+            case 137: // cut
+                return KeyEvent.VK_CUT;
+            case 138: // help
+                return KeyEvent.VK_HELP;
+            case 139: // menu
+                break; // FIXME
+            case 140: // calc
+                break; // FIXME
+            case 141: // setup
+                break; // FIXME
+            case 142: // sleep
+                break; // FIXME
+            case 143: // wakeup
+                break; // FIXME
+            case 144: // file
+                break; // FIXME
+            case 145: // send file
+                break; // FIXME
+            case 146: // delete file
+                break; // FIXME
+            case 147: // xfer
+                break; // FIXME
+            case 148: // prog1
+                break; // FIXME
+            case 149: // prog2
+                break; // FIXME
+            case 150: // www
+                break; // FIXME
+            case 151: // msdos
+                break; // FIXME
+            case 152: // coffee
+                break; // FIXME
+            case 153: // direction
+                break; // FIXME
+            case 154: // cycle windows
+                break; // FIXME
+            case 155: // mail
+                break; // FIXME
+            case 156: // bookmarks
+                break; // FIXME
+            case 157: // computer
+                break; // FIXME
+            case 158: // back
+                break; // FIXME
+            case 159: // forward
+                break; // FIXME
+            case 160: // close cd
+                break; // FIXME
+            case 161: // eject cd
+                break; // FIXME
+            case 162: // eject close cd
+                break; // FIXME
+            case 163: // next song
+                break; // FIXME
+            case 164: // play pause
+                break; // FIXME
+            case 165: // previous song
+                break; // FIXME
+            case 166: // stop cd
+                break; // FIXME
+            case 167: // record
+                break; // FIXME
+            case 168: // rewind
+                break; // FIXME
+            case 169: // phone
+                break; // FIXME
+            case 170: // ISO
+                break; // FIXME
+            case 171: // config
+                break; // FIXME
+            case 172: // home page
+                break; // FIXME
+            case 173: // refresh
+                break; // FIXME
+            case 174: // exit
+                break; // FIXME
+            case 175: // move
+                break; // FIXME
+            case 176: // edit
+                break; // FIXME
+            case 177: // scroll up
+                break; // FIXME PAGE_UP?
+            case 178: // scroll down
+                break; // FIXME PAGE_DOWN?
+            case 179: // kp left paren
+                return KeyEvent.VK_LEFT_PARENTHESIS;
+            case 180: // kp right paren
+                return KeyEvent.VK_RIGHT_PARENTHESIS;
+            case 181: // new
+                break; // FIXME
+            case 182: // redo
+                break; // FIXME
+
+            case 183: // F13
+                return KeyEvent.VK_F13;
+            case 184: // F14
+                return KeyEvent.VK_F14;
+            case 185: // F15
+                return KeyEvent.VK_F15;
+            case 186: // F16
+                return KeyEvent.VK_F16;
+            case 187: // F17
+                return KeyEvent.VK_F17;
+            case 188: // F18
+                return KeyEvent.VK_F18;
+            case 189: // F19
+                return KeyEvent.VK_F19;
+            case 190: // F20
+                return KeyEvent.VK_F20;
+            case 191: // F21
+                return KeyEvent.VK_F21;
+            case 192: // F22
+                return KeyEvent.VK_F22;
+            case 193: // F23
+                return KeyEvent.VK_F23;
+            case 194: // F24
+                return KeyEvent.VK_F24;
+
+            case 200: // play cd
+                break; // FIXME
+            case 201: // pause cd
+                break; // FIXME
+            case 202: // prog 3
+                break; // FIXME
+            case 203: // prog 4
+                break; // FIXME
+            case 204: // dashboard
+                break; // FIXME
+            case 205: // suspend
+                break; // FIXME
+            case 206: // close
+                break; // FIXME
+            case 207: // play
+                break; // FIXME
+            case 208: // fast forward
+                break; // FIXME
+            case 210: // print
+                return KeyEvent.VK_PRINTSCREEN; // FIXME ?
+            case 211: // HP
+                break; // FIXME
+            case 212: // camera
+                break; // FIXME
+            case 213: // sound
+                break; // FIXME
+            case 214: // question
+                break; // FIXME
+            case 215: // email
+                break; // FIXME
+            case 216: // chat
+                break; // FIXME
+            case 217: // search
+                break; // FIXME
+            case 218: // connect
+                break; // FIXME
+            case 219: // finance
+                break; // FIXME
+            case 220: // sport
+                break; // FIXME
+            case 221: // shop
+                break; // FIXME
+            case 222: // alt erase
+                break; // FIXME
+            case 223: // cancel
+                break; // FIXME
+            case 224: // brightness down
+                break; // FIXME
+            case 225: // brightness up
+                break; // FIXME
+            case 226: // media
+                break; // FIXME
+            case 227: // switch video mode
+                break; // FIXME
+            case 228: // kb dillum toggle
+                break; // FIXME
+            case 229: // kb dillum down
+                break; // FIXME
+            case 230: // kb dillum up
+                break; // FIXME
+            case 231: // send
+                break; // FIXME
+            case 232: // reply
+                break; // FIXME
+            case 233: // forward mail
+                break; // FIXME
+            case 234: // save
+                break; // FIXME
+            case 235: // documents
+                break; // FIXME
+            case 236: // battery
+                break; // FIXME
+            case 237: // bluetooth
+                break; // FIXME
+            case 238: // wlan
+                break; // FIXME
+            case 239: // UWB
+                break; // FIXME
+            case 240: // unknown
+                return KeyEvent.VK_UNDEFINED;
+            case 241: // video next
+                break; // FIXME
+            case 242: // video prev
+                break; // FIXME
+            case 243: // brightness cycle
+                break; // FIXME
+            case 244: // brightness zero
+                break; // FIXME
+            case 245: // display off
+                break; // FIXME
+            case 246: // wimax
+                break; // FIXME
+            case 247: // rf kill radio off
+                break; // FIXME
+            case 248: // mic mute
+                break; // FIXME
+
+            default: 
+            }
+
+            if(Window.DEBUG_KEY_EVENT) {
+                System.out.println("TODO LinuxEVKey2NewtVKey: Unmapped EVKey "+EVKey);
+            }
+
             return KeyEvent.VK_UNDEFINED;
-		}
-	}    
+        }
+    }
 }
