@@ -622,7 +622,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
        * Hence this method blocks the main-thread only for a short period of time.
        * </p>
        */                  
-      class AttachNSOpenGLLayer implements Runnable {
+      class AttachGLLayerCmd implements Runnable {
           final OffscreenLayerSurface ols;
           final long ctx;
           final int shaderProgram;
@@ -637,7 +637,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           /** Synchronized by instance's monitor */
           boolean valid;
           
-          AttachNSOpenGLLayer(OffscreenLayerSurface ols, long ctx, int shaderProgram, long pfmt, long pbuffer, int texID, boolean isOpaque, int width, int height) {
+          AttachGLLayerCmd(OffscreenLayerSurface ols, long ctx, int shaderProgram, long pfmt, long pbuffer, int texID, boolean isOpaque, int width, int height) {
               this.ols = ols;
               this.ctx = ctx;
               this.shaderProgram = shaderProgram;
@@ -649,6 +649,15 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               this.height = height;
               this.valid = false;
               this.nsOpenGLLayer = 0;
+          }
+          
+          public final String contentToString() {
+              return "valid "+valid+", size "+width+"x"+height+", ctx "+toHexString(ctx)+", opaque "+isOpaque+", texID "+texID+", pbuffer "+toHexString(pbuffer)+", nsOpenGLLayer "+toHexString(nsOpenGLLayer);
+          }
+          
+          @Override
+          public final String toString() {
+              return "AttachGLLayerCmd["+contentToString()+"]";
           }
           
           @Override
@@ -693,14 +702,20 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               }
           }
       }
-      AttachNSOpenGLLayer attachCALayerCmd = null;
+      AttachGLLayerCmd attachGLLayerCmd = null;
       
-      class DetachNSOpenGLLayer implements Runnable {
-        final AttachNSOpenGLLayer cmd;
+      class DetachGLLayerCmd implements Runnable {
+        final AttachGLLayerCmd cmd;
         
-        DetachNSOpenGLLayer(AttachNSOpenGLLayer cmd) {
+        DetachGLLayerCmd(AttachGLLayerCmd cmd) {
             this.cmd = cmd;
         }
+        
+        @Override
+        public final String toString() {
+            return "DetachGLLayerCmd["+cmd.contentToString()+"]";
+        }
+        
         @Override
         public void run() {
             synchronized( cmd ) {
@@ -734,7 +749,8 @@ public abstract class MacOSXCGLContext extends GLContextImpl
           backingLayerHost = NativeWindowFactory.getOffscreenLayerSurface(drawable.getNativeSurface(), true);
           
           if(DEBUG) {
-              System.err.println("MaxOSXCGLContext.NSOpenGLImpl.associateDrawable: "+bound+", ctx "+toHexString(contextHandle)+", hasBackingLayerHost "+(null!=backingLayerHost));
+              System.err.println("MaxOSXCGLContext.NSOpenGLImpl.associateDrawable: "+bound+", ctx "+toHexString(contextHandle)+
+                                 ", hasBackingLayerHost "+(null!=backingLayerHost)+", attachGLLayerCmd "+attachGLLayerCmd);
               // Thread.dumpStack();
           }          
           
@@ -785,10 +801,13 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                   }                                     
                    
                   // All CALayer lifecycle ops are deferred on main-thread
-                  attachCALayerCmd = new AttachNSOpenGLLayer( 
+                  attachGLLayerCmd = new AttachGLLayerCmd( 
                           backingLayerHost, ctx, gl3ShaderProgramName, pixelFormat, pbufferHandle, texID, 
                           chosenCaps.isBackgroundOpaque(), lastWidth, lastHeight );
-                  OSXUtil.RunOnMainThread(false, attachCALayerCmd);
+                  if(DEBUG) {
+                      System.err.println("MaxOSXCGLContext.NSOpenGLImpl.associateDrawable(true): "+attachGLLayerCmd);
+                  }                            
+                  OSXUtil.RunOnMainThread(false, attachGLLayerCmd);
               } else { // -> null == backingLayerHost                  
                   lastWidth = drawable.getWidth();
                   lastHeight = drawable.getHeight();                  
@@ -798,8 +817,11 @@ public abstract class MacOSXCGLContext extends GLContextImpl
               }
           } else { // -> !bound
               if( null != backingLayerHost ) {
-                  final AttachNSOpenGLLayer cmd = attachCALayerCmd;
-                  attachCALayerCmd = null;
+                  final AttachGLLayerCmd cmd = attachGLLayerCmd;
+                  attachGLLayerCmd = null;
+                  if( null == cmd ) {
+                      throw new GLException("Null attachGLLayerCmd: "+drawable);
+                  }
                   if( 0 != cmd.pbuffer ) {
                       CGL.setContextPBuffer(contextHandle, 0);
                   }
@@ -808,7 +830,11 @@ public abstract class MacOSXCGLContext extends GLContextImpl
                           cmd.valid = true; // skip pending creation
                       } else {
                           // All CALayer lifecycle ops are deferred on main-thread
-                          OSXUtil.RunOnMainThread(false, new DetachNSOpenGLLayer(cmd));
+                          final DetachGLLayerCmd dCmd = new DetachGLLayerCmd(cmd);
+                          if(DEBUG) {
+                              System.err.println("MaxOSXCGLContext.NSOpenGLImpl.associateDrawable(false): "+dCmd);
+                          }                            
+                          OSXUtil.RunOnMainThread(false, dCmd);
                           if( null != gl3ShaderProgram ) {
                               gl3ShaderProgram.destroy(MacOSXCGLContext.this.gl.getGL3());
                               gl3ShaderProgram = null;
@@ -903,7 +929,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       
       @Override
       public boolean setSwapInterval(int interval) {
-          final AttachNSOpenGLLayer cmd = attachCALayerCmd;
+          final AttachGLLayerCmd cmd = attachGLLayerCmd;
           if(null != cmd) {
               synchronized(cmd) {
                   if( cmd.valid && 0 != cmd.nsOpenGLLayer) {
@@ -932,7 +958,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       
       @Override
       public boolean swapBuffers() {
-          final AttachNSOpenGLLayer cmd = attachCALayerCmd;
+          final AttachGLLayerCmd cmd = attachGLLayerCmd;
           if(null != cmd) {
               synchronized(cmd) {
                   if( cmd.valid && 0 != cmd.nsOpenGLLayer) {

@@ -342,23 +342,24 @@ public abstract class GLContextImpl extends GLContext {
 
   @Override
   public final void destroy() {
-      if ( null == drawable ) {
-          throw new GLException("Drawable is null: "+toString());
-      }
       if ( DEBUG_TRACE_SWITCH ) {
+          final long drawH = null != drawable ? drawable.getHandle() : 0;
           System.err.println(getThreadName() + ": GLContextImpl.destroy.0: obj " + toHexString(hashCode()) + ", ctx " + toHexString(contextHandle) +
-                  ", surf "+toHexString(drawable.getHandle())+", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
+                  ", surf "+toHexString(drawH)+", isShared "+GLContextShareSet.isShared(this)+" - "+lock);
       }
-      if ( 0 != contextHandle ) {
+      if ( 0 != contextHandle ) { // isCreated() ?
+          if ( null == drawable ) {
+              throw new GLException("GLContext created but drawable is null: "+toString());
+          }
           final int lockRes = drawable.lockSurface();
           if ( NativeSurface.LOCK_SURFACE_NOT_READY >= lockRes ) {
                 // this would be odd ..
                 throw new GLException("Surface not ready to lock: "+drawable);
           }
-          Throwable drawableContextRealizedException = null;
+          Throwable associateDrawableException = null;
           try {
               if ( !drawable.isRealized() ) {
-                  throw new GLException("Drawable not realized: "+toString());
+                  throw new GLException("GLContext created but drawable not realized: "+toString());
               }
               // Must hold the lock around the destroy operation to make sure we
               // don't destroy the context while another thread renders to it.
@@ -380,7 +381,7 @@ public abstract class GLContextImpl extends GLContext {
                   try {
                       associateDrawable(false);
                   } catch (Throwable t) {
-                      drawableContextRealizedException = t;
+                      associateDrawableException = t;
                   }
                   if ( 0 != defaultVAO ) {
                       int[] tmp = new int[] { defaultVAO };
@@ -410,8 +411,8 @@ public abstract class GLContextImpl extends GLContext {
           } finally {
               drawable.unlockSurface();
           }
-          if(null != drawableContextRealizedException) {
-              throw new GLException("GLContext.destroy() during GLDrawableImpl.contextRealized(this, false)", drawableContextRealizedException);
+          if( null != associateDrawableException ) {
+              throw new GLException("GLContext.destroy() during associateDrawable(false)", associateDrawableException);
           }
       }
       resetStates();
@@ -601,6 +602,13 @@ public abstract class GLContextImpl extends GLContext {
   
   private final int makeCurrentWithinLock(int surfaceLockRes) throws GLException {
       if (!isCreated()) {
+        if( 0 >= drawable.getWidth() || 0 >= drawable.getHeight() ) {
+            if ( DEBUG_TRACE_SWITCH ) {
+                System.err.println(getThreadName() + ": Create GL context REJECTED (zero surface size) obj " + toHexString(hashCode()) + ", surf "+toHexString(drawable.getHandle())+" for " + getClass().getName());
+                System.err.println(drawable.toString());
+            }
+            return CONTEXT_NOT_CURRENT;
+        }
         if(DEBUG_GL) {
             // only impacts w/ createContextARB(..)
             additionalCtxCreationFlags |= GLContext.CTX_OPTION_DEBUG ;
