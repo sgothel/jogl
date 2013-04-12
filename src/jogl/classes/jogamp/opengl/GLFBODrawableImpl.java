@@ -335,16 +335,17 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     protected final void contextMadeCurrent(GLContext glc, boolean current) {
         final GL gl = glc.getGL();
         if(current) {
+            if( !initialized ) {
+                throw new GLException("Not initialized: "+this);
+            }
             fbos[fboIBack].bind(gl);
             fboBound = true;
-        } else {
-            if(fboBound) {
-                swapFBOImpl(glc);
-                swapFBOImplPost(glc);
-                fboBound=false;
-                if(DEBUG_SWAP) {
-                    System.err.println("Post FBO swap(@release): done");
-                }
+        } else if( fboBound ) {
+            swapFBOImpl(glc);
+            swapFBOImplPost(glc);
+            fboBound=false;
+            if(DEBUG_SWAP) {
+                System.err.println("Post FBO swap(@release): done");
             }
         }
     }
@@ -353,17 +354,15 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     protected void swapBuffersImpl(boolean doubleBuffered) {
         final GLContext ctx = GLContext.getCurrent();
         boolean doPostSwap = false;
-        if(null!=ctx && ctx.getGLDrawable()==this) {
-            if(fboBound) {
-                swapFBOImpl(ctx);
-                doPostSwap = true;
-                fboBound=false;
-                if(DEBUG_SWAP) {
-                    System.err.println("Post FBO swap(@swap): done");
-                }
+        if( null != ctx && ctx.getGLDrawable() == this && fboBound ) {
+            swapFBOImpl(ctx);
+            doPostSwap = true;
+            fboBound=false;
+            if(DEBUG_SWAP) {
+                System.err.println("Post FBO swap(@swap): done");
             }
         }
-        if(null != swapBufferContext) {
+        if( null != swapBufferContext ) {
             swapBufferContext.swapBuffers(doubleBuffered);
         }
         if(doPostSwap) {

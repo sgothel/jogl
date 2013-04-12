@@ -835,6 +835,8 @@ public class FBObject {
         
         checkPreGLError(gl);
         
+        if( 0 >= width )  { width = 1; }
+        if( 0 >= height ) { height = 1; }
         this.width = width;
         this.height = height;
         this.samples = samples <= maxSamples ? samples : maxSamples;
@@ -941,7 +943,7 @@ public class FBObject {
      * @throws GLException in case of an error, i.e. size too big, etc ..
      */
     public final void reset(GL gl, int newWidth, int newHeight, int newSamples, boolean resetSamplingSink) {
-        if(!initialized) {
+        if( !initialized ) {
             init(gl, newWidth, newHeight, newSamples);
             return;
         }
@@ -949,10 +951,10 @@ public class FBObject {
         newSamples = newSamples <= maxSamples ? newSamples : maxSamples; // clamp
         
         if( newWidth !=  width || newHeight !=  height || newSamples != samples ) {
-            if(0>=newWidth)  { newWidth = 1; }
-            if(0>=newHeight) { newHeight = 1; }
-            if(newWidth > 2 + maxTextureSize  || newHeight> 2 + maxTextureSize ||
-               newWidth > maxRenderbufferSize || newHeight> maxRenderbufferSize  ) {
+            if( 0 >= newWidth )  { newWidth = 1; }
+            if( 0 >= newHeight ) { newHeight = 1; }
+            if( newWidth > 2 + maxTextureSize  || newHeight > 2 + maxTextureSize ||
+                newWidth > maxRenderbufferSize || newHeight > maxRenderbufferSize  ) {
                 throw new GLException("size "+width+"x"+height+" exceeds on of the maxima [texture "+maxTextureSize+", renderbuffer "+maxRenderbufferSize+"]");
             }
         
