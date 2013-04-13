@@ -270,7 +270,7 @@ public class GearsES2 implements GLEventListener {
     public void display(GLAutoDrawable drawable) {
         GLAnimatorControl anim = drawable.getAnimator();
         if( verbose && ( null == anim || !anim.isAnimating() ) ) {
-            System.err.println(Thread.currentThread()+" GearsES2.display"+drawable.getWidth()+"x"+drawable.getHeight()+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(drawable.getHandle()));
+            System.err.println(Thread.currentThread()+" GearsES2.display "+drawable.getWidth()+"x"+drawable.getHeight()+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(drawable.getHandle()));
         }
         // Turn the gears' teeth
         if(doRotate) {

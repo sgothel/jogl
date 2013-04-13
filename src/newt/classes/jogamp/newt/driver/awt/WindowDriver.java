@@ -40,6 +40,7 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.Insets;
 
+import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.util.Point;
 
@@ -111,31 +112,38 @@ public class WindowDriver extends WindowImpl {
         }
         container.setLayout(new BorderLayout());
         
-        canvas = new AWTCanvas(this, capsRequested, WindowDriver.this.capabilitiesChooser);
+        if( null == canvas ) {
+            canvas = new AWTCanvas(capsRequested, WindowDriver.this.capabilitiesChooser);
 
-        // canvas.addComponentListener(listener);
-        container.add(canvas, BorderLayout.CENTER);
+            // canvas.addComponentListener(listener);
+            container.add(canvas, BorderLayout.CENTER);
         
-        // via EDT ..
-        new AWTMouseAdapter(this).addTo(canvas); // fwd all AWT Mouse events to here
-        new AWTKeyAdapter(this).addTo(canvas); // fwd all AWT Key events to here
+            // via EDT ..
+            new AWTMouseAdapter(this).addTo(canvas); // fwd all AWT Mouse events to here
+            new AWTKeyAdapter(this).addTo(canvas); // fwd all AWT Key events to here
         
-        // direct w/o EDT
-        new AWTWindowAdapter(new LocalWindowListener(), this).addTo(canvas); // fwd all AWT Window events to here
+            // direct w/o EDT
+            new AWTWindowAdapter(new LocalWindowListener(), this).addTo(canvas); // fwd all AWT Window events to here
+        }
 
         reconfigureWindowImpl(getX(), getY(), getWidth(), getHeight(), getReconfigureFlags(FLAG_CHANGE_VISIBILITY | FLAG_CHANGE_DECORATION, true));
         // throws exception if failed ..
         
-        setWindowHandle(1); // just a marker ..
+        final NativeSurface ns = canvas.getNativeSurface();
+        if( null != ns ) {
+            setGraphicsConfiguration( canvas.getAWTGraphicsConfiguration() );            
+            setWindowHandle( ns.getSurfaceHandle() );
+        }
     }
 
     protected void closeNativeImpl() {
-        setWindowHandle(0); // just a marker ..
+        setWindowHandle(0);
         if(null!=container) {
             container.setVisible(false);
             container.remove(canvas);
             container.setEnabled(false);
             canvas.setEnabled(false);
+            canvas = null;
         }
         if(owningFrame && null!=frame) {
             frame.dispose();
@@ -172,6 +180,10 @@ public class WindowDriver extends WindowImpl {
     }
 
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("AWTWindow reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
+                               getReconfigureFlagsAsString(null, flags));
+        }
         if(0 != ( FLAG_CHANGE_DECORATION & flags) && null!=frame) {
             if(!container.isDisplayable()) {
                 frame.setUndecorated(isUndecorated());
@@ -182,26 +194,44 @@ public class WindowDriver extends WindowImpl {
             }
         }
         
-        final Dimension szClient = new Dimension(width, height);
-        canvas.setMinimumSize(szClient);
-        canvas.setPreferredSize(szClient);
-        canvas.setSize(szClient);
-        if(DEBUG_IMPLEMENTATION) {
+        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
+            if( 0 != ( FLAG_IS_VISIBLE & flags) ) {
+                final Dimension szClient = new Dimension(width, height);
+                canvas.setMinimumSize(szClient);
+                canvas.setPreferredSize(szClient);
+                if(DEBUG_IMPLEMENTATION) {
+                    final Insets insets = container.getInsets();
+                    final Dimension szContainer = new Dimension(width + insets.left + insets.right,
+                                                                height + insets.top + insets.bottom);
+                    System.err.println(getThreadName()+": AWTWindow initial size: szClient "+szClient+", szCont "+szContainer+", insets "+insets);
+                }
+                canvas.setSize(szClient);
+                if(null != frame) {
+                    frame.pack();
+                } else {
+                    container.validate();
+                }
+                container.setVisible( true );
+                defineSize(width, height); // we are on AWT-EDT .. change values immediately
+            } else {
+                container.setVisible( false );
+            }
+        } else if( canvas.getWidth() != width || canvas.getHeight() != height ) {
             final Insets insets = container.getInsets();
             final Dimension szContainer = new Dimension(width + insets.left + insets.right,
                                                         height + insets.top + insets.bottom);
-            System.err.println(getThreadName()+": AWTWindow new size: szClient "+szClient+", szCont "+szContainer+", insets "+insets);
-        }
-        
-        if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
-            if(null != frame) {
-                frame.pack();
+            if(DEBUG_IMPLEMENTATION) {
+                final Dimension szClient = new Dimension(width, height);
+                System.err.println(getThreadName()+": AWTWindow new size: szClient "+szClient+", szCont "+szContainer+", insets "+insets);
             }
-            container.validate();            
-            container.setVisible(0 != ( FLAG_IS_VISIBLE & flags));
+            container.setSize(szContainer);
+            container.validate();
+            defineSize(width, height); // we are on AWT-EDT .. change values immediately
         }
         
-        container.setLocation(x, y);
+        if( container.getX() != x || container.getY() != y ) {
+            container.setLocation(x, y);
+        }
         
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {
             if( 0 != ( FLAG_IS_VISIBLE & flags ) ) {
@@ -215,12 +245,6 @@ public class WindowDriver extends WindowImpl {
                 }
             }
             visibleChanged(false, 0 != ( FLAG_IS_VISIBLE & flags));
-        } else {
-            container.invalidate();
-            if(null != frame) {
-                frame.pack();
-            }
-            container.validate();            
         }
         
         return true;
@@ -233,8 +257,8 @@ public class WindowDriver extends WindowImpl {
     }
    
     @Override
-    public Object getWrappedWindow() {
-        return canvas;
+    public NativeSurface getWrappedSurface() {
+        return ( null != canvas ) ? canvas.getNativeSurface() : null;
     }
 
     class LocalWindowListener implements com.jogamp.newt.event.WindowListener { 
@@ -247,7 +271,11 @@ public class WindowDriver extends WindowImpl {
         @Override
         public void windowResized(com.jogamp.newt.event.WindowEvent e) {
             if(null!=canvas) {
-                WindowDriver.this.sizeChanged(false, canvas.getWidth(), canvas.getHeight(), false);
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("Window Resized: "+canvas);
+                }
+                WindowDriver.this.sizeChanged(false, canvas.getWidth(), canvas.getHeight(), true);
+                WindowDriver.this.windowRepaint(false, 0, 0, getWidth(), getHeight());
             }
         }
         @Override
@@ -268,7 +296,12 @@ public class WindowDriver extends WindowImpl {
         }
         @Override
         public void windowRepaint(WindowUpdateEvent e) {
-            WindowDriver.this.windowRepaint(false, 0, 0, getWidth(), getHeight());            
+            if(null!=canvas) {
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("Window Repaint: "+canvas);
+                }
+                WindowDriver.this.windowRepaint(false, 0, 0, getWidth(), getHeight());
+            }
         }
     }
 }

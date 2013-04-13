@@ -40,7 +40,6 @@ import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
-import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.SurfaceUpdatedListener;
 import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
@@ -472,17 +471,16 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 if( ( null != context ) ) {
                     throw new InternalError("GLWindow.LifecycleHook.setVisiblePost: "+WindowImpl.getThreadName()+" - Null drawable, but valid context - "+GLWindow.this);
                 }
-                final NativeWindow nw;
-                if (window.getWrappedWindow() != null) {
-                    nw = NativeWindowFactory.getNativeWindow(window.getWrappedWindow(), window.getPrivateGraphicsConfiguration());
-                } else {
-                    nw = window;
+                final NativeSurface ns;
+                {
+                    final NativeSurface wrapped_ns = window.getWrappedSurface();
+                    ns = null != wrapped_ns ? wrapped_ns : window;
                 }
-                final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) nw.getGraphicsConfiguration().getChosenCapabilities();
+                final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) ns.getGraphicsConfiguration().getChosenCapabilities();
                 if(null==factory) {
                     factory = GLDrawableFactory.getFactory(glCaps.getGLProfile());
                 }
-                drawable = (GLDrawableImpl) factory.createGLDrawable(nw);
+                drawable = (GLDrawableImpl) factory.createGLDrawable(ns);
                 drawable.setRealized(true);
                 
                 if( !GLWindow.this.pushGLEventListenerState() ) {

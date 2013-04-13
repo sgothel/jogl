@@ -34,6 +34,7 @@ import javax.media.opengl.*;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -49,6 +50,9 @@ import org.junit.Test;
 public class TestGearsNewtAWTWrapper extends UITestCase {
     static GLProfile glp;
     static int width, height;
+    static boolean useAnimator = true;
+    static boolean doResizeTest = true;
+    static long duration = 500; // ms
 
     @BeforeClass
     public static void initClass() {
@@ -73,39 +77,50 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
 
         glWindow.addGLEventListener(new GearsES2(1));
 
-        Animator animator = new Animator(glWindow);
+        Animator animator = useAnimator ? new Animator(glWindow) : null;
         QuitAdapter quitAdapter = new QuitAdapter();
 
         glWindow.addKeyListener(new TraceKeyAdapter(quitAdapter));
         glWindow.addWindowListener(new TraceWindowAdapter(quitAdapter));
 
+        if( useAnimator ) {
+            animator.start();
+        }
+        
         int div = 3;
         glWindow.setSize(width/div, height/div);
         glWindow.setVisible(true);
-        glWindow.display();
-        Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getWidth()+"x"+glWindow.getHeight(), 
-                          AWTRobotUtil.waitForSize(glWindow, width/div, height/div));
-        
-        div = 2;
-        glWindow.setSize(width/div, height/div);
-        glWindow.display();
-        Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getWidth()+"x"+glWindow.getHeight(), 
-                          AWTRobotUtil.waitForSize(glWindow, width/div, height/div));
-
-        div = 1;
-        glWindow.setSize(width/div, height/div);
-        glWindow.display();
-        Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getWidth()+"x"+glWindow.getHeight(), 
-                          AWTRobotUtil.waitForSize(glWindow, width/div, height/div));
-
-        animator.setUpdateFPSFrames(1, null);        
-        animator.start();
-
-        while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
-            Thread.sleep(100);
+        if( doResizeTest ) {
+            glWindow.display();
+            Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getWidth()+"x"+glWindow.getHeight(), 
+                              AWTRobotUtil.waitForSize(glWindow, width/div, height/div));
+            Thread.sleep(600);
+    
+            div = 2;
+            glWindow.setSize(width/div, height/div);
+            glWindow.display();
+            Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getWidth()+"x"+glWindow.getHeight(), 
+                              AWTRobotUtil.waitForSize(glWindow, width/div, height/div));
+            Thread.sleep(600);
+               
+            div = 1;
+            glWindow.setSize(width/div, height/div);
+            glWindow.display();
+            Assert.assertTrue("Size not reached: Expected "+(width/div)+"x"+(height/div)+", Is "+glWindow.getWidth()+"x"+glWindow.getHeight(), 
+                              AWTRobotUtil.waitForSize(glWindow, width/div, height/div));
+            Thread.sleep(600);
         }
 
-        animator.stop();
+        final long t0 = System.currentTimeMillis();
+        long t1 = t0;
+        while(!quitAdapter.shouldQuit() && t1-t0<duration) {
+            Thread.sleep(100);
+            t1 = System.currentTimeMillis();
+        }
+
+        if( useAnimator ) {
+            animator.stop();
+        }
         glWindow.destroy();
     }
 
@@ -115,17 +130,18 @@ public class TestGearsNewtAWTWrapper extends UITestCase {
         runTestGL(caps);
     }
 
-    static long duration = 500; // ms
-
     public static void main(String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
-                try {
-                    duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                duration = MiscUtils.atol(args[i], duration);
+            } else if(args[i].equals("-noanim")) {
+                useAnimator  = false;
+            } else if(args[i].equals("-noresize")) {
+                doResizeTest  = false;
             }
         }
+        System.err.println("useAnimator "+useAnimator);
         org.junit.runner.JUnitCore.main(TestGearsNewtAWTWrapper.class.getName());
     }
 }

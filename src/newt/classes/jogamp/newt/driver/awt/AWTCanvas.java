@@ -47,13 +47,15 @@ import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
+import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.VisualIDHolder;
-
 
 import com.jogamp.nativewindow.awt.AWTGraphicsConfiguration;
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
+import com.jogamp.nativewindow.awt.JAWTWindow;
 import com.jogamp.newt.Window;
 
 @SuppressWarnings("serial")
@@ -61,17 +63,15 @@ public class AWTCanvas extends Canvas {
   private GraphicsDevice device;
   private GraphicsConfiguration chosen;
   private AWTGraphicsConfiguration awtConfig;
-
-  private WindowDriver newtWindowImpl;
+  private volatile JAWTWindow jawtWindow=null; // the JAWTWindow presentation of this AWT Canvas, bound to the 'drawable' lifecycle
   private CapabilitiesChooser chooser=null;
   private CapabilitiesImmutable capabilities;
 
   private boolean displayConfigChanged=false;
 
-  public AWTCanvas(WindowDriver newtWindowImpl, CapabilitiesImmutable capabilities, CapabilitiesChooser chooser) {
+  public AWTCanvas(CapabilitiesImmutable capabilities, CapabilitiesChooser chooser) {
     super();
 
-    this.newtWindowImpl = newtWindowImpl;
     if(null==capabilities) {
         throw new NativeWindowException("Capabilities null");
     }
@@ -89,7 +89,7 @@ public class AWTCanvas extends Canvas {
    */
   @Override
   public void update(Graphics g) {
-    paint(g);
+    // paint(g);
   }
 
   /** Overridden to cause OpenGL rendering to be performed during
@@ -99,7 +99,6 @@ public class AWTCanvas extends Canvas {
    */
   @Override
   public void paint(Graphics g) {
-    newtWindowImpl.windowRepaint(0, 0, getWidth(), getHeight());
   }
   
   public boolean hasDeviceChanged() {
@@ -120,8 +119,7 @@ public class AWTCanvas extends Canvas {
      */
     awtConfig = chooseGraphicsConfiguration(capabilities, capabilities, chooser, device);
     if(Window.DEBUG_IMPLEMENTATION) {
-        Exception e = new Exception("Info: Created Config: "+awtConfig);
-        e.printStackTrace();
+        System.err.println(getThreadName()+": AWTCanvas.addNotify.0: Created Config: "+awtConfig);
     }
     if(null==awtConfig) {
         throw new NativeWindowException("Error: NULL AWTGraphicsConfiguration");
@@ -137,12 +135,27 @@ public class AWTCanvas extends Canvas {
     // after native peer is valid: Windows
     disableBackgroundErase();
 
+    {
+        jawtWindow = (JAWTWindow) NativeWindowFactory.getNativeWindow(this, awtConfig);
+        // trigger initialization cycle
+        jawtWindow.lockSurface();
+        jawtWindow.unlockSurface();
+    }
+
     GraphicsConfiguration gc = super.getGraphicsConfiguration();
     if(null!=gc) {
         device = gc.getDevice();
     }
+    if(Window.DEBUG_IMPLEMENTATION) {
+        System.err.println(getThreadName()+": AWTCanvas.addNotify.X");
+    }
   }
 
+  public NativeSurface getNativeSurface() {
+    final JAWTWindow _jawtWindow = jawtWindow;
+    return (null != _jawtWindow) ? _jawtWindow : null;
+  }  
+  
   public void removeNotify() {
       try {
         dispose();
@@ -152,6 +165,13 @@ public class AWTCanvas extends Canvas {
   }
 
   private void dispose() {
+    if( null != jawtWindow ) {
+        jawtWindow.destroy();
+        if(Window.DEBUG_IMPLEMENTATION) {
+            System.err.println(getThreadName()+": AWTCanvas.disposeJAWTWindowAndAWTDeviceOnEDT(): post JAWTWindow: "+jawtWindow);
+        }
+        jawtWindow=null;
+    }
     if(null != awtConfig) {
         AbstractGraphicsDevice adevice = awtConfig.getNativeGraphicsConfiguration().getScreen().getDevice();
         String adeviceMsg=null;
@@ -160,10 +180,12 @@ public class AWTCanvas extends Canvas {
         }
         boolean closed = adevice.close();
         if(Window.DEBUG_IMPLEMENTATION) {
-            System.err.println("AWTCanvas.dispose(): closed GraphicsDevice: "+adeviceMsg+", result: "+closed);
+            System.err.println(getThreadName()+": AWTCanvas.dispose(): closed GraphicsDevice: "+adeviceMsg+", result: "+closed);
         }
     }
   }
+  
+  private String getThreadName() { return Thread.currentThread().getName(); }
 
   /**
    * Overridden to choose a GraphicsConfiguration on a parent container's

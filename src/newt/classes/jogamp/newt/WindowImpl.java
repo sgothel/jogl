@@ -1562,9 +1562,11 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return old;
     }
 
-    /** If this Window actually wraps one from another toolkit such as
-        the AWT, this will return a non-null value. */
-    public Object getWrappedWindow() {
+    /** 
+     * If this Window actually wraps a {@link NativeSurface} from another instance or toolkit, 
+     * it will return such reference. Otherwise returns null.
+     */
+    public NativeSurface getWrappedSurface() {
         return null;
     }
 
@@ -1598,7 +1600,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     "\n, Visible "+isVisible()+", focus "+hasFocus()+
                     "\n, Undecorated "+undecorated+" ("+isUndecorated()+")"+
                     "\n, AlwaysOnTop "+alwaysOnTop+", Fullscreen "+fullscreen+
-                    "\n, WrappedWindow "+getWrappedWindow()+
+                    "\n, WrappedSurface "+getWrappedSurface()+
                     "\n, ChildWindows "+childWindows.size());
 
         sb.append(", SurfaceUpdatedListeners num "+surfaceUpdatedHelper.size()+" [");
