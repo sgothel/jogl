@@ -140,38 +140,19 @@ private final GLBufferSizeTracker  bufferSizeTracker;
 private final GLBufferStateTracker bufferStateTracker;
 private final GLStateTracker       glStateTracker;
 
-private boolean bufferObjectExtensionsInitialized = false;
-private boolean haveOESFramebufferObject;
-
-private final void initBufferObjectExtensionChecks() {
-  if (bufferObjectExtensionsInitialized)
-    return;
-  bufferObjectExtensionsInitialized = true;
-  haveOESFramebufferObject  = isExtensionAvailable("GL_OES_framebuffer_object");
-}
-
-private final boolean checkBufferObject(boolean avail,
-                                        boolean enabled,
+private final boolean checkBufferObject(boolean enabled,
                                         int state,
                                         String kind, boolean throwException) {
-  if (!avail) {
-    if (!enabled)
-      return true;
-    if(throwException) {
-        throw new GLException("Required extensions not available to call this function");
-    }
-    return false;
-  }
-  int buffer = bufferStateTracker.getBoundBufferObject(state, this);
+  final int buffer = bufferStateTracker.getBoundBufferObject(state, this);
   if (enabled) {
-    if (buffer == 0) {
+    if (0 == buffer) {
       if(throwException) {
           throw new GLException(kind + " must be enabled to call this method");
       }
       return false;
     }
   } else {
-    if (buffer != 0) {
+    if (0 != buffer) {
       if(throwException) {
           throw new GLException(kind + " must be disabled to call this method");
       }
@@ -182,35 +163,27 @@ private final boolean checkBufferObject(boolean avail,
 }  
 
 private final boolean checkArrayVBODisabled(boolean throwException) { 
-  initBufferObjectExtensionChecks();
-  return checkBufferObject(true,
-                    false,
-                    GL.GL_ARRAY_BUFFER,
-                    "array vertex_buffer_object", throwException);
+  return checkBufferObject(false, // enabled
+                           GL.GL_ARRAY_BUFFER,
+                           "array vertex_buffer_object", throwException);
 }
 
 private final boolean checkArrayVBOEnabled(boolean throwException) { 
-  initBufferObjectExtensionChecks();
-  return checkBufferObject(true,
-                    true,
-                    GL.GL_ARRAY_BUFFER,
-                    "array vertex_buffer_object", throwException);
+  return checkBufferObject(true, // enabled
+                           GL.GL_ARRAY_BUFFER,
+                           "array vertex_buffer_object", throwException);
 }
 
 private final boolean checkElementVBODisabled(boolean throwException) { 
-  initBufferObjectExtensionChecks();
-  return checkBufferObject(true,
-                    false,
-                    GL.GL_ELEMENT_ARRAY_BUFFER,
-                    "element vertex_buffer_object", throwException);
+  return checkBufferObject(false, // enabled
+                           GL.GL_ELEMENT_ARRAY_BUFFER,
+                           "element vertex_buffer_object", throwException);
 }
 
 private final boolean checkElementVBOEnabled(boolean throwException) { 
-  initBufferObjectExtensionChecks();
-  return checkBufferObject(true,
-                    true,
-                    GL.GL_ELEMENT_ARRAY_BUFFER,
-                    "element vertex_buffer_object", throwException);
+  return checkBufferObject(true, // enabled
+                           GL.GL_ELEMENT_ARRAY_BUFFER,
+                           "element vertex_buffer_object", throwException);
 }
 
 private final boolean checkUnpackPBODisabled(boolean throwException) { 
