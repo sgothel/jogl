@@ -47,7 +47,7 @@ import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
-import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.VisualIDHolder;
@@ -151,10 +151,14 @@ public class AWTCanvas extends Canvas {
     }
   }
 
-  public NativeSurface getNativeSurface() {
+  public NativeWindow getNativeWindow() {
     final JAWTWindow _jawtWindow = jawtWindow;
     return (null != _jawtWindow) ? _jawtWindow : null;
   }  
+  
+  public boolean isOffscreenLayerSurfaceEnabled() {
+      return null != jawtWindow ? jawtWindow.isOffscreenLayerSurfaceEnabled() : false; 
+  }
   
   public void removeNotify() {
       try {
