@@ -1790,6 +1790,10 @@ public abstract class GLContextImpl extends GLContext {
   public final GLStateTracker getGLStateTracker() {
     return glStateTracker;
   }
+  
+  public final boolean isDefaultVAO(int vao) {
+      return defaultVAO == vao;
+  }
 
   //---------------------------------------------------------------------------
   // Helpers for context optimization where the last context is left

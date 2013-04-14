@@ -91,6 +91,7 @@ public class GLBufferStateTracker {
     bindingMap.setKeyNotFoundValue(0xFFFFFFFF);
 
     // Start with known unbound targets for known keys
+    // setBoundBufferObject(GL2GL3.GL_VERTEX_ARRAY_BINDING, 0); // not using default VAO (removed in GL3 core) - only explicit
     setBoundBufferObject(GL.GL_ARRAY_BUFFER,         0);
     setBoundBufferObject(GL.GL_ELEMENT_ARRAY_BUFFER, 0);
     setBoundBufferObject(GL2.GL_PIXEL_PACK_BUFFER,   0);
@@ -120,6 +121,7 @@ public class GLBufferStateTracker {
       boolean gotQueryTarget = true;
       int queryTarget = 0;
       switch (target) {
+        case GL2GL3.GL_VERTEX_ARRAY_BINDING: queryTarget = GL2GL3.GL_VERTEX_ARRAY_BINDING;  break;
         case GL.GL_ARRAY_BUFFER:          queryTarget = GL.GL_ARRAY_BUFFER_BINDING;         break;
         case GL.GL_ELEMENT_ARRAY_BUFFER:  queryTarget = GL.GL_ELEMENT_ARRAY_BUFFER_BINDING; break;
         case GL2.GL_PIXEL_PACK_BUFFER:    queryTarget = GL2.GL_PIXEL_PACK_BUFFER_BINDING;    break;

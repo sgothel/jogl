@@ -51,133 +51,135 @@ private boolean haveEXTPixelBufferObject;
 private boolean haveGL15;
 private boolean haveGL21;
 private boolean haveARBVertexBufferObject;
+private boolean haveARBVertexArrayObject;
 
 private final void initBufferObjectExtensionChecks() {
-  if (bufferObjectExtensionsInitialized)
+  if ( bufferObjectExtensionsInitialized ) {
     return;
+  }
   bufferObjectExtensionsInitialized = true;
   haveARBPixelBufferObject  = isExtensionAvailable("GL_ARB_pixel_buffer_object");
   haveEXTPixelBufferObject  = isExtensionAvailable("GL_EXT_pixel_buffer_object");
   haveGL15                  = isExtensionAvailable("GL_VERSION_1_5");
   haveGL21                  = isExtensionAvailable("GL_VERSION_2_1");
   haveARBVertexBufferObject = isExtensionAvailable("GL_ARB_vertex_buffer_object");
+  haveARBVertexArrayObject  = _context.getGLVersionNumber().compareTo(GLContext.Version30) >= 0 ||
+                              isExtensionAvailable("GL_ARB_vertex_array_object");
 }
 
-private final boolean checkBufferObject(boolean extension1,
-                                        boolean extension2,
-                                        boolean extension3,
+private final boolean checkBufferObject(boolean extensionAvail,
+                                        boolean allowVAO,
                                         boolean enabled,
                                         int state,
                                         String kind, boolean throwException) {
-  if (inBeginEndPair) {
+  if ( inBeginEndPair ) {
     throw new GLException("May not call this between glBegin and glEnd");
   }
-  boolean avail = (extension1 || extension2 || extension3);
-  if (!avail) {
-    if (!enabled)
+  if ( !extensionAvail ) {
+    if ( !enabled ) {
       return true;
+    }
     if(throwException) {
         throw new GLException("Required extensions not available to call this function");
     }
     return false;
   }
   int buffer = bufferStateTracker.getBoundBufferObject(state, this);
-  if (enabled) {
-    if (buffer == 0) {
-      if(throwException) {
-          throw new GLException(kind + " must be enabled to call this method");
-      }
-      return false;
+  if ( enabled ) {
+    if ( 0 != buffer ) {
+        return true;
     }
+    if ( allowVAO ) {
+        buffer = bufferStateTracker.getBoundBufferObject(GL2GL3.GL_VERTEX_ARRAY_BINDING, this);
+        if( 0 != buffer && !_context.isDefaultVAO(buffer) ) {
+            return true;
+        }
+    }
+    if ( throwException ) {
+        throw new GLException(kind + " must be enabled to call this method");
+    }
+    return false;
   } else {
-    if (buffer != 0) {
-      if(throwException) {
-          throw new GLException(kind + " must be disabled to call this method");
-      }
-      return false;
+    if ( 0 == buffer ) {
+        return true;
     }
+    if ( throwException ) {
+        throw new GLException(kind + " must be disabled to call this method");
+    }
+    return false;
   }
-  return true;
 }  
 
 private final boolean checkArrayVBODisabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  return checkBufferObject(haveGL15,
-                    haveARBVertexBufferObject,
-                    false,
-                    false,
-                    GL.GL_ARRAY_BUFFER,
-                    "array vertex_buffer_object", throwException);
+  return checkBufferObject(haveGL15 || haveARBVertexBufferObject,
+                           haveARBVertexArrayObject, // allowVAO
+                           false, // enable
+                           GL.GL_ARRAY_BUFFER,
+                           "array vertex_buffer_object", throwException);
 }
 
 private final boolean checkArrayVBOEnabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  return checkBufferObject(haveGL15,
-                    haveARBVertexBufferObject,
-                    false,
-                    true,
-                    GL.GL_ARRAY_BUFFER,
-                    "array vertex_buffer_object", throwException);
+  return checkBufferObject(haveGL15 || haveARBVertexBufferObject,
+                           haveARBVertexArrayObject, // allowVAO
+                           true, // enable
+                           GL.GL_ARRAY_BUFFER,
+                           "array vertex_buffer_object", throwException);
 }
 
 private final boolean checkElementVBODisabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  return checkBufferObject(haveGL15,
-                    haveARBVertexBufferObject,
-                    false,
-                    false,
-                    GL.GL_ELEMENT_ARRAY_BUFFER,
-                    "element vertex_buffer_object", throwException);
+  return checkBufferObject(haveGL15 || haveARBVertexBufferObject,
+                           haveARBVertexArrayObject, // allowVAO
+                           false, // enable
+                           GL.GL_ELEMENT_ARRAY_BUFFER,
+                           "element vertex_buffer_object", throwException);
 }
 
 private final boolean checkElementVBOEnabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  return checkBufferObject(haveGL15,
-                    haveARBVertexBufferObject,
-                    false,
-                    true,
-                    GL.GL_ELEMENT_ARRAY_BUFFER,
-                    "element vertex_buffer_object", throwException);
+  return checkBufferObject(haveGL15 || haveARBVertexBufferObject,
+                           haveARBVertexArrayObject, // allowVAO
+                           true, // enable
+                           GL.GL_ELEMENT_ARRAY_BUFFER,
+                           "element vertex_buffer_object", throwException);
 }
 
 private final boolean checkUnpackPBODisabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  return checkBufferObject(haveARBPixelBufferObject,
-                    haveEXTPixelBufferObject,
-                    haveGL21,
-                    false,
-                    GL2.GL_PIXEL_UNPACK_BUFFER,
-                    "unpack pixel_buffer_object", throwException);
+  return checkBufferObject(haveGL21 || haveARBPixelBufferObject || haveEXTPixelBufferObject,
+                           false, // allowVAO
+                           false, // enable
+                           GL2.GL_PIXEL_UNPACK_BUFFER,
+                           "unpack pixel_buffer_object", throwException);
 }
 
 private final boolean checkUnpackPBOEnabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  return checkBufferObject(haveARBPixelBufferObject,
-                    haveEXTPixelBufferObject,
-                    haveGL21,
-                    true,
-                    GL2.GL_PIXEL_UNPACK_BUFFER,
-                    "unpack pixel_buffer_object", throwException);
+  return checkBufferObject(haveGL21 || haveARBPixelBufferObject || haveEXTPixelBufferObject,
+                           false, // allowVAO
+                           true, // enable
+                           GL2.GL_PIXEL_UNPACK_BUFFER,
+                           "unpack pixel_buffer_object", throwException);
 }
 
 private final boolean checkPackPBODisabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  return checkBufferObject(haveARBPixelBufferObject,
-                    haveEXTPixelBufferObject,
-                    haveGL21,
-                    false,
-                    GL2.GL_PIXEL_PACK_BUFFER,
-                    "pack pixel_buffer_object", throwException);
+  return checkBufferObject(haveGL21 || haveARBPixelBufferObject || haveEXTPixelBufferObject,
+                           false, // allowVAO
+                           false, // enable
+                           GL2.GL_PIXEL_PACK_BUFFER,
+                           "pack pixel_buffer_object", throwException);
 }
 
 private final boolean checkPackPBOEnabled(boolean throwException) { 
   initBufferObjectExtensionChecks();
-  return checkBufferObject(haveARBPixelBufferObject,
-                    haveEXTPixelBufferObject,
-                    haveGL21,
-                    true,
-                    GL2.GL_PIXEL_PACK_BUFFER,
-                    "pack pixel_buffer_object", throwException);
+  return checkBufferObject(haveGL21 || haveARBPixelBufferObject || haveEXTPixelBufferObject,
+                           false, // allowVAO
+                           true, // enable
+                           GL2.GL_PIXEL_PACK_BUFFER,
+                           "pack pixel_buffer_object", throwException);
 }
 
 @Override
