@@ -638,7 +638,7 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                 const AVRational time_base = pAV->pVStream->time_base;
                 const int64_t pts = pAV->pVFrame->pkt_pts;
                 if(AV_NOPTS_VALUE != pts) { // discard invalid PTS ..
-                    pAV->vPTS = pts * my_av_q2i32(1000, time_base);
+                    pAV->vPTS = (pts * (int64_t) 1000 * (int64_t) time_base.num) / (int64_t) time_base.den ;
 
                     #if 0
                     printf("PTS %d = %ld * ( ( 1000 * %ld ) / %ld ) '1000 * time_base', time_base = %lf\n",
@@ -689,14 +689,16 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_seek0
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
     int64_t pos0 = pAV->vPTS;
     int64_t pts0 = pAV->pVFrame->pkt_pts;
-    int64_t pts1 = (int64_t) pos1 / my_av_q2i32(1000, pAV->pVStream->time_base);
+    int64_t pts1 = (int64_t) (pos1 * (int64_t) pAV->pVStream->time_base.den)
+                             / (1000 * (int64_t) pAV->pVStream->time_base.num);
     int flags = 0;
     if(pos1 < pos0) {
         flags |= AVSEEK_FLAG_BACKWARD;
     }
     fprintf(stderr, "SEEK: pre  : u %ld, p %ld -> u %ld, p %ld\n", pos0, pts0, pos1, pts1);
     sp_av_seek_frame(pAV->pFormatCtx, pAV->vid, pts1, flags);
-    pAV->vPTS = pAV->pVFrame->pkt_pts * my_av_q2i32(1000, pAV->pVStream->time_base);
+    pAV->vPTS = (int64_t) (pAV->pVFrame->pkt_pts * (int64_t) 1000 * (int64_t) pAV->pVStream->time_base.num)
+                / (int64_t) pAV->pVStream->time_base.den;
     fprintf(stderr, "SEEK: post : u %ld, p %ld\n", pAV->vPTS, pAV->pVFrame->pkt_pts);
     return pAV->vPTS;
 }
