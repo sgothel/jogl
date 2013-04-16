@@ -113,6 +113,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
         // Check for other underlying stuff ..
         if(NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true)) {
+            hasX11 = true;
             try {
                 ReflectionUtil.createInstance("jogamp.opengl.x11.glx.X11GLXGraphicsConfigurationFactory", EGLDrawableFactory.class.getClassLoader());
             } catch (Exception jre) { /* n/a .. */ }
@@ -262,6 +263,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     private EGLGraphicsDevice defaultDevice = null;
     private SharedResource defaultSharedResource = null;
     private boolean isANGLE = false;
+    private boolean hasX11 = false;
 
     static class SharedResource {
       private final EGLGraphicsDevice device;
@@ -568,6 +570,10 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             // avoid exception due to double 'set' - carefull exception of the rule. 
             EGLContext.setAvailableGLVersionsSet(adevice);
         }
+        if( hasX11 ) {
+            handleDontCloseX11DisplayQuirk(rendererQuirksES1[0]);
+            handleDontCloseX11DisplayQuirk(rendererQuirksES2[0]);
+        }
         final SharedResource sr = new SharedResource(defaultDevice, madeCurrentES1, hasPBufferES1[0], rendererQuirksES1[0], ctpES1[0],
                                                                     madeCurrentES2, hasPBufferES2[0], rendererQuirksES2[0], ctpES2[0]);
         
@@ -581,6 +587,12 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
             dumpMap();
         }
         return sr;
+    }
+    
+    private void handleDontCloseX11DisplayQuirk(GLRendererQuirks quirks) {
+        if( null != quirks && quirks.exist( GLRendererQuirks.DontCloseX11Display ) ) {
+            jogamp.nativewindow.x11.X11Util.markAllDisplaysUnclosable();
+        }
     }
 
     @Override

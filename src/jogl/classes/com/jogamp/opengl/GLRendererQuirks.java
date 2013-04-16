@@ -59,7 +59,7 @@ public class GLRendererQuirks {
     /** SIGSEGV on setSwapInterval() after changing the context's drawable w/ 'Mesa 8.0.4' dri2SetSwapInterval/DRI2 (soft & intel) */
     public static final int NoSetSwapIntervalPostRetarget = 4;
 
-    /** GLSL <code>discard</code> command leads to undefined behavior or won't get compiled if being used. Appears to happen on Nvidia Tegra2. FIXME: Constrain version. */
+    /** GLSL <code>discard</code> command leads to undefined behavior or won't get compiled if being used. Appears to <i>have</i> happened on Nvidia Tegra2, but seems to be fine now. FIXME: Constrain version. */
     public static final int GLSLBuggyDiscard = 5;
     
     /** 
@@ -81,41 +81,47 @@ public class GLRendererQuirks {
      */
     public static final int GLFlushBeforeRelease = 7;
     
-    // 
-    // The JVM for the following system crashes on the second call to glXDestroyContext after
-    // XCloseDisplay has been called once.
-    //
-    // The following will crash the system:
-    //   XOpenDisplay(A), glXCreateNewContext(A), XOpenDisplay(B), glXCreateNewContext(B), 
-    //   glXDestroyContext(A/B), XCloseDisplay(A/B), glXDestroyContext(B/A) (crash)
-    //
-    // Dell Latitude D520
-    // Intel(R) Core(TM)2 CPU T7200
-    // i810 Monitor driver
-    // Platform       LINUX / Linux 2.6.18.8-0.3-default (os), i386 (arch), GENERIC_ABI, 2 cores
-    // Platform       Java Version: 1.6.0_18, VM: Java HotSpot(TM) Server VM, Runtime: Java(TM) SE Runtime Environment
-    // Platform       Java Vendor: Sun Microsystems Inc., http://java.sun.com/, JavaSE: true, Java6: true, AWT enabled: true
-    // GL Profile     GLProfile[GL2/GL2.sw]
-    // CTX VERSION    2.1 (Compatibility profile, FBO, software) - 2.1 Mesa 7.8.2
-    // GL             jogamp.opengl.gl4.GL4bcImpl@472d48
-    // GL_VENDOR      Brian Paul
-    // GL_RENDERER    Mesa X11
-    // GL_VERSION     2.1 Mesa 7.8.2
-    //
-    // The error can be reproduced using a C code, thus the error is indpendent of Java and JOGL.
-    // The work around is to close all the X11 displays upon exit for a "Mesa X11" version < 8.
-    // At this moment, it is unknown if the error exists in versions greater than 7.
-    //
-    // Martin C. Hegedus, March 30, 2013
-    //
-    public static final int DontCloseX11DisplayConnection = 8;
+    /** 
+     * Closing X11 displays may cause JVM crashes or X11 errors with some buggy drivers
+     * while being used in concert w/ OpenGL.
+     * <p>
+     * Some drivers may require X11 displays to be closed in the same order as they were created,
+     * some may not allow them to be closed at all while resources are being used somehow.
+     * </p>
+     * <p>
+     * Drivers known exposing such bug:
+     * <ul>
+     *   <li>Mesa &lt; 8.0 _with_ X11 software renderer <code>Mesa X11</code>, not with GLX/DRI renderer.</li>
+     *   <li>ATI proprietary Catalyst X11 driver (RENDERER vendor version):
+     *     <ul>
+     *       <li>8.78.6</li>
+     *       <li>8.881</li>
+     *       <li>8.911</li>
+     *       <li>9.01.8</li>
+     *     </ul></li>
+     * </ul>
+     * </p>
+     * <p>
+     * TODO: Validate whether Mesa's X11 driver exposes this bug w/ version >= 8, currently we assume not !
+     * Impact would be to set this quirk on all 'Mesa X11' software renderer!
+     * </p>
+     * 
+     * <p>
+     * See Bug 515 - https://jogamp.org/bugzilla/show_bug.cgi?id=515
+     * and {@link jogamp.nativewindow.x11.X11Util#ATI_HAS_XCLOSEDISPLAY_BUG}.
+     * </p>
+     * <p>
+     * See Bug 705 - https://jogamp.org/bugzilla/show_bug.cgi?id=705
+     * </p>
+     */
+    public static final int DontCloseX11Display = 8;
     
     /** Number of quirks known. */
     public static final int COUNT = 9;
     
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
-                                                          "GLNonCompliant", "GLFlushBeforeRelease", "DontCloseX11DisplayConnection"
+                                                          "GLNonCompliant", "GLFlushBeforeRelease", "DontCloseX11Display"
                                                         };
 
     private final int _bitmask;

@@ -160,9 +160,11 @@ public class JoglVersion extends JogampVersion {
         sb.append(Platform.getNewline());
         sb.append("GL Profile     ").append(gl.getGLProfile());
         sb.append(Platform.getNewline());
-        sb.append("CTX VERSION    ").append(gl.getContext().getGLVersion());
+        sb.append("GL Version     ").append(ctx.getGLVersion()).append(" [GL ").append(ctx.getGLVersionNumber()).append(", vendor ").append(ctx.getGLVendorVersionNumber()).append("]");
         sb.append(Platform.getNewline());
-        sb.append("GL             ").append(gl);
+        sb.append("Quirks         ").append(ctx.getRendererQuirks());
+        sb.append(Platform.getNewline());
+        sb.append("Impl. class    ").append(gl.getClass().getCanonicalName());
         sb.append(Platform.getNewline());
         sb.append("GL_VENDOR      ").append(gl.glGetString(GL.GL_VENDOR));
         sb.append(Platform.getNewline());

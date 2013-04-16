@@ -64,11 +64,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-// Added to check if X11 Displays should be closed on exit
-// Martin C. Hegedus, March 30, 2013
-import com.jogamp.opengl.GLRendererQuirks;
-import jogamp.nativewindow.x11.X11Util;
-
 /**
  * Specifies the the OpenGL profile.
  * 
@@ -1530,26 +1525,6 @@ public class GLProfile {
         final boolean addedDesktopProfile = null != defaultDesktopDevice ? initProfilesForDevice(defaultDesktopDevice) : false;        
         final boolean addedAnyProfile     = addedEGLProfile || addedDesktopProfile ;
     
-	// Added to check if X11 Displays should be closed on exit
-	// NOTE:  This checks defaultEGLDevice and defaultDesktopDevice to determine if XCloseDisplay should be called on exit
-	// NOTE:  These checks must be done after initProfilesForDevice since GLContext must set up the renderer quirks.
-	// NOTE:  At this point the shared resource has already opened a display, created a new context, made it current, and
-	//        released it.  Let's cross our fingers that at this point in the code the context will not be destroyed and 
-	//        the display closed under any circumstances.
-	// NOTE:  The checks can be tricked if the default screen is using a driver other than X11 and later a X11 Display,
-	//        such as a remote display, is opened.  If this occurs then markAllDisplaysUnclosable will not have been
-	//        correctly set.  Something to deal with at a later date.
-	//
-	// Martin C. Hegedus, March 30, 2013
-	if (eglFactory != null && defaultEGLDevice != null &&
-	    eglFactory.hasRendererQuirk(defaultEGLDevice,GLRendererQuirks.DontCloseX11DisplayConnection) &&
-	    NativeWindowFactory.getNativeWindowType(true) == NativeWindowFactory.TYPE_X11)
-	    X11Util.markAllDisplaysUnclosable();
-	if (desktopFactory != null && defaultDesktopDevice != null &&
-	    desktopFactory.hasRendererQuirk(defaultDesktopDevice,GLRendererQuirks.DontCloseX11DisplayConnection) &&
-	    NativeWindowFactory.getNativeWindowType(true) == NativeWindowFactory.TYPE_X11)
-	    X11Util.markAllDisplaysUnclosable();
-            
         if(DEBUG) {
             System.err.println("GLProfile.init addedAnyProfile       "+addedAnyProfile+" (desktop: "+addedDesktopProfile+", egl "+addedEGLProfile+")");
             System.err.println("GLProfile.init isAWTAvailable        "+isAWTAvailable);

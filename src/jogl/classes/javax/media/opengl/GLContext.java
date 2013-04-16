@@ -53,6 +53,7 @@ import jogamp.opengl.GLContextImpl;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionNumber;
+import com.jogamp.common.util.VersionNumberString;
 import com.jogamp.common.util.locks.LockFactory;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.opengl.GLExtensions;
@@ -126,6 +127,8 @@ public abstract class GLContext {
   /** Version 3.0. As an OpenGL version, it qualifies for {@link #isGL2()} only */
   public static final VersionNumber Version30 = new VersionNumber(3, 0, 0);
   
+  protected static final VersionNumber Version80 = new VersionNumber(8, 0, 0);
+
   /** <code>ARB_create_context</code> related: created via ARB_create_context. Cache key value. See {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
   protected static final int CTX_IS_ARB_CREATED  = 1 <<  0;
   /** <code>ARB_create_context</code> related: desktop compatibility profile. Cache key value. See {@link #isGLCompatibilityProfile()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
@@ -169,9 +172,11 @@ public abstract class GLContext {
   protected VersionNumber ctxVersion;
   protected int ctxOptions;
   protected String ctxVersionString;
+  protected VersionNumberString ctxVendorVersion;
   protected VersionNumber ctxGLSLVersion;
   private int currentSwapInterval;
   protected GLRendererQuirks glRendererQuirks;
+  private static final VersionNumberString nullVersion = new VersionNumberString(-1, -1, -1, "n/a");
 
   /** Did the drawable association changed ? see {@link GLRendererQuirks#NoSetSwapIntervalPostRetarget} */ 
   protected boolean drawableRetargeted; 
@@ -181,7 +186,8 @@ public abstract class GLContext {
         System.err.println(getThreadName() + ": GLContext.resetStates()");
         // Thread.dumpStack();
       }
-      ctxVersion = new VersionNumber(-1, -1, -1);
+      ctxVersion = nullVersion;
+      ctxVendorVersion = nullVersion;
       ctxOptions=0;
       ctxVersionString=null;
       ctxGLSLVersion=null;
@@ -521,14 +527,9 @@ public abstract class GLContext {
   }
 
   public final StringBuilder append(StringBuilder sb) {
-    sb.append("OpenGL ");
-    sb.append(getGLVersionMajor());
-    sb.append(".");
-    sb.append(getGLVersionMinor());
-    sb.append(", options 0x");
+    sb.append("Version ").append(getGLVersion()).append(" [GL ").append(getGLVersionNumber()).append(", vendor ").append(getGLVendorVersionNumber());
+    sb.append("], options 0x");
     sb.append(Integer.toHexString(ctxOptions));
-    sb.append(", ");
-    sb.append(getGLVersion());
     sb.append(", this ");
     sb.append(toHexString(hashCode()));
     sb.append(", handle ");
@@ -667,6 +668,7 @@ public abstract class GLContext {
    * @see #getGLSLVersionNumber() 
    **/
   public final VersionNumber getGLVersionNumber() { return ctxVersion; }
+  public final VersionNumberString getGLVendorVersionNumber() { return ctxVendorVersion; }
   public final boolean isGLCompatibilityProfile() { return ( 0 != ( CTX_PROFILE_COMPAT & ctxOptions ) ); }
   public final boolean isGLCoreProfile()          { return ( 0 != ( CTX_PROFILE_CORE   & ctxOptions ) ); }
   public final boolean isGLForwardCompatible()    { return ( 0 != ( CTX_OPTION_FORWARD & ctxOptions ) ); }

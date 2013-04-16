@@ -82,6 +82,9 @@ public class X11Util implements ToolkitProperties {
      * </p>
      */
     public static final boolean ATI_HAS_XCLOSEDISPLAY_BUG = !Debug.isPropertyDefined("nativewindow.debug.X11Util.ATI_HAS_NO_XCLOSEDISPLAY_BUG", true);
+    
+    /** See {@link #ATI_HAS_XCLOSEDISPLAY_BUG}. */
+    public static final boolean HAS_XCLOSEDISPLAY_BUG = Debug.isPropertyDefined("nativewindow.debug.X11Util.HAS_XCLOSEDISPLAY_BUG", true);
 
     /**
      * See Bug 623 - https://jogamp.org/bugzilla/show_bug.cgi?id=623
@@ -137,14 +140,11 @@ public class X11Util implements ToolkitProperties {
                         hasX11_EXTENSION_ATIFGLRXDRI = false;
                         hasX11_EXTENSION_ATIFGLEXTENSION = false;
                     }
-                    hasThreadingIssues = ATI_HAS_MULTITHREADING_BUG && ( hasX11_EXTENSION_ATIFGLRXDRI || hasX11_EXTENSION_ATIFGLEXTENSION );
-		    // A check on nativewindow.debug.X11Util.HasX11CloseDisplayBug added March 30, 2013
-		    // Martin C. Hegedus
-		    if (!markAllDisplaysUnclosable) {
-			markAllDisplaysUnclosable = ATI_HAS_XCLOSEDISPLAY_BUG && ( hasX11_EXTENSION_ATIFGLRXDRI || hasX11_EXTENSION_ATIFGLEXTENSION );
-			if (Debug.isPropertyDefined("nativewindow.debug.X11Util.HasX11CloseDisplayBug", true))
-			    markAllDisplaysUnclosable = true;
-		    }
+                    final boolean isATIFGLRX = hasX11_EXTENSION_ATIFGLRXDRI || hasX11_EXTENSION_ATIFGLEXTENSION ;
+                    hasThreadingIssues = ATI_HAS_MULTITHREADING_BUG && isATIFGLRX;
+                    if ( !markAllDisplaysUnclosable ) {
+                        markAllDisplaysUnclosable = ( ATI_HAS_XCLOSEDISPLAY_BUG && isATIFGLRX ) || HAS_XCLOSEDISPLAY_BUG;
+                    }
                     
                     if(DEBUG) {
                         System.err.println("X11Util.initSingleton(): OK "+isInitOK+"]"+
@@ -184,10 +184,10 @@ public class X11Util implements ToolkitProperties {
             synchronized(X11Util.class) {
                 if(isInit) {                    
                     final boolean isJVMShuttingDown = NativeWindowFactory.isJVMShuttingDown() ;
-		    // Modified March 30, 2013 so output is not created under "expected" circumstances
-		    // Martin C. Hegedus
-                    if(DEBUG || ((openDisplayMap.size() > 0 || reusableDisplayList.size() > 0 || pendingDisplayList.size() > 0) &&
-				 !(reusableDisplayList.size() == pendingDisplayList.size() && markAllDisplaysUnclosable))) {
+                    if( DEBUG ||
+                        ( ( openDisplayMap.size() > 0 || reusableDisplayList.size() > 0 || pendingDisplayList.size() > 0 ) &&
+                          ( reusableDisplayList.size() != pendingDisplayList.size() || !markAllDisplaysUnclosable )
+                        ) ) {
                         System.err.println("X11Util.Display: Shutdown (JVM shutdown: "+isJVMShuttingDown+
                                            ", open (no close attempt): "+openDisplayMap.size()+"/"+openDisplayList.size()+
                                            ", reusable (open, marked uncloseable): "+reusableDisplayList.size()+
@@ -250,21 +250,22 @@ public class X11Util implements ToolkitProperties {
     public static String getNullDisplayName() {
         return nullDisplayName;
     }
-    
-    // Added March 30, 2013
-    // Martin C. Hegedus
+
     public static void markAllDisplaysUnclosable() {
         synchronized(globalLock) {
-	    markAllDisplaysUnclosable = true;
-	    for(int i=0; i<openDisplayList.size(); i++)
-		openDisplayList.get(i).setUncloseable(true);
-	    for(int i=0; i<reusableDisplayList.size(); i++)
-		reusableDisplayList.get(i).setUncloseable(true);
-	    for(int i=0; i<pendingDisplayList.size(); i++)
-		pendingDisplayList.get(i).setUncloseable(true);
-	}
+            markAllDisplaysUnclosable = true;
+            for(int i=0; i<openDisplayList.size(); i++) {
+                openDisplayList.get(i).setUncloseable(true);
+            }
+            for(int i=0; i<reusableDisplayList.size(); i++) {
+                reusableDisplayList.get(i).setUncloseable(true);
+            }
+            for(int i=0; i<pendingDisplayList.size(); i++) {
+                pendingDisplayList.get(i).setUncloseable(true);
+            }
+        }
     }
-    
+
     public static boolean getMarkAllDisplaysUnclosable() {
         return markAllDisplaysUnclosable;
     }
@@ -349,11 +350,9 @@ public class X11Util implements ToolkitProperties {
                     XCloseDisplay(ndpy.getHandle());
                     num++;
                 }
-		// Added DEBUG statement around print statement, March 30, 2013
-		// Martin C. Hegedus
-		if(DEBUG) {
-		    System.err.println("X11Util.closePendingDisplayConnections(): Closed "+num+" pending display connections");
-		}
+                if(DEBUG) {
+                    System.err.println("X11Util.closePendingDisplayConnections(): Closed "+num+" pending display connections");
+                }
             }
         }
         return num;
@@ -473,10 +472,8 @@ public class X11Util implements ToolkitProperties {
     }
 
     public static void closeDisplay(long handle) {
-        NamedDisplay namedDpy;
-
         synchronized(globalLock) {
-            namedDpy = (NamedDisplay) openDisplayMap.remove(handle);
+            final NamedDisplay namedDpy = (NamedDisplay) openDisplayMap.remove(handle);
             if(null==namedDpy) {
                 X11Util.dumpPendingDisplayConnections();
                 throw new RuntimeException("X11Util.Display: Display(0x"+Long.toHexString(handle)+") with given handle is not mapped. Thread "+Thread.currentThread().getName());
@@ -488,10 +485,12 @@ public class X11Util implements ToolkitProperties {
     
             namedDpy.removeRef();
             if(!openDisplayList.remove(namedDpy)) { throw new RuntimeException("Internal: "+namedDpy); }
-            
-	    // Modified March 30, 2013
-	    // Martin C. Hegedus
-            if(!(markAllDisplaysUnclosable || namedDpy.isUncloseable())) {
+
+            if( markAllDisplaysUnclosable ) {
+                 // if set-mark 'slipped' this one .. just to be safe!
+                namedDpy.setUncloseable(true);
+            }
+            if( !namedDpy.isUncloseable() ) {
                 XCloseDisplay(namedDpy.getHandle());
                 pendingDisplayList.remove(namedDpy);
             } else {
@@ -499,7 +498,7 @@ public class X11Util implements ToolkitProperties {
                 X11Lib.XSync(namedDpy.getHandle(), true); // flush output buffer and discard all events                
                 reusableDisplayList.add(namedDpy);
             }
-            
+
             if(DEBUG) {
                 System.err.println("X11Util.Display: Closed (real: "+(!namedDpy.isUncloseable())+") "+namedDpy+". Thread "+Thread.currentThread().getName());
             }    

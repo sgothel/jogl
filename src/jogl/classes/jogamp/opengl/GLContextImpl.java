@@ -49,6 +49,7 @@ import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
+import com.jogamp.common.util.VersionNumberString;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.gluegen.runtime.FunctionAddressResolver;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
@@ -1023,7 +1024,7 @@ public abstract class GLContextImpl extends GLContext {
    * If major > 0 || minor > 0 : Use passed values, determined at creation time
    * Otherwise .. don't touch ..
    */
-  private final void setContextVersion(int major, int minor, int ctp, boolean setVersionString) {
+  private final void setContextVersion(int major, int minor, int ctp, VersionNumberString glVendorVersion, boolean useGL) {
       if ( 0 == ctp ) {
         throw new GLException("Invalid GL Version "+major+"."+minor+", ctp "+toHexString(ctp));
       }
@@ -1032,9 +1033,10 @@ public abstract class GLContextImpl extends GLContext {
         throw new GLException("Invalid GL Version "+major+"."+minor+", ctp "+toHexString(ctp));
       }
       ctxVersion = new VersionNumber(major, minor, 0);
+      ctxVersionString = getGLVersion(major, minor, ctxOptions, glVersion);
+      ctxVendorVersion = glVendorVersion;
       ctxOptions = ctp;
-      if(setVersionString) {
-          ctxVersionString = getGLVersion(major, minor, ctxOptions, gl.glGetString(GL.GL_VERSION));
+      if(useGL) {
           ctxGLSLVersion = null;
           if(major >= 2) { // >= ES2 || GL2.0
               final String glslVersion = gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION);
@@ -1192,7 +1194,7 @@ public abstract class GLContextImpl extends GLContext {
    */
   private static final VersionNumber getGLVersionNumber(int ctp, String glVersionStr) {
       if( null != glVersionStr ) {
-          final GLVersionNumber version = new GLVersionNumber(glVersionStr);
+          final GLVersionNumber version = GLVersionNumber.create(glVersionStr);
           if ( version.isValid() ) {
               int[] major = new int[] { version.getMajor() };
               int[] minor = new int[] { version.getMinor() };
@@ -1384,7 +1386,9 @@ public abstract class GLContextImpl extends GLContext {
         ctxProfileBits &= ~GLContext.CTX_IMPL_ES2_COMPAT;
     }
     
-    setRendererQuirks(major, minor, ctxProfileBits);
+    final VersionNumberString vendorVersion = GLVersionNumber.createVendorVersion(glVersion);
+    
+    setRendererQuirks(major, minor, ctxProfileBits, vendorVersion);
     
     if( strictMatch && glRendererQuirks.exist(GLRendererQuirks.GLNonCompliant) ) {
         if(DEBUG) {
@@ -1445,7 +1449,7 @@ public abstract class GLContextImpl extends GLContext {
         }
     } else {
         extensionAvailability = new ExtensionAvailabilityCache();
-        setContextVersion(major, minor, ctxProfileBits, false); // pre-set of GL version, required for extension cache usage
+        setContextVersion(major, minor, ctxProfileBits, vendorVersion, false); // pre-set of GL version, required for extension cache usage
         extensionAvailability.reset(this);
         synchronized(mappedContextTypeObjectLock) {
             mappedExtensionAvailabilityCache.put(contextFQN, extensionAvailability);
@@ -1469,7 +1473,7 @@ public abstract class GLContextImpl extends GLContext {
     //
     // Set GL Version (complete w/ version string)
     //
-    setContextVersion(major, minor, ctxProfileBits, true);
+    setContextVersion(major, minor, ctxProfileBits, vendorVersion, true);
     
     setDefaultSwapInterval();
     
@@ -1481,7 +1485,7 @@ public abstract class GLContextImpl extends GLContext {
     return true;
   }
   
-  private final void setRendererQuirks(int major, int minor, int ctp) {
+  private final void setRendererQuirks(int major, int minor, int ctp, VersionNumberString vendorVersion) {
     int[] quirks = new int[GLRendererQuirks.COUNT];
     int i = 0;
     
@@ -1555,6 +1559,7 @@ public abstract class GLContextImpl extends GLContext {
         }
         if( glRendererLowerCase.contains("intel(r)") && compatCtx && ( major>3 || major==3 && minor>=1 ) )
         {
+            // FIXME: Apply vendor version constraints!
             final int quirk = GLRendererQuirks.GLNonCompliant;
             if(DEBUG) {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);
@@ -1562,43 +1567,28 @@ public abstract class GLContextImpl extends GLContext {
             quirks[i++] = quirk;
         }
     }
-    
-    //
-    // Mesa RENDERER related quirks
-    //
     if( glRendererLowerCase.contains("mesa") ) {
-	// Added March 30, 2013
-	// Martin C. Hegedus
-	if ( glRendererLowerCase.contains("x11") && getMesaMajorVersion(glVersion) < 8.0 ) {
-            final int quirk = GLRendererQuirks.DontCloseX11DisplayConnection;
+        if ( glRendererLowerCase.contains("x11") && vendorVersion.compareTo(Version80) < 0 ) {
+            final int quirk = GLRendererQuirks.DontCloseX11Display;
             if(DEBUG) {
-                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Mesa X11 < 8 : Renderer=" + glRenderer + ", Version=" +glVersion);
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer=" + glRenderer + ", Version=[vendor " + vendorVersion + ", GL " + glVersion+"]");
             }
             quirks[i++] = quirk;
-	}
+    	}
+    }
+    if( glRendererLowerCase.contains("ati technologies") || glRendererLowerCase.startsWith("ati ") ) {
+        {
+            final int quirk = GLRendererQuirks.DontCloseX11Display;
+            if(DEBUG) {
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer=" + glRenderer);
+            }
+            quirks[i++] = quirk;
+        }
     }
 
     glRendererQuirks = new GLRendererQuirks(quirks, 0, i);
   }
     
-    // Added by Martin C. Hegedus, March 30, 2013
-    private static final int getMesaMajorVersion(String version) {
-	if (version == null || version.length() <= 0) return -1;
-	String[] strings = version.trim().split("\\s+");
-	if (strings.length <= 0) return -1;
-	version = strings[strings.length-1];
-	int index = version.indexOf(".");
-	if (index ==  0) return -1;
-	if (index != -1) version = version.substring(0,index);
-	try {
-	    Integer iNumber = new Integer(version);
-	    return (iNumber == null) ? -1 : iNumber.intValue();
-	} catch (Throwable t) {
-	    return -1;
-	}
-    }
-  
-  
   private static final boolean hasFBOImpl(int major, int ctp, ExtensionAvailabilityCache extCache) {
     return ( 0 != (ctp & CTX_PROFILE_ES) && major >= 2 ) ||   // ES >= 2.0
             

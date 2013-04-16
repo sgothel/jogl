@@ -32,24 +32,23 @@ import java.util.StringTokenizer;
 
 import javax.media.opengl.GLContext;
 
-import com.jogamp.common.util.VersionNumber;
+import com.jogamp.common.util.VersionNumberString;
 
 /**
  * A class for storing and comparing OpenGL version numbers.
  * This only works for desktop OpenGL at the moment.
  */
-class GLVersionNumber extends VersionNumber {
+class GLVersionNumber extends VersionNumberString {
 
-    protected boolean valid;
+    private final boolean valid;
 
-    public GLVersionNumber(int majorRev, int minorRev, int subMinorRev) {
-        super(majorRev, minorRev, subMinorRev);
-        valid = true;
+    private GLVersionNumber(int[] val, String versionString, boolean valid) {
+        super(val[0], val[1], val[2], versionString);
+        this.valid = valid;
     }
-
-    public GLVersionNumber(String versionString) {
-        super();
-        valid = false;
+    
+    public static GLVersionNumber create(String versionString) {
+        int[] val = new int[] { 0, 0, 0 };
         try {
             if (versionString.startsWith("GL_VERSION_")) {
                 StringTokenizer tok = new StringTokenizer(versionString, "_");
@@ -57,19 +56,19 @@ class GLVersionNumber extends VersionNumber {
                 tok.nextToken(); // VERSION_
                 if (!tok.hasMoreTokens()) {
                     val[0] = 0;
-                    return;
+                } else {
+                    val[0] = Integer.valueOf(tok.nextToken()).intValue();
+                    if (!tok.hasMoreTokens()) {
+                        val[1] = 0;
+                    } else {
+                        val[1] = Integer.valueOf(tok.nextToken()).intValue();
+                        if (!tok.hasMoreTokens()) {
+                            val[2] = 0;
+                        } else {
+                            val[2] = Integer.valueOf(tok.nextToken()).intValue();
+                        }
+                    }
                 }
-                val[0] = Integer.valueOf(tok.nextToken()).intValue();
-                if (!tok.hasMoreTokens()) {
-                    val[1] = 0;
-                    return;
-                }
-                val[1] = Integer.valueOf(tok.nextToken()).intValue();
-                if (!tok.hasMoreTokens()) {
-                    val[2] = 0;
-                    return;
-                }
-                val[2] = Integer.valueOf(tok.nextToken()).intValue();
             } else {
                 int radix = 10;
                 if (versionString.length() > 2) {
@@ -105,7 +104,7 @@ class GLVersionNumber extends VersionNumber {
                     }
                 }
             }
-            valid = true;
+            return new GLVersionNumber(val, versionString, true);
         } catch (Exception e) {
             e.printStackTrace();
             // FIXME: refactor desktop OpenGL dependencies and make this
@@ -118,11 +117,41 @@ class GLVersionNumber extends VersionNumber {
             new IllegalArgumentException(
             "Illegally formatted version identifier: \"" + versionString + "\"")
             .initCause(e);
-             */
+             */            
         }
+        return new GLVersionNumber(val, versionString, false);
     }
 
     public final boolean isValid() {
         return valid;
+    }
+    
+    /** 
+     * Returns the optional vendor version at the end of the 
+     * <code>GL_VERSION</code> string if exists, otherwise <code>null</code>.
+     * <pre>
+     *   2.1 Mesa 7.0.3-rc2 -> 7.0.3 (7.0.3-rc2)
+     *   4.2.12171 Compatibility Profile Context 9.01.8 -> 9.1.8 (9.01.8)
+     *   4.3.0 NVIDIA 310.32 -> 310.32 (310.32)
+     * </pre> 
+     */
+    public static final VersionNumberString createVendorVersion(String versionString) {
+        if (versionString == null || versionString.length() <= 0) {
+            return null;
+        }    
+        final String[] strings = versionString.trim().split("\\s+");
+        if ( strings.length <= 0 ) {
+            return null;
+        }
+        // Test all segments backwards from [len-1..1], skipping the 1st entry (GL version)
+        // If a segment represents a valid VersionNumber - use it.
+        for(int i=strings.length-1; i>=1; i--) {
+            final String s = strings[i];
+            final VersionNumberString version = new VersionNumberString(s, ".");
+            if( !version.isZero() ) {
+                return version;
+            }
+        }
+        return null;
     }
 }

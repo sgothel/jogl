@@ -73,6 +73,7 @@ import jogamp.opengl.SharedResourceRunner;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
+import com.jogamp.opengl.GLRendererQuirks;
 
 public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
@@ -236,6 +237,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 res = GLXUtil.isGLXAvailableOnServer(x11Device);
             } finally {
                 x11Device.unlock();
+                x11Device.close();
             }
             if(DEBUG) {
                 System.err.println("GLX "+(res ? "is" : "not")+" available on device/server: "+x11Device);
@@ -275,6 +277,9 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                     madeCurrent = sharedContext.isCurrent();
                 } finally {
                     sharedContext.release();
+                }
+                if( sharedContext.hasRendererQuirk( GLRendererQuirks.DontCloseX11Display ) ) {
+                    X11Util.markAllDisplaysUnclosable();
                 }
                 if (DEBUG) {
                     System.err.println("SharedDevice:  " + sharedDevice);
