@@ -102,11 +102,6 @@ public class GLRendererQuirks {
      * </ul>
      * </p>
      * <p>
-     * TODO: Validate whether Mesa's X11 driver exposes this bug w/ version >= 8, currently we assume not !
-     * Impact would be to set this quirk on all 'Mesa X11' software renderer!
-     * </p>
-     * 
-     * <p>
      * See Bug 515 - https://jogamp.org/bugzilla/show_bug.cgi?id=515
      * and {@link jogamp.nativewindow.x11.X11Util#ATI_HAS_XCLOSEDISPLAY_BUG}.
      * </p>
