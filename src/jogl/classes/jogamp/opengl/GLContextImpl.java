@@ -61,6 +61,7 @@ import com.jogamp.opengl.GLRendererQuirks;
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL2GL3;
@@ -1567,22 +1568,33 @@ public abstract class GLContextImpl extends GLContext {
             quirks[i++] = quirk;
         }
     }
-    if( glRendererLowerCase.contains("mesa") ) {
-        if ( glRendererLowerCase.contains("x11") && vendorVersion.compareTo(Version80) < 0 ) {
-            final int quirk = GLRendererQuirks.DontCloseX11Display;
-            if(DEBUG) {
-                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer=" + glRenderer + ", Version=[vendor " + vendorVersion + ", GL " + glVersion+"]");
+    
+    //
+    // Quirk: DontCloseX11Display
+    //
+    {
+        final int quirk = GLRendererQuirks.DontCloseX11Display;
+        if( glRendererLowerCase.contains("mesa") ) {
+            if ( glRendererLowerCase.contains("x11") && vendorVersion.compareTo(Version80) < 0 ) {
+                if(DEBUG) {
+                    System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer=" + glRenderer + ", Version=[vendor " + vendorVersion + ", GL " + glVersion+"]");
+                }
+                quirks[i++] = quirk;
+        	}
+        } else if( glRendererLowerCase.contains("ati technologies") || glRendererLowerCase.startsWith("ati ") ) {
+            {
+                if(DEBUG) {
+                    System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer=" + glRenderer);
+                }
+                quirks[i++] = quirk;
             }
-            quirks[i++] = quirk;
-    	}
-    }
-    if( glRendererLowerCase.contains("ati technologies") || glRendererLowerCase.startsWith("ati ") ) {
-        {
-            final int quirk = GLRendererQuirks.DontCloseX11Display;
-            if(DEBUG) {
-                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer=" + glRenderer);
+        } else if( NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
+            if( jogamp.nativewindow.x11.X11Util.getMarkAllDisplaysUnclosable() ) {
+                if(DEBUG) {
+                    System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: X11Util Downstream");
+                }
+                quirks[i++] = quirk;
             }
-            quirks[i++] = quirk;
         }
     }
 
