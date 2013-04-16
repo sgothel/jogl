@@ -579,7 +579,6 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
     int frameFinished;
 
     if(sp_av_read_frame(pAV->pFormatCtx, &packet)>=0) {
-        /**
         if(packet.stream_index==pAV->aid) {
             // Decode audio frame
             if(NULL == pAV->pAFrame) {
@@ -590,7 +589,6 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
             int new_packet = 1;
             int len1;
             int flush_complete = 0;
-            int data_size = 0;
             while (packet.size > 0 || (!packet.data && new_packet)) {
                 new_packet = 0;
                 if (flush_complete) {
@@ -599,7 +597,11 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                 if(HAS_FUNC(sp_avcodec_decode_audio4)) {
                     len1 = sp_avcodec_decode_audio4(pAV->pVCodecCtx, pAV->pAFrame, &frameFinished, &packet);
                 } else {
+                    #if 0
                     len1 = sp_avcodec_decode_audio3(pAV->pVCodecCtx, int16_t *samples, int *frame_size_ptr, &frameFinished, &packet);
+                    #endif
+                    JoglCommon_throwNewRuntimeException(env, "Unimplemented: FFMPEGMediaPlayer sp_avcodec_decode_audio3 fallback");
+                    return 0;
                 }
                 if (len1 < 0) {
                     // if error, we skip the frame 
@@ -616,13 +618,23 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                     }
                     continue;
                 }
-
-                int32_t pts = pAV->pAFrame->pkt_pts * my_av_q2i32(1000, pAV->pAStream->time_base);
-                pAV->aPTS += ( data_size * 1000 ) / (2 * pAV->pVCodecCtx->channels * pAV->pVCodecCtx->sample_rate);
-                printf("A pts %d - %d\n", pts, pAV->aPTS);
+                int32_t pts = (int64_t) ( pAV->pAFrame->pkt_pts * (int64_t) 1000 * (int64_t) pAV->pAStream->time_base.num )
+                              / (int64_t) pAV->pAStream->time_base.den;
+                #if 0
+                printf("channels %d sample_rate %d \n", pAV->aChannels , pAV->aSampleRate);
+                printf("data %d \n", pAV->aFrameSize); 
+                #endif
+                pAV->aPTS += (int64_t) ( pAV->aFrameSize * (int64_t) 1000 )
+                             / (int64_t) (2 * (int64_t) pAV->aChannels * (int64_t) pAV->aSampleRate);
+                if( pAV->verbose ) {
+                    printf("A pts %d - %d\n", pts, pAV->aPTS);
+                }
+                // TODO: Wrap audio buffer data in a com.jogamp.openal.sound3d.Buffer or similar
+                // and hand it over to the user using a suitable API.
+                // TODO: OR send the audio buffer data down to sound card directly using JOAL.
                 res = 1;
             }
-        } else */ if(packet.stream_index==pAV->vid) {
+        } else if(packet.stream_index==pAV->vid) {
             // Decode video frame
             if(NULL == pAV->pVFrame) {
                 sp_av_free_packet(&packet);
