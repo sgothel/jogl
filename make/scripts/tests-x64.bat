@@ -21,7 +21,7 @@ REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGPUMe
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestMapBuffer01NEWT
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext01NEWT %*
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestBug669RecursiveGLContext02NEWT %*
-scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestBug692GL3VAO %*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestBug692GL3VAO %*
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimNEWT %*
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext01VSyncAnimAWT %*
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclusiveContext02FPSAnimNEWT %*
@@ -32,7 +32,8 @@ REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.ect.TestExclu
 REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableDelegateOnOffscrnCapsNEWT $*
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLWindowOnOffscrnCapsNEWT $*
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableGLCanvasOnOffscrnCapsAWT $*
-REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryOffscrnCapsNEWT $*
+scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryGL2OffscrnCapsNEWT $*
+REM scripts\java-win64-dbg.bat com.jogamp.opengl.test.junit.jogl.acore.TestGLAutoDrawableFactoryES2OffscrnCapsNEWT $*
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableFactoryNEWT $*
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableOffThreadSharedContextES2NEWT $*
 REM scripts\java-win64.bat com.jogamp.opengl.test.junit.jogl.acore.TestFBOMix2DemosES2NEWT $*

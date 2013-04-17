@@ -177,7 +177,7 @@ public abstract class UITestCase {
             }
             final String dblb = caps.getDoubleBuffered() ? "dbl" : "one";
             final String F_pfmt = sinkHasAlpha ? "rgba" : "rgb_";
-            final String pfmt = caps.getAlphaBits() > 0 ? "rgba" : "rgb_";
+            final String pfmt = "rgba" + caps.getRedBits() + caps.getGreenBits() + caps.getBlueBits() + caps.getAlphaBits();
             final int depthBits = caps.getDepthBits();
             final int stencilBits = caps.getStencilBits();
             final int samples = caps.getNumSamples() ;
@@ -195,9 +195,9 @@ public abstract class UITestCase {
     /**
      * Takes a snapshot of the drawable's current front framebuffer. Example filenames: 
      * <pre>
-     * TestGLDrawableAutoDelegateOnOffscrnCapsNEWT.testES2OffScreenFBOSglBuf____-n0001-msaa0-GLES2_-sw-fbobject-Bdbl-Frgb__Irgb_-D24-St00-Sa00_default-0400x0300.png
-     * TestGLDrawableAutoDelegateOnOffscrnCapsNEWT.testES2OffScreenPbufferDblBuf-n0003-msaa0-GLES2_-sw-pbuffer_-Bdbl-Frgb__Irgb_-D24-St00-Sa00_default-0200x0150.png
-     * TestGLDrawableAutoDelegateOnOffscrnCapsNEWT.testGL2OffScreenPbufferSglBuf-n0003-msaa0-GL2___-hw-pbuffer_-Bone-Frgb__Irgb_-D24-St00-Sa00_default-0200x0150.png
+     * TestGLDrawableAutoDelegateOnOffscrnCapsNEWT.testES2OffScreenFBOSglBuf____-n0001-msaa0-GLES2_-sw-fbobject-Bdbl-Frgb__Irgba8888_-D24-St00-Sa00_default-0400x0300.png
+     * TestGLDrawableAutoDelegateOnOffscrnCapsNEWT.testES2OffScreenPbufferDblBuf-n0003-msaa0-GLES2_-sw-pbuffer_-Bdbl-Frgb__Irgba8880-D24-St00-Sa00_default-0200x0150.png
+     * TestGLDrawableAutoDelegateOnOffscrnCapsNEWT.testGL2OffScreenPbufferSglBuf-n0003-msaa0-GL2___-hw-pbuffer_-Bone-Frgb__Irgba5551-D24-St00-Sa00_default-0200x0150.png
      * </pre>
      * @param sn sequential number 
      * @param postSNDetail optional detail to be added to the filename after <code>sn</code>

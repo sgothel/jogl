@@ -67,23 +67,20 @@ public class Gears implements GLEventListener {
   public int getGear3() { return gear3; }
 
   public void init(GLAutoDrawable drawable) {
-    System.err.println("Gears: Init: "+drawable);
-    // Use debug pipeline
-    // drawable.setGL(new DebugGL(drawable.getGL()));
-
     GL2 gl = drawable.getGL().getGL2();
 
-    System.err.println("Gears (GL2) init on "+Thread.currentThread());
+    System.err.println("GearsGL2 init on "+Thread.currentThread());
     System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
     System.err.println("INIT GL IS: " + gl.getClass().getName());
     System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
     System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
     System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
-    System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none"));
+    System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none")+", "+gl.getContext().getGLSLVersionNumber());
     System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
     System.err.println("GL Profile: "+gl.getGLProfile());
+    System.err.println("GL Renderer Quirks:" + gl.getContext().getRendererQuirks().toString());
     System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
-
+    
     float pos[] = { 5.0f, 5.0f, 10.0f, 0.0f };
     float red[] = { 0.8f, 0.1f, 0.0f, 0.7f };
     float green[] = { 0.0f, 0.8f, 0.2f, 0.7f };

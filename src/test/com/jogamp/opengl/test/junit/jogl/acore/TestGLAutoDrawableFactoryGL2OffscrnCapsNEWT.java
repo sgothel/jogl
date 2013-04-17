@@ -45,7 +45,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.jogamp.opengl.JoglVersion;
-import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -57,7 +56,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * The created {@link GLOffscreenAutoDrawable} is being used to run the {@link GLEventListener}.  
  * </p> 
  */
-public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
+public class TestGLAutoDrawableFactoryGL2OffscrnCapsNEWT extends UITestCase {
     static final int widthStep = 800/4;
     static final int heightStep = 600/4;
     volatile int szStep = 2;
@@ -90,9 +89,9 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
         final CapabilitiesImmutable chosenCaps = glad.getChosenGLCapabilities();
         System.out.println("Drawable Caps Pre_GL : "+chosenCaps);
         Assert.assertNotNull(chosenCaps);
-        Assert.assertTrue(chosenCaps.getGreenBits()>5);
-        Assert.assertTrue(chosenCaps.getBlueBits()>5);
-        Assert.assertTrue(chosenCaps.getRedBits()>5);
+        Assert.assertTrue(chosenCaps.getGreenBits()>4);
+        Assert.assertTrue(chosenCaps.getBlueBits()>4);
+        Assert.assertTrue(chosenCaps.getRedBits()>4);
         
         glad.display(); // force native context creation
 
@@ -103,9 +102,9 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
         System.out.println("Chosen     GL Caps(2): "+glad.getNativeSurface().getGraphicsConfiguration().getChosenCapabilities());
 
         Assert.assertNotNull(chosenGLCaps);
-        Assert.assertTrue(chosenGLCaps.getGreenBits()>5);
-        Assert.assertTrue(chosenGLCaps.getBlueBits()>5);
-        Assert.assertTrue(chosenGLCaps.getRedBits()>5);
+        Assert.assertTrue(chosenGLCaps.getGreenBits()>4);
+        Assert.assertTrue(chosenGLCaps.getBlueBits()>4);
+        Assert.assertTrue(chosenGLCaps.getRedBits()>4);
         Assert.assertTrue(chosenGLCaps.getDepthBits()>4);
         Assert.assertEquals(expGLCaps.isOnscreen(), chosenGLCaps.isOnscreen());
         Assert.assertEquals(expGLCaps.isFBO(), chosenGLCaps.isFBO());
@@ -169,7 +168,7 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
         if(null == reqGLCaps) return;
         reqGLCaps.setOnscreen(false);
-        doTest(reqGLCaps, new GearsES2(1));
+        doTest(reqGLCaps, new Gears(1));
     }
 
     @Test
@@ -178,7 +177,7 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
         if(null == reqGLCaps) return;
         reqGLCaps.setOnscreen(false);
         reqGLCaps.setFBO(true);
-        doTest(reqGLCaps, new GearsES2(1));
+        doTest(reqGLCaps, new Gears(1));
     }
     
     @Test
@@ -188,7 +187,7 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
         reqGLCaps.setOnscreen(false);
         reqGLCaps.setFBO(true);
         reqGLCaps.setDoubleBuffered(false);
-        doTest(reqGLCaps, new GearsES2(1));
+        doTest(reqGLCaps, new Gears(1));
     }    
     
     @Test
@@ -198,7 +197,7 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
         reqGLCaps.setOnscreen(false);
         reqGLCaps.setFBO(true);
         reqGLCaps.setStencilBits(1);
-        doTest(reqGLCaps, new GearsES2(1));
+        doTest(reqGLCaps, new Gears(1));
     }
     
     @Test
@@ -209,7 +208,7 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
         reqGLCaps.setFBO(true);
         reqGLCaps.setSampleBuffers(true);
         reqGLCaps.setNumSamples(4);
-        doTest(reqGLCaps, new GearsES2(1));
+        doTest(reqGLCaps, new Gears(1));
     }    
         
     @Test
@@ -221,7 +220,7 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
         reqGLCaps.setStencilBits(1);
         reqGLCaps.setSampleBuffers(true);
         reqGLCaps.setNumSamples(4);
-        doTest(reqGLCaps, new GearsES2(1));
+        doTest(reqGLCaps, new Gears(1));
     }    
         
     @Test
@@ -230,7 +229,7 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
         if(null == reqGLCaps) return;
         reqGLCaps.setOnscreen(false);
         reqGLCaps.setPBuffer(true);
-        doTest(reqGLCaps, new GearsES2(1));
+        doTest(reqGLCaps, new Gears(1));
     }    
     
     @Test
@@ -240,7 +239,93 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
         reqGLCaps.setOnscreen(false);
         reqGLCaps.setPBuffer(true);
         reqGLCaps.setDoubleBuffered(false);
-        doTest(reqGLCaps, new GearsES2(1));
+        doTest(reqGLCaps, new Gears(1));
+    }
+    
+    // Might be reduced to !stencil 
+    @Test
+    public void testGL2OffScreenPbufferDblBufStencil() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setOnscreen(false);
+        reqGLCaps.setPBuffer(true);
+        reqGLCaps.setStencilBits(1);
+        doTest(reqGLCaps, new Gears(1));
+    }
+    
+    // Might be reduced to !MSAA
+    @Test
+    public void testGL2OffScreenPbufferDblBufMSAA() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setOnscreen(false);
+        reqGLCaps.setPBuffer(true);
+        reqGLCaps.setSampleBuffers(true);
+        reqGLCaps.setNumSamples(4);
+        doTest(reqGLCaps, new Gears(1));
+    }    
+        
+    // Might be reduced to !stencil && !MSAA
+    @Test
+    public void testGL2OffScreenPbufferDblBufStencilMSAA() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setOnscreen(false);
+        reqGLCaps.setPBuffer(true);
+        reqGLCaps.setStencilBits(1);
+        reqGLCaps.setSampleBuffers(true);
+        reqGLCaps.setNumSamples(4);
+        doTest(reqGLCaps, new Gears(1));
+    }    
+    
+        
+    // Might be reduced to !double-buff
+    @Test
+    public void testGL2OffScreenBitmapDblBuf() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setOnscreen(false);
+        reqGLCaps.setBitmap(true);
+        doTest(reqGLCaps, new Gears(1));
+    }
+    
+    @Test
+    public void testGL2OffScreenBitmapDblBufRGBA8881() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setRedBits(8);
+        reqGLCaps.setGreenBits(8);
+        reqGLCaps.setBlueBits(8);
+        reqGLCaps.setAlphaBits(1);
+        reqGLCaps.setOnscreen(false);
+        reqGLCaps.setBitmap(true);
+        doTest(reqGLCaps, new Gears(1));
+    }
+    
+    @Test
+    public void testGL2OffScreenBitmapDblBufRGB555() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setRedBits(5);
+        reqGLCaps.setGreenBits(5);
+        reqGLCaps.setBlueBits(5);
+        reqGLCaps.setAlphaBits(0);
+        reqGLCaps.setOnscreen(false);
+        reqGLCaps.setBitmap(true);
+        doTest(reqGLCaps, new Gears(1));
+    }
+    
+    @Test
+    public void testGL2OffScreenBitmapDblBufRGBA5551() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setRedBits(5);
+        reqGLCaps.setGreenBits(5);
+        reqGLCaps.setBlueBits(5);
+        reqGLCaps.setAlphaBits(1);
+        reqGLCaps.setOnscreen(false);
+        reqGLCaps.setBitmap(true);
+        doTest(reqGLCaps, new Gears(1));
     }
     
     @Test
@@ -253,99 +338,44 @@ public class TestGLAutoDrawableFactoryOffscrnCapsNEWT extends UITestCase {
         doTest(reqGLCaps, new Gears(1));
     }
     
+    // Might be reduced to !stencil
     @Test
-    public void testES2OffScreenAutoDblBuf() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
+    public void testGL2OffScreenBitmapDblBufStencil() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
         if(null == reqGLCaps) return;
-        reqGLCaps.setOnscreen(false);
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-
-    @Test
-    public void testES2OffScreenFBOSglBuf() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
-        if(null == reqGLCaps) return;
-        reqGLCaps.setOnscreen(false);
-        reqGLCaps.setFBO(true);
-        reqGLCaps.setDoubleBuffered(false);
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-    
-    @Test
-    public void testES2OffScreenFBODblBuf() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
-        if(null == reqGLCaps) return;
-        reqGLCaps.setOnscreen(false);
-        reqGLCaps.setFBO(true);
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-    
-    @Test
-    public void testES2OffScreenFBODblBufStencil() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
-        if(null == reqGLCaps) return;
-        reqGLCaps.setOnscreen(false);
-        reqGLCaps.setFBO(true);
-        reqGLCaps.setStencilBits(1);
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-    
-    @Test
-    public void testES2OffScreenFBODblBufMSAA() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
-        if(null == reqGLCaps) return;
-        reqGLCaps.setOnscreen(false);
-        reqGLCaps.setFBO(true);
-        reqGLCaps.setSampleBuffers(true);
-        reqGLCaps.setNumSamples(4);
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-    
-    @Test
-    public void testES2OffScreenFBODblBufStencilMSAA() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
-        if(null == reqGLCaps) return;
-        reqGLCaps.setOnscreen(false);
-        reqGLCaps.setFBO(true);
-        reqGLCaps.setStencilBits(1);
-        reqGLCaps.setSampleBuffers(true);
-        reqGLCaps.setNumSamples(4);
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-    
-    @Test
-    public void testES2OffScreenPbufferDblBuf() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
-        if(null == reqGLCaps) return;
-        reqGLCaps.setOnscreen(false);
-        reqGLCaps.setPBuffer(true);
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-    
-    @Test
-    public void testES2OffScreenPbufferSglBuf() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
-        if(null == reqGLCaps) return;
-        reqGLCaps.setOnscreen(false);
-        reqGLCaps.setPBuffer(true);
-        reqGLCaps.setDoubleBuffered(false);
-        doTest(reqGLCaps, new GearsES2(1));
-    }
-    
-    /** Not implemented !
-    @Test
-    public void testES2OffScreenBitmapDblBuf() throws InterruptedException {
-        if(!checkProfile(GLProfile.GLES2)) {
-            return;
-        }
-        final GLCapabilities reqGLCaps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));        
         reqGLCaps.setOnscreen(false);
         reqGLCaps.setBitmap(true);
-        doTest(reqGLCaps, new GearsES2(1));
-    } */
-    
+        reqGLCaps.setStencilBits(1);
+        doTest(reqGLCaps, new Gears(1));
+    }
+        
+    // Might be reduced to !MSAA
+    @Test
+    public void testGL2OffScreenBitmapDblBufMSAA() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setOnscreen(false);
+        reqGLCaps.setBitmap(true);
+        reqGLCaps.setSampleBuffers(true);
+        reqGLCaps.setNumSamples(4);
+        doTest(reqGLCaps, new Gears(1));
+    }    
+        
+    // Might be reduced to !stencil && !MSAA
+    @Test
+    public void testGL2OffScreenBitmapDblBufStencilMSAA() throws InterruptedException {
+        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2);
+        if(null == reqGLCaps) return;
+        reqGLCaps.setOnscreen(false);
+        reqGLCaps.setBitmap(true);
+        reqGLCaps.setStencilBits(1);
+        reqGLCaps.setSampleBuffers(true);
+        reqGLCaps.setNumSamples(4);
+        doTest(reqGLCaps, new Gears(1));
+    }   
+        
     public static void main(String args[]) throws IOException {
-        org.junit.runner.JUnitCore.main(TestGLAutoDrawableFactoryOffscrnCapsNEWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGLAutoDrawableFactoryGL2OffscrnCapsNEWT.class.getName());
     }
 
 }

@@ -30,11 +30,18 @@ package com.jogamp.opengl.test.junit.jogl.demos.gl2.awt;
 
 import javax.media.opengl.*;
 
+import com.jogamp.newt.event.TraceKeyAdapter;
+import com.jogamp.newt.event.TraceWindowAdapter;
+import com.jogamp.newt.event.awt.AWTKeyAdapter;
+import com.jogamp.newt.event.awt.AWTWindowAdapter;
 import com.jogamp.opengl.util.FPSAnimator;
 import javax.media.opengl.awt.GLJPanel;
 
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+
 import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -50,6 +57,12 @@ import org.junit.Test;
 public class TestGearsGLJPanelAWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
+    static boolean shallUsePBuffer = false;
+    static boolean shallUseBitmap = false;
+    static boolean useMSAA = false;
+    static int swapInterval = 1;
+    static boolean useAnimator = true;
+    static boolean manualTest = false;
 
     @BeforeClass
     public static void initClass() {
@@ -80,8 +93,10 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         glJPanel.setPreferredSize(glc_sz);
         glJPanel.setSize(glc_sz);
         glJPanel.addGLEventListener(new Gears());
+        final SnapshotGLEventListener snap = new SnapshotGLEventListener();
+        glJPanel.addGLEventListener(snap);
 
-        FPSAnimator animator = new FPSAnimator(glJPanel, 60);
+        final FPSAnimator animator = useAnimator ? new FPSAnimator(glJPanel, 60) : null;
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -91,20 +106,34 @@ public class TestGearsGLJPanelAWT extends UITestCase {
                     frame.setVisible(true);
                 } } ) ;
 
-        animator.setUpdateFPSFrames(1, null);        
-        animator.start();
-        Assert.assertEquals(true, animator.isAnimating());
+        if( useAnimator ) {
+            animator.setUpdateFPSFrames(1, null);        
+            animator.start();
+            Assert.assertEquals(true, animator.isAnimating());
+        }
 
-        while(animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
+        QuitAdapter quitAdapter = new QuitAdapter();
+
+        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glJPanel);
+        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
+        
+        snap.setMakeSnapshot();
+        
+        final long t0 = System.currentTimeMillis();
+        long t1 = t0;
+        while(!quitAdapter.shouldQuit() && t1 - t0 < duration) {
             Thread.sleep(100);
+            t1 = System.currentTimeMillis();
         }
 
         Assert.assertNotNull(frame);
         Assert.assertNotNull(glJPanel);
         Assert.assertNotNull(animator);
 
-        animator.stop();
-        Assert.assertEquals(false, animator.isAnimating());
+        if( useAnimator ) {
+            animator.stop();
+            Assert.assertEquals(false, animator.isAnimating());
+        }
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     frame.setVisible(false);
@@ -116,24 +145,89 @@ public class TestGearsGLJPanelAWT extends UITestCase {
     }
 
     @Test
-    public void test01()
+    public void test01_default()
             throws AWTException, InterruptedException, InvocationTargetException
     {
         GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        if(useMSAA) {
+            caps.setNumSamples(4);
+            caps.setSampleBuffers(true);
+        }
+        if(shallUsePBuffer) {
+            caps.setPBuffer(true);
+        }
+        if(shallUseBitmap) {
+            caps.setBitmap(true);
+        }
         runTestGL(caps);
     }
 
+    @Test
+    public void test02_msaa()
+            throws AWTException, InterruptedException, InvocationTargetException
+    {
+        if( manualTest ) {
+            return;
+        }
+        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        caps.setNumSamples(4);
+        caps.setSampleBuffers(true);
+        runTestGL(caps);
+    }
+    
+    @Test
+    public void test03_pbuffer()
+            throws AWTException, InterruptedException, InvocationTargetException
+    {
+        if( manualTest ) {
+            return;
+        }
+        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        caps.setPBuffer(true);
+        runTestGL(caps);
+    }
+    
+    @Test
+    public void test04_bitmap()
+            throws AWTException, InterruptedException, InvocationTargetException
+    {
+        if( manualTest ) {
+            return;
+        }
+        GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
+        caps.setBitmap(true);
+        runTestGL(caps);
+    }
+    
     static long duration = 500; // ms
 
     public static void main(String args[]) {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
-                try {
-                    duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                duration = MiscUtils.atol(args[i], duration);
+            } else if(args[i].equals("-vsync")) {
+                i++;
+                swapInterval = MiscUtils.atoi(args[i], swapInterval);
+            } else if(args[i].equals("-msaa")) {
+                useMSAA = true;
+            } else if(args[i].equals("-noanim")) {
+                useAnimator  = false;
+            } else if(args[i].equals("-pbuffer")) {
+                shallUsePBuffer = true;
+            } else if(args[i].equals("-bitmap")) {
+                shallUseBitmap = true;
+            } else if(args[i].equals("-manual")) {
+                manualTest = true;
             }
         }
+        System.err.println("swapInterval "+swapInterval);
+        System.err.println("useMSAA "+useMSAA);
+        System.err.println("useAnimator "+useAnimator);
+        System.err.println("shallUsePBuffer "+shallUsePBuffer);
+        System.err.println("shallUseBitmap "+shallUseBitmap);
+        System.err.println("manualTest "+manualTest);
+        
         org.junit.runner.JUnitCore.main(TestGearsGLJPanelAWT.class.getName());
     }
 }

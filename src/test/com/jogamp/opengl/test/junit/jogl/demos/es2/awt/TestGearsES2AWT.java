@@ -199,6 +199,8 @@ public class TestGearsES2AWT extends UITestCase {
         frame.setTitle("Gears AWT Test (translucent "+!caps.isBackgroundOpaque()+"), swapInterval "+swapInterval);
 
         glCanvas.addGLEventListener(new GearsES2(swapInterval));
+        final SnapshotGLEventListener snap = new SnapshotGLEventListener();
+        glCanvas.addGLEventListener(snap);
 
         final Animator animator = useAnimator ? new Animator(glCanvas) : null;
         if( useAnimator && exclusiveContext ) {
@@ -230,12 +232,16 @@ public class TestGearsES2AWT extends UITestCase {
         }
         
         System.err.println("canvas pos/siz: "+glCanvas.getX()+"/"+glCanvas.getY()+" "+glCanvas.getWidth()+"x"+glCanvas.getHeight());
+
+        snap.setMakeSnapshot();
         
         if( null != rwsize ) {
             Thread.sleep(500); // 500ms delay 
             setSize(resizeBy, frame, true, glCanvas, rwsize);
             System.err.println("window resize pos/siz: "+glCanvas.getX()+"/"+glCanvas.getY()+" "+glCanvas.getWidth()+"x"+glCanvas.getHeight());
         }
+        
+        snap.setMakeSnapshot();
         
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
@@ -309,9 +315,7 @@ public class TestGearsES2AWT extends UITestCase {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
-                try {
-                    duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                duration = MiscUtils.atol(args[i], duration);
             } else if(args[i].equals("-rwidth")) {
                 i++;
                 rw = MiscUtils.atoi(args[i], rw);
@@ -367,6 +371,7 @@ public class TestGearsES2AWT extends UITestCase {
         System.err.println("forceGL3 "+forceGL3);
         System.err.println("swapInterval "+swapInterval);
         System.err.println("exclusiveContext "+exclusiveContext);
+        System.err.println("useMSAA "+useMSAA);
         System.err.println("useAnimator "+useAnimator);
         
         System.err.println("shallUseOffscreenFBOLayer     "+shallUseOffscreenFBOLayer);

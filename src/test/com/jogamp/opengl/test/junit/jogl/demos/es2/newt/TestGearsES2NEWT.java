@@ -122,6 +122,8 @@ public class TestGearsES2NEWT extends UITestCase {
         final GearsES2 demo = new GearsES2(swapInterval);
         demo.setPMVUseBackingArray(pmvUseBackingArray);
         glWindow.addGLEventListener(demo);
+        final SnapshotGLEventListener snap = new SnapshotGLEventListener();
+        glWindow.addGLEventListener(snap);
         if(waitForKey) {
             glWindow.addGLEventListener(new GLEventListener() {
                 public void init(GLAutoDrawable drawable) { }
@@ -266,11 +268,15 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
         System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
         
+        snap.setMakeSnapshot();
+
         if( null != rwsize ) {
             Thread.sleep(500); // 500ms delay 
             glWindow.setSize(rwsize.getWidth(), rwsize.getHeight());
             System.err.println("window resize pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
         }
+        
+        snap.setMakeSnapshot();
         
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
