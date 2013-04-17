@@ -764,7 +764,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public String toString() {
-    return "AWT-GLJPanel[ "+((null!=backend)?backend.getDrawable().getClass().getName():"null-drawable")+"]";
+    final GLDrawable d = ( null != backend ) ? backend.getDrawable() : null;
+    return "AWT-GLJPanel[ drawableType "+ ( ( null != d ) ? d.getClass().getName() : "null" ) +
+           ", chosenCaps " + getChosenGLCapabilities() +
+           "]";
   }
 
   private final Runnable disposeAction = new Runnable() {
