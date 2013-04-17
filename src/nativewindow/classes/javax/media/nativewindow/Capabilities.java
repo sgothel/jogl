@@ -388,18 +388,23 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     return sink;
   }
   
+  /** Element separator */
+  protected static final String ESEP = "/";
+  /** Component separator */
+  protected static final String CSEP = ", ";
+  
   protected StringBuilder toString(StringBuilder sink, boolean withOnOffScreen) {  
     if(null == sink) {
         sink = new StringBuilder();
     }
-    sink.append("rgba 0x").append(toHexString(redBits)).append("/").append(toHexString(greenBits)).append("/").append(toHexString(blueBits)).append("/").append(toHexString(alphaBits));
+    sink.append("rgba ").append(redBits).append(ESEP).append(greenBits).append(ESEP).append(blueBits).append(ESEP).append(alphaBits);
     if(backgroundOpaque) {
         sink.append(", opaque");
     } else {
-        sink.append(", trans-rgba 0x").append(toHexString(transparentValueRed)).append("/").append(toHexString(transparentValueGreen)).append("/").append(toHexString(transparentValueBlue)).append("/").append(toHexString(transparentValueAlpha));
+        sink.append(", trans-rgba 0x").append(toHexString(transparentValueRed)).append(ESEP).append(toHexString(transparentValueGreen)).append(ESEP).append(toHexString(transparentValueBlue)).append(ESEP).append(toHexString(transparentValueAlpha));
     }
     if(withOnOffScreen) {
-        sink.append(", ");
+        sink.append(CSEP);
         onoffScreenToString(sink);
     }
     return sink;

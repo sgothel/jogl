@@ -32,7 +32,9 @@ import java.nio.IntBuffer;
 
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
+import jogamp.opengl.GLGraphicsConfigurationUtil;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
@@ -65,16 +67,53 @@ public class WGLGLCapabilities extends GLCapabilities {
       setAccumAlphaBits(pfd.getCAccumAlphaBits());
       setDepthBits(pfd.getCDepthBits());
       setStencilBits(pfd.getCStencilBits());
-      setDoubleBuffered((pfd.getDwFlags() & GDI.PFD_DOUBLEBUFFER) != 0);
-      setStereo((pfd.getDwFlags() & GDI.PFD_STEREO) != 0);
-      setHardwareAccelerated((pfd.getDwFlags() & GDI.PFD_GENERIC_FORMAT) == 0
-                          || (pfd.getDwFlags() & GDI.PFD_GENERIC_ACCELERATED) != 0);
+      final int dwFlags = pfd.getDwFlags();
+      setDoubleBuffered((dwFlags & GDI.PFD_DOUBLEBUFFER) != 0);
+      setStereo((dwFlags & GDI.PFD_STEREO) != 0);
+      setHardwareAccelerated((dwFlags & GDI.PFD_GENERIC_FORMAT) == 0
+                          || (dwFlags & GDI.PFD_GENERIC_ACCELERATED) != 0);
       // n/a with non ARB/GDI method:
       //       multisample
       //       opaque
       //       pbuffer
 
       return true;
+  }
+    
+  public static final String PFD2String(PIXELFORMATDESCRIPTOR pfd, int pfdID) {
+      final int dwFlags = pfd.getDwFlags();
+      StringBuffer sb = new StringBuffer();
+      boolean sep = false;
+      
+      if( 0 != (GDI.PFD_DRAW_TO_WINDOW & dwFlags ) ) {
+          sep = true;
+          sb.append("window");
+      }
+      if( 0 != (GDI.PFD_DRAW_TO_BITMAP & dwFlags ) ) {
+          if(sep) { sb.append(CSEP); } sep=true;
+          sb.append("bitmap");
+      }
+      if( 0 != (GDI.PFD_SUPPORT_OPENGL & dwFlags ) ) {
+          if(sep) { sb.append(CSEP); } sep=true;
+          sb.append("opengl");
+      }
+      if( 0 != (GDI.PFD_DOUBLEBUFFER & dwFlags ) ) {
+          if(sep) { sb.append(CSEP); } sep=true;
+          sb.append("dblbuf");
+      }
+      if( 0 != (GDI.PFD_STEREO & dwFlags ) ) {
+          if(sep) { sb.append(CSEP); } sep=true;
+          sb.append("stereo");
+      }
+      if( 0 == (GDI.PFD_GENERIC_FORMAT & dwFlags ) || 0 == (GDI.PFD_GENERIC_ACCELERATED & dwFlags ) ) {
+          if(sep) { sb.append(CSEP); } sep=true;
+          sb.append("hw-accel");
+      }        
+      return "PFD[id = "+pfdID+" (0x"+Integer.toHexString(pfdID)+
+              "), colorBits "+pfd.getCColorBits()+", rgba "+pfd.getCRedBits()+ESEP+pfd.getCGreenBits()+ESEP+pfd.getCBlueBits()+ESEP+pfd.getCAlphaBits()+
+              ", accum-rgba "+pfd.getCAccumRedBits()+ESEP+pfd.getCAccumGreenBits()+ESEP+pfd.getCAccumBlueBits()+ESEP+pfd.getCAccumAlphaBits()+
+              ", dp/st/ms: "+pfd.getCDepthBits()+ESEP+pfd.getCStencilBits()+ESEP+"0"+
+              ", flags: "+sb.toString();
   }
 
   public boolean setValuesByARB(final IntBuffer iattribs, final int niattribs, final IntBuffer iresults) {

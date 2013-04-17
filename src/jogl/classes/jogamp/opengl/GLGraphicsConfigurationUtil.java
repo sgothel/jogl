@@ -101,17 +101,16 @@ public class GLGraphicsConfigurationUtil {
      * @return bitmask representing the input boolean in exclusive or logic, ie only one bit will be set.
      */
     public static final int getExclusiveWinAttributeBits(boolean isOnscreen, boolean isFBO, boolean isPBuffer, boolean isBitmap) {
-        int winattrbits = 0;
+        final int winattrbits;
         if(isOnscreen) {
-            winattrbits |= WINDOW_BIT;
+            winattrbits = WINDOW_BIT;
         } else if(isFBO) {
-            winattrbits |= FBO_BIT;
+            winattrbits = FBO_BIT;
         } else if(isPBuffer ){
-            winattrbits |= PBUFFER_BIT;
+            winattrbits = PBUFFER_BIT;
         } else if(isBitmap) {
-            winattrbits |= BITMAP_BIT;                
-        }
-        if(0 == winattrbits) {
+            winattrbits = BITMAP_BIT;                
+        } else {
             throw new InternalError("Empty bitmask");
         }
         return winattrbits;
@@ -286,5 +285,36 @@ public class GLGraphicsConfigurationUtil {
             return caps2;
         }
         return capsRequested;
+    }
+    
+    public static GLCapabilitiesImmutable clipRGBAGLCapabilities(GLCapabilitiesImmutable caps, boolean allowRGB555)
+    {
+        final int iR = caps.getRedBits();
+        final int iG = caps.getGreenBits();
+        final int iB = caps.getBlueBits();
+        final int iA = caps.getAlphaBits();
+        final int oR = clipColor(iR, allowRGB555);
+        final int oG = clipColor(iG, allowRGB555);
+        final int oB = clipColor(iB, allowRGB555);
+        final int oA = 0 < iA ? oR : 0 ; // align alpha to red if requested 
+        if( iR != oR || iG != oG || iB != oB || iA != oA ) {
+            final GLCapabilities caps2 = (GLCapabilities) caps.cloneMutable();
+            caps2.setRedBits(oR);
+            caps2.setGreenBits(oG);
+            caps2.setBlueBits(oB);
+            caps2.setAlphaBits(oA);
+            return caps2;            
+        }
+        return caps;
+    }
+    
+    public static int clipColor(final int compIn, final boolean allowRGB555) {
+        final int compOut;
+        if( 5 < compIn || !allowRGB555 ) {
+            compOut = 8; 
+        } else {
+            compOut = 5;
+        }        
+        return compOut;
     }
 }

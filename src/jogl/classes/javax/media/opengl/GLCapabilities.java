@@ -493,8 +493,8 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
 
     super.toString(sink, false);
 
-    sink.append(", accum-rgba ").append(accumRedBits).append("/").append(accumGreenBits).append("/").append(accumBlueBits).append("/").append(accumAlphaBits);
-    sink.append(", dp/st/ms: ").append(depthBits).append("/").append(stencilBits).append("/").append(samples);
+    sink.append(", accum-rgba ").append(accumRedBits).append(ESEP).append(accumGreenBits).append(ESEP).append(accumBlueBits).append(ESEP).append(accumAlphaBits);
+    sink.append(", dp/st/ms ").append(depthBits).append(ESEP).append(stencilBits).append(ESEP).append(samples);
     if(samples>0) {
         sink.append(", sample-ext ").append(sampleExtension);
     }
@@ -525,7 +525,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
         ns = true;
     }
     if(isPBuffer()) {
-        if(ns) { sink.append(", "); }
+        if(ns) { sink.append(CSEP); }
         sink.append("pbuffer [r2t ").append(pbufferRenderToTexture?1:0)
             .append(", r2tr ").append(pbufferRenderToTextureRectangle?1:0)
             .append(", float ").append(pbufferFloatingPointBuffers?1:0)
@@ -533,7 +533,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
         ns = true;
     }
     if(isBitmap()) {
-        if(ns) { sink.append(", "); }
+        if(ns) { sink.append(CSEP); }
         sink.append("bitmap");
         ns = true;
     }
