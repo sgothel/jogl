@@ -139,8 +139,12 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             if (sharedResource.hasARBPixelFormat()) {
                 availableCaps = WindowsWGLGraphicsConfigurationFactory.getAvailableGLCapabilitiesARB(sharedResource, sharedResource.getDevice(), glp, hdc);
             }
-            if( null == availableCaps || availableCaps.isEmpty() ) {
-                availableCaps = getAvailableGLCapabilitiesGDI(device, glp, hdc);
+            final boolean hasARBCaps = null != availableCaps && !availableCaps.isEmpty() ;
+            final List<GLCapabilitiesImmutable> availableCapsGDI = getAvailableGLCapabilitiesGDI(device, glp, hdc, hasARBCaps);
+            if( !hasARBCaps ) {
+                availableCaps = availableCapsGDI;
+            } else {
+                availableCaps.addAll(availableCapsGDI);
             }
         } finally {
             if ( sharedResource.needsCurrentContext4ARBPFDQueries() ) {
@@ -156,18 +160,20 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
         return availableCaps;
     }
 
-    static List<GLCapabilitiesImmutable> getAvailableGLCapabilitiesARB(WindowsWGLDrawableFactory.SharedResource sharedResource, AbstractGraphicsDevice device, GLProfile glProfile, long hdc) {
+    private static List<GLCapabilitiesImmutable> getAvailableGLCapabilitiesARB(WindowsWGLDrawableFactory.SharedResource sharedResource, AbstractGraphicsDevice device, GLProfile glProfile, long hdc) {
         final int pfdIDCount = WindowsWGLGraphicsConfiguration.wglARBPFDIDCount((WindowsWGLContext)sharedResource.getContext(), hdc);
         final int[] pformats = WindowsWGLGraphicsConfiguration.wglAllARBPFDIDs(pfdIDCount);
-        return WindowsWGLGraphicsConfiguration.wglARBPFIDs2GLCapabilities(sharedResource, device, glProfile, hdc, pformats, GLGraphicsConfigurationUtil.ALL_BITS);
+        return WindowsWGLGraphicsConfiguration.wglARBPFIDs2GLCapabilities(sharedResource, device, glProfile, hdc, pformats, 
+                GLGraphicsConfigurationUtil.ALL_BITS & ~GLGraphicsConfigurationUtil.BITMAP_BIT); // w/o BITMAP
     }
 
-    static List<GLCapabilitiesImmutable> getAvailableGLCapabilitiesGDI(AbstractGraphicsDevice device, GLProfile glProfile, long hdc) {
+    private static List<GLCapabilitiesImmutable> getAvailableGLCapabilitiesGDI(AbstractGraphicsDevice device, GLProfile glProfile, long hdc, boolean bitmapOnly) {
         int[] pformats = WindowsWGLGraphicsConfiguration.wglAllGDIPFIDs(hdc);
         int numFormats = pformats.length;
         List<GLCapabilitiesImmutable> bucket = new ArrayList<GLCapabilitiesImmutable>(numFormats);
         for (int i = 0; i < numFormats; i++) {
-            final GLCapabilitiesImmutable caps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(device, glProfile, hdc, pformats[i], GLGraphicsConfigurationUtil.ALL_BITS);
+            final GLCapabilitiesImmutable caps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(device, glProfile, hdc, pformats[i], 
+                 bitmapOnly ? GLGraphicsConfigurationUtil.BITMAP_BIT : GLGraphicsConfigurationUtil.ALL_BITS );
             if(null != caps) {
                 bucket.add(caps);
             }
@@ -484,7 +490,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
 
             List<GLCapabilitiesImmutable> availableCaps = new ArrayList<GLCapabilitiesImmutable>();
             for (int i = 0; i < pformats.length; i++) {
-                final GLCapabilitiesImmutable caps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(device, glProfile, hdc, pformats[i], winattrmask);
+                final WGLGLCapabilities caps = WindowsWGLGraphicsConfiguration.PFD2GLCapabilities(device, glProfile, hdc, pformats[i], winattrmask);
                 if(null != caps) {
                     availableCaps.add(caps);
                     if(DEBUG) {
@@ -528,7 +534,8 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             }
             pixelFormatCaps = (WGLGLCapabilities) availableCaps.get(chosenIndex);
             if (DEBUG) {
-                System.err.println("chosen pfdID (GDI): chosenIndex "+ chosenIndex + ", caps " + pixelFormatCaps);
+                System.err.println("chosen pfdID (GDI): chosenIndex "+ chosenIndex + ", caps " + pixelFormatCaps + 
+                                   " (" + WGLGLCapabilities.PFD2String(pixelFormatCaps.getPFD(), pixelFormatCaps.getPFDID()) +")");
             }
         }
 

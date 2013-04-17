@@ -50,6 +50,7 @@ import javax.media.opengl.GLException;
 import jogamp.nativewindow.windows.BITMAPINFO;
 import jogamp.nativewindow.windows.BITMAPINFOHEADER;
 import jogamp.nativewindow.windows.GDI;
+import jogamp.opengl.GLGraphicsConfigurationUtil;
 
 import com.jogamp.common.nio.PointerBuffer;
 
@@ -77,24 +78,37 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
 
   private void createBitmap() {
     int werr;
-    NativeSurface ns = getNativeSurface();
+    final NativeSurface ns = getNativeSurface();
     if(DEBUG) {
         System.err.println(getThreadName()+": WindowsBitmapWGLDrawable (1): "+ns);
     }
-    WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration();
-    GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getRequestedCapabilities();
-    int width = getWidth();
-    int height = getHeight();
+    final WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration();
+    final GLCapabilitiesImmutable capsChosen;
+    {
+        final GLCapabilitiesImmutable capsChosen0 = (GLCapabilitiesImmutable)config.getChosenCapabilities();
+        capsChosen = GLGraphicsConfigurationUtil.clipRGBAGLCapabilities(capsChosen0, false /* allowRGB555 */);
+        if( capsChosen0 != capsChosen ) {
+            config.setChosenCapabilities(capsChosen);
+            if(DEBUG) {
+                System.err.println("WindowsBitmapWGLDrawable: "+capsChosen0+" -> "+capsChosen);
+            }
+        }
+    }
+    final int width = getWidth();
+    final int height = getHeight();
 
     //
     // 1. Create DIB Section
     //
-    BITMAPINFO info = BITMAPINFO.create();
-    BITMAPINFOHEADER header = info.getBmiHeader();
-    int bitsPerPixel = (capabilities.getRedBits() +
-                        capabilities.getGreenBits() +
-                        capabilities.getBlueBits() +
-                        capabilities.getAlphaBits());
+    final BITMAPINFO info = BITMAPINFO.create();
+    final BITMAPINFOHEADER header = info.getBmiHeader();
+    final int bitsPerPixelIn = capsChosen.getRedBits() +
+                               capsChosen.getGreenBits() +
+                               capsChosen.getBlueBits();
+    final int bitsPerPixel;
+    // Note: For BITMAP 32 bpp, the high-byte is _not_ used and hence maximum color is RGB888!
+    // Note: For BITAMP a biBitCount value other than 24 (RGB888) usually does not work!
+    bitsPerPixel = 24; // RGB888 only!
     header.setBiSize(BITMAPINFOHEADER.size());
     header.setBiWidth(width);
     // NOTE: negating the height causes the DIB to be in top-down row
@@ -108,21 +122,21 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
     header.setBiClrUsed(0);
     header.setBiClrImportant(0);
     header.setBiCompression(GDI.BI_RGB);
-    int byteNum = width * height * ( bitsPerPixel >> 3 ) ;
+    final int byteNum = width * height * ( bitsPerPixel >> 3 ) ;
     header.setBiSizeImage(byteNum);
 
-    PointerBuffer pb = PointerBuffer.allocateDirect(1);
+    final PointerBuffer pb = PointerBuffer.allocateDirect(1);
     hbitmap = GDI.CreateDIBSection(0, info, GDI.DIB_RGB_COLORS, pb, 0, 0);
     werr = GDI.GetLastError();
     if(DEBUG) {
         long p = ( pb.capacity() > 0 ) ? pb.get(0) : 0;
         System.err.println("WindowsBitmapWGLDrawable: pb sz/ptr "+pb.capacity() + ", "+toHexString(p));
         System.err.println("WindowsBitmapWGLDrawable: " + width+"x"+height +
-                            ", bpp " + bitsPerPixel +
+                            ", bpp " + bitsPerPixelIn + " -> " + bitsPerPixel +
                             ", bytes " + byteNum +
                             ", header sz " + BITMAPINFOHEADER.size() +
                             ", DIB ptr num " + pb.capacity()+
-                            ", "+capabilities+
+                            ", "+capsChosen+
                             ", werr "+werr);
     }
     if (hbitmap == 0) {

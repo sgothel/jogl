@@ -684,14 +684,27 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         if(null == pfd) {
             return null;
         }
-        if ((pfd.getDwFlags() & GDI.PFD_SUPPORT_OPENGL) == 0) {
+        if ( (pfd.getDwFlags() & GDI.PFD_SUPPORT_OPENGL) == 0) {
             return null;
         }
         final int allDrawableTypeBits = PFD2DrawableTypeBits(pfd);
         final int drawableTypeBits = winattrmask & allDrawableTypeBits;
 
         if( 0 == drawableTypeBits ) {
+            if(DEBUG) {
+                System.err.println("Drop [drawableType mismatch]: " + WGLGLCapabilities.PFD2String(pfd, pfdID));
+            }
             return null;
+        }
+        if( GLGraphicsConfigurationUtil.BITMAP_BIT == drawableTypeBits ) {
+            // BITMAP exclusive PFD SafeGuard: Only accept BITMAP compatible color formats!
+            final int pfdColorBits = pfd.getCColorBits(); 
+            if ( pfdColorBits != 24 || pfd.getCRedBits() < pfd.getCAlphaBits() ) { // Allowed: RGB888 && alpha <= red
+                if(DEBUG) {
+                    System.err.println("Drop [color bits excl BITMAP]: " + WGLGLCapabilities.PFD2String(pfd, pfdID));
+                }
+                return null;
+            }
         }
 
         final WGLGLCapabilities res = new WGLGLCapabilities(pfd, pfdID, glp);
