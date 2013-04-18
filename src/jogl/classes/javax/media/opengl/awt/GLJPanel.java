@@ -246,6 +246,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     this.factory = GLDrawableFactoryImpl.getFactoryImpl(glProfile);
     this.chooser = ((chooser != null) ? chooser : new DefaultGLCapabilitiesChooser());
     this.shareWith = shareWith;
+    
+    this.setFocusable(true); // allow keyboard input!
   }
 
   @Override
