@@ -163,7 +163,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private int viewportY;
 
   // The backend in use
-  private Backend backend;
+  private volatile Backend backend;
 
   // Used by all backends either directly or indirectly to hook up callbacks
   private Updater updater = new Updater();
@@ -633,7 +633,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   
   @Override
   public GLCapabilitiesImmutable getChosenGLCapabilities() {
-    return backend.getChosenGLCapabilities();
+    if(null != backend) {
+        return backend.getChosenGLCapabilities();
+    }
+    return null;
   }
 
   @Override
@@ -830,7 +833,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
       @Override
       public void run() {
-          listener = helper.disposeGLEventListener(GLJPanel.this, backend.getDrawable(), backend.getContext(), listener, remove);
+          if( null != backend ) {
+              listener = helper.disposeGLEventListener(GLJPanel.this, backend.getDrawable(), backend.getContext(), listener, remove);
+          }
       }
   };
   
