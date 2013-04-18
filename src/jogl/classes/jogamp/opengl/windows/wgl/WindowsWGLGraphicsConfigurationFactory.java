@@ -290,8 +290,12 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             }
         }
         try {
-            if( !((GLCapabilitiesImmutable)config.getChosenCapabilities()).getHardwareAccelerated()
-                    || !updateGraphicsConfigurationARB((WindowsWGLDrawableFactory)factory, config, chooser, hdc, extHDC, pfdIDs) ) {
+            final GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
+            boolean done = false;
+            if( capsChosen.getHardwareAccelerated() && !capsChosen.isBitmap() ) {
+                done = updateGraphicsConfigurationARB((WindowsWGLDrawableFactory)factory, config, chooser, hdc, extHDC, pfdIDs);
+            }
+            if( !done ) {
                 updateGraphicsConfigurationGDI(config, chooser, hdc, extHDC, pfdIDs);
             }
         } finally {
@@ -321,7 +325,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
 
         final GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
         final boolean isOpaque = capsChosen.isBackgroundOpaque() && GDI.DwmIsCompositionEnabled();
-        final int winattrbits = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(capsChosen);
+        final int winattrbits = GLGraphicsConfigurationUtil.getExclusiveWinAttributeBits(capsChosen) & ~GLGraphicsConfigurationUtil.BITMAP_BIT; // w/o BITMAP
         final GLProfile glProfile = capsChosen.getGLProfile();
         
         final int pfdIDCount = WindowsWGLGraphicsConfiguration.wglARBPFDIDCount((WindowsWGLContext)sharedResource.getContext(), hdc);
