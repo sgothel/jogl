@@ -277,50 +277,63 @@ public class WindowsWGLContext extends GLContextImpl {
 
     isGLReadDrawableAvailable(); // trigger setup wglGLReadDrawableAvailable
 
+    if (DEBUG) {
+        System.err.println(getThreadName() + ": createImpl: START "+glCaps+", share "+shareWith);
+    }
+    
     // Windows can set up sharing of display lists after creation time
-    long share = 0;
-    if (null != shareWith) {
-      share = shareWith.getHandle();
-      if (share == 0) {
-        throw new GLException("GLContextShareSet returned an invalid OpenGL context");
-      }
+    long share;
+    if ( null != shareWith ) {
+        share = shareWith.getHandle();
+        if (share == 0) {
+            throw new GLException("GLContextShareSet returned an invalid OpenGL context");
+        }
+    } else {
+        share = 0;
     }
 
     boolean createContextARBTried = false;
 
-    // utilize the shared context's GLXExt in case it was using the ARB method and it already exists
-    if( null!=sharedContext && sharedContext.isCreatedWithARBMethod() ) {
+    // utilize the shared context's GLXExt in case it was using the ARB method and it already exists ; exclude BITMAP
+    if( null != sharedContext && sharedContext.isCreatedWithARBMethod() && !glCaps.isBitmap() ) {
         contextHandle = createContextARB(share, true);
         createContextARBTried = true;
-        if (DEBUG && 0!=contextHandle) {
+        if ( DEBUG && 0 != contextHandle ) {
             System.err.println(getThreadName() + ": createImpl: OK (ARB, using sharedContext) share "+share);
         }
     }
 
-    long temp_ctx = 0;
-    if(0==contextHandle) {
+    final long temp_ctx;
+    if( 0 == contextHandle ) {
         // To use WGL_ARB_create_context, we have to make a temp context current,
         // so we are able to use GetProcAddress
         temp_ctx = WGL.wglCreateContext(drawable.getHandle());
-        if (temp_ctx == 0) {
+        if ( 0 == temp_ctx ) {
           throw new GLException("Unable to create temp OpenGL context for device context " + toHexString(drawable.getHandle()));
         }
-        if (!WGL.wglMakeCurrent(drawable.getHandle(), temp_ctx)) {
+        if ( !WGL.wglMakeCurrent(drawable.getHandle(), temp_ctx) ) {
             throw new GLException("Error making temp context current: 0x" + toHexString(temp_ctx) + ", werr: "+GDI.GetLastError());
         }
         setGLFunctionAvailability(true, 0, 0, CTX_PROFILE_COMPAT, false);  // use GL_VERSION
         WGL.wglMakeCurrent(0, 0); // release temp context
 
-        if( !createContextARBTried) {
+        if( !createContextARBTried ) {
             // is*Available calls are valid since setGLFunctionAvailability(..) was called
-            final boolean isProcCreateContextAttribsARBAvailable = isFunctionAvailable("wglCreateContextAttribsARB");
-            final boolean isExtARBCreateContextAvailable = isExtensionAvailable("WGL_ARB_create_context");
+            final boolean isProcCreateContextAttribsARBAvailable;
+            final boolean isExtARBCreateContextAvailable;
+            if( !glCaps.isBitmap() ) { // exclude ARB if BITMAP
+                isProcCreateContextAttribsARBAvailable = isFunctionAvailable("wglCreateContextAttribsARB");
+                isExtARBCreateContextAvailable = isExtensionAvailable("WGL_ARB_create_context");
+            } else {
+                isProcCreateContextAttribsARBAvailable = false;
+                isExtARBCreateContextAvailable = false;
+            }
             if ( isProcCreateContextAttribsARBAvailable && isExtARBCreateContextAvailable ) {
                 // initial ARB context creation
                 contextHandle = createContextARB(share, true);
                 createContextARBTried=true;
                 if (DEBUG) {
-                    if(0!=contextHandle) {
+                    if( 0 != contextHandle ) {
                         System.err.println(getThreadName() + ": createContextImpl: OK (ARB, initial) share "+share);
                     } else {
                         System.err.println(getThreadName() + ": createContextImpl: NOT OK (ARB, initial) - creation failed - share "+share);
@@ -331,11 +344,13 @@ public class WindowsWGLContext extends GLContextImpl {
                                    ", isProcCreateContextAttribsARBAvailable "+isProcCreateContextAttribsARBAvailable+", isExtGLXARBCreateContextAvailable "+isExtARBCreateContextAvailable);
             }
         }
+    } else {
+        temp_ctx = 0;
     }
 
-    if(0!=contextHandle) {
+    if( 0 != contextHandle ) {
         share = 0; // mark as shared thx to the ARB create method
-        if(0!=temp_ctx) {
+        if( 0 != temp_ctx ) {
             WGL.wglMakeCurrent(0, 0);
             WGL.wglDeleteContext(temp_ctx);
             if (!wglMakeContextCurrent(drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
@@ -343,7 +358,7 @@ public class WindowsWGLContext extends GLContextImpl {
             }
         }
     } else {
-        if(glCaps.getGLProfile().isGL3()) {
+        if( glCaps.getGLProfile().isGL3() ) {
           WGL.wglMakeCurrent(0, 0);
           WGL.wglDeleteContext(temp_ctx);
           throw new GLException(getThreadName()+": WindowsWGLContex.createContextImpl ctx !ARB, profile > GL2 requested (OpenGL >= 3.0.1). Requested: "+glCaps.getGLProfile()+", current: "+getGLVersion());
@@ -354,15 +369,15 @@ public class WindowsWGLContext extends GLContextImpl {
 
         // continue with temp context for GL < 3.0
         contextHandle = temp_ctx;
-        if (!wglMakeContextCurrent(drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
+        if ( !wglMakeContextCurrent(drawable.getHandle(), drawableRead.getHandle(), contextHandle) ) {
             WGL.wglMakeCurrent(0, 0);
             WGL.wglDeleteContext(contextHandle);
             throw new GLException("Error making old context current: 0x" + toHexString(contextHandle) + ", werr: " + GDI.GetLastError());
         }
-        if(0!=share) {
+        if( 0 != share ) {
             // Only utilize the classic GDI 'wglShareLists' shared context method
             // for traditional non ARB context.
-            if (!WGL.wglShareLists(share, contextHandle)) {
+            if ( !WGL.wglShareLists(share, contextHandle) ) {
                 throw new GLException("wglShareLists(" + toHexString(share) +
                                       ", " + toHexString(contextHandle) + ") failed: werr " + GDI.GetLastError());
             }

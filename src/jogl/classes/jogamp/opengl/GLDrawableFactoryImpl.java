@@ -297,20 +297,14 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     
     final GLCapabilitiesImmutable capsChosen = GLGraphicsConfigurationUtil.fixOffscreenGLCapabilities(capsRequested, this, device);
 
-    if( capsChosen.isFBO() ) {
-        device.lock();
-        try {
+    device.lock();
+    try {
+        if( capsChosen.isFBO() ) {
             // Use minimum GLCapabilities for the dummy surface w/ same profile 
             final ProxySurface dummySurface = createDummySurfaceImpl(device, true, new GLCapabilities(capsChosen.getGLProfile()), capsRequested, null, width, height);
             final GLDrawableImpl dummyDrawable = createOnscreenDrawableImpl(dummySurface);
             return new GLFBODrawableImpl.ResizeableImpl(this, dummyDrawable, dummySurface, capsChosen, 0);
-        } finally {
-            device.unlock();
-        }
-    }
-    
-    device.lock();
-    try {
+        }    
         return createOffscreenDrawableImpl( createMutableSurfaceImpl(device, true, capsChosen, capsRequested, chooser, 
                                                                      new UpstreamSurfaceHookMutableSize(width, height) ) );
     } finally {

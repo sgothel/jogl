@@ -33,6 +33,7 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLProfile;
 
 import com.jogamp.opengl.GLRendererQuirks;
 
@@ -316,5 +317,15 @@ public class GLGraphicsConfigurationUtil {
             compOut = 5;
         }        
         return compOut;
+    }
+    
+    public static GLCapabilitiesImmutable fixGLProfile(GLCapabilitiesImmutable caps, GLProfile glp)
+    {
+        if( caps.getGLProfile() != glp ) {
+            final GLCapabilities caps2 = (GLCapabilities) caps.cloneMutable();
+            caps2.setGLProfile(glp);
+            return caps2;
+        }
+        return caps;
     }
 }

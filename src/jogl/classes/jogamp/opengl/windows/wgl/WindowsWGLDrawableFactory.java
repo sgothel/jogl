@@ -490,7 +490,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     AbstractGraphicsConfiguration config = target.getGraphicsConfiguration();
     GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     if(!chosenCaps.isPBuffer()) {
-        return new WindowsBitmapWGLDrawable(this, target);
+        return WindowsBitmapWGLDrawable.create(this, target);
     }
 
     // PBuffer GLDrawable Creation

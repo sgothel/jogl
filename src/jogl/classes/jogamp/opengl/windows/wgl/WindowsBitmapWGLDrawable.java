@@ -40,12 +40,14 @@
 
 package jogamp.opengl.windows.wgl;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.MutableSurface;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
+import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.windows.BITMAPINFO;
 import jogamp.nativewindow.windows.BITMAPINFOHEADER;
@@ -58,8 +60,28 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
   private long origbitmap;
   private long hbitmap;
 
-  protected WindowsBitmapWGLDrawable(GLDrawableFactory factory, NativeSurface target) {
-    super(factory, target, false);
+  private WindowsBitmapWGLDrawable(GLDrawableFactory factory, NativeSurface comp) {
+    super(factory, comp, false);
+  }
+  
+  protected static WindowsBitmapWGLDrawable create(GLDrawableFactory factory, NativeSurface comp) {
+    final WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)comp.getGraphicsConfiguration();
+    final AbstractGraphicsDevice aDevice = config.getScreen().getDevice();
+    if( !GLProfile.isAvailable(aDevice, GLProfile.GL2) ) {
+        throw new GLException("GLProfile GL2 n/a on "+aDevice+" but required for Windows BITMAP");
+    }
+    final GLProfile glp = GLProfile.get(GLProfile.GL2);
+    final GLCapabilitiesImmutable capsChosen0 = (GLCapabilitiesImmutable)config.getChosenCapabilities();
+    // RGB555 and also alpha channel is experienced to fail on some Windows machines
+    final GLCapabilitiesImmutable capsChosen1 = GLGraphicsConfigurationUtil.clipRGBAGLCapabilities(capsChosen0, false /* allowRGB555 */, false /* allowAlpha */);
+    final GLCapabilitiesImmutable capsChosen2 = GLGraphicsConfigurationUtil.fixGLProfile(capsChosen1, glp);
+    if( capsChosen0 != capsChosen2 ) {
+        config.setChosenCapabilities(capsChosen2);
+        if(DEBUG) {
+            System.err.println("WindowsBitmapWGLDrawable: "+capsChosen0+" -> "+capsChosen2);
+        }
+    }
+    return new WindowsBitmapWGLDrawable(factory, comp);
   }
 
   @Override
@@ -88,18 +110,7 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
         System.err.println(getThreadName()+": WindowsBitmapWGLDrawable (1): "+ns);
     }
     final WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration)ns.getGraphicsConfiguration();
-    final GLCapabilitiesImmutable capsChosen;
-    {
-        final GLCapabilitiesImmutable capsChosen0 = (GLCapabilitiesImmutable)config.getChosenCapabilities();
-        // RGB555 and also alpha channel is experienced to fail on some Windows machines
-        capsChosen = GLGraphicsConfigurationUtil.clipRGBAGLCapabilities(capsChosen0, false /* allowRGB555 */, false /* allowAlpha */);
-        if( capsChosen0 != capsChosen ) {
-            config.setChosenCapabilities(capsChosen);
-            if(DEBUG) {
-                System.err.println("WindowsBitmapWGLDrawable: "+capsChosen0+" -> "+capsChosen);
-            }
-        }
-    }
+    final GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable)config.getChosenCapabilities();
     final int width = getWidth();
     final int height = getHeight();
 
