@@ -114,9 +114,6 @@ public abstract class GLDrawableFactory {
    */
   protected static final boolean disableOpenGLES = Debug.isPropertyDefined("jogl.disable.opengles", true);
 
-  static final String macosxFactoryClassNameCGL = "jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory";
-  static final String macosxFactoryClassNameAWTCGL = "jogamp.opengl.macosx.cgl.awt.MacOSXAWTCGLDrawableFactory";
-
   private static volatile boolean isInit = false;
   private static GLDrawableFactory eglFactory;
   private static GLDrawableFactory nativeOSFactory;
@@ -154,11 +151,7 @@ public abstract class GLDrawableFactory {
         } else if ( nwt == NativeWindowFactory.TYPE_WINDOWS ) {
           factoryClassName = "jogamp.opengl.windows.wgl.WindowsWGLDrawableFactory";
         } else if ( nwt == NativeWindowFactory.TYPE_MACOSX ) {
-            if(ReflectionUtil.isClassAvailable(macosxFactoryClassNameAWTCGL, cl)) {
-                factoryClassName = macosxFactoryClassNameAWTCGL;
-            } else {
-                factoryClassName = macosxFactoryClassNameCGL;
-            }
+          factoryClassName = "jogamp.opengl.macosx.cgl.MacOSXCGLDrawableFactory";
         } else {
           // may use egl*Factory ..
           if (DEBUG || GLProfile.DEBUG) {

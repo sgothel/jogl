@@ -75,11 +75,6 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
   private boolean sampleBuffers = false;
   private int     numSamples    = 2;
 
-  // Bits for pbuffer creation
-  private boolean pbufferFloatingPointBuffers;
-  private boolean pbufferRenderToTexture;
-  private boolean pbufferRenderToTextureRectangle;
-
   /** Creates a GLCapabilities object. All attributes are in a default state.
     * @param glp GLProfile, or null for the default GLProfile
     * @throws GLException if no profile is given and no default profile is available for the default device.
@@ -122,9 +117,6 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     accumBlueBits = source.getAccumBlueBits();
     accumAlphaBits = source.getAccumAlphaBits();
     sampleBuffers = source.getSampleBuffers();
-    pbufferFloatingPointBuffers = source.getPbufferFloatingPointBuffers();
-    pbufferRenderToTexture = source.getPbufferRenderToTexture();
-    pbufferRenderToTextureRectangle = source.getPbufferRenderToTextureRectangle();
     numSamples = source.getNumSamples();
     sampleExtension = source.getSampleExtension();
     return this;
@@ -148,9 +140,6 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     hash = ((hash << 5) - hash) + this.accumGreenBits;
     hash = ((hash << 5) - hash) + this.accumBlueBits;
     hash = ((hash << 5) - hash) + this.accumAlphaBits;
-    hash = ((hash << 5) - hash) + ( this.pbufferFloatingPointBuffers ? 1 : 0 );
-    hash = ((hash << 5) - hash) + ( this.pbufferRenderToTexture ? 1 : 0 );
-    hash = ((hash << 5) - hash) + ( this.pbufferRenderToTextureRectangle ? 1 : 0 );
     return hash;
   }
 
@@ -174,10 +163,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
                   other.getAccumGreenBits()==accumGreenBits &&
                   other.getAccumBlueBits()==accumBlueBits &&
                   other.getAccumAlphaBits()==accumAlphaBits &&
-                  other.getSampleBuffers()==sampleBuffers &&
-                  other.getPbufferFloatingPointBuffers()==pbufferFloatingPointBuffers &&
-                  other.getPbufferRenderToTexture()==pbufferRenderToTexture &&
-                  other.getPbufferRenderToTextureRectangle()==pbufferRenderToTextureRectangle;
+                  other.getSampleBuffers()==sampleBuffers;
     if(res && sampleBuffers) {
         res = other.getNumSamples()==getNumSamples() &&
               other.getSampleExtension().equals(sampleExtension) ;
@@ -449,40 +435,6 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     return sampleBuffers ? numSamples : 0;
   }
 
-  /** For pbuffers only, indicates whether floating-point buffers
-      should be used if available. Defaults to false. */
-  public void setPbufferFloatingPointBuffers(boolean enable) {
-    pbufferFloatingPointBuffers = enable;
-  }
-
-  @Override
-  public final boolean getPbufferFloatingPointBuffers() {
-    return pbufferFloatingPointBuffers;
-  }
-
-  /** For pbuffers only, indicates whether the render-to-texture
-      extension should be used if available.  Defaults to false. */
-  public void setPbufferRenderToTexture(boolean enable) {
-    pbufferRenderToTexture = enable;
-  }
-
-  @Override
-  public final boolean getPbufferRenderToTexture() {
-    return pbufferRenderToTexture;
-  }
-
-  /** For pbuffers only, indicates whether the
-      render-to-texture-rectangle extension should be used if
-      available. Defaults to false. */
-  public void setPbufferRenderToTextureRectangle(boolean enable) {
-    pbufferRenderToTextureRectangle = enable;
-  }
-
-  @Override
-  public final boolean getPbufferRenderToTextureRectangle() {
-    return pbufferRenderToTextureRectangle;
-  }
-
   @Override
   public StringBuilder toString(StringBuilder sink) {
     if(null == sink) {
@@ -526,10 +478,7 @@ public class GLCapabilities extends Capabilities implements Cloneable, GLCapabil
     }
     if(isPBuffer()) {
         if(ns) { sink.append(CSEP); }
-        sink.append("pbuffer [r2t ").append(pbufferRenderToTexture?1:0)
-            .append(", r2tr ").append(pbufferRenderToTextureRectangle?1:0)
-            .append(", float ").append(pbufferFloatingPointBuffers?1:0)
-            .append("]");                
+        sink.append("pbuffer");
         ns = true;
     }
     if(isBitmap()) {

@@ -46,12 +46,10 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
-import javax.media.opengl.GLPbuffer;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.nativewindow.MutableGraphicsConfiguration;
-import com.jogamp.opengl.GLExtensions;
 
 import jogamp.nativewindow.windows.DWM_BLURBEHIND;
 import jogamp.nativewindow.windows.GDI;
@@ -61,7 +59,6 @@ import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
-@SuppressWarnings("deprecation")
 public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {    
     protected static final int MAX_PFORMATS = 256;
     protected static final int MAX_ATTRIBS  = 256;
@@ -257,15 +254,6 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
             iattributes.put(niattribs++, WGLExt.WGL_SAMPLE_BUFFERS_ARB);
             iattributes.put(niattribs++, WGLExt.WGL_SAMPLES_ARB);
         }
-            
-        if(sharedResource.hasARBPBuffer()) {
-            GLContextImpl sharedCtx = sharedResource.getContext();
-            if(null != sharedCtx && sharedCtx.isExtensionAvailable(WindowsWGLDrawableFactory.WGL_NV_float_buffer)) {
-                // pbo float buffer
-                iattributes.put(niattribs++, WGLExt.WGL_FLOAT_COMPONENTS_NV); // nvidia
-            }
-        }
-
         return niattribs;
     }
     
@@ -511,85 +499,8 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
             iattributes.put(niattribs++, caps.getNumSamples());
         }
 
-        boolean rtt      = caps.getPbufferRenderToTexture();
-        boolean rect     = caps.getPbufferRenderToTextureRectangle();
-        boolean useFloat = caps.getPbufferFloatingPointBuffers();
-        boolean ati      = false;
-        boolean nvidia   = false;
-        if ( usePBuffer ) {
-          // Check some invariants and set up some state
-          if (rect && !rtt) {
-            throw new GLException("Render-to-texture-rectangle requires render-to-texture to be specified");
-          }
-
-          GLContextImpl sharedCtx = sharedResource.getContext();
-          if (rect) {
-            if (!sharedCtx.isExtensionAvailable(GLExtensions.NV_texture_rectangle)) {
-              throw new GLException("Render-to-texture-rectangle requires GL_NV_texture_rectangle extension");
-            }
-          }
-
-          if (useFloat) {
-            // Prefer NVidia extension over ATI
-            nvidia = sharedCtx.isExtensionAvailable(WindowsWGLDrawableFactory.WGL_NV_float_buffer);
-            if(nvidia) {
-              floatMode[0] = GLPbuffer.NV_FLOAT;
-            } else {
-                ati = sharedCtx.isExtensionAvailable("WGL_ATI_pixel_format_float");
-                if(ati) {
-                    floatMode[0] = GLPbuffer.ATI_FLOAT;
-                } else {
-                    throw new GLException("Floating-point pbuffers not supported by this hardware");                    
-                }
-            }
-            
-            if (DEBUG) {
-              System.err.println("Using " + (ati ? "ATI" : ( nvidia ? "NVidia" : "NONE" ) ) + " floating-point extension");
-            }
-          }
-
-          // See whether we need to change the pixel type to support ATI's
-          // floating-point pbuffers
-          if (useFloat && ati) {
-            if (rtt) {
-              throw new GLException("Render-to-floating-point-texture not supported on ATI hardware");
-            } else {
-              iattributes.put(niattribs++, WGLExt.WGL_PIXEL_TYPE_ARB);
-              iattributes.put(niattribs++, WGLExt.WGL_TYPE_RGBA_FLOAT_ARB);
-            }
-          } else {
-            if (!rtt) {
-              // Currently we don't support non-truecolor visuals in the
-              // GLCapabilities, so we don't offer the option of making
-              // color-index pbuffers.
-              iattributes.put(niattribs++, WGLExt.WGL_PIXEL_TYPE_ARB);
-              iattributes.put(niattribs++, WGLExt.WGL_TYPE_RGBA_ARB);
-            }
-          }
-
-          if (useFloat && nvidia) {
-            iattributes.put(niattribs++, WGLExt.WGL_FLOAT_COMPONENTS_NV);
-            iattributes.put(niattribs++, GL.GL_TRUE);
-          }
-
-          if (rtt) {
-            if (useFloat) {
-              assert(!ati);
-              assert(nvidia);
-              if (!rect) {
-                throw new GLException("Render-to-floating-point-texture only supported on NVidia hardware with render-to-texture-rectangle");
-              }
-              iattributes.put(niattribs++, WGLExt.WGL_BIND_TO_TEXTURE_RECTANGLE_FLOAT_RGB_NV);
-              iattributes.put(niattribs++, GL.GL_TRUE);
-            } else {
-              iattributes.put(niattribs++, rect ? WGLExt.WGL_BIND_TO_TEXTURE_RECTANGLE_RGB_NV : WGLExt.WGL_BIND_TO_TEXTURE_RGB_ARB);
-              iattributes.put(niattribs++, GL.GL_TRUE);
-            }
-          }
-        } else {
-          iattributes.put(niattribs++, WGLExt.WGL_PIXEL_TYPE_ARB);
-          iattributes.put(niattribs++, WGLExt.WGL_TYPE_RGBA_ARB);
-        }
+        iattributes.put(niattribs++, WGLExt.WGL_PIXEL_TYPE_ARB);
+        iattributes.put(niattribs++, WGLExt.WGL_TYPE_RGBA_ARB);
         iattributes.put(niattribs++, 0);
 
         return true;

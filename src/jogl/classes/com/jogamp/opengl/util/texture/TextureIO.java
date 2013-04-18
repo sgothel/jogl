@@ -1408,7 +1408,7 @@ public class TextureIO {
                     buf.rewind();
                     
                     PNGImage image = PNGImage.createFromData(data.getWidth(), data.getHeight(), -1f, -1f,
-                                                             bytesPerPixel, reversedChannels, buf);
+                                                             bytesPerPixel, reversedChannels, !data.getMustFlipVertically(), buf);
                     image.write(file, true);
                     return true;
                 }

@@ -69,7 +69,7 @@ public class X11PixmapGLXDrawable extends X11GLXDrawable {
 
   @Override
   public GLContext createContext(GLContext shareWith) {
-    return new X11PixmapGLXContext(this, shareWith);
+    return new X11GLXContext(this, shareWith);
   }
 
   private void createPixmap() {

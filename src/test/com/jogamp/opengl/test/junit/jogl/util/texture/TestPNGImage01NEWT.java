@@ -17,22 +17,43 @@ public class TestPNGImage01NEWT extends UITestCase {
     public void testPNGReadWriteAndCompare() throws InterruptedException, IOException, MalformedURLException {
         final File out1_f=new File(getSimpleTestName(".")+"-PNGImageTest1.png");
         final File out2_f=new File(getSimpleTestName(".")+"-PNGImageTest2.png");
+        final File out2F_f=new File(getSimpleTestName(".")+"-PNGImageTest2Flipped.png");
+        final File out2R_f=new File(getSimpleTestName(".")+"-PNGImageTest2Reversed.png");
+        final File out2RF_f=new File(getSimpleTestName(".")+"-PNGImageTest2ReversedFlipped.png");
         final String url_s="jogl/util/data/av/test-ntsc01-160x90.png";
         URLConnection urlConn = IOUtil.getResource(url_s, this.getClass().getClassLoader());
-        PNGImage image0 = PNGImage.read(urlConn.getInputStream());
-        System.err.println("PNGImage - Orig: "+image0);        
-        image0.write(out1_f, true); 
+        PNGImage image1 = PNGImage.read(urlConn.getInputStream());
+        System.err.println("PNGImage - Orig: "+image1);        
+        image1.write(out1_f, true); 
         {
-            Assert.assertEquals(image0.getData(), PNGImage.read(IOUtil.toURL(out1_f).openStream()).getData());
+            Assert.assertEquals(image1.getData(), PNGImage.read(IOUtil.toURL(out1_f).openStream()).getData());
         }
         
-        final PNGImage image1 = PNGImage.createFromData(image0.getWidth(), image0.getHeight(), 
-                                                        image0.getDpi()[0], image0.getDpi()[1], 
-                                                        image0.getBytesPerPixel(), false, image0.getData());
-        image1.write(out2_f, true);
+        final PNGImage image2 = PNGImage.createFromData(image1.getWidth(), image1.getHeight(), 
+                                                        image1.getDpi()[0], image1.getDpi()[1], 
+                                                        image1.getBytesPerPixel(), false /* reverseChannels */, image1.isGLOriented(), image1.getData());
+        image2.write(out2_f, true);
         {
-            Assert.assertEquals(image0.getData(), PNGImage.read(IOUtil.toURL(out2_f).openStream()).getData());
-        }                
+            Assert.assertEquals(image1.getData(), PNGImage.read(IOUtil.toURL(out2_f).openStream()).getData());
+        }
+        
+        // flipped
+        final PNGImage image2F = PNGImage.createFromData(image1.getWidth(), image1.getHeight(), 
+                                                         image1.getDpi()[0], image1.getDpi()[1], 
+                                                         image1.getBytesPerPixel(), false /* reverseChannels */, !image1.isGLOriented(), image1.getData());
+        image2F.write(out2F_f, true);
+        
+        // reversed channels
+        final PNGImage image2R = PNGImage.createFromData(image1.getWidth(), image1.getHeight(), 
+                                                         image1.getDpi()[0], image1.getDpi()[1], 
+                                                         image1.getBytesPerPixel(), true /* reverseChannels */, image1.isGLOriented(), image1.getData());
+        image2R.write(out2R_f, true);
+        
+        // reversed channels and flipped
+        final PNGImage image2RF = PNGImage.createFromData(image1.getWidth(), image1.getHeight(), 
+                                                         image1.getDpi()[0], image1.getDpi()[1], 
+                                                         image1.getBytesPerPixel(), true /* reverseChannels */, !image1.isGLOriented(), image1.getData());
+        image2RF.write(out2RF_f, true);
     }
     
     public static void main(String args[]) {

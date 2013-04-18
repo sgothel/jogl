@@ -65,7 +65,7 @@ import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.opengl.GLExtensions;
 
-public abstract class X11GLXContext extends GLContextImpl {
+public class X11GLXContext extends GLContextImpl {
   private static final Map<String, String> functionNameMap;
   private static final Map<String, String> extensionNameMap;
   private GLXExt _glXExt;
@@ -621,16 +621,6 @@ public abstract class X11GLXContext extends GLContextImpl {
   @Override
   public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
     return getGLXExt().glXAllocateMemoryNV(arg0, arg1, arg2, arg3);
-  }
-
-  @Override
-  public void bindPbufferToTexture() {
-    throw new GLException("Should not call this");
-  }
-
-  @Override
-  public void releasePbufferFromTexture() {
-    throw new GLException("Should not call this");
   }
 
   @Override

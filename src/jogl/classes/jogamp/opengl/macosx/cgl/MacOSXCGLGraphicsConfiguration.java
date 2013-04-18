@@ -104,7 +104,8 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
                 break;
                   
               case CGL.kCGLPFAColorFloat:
-                ivalues.put(idx, ( !caps.isOnscreen() && caps.isPBuffer() && caps.getPbufferFloatingPointBuffers() ) ? 1 : 0);
+                // ivalues.put(idx, ( !caps.isOnscreen() && caps.isPBuffer() && caps.getPbufferFloatingPointBuffers() ) ? 1 : 0);
+                  ivalues.put(idx, 0);
                 break;
 
               case CGL.NSOpenGLPFAPixelBuffer:
@@ -176,12 +177,13 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
           attrs.put(i++, CGL.kCGLPFAOpenGLProfile); 
           attrs.put(i++, MacOSXCGLContext.GLProfile2CGLOGLProfileValue(ctp, major, minor));
       }
+      /**
       if(!caps.isOnscreen() && caps.isPBuffer()) {
         attrs.put(i++, CGL.kCGLPFAPBuffer);
         if (caps.getPbufferFloatingPointBuffers()) {
           attrs.put(i++, CGL.kCGLPFAColorFloat);
         }
-      }
+      } */
       if (caps.getDoubleBuffered()) {
         attrs.put(i++, CGL.kCGLPFADoubleBuffer);
       }
@@ -284,7 +286,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
                 break;
                 
               case CGL.kCGLPFAColorFloat:
-                caps.setPbufferFloatingPointBuffers(ivalue != 0);
+                // caps.setPbufferFloatingPointBuffers(ivalue != 0);
                 break;
 
               case CGL.NSOpenGLPFAPixelBuffer:

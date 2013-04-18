@@ -56,7 +56,7 @@ import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 import com.jogamp.opengl.GLRendererQuirks;
 
-public abstract class EGLContext extends GLContextImpl {
+public class EGLContext extends GLContextImpl {
     private boolean eglQueryStringInitialized;
     private boolean eglQueryStringAvailable;
     private EGLExt _eglExt;

@@ -145,6 +145,20 @@ public interface GLDrawable {
   /** Returns the current height of this GLDrawable. */
   public int getHeight();
 
+  /**
+   * Returns <code>true</code> if the drawable is rendered in 
+   * OpenGL's coordinate system, <i>origin at bottom left</i>.
+   * Otherwise returns <code>false</code>, i.e. <i>origin at top left</i>.
+   * <p>
+   * Default impl. is <code>true</code>, i.e. OpenGL coordinate system.
+   * </p> 
+   * <p>
+   * Currently only MS-Windows bitmap offscreen drawable uses a non OpenGL orientation and hence returns <code>false</code>.<br/>
+   * This removes the need of a vertical flip when used in AWT or Windows applications.
+   * </p>
+   */
+  public boolean isGLOriented();
+  
   /** Swaps the front and back buffers of this drawable. For {@link
       GLAutoDrawable} implementations, when automatic buffer swapping
       is enabled (as is the default), this method is called

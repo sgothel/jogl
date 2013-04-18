@@ -80,7 +80,7 @@ import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 
-public abstract class MacOSXCGLContext extends GLContextImpl
+public class MacOSXCGLContext extends GLContextImpl
 {
   // Abstract interface for implementation of this context (either
   // NSOpenGL-based or CGL-based)
@@ -184,6 +184,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
   // CGL extension functions.
   private CGLExtProcAddressTable cglExtProcAddressTable;
 
+  private long updateHandle = 0;
+  private int lastWidth, lastHeight;
+  
   protected MacOSXCGLContext(GLDrawableImpl drawable,
                    GLContext shareWith) {
     super(drawable, shareWith);
@@ -280,9 +283,6 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
     MacOSXCGLGraphicsConfiguration config = (MacOSXCGLGraphicsConfiguration) drawable.getNativeSurface().getGraphicsConfiguration();
     GLCapabilitiesImmutable capabilitiesChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
-    if (capabilitiesChosen.getPbufferFloatingPointBuffers() && !isTigerOrLater) {
-       throw new GLException("Floating-point pbuffers supported only on OS X 10.4 or later");
-    }
     GLProfile glp = capabilitiesChosen.getGLProfile();
     if(glp.isGLES1() || glp.isGLES2() || glp.isGL4() || glp.isGL3() && !isLionOrLater) {
         throw new GLException("OpenGL profile not supported on MacOSX "+Platform.getOSVersionNumber()+": "+glp);
@@ -311,6 +311,7 @@ public abstract class MacOSXCGLContext extends GLContextImpl
     if (!impl.makeCurrent(contextHandle)) {
       throw new GLException("Error making Context current: "+this);
     }
+    drawableUpdatedNotify();
   }
 
   @Override
@@ -322,8 +323,58 @@ public abstract class MacOSXCGLContext extends GLContextImpl
 
   @Override
   protected void destroyImpl() throws GLException {
+    releaseUpdateHandle();
     if(!impl.destroy(contextHandle)) {
         throw new GLException("Error destroying OpenGL Context: "+this);
+    }
+  }
+  
+  private final long getUpdateHandle() {
+    if( 0 == updateHandle ) {
+        lastWidth = -1;
+        lastHeight = -1;
+        if( isCreated() && drawable.getChosenGLCapabilities().isOnscreen() && isNSContext() ) {
+            final boolean incompleteView;
+            final NativeSurface surface = drawable.getNativeSurface();
+            if( surface instanceof ProxySurface ) {
+              incompleteView = ((ProxySurface)surface).containsUpstreamOptionBits( ProxySurface.OPT_UPSTREAM_WINDOW_INVISIBLE );
+            } else {
+              incompleteView = false;
+            }
+            if(!incompleteView) {        
+                updateHandle = CGL.updateContextRegister(contextHandle, drawable.getHandle());
+                if(0 == updateHandle) {
+                    throw new InternalError("XXX2");
+                }
+            }
+        }
+    }
+    return updateHandle;
+  }
+  
+  private final void releaseUpdateHandle() {
+    if ( 0 != updateHandle ) {
+        CGL.updateContextUnregister(updateHandle);
+        updateHandle = 0;
+    }      
+  }
+  
+  @Override
+  protected void drawableUpdatedNotify() throws GLException {
+    if( drawable.getChosenGLCapabilities().isOnscreen() ) {
+        final long _updateHandle = getUpdateHandle();
+        final int w = drawable.getWidth();
+        final int h = drawable.getHeight();
+        final boolean updateContext = ( 0!=_updateHandle && CGL.updateContextNeedsUpdate(_updateHandle) ) ||
+                                      w != lastWidth || h != lastHeight;
+        if(updateContext) {
+            lastWidth = w;
+            lastHeight = h;
+            if (contextHandle == 0) {
+              throw new GLException("Context not created");
+            }
+            CGL.updateContext(contextHandle);
+        }
     }
   }
   
@@ -333,7 +384,9 @@ public abstract class MacOSXCGLContext extends GLContextImpl
       if(bound) {
           super.associateDrawable(true);   // 1) init drawable stuff
           impl.associateDrawable(true);    // 2) init context stuff
+          getUpdateHandle();
       } else {
+          releaseUpdateHandle();
           impl.associateDrawable(false);   // 1) free context stuff
           super.associateDrawable(false);  // 2) free drawable stuff
       }

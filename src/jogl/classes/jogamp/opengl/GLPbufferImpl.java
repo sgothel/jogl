@@ -49,7 +49,6 @@ import com.jogamp.common.util.locks.RecursiveLock;
 
 @SuppressWarnings("deprecation")
 public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
-  private int floatMode;
 
   public GLPbufferImpl(GLDrawableImpl pbufferDrawable, GLContextImpl pbufferContext) {
     super(pbufferDrawable, pbufferContext, true); // drawable := pbufferDrawable, context := pbufferContext  
@@ -58,28 +57,6 @@ public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
   //
   // pbuffer specifics
   //
-
-  @Override
-  public void bindTexture() {
-    // Doesn't make much sense to try to do this on the event dispatch
-    // thread given that it has to be called while the context is current
-    context.bindPbufferToTexture();
-  }
-
-  @Override
-  public void releaseTexture() {
-    // Doesn't make much sense to try to do this on the event dispatch
-    // thread given that it has to be called while the context is current
-    context.releasePbufferFromTexture();
-  }
-
-  @Override
-  public int getFloatingPointMode() {
-    if (floatMode == 0) {
-      throw new GLException("Pbuffer not initialized, or floating-point support not requested");
-    }
-    return floatMode;
-  }
 
   //
   // GLDrawable delegation
@@ -119,22 +96,10 @@ public class GLPbufferImpl extends GLAutoDrawableBase implements GLPbuffer {
     _lock.lock(); // sync: context/drawable could been recreated/destroyed while animating
     try {
         if( null != context ) {
-          helper.invokeGL(drawable, context, defaultDisplayAction, initAction);
+          helper.invokeGL(drawable, context, defaultDisplayAction, defaultInitAction);
         }
     } finally {
         _lock.unlock();
     }
   }
-
-  //----------------------------------------------------------------------
-  // Internals only below this point
-  //
-
-  protected final Runnable initAction = new Runnable() {
-    @Override
-    public final void run() {
-        floatMode = context.getFloatingPointMode();
-        defaultInitAction.run();
-    } };
-  
 }

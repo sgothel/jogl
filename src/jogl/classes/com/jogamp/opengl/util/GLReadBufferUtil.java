@@ -111,11 +111,15 @@ public class GLReadBufferUtil {
      * 
      * @param gl the current GL context object. It's read drawable is being used as the pixel source.
      * @param drawable the drawable to read from
-     * @param flip weather to flip the data vertically or not
+     * @param mustFlipVertically indicates weather to flip the data vertically or not.
+     *                           The context's drawable {@link GLDrawable#isGLOriented()} state
+     *                           is taken into account.
+     *                           Vertical flipping is propagated to TextureData
+     *                           and handled in a efficient manner there (TextureCoordinates and TextureIO writer).
      * 
      * @see #GLReadBufferUtil(boolean, boolean)
      */
-    public boolean readPixels(GL gl, boolean flip) {
+    public boolean readPixels(GL gl, boolean mustFlipVertically) {
         final int glerr0 = gl.glGetError();
         if(GL.GL_NO_ERROR != glerr0) {
             System.err.println("Info: GLReadBufferUtil.readPixels: pre-exisiting GL error 0x"+Integer.toHexString(glerr0));
@@ -123,6 +127,13 @@ public class GLReadBufferUtil {
         final GLDrawable drawable = gl.getContext().getGLReadDrawable();
         final int textureInternalFormat, textureDataFormat, textureDataType;
         final int[] glImplColorReadVals = new int[] { 0, 0 };
+        
+        final boolean flipVertically;
+        if( drawable.isGLOriented() ) {
+            flipVertically = mustFlipVertically;
+        } else {
+            flipVertically = !mustFlipVertically;
+        }
         
         if(gl.isGL2GL3() && 3 == components) {
             textureInternalFormat=GL.GL_RGB;
@@ -158,7 +169,7 @@ public class GLReadBufferUtil {
                            textureDataFormat,
                            textureDataType,
                            false, false, 
-                           flip,
+                           flipVertically,
                            readPixelBuffer,
                            null /* Flusher */);
                 newData = true;

@@ -130,33 +130,6 @@ public interface GLCapabilitiesImmutable extends CapabilitiesImmutable {
     int getNumSamples();
 
     /**
-     * For pbuffers only, returns whether floating-point buffers should
-     * be used if available. 
-     * <p>
-     * Default is false.
-     * </p>
-     */
-    boolean getPbufferFloatingPointBuffers();
-
-    /**
-     * For pbuffers only, returns whether the render-to-texture
-     * extension should be used if available.  
-     * <p>
-     * Default is false.
-     * </p>
-     */
-    boolean getPbufferRenderToTexture();
-
-    /**
-     * For pbuffers only, returns whether the render-to-texture
-     * extension should be used. 
-     * <p>
-     * Default is false.
-     * </p>
-     */
-    boolean getPbufferRenderToTextureRectangle();
-
-    /**
      * Returns the number of stencil buffer bits.
      * <p>
      * Default is 0.

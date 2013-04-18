@@ -51,7 +51,7 @@ public class WindowsOnscreenWGLDrawable extends WindowsWGLDrawable {
 
   @Override
   public GLContext createContext(GLContext shareWith) {
-    return new WindowsOnscreenWGLContext(this, shareWith);
+    return new WindowsWGLContext(this, shareWith);
   }
 
 }

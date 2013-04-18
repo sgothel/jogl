@@ -469,17 +469,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     return (GLDrawableFactoryImpl) getFactory(glp);
   }
 
-  //---------------------------------------------------------------------------
-  // Support for Java2D/JOGL bridge on Mac OS X; the external
-  // GLDrawable mechanism in the public API is sufficient to
-  // implement this functionality on all other platforms
-  //
-
-  public abstract boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device);
-
-  public abstract GLContext createContextOnJava2DSurface(Object graphics, GLContext shareWith)
-    throws GLException;
-
   //----------------------------------------------------------------------
   // Gamma adjustment support
   // Thanks to the LWJGL team for illustrating how to make these

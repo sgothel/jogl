@@ -47,7 +47,6 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.MutableSurface;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
-import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
@@ -89,7 +88,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
 
   @Override
   public GLContext createContext(GLContext shareWith) {
-    return new MacOSXPbufferCGLContext(this, shareWith);
+    return new MacOSXCGLContext(this, shareWith);
   }
   
   protected int getTextureTarget() { return pBufferTexTarget;  }
@@ -134,12 +133,8 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
         }
     }
 
-    if ( capabilities.getPbufferRenderToTextureRectangle() && null!=sr && sr.isRECTTextureAvailable() ) {
-      pBufferTexTarget = GL2GL3.GL_TEXTURE_RECTANGLE;
-    } else {
-      pBufferTexTarget = GL.GL_TEXTURE_2D;
-    }
-    if ( GL2GL3.GL_TEXTURE_RECTANGLE == pBufferTexTarget || ( null!=sr && sr.isNPOTTextureAvailable() ) ) {
+    pBufferTexTarget = GL.GL_TEXTURE_2D;
+    if ( null!=sr && sr.isNPOTTextureAvailable() ) {
       pBufferTexWidth = getWidth();
       pBufferTexHeight = getHeight();
     } else {
@@ -147,18 +142,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
       pBufferTexHeight = GLBuffers.getNextPowerOf2(getHeight());
     }
 
-    int internalFormat = GL.GL_RGBA;
-    if (capabilities.getPbufferFloatingPointBuffers()) {
-      if(!glProfile.isGL2GL3() || null==sr || sr.isAppleFloatPixelsAvailable()) {
-          throw new GLException("Floating-point support (GL_APPLE_float_pixels) not available");
-      }
-      switch (capabilities.getRedBits()) {
-        case 16: internalFormat = GL2.GL_RGBA_FLOAT16_APPLE; break;
-        case 32: internalFormat = GL2.GL_RGBA_FLOAT32_APPLE; break;
-        default: throw new GLException("Invalid floating-point bit depth (only 16 and 32 supported)");
-      }
-    }
-
+    final int internalFormat = GL.GL_RGBA;
     final long pBuffer = impl.create(pBufferTexTarget, internalFormat, getWidth(), getHeight());
     if(DEBUG) {
         System.err.println("MacOSXPbufferCGLDrawable tex: target "+toHexString(pBufferTexTarget)+

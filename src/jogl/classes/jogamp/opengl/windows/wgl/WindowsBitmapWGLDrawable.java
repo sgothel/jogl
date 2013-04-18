@@ -73,9 +73,14 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
 
   @Override
   public GLContext createContext(GLContext shareWith) {
-    return new WindowsBitmapWGLContext(this, shareWith);
+    return new WindowsWGLContext(this, shareWith);
   }
 
+  @Override
+  public boolean isGLOriented() {
+      return false;
+  }
+  
   private void createBitmap() {
     int werr;
     final NativeSurface ns = getNativeSurface();
@@ -111,9 +116,9 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
     bitsPerPixel = 24; // RGB888 only!
     header.setBiSize(BITMAPINFOHEADER.size());
     header.setBiWidth(width);
-    // NOTE: negating the height causes the DIB to be in top-down row
-    // order rather than bottom-up; ends up being correct during pixel
-    // readback
+    // NOTE: Positive height causes the DIB's origin at bottom-left (OpenGL),
+    // a negative height causes the DIB's origin at top-left (Java AWT, Windows, ..).
+    // We use !OpenGL origin to remove the need for vertical flip, see 'isGLOriented()' above.
     header.setBiHeight(-1 * height);
     header.setBiPlanes((short) 1);
     header.setBiBitCount((short) bitsPerPixel);

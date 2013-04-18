@@ -50,7 +50,7 @@ public class EGLOnscreenDrawable extends EGLDrawable {
 
     @Override
     public GLContext createContext(GLContext shareWith) {
-        return new EGLOnscreenContext(this, shareWith);
+        return new EGLContext(this, shareWith);
     }
 
     @Override

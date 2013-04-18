@@ -779,15 +779,4 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     protected GLDrawable createExternalGLDrawableImpl() {
         throw new GLException("Not yet implemented");
     }
-
-    @Override
-    public boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {
-        return false;
-    }
-
-    @Override
-    public GLContext createContextOnJava2DSurface(Object graphics, GLContext shareWith)
-        throws GLException {
-        throw new GLException("Unimplemented on this platform");
-    }
 }

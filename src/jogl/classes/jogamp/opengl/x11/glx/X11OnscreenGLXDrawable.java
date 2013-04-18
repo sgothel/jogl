@@ -104,6 +104,6 @@ public class X11OnscreenGLXDrawable extends X11GLXDrawable {
 
   @Override
   public GLContext createContext(GLContext shareWith) {
-    return new X11OnscreenGLXContext(this, shareWith);
+    return new X11GLXContext(this, shareWith);
   }
 }

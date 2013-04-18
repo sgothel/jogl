@@ -50,32 +50,7 @@ package javax.media.opengl;
     @deprecated Use {@link GLOffscreenAutoDrawable} w/ {@link GLCapabilities#setFBO(boolean)} 
                 via {@link GLDrawableFactory#createOffscreenAutoDrawable(javax.media.nativewindow.AbstractGraphicsDevice, GLCapabilitiesImmutable, GLCapabilitiesChooser, int, int, GLContext) GLDrawableFactory.createOffscreenAutoDrawable(..)}.
   */
-
 public interface GLPbuffer extends GLAutoDrawable {
-  /** Indicates the GL_APPLE_float_pixels extension is being used for this pbuffer. */
-  public static final int APPLE_FLOAT = 1;
-
-  /** Indicates the GL_ATI_texture_float extension is being used for this pbuffer. */
-  public static final int ATI_FLOAT = 2;
-
-  /** Indicates the GL_NV_float_buffer extension is being used for this pbuffer. */
-  public static final int NV_FLOAT = 3;
-
-  /** Binds this pbuffer to its internal texture target. Only valid to
-      call if offscreen render-to-texture has been specified in the
-      NWCapabilities for this GLPbuffer. If the
-      render-to-texture-rectangle capability has also been specified,
-      this will use e.g. wglBindTexImageARB as its implementation and
-      cause the texture to be bound to e.g. the
-      GL_TEXTURE_RECTANGLE_NV state; otherwise, during the display()
-      phase the pixels will have been copied into an internal texture
-      target and this will cause that to be bound to the GL_TEXTURE_2D
-      state. */
-  public void bindTexture();
-
-  /** Unbinds the pbuffer from its internal texture target. */
-  public void releaseTexture();
-
   /** Destroys the native resources associated with this pbuffer. It
       is not valid to call display() or any other routines on this
       pbuffer after it has been destroyed. Before destroying the
@@ -84,13 +59,4 @@ public interface GLPbuffer extends GLAutoDrawable {
       #createContext}. */
   @Override
   public void destroy();
-
-  /** Indicates which vendor's extension is being used to support
-      floating point channels in this pbuffer if that capability was
-      requested in the NWCapabilities during pbuffer creation. Returns
-      one of NV_FLOAT, ATI_FLOAT or APPLE_FLOAT, or throws GLException
-      if floating-point channels were not requested for this pbuffer.
-      This function may only be called once the init method for this
-      pbuffer's GLEventListener has been called. */
-  public int getFloatingPointMode();
 }

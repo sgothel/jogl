@@ -53,6 +53,6 @@ public class MacOSXOffscreenCGLDrawable extends MacOSXPbufferCGLDrawable {
 
   @Override
   public GLContext createContext(GLContext shareWith) {
-    return new MacOSXOffscreenCGLContext(this, shareWith);
+    return new MacOSXCGLContext(this, shareWith);
   }
 }

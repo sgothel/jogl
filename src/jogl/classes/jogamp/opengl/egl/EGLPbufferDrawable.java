@@ -57,7 +57,7 @@ public class EGLPbufferDrawable extends EGLDrawable {
 
     @Override
     public GLContext createContext(GLContext shareWith) {
-        return new EGLPbufferContext(this, shareWith);
+        return new EGLContext(this, shareWith);
     }
 }
 

@@ -83,16 +83,11 @@ import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.GLDrawableHelper;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.awt.Java2D;
-import jogamp.opengl.awt.Java2DGLContext;
 import jogamp.opengl.util.glsl.GLSLTextureRaster;
 
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.util.GLPixelStorageModes;
-
-// FIXME: Subclasses need to call resetGLFunctionAvailability() on their
-// context whenever the displayChanged() function is called on their
-// GLEventListeners
 
 /** A lightweight Swing component which provides OpenGL rendering
     support. Provided for compatibility with Swing user interfaces
@@ -627,6 +622,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
+  public boolean isGLOriented() {
+    if(null != backend) {
+        return backend.getDrawable().isGLOriented();
+    }
+    return true;
+  }
+  
+  @Override
   public GLCapabilitiesImmutable getChosenGLCapabilities() {
     return backend.getChosenGLCapabilities();
   }
@@ -916,7 +919,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     private final int fboTextureUnit = 0;
     
     private GLContextImpl offscreenContext;
-    private boolean flippedVertical;          
+    private boolean flipVertical;          
     
     // For saving/restoring of OpenGL state during ReadPixels
     private final GLPixelStorageModes psm =  new GLPixelStorageModes();
@@ -941,9 +944,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           if( GLContext.CONTEXT_NOT_CURRENT < offscreenContext.makeCurrent() ) {
               isInitialized = true;
               final GL gl = offscreenContext.getGL();
-              flippedVertical = offscreenContext.isGLOrientationFlippedVertical();
+              flipVertical = offscreenDrawable.isGLOriented();
               final GLCapabilitiesImmutable chosenCaps = offscreenDrawable.getChosenGLCapabilities();
-              if( USE_GLSL_TEXTURE_RASTERIZER && chosenCaps.isFBO() && flippedVertical && gl.isGL2ES2() ) {
+              if( USE_GLSL_TEXTURE_RASTERIZER && chosenCaps.isFBO() && flipVertical && gl.isGL2ES2() ) {
                   final boolean _autoSwapBufferMode = helper.getAutoSwapBufferMode();
                   helper.setAutoSwapBufferMode(false);
                   final GLFBODrawable fboDrawable = (GLFBODrawable) offscreenDrawable;
@@ -1054,14 +1057,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           glType   = GL.GL_UNSIGNED_BYTE; // offscreenContext.getDefaultPixelDataType();          
           
           offscreenImage = new BufferedImage(panelWidth, panelHeight, withAlpha ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
-          if(!flippedVertical || null != glslTextureRaster) {
+          if(!flipVertical || null != glslTextureRaster) {
               final int[] readBackIntBuffer = ((DataBufferInt) offscreenImage.getRaster().getDataBuffer()).getData();
               readBackInts = IntBuffer.wrap(readBackIntBuffer);
           } else {
               readBackInts = IntBuffer.allocate(readBackWidthInPixels * readBackHeightInPixels);
           }
           if(DEBUG) {
-              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: flippedVertical "+flippedVertical+", glslTextureRaster "+(null!=glslTextureRaster));
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: flippedVertical "+flipVertical+", glslTextureRaster "+(null!=glslTextureRaster));
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: panelSize "+panelWidth+"x"+panelHeight +", readBackSizeInPixels "+readBackWidthInPixels+"x"+readBackHeightInPixels);
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: offscreenImage "+offscreenImage.getWidth()+"x"+offscreenImage.getHeight());
           }
@@ -1101,7 +1104,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         } else {
             gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, glFormat, glType, readBackInts);
             
-            if ( flippedVertical ) {
+            if ( flipVertical ) {
                 // Copy temporary data into raster of BufferedImage for faster
                 // blitting Note that we could avoid this copy in the cases
                 // where !offscreenContext.offscreenImageNeedsVerticalFlip(),
@@ -1641,28 +1644,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                         System.err.println("-- Created External Drawable: "+joglDrawable);
                         System.err.println("-- Created Context: "+joglContext);
                     }
-                  } else if (factory.canCreateContextOnJava2DSurface(device)) {
-                    // Mac OS X code path
-                    joglContext = factory.createContextOnJava2DSurface(g, j2dContext);
-                    if (DEBUG) {
-                        System.err.println("-- Created Context: "+joglContext);
-                    }
                   }
-                  /*if (DEBUG) {
-                    joglContext.setGL(new DebugGL2(joglContext.getGL().getGL2()));
-                  }*/
-
                   if (Java2D.isFBOEnabled() &&
                       Java2D.getOGLSurfaceType(g) == Java2D.FBOBJECT &&
                       fbObjectWorkarounds) {
                     createNewDepthBuffer = true;
                   }
                 }
-                if (joglContext instanceof Java2DGLContext) {
-                  // Mac OS X code path
-                  ((Java2DGLContext) joglContext).setGraphics(g);
-                }
-
                 helper.invokeGL(joglDrawable, joglContext, updaterDisplayAction, updaterInitAction);
               }
             } finally {

@@ -1766,11 +1766,6 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   @Override
-  public boolean isGLOrientationFlippedVertical() {
-      return true;
-  }
-
-  @Override
   public int getDefaultPixelDataType() {
       if(!pixelDataTypeEvaluated) {
           synchronized(this) {
@@ -1804,6 +1799,8 @@ public abstract class GLContextImpl extends GLContext {
         pixelDataFormat=GL.GL_RGBA;
         pixelDataType = GL.GL_UNSIGNED_BYTE;
     }            
+    // TODO: Consider:
+    // return gl.isGL2GL3()?GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV:GL.GL_UNSIGNED_SHORT_5_5_5_1;
   }
 
   //----------------------------------------------------------------------

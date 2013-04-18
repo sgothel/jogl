@@ -225,17 +225,6 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
           res.put(idx++, GLX.GLX_SAMPLES);
           res.put(idx++, caps.getNumSamples());
         }
-        if (caps.isPBuffer()) {
-          if (caps.getPbufferFloatingPointBuffers()) {
-            String glXExtensions = GLX.glXQueryExtensionsString(display, screen);
-            if (glXExtensions == null ||
-                glXExtensions.indexOf("GLX_NV_float_buffer") < 0) {
-              throw new GLException("Floating-point pbuffers on X11 currently require NVidia hardware: "+glXExtensions);
-            }
-            res.put(idx++, GLXExt.GLX_FLOAT_COMPONENTS_NV);
-            res.put(idx++, GL.GL_TRUE);
-          }
-        }
         res.put(idx++, 0);
         return res;
   }
@@ -341,10 +330,6 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     res.setDepthBits     (glXGetFBConfig(display, fbcfg, GLX.GLX_DEPTH_SIZE,       tmp));
     res.setStencilBits   (glXGetFBConfig(display, fbcfg, GLX.GLX_STENCIL_SIZE,     tmp));
     
-    try { 
-        res.setPbufferFloatingPointBuffers(glXGetFBConfig(display, fbcfg, GLXExt.GLX_FLOAT_COMPONENTS_NV, tmp) != GL.GL_FALSE);
-    } catch (Exception e) {}
-
     return (X11GLCapabilities) GLGraphicsConfigurationUtil.fixWinAttribBitsAndHwAccel(device, drawableTypeBits, res); 
   }
 

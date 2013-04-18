@@ -405,17 +405,6 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
     throw new GLException("Not yet implemented");
   }
 
-  @Override
-  public boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {
-    return false;
-  }
-
-  @Override
-  public GLContext createContextOnJava2DSurface(Object graphics, GLContext shareWith)
-    throws GLException {
-    throw new GLException("not supported in non AWT enviroment");
-  }
-
   //------------------------------------------------------
   // Gamma-related functionality
   //

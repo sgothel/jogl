@@ -32,9 +32,7 @@ import java.nio.IntBuffer;
 
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
-import jogamp.opengl.GLGraphicsConfigurationUtil;
 
-import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
@@ -161,17 +159,11 @@ public class WGLGLCapabilities extends GLCapabilities {
                   }
 
                   if (res == WGLExt.WGL_TYPE_RGBA_FLOAT_ARB) {
-                      setPbufferFloatingPointBuffers(true);
+                      return false; // not supported
                   }
 
                   // normal RGBA FB: WGLExt.WGL_TYPE_RGBA_ARB
                   // ignore unknown results here
-                  break;
-
-              case WGLExt.WGL_FLOAT_COMPONENTS_NV:
-                  if (res != 0) {
-                      setPbufferFloatingPointBuffers(true);
-                  }
                   break;
 
               case WGLExt.WGL_RED_BITS_ARB:

@@ -617,17 +617,6 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     return detail;
   }
 
-  @Override
-  public final boolean canCreateContextOnJava2DSurface(AbstractGraphicsDevice device) {
-    return false;
-  }
-
-  @Override
-  public final GLContext createContextOnJava2DSurface(Object graphics, GLContext shareWith)
-    throws GLException {
-    throw new GLException("Unimplemented on this platform");
-  }
-
   //------------------------------------------------------
   // Gamma-related functionality
   //

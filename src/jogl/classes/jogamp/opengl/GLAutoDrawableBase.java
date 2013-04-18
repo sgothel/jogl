@@ -655,6 +655,12 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
     }
 
     @Override
+    public boolean isGLOriented() {
+        final GLDrawable _drawable = drawable;
+        return null != _drawable ? _drawable.isGLOriented() : true;
+    }
+  
+    @Override
     public final GLCapabilitiesImmutable getChosenGLCapabilities() {
         final GLDrawable _drawable = drawable;
         return null != _drawable ? _drawable.getChosenGLCapabilities() : null;

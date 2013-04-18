@@ -46,15 +46,12 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.MutableSurface;
-import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
 import javax.media.opengl.GLException;
-import javax.media.opengl.GLPbuffer;
 
 import com.jogamp.common.nio.Buffers;
 
-@SuppressWarnings("deprecation")
 public class X11PbufferGLXDrawable extends X11GLXDrawable {
   protected X11PbufferGLXDrawable(GLDrawableFactory factory, NativeSurface target) {
                                   /* GLCapabilities caps,
@@ -74,7 +71,7 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
 
   @Override
   public GLContext createContext(GLContext shareWith) {
-    return new X11PbufferGLXContext(this, shareWith);
+    return new X11GLXContext(this, shareWith);
   }
 
   protected void destroyPbuffer() {
@@ -103,16 +100,6 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
         throw new GLException("Null display");
       }
 
-      GLCapabilitiesImmutable chosenCaps = (GLCapabilitiesImmutable)config.getChosenCapabilities();
-
-      if (chosenCaps.getPbufferRenderToTexture()) {
-        throw new GLException("Render-to-texture pbuffers not supported yet on X11");
-      }
-
-      if (chosenCaps.getPbufferRenderToTextureRectangle()) {
-        throw new GLException("Render-to-texture-rectangle pbuffers not supported yet on X11");
-      }
-
       // Create the p-buffer.
       int niattribs = 0;
       IntBuffer iattributes = Buffers.newDirectIntBuffer(7);
@@ -137,10 +124,5 @@ public class X11PbufferGLXDrawable extends X11GLXDrawable {
       if (DEBUG) {
         System.err.println(getThreadName()+": Created pbuffer " + this);
       }
-  }
-
-  public int getFloatingPointMode() {
-    // Floating-point pbuffers currently require NVidia hardware on X11
-    return GLPbuffer.NV_FLOAT;
   }
 }

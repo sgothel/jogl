@@ -47,7 +47,6 @@ import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.MutableSurface;
-import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawableFactory;
@@ -60,14 +59,11 @@ import jogamp.nativewindow.windows.GDI;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 import jogamp.opengl.windows.wgl.WindowsWGLDrawableFactory.SharedResource;
-// import javax.media.opengl.GLPbuffer;
 
 public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
   private WGLExt cachedWGLExt; // cached WGLExt instance from parent GLCanvas,
                                // needed to destroy pbuffer
   private long buffer; // pbuffer handle
-
-  private int floatMode;
 
   protected WindowsPbufferWGLDrawable(GLDrawableFactory factory, NativeSurface target) {
     super(factory, target, false);
@@ -84,7 +80,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
   @Override
   public GLContext createContext(GLContext shareWith) {
-    return new WindowsPbufferWGLContext(this, shareWith);
+    return new WindowsWGLContext(this, shareWith);
   }
 
   protected void destroyPbuffer() {
@@ -113,10 +109,6 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
     // is the derived DC, set in the NativeSurface surfaceHandle
     // returned by getHandle().
     return buffer;
-  }
-
-  public int getFloatingPointMode() {
-    return floatMode;
   }
 
   private void createPbuffer() {
@@ -155,17 +147,6 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
           throw new GLException("Pbuffer-related extensions not supported");
         }
 
-        floatMode = floatModeTmp[0];
-        boolean rtt      = chosenCaps.getPbufferRenderToTexture();
-        boolean rect     = chosenCaps.getPbufferRenderToTextureRectangle();
-        boolean useFloat = chosenCaps.getPbufferFloatingPointBuffers();
-        // boolean ati      = false;
-
-        /**
-        if (useFloat) {
-          ati = (floatMode == GLPbuffer.ATI_FLOAT);
-        } */
-
         final IntBuffer pformats = Buffers.newDirectIntBuffer(WindowsWGLGraphicsConfiguration.MAX_PFORMATS);
         final IntBuffer nformatsTmp = Buffers.newDirectIntBuffer(1);
         if (!wglExt.wglChoosePixelFormatARB(sharedHdc,
@@ -197,24 +178,6 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
               // Create the p-buffer.
               niattribs = 0;
-
-              if (rtt) {
-                iattributes.put(niattribs++, WGLExt.WGL_TEXTURE_FORMAT_ARB);
-                if (useFloat) {
-                  iattributes.put(niattribs++, WGLExt.WGL_TEXTURE_FLOAT_RGB_NV);
-                } else {
-                  iattributes.put(niattribs++, WGLExt.WGL_TEXTURE_RGBA_ARB);
-                }
-
-                iattributes.put(niattribs++, WGLExt.WGL_TEXTURE_TARGET_ARB);
-                iattributes.put(niattribs++, rect ? WGLExt.WGL_TEXTURE_RECTANGLE_NV : WGLExt.WGL_TEXTURE_2D_ARB);
-
-                iattributes.put(niattribs++, WGLExt.WGL_MIPMAP_TEXTURE_ARB);
-                iattributes.put(niattribs++, GL.GL_FALSE);
-
-                iattributes.put(niattribs++, WGLExt.WGL_PBUFFER_LARGEST_ARB); // exact
-                iattributes.put(niattribs++, GL.GL_FALSE);
-              }
 
               iattributes.put(niattribs++, 0);
 

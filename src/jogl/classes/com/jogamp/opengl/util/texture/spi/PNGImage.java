@@ -53,20 +53,39 @@ import com.jogamp.common.util.IOUtil;
 public class PNGImage {
     private static final boolean DEBUG = Debug.debug("PNGImage");    
     
-    /** Creates a PNGImage from data supplied by the end user. Shares
-        data with the passed ByteBuffer. Assumes the data is already in
-        the correct byte order for writing to disk, i.e., LUMINANCE, RGB or RGBA bottom-to-top (OpenGL coord). */
+    /**
+     * Creates a PNGImage from data supplied by the end user. Shares
+     * data with the passed ByteBuffer. Assumes the data is already in
+     * the correct byte order for writing to disk, i.e., LUMINANCE, RGB or RGBA.
+     * Orientation is <i>bottom-to-top</i> (OpenGL coord. default)
+     * or <i>top-to-bottom</i> depending on <code>isGLOriented</code>.
+     * 
+     * @param width
+     * @param height
+     * @param dpiX
+     * @param dpiY
+     * @param bytesPerPixel
+     * @param reversedChannels
+     * @param isGLOriented see {@link #isGLOriented()}.
+     * @param data
+     * @return
+     */
     public static PNGImage createFromData(int width, int height, double dpiX, double dpiY,
-                                          int bytesPerPixel, boolean reversedChannels, ByteBuffer data) {
-        return new PNGImage(width, height, dpiX, dpiY, bytesPerPixel, reversedChannels, data);
+                                          int bytesPerPixel, boolean reversedChannels, boolean isGLOriented, ByteBuffer data) {
+        return new PNGImage(width, height, dpiX, dpiY, bytesPerPixel, reversedChannels, isGLOriented, data);
     }
     
-    /** Reads a PNG image from the specified InputStream. */
+    /** 
+     * Reads a PNG image from the specified InputStream.
+     * <p>
+     * Implicitly flip image to GL orientation, see {@link #isGLOriented()}.
+     * </p> 
+     */
     public static PNGImage read(InputStream in) throws IOException {
         return new PNGImage(in);
     }
     
-    /** Reverse read and store, implicitly flip image to GL coords. */
+    /** Reverse read and store, implicitly flip image to GL orientation, see {@link #isGLOriented()}. */
     private static final int getPixelRGBA8(ByteBuffer d, int dOff, int[] scanline, int lineOff, boolean hasAlpha) {
     	if(hasAlpha) {
             d.put(dOff--, (byte)scanline[lineOff + 3]); // A
@@ -76,27 +95,28 @@ public class PNGImage {
         d.put(dOff--, (byte)scanline[lineOff    ]); // R
         return dOff;
     }
-    /** Reverse read and store, implicitly flip image from GL coords. Handle reversed channels (BGR[A])*/
-    private static int setPixelRGBA8(ImageLine line, int lineOff, ByteBuffer d, int dOff, boolean hasAlpha, boolean reversedChannels) {
-        if(reversedChannels) {
-            line.scanline[lineOff    ] = d.get(dOff--); // R, A
-            line.scanline[lineOff + 1] = d.get(dOff--); // G, B
-            line.scanline[lineOff + 2] = d.get(dOff--); // B, G
+    
+    /** Reverse write and store, implicitly flip image from current orientation, see {@link #isGLOriented()}. Handle reversed channels (BGR[A]). */
+    private int setPixelRGBA8(ImageLine line, int lineOff, ByteBuffer d, int dOff, boolean hasAlpha) {
+        if( reversedChannels ) {
             if(hasAlpha) {
-                line.scanline[lineOff + 3] = d.get(dOff--);// R
+                line.scanline[lineOff + 3] = d.get(dOff++); // A
             }
+            line.scanline[lineOff + 2] = d.get(dOff++); // R
+            line.scanline[lineOff + 1] = d.get(dOff++); // G
+            line.scanline[lineOff    ] = d.get(dOff++); // B
         } else {
+            line.scanline[lineOff    ] = d.get(dOff++); // R
+            line.scanline[lineOff + 1] = d.get(dOff++); // G
+            line.scanline[lineOff + 2] = d.get(dOff++); // B
             if(hasAlpha) {
-                line.scanline[lineOff + 3] = d.get(dOff--); // A
+                line.scanline[lineOff + 3] = d.get(dOff++); // A
             }
-            line.scanline[lineOff + 2] = d.get(dOff--); // B
-            line.scanline[lineOff + 1] = d.get(dOff--); // G
-            line.scanline[lineOff    ] = d.get(dOff--); // R
         }
-        return dOff;
+        return isGLOriented ? dOff - bytesPerPixel - bytesPerPixel : dOff;
     }
 
-    private PNGImage(int width, int height, double dpiX, double dpiY, int bytesPerPixel, boolean reversedChannels, ByteBuffer data) {
+    private PNGImage(int width, int height, double dpiX, double dpiY, int bytesPerPixel, boolean reversedChannels, boolean isGLOriented, ByteBuffer data) {
         pixelWidth=width;
         pixelHeight=height;
         dpi = new double[] { dpiX, dpiY };
@@ -109,6 +129,7 @@ public class PNGImage {
         }
         this.bytesPerPixel = bytesPerPixel;
         this.reversedChannels = reversedChannels;
+        this.isGLOriented = isGLOriented;
         this.data = data;        
     }
     
@@ -162,13 +183,14 @@ public class PNGImage {
         
         data = Buffers.newDirectByteBuffer(bytesPerPixel * pixelWidth * pixelHeight);
         reversedChannels = false; // RGB[A]
+        isGLOriented = true;
         int dataOff = bytesPerPixel * pixelWidth * pixelHeight - 1; // start at end-of-buffer, reverse store
 
         int[] rgbaScanline = indexed ? new int[imgInfo.cols * channels] : null;
         
         for (int row = 0; row < pixelHeight; row++) {
             final ImageLine l1 = pngr.readRow(row);
-            int lineOff = ( pixelWidth - 1 ) * bytesPerPixel ;      // start w/ last pixel in line, reverse read
+            int lineOff = ( pixelWidth - 1 ) * bytesPerPixel ; // start w/ last pixel in line, reverse read (PNG top-left -> OpenGL bottom-left origin)
             if( indexed ) {
                 for (int j = pixelWidth - 1; j >= 0; j--) {
                     rgbaScanline = ImageLineHelper.palette2rgb(l1, plte, trns, rgbaScanline); // reuse rgbaScanline and update if resized
@@ -189,7 +211,8 @@ public class PNGImage {
         pngr.end();
     }
     private final int pixelWidth, pixelHeight, glFormat, bytesPerPixel;
-    private boolean reversedChannels;
+    private final boolean reversedChannels;
+    private final boolean isGLOriented;
     private final double[] dpi;
     private final ByteBuffer data;
     
@@ -201,6 +224,16 @@ public class PNGImage {
 
     /** Returns true if data has the channels reversed to BGR or BGRA, otherwise RGB or RGBA is expected. */
     public boolean getHasReversedChannels() { return reversedChannels; }
+    
+    /**
+     * Returns <code>true</code> if the drawable is rendered in 
+     * OpenGL's coordinate system, <i>origin at bottom left</i>.
+     * Otherwise returns <code>false</code>, i.e. <i>origin at top left</i>.
+     * <p>
+     * Default impl. is <code>true</code>, i.e. OpenGL coordinate system.
+     * </p> 
+     */
+    public boolean isGLOriented() { return isGLOriented; }
     
     /** Returns the dpi of the image. */
     public double[] getDpi() { return dpi; }
@@ -231,20 +264,40 @@ public class PNGImage {
             // png.getMetadata().setText("my key", "my text");
             final boolean hasAlpha = 4 == bytesPerPixel;
             final ImageLine l1 = new ImageLine(imi);
-            int dataOff = bytesPerPixel * pixelWidth * pixelHeight - 1; // start at end-of-buffer, reverse read
-            for (int row = 0; row < pixelHeight; row++) {
-                int lineOff = ( pixelWidth - 1 ) * bytesPerPixel ;      // start w/ last pixel in line, reverse store
-                if(1 == bytesPerPixel) {
-                    for (int j = pixelWidth - 1; j >= 0; j--) {
-                        l1.scanline[lineOff--] = data.get(dataOff--); // // Luminance, 1 bytesPerPixel
+            if( isGLOriented ) {
+                // start at last pixel at end-of-buffer, reverse read (OpenGL bottom-left -> PNG top-left origin)
+                int dataOff = ( pixelWidth * bytesPerPixel * ( pixelHeight - 1 ) ) + // full lines - 1 line 
+                              ( ( pixelWidth - 1 ) * bytesPerPixel );                // one line - 1 pixel
+                for (int row = 0; row < pixelHeight; row++) {
+                    int lineOff = ( pixelWidth - 1 ) * bytesPerPixel ; // start w/ last pixel in line, reverse store (OpenGL bottom-left -> PNG top-left origin)
+                    if(1 == bytesPerPixel) {
+                        for (int j = pixelWidth - 1; j >= 0; j--) {
+                            l1.scanline[lineOff--] = data.get(dataOff--); // // Luminance, 1 bytesPerPixel
+                        }
+                    } else {
+                        for (int j = pixelWidth - 1; j >= 0; j--) {
+                            dataOff = setPixelRGBA8(l1, lineOff, data, dataOff, hasAlpha);
+                            lineOff -= bytesPerPixel;
+                        }
                     }
-                } else {
-                    for (int j = pixelWidth - 1; j >= 0; j--) {
-                        dataOff = setPixelRGBA8(l1, lineOff, data, dataOff, hasAlpha, reversedChannels);
-                        lineOff -= bytesPerPixel;
-                    }
+                    png.writeRow(l1, row);
                 }
-                png.writeRow(l1, row);
+            } else {
+                int dataOff = 0; // start at first pixel at start-of-buffer, normal read (same origin: top-left)
+                for (int row = 0; row < pixelHeight; row++) {
+                    int lineOff = 0; // start w/ first pixel in line, normal store (same origin: top-left)
+                    if(1 == bytesPerPixel) {
+                        for (int j = pixelWidth - 1; j >= 0; j--) {
+                            l1.scanline[lineOff++] = data.get(dataOff++); // // Luminance, 1 bytesPerPixel
+                        }
+                    } else {
+                        for (int j = pixelWidth - 1; j >= 0; j--) {
+                            dataOff = setPixelRGBA8(l1, lineOff, data, dataOff, hasAlpha);
+                            lineOff += bytesPerPixel;
+                        }
+                    }
+                    png.writeRow(l1, row);
+                }                
             }
             png.end();
         } finally {

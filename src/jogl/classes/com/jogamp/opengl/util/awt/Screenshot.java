@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2013 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -43,17 +44,24 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import javax.imageio.ImageIO;
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
+import javax.media.opengl.GL2GL3;
+import javax.media.opengl.GLContext;
+import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLException;
-import javax.media.opengl.glu.gl2.GLUgl2;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.TGAWriter;
 
-/** Utilities for taking screenshots of OpenGL applications. */
-
+/** 
+ * Utilities for taking screenshots of OpenGL applications.
+ * @deprecated Please consider using {@link com.jogamp.opengl.util.GLReadBufferUtil}, 
+ *             which is AWT independent and does not require a CPU based vertical image flip 
+ *             in case drawable {@link GLDrawable#isGLOriented() is in OpenGL orientation}.
+ */
 public class Screenshot {
   private Screenshot() {}
 
@@ -149,17 +157,17 @@ public class Screenshot {
     writer.open(file, width, height, alpha);
     ByteBuffer bgr = writer.getImageData();
 
-    GL2 gl = GLUgl2.getCurrentGL2();
+    GL gl = GLContext.getCurrentGL();
 
     // Set up pixel storage modes
     GLPixelStorageModes psm = new GLPixelStorageModes();
     psm.setPackAlignment(gl, 1);
 
-    int readbackType = (alpha ? GL2.GL_ABGR_EXT : GL2.GL_BGR);
+    int readbackType = (alpha ? GL2.GL_ABGR_EXT : GL2GL3.GL_BGR);
 
     // read the BGR values into the image buffer
     gl.glReadPixels(x, y, width, height, readbackType,
-                    GL2.GL_UNSIGNED_BYTE, bgr);
+                    GL.GL_UNSIGNED_BYTE, bgr);
 
     // Restore pixel storage modes
     psm.restore(gl);
@@ -247,7 +255,7 @@ public class Screenshot {
                                                   int height,
                                                   boolean alpha) throws GLException {
     int bufImgType = (alpha ? BufferedImage.TYPE_4BYTE_ABGR : BufferedImage.TYPE_3BYTE_BGR);
-    int readbackType = (alpha ? GL2.GL_ABGR_EXT : GL2.GL_BGR);
+    int readbackType = (alpha ? GL2.GL_ABGR_EXT : GL2GL3.GL_BGR);
 
     if (alpha) {
       checkExtABGR();
@@ -256,7 +264,8 @@ public class Screenshot {
     // Allocate necessary storage
     BufferedImage image = new BufferedImage(width, height, bufImgType);
 
-    GL2 gl = GLUgl2.getCurrentGL2();
+    GLContext glc = GLContext.getCurrent();
+    GL gl = glc.getGL();
 
     // Set up pixel storage modes
     GLPixelStorageModes psm = new GLPixelStorageModes();
@@ -264,14 +273,16 @@ public class Screenshot {
 
     // read the BGR values into the image
     gl.glReadPixels(x, y, width, height, readbackType,
-                    GL2.GL_UNSIGNED_BYTE,
+                    GL.GL_UNSIGNED_BYTE,
                     ByteBuffer.wrap(((DataBufferByte) image.getRaster().getDataBuffer()).getData()));
 
     // Restore pixel storage modes
     psm.restore(gl);
 
-    // Must flip BufferedImage vertically for correct results
-    ImageUtil.flipImageVertically(image);
+    if( glc.getGLDrawable().isGLOriented() ) {
+        // Must flip BufferedImage vertically for correct results
+        ImageUtil.flipImageVertically(image);
+    }
     return image;
   }
 
@@ -392,7 +403,8 @@ public class Screenshot {
   }
 
   private static void checkExtABGR() {
-    GL2 gl = GLUgl2.getCurrentGL2();
+    GL gl = GLContext.getCurrentGL();
+
     if (!gl.isExtensionAvailable(GLExtensions.EXT_abgr)) {
       throw new IllegalArgumentException("Saving alpha channel requires GL_EXT_abgr");
     }

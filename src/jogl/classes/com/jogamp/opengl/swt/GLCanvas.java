@@ -589,6 +589,12 @@ public class GLCanvas extends Canvas implements GLAutoDrawable {
    }
 
    @Override
+   public boolean isGLOriented() {
+      final GLDrawable _drawable = drawable;
+      return null != _drawable ? _drawable.isGLOriented() : true;
+   }
+    
+   @Override
    public void addGLEventListener(final GLEventListener listener) {
       helper.addGLEventListener(listener);
    }

@@ -540,15 +540,4 @@ public class WindowsWGLContext extends GLContextImpl {
   public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
     return getWGLExt().wglAllocateMemoryNV(arg0, arg1, arg2, arg3);
   }
-
-  @Override
-  public void bindPbufferToTexture() {
-    throw new GLException("Should not call this");
-  }
-
-  @Override
-  public void releasePbufferFromTexture() {
-    throw new GLException("Should not call this");
-  }
-
 }

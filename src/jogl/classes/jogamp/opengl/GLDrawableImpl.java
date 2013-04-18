@@ -283,6 +283,11 @@ public abstract class GLDrawableImpl implements GLDrawable {
     return surface.getHeight();
   }
 
+  @Override
+  public boolean isGLOriented() {
+      return true;      
+  }
+  
   /** 
    * {@link NativeSurface#lockSurface() Locks} the underlying windowing toolkit's {@link NativeSurface surface}.
    * <p>

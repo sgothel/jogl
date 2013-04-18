@@ -887,6 +887,12 @@ public class GLCanvas extends Canvas implements AWTGLAutoDrawable, WindowClosing
   }
 
   @Override
+  public boolean isGLOriented() {
+    final GLDrawable _drawable = drawable;
+    return null != _drawable ? _drawable.isGLOriented() : true;
+  }
+  
+  @Override
   public NativeSurface getNativeSurface() {
     final GLDrawable _drawable = drawable;
     return (null != _drawable) ? _drawable.getNativeSurface() : null;
