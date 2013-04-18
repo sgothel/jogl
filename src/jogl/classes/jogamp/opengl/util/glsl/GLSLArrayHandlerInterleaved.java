@@ -72,7 +72,7 @@ public class GLSLArrayHandlerInterleaved extends GLVBOArrayHandler implements GL
             throw new InternalError("Interleaved handle is not VBO: "+ad);
         }
         bindBuffer(gl, true);
-        // sub data will decide weather to update the vertex attrib pointer
+        // sub data will decide whether to update the vertex attrib pointer
         syncSubData(gl, ext);
         bindBuffer(gl, false);
     }

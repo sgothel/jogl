@@ -111,7 +111,7 @@ public class GLReadBufferUtil {
      * 
      * @param gl the current GL context object. It's read drawable is being used as the pixel source.
      * @param drawable the drawable to read from
-     * @param mustFlipVertically indicates weather to flip the data vertically or not.
+     * @param mustFlipVertically indicates whether to flip the data vertically or not.
      *                           The context's drawable {@link GLDrawable#isGLOriented()} state
      *                           is taken into account.
      *                           Vertical flipping is propagated to TextureData
