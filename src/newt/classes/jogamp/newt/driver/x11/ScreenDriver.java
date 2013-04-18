@@ -43,10 +43,10 @@ import jogamp.newt.DisplayImpl;
 import jogamp.newt.DisplayImpl.DisplayRunnable;
 import jogamp.newt.ScreenImpl;
 
+import com.jogamp.common.util.VersionNumber;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
 import com.jogamp.newt.ScreenMode;
-import com.jogamp.newt.util.ScreenModeUtil;
 
 public class ScreenDriver extends ScreenImpl {
 
@@ -65,172 +65,63 @@ public class ScreenDriver extends ScreenImpl {
             } } );        
         if (handle.longValue() == 0) {
             throw new RuntimeException("Error creating screen: " + screen_idx);
-        }        
-        aScreen = new X11GraphicsScreen((X11GraphicsDevice) getDisplay().getGraphicsDevice(), screen_idx);
+        }
+        final X11GraphicsDevice x11dev = (X11GraphicsDevice) getDisplay().getGraphicsDevice();        
+        final long dpy = x11dev.getHandle(); 
+        aScreen = new X11GraphicsScreen(x11dev, screen_idx);
+        {
+            int v[] = getRandRVersion0(dpy);
+            randrVersion = new VersionNumber(v[0], v[1], 0);
+        }
+        System.err.println("RandR "+randrVersion);
+        if( !randrVersion.isZero() ) {
+            screenRandR = new ScreenRandR11();
+        } else {
+            screenRandR = null;
+        }
     }
 
     protected void closeNativeImpl() {
     }
 
-    private int[] nrotations;
-    private int nrotation_index;
-    private int nres_number;
-    private int nres_index;
-    private int[] nrates;
-    private int nrate_index;
-    private int nmode_number;
-
+    private VersionNumber randrVersion;
+    private ScreenRandR screenRandR;
+    
+    @Override
     protected int[] getScreenModeFirstImpl() {
+        if( null == screenRandR ) { return null; }
+        
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<int[]>() {
             public int[] run(long dpy) {
-                // initialize iterators and static data
-                nrotations = getAvailableScreenModeRotations0(dpy, screen_idx);
-                if(null==nrotations || 0==nrotations.length) {
-                    return null;
-                }
-                nrotation_index = 0;
-        
-                nres_number = getNumScreenModeResolutions0(dpy, screen_idx);
-                if(0==nres_number) {
-                    return null;
-                }
-                nres_index = 0;
-        
-                nrates = getScreenModeRates0(dpy, screen_idx, nres_index);
-                if(null==nrates || 0==nrates.length) {
-                    return null;
-                }
-                nrate_index = 0;
-        
-                nmode_number = 0;
-        
-                return getScreenModeNextImpl();
+                return screenRandR.getScreenModeFirstImpl(dpy, screen_idx);
             } } );
     }
 
+    @Override
     protected int[] getScreenModeNextImpl() {
+        if( null == screenRandR ) { return null; }
+        
         // assemble: w x h x bpp x f x r        
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<int[]>() {
             public int[] run(long dpy) {
-                /**
-                System.err.println("******** mode: "+nmode_number);
-                System.err.println("rot  "+nrotation_index);
-                System.err.println("rate "+nrate_index);
-                System.err.println("res  "+nres_index); */
-        
-                int[] res = getScreenModeResolution0(dpy, screen_idx, nres_index);
-                if(null==res || 0==res.length) {
-                    return null;
-                }
-                if(0>=res[0] || 0>=res[1]) {
-                    throw new InternalError("invalid resolution: "+res[0]+"x"+res[1]+" for res idx "+nres_index+"/"+nres_number);
-                }
-                int rate = nrates[nrate_index];
-                if(0>=rate) {
-                    rate = default_sm_rate;
-                    if(DEBUG) {
-                        System.err.println("Invalid rate: "+rate+" at index "+nrate_index+"/"+nrates.length+", using default: "+default_sm_rate);
-                    }
-                }
-                int rotation = nrotations[nrotation_index];
-        
-                int[] props = new int[ 1 + ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL ];
-                int i = 0;
-                props[i++] = nres_index; // use resolution index, not unique for native -> ScreenMode
-                props[i++] = 0; // set later for verification of iterator
-                props[i++] = res[0]; // width
-                props[i++] = res[1]; // height
-                props[i++] = default_sm_bpp; // FIXME
-                props[i++] = res[2]; // widthmm
-                props[i++] = res[3]; // heightmm
-                props[i++] = rate;   // rate
-                props[i++] = rotation;
-                props[i - ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL] = i - 1; // count without extra element
-        
-                nmode_number++;
-        
-                // iteration: r -> f -> bpp -> [w x h]
-                nrotation_index++;
-                if(nrotation_index == nrotations.length) {
-                    nrotation_index=0;
-                    nrate_index++;
-                    if(null == nrates || nrate_index == nrates.length){
-                        nres_index++;
-                        if(nres_index == nres_number) {
-                            // done
-                            nrates=null;
-                            nrotations=null;
-                            return null;
-                        }
-        
-                        nrates = getScreenModeRates0(dpy, screen_idx, nres_index);
-                        if(null==nrates || 0==nrates.length) {
-                            return null;
-                        }
-                        nrate_index = 0;
-                    }
-                }
-        
-                return props;
+                return screenRandR.getScreenModeNextImpl(dpy, screen_idx);
             } } );
     }
 
+    @Override
     protected ScreenMode getCurrentScreenModeImpl() {
+        if( null == screenRandR ) { return null; }
+        
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<ScreenMode>() {
             public ScreenMode run(long dpy) {
-                long screenConfigHandle = getScreenConfiguration0(dpy, screen_idx);
-                if(0 == screenConfigHandle) {
-                    return null;
-                }
-                int[] res;
-                int rate, rot;
-                try {                
-                    int resNumber = getNumScreenModeResolutions0(dpy, screen_idx);
-                    if(0==resNumber) {
-                        return null;
-                    }
-    
-                    int resIdx = getCurrentScreenResolutionIndex0(screenConfigHandle);
-                    if(0>resIdx) {
-                        return null;
-                    }
-                    if(resIdx>=resNumber) {
-                        throw new RuntimeException("Invalid resolution index: ! "+resIdx+" < "+resNumber);
-                    }
-                    res = getScreenModeResolution0(dpy, screen_idx, resIdx);
-                    if(null==res || 0==res.length) {
-                        return null;
-                    }
-                    if(0>=res[0] || 0>=res[1]) {
-                        throw new InternalError("invalid resolution: "+res[0]+"x"+res[1]+" for res idx "+resIdx+"/"+resNumber);
-                    }
-                    rate = getCurrentScreenRate0(screenConfigHandle);
-                    if(0>rate) {
-                        return null;
-                    }
-                    rot = getCurrentScreenRotation0(screenConfigHandle);
-                    if(0>rot) {
-                        return null;
-                    }
-                } finally {
-                     freeScreenConfiguration0(screenConfigHandle);
-                }
-                int[] props = new int[ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL];
-                int i = 0;
-                props[i++] = 0; // set later for verification of iterator
-                props[i++] = res[0]; // width
-                props[i++] = res[1]; // height
-                props[i++] = default_sm_bpp; // FIXME
-                props[i++] = res[2]; // widthmm
-                props[i++] = res[3]; // heightmm
-                props[i++] = rate;   // rate
-                props[i++] = rot;
-                props[i - ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL] = i; // count
-                return ScreenModeUtil.streamIn(props, 0);
+                return screenRandR.getCurrentScreenModeImpl(dpy, screen_idx);
             } } );
     }
 
+    @Override
     protected boolean setCurrentScreenModeImpl(final ScreenMode screenMode) {
+        if( null == screenRandR ) { return false; }
+        
         final List<ScreenMode> screenModes = this.getScreenModesOrig();
         final int screenModeIdx = screenModes.indexOf(screenMode);
         if(0>screenModeIdx) {
@@ -239,33 +130,8 @@ public class ScreenDriver extends ScreenImpl {
         final long t0 = System.currentTimeMillis();
         boolean done = runWithTempDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
             public Boolean run(long dpy) {
-                boolean done = false;
-                long screenConfigHandle = getScreenConfiguration0(dpy, screen_idx);
-                if(0 == screenConfigHandle) {
-                    return Boolean.valueOf(done);
-                }
-                try {
-                    int resNumber = getNumScreenModeResolutions0(dpy, screen_idx);
-                    int resIdx = getScreenModesIdx2NativeIdx().get(screenModeIdx);
-                    if(0>resIdx || resIdx>=resNumber) {
-                        throw new RuntimeException("Invalid resolution index: ! 0 < "+resIdx+" < "+resNumber+", screenMode["+screenModeIdx+"] "+screenMode);
-                    }
-            
-                    final int f = screenMode.getMonitorMode().getRefreshRate();
-                    final int r = screenMode.getRotation();
-    
-                    if( setCurrentScreenModeStart0(dpy, screen_idx, screenConfigHandle, resIdx, f, r) ) {
-                        while(!done && System.currentTimeMillis()-t0 < SCREEN_MODE_CHANGE_TIMEOUT) {
-                            done = setCurrentScreenModePollEnd0(dpy, screen_idx, resIdx, f, r);
-                            if(!done) {
-                                try { Thread.sleep(10); } catch (InterruptedException e) { }
-                            }
-                        }
-                    }
-                } finally {
-                     freeScreenConfiguration0(screenConfigHandle);
-                }
-                return Boolean.valueOf(done);
+                final int resIdx = getScreenModesIdx2NativeIdx().get(screenModeIdx);
+                return Boolean.valueOf( screenRandR.setCurrentScreenModeImpl(dpy, screen_idx, screenMode, screenModeIdx, resIdx) );
             }            
         }).booleanValue();
         
@@ -328,25 +194,6 @@ public class ScreenDriver extends ScreenImpl {
     private static native int getWidth0(long display, int scrn_idx);
 
     private static native int getHeight0(long display, int scrn_idx);
-
-    /** @return int[] { rot1, .. } */
-    private static native int[] getAvailableScreenModeRotations0(long display, int screen_index);
-
-    private static native int getNumScreenModeResolutions0(long display, int screen_index);
-
-    /** @return int[] { width, height, widthmm, heightmm } */
-    private static native int[] getScreenModeResolution0(long display, int screen_index, int mode_index);
-
-    private static native int[] getScreenModeRates0(long display, int screen_index, int mode_index);
-
-    private static native long getScreenConfiguration0(long display, int screen_index);
-    private static native void freeScreenConfiguration0(long screenConfiguration);
     
-    private static native int getCurrentScreenResolutionIndex0(long screenConfiguration);
-    private static native int getCurrentScreenRate0(long screenConfiguration);
-    private static native int getCurrentScreenRotation0(long screenConfiguration);
-
-    /** needs own Display connection for XRANDR event handling */
-    private static native boolean setCurrentScreenModeStart0(long display, int screen_index, long screenConfiguration, int mode_index, int freq, int rot);
-    private static native boolean setCurrentScreenModePollEnd0(long display, int screen_index, int mode_index, int freq, int rot);
+    private static native int[] getRandRVersion0(long display);
 }
