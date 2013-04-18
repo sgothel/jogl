@@ -610,7 +610,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         if( GLGraphicsConfigurationUtil.BITMAP_BIT == drawableTypeBits ) {
             // BITMAP exclusive PFD SafeGuard: Only accept BITMAP compatible color formats!
             final int pfdColorBits = pfd.getCColorBits(); 
-            if ( pfdColorBits != 24 || pfd.getCRedBits() < pfd.getCAlphaBits() ) { // Allowed: RGB888 && alpha <= red
+            if ( pfdColorBits != 24 || 0 < pfd.getCAlphaBits() ) { // Allowed: RGB888 && !alpha
                 if(DEBUG) {
                     System.err.println("Drop [color bits excl BITMAP]: " + WGLGLCapabilities.PFD2String(pfd, pfdID));
                 }

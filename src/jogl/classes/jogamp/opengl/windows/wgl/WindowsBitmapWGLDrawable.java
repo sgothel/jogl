@@ -91,7 +91,8 @@ public class WindowsBitmapWGLDrawable extends WindowsWGLDrawable {
     final GLCapabilitiesImmutable capsChosen;
     {
         final GLCapabilitiesImmutable capsChosen0 = (GLCapabilitiesImmutable)config.getChosenCapabilities();
-        capsChosen = GLGraphicsConfigurationUtil.clipRGBAGLCapabilities(capsChosen0, false /* allowRGB555 */);
+        // RGB555 and also alpha channel is experienced to fail on some Windows machines
+        capsChosen = GLGraphicsConfigurationUtil.clipRGBAGLCapabilities(capsChosen0, false /* allowRGB555 */, false /* allowAlpha */);
         if( capsChosen0 != capsChosen ) {
             config.setChosenCapabilities(capsChosen);
             if(DEBUG) {

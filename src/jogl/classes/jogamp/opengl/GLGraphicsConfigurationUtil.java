@@ -287,7 +287,7 @@ public class GLGraphicsConfigurationUtil {
         return capsRequested;
     }
     
-    public static GLCapabilitiesImmutable clipRGBAGLCapabilities(GLCapabilitiesImmutable caps, boolean allowRGB555)
+    public static GLCapabilitiesImmutable clipRGBAGLCapabilities(GLCapabilitiesImmutable caps, boolean allowRGB555, boolean allowAlpha)
     {
         final int iR = caps.getRedBits();
         final int iG = caps.getGreenBits();
@@ -296,7 +296,7 @@ public class GLGraphicsConfigurationUtil {
         final int oR = clipColor(iR, allowRGB555);
         final int oG = clipColor(iG, allowRGB555);
         final int oB = clipColor(iB, allowRGB555);
-        final int oA = 0 < iA ? oR : 0 ; // align alpha to red if requested 
+        final int oA = ( allowAlpha && 0 < iA ) ? oR : 0 ; // align alpha to red if requested and allowed
         if( iR != oR || iG != oG || iB != oB || iA != oA ) {
             final GLCapabilities caps2 = (GLCapabilities) caps.cloneMutable();
             caps2.setRedBits(oR);
