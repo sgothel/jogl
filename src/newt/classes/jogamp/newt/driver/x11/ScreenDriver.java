@@ -73,11 +73,13 @@ public class ScreenDriver extends ScreenImpl {
             int v[] = getRandRVersion0(dpy);
             randrVersion = new VersionNumber(v[0], v[1], 0);
         }
-        System.err.println("RandR "+randrVersion);
+        if( DEBUG ) {
+            System.err.println("RandR "+randrVersion);
+        }
         if( !randrVersion.isZero() ) {
-            screenRandR = new ScreenRandR11();
+            rAndR = new RandR11();
         } else {
-            screenRandR = null;
+            rAndR = null;
         }
     }
 
@@ -85,42 +87,42 @@ public class ScreenDriver extends ScreenImpl {
     }
 
     private VersionNumber randrVersion;
-    private ScreenRandR screenRandR;
+    private RandR rAndR;
     
     @Override
     protected int[] getScreenModeFirstImpl() {
-        if( null == screenRandR ) { return null; }
+        if( null == rAndR ) { return null; }
         
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<int[]>() {
             public int[] run(long dpy) {
-                return screenRandR.getScreenModeFirstImpl(dpy, screen_idx);
+                return rAndR.getScreenModeFirstImpl(dpy, screen_idx);
             } } );
     }
 
     @Override
     protected int[] getScreenModeNextImpl() {
-        if( null == screenRandR ) { return null; }
+        if( null == rAndR ) { return null; }
         
         // assemble: w x h x bpp x f x r        
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<int[]>() {
             public int[] run(long dpy) {
-                return screenRandR.getScreenModeNextImpl(dpy, screen_idx);
+                return rAndR.getScreenModeNextImpl(dpy, screen_idx);
             } } );
     }
 
     @Override
     protected ScreenMode getCurrentScreenModeImpl() {
-        if( null == screenRandR ) { return null; }
+        if( null == rAndR ) { return null; }
         
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<ScreenMode>() {
             public ScreenMode run(long dpy) {
-                return screenRandR.getCurrentScreenModeImpl(dpy, screen_idx);
+                return rAndR.getCurrentScreenModeImpl(dpy, screen_idx);
             } } );
     }
 
     @Override
     protected boolean setCurrentScreenModeImpl(final ScreenMode screenMode) {
-        if( null == screenRandR ) { return false; }
+        if( null == rAndR ) { return false; }
         
         final List<ScreenMode> screenModes = this.getScreenModesOrig();
         final int screenModeIdx = screenModes.indexOf(screenMode);
@@ -131,7 +133,7 @@ public class ScreenDriver extends ScreenImpl {
         boolean done = runWithTempDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
             public Boolean run(long dpy) {
                 final int resIdx = getScreenModesIdx2NativeIdx().get(screenModeIdx);
-                return Boolean.valueOf( screenRandR.setCurrentScreenModeImpl(dpy, screen_idx, screenMode, screenModeIdx, resIdx) );
+                return Boolean.valueOf( rAndR.setCurrentScreenModeImpl(dpy, screen_idx, screenMode, screenModeIdx, resIdx) );
             }            
         }).booleanValue();
         

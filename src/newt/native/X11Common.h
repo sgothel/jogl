@@ -47,7 +47,8 @@
 
 #include "jogamp_newt_driver_x11_DisplayDriver.h"
 #include "jogamp_newt_driver_x11_ScreenDriver.h"
-#include "jogamp_newt_driver_x11_ScreenRandR11.h"
+#include "jogamp_newt_driver_x11_RandR11.h"
+#include "jogamp_newt_driver_x11_RandR13.h"
 #include "jogamp_newt_driver_x11_WindowDriver.h"
 
 #include "Window.h"

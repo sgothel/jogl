@@ -74,24 +74,6 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_ScreenDriver_getHeight0
     return (jint) DisplayHeight( dpy, scrn_idx);
 }
 
-static int showedRandRVersion = 0;
-
-Bool NewtScreen_getRANDRVersion(Display *dpy, int *major, int *minor) {
-    if( 0 == XRRQueryVersion(dpy, major, minor) ) {
-        return False;
-    }
-    if(0 == showedRandRVersion) {
-        DBG_PRINT("X11 RandR Version %d.%d\n", *major, *minor);
-        showedRandRVersion = 1;
-    }
-    return True;
-}
-
-Bool NewtScreen_hasRANDR(Display *dpy) {
-    int major, minor;
-    return NewtScreen_getRANDRVersion(dpy, &major, &minor);
-}
-
 int NewtScreen_XRotation2Degree(JNIEnv *env, int xrotation) {
     int rot;
     if(xrotation == RR_Rotate_0) {
@@ -121,8 +103,7 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_ScreenDriver_getRandRVer
 {
     Display * dpy = (Display *)(intptr_t)display;
     jint version[2];
-    Bool res = NewtScreen_getRANDRVersion(dpy, &version[0], &version[1]);
-    if( False == res ) {
+    if( 0 == XRRQueryVersion(dpy, &version[0], &version[1] ) ) {
         version[0] = 0;
         version[1] = 0;
     }
