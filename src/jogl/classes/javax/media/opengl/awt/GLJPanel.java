@@ -510,7 +510,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   
   @Override
   public GLContext createContext(GLContext shareWith) {
-    return (null != backend) ? backend.createContext(shareWith) : null;
+    Backend b = backend;
+    if (b == null)
+        return null;
+
+    return b.createContext(shareWith);
   }
 
   @Override
@@ -633,10 +637,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   
   @Override
   public GLCapabilitiesImmutable getChosenGLCapabilities() {
-    if(null != backend) {
-        return backend.getChosenGLCapabilities();
-    }
-    return null;
+    Backend b = backend;
+    if (b == null)
+        return null;
+    
+    return b.getChosenGLCapabilities();
   }
 
   @Override
@@ -833,8 +838,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
       @Override
       public void run() {
-          if( null != backend ) {
-              listener = helper.disposeGLEventListener(GLJPanel.this, backend.getDrawable(), backend.getContext(), listener, remove);
+          Backend b = backend;
+          if (null != b) {
+              listener = helper.disposeGLEventListener(GLJPanel.this, b.getDrawable(), b.getContext(), listener, remove);
           }
       }
   };
