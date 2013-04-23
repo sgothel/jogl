@@ -53,6 +53,7 @@ import javax.media.opengl.GLContext;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import jogamp.nativewindow.x11.X11Lib;
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableImpl;
@@ -246,6 +247,7 @@ public class X11GLXContext extends GLContextImpl {
         // critical path, a remote display might not support this command,
         // hence we need to catch the X11 Error within this block.
         X11Util.setX11ErrorHandler(true, DEBUG ? false : true); // make sure X11 error handler is set
+        X11Lib.XSync(display, false);
         ctx = _glXExt.glXCreateContextAttribsARB(display, config.getFBConfig(), share, direct, attribs);
     } catch (RuntimeException re) {
         if(DEBUG) {
