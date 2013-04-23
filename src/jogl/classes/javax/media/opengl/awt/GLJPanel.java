@@ -510,10 +510,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   
   @Override
   public GLContext createContext(GLContext shareWith) {
-    Backend b = backend;
-    if (b == null)
+    final Backend b = backend;
+    if ( null == b ) {
         return null;
-
+    }
     return b.createContext(shareWith);
   }
 
@@ -528,30 +528,33 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public GLContext setContext(GLContext newCtx, boolean destroyPrevCtx) {
-      if (backend == null) {
-          return null;
-      }
-      final GLContext oldCtx = backend.getContext();
-      GLDrawableHelper.switchContext(backend.getDrawable(), oldCtx, destroyPrevCtx, newCtx, additionalCtxCreationFlags);
-      backend.setContext(newCtx);
-      return oldCtx;
+    final Backend b = backend;
+    if ( null == b ) {
+        return null;
+    }
+    final GLContext oldCtx = b.getContext();
+    GLDrawableHelper.switchContext(b.getDrawable(), oldCtx, destroyPrevCtx, newCtx, additionalCtxCreationFlags);
+    b.setContext(newCtx);
+    return oldCtx;
   }
 
 
   @Override
   public final GLDrawable getDelegatedDrawable() {
-    if (backend == null) {
-      return null;
+    final Backend b = backend;
+    if ( null == b ) {
+        return null;
     }
-    return backend.getDrawable();
+    return b.getDrawable();
   }
   
   @Override
   public GLContext getContext() {
-    if (backend == null) {
-      return null;
+    final Backend b = backend;
+    if ( null == b ) {
+        return null;
     }
-    return backend.getContext();
+    return b.getContext();
   }
 
   @Override
@@ -629,18 +632,19 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public boolean isGLOriented() {
-    if(null != backend) {
-        return backend.getDrawable().isGLOriented();
+    final Backend b = backend;
+    if ( null == b ) {
+        return true;
     }
-    return true;
+    return b.getDrawable().isGLOriented();
   }
   
   @Override
   public GLCapabilitiesImmutable getChosenGLCapabilities() {
-    Backend b = backend;
-    if (b == null)
+    final Backend b = backend;
+    if ( null == b ) {
         return null;
-    
+    }
     return b.getChosenGLCapabilities();
   }
 
@@ -651,18 +655,20 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
   @Override
   public NativeSurface getNativeSurface() {
-    if(null != backend) {
-        return backend.getDrawable().getNativeSurface();
+    final Backend b = backend;
+    if ( null == b ) {
+        return null;
     }
-    return null;
+    return b.getDrawable().getNativeSurface();
   }
 
   @Override
   public long getHandle() {
-    if(null != backend) {
-        return backend.getDrawable().getNativeSurface().getSurfaceHandle();
+    final Backend b = backend;
+    if ( null == b ) {
+        return 0;
     }
-    return 0;
+    return b.getDrawable().getNativeSurface().getSurfaceHandle();
   }
 
   @Override
@@ -838,8 +844,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
 
       @Override
       public void run() {
-          Backend b = backend;
-          if (null != b) {
+          final Backend b = backend;
+          if ( null != b ) {
               listener = helper.disposeGLEventListener(GLJPanel.this, b.getDrawable(), b.getContext(), listener, remove);
           }
       }
