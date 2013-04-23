@@ -13,6 +13,13 @@ import javax.media.opengl.GLException;
 
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
 
+/**
+ * <pre>
+ * EGLWrappedSurface [ is_a -> WrappedSurface -> ProxySurfaceImpl -> ProxySurface -> MutableSurface -> NativeSurface] has_a
+ *     EGLUpstreamSurfaceHook [ is_a -> UpstreamSurfaceHook.MutableSize -> UpstreamSurfaceHook ] has_a
+ *        NativeSurface (i.e. native X11 surface)
+ * </pre>
+ */
 public class EGLUpstreamSurfaceHook implements UpstreamSurfaceHook.MutableSize {
     protected static final boolean DEBUG = EGLDrawableFactory.DEBUG;
     private final NativeSurface upstreamSurface;

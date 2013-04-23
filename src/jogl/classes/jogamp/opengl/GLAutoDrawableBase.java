@@ -103,7 +103,7 @@ public abstract class GLAutoDrawableBase implements GLAutoDrawable, GLStateKeepe
         resetFPSCounter();        
     }
    
-    /** Returns the recursive lock object of the upstream implementation, which synchronizes multithreaded access. */ 
+    /** Returns the recursive lock object of the upstream implementation, which synchronizes multithreaded access on top of {@link NativeSurface#lockSurface()}. */ 
     protected abstract RecursiveLock getLock();
 
     @Override

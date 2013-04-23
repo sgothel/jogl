@@ -27,11 +27,13 @@
  */
 package com.jogamp.opengl.util;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLEventListener;
+import javax.media.opengl.GLException;
 
 import com.jogamp.opengl.GLEventListenerState;
 
@@ -117,6 +119,7 @@ public class GLDrawableUtil {
    * </p>
    * @param a
    * @param b
+   * @throws GLException if the {@link AbstractGraphicsDevice} are incompatible w/ each other.
    */
   public static final void swapGLContextAndAllGLEventListener(GLAutoDrawable a, GLAutoDrawable b) {
     final GLEventListenerState gllsA = GLEventListenerState.moveFrom(a);

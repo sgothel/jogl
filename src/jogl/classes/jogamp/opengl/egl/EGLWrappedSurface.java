@@ -4,6 +4,13 @@ import javax.media.nativewindow.NativeSurface;
 
 import jogamp.nativewindow.WrappedSurface;
 
+/**
+ * <pre>
+ * EGLWrappedSurface [ is_a -> WrappedSurface -> ProxySurfaceImpl -> ProxySurface -> MutableSurface -> NativeSurface] has_a
+ *     EGLUpstreamSurfaceHook [ is_a -> UpstreamSurfaceHook.MutableSize -> UpstreamSurfaceHook ] has_a
+ *        NativeSurface (i.e. native X11 surface)
+ * </pre>
+ */
 public class EGLWrappedSurface extends WrappedSurface {
 
     public static EGLWrappedSurface get(NativeSurface surface) {
