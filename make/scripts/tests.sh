@@ -115,6 +115,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.EGLDisplayUtil -Djogl.debug.GLDrawable"
     #D_ARGS="-Djogl.debug.GLDrawable -Djogl.debug.GLContext -Djogl.debug.GLCanvas"
     #D_ARGS="-Djogl.debug.GLDrawable"
+    #D_ARGS="-Djogl.debug.GLEventListenerState"
     #D_ARGS="-Djogl.fbo.force.none"
     #D_ARGS="-Djogl.debug=all -Dnativewindow.debug=all -Dnewt.debug=all -Djogamp.debug.Lock"
     #D_ARGS="-Djogl.debug=all"
@@ -362,8 +363,9 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch10NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch11NewtAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch12AWT $*
-##testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch21Newt2AWT $*
+testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch12AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch21Newt2AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestBug722GLContextDrawableSwitchNewt2AWT $*
 
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableDeadlockAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461FBOSupersamplingSwingAWT
@@ -379,7 +381,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindowInvisiblePointer01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
-testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00bNEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01bNEWT

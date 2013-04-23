@@ -185,6 +185,42 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
     }
 
     /**
+     * Set the native handle of the underlying native device
+     * and return the previous one.
+     */
+    protected final long setHandle(long newHandle) {
+        final long oldHandle = handle;
+        handle = newHandle;
+        return oldHandle;
+    }
+    
+    protected Object getHandleOwnership() {
+        return null;
+    }
+    protected Object setHandleOwnership(Object newOwnership) {
+        return null;
+    }
+    
+    public static final void swapDeviceHandleAndOwnership(final DefaultGraphicsDevice aDevice1, final DefaultGraphicsDevice aDevice2) {
+        aDevice1.lock();
+        try {
+            aDevice2.lock();
+            try {
+                final long aDevice1Handle = aDevice1.getHandle();
+                final long aDevice2Handle = aDevice2.setHandle(aDevice1Handle);
+                aDevice1.setHandle(aDevice2Handle);
+                final Object aOwnership1 = aDevice1.getHandleOwnership();
+                final Object aOwnership2 = aDevice2.setHandleOwnership(aOwnership1);
+                aDevice1.setHandleOwnership(aOwnership2);
+            } finally {
+                aDevice2.unlock();
+            }
+        } finally {
+            aDevice1.unlock();
+        }
+    }
+        
+    /**
      * Set the internal ToolkitLock, which is used within the
      * {@link #lock()} and {@link #unlock()} implementation.
      *
@@ -194,8 +230,9 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
      * </p>
      * 
      * @param locker the ToolkitLock, if null, {@link jogamp.nativewindow.NullToolkitLock} is being used
+     * @return the previous ToolkitLock instance
      */
-    protected void setToolkitLock(ToolkitLock locker) {
+    protected ToolkitLock setToolkitLock(ToolkitLock locker) {
         final ToolkitLock _toolkitLock = toolkitLock;
         _toolkitLock.lock();
         try {
@@ -203,6 +240,7 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
         } finally {
             _toolkitLock.unlock();
         }
+        return _toolkitLock;
     }
 
     /**

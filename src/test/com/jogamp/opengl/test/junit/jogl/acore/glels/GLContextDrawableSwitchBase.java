@@ -42,6 +42,7 @@ import javax.media.opengl.awt.GLCanvas;
 
 import jogamp.nativewindow.jawt.JAWTUtil;
 
+import com.jogamp.newt.Screen;
 import com.jogamp.newt.opengl.GLWindow;
 
 import com.jogamp.opengl.GLEventListenerState;
@@ -150,11 +151,12 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
         return true;
     }
     
-    protected void testGLADOneLifecycle(GLCapabilities caps, GLADType gladType, int width, int height, 
-                                        GLEventListenerCounter glelTracker, SnapshotGLEventListener snapshotGLEventListener,
-                                        GLEventListenerState glelsIn, GLEventListenerState glelsOut[], GLAnimatorControl animator) 
+    protected void testGLADOneLifecycle(Screen screen, GLCapabilities caps, GLADType gladType, int width, 
+                                        int height, GLEventListenerCounter glelTracker,
+                                        SnapshotGLEventListener snapshotGLEventListener, final GLEventListenerState glelsIn, final GLEventListenerState glelsOut[], GLAnimatorControl animator) 
             throws InterruptedException {
         
+        System.err.println("GLAD Lifecycle.0 "+gladType+", restoring "+((null!=glelsIn)?true:false)+", preserving "+((null!=glelsOut)?true:false));
         final Frame frame;
         final GLAutoDrawable glad;
         if( GLADType.GLCanvasOnscreen == gladType ) { 
@@ -179,7 +181,11 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
         } else if( GLADType.GLWindow == gladType ) {
             frame = null;
             
-            glad = GLWindow.create(caps);
+            if( null != screen ) {
+                glad = GLWindow.create(screen, caps);
+            } else {
+                glad = GLWindow.create(caps);
+            }
             ((GLWindow)glad).setTitle("Newt GLWindow");
             ((GLWindow)glad).setSize(width, height);
         } else if( GLADType.GLOffscreen == gladType ) {
@@ -212,7 +218,9 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
                     
         if( null != glelsIn ) {
             Assert.assertEquals(0, glad.getGLEventListenerCount());
-            glelsIn.moveTo(glad);
+            System.err.println(".. restoring.0");
+            glelsIn.moveTo(glad);                
+            System.err.println(".. restoring.X");
         
             Assert.assertEquals(1, glelTracker.initCount);
             Assert.assertTrue(1 <= glelTracker.reshapeCount);
@@ -225,6 +233,12 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
             Assert.assertEquals(glelsIn.context.getGLReadDrawable(), glad.getDelegatedDrawable());
             Assert.assertEquals(glelsIn.context.getGLDrawable(), glad.getDelegatedDrawable());
             Assert.assertEquals(false, glelsIn.isOwner());
+        }
+        
+        for (int wait=0; wait<AWTRobotUtil.POLL_DIVIDER && 
+                         ( 1 > glelTracker.initCount || 1 > glelTracker.reshapeCount || 1 > glelTracker.displayCount );
+             wait++) {
+            Thread.sleep(AWTRobotUtil.TIME_SLICE);
         }
         
         final long t0 = System.currentTimeMillis();
@@ -242,17 +256,17 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
         
         if( null != glelsOut ) {
             final GLContext context1 = glad.getContext();
-            final GLEventListenerState _gllsOut = GLEventListenerState.moveFrom(glad);
+            System.err.println(".. preserving.0");
+            glelsOut[0] = GLEventListenerState.moveFrom(glad);
+            System.err.println(".. preserving.X");
             
-            Assert.assertEquals(context1, _gllsOut.context);
+            Assert.assertEquals(context1, glelsOut[0].context);
             Assert.assertNull(context1.getGLReadDrawable());
             Assert.assertNull(context1.getGLDrawable());
-            Assert.assertEquals(3, _gllsOut.listenerCount());
-            Assert.assertEquals(true, _gllsOut.isOwner());
+            Assert.assertEquals(3, glelsOut[0].listenerCount());
+            Assert.assertEquals(true, glelsOut[0].isOwner());
             Assert.assertEquals(null, glad.getContext());
             Assert.assertEquals(0, glad.getGLEventListenerCount());
-            
-            glelsOut[0] = _gllsOut;
         }
         if( GLADType.GLCanvasOnscreen == gladType || GLADType.GLCanvasOffscreen == gladType ) {
             destroyFrame(frame);
@@ -272,5 +286,6 @@ public abstract class GLContextDrawableSwitchBase extends UITestCase {
         } else {
             Assert.assertEquals(1, glelTracker.disposeCount);
         }
+        System.err.println("GLAD Lifecycle.X "+gladType);
     }
 }

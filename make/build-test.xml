@@ -437,6 +437,7 @@
               <fileset dir="${classes}">
                   <include name="${java.dir.junit}/**/newt/**/Test*AWT*"/>
                   <!--include name="${java.dir.junit}/**/newt/**/TestNewtEventModifiers*AWT*"/-->
+                  <!--include name="${java.dir.junit}/**/acore/glels/Test**"/-->
                   <exclude name="**/*$$*"/>
               </fileset>
               <formatter usefile="false" type="brief"/>

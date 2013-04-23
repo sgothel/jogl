@@ -110,18 +110,18 @@ public class TestGLContextDrawableSwitch12AWT extends GLContextDrawableSwitchBas
         // - create glad1 w/o context
         // - create context using glad1 and assign it to glad1
         {
-            testGLADOneLifecycle(caps, offscreenLayer ? GLADType.GLCanvasOffscreen : GLADType.GLCanvasOnscreen, width, height, 
-                                 glelTracker, snapshotGLEventListener,
-                                 null, 
-                                 glels, animator); 
+            testGLADOneLifecycle(null, caps, offscreenLayer ? GLADType.GLCanvasOffscreen : GLADType.GLCanvasOnscreen, width, 
+                                 height, glelTracker,
+                                 snapshotGLEventListener, 
+                                 null, glels, animator); 
         }
         
         // - create glad2 w/ survived context
         {
-            testGLADOneLifecycle(caps, offscreenLayer ? GLADType.GLCanvasOffscreen : GLADType.GLCanvasOnscreen, width+100, height+100, 
-                                 glelTracker, snapshotGLEventListener,
-                                 glels[0], 
-                                 null, null);
+            testGLADOneLifecycle(null, caps, offscreenLayer ? GLADType.GLCanvasOffscreen : GLADType.GLCanvasOnscreen, width+100, 
+                                 height+100, glelTracker,
+                                 snapshotGLEventListener, 
+                                 glels[0], null, null);
         }
         animator.stop();
     }

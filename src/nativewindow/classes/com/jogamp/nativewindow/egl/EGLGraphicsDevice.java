@@ -120,6 +120,15 @@ public class EGLGraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     public void clearHandleOwner() {
         eglLifecycleCallback = null;
     }
-    
+    @Override
+    protected Object getHandleOwnership() {
+        return eglLifecycleCallback;
+    }
+    @Override
+    protected Object setHandleOwnership(Object newOwnership) {
+        final EGLDisplayLifecycleCallback oldOwnership = eglLifecycleCallback; 
+        eglLifecycleCallback = (EGLDisplayLifecycleCallback) newOwnership;
+        return oldOwnership;
+    }    
 }
 

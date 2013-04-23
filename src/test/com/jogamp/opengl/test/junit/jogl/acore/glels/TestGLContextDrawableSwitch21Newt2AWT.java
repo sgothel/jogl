@@ -34,7 +34,11 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
 
+import com.jogamp.newt.Display;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
 import com.jogamp.opengl.GLEventListenerState;
+import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.util.GLEventListenerCounter;
@@ -58,6 +62,13 @@ import org.junit.Test;
  * <p>
  * See Bug 665 - https://jogamp.org/bugzilla/show_bug.cgi?id=665.
  * </p>
+ * <p>
+ * Interesting artifact w/ ATI proprietary driver is that the
+ * bug causing the quirk {@link GLRendererQuirks#DontCloseX11Display}
+ * also causes an XCB crash when reusing the X11 display connection
+ * from AWT -> NEWT. Pre-allocating the X11 Display and keeping it referenced
+ * to avoid such re-usage worksaround this problem.  
+ * </p>
  */
 public class TestGLContextDrawableSwitch21Newt2AWT extends GLContextDrawableSwitchBase {
 
@@ -65,59 +76,75 @@ public class TestGLContextDrawableSwitch21Newt2AWT extends GLContextDrawableSwit
     public void test01GLCanvasOnScrn2GLWindowGL2ES2() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2ES2);
         if(null == reqGLCaps) return;
-        testGLCanvas2GLWindowImpl(reqGLCaps, GLADType.GLCanvasOnscreen, GLADType.GLWindow);
+        testGLCanvas2GLWindowImpl(null, reqGLCaps, GLADType.GLCanvasOnscreen, GLADType.GLWindow);
     }
     
     @Test(timeout=30000)
     public void test02GLCanvasOnScrn2GLWindowGLES2() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
         if(null == reqGLCaps) return;
-        testGLCanvas2GLWindowImpl(reqGLCaps, GLADType.GLCanvasOnscreen, GLADType.GLWindow);
+        testGLCanvas2GLWindowImpl(null, reqGLCaps, GLADType.GLCanvasOnscreen, GLADType.GLWindow);
     }
     
     @Test(timeout=30000)
     public void test11GLWindow2GLCanvasOnScrnGL2ES2() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2ES2);
         if(null == reqGLCaps) return;
-        testGLCanvas2GLWindowImpl(reqGLCaps, GLADType.GLWindow, GLADType.GLCanvasOnscreen);
+        final Display dpy = NewtFactory.createDisplay(null);
+        final Screen screen = NewtFactory.createScreen(dpy, 0);
+        screen.addReference();
+        testGLCanvas2GLWindowImpl(screen, reqGLCaps, GLADType.GLWindow, GLADType.GLCanvasOnscreen);
+        screen.removeReference();
     }
     
     @Test(timeout=30000)
     public void test12GLWindow2GLCanvasOnScrnGLES2() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
         if(null == reqGLCaps) return;
-        testGLCanvas2GLWindowImpl(reqGLCaps, GLADType.GLWindow, GLADType.GLCanvasOnscreen);
+        final Display dpy = NewtFactory.createDisplay(null);
+        final Screen screen = NewtFactory.createScreen(dpy, 0);
+        screen.addReference();
+        testGLCanvas2GLWindowImpl(screen, reqGLCaps, GLADType.GLWindow, GLADType.GLCanvasOnscreen);
+        screen.removeReference();
     }
     
     @Test(timeout=30000)
     public void test21GLCanvasOffScrn2GLWindowGL2ES2() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2ES2);
         if(null == reqGLCaps) return;
-        testGLCanvas2GLWindowImpl(reqGLCaps, GLADType.GLCanvasOffscreen, GLADType.GLWindow);
+        testGLCanvas2GLWindowImpl(null, reqGLCaps, GLADType.GLCanvasOffscreen, GLADType.GLWindow);
     }
     
     @Test(timeout=30000)
     public void test22GLCanvasOffScrn2GLWindowGLES2() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
         if(null == reqGLCaps) return;
-        testGLCanvas2GLWindowImpl(reqGLCaps, GLADType.GLCanvasOffscreen, GLADType.GLWindow);
+        testGLCanvas2GLWindowImpl(null, reqGLCaps, GLADType.GLCanvasOffscreen, GLADType.GLWindow);
     }
     
     @Test(timeout=30000)
     public void test31GLWindow2GLCanvasOffScrnGL2ES2() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2ES2);
         if(null == reqGLCaps) return;
-        testGLCanvas2GLWindowImpl(reqGLCaps, GLADType.GLWindow, GLADType.GLCanvasOffscreen);
+        final Display dpy = NewtFactory.createDisplay(null);
+        final Screen screen = NewtFactory.createScreen(dpy, 0);
+        screen.addReference();
+        testGLCanvas2GLWindowImpl(screen, reqGLCaps, GLADType.GLWindow, GLADType.GLCanvasOffscreen);
+        screen.removeReference();
     }
     
     @Test(timeout=30000)
     public void test32GLWindow2GLCanvasOffScrnGLES2() throws InterruptedException {
         final GLCapabilities reqGLCaps = getCaps(GLProfile.GLES2);
         if(null == reqGLCaps) return;
-        testGLCanvas2GLWindowImpl(reqGLCaps, GLADType.GLWindow, GLADType.GLCanvasOffscreen);
+        final Display dpy = NewtFactory.createDisplay(null);
+        final Screen screen = NewtFactory.createScreen(dpy, 0);
+        screen.addReference();
+        testGLCanvas2GLWindowImpl(screen, reqGLCaps, GLADType.GLWindow, GLADType.GLCanvasOffscreen);
+        screen.removeReference();
     }
     
-    private void testGLCanvas2GLWindowImpl(GLCapabilities caps, GLADType gladType1, GLADType gladType2) throws InterruptedException {
+    private void testGLCanvas2GLWindowImpl(Screen screen, GLCapabilities caps, GLADType gladType1, GLADType gladType2) throws InterruptedException {
         if( !validateOnOffscreenLayer(gladType1, gladType2) ) {
             return;
         }
@@ -131,18 +158,18 @@ public class TestGLContextDrawableSwitch21Newt2AWT extends GLContextDrawableSwit
         // - create glad1 w/o context
         // - create context using glad1 and assign it to glad1
         {
-            testGLADOneLifecycle(caps, gladType1, width, height, 
-                                 glelTracker, snapshotGLEventListener,
-                                 null, 
-                                 glels, animator); 
+            testGLADOneLifecycle(screen, caps, gladType1, width, 
+                                 height, glelTracker,
+                                 snapshotGLEventListener, 
+                                 null, glels, animator); 
         }
         
         // - create glad2 w/ survived context
         {
-            testGLADOneLifecycle(caps, gladType2, width+100, height+100, 
-                                 glelTracker, snapshotGLEventListener,
-                                 glels[0], 
-                                 null, null);
+            testGLADOneLifecycle(screen, caps, gladType2, width+100, 
+                                 height+100, glelTracker,
+                                 snapshotGLEventListener, 
+                                 glels[0], null, null);
         }
         animator.stop();
     }

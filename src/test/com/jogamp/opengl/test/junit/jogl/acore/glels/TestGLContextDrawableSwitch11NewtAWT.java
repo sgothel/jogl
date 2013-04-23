@@ -84,18 +84,18 @@ public class TestGLContextDrawableSwitch11NewtAWT extends GLContextDrawableSwitc
         // - create glad1 w/o context
         // - create context using glad1 and assign it to glad1
         {
-            testGLADOneLifecycle(caps, GLADType.GLWindow, width, height, 
-                                 glelTracker, snapshotGLEventListener,
-                                 null, 
-                                 glels, animator); 
+            testGLADOneLifecycle(null, caps, GLADType.GLWindow, width, 
+                                 height, glelTracker,
+                                 snapshotGLEventListener, 
+                                 null, glels, animator); 
         }
         
         // - create glad2 w/ survived context
         {
-            testGLADOneLifecycle(caps, GLADType.GLWindow, width+100, height+100, 
-                                 glelTracker, snapshotGLEventListener,
-                                 glels[0], 
-                                 null, null);
+            testGLADOneLifecycle(null, caps, GLADType.GLWindow, width+100, 
+                                 height+100, glelTracker,
+                                 snapshotGLEventListener, 
+                                 glels[0], null, null);
         }
         animator.stop();
     }

@@ -162,4 +162,14 @@ public class X11GraphicsDevice extends DefaultGraphicsDevice implements Cloneabl
     public void clearHandleOwner() {
         handleOwner = false;
     }
+    @Override
+    protected Object getHandleOwnership() {
+        return Boolean.valueOf(handleOwner);
+    }
+    @Override
+    protected Object setHandleOwnership(Object newOwnership) {
+        final Boolean oldOwnership = Boolean.valueOf(handleOwner); 
+        handleOwner = ((Boolean) newOwnership).booleanValue();
+        return oldOwnership;
+    }        
 }
