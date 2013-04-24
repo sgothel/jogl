@@ -174,7 +174,7 @@ static void setupJVMVars(JNIEnv * env) {
 }
 
 static XErrorHandler origErrorHandler = NULL ;
-static int errorHandlerQuiet = 0 ;
+static int errorHandlerQuiet = 1 ;
 static int errorHandlerDebug = 0 ;
 static int errorHandlerThrowException = 0;
 
@@ -300,7 +300,7 @@ Java_jogamp_nativewindow_x11_X11Util_initialize0(JNIEnv *env, jclass clazz, jboo
 
         _initClazzAccess(env);
         x11IOErrorHandlerEnable(1, env);
-        NativewindowCommon_x11ErrorHandlerEnable(env, NULL, 1, 1, 0, 0 /* no dpy, force, no sync */);
+        NativewindowCommon_x11ErrorHandlerEnable(env, NULL, 1, 1, debug ? 0 : 1, 0 /* no dpy, force, no sync */);
         _initialized=1;
         if(JNI_TRUE == debug) {
             fprintf(stderr, "Info: NativeWindow native init passed\n");
@@ -311,7 +311,7 @@ Java_jogamp_nativewindow_x11_X11Util_initialize0(JNIEnv *env, jclass clazz, jboo
 
 JNIEXPORT void JNICALL 
 Java_jogamp_nativewindow_x11_X11Util_shutdown0(JNIEnv *env, jclass _unused) {
-    NativewindowCommon_x11ErrorHandlerEnable(env, NULL, 0, 0, 0, 0 /* no dpy, no sync */);
+    NativewindowCommon_x11ErrorHandlerEnable(env, NULL, 0, 0, errorHandlerQuiet, 0 /* no dpy, no sync */);
     x11IOErrorHandlerEnable(0, env);
 }
 
@@ -342,9 +342,9 @@ Java_jogamp_nativewindow_x11_X11Lib_XGetVisualInfo1__JJLjava_nio_ByteBuffer_2Lja
   if (arg3 != NULL) {
     _ptr3 = (int *) (((char*) (*env)->GetPrimitiveArrayCritical(env, arg3, NULL)) + arg3_byte_offset);
   }
-  NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) arg0, 0, 1, 0, 0);
+  NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) arg0, 0, 1, errorHandlerQuiet, 0);
   _res = XGetVisualInfo((Display *) (intptr_t) arg0, (long) arg1, (XVisualInfo *) _ptr2, (int *) _ptr3);
-  // NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) arg0, 0, 0, 0, 0);
+  // NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) arg0, 0, 0, errorHandlerQuiet, 0);
   count = _ptr3[0];
   if (arg3 != NULL) {
     (*env)->ReleasePrimitiveArrayCritical(env, arg3, _ptr3, 0);
@@ -371,7 +371,7 @@ Java_jogamp_nativewindow_x11_X11Lib_GetVisualIDFromWindow(JNIEnv *env, jclass _u
         return;
     }
 
-    NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 1, 0, 1);
+    NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 1, errorHandlerQuiet, 1);
     memset(&xwa, 0, sizeof(XWindowAttributes));
     XGetWindowAttributes(dpy, w, &xwa);
     if(NULL != xwa.visual) {
@@ -379,7 +379,7 @@ Java_jogamp_nativewindow_x11_X11Lib_GetVisualIDFromWindow(JNIEnv *env, jclass _u
     } else {
         r = 0;
     }
-    // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, 0, 1);
+    // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, errorHandlerQuiet, 1);
 
     return r;
 }
@@ -391,9 +391,9 @@ Java_jogamp_nativewindow_x11_X11Lib_DefaultVisualID(JNIEnv *env, jclass _unused,
     if(0==display) {
         NativewindowCommon_FatalError(env, "invalid display connection..");
     }
-  NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) display, 0, 1, 0, 0);
+  NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) display, 0, 1, errorHandlerQuiet, 0);
   r = (jint) XVisualIDFromVisual( DefaultVisual( (Display*) (intptr_t) display, screen ) );
-  // NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) display, 0, 0, 0, 0);
+  // NativewindowCommon_x11ErrorHandlerEnable(env, (Display *) (intptr_t) display, 0, 0, errorHandlerQuiet, 0);
   return r;
 }
 
@@ -434,9 +434,9 @@ Java_jogamp_nativewindow_x11_X11Lib_XCloseDisplay__J(JNIEnv *env, jclass _unused
   if(0==display) {
       NativewindowCommon_FatalError(env, "invalid display connection..");
   }
-  NativewindowCommon_x11ErrorHandlerEnable(env, NULL, 0, 1, 0, 0);
+  NativewindowCommon_x11ErrorHandlerEnable(env, NULL, 0, 1, errorHandlerQuiet, 0);
   _res = XCloseDisplay((Display *) (intptr_t) display);
-  // NativewindowCommon_x11ErrorHandlerEnable(env, NULL, 0, 0, 0, 0);
+  // NativewindowCommon_x11ErrorHandlerEnable(env, NULL, 0, 0, errorHandlerQuiet, 0);
   return _res;
 }
 
@@ -519,7 +519,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateWindow
         return 0;
     }
 
-    NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 1, 0, 0);
+    NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 1, errorHandlerQuiet, 0);
 
     scrn = ScreenOfDisplay(dpy, scrn_idx);
     if(0==windowParent) {
@@ -542,7 +542,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateWindow
 
     if (visual==NULL)
     { 
-        // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, 0, 1);
+        // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, errorHandlerQuiet, 1);
         NativewindowCommon_throwNewRuntimeException(env, "could not query Visual by given VisualID, bail out!");
         return 0;
     } 
@@ -606,7 +606,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_nativewindow_x11_X11Lib_CreateWindow
         XSelectInput(dpy, window, 0); // no events
     }
 
-    // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, 0, 1);
+    // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, errorHandlerQuiet, 1);
 
     DBG_PRINT( "X11: [CreateWindow] created window %p on display %p\n", window, dpy);
 
@@ -630,12 +630,12 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_x11_X11Lib_DestroyWindow
         return;
     }
 
-    NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 1, 0, 0);
+    NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 1, errorHandlerQuiet, 0);
     XSelectInput(dpy, w, 0);
     XUnmapWindow(dpy, w);
     XSync(dpy, False);
     XDestroyWindow(dpy, w);
-    // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, 0, 1);
+    // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, errorHandlerQuiet, 1);
 }
 
 JNIEXPORT void JNICALL Java_jogamp_nativewindow_x11_X11Lib_SetWindowPosSize
@@ -683,11 +683,11 @@ JNIEXPORT jobject JNICALL Java_jogamp_nativewindow_x11_X11Lib_GetRelativeLocatio
     if( 0 == jdest_win ) { dest_win = root; }
     if( 0 == jsrc_win ) { src_win = root; }
 
-    NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 1, 0, 0);
+    NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 1, errorHandlerQuiet, 0);
 
     res = XTranslateCoordinates(dpy, src_win, dest_win, src_x, src_y, &dest_x, &dest_y, &child);
 
-    // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, 0, 0);
+    // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, errorHandlerQuiet, 0);
 
     DBG_PRINT( "X11: GetRelativeLocation0: %p %d/%d -> %p %d/%d - ok: %d\n",
         (void*)src_win, src_x, src_y, (void*)dest_win, dest_x, dest_y, (int)res);
