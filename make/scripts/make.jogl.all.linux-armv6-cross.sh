@@ -7,7 +7,7 @@ if [ -e $SDIR/../../../gluegen/make/scripts/setenv-build-jogl-x86_64.sh ] ; then
 fi
 
 # arm-linux-gnueabi == armel triplet
-PATH=`pwd`/../../gluegen/make/lib/linux/arm-linux-gnueabi/bin:$PATH
+PATH=`pwd`/../../gluegen/make/lib/toolchain/armsf-linux-gnueabi/bin:$PATH
 export PATH
 
 #    -Dc.compiler.debug=true 

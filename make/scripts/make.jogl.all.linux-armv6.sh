@@ -1,7 +1,7 @@
 #! /bin/sh
 
 # arm-linux-gnueabi == armel triplet
-PATH=`pwd`/../../gluegen/make/lib/linux/arm-linux-gnueabi/bin:$PATH
+PATH=`pwd`/../../gluegen/make/lib/toolchain/armsf-linux-gnueabi/bin:$PATH
 export PATH
 
 #    -Dc.compiler.debug=true 

@@ -1,7 +1,7 @@
 #! /bin/sh
 
 # arm-linux-gnueabihf == armhf triplet
-PATH=`pwd`/../../gluegen/make/lib/linux/arm-linux-gnueabihf/bin:$PATH
+PATH=`pwd`/../../gluegen/make/lib/toolchain/armhf-linux-gnueabi/bin:$PATH
 export PATH
 
 #    -Dc.compiler.debug=true 
