@@ -208,18 +208,19 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   static final VersionNumber winXPVersionNumber = new VersionNumber ( 5, 1, 0);
 
   static class SharedResource implements SharedResourceRunner.Resource {
+      private final boolean hasARBPixelFormat;
+      private final boolean hasARBMultisample;
+      private final boolean hasARBPBuffer;
+      private final boolean hasARBReadDrawable;
+      private final String vendor;
+      private final boolean isVendorATI;
+      private final boolean isVendorNVIDIA;
+      private final boolean needsCurrenContext4ARBPFDQueries;
+      private final boolean needsCurrenContext4ARBCreateContextAttribs;
       private WindowsGraphicsDevice device;
       private AbstractGraphicsScreen screen;
       private GLDrawableImpl drawable;
       private GLContextImpl context;
-      private boolean hasARBPixelFormat;
-      private boolean hasARBMultisample;
-      private boolean hasARBPBuffer;
-      private boolean hasARBReadDrawable;
-      private String vendor;
-      private boolean isVendorATI;
-      private boolean isVendorNVIDIA;
-      private boolean needsCurrenContext4ARBPFDQueries;
 
       SharedResource(WindowsGraphicsDevice dev, AbstractGraphicsScreen scrn, GLDrawableImpl draw, GLContextImpl ctx,
                      boolean arbPixelFormat, boolean arbMultisample, boolean arbPBuffer, boolean arbReadDrawable, String glVendor) {
@@ -235,20 +236,26 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
           if(null != vendor) {
               isVendorNVIDIA = vendor.startsWith("NVIDIA") ;
               isVendorATI = vendor.startsWith("ATI") ;
+          } else {
+              isVendorNVIDIA = false;
+              isVendorATI = false;              
           }
 
-            if ( isVendorATI() ) {
+          if ( isVendorATI ) {
+              needsCurrenContext4ARBCreateContextAttribs = true;
               final VersionNumber winVersion = Platform.getOSVersionNumber();
               final boolean isWinXPOrLess = winVersion.compareTo(winXPVersionNumber) <= 0;
-              if(DEBUG) {
-                  System.err.println("needsCurrenContext4ARBPFDQueries: "+winVersion+" <= "+winXPVersionNumber+" = "+isWinXPOrLess+" - "+Platform.getOSVersion());
-              }
               needsCurrenContext4ARBPFDQueries = isWinXPOrLess;
-            } else {
-            if(DEBUG) {
-                  System.err.println("needsCurrenContext4ARBPFDQueries: false");
+              if(DEBUG) {
+                  System.err.println("ATI && isWinXPOrLess = "+winVersion+" <= "+winXPVersionNumber+" = "+isWinXPOrLess+" - "+Platform.getOSVersion());
               }
+          } else {
               needsCurrenContext4ARBPFDQueries = false;
+              needsCurrenContext4ARBCreateContextAttribs = false;
+          }
+          if(DEBUG) {
+              System.err.println("needsCurrenContext4ARBCreateContextAttribs: "+needsCurrenContext4ARBCreateContextAttribs);
+              System.err.println("needsCurrenContext4ARBPFDQueries: "+needsCurrenContext4ARBPFDQueries);
           }
       }
 
@@ -273,12 +280,22 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
       /**
        * Solves bug #480
        *
-       * TODO: Validate if bug is actually relates to the 'old' ATI Windows driver for old GPU's like X300 etc
-       * and unrelated to the actual Windows version !
+       * TODO: Validate if bug actually relates to the 'old' ATI Windows driver for old GPU's like X300 etc
+       * and not to the Windows version !
        *
        * @return true if GL_VENDOR is ATI _and_ platform is Windows version XP or less!
        */
       final boolean needsCurrentContext4ARBPFDQueries() { return needsCurrenContext4ARBPFDQueries; }
+      
+      /**
+       * Solves bug #706 and bug #520
+       *
+       * TODO: Validate if quirk can be reduced to a certain range of GPUs and/or driver versions,
+       * where we would also need a method to query the latter (-> jogl/src/nativewindow/native/win32/DeviceDriverQuery.txt).
+       *
+       * @return true if GL_VENDOR is ATI
+       */
+      final boolean needsCurrenContext4ARBCreateContextAttribs() { return needsCurrenContext4ARBCreateContextAttribs; }
   }
 
   class SharedResourceImplementation implements SharedResourceRunner.Implementation {

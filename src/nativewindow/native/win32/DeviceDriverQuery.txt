@@ -1,0 +1,41 @@
+    
+    // INCOMPLETE !
+    // 
+    // See Bug 706 and Bug 520
+    //   https://jogamp.org/bugzilla/show_bug.cgi?id=520
+    //   https://jogamp.org/bugzilla/show_bug.cgi?id=706
+    //
+    // Device Driver SDK
+    //   http://msdn.microsoft.com/en-us/library/ff553567.aspx#ddk_setupdi_device_information_functions_dg
+    {
+        /**
+            System-Defined Device Setup Classes Available to Vendors (GUID)
+
+            Display Adapters
+                    Class = Display
+                    ClassGuid = {4d36e968-e325-11ce-bfc1-08002be10318}
+            This class includes video adapters. Drivers for this class include display drivers and video miniport drivers.
+
+            /opt-windows/mingw/include/devguid.h GUID_DEVCLASS_DISPLAY
+            GUID_DEVCLASS_DISPLAY
+            HDEVINFO SetupDiGetClassDevs(
+              _In_opt_  const GUID *ClassGuid,
+              _In_opt_  PCTSTR Enumerator,
+              _In_opt_  HWND hwndParent,
+              _In_      DWORD Flags
+              );
+
+        */
+        const GUID devClassDisplay = GUID_DEVCLASS_DISPLAY;
+        // http://msdn.microsoft.com/en-us/library/ff551069.aspx
+        HDEVINFO DeviceInfoSet = SetupDiGetClassDevs(&GUID_DEVCLASS_DISPLAY, NULL /* bus */, NULL /* windows */, DIGCF_PRESENT | DIGCF_PROFILE  /* flags */); 
+        DWORD MemberIndex = 0;
+        SP_DEVINFO_DATA DeviceInfoData;
+        DeviceInfoData.cbSize = sizeof(SP_DEVINFO_DATA);
+        while( TRUE == SetupDiEnumDeviceInfo(DeviceInfoSet, MemberIndex, &DeviceInfoData) ) {
+            SetupDiGetSelectedDevice();
+            MemberIndex++;
+        }
+        SetupDiDestroyDeviceInfoList(hDevInfo);
+    }
+

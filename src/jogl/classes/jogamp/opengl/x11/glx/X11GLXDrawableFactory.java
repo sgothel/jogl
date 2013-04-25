@@ -157,17 +157,17 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   private HashMap<String /* connection */, SharedResourceRunner.Resource> sharedMap;
 
   static class SharedResource implements SharedResourceRunner.Resource {
+      private final String glXServerVendorName;
+      private final boolean isGLXServerVendorATI;
+      private final boolean isGLXServerVendorNVIDIA;
+      private final VersionNumber glXServerVersion;
+      private final boolean glXServerVersionOneOneCapable;
+      private final boolean glXServerVersionOneThreeCapable;
+      private final boolean glXMultisampleAvailable;
       X11GraphicsDevice device;
       X11GraphicsScreen screen;
       GLDrawableImpl drawable;
       GLContextImpl context;
-      String glXServerVendorName;
-      boolean isGLXServerVendorATI;
-      boolean isGLXServerVendorNVIDIA;
-      VersionNumber glXServerVersion;
-      boolean glXServerVersionOneOneCapable;
-      boolean glXServerVersionOneThreeCapable;
-      boolean glXMultisampleAvailable;
 
       SharedResource(X11GraphicsDevice dev, X11GraphicsScreen scrn,
                      GLDrawableImpl draw, GLContextImpl ctx,

@@ -218,7 +218,6 @@ public class WindowsWGLContext extends GLContextImpl {
     };
 
     if ( major > 3 || major == 3 && minor >= 2  ) {
-        // FIXME: Verify with a None drawable binding (default framebuffer)
         attribs[idx_profile+0]  = WGLExt.WGL_CONTEXT_PROFILE_MASK_ARB;
         if( ctBwdCompat ) {
             attribs[idx_profile+1]  = WGLExt.WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB;
@@ -269,11 +268,12 @@ public class WindowsWGLContext extends GLContextImpl {
    */
   @Override
   protected boolean createImpl(GLContextImpl shareWith) {
-    AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
-    AbstractGraphicsDevice device = config.getScreen().getDevice();
-    WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory)drawable.getFactoryImpl();
-    WindowsWGLContext sharedContext = (WindowsWGLContext) factory.getOrCreateSharedContextImpl(device);
-    GLCapabilitiesImmutable glCaps = drawable.getChosenGLCapabilities();
+    final AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
+    final AbstractGraphicsDevice device = config.getScreen().getDevice();
+    final WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory)drawable.getFactoryImpl();
+    final WindowsWGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResource(device);
+    final WindowsWGLContext sharedContext = (WindowsWGLContext) ( null != sharedResource ? sharedResource.getContext() : null );
+    final GLCapabilitiesImmutable glCaps = drawable.getChosenGLCapabilities();
 
     isGLReadDrawableAvailable(); // trigger setup wglGLReadDrawableAvailable
 
@@ -296,7 +296,18 @@ public class WindowsWGLContext extends GLContextImpl {
 
     // utilize the shared context's GLXExt in case it was using the ARB method and it already exists ; exclude BITMAP
     if( null != sharedContext && sharedContext.isCreatedWithARBMethod() && !glCaps.isBitmap() ) {
-        contextHandle = createContextARB(share, true);
+        if ( sharedResource.needsCurrenContext4ARBCreateContextAttribs() ) {
+            if(GLContext.CONTEXT_NOT_CURRENT == sharedContext.makeCurrent()) {
+                throw new GLException("Could not make Shared Context current: "+sharedContext);
+            }
+            contextHandle = createContextARB(share, true);
+            sharedContext.release();
+            if (!wglMakeContextCurrent(drawable.getHandle(), drawableRead.getHandle(), contextHandle)) {
+                throw new GLException("Cannot make previous verified context current: 0x" + toHexString(contextHandle) + ", werr: " + GDI.GetLastError());
+            }
+        } else {
+            contextHandle = createContextARB(share, true);
+        }
         createContextARBTried = true;
         if ( DEBUG && 0 != contextHandle ) {
             System.err.println(getThreadName() + ": createImpl: OK (ARB, using sharedContext) share "+share);
