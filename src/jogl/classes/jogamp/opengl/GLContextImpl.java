@@ -1041,17 +1041,17 @@ public abstract class GLContextImpl extends GLContext {
       ctxVendorVersion = glVendorVersion;
       ctxOptions = ctp;
       if(useGL) {
-          ctxGLSLVersion = null;
+          ctxGLSLVersion = VersionNumber.zeroVersion;
           if(major >= 2) { // >= ES2 || GL2.0
               final String glslVersion = gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION);
               if( null != glslVersion ) {
                   ctxGLSLVersion = new VersionNumber(glslVersion, ".");
                   if( ctxGLSLVersion.getMajor() < 1 ) {
-                      ctxGLSLVersion = null; // failed ..
+                      ctxGLSLVersion = VersionNumber.zeroVersion; // failed ..
                   }
               }
           } 
-          if( null == ctxGLSLVersion ){
+          if( ctxGLSLVersion.isZero() ) {
               final int[] sver = new int[2];
               getStaticGLSLVersionNumber(major, minor, ctxOptions, sver);
               ctxGLSLVersion = new VersionNumber(sver[0], sver[1], 0);

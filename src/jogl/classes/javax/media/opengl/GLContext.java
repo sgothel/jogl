@@ -189,7 +189,7 @@ public abstract class GLContext {
       ctxVendorVersion = VersionNumberString.zeroVersion;
       ctxOptions=0;
       ctxVersionString=null;
-      ctxGLSLVersion=null;
+      ctxGLSLVersion = VersionNumber.zeroVersion;
       attachedObjects.clear();
       contextHandle=0;
       currentSwapInterval = -1;
@@ -671,7 +671,7 @@ public abstract class GLContext {
    * Returns the vendor's version, i.e. version number at the end of <code>GL_VERSION</code> not being the GL version.
    * <p>
    * In case no such version exists within <code>GL_VERSION</code>, 
-   * the {@link VersionNumberString#zeroVersion zero version} instance is being returned.
+   * the {@link VersionNumberString#zeroVersion zero version} instance is returned.
    * </p> 
    * <p>
    * The vendor's version is usually the vendor's OpenGL driver version.
@@ -689,13 +689,14 @@ public abstract class GLContext {
    * via {@link GL2ES2#GL_SHADING_LANGUAGE_VERSION} if &ge; ES2.0 or GL2.0,
    * otherwise a static match is being utilized.
    * <p>
-   * The context must have been current once, otherwise <code>null</code> is returned. 
+   * The context must have been current once, 
+   * otherwise the {@link VersionNumberString#zeroVersion zero version} instance is returned. 
    * </p>
    * <p>
    * Examples w/ <code>major.minor</code>: 
    * <pre>
-   *    1.00 (ES2.0), 1.10 (GL2.0), 1.20 (GL2.1), 1.50 GL(3.2), 
-   *    3.30 (GL3.3), 4.40 (GL4.0)
+   *    1.00 (ES 2.0), 1.10 (GL 2.0), 1.20 (GL 2.1), 1.50 (GL 3.2), 
+   *    3.30 (GL 3.3), 4.00 (GL 4.0), 4.10 (GL 4.1), 4.20 (GL 4.2)
    * </pre >
    * </p>
    * <p>
@@ -704,7 +705,8 @@ public abstract class GLContext {
    * The latter is not true on OSX w/ a GL3 context. 
    * </p>
    * 
-   * @param GLSL version number if context has been made current at least once, otherwise <code>null</code>.
+   * @return GLSL version number if context has been made current at least once, 
+   *         otherwise the {@link VersionNumberString#zeroVersion zero version} instance is returned.
    *            
    * @see #getGLVersionNumber()
    */
@@ -719,13 +721,13 @@ public abstract class GLContext {
    *    #version 110
    * </pre>
    * <p>
-   * If context has not been made current, <code>null</code> is returned.
+   * If context has not been made current yet, a string of zero length is returned.
    * </p>
    * @see #getGLSLVersionNumber()
    */
   public final String getGLSLVersionString() {
-      if(null == ctxGLSLVersion) {
-          return null;
+      if( ctxGLSLVersion.isZero() ) {
+          return "";
       }
       final int minor = ctxGLSLVersion.getMinor();
       return "#version " + ctxGLSLVersion.getMajor() + ( minor < 10 ? "0"+minor : minor ) + "\n" ;
