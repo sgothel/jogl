@@ -1040,6 +1040,9 @@ public abstract class GLContext {
   /** Get the default pixel data type, as required by e.g. {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)}. */
   public abstract int getDefaultPixelDataType();
   
+  /** Get the default pixel data format, as required by e.g. {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer)}. */
+  public abstract int getDefaultPixelDataFormat();
+  
   /**
    * @return The extension implementing the GLDebugOutput feature,
    *         either <i>GL_ARB_debug_output</i> or <i>GL_AMD_debug_output</i>.
