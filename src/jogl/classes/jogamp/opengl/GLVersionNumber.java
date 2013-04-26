@@ -128,12 +128,13 @@ class GLVersionNumber extends VersionNumberString {
     
     /** 
      * Returns the optional vendor version at the end of the 
-     * <code>GL_VERSION</code> string if exists, otherwise <code>null</code>.
+     * <code>GL_VERSION</code> string if exists, otherwise the {@link VersionNumberString#zeroVersion zero version} instance.
      * <pre>
      *   2.1 Mesa 7.0.3-rc2 -> 7.0.3 (7.0.3-rc2)
      *   4.2.12171 Compatibility Profile Context 9.01.8 -> 9.1.8 (9.01.8)
+     *   4.2.12198 Compatibility Profile Context 12.102.3.0 -> 12.102.3 (12.102.3.0)
      *   4.3.0 NVIDIA 310.32 -> 310.32 (310.32)
-     * </pre> 
+     * </pre>
      */
     public static final VersionNumberString createVendorVersion(String versionString) {
         if (versionString == null || versionString.length() <= 0) {
@@ -152,6 +153,6 @@ class GLVersionNumber extends VersionNumberString {
                 return version;
             }
         }
-        return null;
+        return VersionNumberString.zeroVersion;
     }
 }

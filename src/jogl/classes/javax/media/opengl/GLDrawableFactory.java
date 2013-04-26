@@ -285,7 +285,7 @@ public abstract class GLDrawableFactory {
       if(null==device) {
           device = getDefaultDevice();
           if(null==device) {
-              throw new InternalError("no default device");
+              throw new InternalError("no default device available");
           }
           if (GLProfile.DEBUG) {
               System.err.println("Info: "+getClass().getSimpleName()+".validateDevice: using default device : "+device);
@@ -322,7 +322,10 @@ public abstract class GLDrawableFactory {
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    * @return true if a shared resource could been created, otherwise false. 
    */
-  protected abstract boolean createSharedResource(AbstractGraphicsDevice device);
+  protected final boolean createSharedResource(AbstractGraphicsDevice device) {
+      return createSharedResourceImpl(device);
+  }  
+  protected abstract boolean createSharedResourceImpl(AbstractGraphicsDevice device);
   
   /**
    * Returns true if the <code>quirk</code> exist in the shared resource's context {@link GLRendererQuirks}.
@@ -419,7 +422,7 @@ public abstract class GLDrawableFactory {
   public final List<GLCapabilitiesImmutable> getAvailableCapabilities(AbstractGraphicsDevice device) {
       device = validateDevice(device);
       if(null!=device) {
-        return getAvailableCapabilitiesImpl(device);
+          return getAvailableCapabilitiesImpl(device);
       }
       return null;
   }

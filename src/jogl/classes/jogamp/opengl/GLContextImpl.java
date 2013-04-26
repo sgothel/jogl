@@ -90,6 +90,7 @@ public abstract class GLContextImpl extends GLContext {
   // OpenGL functions.
   private ProcAddressTable glProcAddressTable;
 
+  private String glVendor;
   private String glRenderer;
   private String glRendererLowerCase;
   private String glVersion;
@@ -165,8 +166,10 @@ public abstract class GLContextImpl extends GLContext {
       contextFQN = null;
       additionalCtxCreationFlags = 0;
 
-      glRenderer = "";
-      glRendererLowerCase = glRenderer;       
+      glVendor = "";
+      glRenderer = glVendor;
+      glRendererLowerCase = glRenderer;
+      glVersion = glVendor;
       
       if (boundFBOTarget != null) { // <init>
           boundFBOTarget[0] = 0; // draw
@@ -1152,6 +1155,16 @@ public abstract class GLContextImpl extends GLContext {
         }
         return false;
     } else {
+        final String _glVendor = glGetStringInt(GL.GL_VENDOR, _glGetString);
+        if(null == _glVendor) {
+            if(DEBUG) {
+                System.err.println("Warning: GL_VENDOR is NULL.");
+                Thread.dumpStack();
+            }
+            return false;
+        }
+        glVendor = _glVendor;
+        
         final String _glRenderer = glGetStringInt(GL.GL_RENDERER, _glGetString);
         if(null == _glRenderer) {
             if(DEBUG) {
@@ -1173,6 +1186,7 @@ public abstract class GLContextImpl extends GLContext {
             return false;
         }
         glVersion = _glVersion;
+        
         return true;
     }
   }
@@ -1389,7 +1403,7 @@ public abstract class GLContextImpl extends GLContext {
     
     final VersionNumberString vendorVersion = GLVersionNumber.createVendorVersion(glVersion);
     
-    setRendererQuirks(major, minor, ctxProfileBits, vendorVersion);
+    setRendererQuirks(adevice, major, minor, ctxProfileBits, vendorVersion);
     
     if( strictMatch && glRendererQuirks.exist(GLRendererQuirks.GLNonCompliant) ) {
         if(DEBUG) {
@@ -1486,13 +1500,16 @@ public abstract class GLContextImpl extends GLContext {
     return true;
   }
   
-  private final void setRendererQuirks(int major, int minor, int ctp, VersionNumberString vendorVersion) {
+  private final void setRendererQuirks(final AbstractGraphicsDevice adevice, int major, int minor, int ctp, final VersionNumberString vendorVersion) {
     int[] quirks = new int[GLRendererQuirks.COUNT];
     int i = 0;
     
+    final String MesaSP = "Mesa ";
     final boolean hwAccel = 0 == ( ctp & GLContext.CTX_IMPL_ACCEL_SOFT );
     final boolean compatCtx = 0 != ( ctp & GLContext.CTX_PROFILE_COMPAT );
-    
+    final boolean isDriverMesa = glRenderer.contains(MesaSP) || glRenderer.contains("Gallium ");
+    final boolean isDriverATICatalyst = !isDriverMesa && ( glVendor.contains("ATI Technologies") || glRenderer.startsWith("ATI ") );
+    final boolean isDriverNVIDIAGeForce = !isDriverMesa && ( glVendor.contains("NVIDIA Corporation") || glRenderer.contains("NVIDIA ") );
     //
     // OS related quirks
     //
@@ -1509,28 +1526,51 @@ public abstract class GLContextImpl extends GLContext {
         }
         
         final VersionNumber OSXVersion173 = new VersionNumber(1,7,3);
-        if( Platform.getOSVersionNumber().compareTo(OSXVersion173) < 0 && glRendererLowerCase.contains("nvidia") ) {
+        if( Platform.getOSVersionNumber().compareTo(OSXVersion173) < 0 && isDriverNVIDIAGeForce ) {
             final int quirk = GLRendererQuirks.GLFlushBeforeRelease;
             if(DEBUG) {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType()+", OS Version "+Platform.getOSVersionNumber()+", Renderer "+glRenderer);
             }
             quirks[i++] = quirk;
         }
-    } else if( Platform.getOSType() == Platform.OSType.WINDOWS ) {
+    } else if( Platform.getOSType() == Platform.OSType.WINDOWS ) {        
         //
         // WINDOWS
         //
-        final int quirk = GLRendererQuirks.NoDoubleBufferedBitmap;
-        if(DEBUG) {
-            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType());
+        {
+            final int quirk = GLRendererQuirks.NoDoubleBufferedBitmap;
+            if(DEBUG) {
+                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType());
+            }
+            quirks[i++] = quirk;
         }
-        quirks[i++] = quirk;
+        
+        if( isDriverATICatalyst ) {
+            final VersionNumber winXPVersionNumber = new VersionNumber ( 5, 1, 0);          
+            final VersionNumber amdSafeMobilityVersion = new VersionNumber(12, 102, 3);  
+            
+            if ( vendorVersion.compareTo(amdSafeMobilityVersion) < 0 ) { // includes: vendorVersion.isZero()
+                final int quirk = GLRendererQuirks.NeedCurrCtx4ARBCreateContext;
+                if(DEBUG) {
+                    System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType()+", [Vendor "+glVendor+" or Renderer "+glRenderer+"], driverVersion "+vendorVersion);
+                }
+                quirks[i++] = quirk;                
+            }
+            
+            if( Platform.getOSVersionNumber().compareTo(winXPVersionNumber) <= 0 ) {
+                final int quirk = GLRendererQuirks.NeedCurrCtx4ARBPixFmtQueries;
+                if(DEBUG) {
+                    System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS-Version "+Platform.getOSType()+" "+Platform.getOSVersionNumber()+", [Vendor "+glVendor+" or Renderer "+glRenderer+"]");
+                }
+                quirks[i++] = quirk;                
+            }
+        }
     } else if( Platform.OSType.ANDROID == Platform.getOSType() ) {    
         //
         // ANDROID
         //
         // Renderer related quirks, may also involve OS
-        if( glRendererLowerCase.contains("powervr") ) {
+        if( glRenderer.contains("PowerVR") ) {
             final int quirk = GLRendererQuirks.NoSetSwapInterval;
             if(DEBUG) {
                 System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType() + " / Renderer " + glRenderer);
@@ -1542,7 +1582,7 @@ public abstract class GLContextImpl extends GLContext {
     //
     // RENDERER related quirks
     //
-    if( glRendererLowerCase.contains("mesa") || glRendererLowerCase.contains("gallium") ) {
+    if( isDriverMesa ) {
         {
             final int quirk = GLRendererQuirks.NoSetSwapIntervalPostRetarget;
             if(DEBUG) {
@@ -1550,7 +1590,7 @@ public abstract class GLContextImpl extends GLContext {
             }
             quirks[i++] = quirk;
         }
-        if( hwAccel /* glRendererLowerCase.contains("intel(r)") || glRendererLowerCase.contains("amd") */ )
+        if( hwAccel /* glRenderer.contains("Intel(R)") || glRenderer.contains("AMD ") */ )
         {
             final int quirk = GLRendererQuirks.NoDoubleBufferedPBuffer;
             if(DEBUG) {
@@ -1558,7 +1598,7 @@ public abstract class GLContextImpl extends GLContext {
             }
             quirks[i++] = quirk;
         }
-        if( glRendererLowerCase.contains("intel(r)") && compatCtx && ( major>3 || major==3 && minor>=1 ) )
+        if( glRenderer.contains("Intel(R)") && compatCtx && ( major>3 || major==3 && minor>=1 ) )
         {
             // FIXME: Apply vendor version constraints!
             final int quirk = GLRendererQuirks.GLNonCompliant;
@@ -1574,14 +1614,14 @@ public abstract class GLContextImpl extends GLContext {
     //
     if( NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
         final int quirk = GLRendererQuirks.DontCloseX11Display;
-        if( glRendererLowerCase.contains("mesa") ) {
-            if ( glRendererLowerCase.contains("x11") && vendorVersion.compareTo(Version80) < 0 ) {
+        if( glRenderer.contains(MesaSP) ) {
+            if ( glRenderer.contains("X11") && vendorVersion.compareTo(Version80) < 0 ) {
                 if(DEBUG) {
                     System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: X11 Renderer=" + glRenderer + ", Version=[vendor " + vendorVersion + ", GL " + glVersion+"]");
                 }
                 quirks[i++] = quirk;
         	}
-        } else if( glRendererLowerCase.contains("ati technologies") || glRendererLowerCase.startsWith("ati ") ) {
+        } else if( isDriverATICatalyst ) {
             {
                 if(DEBUG) {
                     System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: X11 Renderer=" + glRenderer);
@@ -1597,7 +1637,7 @@ public abstract class GLContextImpl extends GLContext {
             }
         }
     }
-
+    
     glRendererQuirks = new GLRendererQuirks(quirks, 0, i);
   }
     
@@ -1652,8 +1692,8 @@ public abstract class GLContextImpl extends GLContext {
     if(!drawable.getChosenGLCapabilities().getHardwareAccelerated()) {
         isHardwareRasterizer = false;
     } else {
-        isHardwareRasterizer = ! ( glRendererLowerCase.contains("software") /* Mesa3D */  ||
-                                   glRendererLowerCase.contains("mesa x11") /* Mesa3D*/   ||
+        isHardwareRasterizer = ! ( glRendererLowerCase.contains("software") /* Mesa3D  */ ||
+                                   glRendererLowerCase.contains("mesa x11") /* Mesa3D  */ ||
                                    glRendererLowerCase.contains("softpipe") /* Gallium */ ||
                                    glRendererLowerCase.contains("llvmpipe") /* Gallium */
                                  );

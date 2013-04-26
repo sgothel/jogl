@@ -56,7 +56,6 @@ import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.GDIUtil;
 import jogamp.nativewindow.windows.MARGINS;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
-import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
 
 public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguration implements Cloneable {    
@@ -100,7 +99,7 @@ public class WindowsWGLGraphicsConfiguration extends MutableGraphicsConfiguratio
         }
         WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory) _factory;
         AbstractGraphicsDevice device = screen.getDevice();
-        WindowsWGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResource(device);
+        WindowsWGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResourceImpl(device);
         boolean hasARB = null != sharedResource && sharedResource.hasARBPixelFormat();
 
         WGLGLCapabilities caps = null;

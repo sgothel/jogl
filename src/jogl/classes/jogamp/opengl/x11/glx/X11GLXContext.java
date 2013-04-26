@@ -283,7 +283,7 @@ public class X11GLXContext extends GLContextImpl {
     final X11GLXDrawableFactory factory = (X11GLXDrawableFactory)drawable.getFactoryImpl();
     final X11GLXGraphicsConfiguration config = (X11GLXGraphicsConfiguration)drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice device = config.getScreen().getDevice();
-    final X11GLXContext sharedContext = (X11GLXContext) factory.getOrCreateSharedContextImpl(device);
+    final X11GLXContext sharedContext = (X11GLXContext) factory.getOrCreateSharedContext(device);
     long display = device.getHandle();
 
     final long share;

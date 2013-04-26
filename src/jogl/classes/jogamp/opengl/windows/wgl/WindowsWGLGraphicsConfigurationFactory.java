@@ -51,6 +51,7 @@ import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.opengl.GLRendererQuirks;
 
 import jogamp.nativewindow.windows.GDI;
 import jogamp.nativewindow.windows.PIXELFORMATDESCRIPTOR;
@@ -114,21 +115,23 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
     }
 
     protected static List<GLCapabilitiesImmutable> getAvailableCapabilities(WindowsWGLDrawableFactory factory, AbstractGraphicsDevice device) {
-        final WindowsWGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResource(device);
+        final WindowsWGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResourceImpl(device);
         if(null == sharedResource) {
             throw new GLException("Shared resource for device n/a: "+device);
         }
         final GLDrawableImpl sharedDrawable = sharedResource.getDrawable();
-        final GLContext sharedContext = sharedResource.getContext();
         final GLProfile glp = GLProfile.getDefault(device);
 
         List<GLCapabilitiesImmutable> availableCaps = null;
         
-        if ( sharedResource.needsCurrentContext4ARBPFDQueries() ) {
+        final GLContext sharedContext;
+        if ( factory.hasRendererQuirk(device, GLRendererQuirks.NeedCurrCtx4ARBPixFmtQueries) ) {
+            sharedContext = sharedResource.getContext();
             if(GLContext.CONTEXT_NOT_CURRENT == sharedContext.makeCurrent()) {
                 throw new GLException("Could not make Shared Context current: "+device);
             }
         } else {
+            sharedContext = null;
             sharedDrawable.lockSurface();
         }
         try {
@@ -147,7 +150,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
                 availableCaps.addAll(availableCapsGDI);
             }
         } finally {
-            if ( sharedResource.needsCurrentContext4ARBPFDQueries() ) {
+            if ( null != sharedContext ) {
                 sharedContext.release();    
             } else {
                 sharedDrawable.unlockSurface();
@@ -281,13 +284,15 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
             System.err.println("user chosen caps " + config.getChosenCapabilities());
         }
         AbstractGraphicsDevice device = config.getScreen().getDevice();
-        WindowsWGLDrawableFactory.SharedResource sharedResource = ((WindowsWGLDrawableFactory)factory).getOrCreateSharedResource(device);
-        GLContext sharedContext = null;
-        if (null != sharedResource && sharedResource.needsCurrentContext4ARBPFDQueries()) {
+        WindowsWGLDrawableFactory.SharedResource sharedResource = ((WindowsWGLDrawableFactory)factory).getOrCreateSharedResourceImpl(device);
+        final GLContext sharedContext;
+        if ( factory.hasRendererQuirk(device, GLRendererQuirks.NeedCurrCtx4ARBPixFmtQueries) ) {
             sharedContext = sharedResource.getContext();
             if(GLContext.CONTEXT_NOT_CURRENT == sharedContext.makeCurrent()) {
                 throw new GLException("Could not make Shared Context current: "+device);
             }
+        } else {
+            sharedContext = null;
         }
         try {
             final GLCapabilitiesImmutable capsChosen = (GLCapabilitiesImmutable) config.getChosenCapabilities();
@@ -308,7 +313,7 @@ public class WindowsWGLGraphicsConfigurationFactory extends GLGraphicsConfigurat
     private static boolean updateGraphicsConfigurationARB(WindowsWGLDrawableFactory factory, WindowsWGLGraphicsConfiguration config, CapabilitiesChooser chooser,
                                                           long hdc, boolean extHDC, int[] pformats) {
         final AbstractGraphicsDevice device = config.getScreen().getDevice();
-        final WindowsWGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResource(device);
+        final WindowsWGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResourceImpl(device);
 
         if (null == sharedResource) {
             if (DEBUG) {

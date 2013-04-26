@@ -185,6 +185,10 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
           glXMultisampleAvailable = glXServerMultisampleAvail;
       }
       @Override
+      public final boolean isValid() {
+          return null != context;
+      }
+      @Override
       final public AbstractGraphicsDevice getDevice() { return device; }
       @Override
       final public AbstractGraphicsScreen getScreen() { return screen; }
@@ -192,6 +196,10 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
       final public GLDrawableImpl getDrawable() { return drawable; }
       @Override
       final public GLContextImpl getContext() { return context; }
+      @Override
+      public GLRendererQuirks getRendererQuirks() {
+          return null != context ? context.getRendererQuirks() : null;      
+      }
 
       final String getGLXVendorName() { return glXServerVendorName; }
       final boolean isGLXVendorATI() { return isGLXServerVendorATI; }
@@ -357,49 +365,16 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  protected final boolean createSharedResource(AbstractGraphicsDevice device) {
-    try {
-        SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
-        if(null!=sr) {
-          return null != sr.getContext();
-        }
-    } catch (GLException gle) {
-        if(DEBUG) {
-            System.err.println("Catched Exception on thread "+getThreadName()); 
-            gle.printStackTrace();
-        }
-    }
-    return false;
-  }
-
-  @Override
-  protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
-    SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
-    if(null!=sr) {
-      return sr.getContext();
-    }
-    return null;
-  }
-
-  @Override
-  protected AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device) {
-    SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
-    if(null!=sr) {
-        return sr.getDevice();
-    }
-    return null;
+  protected final SharedResource getOrCreateSharedResourceImpl(AbstractGraphicsDevice device) {
+    return (SharedResource) sharedResourceRunner.getOrCreateShared(device);
   }
 
   protected final long getOrCreateSharedDpy(AbstractGraphicsDevice device) {
-    SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(device);
+    final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
     if(null!=sr) {
         return sr.getDevice().getHandle();
     }
     return 0;
-  }
-
-  SharedResource getOrCreateSharedResource(AbstractGraphicsDevice device) {
-    return (SharedResource) sharedResourceRunner.getOrCreateShared(device);
   }
 
   @Override

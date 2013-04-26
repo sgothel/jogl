@@ -33,14 +33,18 @@ import java.util.Iterator;
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 
+import com.jogamp.opengl.GLRendererQuirks;
+
 public class SharedResourceRunner implements Runnable {
     protected static final boolean DEBUG = GLDrawableImpl.DEBUG;
 
     public static interface Resource {
+      boolean isValid();
       AbstractGraphicsDevice getDevice();
       AbstractGraphicsScreen getScreen();
       GLDrawableImpl getDrawable();
       GLContextImpl getContext();
+      GLRendererQuirks getRendererQuirks();
     }
 
     public static interface Implementation {

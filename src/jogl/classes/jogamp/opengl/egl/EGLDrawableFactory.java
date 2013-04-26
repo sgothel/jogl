@@ -67,10 +67,12 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.nativewindow.WrappedSurface;
 import jogamp.opengl.Debug;
+import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.GLDrawableFactoryImpl;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.GLDynamicLookupHelper;
 import jogamp.opengl.GLGraphicsConfigurationUtil;
+import jogamp.opengl.SharedResourceRunner;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
@@ -251,8 +253,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
                 String key = keyI.next();
                 SharedResource sr = sharedMap.get(key);
                 System.err.println("EGLDrawableFactory.map["+i+"] "+key+" -> "+sr.getDevice()+", "+
-                                   "es1 [avail "+sr.wasES1ContextAvailable()+", pbuffer "+sr.hasES1PBuffer()+", quirks "+sr.getGLRendererQuirksES1()+", ctp "+EGLContext.getGLVersion(1, 0, sr.getCtpES1(), null)+"], "+
-                                   "es2 [avail "+sr.wasES2ContextAvailable()+", pbuffer "+sr.hasES2PBuffer()+", quirks "+sr.getGLRendererQuirksES1()+", ctp "+EGLContext.getGLVersion(2, 0, sr.getCtpES2(), null)+"]");
+                                   "es1 [avail "+sr.wasES1ContextCreated+", pbuffer "+sr.hasPBufferES1+", quirks "+sr.rendererQuirksES1+", ctp "+EGLContext.getGLVersion(1, 0, sr.ctpES1, null)+"], "+
+                                   "es2 [avail "+sr.wasES2ContextCreated+", pbuffer "+sr.hasPBufferES2+", quirks "+sr.rendererQuirksES2+", ctp "+EGLContext.getGLVersion(2, 0, sr.ctpES2, null)+"]");
             }
             ;
         }
@@ -265,7 +267,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     private boolean isANGLE = false;
     private boolean hasX11 = false;
 
-    static class SharedResource {
+    static class SharedResource implements SharedResourceRunner.Resource {
       private final EGLGraphicsDevice device;
       // private final EGLContext contextES1;
       // private final EGLContext contextES2;
@@ -293,17 +295,31 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
           this.hasPBufferES1= hasPBufferES1;
           this.hasPBufferES2= hasPBufferES2;
       }
-      final EGLGraphicsDevice getDevice() { return device; }
+      @Override
+      public final boolean isValid() {
+          return wasES1ContextCreated || wasES2ContextCreated;
+      }
+      @Override
+      public final EGLGraphicsDevice getDevice() { return device; }
       // final EGLContext getContextES1() { return contextES1; }
       // final EGLContext getContextES2() { return contextES2; }
-      final GLRendererQuirks getGLRendererQuirksES1() { return rendererQuirksES1; }
-      final GLRendererQuirks getGLRendererQuirksES2() { return rendererQuirksES2; }
-      final int getCtpES1() { return ctpES1; }
-      final int getCtpES2() { return ctpES2; }
-      final boolean wasES1ContextAvailable() { return wasES1ContextCreated; }
-      final boolean wasES2ContextAvailable() { return wasES2ContextCreated; }
-      final boolean hasES1PBuffer() { return hasPBufferES1; }
-      final boolean hasES2PBuffer() { return hasPBufferES2; }
+      
+      @Override
+      public AbstractGraphicsScreen getScreen() {
+          return null;
+      }
+      @Override
+      public GLDrawableImpl getDrawable() {
+          return null;
+      }
+      @Override
+      public GLContextImpl getContext() {
+          return null;
+      }
+      @Override
+      public GLRendererQuirks getRendererQuirks() {
+          return null != rendererQuirksES2 ? rendererQuirksES2 : rendererQuirksES1 ;      
+      }
     }
 
     @Override
@@ -504,7 +520,8 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         }        
     }
     
-    /* package */ SharedResource getOrCreateEGLSharedResource(AbstractGraphicsDevice adevice) {
+    @Override
+    protected final SharedResource getOrCreateSharedResourceImpl(AbstractGraphicsDevice adevice) {
         if(null == sharedMap) { // null == eglES1DynamicLookupHelper && null == eglES2DynamicLookupHelper
             return null;
         }
@@ -600,46 +617,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
         return null;
     }
 
-    @Override
-    protected final boolean createSharedResource(AbstractGraphicsDevice device) {
-        try {
-            SharedResource sr = getOrCreateEGLSharedResource(device);
-            if(null!=sr) {
-                return sr.wasES1ContextAvailable() || sr.wasES2ContextAvailable();
-            }
-        } catch (GLException gle) {
-            if(DEBUG) {
-                System.err.println("Catched Exception on thread "+getThreadName()); 
-                gle.printStackTrace();
-            }
-        }
-        return false;
-    }
-
-    @Override
-    protected final GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device) {
-        return null; // FIXME: n/a ..
-    }
-    
-    @Override
-    public GLRendererQuirks getRendererQuirks(AbstractGraphicsDevice device) {
-        SharedResource sr = getOrCreateEGLSharedResource(device);
-        if(null!=sr) {
-            return null != sr.getGLRendererQuirksES2() ? sr.getGLRendererQuirksES2() : sr.getGLRendererQuirksES1() ; 
-        }
-        return null;
-    }
-    
-    @Override
-    protected AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device) {
-        SharedResource sr = getOrCreateEGLSharedResource(device);
-        if(null!=sr) {
-            return sr.getDevice();
-        }
-        return null;
-    }
-
-    public boolean isANGLE() {
+    public final boolean isANGLE() {
         return isANGLE;
     }
 

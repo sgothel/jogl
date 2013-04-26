@@ -80,30 +80,61 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     super();
   }
 
-  @Override
-  public GLRendererQuirks getRendererQuirks(AbstractGraphicsDevice device) {
-      final GLContext ctx = getOrCreateSharedContextImpl(device);
-      if(null != ctx) {
-          return ctx.getRendererQuirks();
+  /**
+   * Returns the shared resource mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
+   * either a pre-existing or newly created, or <code>null</code> if creation failed or not supported.<br>
+   * Creation of the shared resource is tried only once.
+   *
+   * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   */
+  protected final SharedResourceRunner.Resource getOrCreateSharedResource(AbstractGraphicsDevice device) {
+      try {
+          device = validateDevice(device);
+          if( null != device) {
+              return getOrCreateSharedResourceImpl( device );
+          }
+      } catch (GLException gle) {
+          if(DEBUG) {
+              System.err.println("Catched Exception on thread "+getThreadName()); 
+              gle.printStackTrace();
+          }
       }
       return null;
   }
-
+  protected abstract SharedResourceRunner.Resource getOrCreateSharedResourceImpl(AbstractGraphicsDevice device);
+  
   /**
    * Returns the shared context mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
-   * either a pre-existing or newly created, or <code>null</code> if creation failed or not supported.<br>
+   * either a pre-existing or newly created, or <code>null</code> if creation failed or <b>not supported</b>.<br>
    * Creation of the shared context is tried only once.
    *
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
    */
   public final GLContext getOrCreateSharedContext(AbstractGraphicsDevice device) {
-      device = validateDevice(device);
-      if(null!=device) {
-        return getOrCreateSharedContextImpl(device);
+      final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
+      if(null!=sr) {
+        return sr.getContext();
       }
       return null;
   }
-  protected abstract GLContext getOrCreateSharedContextImpl(AbstractGraphicsDevice device);
+
+  @Override
+  protected final boolean createSharedResourceImpl(AbstractGraphicsDevice device) {
+      final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
+      if(null!=sr) {
+          return sr.isValid();
+      }
+      return false;
+  }
+
+  @Override
+  public final GLRendererQuirks getRendererQuirks(AbstractGraphicsDevice device) {
+      final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
+      if(null!=sr) {
+          return sr.getRendererQuirks();
+      }
+      return null;
+  }
 
   /**
    * Returns the shared device mapped to the <code>device</code> {@link AbstractGraphicsDevice#getConnection()},
@@ -113,15 +144,13 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    */
   protected final AbstractGraphicsDevice getOrCreateSharedDevice(AbstractGraphicsDevice device) {
-      device = validateDevice(device);
-      if( null != device) {
-          return getOrCreateSharedDeviceImpl(device);
+      final SharedResourceRunner.Resource sr = getOrCreateSharedResource( device );
+      if(null!=sr) {
+        return sr.getDevice();
       }
       return null;
   }
-  protected abstract AbstractGraphicsDevice getOrCreateSharedDeviceImpl(AbstractGraphicsDevice device);
 
-  
   /**
    * Returns the GLDynamicLookupHelper
    * @param profile if EGL/ES, profile <code>1</code> refers to ES1 and <code>2</code> to ES2,

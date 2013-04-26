@@ -56,6 +56,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
 import com.jogamp.opengl.GLExtensions;
+import com.jogamp.opengl.GLRendererQuirks;
 
 import jogamp.nativewindow.windows.GDI;
 import jogamp.opengl.GLContextImpl;
@@ -271,8 +272,7 @@ public class WindowsWGLContext extends GLContextImpl {
     final AbstractGraphicsConfiguration config = drawable.getNativeSurface().getGraphicsConfiguration();
     final AbstractGraphicsDevice device = config.getScreen().getDevice();
     final WindowsWGLDrawableFactory factory = (WindowsWGLDrawableFactory)drawable.getFactoryImpl();
-    final WindowsWGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResource(device);
-    final WindowsWGLContext sharedContext = (WindowsWGLContext) ( null != sharedResource ? sharedResource.getContext() : null );
+    final WindowsWGLContext sharedContext = (WindowsWGLContext) factory.getOrCreateSharedContext(device);
     final GLCapabilitiesImmutable glCaps = drawable.getChosenGLCapabilities();
 
     isGLReadDrawableAvailable(); // trigger setup wglGLReadDrawableAvailable
@@ -296,7 +296,7 @@ public class WindowsWGLContext extends GLContextImpl {
 
     // utilize the shared context's GLXExt in case it was using the ARB method and it already exists ; exclude BITMAP
     if( null != sharedContext && sharedContext.isCreatedWithARBMethod() && !glCaps.isBitmap() ) {
-        if ( sharedResource.needsCurrenContext4ARBCreateContextAttribs() ) {
+        if ( sharedContext.getRendererQuirks().exist( GLRendererQuirks.NeedCurrCtx4ARBCreateContext ) ) {
             if(GLContext.CONTEXT_NOT_CURRENT == sharedContext.makeCurrent()) {
                 throw new GLException("Could not make Shared Context current: "+sharedContext);
             }

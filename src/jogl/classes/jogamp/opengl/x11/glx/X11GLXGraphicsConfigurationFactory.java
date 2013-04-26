@@ -124,7 +124,7 @@ public class X11GLXGraphicsConfigurationFactory extends GLGraphicsConfigurationF
     }
 
     protected static List<GLCapabilitiesImmutable> getAvailableCapabilities(X11GLXDrawableFactory factory, AbstractGraphicsDevice device) {
-        X11GLXDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResource(device);
+        X11GLXDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResourceImpl(device);
         if(null == sharedResource) {
             throw new GLException("Shared resource for device n/a: "+device);
         }

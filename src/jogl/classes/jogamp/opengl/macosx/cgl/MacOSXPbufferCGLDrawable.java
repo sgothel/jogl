@@ -121,7 +121,7 @@ public class MacOSXPbufferCGLDrawable extends MacOSXCGLDrawable {
     final DefaultGraphicsConfiguration config = (DefaultGraphicsConfiguration) ms.getGraphicsConfiguration();
     final GLCapabilitiesImmutable capabilities = (GLCapabilitiesImmutable)config.getChosenCapabilities();
     final GLProfile glProfile = capabilities.getGLProfile();
-    MacOSXCGLDrawableFactory.SharedResource sr = ((MacOSXCGLDrawableFactory)factory).getOrCreateOSXSharedResource(config.getScreen().getDevice());
+    MacOSXCGLDrawableFactory.SharedResource sr = ((MacOSXCGLDrawableFactory)factory).getOrCreateSharedResourceImpl(config.getScreen().getDevice());
 
     if (DEBUG) {
         System.out.println(getThreadName()+": Pbuffer config: " + config);

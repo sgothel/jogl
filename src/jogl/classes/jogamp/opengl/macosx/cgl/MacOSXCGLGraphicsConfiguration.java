@@ -64,7 +64,7 @@ public class MacOSXCGLGraphicsConfiguration extends MutableGraphicsConfiguration
     }
 
     protected static List<GLCapabilitiesImmutable> getAvailableCapabilities(MacOSXCGLDrawableFactory factory, AbstractGraphicsDevice device) {
-        MacOSXCGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateOSXSharedResource(device);
+        MacOSXCGLDrawableFactory.SharedResource sharedResource = factory.getOrCreateSharedResourceImpl(device);
         if(null == sharedResource) {
             throw new GLException("Shared resource for device n/a: "+device);
         }

@@ -113,7 +113,7 @@ public class WindowsPbufferWGLDrawable extends WindowsWGLDrawable {
 
   private void createPbuffer() {
     WindowsWGLGraphicsConfiguration config = (WindowsWGLGraphicsConfiguration) getNativeSurface().getGraphicsConfiguration();
-    SharedResource sharedResource = ((WindowsWGLDrawableFactory)factory).getOrCreateSharedResource(config.getScreen().getDevice());
+    SharedResource sharedResource = ((WindowsWGLDrawableFactory)factory).getOrCreateSharedResourceImpl(config.getScreen().getDevice());
     NativeSurface sharedSurface = sharedResource.getDrawable().getNativeSurface();
     if (NativeSurface.LOCK_SURFACE_NOT_READY >= sharedSurface.lockSurface()) {
       throw new NativeWindowException("Could not lock (sharedSurface): "+this);

@@ -176,7 +176,6 @@ public abstract class GLContext {
   protected VersionNumber ctxGLSLVersion;
   private int currentSwapInterval;
   protected GLRendererQuirks glRendererQuirks;
-  private static final VersionNumberString nullVersion = new VersionNumberString(-1, -1, -1, "n/a");
 
   /** Did the drawable association changed ? see {@link GLRendererQuirks#NoSetSwapIntervalPostRetarget} */ 
   protected boolean drawableRetargeted; 
@@ -186,8 +185,8 @@ public abstract class GLContext {
         System.err.println(getThreadName() + ": GLContext.resetStates()");
         // Thread.dumpStack();
       }
-      ctxVersion = nullVersion;
-      ctxVendorVersion = nullVersion;
+      ctxVersion = VersionNumberString.zeroVersion;
+      ctxVendorVersion = VersionNumberString.zeroVersion;
       ctxOptions=0;
       ctxVersionString=null;
       ctxGLSLVersion=null;
@@ -668,6 +667,16 @@ public abstract class GLContext {
    * @see #getGLSLVersionNumber() 
    **/
   public final VersionNumber getGLVersionNumber() { return ctxVersion; }
+  /** 
+   * Returns the vendor's version, i.e. version number at the end of <code>GL_VERSION</code> not being the GL version.
+   * <p>
+   * In case no such version exists within <code>GL_VERSION</code>, 
+   * the {@link VersionNumberString#zeroVersion zero version} instance is being returned.
+   * </p> 
+   * <p>
+   * The vendor's version is usually the vendor's OpenGL driver version.
+   * </p>
+   */
   public final VersionNumberString getGLVendorVersionNumber() { return ctxVendorVersion; }
   public final boolean isGLCompatibilityProfile() { return ( 0 != ( CTX_PROFILE_COMPAT & ctxOptions ) ); }
   public final boolean isGLCoreProfile()          { return ( 0 != ( CTX_PROFILE_CORE   & ctxOptions ) ); }

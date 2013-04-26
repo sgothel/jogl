@@ -34,6 +34,10 @@ package com.jogamp.opengl;
  * Using centralized quirk identifier enables us to
  * locate code dealing w/ it and hence eases it's maintenance.   
  * </p>
+ * <p>
+ * <i>Some</i> <code>GL_VENDOR</code> and <code>GL_RENDERER</code> strings are
+ * listed here <http://feedback.wildfiregames.com/report/opengl/feature/GL_VENDOR>. 
+ * </p>
  */
 public class GLRendererQuirks {
     /** 
@@ -92,7 +96,7 @@ public class GLRendererQuirks {
      * Drivers known exposing such bug:
      * <ul>
      *   <li>Mesa &lt; 8.0 _with_ X11 software renderer <code>Mesa X11</code>, not with GLX/DRI renderer.</li>
-     *   <li>ATI proprietary Catalyst X11 driver (RENDERER vendor version):
+     *   <li>ATI proprietary Catalyst X11 driver versions:
      *     <ul>
      *       <li>8.78.6</li>
      *       <li>8.881</li>
@@ -111,12 +115,50 @@ public class GLRendererQuirks {
      */
     public static final int DontCloseX11Display = 8;
     
+    /**
+     * Need current GL Context when calling new ARB <i>pixel format query</i> functions, 
+     * otherwise driver crashes the VM.
+     * <p>
+     * Drivers known exposing such bug:
+     * <ul>
+     *   <li>ATI proprietary Catalyst driver on Windows version &le; XP. 
+     *       TODO: Validate if bug actually relates to 'old' ATI Windows drivers for old GPU's like X300
+     *             regardless of the Windows version.</li>
+     * </ul>
+     * <p>
+     * See Bug 480 - https://jogamp.org/bugzilla/show_bug.cgi?id=480
+     * </p>
+     */
+    public static final int NeedCurrCtx4ARBPixFmtQueries = 9;
+    
+    /**
+     * Need current GL Context when calling new ARB <i>CreateContext</i> function,
+     * otherwise driver crashes the VM.
+     * <p>
+     * Drivers known exposing such bug:
+     * <ul>
+     *   <li>ATI proprietary Catalyst Windows driver on laptops with a driver version as reported in <i>GL_VERSION</i>:
+     *     <ul>
+     *       <li> <i>null</i> </li>
+     *       <li> &lt; <code>12.102.3.0</code> ( <i>amd_catalyst_13.5_mobility_beta2</i> ) </li>
+     *     </ul></li>
+     * </ul>
+     * </p>
+     * <p>
+     * See Bug 706 - https://jogamp.org/bugzilla/show_bug.cgi?id=706<br/>
+     * See Bug 520 - https://jogamp.org/bugzilla/show_bug.cgi?id=520
+     * </p>
+     */
+    public static final int NeedCurrCtx4ARBCreateContext = 10;
+    
+    
     /** Number of quirks known. */
-    public static final int COUNT = 9;
+    public static final int COUNT = 11;
     
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
-                                                          "GLNonCompliant", "GLFlushBeforeRelease", "DontCloseX11Display"
+                                                          "GLNonCompliant", "GLFlushBeforeRelease", "DontCloseX11Display",
+                                                          "NeedCurrCtx4ARBPixFmtQueries", "NeedCurrCtx4ARBCreateContext"
                                                         };
 
     private final int _bitmask;
