@@ -595,10 +595,10 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                     break;
                 }
                 if(HAS_FUNC(sp_avcodec_decode_audio4)) {
-                    len1 = sp_avcodec_decode_audio4(pAV->pVCodecCtx, pAV->pAFrame, &frameFinished, &packet);
+                    len1 = sp_avcodec_decode_audio4(pAV->pACodecCtx, pAV->pAFrame, &frameFinished, &packet);
                 } else {
                     #if 0
-                    len1 = sp_avcodec_decode_audio3(pAV->pVCodecCtx, int16_t *samples, int *frame_size_ptr, &frameFinished, &packet);
+                    len1 = sp_avcodec_decode_audio3(pAV->pACodecCtx, int16_t *samples, int *frame_size_ptr, &frameFinished, &packet);
                     #endif
                     JoglCommon_throwNewRuntimeException(env, "Unimplemented: FFMPEGMediaPlayer sp_avcodec_decode_audio3 fallback");
                     return 0;
@@ -690,7 +690,9 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
         }
 
         // Free the packet that was allocated by av_read_frame
-        sp_av_free_packet(&packet);
+        // This code cause a double free and have been commented out.
+        // TODO: check what release the packets memory. 
+        // sp_av_free_packet(&packet);
     }
     return res;
 }
