@@ -56,6 +56,21 @@ import com.jogamp.opengl.util.GLBuffers;
 public class TextureData {
     public static enum ColorSpace { RGB, YCbCr, YCCK, CMYK };
     
+    public static interface ColorSink {
+        /**
+         * @param width
+         * @param height
+         * @param sourceCS the color-space of the decoded JPEG
+         * @param sourceComponents number of components used for the given source color-space
+         * @return Either {@link ColorSpace#RGB} or {@link ColorSpace#YCbCr}. {@link ColorSpace#YCCK} and {@link ColorSpace#CMYK} will throw an exception! 
+         * @throws RuntimeException
+         */
+        public ColorSpace allocate(int width, int height, ColorSpace sourceCS, int sourceComponents) throws RuntimeException;
+        public void store2(int x, int y, byte c1, byte c2);
+        public void storeRGB(int x, int y, byte r, byte g, byte b);
+        public void storeYCbCr(int x, int y, byte Y, byte Cb, byte Cr);        
+    }
+    
     protected int width;
     protected int height;
     private int border;

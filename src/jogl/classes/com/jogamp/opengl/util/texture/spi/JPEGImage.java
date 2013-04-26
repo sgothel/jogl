@@ -38,6 +38,7 @@ import jogamp.opengl.util.jpeg.JPEGDecoder;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.texture.TextureData.ColorSpace;
+import com.jogamp.opengl.util.texture.TextureData.ColorSink;
 
 public class JPEGImage {
     private static final boolean DEBUG = Debug.debug("JPEGImage");    
@@ -60,7 +61,7 @@ public class JPEGImage {
         return new JPEGImage(in, ColorSpace.RGB);
     }
     
-    private static class JPEGPixelStorage implements JPEGDecoder.PixelStorage  {
+    private static class JPEGColorSink implements ColorSink  {
         int width=0, height=0;
         int sourceComponents=0;
         ColorSpace sourceCS = ColorSpace.YCbCr;
@@ -68,7 +69,7 @@ public class JPEGImage {
         final ColorSpace storageCS;
         ByteBuffer data = null;
         
-        JPEGPixelStorage(ColorSpace storageCM) {
+        JPEGColorSink(ColorSpace storageCM) {
             this.storageCS = storageCM;
             switch(storageCS) {
             case RGB:
@@ -118,7 +119,7 @@ public class JPEGImage {
     };
     
     private JPEGImage(InputStream in, ColorSpace cs) throws IOException {
-        pixelStorage = new JPEGPixelStorage(cs);
+        pixelStorage = new JPEGColorSink(cs);
         final JPEGDecoder decoder = new JPEGDecoder();
         decoder.parse(in);
         pixelWidth = decoder.getWidth();
@@ -138,7 +139,7 @@ public class JPEGImage {
         }
         decoder.clear(null);
     }
-    private JPEGPixelStorage pixelStorage;
+    private JPEGColorSink pixelStorage;
     private final int pixelWidth, pixelHeight, glFormat, bytesPerPixel;
     private boolean reversedChannels;
     private final ByteBuffer data;
