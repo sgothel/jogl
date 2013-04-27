@@ -66,8 +66,8 @@ import jogamp.opengl.Debug;
 
 import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.VersionNumber;
+import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureData.ColorSpace;
-import com.jogamp.opengl.util.texture.TextureData.ColorSink;
 
 /**
  * 
@@ -89,6 +89,22 @@ public class JPEGDecoder {
     private static final boolean DEBUG = Debug.debug("JPEGImage");
     private static final boolean DEBUG_IN = false;
 
+    /** Allows user to hook a {@link ColorSink} to another toolkit to produce {@link TextureData}. */ 
+    public static interface ColorSink {
+        /**
+         * @param width
+         * @param height
+         * @param sourceCS the color-space of the decoded JPEG
+         * @param sourceComponents number of components used for the given source color-space
+         * @return Either {@link TextureData.ColorSpace#RGB} or {@link TextureData.ColorSpace#YCbCr}. {@link TextureData.ColorSpace#YCCK} and {@link TextureData.ColorSpace#CMYK} will throw an exception! 
+         * @throws RuntimeException
+         */
+        public TextureData.ColorSpace allocate(int width, int height, TextureData.ColorSpace sourceCS, int sourceComponents) throws RuntimeException;
+        public void store2(int x, int y, byte c1, byte c2);
+        public void storeRGB(int x, int y, byte r, byte g, byte b);
+        public void storeYCbCr(int x, int y, byte Y, byte Cb, byte Cr);        
+    }
+    
     public static class JFIF {
         final VersionNumber version;
         final int densityUnits;
@@ -1312,6 +1328,7 @@ public class JPEGDecoder {
             decoder.decode(component, component.getBlock(blockRow, blockCol));
         }
     }
+
     private final Decoder decoder = new Decoder();
 
     /** wrong color space ..
@@ -1333,7 +1350,7 @@ public class JPEGDecoder {
         pixelStorage.storeRGB(x, y, (byte)R, (byte)G, (byte)B);
     } */
     
-    public synchronized void getPixel(ColorSink pixelStorage, int width, int height) {
+    public synchronized void getPixel(JPEGDecoder.ColorSink pixelStorage, int width, int height) {
         final int scaleX = this.width / width, scaleY = this.height / height;
 
         final int componentCount = this.components.length;

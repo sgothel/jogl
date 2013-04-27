@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -65,9 +66,51 @@ import javax.media.opengl.GL2GL3;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.texture.TextureData;
+import com.jogamp.opengl.util.texture.TextureData.PixelBufferProvider;
 
 public class AWTTextureData extends TextureData {
+    public static final PixelAttributes awtPixelAttributesIntRGB = new PixelAttributes(GL.GL_BGRA, GL.GL_UNSIGNED_BYTE);
+    
+    /** 
+     * AWT {@link PixelBufferProvider} backed by a {@link BufferedImage} of type 
+     * {@link BufferedImage#TYPE_INT_ARGB} or {@link BufferedImage#TYPE_INT_RGB}
+     * and {@link #allocate(int, int, int) allocating} am array backed  {@link IntBuffer}.
+     */
+    public static final class AWTPixelBufferProviderInt implements PixelBufferProvider {
+        private BufferedImage image = null;
+        private int componentCount = 0;
+        
+        @Override
+        public PixelAttributes getAttributes(GL gl, int componentCount) {
+            this.componentCount = componentCount;
+            return awtPixelAttributesIntRGB;
+        }
+        @Override
+        public boolean requiresNewBuffer(int width, int height) {
+            return null == image || image.getWidth() != width || image.getHeight() != height;
+        }
+        /**
+         * {@inheritDoc}
+         * <p>
+         * Returns an array backed {@link IntBuffer} of size <pre>width*height*{@link Buffers#SIZEOF_INT SIZEOF_INT}</code>.
+         * </p>
+         */
+        @Override
+        public Buffer allocate(int width, int height, int minByteSize) {
+            image = new BufferedImage(width, height, 4 == componentCount ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
+            final int[] readBackIntBuffer = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+            return IntBuffer.wrap( readBackIntBuffer );
+        }
+        
+        /** Returns the number source components being used as indicated at {@link #allocate(int, int, int)}. */
+        public int getComponentCount() { return componentCount; }
+        
+        /** Returns the underlying {@link BufferedImage} as allocated via {@link #allocate(int, int, int)}. */
+        public BufferedImage getImage() { return image; }
+    }
+    
     // Mechanism for lazily converting input BufferedImages with custom
     // ColorModels to standard ones for uploading to OpenGL, as well as
     // backing off from the optimizations of hoping that either
@@ -134,33 +177,38 @@ public class AWTTextureData extends TextureData {
         }
     }
 
-    /** Returns the intended OpenGL pixel format of the texture data. */
-    public int getPixelFormat() {
+    private void validatePixelAttributes() {
         if (imageForLazyCustomConversion != null) {
             if (!((expectingEXTABGR && haveEXTABGR) ||
                   (expectingGL12    && haveGL12))) {
-                revertPixelFormatAndType();
+                revertPixelAttributes();
             }
-        }
-        return pixelFormat;
+        }        
     }
-    /** Returns the intended OpenGL pixel type of the texture data. */
+    
+    @Override
+    public PixelAttributes getPixelAttributes() {
+        validatePixelAttributes();
+        return super.getPixelAttributes();
+    }
+    
+    @Override
+    public int getPixelFormat() {
+        validatePixelAttributes();
+        return super.getPixelFormat();
+    }
+    @Override
     public int getPixelType() {
-        if (imageForLazyCustomConversion != null) {
-            if (!((expectingEXTABGR && haveEXTABGR) ||
-                  (expectingGL12    && haveGL12))) {
-                revertPixelFormatAndType();
-            }
-        }
-        return pixelType;
+        validatePixelAttributes();
+        return super.getPixelType();
     }
 
-    /** Returns the texture data, or null if it is specified as a set of mipmaps. */
+    @Override
     public Buffer getBuffer() {
         if (imageForLazyCustomConversion != null) {
             if (!((expectingEXTABGR && haveEXTABGR) ||
                   (expectingGL12    && haveGL12))) {
-                revertPixelFormatAndType();
+                revertPixelAttributes();
                 // Must present the illusion to the end user that we are simply
                 // wrapping the input BufferedImage
                 createFromCustom(imageForLazyCustomConversion);
@@ -170,7 +218,7 @@ public class AWTTextureData extends TextureData {
     }
 
     private void createFromImage(GLProfile glp, BufferedImage image) {
-        pixelType = 0; // Determine from image
+        pixelAttributes = PixelAttributes.UNDEF; // Determine from image
         mustFlipVertically = true;
 
         width = image.getWidth();
@@ -200,24 +248,21 @@ public class AWTTextureData extends TextureData {
         if (glp.isGL2GL3()) {
             switch (image.getType()) {
                 case BufferedImage.TYPE_INT_RGB:
-                    pixelFormat = GL.GL_BGRA;
-                    pixelType = GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV;
+                    pixelAttributes = new PixelAttributes(GL.GL_BGRA, GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV);
                     rowLength = scanlineStride;
                     alignment = 4;
                     expectingGL12 = true;
                     setupLazyCustomConversion(image);
                     break;
                 case BufferedImage.TYPE_INT_ARGB_PRE:
-                    pixelFormat = GL.GL_BGRA;
-                    pixelType = GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV;
+                    pixelAttributes = new PixelAttributes(GL.GL_BGRA, GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV);
                     rowLength = scanlineStride;
                     alignment = 4;
                     expectingGL12 = true;
                     setupLazyCustomConversion(image);
                     break;
                 case BufferedImage.TYPE_INT_BGR:
-                    pixelFormat = GL.GL_RGBA;
-                    pixelType = GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV;
+                    pixelAttributes = new PixelAttributes(GL.GL_RGBA, GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV);
                     rowLength = scanlineStride;
                     alignment = 4;
                     expectingGL12 = true;
@@ -228,8 +273,7 @@ public class AWTTextureData extends TextureData {
                         // we can pass the image data directly to OpenGL only if
                         // we have an integral number of pixels in each scanline
                         if ((scanlineStride % 3) == 0) {
-                            pixelFormat = GL2GL3.GL_BGR;
-                            pixelType = GL.GL_UNSIGNED_BYTE;
+                            pixelAttributes = new PixelAttributes(GL2GL3.GL_BGR, GL.GL_UNSIGNED_BYTE);
                             rowLength = scanlineStride / 3;
                             alignment = 1;
                         } else {
@@ -249,8 +293,7 @@ public class AWTTextureData extends TextureData {
                         // the necessary byte swapping (FIXME: needs more
                         // investigation)
                         if ((scanlineStride % 4) == 0 && glp.isGL2() && false) {
-                            pixelFormat = GL2.GL_ABGR_EXT;
-                            pixelType = GL.GL_UNSIGNED_BYTE;
+                            pixelAttributes = new PixelAttributes(GL2.GL_ABGR_EXT, GL.GL_UNSIGNED_BYTE);
                             rowLength = scanlineStride / 4;
                             alignment = 4;
     
@@ -266,30 +309,26 @@ public class AWTTextureData extends TextureData {
                         }
                     }
                 case BufferedImage.TYPE_USHORT_565_RGB:
-                    pixelFormat = GL.GL_RGB;
-                    pixelType = GL.GL_UNSIGNED_SHORT_5_6_5;
+                    pixelAttributes = new PixelAttributes(GL.GL_RGB, GL.GL_UNSIGNED_SHORT_5_6_5);
                     rowLength = scanlineStride;
                     alignment = 2;
                     expectingGL12 = true;
                     setupLazyCustomConversion(image);
                     break;
                 case BufferedImage.TYPE_USHORT_555_RGB:
-                    pixelFormat = GL.GL_BGRA;
-                    pixelType = GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV;
+                    pixelAttributes = new PixelAttributes(GL.GL_BGRA, GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV);
                     rowLength = scanlineStride;
                     alignment = 2;
                     expectingGL12 = true;
                     setupLazyCustomConversion(image);
                     break;
                 case BufferedImage.TYPE_BYTE_GRAY:
-                    pixelFormat = GL.GL_LUMINANCE;
-                    pixelType = GL.GL_UNSIGNED_BYTE;
+                    pixelAttributes = new PixelAttributes(GL.GL_LUMINANCE, GL.GL_UNSIGNED_BYTE);
                     rowLength = scanlineStride;
                     alignment = 1;
                     break;
                 case BufferedImage.TYPE_USHORT_GRAY:
-                    pixelFormat = GL.GL_LUMINANCE;
-                    pixelType = GL.GL_UNSIGNED_SHORT;
+                    pixelAttributes = new PixelAttributes(GL.GL_LUMINANCE, GL.GL_UNSIGNED_SHORT);
                     rowLength = scanlineStride;
                     alignment = 2;
                     break;
@@ -304,13 +343,11 @@ public class AWTTextureData extends TextureData {
                 default:
                     java.awt.image.ColorModel cm = image.getColorModel();
                     if (cm.equals(rgbColorModel)) {
-                        pixelFormat = GL.GL_RGB;
-                        pixelType = GL.GL_UNSIGNED_BYTE;
+                        pixelAttributes = new PixelAttributes(GL.GL_RGB, GL.GL_UNSIGNED_BYTE);
                         rowLength = scanlineStride / 3;
                         alignment = 1;
                     } else if (cm.equals(rgbaColorModel)) {
-                        pixelFormat = GL.GL_RGBA;
-                        pixelType = GL.GL_UNSIGNED_BYTE;
+                        pixelAttributes = new PixelAttributes(GL.GL_RGBA, GL.GL_UNSIGNED_BYTE);
                         rowLength = scanlineStride / 4; // FIXME: correct?
                         alignment = 4;
                     } else {
@@ -322,8 +359,7 @@ public class AWTTextureData extends TextureData {
         } else {
             switch (image.getType()) {
                 case BufferedImage.TYPE_INT_RGB:
-                    pixelFormat = GL.GL_RGB;
-                    pixelType = GL.GL_UNSIGNED_BYTE;
+                    pixelAttributes = new PixelAttributes(GL.GL_RGB, GL.GL_UNSIGNED_BYTE);
                     rowLength = scanlineStride;
                     alignment = 3;
                     expectingGL12 = true;
@@ -338,24 +374,21 @@ public class AWTTextureData extends TextureData {
                 case BufferedImage.TYPE_4BYTE_ABGR_PRE:
                     throw new GLException("INT_BGR n.a.");
                 case BufferedImage.TYPE_USHORT_565_RGB:
-                    pixelFormat = GL.GL_RGB;
-                    pixelType = GL.GL_UNSIGNED_SHORT_5_6_5;
+                    pixelAttributes = new PixelAttributes(GL.GL_RGB, GL.GL_UNSIGNED_SHORT_5_6_5);
                     rowLength = scanlineStride;
                     alignment = 2;
                     expectingGL12 = true;
                     setupLazyCustomConversion(image);
                     break;
                 case BufferedImage.TYPE_USHORT_555_RGB:
-                    pixelFormat = GL.GL_RGBA;
-                    pixelType = GL.GL_UNSIGNED_SHORT_5_5_5_1;
+                    pixelAttributes = new PixelAttributes(GL.GL_RGBA, GL.GL_UNSIGNED_SHORT_5_5_5_1);
                     rowLength = scanlineStride;
                     alignment = 2;
                     expectingGL12 = true;
                     setupLazyCustomConversion(image);
                     break;
                 case BufferedImage.TYPE_BYTE_GRAY:
-                    pixelFormat = GL.GL_LUMINANCE;
-                    pixelType = GL.GL_UNSIGNED_BYTE;
+                    pixelAttributes = new PixelAttributes(GL.GL_LUMINANCE, GL.GL_UNSIGNED_BYTE);
                     rowLength = scanlineStride;
                     alignment = 1;
                     break;
@@ -372,13 +405,11 @@ public class AWTTextureData extends TextureData {
                 default:
                     java.awt.image.ColorModel cm = image.getColorModel();
                     if (cm.equals(rgbColorModel)) {
-                        pixelFormat = GL.GL_RGB;
-                        pixelType = GL.GL_UNSIGNED_BYTE;
+                        pixelAttributes = new PixelAttributes(GL.GL_RGB, GL.GL_UNSIGNED_BYTE);
                         rowLength = scanlineStride / 3;
                         alignment = 1;
                     } else if (cm.equals(rgbaColorModel)) {
-                        pixelFormat = GL.GL_RGBA;
-                        pixelType = GL.GL_UNSIGNED_BYTE;
+                        pixelAttributes = new PixelAttributes(GL.GL_RGBA, GL.GL_UNSIGNED_BYTE);
                         rowLength = scanlineStride / 4; // FIXME: correct?
                         alignment = 4;
                     } else {
@@ -395,6 +426,8 @@ public class AWTTextureData extends TextureData {
     private void setupLazyCustomConversion(BufferedImage image) {
         imageForLazyCustomConversion = image;
         boolean hasAlpha = image.getColorModel().hasAlpha();
+        int pixelFormat = pixelAttributes.format;
+        int pixelType = pixelAttributes.type;
         if (pixelFormat == 0) {
             pixelFormat = hasAlpha ? GL.GL_RGBA : GL.GL_RGB;
         }
@@ -421,6 +454,7 @@ public class AWTTextureData extends TextureData {
         } else {
             throw new RuntimeException("Unexpected DataBuffer type?");
         }
+        pixelAttributes = new PixelAttributes(pixelFormat, pixelType);
     }
 
     private void createFromCustom(BufferedImage image) {
@@ -474,13 +508,12 @@ public class AWTTextureData extends TextureData {
                 imgType == BufferedImage.TYPE_INT_ARGB_PRE);
     }
 
-    private void revertPixelFormatAndType() {
+    private void revertPixelAttributes() {
         // Knowing we don't have e.g. OpenGL 1.2 functionality available,
         // and knowing we're in the process of doing the fallback code
         // path, re-infer a vanilla pixel format and type compatible with
         // OpenGL 1.1
-        pixelFormat = 0;
-        pixelType = 0;
+        pixelAttributes = PixelAttributes.UNDEF;
         setupLazyCustomConversion(imageForLazyCustomConversion);
     }
 

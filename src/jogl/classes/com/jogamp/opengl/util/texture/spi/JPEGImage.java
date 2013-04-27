@@ -38,7 +38,6 @@ import jogamp.opengl.util.jpeg.JPEGDecoder;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.texture.TextureData.ColorSpace;
-import com.jogamp.opengl.util.texture.TextureData.ColorSink;
 
 public class JPEGImage {
     private static final boolean DEBUG = Debug.debug("JPEGImage");    
@@ -61,7 +60,7 @@ public class JPEGImage {
         return new JPEGImage(in, ColorSpace.RGB);
     }
     
-    private static class JPEGColorSink implements ColorSink  {
+    private static class JPEGColorSink implements JPEGDecoder.ColorSink  {
         int width=0, height=0;
         int sourceComponents=0;
         ColorSpace sourceCS = ColorSpace.YCbCr;
