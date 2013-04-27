@@ -128,7 +128,7 @@ public class TestBug605FlippedImageNEWT extends UITestCase {
         glad.display();
         System.err.println("XXX "+glad.getChosenGLCapabilities());
         System.err.println("XXX "+glad.getContext().getGLVersion());
-        testFlipped(rbu.getPixelBuffer(), glad.getWidth(), glad.getHeight(), 3);        
+        testFlipped((ByteBuffer)rbu.getPixelBuffer(), glad.getWidth(), glad.getHeight(), 3);        
         
         glad.destroy();        
     }

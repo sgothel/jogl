@@ -29,8 +29,7 @@
 package com.jogamp.opengl.test.junit.jogl.util.texture;
 
 
-import com.jogamp.common.util.awt.AWTEDTExecutor;
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.TextureDraw01GL2Listener;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
@@ -42,101 +41,55 @@ import javax.media.opengl.awt.GLCanvas;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
+import com.jogamp.opengl.util.FPSAnimator;
 import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
-import com.jogamp.opengl.util.texture.TextureData;
-import com.jogamp.opengl.util.texture.awt.AWTTextureIO;
 
-import java.awt.AlphaComposite;
-import java.awt.Canvas;
-import java.awt.Color;
 import java.awt.Frame;
-import java.awt.GradientPaint;
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 
 import java.io.IOException;
 import org.junit.Assert;
-import org.junit.After;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * Demonstrates TextureData w/ AWT usage in both directions,
- * i.e. generating a texture based on an AWT BufferedImage data
- * as well as reading out GL framebuffer and displaying it 
+ * Demonstrates TextureData w/ AWT usage,
+ * i.e. reading out an animated GL framebuffer and displaying it 
  * as an BufferedImage. 
  */
-public class TestTexture01AWT extends UITestCase {
+public class TestTexture02AWT extends UITestCase {
     static long durationPerTest = 500;
     static GLProfile glp;
     static GLCapabilities caps;
-    BufferedImage textureImage;
 
     @BeforeClass
     public static void initClass() {
-        if(!GLProfile.isAvailable(GLProfile.GL2GL3)) {
+        if(!GLProfile.isAvailable(GLProfile.GL2ES2)) {
             UITestCase.setTestSupported(false);
             return;
         }
-        glp = GLProfile.getGL2GL3();
+        glp = GLProfile.getGL2ES2();
         Assert.assertNotNull(glp);
         caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
-    }
-
-    @Before
-    public void initTest() {
-        // create base image
-        BufferedImage baseImage = new BufferedImage(256, 256, BufferedImage.TYPE_3BYTE_BGR);
-        Assert.assertNotNull(baseImage);
-        Graphics2D g = baseImage.createGraphics();
-        Assert.assertNotNull(g);
-        g.setPaint(new GradientPaint(0, 0, Color.CYAN,
-                                 baseImage.getWidth(), baseImage.getHeight(), Color.BLUE));
-        g.fillRect(0, 0, baseImage.getWidth(), baseImage.getHeight());
-        g.dispose();
-
-        // create texture image
-        int imageType = BufferedImage.TYPE_3BYTE_BGR;
-        textureImage = new BufferedImage(baseImage.getWidth(),
-                                         baseImage.getHeight(),
-                                         imageType);
-        Assert.assertNotNull(textureImage);
-        g = textureImage.createGraphics();
-        g.setComposite(AlphaComposite.Src);
-        g.drawImage(baseImage, 0, 0, null);
-        g.dispose();
-
-        baseImage.flush();
-        baseImage=null;
-    }
-
-    @After
-    public void cleanupTest() {
-        Assert.assertNotNull(textureImage);
-        textureImage.flush();
-        textureImage=null;
     }
 
     @Test
     public void test1() throws InterruptedException {
         final AWTGLReadBufferUtil awtGLReadBufferUtil = new AWTGLReadBufferUtil(false);
         final Frame frame0 = new Frame("GL -> AWT");
-        final Canvas canvas = new Canvas();
-        frame0.add(canvas);
+        final ImageIcon imageIcon = new ImageIcon();
+        final JLabel imageLabel = new JLabel(imageIcon);
+        frame0.add(imageLabel);
         
         final GLCanvas glCanvas = new GLCanvas(caps);
-        final Frame frame1 = new Frame("AWT -> Texture");
+        final Frame frame1 = new Frame("GearsES2");
         Assert.assertNotNull(frame1);
         frame1.add(glCanvas);
 
-        // create texture    
-        TextureData textureData = AWTTextureIO.newTextureData(caps.getGLProfile(), textureImage, false);
-        glCanvas.addGLEventListener(new TextureDraw01GL2Listener(textureData));
-        glCanvas.addGLEventListener(new GLEventListener() {
-            
+        glCanvas.addGLEventListener(new GearsES2(1));
+        glCanvas.addGLEventListener(new GLEventListener() {            
             @Override
             public void init(GLAutoDrawable drawable) { }
             @Override
@@ -144,18 +97,8 @@ public class TestTexture01AWT extends UITestCase {
             @Override
             public void display(GLAutoDrawable drawable) {
                 BufferedImage outputImage = awtGLReadBufferUtil.readPixelsToBufferedImage(drawable.getGL(), true /* awtOrientation */);
-                ImageIcon imageIcon = new ImageIcon(outputImage);
-                final JLabel imageLabel = new JLabel(imageIcon);        
-                try {
-                    AWTEDTExecutor.singleton.invoke(true, new Runnable() {
-                        public void run() {
-                            frame0.removeAll();
-                            frame0.add(imageLabel);
-                            frame0.validate();
-                        }});
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }                
+                imageIcon.setImage(outputImage);
+                imageLabel.repaint();
             }
 
             @Override
@@ -180,9 +123,12 @@ public class TestTexture01AWT extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }                
+        FPSAnimator animator = new FPSAnimator(glCanvas, 15); // 15fps
+        animator.start();
         
         Thread.sleep(durationPerTest);
 
+        animator.stop();
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
@@ -203,7 +149,7 @@ public class TestTexture01AWT extends UITestCase {
                 durationPerTest = MiscUtils.atol(args[++i], durationPerTest);
             }
         }
-        String tstname = TestTexture01AWT.class.getName();
+        String tstname = TestTexture02AWT.class.getName();
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,
             "filtertrace=true",

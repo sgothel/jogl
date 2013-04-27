@@ -61,6 +61,8 @@ import com.jogamp.opengl.util.TGAWriter;
  * @deprecated Please consider using {@link com.jogamp.opengl.util.GLReadBufferUtil}, 
  *             which is AWT independent and does not require a CPU based vertical image flip 
  *             in case drawable {@link GLDrawable#isGLOriented() is in OpenGL orientation}.
+ *             Further more you may use {@link AWTGLReadBufferUtil} to read out 
+ *             the framebuffer into a BufferedImage for further AWT processing.
  */
 public class Screenshot {
   private Screenshot() {}

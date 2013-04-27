@@ -28,6 +28,7 @@
 
 package com.jogamp.opengl.test.junit.jogl.awt;
 
+import java.awt.Container;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
  
@@ -49,7 +50,9 @@ import javax.swing.JLabel;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.awt.AWTGLReadBufferUtil;
 
 /**
  * Tests for bug 461, a failure of GLDrawableFactory.createGLPbuffer() on Windows
@@ -58,8 +61,10 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  * @author Wade Walker (from code sample provided by Owen Dimond)
  */
 public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GLEventListener {
+    static long durationPerTest = 500;
     JFrame jframe;
     GLOffscreenAutoDrawable offScreenBuffer;
+    AWTGLReadBufferUtil awtGLReadBufferUtil;
     
     private void render(GLAutoDrawable drawable) {
         GL2 gl = drawable.getGL().getGL2();
@@ -78,7 +83,8 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
     }
     
     /* @Override */
-    public void init(GLAutoDrawable drawable) {                        
+    public void init(GLAutoDrawable drawable) {
+        awtGLReadBufferUtil = new AWTGLReadBufferUtil(false);
     }
 
     /* @Override */
@@ -88,14 +94,18 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
     /* @Override */
     public void display(GLAutoDrawable drawable) {             
         render(offScreenBuffer);
-        BufferedImage outputImage = com.jogamp.opengl.util.awt.Screenshot.readToBufferedImage(200, 200, false);        
+        // BufferedImage outputImage = com.jogamp.opengl.util.awt.Screenshot.readToBufferedImage(200, 200, false);
+        BufferedImage outputImage = awtGLReadBufferUtil.readPixelsToBufferedImage(drawable.getGL(), 0, 0, 200, 200, true /* awtOrientation */);
         Assert.assertNotNull(outputImage);
         ImageIcon imageIcon = new ImageIcon(outputImage);
         final JLabel imageLabel = new JLabel(imageIcon);        
         try {
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    jframe.getContentPane().add(imageLabel);
+                    Container cont = jframe.getContentPane();
+                    cont.removeAll();
+                    cont.add(imageLabel);
+                    cont.validate();
                 }});
         } catch (Exception e) {
             e.printStackTrace();
@@ -105,6 +115,7 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
     /* @Override */
     public void dispose(GLAutoDrawable drawable) {  
         try {
+            awtGLReadBufferUtil.dispose(drawable.getGL());
             javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     jframe.setVisible(false);
@@ -141,7 +152,8 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
         glCap.setSampleBuffers(true);
       
         // Without line below, there is an error on Windows.
-        glCap.setDoubleBuffered(false);
+        // glCap.setDoubleBuffered(false); // implicit double buffer -> MSAA + FBO
+        
         // Needed for drop shadows
         glCap.setStencilBits(1);
 
@@ -149,16 +161,25 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
         offScreenBuffer = fac.createOffscreenAutoDrawable(GLProfile.getDefaultDevice(), glCap, null, 200, 200, null);
         Assert.assertNotNull(offScreenBuffer);
         offScreenBuffer.addGLEventListener(this);        
-        offScreenBuffer.display();
         javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
                 jframe.setSize( 300, 300);
                 jframe.setVisible(true);
             }});
+        offScreenBuffer.display(); // read from front buffer due to FBO+MSAA -> double-buffer
+        offScreenBuffer.display(); // now we have prev. image in front buffer to be read out
+        
+        Thread.sleep(durationPerTest);
+
         offScreenBuffer.destroy();
     }
 
     public static void main(String args[]) {
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-time")) {
+                durationPerTest = MiscUtils.atol(args[++i], durationPerTest);
+            }
+        }
         org.junit.runner.JUnitCore.main(TestBug461FBOSupersamplingSwingAWT.class.getName());
     }
 }
