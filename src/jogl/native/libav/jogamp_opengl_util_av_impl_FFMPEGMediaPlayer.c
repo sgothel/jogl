@@ -84,10 +84,12 @@ static AVCODEC_DECODE_VIDEO2 sp_avcodec_decode_video2;    // 52.23.0
 // libavutil
 typedef void (APIENTRYP AV_FREE)(void *ptr);
 typedef int (APIENTRYP AV_GET_BITS_PER_PIXEL)(const AVPixFmtDescriptor *pixdesc);
+typedef int (APIENTRYP AV_SAMPLES_GET_BUFFER_SIZE)(int *linesize, int nb_channels, int nb_samples, enum AVSampleFormat sample_fmt, int align);
 static const AVPixFmtDescriptor* sp_av_pix_fmt_descriptors;
 static AV_FREE sp_av_free;
 static AV_GET_BITS_PER_PIXEL sp_av_get_bits_per_pixel;
-// count: 18
+static AV_SAMPLES_GET_BUFFER_SIZE sp_av_samples_get_buffer_size;
+// count: 19
 
 // libavformat
 typedef AVFormatContext *(APIENTRYP AVFORMAT_ALLOC_CONTEXT)(void);
@@ -117,9 +119,9 @@ static AVFORMAT_NETWORK_INIT sp_avformat_network_init;            // 53.13.0
 static AVFORMAT_NETWORK_DEINIT sp_avformat_network_deinit;        // 53.13.0
 static AVFORMAT_FIND_STREAM_INFO sp_avformat_find_stream_info;    // 53.3.0
 static AV_FIND_STREAM_INFO sp_av_find_stream_info;
-// count: 31
+// count: 32
 
-#define SYMBOL_COUNT 31
+#define SYMBOL_COUNT 32
 
 JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryBundleInfo_initSymbols0
   (JNIEnv *env, jclass clazz, jobject jSymbols, jint count)
@@ -159,7 +161,8 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryB
     sp_av_pix_fmt_descriptors = (const AVPixFmtDescriptor*)  (intptr_t) symbols[i++];
     sp_av_free = (AV_FREE) (intptr_t) symbols[i++];
     sp_av_get_bits_per_pixel = (AV_GET_BITS_PER_PIXEL) (intptr_t) symbols[i++];
-    // count: 18
+    sp_av_samples_get_buffer_size = (AV_SAMPLES_GET_BUFFER_SIZE) (intptr_t) symbols[i++];
+    // count: 19
 
     sp_avformat_alloc_context = (AVFORMAT_ALLOC_CONTEXT) (intptr_t) symbols[i++];;
     sp_avformat_free_context = (AVFORMAT_FREE_CONTEXT) (intptr_t) symbols[i++];
@@ -174,7 +177,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryB
     sp_avformat_network_deinit = (AVFORMAT_NETWORK_DEINIT) (intptr_t) symbols[i++];
     sp_avformat_find_stream_info = (AVFORMAT_FIND_STREAM_INFO) (intptr_t) symbols[i++];
     sp_av_find_stream_info = (AV_FIND_STREAM_INFO) (intptr_t) symbols[i++];
-    // count: 31
+    // count: 32
 
     (*env)->ReleasePrimitiveArrayCritical(env, jSymbols, symbols, 0);
 
@@ -618,13 +621,22 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                     }
                     continue;
                 }
+
+                int data_size = 0;
+                if(HAS_FUNC(sp_av_samples_get_buffer_size)) {
+                    data_size = sp_av_samples_get_buffer_size(NULL /* linesize, may be NULL */,
+                                                              pAV->aChannels,
+                                                              pAV->pAFrame->nb_samples,
+                                                              pAV->aSampleFmt,
+                                                              1 /* align */);
+                }
                 int32_t pts = (int64_t) ( pAV->pAFrame->pkt_pts * (int64_t) 1000 * (int64_t) pAV->pAStream->time_base.num )
                               / (int64_t) pAV->pAStream->time_base.den;
                 #if 0
                 printf("channels %d sample_rate %d \n", pAV->aChannels , pAV->aSampleRate);
                 printf("data %d \n", pAV->aFrameSize); 
                 #endif
-                pAV->aPTS += (int64_t) ( pAV->aFrameSize * (int64_t) 1000 )
+                pAV->aPTS += (int64_t) ( data_size * (int64_t) 1000 )
                              / (int64_t) (2 * (int64_t) pAV->aChannels * (int64_t) pAV->aSampleRate);
                 if( pAV->verbose ) {
                     printf("A pts %d - %d\n", pts, pAV->aPTS);
