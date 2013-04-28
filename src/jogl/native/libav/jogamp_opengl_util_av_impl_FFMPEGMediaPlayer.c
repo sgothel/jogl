@@ -616,7 +616,7 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
 
                 if (!frameFinished) {
                     // stop sending empty packets if the decoder is finished 
-                    if (!packet.data && pAV->pVCodecCtx->codec->capabilities & CODEC_CAP_DELAY) {
+                    if (!packet.data && pAV->pACodecCtx->codec->capabilities & CODEC_CAP_DELAY) {
                         flush_complete = 1;
                     }
                     continue;
@@ -652,11 +652,35 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                 sp_av_free_packet(&packet);
                 return res;
             }
-            sp_avcodec_decode_video2(pAV->pVCodecCtx, pAV->pVFrame, &frameFinished, &packet);
 
-            // Did we get a video frame?
-            if(frameFinished)
-            {
+            int new_packet = 1;
+            int len1;
+            int flush_complete = 0;
+            while (packet.size > 0 || (!packet.data && new_packet)) {
+
+                new_packet = 0;
+                if (flush_complete) {
+                    break;
+                }
+
+                len1 = sp_avcodec_decode_video2(pAV->pVCodecCtx, pAV->pVFrame, &frameFinished, &packet);
+
+                if (len1 < 0) {
+                    // if error, we skip the frame
+                    packet.size = 0;
+                    break;
+                }
+                packet.data += len1;
+                packet.size -= len1;
+
+                if (!frameFinished) {
+                    // stop sending empty packets if the decoder is finished
+                    if (!packet.data && pAV->pVCodecCtx->codec->capabilities & CODEC_CAP_DELAY) {
+                        flush_complete = 1;
+                    }
+                    continue;
+                }
+
                 res = 2;
                 // FIXME: Libav Binary compatibility! JAU01
                 const AVRational time_base = pAV->pVStream->time_base;
