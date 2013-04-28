@@ -382,7 +382,15 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
                 gl.glActiveTexture(GL.GL_TEXTURE0+getTextureUnit());
                 tex.enable(gl);
                 tex.bind(gl);
-                readNextPacket0(moviePtr, procAddrGLTexSubImage2D, textureTarget, textureFormat, textureType);
+
+                /* try decode 10 packets to find one containing video
+                   (res == 2) */
+                int res = 0;
+                int retry = 10; 
+                while(res!=2 && retry >= 0) { 
+                   res = readNextPacket0(moviePtr, procAddrGLTexSubImage2D, textureTarget, textureFormat, textureType);
+                   retry--;
+                }
             } finally {
                 psm.restore(gl);
             }
