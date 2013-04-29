@@ -403,7 +403,7 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
                 final long dt = (long) ( (float) ( pts_d - now_d ) / getPlaySpeed() ) ;
                 lastVideoTime = now;
                 // System.err.println("s: pts-v "+pts+", pts-d "+pts_d+", now_d "+now_d+", dt "+dt);
-                if(dt>dt_d) {
+                if(dt>dt_d && dt<1000 ) {
                     try {
                         Thread.sleep(dt-dt_d);
                     } catch (InterruptedException e) { }
