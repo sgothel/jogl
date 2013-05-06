@@ -146,6 +146,13 @@ public class X11GLXContext extends GLContextImpl {
     isGLXVersionGreaterEqualOneThree = null != glXServerVersion ? glXServerVersion.compareTo(X11GLXDrawableFactory.versionOneThree) >= 0 : false;
     return isGLXVersionGreaterEqualOneThree;
   }
+  protected final void forceGLXVersionOneOne() {
+    glXServerVersion = X11GLXDrawableFactory.versionOneOne;
+    isGLXVersionGreaterEqualOneThree = false;
+    if(DEBUG) {
+        System.err.println("X11GLXContext.forceGLXVersionNumber: "+glXServerVersion);
+    }
+  }
 
   @Override
   public final boolean isGLReadDrawableAvailable() {
@@ -300,8 +307,9 @@ public class X11GLXContext extends GLContextImpl {
     final GLCapabilitiesImmutable glCaps = (GLCapabilitiesImmutable) config.getChosenCapabilities();
     final GLProfile glp = glCaps.getGLProfile();
 
-    if( config.getFBConfigID() < 0 ) {
-        // not able to use FBConfig
+    if( !config.hasFBConfig() ) {
+        // not able to use FBConfig -> GLX 1.1
+        forceGLXVersionOneOne();
         if(glp.isGL3()) {
           throw new GLException(getThreadName()+": Unable to create OpenGL >= 3.1 context");
         }
