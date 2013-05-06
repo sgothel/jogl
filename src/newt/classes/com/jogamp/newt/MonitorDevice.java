@@ -117,22 +117,26 @@ public abstract class MonitorDevice {
     }
 
     /**
-     * Return the immutable original {@link com.jogamp.newt.MonitorMode}, as used at NEWT initialization.
-     * @return original {@link MonitorMode} which is element of the list {@link #getSupportedModes()} and {@link Screen#getMonitorModes()}.
+     * Returns the immutable original {@link com.jogamp.newt.MonitorMode}, as used at NEWT initialization.
+     * <p>
+     * The returned {@link MonitorMode} is element of the lists {@link #getSupportedModes()} and {@link Screen#getMonitorModes()}.
+     * </p>
      */
     public final MonitorMode getOriginalMode() {
         return originalMode;
     }
 
     /**
-     * FIXME: May need to support mutable mode, i.e. adding modes on the fly!
-     * @return the immutable list of {@link MonitorMode}s supported by this monitor. Use w/ care, it's not a copy!
+     * Returns a list of immutable {@link MonitorMode}s supported by this monitor.
+     * <p>
+     * Use w/ care, it's not a copy!
+     * </p>
      */
     public final List<MonitorMode> getSupportedModes() {
         return supportedModes.getData();
     }
 
-    /** @return the {@link RectangleImmutable rectangular} portion of the rotated virtual {@link Screen} size represented by this monitor. */  
+    /** Returns the {@link RectangleImmutable rectangular} portion of the rotated virtual {@link Screen} size represented by this monitor. */  
     public final RectangleImmutable getViewport() {
         return viewport;
     }
@@ -199,24 +203,20 @@ public abstract class MonitorDevice {
     }
     
     /**
-     * Return the current cached {@link MonitorMode} w/o native query.
+     * Returns the cached current {@link MonitorMode} w/o native query.
      * <p>
-     * If {@link MonitorMode}s are not supported for this 
-     * native type {@link com.jogamp.newt.Display#getType()}, it returns one with the current screen size. </p>
-     * 
-     * @return current {@link MonitorMode} which is element of the list {@link #getSupportedModes()} and {@link Screen#getMonitorModes()}.
+     * The returned {@link MonitorMode} is element of the lists {@link #getSupportedModes()} and {@link Screen#getMonitorModes()}.
+     * </p>
      */
     public final MonitorMode getCurrentMode() {
         return currentMode;
     }
     
     /**
-     * Return the current {@link MonitorMode} including a native query.
+     * Returns the current {@link MonitorMode} resulting from a native query.
      * <p>
-     * If {@link MonitorMode}s are not supported for this 
-     * native type {@link com.jogamp.newt.Display#getType()}, it returns one with the current screen size. </p>
-     * 
-     * @return current {@link MonitorMode} which is element of the list {@link #getSupportedModes()} and {@link Screen#getMonitorModes()}.
+     * The returned {@link MonitorMode} is element of the lists {@link #getSupportedModes()} and {@link Screen#getMonitorModes()}.
+     * </p>
      */
     public abstract MonitorMode queryCurrentMode();
 

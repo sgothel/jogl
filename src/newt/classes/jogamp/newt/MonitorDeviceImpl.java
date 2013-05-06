@@ -64,7 +64,7 @@ public class MonitorDeviceImpl extends MonitorDevice {
             // if mode has changed somehow, update it ..
             if( getCurrentMode().hashCode() != mmU.hashCode() ) {
                 setCurrentModeValue(mmU);
-                sms.fireScreenModeChanged(this, mmU, true);
+                sms.fireMonitorModeChanged(this, mmU, true);
             }
             return mmU;
         } finally {
@@ -75,7 +75,7 @@ public class MonitorDeviceImpl extends MonitorDevice {
     @Override
     public final boolean setCurrentMode(MonitorMode mode) {
         if(Screen.DEBUG) {
-            System.err.println("Screen.setCurrentScreenMode.0: "+this+" -> "+mode);
+            System.err.println("Screen.setCurrentMode.0: "+this+" -> "+mode);
         }
         final ScreenImpl screenImpl = (ScreenImpl)screen;
         final ScreenMonitorState sms = screenImpl.getScreenMonitorStatus(true);
@@ -88,7 +88,7 @@ public class MonitorDeviceImpl extends MonitorDevice {
             }
             if( mmU.equals( mmC ) ) {
                 if(Screen.DEBUG) {
-                    System.err.println("Screen.setCurrentScreenMode: 0.0 is-current (skip) "+mmU+" == "+mmC);
+                    System.err.println("Screen.setCurrentMode: 0.0 is-current (skip) "+mmU+" == "+mmC);
                 }            
                 return true;
             }
@@ -99,32 +99,32 @@ public class MonitorDeviceImpl extends MonitorDevice {
                 tStart = 0;
             }
             
-            sms.fireScreenModeChangeNotify(this, mmU);
+            sms.fireMonitorModeChangeNotify(this, mmU);
             if(Screen.DEBUG) {
-                System.err.println("Screen.setCurrentScreenMode ("+(System.nanoTime()-tStart)/1e6+"ms): fireScreenModeChangeNotify() "+mmU);
+                System.err.println("Screen.setCurrentMode ("+(System.nanoTime()-tStart)/1e6+"ms): fireModeChangeNotify() "+mmU);
             }
 
             boolean success = screenImpl.setCurrentMonitorModeImpl(this, mmU);
             if(success) {
                 if(Screen.DEBUG) {
-                    System.err.println("Screen.setCurrentScreenMode ("+(System.nanoTime()-tStart)/1e6+"ms): setCurrentScreenModeImpl() "+mmU+", success(1): "+success);
+                    System.err.println("Screen.setCurrentMode ("+(System.nanoTime()-tStart)/1e6+"ms): setCurrentModeImpl() "+mmU+", success(1): "+success);
                 }
             } else {
                 // 2nd attempt validate!
-                final MonitorMode queriedCurrent = queryCurrentMode(); // may fireScreenModeChanged(..) if successful and differs!
+                final MonitorMode queriedCurrent = queryCurrentMode(); // may fireModeChanged(..) if successful and differs!
                 success = queriedCurrent.hashCode() == mmU.hashCode() ;
                 if(Screen.DEBUG) {
-                    System.err.println("Screen.setCurrentScreenMode.2: queried "+queriedCurrent);
-                    System.err.println("Screen.setCurrentScreenMode ("+(System.nanoTime()-tStart)/1e6+"ms): setCurrentScreenModeImpl() "+mmU+", success(2): "+success);
+                    System.err.println("Screen.setCurrentMode.2: queried "+queriedCurrent);
+                    System.err.println("Screen.setCurrentMode ("+(System.nanoTime()-tStart)/1e6+"ms): setCurrentModeImpl() "+mmU+", success(2): "+success);
                 }
             }
             if( success ) {
                 setCurrentModeValue(mmU);
                 modeChanged = !isOriginalMode();
             }
-            sms.fireScreenModeChanged(this, mmU, success);
+            sms.fireMonitorModeChanged(this, mmU, success);
             if(Screen.DEBUG) {
-                System.err.println("Screen.setCurrentScreenMode ("+(System.nanoTime()-tStart)/1e6+"ms): X.X "+this+", success: "+success);
+                System.err.println("Screen.setCurrentMode ("+(System.nanoTime()-tStart)/1e6+"ms): X.X "+this+", success: "+success);
             }
             return success;
         } finally {

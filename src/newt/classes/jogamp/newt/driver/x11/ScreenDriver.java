@@ -188,7 +188,7 @@ public class ScreenDriver extends ScreenImpl {
         }).booleanValue();
         
         if(DEBUG || !done) {
-            System.err.println("X11Screen.setCurrentScreenModeImpl: TO ("+SCREEN_MODE_CHANGE_TIMEOUT+") reached: "+
+            System.err.println("X11Screen.setCurrentMonitorModeImpl: TO ("+SCREEN_MODE_CHANGE_TIMEOUT+") reached: "+
                                (System.currentTimeMillis()-t0)+"ms; "+monitor.getCurrentMode()+" -> "+mode);
         }
         return done;

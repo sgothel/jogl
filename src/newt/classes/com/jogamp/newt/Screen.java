@@ -163,18 +163,12 @@ public abstract class Screen {
     public abstract String getFQName();
 
     /** 
-     * Return a list of all available {@link MonitorMode}s for all {@link MonitorDevice}s.
-     * <p>
-     * If {@link com.jogamp.newt.MonitorMode ScreenMode}s are not supported for this 
-     * native type {@link com.jogamp.newt.Display#getType()}, it returns a list of size one with the current screen size.</p>
+     * Return a list of all {@link MonitorMode}s for all {@link MonitorDevice}s.
      */
     public abstract List<MonitorMode> getMonitorModes();
 
     /** 
-     * Return a list of all available {@link MonitorDevice}s.
-     * <p>
-     * If {@link com.jogamp.newt.MonitorMode ScreenMode}s are not supported for this 
-     * native type {@link com.jogamp.newt.Display#getType()}, it returns a list of size one with the current screen size.</p>
+     * Return a list of available {@link MonitorDevice}s.
      */
     public abstract List<MonitorDevice> getMonitorDevices();
 

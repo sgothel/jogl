@@ -73,7 +73,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     protected Rectangle vOriginSize = new Rectangle(0, 0, 0, 0); // virtual rotated screen origin and size
     protected static Dimension usrSize = null; // property values: newt.ws.swidth and newt.ws.sheight
     protected static volatile boolean usrSizeQueried = false;
-    private ArrayList<MonitorModeListener> referencedScreenModeListener = new ArrayList<MonitorModeListener>();
+    private ArrayList<MonitorModeListener> refMonitorModeListener = new ArrayList<MonitorModeListener>();
     
     private long tCreated; // creationTime
 
@@ -181,7 +181,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
                 throw new NativeWindowException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
             }
             
-            initScreenMonitorState();
+            initMonitorState();
             if(DEBUG) {
                 System.err.println("Screen.createNative() END ("+DisplayImpl.getThreadName()+", "+this+"), total "+ (System.nanoTime()-tCreated)/1e6 +"ms");
             }
@@ -195,7 +195,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
 
     @Override
     public synchronized final void destroy() {
-        releaseScreenModeStatus();
+        releaseMonitorState();
 
         synchronized(screenList) {
             screenList.remove(this);
@@ -261,7 +261,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     /**
      * Stores the virtual origin and virtual <b>rotated</b> screen size.
      * <p>
-     * This method is called after the ScreenMode has been set or changed, 
+     * This method is called after the MonitorMode has been set or changed, 
      * hence you may utilize it.
      * </p>
      * <p>
@@ -393,7 +393,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         final String key = this.getFQName();
         final ScreenMonitorState res = ScreenMonitorState.getScreenMonitorState(key);
         if(null == res & throwException) {
-            throw new InternalError("ScreenMonitorStatus.getScreenModeStatus("+key+") == null");
+            throw new InternalError("ScreenMonitorStatus.getMonitorModeStatus("+key+") == null");
         }
         return res;
     }
@@ -403,8 +403,8 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         if(DEBUG) {
             System.err.println("monitorModeChangeNotify: "+me);
         }
-        for(int i=0; i<referencedScreenModeListener.size(); i++) {
-            ((MonitorModeListener)referencedScreenModeListener.get(i)).monitorModeChangeNotify(me);
+        for(int i=0; i<refMonitorModeListener.size(); i++) {
+            ((MonitorModeListener)refMonitorModeListener.get(i)).monitorModeChangeNotify(me);
         }
     }
 
@@ -431,19 +431,19 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         if(DEBUG) {
             System.err.println("monitorModeChanged: success "+success+", "+me);
         }
-        for(int i=0; i<referencedScreenModeListener.size(); i++) {
-            ((MonitorModeListener)referencedScreenModeListener.get(i)).monitorModeChanged(me, success);
+        for(int i=0; i<refMonitorModeListener.size(); i++) {
+            ((MonitorModeListener)refMonitorModeListener.get(i)).monitorModeChanged(me, success);
         }
     }
 
     @Override
     public synchronized final void addMonitorModeListener(MonitorModeListener sml) {
-        referencedScreenModeListener.add(sml);
+        refMonitorModeListener.add(sml);
     }
 
     @Override
     public synchronized final void removeMonitorModeListener(MonitorModeListener sml) {
-        referencedScreenModeListener.remove(sml);
+        refMonitorModeListener.remove(sml);
     }
     
     private final MonitorMode getVirtualMonitorMode(int modeId) {
@@ -503,11 +503,11 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         return res;
     }
 
-    private final ScreenMonitorState initScreenMonitorState() {
+    private final ScreenMonitorState initMonitorState() {
         long t0;
         if(DEBUG) {
             t0 = System.nanoTime();
-            System.err.println("Screen.initScreenModeStatus() START ("+DisplayImpl.getThreadName()+", "+this+")");
+            System.err.println("Screen.initMonitorState() START ("+DisplayImpl.getThreadName()+", "+this+")");
         } else {
             t0 = 0;
         }
@@ -549,7 +549,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
             ScreenMonitorState.unlockScreenMonitorState();
         }
         if(DEBUG) {
-            System.err.println("Screen.initScreenModeStatus() END dt "+ (System.nanoTime()-t0)/1e6 +"ms");
+            System.err.println("Screen.initMonitorState() END dt "+ (System.nanoTime()-t0)/1e6 +"ms");
         }
         if( !vScrnSizeUpdated ) {
             updateVirtualScreenOriginAndSize();
@@ -596,7 +596,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         return cache.monitorDevices.size();
     }
 
-    private void releaseScreenModeStatus() {
+    private void releaseMonitorState() {
         ScreenMonitorState sms;
         ScreenMonitorState.lockScreenMonitorState();
         try {

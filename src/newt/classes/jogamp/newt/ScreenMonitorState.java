@@ -137,7 +137,7 @@ public class ScreenMonitorState {
         lock();
         try {
             if(!listener.remove(l)) {
-                throw new RuntimeException("ScreenModeListener "+l+" not contained");
+                throw new RuntimeException("MonitorModeListener "+l+" not contained");
             }
             if(DEBUG) {
                 System.err.println("ScreenMonitorState.removeListener (size: "+listener.size()+"): "+l);
@@ -159,7 +159,7 @@ public class ScreenMonitorState {
         }
     }
     
-    protected final void fireScreenModeChangeNotify(MonitorDevice monitor, MonitorMode desiredMode) {
+    protected final void fireMonitorModeChangeNotify(MonitorDevice monitor, MonitorMode desiredMode) {
         lock();
         try {
             validateMonitor(monitor);
@@ -172,7 +172,7 @@ public class ScreenMonitorState {
         }
     }
 
-    protected void fireScreenModeChanged(MonitorDevice monitor, MonitorMode currentMode, boolean success) {
+    protected void fireMonitorModeChanged(MonitorDevice monitor, MonitorMode currentMode, boolean success) {
         lock();
         try {
             validateMonitor(monitor);

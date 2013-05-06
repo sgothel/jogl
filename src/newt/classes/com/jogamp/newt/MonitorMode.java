@@ -29,79 +29,84 @@
 package com.jogamp.newt;
 
 import javax.media.nativewindow.util.DimensionImmutable;
+import javax.media.nativewindow.util.RectangleImmutable;
 import javax.media.nativewindow.util.SurfaceSize;
 
+import com.jogamp.newt.util.MonitorModeUtil;
 
-/** Immutable MonitorMode Class, consisting of it's read only components:<br>
+
+/** 
+ * Immutable MonitorMode Class, consisting of it's read only components:<br>
  * <ul>
  *  <li>nativeId</li>
- *  <li>{@link SizeAndRRate}, non rotated surfaceSize and refreshRate</li>
+ *  <li>{@link SizeAndRRate}, consist out of non rotated {@link #getSurfaceSize() surface size}, {@link #getRefreshRate() refresh rate} and {@link #getFlags() flags}.</li>
  *  <li><code>rotation</code>, measured counter clockwise (CCW)</li>
  * </ul>
  *
  * <i>Aquire and filter MonitorMode</i><br>
  * <ul>
- *  <li>A List of read only MonitorModes is being returned by {@link com.jogamp.newt.Screen#getMonitorModes()}.</li>
- *  <li>You may utilize {@link com.jogamp.newt.util.MonitorModeUtil} to filter and select a desired ScreenMode.</li>
- *  <li>The current ScreenMode can be obtained via {@link com.jogamp.newt.Screen#getCurrentScreenMode()}.</li>
- *  <li>The initial original ScreenMode (at startup) can be obtained via {@link com.jogamp.newt.Screen#getOriginalScreenMode()}.</li>
+ *  <li>{@link MonitorDevice} Selection:
+ *  <ul>
+ *    <li>A List of all {@link MonitorDevice}s is accessible via {@link Screen#getMonitorDevices()}.</li>
+ *    <li>The main monitor used by a windows is accessible via {@link Window#getMainMonitor()}.</li>
+ *    <li>The main monitor covering an arbitrary rectnagle is accessible via {@link Screen#getMainMonitor(RectangleImmutable)}.</li>
+ *  </ul></li>
+ *  <li>The current MonitorMode can be obtained via {@link MonitorDevice#getCurrentMode()}.</li>
+ *  <li>The original MonitorMode can be obtained via {@link MonitorDevice#getOriginalMode()}.</li>
+ *  <li>{@link MonitorMode} Filtering:
+ *  <ul>
+ *    <li>A {@link MonitorDevice}'s MonitorModes is accessible via {@link MonitorDevice#getSupportedModes()}.</li>
+ *    <li>You may utilize {@link MonitorModeUtil} to filter and select a desired MonitorMode.</li>
+ *  </ul></li>
  * </ul>
  * <br>
  *
- * <i>Changing ScreenModes</i><br>
- * FIXME!!!!!
+ * <i>Changing MonitorMode</i><br>
  * <ul>
- *  <li> Use {@link com.jogamp.newt.Screen#setCurrentScreenMode(com.jogamp.newt.MonitorMode)}</li>
- *       to change the current ScreenMode of all Screen's referenced via the full qualified name (FQN)
- *       {@link com.jogamp.newt.Screen#getFQName()}.</li>
- *  <li> When the last FQN referenced Screen closes, the original ScreenMode ({@link com.jogamp.newt.Screen#getOriginalScreenMode()})
- * is restored.</li>
+ *  <li> Use {@link MonitorDevice#setCurrentMode(MonitorMode)}
+ *       to change the current MonitorMode for all {@link Screen}s referenced via the {@link Screen#getFQName() full qualified name (FQN)}.</li>
+ *  <li> The {@link MonitorDevice#getOriginalMode() original mode} is restored when
+ *  <ul>
+ *    <li>the last FQN referenced Screen closes.</li>
+ *    <li>the JVM shuts down.</li>
+ *  </ul></li>
  * </ul>
  * <br>
- * Example for changing the ScreenMode:
+ * Example for changing the MonitorMode:
  * <pre>
-        // determine target refresh rate
-        ScreenMode orig = screen.getOriginalScreenMode();
-        int freq = orig.getOutputMode().getRefreshRate();
+        // Pick the monitor:
+        // Either the one used by a window ..
+        MonitorDevice monitor = window.getMainMonitor();
+        
+        // Or arbitrary from the list ..
+        List<MonitorDevice> allMonitor = getMonitorDevices();
+        MonitorDevice monitor = allMonitor.get(0);
 
-        // target resolution
+        // Current and original modes ..
+        MonitorMode mmCurrent = monitor.queryCurrentMode();
+        MonitorMode mmOrig = monitor.getOriginalMode();
+        
+        // Target resolution
         Dimension res = new Dimension(800, 600);
 
-        // target rotation
-        int rot = 0;
+        // Target refresh rate shall be similar to current one ..
+        float freq = mmCurrent.getRefreshRate();
 
-        // filter available ScreenModes
-        List screenModes = screen.getScreenModes();
-        screenModes = ScreenModeUtil.filterByRate(screenModes, freq); // get the nearest ones
-        screenModes = ScreenModeUtil.filterByRotation(screenModes, rot);
-        screenModes = ScreenModeUtil.filterByResolution(screenModes, res); // get the nearest ones
-        screenModes = ScreenModeUtil.getHighestAvailableBpp(screenModes);
+        // Target rotation shall be similar to current one
+        int rot = mmCurrent.getRotation();
 
-        // pick 1st one ..
-        screen.setCurrentScreenMode((ScreenMode) screenModes.get(0)); 
+        // Filter criterias sequential out of all available MonitorMode of the chosen MonitorDevice
+        List<MonitorMode> monitorModes = monitor.getSupportedModes();
+        monitorModes = MonitorModeUtil.filterByFlags(monitorModes, 0); // no interlace, double-scan etc
+        monitorModes = MonitorModeUtil.filterByRotation(monitorModes, rot);
+        monitorModes = MonitorModeUtil.filterByResolution(monitorModes, res);
+        monitorModes = MonitorModeUtil.filterByRate(monitorModes, freq);        
+        monitorModes = MonitorModeUtil.getHighestAvailableBpp(monitorModes);
+
+        // pick 1st one and set to current ..
+        MonitorMode mm = monitorModes.get(0);
+        monitor.setCurrentMode(mm);
  * </pre>
- *
- * X11 / AMD just works<br>
- * <br>
- * X11 / NVidia difficulties
- * <pre>
-    NVidia RANDR RefreshRate Bug
-        If NVidia's 'DynamicTwinView' is enabled, all refresh rates are
-        unique, ie consequent numbers starting with the default refresh, ie 50, 51, ..
-        The only way to workaround it is to disable 'DynamicTwinView'.
-        Read: http://us.download.nvidia.com/XFree86/Linux-x86/260.19.12/README/configtwinview.html
-
-        Check to see if 'DynamicTwinView' is enable:
-            nvidia-settings -q :0/DynamicTwinview
-
-        To disable it (workaround), add the following option to your xorg.conf device section:
-            Option "DynamicTwinView" "False"
-
-    NVidia RANDR Rotation:
-        To enable it, add the following option to your xorg.conf device section:
-            Option "RandRRotation" "on"
- * </pre>
- *
  */
 public class MonitorMode {
     /** 
@@ -113,8 +118,11 @@ public class MonitorMode {
      * </ul>
      */
     public static class SizeAndRRate {
+        /** Non rotated surface size */
         public final SurfaceSize surfaceSize;
+        /** Vertical refresh rate */
         public final float refreshRate;
+        /** Mode bitfield flags, i.e. {@link #FLAG_DOUBLESCAN}, {@link #FLAG_INTERLACE}, .. */
         public final int flags;
         public final int hashCode;
     
@@ -262,6 +270,7 @@ public class MonitorMode {
         return sizeAndRRate.surfaceSize;
     }
 
+    /** Returns the vertical refresh rate. */
     public final float getRefreshRate() {
         return sizeAndRRate.refreshRate;
     }

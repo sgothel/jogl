@@ -254,7 +254,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         void destroyActionInLock();
 
         /**
-         * Invoked for expensive modifications, ie while reparenting and ScreenMode change.<br>
+         * Invoked for expensive modifications, ie while reparenting and MonitorMode change.<br>
          * No lock is hold when invoked.<br>
          *
          * @return true is paused, otherwise false. If true {@link #resumeRenderingAction()} shall be issued.
@@ -264,7 +264,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         boolean pauseRenderingAction();
 
         /**
-         * Invoked for expensive modifications, ie while reparenting and ScreenMode change.
+         * Invoked for expensive modifications, ie while reparenting and MonitorMode change.
          * No lock is hold when invoked.<br>
          *
          * @see #pauseRenderingAction()
@@ -311,7 +311,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     }
                     final long t0 = System.currentTimeMillis();
                     createNativeImpl();
-                    screen.addMonitorModeListener(screenModeListenerImpl);
+                    screen.addMonitorModeListener(monitorModeListenerImpl);
                     setTitleImpl(title);
                     setPointerVisibleImpl(pointerVisible);
                     confinePointerImpl(pointerConfined);
@@ -937,7 +937,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 }
 
                 if( isNativeValid() ) {
-                    screen.removeMonitorModeListener(screenModeListenerImpl);
+                    screen.removeMonitorModeListener(monitorModeListenerImpl);
                     closeNativeImpl();
                     final AbstractGraphicsDevice cfgADevice = config.getScreen().getDevice();
                     if( cfgADevice != screen.getDisplay().getGraphicsDevice() ) { // don't pull display's device
@@ -1962,12 +1962,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
     
-    private class ScreenModeListenerImpl implements MonitorModeListener {
+    private class MonitorModeListenerImpl implements MonitorModeListener {
         boolean animatorPaused = false;
 
         public void monitorModeChangeNotify(MonitorEvent me) {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.screenModeChangeNotify: "+me);
+                System.err.println("Window.monitorModeChangeNotify: "+me);
             }
 
             if(null!=lifecycleHook) {
@@ -1977,7 +1977,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
         public void monitorModeChanged(MonitorEvent me, boolean success) {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.screenModeChanged: "+me+", success: "+success);
+                System.err.println("Window.monitorModeChanged: "+me+", success: "+success);
             }
 
             if(success) {
@@ -2007,7 +2007,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
     }
-    private final ScreenModeListenerImpl screenModeListenerImpl = new ScreenModeListenerImpl();
+    private final MonitorModeListenerImpl monitorModeListenerImpl = new MonitorModeListenerImpl();
 
 
 

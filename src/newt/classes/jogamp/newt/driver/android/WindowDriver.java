@@ -562,7 +562,7 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
             surface=null;
         }
         if(getScreen().isNativeValid()) {
-            // if ScreenMode changed .. trigger ScreenMode event
+            // if MonitorMode changed .. trigger MonitorMode event
             final MonitorDevice mainMonitor = getMainMonitor();
             mainMonitor.queryCurrentMode();
         }
