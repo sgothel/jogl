@@ -294,7 +294,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsAWTAnalyzeBug455 $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.awt.TestGearsGLJPanelAWTBug450 $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper $*
+testawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNewtAWTWrapper $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestTeapotNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl3.newt.TestGeomShader01TextureGL3NEWT $*
@@ -386,7 +386,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00bNEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
-testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01aNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01aNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01bNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01cNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT $*
