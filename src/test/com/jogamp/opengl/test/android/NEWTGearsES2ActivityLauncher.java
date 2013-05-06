@@ -57,6 +57,7 @@ public class NEWTGearsES2ActivityLauncher extends LauncherUtil.BaseActivityLaunc
        // props.setProperty("jogl.debug.DebugGL", "true");
        // props.setProperty("jogl.debug.TraceGL", "true");
        // props.setProperty("newt.debug", "all");
+       props.setProperty("newt.debug.Screen", "true");
        props.setProperty("newt.debug.Window", "true");
        props.setProperty("newt.debug.Window.MouseEvent", "true");
        props.setProperty("newt.debug.Window.KeyEvent", "true");

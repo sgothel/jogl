@@ -163,13 +163,25 @@ public class TestGearsES2NEWT extends UITestCase {
         });
         
         glWindow.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
+            @Override
+            public void keyPressed(final KeyEvent e) {
+                if( e.isAutoRepeat() ) {
+                    return;
+                }
                 if(e.getKeyChar()=='f') {
                     new Thread() {
                         public void run() {
                             final Thread t = glWindow.setExclusiveContextThread(null);
                             System.err.println("[set fullscreen  pre]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
-                            glWindow.setFullscreen(!glWindow.isFullscreen());
+                            if( glWindow.isFullscreen() ) {
+                                glWindow.setFullscreen( false );
+                            } else {
+                                if( e.isAltDown() ) {
+                                    glWindow.setFullscreen( null );
+                                } else {
+                                    glWindow.setFullscreen( true );
+                                }
+                            }
                             System.err.println("[set fullscreen post]: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", f "+glWindow.isFullscreen()+", a "+glWindow.isAlwaysOnTop()+", "+glWindow.getInsets());
                             glWindow.setExclusiveContextThread(t);
                     } }.start();

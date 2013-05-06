@@ -35,12 +35,15 @@ package jogamp.newt.driver.awt;
 
 import java.awt.DisplayMode;
 
+import jogamp.newt.MonitorModeProps.Cache;
 import jogamp.newt.ScreenImpl;
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.Point;
 
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
+import com.jogamp.newt.MonitorDevice;
+import com.jogamp.newt.MonitorMode;
 
 public class ScreenDriver extends ScreenImpl {
     public ScreenDriver() {
@@ -68,14 +71,19 @@ public class ScreenDriver extends ScreenImpl {
         return idx; // pass through ... 
     }    
 
-    protected void getVirtualScreenOriginAndSize(Point virtualOrigin, Dimension virtualSize) {
-        final DisplayMode mode = ((AWTGraphicsDevice)getDisplay().getGraphicsDevice()).getGraphicsDevice().getDisplayMode();
-        if(null != mode) {
-            virtualOrigin.setX(0);
-            virtualOrigin.setY(0);
-            virtualSize.setWidth(mode.getWidth());
-            virtualSize.setHeight(mode.getHeight());
-        }
+    @Override
+    protected void collectNativeMonitorModesAndDevicesImpl(Cache cache) { 
+        final DisplayMode mode = ((AWTGraphicsDevice)getDisplay().getGraphicsDevice()).getGraphicsDevice().getDisplayMode();        
+    }
+
+    @Override
+    protected MonitorMode queryCurrentMonitorModeImpl(MonitorDevice monitor) {        
+        return null;
+    }
+
+    @Override
+    protected boolean setCurrentMonitorModeImpl(MonitorDevice monitor, MonitorMode mode) {
+        return false;
     }
     
 }

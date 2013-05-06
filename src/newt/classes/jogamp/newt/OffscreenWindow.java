@@ -34,6 +34,8 @@
 
 package jogamp.newt;
 
+import java.util.List;
+
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.GraphicsConfigurationFactory;
@@ -42,6 +44,8 @@ import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.VisualIDHolder;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
+
+import com.jogamp.newt.MonitorDevice;
 
 public class OffscreenWindow extends WindowImpl implements MutableSurface {
 
@@ -100,10 +104,15 @@ public class OffscreenWindow extends WindowImpl implements MutableSurface {
     
     @Override
     public boolean setFullscreen(boolean fullscreen) {
-        // nop
-        return false;
+        return false; // nop
     }
 
+    @Override
+    public boolean setFullscreen(List<MonitorDevice> monitors) {
+        return false; // nop
+    }
+
+    
     protected boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags) {
         sizeChanged(false, width, height, false);
         if( 0 != ( FLAG_CHANGE_VISIBILITY & flags) ) {

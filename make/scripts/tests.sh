@@ -135,6 +135,8 @@ function jrun() {
     #D_ARGS="-Djogl.debug.EGLDisplayUtil -Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.GLDrawable"
     #D_ARGS="-Djogl.debug.EGLDisplayUtil -Dnativewindow.debug.X11Util"
     #D_ARGS="-Djogl.debug.GLDrawable"
+    #D_ARGS="-Dnewt.debug.Screen"
+    #D_ARGS="-Dnewt.test.Screen.disableRandR13"
     #D_ARGS="-Dnewt.test.Screen.disableScreenMode -Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.debug.Screen -Djogl.debug.Animator"
     #D_ARGS="-Djogl.debug.ExtensionAvailabilityCache -Djogl.debug=all -Dnativewindow.debug=all -Djogamp.debug.ProcAddressHelper=true -Djogamp.debug.NativeLibrary=true -Djogamp.debug.NativeLibrary.Lookup=true"
@@ -284,7 +286,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestRedSquareES2NEWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testswt com.jogamp.opengl.test.junit.jogl.demos.es2.swt.TestGearsES2SWT $*
@@ -384,10 +386,12 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00bNEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
-#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01bNEWT
-#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT
-#testnoawt com.jogamp.opengl.test.junit.newt.ManualScreenMode03NEWT
-#testnoawt -Djava.awt.headless=true com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
+#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01aNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01bNEWT $*
+testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01cNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.ManualScreenMode03NEWT $*
+#testnoawt -Djava.awt.headless=true com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT $*
 
 #
 # awt (testawt)
@@ -509,7 +513,9 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #
 # Texture / TextureUtils
 #
-#testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTexture01AWT
+#testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTexture01AWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTexture02AWT $*
+
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGImage00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGImage01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestJPEGJoglAWTCompareNewtAWT $*

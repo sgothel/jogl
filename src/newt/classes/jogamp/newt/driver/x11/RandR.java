@@ -27,13 +27,50 @@
  */
 package jogamp.newt.driver.x11;
 
-import com.jogamp.newt.ScreenMode;
+import java.util.List;
+
+import jogamp.newt.MonitorModeProps;
+
+import com.jogamp.newt.MonitorDevice;
+import com.jogamp.newt.MonitorMode;
 
 public interface RandR {
 
-    int[] getScreenModeFirstImpl(final long dpy, final int screen_idx);
-    int[] getScreenModeNextImpl(final long dpy, final int screen_idx);
-    ScreenMode getCurrentScreenModeImpl(final long dpy, final int screen_idx);
-    boolean setCurrentScreenModeImpl(final long dpy, final int screen_idx, final ScreenMode screenMode, final int screenModeIdx, final int resolutionIdx);
+    void dumpInfo(final long dpy, final int screen_idx);
     
+    /**
+     * Encapsulate initial device query allowing caching of internal data structures. 
+     * Methods covered:
+     * <ul> 
+     *   <li>{@link #getMonitorDeviceCount(long, ScreenDriver)}</li>
+     *   <li>{@link #getAvailableRotations(long, ScreenDriver, int)}</li>
+     *   <li>{@link #getMonitorModeProps(long, ScreenDriver, int)}</li>
+     *   <li>{@link #getCurrentMonitorModeProps(long, ScreenDriver, int)</li>
+     *   <li>{@link #getMonitorDeviceProps(long, ScreenDriver, List, int, MonitorMode)}</li>
+     * </ul>
+     * <p>
+     * Above methods may be called w/o begin/end, in which case no 
+     * internal data structures can be cached:
+     * </p>
+     * @param dpy TODO
+     * @param screen TODO
+     * @return TODO
+     */
+    boolean beginInitialQuery(long dpy, ScreenDriver screen);
+    void endInitialQuery(long dpy, ScreenDriver screen);
+    
+    int getMonitorDeviceCount(final long dpy, final ScreenDriver screen);
+    int[] getAvailableRotations(final long dpy, final ScreenDriver screen, final int crt_idx);
+    /**
+     * 
+     * @param dpy
+     * @param screen
+     * @param mode_idx w/o indexing rotation
+     * @return props w/o actual rotation
+     */
+    int[] getMonitorModeProps(final long dpy, final ScreenDriver screen, final int mode_idx);
+    int[] getMonitorDeviceProps(final long dpy, final ScreenDriver screen, MonitorModeProps.Cache cache, final int crt_idx);
+    int[] getMonitorDeviceViewport(final long dpy, final ScreenDriver screen, final int crt_idx);
+    int[] getCurrentMonitorModeProps(final long dpy, final ScreenDriver screen, final int crt_idx);
+    boolean setCurrentMonitorMode(final long dpy, final ScreenDriver screen, MonitorDevice monitor, final MonitorMode mode);    
 }

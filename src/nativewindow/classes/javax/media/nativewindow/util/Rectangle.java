@@ -28,6 +28,8 @@
  
 package javax.media.nativewindow.util;
 
+import java.util.List;
+
 public class Rectangle implements Cloneable, RectangleImmutable {
     int x;
     int y;
@@ -57,15 +59,90 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         }
     }
 
+    @Override
     public final int getX() { return x; }
+    @Override
     public final int getY() { return y; }
+    @Override
     public final int getWidth() { return width; }
+    @Override
     public final int getHeight() { return height; }
-    public void setX(int x) { this.x = x; }
-    public void setY(int y) { this.y = y; }
-    public void setWidth(int width) { this.width = width; }
-    public void setHeight(int height) { this.height = height; }
+    
+    public final void setX(int x) { this.x = x; }
+    public final void setY(int y) { this.y = y; }
+    public final void setWidth(int width) { this.width = width; }
+    public final void setHeight(int height) { this.height = height; }
 
+    @Override
+    public final RectangleImmutable union(final RectangleImmutable r) {
+        return union(r.getX(), r.getY(), r.getX() + r.getWidth(), r.getY() + r.getHeight());
+    }
+    @Override
+    public final RectangleImmutable union(final int rx1, final int ry1, final int rx2, final int ry2) {
+        final int x1 = Math.min(x, rx1);
+        final int y1 = Math.min(y, ry1);
+        final int x2 = Math.max(x + width, rx2);
+        final int y2 = Math.max(y + height, ry2);
+        return new Rectangle(x1, y1, x2 - x1, y2 - y1);                
+    }
+    /**
+     * Calculates the union of the given rectangles, stores it in this instance and returns this instance.
+     * @param rectangles given list of rectangles
+     * @return this instance holding the union of given rectangles.
+     */
+    public final Rectangle union(final List<RectangleImmutable> rectangles) {
+        int x1=Integer.MAX_VALUE, y1=Integer.MAX_VALUE;
+        int x2=Integer.MIN_VALUE, y2=Integer.MIN_VALUE;
+        for(int i=rectangles.size()-1; i>=0; i--) {
+            final RectangleImmutable vp = rectangles.get(i);
+            x1 = Math.min(x1, vp.getX());
+            x2 = Math.max(x2, vp.getX() + vp.getWidth());
+            y1 = Math.min(y1, vp.getY());
+            y2 = Math.max(y2, vp.getY() + vp.getHeight());
+        }
+        setX(x1);
+        setY(y1);
+        setWidth(x2 - x1);
+        setHeight(y2 - y1);
+        return this;
+    }
+        
+    @Override
+    public final RectangleImmutable intersection(RectangleImmutable r) {
+        return intersection(r.getX(), r.getY(), r.getX() + r.getWidth(), r.getY() + r.getHeight());
+    }
+    @Override
+    public final RectangleImmutable intersection(final int rx1, final int ry1, final int rx2, final int ry2) {
+        final int x1 = Math.max(x, rx1);
+        final int y1 = Math.max(y, ry1);
+        final int x2 = Math.min(x + width, rx2);
+        final int y2 = Math.min(y + height, ry2);
+        final int ix, iy, iwidth, iheight;
+        if( x2 < x1 ) {
+            ix = 0;
+            iwidth = 0;
+        } else {
+            ix = x1;
+            iwidth = x2 - x1;
+        }
+        if( y2 < y1 ) {
+            iy = 0;
+            iheight = 0;
+        } else {
+            iy = y1;
+            iheight = y2 - y1;
+        }
+        return new Rectangle (ix, iy, iwidth, iheight);
+    }
+    @Override
+    public final float coverage(RectangleImmutable r) {
+        final RectangleImmutable isect = intersection(r);
+        final float sqI = (float) ( isect.getWidth()*isect.getHeight() );
+        final float sqT = (float) ( width*height );
+        return sqI / sqT;
+    }
+    
+    @Override
     public boolean equals(Object obj) {
         if(this == obj)  { return true; }
         if (obj instanceof Rectangle) {
@@ -76,6 +153,7 @@ public class Rectangle implements Cloneable, RectangleImmutable {
         return false;
     }
 
+    @Override
     public int hashCode() {
         int sum1 = x + height;
         int sum2 = width + y;

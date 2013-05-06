@@ -28,6 +28,8 @@
 
 package com.jogamp.newt;
 
+import java.util.List;
+
 import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.KeyListener;
@@ -41,6 +43,7 @@ import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
 import javax.media.nativewindow.NativeWindow;
 import javax.media.nativewindow.WindowClosingProtocol;
+import javax.media.nativewindow.util.RectangleImmutable;
 
 /**
  * Specifying NEWT's Window functionality:
@@ -80,10 +83,19 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
     boolean isNativeValid();
 
     /**
-     * @return The associated Screen
+     * @return The associated {@link Screen}
      */
     Screen getScreen();
 
+    /**
+     * Returns the {@link MonitorDevice} which {@link MonitorDevice#getViewport() viewport} 
+     * {@link MonitorDevice#coverage(RectangleImmutable) covers} this window the most.
+     * <p>
+     * If no coverage is detected the first {@link MonitorDevice} is returned. 
+     * </p>
+     */
+    MonitorDevice getMainMonitor();
+    
     /**
      * Set the CapabilitiesChooser to help determine the native visual type.
      *
@@ -344,8 +356,32 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
 
     ReparentOperation reparentWindow(NativeWindow newParent, boolean forceDestroyCreate);
 
+    /**
+     * Enable or disable fullscreen mode for this window.
+     * <p>
+     * Fullscreen mode is established on the {@link #getMainMonitor() main monitor}. 
+     * </p>
+     * @param fullscreen enable or disable fullscreen mode
+     * @return success
+     * @see #setFullscreen(List)
+     * @see #isFullscreen()
+     */
     boolean setFullscreen(boolean fullscreen);
 
+    /**
+     * Enable fullscreen mode for this window spanning across the given {@link MonitorDevice}s
+     * or across all {@link MonitorDevice}s.
+     * <p>
+     * Disable fullscreen via {@link #setFullscreen(boolean)}.
+     * </p>
+     * @param monitors if <code>null</code> fullscreen will be spanned across all {@link MonitorDevice}s, 
+     *                 otherwise across the given list of {@link MonitorDevice}.
+     * @return success
+     * @see #setFullscreen(boolean)
+     * @see #isFullscreen()
+     */
+    boolean setFullscreen(List<MonitorDevice> monitors);
+    
     boolean isFullscreen();
 
     static interface FocusRunnable {

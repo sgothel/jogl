@@ -36,9 +36,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.newt.Display;
+import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
-import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.MonitorMode;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -81,23 +82,24 @@ public class TestScreenMode00bNEWT extends UITestCase {
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,display.isNativeValid());
         
-        List<ScreenMode> screenModes = screen.getScreenModes();
+        List<MonitorMode> screenModes = screen.getMonitorModes();
         Assert.assertTrue(screenModes.size()>0);
         int i=0;
-        for(Iterator<ScreenMode> iter=screenModes.iterator(); iter.hasNext(); i++) {
+        for(Iterator<MonitorMode> iter=screenModes.iterator(); iter.hasNext(); i++) {
             System.err.println(i+": "+iter.next());
         }
-        ScreenMode sm_o = screen.getOriginalScreenMode();
+        MonitorDevice monitor = window.getMainMonitor();
+        MonitorMode mm_o = monitor.getOriginalMode();
         
-        Assert.assertNotNull(sm_o);            
-        ScreenMode sm_c = screen.getCurrentScreenMode();
-        Assert.assertNotNull(sm_c);
-        System.err.println("orig: "+sm_o);
-        System.err.println("curr: "+sm_c);
+        Assert.assertNotNull(mm_o);            
+        MonitorMode mm_c = monitor.queryCurrentMode();
+        Assert.assertNotNull(mm_c);
+        System.err.println("orig: "+mm_o);
+        System.err.println("curr: "+mm_c);
         
         for(i=0; i<50; i++) {
-            sm_c = screen.getCurrentScreenMode();
-            Assert.assertNotNull(sm_c);
+            mm_c = monitor.queryCurrentMode();
+            Assert.assertNotNull(mm_c);
             System.err.print("."+i);
         }
         System.err.println("!");

@@ -54,6 +54,7 @@ public class Point implements Cloneable, PointImmutable {
         }
     }
 
+    @Override
     public boolean equals(Object obj) {
         if(this == obj)  { return true; }
         if (obj instanceof Point) {
@@ -63,14 +64,17 @@ public class Point implements Cloneable, PointImmutable {
         return false;
     }
 
+    @Override
     public final int getX() {
         return x;
     }
 
+    @Override
     public final int getY() {
         return y;
     }
 
+    @Override
     public int hashCode() {
         // 31 * x == (x << 5) - x
         int hash = 31 + x;

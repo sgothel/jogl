@@ -57,11 +57,17 @@ public class Insets implements Cloneable, InsetsImmutable {
         }
     }
 
+    @Override
     public final int getLeftWidth() { return l; }
+    @Override
     public final int getRightWidth() { return r; }
+    @Override
     public final int getTotalWidth() { return l + r; }
+    @Override
     public final int getTopHeight() { return t; }
+    @Override
     public final int getBottomHeight() { return b; }
+    @Override
     public final int getTotalHeight() { return t + b; }
 
     public void setLeftWidth(int left) { l = left; }
@@ -69,6 +75,7 @@ public class Insets implements Cloneable, InsetsImmutable {
     public void setTopHeight(int top) { t = top; }
     public void setBottomHeight(int bottom) { b = bottom; }
     
+    @Override
     public boolean equals(Object obj) {
         if(this == obj)  { return true; }
         if (obj instanceof Insets) {
@@ -79,6 +86,7 @@ public class Insets implements Cloneable, InsetsImmutable {
         return false;
     }
 
+    @Override
     public int hashCode() {
         int sum1 = l + b;
         int sum2 = t + r;

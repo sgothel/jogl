@@ -28,12 +28,10 @@
 
 package com.jogamp.newt.event;
 
-import com.jogamp.newt.ScreenMode;
+public interface MonitorModeListener {
+    /** called before the monitor mode will be changed */
+    void monitorModeChangeNotify(MonitorEvent me);
 
-public interface ScreenModeListener {
-    /** called before the screen mode will be changed */
-    void screenModeChangeNotify(ScreenMode sm);
-
-    /** called after the screen mode has been changed */
-    void screenModeChanged(ScreenMode sm, boolean success);
+    /** called after the monitor mode has been changed */
+    void monitorModeChanged(MonitorEvent me, boolean success);
 }

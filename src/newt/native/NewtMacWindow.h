@@ -128,7 +128,6 @@
        styleMask: (NSUInteger) windowStyle
        backing: (NSBackingStoreType) bufferingType
        defer: (BOOL) deferCreation
-       screen:(NSScreen *)screen
        isFullscreenWindow:(BOOL)isfs;
 #ifdef DBG_LIFECYCLE
 - (void) release;

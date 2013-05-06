@@ -34,91 +34,143 @@
 package jogamp.newt.driver.windows;
 
 import javax.media.nativewindow.DefaultGraphicsScreen;
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.Rectangle;
 
+import jogamp.newt.MonitorModeProps;
 import jogamp.newt.ScreenImpl;
 
-import com.jogamp.newt.ScreenMode;
-import com.jogamp.newt.util.ScreenModeUtil;
+import com.jogamp.common.util.ArrayHashSet;
+import com.jogamp.newt.MonitorDevice;
+import com.jogamp.newt.MonitorMode;
+import com.jogamp.newt.Screen;
 
 public class ScreenDriver extends ScreenImpl {
 
     static {
         DisplayDriver.initSingleton();
+        if( Screen.DEBUG ) {
+            dumpMonitorInfo0();
+        }
     }
 
     public ScreenDriver() {
     }
 
+    @Override
     protected void createNativeImpl() {
         aScreen = new DefaultGraphicsScreen(getDisplay().getGraphicsDevice(), screen_idx);
     }
     
+    @Override
     protected void closeNativeImpl() {
     }
 
-    private int[] getScreenModeIdx(int idx) {
-        int[] modeProps = getScreenMode0(screen_idx, idx);
-        if (null == modeProps || 0 == modeProps.length) {
+    private final String getAdapterName(int crt_idx) {
+        return getAdapterName0(crt_idx);
+    }
+    private final String getActiveMonitorName(String adapterName, int monitor_idx) {
+        return getActiveMonitorName0(adapterName, monitor_idx);
+    }
+    
+    private final MonitorMode getMonitorModeImpl(MonitorModeProps.Cache cache, String adapterName, int crtModeIdx) {
+        if( null == adapterName ) {
             return null;
         }
-        if(modeProps.length < ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL) {
-            throw new RuntimeException("properties array too short, should be >= "+ScreenModeUtil.NUM_SCREEN_MODE_PROPERTIES_ALL+", is "+modeProps.length);
+        final String activeMonitorName = getActiveMonitorName(adapterName, 0);
+        final int[] modeProps = null != activeMonitorName ? getMonitorMode0(adapterName, crtModeIdx) : null;
+        if ( null == modeProps || 0 >= modeProps.length) {
+            return null;
         }
-        return modeProps;
+        return MonitorModeProps.streamInMonitorMode(null, cache, modeProps, 0);
     }
 
-    private int nativeModeIdx;
-
-    protected int[] getScreenModeFirstImpl() {
-        nativeModeIdx = 0;
-        return getScreenModeNextImpl();
+    @Override
+    protected void collectNativeMonitorModesAndDevicesImpl(MonitorModeProps.Cache cache) {
+        int crtIdx = 0;
+        ArrayHashSet<MonitorMode> supportedModes = new ArrayHashSet<MonitorMode>();
+        String adapterName = getAdapterName(crtIdx);
+        while( null != adapterName ) {
+            int crtModeIdx = 0;
+            MonitorMode mode;
+            do {
+                mode = getMonitorModeImpl(cache, adapterName, crtModeIdx);
+                if( null != mode ) {
+                    supportedModes.getOrAdd(mode);
+                    // next mode on same monitor
+                    crtModeIdx++;
+                }
+            } while( null != mode);
+            if( 0 < crtModeIdx ) {
+                // has at least one mode -> add device
+                final MonitorMode currentMode = getMonitorModeImpl(cache, adapterName, -1);
+                if ( null != currentMode ) { // enabled
+                    final int[] monitorProps = getMonitorDevice0(adapterName, crtIdx);
+                    // merge monitor-props + supported modes
+                    MonitorModeProps.streamInMonitorDevice(null, cache, this, supportedModes, currentMode, monitorProps, 0);
+                    
+                    // next monitor, 1st mode
+                    supportedModes= new ArrayHashSet<MonitorMode>();
+                }
+            }
+            crtIdx++;
+            adapterName = getAdapterName(crtIdx);
+        }
     }
-
-    protected int[] getScreenModeNextImpl() {
-        int[] modeProps = getScreenModeIdx(nativeModeIdx);
-        if (null != modeProps && 0 < modeProps.length) {
-            nativeModeIdx++;
-            return modeProps;
+    
+    @Override
+    protected Rectangle getNativeMonitorDeviceViewportImpl(MonitorDevice monitor) {
+        final String adapterName = getAdapterName(monitor.getId());
+        if( null != adapterName ) {
+            final String activeMonitorName = getActiveMonitorName(adapterName, 0);
+            if( null != activeMonitorName ) {
+                final int[] monitorProps = getMonitorDevice0(adapterName, monitor.getId());
+                int offset = MonitorModeProps.IDX_MONITOR_DEVICE_VIEWPORT;
+                return new Rectangle(monitorProps[offset++], monitorProps[offset++], monitorProps[offset++], monitorProps[offset++]);
+            }
         }
         return null;
     }
 
-    protected ScreenMode getCurrentScreenModeImpl() {
-        int[] modeProps = getScreenModeIdx(-1);
-        if (null != modeProps && 0 < modeProps.length) {
-            return ScreenModeUtil.streamIn(modeProps, 0);
-        }
-        return null;
+    @Override
+    protected MonitorMode queryCurrentMonitorModeImpl(MonitorDevice monitor) {
+        return getMonitorModeImpl(null, getAdapterName(monitor.getId()), -1);
+    }
+    
+    @Override
+    protected boolean setCurrentMonitorModeImpl(MonitorDevice monitor, MonitorMode mode)  {
+        return setMonitorMode0(monitor.getId(),
+                               -1, -1, // no fixed position!
+                               mode.getSurfaceSize().getResolution().getWidth(),
+                               mode.getSurfaceSize().getResolution().getHeight(),
+                               mode.getSurfaceSize().getBitsPerPixel(),
+                               (int)mode.getRefreshRate(), // simply cut-off, orig is int
+                               mode.getFlags(),
+                               mode.getRotation());
     }
 
-    protected boolean setCurrentScreenModeImpl(ScreenMode sm) {
-        return setScreenMode0(screen_idx, 
-                              sm.getMonitorMode().getSurfaceSize().getResolution().getWidth(),
-                              sm.getMonitorMode().getSurfaceSize().getResolution().getHeight(),
-                              sm.getMonitorMode().getSurfaceSize().getBitsPerPixel(),
-                              sm.getMonitorMode().getRefreshRate(),
-                              sm.getRotation());
-    }
-
+    @Override
     protected int validateScreenIndex(int idx) {
-        return 0; // big-desktop, only one screen available 
+        return 0; // big-desktop w/ multiple monitor attached, only one screen available 
     }
         
-    protected void getVirtualScreenOriginAndSize(Point virtualOrigin, Dimension virtualSize) {
-        virtualOrigin.setX(getOriginX0(screen_idx));
-        virtualOrigin.setY(getOriginY0(screen_idx));
-        virtualSize.setWidth(getWidthImpl0(screen_idx));
-        virtualSize.setHeight(getHeightImpl0(screen_idx));
+    @Override
+    protected void calcVirtualScreenOriginAndSize(Rectangle vOriginSize) {
+        vOriginSize.setX(getVirtualOriginX0());
+        vOriginSize.setY(getVirtualOriginY0());
+        vOriginSize.setWidth(getVirtualWidthImpl0());
+        vOriginSize.setHeight(getVirtualHeightImpl0());
     }
     
     // Native calls
-    private native int getOriginX0(int screen_idx);
-    private native int getOriginY0(int screen_idx);
-    private native int getWidthImpl0(int scrn_idx);
-    private native int getHeightImpl0(int scrn_idx);
+    private native int getVirtualOriginX0();
+    private native int getVirtualOriginY0();
+    private native int getVirtualWidthImpl0();
+    private native int getVirtualHeightImpl0();
 
-    private native int[] getScreenMode0(int screen_index, int mode_index);
-    private native boolean setScreenMode0(int screen_index, int width, int height, int bits, int freq, int rot);
+    private static native void dumpMonitorInfo0();
+    private native String getAdapterName0(int crt_index);
+    private native String getActiveMonitorName0(String adapterName, int crtModeIdx);
+    private native int[] getMonitorMode0(String adapterName, int crtModeIdx);
+    private native int[] getMonitorDevice0(String adapterName, int monitor_index);
+    private native boolean setMonitorMode0(int monitor_index, int x, int y, int width, int height, int bits, int freq, int flags, int rot);
 }

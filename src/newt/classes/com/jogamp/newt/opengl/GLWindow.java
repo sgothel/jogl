@@ -34,6 +34,8 @@
 
 package com.jogamp.newt.opengl;
 
+import java.util.List;
+
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
 import javax.media.nativewindow.CapabilitiesChooser;
 import javax.media.nativewindow.CapabilitiesImmutable;
@@ -64,6 +66,7 @@ import jogamp.opengl.GLDrawableImpl;
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.VersionUtil;
 import com.jogamp.common.util.locks.RecursiveLock;
+import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
@@ -225,6 +228,11 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     }
 
     @Override
+    public final MonitorDevice getMainMonitor() {
+        return window.getMainMonitor();
+    }
+
+    @Override
     public final void setTitle(String title) {
         window.setTitle(title);
     }
@@ -340,6 +348,11 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     @Override
     public final boolean setFullscreen(boolean fullscreen) {
         return window.setFullscreen(fullscreen);
+    }
+    
+    @Override
+    public boolean setFullscreen(List<MonitorDevice> monitors) {
+        return window.setFullscreen(monitors);
     }
 
     @Override

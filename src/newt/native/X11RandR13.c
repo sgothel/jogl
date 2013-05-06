@@ -38,22 +38,9 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_RandR13_getScreenResources0
 {
     Display *dpy = (Display *) (intptr_t) display;
     Window root = RootWindow(dpy, (int)screen_idx);
-#ifdef DBG_PERF
-    struct timespec t0, t1, td;
-    long td_ms;
-    timespec_now(&t0);
-#endif
 
-#ifdef DBG_PERF
-    timespec_now(&t1); timespec_subtract(&td, &t1, &t0); td_ms = timespec_milliseconds(&td);
-    fprintf(stderr, "X11Screen_getScreenResources0.1: %ld ms\n", td_ms); fflush(NULL);
-#endif
-
-    XRRScreenResources *res = XRRGetScreenResourcesCurrent( dpy, root);
-#ifdef DBG_PERF
-    timespec_now(&t1); timespec_subtract(&td, &t1, &t0); td_ms = timespec_milliseconds(&td);
-    fprintf(stderr, "X11Screen_getScreenResources0.2 (XRRScreenResources): %ld ms\n", td_ms); fflush(NULL);
-#endif
+    XRRScreenResources *res = XRRGetScreenResourcesCurrent( dpy, root); // 1.3
+    // XRRScreenResources *res = XRRGetScreenResources( dpy, root); // 1.2
 
     return (jlong) (intptr_t) res;
 }
@@ -66,48 +53,166 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_RandR13_getScreenResources0
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_RandR13_freeScreenResources0
   (JNIEnv *env, jclass clazz, jlong screenResources) 
 {
-    XRRFreeScreenResources( (XRRScreenResources *) (intptr_t) screenResources );
+    XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
+    if( NULL != resources ) {
+        XRRFreeScreenResources( resources );
+    }
 }
 
-JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getOrigin0
-  (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx)
+#define SAFE_STRING(s) (NULL==s?"":s)
+
+static void dumpOutputs(const char *prefix, Display *dpy, XRRScreenResources *resources, int noutput, RROutput * outputs) {
+    int i, j;
+    fprintf(stderr, "%s %p: Output count %d\n", prefix, resources, noutput);
+    for(i=0; i<noutput; i++) {
+        RROutput output = outputs[i];
+        XRROutputInfo * xrrOutputInfo = XRRGetOutputInfo (dpy, resources, output);
+        fprintf(stderr, "  Output[%d]: id %#lx, crtx 0x%X, name %s (%d), %lux%lu, ncrtc %d, .., nmode %d (preferred %d)\n", 
+            i, output, xrrOutputInfo->crtc, SAFE_STRING(xrrOutputInfo->name), xrrOutputInfo->nameLen, xrrOutputInfo->mm_width, xrrOutputInfo->mm_height,
+            xrrOutputInfo->ncrtc, xrrOutputInfo->nmode, xrrOutputInfo->npreferred);
+        for(j=0; j<xrrOutputInfo->nmode; j++) {
+            fprintf(stderr, "    Output[%d].Mode[%d].id %#lx\n", i, j, xrrOutputInfo->modes[j]);
+        }
+        XRRFreeOutputInfo (xrrOutputInfo);
+    }
+}
+
+/** Returns vertical refresh rate in hertz */
+static float getVRefresh(XRRModeInfo *mode) {
+    float rate;
+    unsigned int vTotal = mode->vTotal;
+
+    if (mode->modeFlags & RR_DoubleScan) {
+        /* doublescan doubles the number of lines */
+        vTotal *= 2;
+    }
+
+    if (mode->modeFlags & RR_Interlace) {
+        /* interlace splits the frame into two fields */
+        /* the field rate is what is typically reported by monitors */
+        vTotal /= 2;
+    }
+
+    if (mode->hTotal && vTotal) {
+        rate = ( (float) mode->dotClock /
+                 ( (float) mode->hTotal * (float) vTotal )
+               );
+    } else {
+        rate = 0;
+    }
+    return rate;
+}
+
+
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_RandR13_dumpInfo0
+  (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jlong screenResources)
 {
     Display * dpy = (Display *) (intptr_t) display;
-    Window root = RootWindow(dpy, (int)scrn_idx);
+    Window root = RootWindow(dpy, (int)screen_idx);
+    XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
     int pos[] = { 0, 0 } ;
+    int i, j, minWidth, minHeight, maxWidth, maxHeight;
 
-    int i;
-    XRRScreenResources *xrrScreenResources = XRRGetScreenResources(dpy, root);
-    fprintf(stderr, "XRRScreenResources %p: RRCrtc crtcs %d\n", xrrScreenResources, xrrScreenResources->ncrtc);
-    for(i=0; i<xrrScreenResources->ncrtc; i++) {
-        RRCrtc crtc = xrrScreenResources->crtcs[i];
-        XRRCrtcInfo *xrrCrtcInfo = XRRGetCrtcInfo (dpy, xrrScreenResources, crtc);
-        fprintf(stderr, "RRCrtc %d: %d/%d %dx%d\n", i, xrrCrtcInfo->x, xrrCrtcInfo->y, xrrCrtcInfo->width, xrrCrtcInfo->height);
+    int vs_width = DisplayWidth(dpy, screen_idx);
+    int vs_height = DisplayHeight(dpy, screen_idx);
+    int vs_width_mm = DisplayWidthMM(dpy, screen_idx);
+    int vs_height_mm = DisplayHeightMM(dpy, screen_idx);
+    fprintf(stderr, "ScreenVirtualSize: %dx%d %dx%d mm\n", vs_width, vs_height, vs_width_mm, vs_height_mm);
+
+    XRRGetScreenSizeRange (dpy, root, &minWidth, &minHeight, &maxWidth, &maxHeight);
+    fprintf(stderr, "XRRGetScreenSizeRange: %dx%d .. %dx%d\n", minWidth, minHeight, maxWidth, maxHeight);
+
+    if( NULL == resources ) {
+        fprintf(stderr, "XRRScreenResources NULL\n");
+        return;
+    }
+    fprintf(stderr, "XRRScreenResources %p: Crtc count %d\n", resources, resources->ncrtc);
+    for(i=0; i<resources->ncrtc; i++) {
+        RRCrtc crtc = resources->crtcs[i];
+        XRRCrtcInfo *xrrCrtcInfo = XRRGetCrtcInfo (dpy, resources, crtc);
+        fprintf(stderr, "Crtc[%d]: %d/%d %dx%d, rot 0x%X, mode.id %#lx\n", 
+            i, xrrCrtcInfo->x, xrrCrtcInfo->y, xrrCrtcInfo->width, xrrCrtcInfo->height, xrrCrtcInfo->rotations, xrrCrtcInfo->mode);
+        for(j=0; j<xrrCrtcInfo->noutput; j++) {
+            fprintf(stderr, "    Crtc[%d].Output[%d].id %#lx\n", i, j, xrrCrtcInfo->outputs[j]);
+        }
         XRRFreeCrtcInfo(xrrCrtcInfo);
     }
 
-    jintArray jpos = (*env)->NewIntArray(env, num_rotations);
-    if (properties == NULL) {
-        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array of size %d", 2);
+    dumpOutputs("XRRScreenResources.outputs", dpy, resources, resources->noutput, resources->outputs);
+
+    fprintf(stderr, "XRRScreenResources %p: Mode count %d\n", resources, resources->nmode);
+    for(i=0; i<resources->nmode; i++) {
+        XRRModeInfo *mode = &resources->modes[i];
+
+        unsigned int dots = mode->hTotal * mode->vTotal;
+        float refresh = getVRefresh(mode);
+        fprintf(stderr, "Mode[%d, id %#lx]: %ux%u@%f, name %s\n", i, mode->id, mode->width, mode->height, refresh, SAFE_STRING(mode->name));
     }
-        
-    // move from the temp structure to the java structure
-    (*env)->SetIntArrayRegion(env, jpos, 0, 2, pos);
-    return jpos;
 }
 
-JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getAvailableScreenModeRotations0
-  (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx)
+/*
+ * Class:     jogamp_newt_driver_x11_RandR13
+ * Method:    getMonitorDeviceCount0
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorDeviceCount0
+  (JNIEnv *env, jclass clazz, jlong screenResources)
+{
+    XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
+    return ( NULL != resources ) ? resources->ncrtc : 0;
+}
+
+/*
+ * Class:     jogamp_newt_driver_x11_RandR13
+ * Method:    getMonitorInfoHandle0
+ * Signature: (JIJI)J
+ */
+JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorInfoHandle0
+  (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jlong screenResources, jint crt_idx) 
 {
     Display *dpy = (Display *) (intptr_t) display;
-    Window root = RootWindow(dpy, (int)scrn_idx);
+    Window root = RootWindow(dpy, (int)screen_idx);
+    XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
+
+    if( NULL == resources || crt_idx >= resources->ncrtc ) {
+        return 0;
+    }
+    RRCrtc crtc = resources->crtcs[crt_idx];
+    XRRCrtcInfo *xrrCrtcInfo = XRRGetCrtcInfo (dpy, resources, crtc);
+
+    return (jlong) (intptr_t) xrrCrtcInfo;
+}
+
+/*
+ * Class:     jogamp_newt_driver_x11_RandR13
+ * Method:    freeMonitorInfoHandle0
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_RandR13_freeMonitorInfoHandle0
+  (JNIEnv *env, jclass clazz, jlong monitorInfo)
+{
+    XRRCrtcInfo *xrrCrtcInfo = (XRRCrtcInfo *) (intptr_t) monitorInfo;
+    if( NULL != xrrCrtcInfo ) {
+        XRRFreeCrtcInfo( xrrCrtcInfo );
+    }
+}
+
+/*
+ * Class:     jogamp_newt_driver_x11_RandR13
+ * Method:    getAvailableRotations0
+ * Signature: (J)I
+ */
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getAvailableRotations0
+  (JNIEnv *env, jclass clazz, jlong monitorInfo)
+{
+    XRRCrtcInfo *xrrCrtcInfo = (XRRCrtcInfo *) (intptr_t) monitorInfo;
+    if( NULL == xrrCrtcInfo ) {
+        return NULL;
+    }
+    Rotation rotations_supported = xrrCrtcInfo->rotations;
+
     int num_rotations = 0;
-    Rotation cur_rotation, rotations_supported;
     int rotations[4];
-    int major, minor;
-
-    rotations_supported = XRRRotations (dpy, (int)scrn_idx, &cur_rotation);
-
     if(0 != (rotations_supported & RR_Rotate_0)) {
       rotations[num_rotations++] = 0;
     }
@@ -120,7 +225,7 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getAvailableScre
     if(0 != (rotations_supported & RR_Rotate_270)) {
       rotations[num_rotations++] = 270;
     }
-    
+
     jintArray properties = NULL;
 
     if(num_rotations>0) {
@@ -136,273 +241,275 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getAvailableScre
     return properties;
 }
 
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_RandR13_getNumScreenModeResolutions0
-  (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx)
-{
-    Display *dpy = (Display *) (intptr_t) display;
-    Window root = RootWindow(dpy, (int)scrn_idx);
-    
-    int num_sizes;   
-    XRRScreenSize *xrrs = XRRSizes(dpy, (int)scrn_idx, &num_sizes); //get possible screen resolutions
-    
-    DBG_PRINT("getNumScreenModeResolutions0: %d\n", num_sizes);
-
-    int i;
-    XRRScreenResources *xrrScreenResources = XRRGetScreenResources(dpy, root);
-    fprintf(stderr, "XRRScreenResources %p: RRCrtc crtcs %d\n", xrrScreenResources, xrrScreenResources->ncrtc);
-    for(i=0; i<xrrScreenResources->ncrtc; i++) {
-        RRCrtc crtc = xrrScreenResources->crtcs[i];
-        XRRCrtcInfo *xrrCrtcInfo = XRRGetCrtcInfo (dpy, xrrScreenResources, crtc);
-        fprintf(stderr, "RRCrtc %d: %d/%d %dx%d\n", i, xrrCrtcInfo->x, xrrCrtcInfo->y, xrrCrtcInfo->width, xrrCrtcInfo->height);
-        XRRFreeCrtcInfo(xrrCrtcInfo);
-    }
-    fprintf(stderr, "XRRScreenResources %p: XRRModeInfo modes %d\n", xrrScreenResources, xrrScreenResources->nmode);
-    for(i=0; i<xrrScreenResources->nmode; i++) {
-        XRRModeInfo xrrModeInfo = xrrScreenResources->modes[i];
-        fprintf(stderr, "XRRModeInfo %d: %dx%d, %s, %X\n", i, xrrModeInfo.width, xrrModeInfo.height, xrrModeInfo.name, xrrModeInfo.id);
-    }
-    XRRFreeScreenResources(xrrScreenResources);
-
-    return num_sizes;
-}
-
 /*
  * Class:     jogamp_newt_driver_x11_RandR13
- * Method:    getScreenModeResolutions0
- * Signature: (JII)[I
+ * Method:    getMonitorViewport0
+ * Signature: (J)[I
  */
-JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getScreenModeResolution0
-  (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx, jint resMode_idx)
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorViewport0
+  (JNIEnv *env, jclass clazz, jlong monitorInfo)
 {
-    Display *dpy = (Display *) (intptr_t) display;
-    
-    int num_sizes;   
-    XRRScreenSize *xrrs = XRRSizes(dpy, (int)scrn_idx, &num_sizes); //get possible screen resolutions
+    XRRCrtcInfo *xrrCrtcInfo = (XRRCrtcInfo *) (intptr_t) monitorInfo;
 
-    if( 0 > resMode_idx || resMode_idx >= num_sizes ) {
-        NewtCommon_throwNewRuntimeException(env, "Invalid resolution index: ! 0 < %d < %d", resMode_idx, num_sizes);
+    if( NULL == xrrCrtcInfo ) {
+        // n/a
+        return NULL;
     }
- 
-    // Fill the properties in temp jint array
+
+    if( None == xrrCrtcInfo->mode || 0 == xrrCrtcInfo->noutput ) {
+        // disabled
+        return NULL;
+    }
+
+    jsize propCount = 4;
+    jint prop[ propCount ];
     int propIndex = 0;
-    jint prop[4];
-    
-    prop[propIndex++] = xrrs[(int)resMode_idx].width; 
-    prop[propIndex++] = xrrs[(int)resMode_idx].height;
-    prop[propIndex++] = xrrs[(int)resMode_idx].mwidth; 
-    prop[propIndex++] = xrrs[(int)resMode_idx].mheight;
-    
-    jintArray properties = (*env)->NewIntArray(env, 4);
+
+    prop[propIndex++] = xrrCrtcInfo->x;
+    prop[propIndex++] = xrrCrtcInfo->y;
+    prop[propIndex++] = xrrCrtcInfo->width;
+    prop[propIndex++] = xrrCrtcInfo->height;
+
+    jintArray properties = (*env)->NewIntArray(env, propCount);
     if (properties == NULL) {
-        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array of size %d", 4);
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array of size %d", propCount);
     }
-    
-    // move from the temp structure to the java structure
-    (*env)->SetIntArrayRegion(env, properties, 0, 4, prop);
+    (*env)->SetIntArrayRegion(env, properties, 0, propCount, prop);
     
     return properties;
 }
 
 /*
  * Class:     jogamp_newt_driver_x11_RandR13
- * Method:    getScreenModeRates0
- * Signature: (JII)[I
+ * Method:    getMonitorMode0
+ * Signature: (JI)[I
  */
-JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getScreenModeRates0
-  (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx, jint resMode_idx)
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorMode0
+  (JNIEnv *env, jclass clazz, jlong screenResources, jint mode_idx)
 {
-    Display *dpy = (Display *) (intptr_t) display;
-    
-    int num_sizes;   
-    XRRScreenSize *xrrs = XRRSizes(dpy, (int)scrn_idx, &num_sizes); //get possible screen resolutions
+    XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
 
-    if( 0 > resMode_idx || resMode_idx >= num_sizes ) {
-        NewtCommon_throwNewRuntimeException(env, "Invalid resolution index: ! 0 < %d < %d", resMode_idx, num_sizes);
+    if( NULL == resources || mode_idx >= resources->nmode ) {
+        return NULL;
     }
- 
-    int num_rates;
-    short *rates = XRRRates(dpy, (int)scrn_idx, (int)resMode_idx, &num_rates);
- 
-    jint prop[num_rates];
+
+    XRRModeInfo *mode = &resources->modes[mode_idx];
+    unsigned int dots = mode->hTotal * mode->vTotal;
+    int refresh = (int) ( getVRefresh(mode) * 100.0f ); // Hz * 100
+    int flags = 0;
+    if (mode->modeFlags & RR_Interlace) {
+        flags |= FLAG_INTERLACE;
+    }
+    if (mode->modeFlags & RR_DoubleScan) {
+        flags |= FLAG_DOUBLESCAN;
+    }
+
+    jint prop[ NUM_MONITOR_MODE_PROPERTIES_ALL ];
+    int propIndex = 0;
+
+    prop[propIndex++] = NUM_MONITOR_MODE_PROPERTIES_ALL;
+    prop[propIndex++] = mode->width;
+    prop[propIndex++] = mode->height;
+    prop[propIndex++] = 32; // TODO: XRandR > 1.4 may support bpp
+    prop[propIndex++] = refresh;
+    prop[propIndex++] = flags;
+    prop[propIndex++] = mode->id;
+    prop[propIndex++] = -1; // rotation placeholder
+
+    jintArray properties = (*env)->NewIntArray(env, NUM_MONITOR_MODE_PROPERTIES_ALL);
+    if (properties == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array of size %d", NUM_MONITOR_MODE_PROPERTIES_ALL);
+    }
+    (*env)->SetIntArrayRegion(env, properties, 0, NUM_MONITOR_MODE_PROPERTIES_ALL, prop);
+    
+    return properties;
+}
+
+/*
+ * Class:     jogamp_newt_driver_x11_RandR13
+ * Method:    getMonitorCurrentMode0
+ * Signature: (JJ)[I
+ */
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorCurrentMode0
+  (JNIEnv *env, jclass clazz, jlong screenResources, jlong monitorInfo)
+{
+    XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
+    XRRCrtcInfo *xrrCrtcInfo = (XRRCrtcInfo *) (intptr_t) monitorInfo;
+
+    if( NULL == resources || NULL == xrrCrtcInfo ) {
+        // n/a
+        return NULL;
+    }
+
+    if( None == xrrCrtcInfo->mode || 0 == xrrCrtcInfo->noutput ) {
+        // disabled
+        return NULL;
+    }
+
+    int modeId = xrrCrtcInfo->mode;
+    XRRModeInfo *mode = NULL;
     int i;
-    for(i=0; i<num_rates; i++) {
-        prop[i] = (int) rates[i];
-        /** fprintf(stderr, "rate[%d, %d, %d/%d]: %d\n", (int)scrn_idx, resMode_idx, i, num_rates, prop[i]); */
+    for(i=0; i<resources->nmode; i++) {
+        XRRModeInfo *imode = &resources->modes[i];
+        if( imode->id == modeId ) {
+            mode = imode;
+            break;
+        }
     }
-    
-    jintArray properties = (*env)->NewIntArray(env, num_rates);
+    if( NULL == mode ) {
+        // oops ..
+        return NULL;
+    }
+
+    unsigned int dots = mode->hTotal * mode->vTotal;
+    int refresh = (int) ( getVRefresh(mode) * 100.0f ); // Hz * 100
+    int flags = 0;
+    if (mode->modeFlags & RR_Interlace) {
+        flags |= FLAG_INTERLACE;
+    }
+    if (mode->modeFlags & RR_DoubleScan) {
+        flags |= FLAG_DOUBLESCAN;
+    }
+
+    jint prop[ NUM_MONITOR_MODE_PROPERTIES_ALL ];
+    int propIndex = 0;
+
+    prop[propIndex++] = NUM_MONITOR_MODE_PROPERTIES_ALL;
+    prop[propIndex++] = mode->width;
+    prop[propIndex++] = mode->height;
+    prop[propIndex++] = 32; // TODO: XRandR > 1.4 may support bpp
+    prop[propIndex++] = refresh;
+    prop[propIndex++] = flags;
+    prop[propIndex++] = mode->id;
+    prop[propIndex++] = NewtScreen_XRotation2Degree(env, xrrCrtcInfo->rotation);
+
+    jintArray properties = (*env)->NewIntArray(env, NUM_MONITOR_MODE_PROPERTIES_ALL);
     if (properties == NULL) {
-        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array of size %d", num_rates);
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array of size %d", NUM_MONITOR_MODE_PROPERTIES_ALL);
     }
-    
-    // move from the temp structure to the java structure
-    (*env)->SetIntArrayRegion(env, properties, 0, num_rates, prop);
+    (*env)->SetIntArrayRegion(env, properties, 0, NUM_MONITOR_MODE_PROPERTIES_ALL, prop);
     
     return properties;
 }
 
 /*
  * Class:     jogamp_newt_driver_x11_RandR13
- * Method:    getCurrentScreenRate0
- * Signature: (JI)I
+ * Method:    getMonitorDevice0
+ * Signature: (JJJJ)[I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_RandR13_getCurrentScreenRate0
-  (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx) 
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_x11_RandR13_getMonitorDevice0
+  (JNIEnv *env, jclass clazz, jlong display, jlong screenResources, jlong monitorInfo, jint crt_idx)
 {
-    Display *dpy = (Display *) (intptr_t) display;
-    Window root = RootWindow(dpy, (int)scrn_idx);
-    
-    // get current resolutions and frequencies
-    XRRScreenConfiguration  *conf = XRRGetScreenInfo(dpy, root);
-    short original_rate = XRRConfigCurrentRate(conf);
+    Display * dpy = (Display *) (intptr_t) display;
+    XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
+    XRRCrtcInfo *xrrCrtcInfo = (XRRCrtcInfo *) (intptr_t) monitorInfo;
 
-    //free
-    XRRFreeScreenConfigInfo(conf);
-    
-    DBG_PRINT("getCurrentScreenRate0: %d\n", (int)original_rate);
-
-    return (jint) original_rate;
-}
-
-/*
- * Class:     jogamp_newt_driver_x11_RandR13
- * Method:    getCurrentScreenRotation0
- * Signature: (JI)I
- */
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_RandR13_getCurrentScreenRotation0
-  (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx)
-{
-    Display *dpy = (Display *) (intptr_t) display;
-    Window root = RootWindow(dpy, (int)scrn_idx);
-    
-    //get current resolutions and frequencies
-    XRRScreenConfiguration  *conf = XRRGetScreenInfo(dpy, root);
-    
-    Rotation rotation;
-    XRRConfigCurrentConfiguration(conf, &rotation);
-
-    //free
-    XRRFreeScreenConfigInfo(conf);
-    
-    return NewtScreen_XRotation2Degree(env, rotation);
-}
-
-
-/*
- * Class:     jogamp_newt_driver_x11_RandR13
- * Method:    getCurrentScreenResolutionIndex0
- * Signature: (JI)I
- */
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_RandR13_getCurrentScreenResolutionIndex0
-  (JNIEnv *env, jclass clazz, jlong display, jint scrn_idx)
-{
-   Display *dpy = (Display *) (intptr_t) display;
-   Window root = RootWindow(dpy, (int)scrn_idx);
-  
-   // get current resolutions and frequency configuration
-   XRRScreenConfiguration  *conf = XRRGetScreenInfo(dpy, root);
-   short original_rate = XRRConfigCurrentRate(conf);
-   
-   Rotation original_rotation;
-   SizeID original_size_id = XRRConfigCurrentConfiguration(conf, &original_rotation);
-   
-   //free
-   XRRFreeScreenConfigInfo(conf);
-   
-   DBG_PRINT("getCurrentScreenResolutionIndex0: %d\n", (int)original_size_id);
-   return (jint)original_size_id;   
-}
-
-/*
- * Class:     jogamp_newt_driver_x11_RandR13
- * Method:    setCurrentScreenModeStart0
- * Signature: (JIIII)Z
- */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_RandR13_setCurrentScreenModeStart0
-  (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jint resMode_idx, jint freq, jint rotation)
-{
-    Display *dpy = (Display *) (intptr_t) display;
-    Window root = RootWindow(dpy, (int)screen_idx);
-
-    int num_sizes;   
-    XRRScreenSize *xrrs = XRRSizes(dpy, (int)screen_idx, &num_sizes); //get possible screen resolutions
-    XRRScreenConfiguration *conf;
-    int rot;
-    
-    if( 0 > resMode_idx || resMode_idx >= num_sizes ) {
-        NewtCommon_throwNewRuntimeException(env, "Invalid resolution index: ! 0 < %d < %d", resMode_idx, num_sizes);
+    if( NULL == resources || NULL == xrrCrtcInfo || crt_idx >= resources->ncrtc ) {
+        // n/a
+        return NULL;
     }
 
-    conf = XRRGetScreenInfo(dpy, root);
-   
-    rot = int NewtScreen_Degree2XRotation(env, rotation);
+    if( None == xrrCrtcInfo->mode || 0 == xrrCrtcInfo->noutput ) {
+        // disabled
+        return NULL;
+    }
+
+    RROutput output = xrrCrtcInfo->outputs[0];
+    XRROutputInfo * xrrOutputInfo = XRRGetOutputInfo (dpy, resources, output);
+    int numModes = xrrOutputInfo->nmode;
+
+    jsize propCount = MIN_MONITOR_DEVICE_PROPERTIES - 1 + numModes;
+    jint prop[ propCount ];
+    int propIndex = 0;
+
+    prop[propIndex++] = propCount;
+    prop[propIndex++] = crt_idx;
+    prop[propIndex++] = xrrOutputInfo->mm_width;
+    prop[propIndex++] = xrrOutputInfo->mm_height;
+    prop[propIndex++] = xrrCrtcInfo->x;
+    prop[propIndex++] = xrrCrtcInfo->y;
+    prop[propIndex++] = xrrCrtcInfo->width;
+    prop[propIndex++] = xrrCrtcInfo->height;
+    prop[propIndex++] = xrrCrtcInfo->mode; // current mode id
+    prop[propIndex++] = NewtScreen_XRotation2Degree(env, xrrCrtcInfo->rotation);
+    int i;
+    for(i=0; i<numModes; i++) {
+        // avail modes ..
+        prop[propIndex++] = xrrOutputInfo->modes[i];
+    }
+
+    XRRFreeOutputInfo (xrrOutputInfo);
+
+    jintArray properties = (*env)->NewIntArray(env, propCount);
+    if (properties == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array of size %d", propCount);
+    }
+    (*env)->SetIntArrayRegion(env, properties, 0, propCount, prop);
     
-    DBG_PRINT("X11Screen.setCurrentScreenMode0: CHANGED TO %d: %d x %d PIXELS, %d Hz, %d degree\n", 
-        resMode_idx, xrrs[resMode_idx].width, xrrs[resMode_idx].height, (int)freq, rotation);
+    return properties;
+}
 
-    XRRSelectInput (dpy, root, RRScreenChangeNotifyMask);
+/*
+ * Class:     jogamp_newt_driver_x11_RandR13
+ * Method:    setMonitorMode0
+ * Signature: (JJJIIIII)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_RandR13_setMonitorMode0
+  (JNIEnv *env, jclass clazz, jlong display, jlong screenResources, jlong monitorInfo, jint crt_idx, jint modeId, jint rotation, jint x, jint y)
+{
+    Display * dpy = (Display *) (intptr_t) display;
+    XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
+    XRRCrtcInfo *xrrCrtcInfo = (XRRCrtcInfo *) (intptr_t) monitorInfo;
+    jboolean res = JNI_FALSE;
 
-    XSync(dpy, False);
-    XRRSetScreenConfigAndRate(dpy, conf, root, (int)resMode_idx, rot, (short)freq, CurrentTime);   
-    XSync(dpy, False);
+    if( NULL == resources || NULL == xrrCrtcInfo || crt_idx >= resources->ncrtc ) {
+        // n/a
+        return res;
+    }
 
-    //free
-    XRRFreeScreenConfigInfo(conf);
-    XSync(dpy, False);
+    if( None == xrrCrtcInfo->mode || 0 == xrrCrtcInfo->noutput ) {
+        // disabled
+        return res;
+    }
 
+    if( 0 >= modeId ) {
+        // oops ..
+        return res;
+    }
+
+    if( 0 > x || 0 > y ) {
+        x = xrrCrtcInfo->x;
+        y = xrrCrtcInfo->y;
+    }
+
+    Status status = XRRSetCrtcConfig( dpy, resources, resources->crtcs[crt_idx], CurrentTime, 
+                                      x, y, modeId, NewtScreen_Degree2XRotation(env, rotation),
+                                      xrrCrtcInfo->outputs, xrrCrtcInfo->noutput );
+    res = status == RRSetConfigSuccess;
+
+    return res;
+}
+
+/*
+ * Class:     jogamp_newt_driver_x11_RandR13
+ * Method:    setScreenViewport0
+ * Signature: (JIJIIII)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_RandR13_setScreenViewport0
+  (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jlong screenResources, jint x, jint y, jint width, jint height)
+{
+    Display * dpy = (Display *) (intptr_t) display;
+    Window root = RootWindow(dpy, (int)screen_idx);
+    XRRScreenResources *resources = (XRRScreenResources *) (intptr_t) screenResources;
+    jboolean res = JNI_FALSE;
+
+    if( NULL == resources ) {
+        // n/a
+        return JNI_FALSE;
+    }
+
+    XRRSetScreenSize (dpy, root, width, height, DisplayWidthMM(dpy, screen_idx), DisplayHeightMM(dpy, screen_idx));
     return JNI_TRUE;
 }
 
-/*
- * Class:     jogamp_newt_driver_x11_RandR13
- * Method:    setCurrentScreenModePollEnd0
- * Signature: (J)Z
- */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_RandR13_setCurrentScreenModePollEnd0
-  (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jint resMode_idx, jint freq, jint rotation)
-{
-    Display *dpy = (Display *) (intptr_t) display;
-    int randr_event_base, randr_error_base;
-    XEvent evt;
-    XRRScreenChangeNotifyEvent * scn_event = (XRRScreenChangeNotifyEvent *) &evt;
-
-    int num_sizes;   
-    XRRScreenSize *xrrs = XRRSizes(dpy, (int)screen_idx, &num_sizes); //get possible screen resolutions
-    XRRScreenConfiguration *conf;
-    
-    if( 0 > resMode_idx || resMode_idx >= num_sizes ) {
-        NewtCommon_throwNewRuntimeException(env, "Invalid resolution index: ! 0 < %d < %d", resMode_idx, num_sizes);
-    }
-
-    XRRQueryExtension(dpy, &randr_event_base, &randr_error_base);
-
-    int done = 0;
-    int rot;
-    do {
-        if ( 0 >= XEventsQueued(dpy, QueuedAfterFlush) ) {
-            return;
-        }
-        XNextEvent(dpy, &evt);
-
-        switch (evt.type - randr_event_base) {
-            case RRScreenChangeNotify:
-                rot = NewtScreen_XRotation2Degree(env, (int)scn_event->rotation);
-                DBG_PRINT( "XRANDR: event . RRScreenChangeNotify call %p (root %p) resIdx %d rot %d %dx%d\n", 
-                            (void*)scn_event->window, (void*)scn_event->root, 
-                            (int)scn_event->size_index, rot, 
-                            scn_event->width, scn_event->height);
-                // done = scn_event->size_index == resMode_idx; // not reliable ..
-                done = rot == rotation && 
-                       scn_event->width == xrrs[resMode_idx].width && 
-                       scn_event->height == xrrs[resMode_idx].height;
-                break;
-            default:
-                DBG_PRINT("RANDR: event . unhandled %d 0x%X call %p\n", (int)evt.type, (int)evt.type, (void*)evt.xany.window);
-        }
-        XRRUpdateConfiguration(&evt);
-    } while(!done);
-
-    XSync(dpy, False);
-
-}
 

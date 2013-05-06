@@ -593,6 +593,7 @@
           <!-- include name="${rootrel.src.c}/XCBEvent.c"      if="isX11"/-->
           <include name="${rootrel.src.c}/X11Screen.c"        if="isX11"/>
           <include name="${rootrel.src.c}/X11RandR11.c"       if="isX11"/>
+          <include name="${rootrel.src.c}/X11RandR13.c"       if="isX11"/>
           <include name="${rootrel.src.c}/X11Window.c"        if="isX11"/>
           <include name="${rootrel.src.c}/KDWindow.c"         if="setup.addNativeKD"/>
           <include name="${rootrel.src.c}/IntelGDL.c"         if="setup.addNativeIntelGDL"/>

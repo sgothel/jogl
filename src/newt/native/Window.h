@@ -38,8 +38,9 @@
 #define FLAG_HAS_PARENT             ( 1 <<  8 )
 #define FLAG_IS_UNDECORATED         ( 1 <<  9 )
 #define FLAG_IS_FULLSCREEN          ( 1 << 10 )
-#define FLAG_IS_ALWAYSONTOP         ( 1 << 11 )
-#define FLAG_IS_VISIBLE             ( 1 << 12 )
+#define FLAG_IS_FULLSCREEN_SPAN     ( 1 << 11 )
+#define FLAG_IS_ALWAYSONTOP         ( 1 << 12 )
+#define FLAG_IS_VISIBLE             ( 1 << 13 )
 
 #define TST_FLAG_CHANGE_PARENTING(f)   ( 0 != ( (f) & FLAG_CHANGE_PARENTING ) ) 
 #define TST_FLAG_CHANGE_DECORATION(f)  ( 0 != ( (f) & FLAG_CHANGE_DECORATION ) ) 
@@ -47,11 +48,11 @@
 #define TST_FLAG_CHANGE_ALWAYSONTOP(f) ( 0 != ( (f) & FLAG_CHANGE_ALWAYSONTOP ) ) 
 #define TST_FLAG_CHANGE_VISIBILITY(f)  ( 0 != ( (f) & FLAG_CHANGE_VISIBILITY ) ) 
 
-#define TST_FLAG_HAS_PARENT(f)        ( 0 != ( (f) & FLAG_HAS_PARENT ) ) 
-#define TST_FLAG_IS_UNDECORATED(f)    ( 0 != ( (f) & FLAG_IS_UNDECORATED ) ) 
-#define TST_FLAG_IS_FULLSCREEN(f)     ( 0 != ( (f) & FLAG_IS_FULLSCREEN ) ) 
-#define TST_FLAG_IS_FULLSCREEN(f)     ( 0 != ( (f) & FLAG_IS_FULLSCREEN ) ) 
-#define TST_FLAG_IS_ALWAYSONTOP(f)    ( 0 != ( (f) & FLAG_IS_ALWAYSONTOP ) ) 
-#define TST_FLAG_IS_VISIBLE(f)        ( 0 != ( (f) & FLAG_IS_VISIBLE ) ) 
+#define TST_FLAG_HAS_PARENT(f)         ( 0 != ( (f) & FLAG_HAS_PARENT ) ) 
+#define TST_FLAG_IS_UNDECORATED(f)     ( 0 != ( (f) & FLAG_IS_UNDECORATED ) ) 
+#define TST_FLAG_IS_FULLSCREEN(f)      ( 0 != ( (f) & FLAG_IS_FULLSCREEN ) ) 
+#define TST_FLAG_IS_FULLSCREEN_SPAN(f) ( 0 != ( (f) & FLAG_IS_FULLSCREEN_SPAN ) ) 
+#define TST_FLAG_IS_ALWAYSONTOP(f)     ( 0 != ( (f) & FLAG_IS_ALWAYSONTOP ) ) 
+#define TST_FLAG_IS_VISIBLE(f)         ( 0 != ( (f) & FLAG_IS_VISIBLE ) ) 
 
 #endif
