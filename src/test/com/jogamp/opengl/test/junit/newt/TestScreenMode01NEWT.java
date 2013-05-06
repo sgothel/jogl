@@ -223,10 +223,10 @@ public class TestScreenMode01NEWT extends UITestCase {
         monitorModes = MonitorModeUtil.filterByRotation(monitorModes, 0);
         Assert.assertNotNull(monitorModes);
         Assert.assertTrue(monitorModes.size()>0);
-        monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
+        monitorModes = MonitorModeUtil.filterByResolution(monitorModes, new Dimension(801, 601));
         Assert.assertNotNull(monitorModes);
         Assert.assertTrue(monitorModes.size()>0);
-        monitorModes = MonitorModeUtil.filterByResolution(monitorModes, new Dimension(801, 601));
+        monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
         Assert.assertNotNull(monitorModes);
         Assert.assertTrue(monitorModes.size()>0);
         
@@ -319,8 +319,8 @@ public class TestScreenMode01NEWT extends UITestCase {
         Assert.assertTrue(monitorModes.size()>0);
         monitorModes = MonitorModeUtil.filterByFlags(monitorModes, 0); // no interlace, double-scan etc
         monitorModes = MonitorModeUtil.filterByRotation(monitorModes, 0);
-        monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
         monitorModes = MonitorModeUtil.filterByResolution(monitorModes, new Dimension(801, 601));
+        monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
         monitorModes = MonitorModeUtil.getHighestAvailableBpp(monitorModes);
 
         MonitorMode monitorMode = (MonitorMode) monitorModes.get(0);

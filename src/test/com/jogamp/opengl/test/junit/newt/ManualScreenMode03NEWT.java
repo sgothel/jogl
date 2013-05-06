@@ -90,8 +90,8 @@ public class ManualScreenMode03NEWT extends UITestCase {
 
         monitorModes = MonitorModeUtil.filterByFlags(monitorModes, 0); // no interlace, double-scan etc
         monitorModes = MonitorModeUtil.filterByRotation(monitorModes, 0);
-        monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
         monitorModes = MonitorModeUtil.filterByResolution(monitorModes, new Dimension(801, 601));
+        monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
         monitorModes = MonitorModeUtil.getHighestAvailableBpp(monitorModes);
 
         MonitorMode mm = (MonitorMode) monitorModes.get(0);

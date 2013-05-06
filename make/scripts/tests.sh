@@ -135,7 +135,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.EGLDisplayUtil -Dnativewindow.debug.GraphicsConfiguration -Djogl.debug.GLDrawable"
     #D_ARGS="-Djogl.debug.EGLDisplayUtil -Dnativewindow.debug.X11Util"
     #D_ARGS="-Djogl.debug.GLDrawable"
-    #D_ARGS="-Dnewt.debug.Screen"
+    D_ARGS="-Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.test.Screen.disableRandR13"
     #D_ARGS="-Dnewt.test.Screen.disableScreenMode -Dnewt.debug.Screen"
     #D_ARGS="-Dnewt.debug.Screen -Djogl.debug.Animator"
@@ -386,9 +386,9 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00bNEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01NEWT
-#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01aNEWT $*
+testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01aNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01bNEWT $*
-testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01cNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01cNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.ManualScreenMode03NEWT $*
 #testnoawt -Djava.awt.headless=true com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT $*

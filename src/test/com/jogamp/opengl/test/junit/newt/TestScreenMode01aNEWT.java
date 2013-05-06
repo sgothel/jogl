@@ -144,11 +144,11 @@ public class TestScreenMode01aNEWT extends UITestCase {
         monitorModes = MonitorModeUtil.filterByRotation(monitorModes, 0);
         Assert.assertNotNull(monitorModes);
         Assert.assertTrue(monitorModes.size()>0);
-        monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
-        Assert.assertNotNull(monitorModes);
-        Assert.assertTrue(monitorModes.size()>0);
         monitorModes = MonitorModeUtil.filterByResolution(monitorModes, new Dimension(801, 601));
         Assert.assertNotNull(monitorModes);
+        Assert.assertTrue(monitorModes.size()>0);
+        monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
+        Assert.assertNotNull(monitorModes);        
         Assert.assertTrue(monitorModes.size()>0);
         
         monitorModes = MonitorModeUtil.getHighestAvailableBpp(monitorModes);
