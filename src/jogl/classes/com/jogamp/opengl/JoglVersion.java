@@ -172,9 +172,9 @@ public class JoglVersion extends JogampVersion {
         sb.append(Platform.getNewline());
         sb.append("GL_VERSION     ").append(gl.glGetString(GL.GL_VERSION));
         sb.append(Platform.getNewline());        
-        sb.append("GLSL           ").append(gl.hasGLSL()).append(", has-compiler: ").append(gl.isFunctionAvailable("glCompileShader"));
+        sb.append("GLSL           ").append(gl.hasGLSL()).append(", has-compiler-func: ").append(gl.isFunctionAvailable("glCompileShader"));
         if(gl.hasGLSL()) {
-            sb.append(", version: ").append(gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION));
+            sb.append(", version: ").append(gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION)).append(" / ").append(ctx.getGLSLVersionNumber());
         }
         sb.append(Platform.getNewline());
         sb.append("GL_EXTENSIONS  ").append(ctx.getGLExtensionCount());

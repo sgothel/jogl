@@ -1047,7 +1047,7 @@ public abstract class GLContextImpl extends GLContext {
       ctxOptions = ctp;
       if(useGL) {
           ctxGLSLVersion = VersionNumber.zeroVersion;
-          if(major >= 2) { // >= ES2 || GL2.0
+          if( hasGLSL() ) { // >= ES2 || GL2.0
               final String glslVersion = gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION);
               if( null != glslVersion ) {
                   ctxGLSLVersion = new VersionNumber(glslVersion, ".");
@@ -1055,12 +1055,12 @@ public abstract class GLContextImpl extends GLContext {
                       ctxGLSLVersion = VersionNumber.zeroVersion; // failed ..
                   }
               }
+              if( ctxGLSLVersion.isZero() ) {
+                  final int[] sver = new int[2];
+                  getStaticGLSLVersionNumber(major, minor, ctxOptions, sver);
+                  ctxGLSLVersion = new VersionNumber(sver[0], sver[1], 0);
+              }
           } 
-          if( ctxGLSLVersion.isZero() ) {
-              final int[] sver = new int[2];
-              getStaticGLSLVersionNumber(major, minor, ctxOptions, sver);
-              ctxGLSLVersion = new VersionNumber(sver[0], sver[1], 0);
-          }
       }
   }
   

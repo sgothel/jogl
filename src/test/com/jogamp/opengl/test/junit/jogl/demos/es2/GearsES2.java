@@ -120,7 +120,7 @@ public class GearsES2 implements GLEventListener {
             System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
             System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
             System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
-            System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none")+", "+gl.getContext().getGLSLVersionNumber());
+            System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler-func: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none")+", "+gl.getContext().getGLSLVersionNumber());
             System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
             System.err.println("GL Profile: "+gl.getGLProfile());
             System.err.println("GL Renderer Quirks:" + gl.getContext().getRendererQuirks().toString());
@@ -508,7 +508,7 @@ public class GearsES2 implements GLEventListener {
             }
             prevMouseX = x;
             prevMouseY = y;
-            System.err.println("rotXY.1: "+view_rotx+"/"+view_roty+", source "+e);
+            // System.err.println("rotXY.1: "+view_rotx+"/"+view_roty+", source "+e);
         }
     }
 }
