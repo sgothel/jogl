@@ -1997,7 +1997,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                                 System.err.println("Window.monitorModeChanged: fit window "+rect+" into screen viewport "+viewport+
                                                    ", due to minimal intersection "+isect);
                             }
-                            setPosition(viewport.getX(), viewport.getY());
+                            definePosition(viewport.getX(), viewport.getY()); // set pos for setVisible(..) or createNative(..) - reduce EDT roundtrip
                             setSize(viewport.getWidth(), viewport.getHeight());
                         }
                     }
