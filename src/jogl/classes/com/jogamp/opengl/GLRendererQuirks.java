@@ -67,7 +67,7 @@ public class GLRendererQuirks {
     public static final int GLSLBuggyDiscard = 5;
     
     /** 
-     * Non compliant GL context, e.g. due to a buggy implementation rendering it not suitable for use.
+     * Non compliant GL context due to a buggy implementation not suitable for use.
      * <p>
      * Mesa >= 9.0 (?), Intel driver, OpenGL 3.1 compatibility context is not compliant: 
      * <pre>
