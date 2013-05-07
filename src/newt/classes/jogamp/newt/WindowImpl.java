@@ -1986,16 +1986,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     animatorPaused = lifecycleHook.pauseRenderingAction();
                 }
                 if( !fullscreen ) {
-                    // FIXME: Need to take all covered monitors into account
-                    final MonitorDevice mainMonitor = getMainMonitor();
-                    final MonitorDevice eventMonitor = me.getMonitor();
-                    if( mainMonitor == eventMonitor ) {
+                    // Simply move/resize window to fit in virtual screen if required
+                    final RectangleImmutable viewport = screen.getViewport();
+                    if( viewport.getWidth() > 0 && viewport.getHeight() > 0 ) { // failsafe
                         final RectangleImmutable rect = new Rectangle(getX(), getY(), getWidth(), getHeight());
-                        final RectangleImmutable viewport = mainMonitor.getViewport();
                         final RectangleImmutable isect = viewport.intersection(rect);
                         if ( getHeight() > isect.getHeight()  ||
                              getWidth() > isect.getWidth() ) {
-                            setSize(isect.getWidth(), isect.getHeight());
+                            if(DEBUG_IMPLEMENTATION) {
+                                System.err.println("Window.monitorModeChanged: fit window "+rect+" into screen viewport "+viewport+
+                                                   ", due to minimal intersection "+isect);
+                            }
+                            setPosition(viewport.getX(), viewport.getY());
+                            setSize(viewport.getWidth(), viewport.getHeight());
                         }
                     }
                 }

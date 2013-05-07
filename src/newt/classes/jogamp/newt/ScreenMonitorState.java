@@ -176,7 +176,7 @@ public class ScreenMonitorState {
         lock();
         try {
             validateMonitor(monitor);
-            final MonitorEvent me = new MonitorEvent(MonitorEvent.EVENT_MONITOR_MODE_CHANGE_NOTIFY, monitor, System.currentTimeMillis(), currentMode);
+            final MonitorEvent me = new MonitorEvent(MonitorEvent.EVENT_MONITOR_MODE_CHANGED, monitor, System.currentTimeMillis(), currentMode);
             for(int i=0; i<listener.size(); i++) {
                 listener.get(i).monitorModeChanged(me, success);
             }
