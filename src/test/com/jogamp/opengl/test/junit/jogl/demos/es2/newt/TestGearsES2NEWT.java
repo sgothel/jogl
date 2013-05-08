@@ -122,6 +122,7 @@ public class TestGearsES2NEWT extends UITestCase {
         final GearsES2 demo = new GearsES2(swapInterval);
         demo.setPMVUseBackingArray(pmvUseBackingArray);
         glWindow.addGLEventListener(demo);
+        
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         glWindow.addGLEventListener(snap);
         if(waitForKey) {

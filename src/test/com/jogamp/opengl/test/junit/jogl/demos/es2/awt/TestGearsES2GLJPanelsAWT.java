@@ -26,37 +26,40 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.demos.gl2.awt;
-
-import javax.media.opengl.*;
-
-import com.jogamp.newt.event.TraceKeyAdapter;
-import com.jogamp.newt.event.TraceWindowAdapter;
-import com.jogamp.newt.event.awt.AWTKeyAdapter;
-import com.jogamp.newt.event.awt.AWTWindowAdapter;
-import com.jogamp.opengl.util.FPSAnimator;
-import javax.media.opengl.awt.GLJPanel;
-
-import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
-import com.jogamp.opengl.test.junit.util.MiscUtils;
-import com.jogamp.opengl.test.junit.util.QuitAdapter;
-import com.jogamp.opengl.test.junit.util.UITestCase;
+package com.jogamp.opengl.test.junit.jogl.demos.es2.awt;
 
 import java.awt.AWTException;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.FloatBuffer;
+
+import javax.media.opengl.GLAnimatorControl;
+import javax.media.opengl.GLCapabilities;
+import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLProfile;
+import javax.media.opengl.awt.GLJPanel;
 import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.AfterClass;
 import org.junit.Test;
 
-public class TestGearsGLJPanelAWT extends UITestCase {
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.QuitAdapter;
+import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.FPSAnimator;
+
+public class TestGearsES2GLJPanelsAWT extends UITestCase {
+    static int demoCount = 4;
+    static boolean opaque = false; // always faster and flicker-less w/o opaque, i.e. w/ alpha channel due to JComponent _paintImmediately(..)
+    static float alpha = 0.3f;
     static GLProfile glp;
-    static int width, height;
     static boolean shallUsePBuffer = false;
     static boolean shallUseBitmap = false;
     static boolean useMSAA = false;
@@ -69,8 +72,6 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         if(GLProfile.isAvailable(GLProfile.GL2)) {
             glp = GLProfile.get(GLProfile.GL2);
             Assert.assertNotNull(glp);
-            width  = 640;
-            height = 480;
         } else {
             setTestSupported(false);
         }
@@ -79,30 +80,81 @@ public class TestGearsGLJPanelAWT extends UITestCase {
     @AfterClass
     public static void releaseClass() {
     }
+    
+    private void addPanel(GLCapabilitiesImmutable caps, GLAnimatorControl anim, final JFrame frame, boolean opaque, int x, int y, int w, int h, FloatBuffer color, float[] clearColor) 
+            throws InterruptedException, InvocationTargetException 
+    {
+        final GLJPanel canvas = new GLJPanel(caps);
+        canvas.setOpaque(opaque);
+        final Dimension glc_sz = new Dimension(w, h);
+        canvas.setMinimumSize(glc_sz);
+        canvas.setPreferredSize(glc_sz);
+        canvas.setSize(glc_sz);
+        GearsES2 demo = new GearsES2(swapInterval);
+        demo.setIgnoreFocus(true);
+        demo.setGearsColors(color, color, color);
+        demo.setClearColor(clearColor);
+        canvas.addGLEventListener(demo);
+        if( null != anim ) {
+            anim.add(canvas);
+        }
 
+        final JPanel panel = new JPanel(new BorderLayout());
+        panel.setBounds(x, y, w, h);
+        panel.setOpaque(opaque);
+        
+        SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    panel.add(canvas, BorderLayout.CENTER);
+                    frame.getContentPane().add(panel);
+                } } ) ;
+    }
+
+    public static final FloatBuffer red =    Buffers.newDirectFloatBuffer( new float[] { 1.0f, 0.0f, 0.0f, 1.0f } );    
+    public static final FloatBuffer green =  Buffers.newDirectFloatBuffer( new float[] { 0.0f, 1.0f, 0.0f, 1.0f } );
+    public static final FloatBuffer blue =   Buffers.newDirectFloatBuffer( new float[] { 0.0f, 0.0f, 1.0f, 1.0f } );
+    public static final FloatBuffer yellow = Buffers.newDirectFloatBuffer( new float[] { 1.0f, 1.0f, 0.0f, 1.0f } );
+    public static final float grayf = 0.3f;
+    public static final float[] redish    = new float[] { grayf, 0.0f,  0.0f,  alpha };
+    public static final float[] greenish  = new float[] { 0.0f,  grayf, 0.0f,  alpha };
+    public static final float[] blueish   = new float[] { 0.0f,  0.0f,  grayf, alpha };
+    public static final float[] yellowish = new float[] { grayf, grayf, 0.0f,  alpha };
+    
     protected void runTestGL(GLCapabilities caps)
             throws AWTException, InterruptedException, InvocationTargetException
     {
+        if( !opaque ) {
+            caps.setAlphaBits(caps.getRedBits());
+        }
+        
         final JFrame frame = new JFrame("Swing GLJPanel");
         Assert.assertNotNull(frame);
-
-        final GLJPanel glJPanel = new GLJPanel(caps);
-        Assert.assertNotNull(glJPanel);
-        Dimension glc_sz = new Dimension(width, height);
-        glJPanel.setMinimumSize(glc_sz);
-        glJPanel.setPreferredSize(glc_sz);
-        glJPanel.setSize(glc_sz);
-        glJPanel.addGLEventListener(new Gears(swapInterval));
-        final SnapshotGLEventListener snap = new SnapshotGLEventListener();
-        glJPanel.addGLEventListener(snap);
-
-        final FPSAnimator animator = useAnimator ? new FPSAnimator(glJPanel, 60) : null;
+        
+        final FPSAnimator animator = useAnimator ? new FPSAnimator(60) : null;
 
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    frame.getContentPane().add(glJPanel, BorderLayout.CENTER);
+                    frame.getContentPane().setLayout(null);
+                } } );
+        
+        if( demoCount > 0 ) {
+            addPanel(caps, animator, frame, opaque,  50,  50, 300, 300, red, redish); // A
+        }
+        if( demoCount > 1 ) {
+            addPanel(caps, animator, frame, opaque, 200,   0, 150, 150, green, greenish); // B
+        }
+        if( demoCount > 2 ) {
+            addPanel(caps, animator, frame, opaque,   0, 250, 300, 300, blue, blueish); // C
+        }
+        if( demoCount > 3 ) {
+            addPanel(caps, animator, frame, opaque, 300, 300, 100, 100, yellow, yellowish); // D
+        }
+          
+        SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    frame.setSize(600, 600);
                     frame.getContentPane().validate();
-                    frame.pack();
+                    // frame.pack();
                     frame.setVisible(true);
                 } } ) ;
 
@@ -114,25 +166,14 @@ public class TestGearsGLJPanelAWT extends UITestCase {
 
         QuitAdapter quitAdapter = new QuitAdapter();
 
-        new AWTKeyAdapter(new TraceKeyAdapter(quitAdapter)).addTo(glJPanel);
-        new AWTWindowAdapter(new TraceWindowAdapter(quitAdapter)).addTo(frame);
-        
         final long t0 = System.currentTimeMillis();
         long t1 = t0;
-        boolean triggerSnap = false;
         while(!quitAdapter.shouldQuit() && t1 - t0 < duration) {
             Thread.sleep(100);
             t1 = System.currentTimeMillis();
-            snap.getDisplayCount();
-            if( !triggerSnap && snap.getDisplayCount() > 1 ) {
-                // Snapshot only after one frame has been rendered to suite FBO MSAA!
-                snap.setMakeSnapshot();
-                triggerSnap = true;
-            }
         }
 
         Assert.assertNotNull(frame);
-        Assert.assertNotNull(glJPanel);
         Assert.assertNotNull(animator);
 
         if( useAnimator ) {
@@ -142,9 +183,8 @@ public class TestGearsGLJPanelAWT extends UITestCase {
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     frame.setVisible(false);
-                    frame.getContentPane().remove(glJPanel);
-                    frame.remove(glJPanel);
-                    glJPanel.destroy();
+                    // frame.getContentPane().removeAll();
+                    // frame.removeAll();
                     frame.dispose();
                 } } );
     }
@@ -244,6 +284,11 @@ public class TestGearsGLJPanelAWT extends UITestCase {
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);
             } else if(args[i].equals("-msaa")) {
                 useMSAA = true;
+            } else if(args[i].equals("-opaque")) {
+                opaque = true;
+            } else if(args[i].equals("-alpha")) {
+                i++;
+                alpha = MiscUtils.atof(args[i], alpha);
             } else if(args[i].equals("-noanim")) {
                 useAnimator  = false;
             } else if(args[i].equals("-pbuffer")) {
@@ -252,15 +297,21 @@ public class TestGearsGLJPanelAWT extends UITestCase {
                 shallUseBitmap = true;
             } else if(args[i].equals("-manual")) {
                 manualTest = true;
+            } else if(args[i].equals("-demos")) {
+                i++;
+                demoCount = MiscUtils.atoi(args[i], demoCount);
             }
         }
         System.err.println("swapInterval "+swapInterval);
+        System.err.println("opaque "+opaque);
+        System.err.println("alpha "+alpha);
+        System.err.println("demos "+demoCount);
         System.err.println("useMSAA "+useMSAA);
         System.err.println("useAnimator "+useAnimator);
         System.err.println("shallUsePBuffer "+shallUsePBuffer);
         System.err.println("shallUseBitmap "+shallUseBitmap);
         System.err.println("manualTest "+manualTest);
         
-        org.junit.runner.JUnitCore.main(TestGearsGLJPanelAWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestGearsES2GLJPanelsAWT.class.getName());
     }
 }

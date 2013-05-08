@@ -51,6 +51,15 @@ public class MiscUtils {
         return def;
     }
 
+    public static float atof(String str, float def) {
+        try {
+            return Float.parseFloat(str);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return def;
+    }
+    
     public static String toHexString(byte hex) {
         return "0x" + Integer.toHexString( (int)hex & 0x000000FF );
     }

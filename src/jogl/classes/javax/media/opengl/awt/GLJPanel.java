@@ -1094,6 +1094,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
           }
           if(DEBUG) {
               final BufferedImage offscreenImage = pixelBufferProvider.getImage();
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: pixelAttribs "+pixelAttribs);
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: flippedVertical "+flipVertical+", glslTextureRaster "+(null!=glslTextureRaster));
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: panelSize "+panelWidth+"x"+panelHeight +", readBackSizeInPixels "+readBackWidthInPixels+"x"+readBackHeightInPixels);
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: offscreenImage "+offscreenImage.getWidth()+"x"+offscreenImage.getHeight());

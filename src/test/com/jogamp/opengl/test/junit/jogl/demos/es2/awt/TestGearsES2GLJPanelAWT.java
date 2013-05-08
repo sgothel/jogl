@@ -60,7 +60,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
     static boolean shallUsePBuffer = false;
     static boolean shallUseBitmap = false;
     static boolean useMSAA = false;
-    static int swapInterval = 1;
+    static int swapInterval = 0;
     static boolean useAnimator = true;
     static boolean manualTest = false;
 
@@ -92,7 +92,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         glJPanel.setMinimumSize(glc_sz);
         glJPanel.setPreferredSize(glc_sz);
         glJPanel.setSize(glc_sz);
-        glJPanel.addGLEventListener(new GearsES2());
+        glJPanel.addGLEventListener(new GearsES2(swapInterval));
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         glJPanel.addGLEventListener(snap);
 
