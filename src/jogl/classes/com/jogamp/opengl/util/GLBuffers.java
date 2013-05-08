@@ -342,7 +342,7 @@ public class GLBuffers extends Buffers {
      * 
      * @param tmp a pass through integer array of size >= 1 used to store temp data (performance)
      * 
-     * @param bytesPerElement bytes per element
+     * @param bytesPerPixel bytes per pixel, i.e. via {@link #bytesPerPixel(int, int)}.
      * @param width in pixels
      * @param height in pixels
      * @param depth in pixels
@@ -351,7 +351,7 @@ public class GLBuffers extends Buffers {
      * @throws GLException if alignment is invalid. Please contact the maintainer if this is our bug.
      */
     public static final int sizeof(GL gl, int tmp[], 
-                                   int bytesPerElement, int width, int height, int depth, 
+                                   int bytesPerPixel, int width, int height, int depth, 
                                    boolean pack) {
         int rowLength = 0;
         int skipRows = 0;
@@ -396,8 +396,8 @@ public class GLBuffers extends Buffers {
         imageHeight = ( imageHeight > 0 ) ? imageHeight : height;
         rowLength   = ( rowLength   > 0 ) ? rowLength   : width;
   
-        int rowLengthInBytes = rowLength  * bytesPerElement;
-        int skipBytes        = skipPixels * bytesPerElement;
+        int rowLengthInBytes = rowLength  * bytesPerPixel;
+        int skipBytes        = skipPixels * bytesPerPixel;
         
         switch(alignment) {
             case 1:
@@ -434,7 +434,7 @@ public class GLBuffers extends Buffers {
             skipBytes +                                                  // aligned skipPixels * bpp
           ( skipImages + depth  - 1 ) * imageHeight * rowLengthInBytes + // aligned whole images 
           ( skipRows   + height - 1 ) * rowLengthInBytes +               // aligned lines
-            width                     * bytesPerElement;                 // last line        
+            width                     * bytesPerPixel;                 // last line        
     }
   
     /** 
@@ -444,7 +444,9 @@ public class GLBuffers extends Buffers {
      * <p>This method is security critical, hence it throws an exception (fail-fast)
      * in case either the format, type or alignment is unhandled. In case we forgot to handle 
      * proper values, please contact the maintainer.</p> 
-     *   
+     * 
+     * <p> See {@link #bytesPerPixel(int, int)}. </p>
+     * 
      * @param gl the current GL object
      * 
      * @param tmp a pass through integer array of size >= 1 used to store temp data (performance)
@@ -500,12 +502,168 @@ public class GLBuffers extends Buffers {
     public static final int sizeof(GL gl, int tmp[], 
                                    int format, int type, int width, int height, int depth,
                                    boolean pack) throws GLException {
-        int elements = 0;
-        int esize = 0;
-
         if (width < 0) return 0;
         if (height < 0) return 0;
         if (depth < 0) return 0;
+        
+        final int bytesPerPixel = bytesPerPixel(format, type);
+        return sizeof(gl, tmp, bytesPerPixel, width, height, depth, pack);
+    }
+    
+    /** 
+     * Returns the number of bytes required for one pixel with the the given OpenGL format and type.
+     * 
+     * <p>This method is security critical, hence it throws an exception (fail-fast)
+     * in case either the format, type or alignment is unhandled. In case we forgot to handle 
+     * proper values, please contact the maintainer.</p> 
+     * 
+     * <p> See {@link #componentCount(int)}. </p>
+     * 
+     * @param format must be one of (26) <br/> 
+     *              GL_COLOR_INDEX GL_STENCIL_INDEX <br/> 
+     *              GL_DEPTH_COMPONENT GL_DEPTH_STENCIL <br/> 
+     *              GL_RED GL_RED_INTEGER <br/> 
+     *              GL_GREEN GL_GREEN_INTEGER <br/> 
+     *              GL_BLUE GL_BLUE_INTEGER <br/> 
+     *              GL_ALPHA GL_LUMINANCE (12) <br/> 
+     *              <br/> 
+     *              GL_LUMINANCE_ALPHA GL_RG <br/>
+     *              GL_RG_INTEGER GL_HILO_NV <br/> 
+     *              GL_SIGNED_HILO_NV (5) <br/> 
+     *              <br/> 
+     *              GL_RGB GL_RGB_INTEGER <br/> 
+     *              GL_BGR GL_BGR_INTEGER (4)<br/>  
+     *              <br/> 
+     *              GL_RGBA GL_RGBA_INTEGER <br/> 
+     *              GL_BGRA GL_BGRA_INTEGER <br/>
+     *              GL_ABGR_EXT (5)<br/> 
+     *           
+     * @param type must be one of (30) <br/>  
+     *              GL_BITMAP, <br/> 
+     *              GL_BYTE, GL_UNSIGNED_BYTE, <br/>
+     *              GL_UNSIGNED_BYTE_3_3_2, GL_UNSIGNED_BYTE_2_3_3_REV, <br/>
+     *              <br/>
+     *              GL_SHORT, GL_UNSIGNED_SHORT, <br/>
+     *              GL_UNSIGNED_SHORT_5_6_5, GL_UNSIGNED_SHORT_5_6_5_REV, <br/> 
+     *              GL_UNSIGNED_SHORT_4_4_4_4, GL_UNSIGNED_SHORT_4_4_4_4_REV, <br/>
+     *              GL_UNSIGNED_SHORT_5_5_5_1, GL_UNSIGNED_SHORT_1_5_5_5_REV, <br/>
+     *              GL_HALF_FLOAT, GL_HALF_FLOAT_OES <br/>
+     *              <br/>
+     *              GL_FIXED, GL_INT <br/>
+     *              GL_UNSIGNED_INT, GL_UNSIGNED_INT_8_8_8_8, <br/>
+     *              GL_UNSIGNED_INT_8_8_8_8_REV, GL_UNSIGNED_INT_10_10_10_2, <br/> 
+     *              GL_UNSIGNED_INT_2_10_10_10_REV, GL_UNSIGNED_INT_24_8, <br/>
+     *              GL_UNSIGNED_INT_10F_11F_11F_REV, GL_UNSIGNED_INT_5_9_9_9_REV <br/> 
+     *              GL_HILO16_NV, GL_SIGNED_HILO16_NV <br/>
+     *              <br/>
+     *              GL_FLOAT_32_UNSIGNED_INT_24_8_REV <br/>
+     *              <br/>
+     *              GL_FLOAT, GL_DOUBLE <br/> 
+     * 
+     * @return required size of one pixel in bytes
+     * @throws GLException if format or type alignment is not handled. Please contact the maintainer if this is our bug.
+     */
+    public static final int bytesPerPixel(int format, int type) throws GLException {
+        int compSize = 0;
+
+        int compCount = componentCount(format);
+        
+        switch (type) /* 30 */ {
+            case GL2.GL_BITMAP:
+              if (GL2.GL_COLOR_INDEX == format || GL2GL3.GL_STENCIL_INDEX == format) {
+                  compSize = 1;
+              }
+            case GL.GL_BYTE:
+            case GL.GL_UNSIGNED_BYTE:                
+              compSize = 1;
+              break;
+            case GL.GL_SHORT:
+            case GL.GL_UNSIGNED_SHORT:
+            case GL.GL_HALF_FLOAT:
+            case GLES2.GL_HALF_FLOAT_OES:
+              compSize = 2;
+              break;
+            case GL.GL_FIXED:
+            case GL2ES2.GL_INT:
+            case GL.GL_UNSIGNED_INT:
+            case GL.GL_FLOAT:
+              compSize = 4;
+              break;
+            case GL2GL3.GL_DOUBLE:
+              compSize = 8;
+              break;
+              
+            case GL2GL3.GL_UNSIGNED_BYTE_3_3_2:
+            case GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV:
+              compSize = 1;
+              compCount = 1;
+              break;
+            case GL.GL_UNSIGNED_SHORT_5_6_5:
+            case GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV:
+            case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4:
+            case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV:
+            case GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1:
+            case GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV:
+              compSize = 2;
+              compCount = 1;
+              break;
+            case GL2.GL_HILO16_NV:
+            case GL2.GL_SIGNED_HILO16_NV:
+              compSize = 2;
+              compCount = 2;
+              break;                
+            case GL2GL3.GL_UNSIGNED_INT_8_8_8_8:
+            case GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV:
+            case GL2GL3.GL_UNSIGNED_INT_10_10_10_2:
+            case GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV:
+            case GL2GL3.GL_UNSIGNED_INT_24_8:
+            case GL2GL3.GL_UNSIGNED_INT_10F_11F_11F_REV:
+            case GL2GL3.GL_UNSIGNED_INT_5_9_9_9_REV:
+              compSize = 4;
+              compCount = 1;
+              break;              
+            case GL2GL3.GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
+              compSize = 8;
+              compCount = 1;
+              break;              
+                
+            default:
+              throw new GLException("type 0x"+Integer.toHexString(type)+"/"+"format 0x"+Integer.toHexString(format)+" not supported [yet], pls notify the maintainer in case this is our bug.");
+        }        
+        return compCount * compSize;
+    }
+    
+    /** 
+     * Returns the number of components required for the given OpenGL format.
+     * 
+     * <p>This method is security critical, hence it throws an exception (fail-fast)
+     * in case either the format, type or alignment is unhandled. In case we forgot to handle 
+     * proper values, please contact the maintainer.</p> 
+     *   
+     * @param format must be one of (26) <br/> 
+     *              GL_COLOR_INDEX GL_STENCIL_INDEX <br/> 
+     *              GL_DEPTH_COMPONENT GL_DEPTH_STENCIL <br/> 
+     *              GL_RED GL_RED_INTEGER <br/> 
+     *              GL_GREEN GL_GREEN_INTEGER <br/> 
+     *              GL_BLUE GL_BLUE_INTEGER <br/> 
+     *              GL_ALPHA GL_LUMINANCE (12) <br/> 
+     *              <br/> 
+     *              GL_LUMINANCE_ALPHA GL_RG <br/>
+     *              GL_RG_INTEGER GL_HILO_NV <br/> 
+     *              GL_SIGNED_HILO_NV (5) <br/> 
+     *              <br/> 
+     *              GL_RGB GL_RGB_INTEGER <br/> 
+     *              GL_BGR GL_BGR_INTEGER (4)<br/>  
+     *              <br/> 
+     *              GL_RGBA GL_RGBA_INTEGER <br/> 
+     *              GL_BGRA GL_BGRA_INTEGER <br/>
+     *              GL_ABGR_EXT (5)<br/> 
+     *           
+     * @return number of components required for the given OpenGL format
+     * @throws GLException if format is not handled. Please contact the maintainer if this is our bug.
+     */
+    public static final int componentCount(int format) throws GLException {
+        final int compCount;
         
         switch (format) /* 26 */ {
             case GL2.GL_COLOR_INDEX:
@@ -520,27 +678,27 @@ public class GLBuffers extends Buffers {
             case GL2GL3.GL_BLUE_INTEGER:
             case GL.GL_ALPHA:
             case GL.GL_LUMINANCE:
-              elements = 1;
+              compCount = 1;
               break;
             case GL.GL_LUMINANCE_ALPHA:
             case GL2GL3.GL_RG:
             case GL2GL3.GL_RG_INTEGER:
             case GL2.GL_HILO_NV:
             case GL2.GL_SIGNED_HILO_NV:
-              elements = 2;
+              compCount = 2;
               break;
             case GL.GL_RGB:
             case GL2GL3.GL_RGB_INTEGER:
             case GL2GL3.GL_BGR:
             case GL2GL3.GL_BGR_INTEGER: 
-              elements = 3;
+              compCount = 3;
               break;
             case GL.GL_RGBA:
             case GL2GL3.GL_RGBA_INTEGER:
             case GL.GL_BGRA:
             case GL2GL3.GL_BGRA_INTEGER:
             case GL2.GL_ABGR_EXT:
-              elements = 4;
+              compCount = 4;
               break;
             /* FIXME ?? 
              case GL.GL_HILO_NV:
@@ -549,71 +707,7 @@ public class GLBuffers extends Buffers {
             default:
               throw new GLException("format 0x"+Integer.toHexString(format)+" not supported [yet], pls notify the maintainer in case this is our bug.");
         }
-                
-        switch (type) /* 30 */ {
-            case GL2.GL_BITMAP:
-              if (GL2.GL_COLOR_INDEX == format || GL2GL3.GL_STENCIL_INDEX == format) {
-                return (depth * (height * ((width+7)/8)));
-              }
-            case GL.GL_BYTE:
-            case GL.GL_UNSIGNED_BYTE:                
-              esize = 1;
-              break;
-            case GL.GL_SHORT:
-            case GL.GL_UNSIGNED_SHORT:
-            case GL.GL_HALF_FLOAT:
-            case GLES2.GL_HALF_FLOAT_OES:
-              esize = 2;
-              break;
-            case GL.GL_FIXED:
-            case GL2ES2.GL_INT:
-            case GL.GL_UNSIGNED_INT:
-            case GL.GL_FLOAT:
-              esize = 4;
-              break;
-            case GL2GL3.GL_DOUBLE:
-              esize = 8;
-              break;
-              
-            case GL2GL3.GL_UNSIGNED_BYTE_3_3_2:
-            case GL2GL3.GL_UNSIGNED_BYTE_2_3_3_REV:
-              esize = 1;
-              elements = 1;
-              break;
-            case GL.GL_UNSIGNED_SHORT_5_6_5:
-            case GL2GL3.GL_UNSIGNED_SHORT_5_6_5_REV:
-            case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4:
-            case GL2GL3.GL_UNSIGNED_SHORT_4_4_4_4_REV:
-            case GL2GL3.GL_UNSIGNED_SHORT_5_5_5_1:
-            case GL2GL3.GL_UNSIGNED_SHORT_1_5_5_5_REV:
-              esize = 2;
-              elements = 1;
-              break;
-            case GL2.GL_HILO16_NV:
-            case GL2.GL_SIGNED_HILO16_NV:
-              esize = 2;
-              elements = 2;
-              break;                
-            case GL2GL3.GL_UNSIGNED_INT_8_8_8_8:
-            case GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV:
-            case GL2GL3.GL_UNSIGNED_INT_10_10_10_2:
-            case GL2GL3.GL_UNSIGNED_INT_2_10_10_10_REV:
-            case GL2GL3.GL_UNSIGNED_INT_24_8:
-            case GL2GL3.GL_UNSIGNED_INT_10F_11F_11F_REV:
-            case GL2GL3.GL_UNSIGNED_INT_5_9_9_9_REV:
-              esize = 4;
-              elements = 1;
-              break;              
-            case GL2GL3.GL_FLOAT_32_UNSIGNED_INT_24_8_REV:
-              esize = 8;
-              elements = 1;
-              break;              
-                
-            default:
-              throw new GLException("type 0x"+Integer.toHexString(type)+"/"+"format 0x"+Integer.toHexString(format)+" not supported [yet], pls notify the maintainer in case this is our bug.");
-        }
-        
-        return sizeof(gl, tmp, elements * esize, width, height, depth, pack);
+        return compCount;
     }
     
     public static final int getNextPowerOf2(int number) {
