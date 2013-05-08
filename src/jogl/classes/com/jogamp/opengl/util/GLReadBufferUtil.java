@@ -189,7 +189,7 @@ public class GLReadBufferUtil {
         boolean newData = false;
         if( null == readPixelBuffer || readPixelBuffer.requiresNewBuffer(gl, width, height, readPixelSize) ) {
             readPixelBuffer = pixelBufferProvider.allocate(gl, pixelAttribs, width, height, 1, true, readPixelSize);
-            Buffers.rangeCheckBytes(readPixelBuffer, readPixelSize);
+            Buffers.rangeCheckBytes(readPixelBuffer.buffer, readPixelSize);
             try {
                 readTextureData = new TextureData(
                            gl.getGLProfile(),
