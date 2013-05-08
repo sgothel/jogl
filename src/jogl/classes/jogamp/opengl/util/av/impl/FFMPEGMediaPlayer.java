@@ -213,6 +213,9 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
             throw new InternalError("Unknown ProcAddressTable: "+pt.getClass().getName()+" of "+ctx.getClass().getName());
         }
     }
+    private void updateSound() {
+        System.out.println("jA");
+    }
     private void updateAttributes2(int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
                                    int lSz0, int lSz1, int lSz2,
                                    int tWd0, int tWd1, int tWd2) {

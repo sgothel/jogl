@@ -38,6 +38,7 @@ typedef void (APIENTRYP PFNGLTEXSUBIMAGE2DPROC) (GLenum target, GLint level, GLi
 static const char * const ClazzNameFFMPEGMediaPlayer = "jogamp/opengl/util/av/impl/FFMPEGMediaPlayer";
 
 static jclass ffmpegMediaPlayerClazz = NULL;
+static jmethodID jni_mid_updateSound = NULL;
 static jmethodID jni_mid_updateAttributes1 = NULL;
 static jmethodID jni_mid_updateAttributes2 = NULL;
 
@@ -191,6 +192,13 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryB
     return JNI_TRUE;
 }
 
+static void _updateSound(JNIEnv *env, jobject instance, char *data, int32_t data_size, int32_t sample_rate) {
+    if(NULL!=env) {
+        fprintf(stderr, "nA");
+        (*env)->CallVoidMethod(env, instance, jni_mid_updateSound);
+    }
+}
+
 static void _updateJavaAttributes(JNIEnv *env, jobject instance, FFMPEGToolBasicAV_t* pAV)
 {
     // int shallBeDetached = 0;
@@ -334,10 +342,12 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_ini
         JoglCommon_FatalError(env, "JOGL FFMPEG: can't use %s", ClazzNameFFMPEGMediaPlayer);
     }
 
+    jni_mid_updateSound = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateSound", "()V");
     jni_mid_updateAttributes1 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", "(IIIIIFIILjava/lang/String;Ljava/lang/String;)V");
     jni_mid_updateAttributes2 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes2", "(IIIIIIIIII)V");
 
-    if(jni_mid_updateAttributes1 == NULL ||
+    if(jni_mid_updateSound == NULL ||
+       jni_mid_updateAttributes1 == NULL ||
        jni_mid_updateAttributes2 == NULL) {
         return JNI_FALSE;
     }
@@ -644,6 +654,8 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                 // TODO: Wrap audio buffer data in a com.jogamp.openal.sound3d.Buffer or similar
                 // and hand it over to the user using a suitable API.
                 // TODO: OR send the audio buffer data down to sound card directly using JOAL.
+                _updateSound(env, instance, pAV->pAFrame->data[0], data_size, pAV->aSampleRate);
+
                 res = 1;
             }
         } else if(packet.stream_index==pAV->vid) {
