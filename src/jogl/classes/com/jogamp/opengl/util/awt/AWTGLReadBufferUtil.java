@@ -28,14 +28,11 @@
 package com.jogamp.opengl.util.awt;
 
 import java.awt.image.BufferedImage;
-import java.nio.Buffer;
-import java.nio.IntBuffer;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GLAutoDrawable;
+import javax.media.opengl.GLProfile;
 
 import com.jogamp.opengl.util.GLReadBufferUtil;
-import com.jogamp.opengl.util.texture.awt.AWTTextureData.AWTPixelBufferProviderInt;
 
 /**
  * {@link GLReadBufferUtil} specialization allowing to
@@ -48,25 +45,15 @@ public class AWTGLReadBufferUtil extends GLReadBufferUtil {
      * 
      * @param alpha
      */
-    public AWTGLReadBufferUtil(boolean alpha) {
-        super(new AWTPixelBufferProviderInt(), alpha, false);
+    public AWTGLReadBufferUtil(GLProfile glp, boolean alpha) {
+        super(new AWTGLPixelBuffer.AWTGLPixelBufferProvider( glp.isGL2GL3() /* allowRowStride */ ), alpha, false);
     }
 
-    /**
-     * Returns the raw pixel Buffer, filled by {@link #readPixels(GLAutoDrawable, boolean)}.
-     * <p>
-     * Due to using {@link AWTPixelBufferProviderInt#allocate(int, int, int)},
-     * returns an {@link IntBuffer} instance.
-     * </p>
-     */
-    @Override
-    public Buffer getPixelBuffer() { return readPixelBuffer; }
-    
-    public BufferedImage getImage() { return ((AWTPixelBufferProviderInt)pixelBufferProvider).getImage(); }
+    public AWTGLPixelBuffer getAWTGLPixelBuffer() { return (AWTGLPixelBuffer)this.getPixelBuffer(); }
     
     public BufferedImage readPixelsToBufferedImage(GL gl, boolean awtOrientation) {
         if( readPixels(gl, awtOrientation) ) {
-            final BufferedImage image = getImage();
+            final BufferedImage image = getAWTGLPixelBuffer().image;
             if( getTextureData().getMustFlipVertically()  ) {
                 ImageUtil.flipImageVertically(image);
             }
@@ -78,7 +65,7 @@ public class AWTGLReadBufferUtil extends GLReadBufferUtil {
         final int[] ioWidth = new int[] { inWidth };
         final int[] ioHeight= new int[] { inHeight };
         if( readPixels(gl, inX, inY, ioWidth, ioHeight, awtOrientation) ) {
-            final BufferedImage image = getImage();
+            final BufferedImage image = getAWTGLPixelBuffer().image;
             if( getTextureData().getMustFlipVertically()  ) {
                 ImageUtil.flipImageVertically(image);
             }

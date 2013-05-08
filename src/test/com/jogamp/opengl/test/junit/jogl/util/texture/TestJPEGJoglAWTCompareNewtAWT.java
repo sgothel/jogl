@@ -49,6 +49,7 @@ import com.jogamp.opengl.util.texture.TextureIO;
 import com.jogamp.opengl.util.texture.awt.AWTTextureData;
 import com.jogamp.opengl.util.texture.spi.JPEGImage;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 
 import java.awt.image.BufferedImage;
@@ -112,7 +113,7 @@ public class TestJPEGJoglAWTCompareNewtAWT extends UITestCase {
                                        image.getWidth(),
                                        image.getHeight(),
                                        0,
-                                       new TextureData.PixelAttributes(image.getGLFormat(), image.getGLType()),
+                                       new GLPixelAttributes(image.getGLFormat(), image.getGLType()),
                                        false /* mipmap */,
                                        false /* compressed */,
                                        false /* must flip-vert */,

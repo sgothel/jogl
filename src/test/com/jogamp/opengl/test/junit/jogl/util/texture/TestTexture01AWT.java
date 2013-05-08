@@ -122,7 +122,7 @@ public class TestTexture01AWT extends UITestCase {
 
     @Test
     public void test1() throws InterruptedException {
-        final AWTGLReadBufferUtil awtGLReadBufferUtil = new AWTGLReadBufferUtil(false);
+        final AWTGLReadBufferUtil awtGLReadBufferUtil = new AWTGLReadBufferUtil(caps.getGLProfile(), false);
         final Frame frame0 = new Frame("GL -> AWT");
         final Canvas canvas = new Canvas();
         frame0.add(canvas);

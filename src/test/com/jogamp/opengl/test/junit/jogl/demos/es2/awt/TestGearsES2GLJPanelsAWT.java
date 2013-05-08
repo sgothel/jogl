@@ -30,7 +30,10 @@ package com.jogamp.opengl.test.junit.jogl.demos.es2.awt;
 
 import java.awt.AWTException;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.FloatBuffer;
 
@@ -39,8 +42,10 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLJPanel;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import org.junit.AfterClass;
@@ -54,11 +59,15 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.FPSAnimator;
+import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.AWTGLPixelBufferProvider;
+import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.SingleAWTGLPixelBufferProvider;
 
 public class TestGearsES2GLJPanelsAWT extends UITestCase {
     static int demoCount = 4;
-    static boolean opaque = false; // always faster and flicker-less w/o opaque, i.e. w/ alpha channel due to JComponent _paintImmediately(..)
-    static float alpha = 0.3f;
+    static boolean jOpaque = false; // flicker-less w/o opaque, opaque leads to overdraw w/ mixed clipRects -> flicker - due to JComponent _paintImmediately(..) (?)
+    static boolean glOpaque = true; // can be either .. 
+    static float glAlpha = 0.3f;
+    static boolean jZOrder = false;
     static GLProfile glp;
     static boolean shallUsePBuffer = false;
     static boolean shallUseBitmap = false;
@@ -66,7 +75,15 @@ public class TestGearsES2GLJPanelsAWT extends UITestCase {
     static int swapInterval = 0;
     static boolean useAnimator = true;
     static boolean manualTest = false;
+    static boolean useSingleBuffer = true; // default
 
+    /** 
+     * Even though GLJPanel uses a SingleAWTGLPixelBufferProvider per default, 
+     * we like to initialize it's size to a common maximum to ensure 
+     * only one {@link AWTGLPixelBuffer} gets allocated.
+     */
+    static SingleAWTGLPixelBufferProvider singleAWTGLPixelBufferProvider;
+    
     @BeforeClass
     public static void initClass() {
         if(GLProfile.isAvailable(GLProfile.GL2)) {
@@ -75,21 +92,33 @@ public class TestGearsES2GLJPanelsAWT extends UITestCase {
         } else {
             setTestSupported(false);
         }
+        
+        if( useSingleBuffer ) {
+            singleAWTGLPixelBufferProvider = new SingleAWTGLPixelBufferProvider( glp.isGL2GL3() /* allowRowStride */);
+            singleAWTGLPixelBufferProvider.initSingleton(600, 600, 1, true);
+        } else {
+            singleAWTGLPixelBufferProvider = null;
+        }
     }
 
     @AfterClass
     public static void releaseClass() {
     }
     
-    private void addPanel(GLCapabilitiesImmutable caps, GLAnimatorControl anim, final JFrame frame, boolean opaque, int x, int y, int w, int h, FloatBuffer color, float[] clearColor) 
+    final static boolean useInterPanel = true;
+    
+    /** Adds new JPanel to frame's content pane at index 0 */
+    private JComponent addPanel(GLCapabilitiesImmutable caps, GLAnimatorControl anim, final JFrame frame, boolean opaque, int x, int y, int w, int h, FloatBuffer color, float[] clearColor) 
             throws InterruptedException, InvocationTargetException 
     {
         final GLJPanel canvas = new GLJPanel(caps);
+        if( useSingleBuffer ) {
+            canvas.setPixelBufferProvider( singleAWTGLPixelBufferProvider );
+        }
         canvas.setOpaque(opaque);
-        final Dimension glc_sz = new Dimension(w, h);
-        canvas.setMinimumSize(glc_sz);
-        canvas.setPreferredSize(glc_sz);
-        canvas.setSize(glc_sz);
+        if ( !useInterPanel ) {
+            canvas.setBounds(x, y, w, h);
+        }
         GearsES2 demo = new GearsES2(swapInterval);
         demo.setIgnoreFocus(true);
         demo.setGearsColors(color, color, color);
@@ -99,31 +128,62 @@ public class TestGearsES2GLJPanelsAWT extends UITestCase {
             anim.add(canvas);
         }
 
-        final JPanel panel = new JPanel(new BorderLayout());
-        panel.setBounds(x, y, w, h);
-        panel.setOpaque(opaque);
+        final JPanel panel;
+        final JTextField text;
+        if ( useInterPanel ) {
+            panel = new JPanel(new BorderLayout());
+            panel.setBounds(x, y, w, h);
+            panel.setOpaque(opaque);
+            text = new JTextField(x+"/"+y+" "+w+"x"+h);
+            text.setOpaque(true);    
+        } else {
+            panel = null;
+            text = null;
+        }
         
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    panel.add(canvas, BorderLayout.CENTER);
-                    frame.getContentPane().add(panel);
+                    if ( useInterPanel ) {
+                        panel.add(text, BorderLayout.NORTH);
+                        panel.add(canvas, BorderLayout.CENTER);
+                        frame.getContentPane().add(panel, 0);
+                    } else {
+                        frame.getContentPane().add(canvas, 0);
+                    }
                 } } ) ;
+        return useInterPanel ? panel : canvas;
     }
 
     public static final FloatBuffer red =    Buffers.newDirectFloatBuffer( new float[] { 1.0f, 0.0f, 0.0f, 1.0f } );    
     public static final FloatBuffer green =  Buffers.newDirectFloatBuffer( new float[] { 0.0f, 1.0f, 0.0f, 1.0f } );
     public static final FloatBuffer blue =   Buffers.newDirectFloatBuffer( new float[] { 0.0f, 0.0f, 1.0f, 1.0f } );
     public static final FloatBuffer yellow = Buffers.newDirectFloatBuffer( new float[] { 1.0f, 1.0f, 0.0f, 1.0f } );
+    public static final FloatBuffer grey   = Buffers.newDirectFloatBuffer( new float[] { 0.5f, 0.5f, 0.5f, 1.0f } );
     public static final float grayf = 0.3f;
-    public static final float[] redish    = new float[] { grayf, 0.0f,  0.0f,  alpha };
-    public static final float[] greenish  = new float[] { 0.0f,  grayf, 0.0f,  alpha };
-    public static final float[] blueish   = new float[] { 0.0f,  0.0f,  grayf, alpha };
-    public static final float[] yellowish = new float[] { grayf, grayf, 0.0f,  alpha };
+    public static final float[] redish    = new float[] { grayf, 0.0f,  0.0f,  glAlpha };
+    public static final float[] greenish  = new float[] { 0.0f,  grayf, 0.0f,  glAlpha };
+    public static final float[] blueish   = new float[] { 0.0f,  0.0f,  grayf, glAlpha };
+    public static final float[] yellowish = new float[] { grayf, grayf, 0.0f,  glAlpha };
+    public static final float[] greyish   = new float[] { grayf, grayf, grayf,  glAlpha };
+    
+    protected void relayout(Container cont, float oW, float oH) {
+        final int count = cont.getComponentCount();
+        final int nW = cont.getWidth();
+        final int nH = cont.getHeight();
+        for(int i = 0 ; i < count; i++ ) {
+            final Component comp = cont.getComponent(i);
+            float fx = comp.getX() / oW;
+            float fy = comp.getY() / oH;
+            float fw = comp.getWidth() / oW;
+            float fh = comp.getHeight() / oH;
+            comp.setBounds( (int)(fx * nW), (int)(fy * nH), (int)(fw * nW), (int)(fh * nH) );
+        }
+    }
     
     protected void runTestGL(GLCapabilities caps)
             throws AWTException, InterruptedException, InvocationTargetException
     {
-        if( !opaque ) {
+        if( !glOpaque ) {
             caps.setAlphaBits(caps.getRedBits());
         }
         
@@ -137,22 +197,46 @@ public class TestGearsES2GLJPanelsAWT extends UITestCase {
                     frame.getContentPane().setLayout(null);
                 } } );
         
+        final float[] oldSize = new float[] { 600f, 600f };
+        
+        frame.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                final int count = frame.getComponentCount();
+                for(int i = 0 ; i < count; i++ ) {
+                    relayout(frame.getContentPane(), oldSize[0], oldSize[1]);
+                }
+                frame.getContentPane().invalidate();
+                frame.getContentPane().validate();
+                // frame.pack();
+                oldSize[0] = frame.getContentPane().getWidth();
+                oldSize[1] = frame.getContentPane().getHeight();
+            }
+        } ) ;
+
         if( demoCount > 0 ) {
-            addPanel(caps, animator, frame, opaque,  50,  50, 300, 300, red, redish); // A
+            addPanel(caps, animator, frame, jOpaque,  50,  50, 300, 300, red, redish); // A
         }
         if( demoCount > 1 ) {
-            addPanel(caps, animator, frame, opaque, 200,   0, 150, 150, green, greenish); // B
+            addPanel(caps, animator, frame, jOpaque,   0, 250, 300, 300, blue, blueish); // C
         }
         if( demoCount > 2 ) {
-            addPanel(caps, animator, frame, opaque,   0, 250, 300, 300, blue, blueish); // C
+            addPanel(caps, animator, frame, jOpaque, 300,   0, 150, 150, green, greenish); // B
         }
         if( demoCount > 3 ) {
-            addPanel(caps, animator, frame, opaque, 300, 300, 100, 100, yellow, yellowish); // D
+            addPanel(caps, animator, frame, jOpaque, 300, 300, 100, 100, yellow, yellowish); // D
+        }
+        if( jZOrder ) {
+            final Container cont = frame.getContentPane();
+            final int count = cont.getComponentCount();
+            for(int i = 0 ; i < count; i++ ) {
+                cont.setComponentZOrder(cont.getComponent(i), count - 1 - i);
+            }
         }
           
         SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
-                    frame.setSize(600, 600);
+                    frame.setSize((int)oldSize[0], (int)oldSize[1]);
                     frame.getContentPane().validate();
                     // frame.pack();
                     frame.setVisible(true);
@@ -284,11 +368,20 @@ public class TestGearsES2GLJPanelsAWT extends UITestCase {
                 swapInterval = MiscUtils.atoi(args[i], swapInterval);
             } else if(args[i].equals("-msaa")) {
                 useMSAA = true;
-            } else if(args[i].equals("-opaque")) {
-                opaque = true;
+            } else if(args[i].equals("-jOpaque")) {
+                i++;
+                jOpaque = MiscUtils.atob(args[i], jOpaque);
+            } else if(args[i].equals("-glOpaque")) {
+                i++;
+                glOpaque = MiscUtils.atob(args[i], glOpaque);
             } else if(args[i].equals("-alpha")) {
                 i++;
-                alpha = MiscUtils.atof(args[i], alpha);
+                glAlpha = MiscUtils.atof(args[i], glAlpha);
+            } else if(args[i].equals("-singleBuffer")) {
+                i++;
+                useSingleBuffer = MiscUtils.atob(args[i], useSingleBuffer);
+            } else if(args[i].equals("-jZOrder")) {
+                jZOrder = true;
             } else if(args[i].equals("-noanim")) {
                 useAnimator  = false;
             } else if(args[i].equals("-pbuffer")) {
@@ -303,14 +396,16 @@ public class TestGearsES2GLJPanelsAWT extends UITestCase {
             }
         }
         System.err.println("swapInterval "+swapInterval);
-        System.err.println("opaque "+opaque);
-        System.err.println("alpha "+alpha);
+        System.err.println("opaque gl "+glOpaque+", java/gljpanel "+jOpaque);
+        System.err.println("alpha "+glAlpha);
+        System.err.println("jZOrder "+jZOrder);
         System.err.println("demos "+demoCount);
         System.err.println("useMSAA "+useMSAA);
         System.err.println("useAnimator "+useAnimator);
         System.err.println("shallUsePBuffer "+shallUsePBuffer);
         System.err.println("shallUseBitmap "+shallUseBitmap);
         System.err.println("manualTest "+manualTest);
+        System.err.println("useSingleBuffer "+useSingleBuffer);        
         
         org.junit.runner.JUnitCore.main(TestGearsES2GLJPanelsAWT.class.getName());
     }

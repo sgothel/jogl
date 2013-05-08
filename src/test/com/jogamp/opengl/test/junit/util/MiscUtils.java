@@ -33,6 +33,15 @@ import java.lang.reflect.*;
 import java.nio.FloatBuffer;
 
 public class MiscUtils {
+    public static boolean atob(String str, boolean def) {
+        try {
+            return Boolean.parseBoolean(str);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return def;
+    }
+    
     public static int atoi(String str, int def) {
         try {
             return Integer.parseInt(str);
