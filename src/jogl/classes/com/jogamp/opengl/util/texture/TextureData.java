@@ -105,6 +105,9 @@ public class TextureData {
          * </p>
          */
         Buffer allocate(int width, int height, int minByteSize);
+        
+        /** Dispose resources. */
+        void dispose();
     }
     /** 
      * Default {@link PixelBufferProvider} utilizing best match for {@link PixelAttributes}
@@ -138,6 +141,11 @@ public class TextureData {
         @Override
         public final Buffer allocate(int width, int height, int minByteSize) {
             return Buffers.newDirectByteBuffer(minByteSize);
+        }
+        
+        @Override
+        public void dispose() {
+            // nop
         }
     }
     

@@ -264,6 +264,7 @@ public class GLReadBufferUtil {
             readPixelBuffer = null;
         }
         readPixelSizeLast = 0;
+        pixelBufferProvider.dispose();
     }
 
 }

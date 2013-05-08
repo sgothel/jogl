@@ -84,10 +84,12 @@ import jogamp.opengl.GLDrawableHelper;
 import jogamp.opengl.GLDrawableImpl;
 import jogamp.opengl.awt.Java2D;
 import jogamp.opengl.util.glsl.GLSLTextureRaster;
-
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.opengl.FBObject;
+import com.jogamp.opengl.util.GLBuffers;
 import com.jogamp.opengl.util.GLPixelStorageModes;
+import com.jogamp.opengl.util.texture.TextureData.PixelAttributes;
+import com.jogamp.opengl.util.texture.awt.AWTTextureData.AWTPixelBufferProviderInt;
 
 /** A lightweight Swing component which provides OpenGL rendering
     support. Provided for compatibility with Swing user interfaces
@@ -920,16 +922,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   // backends, both of which rely on reading back the OpenGL frame
   // buffer and drawing it with a BufferedImage
   class OffscreenBackend implements Backend {
-    // This image is exactly the correct size to render into the panel
-    protected BufferedImage         offscreenImage;
+    protected AWTPixelBufferProviderInt pixelBufferProvider = new AWTPixelBufferProviderInt();
+    private PixelAttributes pixelAttribs;
+    
     // One of these is used to store the read back pixels before storing
     // in the BufferedImage
     protected IntBuffer             readBackInts;
     protected int                   readBackWidthInPixels;
     protected int                   readBackHeightInPixels;
-
-    private int glFormat;
-    private int glType;
 
     // Implementation using software rendering
     private GLDrawableImpl offscreenDrawable;
@@ -1049,10 +1049,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     @Override
     public void setOpaque(boolean opaque) {
       if (opaque != isOpaque()) {
-        if (offscreenImage != null) {
-          offscreenImage.flush();
-          offscreenImage = null;
-        }
+          pixelBufferProvider.dispose();
       }
     }
 
@@ -1065,31 +1062,43 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     @Override
     public void postGL(Graphics g, boolean isDisplay) {
       if (isDisplay) {
+        final GL gl = offscreenContext.getGL();
+
+        final int componentCount;
+        final int alignment;
+        if( isOpaque() ) {
+            // w/o alpha
+            componentCount = 3;
+            alignment = 1;
+        } else {
+            // with alpha
+            componentCount = 4;
+            alignment = 4;
+        }
+        
         // Must now copy pixels from offscreen context into surface
-        if (offscreenImage == null) {
+        if ( !pixelBufferProvider.hasImage() ) {
           if (0 >= panelWidth || 0 >= panelHeight ) {
               return;
           }
-          final boolean withAlpha = !isOpaque();
           
-          glFormat = GL.GL_BGRA;
-          glType   = GL.GL_UNSIGNED_BYTE; // offscreenContext.getDefaultPixelDataType();          
+          pixelAttribs = pixelBufferProvider.getAttributes(gl, componentCount);
           
-          offscreenImage = new BufferedImage(panelWidth, panelHeight, withAlpha ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
+          final int[] tmp = { 0 };
+          final int readPixelSize = GLBuffers.sizeof(gl, tmp, pixelAttribs.format, pixelAttribs.type, panelWidth, panelHeight, 1, true);
+          final IntBuffer intBuffer = (IntBuffer) pixelBufferProvider.allocate(panelWidth, panelHeight, readPixelSize); 
           if(!flipVertical || null != glslTextureRaster) {
-              final int[] readBackIntBuffer = ((DataBufferInt) offscreenImage.getRaster().getDataBuffer()).getData();
-              readBackInts = IntBuffer.wrap(readBackIntBuffer);
+              readBackInts = intBuffer;
           } else {
               readBackInts = IntBuffer.allocate(readBackWidthInPixels * readBackHeightInPixels);
           }
           if(DEBUG) {
+              final BufferedImage offscreenImage = pixelBufferProvider.getImage();
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: flippedVertical "+flipVertical+", glslTextureRaster "+(null!=glslTextureRaster));
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: panelSize "+panelWidth+"x"+panelHeight +", readBackSizeInPixels "+readBackWidthInPixels+"x"+readBackHeightInPixels);
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: offscreenImage "+offscreenImage.getWidth()+"x"+offscreenImage.getHeight());
           }
         }
-
-        final GL gl = offscreenContext.getGL();
 
         if( DEBUG_VIEWPORT ) {
             int[] vp = new int[] { 0, 0, 0, 0 };
@@ -1098,7 +1107,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         }
         
         // Save current modes
-        psm.setAlignment(gl, 1, 1);
+        psm.setAlignment(gl, alignment, alignment);
         if(gl.isGL2GL3()) {
             final GL2GL3 gl2gl3 = gl.getGL2GL3();
             gl2gl3.glPixelStorei(GL2GL3.GL_PACK_ROW_LENGTH, readBackWidthInPixels);
@@ -1117,11 +1126,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             gl.glBindTexture(GL.GL_TEXTURE_2D, fboTex.getName());
             // gl.glClear(GL.GL_DEPTH_BUFFER_BIT); // fboFlipped runs w/o DEPTH!
             glslTextureRaster.display(gl.getGL2ES2());
-            gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, glFormat, glType, readBackInts);
+            gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, pixelAttribs.format, pixelAttribs.type, readBackInts);
 
             fboFlipped.unbind(gl);
         } else {
-            gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, glFormat, glType, readBackInts);
+            gl.glReadPixels(0, 0, readBackWidthInPixels, readBackHeightInPixels, pixelAttribs.format, pixelAttribs.type, readBackInts);
             
             if ( flipVertical ) {
                 // Copy temporary data into raster of BufferedImage for faster
@@ -1129,6 +1138,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                 // where !offscreenContext.offscreenImageNeedsVerticalFlip(),
                 // but that's the software rendering path which is very slow
                 // anyway
+                final BufferedImage offscreenImage = pixelBufferProvider.getImage();
                 final Object src = readBackInts.array();
                 final Object dest = ((DataBufferInt) offscreenImage.getRaster().getDataBuffer()).getData();
                 final int srcIncr = readBackWidthInPixels;
@@ -1153,7 +1163,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     public void doPaintComponent(Graphics g) {
       helper.invokeGL(offscreenDrawable, offscreenContext, updaterDisplayAction, updaterInitAction);
       
-      if (offscreenImage != null) {
+      final BufferedImage offscreenImage = pixelBufferProvider.getImage();
+      if ( null != offscreenImage ) {
         // Draw resulting image in one shot
         g.drawImage(offscreenImage, 0, 0,
                     offscreenImage.getWidth(),
@@ -1204,10 +1215,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             }
         }
 
-        if (offscreenImage != null) {
-            offscreenImage.flush();
-            offscreenImage = null;
-        }
+        pixelBufferProvider.dispose();
         return _drawable.isRealized();
     }
     

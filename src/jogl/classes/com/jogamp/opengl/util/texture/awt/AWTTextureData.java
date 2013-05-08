@@ -104,11 +104,22 @@ public class AWTTextureData extends TextureData {
             return IntBuffer.wrap( readBackIntBuffer );
         }
         
+        @Override
+        public void dispose() {
+            if(null != image) {
+                image.flush();
+                image = null;
+            }
+        }
+        
         /** Returns the number source components being used as indicated at {@link #allocate(int, int, int)}. */
         public int getComponentCount() { return componentCount; }
         
         /** Returns the underlying {@link BufferedImage} as allocated via {@link #allocate(int, int, int)}. */
         public BufferedImage getImage() { return image; }
+        
+        /** Returns true if an underlying {@link BufferedImage} has been allocated via {@link #allocate(int, int, int)}. */
+        public boolean hasImage() { return null != image; }
     }
     
     // Mechanism for lazily converting input BufferedImages with custom
