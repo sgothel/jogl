@@ -36,6 +36,9 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
 
+import java.util.Arrays;
+import javax.sound.sampled.*;
+
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.GLPixelStorageModes;
@@ -101,6 +104,32 @@ import jogamp.opengl.util.av.EGLMediaPlayerImpl;
  * </ul> 
  */
 public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
+
+    // Count of zeroed buffers to return before switching to real sample provider
+    private static final int TEMP_BUFFER_COUNT = 20;
+
+    // AudioFormat parameters
+    public  static final int     SAMPLE_RATE = 22050;
+    private static final int     SAMPLE_SIZE = 16;
+    private static final int     CHANNELS = 1;
+    private static final boolean SIGNED = true;
+    private static final boolean BIG_ENDIAN = true;
+
+    // Chunk of audio processed at one time
+    public static final int BUFFER_SIZE = 1000;
+    public static final int SAMPLES_PER_BUFFER = BUFFER_SIZE / 2;
+
+    // Sample time values
+    public static final double SAMPLE_TIME_IN_SECS = 1.0 / SAMPLE_RATE;
+    public static final double BUFFER_TIME_IN_SECS = SAMPLE_TIME_IN_SECS * SAMPLES_PER_BUFFER;
+
+    // Instance data
+    private AudioFormat format;
+    private DataLine.Info info;
+    private SourceDataLine auline;
+    private int bufferCount;
+    private byte [] sampleData = new byte[BUFFER_SIZE];
+
     public static final VersionNumber avUtilVersion;
     public static final VersionNumber avFormatVersion;
     public static final VersionNumber avCodecVersion;    
@@ -115,6 +144,25 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
             System.err.println("LIB_AV Format: "+avFormatVersion);
             System.err.println("LIB_AV Codec : "+avCodecVersion);
             available = initIDs0();
+
+            if(available) {
+                // init audio
+                // Create the audio format we wish to use
+                format = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE, CHANNELS, SIGNED, BIG_ENDIAN);
+
+                // Create dataline info object describing line format
+                info = new DataLine.Info(SourceDataLine.class, format);
+
+                // Clear buffer initially
+                Arrays.fill(sampleData, (byte) 0);
+
+                // Get line to write data to
+                auline = (SourceDataLine) AudioSystem.getLine(info);
+                auline.open(format);
+                auline.start();
+
+            }
+
         } else {
             avUtilVersion = null;
             avFormatVersion = null;
@@ -215,6 +263,9 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
     }
     private void updateSound() {
         System.out.println("jA");
+        if (data_size > 0) {
+             auline.write(sampleData, 0, data_size);
+        }
     }
     private void updateAttributes2(int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
                                    int lSz0, int lSz1, int lSz2,
