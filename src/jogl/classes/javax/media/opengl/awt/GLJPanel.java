@@ -87,6 +87,7 @@ import jogamp.opengl.util.glsl.GLSLTextureRaster;
 import com.jogamp.nativewindow.awt.AWTWindowClosingProtocol;
 import com.jogamp.opengl.FBObject;
 import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
+import com.jogamp.opengl.util.GLPixelBuffer.SingletonGLPixelBufferProvider;
 import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.awt.AWTGLPixelBuffer;
 import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.AWTGLPixelBufferProvider;
@@ -301,7 +302,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
       if( null != backend ) {
           throw new IllegalStateException("Backend already realized.");
       }
-      customPixelBufferProvider = custom; 
+      customPixelBufferProvider = custom;
   }
   
   @Override
@@ -975,12 +976,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   // buffer and drawing it with a BufferedImage
   class OffscreenBackend implements Backend {
     private final AWTGLPixelBufferProvider pixelBufferProvider;
+    private final boolean useSingletonBuffer;
     private AWTGLPixelBuffer pixelBuffer;
     private boolean pixelBufferCheckSize;
     
     // One of these is used to store the read back pixels before storing
     // in the BufferedImage
-    protected IntBuffer readBackInts;
+    protected IntBuffer readBackIntsForCPUVFlip;
 
     // Implementation using software rendering
     private GLDrawableImpl offscreenDrawable;
@@ -997,9 +999,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     OffscreenBackend(GLProfile glp, AWTGLPixelBufferProvider custom) {
         if(null == custom) {
             pixelBufferProvider = glp.isGL2GL3() ? getSingleAWTGLPixelBufferProvider() :
-                                                   new AWTGLPixelBufferProvider( true /* allowRowStride */ );
+                                                   new AWTGLPixelBufferProvider( false /* allowRowStride */ ) ;
         } else {
             pixelBufferProvider = custom;
+        }
+        if( pixelBufferProvider instanceof SingletonGLPixelBufferProvider ) {
+            useSingletonBuffer = true;
+        } else {
+            useSingletonBuffer = false;
         }
     }
     
@@ -1104,11 +1111,22 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             adevice.close();
         }
       }
+      
+      if( null != readBackIntsForCPUVFlip ) { 
+          readBackIntsForCPUVFlip.clear();
+          readBackIntsForCPUVFlip = null;
+      }
+      if( null != pixelBuffer ) {
+          if( !useSingletonBuffer ) {
+              pixelBuffer.dispose();
+          }
+          pixelBuffer = null;
+      }
     }
 
     @Override
     public void setOpaque(boolean opaque) {
-      if (opaque != isOpaque()) {
+      if ( opaque != isOpaque() && !useSingletonBuffer ) {
           pixelBuffer.dispose();
           pixelBuffer = null;
       }
@@ -1137,8 +1155,11 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             alignment = 4;
         }
         
-        final GLPixelAttributes pixelAttribs;
+        final GLPixelAttributes pixelAttribs = pixelBufferProvider.getAttributes(gl, componentCount);        
         
+        if( useSingletonBuffer ) { // attempt to fetch the latest AWTGLPixelBuffer             
+            pixelBuffer = (AWTGLPixelBuffer) ((SingletonGLPixelBufferProvider)pixelBufferProvider).getSingleBuffer(pixelAttribs);
+        }
         if( pixelBufferCheckSize ) {
             pixelBufferCheckSize = false;
             if( null != pixelBuffer && pixelBuffer.requiresNewBuffer(gl, panelWidth, panelHeight, 0) ) {
@@ -1147,34 +1168,36 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             }
         }
         
-        // Must now copy pixels from offscreen context into surface
         if ( null == pixelBuffer ) {
           if (0 >= panelWidth || 0 >= panelHeight ) {
               return;
-          }
-          
-          pixelAttribs = pixelBufferProvider.getAttributes(gl, componentCount);
+          }          
           pixelBuffer = pixelBufferProvider.allocate(gl, pixelAttribs, panelWidth, panelHeight, 1, true, 0);
-          if( !flipVertical || null != glslTextureRaster ) {
-              readBackInts = (IntBuffer) pixelBuffer.buffer;
-          } else {
-              readBackInts = IntBuffer.allocate(pixelBuffer.width * pixelBuffer.height);
-          }
           if(DEBUG) {
-              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: pixelBufferProvider 0x"+Integer.toHexString(pixelBufferProvider.hashCode())+", "+pixelBufferProvider.getClass().getSimpleName());
+              System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: pixelBufferProvider isSingletonBufferProvider "+useSingletonBuffer+", 0x"+Integer.toHexString(pixelBufferProvider.hashCode())+", "+pixelBufferProvider.getClass().getSimpleName());
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: pixelBuffer 0x"+Integer.toHexString(pixelBuffer.hashCode())+", "+pixelBuffer+", alignment "+alignment);
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: flippedVertical "+flipVertical+", glslTextureRaster "+(null!=glslTextureRaster));
               System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL.0: panelSize "+panelWidth+"x"+panelHeight);
           }
+        }
+        final IntBuffer readBackInts;
+        
+        if( !flipVertical || null != glslTextureRaster ) {
+           readBackInts = (IntBuffer) pixelBuffer.buffer;
         } else {
-            pixelAttribs = pixelBuffer.pixelAttributes;
-        }        
+           if( null == readBackIntsForCPUVFlip || pixelBuffer.width * pixelBuffer.height > readBackIntsForCPUVFlip.remaining() ) {
+               readBackIntsForCPUVFlip = IntBuffer.allocate(pixelBuffer.width * pixelBuffer.height);
+           }
+           readBackInts = readBackIntsForCPUVFlip;
+        }
 
         if( DEBUG_VIEWPORT ) {
             int[] vp = new int[] { 0, 0, 0, 0 };
             gl.glGetIntegerv(GL.GL_VIEWPORT, vp, 0);
             System.err.println(getThreadName()+": GLJPanel.OffscreenBackend.postGL: Viewport: "+vp[0]+"/"+vp[1]+" "+vp[2]+"x"+vp[3]);
         }
+        
+        // Must now copy pixels from offscreen context into surface
         
         // Save current modes
         psm.setAlignment(gl, alignment, alignment);

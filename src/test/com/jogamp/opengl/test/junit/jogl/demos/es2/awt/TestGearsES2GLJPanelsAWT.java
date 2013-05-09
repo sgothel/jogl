@@ -59,7 +59,6 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.FPSAnimator;
-import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.AWTGLPixelBufferProvider;
 import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.SingleAWTGLPixelBufferProvider;
 
 public class TestGearsES2GLJPanelsAWT extends UITestCase {
@@ -75,7 +74,7 @@ public class TestGearsES2GLJPanelsAWT extends UITestCase {
     static int swapInterval = 0;
     static boolean useAnimator = true;
     static boolean manualTest = false;
-    static boolean useSingleBuffer = true; // default
+    static boolean initSingleBuffer = false;
 
     /** 
      * Even though GLJPanel uses a SingleAWTGLPixelBufferProvider per default, 
@@ -93,9 +92,9 @@ public class TestGearsES2GLJPanelsAWT extends UITestCase {
             setTestSupported(false);
         }
         
-        if( useSingleBuffer ) {
+        if( initSingleBuffer ) {
             singleAWTGLPixelBufferProvider = new SingleAWTGLPixelBufferProvider( glp.isGL2GL3() /* allowRowStride */);
-            singleAWTGLPixelBufferProvider.initSingleton(600, 600, 1, true);
+            singleAWTGLPixelBufferProvider.initSingleton(4, 600, 600, 1, true);
         } else {
             singleAWTGLPixelBufferProvider = null;
         }
@@ -112,7 +111,7 @@ public class TestGearsES2GLJPanelsAWT extends UITestCase {
             throws InterruptedException, InvocationTargetException 
     {
         final GLJPanel canvas = new GLJPanel(caps);
-        if( useSingleBuffer ) {
+        if( initSingleBuffer ) {
             canvas.setPixelBufferProvider( singleAWTGLPixelBufferProvider );
         }
         canvas.setOpaque(opaque);
@@ -377,9 +376,9 @@ public class TestGearsES2GLJPanelsAWT extends UITestCase {
             } else if(args[i].equals("-alpha")) {
                 i++;
                 glAlpha = MiscUtils.atof(args[i], glAlpha);
-            } else if(args[i].equals("-singleBuffer")) {
+            } else if(args[i].equals("-initSingleBuffer")) {
                 i++;
-                useSingleBuffer = MiscUtils.atob(args[i], useSingleBuffer);
+                initSingleBuffer = MiscUtils.atob(args[i], initSingleBuffer);
             } else if(args[i].equals("-jZOrder")) {
                 jZOrder = true;
             } else if(args[i].equals("-noanim")) {
@@ -405,7 +404,7 @@ public class TestGearsES2GLJPanelsAWT extends UITestCase {
         System.err.println("shallUsePBuffer "+shallUsePBuffer);
         System.err.println("shallUseBitmap "+shallUseBitmap);
         System.err.println("manualTest "+manualTest);
-        System.err.println("useSingleBuffer "+useSingleBuffer);        
+        System.err.println("useSingleBuffer "+initSingleBuffer);        
         
         org.junit.runner.JUnitCore.main(TestGearsES2GLJPanelsAWT.class.getName());
     }

@@ -74,6 +74,18 @@ public class GLPixelBuffer {
          */
         GLPixelBuffer allocate(GL gl, GLPixelAttributes pixelAttributes, int width, int height, int depth, boolean pack, int minByteSize);
     }
+
+    /** Single {@link GLPixelBuffer} provider. */ 
+    public static interface SingletonGLPixelBufferProvider extends GLPixelBufferProvider {
+        /** Return the last {@link #allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocated} {@link GLPixelBuffer} w/ {@link GLPixelAttributes#componentCount}. */ 
+        GLPixelBuffer getSingleBuffer(GLPixelAttributes pixelAttributes);
+        /** 
+         * Initializes the single {@link GLPixelBuffer} w/ a given size, if not yet {@link #allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocated}.
+         * @return the newly initialized single {@link GLPixelBuffer}, or null if already allocated.
+         */
+        GLPixelBuffer initSingleton(int componentCount, int width, int height, int depth, boolean pack);        
+    }
+
     /** 
      * Default {@link GLPixelBufferProvider} utilizing best match for {@link GLPixelAttributes}
      * and {@link GLPixelBufferProvider#allocate(GL, GLPixelAttributes, int, int, int, boolean, int) allocating} a {@link ByteBuffer}.
@@ -118,7 +130,7 @@ public class GLPixelBuffer {
         /** Undefined instance of {@link GLPixelAttributes}, having componentCount:=0, format:=0 and type:= 0. */ 
         public static final GLPixelAttributes UNDEF = new GLPixelAttributes(0, 0, 0);
         
-        /** Pixel component count */
+        /** Pixel <i>source</i> component count, i.e. number of meaningful components. */
         public final int componentCount;
         /** The OpenGL pixel data format */
         public final int format;
@@ -175,12 +187,14 @@ public class GLPixelBuffer {
     /** Buffer element size in bytes. */
     public final int bufferElemSize;
     
+    private boolean disposed = false;
+    
     public StringBuffer toString(StringBuffer sb) {
         if(null == sb) {
             sb = new StringBuffer();
         }
         sb.append(pixelAttributes).append(", dim ").append(width).append("x").append(height).append("x").append(depth).append(", pack ").append(pack)
-        .append(", buffer[sz [bytes ").append(byteSize).append(", elemSize ").append(bufferElemSize).append(", ").append(buffer).append("]");
+        .append(", disposed ").append(disposed).append(", valid ").append(isValid()).append(", buffer[sz [bytes ").append(byteSize).append(", elemSize ").append(bufferElemSize).append(", ").append(buffer).append("]");
         return sb;
     }
     public String toString() {
@@ -198,8 +212,9 @@ public class GLPixelBuffer {
         this.bufferElemSize = Buffers.sizeOfBufferElem(buffer);
     }
     
+    /** Is not {@link #dispose()} and has {@link #byteSize} &gt; 0. */
     public boolean isValid() {
-        return 0 < byteSize;
+        return !disposed && 0 < byteSize;
     }
     
     public Buffer rewind() {
@@ -226,7 +241,7 @@ public class GLPixelBuffer {
     
     /** 
      * Returns true, if implementation requires a new buffer based on the new size
-     * due to pixel alignment or byte size, otherwise false.
+     * due to pixel alignment or byte size or if {@link #isValid() invalid}, otherwise false.
      * <p>
      * It is assumed that <code>pixelAttributes</code>, <code>depth</code> and <code>pack</code> stays the same!
      * </p>
@@ -242,7 +257,7 @@ public class GLPixelBuffer {
      * @see GLPixelBufferProvider#allocate(GL, GLPixelAttributes, int, int, int, boolean, int)
      */
     public boolean requiresNewBuffer(GL gl, int newWidth, int newHeight, int minByteSize) {
-        return this.byteSize < minByteSize;
+        return !isValid() || this.byteSize < minByteSize;
     }
     
     /** Dispose resources. */
