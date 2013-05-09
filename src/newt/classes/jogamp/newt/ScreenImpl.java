@@ -446,7 +446,13 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         refMonitorModeListener.remove(sml);
     }
     
-    private final MonitorMode getVirtualMonitorMode(int modeId) {
+    /**
+     * 
+     * @param cache optional ..
+     * @param modeId
+     * @return
+     */
+    private final MonitorMode getVirtualMonitorMode(MonitorModeProps.Cache cache, int modeId) {
         final int[] props = new int[MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL];
         int i = 0;
         props[i++] = MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL;
@@ -460,10 +466,17 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         if( MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL != i ) {
             throw new InternalError("XX");
         }
-        return MonitorModeProps.streamInMonitorMode(null, null, props, 0);
+        return MonitorModeProps.streamInMonitorMode(null, cache, props, 0);
     }
-    
-    private final MonitorDevice getVirtualMonitorDevice(int monitorId, MonitorMode currentMode) {
+
+    /**
+     * 
+     * @param cache mandatory !
+     * @param monitorId
+     * @param currentMode
+     * @return
+     */
+    private final MonitorDevice getVirtualMonitorDevice(MonitorModeProps.Cache cache, int monitorId, MonitorMode currentMode) {
         int[] props = new int[MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES];
         int i = 0;
         props[i++] = MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES;
@@ -480,7 +493,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         if( MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES != i ) {
             throw new InternalError("XX");
         }
-        return MonitorModeProps.streamInMonitorDevice(null, null, this, props, 0);
+        return MonitorModeProps.streamInMonitorDevice(null, cache, this, props, 0);
     }
     
     /**
@@ -498,7 +511,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
             if( 0>=getWidth() || 0>=getHeight() ) {
                 updateVirtualScreenOriginAndSize();
             }
-            res = getVirtualMonitorMode(monitor.getCurrentMode().getId());
+            res = getVirtualMonitorMode(null, monitor.getCurrentMode().getId());
         }
         return res;
     }
@@ -522,9 +535,9 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
                 if( 0 >= collectNativeMonitorModes(cache) ) {                    
                     updateVirtualScreenOriginAndSize();
                     vScrnSizeUpdated = true;
-                    final MonitorMode mode = getVirtualMonitorMode(0);
+                    final MonitorMode mode = getVirtualMonitorMode(cache, 0);
                     cache.monitorModes.getOrAdd(mode);
-                    final MonitorDevice monitor = getVirtualMonitorDevice(0, mode);
+                    final MonitorDevice monitor = getVirtualMonitorDevice(cache, 0, mode);
                     cache.monitorDevices.getOrAdd(monitor);
                 }
                 if(DEBUG) {
