@@ -124,16 +124,16 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
     public static final double BUFFER_TIME_IN_SECS = SAMPLE_TIME_IN_SECS * SAMPLES_PER_BUFFER;
 
     // Instance data
-    private AudioFormat format;
-    private DataLine.Info info;
-    private SourceDataLine auline;
-    private int bufferCount;
-    private byte [] sampleData = new byte[BUFFER_SIZE];
+    private static AudioFormat format;
+    private static DataLine.Info info;
+    private static SourceDataLine auline;
+    private static int bufferCount;
+    private static byte [] sampleData = new byte[BUFFER_SIZE];
 
     public static final VersionNumber avUtilVersion;
     public static final VersionNumber avFormatVersion;
     public static final VersionNumber avCodecVersion;    
-    static final boolean available;
+    static boolean available;
     
     static {
         if(FFMPEGDynamicLibraryBundleInfo.initSingleton()) {
@@ -143,9 +143,7 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
             System.err.println("LIB_AV Util  : "+avUtilVersion);
             System.err.println("LIB_AV Format: "+avFormatVersion);
             System.err.println("LIB_AV Codec : "+avCodecVersion);
-            available = initIDs0();
-
-            if(available) {
+            if(initIDs0()) {
                 // init audio
                 // Create the audio format we wish to use
                 format = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE, CHANNELS, SIGNED, BIG_ENDIAN);
@@ -155,12 +153,15 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
 
                 // Clear buffer initially
                 Arrays.fill(sampleData, (byte) 0);
-
-                // Get line to write data to
-                auline = (SourceDataLine) AudioSystem.getLine(info);
-                auline.open(format);
-                auline.start();
-
+                try{
+                    // Get line to write data to
+                    auline = (SourceDataLine) AudioSystem.getLine(info);
+                    auline.open(format);
+                    auline.start();
+                    available = true;
+                } catch (LineUnavailableException e){
+                    available = false;
+                }
             }
 
         } else {
@@ -261,7 +262,7 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
             throw new InternalError("Unknown ProcAddressTable: "+pt.getClass().getName()+" of "+ctx.getClass().getName());
         }
     }
-    private void updateSound() {
+    private void updateSound(byte[] sampleData, int data_size) {
         System.out.println("jA");
         if (data_size > 0) {
              auline.write(sampleData, 0, data_size);
