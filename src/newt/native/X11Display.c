@@ -123,17 +123,21 @@ static short X11KeySym2NewtVKey(KeySym keySym) {
         case XK_KP_Home:
             return J_VK_HOME;
         case XK_Left:
-        case XK_KP_Left:
             return J_VK_LEFT;
+        case XK_KP_Left:
+            return J_VK_KP_LEFT;
         case XK_Up:
+             return J_VK_UP;
         case XK_KP_Up:
-            return J_VK_UP;
+            return J_VK_KP_UP;
         case XK_Right:
-        case XK_KP_Right:
             return J_VK_RIGHT;
+        case XK_KP_Right:
+            return J_VK_KP_RIGHT;
         case XK_Down:
-        case XK_KP_Down:
             return J_VK_DOWN;
+        case XK_KP_Down:
+            return J_VK_KP_DOWN;
         case XK_KP_Multiply:
             return J_VK_MULTIPLY;
         case XK_KP_Add:
