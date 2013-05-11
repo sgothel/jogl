@@ -33,6 +33,15 @@ import java.lang.reflect.*;
 import java.nio.FloatBuffer;
 
 public class MiscUtils {
+    public static boolean atob(String str, boolean def) {
+        try {
+            return Boolean.parseBoolean(str);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return def;
+    }
+    
     public static int atoi(String str, int def) {
         try {
             return Integer.parseInt(str);
@@ -51,6 +60,15 @@ public class MiscUtils {
         return def;
     }
 
+    public static float atof(String str, float def) {
+        try {
+            return Float.parseFloat(str);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return def;
+    }
+    
     public static String toHexString(byte hex) {
         return "0x" + Integer.toHexString( (int)hex & 0x000000FF );
     }

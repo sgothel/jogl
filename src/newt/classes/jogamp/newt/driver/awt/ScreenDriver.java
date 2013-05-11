@@ -34,13 +34,16 @@
 package jogamp.newt.driver.awt;
 
 import java.awt.DisplayMode;
+import java.awt.GraphicsDevice;
 
+import jogamp.newt.MonitorModeProps.Cache;
+import jogamp.newt.MonitorModeProps;
 import jogamp.newt.ScreenImpl;
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.Point;
 
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.nativewindow.awt.AWTGraphicsScreen;
+import com.jogamp.newt.MonitorDevice;
+import com.jogamp.newt.MonitorMode;
 
 public class ScreenDriver extends ScreenImpl {
     public ScreenDriver() {
@@ -68,14 +71,58 @@ public class ScreenDriver extends ScreenImpl {
         return idx; // pass through ... 
     }    
 
-    protected void getVirtualScreenOriginAndSize(Point virtualOrigin, Dimension virtualSize) {
-        final DisplayMode mode = ((AWTGraphicsDevice)getDisplay().getGraphicsDevice()).getGraphicsDevice().getDisplayMode();
-        if(null != mode) {
-            virtualOrigin.setX(0);
-            virtualOrigin.setY(0);
-            virtualSize.setWidth(mode.getWidth());
-            virtualSize.setHeight(mode.getHeight());
+    private static MonitorMode getModeProps(Cache cache, DisplayMode mode) {
+        int rate = mode.getRefreshRate();
+        if( DisplayMode.REFRESH_RATE_UNKNOWN == rate ) {
+            rate = ScreenImpl.default_sm_rate;
         }
+        int bpp = mode.getBitDepth();
+        if( DisplayMode.BIT_DEPTH_MULTI == bpp ) {
+            bpp= ScreenImpl.default_sm_bpp;
+        }
+        int[] props = new int[ MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL ];
+        int i = 0;
+        props[i++] = MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES_ALL;
+        props[i++] = mode.getWidth();
+        props[i++] = mode.getHeight();
+        props[i++] = bpp;
+        props[i++] = rate * 100;
+        props[i++] = 0; // flags
+        props[i++] = 0; // mode_idx
+        props[i++] = 0; // rotation
+        return MonitorModeProps.streamInMonitorMode(null, cache, props, 0);        
+    }
+    
+    @Override
+    protected void collectNativeMonitorModesAndDevicesImpl(Cache cache) {
+        final GraphicsDevice awtGD = ((AWTGraphicsDevice)getDisplay().getGraphicsDevice()).getGraphicsDevice();
+        final DisplayMode[] awtModes = awtGD.getDisplayModes();
+        for(int i=0; i<awtModes.length; i++) {
+            getModeProps(cache, awtModes[i]);
+        }        
+        final MonitorMode currentMode = getModeProps(cache, awtGD.getDisplayMode());
+
+        int[] props = new int[MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES - 1 - MonitorModeProps.NUM_MONITOR_MODE_PROPERTIES];
+        int i = 0;
+        props[i++] = props.length;
+        props[i++] = 0; // crt_idx
+        props[i++] = ScreenImpl.default_sm_widthmm; // FIXME
+        props[i++] = ScreenImpl.default_sm_heightmm; // FIXME
+        props[i++] = 0; // rotated viewport x
+        props[i++] = 0; // rotated viewport y
+        props[i++] = currentMode.getRotatedWidth(); // rotated viewport width
+        props[i++] = currentMode.getRotatedHeight(); // rotated viewport height
+        MonitorModeProps.streamInMonitorDevice(null, cache, this, cache.monitorModes, currentMode, props, 0);
+    }
+
+    @Override
+    protected MonitorMode queryCurrentMonitorModeImpl(MonitorDevice monitor) {        
+        return null;
+    }
+
+    @Override
+    protected boolean setCurrentMonitorModeImpl(MonitorDevice monitor, MonitorMode mode) {
+        return false;
     }
     
 }

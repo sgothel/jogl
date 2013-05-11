@@ -36,9 +36,9 @@ import com.jogamp.opengl.util.GLArrayDataServer;
  */
 public class GearsObjectES1 extends GearsObject {
 
-    public GearsObjectES1(float inner_radius, float outer_radius, float width,
+    public GearsObjectES1(FloatBuffer gearColor, float inner_radius, float outer_radius, float width,
             int teeth, float tooth_depth) {
-        super(inner_radius, outer_radius, width, teeth, tooth_depth);
+        super(gearColor, inner_radius, outer_radius, width, teeth, tooth_depth);
     }
 
     @Override
@@ -59,12 +59,12 @@ public class GearsObjectES1 extends GearsObject {
     }
 
     @Override
-    public void draw(GL _gl, float x, float y, float angle, FloatBuffer color) {
+    public void draw(GL _gl, float x, float y, float angle) {
         GL2ES1 gl = _gl.getGL2ES1();        
         gl.glPushMatrix();
         gl.glTranslatef(x, y, 0f);
         gl.glRotatef(angle, 0f, 0f, 1f);
-        gl.glMaterialfv(GL2ES1.GL_FRONT_AND_BACK, GL2ES1.GL_AMBIENT_AND_DIFFUSE, color);
+        gl.glMaterialfv(GL2ES1.GL_FRONT_AND_BACK, GL2ES1.GL_AMBIENT_AND_DIFFUSE, gearColor);
         
         gl.glShadeModel(GL2ES1.GL_FLAT);
         draw(gl, frontFace, GL.GL_TRIANGLE_STRIP);

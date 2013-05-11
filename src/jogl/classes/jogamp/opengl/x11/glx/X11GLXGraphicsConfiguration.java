@@ -79,6 +79,9 @@ public class X11GLXGraphicsConfiguration extends X11GraphicsConfiguration implem
     public final int  getFBConfigID() {
         return ((X11GLCapabilities)capabilitiesChosen).getFBConfigID();
     }
+    public final boolean hasFBConfig() {
+        return ((X11GLCapabilities)capabilitiesChosen).hasFBConfig();
+    }
 
     void updateGraphicsConfiguration() {
         final CapabilitiesImmutable aChosenCaps = getChosenCapabilities();

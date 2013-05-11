@@ -21,6 +21,8 @@
 
 package com.jogamp.opengl.test.junit.jogl.demos.es1;
 
+import java.nio.FloatBuffer;
+
 import javax.media.nativewindow.NativeWindow;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES1;
@@ -57,6 +59,7 @@ public class GearsES1 implements GLEventListener {
 
   private float view_rotx = 20.0f, view_roty = 30.0f, view_rotz = 0.0f;
   private GearsObject gear1=null, gear2=null, gear3=null;
+  private FloatBuffer gear1Color=GearsObject.red, gear2Color=GearsObject.green, gear3Color=GearsObject.blue;
   private float angle = 0.0f;
   private int swapInterval;
   private MouseListener gearsMouse = new GearsMouseAdapter();    
@@ -80,6 +83,12 @@ public class GearsES1 implements GLEventListener {
     this.traceFFPEmu = traceFFPEmu;
   }
   
+  public void setGearsColors(FloatBuffer gear1Color, FloatBuffer gear2Color, FloatBuffer gear3Color) {
+    this.gear1Color = gear1Color;
+    this.gear2Color = gear2Color;
+    this.gear3Color = gear3Color;
+  }
+    
   public void setGears(GearsObject g1, GearsObject g2, GearsObject g3) {
       gear1 = g1;
       gear2 = g2;
@@ -140,7 +149,7 @@ public class GearsES1 implements GLEventListener {
     System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
     System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
     System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
-    System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none"));
+    System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler-func: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none"));
     System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
     System.err.println("GL Profile: "+gl.getGLProfile());
     System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
@@ -153,21 +162,21 @@ public class GearsES1 implements GLEventListener {
             
     /* make the gears */
     if(null == gear1) {
-        gear1 = new GearsObjectES1(1.0f, 4.0f, 1.0f, 20, 0.7f);
+        gear1 = new GearsObjectES1(gear1Color, 1.0f, 4.0f, 1.0f, 20, 0.7f);
         System.err.println("gear1 created: "+gear1);
     } else {
         System.err.println("gear1 reused: "+gear1);
     }
                 
     if(null == gear2) {
-        gear2 = new GearsObjectES1(0.5f, 2.0f, 2.0f, 10, 0.7f);
+        gear2 = new GearsObjectES1(gear2Color, 0.5f, 2.0f, 2.0f, 10, 0.7f);
         System.err.println("gear2 created: "+gear2);
     } else {
         System.err.println("gear2 reused: "+gear2);
     }
             
     if(null == gear3) {
-        gear3 = new GearsObjectES1(1.3f, 2.0f, 0.5f, 10, 0.7f);
+        gear3 = new GearsObjectES1(gear3Color, 1.3f, 2.0f, 0.5f, 10, 0.7f);
         System.err.println("gear3 created: "+gear3);
     } else {
         System.err.println("gear3 reused: "+gear3);
@@ -268,9 +277,9 @@ public class GearsES1 implements GLEventListener {
     gl.glRotatef(view_roty, 0.0f, 1.0f, 0.0f);
     gl.glRotatef(view_rotz, 0.0f, 0.0f, 1.0f);
             
-    gear1.draw(gl, -3.0f, -2.0f, angle, GearsObject.red);            
-    gear2.draw(gl, 3.1f, -2.0f, -2.0f * angle - 9.0f, GearsObject.green);    
-    gear3.draw(gl, -3.1f, 4.2f, -2.0f * angle - 25.0f, GearsObject.blue);
+    gear1.draw(gl, -3.0f, -2.0f, angle);            
+    gear2.draw(gl, 3.1f, -2.0f, -2.0f * angle - 9.0f);    
+    gear3.draw(gl, -3.1f, 4.2f, -2.0f * angle - 25.0f);
     
     // Remember that every push needs a pop; this one is paired with
     // rotating the entire gear assembly

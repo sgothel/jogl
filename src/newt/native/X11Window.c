@@ -438,7 +438,7 @@ Status NewtWindows_updateInsets(JNIEnv *env, jobject jwindow, Display *dpy, Wind
     return 0; // Error
 }
 
-static void NewtWindows_requestFocus (JNIEnv *env, jobject window, Display *dpy, Window w, jboolean force) {
+static void NewtWindows_requestFocus (Display *dpy, Window w, Bool force) {
     XWindowAttributes xwa;
     Window focus_return;
     int revert_to_return;
@@ -447,7 +447,7 @@ static void NewtWindows_requestFocus (JNIEnv *env, jobject window, Display *dpy,
     XGetInputFocus(dpy, &focus_return, &revert_to_return);
     DBG_PRINT( "X11: requestFocus dpy %p,win %p, force %d, hasFocus %d\n", dpy, (void*)w, force, focus_return==w);
 
-    if( JNI_TRUE==force || focus_return!=w) {
+    if( True==force || focus_return!=w) {
         DBG_PRINT( "X11: XRaiseWindow dpy %p, win %p\n", dpy, (void*)w);
         XRaiseWindow(dpy, w);
         NewtWindows_setCWAbove(dpy, w);
@@ -743,7 +743,9 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
     Bool tempInvisible = ( TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_PARENTING(flags) ) && isVisible ;
     int fsEWMHFlags = 0;
     if( TST_FLAG_CHANGE_FULLSCREEN(flags) ) {
-        fsEWMHFlags |= _NET_WM_FULLSCREEN;
+        if( !TST_FLAG_IS_FULLSCREEN_SPAN(flags) ) { // doesn't work w/ spanning across monitors
+            fsEWMHFlags |= _NET_WM_FULLSCREEN;
+        }
         if( TST_FLAG_IS_FULLSCREEN(flags) ) {
             if( TST_FLAG_IS_ALWAYSONTOP(flags) ) {
                 fsEWMHFlags |= _NET_WM_ABOVE; // fs on,  above on
@@ -756,12 +758,12 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         fsEWMHFlags |= _NET_WM_ABOVE;         // toggle above
     }
 
-    DBG_PRINT( "X11: reconfigureWindow0 dpy %p, scrn %d, parent %p/%p, win %p, %d/%d %dx%d, parentChange %d, hasParent %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d, alwaysOnTopChange %d, alwaysOnTop %d, visibleChange %d, visible %d, tempInvisible %d, fsEWMHFlags %d\n",
+    DBG_PRINT( "X11: reconfigureWindow0 dpy %p, scrn %d, parent %p/%p, win %p, %d/%d %dx%d, parentChange %d, hasParent %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d (span %d), alwaysOnTopChange %d, alwaysOnTop %d, visibleChange %d, visible %d, tempInvisible %d, fsEWMHFlags %d\n",
         (void*)dpy, screen_index, (void*) jparent, (void*)parent, (void*)w,
         x, y, width, height, 
         TST_FLAG_CHANGE_PARENTING(flags),   TST_FLAG_HAS_PARENT(flags),
         TST_FLAG_CHANGE_DECORATION(flags),  TST_FLAG_IS_UNDECORATED(flags),
-        TST_FLAG_CHANGE_FULLSCREEN(flags),  TST_FLAG_IS_FULLSCREEN(flags),
+        TST_FLAG_CHANGE_FULLSCREEN(flags),  TST_FLAG_IS_FULLSCREEN(flags), TST_FLAG_IS_FULLSCREEN_SPAN(flags),
         TST_FLAG_CHANGE_ALWAYSONTOP(flags), TST_FLAG_IS_ALWAYSONTOP(flags),
         TST_FLAG_CHANGE_VISIBILITY(flags),  TST_FLAG_IS_VISIBLE(flags), tempInvisible, fsEWMHFlags);
 
@@ -769,9 +771,13 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
     //          However, we have to consider other cases like reparenting and WM which don't support it.
 
     if( fsEWMHFlags && !TST_FLAG_CHANGE_PARENTING(flags) && isVisible &&
+        !TST_FLAG_IS_FULLSCREEN_SPAN(flags) &&
         ( TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) ) {
         Bool enable = TST_FLAG_CHANGE_FULLSCREEN(flags) ? TST_FLAG_IS_FULLSCREEN(flags) : TST_FLAG_IS_ALWAYSONTOP(flags) ;
         if( NewtWindows_setFullscreenEWMH(dpy, root, w, fsEWMHFlags, isVisible, enable) ) {
+            if ( TST_FLAG_CHANGE_FULLSCREEN(flags) && !TST_FLAG_IS_FULLSCREEN(flags) ) { // FS off - restore decoration
+                NewtWindows_setDecorations (dpy, w, TST_FLAG_IS_UNDECORATED(flags) ? False : True);
+            }
             #ifdef FS_GRAB_KEYBOARD
             if(TST_FLAG_CHANGE_FULLSCREEN(flags)) {
                 if(TST_FLAG_IS_FULLSCREEN(flags)) {
@@ -866,7 +872,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
 JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_requestFocus0
   (JNIEnv *env, jobject obj, jlong display, jlong window, jboolean force)
 {
-    NewtWindows_requestFocus ( env, obj, (Display *) (intptr_t) display, (Window)window, force ) ;
+    NewtWindows_requestFocus ( (Display *) (intptr_t) display, (Window)window, JNI_TRUE==force?True:False ) ;
 }
 
 /*

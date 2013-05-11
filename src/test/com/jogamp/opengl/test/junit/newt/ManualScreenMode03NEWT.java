@@ -35,11 +35,12 @@ import javax.media.opengl.GLProfile;
 import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.newt.Display;
+import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
-import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.MonitorMode;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.newt.util.ScreenModeUtil;
+import com.jogamp.newt.util.MonitorModeUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import java.util.List;
@@ -72,8 +73,8 @@ public class ManualScreenMode03NEWT extends UITestCase {
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
 
-        List<ScreenMode> screenModes = screen.getScreenModes();
-        if(null==screenModes) {
+        List<MonitorMode> monitorModes = screen.getMonitorModes();
+        if(null==monitorModes) {
             // no support ..
             System.err.println("Your platform has no ScreenMode change support, sorry");
             return;
@@ -81,18 +82,21 @@ public class ManualScreenMode03NEWT extends UITestCase {
         Animator animator = new Animator(window);
         animator.start();
 
-        ScreenMode smCurrent = screen.getCurrentScreenMode();
-        ScreenMode smOrig = screen.getOriginalScreenMode();
-        System.err.println("[0] current/orig: "+smCurrent);
+        MonitorDevice monitor = window.getMainMonitor();
+        MonitorMode mmCurrent = monitor.queryCurrentMode();
+        MonitorMode mmOrig = monitor.getOriginalMode();
+        System.err.println("[0] orig   : "+mmOrig);
+        System.err.println("[0] current: "+mmCurrent);
 
-        screenModes = ScreenModeUtil.filterByRate(screenModes, smOrig.getMonitorMode().getRefreshRate());
-        screenModes = ScreenModeUtil.filterByRotation(screenModes, 0);
-        screenModes = ScreenModeUtil.filterByResolution(screenModes, new Dimension(801, 601));
-        screenModes = ScreenModeUtil.getHighestAvailableBpp(screenModes);
+        monitorModes = MonitorModeUtil.filterByFlags(monitorModes, 0); // no interlace, double-scan etc
+        monitorModes = MonitorModeUtil.filterByRotation(monitorModes, 0);
+        monitorModes = MonitorModeUtil.filterByResolution(monitorModes, new Dimension(801, 601));
+        monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
+        monitorModes = MonitorModeUtil.getHighestAvailableBpp(monitorModes);
 
-        ScreenMode sm = (ScreenMode) screenModes.get(0);
-        System.err.println("[0] set current: "+sm);
-        screen.setCurrentScreenMode(sm);
+        MonitorMode mm = (MonitorMode) monitorModes.get(0);
+        System.err.println("[0] set current: "+mm);
+        monitor.setCurrentMode(mm);
 
         System.err.print("[0] post setting .. wait <");
         try {

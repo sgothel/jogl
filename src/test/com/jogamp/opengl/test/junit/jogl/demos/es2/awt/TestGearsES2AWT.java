@@ -198,7 +198,9 @@ public class TestGearsES2AWT extends UITestCase {
         }
         frame.setTitle("Gears AWT Test (translucent "+!caps.isBackgroundOpaque()+"), swapInterval "+swapInterval);
 
-        glCanvas.addGLEventListener(new GearsES2(swapInterval));
+        final GearsES2 demo = new GearsES2(swapInterval);
+        glCanvas.addGLEventListener(demo);
+        
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         glCanvas.addGLEventListener(snap);
 

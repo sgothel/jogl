@@ -262,7 +262,6 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 
                 GLXUtil.initGLXClientDataSingleton(sharedDevice);
                 final String glXServerVendorName = GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_VENDOR);
-                final VersionNumber glXServerVersion = GLXUtil.getGLXServerVersionNumber(sharedDevice);
                 final boolean glXServerMultisampleAvailable = GLXUtil.isMultisampleAvailable(GLX.glXQueryServerString(sharedDevice.getHandle(), 0, GLX.GLX_EXTENSIONS));
                 
                 final GLProfile glp = GLProfile.get(sharedDevice, GLProfile.GL_PROFILE_LIST_MIN_DESKTOP, false);
@@ -273,7 +272,14 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                 final GLCapabilitiesImmutable caps = new GLCapabilities(glp);
                 final GLDrawableImpl sharedDrawable = createOnscreenDrawableImpl(createDummySurfaceImpl(sharedDevice, false, caps, caps, null, 64, 64));
                 sharedDrawable.setRealized(true);
-                
+                final X11GLCapabilities chosenCaps =  (X11GLCapabilities) sharedDrawable.getChosenGLCapabilities();
+                final boolean glxForcedOneOne = !chosenCaps.hasFBConfig();
+                final VersionNumber glXServerVersion;
+                if( glxForcedOneOne ) {
+                    glXServerVersion = versionOneOne;
+                } else {
+                    glXServerVersion = GLXUtil.getGLXServerVersionNumber(sharedDevice);
+                }
                 final GLContextImpl sharedContext = (GLContextImpl) sharedDrawable.createContext(null);
                 if (null == sharedContext) {
                     throw new GLException("Couldn't create shared context for drawable: "+sharedDrawable);
@@ -294,7 +300,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
                     System.err.println("SharedScreen:  " + sharedScreen);
                     System.err.println("SharedContext: " + sharedContext + ", madeCurrent " + madeCurrent);
                     System.err.println("GLX Server Vendor:      " + glXServerVendorName);
-                    System.err.println("GLX Server Version:     " + glXServerVersion);
+                    System.err.println("GLX Server Version:     " + glXServerVersion + ", forced "+glxForcedOneOne);
                     System.err.println("GLX Server Multisample: " + glXServerMultisampleAvailable);
                     System.err.println("GLX Client Vendor:      " + GLXUtil.getClientVendorName());
                     System.err.println("GLX Client Version:     " + GLXUtil.getClientVersionNumber());

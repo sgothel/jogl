@@ -737,14 +737,14 @@ public abstract class GLContext {
       if( 0 != ( CTX_PROFILE_ES & ctxOptions ) ) {
           res[0] = 1; res[1] =  0;      // ES 2.0  ->  GLSL 1.00
       } else if( 1 == glMajorVersion ) {
-          res[0] = 1; res[0] = 10;      // GL 1.x  ->  GLSL 1.10
+          res[0] = 1; res[1] = 10;      // GL 1.x  ->  GLSL 1.10
       } else if( 2 == glMajorVersion ) {
           res[0] = 1;
           switch ( glMinorVersion ) {
           case 0:  res[1] = 10; break;  // GL 2.0  ->  GLSL 1.10
           default: res[1] = 20; break;  // GL 2.1  ->  GLSL 1.20
           }
-      } else if( 3 == glMajorVersion && 2 >= glMajorVersion ) {
+      } else if( 3 == glMajorVersion && 2 >= glMinorVersion ) {
           res[0] = 1;
           switch ( glMinorVersion ) {
           case 0:  res[1] = 30; break;  // GL 3.0  ->  GLSL 1.30

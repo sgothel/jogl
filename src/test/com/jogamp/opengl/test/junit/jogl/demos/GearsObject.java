@@ -36,7 +36,8 @@ public abstract class GearsObject {
     public static final FloatBuffer green = Buffers.newDirectFloatBuffer( new float[] { 0.0f, 0.8f, 0.2f, 0.7f } );
     public static final FloatBuffer blue = Buffers.newDirectFloatBuffer( new float[] { 0.2f, 0.2f, 1.0f, 0.7f } );
     public static final float M_PI = (float)Math.PI;
-    
+
+    public final FloatBuffer gearColor;    
     public GLArrayDataServer frontFace;
     public GLArrayDataServer frontSide;
     public GLArrayDataServer backFace;
@@ -47,7 +48,7 @@ public abstract class GearsObject {
 
     public abstract GLArrayDataServer createInterleaved(int comps, int dataType, boolean normalized, int initialSize, int vboUsage);
     public abstract void addInterleavedVertexAndNormalArrays(GLArrayDataServer array, int components);
-    public abstract void draw(GL gl, float x, float y, float angle, FloatBuffer color);
+    public abstract void draw(GL gl, float x, float y, float angle);
     
     public void destroy(GL gl) {
         if(!isShared) {
@@ -88,9 +89,11 @@ public abstract class GearsObject {
         backSide = shared.backSide;
         outwardFace = shared.outwardFace;
         insideRadiusCyl = shared.insideRadiusCyl;
+        gearColor = shared.gearColor;
     }
             
     public GearsObject (
+            FloatBuffer gearColor,
             float inner_radius,
             float outer_radius,
             float width,
@@ -107,7 +110,8 @@ public abstract class GearsObject {
         float normal[] = new float[3];
         // final int tris_per_tooth = 32;
 
-        isShared = false;
+        this.isShared = false;
+        this.gearColor = gearColor;
         
         r0 = inner_radius;
         r1 = outer_radius - tooth_depth / 2.0f;

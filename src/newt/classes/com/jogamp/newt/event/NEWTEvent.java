@@ -41,9 +41,10 @@ package com.jogamp.newt.event;
  *
  * Event type registry:<br>
  * <ul>
- *   <li> WindowEvent <code>100..10x</code></li>
- *   <li> MouseEvent  <code>200..20x</code></li>
- *   <li> KeyEvent    <code>300..30x</code></li>
+ *   <li> WindowEvent  <code>100..10x</code></li>
+ *   <li> MouseEvent   <code>200..20x</code></li>
+ *   <li> KeyEvent     <code>300..30x</code></li>
+ *   <li> MonitorEvent <code>600..60x</code></li>
  * </ul><br>
  */
 @SuppressWarnings("serial")

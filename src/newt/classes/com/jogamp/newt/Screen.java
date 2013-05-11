@@ -27,14 +27,19 @@
  */
 package com.jogamp.newt;
 
-import com.jogamp.newt.event.ScreenModeListener;
+import com.jogamp.newt.event.MonitorModeListener;
 import jogamp.newt.Debug;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.media.nativewindow.AbstractGraphicsScreen;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.util.Rectangle;
+import javax.media.nativewindow.util.RectangleImmutable;
 
+/** 
+ * A screen may span multiple {@link MonitorDevice}s representing their combined virtual size.
+ */
 public abstract class Screen {
 
     /**
@@ -122,25 +127,30 @@ public abstract class Screen {
     public abstract int getIndex();
 
     /**
-     * @return the x position of the virtual top-left origin.
+     * @return the x position of the virtual viewport's top-left origin.
      */
     public abstract int getX();
     
     /**
-     * @return the y position of the virtual top-left origin.
+     * @return the y position of the virtual viewport's top-left origin.
      */
     public abstract int getY();
     
     /**
-     * @return the <b>rotated</b> virtual width.
+     * @return the <b>rotated</b> virtual viewport's width.
      */
     public abstract int getWidth();
 
     /**
-     * @return the <b>rotated</b> virtual height.
+     * @return the <b>rotated</b> virtual viewport's height.
      */
     public abstract int getHeight();
 
+    /**
+     * @return the <b>rotated</b> virtual viewport, i.e. origin and size.
+     */
+    public abstract RectangleImmutable getViewport();
+    
     /**
      * @return the associated Display
      */
@@ -152,48 +162,62 @@ public abstract class Screen {
      */
     public abstract String getFQName();
 
-    /**
-     * @param sml ScreenModeListener to be added for ScreenMode change events
+    /** 
+     * Return a list of all {@link MonitorMode}s for all {@link MonitorDevice}s.
      */
-    public abstract void addScreenModeListener(ScreenModeListener sml);
-
-    /**
-     * @param sml ScreenModeListener to be removed from ScreenMode change events
-     */
-    public abstract void removeScreenModeListener(ScreenModeListener sml);
+    public abstract List<MonitorMode> getMonitorModes();
 
     /** 
-     * Return a list of available {@link com.jogamp.newt.ScreenMode ScreenMode}s.
+     * Return a list of available {@link MonitorDevice}s.
+     */
+    public abstract List<MonitorDevice> getMonitorDevices();
+
+    /**
+     * Returns the {@link MonitorDevice} which {@link MonitorDevice#getViewport() viewport} 
+     * {@link MonitorDevice#coverage(RectangleImmutable) covers} the given rectangle the most.
      * <p>
-     * If {@link com.jogamp.newt.ScreenMode ScreenMode}s are not supported for this 
-     * native type {@link com.jogamp.newt.Display#getType()}, it returns a list of size one with the current screen size.</p>
-     * 
-     * @return a shallow copy of the internal immutable {@link com.jogamp.newt.ScreenMode ScreenMode}s.
+     * If no coverage is detected the first {@link MonitorDevice} is returned. 
+     * </p>
      */
-    public abstract List<ScreenMode> getScreenModes();
+    public final MonitorDevice getMainMonitor(RectangleImmutable r) {
+        MonitorDevice res = null;
+        float maxCoverage = Float.MIN_VALUE;
+        final List<MonitorDevice> monitors = getMonitorDevices();
+        for(int i=monitors.size()-1; i>=0; i--) {            
+            final MonitorDevice monitor = monitors.get(i);
+            final float coverage = monitor.coverage(r);
+            if( coverage > maxCoverage ) {
+                maxCoverage = coverage;
+                res = monitor;
+            }
+        }
+        if( maxCoverage > 0.0f && null != res ) {
+            return res;
+        }
+        return monitors.get(0);
+    }
 
     /**
-     * Return the original {@link com.jogamp.newt.ScreenMode}, as used at NEWT initialization.
-     * @return original ScreenMode which is element of the list {@link #getScreenModes()}.
-     */
-    public abstract ScreenMode getOriginalScreenMode();
-
-    /**
-     * Return the current {@link com.jogamp.newt.ScreenMode}.
+     * Returns the union of all monitor's {@link MonitorDevice#getViewport() viewport}.
      * <p>
-     * If {@link com.jogamp.newt.ScreenMode ScreenMode}s are not supported for this 
-     * native type {@link com.jogamp.newt.Display#getType()}, it returns one with the current screen size. </p>
-     * 
-     * @return current ScreenMode which is element of the list {@link #getScreenModes()}.
+     * Should be equal to {@link #getX()}, {@link #getY()}, {@link #getWidth()} and {@link #getHeight()},
+     * however, some native toolkits may choose a different virtual screen area. 
+     * </p>
+     * @param result storage for result, will be returned
      */
-    public abstract ScreenMode getCurrentScreenMode();
+    public final Rectangle unionOfMonitorViewportSize(final Rectangle result) {
+        return MonitorDevice.unionOfViewports(result, getMonitorDevices());
+    }
+    
+    /**
+     * @param sml {@link MonitorModeListener} to be added for {@link MonitorEvent}
+     */
+    public abstract void addMonitorModeListener(MonitorModeListener sml);
 
     /**
-     * Set the current {@link com.jogamp.newt.ScreenMode}.
-     * @param screenMode to be made current, must be element of the list {@link #getScreenModes()}.
-     * @return true if successful, otherwise false
+     * @param sml {@link MonitorModeListener} to be removed from {@link MonitorEvent}
      */
-    public abstract boolean setCurrentScreenMode(ScreenMode screenMode);
+    public abstract void removeMonitorModeListener(MonitorModeListener sml);
 
     // Global Screens
     protected static ArrayList<Screen> screenList = new ArrayList<Screen>();
@@ -236,6 +260,7 @@ public abstract class Screen {
         return null;
     }
     /** Returns the global display collection */
+    @SuppressWarnings("unchecked")
     public static Collection<Screen> getAllScreens() {
         ArrayList<Screen> list;
         synchronized(screenList) {

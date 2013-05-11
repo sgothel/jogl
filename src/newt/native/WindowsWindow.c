@@ -101,6 +101,9 @@
 #ifndef DISPLAY_DEVICE_ACTIVE
 #define DISPLAY_DEVICE_ACTIVE 0x00000001
 #endif
+#ifndef DM_INTERLACED
+#define DM_INTERLACED       2
+#endif
 
 #include "jogamp_newt_driver_windows_DisplayDriver.h"
 #include "jogamp_newt_driver_windows_ScreenDriver.h"
@@ -1116,11 +1119,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_DisplayDriver_DispatchMes
 
 /*
  * Class:     jogamp_newt_driver_windows_ScreenDriver
- * Method:    getOriginX0
- * Signature: (I)I
+ * Method:    getVirtualOriginX0
+ * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getOriginX0
-  (JNIEnv *env, jobject obj, jint scrn_idx)
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getVirtualOriginX0
+  (JNIEnv *env, jobject obj)
 {
     if( GetSystemMetrics( SM_CMONITORS) > 1) {
         return (jint)GetSystemMetrics(SM_XVIRTUALSCREEN);
@@ -1131,11 +1134,11 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getOriginX0
 
 /*
  * Class:     jogamp_newt_driver_windows_ScreenDriver
- * Method:    getOriginY0
- * Signature: (I)I
+ * Method:    getVirtualOriginY0
+ * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getOriginY0
-  (JNIEnv *env, jobject obj, jint scrn_idx)
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getVirtualOriginY0
+  (JNIEnv *env, jobject obj)
 {
     if( GetSystemMetrics( SM_CMONITORS ) > 1) {
         return (jint)GetSystemMetrics(SM_YVIRTUALSCREEN);
@@ -1146,11 +1149,11 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getOriginY0
 
 /*
  * Class:     jogamp_newt_driver_windows_ScreenDriver
- * Method:    getWidthImpl
- * Signature: (I)I
+ * Method:    getVirtualWidthImpl
+ * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getWidthImpl0
-  (JNIEnv *env, jobject obj, jint scrn_idx)
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getVirtualWidthImpl0
+  (JNIEnv *env, jobject obj)
 {
     if( GetSystemMetrics( SM_CMONITORS) > 1) {
         return (jint)GetSystemMetrics(SM_CXVIRTUALSCREEN);
@@ -1161,11 +1164,11 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getWidthImpl
 
 /*
  * Class:     jogamp_newt_driver_windows_ScreenDriver
- * Method:    getHeightImpl
- * Signature: (I)I
+ * Method:    getVirtualHeightImpl
+ * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getHeightImpl0
-  (JNIEnv *env, jobject obj, jint scrn_idx)
+JNIEXPORT jint JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getVirtualHeightImpl0
+  (JNIEnv *env, jobject obj)
 {
     if( GetSystemMetrics( SM_CMONITORS ) > 1) {
         return (jint)GetSystemMetrics(SM_CYVIRTUALSCREEN);
@@ -1217,30 +1220,57 @@ static int NewtScreen_RotationNewtCCW2NativeCCW(JNIEnv *env, jint newt) {
     return native;
 }
 
-/*
-static void NewtScreen_scanDisplayDevices() {
-    DISPLAY_DEVICE device;
-    int i = 0;
-    LPCTSTR name;
-    while(NULL != (name = NewtScreen_getDisplayDeviceName(&device, i))) {
-        DBG_PRINT("*** [%d]: <%s> active %d\n", i, name, ( 0 != ( device.StateFlags & DISPLAY_DEVICE_ACTIVE ) ) );
-        i++;
-    }
-}*/
-
-static LPCTSTR NewtScreen_getDisplayDeviceName(DISPLAY_DEVICE * device, int scrn_idx) {
+static LPCTSTR NewtScreen_getAdapterName(DISPLAY_DEVICE * device, int crt_idx) {
+    memset(device, 0, sizeof(DISPLAY_DEVICE)); 
     device->cb = sizeof(DISPLAY_DEVICE);
-    if( FALSE == EnumDisplayDevices(NULL, scrn_idx, device, 0) ) {
-        DBG_PRINT("*** WindowsWindow: getDisplayDeviceName.EnumDisplayDevices(scrn_idx %d) -> FALSE\n", scrn_idx);
+    if( FALSE == EnumDisplayDevices(NULL, crt_idx, device, 0) ) {
+        DBG_PRINT("*** WindowsWindow: getAdapterName.EnumDisplayDevices(crt_idx %d) -> FALSE\n", crt_idx);
         return NULL;
     }
 
-    if( 0 == ( device->StateFlags & DISPLAY_DEVICE_ACTIVE ) ) {
-        DBG_PRINT("*** WindowsWindow: !DISPLAY_DEVICE_ACTIVE(scrn_idx %d)\n", scrn_idx);
+    if( NULL == device->DeviceName || 0 == _tcslen(device->DeviceName) ) {
         return NULL;
     }
 
     return device->DeviceName;
+}
+
+static LPCTSTR NewtScreen_getMonitorName(LPCTSTR adapterName, DISPLAY_DEVICE * device, int monitor_idx, BOOL onlyActive) {
+    memset(device, 0, sizeof(DISPLAY_DEVICE)); 
+    device->cb = sizeof(DISPLAY_DEVICE);
+    if( 0 == monitor_idx ) {
+        if( FALSE == EnumDisplayDevices(adapterName, monitor_idx, device, 0) ) {
+            DBG_PRINT("*** WindowsWindow: getDisplayName.EnumDisplayDevices(monitor_idx %d).adapter -> FALSE\n", monitor_idx);
+            return NULL;
+        }
+    }
+
+    if( onlyActive && 0 == ( device->StateFlags & DISPLAY_DEVICE_ACTIVE ) ) {
+        DBG_PRINT("*** WindowsWindow: !DISPLAY_DEVICE_ACTIVE(monitor_idx %d).display\n", monitor_idx);
+        return NULL;
+    }
+    if( NULL == device->DeviceName || 0 == _tcslen(device->DeviceName) ) {
+        return NULL;
+    }
+
+    return device->DeviceName;
+}
+
+JNIEXPORT void JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_dumpMonitorInfo0
+  (JNIEnv *env, jclass clazz)
+{
+    DISPLAY_DEVICE aDevice, dDevice;
+    int i = 0, j;
+    LPCTSTR aName, dName;
+    while(NULL != (aName = NewtScreen_getAdapterName(&aDevice, i))) {
+        fprintf(stderr, "*** [%d]: <%s> flags 0x%X active %d\n", i, aName, aDevice.StateFlags, ( 0 != ( aDevice.StateFlags & DISPLAY_DEVICE_ACTIVE ) ) );
+        j=0;
+        while(NULL != (dName = NewtScreen_getMonitorName(aName, &dDevice, j, FALSE))) {
+            fprintf(stderr, "*** [%d][%d]: <%s> flags 0x%X active %d\n", i, j, dName, dDevice.StateFlags, ( 0 != ( dDevice.StateFlags & DISPLAY_DEVICE_ACTIVE ) ) );
+            j++;
+        }
+        i++;
+    }
 }
 
 static HDC NewtScreen_createDisplayDC(LPCTSTR displayDeviceName) {
@@ -1249,33 +1279,78 @@ static HDC NewtScreen_createDisplayDC(LPCTSTR displayDeviceName) {
 
 /*
  * Class:     jogamp_newt_driver_windows_ScreenDriver
- * Method:    getScreenMode0
- * Signature: (II)[I
+ * Method:    getAdapterName0
+ * Signature: (I)Ljava/lang/String;
  */
-JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getScreenMode0
-  (JNIEnv *env, jobject obj, jint scrn_idx, jint mode_idx)
+JNIEXPORT jstring JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getAdapterName0
+  (JNIEnv *env, jobject obj, jint crt_idx)
 {
     DISPLAY_DEVICE device;
-    int prop_num = NUM_SCREEN_MODE_PROPERTIES_ALL;
-    LPCTSTR deviceName = NewtScreen_getDisplayDeviceName(&device, scrn_idx);
-    if(NULL == deviceName) {
-        DBG_PRINT("*** WindowsWindow: getScreenMode.getDisplayDeviceName(scrn_idx %d) -> NULL\n", scrn_idx);
-        return (*env)->NewIntArray(env, 0);
+    LPCTSTR adapterName = NewtScreen_getAdapterName(&device, crt_idx);
+    DBG_PRINT("*** WindowsWindow: getAdapterName(crt_idx %d) -> %s, active %d\n", crt_idx, 
+              (NULL==adapterName?"nil":adapterName), 0 == ( device.StateFlags & DISPLAY_DEVICE_ACTIVE ));
+    if(NULL == adapterName) {
+        return NULL;
     }
+#ifdef UNICODE
+    return (*env)->NewString(env, adapterName, wcslen(adapterName));
+#else
+    return (*env)->NewStringUTF(env, adapterName);
+#endif
+}
 
+/*
+ * Class:     jogamp_newt_driver_windows_ScreenDriver
+ * Method:    getActiveMonitorName0
+ * Signature: (Ljava/lang/String;I)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getActiveMonitorName0
+  (JNIEnv *env, jobject obj, jstring jAdapterName, jint monitor_idx)
+{
+    DISPLAY_DEVICE device;
+    LPCTSTR monitorName;
+#ifdef UNICODE
+    LPCTSTR adapterName = NewtCommon_GetNullTerminatedStringChars(env, jAdapterName);
+    monitorName = NewtScreen_getMonitorName(adapterName, &device, monitor_idx, TRUE);
+    DBG_PRINT("*** WindowsWindow: getMonitorName(%s, monitor_idx %d) -> %s\n", adapterName, monitor_idx, (NULL==monitorName?"nil":monitorName));
+    free((void*) adapterName);
+#else
+    LPCTSTR adapterName = (*env)->GetStringUTFChars(env, jAdapterName, NULL);
+    monitorName = NewtScreen_getMonitorName(adapterName, &device, monitor_idx, TRUE);
+    DBG_PRINT("*** WindowsWindow: getMonitorName(%s, monitor_idx %d) -> %s\n", adapterName, monitor_idx, (NULL==monitorName?"nil":monitorName));
+    (*env)->ReleaseStringUTFChars(env, jAdapterName, adapterName);
+#endif
+    if(NULL == monitorName) {
+        return NULL;
+    }
+#ifdef UNICODE
+    return (*env)->NewString(env, monitorName, wcslen(monitorName));
+#else
+    return (*env)->NewStringUTF(env, monitorName);
+#endif
+}
+
+/*
+ * Class:     jogamp_newt_driver_windows_ScreenDriver
+ * Method:    getMonitorMode0
+ * Signature: (Ljava/lang/String;I)[I
+ */
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getMonitorMode0
+  (JNIEnv *env, jobject obj, jstring jAdapterName, jint mode_idx)
+{
+    DISPLAY_DEVICE device;
+    LPCTSTR adapterName;
+    {
+#ifdef UNICODE
+        adapterName = NewtCommon_GetNullTerminatedStringChars(env, jAdapterName);
+#else
+        adapterName = (*env)->GetStringUTFChars(env, jAdapterName, NULL);
+#endif
+    }
     int devModeID;
-    int widthmm, heightmm;
     if(-1 < mode_idx) {
-        // only at initialization time, where index >= 0
-        HDC hdc = NewtScreen_createDisplayDC(deviceName);
-        widthmm = GetDeviceCaps(hdc, HORZSIZE);
-        heightmm = GetDeviceCaps(hdc, VERTSIZE);
-        DeleteDC(hdc);
         devModeID = (int) mode_idx;
-        prop_num++; // add 1st extra prop, mode_idx
     } else {
-        widthmm = 0;
-        heightmm = 0;
         devModeID = ENUM_CURRENT_SETTINGS;
     }
 
@@ -1283,11 +1358,18 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getScre
     ZeroMemory(&dm, sizeof(dm));
     dm.dmSize = sizeof(dm);
     
-    if (0 == EnumDisplaySettingsEx(deviceName, devModeID, &dm, ( ENUM_CURRENT_SETTINGS == devModeID ) ? 0 : EDS_ROTATEDMODE)) {
-        DBG_PRINT("*** WindowsWindow: getScreenMode.EnumDisplaySettingsEx(mode_idx %d/%d) -> NULL\n", mode_idx, devModeID);
+    int res = EnumDisplaySettingsEx(adapterName, devModeID, &dm, ( ENUM_CURRENT_SETTINGS == devModeID ) ? 0 : EDS_ROTATEDMODE);
+    DBG_PRINT("*** WindowsWindow: getMonitorMode.EnumDisplaySettingsEx(%s, mode_idx %d/%d) -> %d\n", adapterName, mode_idx, devModeID, res);
+#ifdef UNICODE
+    free((void*) adapterName);
+#else
+    (*env)->ReleaseStringUTFChars(env, jAdapterName, adapterName);
+#endif
+
+    if (0 == res) {
         return (*env)->NewIntArray(env, 0);
     }
-    
+
     // swap width and height, since Windows reflects rotated dimension, we don't
     if (DMDO_90 == dm.dmDisplayOrientation || DMDO_270 == dm.dmDisplayOrientation) {
         int tempWidth = dm.dmPelsWidth;
@@ -1295,43 +1377,110 @@ JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getScre
         dm.dmPelsHeight = tempWidth;
     }
 
-    jint prop[ prop_num ];
+    int flags = 0;
+    if( 0 != ( dm.dmDisplayFlags & DM_INTERLACED ) ) {
+        flags |= FLAG_INTERLACE;
+    }
+
+    jint prop[ NUM_MONITOR_MODE_PROPERTIES_ALL ];
     int propIndex = 0;
 
-    if( -1 < mode_idx ) {
-        prop[propIndex++] = mode_idx;
-    }
-    prop[propIndex++] = 0; // set later for verification of iterator
+    prop[propIndex++] = NUM_MONITOR_MODE_PROPERTIES_ALL;
     prop[propIndex++] = dm.dmPelsWidth;
     prop[propIndex++] = dm.dmPelsHeight;
     prop[propIndex++] = dm.dmBitsPerPel;
-    prop[propIndex++] = widthmm;
-    prop[propIndex++] = heightmm;
-    prop[propIndex++] = dm.dmDisplayFrequency;
+    prop[propIndex++] = dm.dmDisplayFrequency * 100; // Hz*100
+    prop[propIndex++] = flags;
+    prop[propIndex++] = 0; // not bound to id
     prop[propIndex++] = NewtScreen_RotationNativeCCW2NewtCCW(env, dm.dmDisplayOrientation);
-    prop[propIndex - NUM_SCREEN_MODE_PROPERTIES_ALL] = ( -1 < mode_idx ) ? propIndex-1 : propIndex ; // count == NUM_SCREEN_MODE_PROPERTIES_ALL
 
-    jintArray properties = (*env)->NewIntArray(env, prop_num);
+    jintArray properties = (*env)->NewIntArray(env, NUM_MONITOR_MODE_PROPERTIES_ALL);
     if (properties == NULL) {
-        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array of size %d", prop_num);
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array of size %d", NUM_MONITOR_MODE_PROPERTIES_ALL);
     }
-    (*env)->SetIntArrayRegion(env, properties, 0, prop_num, prop);
+    (*env)->SetIntArrayRegion(env, properties, 0, NUM_MONITOR_MODE_PROPERTIES_ALL, prop);
     
     return properties;
 }
 
 /*
  * Class:     jogamp_newt_driver_windows_ScreenDriver
- * Method:    setScreenMode0
- * Signature: (IIIIII)Z
+ * Method:    getMonitorDevice0
+ * Signature: (Ljava/lang/String;I)[I
  */
-JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_setScreenMode0
-  (JNIEnv *env, jobject object, jint scrn_idx, jint width, jint height, jint bits, jint rate, jint rot)
+JNIEXPORT jintArray JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_getMonitorDevice0
+  (JNIEnv *env, jobject obj, jstring jAdapterName, jint monitor_idx)
 {
     DISPLAY_DEVICE device;
-    LPCTSTR deviceName = NewtScreen_getDisplayDeviceName(&device, scrn_idx);
-    if(NULL == deviceName) {
-        DBG_PRINT("*** WindowsWindow: setScreenMode.getDisplayDeviceName(scrn_idx %d) -> NULL\n", scrn_idx);
+    LPCTSTR adapterName;
+    {
+#ifdef UNICODE
+        adapterName = NewtCommon_GetNullTerminatedStringChars(env, jAdapterName);
+#else
+        adapterName = (*env)->GetStringUTFChars(env, jAdapterName, NULL);
+#endif
+    }
+
+    HDC hdc = NewtScreen_createDisplayDC(adapterName);
+    int widthmm = GetDeviceCaps(hdc, HORZSIZE);
+    int heightmm = GetDeviceCaps(hdc, VERTSIZE);
+    DeleteDC(hdc);
+    int devModeID = ENUM_CURRENT_SETTINGS;
+
+    DEVMODE dm;
+    ZeroMemory(&dm, sizeof(dm));
+    dm.dmSize = sizeof(dm);
+    
+    int res = EnumDisplaySettingsEx(adapterName, devModeID, &dm, 0);
+    DBG_PRINT("*** WindowsWindow: getMonitorDevice.EnumDisplaySettingsEx(%s, devModeID %d) -> %d\n", adapterName, devModeID, res);
+#ifdef UNICODE
+    free((void*) adapterName);
+#else
+    (*env)->ReleaseStringUTFChars(env, jAdapterName, adapterName);
+#endif
+    if (0 == res) {
+        return (*env)->NewIntArray(env, 0);
+    }
+    
+    jsize propCount = MIN_MONITOR_DEVICE_PROPERTIES - 1 - NUM_MONITOR_MODE_PROPERTIES;
+    jint prop[ propCount ];
+    int propIndex = 0;
+
+    prop[propIndex++] = propCount;
+    prop[propIndex++] = monitor_idx;
+    prop[propIndex++] = widthmm;
+    prop[propIndex++] = heightmm;
+    prop[propIndex++] = dm.dmPosition.x; // rotated viewport
+    prop[propIndex++] = dm.dmPosition.y; // rotated viewport
+    prop[propIndex++] = dm.dmPelsWidth;  // rotated viewport
+    prop[propIndex++] = dm.dmPelsHeight; // rotated viewport
+
+    jintArray properties = (*env)->NewIntArray(env, propCount);
+    if (properties == NULL) {
+        NewtCommon_throwNewRuntimeException(env, "Could not allocate int array of size %d", propCount);
+    }
+    (*env)->SetIntArrayRegion(env, properties, 0, propCount, prop);
+    
+    return properties;
+}
+
+/*
+ * Class:     jogamp_newt_driver_windows_ScreenDriver
+ * Method:    setMonitorMode0
+ * Signature: (IIIIIIIII)Z
+ */
+JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_setMonitorMode0
+  (JNIEnv *env, jobject object, jint monitor_idx, jint x, jint y, jint width, jint height, jint bits, jint rate, jint flags, jint rot)
+{
+    DISPLAY_DEVICE adapterDevice, monitorDevice;
+    LPCTSTR adapterName = NewtScreen_getAdapterName(&adapterDevice, monitor_idx);
+    if(NULL == adapterName) {
+        DBG_PRINT("*** WindowsWindow: setMonitorMode.getAdapterName(monitor_idx %d) -> NULL\n", monitor_idx);
+        return JNI_FALSE;
+    }
+    LPCTSTR monitorName = NewtScreen_getMonitorName(adapterName, &monitorDevice, 0, TRUE);
+    if(NULL == monitorName) {
+        DBG_PRINT("*** WindowsWindow: setMonitorMode.getMonitorName(monitor_idx 0) -> NULL\n");
         return JNI_FALSE;
     }
 
@@ -1339,10 +1488,17 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_setScree
     // initialize the DEVMODE structure
     ZeroMemory(&dm, sizeof(dm));
     dm.dmSize = sizeof(dm);
+    if( 0 <= x && 0 <= y ) {
+        dm.dmPosition.x = (int)x;
+        dm.dmPosition.y = (int)y;
+    }
     dm.dmPelsWidth = (int)width;
     dm.dmPelsHeight = (int)height;
     dm.dmBitsPerPel = (int)bits;
     dm.dmDisplayFrequency = (int)rate;
+    if( 0 != ( flags & FLAG_INTERLACE ) ) {
+        dm.dmDisplayFlags |= DM_INTERLACED;
+    }
     dm.dmDisplayOrientation = NewtScreen_RotationNewtCCW2NativeCCW(env, rot);
 
     // swap width and height, since Windows reflects rotated dimension, we don't
@@ -1352,9 +1508,12 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_windows_ScreenDriver_setScree
         dm.dmPelsHeight = tempWidth;
     }
 
-    dm.dmFields = DM_DISPLAYORIENTATION | DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL | DM_DISPLAYFREQUENCY;
+    dm.dmFields = DM_DISPLAYORIENTATION | DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL | DM_DISPLAYFREQUENCY | DM_DISPLAYFLAGS;
+    if( 0 <= x && 0 <= y ) {
+        dm.dmFields |= DM_POSITION;
+    }
     
-    return ( DISP_CHANGE_SUCCESSFUL == ChangeDisplaySettings(&dm, 0) ) ? JNI_TRUE : JNI_FALSE ;
+    return ( DISP_CHANGE_SUCCESSFUL == ChangeDisplaySettingsEx(adapterName, &dm, NULL, 0, NULL) ) ? JNI_TRUE : JNI_FALSE ;
 }
 
 /*

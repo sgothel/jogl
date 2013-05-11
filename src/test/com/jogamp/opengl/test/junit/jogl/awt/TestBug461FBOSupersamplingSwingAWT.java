@@ -84,7 +84,7 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
     
     /* @Override */
     public void init(GLAutoDrawable drawable) {
-        awtGLReadBufferUtil = new AWTGLReadBufferUtil(false);
+        awtGLReadBufferUtil = new AWTGLReadBufferUtil(drawable.getGLProfile(), false);
     }
 
     /* @Override */

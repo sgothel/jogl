@@ -33,5 +33,6 @@
 #include "X11Common.h"
 
 int NewtScreen_XRotation2Degree(JNIEnv *env, int xrotation);
+int NewtScreen_Degree2XRotation(JNIEnv *env, int degree);
 
 #endif /*  _X11SCREEN_H */

@@ -21,6 +21,7 @@ import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 import com.jogamp.opengl.util.GLReadBufferUtil;
 import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
@@ -49,7 +50,7 @@ public class TestJPEGImage01NEWT extends UITestCase {
                                        image.getWidth(),
                                        image.getHeight(),
                                        0,
-                                       new TextureData.PixelAttributes(image.getGLFormat(), image.getGLType()),
+                                       new GLPixelAttributes(image.getGLFormat(), image.getGLType()),
                                        false /* mipmap */,
                                        false /* compressed */,
                                        false /* must flip-vert */,

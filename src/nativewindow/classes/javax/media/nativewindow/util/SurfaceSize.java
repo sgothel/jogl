@@ -36,8 +36,8 @@ package javax.media.nativewindow.util;
  * </ul>
  */
 public class SurfaceSize {
-    DimensionImmutable resolution;
-    int bitsPerPixel;
+    final DimensionImmutable resolution;
+    final int bitsPerPixel;
 
     public SurfaceSize(DimensionImmutable resolution, int bitsPerPixel) {
         if(null==resolution || bitsPerPixel<=0) {

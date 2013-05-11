@@ -33,23 +33,29 @@
  */
 package jogamp.newt.driver.x11;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import javax.media.nativewindow.util.Dimension;
-import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.util.Rectangle;
 
 import jogamp.nativewindow.x11.X11Util;
+import jogamp.newt.Debug;
 import jogamp.newt.DisplayImpl;
+import jogamp.newt.MonitorModeProps;
 import jogamp.newt.DisplayImpl.DisplayRunnable;
 import jogamp.newt.ScreenImpl;
 
+import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 import com.jogamp.nativewindow.x11.X11GraphicsScreen;
-import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.MonitorDevice;
+import com.jogamp.newt.MonitorMode;
 
-public class ScreenDriver extends ScreenImpl {
-
+public class ScreenDriver extends ScreenImpl {    
+    protected static final boolean DEBUG_TEST_RANDR13_DISABLED = Debug.isPropertyDefined("newt.test.Screen.disableRandR13", true);
+    
     static {
         DisplayDriver.initSingleton();
     }
@@ -57,12 +63,13 @@ public class ScreenDriver extends ScreenImpl {
     public ScreenDriver() {
     }
 
+    @Override
     protected void createNativeImpl() {
         // validate screen index
         Long handle = runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Long>() {
             public Long run(long dpy) {        
                 return new Long(GetScreen0(dpy, screen_idx));
-            } } );        
+            } } );
         if (handle.longValue() == 0) {
             throw new RuntimeException("Error creating screen: " + screen_idx);
         }
@@ -73,73 +80,118 @@ public class ScreenDriver extends ScreenImpl {
             int v[] = getRandRVersion0(dpy);
             randrVersion = new VersionNumber(v[0], v[1], 0);
         }
-        if( DEBUG ) {
-            System.err.println("RandR "+randrVersion);
+        {
+            final RandR13 rAndR13 = DEBUG_TEST_RANDR13_DISABLED ? null : RandR13.createInstance(randrVersion);
+            if( null != rAndR13 ) {
+                rAndR = rAndR13;
+            } else {
+                rAndR = RandR11.createInstance(randrVersion);
+            }
         }
-        if( !randrVersion.isZero() ) {
-            rAndR = new RandR11();
-        } else {
-            rAndR = null;
+        if( DEBUG ) {
+            System.err.println("RandR "+randrVersion+", "+rAndR);
+            rAndR.dumpInfo(dpy, screen_idx);
         }
     }
 
+    @Override
     protected void closeNativeImpl() {
     }
 
     private VersionNumber randrVersion;
     private RandR rAndR;
+
+    @Override
+    protected final void collectNativeMonitorModesAndDevicesImpl(MonitorModeProps.Cache cache) {
+        if( null == rAndR ) { return; }
+        final AbstractGraphicsDevice device = getDisplay().getGraphicsDevice();
+        device.lock();
+        try {
+            if( rAndR.beginInitialQuery(device.getHandle(), this) ) {
+                try {
+                    final int crtCount = rAndR.getMonitorDeviceCount(device.getHandle(), this);
+                    
+                    // Gather all available rotations
+                    final ArrayHashSet<Integer> availableRotations = new ArrayHashSet<Integer>();
+                    for(int i = 0; i < crtCount; i++) {
+                        final int[] rotations = rAndR.getAvailableRotations(device.getHandle(), this, i);
+                        if( null != rotations ) {
+                            final List<Integer> rotationList = new ArrayList<Integer>(rotations.length);
+                            for(int j=0; j<rotations.length; j++ ) { rotationList.add(rotations[j]); }
+                            availableRotations.addAll(rotationList);
+                        }
+                    }
+                    
+                    // collect all modes, while injecting all available rotations
+                    {
+                        int modeIdx = 0;
+                        int[] props;
+                        do {
+                            props = rAndR.getMonitorModeProps(device.getHandle(), this, modeIdx++);
+                            if( null != props ) {
+                                for(int i = 0; i < availableRotations.size(); i++) {
+                                    props[MonitorModeProps.IDX_MONITOR_MODE_ROT] = availableRotations.get(i);
+                                    MonitorModeProps.streamInMonitorMode(null, cache, props, 0);
+                                }
+                            }
+                        } while( null != props);
+                    }
+                    if( cache.monitorModes.size() > 0 ) {
+                        for(int i = 0; i < crtCount; i++) {
+                            final int[] monitorProps = rAndR.getMonitorDeviceProps(device.getHandle(), this, cache, i);
+                            if( null != monitorProps && 
+                                MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES <= monitorProps[0] && // Enabled ? I.e. contains active modes ? 
+                                MonitorModeProps.MIN_MONITOR_DEVICE_PROPERTIES <= monitorProps.length ) {
+                                MonitorModeProps.streamInMonitorDevice(null, cache, this, monitorProps, 0);
+                            }
+                        }
+                    }
+                } finally {
+                    rAndR.endInitialQuery(device.getHandle(), this);
+                }
+            }
+        } finally {
+            device.unlock();
+        }
+    }
+
+    @Override
+    protected Rectangle getNativeMonitorDeviceViewportImpl(MonitorDevice monitor) {
+        final AbstractGraphicsDevice device = getDisplay().getGraphicsDevice();
+        device.lock();
+        try {
+            int[] viewportProps = rAndR.getMonitorDeviceViewport(device.getHandle(), this, monitor.getId());
+            return new Rectangle(viewportProps[0], viewportProps[1], viewportProps[2], viewportProps[3]);
+        } finally {
+            device.unlock();
+        }
+    }
     
     @Override
-    protected int[] getScreenModeFirstImpl() {
+    protected MonitorMode queryCurrentMonitorModeImpl(final MonitorDevice monitor) {
         if( null == rAndR ) { return null; }
         
-        return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<int[]>() {
-            public int[] run(long dpy) {
-                return rAndR.getScreenModeFirstImpl(dpy, screen_idx);
+        return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<MonitorMode>() {
+            public MonitorMode run(long dpy) {
+                final int[] currentModeProps = rAndR.getCurrentMonitorModeProps(dpy, ScreenDriver.this, monitor.getId());
+                return MonitorModeProps.streamInMonitorMode(null, null, currentModeProps, 0);
             } } );
     }
 
     @Override
-    protected int[] getScreenModeNextImpl() {
-        if( null == rAndR ) { return null; }
-        
-        // assemble: w x h x bpp x f x r        
-        return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<int[]>() {
-            public int[] run(long dpy) {
-                return rAndR.getScreenModeNextImpl(dpy, screen_idx);
-            } } );
-    }
-
-    @Override
-    protected ScreenMode getCurrentScreenModeImpl() {
-        if( null == rAndR ) { return null; }
-        
-        return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<ScreenMode>() {
-            public ScreenMode run(long dpy) {
-                return rAndR.getCurrentScreenModeImpl(dpy, screen_idx);
-            } } );
-    }
-
-    @Override
-    protected boolean setCurrentScreenModeImpl(final ScreenMode screenMode) {
+    protected boolean setCurrentMonitorModeImpl(final MonitorDevice monitor, final MonitorMode mode) {
         if( null == rAndR ) { return false; }
         
-        final List<ScreenMode> screenModes = this.getScreenModesOrig();
-        final int screenModeIdx = screenModes.indexOf(screenMode);
-        if(0>screenModeIdx) {
-            throw new RuntimeException("ScreenMode not element of ScreenMode list: "+screenMode);
-        }
         final long t0 = System.currentTimeMillis();
         boolean done = runWithTempDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
             public Boolean run(long dpy) {
-                final int resIdx = getScreenModesIdx2NativeIdx().get(screenModeIdx);
-                return Boolean.valueOf( rAndR.setCurrentScreenModeImpl(dpy, screen_idx, screenMode, screenModeIdx, resIdx) );
+                return Boolean.valueOf( rAndR.setCurrentMonitorMode(dpy, ScreenDriver.this, monitor, mode) );
             }            
         }).booleanValue();
         
         if(DEBUG || !done) {
-            System.err.println("X11Screen.setCurrentScreenModeImpl: TO ("+SCREEN_MODE_CHANGE_TIMEOUT+") reached: "+
-                               (System.currentTimeMillis()-t0)+"ms; Current: "+getCurrentScreenMode()+"; Desired: "+screenMode);
+            System.err.println("X11Screen.setCurrentMonitorModeImpl: TO ("+SCREEN_MODE_CHANGE_TIMEOUT+") reached: "+
+                               (System.currentTimeMillis()-t0)+"ms; "+monitor.getCurrentMode()+" -> "+mode);
         }
         return done;
     }
@@ -149,6 +201,7 @@ public class ScreenDriver extends ScreenImpl {
             return new Boolean(X11Util.XineramaIsEnabled(dpy)); 
         } };
     
+    @Override
     protected int validateScreenIndex(final int idx) {
         final DisplayDriver x11Display = (DisplayDriver) getDisplay();
         final Boolean r = x11Display.isXineramaEnabled();
@@ -159,13 +212,14 @@ public class ScreenDriver extends ScreenImpl {
         }
     }
         
-    protected void getVirtualScreenOriginAndSize(final Point virtualOrigin, final Dimension virtualSize) {
+    @Override
+    protected void calcVirtualScreenOriginAndSize(final Rectangle vOriginSize) {
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             public Object run(long dpy) {
-                virtualOrigin.setX(0);
-                virtualOrigin.setY(0);
-                virtualSize.setWidth(getWidth0(dpy, screen_idx));
-                virtualSize.setHeight(getHeight0(dpy, screen_idx));
+                vOriginSize.setX(0);
+                vOriginSize.setY(0);
+                vOriginSize.setWidth(getWidth0(dpy, screen_idx));
+                vOriginSize.setHeight(getHeight0(dpy, screen_idx));
                 return null;
             } } );        
     }    

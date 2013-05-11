@@ -42,6 +42,8 @@ package jogamp.opengl;
 
 import javax.media.opengl.*;
 
+import com.jogamp.common.util.VersionNumber;
+
 import java.util.*;
 
 /**
@@ -218,8 +220,9 @@ final class ExtensionAvailabilityCache {
       }
 
       if(!context.isGLES()) {
-          int major[] = new int[] { context.getGLVersionMajor() };
-          int minor[] = new int[] { context.getGLVersionMinor() };
+          final VersionNumber version = context.getGLVersionNumber();
+          int major[] = new int[] { version.getMajor() };
+          int minor[] = new int[] { version.getMinor() };
           while (GLContext.isValidGLVersion(major[0], minor[0])) {
               availableExtensionCache.add("GL_VERSION_" + major[0] + "_" + minor[0]);
               if (DEBUG) {

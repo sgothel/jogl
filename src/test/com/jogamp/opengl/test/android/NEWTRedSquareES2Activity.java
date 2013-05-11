@@ -32,8 +32,8 @@ import javax.media.opengl.GLProfile;
 
 import jogamp.newt.driver.android.NewtBaseActivity;
 
-import com.jogamp.newt.ScreenMode;
-import com.jogamp.newt.event.ScreenModeListener;
+import com.jogamp.newt.event.MonitorEvent;
+import com.jogamp.newt.event.MonitorModeListener;
 import com.jogamp.newt.opengl.GLWindow;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
@@ -62,11 +62,13 @@ public class NEWTRedSquareES2Activity extends NewtBaseActivity {
        final RedSquareES2 demo = new RedSquareES2(-1);
        // demo.enableAndroidTrace(true);
        glWindow.addGLEventListener(demo);
-       glWindow.getScreen().addScreenModeListener(new ScreenModeListener() {
-        public void screenModeChangeNotify(ScreenMode sm) { }
-        public void screenModeChanged(ScreenMode sm, boolean success) {
-            System.err.println("ScreenMode Changed: "+sm);
-        }
+       glWindow.getScreen().addMonitorModeListener(new MonitorModeListener() {
+           @Override
+           public void monitorModeChangeNotify(MonitorEvent me) { }
+           @Override
+           public void monitorModeChanged(MonitorEvent me, boolean success) {
+               System.err.println("MonitorMode Changed (success "+success+"): "+me);
+           }
        });
        Animator animator = new Animator(glWindow);
        // animator.setRunAsFastAsPossible(true);

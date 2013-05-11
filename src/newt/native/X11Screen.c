@@ -75,22 +75,41 @@ JNIEXPORT jint JNICALL Java_jogamp_newt_driver_x11_ScreenDriver_getHeight0
 }
 
 int NewtScreen_XRotation2Degree(JNIEnv *env, int xrotation) {
-    int rot;
+    int degree;
     if(xrotation == RR_Rotate_0) {
-      rot = 0;
+      degree = 0;
     }
     else if(xrotation == RR_Rotate_90) {
-      rot = 90;
+      degree = 90;
     }
     else if(xrotation == RR_Rotate_180) {
-      rot = 180;
+      degree = 180;
     }
     else if(xrotation == RR_Rotate_270) {
-      rot = 270;
+      degree = 270;
     } else {
       NewtCommon_throwNewRuntimeException(env, "invalid native rotation: %d", xrotation);
     }
-    return rot;
+    return degree;
+}
+
+int NewtScreen_Degree2XRotation(JNIEnv *env, int degree) {
+    int xrot;
+    if(degree == 0) {
+      xrot = RR_Rotate_0;
+    }
+    else if(degree == 90) {
+      xrot = RR_Rotate_90;
+    }
+    else if(degree == 180) {
+      xrot = RR_Rotate_180;
+    }
+    else if(degree == 270) {
+      xrot = RR_Rotate_270;
+    } else {
+      NewtCommon_throwNewRuntimeException(env, "invalid degree: %d", degree);
+    }
+    return xrot;
 }
 
 /*

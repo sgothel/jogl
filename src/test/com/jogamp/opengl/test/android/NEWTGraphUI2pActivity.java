@@ -33,8 +33,8 @@ import javax.media.opengl.GLProfile;
 import jogamp.newt.driver.android.NewtBaseActivity;
 
 import com.jogamp.graph.curve.Region;
-import com.jogamp.newt.ScreenMode;
-import com.jogamp.newt.event.ScreenModeListener;
+import com.jogamp.newt.event.MonitorEvent;
+import com.jogamp.newt.event.MonitorModeListener;
 import com.jogamp.newt.opengl.GLWindow;
 
 import com.jogamp.opengl.test.junit.graph.demos.GPUUISceneGLListener0A;
@@ -62,11 +62,13 @@ public class NEWTGraphUI2pActivity extends NewtBaseActivity {
        setContentView(getWindow(), glWindow);
        
        glWindow.addGLEventListener(new GPUUISceneGLListener0A(Region.VBAA_RENDERING_BIT));
-       glWindow.getScreen().addScreenModeListener(new ScreenModeListener() {
-        public void screenModeChangeNotify(ScreenMode sm) { }
-        public void screenModeChanged(ScreenMode sm, boolean success) {
-            System.err.println("ScreenMode Changed: "+sm);
-        }
+       glWindow.getScreen().addMonitorModeListener(new MonitorModeListener() {
+           @Override
+           public void monitorModeChangeNotify(MonitorEvent me) { }
+           @Override
+           public void monitorModeChanged(MonitorEvent me, boolean success) {
+               System.err.println("MonitorMode Changed (success "+success+"): "+me);
+           }
        });
        glWindow.setVisible(true);
        Animator animator = new Animator(glWindow);

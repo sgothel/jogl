@@ -41,14 +41,14 @@ import javax.media.nativewindow.NativeWindowException;
 import javax.media.nativewindow.VisualIDHolder;
 import javax.media.nativewindow.util.Insets;
 import javax.media.nativewindow.util.Point;
+import javax.media.nativewindow.util.RectangleImmutable;
 import javax.media.opengl.GLCapabilitiesChooser;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLException;
 
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.nativewindow.egl.EGLGraphicsDevice;
-import com.jogamp.newt.Screen;
-import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.MonitorDevice;
 
 import jogamp.opengl.egl.EGL;
 import jogamp.opengl.egl.EGLDisplayUtil;
@@ -285,10 +285,10 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
         }
         
         if( isFullscreen() ) {
-            final Screen screen = getScreen();
-            final ScreenMode sm = screen.getCurrentScreenMode();            
-            definePosition(screen.getX(), screen.getY());
-            defineSize(sm.getRotatedWidth(), sm.getRotatedHeight());
+            final MonitorDevice mainMonitor = getMainMonitor();
+            final RectangleImmutable viewport = mainMonitor.getViewport();
+            definePosition(viewport.getX(), viewport.getY());
+            defineSize(viewport.getWidth(), viewport.getHeight());
         }
         
         final boolean b;
@@ -562,7 +562,9 @@ public class WindowDriver extends jogamp.newt.WindowImpl implements Callback2 {
             surface=null;
         }
         if(getScreen().isNativeValid()) {
-            getScreen().getCurrentScreenMode(); // if ScreenMode changed .. trigger ScreenMode event
+            // if MonitorMode changed .. trigger MonitorMode event
+            final MonitorDevice mainMonitor = getMainMonitor();
+            mainMonitor.queryCurrentMode();
         }
 
         if(0>getX() || 0>getY()) {

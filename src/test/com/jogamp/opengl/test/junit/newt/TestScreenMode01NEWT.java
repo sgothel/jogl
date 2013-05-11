@@ -40,12 +40,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.newt.Display;
+import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
-import com.jogamp.newt.ScreenMode;
+import com.jogamp.newt.MonitorMode;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.newt.util.ScreenModeUtil;
+import com.jogamp.newt.util.MonitorModeUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -149,14 +150,16 @@ public class TestScreenMode01NEWT extends UITestCase {
         Animator animator = new Animator(window);
         animator.start();
         
+        final MonitorDevice monitor = window.getMainMonitor();
+        
         Assert.assertEquals(false, window.isFullscreen());
         Assert.assertEquals(width, window.getWidth());
         Assert.assertEquals(height, window.getHeight());
         
         window.setFullscreen(true);
-        Assert.assertEquals(true, window.isFullscreen());
-        Assert.assertEquals(window.getScreen().getWidth(), window.getWidth());
-        Assert.assertEquals(window.getScreen().getHeight(), window.getHeight());
+        Assert.assertEquals(true, window.isFullscreen());        
+        Assert.assertEquals(monitor.getViewport().getWidth(), window.getWidth());
+        Assert.assertEquals(monitor.getViewport().getHeight(), window.getHeight());
         
         Thread.sleep(waitTimeShort);
 
@@ -192,45 +195,53 @@ public class TestScreenMode01NEWT extends UITestCase {
         GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
         Assert.assertNotNull(window);
 
-        List<ScreenMode> screenModes = screen.getScreenModes();
-        if(screenModes.size()==1) {
+        MonitorDevice monitor = window.getMainMonitor();
+        
+        List<MonitorMode> monitorModes = monitor.getSupportedModes();
+        Assert.assertTrue(monitorModes.size()>0);
+        if(monitorModes.size()==1) {
             // no support ..
-            System.err.println("Your platform has no ScreenMode change support, sorry");
+            System.err.println("Your platform has no MonitorMode change support, sorry");
             destroyWindow(window);
             return;
         }
-        Assert.assertTrue(screenModes.size()>0);
 
         Animator animator = new Animator(window);
         animator.start();
 
-        ScreenMode smCurrent = screen.getCurrentScreenMode();
-        Assert.assertNotNull(smCurrent);
-        ScreenMode smOrig = screen.getOriginalScreenMode();
-        Assert.assertNotNull(smOrig);
-        Assert.assertEquals(smCurrent, smOrig);
-        System.err.println("[0] current/orig: "+smCurrent);
+        MonitorMode mmCurrent = monitor.queryCurrentMode();
+        Assert.assertNotNull(mmCurrent);
+        MonitorMode mmOrig = monitor.getOriginalMode();
+        Assert.assertNotNull(mmOrig);
+        System.err.println("[0] orig   : "+mmOrig);
+        System.err.println("[0] current: "+mmCurrent);
+        Assert.assertEquals(mmCurrent, mmOrig);
 
-        screenModes = ScreenModeUtil.filterByRate(screenModes, smOrig.getMonitorMode().getRefreshRate());
-        Assert.assertNotNull(screenModes);
-        Assert.assertTrue(screenModes.size()>0);
-        screenModes = ScreenModeUtil.filterByRotation(screenModes, 0);
-        Assert.assertNotNull(screenModes);
-        Assert.assertTrue(screenModes.size()>0);
-        screenModes = ScreenModeUtil.filterByResolution(screenModes, new Dimension(801, 601));
-        Assert.assertNotNull(screenModes);
-        Assert.assertTrue(screenModes.size()>0);
+        monitorModes = MonitorModeUtil.filterByFlags(monitorModes, 0); // no interlace, double-scan etc
+        Assert.assertNotNull(monitorModes);
+        Assert.assertTrue(monitorModes.size()>0);
+        monitorModes = MonitorModeUtil.filterByRotation(monitorModes, 0);
+        Assert.assertNotNull(monitorModes);
+        Assert.assertTrue(monitorModes.size()>0);
+        monitorModes = MonitorModeUtil.filterByResolution(monitorModes, new Dimension(801, 601));
+        Assert.assertNotNull(monitorModes);
+        Assert.assertTrue(monitorModes.size()>0);
+        monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
+        Assert.assertNotNull(monitorModes);
+        Assert.assertTrue(monitorModes.size()>0);
         
-        screenModes = ScreenModeUtil.getHighestAvailableBpp(screenModes);
-        Assert.assertNotNull(screenModes);
-        Assert.assertTrue(screenModes.size()>0);
+        monitorModes = MonitorModeUtil.getHighestAvailableBpp(monitorModes);
+        Assert.assertNotNull(monitorModes);
+        Assert.assertTrue(monitorModes.size()>0);
 
-        ScreenMode sm = (ScreenMode) screenModes.get(0);
+        MonitorMode sm = (MonitorMode) monitorModes.get(0);
         System.err.println("[0] set current: "+sm);
-        screen.setCurrentScreenMode(sm);
-        Assert.assertEquals(sm, screen.getCurrentScreenMode());
-        Assert.assertNotSame(smOrig, screen.getCurrentScreenMode());
-
+        monitor.setCurrentMode(sm);
+        Assert.assertTrue(monitor.isModeChangedByUs());
+        Assert.assertEquals(sm, monitor.getCurrentMode());
+        Assert.assertNotSame(mmOrig, monitor.getCurrentMode());
+        Assert.assertEquals(sm, monitor.queryCurrentMode());        
+        
         Thread.sleep(waitTimeLong);
 
         // check reset ..
@@ -258,15 +269,14 @@ public class TestScreenMode01NEWT extends UITestCase {
         Assert.assertEquals(true,display.isNativeValid());
         Assert.assertEquals(true,screen.isNativeValid());
 
-        smCurrent = screen.getCurrentScreenMode();
-        System.err.println("[1] current/orig: "+smCurrent);
+        mmCurrent = monitor.getCurrentMode();
+        System.err.println("[1] current/orig: "+mmCurrent);
         screen.destroy();
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,display.isNativeValid());
 
-        Assert.assertNotNull(smCurrent);
-        Assert.assertEquals(smCurrent, smOrig);
-
+        Assert.assertNotNull(mmCurrent);
+        Assert.assertEquals(mmCurrent, mmOrig);
         
         cleanupGL();
     }
@@ -291,27 +301,30 @@ public class TestScreenMode01NEWT extends UITestCase {
         Animator animator = new Animator(window);
         animator.start();
 
-        ScreenMode smCurrent = screen.getCurrentScreenMode();
-        Assert.assertNotNull(smCurrent);
-        ScreenMode smOrig = screen.getOriginalScreenMode();
-        Assert.assertNotNull(smOrig);
-        Assert.assertEquals(smCurrent, smOrig);
-        System.err.println("[0] current/orig: "+smCurrent);
+        MonitorDevice monitor = window.getMainMonitor();
+        MonitorMode mmCurrent = monitor.queryCurrentMode();
+        Assert.assertNotNull(mmCurrent);
+        MonitorMode mmOrig = monitor.getOriginalMode();
+        Assert.assertNotNull(mmOrig);
+        System.err.println("[0] orig   : "+mmOrig);
+        System.err.println("[0] current: "+mmCurrent);
+        Assert.assertEquals(mmCurrent, mmOrig);
         
-        List<ScreenMode> screenModes = screen.getScreenModes();
-        if(screenModes.size()==1) {
+        List<MonitorMode> monitorModes = monitor.getSupportedModes();
+        if(monitorModes.size()==1) {
             // no support ..
             destroyWindow(window);
             return;
         }
-        Assert.assertTrue(screenModes.size()>0);
-        screenModes = ScreenModeUtil.filterByRate(screenModes, smOrig.getMonitorMode().getRefreshRate());
-        screenModes = ScreenModeUtil.filterByRotation(screenModes, 0);
-        screenModes = ScreenModeUtil.filterByResolution(screenModes, new Dimension(801, 601));
-        screenModes = ScreenModeUtil.getHighestAvailableBpp(screenModes);
+        Assert.assertTrue(monitorModes.size()>0);
+        monitorModes = MonitorModeUtil.filterByFlags(monitorModes, 0); // no interlace, double-scan etc
+        monitorModes = MonitorModeUtil.filterByRotation(monitorModes, 0);
+        monitorModes = MonitorModeUtil.filterByResolution(monitorModes, new Dimension(801, 601));
+        monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
+        monitorModes = MonitorModeUtil.getHighestAvailableBpp(monitorModes);
 
-        ScreenMode screenMode = (ScreenMode) screenModes.get(0);
-        Assert.assertNotNull(screenMode);
+        MonitorMode monitorMode = (MonitorMode) monitorModes.get(0);
+        Assert.assertNotNull(monitorMode);
         
         if(preFS) {
             System.err.println("[0] set FS pre 0: "+window.isFullscreen());
@@ -321,8 +334,8 @@ public class TestScreenMode01NEWT extends UITestCase {
             System.err.println("[0] set FS pre X: "+window.isFullscreen());
         }
 
-        System.err.println("[0] set current: "+screenMode);
-        screen.setCurrentScreenMode(screenMode);
+        System.err.println("[0] set current: "+monitorMode);
+        monitor.setCurrentMode(monitorMode);
         
         if(!preFS) {
             System.err.println("[0] set FS post 0: "+window.isFullscreen());
@@ -358,14 +371,14 @@ public class TestScreenMode01NEWT extends UITestCase {
         Assert.assertEquals(true,display.isNativeValid());
         Assert.assertEquals(true,screen.isNativeValid());
         
-        smCurrent = screen.getCurrentScreenMode();
-        System.err.println("[1] current/orig: "+smCurrent);
+        mmCurrent = monitor.getCurrentMode();
+        System.err.println("[1] current/orig: "+mmCurrent);
         screen.destroy();
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,display.isNativeValid());
 
-        Assert.assertNotNull(smCurrent);
-        Assert.assertEquals(smCurrent, smOrig);
+        Assert.assertNotNull(mmCurrent);
+        Assert.assertEquals(mmCurrent, mmOrig);
         
         cleanupGL();
     }

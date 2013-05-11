@@ -36,6 +36,7 @@ import javax.imageio.ImageIO;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.awt.AWTTextureData;
 import com.jogamp.opengl.util.texture.spi.JPEGImage;
@@ -68,7 +69,7 @@ public class TestJPEGJoglAWTBenchmarkNewtAWT extends UITestCase {
                                                image.getWidth(),
                                                image.getHeight(),
                                                0,
-                                               new TextureData.PixelAttributes(image.getGLFormat(), image.getGLType()),
+                                               new GLPixelAttributes(image.getGLFormat(), image.getGLType()),
                                                false /* mipmap */,
                                                false /* compressed */,
                                                false /* must flip-vert */,
@@ -96,7 +97,7 @@ public class TestJPEGJoglAWTBenchmarkNewtAWT extends UITestCase {
                                                image.getWidth(),
                                                image.getHeight(),
                                                0,
-                                               new TextureData.PixelAttributes(image.getGLFormat(), image.getGLType()),
+                                               new GLPixelAttributes(image.getGLFormat(), image.getGLType()),
                                                false /* mipmap */,
                                                false /* compressed */,
                                                false /* must flip-vert */,

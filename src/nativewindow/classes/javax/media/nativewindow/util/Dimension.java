@@ -57,7 +57,9 @@ public class Dimension implements Cloneable, DimensionImmutable {
         }
     }
 
+    @Override
     public int getWidth() { return width; }
+    @Override
     public int getHeight() { return height; }
 
     public void setWidth(int width) {
@@ -77,10 +79,12 @@ public class Dimension implements Cloneable, DimensionImmutable {
         return this;
     }
 
+    @Override
     public String toString() {
         return new String(width+" x "+height);
     }
 
+    @Override
     public boolean equals(Object obj) {
         if(this == obj)  { return true; }
         if (obj instanceof Dimension) {
@@ -91,6 +95,7 @@ public class Dimension implements Cloneable, DimensionImmutable {
         return false;
     }
 
+    @Override
     public int hashCode() {
         // 31 * x == (x << 5) - x
         int hash = 31 + width;

@@ -58,6 +58,7 @@ public class GearsES2 implements GLEventListener {
     private float panX = 0.0f, panY = 0.0f, panZ=0.0f;
     private int drawableHeight = 1;
     private GearsObjectES2 gear1=null, gear2=null, gear3=null;
+    private FloatBuffer gear1Color=GearsObject.red, gear2Color=GearsObject.green, gear3Color=GearsObject.blue;
     private float angle = 0.0f;
     private int swapInterval = 0;
     private boolean pmvUseBackingArray = true; // the default for PMVMatrix now, since it's faster
@@ -67,6 +68,7 @@ public class GearsES2 implements GLEventListener {
 
     private boolean doRotate = true;
     private boolean ignoreFocus = false;
+    private float[] clearColor = null;
     private boolean clearBuffers = true;
     private boolean verbose = true;
 
@@ -85,6 +87,17 @@ public class GearsES2 implements GLEventListener {
     
     public void setPMVUseBackingArray(boolean pmvUseBackingArray) {
         this.pmvUseBackingArray = pmvUseBackingArray;
+    }
+    
+    /** float[4] */
+    public void setClearColor(float[] clearColor) {
+        this.clearColor = clearColor; 
+    }
+    
+    public void setGearsColors(FloatBuffer gear1Color, FloatBuffer gear2Color, FloatBuffer gear3Color) {
+        this.gear1Color = gear1Color;
+        this.gear2Color = gear2Color;
+        this.gear3Color = gear3Color;
     }
     
     public void setGears(GearsObjectES2 g1, GearsObjectES2 g2, GearsObjectES2 g3) {
@@ -120,7 +133,7 @@ public class GearsES2 implements GLEventListener {
             System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
             System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
             System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
-            System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none")+", "+gl.getContext().getGLSLVersionNumber());
+            System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler-func: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none")+", "+gl.getContext().getGLSLVersionNumber());
             System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
             System.err.println("GL Profile: "+gl.getGLProfile());
             System.err.println("GL Renderer Quirks:" + gl.getContext().getRendererQuirks().toString());
@@ -159,7 +172,7 @@ public class GearsES2 implements GLEventListener {
         st.uniform(gl, colorU);
 
         if(null == gear1) {
-            gear1 = new GearsObjectES2(st, 1.0f, 4.0f, 1.0f, 20, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
+            gear1 = new GearsObjectES2(st, gear1Color, 1.0f, 4.0f, 1.0f, 20, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
             if(verbose) {
                 System.err.println("gear1 created: "+gear1);
             }
@@ -171,7 +184,7 @@ public class GearsES2 implements GLEventListener {
         }
                     
         if(null == gear2) {
-            gear2 = new GearsObjectES2(st, 0.5f, 2.0f, 2.0f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
+            gear2 = new GearsObjectES2(st, gear2Color, 0.5f, 2.0f, 2.0f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
             if(verbose) {
                 System.err.println("gear2 created: "+gear2);
             }
@@ -183,7 +196,7 @@ public class GearsES2 implements GLEventListener {
         }
                 
         if(null == gear3) {
-            gear3 = new GearsObjectES2(st, 1.3f, 2.0f, 0.5f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
+            gear3 = new GearsObjectES2(st, gear3Color, 1.3f, 2.0f, 0.5f, 10, 0.7f, pmvMatrix, pmvMatrixUniform, colorU);
             if(verbose) {
                 System.err.println("gear3 created: "+gear3);
             }
@@ -288,10 +301,10 @@ public class GearsES2 implements GLEventListener {
           hasFocus = true;
         }
         
-        gl.glEnable(GL.GL_CULL_FACE);
-        
         if( clearBuffers ) {
-            if( ignoreFocus || hasFocus ) {
+            if( null != clearColor ) {
+              gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+            } else if( ignoreFocus || hasFocus ) {
               gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
             } else {
               gl.glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
@@ -308,6 +321,8 @@ public class GearsES2 implements GLEventListener {
             }
         }        
 
+        gl.glEnable(GL.GL_CULL_FACE);
+        
         st.useProgram(gl, true);
         pmvMatrix.glPushMatrix();
         pmvMatrix.glTranslatef(panX, panY, panZ);
@@ -315,9 +330,9 @@ public class GearsES2 implements GLEventListener {
         pmvMatrix.glRotatef(view_roty, 0.0f, 1.0f, 0.0f);
         pmvMatrix.glRotatef(view_rotz, 0.0f, 0.0f, 1.0f);
 
-        gear1.draw(gl, -3.0f, -2.0f,  1f * angle -    0f, GearsObject.red);
-        gear2.draw(gl,  3.1f, -2.0f, -2f * angle -  9.0f, GearsObject.green);
-        gear3.draw(gl, -3.1f,  4.2f, -2f * angle - 25.0f, GearsObject.blue);    
+        gear1.draw(gl, -3.0f, -2.0f,  1f * angle -    0f);
+        gear2.draw(gl,  3.1f, -2.0f, -2f * angle -  9.0f);
+        gear3.draw(gl, -3.1f,  4.2f, -2f * angle - 25.0f);    
         pmvMatrix.glPopMatrix();
         st.useProgram(gl, false);
         
@@ -508,7 +523,7 @@ public class GearsES2 implements GLEventListener {
             }
             prevMouseX = x;
             prevMouseY = y;
-            System.err.println("rotXY.1: "+view_rotx+"/"+view_roty+", source "+e);
+            // System.err.println("rotXY.1: "+view_rotx+"/"+view_roty+", source "+e);
         }
     }
 }

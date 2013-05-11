@@ -38,14 +38,11 @@
 package com.jogamp.opengl.util.texture;
 
 import java.nio.Buffer;
-import java.nio.ByteBuffer;
 
-import javax.media.opengl.GL;
-import javax.media.opengl.GLContext;
 import javax.media.opengl.GLProfile;
 
-import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.GLBuffers;
+import com.jogamp.opengl.util.GLPixelBuffer.GLPixelAttributes;
 
 /**
  * Represents the data for an OpenGL texture. This is separated from
@@ -62,89 +59,10 @@ public class TextureData {
     /** ColorSpace of pixel data. */
     public static enum ColorSpace { RGB, YCbCr, YCCK, CMYK };   
     
-    /** Pixel data attributes. */ 
-    public static class PixelAttributes {
-        /** Undefinded instance of {@link PixelAttributes}, having format:=0 and type:= 0. */ 
-        public static final PixelAttributes UNDEF = new PixelAttributes(0, 0);
-        
-        /** The OpenGL pixel data format */
-        public final int format;
-        /** The OpenGL pixel data type  */
-        public final int type;
-        public PixelAttributes(int dataFormat, int dataType) {
-            this.format = dataFormat;
-            this.type = dataType;
-        }
-        public String toString() {
-            return "PixelAttributes[fFmt 0x"+Integer.toHexString(format)+", type 0x"+Integer.toHexString(type)+"]";
-        }
-    }    
-    /** Allows user to interface with another toolkit to define {@link PixelAttributes} and memory buffer to produce {@link TextureData}. */ 
-    public static interface PixelBufferProvider {
-        /** Called first to determine {@link PixelAttributes}. */
-        PixelAttributes getAttributes(GL gl, int componentCount);
-        
-        /** 
-         * Returns true, if implementation requires a new buffer based on the new size 
-         * and previous aquired {@link #getAttributes(GL, int) attributes} due to pixel alignment, otherwise false.
-         * @see #allocate(int, int, int)
-         */
-        boolean requiresNewBuffer(int width, int height);
-        
-        /** 
-         * Called after {@link #getAttributes(GL, int)} to retrieve the NIO or array backed pixel {@link Buffer}.
-         * <p>
-         * Being called to gather the initial {@link Buffer}, if the existing {@link Buffer} size is not sufficient,
-         * or if {@link #requiresNewBuffer(int, int)} returns false.
-         * </p>
-         * <p>
-         * Number of components was passed via {@link #getAttributes(GL, int)}.
-         * </p>
-         * <p>
-         * The returned buffer must have at least <code>minByteSize</code> {@link Buffer#remaining() remaining}.
-         * </p>
-         */
-        Buffer allocate(int width, int height, int minByteSize);
-    }
-    /** 
-     * Default {@link PixelBufferProvider} utilizing best match for {@link PixelAttributes}
-     * and {@link #allocate(int, int, int) allocating} a {@link ByteBuffer}.
-     */
-    public static class DefPixelBufferProvider implements PixelBufferProvider {
-        @Override
-        public PixelAttributes getAttributes(GL gl, int componentCount) {
-            final GLContext ctx = gl.getContext();
-            final int dFormat, dType;
-            
-            if(gl.isGL2GL3() && 3 == componentCount) {
-                dFormat = GL.GL_RGB;
-                dType   = GL.GL_UNSIGNED_BYTE;            
-            } else {
-                dFormat = ctx.getDefaultPixelDataFormat();
-                dType   = ctx.getDefaultPixelDataType();
-            }
-            return new TextureData.PixelAttributes(dFormat, dType);
-        }        
-        @Override
-        public boolean requiresNewBuffer(int width, int height) {
-            return false;
-        }
-        /**
-         * {@inheritDoc}
-         * <p>
-         * Returns an NIO {@link ByteBuffer} of <code>minByteSize</code>.
-         * </p>
-         */
-        @Override
-        public final Buffer allocate(int width, int height, int minByteSize) {
-            return Buffers.newDirectByteBuffer(minByteSize);
-        }
-    }
-    
     protected int width;
     protected int height;
     private int border;
-    protected PixelAttributes pixelAttributes;
+    protected GLPixelAttributes pixelAttributes;
     protected int internalFormat; // perhaps inferred from pixelFormat?
     protected boolean mipmap; // indicates whether mipmaps should be generated
     // (ignored if mipmaps are supplied from the file)
@@ -217,7 +135,7 @@ public class TextureData {
                        boolean mustFlipVertically,
                        Buffer buffer,
                        Flusher flusher) throws IllegalArgumentException {
-        this(glp, internalFormat, width, height, border, new PixelAttributes(pixelFormat, pixelType), 
+        this(glp, internalFormat, width, height, border, new GLPixelAttributes(pixelFormat, pixelType), 
              mipmap, dataIsCompressed, mustFlipVertically, buffer, flusher);
     }
 
@@ -265,7 +183,7 @@ public class TextureData {
                        int width,
                        int height,
                        int border,
-                       PixelAttributes pixelAttributes,
+                       GLPixelAttributes pixelAttributes,
                        boolean mipmap,
                        boolean dataIsCompressed,
                        boolean mustFlipVertically,
@@ -340,7 +258,7 @@ public class TextureData {
                        boolean mustFlipVertically,
                        Buffer[] mipmapData,
                        Flusher flusher) throws IllegalArgumentException {
-        this(glp, internalFormat, width, height, border, new PixelAttributes(pixelFormat, pixelType), 
+        this(glp, internalFormat, width, height, border, new GLPixelAttributes(pixelFormat, pixelType), 
              dataIsCompressed, mustFlipVertically, mipmapData, flusher);
     }
 
@@ -387,7 +305,7 @@ public class TextureData {
                        int width,
                        int height,
                        int border,
-                       PixelAttributes pixelAttributes,
+                       GLPixelAttributes pixelAttributes,
                        boolean dataIsCompressed,
                        boolean mustFlipVertically,
                        Buffer[] mipmapData,
@@ -421,7 +339,7 @@ public class TextureData {
     public void setColorSpace(ColorSpace cs) { pixelCS = cs; }
     
     /** Used only by subclasses */
-    protected TextureData(GLProfile glp) { this.glProfile = glp; this.pixelAttributes = PixelAttributes.UNDEF; }
+    protected TextureData(GLProfile glp) { this.glProfile = glp; this.pixelAttributes = GLPixelAttributes.UNDEF; }
 
     /** Returns the width in pixels of the texture data. */
     public int getWidth() { return width; }
@@ -431,8 +349,8 @@ public class TextureData {
     public int getBorder() { 
         return border; 
     }
-    /** Returns the intended OpenGL {@link PixelAttributes} of the texture data, i.e. format and type. */
-    public PixelAttributes getPixelAttributes() {
+    /** Returns the intended OpenGL {@link GLPixelAttributes} of the texture data, i.e. format and type. */
+    public GLPixelAttributes getPixelAttributes() {
         return pixelAttributes;
     }
     /** Returns the intended OpenGL pixel format of the texture data. */
@@ -487,27 +405,27 @@ public class TextureData {
     /** Sets the border in pixels of the texture data. */
     public void setBorder(int border) { this.border = border; }
     /** Sets the intended OpenGL pixel format of the texture data. */
-    public void setPixelAttributes(PixelAttributes pixelAttributes) { this.pixelAttributes = pixelAttributes; }     
+    public void setPixelAttributes(GLPixelAttributes pixelAttributes) { this.pixelAttributes = pixelAttributes; }     
     /** 
-     * Sets the intended OpenGL pixel format component of {@link PixelAttributes} of the texture data.
+     * Sets the intended OpenGL pixel format component of {@link GLPixelAttributes} of the texture data.
      * <p>
-     * Use {@link #setPixelAttributes(PixelAttributes)}, if setting format and type. 
+     * Use {@link #setPixelAttributes(GLPixelAttributes)}, if setting format and type. 
      * </p> 
      */
     public void setPixelFormat(int pixelFormat) {
         if( pixelAttributes.format != pixelFormat ) {
-            pixelAttributes = new PixelAttributes(pixelFormat, pixelAttributes.type);
+            pixelAttributes = new GLPixelAttributes(pixelFormat, pixelAttributes.type);
         }
     }
     /** 
-     * Sets the intended OpenGL pixel type component of {@link PixelAttributes} of the texture data.
+     * Sets the intended OpenGL pixel type component of {@link GLPixelAttributes} of the texture data.
      * <p>
-     * Use {@link #setPixelAttributes(PixelAttributes)}, if setting format and type. 
+     * Use {@link #setPixelAttributes(GLPixelAttributes)}, if setting format and type. 
      * </p> 
      */
     public void setPixelType(int pixelType) { 
         if( pixelAttributes.type != pixelType) {
-            pixelAttributes = new PixelAttributes(pixelAttributes.format, pixelType);
+            pixelAttributes = new GLPixelAttributes(pixelAttributes.format, pixelType);
         }
     }
     /** Sets the intended OpenGL internal format of the texture data. */

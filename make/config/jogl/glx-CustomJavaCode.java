@@ -6,10 +6,9 @@
     if (__addr_ == 0) {
         throw new GLException("Method \"glXGetVisualFromFBConfig\" not available");
     }
-    java.nio.ByteBuffer _res;
-    _res = dispatch_glXGetVisualFromFBConfig(dpy, config, __addr_);
+    final java.nio.ByteBuffer _res = dispatch_glXGetVisualFromFBConfig(dpy, config, __addr_);
     if (_res == null) return null;
-    return XVisualInfo.create(_res);
+    return XVisualInfo.create(Buffers.nativeOrder(_res));
   }
 
   /** Entry point to C language function: - Alias for: <br> <code> XVisualInfo *  glXGetVisualFromFBConfigSGIX, glXGetVisualFromFBConfig(Display *  dpy, GLXFBConfig config); </code>    */
@@ -29,11 +28,9 @@
     if (__addr_ == 0) {
       throw new GLException("Method \"glXChooseFBConfig\" not available");
     }
-    final ByteBuffer _res;
-    _res = dispatch_glXChooseFBConfig(dpy, screen, attribList, Buffers.getDirectBufferByteOffset(attribList), nitems, Buffers.getDirectBufferByteOffset(nitems), __addr_);
+    final ByteBuffer _res = dispatch_glXChooseFBConfig(dpy, screen, attribList, Buffers.getDirectBufferByteOffset(attribList), nitems, Buffers.getDirectBufferByteOffset(nitems), __addr_);
     if (_res == null) return null;
-    Buffers.nativeOrder(_res);
-    return PointerBuffer.wrap(_res);
+    return PointerBuffer.wrap(Buffers.nativeOrder(_res));
   }
 
   /** Entry point to C language function: <code> GLXFBConfig *  glXChooseFBConfig(Display *  dpy, int screen, const int *  attribList, int *  nitems); </code> <br>Part of CORE FUNC
@@ -52,8 +49,7 @@
     if (__addr_ == 0) {
       throw new GLException("Method \"glXChooseVisual\" not available");
     }
-    final ByteBuffer _res;
-    _res = dispatch_glXChooseVisual(dpy, screen, attribList, Buffers.getDirectBufferByteOffset(attribList), __addr_);
+    final ByteBuffer _res = dispatch_glXChooseVisual(dpy, screen, attribList, Buffers.getDirectBufferByteOffset(attribList), __addr_);
     if (_res == null) return null;
     return XVisualInfo.create(Buffers.nativeOrder(_res));
   }

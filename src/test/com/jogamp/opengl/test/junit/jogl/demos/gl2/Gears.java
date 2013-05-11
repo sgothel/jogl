@@ -75,7 +75,7 @@ public class Gears implements GLEventListener {
     System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
     System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
     System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
-    System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none")+", "+gl.getContext().getGLSLVersionNumber());
+    System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler-func: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none")+", "+gl.getContext().getGLSLVersionNumber());
     System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
     System.err.println("GL Profile: "+gl.getGLProfile());
     System.err.println("GL Renderer Quirks:" + gl.getContext().getRendererQuirks().toString());

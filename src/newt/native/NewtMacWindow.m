@@ -439,14 +439,12 @@ static UniChar CKCH_CharForKeyCode(jshort keyCode) {
        styleMask: (NSUInteger) windowStyle
        backing: (NSBackingStoreType) bufferingType
        defer: (BOOL) deferCreation
-       screen:(NSScreen *)screen
        isFullscreenWindow:(BOOL)isfs
 {
     id res = [super initWithContentRect: contentRect
                     styleMask: windowStyle
                     backing: bufferingType
-                    defer: deferCreation
-                    screen: screen];
+                    defer: deferCreation];
     isFullscreenWindow = isfs;
     // Why is this necessary? Without it we don't get any of the
     // delegate methods like resizing and window movement.

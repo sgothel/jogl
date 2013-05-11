@@ -135,8 +135,7 @@ public class WindowDriver extends WindowImpl {
 
     protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) { 
         if(DEBUG_IMPLEMENTATION) {
-            System.err.println("X11Window reconfig: "+x+"/"+y+" "+width+"x"+height+", "+
-                               getReconfigureFlagsAsString(null, flags));
+            System.err.println("X11Window reconfig: "+x+"/"+y+" "+width+"x"+height+", "+ getReconfigureFlagsAsString(null, flags));
         }
         final int _x, _y;
         if(0 == ( FLAG_IS_UNDECORATED & flags)) {

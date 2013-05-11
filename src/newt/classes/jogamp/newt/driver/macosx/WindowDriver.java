@@ -478,7 +478,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                 if( 0 != surfaceHandle ) {
                     throw new NativeWindowException("Internal Error - create w/o window, but has Newt NSView");
                 }                
-                surfaceHandle = createView0(pS.getX(), pS.getY(), width, height, fullscreen, getScreen().getIndex());
+                surfaceHandle = createView0(pS.getX(), pS.getY(), width, height, fullscreen);
                 if( 0 == surfaceHandle ) {
                     throw new NativeWindowException("Could not create native view "+Thread.currentThread().getName()+" "+this);
                 }
@@ -487,7 +487,7 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             final long newWin = createWindow0( pS.getX(), pS.getY(), width, height, fullscreen, 
                                                ( isUndecorated() || offscreenInstance ) ? NSBorderlessWindowMask :
                                                NSTitledWindowMask|NSClosableWindowMask|NSMiniaturizableWindowMask|NSResizableWindowMask,
-                                               NSBackingStoreBuffered, getScreen().getIndex(), surfaceHandle);
+                                               NSBackingStoreBuffered, surfaceHandle);
             if ( newWin == 0 ) {
                 throw new NativeWindowException("Could not create native window "+Thread.currentThread().getName()+" "+this);
             }
@@ -497,9 +497,8 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
             // Non blocking initialization on main-thread!                
             OSXUtil.RunOnMainThread(false, new Runnable() {
                 public void run() {
-                    initWindow0( parentWin, newWin,
-                                 pS.getX(), pS.getY(), width, height,
-                                 isOpaque, fullscreen, visible && !offscreenInstance, getScreen().getIndex(), surfaceHandle);
+                    initWindow0( parentWin, newWin, pS.getX(), pS.getY(), width, height,
+                                 isOpaque, fullscreen, visible && !offscreenInstance, surfaceHandle);
                     if( offscreenInstance ) {
                         orderOut0(0!=parentWin ? parentWin : newWin);
                     } else {
@@ -514,11 +513,11 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
     }
     
     protected static native boolean initIDs0();
-    private native long createView0(int x, int y, int w, int h, boolean fullscreen, int screen_idx);
-    private native long createWindow0(int x, int y, int w, int h, boolean fullscreen, int windowStyle, int backingStoreType, int screen_idx, long view);
+    private native long createView0(int x, int y, int w, int h, boolean fullscreen);
+    private native long createWindow0(int x, int y, int w, int h, boolean fullscreen, int windowStyle, int backingStoreType, long view);
     /** Must be called on Main-Thread */
     private native void initWindow0(long parentWindow, long window, int x, int y, int w, int h,
-                                    boolean opaque, boolean fullscreen, boolean visible, int screen_idx, long view);
+                                    boolean opaque, boolean fullscreen, boolean visible, long view);
     private native boolean lockSurface0(long window, long view);
     private native boolean unlockSurface0(long window, long view);
     /** Must be called on Main-Thread */

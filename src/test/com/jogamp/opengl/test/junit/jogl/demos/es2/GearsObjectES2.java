@@ -41,13 +41,13 @@ public class GearsObjectES2 extends GearsObject {
     final GLUniformData colorUniform;
     final ShaderState st;
     
-    public GearsObjectES2(ShaderState st, float inner_radius, float outer_radius,
+    public GearsObjectES2(ShaderState st, FloatBuffer gearColor, float inner_radius, float outer_radius,
                           float width, int teeth,
                           float tooth_depth, 
                           PMVMatrix pmvMatrix,
                           GLUniformData pmvMatrixUniform, GLUniformData colorUniform) 
     {
-        super(inner_radius, outer_radius, width, teeth, tooth_depth);
+        super(gearColor, inner_radius, outer_radius, width, teeth, tooth_depth);
         this.pmvMatrix = pmvMatrix;
         this.pmvMatrixUniform = pmvMatrixUniform;
         this.colorUniform = colorUniform;
@@ -95,7 +95,7 @@ public class GearsObjectES2 extends GearsObject {
     }
 
     @Override
-    public void draw(GL _gl, float x, float y, float angle, FloatBuffer color) {
+    public void draw(GL _gl, float x, float y, float angle) {
         final GL2ES2 gl = _gl.getGL2ES2();
         pmvMatrix.glPushMatrix();
         pmvMatrix.glTranslatef(x, y, 0f);
@@ -106,7 +106,7 @@ public class GearsObjectES2 extends GearsObject {
             throw new InternalError("PMVMatrix.update() returns false after mutable operations");
         }
 
-        colorUniform.setData(color);
+        colorUniform.setData(gearColor);
         st.uniform(gl, colorUniform);
 
         draw(gl, frontFace, GL.GL_TRIANGLE_STRIP);
