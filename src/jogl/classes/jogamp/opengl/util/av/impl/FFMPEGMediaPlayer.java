@@ -538,8 +538,8 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
                 // Try sync video to audio
                 final long now_d = now - lastAudioTime;
                 final long pts_d = pts - lastAudioPTS - 444; /* hack 444 == play video 444ms ahead of audio */
-                //final long dt = Math.min(46, Math.abs( (long) ( (float) ( pts_d - now_d ) / getPlaySpeed() ) ) ) ;
-                final long dt = (long) ( (float) ( pts_d - now_d ) / getPlaySpeed() ) ;
+                final long dt = Math.min(47, (long) ( (float) ( pts_d - now_d ) / getPlaySpeed() ) ) ;
+                //final long dt = (long) ( (float) ( pts_d - now_d ) / getPlaySpeed() ) ;
                 lastVideoTime = now;
                 System.err.println("s: pts-v "+pts+", pts-d "+pts_d+", now_d "+now_d+", dt "+dt);
                 
