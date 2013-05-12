@@ -665,7 +665,7 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                     data_size = sp_av_samples_get_buffer_size(NULL /* linesize, may be NULL */,
                                                               pAV->aChannels,
                                                               pAV->pAFrame->nb_samples,
-                                                              pAV->aSampleFmt,
+                                                              pAV->pAFrame->format,
                                                               1 /* align */);
                 }
                 int32_t pts = (int64_t) ( pAV->pAFrame->pkt_pts * (int64_t) 1000 * (int64_t) pAV->pAStream->time_base.num )
