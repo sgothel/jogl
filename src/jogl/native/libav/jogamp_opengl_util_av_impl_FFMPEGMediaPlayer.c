@@ -192,12 +192,38 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryB
     return JNI_TRUE;
 }
 
-static void _updateSound(JNIEnv *env, jobject instance, char *data, int32_t data_size) {
+static void _updateSound(JNIEnv *env, jobject instance, int8_t *data, int32_t data_size, int32_t aPTS) {
     if(NULL!=env) {
-        fprintf(stderr, "nA");
         jbyteArray jbArray = (*env)->NewByteArray(env, data_size);
-        (*env)->SetByteArrayRegion(env, jbArray, 0, data_size, (jbyte*)data);
-        (*env)->CallVoidMethod(env, instance, jni_mid_updateSound, jbArray, data_size);
+        if (jbArray == NULL) {
+            fprintf(stderr, "FFMPEGMediaPlayer out of memory at native code _updateSound");
+            return; /* out of memory error thrown */
+        }
+
+/*
+        // Visualize sample waveform
+        int i;
+        for(i=0;i<40;i++){
+            int8_t b = data[i];
+            if(b<0) {
+                printf(" ");
+            } else if(b<64) {
+                printf("_");
+            } else if(b < 128) {
+                printf("-");
+            } else if(b == 128) {
+                printf("=");
+            } else if(b < 256-64) {
+                printf("\"");
+            } else {
+                printf("'");
+            }
+        }
+        printf("nA\n");
+*/
+
+        (*env)->SetByteArrayRegion(env, jbArray, 0, data_size, data);
+        (*env)->CallVoidMethod(env, instance, jni_mid_updateSound, jbArray, data_size, aPTS);
     }
 }
 
@@ -344,7 +370,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_ini
         JoglCommon_FatalError(env, "JOGL FFMPEG: can't use %s", ClazzNameFFMPEGMediaPlayer);
     }
 
-    jni_mid_updateSound = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateSound", "([BI)V");
+    jni_mid_updateSound = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateSound", "([BII)V");
     jni_mid_updateAttributes1 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", "(IIIIIFIILjava/lang/String;Ljava/lang/String;)V");
     jni_mid_updateAttributes2 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes2", "(IIIIIIIIII)V");
 
@@ -656,7 +682,7 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                 // TODO: Wrap audio buffer data in a com.jogamp.openal.sound3d.Buffer or similar
                 // and hand it over to the user using a suitable API.
                 // TODO: OR send the audio buffer data down to sound card directly using JOAL.
-                _updateSound(env, instance, pAV->pAFrame->data[0], data_size);
+                _updateSound(env, instance, pAV->pAFrame->data[0], data_size, pAV->aPTS);
 
                 res = 1;
             }
