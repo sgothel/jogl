@@ -189,13 +189,9 @@ public class SWTNewtEventFactory {
             case com.jogamp.newt.event.KeyEvent.VK_MULTIPLY      : return SWT.KEYPAD_MULTIPLY;
             case com.jogamp.newt.event.KeyEvent.VK_DIVIDE        : return SWT.KEYPAD_DIVIDE;
             case com.jogamp.newt.event.KeyEvent.VK_NUM_LOCK      : return SWT.NUM_LOCK;
-            case com.jogamp.newt.event.KeyEvent.VK_KP_LEFT       :
             case com.jogamp.newt.event.KeyEvent.VK_LEFT          : return SWT.ARROW_LEFT;
-            case com.jogamp.newt.event.KeyEvent.VK_KP_UP         :
             case com.jogamp.newt.event.KeyEvent.VK_UP            : return SWT.ARROW_UP;
-            case com.jogamp.newt.event.KeyEvent.VK_KP_RIGHT      :
             case com.jogamp.newt.event.KeyEvent.VK_RIGHT         : return SWT.ARROW_RIGHT;
-            case com.jogamp.newt.event.KeyEvent.VK_KP_DOWN       :
             case com.jogamp.newt.event.KeyEvent.VK_DOWN          : return SWT.ARROW_DOWN;
             case com.jogamp.newt.event.KeyEvent.VK_HELP          : return SWT.HELP;
         }

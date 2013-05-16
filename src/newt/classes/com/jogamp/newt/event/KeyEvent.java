@@ -327,7 +327,6 @@ public class KeyEvent extends InputEvent
                 ( nonPrintableKeys[3].min <= uniChar && uniChar <= nonPrintableKeys[3].max ) ) {
                 return false;
             }
-            
         } else {
             if( ( nonPrintableKeys[0].inclKeyChar && nonPrintableKeys[0].min <= uniChar && uniChar <= nonPrintableKeys[0].max ) ||
                 ( nonPrintableKeys[1].inclKeyChar && nonPrintableKeys[1].min <= uniChar && uniChar <= nonPrintableKeys[1].max ) ||
@@ -391,12 +390,14 @@ public class KeyEvent extends InputEvent
             this.max = max;
             this.inclKeyChar = inclKeyChar;
         }
-    };    
-    /** Non printable key ranges, currently fixed to an aray of size 4. */
-    public final static NonPrintableRange[] nonPrintableKeys = { new NonPrintableRange( (short)0x0000, (short)0x001F, true ),
-                                                                   new NonPrintableRange( (short)0x0061, (short)0x0078, false), 
-                                                                   new NonPrintableRange( (short)0x007F, (short)0x009F, true ), 
-                                                                   new NonPrintableRange( (short)0xE000, (short)0xF8FF, true ) };
+    };
+    /** Non printable key ranges, currently fixed to an array of size 4. */
+    public final static NonPrintableRange[] nonPrintableKeys = { 
+        new NonPrintableRange( (short)0x0000, (short)0x001F, true ),  // Unicode: Non printable controls: [0x00 - 0x1F]
+        new NonPrintableRange( (short)0x0061, (short)0x0078, false),  // Small 'a' thru 'z' (0x61 - 0x7a) - Not used for keyCode / keySym - Re-used for Fn (collision)
+        new NonPrintableRange( (short)0x008F, (short)0x009F, true ),  // Unicode: Non printable controls: [0x7F - 0x9F], Numpad keys [0x7F - 0x8E] are printable! 
+        new NonPrintableRange( (short)0xE000, (short)0xF8FF, true )   // Unicode: Private 0xE000 - 0xF8FF (Marked Non-Printable)
+    };
     
     //
     // Unicode: Non printable controls: [0x00 - 0x1F]
@@ -657,7 +658,7 @@ public class KeyEvent extends InputEvent
     /** Constant for the "`" key */
     public static final short VK_BACK_QUOTE     = (short) 0x60;
     
-    /** Small UTF/ASCII 'a' thru 'z' (0x61 - 0x7a) - Not used for keyCode / keySym. */ 
+    /** Small UTF/ASCII 'a' thru 'z' (0x61 - 0x7a) - Not used for keyCode / keySym. */
     
     /** 
      * Constant for the F<i>n</i> function keys. 
@@ -754,9 +755,11 @@ public class KeyEvent extends InputEvent
     //
     // Unicode: Non printable controls: [0x7F - 0x9F]
     //
+    // Numpad keys [0x7F - 0x8E] are printable
+    //
     
-    /** Constant for the DEL key, matching ASCII. Non printable UTF control. */
-    public static final short VK_DELETE         = (short) 0x7F;
+    /** Numeric keypad <b>decimal separator</b> key. Non printable UTF control. */
+    public static final short VK_SEPARATOR      = (short) 0x7F;
     
     /** Numeric keypad VK_NUMPAD0 thru VK_NUMPAD9 are mapped to UTF control (0x80 - 0x89). Non printable UTF control. */
     public static final short VK_NUMPAD0        = (short) 0x80;
@@ -782,49 +785,37 @@ public class KeyEvent extends InputEvent
     /** Numeric keypad <b>decimal separator</b> key. Non printable UTF control. */
     public static final short VK_DECIMAL        = (short) 0x8A;
         
-    /** Numeric keypad <b>decimal separator</b> key. Non printable UTF control. */
-    public static final short VK_SEPARATOR      = (short) 0x8B;
-    
     /** Numeric keypad <b>add</b> key. Non printable UTF control. */
-    public static final short VK_ADD            = (short) 0x8C;    
+    public static final short VK_ADD            = (short) 0x8B;
 
     /** Numeric keypad <b>subtract</b> key. Non printable UTF control. */
-    public static final short VK_SUBTRACT       = (short) 0x8D;
+    public static final short VK_SUBTRACT       = (short) 0x8C;
     
     /** Numeric keypad <b>multiply</b> key. Non printable UTF control. */
-    public static final short VK_MULTIPLY       = (short) 0x8E;
+    public static final short VK_MULTIPLY       = (short) 0x8D;
     
     /** Numeric keypad <b>divide</b> key. Non printable UTF control. */
-    public static final short VK_DIVIDE         = (short) 0x8F;
+    public static final short VK_DIVIDE         = (short) 0x8E;
+    
+    /** Constant for the DEL key, matching ASCII. Non printable UTF control. */
+    public static final short VK_DELETE         = (short) 0x93;
     
     /** Numeric keypad <b>num lock</b> key. Non printable UTF control. */
-    public static final short VK_NUM_LOCK       = (short) 0x90;
+    public static final short VK_NUM_LOCK       = (short) 0x94;
     
-    /** Numeric keypad <b>left</b> arrow key, for cursor pad see {@link #VK_LEFT}. Non printable UTF control. */
-    public static final short VK_KP_LEFT        = (short) 0x91;
-
-    /** Numeric keypad <b>up</b> arrow key, for cursor pad see {@link #VK_UP}. Non printable UTF control. */
-    public static final short VK_KP_UP          = (short) 0x92;
-
-    /** Constant for the numeric keypad <b>right</b> arrow key, for cursor pad see {@link #VK_RIGHT}. Non printable UTF control. */
-    public static final short VK_KP_RIGHT       = (short) 0x93;
-    
-    /** Numeric keypad <b>down</b> arrow key, for cursor pad see {@link #VK_DOWN}. Non printable UTF control. */
-    public static final short VK_KP_DOWN        = (short) 0x94;
-
-    /** Constant for the cursor-pad <b>left</b> arrow key, for numerical pad see {@link #VK_KP_LEFT}*/
+    /** Constant for the cursor- or numerical-pad <b>left</b> arrow key. Non printable UTF control. */
     public static final short VK_LEFT           = (short) 0x95;
 
-    /** Constant for the cursor-pad <b>left</b> arrow key, for numerical pad see {@link #VK_KP_UP}.*/
+    /** Constant for the cursor- or numerical-pad <b>up</b> arrow key. Non printable UTF control. */
     public static final short VK_UP             = (short) 0x96;
 
-    /** Constant for the cursor-pad <b>left</b> arrow key, for numerical pad see {@link #VK_KP_RIGHT}.*/
+    /** Constant for the cursor- or numerical-pad <b>right</b> arrow key. Non printable UTF control. */
     public static final short VK_RIGHT          = (short) 0x97;
 
-    /** Constant for the cursor-pad <b>left</b> arrow key, for numerical pad see {@link #VK_KP_DOWN}.*/
+    /** Constant for the cursor- or numerical pad <b>down</b> arrow key. Non printable UTF control. */
     public static final short VK_DOWN           = (short) 0x98;
         
-    /** Constant for the Context Menu key. */
+    /** Constant for the Context Menu key. Non printable UTF control. */
     public static final short VK_CONTEXT_MENU   = (short) 0x99;
 
     /**

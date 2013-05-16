@@ -369,13 +369,13 @@ public class AWTNewtEventFactory {
             case java.awt.event.KeyEvent.VK_MULTIPLY      : return com.jogamp.newt.event.KeyEvent.VK_MULTIPLY;
             case java.awt.event.KeyEvent.VK_DIVIDE        : return com.jogamp.newt.event.KeyEvent.VK_DIVIDE;
             case java.awt.event.KeyEvent.VK_NUM_LOCK      : return com.jogamp.newt.event.KeyEvent.VK_NUM_LOCK;
-            case java.awt.event.KeyEvent.VK_KP_LEFT       : return com.jogamp.newt.event.KeyEvent.VK_KP_LEFT;
-            case java.awt.event.KeyEvent.VK_KP_UP         : return com.jogamp.newt.event.KeyEvent.VK_KP_UP;
-            case java.awt.event.KeyEvent.VK_KP_RIGHT      : return com.jogamp.newt.event.KeyEvent.VK_KP_RIGHT;
-            case java.awt.event.KeyEvent.VK_KP_DOWN       : return com.jogamp.newt.event.KeyEvent.VK_KP_DOWN;
+            case java.awt.event.KeyEvent.VK_KP_LEFT       : /** Fall through intended .. */ 
             case java.awt.event.KeyEvent.VK_LEFT          : return com.jogamp.newt.event.KeyEvent.VK_LEFT;
+            case java.awt.event.KeyEvent.VK_KP_UP         : /** Fall through intended .. */
             case java.awt.event.KeyEvent.VK_UP            : return com.jogamp.newt.event.KeyEvent.VK_UP;
+            case java.awt.event.KeyEvent.VK_KP_RIGHT      : /** Fall through intended .. */
             case java.awt.event.KeyEvent.VK_RIGHT         : return com.jogamp.newt.event.KeyEvent.VK_RIGHT;
+            case java.awt.event.KeyEvent.VK_KP_DOWN       : /** Fall through intended .. */
             case java.awt.event.KeyEvent.VK_DOWN          : return com.jogamp.newt.event.KeyEvent.VK_DOWN;
             case java.awt.event.KeyEvent.VK_CONTEXT_MENU  : return com.jogamp.newt.event.KeyEvent.VK_CONTEXT_MENU;
             case java.awt.event.KeyEvent.VK_WINDOWS       : return com.jogamp.newt.event.KeyEvent.VK_WINDOWS;
@@ -550,10 +550,6 @@ public class AWTNewtEventFactory {
             case com.jogamp.newt.event.KeyEvent.VK_MULTIPLY      : return java.awt.event.KeyEvent.VK_MULTIPLY;
             case com.jogamp.newt.event.KeyEvent.VK_DIVIDE        : return java.awt.event.KeyEvent.VK_DIVIDE;
             case com.jogamp.newt.event.KeyEvent.VK_NUM_LOCK      : return java.awt.event.KeyEvent.VK_NUM_LOCK;
-            case com.jogamp.newt.event.KeyEvent.VK_KP_LEFT       : return java.awt.event.KeyEvent.VK_KP_LEFT;
-            case com.jogamp.newt.event.KeyEvent.VK_KP_UP         : return java.awt.event.KeyEvent.VK_KP_UP;
-            case com.jogamp.newt.event.KeyEvent.VK_KP_RIGHT      : return java.awt.event.KeyEvent.VK_KP_RIGHT;
-            case com.jogamp.newt.event.KeyEvent.VK_KP_DOWN       : return java.awt.event.KeyEvent.VK_KP_DOWN;
             case com.jogamp.newt.event.KeyEvent.VK_LEFT          : return java.awt.event.KeyEvent.VK_LEFT;
             case com.jogamp.newt.event.KeyEvent.VK_UP            : return java.awt.event.KeyEvent.VK_UP;
             case com.jogamp.newt.event.KeyEvent.VK_RIGHT         : return java.awt.event.KeyEvent.VK_RIGHT;
