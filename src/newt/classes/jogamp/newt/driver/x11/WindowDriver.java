@@ -228,7 +228,7 @@ public class WindowDriver extends WindowImpl {
     
     @Override
     protected final void doMouseEvent(boolean enqueue, boolean wait, short eventType, int modifiers,
-                                int x, int y, short button, float rotation) {
+                                int x, int y, short button, float[] rotationXYZ, float rotationScale) {
         switch(eventType) {
             case MouseEvent.EVENT_MOUSE_PRESSED:
                 switch(button) {
@@ -242,32 +242,32 @@ public class WindowDriver extends WindowImpl {
                 break;
             case MouseEvent.EVENT_MOUSE_RELEASED:
                 switch(button) {
-                    case X11_WHEEL_ONE_UP_BUTTON:
+                    case X11_WHEEL_ONE_UP_BUTTON: // vertical scroll up
                         eventType = MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
                         button = 1;
-                        rotation = 1;
+                        rotationXYZ[1] = 1;
                         break;
-                    case X11_WHEEL_ONE_DOWN_BUTTON:
+                    case X11_WHEEL_ONE_DOWN_BUTTON: // vertical scroll down
                         eventType = MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
                         button = 1;
-                        rotation = -1;
+                        rotationXYZ[1] = -1;
                         break;
-                    case X11_WHEEL_TWO_UP_BUTTON: // vertical scroll left
+                    case X11_WHEEL_TWO_UP_BUTTON: // horizontal scroll left
                         eventType = MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
                         button = 1;
-                        rotation = 1;
+                        rotationXYZ[0] = 1;
                         modifiers |= InputEvent.SHIFT_MASK;
                         break;
-                    case X11_WHEEL_TWO_DOWN_BUTTON: // vertical scroll right
+                    case X11_WHEEL_TWO_DOWN_BUTTON: // horizontal scroll right
                         eventType = MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
                         button = 1;
-                        rotation = -1;
+                        rotationXYZ[0] = -1;
                         modifiers |= InputEvent.SHIFT_MASK;
                         break;
                 }                
                 break;
         }
-        super.doMouseEvent(enqueue, wait, eventType, modifiers, x, y, button, rotation);        
+        super.doMouseEvent(enqueue, wait, eventType, modifiers, x, y, button, rotationXYZ, rotationScale);
     }
     
     protected final void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar0, String keyString) {

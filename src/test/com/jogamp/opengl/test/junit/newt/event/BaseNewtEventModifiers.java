@@ -134,7 +134,8 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             if( _modifierCheckEnabled ) {
 
                 final MouseEvent expEvent = new MouseEvent(hasEvent.getEventType(), hasEvent.getSource(), hasEvent.getWhen(), _expectedModifiers, 
-                                                           hasEvent.getX(), hasEvent.getY(), hasEvent.getClickCount(), hasEvent.getButton(), hasEvent.getWheelRotation());
+                                                           hasEvent.getX(), hasEvent.getY(), hasEvent.getClickCount(), hasEvent.getButton(), 
+                                                           hasEvent.getRotation(), hasEvent.getRotationScale());
                 
                 _checkModifierMask( expEvent, hasEvent, com.jogamp.newt.event.InputEvent.SHIFT_MASK, "shift" ) ;
                 _checkModifierMask( expEvent, hasEvent, com.jogamp.newt.event.InputEvent.CTRL_MASK, "ctrl" ) ;

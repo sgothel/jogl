@@ -2133,17 +2133,29 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     //
     // MouseListener/Event Support
     //
-    public void sendMouseEvent(short eventType, int modifiers,
-                               int x, int y, short button, float rotation) {
+    public final void sendMouseEvent(short eventType, int modifiers,
+                                     int x, int y, short button, float rotation) {
         doMouseEvent(false, false, eventType, modifiers, x, y, button, rotation);
     }
-    public void enqueueMouseEvent(boolean wait, short eventType, int modifiers,
-                                  int x, int y, short button, float rotation) {
+    public final void enqueueMouseEvent(boolean wait, short eventType, int modifiers,
+                                        int x, int y, short button, float rotation) {
         doMouseEvent(true, wait, eventType, modifiers, x, y, button, rotation);
     }
-    
+    protected final void doMouseEvent(boolean enqueue, boolean wait, short eventType, int modifiers,
+                                      int x, int y, short button, float rotation) {
+        this.doMouseEvent(enqueue, wait, eventType, modifiers, x, y, button, MouseEvent.getRotationXYZ(rotation, modifiers), 1f);
+    }
+    /**
+    public final void sendMouseEvent(short eventType, int modifiers,
+                                     int x, int y, short button, float[] rotationXYZ, float rotationScale) {
+        doMouseEvent(false, false, eventType, modifiers, x, y, button, rotationXYZ, rotationScale);
+    }
+    public final void enqueueMouseEvent(boolean wait, short eventType, int modifiers,
+                                        int x, int y, short button, float[] rotationXYZ, float rotationScale) {
+        doMouseEvent(true, wait, eventType, modifiers, x, y, button, rotationXYZ, rotationScale);
+    } */
     protected void doMouseEvent(boolean enqueue, boolean wait, short eventType, int modifiers,
-                                int x, int y, short button, float rotation) {
+                                int x, int y, short button, float[] rotationXYZ, float rotationScale) {
         if( eventType == MouseEvent.EVENT_MOUSE_ENTERED || eventType == MouseEvent.EVENT_MOUSE_EXITED ) {
             if( eventType == MouseEvent.EVENT_MOUSE_EXITED && x==-1 && y==-1 ) {
                 x = lastMousePosition.getX();
@@ -2172,7 +2184,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(!mouseInWindow) {
                 mouseInWindow = true;
                 eEntered = new MouseEvent(MouseEvent.EVENT_MOUSE_ENTERED, this, when,
-                                          modifiers, x, y, (short)0, (short)0, (short)0);
+                                          modifiers, x, y, (short)0, (short)0, rotationXYZ, rotationScale);
                 // clear states
                 lastMousePressed = 0;
                 lastMouseClickCount = (short)0; 
@@ -2213,13 +2225,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             mouseButtonPressed = button;
             mouseButtonModMask |= MouseEvent.getButtonMask(button);
             e = new MouseEvent(eventType, this, when,
-                               modifiers, x, y, lastMouseClickCount, button, 0);
+                               modifiers, x, y, lastMouseClickCount, button, rotationXYZ, rotationScale);
         } else if( MouseEvent.EVENT_MOUSE_RELEASED == eventType ) {
             e = new MouseEvent(eventType, this, when,
-                               modifiers, x, y, lastMouseClickCount, button, 0);
+                               modifiers, x, y, lastMouseClickCount, button, rotationXYZ, rotationScale);
             if( when - lastMousePressed < MouseEvent.getClickTimeout() ) {
                 eClicked = new MouseEvent(MouseEvent.EVENT_MOUSE_CLICKED, this, when,
-                                          modifiers, x, y, lastMouseClickCount, button, 0);
+                                          modifiers, x, y, lastMouseClickCount, button, rotationXYZ, rotationScale);
             } else {
                 lastMouseClickCount = (short)0;
                 lastMousePressed = 0;
@@ -2229,15 +2241,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         } else if( MouseEvent.EVENT_MOUSE_MOVED == eventType ) {
             if ( mouseButtonPressed > 0 ) {
                 e = new MouseEvent(MouseEvent.EVENT_MOUSE_DRAGGED, this, when,
-                                   modifiers, x, y, (short)1, mouseButtonPressed, 0);
+                                   modifiers, x, y, (short)1, mouseButtonPressed, rotationXYZ, rotationScale);
             } else {
                 e = new MouseEvent(eventType, this, when,
-                                   modifiers, x, y, (short)0, button, (short)0);
+                                   modifiers, x, y, (short)0, button, rotationXYZ, rotationScale);
             }
         } else if( MouseEvent.EVENT_MOUSE_WHEEL_MOVED == eventType ) {
-            e = new MouseEvent(eventType, this, when, modifiers, x, y, (short)0, button, rotation);
+            e = new MouseEvent(eventType, this, when, modifiers, x, y, (short)0, button, rotationXYZ, rotationScale);
         } else {
-            e = new MouseEvent(eventType, this, when, modifiers, x, y, (short)0, button, 0);
+            e = new MouseEvent(eventType, this, when, modifiers, x, y, (short)0, button, rotationXYZ, rotationScale);
         }
         if( null != eEntered ) {
             if(DEBUG_MOUSE_EVENT) {

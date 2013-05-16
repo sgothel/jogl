@@ -92,6 +92,17 @@ public class MouseEvent extends InputEvent
     /** Maximum number of buttons, value <code>16</code> */
     public static final short BUTTON_NUMBER =  16;
 
+    /** Returns the 3-axis XYZ rotation array by given rotation on Y axis or X axis (if SHIFT_MASK is given in mods). */ 
+    public static final float[] getRotationXYZ(final float rotationXorY, final int mods) {
+        final float[] rotationXYZ = new float[] { 0f, 0f, 0f };
+        if( 0 != ( mods & InputEvent.SHIFT_MASK ) ) {
+            rotationXYZ[0] = rotationXorY;
+        } else {
+            rotationXYZ[1] = rotationXorY;
+        }
+        return rotationXYZ;
+    }
+    
     public static final short getClickTimeout() { 
         return 300; 
     }
@@ -99,7 +110,7 @@ public class MouseEvent extends InputEvent
     /** Constructor for tradition 1-pointer mouse events. */ 
     public MouseEvent(short eventType, Object source, long when,
             int modifiers, int x, int y, short clickCount, short button,
-            float rotation)
+            float[] rotationXYZ, float rotationScale)
     {
         super(eventType, source, when, modifiers); 
         this.x = new int[]{x};
@@ -109,13 +120,8 @@ public class MouseEvent extends InputEvent
         this.pointerIDs = constMousePointerIDs;
         this.clickCount=clickCount;
         this.button=button;
-        this.rotationXYZ = new float[] { 0f, 0f, 0f };
-        if( isShiftDown() ) {
-            this.rotationXYZ[0] = rotation;
-        } else {
-            this.rotationXYZ[1] = rotation;
-        }
-        this.rotationScale = 1f;
+        this.rotationXYZ = rotationXYZ;
+        this.rotationScale = rotationScale;
         this.pointerTypes = constMousePointerTypes;
     }
 

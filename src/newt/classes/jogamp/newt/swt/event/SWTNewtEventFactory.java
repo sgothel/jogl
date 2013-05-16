@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
 import com.jogamp.newt.event.InputEvent;
+import com.jogamp.newt.event.MouseEvent;
 
 /**
  * SWT event translator to NEWT, inclusive dispatch listener.
@@ -242,7 +243,7 @@ public class SWTNewtEventFactory {
             
             return new com.jogamp.newt.event.MouseEvent(
                            type, (null==source)?(Object)event.data:source, (0xFFFFFFFFL & (long)event.time),
-                           mods, event.x, event.y, (short)event.count, (short)event.button, rotation);
+                           mods, event.x, event.y, (short)event.count, (short)event.button, MouseEvent.getRotationXYZ(rotation, mods), 1f);
         }
         return null; // no mapping ..
     }
@@ -297,7 +298,7 @@ public class SWTNewtEventFactory {
                                            res.getSource(),
                                            res.getWhen(), res.getModifiers(),
                                            res.getX(), res.getY(), res.getClickCount(),
-                                           res.getButton(), res.getWheelRotation() );
+                                           res.getButton(), res.getRotation(), res.getRotationScale());
                             l.mouseClicked(res2);
                         }
                         break;
@@ -308,7 +309,7 @@ public class SWTNewtEventFactory {
                                            res.getSource(),
                                            res.getWhen(), res.getModifiers(),
                                            res.getX(), res.getY(), res.getClickCount(),
-                                           dragButtonDown, res.getWheelRotation() );
+                                           dragButtonDown, res.getRotation(), res.getRotationScale());
                             l.mouseDragged( res2 );
                         } else {
                             l.mouseMoved(res);

@@ -28,6 +28,8 @@
  
 package jogamp.newt.awt.event;
 
+import com.jogamp.newt.event.MouseEvent;
+
 /**
  *
  * <a name="AWTEventModifierMapping"><h5>AWT Event Modifier Mapping</h5></a> 
@@ -635,7 +637,7 @@ public class AWTNewtEventFactory {
             return new com.jogamp.newt.event.MouseEvent(
                            newtType, (null==newtSource)?(Object)event.getComponent():(Object)newtSource, event.getWhen(),
                            mods, event.getX(), event.getY(), (short)event.getClickCount(), 
-                           newtButton, rotation);
+                           newtButton, MouseEvent.getRotationXYZ(rotation, mods), 1f);
         }
         return null; // no mapping ..
     }
