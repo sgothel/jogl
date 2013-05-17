@@ -246,7 +246,9 @@ public class GLArrayDataWrapper implements GLArrayData {
         case GL.GL_SHORT:
         case GL.GL_UNSIGNED_SHORT:
             return ShortBuffer.class;
+        case GL.GL_UNSIGNED_INT:
         case GL2ES1.GL_FIXED:
+        case GL2ES2.GL_INT:
             return IntBuffer.class;
         case GL.GL_FLOAT:
             return FloatBuffer.class;
