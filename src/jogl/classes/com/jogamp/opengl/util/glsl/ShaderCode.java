@@ -54,6 +54,7 @@ import jogamp.opengl.Debug;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.VersionNumber;
 
 /**
  * Convenient shader code class to use and instantiate vertex or fragment programs.
@@ -716,6 +717,7 @@ public class ShaderCode {
         return -1;
     }
 
+    @SuppressWarnings("resource")
     private static int readShaderSource(Class<?> context, URLConnection conn, StringBuilder result, int lineno) throws IOException  {
         if(DEBUG_CODE) {
             if(0 == lineno) {
@@ -823,10 +825,73 @@ public class ShaderCode {
     }
 
     // Shall we use: #ifdef GL_FRAGMENT_PRECISION_HIGH .. #endif for using highp in fragment shader if avail ?     
-    /** {@value #es2_default_precision_vp} */
+    /** Default precision of {@link GL#isGLES2() ES2} for {@link GL2ES2#GL_VERTEX_SHADER vertex-shader}: {@value #es2_default_precision_vp} */
     public static final String es2_default_precision_vp = "\nprecision highp float;\nprecision highp int;\n";
-    /** {@value #es2_default_precision_fp} */
+    /** Default precision of {@link GL#isGLES2() ES2} for {@link GL2ES2#GL_FRAGMENT_SHADER fragment-shader}: {@value #es2_default_precision_fp} */
     public static final String es2_default_precision_fp = "\nprecision mediump float;\nprecision mediump int;\n/*precision lowp sampler2D;*/\n";
+    
+    /** Default precision of GLSL &ge; 1.30 as required until &lt; 1.50 for {@link GL2ES2#GL_VERTEX_SHADER vertex-shader} or {@link GL3#GL_GEOMETRY_SHADER geometry-shader}: {@value #gl3_default_precision_vp_gp}. See GLSL Spec 1.30-1.50 Section 4.5.3. */
+    public static final String gl3_default_precision_vp_gp = "\nprecision highp float;\nprecision highp int;\n";
+    /** Default precision of GLSL &ge; 1.30 as required until &lt; 1.50 for {@link GL2ES2#GL_FRAGMENT_SHADER fragment-shader}: {@value #gl3_default_precision_fp}. See GLSL Spec 1.30-1.50 Section 4.5.3. */
+    public static final String gl3_default_precision_fp = "\nprecision highp float;\nprecision mediump int;\n";
+    
+    /**
+     * Add GLSL version at the head of this shader source code.
+     * <p>
+     * Note: The shader source to be edit must be created using a mutable StringBuilder.
+     * </p>
+     * @param gl a GL context, which must have been made current once 
+     * @return the index after the inserted data, maybe 0 if nothing has be inserted.
+     */
+    public final int addGLSLVersion(GL2ES2 gl) {
+        return insertShaderSource(0, 0, gl.getContext().getGLSLVersionString());
+    }
+    
+    /**
+     * Adds default precision to source code at given position if required, i.e.
+     * {@link #es2_default_precision_vp}, {@link #es2_default_precision_fp}, 
+     * {@link #gl3_default_precision_vp_gp}, {@link #gl3_default_precision_fp} or none,
+     * depending on the {@link GLContext#getGLSLVersionNumber() GLSL version} being used.
+     * <p>
+     * Note: The shader source to be edit must be created using a mutable StringBuilder.
+     * </p>
+     * @param gl a GL context, which must have been made current once 
+     * @param pos position within this mutable shader source.
+     * @return the index after the inserted data, maybe 0 if nothing has be inserted.
+     */
+    public final int addDefaultShaderPrecision(GL2ES2 gl, int pos) {
+        final VersionNumber glslVersion = gl.getContext().getGLSLVersionNumber();
+        final String defaultPrecision;
+        if( gl.isGLES2() ) {
+            switch ( shaderType ) {
+                case GL2ES2.GL_VERTEX_SHADER:
+                    defaultPrecision = es2_default_precision_vp; break;
+                case GL2ES2.GL_FRAGMENT_SHADER:
+                    defaultPrecision = es2_default_precision_vp; break;
+                default:
+                    defaultPrecision = null; 
+                    break;
+            }
+        } else if( glslVersion.compareTo(GLContext.Version130) >= 0 && glslVersion.compareTo(GLContext.Version150) < 0 ) {
+            // GLSL [ 1.30 .. 1.50 [ needs at least fragement float default precision!
+            switch ( shaderType ) {
+                case GL2ES2.GL_VERTEX_SHADER:
+                case GL3.GL_GEOMETRY_SHADER:
+                    defaultPrecision = gl3_default_precision_vp_gp; break;
+                case GL2ES2.GL_FRAGMENT_SHADER:
+                    defaultPrecision = gl3_default_precision_fp; break;
+                default:
+                    defaultPrecision = null; 
+                    break;
+            }
+        } else {
+            defaultPrecision = null;
+        }
+        if( null != defaultPrecision ) {
+            pos = insertShaderSource(0, pos, defaultPrecision);
+        }
+        return pos;
+    }
     
     /**
      * Default customization of this shader source code.
@@ -835,18 +900,51 @@ public class ShaderCode {
      * </p>
      * @param gl a GL context, which must have been made current once 
      * @param preludeVersion if true {@link GLContext#getGLSLVersionString()} is preluded, otherwise not.
-     * @param es2DefaultPrecision optional default precision source code line(s) preluded if not null and if {@link GL#isGLES()}.
+     * @param addDefaultPrecision if <code>true</code> default precision source code line(s) are added, i.e. 
+     *                            {@link #es2_default_precision_vp}, {@link #es2_default_precision_fp}, 
+     *                            {@link #gl3_default_precision_vp_gp}, {@link #gl3_default_precision_fp} or none,
+     *                            depending on the {@link GLContext#getGLSLVersionNumber() GLSL version} being used.
+     * @return the index after the inserted data, maybe 0 if nothing has be inserted.
+     * @see #addGLSLVersion(GL2ES2)
+     * @see #addDefaultShaderPrecision(GL2ES2, int)
+     */
+    public final int defaultShaderCustomization(GL2ES2 gl, boolean preludeVersion, boolean addDefaultPrecision) {
+        int pos;
+        if( preludeVersion ) {
+            pos = addGLSLVersion(gl);
+        } else {
+            pos = 0;
+        }
+        if( addDefaultPrecision ) {
+            pos = addDefaultShaderPrecision(gl, pos);
+        }
+        return pos;
+    }
+        
+    /**
+     * Default customization of this shader source code.
+     * <p>
+     * Note: The shader source to be edit must be created using a mutable StringBuilder.
+     * </p>
+     * @param gl a GL context, which must have been made current once 
+     * @param preludeVersion if true {@link GLContext#getGLSLVersionString()} is preluded, otherwise not.
+     * @param esDefaultPrecision optional default precision source code line(s) preluded if not null and if {@link GL#isGLES()}.
      *        You may use {@link #es2_default_precision_fp} for fragment shader and {@link #es2_default_precision_vp} for vertex shader.
      * @return the index after the inserted data, maybe 0 if nothing has be inserted.
+     * @see #addGLSLVersion(GL2ES2)
+     * @see #addDefaultShaderPrecision(GL2ES2, int)
      */
-    public final int defaultShaderCustomization(GL2ES2 gl, boolean preludeVersion, String es2DefaultPrecision) {
-        int pos = 0;
-        if(preludeVersion) {
-            final String glslVersion_prelude = gl.getContext().getGLSLVersionString();
-            pos = insertShaderSource(0, pos, glslVersion_prelude);
+    public final int defaultShaderCustomization(GL2ES2 gl, boolean preludeVersion, String esDefaultPrecision) {
+        int pos;
+        if( preludeVersion ) {
+            pos = addGLSLVersion(gl);
+        } else {
+            pos = 0;
         }
-        if( gl.isGLES() && null != es2DefaultPrecision ) {
-            pos = insertShaderSource(0, pos, es2DefaultPrecision);
+        if( gl.isGLES2() && null != esDefaultPrecision ) {
+            pos = insertShaderSource(0, pos, esDefaultPrecision);
+        } else {
+            pos = addDefaultShaderPrecision(gl, pos);
         }
         return pos;
     }    

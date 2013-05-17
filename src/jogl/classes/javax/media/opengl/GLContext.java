@@ -118,6 +118,19 @@ public abstract class GLContext {
   /** Indicates that a newly-created context was made current during the last call to {@link #makeCurrent makeCurrent}. */
   public static final int CONTEXT_CURRENT_NEW = 2;
 
+  /* Version 1.00, i.e. GLSL 1.00 for ES 2.0. */
+  public static final VersionNumber Version100 = new VersionNumber(1,  0, 0);
+  /* Version 1.10, i.e. GLSL 1.10 for GL 2.0. */
+  public static final VersionNumber Version110 = new VersionNumber(1, 10, 0);
+  /* Version 1.20, i.e. GLSL 1.20 for GL 2.1. */
+  public static final VersionNumber Version120 = new VersionNumber(1, 20, 0);
+  /* Version 1.30, i.e. GLSL 1.30 for GL 3.0. */
+  public static final VersionNumber Version130 = new VersionNumber(1, 30, 0);
+  /* Version 1.40, i.e. GLSL 1.40 for GL 3.1. */
+  public static final VersionNumber Version140 = new VersionNumber(1, 40, 0);
+  /* Version 1.50, i.e. GLSL 1.50 for GL 3.2. */
+  public static final VersionNumber Version150 = new VersionNumber(1, 50, 0);
+  
   /** Version 3.2. As an OpenGL version, it qualifies for geometry shader */
   public static final VersionNumber Version32 = new VersionNumber(3, 2, 0);
   
@@ -733,27 +746,24 @@ public abstract class GLContext {
       return "#version " + ctxGLSLVersion.getMajor() + ( minor < 10 ? "0"+minor : minor ) + "\n" ;
   }
   
-  protected static final void getStaticGLSLVersionNumber(int glMajorVersion, int glMinorVersion, int ctxOptions, int[] res) {
+  protected static final VersionNumber getStaticGLSLVersionNumber(int glMajorVersion, int glMinorVersion, int ctxOptions) {
       if( 0 != ( CTX_PROFILE_ES & ctxOptions ) ) {
-          res[0] = 1; res[1] =  0;      // ES 2.0  ->  GLSL 1.00
+          return Version100;      // ES 2.0  ->  GLSL 1.00
       } else if( 1 == glMajorVersion ) {
-          res[0] = 1; res[1] = 10;      // GL 1.x  ->  GLSL 1.10
+          return Version110;      // GL 1.x  ->  GLSL 1.10
       } else if( 2 == glMajorVersion ) {
-          res[0] = 1;
           switch ( glMinorVersion ) {
-          case 0:  res[1] = 10; break;  // GL 2.0  ->  GLSL 1.10
-          default: res[1] = 20; break;  // GL 2.1  ->  GLSL 1.20
+              case 0:  return Version110;  // GL 2.0  ->  GLSL 1.10
+              default: return Version120;  // GL 2.1  ->  GLSL 1.20
           }
       } else if( 3 == glMajorVersion && 2 >= glMinorVersion ) {
-          res[0] = 1;
           switch ( glMinorVersion ) {
-          case 0:  res[1] = 30; break;  // GL 3.0  ->  GLSL 1.30
-          case 1:  res[1] = 40; break;  // GL 3.1  ->  GLSL 1.40
-          default: res[1] = 50; break;  // GL 3.2  ->  GLSL 1.50 
+          case 0:  return Version130;  // GL 3.0  ->  GLSL 1.30
+          case 1:  return Version140;  // GL 3.1  ->  GLSL 1.40
+          default: return Version150;  // GL 3.2  ->  GLSL 1.50 
           }
       } else { // >= 3.3
-          res[0] = glMajorVersion;     // GL M.N  ->  GLSL M.N
-          res[1] = glMinorVersion * 10;
+          return new VersionNumber(glMajorVersion, glMinorVersion * 10, 0); // GL M.N  ->  GLSL M.N
       }
   }
   

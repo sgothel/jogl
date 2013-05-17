@@ -1056,9 +1056,7 @@ public abstract class GLContextImpl extends GLContext {
                   }
               }
               if( ctxGLSLVersion.isZero() ) {
-                  final int[] sver = new int[2];
-                  getStaticGLSLVersionNumber(major, minor, ctxOptions, sver);
-                  ctxGLSLVersion = new VersionNumber(sver[0], sver[1], 0);
+                  ctxGLSLVersion = getStaticGLSLVersionNumber(major, minor, ctxOptions);
               }
           } 
       }

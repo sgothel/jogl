@@ -112,9 +112,9 @@ public class GeomShader01TextureGL3 implements GLEventListener  {
                                    "shader", "shader/bin", geomShaderBaseNames[geomShader], true);
             fs = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), 
                                    "shader", "shader/bin", shaderBasename, true);        
-            vs.defaultShaderCustomization(gl, true, null);
-            gs.defaultShaderCustomization(gl, true, null);
-            fs.defaultShaderCustomization(gl, true, null);
+            vs.defaultShaderCustomization(gl, true, true);
+            gs.defaultShaderCustomization(gl, true, true);
+            fs.defaultShaderCustomization(gl, true, true);
             
             sp = new ShaderProgram();
             sp.add(gl, vs, System.err);

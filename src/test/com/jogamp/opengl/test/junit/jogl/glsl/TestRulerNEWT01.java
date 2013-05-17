@@ -77,8 +77,8 @@ public class TestRulerNEWT01 extends UITestCase {
                 "shader/bin", "default", true);
         final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RedSquareES2.class, "shader",
                 "shader/bin", "ruler", true);
-        vp0.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_vp);
-        fp0.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);
+        vp0.defaultShaderCustomization(gl, true, true);
+        fp0.defaultShaderCustomization(gl, true, true);
 
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);

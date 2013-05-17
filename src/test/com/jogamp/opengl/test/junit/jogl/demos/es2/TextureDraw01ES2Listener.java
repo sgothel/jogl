@@ -70,8 +70,8 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
                                             "shader", "shader/bin", shaderBasename, true);
         ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), 
                                             "shader", "shader/bin", shaderBasename, true);
-        rsVp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_vp);
-        rsFp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);
+        rsVp.defaultShaderCustomization(gl, true, true);
+        rsFp.defaultShaderCustomization(gl, true, true);
         
         // Create & Link the shader program
         ShaderProgram sp = new ShaderProgram();

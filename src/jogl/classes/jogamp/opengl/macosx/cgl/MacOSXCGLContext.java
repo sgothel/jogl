@@ -149,8 +149,8 @@ public class MacOSXCGLContext extends GLContextImpl
                                               "../../shader", "../../shader/bin", shaderBasename, true);
       final ShaderCode fp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, MacOSXCGLContext.class, 
                                               "../../shader", "../../shader/bin", shaderBasename, true);
-      vp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_vp);
-      fp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);
+      vp.defaultShaderCustomization(gl, true, true);
+      fp.defaultShaderCustomization(gl, true, true);
       sp.add(vp);
       sp.add(fp);
       if(!sp.link(gl, System.err)) {

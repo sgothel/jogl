@@ -943,8 +943,8 @@ public class FixedFuncPipeline {
     private static final String constMaxTextures8 = "#define MAX_TEXTURE_UNITS 8\n";
     
     private final void customizeShader(GL2ES2 gl, ShaderCode vp, ShaderCode fp, String maxTextureDefine) {
-        int rsVpPos = vp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_vp);
-        int rsFpPos = fp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);        
+        int rsVpPos = vp.defaultShaderCustomization(gl, true, true);
+        int rsFpPos = fp.defaultShaderCustomization(gl, true, true);        
         vp.insertShaderSource(0, rsVpPos, maxTextureDefine);
         fp.insertShaderSource(0, rsFpPos, maxTextureDefine); 
     }

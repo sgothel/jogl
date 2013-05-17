@@ -86,9 +86,9 @@ public class TestGLSLShaderState02NEWT extends UITestCase {
                 "shader/bin", "RedSquareShader", true);
         final ShaderCode rsFp1 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RedSquareES2.class, "shader",
                 "shader/bin", "RedSquareShader2", true);
-        rsVp0.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_vp);
-        rsFp0.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);
-        rsFp1.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);
+        rsVp0.defaultShaderCustomization(gl, true, true);
+        rsFp0.defaultShaderCustomization(gl, true, true);
+        rsFp1.defaultShaderCustomization(gl, true, true);
 
         final ShaderProgram sp1 = new ShaderProgram();
         sp1.add(rsVp0);

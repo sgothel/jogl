@@ -310,7 +310,7 @@ public class TestGearsES2NEWT extends UITestCase {
     }
 
     @Test
-    public void test01GL2ES2() throws InterruptedException {
+    public void test01_GL2ES2() throws InterruptedException {
         for(int i=1; i<=loops; i++) {
             System.err.println("Loop "+i+"/"+loops);
             final GLProfile glp;
@@ -334,7 +334,19 @@ public class TestGearsES2NEWT extends UITestCase {
     }
 
     @Test
-    public void test02GL3() throws InterruptedException {
+    public void test02_GLES2() throws InterruptedException {
+        if(mainRun) return;
+        
+        if( !GLProfile.isAvailable(GLProfile.GLES2) ) {
+            System.err.println("GLES2 n/a");
+        }
+        final GLProfile glp = GLProfile.get(GLProfile.GLES2);
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps, undecorated);
+    }
+    
+    @Test
+    public void test03_GL3() throws InterruptedException {
         if(mainRun) return;
         
         if( !GLProfile.isAvailable(GLProfile.GL3) ) {
