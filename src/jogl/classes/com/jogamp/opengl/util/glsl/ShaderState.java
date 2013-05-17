@@ -231,7 +231,7 @@ public class ShaderState {
      * @see ShaderProgram#release(GL2ES2, boolean)
      */
     public synchronized void release(GL2ES2 gl, boolean destroyBoundAttributes, boolean destroyShaderProgram, boolean destroyShaderCode) {
-        if(null!=shaderProgram) {            
+        if(null!=shaderProgram && shaderProgram.linked() ) {
             shaderProgram.useProgram(gl, false);
         }
         if(destroyBoundAttributes) {

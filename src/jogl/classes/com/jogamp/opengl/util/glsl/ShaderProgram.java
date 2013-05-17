@@ -85,7 +85,9 @@ public class ShaderProgram {
      * If <code>destroyShaderCode</code> is true it destroys the shader codes as well.
      */
     public synchronized void release(GL2ES2 gl, boolean destroyShaderCode) {
-        useProgram(gl, false);
+        if( programLinked ) {
+            useProgram(gl, false);
+        }
         for(Iterator<ShaderCode> iter=allShaderCode.iterator(); iter.hasNext(); ) {
             ShaderCode shaderCode = iter.next();
             if(attachedShaderCode.remove(shaderCode)) {
