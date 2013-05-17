@@ -978,7 +978,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     private final AWTGLPixelBufferProvider pixelBufferProvider;
     private final boolean useSingletonBuffer;
     private AWTGLPixelBuffer pixelBuffer;
-    private boolean pixelBufferCheckSize;
     
     // One of these is used to store the read back pixels before storing
     // in the BufferedImage
@@ -1160,14 +1159,10 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         if( useSingletonBuffer ) { // attempt to fetch the latest AWTGLPixelBuffer             
             pixelBuffer = (AWTGLPixelBuffer) ((SingletonGLPixelBufferProvider)pixelBufferProvider).getSingleBuffer(pixelAttribs);
         }
-        if( pixelBufferCheckSize ) {
-            pixelBufferCheckSize = false;
-            if( null != pixelBuffer && pixelBuffer.requiresNewBuffer(gl, panelWidth, panelHeight, 0) ) {
-                pixelBuffer.dispose();
-                pixelBuffer = null;
-            }
+        if( null != pixelBuffer && pixelBuffer.requiresNewBuffer(gl, panelWidth, panelHeight, 0) ) {
+            pixelBuffer.dispose();
+            pixelBuffer = null;
         }
-        
         if ( null == pixelBuffer ) {
           if (0 >= panelWidth || 0 >= panelHeight ) {
               return;
@@ -1300,8 +1295,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                 }
             }
         }
-
-        pixelBufferCheckSize = true;
         return _drawable.isRealized();
     }
     
