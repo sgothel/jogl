@@ -33,6 +33,7 @@ import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
+import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderState;
 import com.jogamp.opengl.util.PMVMatrix;
 
@@ -263,21 +264,31 @@ public abstract class Renderer {
         return true;        
     }
 
-    protected String getVertexShaderName(GL2ES2 gl) {
-        return "curverenderer01" + getShaderGLVersionSuffix(gl);
+    protected String getVertexShaderName() {
+        return "curverenderer" + getImplVersion();
     }
     
-    protected String getFragmentShaderName(GL2ES2 gl) {
-        final String type = "01" ; // Region.isNonUniformWeight(renderModes) ? "02" : "01" ;
-        final String pass = Region.isVBAA(renderModes) ? "b" : "a" ;
-        return "curverenderer" + type + pass + getShaderGLVersionSuffix(gl);
+    protected String getFragmentShaderName() {
+        final String version = getImplVersion(); 
+        final String pass = Region.isVBAA(renderModes) ? "-2pass" : "-1pass" ;
+        final String weight = Region.isNonUniformWeight(renderModes) ? "-weight" : "" ;
+        return "curverenderer" + version + pass + weight;
     }
-        
-    protected String getShaderGLVersionSuffix(GL2ES2 gl) {
-        if(gl.isGLES2()) {
-            return "-es2";
+
+    // FIXME: Really required to have sampler2D def. precision ? If not, we can drop getFragmentShaderPrecision(..) and use default ShaderCode ..
+    public static final String es2_precision_fp = "\nprecision mediump float;\nprecision mediump int;\nprecision mediump sampler2D;\n";
+    
+    protected String getFragmentShaderPrecision(GL2ES2 gl) {
+        if( gl.isGLES2() ) {
+            return es2_precision_fp;
         }
-        return "-gl2";
-    }    
+        if( ShaderCode.requiresGL3DefaultPrecision(gl) ) {
+            return ShaderCode.gl3_default_precision_fp;
+        }
+        return null;
+    }
     
+    protected String getImplVersion() {
+        return "01";
+    }
 }

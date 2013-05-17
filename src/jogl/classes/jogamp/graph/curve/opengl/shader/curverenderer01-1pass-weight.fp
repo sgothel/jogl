@@ -4,6 +4,12 @@
 // 1-pass shader w/ weight
 //
 
+#if __VERSION__ >= 130
+  out vec4 mgl_FragColor;
+#else
+  #define mgl_FragColor gl_FragColor
+#endif
+
 #include uniforms.glsl
 #include varyings.glsl
 
@@ -44,5 +50,5 @@ void main (void)
         }
     }
 
-    gl_FragColor = vec4(c, alpha);
+    mgl_FragColor = vec4(c, alpha);
 }

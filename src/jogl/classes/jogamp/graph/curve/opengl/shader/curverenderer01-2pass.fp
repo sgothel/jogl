@@ -4,6 +4,12 @@
 // 2-pass shader w/o weight
 //
 
+#if __VERSION__ >= 130
+  out vec4 mgl_FragColor;
+#else
+  #define mgl_FragColor gl_FragColor
+#endif
+
 #include uniforms.glsl
 #include varyings.glsl
 
@@ -49,10 +55,11 @@ void main (void)
         t += texture2D(gcu_TextureUnit, rtex + 4.0*size*(vec2(0, 1)))*tex_weights.w;
         t += texture2D(gcu_TextureUnit, rtex - 4.0*size*(vec2(0, 1)))*tex_weights.w;
         
-        /** discard freezes NV tegra2 compiler
+        #if 0
         if(t.w == 0.0){
-            discard;
-        } */
+            discard; // discard freezes NV tegra2 compiler
+        }
+        #endif
         
         c = t.xyz;
         alpha = gcu_Alpha * t.w;
@@ -78,5 +85,5 @@ void main (void)
         }
     }
 
-    gl_FragColor = vec4(c, alpha);
+    mgl_FragColor = vec4(c, alpha);
 }

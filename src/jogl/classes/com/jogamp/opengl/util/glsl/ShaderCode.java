@@ -684,7 +684,7 @@ public class ShaderCode {
      *  
      * @param shaderIdx the shader index to be used.
      * @param position in shader source segments of shader <code>shaderIdx</code>
-     * @param data the text to be inserted. Shall end with an EOL '\n' character.
+     * @param data the text to be inserted. Shall end with an EOL '\n' character
      * @return index after the inserted <code>data</code>
      * 
      * @throws IllegalStateException if the shader source's CharSequence is immutable, i.e. not of type <code>StringBuilder</code>
@@ -833,8 +833,11 @@ public class ShaderCode {
     /** Default precision of GLSL &ge; 1.30 as required until &lt; 1.50 for {@link GL2ES2#GL_VERTEX_SHADER vertex-shader} or {@link GL3#GL_GEOMETRY_SHADER geometry-shader}: {@value #gl3_default_precision_vp_gp}. See GLSL Spec 1.30-1.50 Section 4.5.3. */
     public static final String gl3_default_precision_vp_gp = "\nprecision highp float;\nprecision highp int;\n";
     /** Default precision of GLSL &ge; 1.30 as required until &lt; 1.50 for {@link GL2ES2#GL_FRAGMENT_SHADER fragment-shader}: {@value #gl3_default_precision_fp}. See GLSL Spec 1.30-1.50 Section 4.5.3. */
-    public static final String gl3_default_precision_fp = "\nprecision highp float;\nprecision mediump int;\n";
+    public static final String gl3_default_precision_fp = "\nprecision highp float;\nprecision mediump int;\n/*precision mediump sampler2D;*/\n";
     
+    /** Prefer <code>enable</code> over <code>require</code>, since it won't force a failure. */
+    public static final String extOESDerivativesEnable = "#extension GL_OES_standard_derivatives : enable\n";
+        
     /**
      * Add GLSL version at the head of this shader source code.
      * <p>
@@ -860,7 +863,6 @@ public class ShaderCode {
      * @return the index after the inserted data, maybe 0 if nothing has be inserted.
      */
     public final int addDefaultShaderPrecision(GL2ES2 gl, int pos) {
-        final VersionNumber glslVersion = gl.getContext().getGLSLVersionNumber();
         final String defaultPrecision;
         if( gl.isGLES2() ) {
             switch ( shaderType ) {
@@ -872,7 +874,7 @@ public class ShaderCode {
                     defaultPrecision = null; 
                     break;
             }
-        } else if( glslVersion.compareTo(GLContext.Version130) >= 0 && glslVersion.compareTo(GLContext.Version150) < 0 ) {
+        } else if( requiresGL3DefaultPrecision(gl) ) {
             // GLSL [ 1.30 .. 1.50 [ needs at least fragement float default precision!
             switch ( shaderType ) {
                 case GL2ES2.GL_VERTEX_SHADER:
@@ -891,6 +893,24 @@ public class ShaderCode {
             pos = insertShaderSource(0, pos, defaultPrecision);
         }
         return pos;
+    }
+    
+    /** Returns true, if GLSL version requires default precision, i.e. ES2 or GLSL [1.30 .. 1.50[. */
+    public static final boolean requiresDefaultPrecision(GL2ES2 gl) {
+        if( gl.isGLES2() ) {
+            return true;
+        }
+        return requiresGL3DefaultPrecision(gl);
+    }
+    
+    /** Returns true, if GL3 GLSL version requires default precision, i.e. GLSL [1.30 .. 1.50[. */
+    public static final boolean requiresGL3DefaultPrecision(GL2ES2 gl) {
+        if( gl.isGL3() ) {
+            final VersionNumber glslVersion = gl.getContext().getGLSLVersionNumber();
+            return glslVersion.compareTo(GLContext.Version130) >= 0 && glslVersion.compareTo(GLContext.Version150) < 0 ;
+        } else {
+            return false;
+        }
     }
     
     /**
