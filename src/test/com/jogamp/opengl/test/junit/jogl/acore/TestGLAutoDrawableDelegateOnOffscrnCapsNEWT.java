@@ -55,7 +55,6 @@ import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
-import jogamp.newt.WindowImpl;
 
 /**
  * Tests using a NEWT {@link Window} for on- and offscreen cases.
