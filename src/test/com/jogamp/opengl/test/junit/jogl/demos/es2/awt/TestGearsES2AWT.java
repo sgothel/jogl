@@ -317,6 +317,7 @@ public class TestGearsES2AWT extends UITestCase {
         
         if( !GLProfile.isAvailable(GLProfile.GLES2) ) {
             System.err.println("GLES2 n/a");
+            return;
         }
         final GLProfile glp = GLProfile.get(GLProfile.GLES2);
         final GLCapabilities caps = new GLCapabilities( glp );
@@ -329,6 +330,7 @@ public class TestGearsES2AWT extends UITestCase {
         
         if( !GLProfile.isAvailable(GLProfile.GL3) ) {
             System.err.println("GL3 n/a");
+            return;
         }
         final GLProfile glp = GLProfile.get(GLProfile.GL3);
         final GLCapabilities caps = new GLCapabilities( glp );
