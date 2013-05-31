@@ -134,13 +134,38 @@ public class TestGLVersionParsing00NEWT extends UITestCase {
     public void test01GLVersion() throws InterruptedException {
         for(int i=0; i<glVersionNumbers.length; i++) {
             final VersionNumberString exp = glVersionNumbers[i];
-            final VersionNumberString has = GLVersionNumber.create(exp.getVersionString());
-            System.err.println("Test["+i+"]: "+exp+" -> "+has+", define ["+has.hasMajor()+":"+has.hasMinor()+":"+has.hasSub()+"]");
+            final GLVersionNumber has = GLVersionNumber.create(exp.getVersionString());
+            System.err.println("Test["+i+"]: "+exp+" -> "+has+", valid "+has.isValid()+", define ["+has.hasMajor()+":"+has.hasMinor()+":"+has.hasSub()+"]");
             Assert.assertTrue(has.hasMajor());
             Assert.assertTrue(has.hasMinor());
             Assert.assertTrue(!has.hasSub());
+            Assert.assertTrue(has.isValid());
             Assert.assertEquals(exp, has);
         }
+        {
+            final GLVersionNumber has = GLVersionNumber.create("GL_VERSION_2");
+            System.err.println("Test-X1: "+has+", valid "+has.isValid()+", define ["+has.hasMajor()+":"+has.hasMinor()+":"+has.hasSub()+"]");
+            Assert.assertTrue(has.hasMajor());
+            Assert.assertTrue(!has.hasMinor());
+            Assert.assertTrue(!has.hasSub());
+            Assert.assertTrue(!has.isValid());
+        }
+        {
+            final GLVersionNumber has = GLVersionNumber.create("GL2 Buggy L3");
+            System.err.println("Test-X2: "+has+", valid "+has.isValid()+", define ["+has.hasMajor()+":"+has.hasMinor()+":"+has.hasSub()+"]");
+            Assert.assertTrue(has.hasMajor());
+            Assert.assertTrue(!has.hasMinor());
+            Assert.assertTrue(!has.hasSub());
+            Assert.assertTrue(!has.isValid());
+        }        
+        {
+            final GLVersionNumber has = GLVersionNumber.create("GL Nope");
+            System.err.println("Test-X3: "+has+", valid "+has.isValid()+", define ["+has.hasMajor()+":"+has.hasMinor()+":"+has.hasSub()+"]");
+            Assert.assertTrue(!has.hasMajor());
+            Assert.assertTrue(!has.hasMinor());
+            Assert.assertTrue(!has.hasSub());
+            Assert.assertTrue(!has.isValid());
+        }        
     }
 
     private void testGLVendorVersionImpl(VersionNumberString[] versionNumberString, boolean withMajor, boolean withMinor, boolean withSub) throws InterruptedException {

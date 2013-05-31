@@ -60,6 +60,7 @@ public class GLVersionNumber extends VersionNumberString {
         int[] val = new int[] { 0, 0, 0 };
         int strEnd = 0;
         short state = 0;
+        boolean valid = false;
         if (versionString != null && versionString.length() > 0) {
             try {
                 final java.util.regex.Pattern versionPattern;
@@ -69,13 +70,12 @@ public class GLVersionNumber extends VersionNumberString {
                     versionPattern = VersionNumberString.getDefaultVersionNumberPattern();
                 }
                 final VersionNumberString version = new VersionNumberString(versionString, versionPattern);
-                if( version.hasMajor() && version.hasMinor() ) { // Requires at least a defined major and minor version component!
-                    val[0] = version.getMajor();
-                    val[1] = version.getMinor();
-                    strEnd = version.endOfStringMatch();
-                    state = (short) ( ( version.hasMajor() ? VersionNumber.HAS_MAJOR : (short)0 ) | 
-                                      ( version.hasMinor() ? VersionNumber.HAS_MINOR : (short)0 ) ); 
-                }
+                strEnd = version.endOfStringMatch();
+                val[0] = version.getMajor();
+                val[1] = version.getMinor();
+                state = (short) ( ( version.hasMajor() ? VersionNumber.HAS_MAJOR : (short)0 ) | 
+                                  ( version.hasMinor() ? VersionNumber.HAS_MINOR : (short)0 ) );
+                valid = version.hasMajor() && version.hasMinor(); // Requires at least a defined major and minor version component!
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println("Info: ExtensionAvailabilityCache: FunctionAvailabilityCache.Version.<init>: " + e);
@@ -83,7 +83,7 @@ public class GLVersionNumber extends VersionNumberString {
                 val[1] = 0;
             }
         }    
-        return new GLVersionNumber(val, strEnd, state, versionString, false);
+        return new GLVersionNumber(val, strEnd, state, versionString, valid);
     }
 
     public final boolean isValid() {
