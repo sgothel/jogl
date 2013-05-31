@@ -823,15 +823,15 @@ public abstract class GLContext {
    * </p>
    */
   public final boolean hasFullFBOSupport() {        
-      return !FORCE_MIN_FBO_SUPPORT && hasBasicFBOSupport() &&
-              ( isGL3() ||                                                         // GL >= 3.0                
-                isExtensionAvailable(GLExtensions.ARB_framebuffer_object) ||       // ARB_framebuffer_object
-                ( isExtensionAvailable(GLExtensions.EXT_framebuffer_object) &&     // All EXT_framebuffer_object*
-                  isExtensionAvailable(GLExtensions.EXT_framebuffer_multisample) &&
-                  isExtensionAvailable(GLExtensions.EXT_framebuffer_blit) &&
-                  isExtensionAvailable(GLExtensions.EXT_packed_depth_stencil)
-                )
-              ) ;               
+      return hasBasicFBOSupport() && !hasRendererQuirk(GLRendererQuirks.NoFullFBOSupport) &&
+             ( isGL3() ||                                                         // GL >= 3.0                
+               isExtensionAvailable(GLExtensions.ARB_framebuffer_object) ||       // ARB_framebuffer_object
+               ( isExtensionAvailable(GLExtensions.EXT_framebuffer_object) &&     // All EXT_framebuffer_object*
+                 isExtensionAvailable(GLExtensions.EXT_framebuffer_multisample) &&
+                 isExtensionAvailable(GLExtensions.EXT_framebuffer_blit) &&
+                 isExtensionAvailable(GLExtensions.EXT_packed_depth_stencil)
+               )
+             ) ;
   }
   
   /**

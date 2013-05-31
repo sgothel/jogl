@@ -68,7 +68,9 @@ public class TestGLVersionParsing00NEWT extends UITestCase {
     public static final String[] glVersionStrings02 = new String[] {
         "GL_VERSION_2_1", // 0
         "OpenGL ES 2.0", // 1
-        "OpenGL ES GLSL ES 2.0" // 2
+        "OpenGL ES GLSL ES 2.0", // 2
+        "OpenGL 2.1 LaLa", // 3
+        "4.2.11762 Compatibility Profile Context" // 4
     };
     
     public static final VersionNumberString[] glVersionNumbers = new VersionNumberString[] {
@@ -97,7 +99,9 @@ public class TestGLVersionParsing00NEWT extends UITestCase {
         
         new VersionNumberString(2, 1, 0, glVersionStrings02[0]),
         new VersionNumberString(2, 0, 0, glVersionStrings02[1]),
-        new VersionNumberString(2, 0, 0, glVersionStrings02[1])
+        new VersionNumberString(2, 0, 0, glVersionStrings02[2]),
+        new VersionNumberString(2, 1, 0, glVersionStrings02[3]),
+        new VersionNumberString(4, 2, 0, glVersionStrings02[4])
     };
     public static final VersionNumberString[] glVendorVersionNumbersWithSub = new VersionNumberString[] {
         new VersionNumberString(1,     2,  3, glVersionStrings00[0]),
@@ -125,9 +129,11 @@ public class TestGLVersionParsing00NEWT extends UITestCase {
         new VersionNumberString(11,   33, 0, glVersionStrings01[9])
     };
     public static final VersionNumberString[] glVendorVersionNumbersNone = new VersionNumberString[] {
-        new VersionNumberString(0,     0, 0, glVersionStrings02[0]),
-        new VersionNumberString(0,     0, 0, glVersionStrings02[1]),
-        new VersionNumberString(0,     0, 0, glVersionStrings02[2])
+        new VersionNumberString(0, 0, 0, glVersionStrings02[0]),
+        new VersionNumberString(0, 0, 0, glVersionStrings02[1]),
+        new VersionNumberString(0, 0, 0, glVersionStrings02[2]),
+        new VersionNumberString(0, 0, 0, glVersionStrings02[3]),        
+        new VersionNumberString(0, 0, 0, glVersionStrings02[4])        
     };
     
     @Test

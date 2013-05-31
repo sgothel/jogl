@@ -60,7 +60,6 @@ import com.jogamp.opengl.FBObject.Attachment.Type;
  */
 public class FBObject {
     protected static final boolean DEBUG = Debug.debug("FBObject");
-    private static final boolean forceMinimumFBOSupport = Debug.isPropertyDefined("jogl.fbo.force.min", true);
     private static final boolean FBOResizeQuirk = false;
     
     private static enum DetachAction { NONE, DISPOSE, RECREATE };
@@ -813,6 +812,7 @@ public class FBObject {
         maxColorAttachments = 1;
         if( fullFBOSupport || NV_fbo_color_attachments ) {
             try {
+                val[0] = 0;
                 gl.glGetIntegerv(GL2ES2.GL_MAX_COLOR_ATTACHMENTS, val, 0);
                 realMaxColorAttachments = 1 <= val[0] ? val[0] : 1; // cap minimum to 1
             } catch (GLException gle) { gle.printStackTrace(); }
@@ -823,15 +823,10 @@ public class FBObject {
         colorAttachmentCount = 0;
         
         maxSamples = gl.getMaxRenderbufferSamples();
-        if(!forceMinimumFBOSupport) {
-            gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, val, 0);
-            maxTextureSize = val[0];
-            gl.glGetIntegerv(GL.GL_MAX_RENDERBUFFER_SIZE, val, 0);
-            maxRenderbufferSize = val[0];
-        } else {
-            maxTextureSize = 2048;
-            maxRenderbufferSize = 2048;
-        }
+        gl.glGetIntegerv(GL.GL_MAX_TEXTURE_SIZE, val, 0);
+        maxTextureSize = val[0];
+        gl.glGetIntegerv(GL.GL_MAX_RENDERBUFFER_SIZE, val, 0);
+        maxRenderbufferSize = val[0];
         
         checkPreGLError(gl);
         

@@ -115,10 +115,15 @@ public class GLVersionNumber extends VersionNumberString {
         
         while ( str.length() > 0 ) {
             final VersionNumberString version = new VersionNumberString(str, getDefaultVersionNumberPattern());
-            if( version.hasMajor() && version.hasMinor() ) { // Requires at least a defined major and minor version component!
-                return version;
+            final int eosm = version.endOfStringMatch();
+            if( 0 < eosm ) {
+                if( version.hasMajor() && version.hasMinor() ) { // Requires at least a defined major and minor version component!
+                    return version;
+                }
+                str = str.substring( eosm );
+            } else {
+                break; // no match
             }
-            str = str.substring(version.endOfStringMatch());
         }
         return VersionNumberString.zeroVersion;
     }

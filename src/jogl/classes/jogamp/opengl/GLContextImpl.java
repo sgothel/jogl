@@ -1504,7 +1504,7 @@ public abstract class GLContextImpl extends GLContext {
   }
   
   private final void setRendererQuirks(final AbstractGraphicsDevice adevice, int major, int minor, int ctp, final VersionNumberString vendorVersion) {
-    int[] quirks = new int[GLRendererQuirks.COUNT];
+    int[] quirks = new int[GLRendererQuirks.COUNT + 1]; // + 1 ( NoFullFBOSupport )
     int i = 0;
     
     final String MesaSP = "Mesa ";
@@ -1513,6 +1513,7 @@ public abstract class GLContextImpl extends GLContext {
     final boolean isDriverMesa = glRenderer.contains(MesaSP) || glRenderer.contains("Gallium ");
     final boolean isDriverATICatalyst = !isDriverMesa && ( glVendor.contains("ATI Technologies") || glRenderer.startsWith("ATI ") );
     final boolean isDriverNVIDIAGeForce = !isDriverMesa && ( glVendor.contains("NVIDIA Corporation") || glRenderer.contains("NVIDIA ") );
+    
     //
     // OS related quirks
     //
@@ -1583,6 +1584,44 @@ public abstract class GLContextImpl extends GLContext {
     }
     
     //
+    // Windowing Toolkit related quirks
+    //
+    if( NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
+        //
+        // X11
+        //
+        {
+            //
+            // Quirk: DontCloseX11Display
+            //
+            final int quirk = GLRendererQuirks.DontCloseX11Display;
+            if( glRenderer.contains(MesaSP) ) {
+                if ( glRenderer.contains("X11") && vendorVersion.compareTo(Version80) < 0 ) {
+                    if(DEBUG) {
+                        System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: X11 Renderer=" + glRenderer + ", Version=[vendor " + vendorVersion + ", GL " + glVersion+"]");
+                    }
+                    quirks[i++] = quirk;
+                }
+            } else if( isDriverATICatalyst ) {
+                {
+                    if(DEBUG) {
+                        System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: X11 Renderer=" + glRenderer);
+                    }
+                    quirks[i++] = quirk;
+                }
+            } else if( jogamp.nativewindow.x11.X11Util.getMarkAllDisplaysUnclosable() ) {
+                {
+                    if(DEBUG) {
+                        System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: X11Util Downstream");
+                    }
+                    quirks[i++] = quirk;
+                }
+            }
+        }
+    }
+    
+    
+    //
     // RENDERER related quirks
     //
     if( isDriverMesa ) {
@@ -1601,7 +1640,7 @@ public abstract class GLContextImpl extends GLContext {
             }
             quirks[i++] = quirk;
         }
-        if( glRenderer.contains("Intel(R)") && compatCtx && ( major>3 || major==3 && minor>=1 ) )
+        if( glRenderer.contains("Intel(R)") && compatCtx && ( major > 3 || major == 3 && minor >= 1 ) )
         {
             // FIXME: Apply vendor version constraints!
             final int quirk = GLRendererQuirks.GLNonCompliant;
@@ -1610,35 +1649,28 @@ public abstract class GLContextImpl extends GLContext {
             }
             quirks[i++] = quirk;
         }
-    }
-    
-    //
-    // Quirk: DontCloseX11Display
-    //
-    if( NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
-        final int quirk = GLRendererQuirks.DontCloseX11Display;
-        if( glRenderer.contains(MesaSP) ) {
-            if ( glRenderer.contains("X11") && vendorVersion.compareTo(Version80) < 0 ) {
+        if( Platform.getOSType() == Platform.OSType.WINDOWS && glRenderer.contains("SVGA3D") )
+        {
+            final VersionNumber mesaSafeFBOVersion = new VersionNumber(8, 0, 0);              
+            if ( vendorVersion.compareTo(mesaSafeFBOVersion) < 0 ) { // includes: vendorVersion.isZero()            
+                final int quirk = GLRendererQuirks.NoFullFBOSupport;
                 if(DEBUG) {
-                    System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: X11 Renderer=" + glRenderer + ", Version=[vendor " + vendorVersion + ", GL " + glVersion+"]");
-                }
-                quirks[i++] = quirk;
-        	}
-        } else if( isDriverATICatalyst ) {
-            {
-                if(DEBUG) {
-                    System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: X11 Renderer=" + glRenderer);
-                }
-                quirks[i++] = quirk;
-            }
-        } else if( jogamp.nativewindow.x11.X11Util.getMarkAllDisplaysUnclosable() ) {
-            {
-                if(DEBUG) {
-                    System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: X11Util Downstream");
+                    System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: OS "+Platform.getOSType() + " / Renderer " + glRenderer + " / Mesa-Version "+vendorVersion);
                 }
                 quirks[i++] = quirk;
             }
         }
+    }
+    
+    //
+    // Property related quirks
+    //
+    if( FORCE_MIN_FBO_SUPPORT ) {
+        final int quirk = GLRendererQuirks.NoFullFBOSupport;
+        if(DEBUG) {
+            System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: property");
+        }
+        quirks[i++] = quirk;        
     }
     
     glRendererQuirks = new GLRendererQuirks(quirks, 0, i);
