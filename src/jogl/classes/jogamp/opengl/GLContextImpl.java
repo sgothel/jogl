@@ -1050,7 +1050,7 @@ public abstract class GLContextImpl extends GLContext {
           if( hasGLSL() ) { // >= ES2 || GL2.0
               final String glslVersion = isGLES() ? null : gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) ; // Use static GLSL version for ES to be safe!
               if( null != glslVersion ) {
-                  ctxGLSLVersion = new VersionNumber(glslVersion, ".");
+                  ctxGLSLVersion = new VersionNumber(glslVersion);
                   if( ctxGLSLVersion.getMajor() < 1 ) {
                       ctxGLSLVersion = VersionNumber.zeroVersion; // failed ..
                   }
