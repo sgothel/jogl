@@ -48,15 +48,15 @@ public class Quaternion {
      * @param vector2
      */
     public Quaternion(float[] vector1, float[] vector2) {
-        float theta = (float) FloatUtil.acos(dot(vector1, vector2));
-        float[] cross = cross(vector1, vector2);
-        cross = normalizeVec(cross);
+        float theta = FloatUtil.acos(VectorUtil.dot(vector1, vector2));
+        float[] cross = VectorUtil.cross(vector1, vector2);
+        cross = VectorUtil.normalize(cross);
 
-        this.x = (float) FloatUtil.sin(theta / 2) * cross[0];
-        this.y = (float) FloatUtil.sin(theta / 2) * cross[1];
-        this.z = (float) FloatUtil.sin(theta / 2) * cross[2];
-        this.w = (float) FloatUtil.cos(theta / 2);
-        this.normalize();
+        x = FloatUtil.sin(theta / 2) * cross[0];
+        y = FloatUtil.sin(theta / 2) * cross[1];
+        z = FloatUtil.sin(theta / 2) * cross[2];
+        w = FloatUtil.cos(theta / 2);
+        normalize();
     }
 
     /**
@@ -66,59 +66,12 @@ public class Quaternion {
      */
     public float[] toAxis() {
         float[] vec = new float[4];
-        float scale = (float) FloatUtil.sqrt(x * x + y * y + z * z);
-        vec[0] = (float) FloatUtil.acos(w) * 2.0f;
+        float scale = FloatUtil.sqrt(x * x + y * y + z * z);
+        vec[0] = FloatUtil.acos(w) * 2.0f;
         vec[1] = x / scale;
         vec[2] = y / scale;
         vec[3] = z / scale;
         return vec;
-    }
-
-    /**
-     * Normalize a vector
-     * 
-     * @param vector input vector
-     * @return normalized vector
-     */
-    private float[] normalizeVec(float[] vector) {
-        float[] newVector = new float[3];
-
-        float d = FloatUtil.sqrt(vector[0] * vector[0] + vector[1] * vector[1]
-                + vector[2] * vector[2]);
-        if (d > 0.0f) {
-            newVector[0] = vector[0] / d;
-            newVector[1] = vector[1] / d;
-            newVector[2] = vector[2] / d;
-        }
-        return newVector;
-    }
-
-    /**
-     * compute the dot product of two points
-     * 
-     * @param vec1 vector 1
-     * @param vec2 vector 2
-     * @return the dot product as float
-     */
-    private float dot(float[] vec1, float[] vec2) {
-        return (vec1[0] * vec2[0] + vec1[1] * vec2[1] + vec1[2] * vec2[2]);
-    }
-
-    /**
-     * cross product vec1 x vec2
-     * 
-     * @param vec1 vector 1
-     * @param vec2 vecttor 2
-     * @return the resulting vector
-     */
-    private float[] cross(float[] vec1, float[] vec2) {
-        float[] out = new float[3];
-
-        out[0] = vec2[2] * vec1[1] - vec2[1] * vec1[2];
-        out[1] = vec2[0] * vec1[2] - vec2[2] * vec1[0];
-        out[2] = vec2[1] * vec1[0] - vec2[0] * vec1[1];
-
-        return out;
     }
 
     public float getW() {
