@@ -31,7 +31,7 @@ public class Quaternion {
     protected float x, y, z, w;
 
     public Quaternion() {
-
+        setIdentity();
     }
 
     public Quaternion(float x, float y, float z, float w) {
@@ -50,13 +50,32 @@ public class Quaternion {
     public Quaternion(float[] vector1, float[] vector2) {
         float theta = FloatUtil.acos(VectorUtil.dot(vector1, vector2));
         float[] cross = VectorUtil.cross(vector1, vector2);
-        cross = VectorUtil.normalize(cross);
-
-        x = FloatUtil.sin(theta / 2) * cross[0];
-        y = FloatUtil.sin(theta / 2) * cross[1];
-        z = FloatUtil.sin(theta / 2) * cross[2];
-        w = FloatUtil.cos(theta / 2);
-        normalize();
+        fromAxis(cross, theta);
+    }
+    
+    /***
+     * Constructor to create a rotation based quaternion from axis vector and angle
+     * @param vector axis vector
+     * @param angle rotation angle (rads)
+     * @see #fromAxis(float[], float)
+     */
+    public Quaternion(float[] vector, float angle) {
+        fromAxis(vector, angle);
+    }
+    
+    /***
+     * Initialize this quaternion with given axis vector and rotation angle
+     * 
+     * @param vector axis vector
+     * @param angle rotation angle (rads)
+     */
+    public void fromAxis(float[] vector, float angle) {
+        float sin = FloatUtil.sin(angle *= 0.5f);
+        float[] nv = VectorUtil.normalize(vector);
+        x = (nv[0] * sin);
+        y = (nv[1] * sin);
+        z = (nv[2] * sin);
+        w = FloatUtil.cos(angle);
     }
 
     /**
@@ -174,8 +193,7 @@ public class Quaternion {
     public void normalize() {
         float norme = (float) FloatUtil.sqrt(w * w + x * x + y * y + z * z);
         if (norme == 0.0f) {
-            w = 1.0f;
-            x = y = z = 0.0f;
+            setIdentity();
         } else {
             float recip = 1.0f / norme;
 
@@ -286,7 +304,9 @@ public class Quaternion {
      * Check if this quaternion is empty, ie (0,0,0,1)
      * 
      * @return true if empty, false otherwise
+     * @deprecated use {@link #isIdentity()} instead
      */
+    @Deprecated
     public boolean isEmpty() {
         if (w == 1 && x == 0 && y == 0 && z == 0)
             return true;
@@ -299,9 +319,15 @@ public class Quaternion {
      * @return true if it is an identity rep., false otherwise
      */
     public boolean isIdentity() {
-        if (w == 0 && x == 0 && y == 0 && z == 0)
-            return true;
-        return false;
+        return w == 1 && x == 0 && y == 0 && z == 0;
+    }
+    
+    /***
+     * Set this quaternion to identity (x=0,y=0,z=0,w=1)
+     */
+    public void setIdentity() {
+        x = y = z = 0;
+        w = 1;
     }
 
     /**
