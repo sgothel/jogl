@@ -33,6 +33,13 @@ public class Quaternion {
     public Quaternion() {
         setIdentity();
     }
+    
+    public Quaternion(Quaternion q) {
+        x = q.x;
+        y = q.y;
+        z = q.z;
+        w = q.w;
+    }
 
     public Quaternion(float x, float y, float z, float w) {
         this.x = x;
@@ -185,6 +192,27 @@ public class Quaternion {
         x *= n;
         y *= n;
         z *= n;
+    }
+    
+    /***
+     * Rotate given vector by this quaternion
+     * 
+     * @param vector input vector
+     * @return rotated vector
+     */
+    public float[] mult(float[] vector) {
+        // TODO : optimalize
+        float[] res = new float[3];
+        Quaternion a = new Quaternion(vector[0], vector[1], vector[2], 0.0f);
+        Quaternion b = new Quaternion(this);
+        Quaternion c = new Quaternion(this);
+        b.inverse();
+        a.mult(b);
+        c.mult(a);
+        res[0] = c.x;
+        res[1] = c.y;
+        res[2] = c.z;
+        return res;
     }
 
     /**
