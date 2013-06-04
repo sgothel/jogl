@@ -77,12 +77,13 @@ public class Quaternion {
      * @param angle rotation angle (rads)
      */
     public void fromAxis(float[] vector, float angle) {
-        float sin = FloatUtil.sin(angle *= 0.5f);
+        float halfangle = angle * 0.5f;
+        float sin = FloatUtil.sin(halfangle);
         float[] nv = VectorUtil.normalize(vector);
         x = (nv[0] * sin);
         y = (nv[1] * sin);
         z = (nv[2] * sin);
-        w = FloatUtil.cos(angle);
+        w = FloatUtil.cos(halfangle);
     }
 
     /**
