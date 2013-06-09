@@ -42,7 +42,7 @@ package javax.media.opengl;
 
 import java.nio.IntBuffer;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -1209,12 +1209,12 @@ public abstract class GLContext {
   /**
    * @see #getDeviceVersionAvailableKey(javax.media.nativewindow.AbstractGraphicsDevice, int, int)
    */
-  protected static /*final*/ HashMap<String, Integer> deviceVersionAvailable = new HashMap<String, Integer>();
+  protected static /*final*/ IdentityHashMap<String, Integer> deviceVersionAvailable = new IdentityHashMap<String, Integer>();
 
   /**
    * @see #getUniqueDeviceString(javax.media.nativewindow.AbstractGraphicsDevice)
    */
-  private static /*final*/ HashSet<String> deviceVersionsAvailableSet = new HashSet<String>();
+  private static /*final*/ IdentityHashMap<String, String> deviceVersionsAvailableSet = new IdentityHashMap<String, String>();
 
   /** clears the device/context mappings as well as the GL/GLX proc address tables. */
   protected static void shutdown() {
@@ -1225,17 +1225,16 @@ public abstract class GLContext {
 
   protected static boolean getAvailableGLVersionsSet(AbstractGraphicsDevice device) {
       synchronized ( deviceVersionsAvailableSet ) {
-        return deviceVersionsAvailableSet.contains(device.getUniqueID());
+        return deviceVersionsAvailableSet.containsKey(device.getUniqueID());
       }
   }
 
   protected static void setAvailableGLVersionsSet(AbstractGraphicsDevice device) {
       synchronized ( deviceVersionsAvailableSet ) {
-          String devKey = device.getUniqueID();
-          if ( deviceVersionsAvailableSet.contains(devKey) ) {
+          final String devKey = device.getUniqueID();
+          if( null != deviceVersionsAvailableSet.put(devKey, devKey) ) {
               throw new InternalError("Already set: "+devKey);
           }
-          deviceVersionsAvailableSet.add(devKey);
           if (DEBUG) {
             System.err.println(getThreadName() + ": createContextARB: SET mappedVersionsAvailableSet "+devKey);
             System.err.println(GLContext.dumpAvailableGLVersions(null).toString());            
@@ -1243,8 +1242,13 @@ public abstract class GLContext {
       }
   }
 
+  /** 
+   * Returns a unique String object using {@link String#intern()} for the given arguments, 
+   * which object reference itself can be used as a key.
+   */
   protected static String getDeviceVersionAvailableKey(AbstractGraphicsDevice device, int major, int profile) {
-      return device.getUniqueID() + "-" + toHexString(composeBits(major, profile, 0));
+      final String r = device.getUniqueID() + "-" + toHexString(composeBits(major, profile, 0));
+      return r.intern();
   }
 
   /**
@@ -1272,10 +1276,10 @@ public abstract class GLContext {
         System.err.println("GLContext.mapAvailableGLVersion: "+device+": "+getGLVersion(reqMajor, 0, profile, null)+" -> "+getGLVersion(resMajor, resMinor, resCtp, null));
         // Thread.dumpStack();
     }
-    final String key = getDeviceVersionAvailableKey(device, reqMajor, profile);
+    final String objectKey = getDeviceVersionAvailableKey(device, reqMajor, profile);
     final Integer val = new Integer(composeBits(resMajor, resMinor, resCtp));
     synchronized(deviceVersionAvailable) {
-        return deviceVersionAvailable.put( key, val );
+        return deviceVersionAvailable.put( objectKey, val );
     }
   }
 
@@ -1315,10 +1319,10 @@ public abstract class GLContext {
    * @return the available GL version as encoded with {@link #composeBits(int, int, int), otherwise <code>null</code>
    */
   protected static Integer getAvailableGLVersion(AbstractGraphicsDevice device, int reqMajor, int reqProfile)  {
-    String key = getDeviceVersionAvailableKey(device, reqMajor, reqProfile);
+    final String objectKey = getDeviceVersionAvailableKey(device, reqMajor, reqProfile);
     Integer val;
     synchronized(deviceVersionAvailable) {
-        val = deviceVersionAvailable.get( key );
+        val = deviceVersionAvailable.get( objectKey );
     }
     return val;
   }
