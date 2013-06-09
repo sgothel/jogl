@@ -26,7 +26,7 @@ public class TestPNGImage01NEWT extends UITestCase {
         System.err.println("PNGImage - Orig: "+image1);        
         image1.write(out1_f, true); 
         {
-            Assert.assertEquals(image1.getData(), PNGImage.read(IOUtil.toURL(out1_f).openStream()).getData());
+            Assert.assertEquals(image1.getData(), PNGImage.read(out1_f.toURI().toURL().openStream()).getData());
         }
         
         final PNGImage image2 = PNGImage.createFromData(image1.getWidth(), image1.getHeight(), 
@@ -34,7 +34,7 @@ public class TestPNGImage01NEWT extends UITestCase {
                                                         image1.getBytesPerPixel(), false /* reverseChannels */, image1.isGLOriented(), image1.getData());
         image2.write(out2_f, true);
         {
-            Assert.assertEquals(image1.getData(), PNGImage.read(IOUtil.toURL(out2_f).openStream()).getData());
+            Assert.assertEquals(image1.getData(), PNGImage.read(out2_f.toURI().toURL().openStream()).getData());
         }
         
         // flipped
