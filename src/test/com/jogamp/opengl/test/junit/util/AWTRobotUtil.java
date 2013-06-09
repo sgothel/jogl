@@ -633,7 +633,12 @@ public class AWTRobotUtil {
      */
     public static boolean waitForRealized(Object obj, boolean realized) throws InterruptedException {
         int wait;
-        if(obj instanceof com.jogamp.newt.Window) {
+        if(obj instanceof com.jogamp.newt.Screen) {
+            com.jogamp.newt.Screen screen = (com.jogamp.newt.Screen) obj;
+            for (wait=0; wait<POLL_DIVIDER && realized != screen.isNativeValid(); wait++) {
+                Thread.sleep(TIME_SLICE);
+            }
+        } else if(obj instanceof com.jogamp.newt.Window) {
             com.jogamp.newt.Window win = (com.jogamp.newt.Window) obj;
             for (wait=0; wait<POLL_DIVIDER && realized != win.isNativeValid(); wait++) {
                 Thread.sleep(TIME_SLICE);
