@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.glu;
+package com.jogamp.opengl.test.junit.jogl.math;
 
 import javax.media.opengl.glu.GLU;
 

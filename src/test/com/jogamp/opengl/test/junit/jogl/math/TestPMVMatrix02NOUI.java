@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.acore;
+package com.jogamp.opengl.test.junit.jogl.math;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -41,7 +41,7 @@ import static org.junit.Assert.assertArrayEquals;
 /**
  * @author Thomas De Bodt
  */
-public class TestPMVMatrix02NEWT {
+public class TestPMVMatrix02NOUI {
 
   private PMVMatrix fMat;
 
@@ -104,6 +104,6 @@ public class TestPMVMatrix02NEWT {
   }
 
   public static void main(String args[]) {
-      org.junit.runner.JUnitCore.main(TestPMVMatrix02NEWT.class.getName());
+      org.junit.runner.JUnitCore.main(TestPMVMatrix02NOUI.class.getName());
   }
 }

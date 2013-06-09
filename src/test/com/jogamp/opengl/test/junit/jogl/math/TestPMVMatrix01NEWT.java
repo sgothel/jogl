@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.jogl.acore;
+package com.jogamp.opengl.test.junit.jogl.math;
 
 import java.nio.FloatBuffer;
 

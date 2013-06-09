@@ -309,9 +309,13 @@ testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT 
 #testnoawt com.jogamp.opengl.JoglVersion $*
 #testnoawt com.jogamp.newt.NewtVersion $*
 #testnoawt com.jogamp.newt.opengl.GLWindow $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFloatUtil01MatrixMatrixMultNOUI $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestPMVMatrix01NEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestPMVMatrix02NEWT $*
+
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix01NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix02NOUI $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestGluUnprojectFloatNOUI $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestGluUnprojectDoubleNOUI $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.math.TestFloatUtil01MatrixMatrixMultNOUI $*
+
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLVersionParsing00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestNEWTCloseX11DisplayBug565 $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestMainVersionGLWindowNEWT $*
@@ -376,7 +380,6 @@ testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT 
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableDeadlockAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestBug461FBOSupersamplingSwingAWT
 
-#testnoawt com.jogamp.opengl.test.junit.jogl.glu.TestGluUnprojectFloatNOUI $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteWindow01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestRemoteGLWindows01NEWT $*
 
