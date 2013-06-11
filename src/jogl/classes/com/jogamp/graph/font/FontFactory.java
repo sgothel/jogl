@@ -33,13 +33,15 @@ import java.net.URLConnection;
 
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.common.util.SecurityUtil;
 
 import jogamp.graph.font.FontConstructor;
 import jogamp.graph.font.JavaFontLoader;
 import jogamp.graph.font.UbuntuFontLoader;
 
 public class FontFactory {
+    public static final String FontConstructorPropKey = "jogamp.graph.font.ctor";
+    public static final String DefaultFontConstructor = "jogamp.graph.font.typecast.TypecastFontConstructor";
+    
     /** Ubuntu is the default font family */
     public static final int UBUNTU = 0;
     
@@ -54,9 +56,9 @@ public class FontFactory {
          *   "jogamp.graph.font.typecast.TypecastFontFactory" (default)
          *   "jogamp.graph.font.ttf.TTFFontImpl"
          */        
-        String fontImplName = PropertyAccess.getProperty("FontImpl", true, SecurityUtil.getCommonAccessControlContext(FontFactory.class));
+        String fontImplName = PropertyAccess.getProperty(FontConstructorPropKey, true);
         if(null == fontImplName) {
-            fontImplName = "jogamp.graph.font.typecast.TypecastFontConstructor";
+            fontImplName = DefaultFontConstructor;
         }
         fontConstr = (FontConstructor) ReflectionUtil.createInstance(fontImplName, FontFactory.class.getClassLoader());
     }

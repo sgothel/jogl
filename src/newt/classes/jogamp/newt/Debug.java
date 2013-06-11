@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,6 +40,9 @@
 
 package jogamp.newt;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
 import com.jogamp.common.util.PropertyAccess;
 
 /** Helper routines for logging and debugging. */
@@ -49,7 +53,12 @@ public class Debug extends PropertyAccess {
   private static final boolean debugAll;
   
   static {
-    PropertyAccess.addTrustedPrefix("newt.", Debug.class);
+    AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        public Object run() {
+            PropertyAccess.addTrustedPrefix("newt.");
+            return null;
+    } } );
+    
     verbose = isPropertyDefined("newt.verbose", true);
     debugAll = isPropertyDefined("newt.debug", true);
     if (verbose) {
@@ -60,18 +69,6 @@ public class Debug extends PropertyAccess {
     }
   }
 
-  public static final boolean isPropertyDefined(final String property, final boolean jnlpAlias) {
-    return PropertyAccess.isPropertyDefined(property, jnlpAlias, null);
-  }
-    
-  public static final int getIntProperty(final String property, final boolean jnlpAlias, int defaultValue) {
-      return PropertyAccess.getIntProperty(property, jnlpAlias, null, defaultValue);
-  }
-  
-  public static final boolean getBooleanProperty(final String property, final boolean jnlpAlias) {
-      return PropertyAccess.getBooleanProperty(property, jnlpAlias, null);
-  }
-  
   public static boolean verbose() {
     return verbose;
   }

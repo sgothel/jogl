@@ -28,6 +28,8 @@
  
 package jogamp.opengl.util.av.impl;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -132,7 +134,10 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     static boolean initSingleton() { return ready; }
     
     private static boolean initSymbols() {
-        final DynamicLibraryBundle dl = new DynamicLibraryBundle(new FFMPEGDynamicLibraryBundleInfo());
+        final DynamicLibraryBundle dl = AccessController.doPrivileged(new PrivilegedAction<DynamicLibraryBundle>() {
+                                          public DynamicLibraryBundle run() {
+                                              return new DynamicLibraryBundle(new FFMPEGDynamicLibraryBundleInfo());
+                                          } } );
         final boolean avutilLoaded = dl.isToolLibLoaded(0); 
         final boolean avformatLoaded = dl.isToolLibLoaded(1);
         final boolean avcodecLoaded = dl.isToolLibLoaded(2);

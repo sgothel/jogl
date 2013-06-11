@@ -6,7 +6,11 @@ static {
     if(null==cgProcAddressTable) {
       throw new RuntimeException("Couldn't instantiate CgProcAddressTable");
     }
-    cgDynamicLookupHelper = new DynamicLibraryBundle(new CgDynamicLibraryBundleInfo());
+
+    cgDynamicLookupHelper = AccessController.doPrivileged(new PrivilegedAction<DynamicLibraryBundle>() {
+                                public DynamicLibraryBundle run() {
+                                    return new DynamicLibraryBundle(new CgDynamicLibraryBundleInfo());
+                                } } );
     if(null==cgDynamicLookupHelper) {
       throw new RuntimeException("Null CgDynamicLookupHelper");
     }
