@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Random;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLEventListener;
@@ -14,15 +15,17 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.newt.Screen;
+import com.jogamp.newt.event.MouseAdapter;
+import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.GearsES1;
+import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
 public class TestGLWindowWarpPointer01NEWT  extends UITestCase {
     static GLProfile glp;
     static int width, height;
-    static long durationPerTest = 4000; // ms
+    static long durationPerTest = 2000; // ms
 
     @BeforeClass
     public static void initClass() {
@@ -48,7 +51,7 @@ public class TestGLWindowWarpPointer01NEWT  extends UITestCase {
         }
         glWindow.setUpdateFPSFrames(1, null);        
 
-        GLEventListener demo = new GearsES1();
+        GLEventListener demo = new GearsES2();
         glWindow.addGLEventListener(demo);
 
         glWindow.setSize(512, 512);
@@ -67,10 +70,19 @@ public class TestGLWindowWarpPointer01NEWT  extends UITestCase {
     }
 
     @Test
-    public void testWindow00() throws InterruptedException {
+    public void testWarp01Center() throws InterruptedException {
+        testWarpImpl(false);
+    }
+    
+    @Test
+    public void testWarp02Random() throws InterruptedException {
+        testWarpImpl(true);
+    }
+    
+    void testWarpImpl(final boolean random) throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
-        GLWindow window1 = createWindow(null, caps); // local
+        final GLWindow window1 = createWindow(null, caps); // local
         Assert.assertEquals(true,window1.isNativeValid());
         Assert.assertEquals(true,window1.isVisible());
         Animator animator = new Animator();
@@ -83,11 +95,54 @@ public class TestGLWindowWarpPointer01NEWT  extends UITestCase {
         
         window1.warpPointer(width / 2, height / 2);
         window1.requestFocus();
-        final Random r = new Random();
+        
+        window1.addMouseListener(new MouseAdapter() {
+            void warpCenter() {
+                window1.warpPointer(width / 2, height / 2);
+            }
+            
+            @Override
+            public void mouseEntered(MouseEvent e) {
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                warpCenter();
+            }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+            }
+        });
+        
+        if( random ) {
+            window1.addGLEventListener(new GLEventListener() {
+                final Random r = new Random();
+    
+                void warpRandom(int width, int height) {
+                    int x = r.nextInt(width);
+                    int y = r.nextInt(height);
+                    window1.warpPointer(x, y);
+                }
+                
+                @Override
+                public void init(GLAutoDrawable drawable) {}
+    
+                @Override
+                public void dispose(GLAutoDrawable drawable) {}
+    
+                @Override
+                public void display(GLAutoDrawable drawable) {
+                    warpRandom(drawable.getWidth(), drawable.getHeight());
+                }
+    
+                @Override
+                public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {}
+                
+            });
+        }
+        
         while(animator.isAnimating() && animator.getTotalFPSDuration()<durationPerTest) {
-        	int x = r.nextInt(width);
-        	int y = r.nextInt(height);
-        	window1.warpPointer(x, y);
             Thread.sleep(100);
         }
 
