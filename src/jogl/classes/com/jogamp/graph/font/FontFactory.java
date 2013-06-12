@@ -38,9 +38,17 @@ import jogamp.graph.font.FontConstructor;
 import jogamp.graph.font.JavaFontLoader;
 import jogamp.graph.font.UbuntuFontLoader;
 
+/**
+ * The optional property <i>jogamp.graph.font.ctor</i>
+ * allows user to specify the {@link FontConstructor} implementation.
+ * <p>
+ * Default {@link FontConstructor} is {@link jogamp.graph.font.typecast.TypecastFontConstructor},
+ * i.e. using our internal <i>typecast</i> branch.
+ * </p>
+ */
 public class FontFactory {
-    public static final String FontConstructorPropKey = "jogamp.graph.font.ctor";
-    public static final String DefaultFontConstructor = "jogamp.graph.font.typecast.TypecastFontConstructor";
+    private static final String FontConstructorPropKey = "jogamp.graph.font.ctor";
+    private static final String DefaultFontConstructor = "jogamp.graph.font.typecast.TypecastFontConstructor";
     
     /** Ubuntu is the default font family */
     public static final int UBUNTU = 0;
