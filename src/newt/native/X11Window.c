@@ -676,6 +676,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CloseWindow0
     Display * dpy = (Display *) (intptr_t) display;
     Window w = (Window)window;
     jobject jwindow;
+    XWindowAttributes xwa;
 
     if(dpy==NULL) {
         NewtCommon_FatalError(env, "invalid display connection..");
@@ -694,13 +695,19 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CloseWindow0
     }
 
     XSync(dpy, False);
+    memset(&xwa, 0, sizeof(XWindowAttributes));
+    XGetWindowAttributes(dpy, w, &xwa); // prefetch colormap to be destroyed after window destruction
     XSelectInput(dpy, w, 0);
     XUnmapWindow(dpy, w);
+    XSync(dpy, False);
 
     // Drain all events related to this window ..
     Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessages0(env, obj, display, javaObjectAtom, windowDeleteAtom /*, kbdHandle */); // XKB disabled for now
 
     XDestroyWindow(dpy, w);
+    if( None != xwa.colormap ) {
+        XFreeColormap(dpy, xwa.colormap);
+    }
     XSync(dpy, True); // discard all events now, no more handler
 
     (*env)->DeleteGlobalRef(env, jwindow);
