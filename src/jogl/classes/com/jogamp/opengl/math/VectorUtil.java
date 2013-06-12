@@ -292,21 +292,21 @@ public class VectorUtil {
      */
     public static boolean vertexInTriangle(float[] a, float[]  b, float[]  c, float[]  p){
         // Compute vectors        
-        float[] ac = computeVector(a, c); //v0
-        float[] ab = computeVector(a, b); //v1
-        float[] ap = computeVector(a, p); //v2
+        final float[] ac = computeVector(a, c); //v0
+        final float[] ab = computeVector(a, b); //v1
+        final float[] ap = computeVector(a, p); //v2
 
         // Compute dot products
-        float dot00 = dot(ac, ac);
-        float dot01 = dot(ac, ab);
-        float dot02 = dot(ac, ap);
-        float dot11 = dot(ab, ab);
-        float dot12 = dot(ab, ap);
+        final float dot00 = dot(ac, ac);
+        final float dot01 = dot(ac, ab);
+        final float dot02 = dot(ac, ap);
+        final float dot11 = dot(ab, ab);
+        final float dot12 = dot(ab, ap);
 
         // Compute barycentric coordinates
-        float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
-        float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
-        float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+        final float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+        final float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+        final float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
         // Check if point is in triangle
         return (u >= 0) && (v >= 0) && (u + v < 1);
@@ -337,12 +337,12 @@ public class VectorUtil {
      * @return positive area if ccw else negative area value
      */
     public static float area(ArrayList<? extends Vert2fImmutable> vertices) {
-        int n = vertices.size();
+        final int n = vertices.size();
         float area = 0.0f;
         for (int p = n - 1, q = 0; q < n; p = q++)
         {
-            float[] pCoord = vertices.get(p).getCoord();
-            float[] qCoord = vertices.get(q).getCoord();
+            final float[] pCoord = vertices.get(p).getCoord();
+            final float[] qCoord = vertices.get(q).getCoord();
             area += pCoord[0] * qCoord[1] - qCoord[0] * pCoord[1];
         }
         return area;
@@ -366,18 +366,18 @@ public class VectorUtil {
      * returns null 
      */
     public static float[] seg2SegIntersection(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d) {
-        float determinant = (a.getX()-b.getX())*(c.getY()-d.getY()) - (a.getY()-b.getY())*(c.getX()-d.getX());
+        final float determinant = (a.getX()-b.getX())*(c.getY()-d.getY()) - (a.getY()-b.getY())*(c.getX()-d.getX());
 
         if (determinant == 0) 
             return null;
 
-        float alpha = (a.getX()*b.getY()-a.getY()*b.getX());
-        float beta = (c.getX()*d.getY()-c.getY()*d.getY());
-        float xi = ((c.getX()-d.getX())*alpha-(a.getX()-b.getX())*beta)/determinant;
-        float yi = ((c.getY()-d.getY())*alpha-(a.getY()-b.getY())*beta)/determinant;
+        final float alpha = (a.getX()*b.getY()-a.getY()*b.getX());
+        final float beta = (c.getX()*d.getY()-c.getY()*d.getY());
+        final float xi = ((c.getX()-d.getX())*alpha-(a.getX()-b.getX())*beta)/determinant;
+        final float yi = ((c.getY()-d.getY())*alpha-(a.getY()-b.getY())*beta)/determinant;
 
-        float gamma = (xi - a.getX())/(b.getX() - a.getX());
-        float gamma1 = (xi - c.getX())/(d.getX() - c.getX());
+        final float gamma = (xi - a.getX())/(b.getX() - a.getX());
+        final float gamma1 = (xi - c.getX())/(d.getX() - c.getX());
         if(gamma <= 0 || gamma >= 1) return null;
         if(gamma1 <= 0 || gamma1 >= 1) return null;
 
@@ -393,15 +393,15 @@ public class VectorUtil {
      * returns null 
      */
     public static float[] line2lineIntersection(Vert2fImmutable a, Vert2fImmutable b, Vert2fImmutable c, Vert2fImmutable d) {
-        float determinant = (a.getX()-b.getX())*(c.getY()-d.getY()) - (a.getY()-b.getY())*(c.getX()-d.getX());
+        final float determinant = (a.getX()-b.getX())*(c.getY()-d.getY()) - (a.getY()-b.getY())*(c.getX()-d.getX());
 
         if (determinant == 0) 
             return null;
 
-        float alpha = (a.getX()*b.getY()-a.getY()*b.getX());
-        float beta = (c.getX()*d.getY()-c.getY()*d.getY());
-        float xi = ((c.getX()-d.getX())*alpha-(a.getX()-b.getX())*beta)/determinant;
-        float yi = ((c.getY()-d.getY())*alpha-(a.getY()-b.getY())*beta)/determinant;
+        final float alpha = (a.getX()*b.getY()-a.getY()*b.getX());
+        final float beta = (c.getX()*d.getY()-c.getY()*d.getY());
+        final float xi = ((c.getX()-d.getX())*alpha-(a.getX()-b.getX())*beta)/determinant;
+        final float yi = ((c.getY()-d.getY())*alpha-(a.getY()-b.getY())*beta)/determinant;
 
         return new float[]{xi,yi,0};
     }

@@ -55,8 +55,8 @@ public class Quaternion {
      * @param vector2
      */
     public Quaternion(float[] vector1, float[] vector2) {
-        float theta = FloatUtil.acos(VectorUtil.dot(vector1, vector2));
-        float[] cross = VectorUtil.cross(vector1, vector2);
+        final float theta = FloatUtil.acos(VectorUtil.dot(vector1, vector2));
+        final float[] cross = VectorUtil.cross(vector1, vector2);
         fromAxis(cross, theta);
     }
     
@@ -77,9 +77,9 @@ public class Quaternion {
      * @param angle rotation angle (rads)
      */
     public void fromAxis(float[] vector, float angle) {
-        float halfangle = angle * 0.5f;
-        float sin = FloatUtil.sin(halfangle);
-        float[] nv = VectorUtil.normalize(vector);
+        final float halfangle = angle * 0.5f;
+        final float sin = FloatUtil.sin(halfangle);
+        final float[] nv = VectorUtil.normalize(vector);
         x = (nv[0] * sin);
         y = (nv[1] * sin);
         z = (nv[2] * sin);
@@ -92,8 +92,8 @@ public class Quaternion {
      * @return new float[4] with ,theta,Rx,Ry,Rz
      */
     public float[] toAxis() {
-        float[] vec = new float[4];
-        float scale = FloatUtil.sqrt(x * x + y * y + z * z);
+        final float[] vec = new float[4];
+        final float scale = FloatUtil.sqrt(x * x + y * y + z * z);
         vec[0] = FloatUtil.acos(w) * 2.0f;
         vec[1] = x / scale;
         vec[2] = y / scale;
@@ -172,11 +172,11 @@ public class Quaternion {
      * @param q a quaternion to multiply with
      */
     public void mult(Quaternion q) {
-        float w1 = w * q.w - x * q.x - y * q.y - z * q.z;
+        final float w1 = w * q.w - x * q.x - y * q.y - z * q.z;
 
-        float x1 = w * q.x + x * q.w + y * q.z - z * q.y;
-        float y1 = w * q.y - x * q.z + y * q.w + z * q.x;
-        float z1 = w * q.z + x * q.y - y * q.x + z * q.w;
+        final float x1 = w * q.x + x * q.w + y * q.z - z * q.y;
+        final float y1 = w * q.y - x * q.z + y * q.w + z * q.x;
+        final float z1 = w * q.z + x * q.y - y * q.x + z * q.w;
 
         w = w1;
         x = x1;
@@ -202,11 +202,11 @@ public class Quaternion {
      * @return rotated vector
      */
     public float[] mult(float[] vector) {
-        // TODO : optimalize
-        float[] res = new float[3];
-        Quaternion a = new Quaternion(vector[0], vector[1], vector[2], 0.0f);
-        Quaternion b = new Quaternion(this);
-        Quaternion c = new Quaternion(this);
+        // TODO : optimize
+        final float[] res = new float[3];
+        final Quaternion a = new Quaternion(vector[0], vector[1], vector[2], 0.0f);
+        final Quaternion b = new Quaternion(this);
+        final Quaternion c = new Quaternion(this);
         b.inverse();
         a.mult(b);
         c.mult(a);
@@ -220,11 +220,11 @@ public class Quaternion {
      * Normalize a quaternion required if to be used as a rotational quaternion
      */
     public void normalize() {
-        float norme = (float) FloatUtil.sqrt(w * w + x * x + y * y + z * z);
+        final float norme = (float) FloatUtil.sqrt(w * w + x * x + y * y + z * z);
         if (norme == 0.0f) {
             setIdentity();
         } else {
-            float recip = 1.0f / norme;
+            final float recip = 1.0f / norme;
 
             w *= recip;
             x *= recip;
@@ -237,9 +237,9 @@ public class Quaternion {
      * Invert the quaternion If rotational, will produce a the inverse rotation
      */
     public void inverse() {
-        float norm = w * w + x * x + y * y + z * z;
+        final float norm = w * w + x * x + y * y + z * z;
 
-        float recip = 1.0f / norm;
+        final float recip = 1.0f / norm;
 
         w *= recip;
         x = -1 * x * recip;
@@ -254,7 +254,7 @@ public class Quaternion {
      * @return new float[16] column matrix 4x4
      */
     public float[] toMatrix() {
-        float[] matrix = new float[16];
+        final float[] matrix = new float[16];
         matrix[0] = 1.0f - 2 * y * y - 2 * z * z;
         matrix[1] = 2 * x * y + 2 * w * z;
         matrix[2] = 2 * x * z - 2 * w * y;
@@ -365,28 +365,28 @@ public class Quaternion {
      * @param m 3x3 column matrix
      */
     public void setFromMatrix(float[] m) {
-        float T = m[0] + m[4] + m[8] + 1;
+        final float T = m[0] + m[4] + m[8] + 1;
         if (T > 0) {
-            float S = 0.5f / (float) FloatUtil.sqrt(T);
+            final float S = 0.5f / (float) FloatUtil.sqrt(T);
             w = 0.25f / S;
             x = (m[5] - m[7]) * S;
             y = (m[6] - m[2]) * S;
             z = (m[1] - m[3]) * S;
         } else {
             if ((m[0] > m[4]) & (m[0] > m[8])) {
-                float S = FloatUtil.sqrt(1.0f + m[0] - m[4] - m[8]) * 2f; // S=4*qx
+                final float S = FloatUtil.sqrt(1.0f + m[0] - m[4] - m[8]) * 2f; // S=4*qx
                 w = (m[7] - m[5]) / S;
                 x = 0.25f * S;
                 y = (m[3] + m[1]) / S;
                 z = (m[6] + m[2]) / S;
             } else if (m[4] > m[8]) {
-                float S = FloatUtil.sqrt(1.0f + m[4] - m[0] - m[8]) * 2f; // S=4*qy
+                final float S = FloatUtil.sqrt(1.0f + m[4] - m[0] - m[8]) * 2f; // S=4*qy
                 w = (m[6] - m[2]) / S;
                 x = (m[3] + m[1]) / S;
                 y = 0.25f * S;
                 z = (m[7] + m[5]) / S;
             } else {
-                float S = FloatUtil.sqrt(1.0f + m[8] - m[0] - m[4]) * 2f; // S=4*qz
+                final float S = FloatUtil.sqrt(1.0f + m[8] - m[0] - m[4]) * 2f; // S=4*qz
                 w = (m[3] - m[1]) / S;
                 x = (m[6] + m[2]) / S;
                 y = (m[7] + m[5]) / S;
@@ -403,7 +403,7 @@ public class Quaternion {
      * @return true if representing a rotational matrix, false otherwise
      */
     public boolean isRotationMatrix(float[] m) {
-        double epsilon = 0.01; // margin to allow for rounding errors
+        final double epsilon = 0.01; // margin to allow for rounding errors
         if (FloatUtil.abs(m[0] * m[3] + m[3] * m[4] + m[6] * m[7]) > epsilon)
             return false;
         if (FloatUtil.abs(m[0] * m[2] + m[3] * m[5] + m[6] * m[8]) > epsilon)
