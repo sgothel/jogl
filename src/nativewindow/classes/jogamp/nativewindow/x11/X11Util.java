@@ -46,6 +46,7 @@ import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.nativewindow.ToolkitProperties;
 
 import com.jogamp.common.util.LongObjectHashMap;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 
 /**
@@ -123,7 +124,7 @@ public class X11Util implements ToolkitProperties {
                     final boolean isInitOK = initialize0( XERROR_STACKDUMP );
         
                     final boolean hasX11_EXTENSION_ATIFGLRXDRI, hasX11_EXTENSION_ATIFGLEXTENSION;
-                    final long dpy = X11Lib.XOpenDisplay(null);
+                    final long dpy = X11Lib.XOpenDisplay(PropertyAccess.getProperty("nativewindow.x11.display.default", true));
                     if(0 != dpy) {
                         if(XSYNC_ENABLED) {
                             X11Lib.XSynchronize(dpy, true);
