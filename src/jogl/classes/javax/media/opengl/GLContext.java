@@ -1209,12 +1209,12 @@ public abstract class GLContext {
   /**
    * @see #getDeviceVersionAvailableKey(javax.media.nativewindow.AbstractGraphicsDevice, int, int)
    */
-  protected static /*final*/ IdentityHashMap<String, Integer> deviceVersionAvailable = new IdentityHashMap<String, Integer>();
+  protected static IdentityHashMap<String, Integer> deviceVersionAvailable = new IdentityHashMap<String, Integer>();
 
   /**
    * @see #getUniqueDeviceString(javax.media.nativewindow.AbstractGraphicsDevice)
    */
-  private static /*final*/ IdentityHashMap<String, String> deviceVersionsAvailableSet = new IdentityHashMap<String, String>();
+  private static IdentityHashMap<String, String> deviceVersionsAvailableSet = new IdentityHashMap<String, String>();
 
   /** clears the device/context mappings as well as the GL/GLX proc address tables. */
   protected static void shutdown() {
