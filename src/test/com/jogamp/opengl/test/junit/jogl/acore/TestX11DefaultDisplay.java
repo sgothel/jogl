@@ -28,6 +28,8 @@
  
 package com.jogamp.opengl.test.junit.jogl.acore;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
@@ -36,10 +38,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.opengl.test.junit.jogl.demos.PointsDemo;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.PointsDemoES1;
-import com.jogamp.opengl.test.junit.jogl.demos.es2.PointsDemoES2;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.RedSquareES1;
+import com.jogamp.opengl.test.junit.util.DumpGLInfo;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+import com.jogamp.opengl.util.Animator;
 
 /**
  * This is a clone of TestGLPointsNEWT which uses the ability to specify
@@ -48,6 +52,7 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
  *
  */
 public class TestX11DefaultDisplay extends UITestCase {
+    static long duration = 500; // ms
     static int width = 512, height = 512;
     static String x11DefaultDisplay = ":0.0";
 
@@ -56,100 +61,81 @@ public class TestX11DefaultDisplay extends UITestCase {
         System.setProperty("nativewindow.x11.display.default", x11DefaultDisplay);
     }
 
-    protected void runTestGL0(GLCapabilities caps, PointsDemo demo) throws InterruptedException {
-        GLWindow glWindow = GLWindow.create(caps);
+    protected void runTestGL(GLCapabilities caps) throws InterruptedException {
+        final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
         glWindow.setTitle(getSimpleTestName("."));
+        glWindow.setSize(width, height);
 
+        final RedSquareES1 demo = new RedSquareES1();
         glWindow.addGLEventListener(demo);
+
         final SnapshotGLEventListener snap = new SnapshotGLEventListener();
         snap.setPostSNDetail(demo.getClass().getSimpleName());
         glWindow.addGLEventListener(snap);
+        
+        Animator animator = new Animator(glWindow);
+        QuitAdapter quitAdapter = new QuitAdapter();
 
-        glWindow.setSize(width, height);
+        glWindow.addKeyListener(quitAdapter);
+        glWindow.addWindowListener(quitAdapter);
+
+        animator.start();
+        
         glWindow.setVisible(true);
+
+        System.err.println("NW chosen: "+glWindow.getDelegatedWindow().getChosenCapabilities());
+        System.err.println("GL chosen: "+glWindow.getChosenCapabilities());
+        System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
         
-        demo.setSmoothPoints(false);
+        animator.setUpdateFPSFrames(60, System.err);
         snap.setMakeSnapshot();
-        snap.setPostSNDetail("flat");
-        glWindow.display();
-        
-        demo.setSmoothPoints(true);
-        snap.setMakeSnapshot();
-        snap.setPostSNDetail("smooth");
-        glWindow.display();
-        
-        demo.setPointParams(2f, 40f, 0.01f, 0.0f, 0.01f, 1f);        
-        snap.setMakeSnapshot();
-        snap.setPostSNDetail("attn0");
-        glWindow.display();
-        
-        glWindow.removeGLEventListener(demo);
-        
+
+        while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
+            Thread.sleep(100);
+        }
+
+        animator.stop();
         glWindow.destroy();
     }
-    
-    protected void runTestGL(GLCapabilities caps, PointsDemo demo, boolean forceFFPEmu) throws InterruptedException {
-        runTestGL0(caps, demo);        
-    }
 
     @Test
-    public void test01FFP__GL2() throws InterruptedException {
-        if(!GLProfile.isAvailable(GLProfile.GL2)) { System.err.println("GL2 n/a"); return; }
-        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
-        runTestGL(caps, new PointsDemoES1(), false);
-    }
-    
-    @Test
-    public void test02FFP__ES1() throws InterruptedException {
-        if(!GLProfile.isAvailable(GLProfile.GLES1)) { System.err.println("GLES1 n/a"); return; }
-        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES1));
-        runTestGL(caps, new PointsDemoES1(), false);
-    }
-    
-    @Test
-    public void test03FFP__ES2() throws InterruptedException {
-        if(!GLProfile.isAvailable(GLProfile.GLES2)) { System.err.println("GLES2 n/a"); return; }
-        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
-        PointsDemoES1 demo = new PointsDemoES1();
-        demo.setForceFFPEmu(true, false, false, false);
-        runTestGL(caps, demo, false);
-    }
-    
-    @Test
-    public void test04FFP__GL2ES2() throws InterruptedException {
-        if(!GLProfile.isAvailable(GLProfile.GL2ES2)) { System.err.println("GL2ES2 n/a"); return; }
-        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2ES2));
-        PointsDemoES1 demo = new PointsDemoES1();
-        demo.setForceFFPEmu(true, false, false, false);
-        runTestGL(caps, demo, false);
-    }
-    
-    @Test
-    public void test11GLSL_GL2() throws InterruptedException {
-        if(!GLProfile.isAvailable(GLProfile.GL2)) { System.err.println("GL2 n/a"); return; }
-        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GL2));
-        runTestGL(caps, new PointsDemoES2(), false);
-    }
+    public void test00_DefaultDevice() {
+        final AbstractGraphicsDevice defaultDevice = GLProfile.getDefaultDevice();
+        System.out.println("GLProfile "+GLProfile.glAvailabilityToString());
+        System.out.println("GLProfile.getDefaultDevice(): "+defaultDevice);        
+        GLProfile glp = GLProfile.getDefault();
+        System.out.println("GLProfile.getDefault(): "+glp);
         
-    @Test
-    public void test12GLSL_ES2() throws InterruptedException {
-        if(!GLProfile.isAvailable(GLProfile.GLES2)) { System.err.println("GLES2 n/a"); return; }
-        GLCapabilities caps = new GLCapabilities(GLProfile.get(GLProfile.GLES2));
-        runTestGL(caps, new PointsDemoES2(), false); // should be FFPEmu implicit
-    }
-      
-    static int atoi(String a) {
-        int i=0;
-        try {
-            i = Integer.parseInt(a);
-        } catch (Exception ex) { ex.printStackTrace(); }
-        return i;
-    }
+        GLCapabilities caps = new GLCapabilities(glp);        
+        GLWindow glWindow = GLWindow.create(caps);
+        Assert.assertNotNull(glWindow);
 
+        glWindow.addGLEventListener(new DumpGLInfo());
+
+        glWindow.setSize(128, 128);
+        glWindow.setVisible(true);
+
+        glWindow.display();
+        glWindow.destroy();
+        
+        if( NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
+            Assert.assertEquals("X11 Default device does not match", defaultDevice.getConnection(), x11DefaultDisplay);
+        }
+    }
+    
+    @Test
+    public void test01_GLDefaultRendering() throws InterruptedException {
+        GLCapabilities caps = new GLCapabilities(null);
+        runTestGL(caps);
+    }
+    
     public static void main(String args[]) {
         for(int i=0; i<args.length; i++) {
-            if(args[i].equals("-x11DefaultDisplay")) {
+            if(args[i].equals("-time")) {
+                i++;
+                duration = MiscUtils.atol(args[i], duration);
+            } else if(args[i].equals("-x11DefaultDisplay")) {
                 x11DefaultDisplay = args[++i];
             }
         }
