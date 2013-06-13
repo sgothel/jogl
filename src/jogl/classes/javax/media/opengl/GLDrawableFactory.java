@@ -211,7 +211,15 @@ public abstract class GLDrawableFactory {
     // The latter requires shutdown at JVM-Shutdown only.
     synchronized(glDrawableFactories) {
         for(int i=0; i<glDrawableFactories.size(); i++) {
-            glDrawableFactories.get(i).destroy();
+            final GLDrawableFactory gldf = glDrawableFactories.get(i);
+            try {
+                gldf.destroy();
+            } catch (Throwable t) {
+                System.err.println("GLDrawableFactory.shutdownImpl: Catched Exception during shutdown of "+gldf.getClass().getName());
+                if( DEBUG ) {
+                    t.printStackTrace();
+                }
+            }
         }
         glDrawableFactories.clear();
         
