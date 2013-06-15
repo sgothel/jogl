@@ -355,8 +355,8 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     
             // after native peer is valid: Windows
             disableBackgroundErase();
-    
-            jawtWindow = NewtFactoryAWT.getNativeWindow(this, newtChild.getRequestedCapabilities());          
+                
+            jawtWindow = NewtFactoryAWT.getNativeWindow(this, null != newtChild ? newtChild.getRequestedCapabilities() : null);          
             jawtWindow.setShallUseOffscreenLayer(shallUseOffscreenLayer);
             
             if(DEBUG) {
