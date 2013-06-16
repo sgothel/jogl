@@ -729,9 +729,19 @@ public abstract class GLContext {
   
   /**
    * Returns the GLSL version string as to be used in a shader program, including a terminating newline '\n',
-   * i.e.:
+   * i.e. for desktop
    * <pre>
    *    #version 110
+   *    ..
+   *    #version 150
+   *    #version 330
+   *    ...
+   * </pre>
+   * And for ES:
+   * <pre>
+   *    #version 100
+   *    #version 300 es
+   *    ..
    * </pre>
    * <p>
    * If context has not been made current yet, a string of zero length is returned.
@@ -743,14 +753,17 @@ public abstract class GLContext {
           return "";
       }
       final int minor = ctxGLSLVersion.getMinor();
-      return "#version " + ctxGLSLVersion.getMajor() + ( minor < 10 ? "0"+minor : minor ) + "\n" ;
+      final String esSuffix = isGLES() && ctxGLSLVersion.compareTo(Version30) >= 0 ? " es" : ""; 
+      return "#version " + ctxGLSLVersion.getMajor() + ( minor < 10 ? "0"+minor : minor ) + esSuffix + "\n" ;
   }
   
   protected static final VersionNumber getStaticGLSLVersionNumber(int glMajorVersion, int glMinorVersion, int ctxOptions) {
       if( 0 != ( CTX_PROFILE_ES & ctxOptions ) ) {
-          return Version100;      // ES 2.0  ->  GLSL 1.00
+          if( 3 > glMajorVersion ) {
+              return Version100;           // ES 2.0  ->  GLSL 1.00
+          }
       } else if( 1 == glMajorVersion ) {
-          return Version110;      // GL 1.x  ->  GLSL 1.10
+          return Version110;               // GL 1.x  ->  GLSL 1.10
       } else if( 2 == glMajorVersion ) {
           switch ( glMinorVersion ) {
               case 0:  return Version110;  // GL 2.0  ->  GLSL 1.10
@@ -758,13 +771,13 @@ public abstract class GLContext {
           }
       } else if( 3 == glMajorVersion && 2 >= glMinorVersion ) {
           switch ( glMinorVersion ) {
-          case 0:  return Version130;  // GL 3.0  ->  GLSL 1.30
-          case 1:  return Version140;  // GL 3.1  ->  GLSL 1.40
-          default: return Version150;  // GL 3.2  ->  GLSL 1.50 
+              case 0:  return Version130;  // GL 3.0  ->  GLSL 1.30
+              case 1:  return Version140;  // GL 3.1  ->  GLSL 1.40
+              default: return Version150;  // GL 3.2  ->  GLSL 1.50 
           }
-      } else { // >= 3.3
-          return new VersionNumber(glMajorVersion, glMinorVersion * 10, 0); // GL M.N  ->  GLSL M.N
       }
+      // The new default: GL >= 3.3, ES >= 3.0
+      return new VersionNumber(glMajorVersion, glMinorVersion * 10, 0); // GL M.N  ->  GLSL M.N
   }
   
   /**
