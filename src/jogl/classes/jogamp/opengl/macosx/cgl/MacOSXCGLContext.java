@@ -939,7 +939,7 @@ public class MacOSXCGLContext extends GLContextImpl
           if(0 == cglCtx) {
               throw new InternalError("Null CGLContext for: "+this);
           }
-          int err = CGL.CGLLockContext(cglCtx);
+          final int err = CGL.CGLLockContext(cglCtx);
           if(CGL.kCGLNoError == err) {
               validatePBufferConfig(ctx); // required to handle pbuffer change ASAP
               return CGL.makeCurrentContext(ctx);
