@@ -559,7 +559,7 @@ public class GLDrawableHelper {
 
   public final void display(GLAutoDrawable drawable) {
     displayImpl(drawable);
-    if(!execGLRunnables(drawable)) {
+    if( glRunnables.size()>0 && !execGLRunnables(drawable) ) { // glRunnables volatile OK; execGL.. only executed if size > 0
         displayImpl(drawable);  
     }
   }
@@ -603,24 +603,22 @@ public class GLDrawableHelper {
     }
   }
 
-  private final boolean execGLRunnables(GLAutoDrawable drawable) {
+  private final boolean execGLRunnables(GLAutoDrawable drawable) { // glRunnables.size()>0
     boolean res = true;
-    if(glRunnables.size()>0) { // volatile OK
-        // swap one-shot list asap
-        final ArrayList<GLRunnableTask> _glRunnables;
-        synchronized(glRunnablesLock) {
-            if(glRunnables.size()>0) {
-                _glRunnables = glRunnables;
-                glRunnables = new ArrayList<GLRunnableTask>();
-            } else {
-                _glRunnables = null;
-            }
+    // swap one-shot list asap
+    final ArrayList<GLRunnableTask> _glRunnables;
+    synchronized(glRunnablesLock) {
+        if(glRunnables.size()>0) {
+            _glRunnables = glRunnables;
+            glRunnables = new ArrayList<GLRunnableTask>();
+        } else {
+            _glRunnables = null;
         }
-        
-        if(null!=_glRunnables) {
-            for (int i=0; i < _glRunnables.size(); i++) {
-                res = _glRunnables.get(i).run(drawable) && res;
-            }
+    }
+    
+    if(null!=_glRunnables) {
+        for (int i=0; i < _glRunnables.size(); i++) {
+            res = _glRunnables.get(i).run(drawable) && res;
         }
     }
     return res;
