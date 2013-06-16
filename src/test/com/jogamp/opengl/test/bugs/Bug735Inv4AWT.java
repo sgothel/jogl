@@ -39,7 +39,8 @@ import com.jogamp.opengl.util.AnimatorBase;
  * OSX Results:
  * <pre>
  *   - Visible content
- *   - Fluent animation
+ *   - Java6: Fluent animation
+ *   - Java7: Stuttering, non-fluent and slow animation
  * </pre>
  */
 public class Bug735Inv4AWT {
@@ -49,7 +50,6 @@ public class Bug735Inv4AWT {
   static public int APPLET_WIDTH  = 500;
   static public int APPLET_HEIGHT = 290;
   static public int TOOLKIT       = NEWT;
-  static public boolean NEWT_ROOT = false;
   static public boolean IGNORE_AWT_REPAINT = false;
   static public boolean USE_ECT = false;
   static public int SWAP_INTERVAL = 0;
@@ -76,9 +76,6 @@ public class Bug735Inv4AWT {
   }
   
   public void start() {
-    if(waitForKey) {
-        UITestCase.waitForKey("Start");
-    }
     initDraw();
     animator.start();
   }
@@ -136,13 +133,16 @@ public class Bug735Inv4AWT {
   }
   
   static public void main(String[] args) {    
+    if(waitForKey) {
+        UITestCase.waitForKey("Start");
+    }
     final GraphicsEnvironment environment = 
         GraphicsEnvironment.getLocalGraphicsEnvironment();
     final GraphicsDevice displayDevice = environment.getDefaultScreenDevice();
 
     frame = new Frame(displayDevice.getDefaultConfiguration());
     // JAU frame.setBackground(new Color(0xCC, 0xCC, 0xCC));
-    frame.setTitle("TestBug735Inv3AppletAWT");
+    frame.setTitle("TestBug735Inv4AWT");
     
     // This allows to close the frame.
     frame.addWindowListener(new WindowAdapter() {

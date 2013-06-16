@@ -382,7 +382,7 @@ public class Bug735Inv0AppletAWT extends Applet implements Runnable {
 
     frame = new Frame(displayDevice.getDefaultConfiguration());
     frame.setBackground(new Color(0xCC, 0xCC, 0xCC));
-    frame.setTitle("TestBug735InvAppletAWT");
+    frame.setTitle("TestBug735Inv0AppletAWT");
     
     try {
       Class<?> c = Thread.currentThread().getContextClassLoader().

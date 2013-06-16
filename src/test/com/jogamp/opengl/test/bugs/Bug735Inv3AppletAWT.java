@@ -3,7 +3,6 @@ package com.jogamp.opengl.test.bugs;
 import java.applet.Applet;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -80,9 +79,6 @@ public class Bug735Inv3AppletAWT extends Applet {
   }
   
   public void start() {
-    if(waitForKey) {
-        UITestCase.waitForKey("Start");
-    }
     initDraw();
     animator.start();
   }
@@ -148,6 +144,9 @@ public class Bug735Inv3AppletAWT extends Applet {
   }
   
   static public void main(String[] args) {    
+    if(waitForKey) {
+        UITestCase.waitForKey("Start");
+    }
     final GraphicsEnvironment environment = 
         GraphicsEnvironment.getLocalGraphicsEnvironment();
     final GraphicsDevice displayDevice = environment.getDefaultScreenDevice();
