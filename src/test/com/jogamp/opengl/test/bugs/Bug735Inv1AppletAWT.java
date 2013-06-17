@@ -43,7 +43,8 @@ import com.jogamp.opengl.util.glsl.ShaderState;
  * </pre>
  * OSX Results:
  * <pre>
- *   - Only RED Clear Color
+ *   - Visible content
+ *   - Fluent animation
  * </pre>
  */
 @SuppressWarnings("serial")
