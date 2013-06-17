@@ -83,8 +83,6 @@ public class LandscapeES2 implements GLEventListener {
             System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
         }
 
-        gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
-        
         vertShader = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(), "shader", "shader/bin", "landscape", true);
         fragShader = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), "shader", "shader/bin", "landscape", true);
         vertShader.defaultShaderCustomization(gl, true, true);
@@ -148,9 +146,9 @@ public class LandscapeES2 implements GLEventListener {
 
     public void display(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
+        // Shader fills complete framebuffer regardless of DEPTH, no Clear required.
         // gl.glClearColor(0.5f, 0.1f, 0.1f, 1);
         // gl.glClear(GL.GL_COLOR_BUFFER_BIT);
-        // gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
         
         shaderState.useProgram(gl, true);    
         

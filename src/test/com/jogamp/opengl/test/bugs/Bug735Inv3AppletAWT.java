@@ -21,6 +21,7 @@ import javax.swing.SwingUtilities;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.LandscapeES2;
+import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.AnimatorBase;
@@ -40,7 +41,7 @@ import com.jogamp.opengl.util.AnimatorBase;
  * OSX Results:
  * <pre>
  *   - Visible content
- *   - Stuttering, non-fluent and slow animation
+ *   - Fluent animation
  * </pre>
  */
 @SuppressWarnings("serial")
@@ -53,11 +54,11 @@ public class Bug735Inv3AppletAWT extends Applet {
   static public int TOOLKIT       = NEWT;
   static public boolean IGNORE_AWT_REPAINT = false;
   static public boolean USE_ECT = false;
-  static public int SWAP_INTERVAL = 0;
+  static public int SWAP_INTERVAL = 1;
   
   //////////////////////////////////////////////////////////////////////////////
   
-  static boolean waitForKey = true;  
+  static boolean waitForKey = false;  
   static private Frame frame;
   static private Bug735Inv3AppletAWT applet;
   private GLCanvas awtCanvas;
@@ -81,6 +82,7 @@ public class Bug735Inv3AppletAWT extends Applet {
   public void start() {
     initDraw();
     animator.start();
+    animator.setUpdateFPSFrames(60, System.err);
   }
   
   private void initGL() {
@@ -120,6 +122,7 @@ public class Bug735Inv3AppletAWT extends Applet {
     }
     
     demo = new LandscapeES2(SWAP_INTERVAL);
+    // demo = new GearsES2(SWAP_INTERVAL);
     glad.addGLEventListener(demo);
     animator = new Animator(glad);
     animator.setExclusiveContext(USE_ECT);
@@ -144,9 +147,22 @@ public class Bug735Inv3AppletAWT extends Applet {
   }
   
   static public void main(String[] args) {    
+    for(int i=0; i<args.length; i++) {
+        if(args[i].equals("-vsync")) {
+            i++;
+            SWAP_INTERVAL = MiscUtils.atoi(args[i], SWAP_INTERVAL);
+        } else if(args[i].equals("-exclctx")) {
+            USE_ECT = true;
+        } else if(args[i].equals("-wait")) {
+            waitForKey = true;
+        }
+    }
+    System.err.println("swapInterval "+SWAP_INTERVAL);
+    System.err.println("exclusiveContext "+USE_ECT);    
     if(waitForKey) {
         UITestCase.waitForKey("Start");
     }
+    
     final GraphicsEnvironment environment = 
         GraphicsEnvironment.getLocalGraphicsEnvironment();
     final GraphicsDevice displayDevice = environment.getDefaultScreenDevice();

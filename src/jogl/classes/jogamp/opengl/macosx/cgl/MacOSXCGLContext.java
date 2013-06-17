@@ -81,7 +81,7 @@ import com.jogamp.opengl.util.glsl.ShaderCode;
 import com.jogamp.opengl.util.glsl.ShaderProgram;
 
 public class MacOSXCGLContext extends GLContextImpl
-{
+{  
   // Abstract interface for implementation of this context (either
   // NSOpenGL-based or CGL-based)
   protected interface GLBackendImpl {
@@ -1000,6 +1000,8 @@ public class MacOSXCGLContext extends GLContextImpl
               CGL.setNSOpenGLLayerSwapInterval(l, interval);
               if( 0 < interval ) {
                   vsyncTimeout = interval * screenVSyncTimeout + 1000; // +1ms
+              } else {
+                  vsyncTimeout = 1 * screenVSyncTimeout + 1000; // +1ms
               }
               if(DEBUG) { System.err.println("NS setSwapInterval: "+interval+" -> "+vsyncTimeout+" micros"); }
           }
@@ -1008,6 +1010,14 @@ public class MacOSXCGLContext extends GLContextImpl
       }
       
       private int skipSync=0;
+      /** TODO: Remove after discussion
+      private boolean perfIterReset = false;
+      private int perfIter = 0;
+      private long waitGLS = 0;
+      private long finishGLS = 0;
+      private long frameXS = 0;
+      private long lastFrameStart = 0;
+      */
       
       @Override
       public boolean swapBuffers() {
@@ -1036,6 +1046,45 @@ public class MacOSXCGLContext extends GLContextImpl
                           res = CGL.flushBuffer(contextHandle);
                           if(res) {
                               if(0 == skipSync) {
+                                  /** TODO: Remove after discussion
+                                  perfIter++;
+                                  if( !perfIterReset && 100 == perfIter ) {
+                                      perfIterReset = true;
+                                      perfIter = 1;
+                                      waitGLS = 0;
+                                      finishGLS = 0;
+                                      frameXS = 0;
+                                  }
+                                  final long lastFramePeriod0 = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - lastFrameStart;
+                                  gl.glFinish(); // Require to finish previous GL rendering to give CALayer proper result
+                                  final long lastFramePeriod1 = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - lastFrameStart;
+                                  
+                                  // If v-sync is disabled, frames will be drawn as quickly as possible w/o delay, 
+                                  // while still synchronizing w/ CALayer.
+                                  // If v-sync is enabled wait until next swap interval (v-sync).
+                                  CGL.waitUntilNSOpenGLLayerIsReady(cmd.nsOpenGLLayer, vsyncTimeout);
+                                  final long lastFramePeriodX = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - lastFrameStart;
+                                  
+                                  final long finishGL = lastFramePeriod1 - lastFramePeriod0;
+                                  final long waitGL = lastFramePeriodX - lastFramePeriod1;
+                                  finishGLS += finishGL;
+                                  waitGLS += waitGL;
+                                  frameXS += lastFramePeriodX;
+                                  
+                                  System.err.println("XXX["+perfIter+"] TO "+vsyncTimeout/1000+" ms, "+
+                                                     "lFrame0 "+lastFramePeriod0/1000+" ms, "+
+                                                     "lFrameX "+lastFramePeriodX/1000+" / "+frameXS/1000+" ~"+(frameXS/perfIter)/1000.0+" ms, "+
+                                                     "finishGL "+finishGL/1000+" / "+finishGLS/1000+" ~"+(finishGLS/perfIter)/1000.0+" ms, "+
+                                                     "waitGL "+waitGL/1000+" / "+waitGLS/1000+" ~"+(waitGLS/perfIter)/1000.0+" ms");
+                                  */
+                                  //
+                                  // Required(?) to finish previous GL rendering to give CALayer proper result,
+                                  // i.e. synchronize both threads each w/ their GLContext sharing same resources.
+                                  //
+                                  // FIXME: IMHO this synchronization should be implicitly performed via 'CGL.flushBuffer(contextHandle)' above,
+                                  // in case this will be determined a driver bug - use a QUIRK entry in GLRendererQuirks!
+                                  gl.glFinish();
+                                  
                                   // If v-sync is disabled, frames will be drawn as quickly as possible w/o delay, 
                                   // while still synchronizing w/ CALayer.
                                   // If v-sync is enabled wait until next swap interval (v-sync).
@@ -1050,6 +1099,7 @@ public class MacOSXCGLContext extends GLContextImpl
                                   // trigger CALayer to update incl. possible surface change (new pbuffer handle)
                                   CGL.setNSOpenGLLayerNeedsDisplayPBuffer(cmd.nsOpenGLLayer, drawable.getHandle());                          
                               }
+                              // lastFrameStart = TimeUnit.NANOSECONDS.toMicros(System.nanoTime());
                           }
                       } else {
                           res = true;
