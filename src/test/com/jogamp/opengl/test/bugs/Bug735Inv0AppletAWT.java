@@ -309,8 +309,6 @@ public class Bug735Inv0AppletAWT extends Applet implements Runnable {
       // Disables vsync
       gl.setSwapInterval(0);  
     }
-    gl.glViewport(0, 0, width, height);
-    
     glu = new GLU();
     
     vertShader = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, LandscapeES2.class, "shader", "shader/bin", "landscape", true);

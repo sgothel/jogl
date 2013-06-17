@@ -531,10 +531,10 @@ public class GLDrawableHelper {
       }
   }
   
-  private final void init(GLEventListener l, GLAutoDrawable drawable, boolean sendReshape) {
+  private final void init(GLEventListener l, GLAutoDrawable drawable, boolean sendReshape, boolean setViewport) {
       l.init(drawable);
       if(sendReshape) {
-          reshape(l, drawable, 0, 0, drawable.getWidth(), drawable.getHeight(), true /* setViewport */, false /* checkInit */);
+          reshape(l, drawable, 0, 0, drawable.getWidth(), drawable.getHeight(), setViewport, false /* checkInit */);
       }
   }
 
@@ -545,14 +545,20 @@ public class GLDrawableHelper {
   public final void init(GLAutoDrawable drawable, boolean sendReshape) {
     synchronized(listenersLock) {
         final ArrayList<GLEventListener> _listeners = listeners;
-        for (int i=0; i < _listeners.size(); i++) {
-          final GLEventListener listener = _listeners.get(i) ;
-
-          // If make ctx current, invoked by invokGL(..), results in a new ctx, init gets called.
-          // This may happen not just for initial setup, but for ctx recreation due to resource change (drawable/window),
-          // hence it must be called unconditional, always.
-          listenersToBeInit.remove(listener); // remove if exist, avoiding dbl init
-          init( listener, drawable, sendReshape);
+        final int listenerCount = _listeners.size();
+        if( listenerCount > 0 ) {
+            for (int i=0; i < listenerCount; i++) {
+              final GLEventListener listener = _listeners.get(i) ;
+    
+              // If make ctx current, invoked by invokGL(..), results in a new ctx, init gets called.
+              // This may happen not just for initial setup, but for ctx recreation due to resource change (drawable/window),
+              // hence it must be called unconditional, always.
+              listenersToBeInit.remove(listener); // remove if exist, avoiding dbl init
+              init( listener, drawable, sendReshape, 0==i /* setViewport */);
+            }
+        } else {
+            // Expose same GL initialization if not using GLEventListener
+            drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
         }
     }
   }
@@ -566,12 +572,13 @@ public class GLDrawableHelper {
   private final void displayImpl(GLAutoDrawable drawable) {
       synchronized(listenersLock) {
           final ArrayList<GLEventListener> _listeners = listeners;
-          for (int i=0; i < _listeners.size(); i++) {
+          final int listenerCount = _listeners.size();
+          for (int i=0; i < listenerCount; i++) {
             final GLEventListener listener = _listeners.get(i) ;
             // GLEventListener may need to be init, 
             // in case this one is added after the realization of the GLAutoDrawable
             if( listenersToBeInit.remove(listener) ) {
-                init( listener, drawable, true /* sendReshape */) ;
+                init( listener, drawable, true /* sendReshape */, listenersToBeInit.size() + 1 == listenerCount /* setViewport if 1st init */ );
             }
             listener.display(drawable);
           }
@@ -585,7 +592,7 @@ public class GLDrawableHelper {
         // in case this one is added after the realization of the GLAutoDrawable
         synchronized(listenersLock) {
             if( listenersToBeInit.remove(listener) ) {
-                init( listener, drawable, false /* sendReshape */) ;
+                listener.init(drawable);
             }
         }
     }
@@ -598,7 +605,7 @@ public class GLDrawableHelper {
   public final void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     synchronized(listenersLock) {
         for (int i=0; i < listeners.size(); i++) {
-          reshape((GLEventListener) listeners.get(i), drawable, x, y, width, height, 0==i, true);
+          reshape((GLEventListener) listeners.get(i), drawable, x, y, width, height, 0==i /* setViewport */, true /* checkInit */);
         }
     }
   }
