@@ -29,6 +29,7 @@
 package jogamp.opengl.egl;
 
 import com.jogamp.common.os.AndroidVersion;
+import com.jogamp.common.os.Platform;
 
 import java.util.*;
 
@@ -52,19 +53,12 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
     }
 
     /** 
-     * Might be a desktop GL library, and might need to allow symbol access to subsequent libs.
-     * 
-     * This respects old DRI requirements:<br>
-     * <pre>
-     * http://dri.sourceforge.net/doc/DRIuserguide.html
-     * </pre>
+     * Returns <code>true</code> on <code>Android</code>,
+     * and <code>false</code> otherwise.
      */
     @Override
-    public boolean shallLinkGlobal() { return true; }
-    
-    @Override
     public boolean shallLookupGlobal() {
-        if ( AndroidVersion.isAvailable ) {
+        if ( Platform.OSType.ANDROID == Platform.OS_TYPE ) {
             // Android requires global symbol lookup
             return true;
         }

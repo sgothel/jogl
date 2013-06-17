@@ -47,16 +47,6 @@ public class DesktopES2DynamicLibraryBundleInfo extends GLDynamicLibraryBundleIn
         super();
     }
 
-    /** 
-     * Might be a desktop GL library, and might need to allow symbol access to subsequent libs.
-     * 
-     * This respects old DRI requirements:<br>
-     * <pre>
-     * http://dri.sourceforge.net/doc/DRIuserguide.html
-     * </pre>
-     */
-    public boolean shallLinkGlobal() { return true; }
-    
     public final List<String> getToolGetProcAddressFuncNameList() {
         List<String> res = new ArrayList<String>();
         res.add("eglGetProcAddress");

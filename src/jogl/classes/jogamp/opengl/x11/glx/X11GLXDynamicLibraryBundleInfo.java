@@ -60,15 +60,6 @@ public class X11GLXDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundl
         return libsList;
     }    
     
-    /** 
-     * This respects old DRI requirements:<br>
-     * <pre>
-     * http://dri.sourceforge.net/doc/DRIuserguide.html
-     * </pre>
-     */
-    @Override
-    public boolean shallLinkGlobal() { return true; }
-
     @Override
     public final List<String> getToolGetProcAddressFuncNameList() {
         List<String> res = new ArrayList<String>();

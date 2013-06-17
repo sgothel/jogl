@@ -36,11 +36,21 @@ public abstract class GLDynamicLibraryBundleInfo implements DynamicLibraryBundle
     protected GLDynamicLibraryBundleInfo() {
     }
 
-    /** default **/
-    @Override
-    public boolean shallLinkGlobal() { return false; }
-
-    /** default **/
+    /** 
+     * Returns <code>true</code>,
+     * since we might load a desktop GL library and allow symbol access to subsequent libs.
+     * <p>
+     * This respects old DRI requirements:
+     * <pre>
+     * http://dri.sourceforge.net/doc/DRIuserguide.html
+     * </pre>
+     * </p>
+     */
+    public boolean shallLinkGlobal() { return true; }
+    
+    /**
+     * Default value: <code>false</code>.
+     */
     @Override
     public boolean shallLookupGlobal() { return false; }
 
