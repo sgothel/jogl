@@ -154,8 +154,8 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
     
     static void testKeyEventAutoRepeat(Robot robot, NEWTKeyAdapter keyAdapter, int loops, int pressDurationMS) {
         System.err.println("KEY Event Auto-Repeat Test: "+loops);
-        EventObject[][] first = new EventObject[loops][3];
-        EventObject[][] last = new EventObject[loops][3];
+        EventObject[][] first = new EventObject[loops][2];
+        EventObject[][] last = new EventObject[loops][2];
         
         keyAdapter.reset();
         int firstIdx = 0;
@@ -175,11 +175,9 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
             final List<EventObject> keyEvents = keyAdapter.getQueued();
             first[i][0] = (KeyEvent) keyEvents.get(firstIdx+0);
             first[i][1] = (KeyEvent) keyEvents.get(firstIdx+1);
-            first[i][2] = (KeyEvent) keyEvents.get(firstIdx+2);
-            firstIdx = keyEvents.size() - 3;
+            firstIdx = keyEvents.size() - 2;
             last[i][0] = (KeyEvent) keyEvents.get(firstIdx+0);
             last[i][1] = (KeyEvent) keyEvents.get(firstIdx+1);
-            last[i][2] = (KeyEvent) keyEvents.get(firstIdx+2);
             System.err.println("+++ KEY Event Auto-Repeat END   Input Loop: "+i);
             
             // add a pair of normal press/release in between auto-repeat!
@@ -237,22 +235,12 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
             Assert.assertTrue("2nd Shall be RELEASED, but is "+e, KeyEvent.EVENT_KEY_RELEASED == e.getEventType() );
             Assert.assertTrue("2nd Shall be AR, but is "+e, 0 != ( InputEvent.AUTOREPEAT_MASK & e.getModifiers() ) );
             
-            e = (KeyEvent) first[i][2];
-            Assert.assertTrue("3rd Shall be A, but is "+e, KeyEvent.VK_A == e.getKeyCode() );
-            Assert.assertTrue("3rd Shall be PRESSED, but is "+e, KeyEvent.EVENT_KEY_PRESSED == e.getEventType() );
-            Assert.assertTrue("3rd Shall be AR, but is "+e, 0 != ( InputEvent.AUTOREPEAT_MASK & e.getModifiers() ) );
-            
             e = (KeyEvent) last[i][0];
-            Assert.assertTrue("last-2 Shall be A, but is "+e, KeyEvent.VK_A == e.getKeyCode() );
-            Assert.assertTrue("last-2 Shall be RELEASED, but is "+e, KeyEvent.EVENT_KEY_RELEASED == e.getEventType() );
-            Assert.assertTrue("last-2 Shall be AR, but is "+e, 0 != ( InputEvent.AUTOREPEAT_MASK & e.getModifiers() ) );
-            
-            e = (KeyEvent) last[i][1];
             Assert.assertTrue("last-1 Shall be A, but is "+e, KeyEvent.VK_A == e.getKeyCode() );
             Assert.assertTrue("last-1 Shall be PRESSED, but is "+e, KeyEvent.EVENT_KEY_PRESSED == e.getEventType() );
             Assert.assertTrue("last-1 Shall be AR, but is "+e, 0 != ( InputEvent.AUTOREPEAT_MASK & e.getModifiers() ) );
             
-            e = (KeyEvent) last[i][2];
+            e = (KeyEvent) last[i][1];
             Assert.assertTrue("last-0 Shall be A, but is "+e, KeyEvent.VK_A == e.getKeyCode() );
             Assert.assertTrue("last-2 Shall be RELEASED, but is "+e, KeyEvent.EVENT_KEY_RELEASED == e.getEventType() );
             Assert.assertTrue("last-0 Shall not be AR, but is "+e, 0 == ( InputEvent.AUTOREPEAT_MASK & e.getModifiers() ) );
