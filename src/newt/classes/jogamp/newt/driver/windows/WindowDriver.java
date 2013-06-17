@@ -288,7 +288,7 @@ public class WindowDriver extends WindowImpl {
         // System.err.println("*** sendKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", keyCode "+toHexString(keyCode)+", keyChar <"+keyChar+">, mods "+toHexString(modifiers)+
         //                   ", isKeyCodeTracked "+isKeyCodeTracked(keyCode)+", was: pressed "+isKeyPressed(keyCode)+", repeat "+isKeyInAutoRepeat(keyCode)+", printableKey "+KeyEvent.isPrintableKey(keyCode)+" [modifierKey "+isModifierKey+"] - "+System.currentTimeMillis());
         
-        // Reorder: WINDOWS delivery order is PRESSED (t0), TYPED (t0) and RELEASED (t1) -> NEWT order: PRESSED (t0), RELEASED (t1) and TYPED (t1)
+        // Reorder: WINDOWS delivery order is PRESSED (t0), TYPED (t0) and RELEASED (t1) -> NEWT order: PRESSED (t0) and RELEASED (t1)
         // Auto-Repeat: WINDOWS delivers only PRESSED (t0) and TYPED (t0).        
         switch(eventType) {
             case KeyEvent.EVENT_KEY_RELEASED:
@@ -307,8 +307,6 @@ public class WindowDriver extends WindowImpl {
                     super.sendKeyEvent(KeyEvent.EVENT_KEY_PRESSED, modifiers, keyCode, keySym, keyChar);
                 }
                 break;
-            // case KeyEvent.EVENT_KEY_TYPED:
-            //     break;
         }
     }
     

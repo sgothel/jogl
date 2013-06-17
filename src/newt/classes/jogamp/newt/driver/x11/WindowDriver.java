@@ -287,9 +287,6 @@ public class WindowDriver extends WindowImpl {
                 case KeyEvent.EVENT_KEY_RELEASED:
                     super.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keySym, keyChar);
                     break;
-                    
-                // case KeyEvent.EVENT_KEY_TYPED:
-                //    break;
             }
         }
     }

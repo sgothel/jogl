@@ -43,9 +43,8 @@ import com.jogamp.common.util.IntBitfield;
  * <p>
  * <table border="0">
  *   <tr><th>#</th><th>Event Type</th>      <th>Constraints</th>  <th>Notes</th></tr>
- *   <tr><td>1</td><td>{@link #EVENT_KEY_PRESSED}  </td><td> <i> excluding {@link #isAutoRepeat() auto-repeat} {@link #isModifierKey() modifier} keys</i></td><td></td></tr>
- *   <tr><td>2</td><td>{@link #EVENT_KEY_RELEASED} </td><td> <i> excluding {@link #isAutoRepeat() auto-repeat} {@link #isModifierKey() modifier} keys</i></td><td></td></tr>
- *   <tr><td>3</td><td>{@link #EVENT_KEY_TYPED}    </td><td> <i>only for {@link #isPrintableKey() printable} and non {@link #isAutoRepeat() auto-repeat} keys</i></td><td><b>Deprecated</b>: Use {@link #EVENT_KEY_RELEASED} and apply constraints.</td></tr>
+ *   <tr><td>1</td><td>{@link #EVENT_KEY_PRESSED}  </td><td> <i> excluding {@link #isAutoRepeat() auto-repeat}-{@link #isModifierKey() modifier} keys</i></td><td></td></tr>
+ *   <tr><td>2</td><td>{@link #EVENT_KEY_RELEASED} </td><td> <i> excluding {@link #isAutoRepeat() auto-repeat}-{@link #isModifierKey() modifier} keys</i></td><td></td></tr>
  * </table>
  * </p>
  * In case the native platform does not
@@ -58,27 +57,24 @@ import com.jogamp.common.util.IntBitfield;
  * <p>
  * Auto-Repeat shall behave as follow:
  * <pre>
-    P = pressed, R = released, T = typed
+    P = pressed, R = released
     0 = normal, 1 = auto-repeat
 
-    P(0), [ R(1), P(1), R(1), ..], R(0) T(0)    
+    P(0), [ R(1), P(1), R(1), ..], R(0)    
  * </pre>
  * The idea is if you mask out auto-repeat in your event listener
- * or catch {@link #EVENT_KEY_TYPED typed} events only, 
- * you just get one long pressed P/R/T triple for {@link #isPrintableKey() printable} keys.
- * {@link #isActionKey() Action} keys would produce one long pressed P/R tuple in case you mask out auto-repeat . 
+ * you just get one long pressed P/R tuple for {@link #isPrintableKey() printable} and {@link #isActionKey() Action} keys.
  * </p>
  * <p>
  * {@link #isActionKey() Action} keys will produce {@link #EVENT_KEY_PRESSED pressed} 
  * and {@link #EVENT_KEY_RELEASED released} events including {@link #isAutoRepeat() auto-repeat}.
  * </p>
  * <p>
- * {@link #isPrintableKey() Printable} keys will produce {@link #EVENT_KEY_PRESSED pressed}, 
- * {@link #EVENT_KEY_RELEASED released} and {@link #EVENT_KEY_TYPED typed} events, the latter is excluded for {@link #isAutoRepeat() auto-repeat} events.
+ * {@link #isPrintableKey() Printable} keys will produce {@link #EVENT_KEY_PRESSED pressed} and {@link #EVENT_KEY_RELEASED released} events.
  * </p>
  * <p>
- * {@link #isModifierKey() Modifier} keys will produce {@link #EVENT_KEY_PRESSED pressed} 
- * and {@link #EVENT_KEY_RELEASED released} events excluding {@link #isAutoRepeat() auto-repeat}.
+ * {@link #isModifierKey() Modifier} keys will produce {@link #EVENT_KEY_PRESSED pressed} and {@link #EVENT_KEY_RELEASED released} events 
+ * excluding {@link #isAutoRepeat() auto-repeat}.
  * They will also influence subsequent event's {@link #getModifiers() modifier} bits while pressed.
  * </p>
  * 
@@ -360,9 +356,9 @@ public class KeyEvent extends InputEvent
     private static final byte F_ACTION_MASK     = 1 << 1;
     private static final byte F_PRINTABLE_MASK  = 1 << 2;
 
-    /** A key has been pressed, excluding {@link #isAutoRepeat() auto-repeat} {@link #isModifierKey() modifier} keys. */
+    /** A key has been pressed, excluding {@link #isAutoRepeat() auto-repeat}-{@link #isModifierKey() modifier} keys. */
     public static final short EVENT_KEY_PRESSED = 300;
-    /** A key has been released, excluding {@link #isAutoRepeat() auto-repeat} {@link #isModifierKey() modifier} keys. */
+    /** A key has been released, excluding {@link #isAutoRepeat() auto-repeat}-{@link #isModifierKey() modifier} keys. */
     public static final short EVENT_KEY_RELEASED= 301;
 
     /**

@@ -65,7 +65,6 @@ import com.jogamp.opengl.test.junit.util.*;
  * <ol>
  *   <li>{@link #EVENT_KEY_PRESSED}</li>
  *   <li>{@link #EVENT_KEY_RELEASED}</li>
- *   <li>{@link #EVENT_KEY_TYPED}</li>
  * </ol>
  * </p>
  */

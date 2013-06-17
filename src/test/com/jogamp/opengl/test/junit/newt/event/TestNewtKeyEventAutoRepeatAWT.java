@@ -68,20 +68,19 @@ import com.jogamp.opengl.test.junit.util.*;
  * <ol>
  *   <li>{@link #EVENT_KEY_PRESSED}</li>
  *   <li>{@link #EVENT_KEY_RELEASED}</li>
- *   <li>{@link #EVENT_KEY_TYPED}</li>
  * </ol>
  * </p>
  * <p>
  * Auto-Repeat shall behave as follow:
  * <pre>
-    D = pressed, U = released, T = typed
+    D = pressed, U = released
     0 = normal, 1 = auto-repeat
 
-    D(0), [ U(1), T(1), D(1), U(1) T(1) ..], U(0) T(0)
+    D(0), [ U(1), D(1), U(1), D(1) ..], U(0)
  * </pre>
  *
  * The idea is if you mask out auto-repeat in your event listener
- * you just get one long pressed key D/U/T triple.
+ * you just get one long pressed key D/U tuple.
  */
 public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
     static int width, height;

@@ -423,8 +423,8 @@ public class WindowDriver extends WindowImpl implements MutableSurface, DriverCl
                                ", was: pressed "+isKeyPressed(keyCode)+", isModifierKeyCode "+isModifierKeyCode);
         } */
             
-        // 1:1 Order: OSX and NEWT delivery order is PRESSED, RELEASED and TYPED            
-        // Auto-Repeat: OSX delivers only PRESSED, inject auto-repeat RELEASE and TYPED keys _before_ PRESSED
+        // OSX delivery order is PRESSED (t0), RELEASED (t1) and TYPED (t2) -> NEWT order: PRESSED (t0) and RELEASED (t1)
+        // Auto-Repeat: OSX delivers only PRESSED, inject auto-repeat RELEASE key _before_ PRESSED
         switch(eventType) {
             case KeyEvent.EVENT_KEY_RELEASED:
                 if( isKeyCodeTracked(keyCode) ) {
