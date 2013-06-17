@@ -441,10 +441,10 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
-#testawt com.jogamp.opengl.test.bugs.Bug735Inv0AppletAWT $*
+testawt com.jogamp.opengl.test.bugs.Bug735Inv0AppletAWT $*
 #testawt com.jogamp.opengl.test.bugs.Bug735Inv1AppletAWT $*
 #testawt com.jogamp.opengl.test.bugs.Bug735Inv2AppletAWT $*
-testawt com.jogamp.opengl.test.bugs.Bug735Inv3AppletAWT $*
+#testawt com.jogamp.opengl.test.bugs.Bug735Inv3AppletAWT $*
 #testawt com.jogamp.opengl.test.bugs.Bug735Inv4AWT $*
 
 #
