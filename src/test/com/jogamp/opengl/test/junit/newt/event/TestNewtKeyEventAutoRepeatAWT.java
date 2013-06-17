@@ -153,7 +153,6 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
         glWindow.destroy();
     }
     
-    @SuppressWarnings("deprecation")
     static void testKeyEventAutoRepeat(Robot robot, NEWTKeyAdapter keyAdapter, int loops, int pressDurationMS) {
         System.err.println("KEY Event Auto-Repeat Test: "+loops);
         EventObject[][] first = new EventObject[loops][3];
@@ -167,8 +166,8 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
             robot.waitForIdle();
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_A, 500); // 1s .. no AR anymore
             robot.waitForIdle();            
-            final int minCodeCount = firstIdx + 3;
-            final int desiredCodeCount = firstIdx + 6;
+            final int minCodeCount = firstIdx + 2;
+            final int desiredCodeCount = firstIdx + 4;
             for(int j=0; j < 10 && keyAdapter.getQueueSize() < desiredCodeCount; j++) { // wait until events are collected
                 robot.delay(100);
             }
@@ -206,15 +205,15 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
             final int expSI, expAR;
             if( hasAR ) {
                 expSI = perLoopSI * loops;
-                expAR = ( keyEvents.size() - expSI*3 ) / 2; // AR: no typed -> 2, SI: typed -> 3
+                expAR = ( keyEvents.size() - expSI*2 ) / 2; // auto-repeat release
             } else {
-                expSI = keyEvents.size() / 3; // all typed events
+                expSI = keyEvents.size() / 2; // all released events
                 expAR = 0;                
             }
             
             NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, 
-                                                expSI /* press-SI */, expSI /* release-SI */, expSI /* typed-SI */,
-                                                expAR /* press-AR */, expAR /* release-AR */, 0     /* typed-AR */ );            
+                                                expSI /* press-SI */, expSI /* release-SI */, 
+                                                expAR /* press-AR */, expAR /* release-AR */ );            
         }
         
         if( !hasAR ) {
@@ -246,17 +245,17 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
             
             e = (KeyEvent) last[i][0];
             Assert.assertTrue("last-2 Shall be A, but is "+e, KeyEvent.VK_A == e.getKeyCode() );
-            Assert.assertTrue("last-2 Shall be PRESSED, but is "+e, KeyEvent.EVENT_KEY_PRESSED == e.getEventType() );
+            Assert.assertTrue("last-2 Shall be RELEASED, but is "+e, KeyEvent.EVENT_KEY_RELEASED == e.getEventType() );
             Assert.assertTrue("last-2 Shall be AR, but is "+e, 0 != ( InputEvent.AUTOREPEAT_MASK & e.getModifiers() ) );
             
             e = (KeyEvent) last[i][1];
             Assert.assertTrue("last-1 Shall be A, but is "+e, KeyEvent.VK_A == e.getKeyCode() );
-            Assert.assertTrue("last-1 Shall be RELEASED, but is "+e, KeyEvent.EVENT_KEY_RELEASED == e.getEventType() );
-            Assert.assertTrue("last-1 Shall not be AR, but is "+e, 0 == ( InputEvent.AUTOREPEAT_MASK & e.getModifiers() ) );
+            Assert.assertTrue("last-1 Shall be PRESSED, but is "+e, KeyEvent.EVENT_KEY_PRESSED == e.getEventType() );
+            Assert.assertTrue("last-1 Shall be AR, but is "+e, 0 != ( InputEvent.AUTOREPEAT_MASK & e.getModifiers() ) );
             
             e = (KeyEvent) last[i][2];
             Assert.assertTrue("last-0 Shall be A, but is "+e, KeyEvent.VK_A == e.getKeyCode() );
-            Assert.assertTrue("last-0 Shall be TYPED, but is "+e, KeyEvent.EVENT_KEY_TYPED == e.getEventType() );
+            Assert.assertTrue("last-2 Shall be RELEASED, but is "+e, KeyEvent.EVENT_KEY_RELEASED == e.getEventType() );
             Assert.assertTrue("last-0 Shall not be AR, but is "+e, 0 == ( InputEvent.AUTOREPEAT_MASK & e.getModifiers() ) );
         }
     }

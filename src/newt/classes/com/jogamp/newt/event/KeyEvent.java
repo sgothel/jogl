@@ -217,7 +217,6 @@ public class KeyEvent extends InputEvent
         switch(type) {
         case EVENT_KEY_PRESSED: return "EVENT_KEY_PRESSED";
         case EVENT_KEY_RELEASED: return "EVENT_KEY_RELEASED";
-        case EVENT_KEY_TYPED: return "EVENT_KEY_TYPED";
         default: return "unknown (" + type + ")";
         }
     }
@@ -365,11 +364,6 @@ public class KeyEvent extends InputEvent
     public static final short EVENT_KEY_PRESSED = 300;
     /** A key has been released, excluding {@link #isAutoRepeat() auto-repeat} {@link #isModifierKey() modifier} keys. */
     public static final short EVENT_KEY_RELEASED= 301;
-    /** 
-     * A {@link #isPrintableKey() printable} key has been typed (pressed and released), excluding {@link #isAutoRepeat() auto-repeat}.
-     * @deprecated Redundant, will be removed soon. Use {@link #EVENT_KEY_RELEASED} and exclude non {@link #isPrintableKey() printable} keys and {@link #isAutoRepeat() auto-repeat}.
-     */ 
-    public static final short EVENT_KEY_TYPED   = 302;
 
     /**
      * This value, {@code '\0'}, is used to indicate that the keyChar is unknown or not printable.

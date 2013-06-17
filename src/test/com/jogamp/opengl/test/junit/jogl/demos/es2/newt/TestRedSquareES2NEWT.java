@@ -93,7 +93,10 @@ public class TestRedSquareES2NEWT extends UITestCase {
         glWindow.addWindowListener(quitAdapter);
 
         glWindow.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
+            public void keyReleased(KeyEvent e) {
+                if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+                    return;
+                }            
                 if(e.getKeyChar()=='f') {
                     new Thread() {
                         public void run() {

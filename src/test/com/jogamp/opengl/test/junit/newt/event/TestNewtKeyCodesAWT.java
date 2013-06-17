@@ -210,9 +210,6 @@ public class TestNewtKeyCodesAWT extends UITestCase {
                     break;
                 }
                 eventCount++;
-                if( KeyEvent.isPrintableKey(c, false) ) {
-                    eventCount++;
-                }
                 robot.waitForIdle();
             }
             for(int j=0; j < 20 && keyAdapter.getQueueSize() < eventCount; j++) { // wait until events are collected

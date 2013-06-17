@@ -284,7 +284,9 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.awt.TestGearsES2GLJPanelsAWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
+#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NEWT $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
@@ -438,15 +440,6 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock02AWT $*
 
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NEWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NewtCanvasAWT $*
-#testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasAWT $*
-testawt com.jogamp.opengl.test.bugs.Bug735Inv0AppletAWT $*
-#testawt com.jogamp.opengl.test.bugs.Bug735Inv1AppletAWT $*
-#testawt com.jogamp.opengl.test.bugs.Bug735Inv2AppletAWT $*
-#testawt com.jogamp.opengl.test.bugs.Bug735Inv3AppletAWT $*
-#testawt com.jogamp.opengl.test.bugs.Bug735Inv4AWT $*
-
 #
 # swt (testswt)
 #
@@ -478,7 +471,7 @@ testawt com.jogamp.opengl.test.bugs.Bug735Inv0AppletAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyPressReleaseUnmaskRepeatAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodesAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodeModifiersAWT $*
-#testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNEWTWindowAWT $*
+testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNEWTWindowAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersAWTCanvas $*
 #testawt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasAWT $*
 #testawtswt com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNewtCanvasSWTAWT $*

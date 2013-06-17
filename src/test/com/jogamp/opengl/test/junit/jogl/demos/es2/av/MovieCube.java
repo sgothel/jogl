@@ -82,7 +82,10 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
     }
 
     private final KeyListener keyAction = new KeyAdapter() {
-        public void keyTyped(KeyEvent e)  {
+        public void keyReleased(KeyEvent e)  {
+            if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+                return;
+            }            
             System.err.println("MC "+e);
             int pts0 = mPlayer.getCurrentPosition();
             int pts1 = 0;

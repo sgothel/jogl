@@ -191,8 +191,8 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
         
         final int expTotal = 6*loops; // all typed events
         NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, 
-                                            expTotal /* press-SI */, expTotal /* release-SI */, expTotal /* typed-SI */,
-                                            0 /* press-AR */, 0 /* release-AR */, 0 /* typed-AR */ );
+                                            expTotal /* press-SI */, expTotal /* release-SI */, 
+                                            0 /* press-AR */, 0 /* release-AR */ );
         
     }
         

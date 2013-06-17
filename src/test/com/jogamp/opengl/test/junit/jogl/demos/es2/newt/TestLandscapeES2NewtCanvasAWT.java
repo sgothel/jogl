@@ -117,7 +117,10 @@ public class TestLandscapeES2NewtCanvasAWT extends UITestCase {
         });
         
         glWindow.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
+            public void keyReleased(KeyEvent e) {
+                if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+                    return;
+                }            
                 if(e.getKeyChar()=='f') {
                     quitAdapter.enable(false);
                     new Thread() {

@@ -288,9 +288,10 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
 
     public void keyPressed(KeyEvent e) { 
     }
-    public void keyReleased(KeyEvent e) { 
-    }
-    public void keyTyped(KeyEvent e) {
+    public void keyReleased(KeyEvent e) {
+       if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+           return;
+       }
        if(e.getKeyChar()=='d') {
             glWindow.setUndecorated(!glWindow.isUndecorated());
        } if(e.getKeyChar()=='f') {

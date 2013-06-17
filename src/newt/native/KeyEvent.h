@@ -31,7 +31,6 @@
 
 #define EVENT_KEY_PRESSED  300
 #define EVENT_KEY_RELEASED 301
-#define EVENT_KEY_TYPED 302
 
 #define J_VK_UNDEFINED      ( 0x0U )
 #define J_VK_HOME           ( 0x02U )

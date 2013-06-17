@@ -2476,7 +2476,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return keyListeners.toArray(new KeyListener[keyListeners.size()]);
     }
 
-    @SuppressWarnings("deprecation")
     private final boolean propagateKeyEvent(KeyEvent e, KeyListener l) {
         switch(e.getEventType()) {
             case KeyEvent.EVENT_KEY_PRESSED:
@@ -2485,39 +2484,18 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             case KeyEvent.EVENT_KEY_RELEASED:
                 l.keyReleased(e);
                 break;
-            case KeyEvent.EVENT_KEY_TYPED:
-                l.keyTyped(e);
-                break;
             default:
                 throw new NativeWindowException("Unexpected key event type " + e.getEventType());
         }
         return e.isConsumed();
     }
     
-    @SuppressWarnings("deprecation")
     protected void consumeKeyEvent(KeyEvent e) {
-        boolean consumedE = false, consumedTyped = false;
-        if( KeyEvent.EVENT_KEY_TYPED == e.getEventType() ) {
-            throw new InternalError("Deprecated KeyEvent.EVENT_KEY_TYPED is synthesized - don't send/enqueue it!");
-        }
-        
-        // Synthesize deprecated event KeyEvent.EVENT_KEY_TYPED
-        final KeyEvent eTyped;
-        if( KeyEvent.EVENT_KEY_RELEASED == e.getEventType() && e.isPrintableKey() && !e.isAutoRepeat() ) {
-            eTyped = KeyEvent.create(KeyEvent.EVENT_KEY_TYPED, e.getSource(), e.getWhen(), e.getModifiers(), e.getKeyCode(), e.getKeySymbol(), e.getKeyChar());
-        } else {
-            eTyped = null;
-        }
+        boolean consumedE = false;
         if(null != keyboardFocusHandler) {
             consumedE = propagateKeyEvent(e, keyboardFocusHandler);
             if(DEBUG_KEY_EVENT) {
                 System.err.println("consumeKeyEvent: "+e+", keyboardFocusHandler consumed: "+consumedE);
-            }
-            if( null != eTyped ) {
-                consumedTyped = propagateKeyEvent(eTyped, keyboardFocusHandler);
-                if(DEBUG_KEY_EVENT) {
-                    System.err.println("consumeKeyEvent: "+eTyped+", keyboardFocusHandler consumed: "+consumedTyped);
-                }                
             }
         }
         if(DEBUG_KEY_EVENT) {
@@ -2527,16 +2505,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
         for(int i = 0; !consumedE && i < keyListeners.size(); i++ ) {
             consumedE = propagateKeyEvent(e, keyListeners.get(i));
-        }
-        if( null != eTyped ) {
-            if(DEBUG_KEY_EVENT) {
-                if( !consumedTyped ) {
-                    System.err.println("consumeKeyEvent: "+eTyped);
-                }
-            }
-            for(int i = 0; !consumedTyped && i < keyListeners.size(); i++ ) {
-                consumedTyped = propagateKeyEvent(eTyped, keyListeners.get(i));
-            }            
         }
     }
 

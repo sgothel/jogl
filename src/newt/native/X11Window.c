@@ -699,7 +699,6 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CloseWindow0
     XGetWindowAttributes(dpy, w, &xwa); // prefetch colormap to be destroyed after window destruction
     XSelectInput(dpy, w, 0);
     XUnmapWindow(dpy, w);
-    XSync(dpy, False);
 
     // Drain all events related to this window ..
     Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessages0(env, obj, display, javaObjectAtom, windowDeleteAtom /*, kbdHandle */); // XKB disabled for now

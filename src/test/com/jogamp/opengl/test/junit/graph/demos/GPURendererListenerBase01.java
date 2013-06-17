@@ -293,7 +293,6 @@ public abstract class GPURendererListenerBase01 implements GLEventListener {
                     }                
             }  
         }
-        public void keyTyped(KeyEvent arg0) {}
         public void keyReleased(KeyEvent arg0) {}
     }
 }

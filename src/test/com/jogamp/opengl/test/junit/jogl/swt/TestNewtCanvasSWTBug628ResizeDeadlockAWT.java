@@ -308,7 +308,10 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
             glWindow.addGLEventListener( new BigFlashingX() ) ;
             glWindow.addKeyListener(new KeyAdapter() {
                 @Override
-                public void keyTyped(com.jogamp.newt.event.KeyEvent e) {
+                public void keyReleased(com.jogamp.newt.event.KeyEvent e) {
+                    if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+                        return;
+                    }            
                     System.err.print(".");
                     glWindow.display();                    
                 }                

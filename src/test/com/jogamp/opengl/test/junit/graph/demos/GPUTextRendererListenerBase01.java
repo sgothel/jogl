@@ -295,10 +295,13 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
             }
         }
         
-        public void keyTyped(KeyEvent arg0) {
+        public void keyReleased(KeyEvent e) {
+            if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+                return;
+            }            
             if(userInput) {                
-                char c = arg0.getKeyChar();
-                
+                char c = e.getKeyChar();
+
                 if(c == 0x0d) {
                     userInput = false;
                     setIgnoreInput(false);
@@ -309,6 +312,5 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 }
             }
         }
-        public void keyReleased(KeyEvent arg0) {}
     }
 }

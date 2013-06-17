@@ -215,11 +215,6 @@ public class TestNewtKeyPressReleaseUnmaskRepeatAWT extends UITestCase {
                 System.err.println(seq+": "+e);
             }
         }
-
-        @Override
-        public void keyTyped(KeyEvent e) {
-        }
-        
     }
 
     public static void main(String args[]) throws IOException {

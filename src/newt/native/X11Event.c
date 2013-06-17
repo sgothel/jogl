@@ -170,15 +170,9 @@ void X11EventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                 #ifdef USE_SENDIO_DIRECT
                 (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_RELEASED, 
                                       modifiers, keySym, (jchar) -1);
-
-                (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_TYPED, 
-                                      modifiers, keySym, (jchar) keyChar);
                 #else
                 (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_RELEASED, 
                                       modifiers, keySym, (jchar) -1);
-
-                (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_TYPED, 
-                                      modifiers, keySym, (jchar) keyChar);
                 #endif
 
                 break;
