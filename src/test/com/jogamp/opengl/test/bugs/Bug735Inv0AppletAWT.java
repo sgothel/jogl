@@ -312,6 +312,8 @@ public class Bug735Inv0AppletAWT extends Applet implements Runnable {
     
     vertShader = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, LandscapeES2.class, "shader", "shader/bin", "landscape", true);
     fragShader = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, LandscapeES2.class, "shader", "shader/bin", "landscape", true);
+    vertShader.defaultShaderCustomization(gl, true, true);
+    fragShader.defaultShaderCustomization(gl, true, true);
     shaderProg = new ShaderProgram();
     shaderProg.add(gl, vertShader, System.err);
     shaderProg.add(gl, fragShader, System.err); 
@@ -339,8 +341,8 @@ public class Bug735Inv0AppletAWT extends Applet implements Runnable {
   }
 
   private void draw(GL2ES2 gl) {
-    gl.glClearColor(0.5f, 0.1f, 0.1f, 1);
-    gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT);
+    // gl.glClearColor(0.5f, 0.1f, 0.1f, 1);
+    // gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT);
     
     shaderState.useProgram(gl, true);    
     

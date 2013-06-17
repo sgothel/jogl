@@ -39,7 +39,6 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 /**
  * Difference to orig. Bug735Inv0AppletAWT:
  * <pre>
- *   - MANUAL_FRAME_HANDLING false
  *   - MANUAL_FRAME_HANDLING: impl using pass through GLContext instead of static
  * </pre>
  * OSX Results:
@@ -56,7 +55,7 @@ public class Bug735Inv1AppletAWT extends Applet implements Runnable {
   static public int APPLET_HEIGHT = 290;
   static public int TARGET_FPS    = 120;
   static public int TOOLKIT       = NEWT;
-  static public boolean MANUAL_FRAME_HANDLING = false;
+  static public boolean MANUAL_FRAME_HANDLING = true;
   
   //////////////////////////////////////////////////////////////////////////////
   
@@ -341,8 +340,8 @@ public class Bug735Inv1AppletAWT extends Applet implements Runnable {
   }
 
   private void draw(GL2ES2 gl) {      
-    gl.glClearColor(0.5f, 0.1f, 0.1f, 1);
-    gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT);
+    // gl.glClearColor(0.5f, 0.1f, 0.1f, 1);
+    // gl.glClear(GL2ES2.GL_COLOR_BUFFER_BIT);
     
     shaderState.useProgram(gl, true);    
     
