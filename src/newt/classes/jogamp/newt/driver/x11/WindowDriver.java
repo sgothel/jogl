@@ -241,16 +241,17 @@ public class WindowDriver extends WindowImpl {
                 }
                 break;
             case MouseEvent.EVENT_MOUSE_RELEASED:
+                final boolean shiftPressed = 0 != ( modifiers & InputEvent.SHIFT_MASK );
                 switch(button) {
                     case X11_WHEEL_ONE_UP_BUTTON: // vertical scroll up
                         eventType = MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
                         button = 1;
-                        rotationXYZ[1] = 1;
+                        rotationXYZ[shiftPressed ? 0 : 1] = 1;
                         break;
                     case X11_WHEEL_ONE_DOWN_BUTTON: // vertical scroll down
                         eventType = MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
                         button = 1;
-                        rotationXYZ[1] = -1;
+                        rotationXYZ[shiftPressed ? 0 : 1] = -1;
                         break;
                     case X11_WHEEL_TWO_UP_BUTTON: // horizontal scroll left
                         eventType = MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
