@@ -288,8 +288,6 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestLandscapeES2NEWT $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasSWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestElektronenMultipliziererNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestRedSquareES2NEWT $*
@@ -303,6 +301,13 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestGearsNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl2.newt.TestTeapotNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.gl3.newt.TestGeomShader01TextureGL3NEWT $*
+
+#
+# av demos
+#
+testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 
 #
 # core/newt (testnoawt and testawt)
@@ -440,7 +445,7 @@ function testawtswt() {
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock01AWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.awt.TestGLCanvasAWTActionDeadlock02AWT $*
 
-testawt com.jogamp.opengl.test.bugs.Bug735Inv0AppletAWT $*
+#testawt com.jogamp.opengl.test.bugs.Bug735Inv0AppletAWT $*
 #testawt com.jogamp.opengl.test.bugs.Bug735Inv1AppletAWT $*
 #testawt com.jogamp.opengl.test.bugs.Bug735Inv2AppletAWT $*
 #testawt com.jogamp.opengl.test.bugs.Bug735Inv3AppletAWT $*
