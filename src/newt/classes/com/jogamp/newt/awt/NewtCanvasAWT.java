@@ -533,6 +533,9 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 newtChildCloseOp = newtChild.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE);
                 keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
                 keyboardFocusManager.addPropertyChangeListener("focusOwner", focusPropertyChangeListener);
+                // force this AWT Canvas to be focus-able,
+                // since this it is completely covered by the newtChild (z-order).
+                setFocusable(true);
                 if(isOnscreen) {
                     // onscreen newt child needs to fwd AWT focus
                     newtChild.setKeyboardFocusHandler(newtFocusTraversalKeyListener);
@@ -545,6 +548,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 newtChild.removeWindowListener(clearAWTMenusOnNewtFocus);
                 newtChild.setFocusAction(null);
                 newtChild.setDefaultCloseOperation(newtChildCloseOp);
+                setFocusable(false);
             }
         }
     }
@@ -581,9 +585,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       configureNewtChild(true);
       newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
       
-      // force this AWT Canvas to be focus-able, 
-      // since this it is completely covered by the newtChild (z-order).
-      setFocusable(true);          
       if(DEBUG) {
           System.err.println("NewtCanvasAWT.attachNewtChild.X: win "+newtWinHandleToHexString(newtChild)+", EDTUtil: cur "+newtChild.getScreen().getDisplay().getEDTUtil()+", comp "+this);
       }
