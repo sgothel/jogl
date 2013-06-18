@@ -286,9 +286,8 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     // ***********************************************************************************
     // ***********************************************************************************
 
-    public void keyPressed(KeyEvent e) { 
-    }
-    public void keyReleased(KeyEvent e) {
+    @Override
+    public void keyPressed(KeyEvent e) {
        if( !e.isPrintableKey() || e.isAutoRepeat() ) {
            return;
        }
@@ -306,6 +305,10 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                 glWindow.setDefaultCloseOperation( glClosable ? WindowClosingMode.DISPOSE_ON_CLOSE : WindowClosingMode.DO_NOTHING_ON_CLOSE );
             }
        }
+    }
+    
+    @Override
+    public void keyReleased(KeyEvent e) { 
     }
 }
 
