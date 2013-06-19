@@ -9,15 +9,15 @@ javaexe="$1"
 shift
 javaxargs=$1
 shift
-bdir=$1
+bdir="$1"
 shift
 
 if [ ! -x "$javaexe" ] ; then
     echo java-exe "$javaexe" is not an executable
     exit 1
 fi
-if [ ! -d $bdir ] ; then
-    echo build-dir $bdir is not a directory
+if [ ! -d "$bdir" ] ; then
+    echo build-dir "$bdir" is not a directory
     exit 1
 fi
 
@@ -25,7 +25,7 @@ rm -f java-run.log
 
 spath=`dirname $0`
 
-. $spath/setenv-jogl.sh $bdir JOGL_ALL
+. $spath/setenv-jogl.sh "$bdir" JOGL_ALL
 unset CLASSPATH
 
 MOSX=0
@@ -193,7 +193,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLCode -Djogl.debug.TraceGL"
     #D_ARGS="-Djogl.debug.graph.curve -Djogl.debug.GLSLState"
     #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil"
-    #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempFileCache -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil"
+    D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempFileCache -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil"
     #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempFileCache -Djogamp.debug.TempJarCache -Djogamp.debug.JarUtil -Djogamp.gluegen.UseTempJarCache=false"
     #D_ARGS="-Dnewt.test.EDTMainThread -Dnewt.debug.MainThread"
     #C_ARG="com.jogamp.newt.util.MainThread"
@@ -305,7 +305,7 @@ function testawtswt() {
 #
 # av demos
 #
-testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
+#testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 
@@ -315,7 +315,7 @@ testnoawt jogamp.opengl.openal.av.ALDummyUsage $*
 #testnoawt com.jogamp.nativewindow.NativeWindowVersion $*
 #testnoawt com.jogamp.opengl.JoglVersion $*
 #testnoawt com.jogamp.newt.NewtVersion $*
-#testnoawt com.jogamp.newt.opengl.GLWindow $*
+testnoawt com.jogamp.newt.opengl.GLWindow $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.math.TestPMVMatrix02NOUI $*
