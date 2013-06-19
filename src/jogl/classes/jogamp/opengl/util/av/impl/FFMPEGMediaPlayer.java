@@ -38,7 +38,6 @@ import javax.media.opengl.GLException;
 
 import java.util.Arrays;
 import java.util.Queue;
-import javax.sound.sampled.*;
 
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
@@ -50,6 +49,10 @@ import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.es1.GLES1ProcAddressTable;
 import jogamp.opengl.es2.GLES2ProcAddressTable;
 import jogamp.opengl.gl4.GL4bcProcAddressTable;
+import jogamp.opengl.util.av.AudioSink;
+import jogamp.opengl.util.av.JavaSoundAudioSink;
+import jogamp.opengl.util.av.NullAudioSink;
+import jogamp.opengl.openal.av.ALAudioSink;
 import jogamp.opengl.util.av.EGLMediaPlayerImpl;
 
 /***
@@ -109,28 +112,8 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
     // Count of zeroed buffers to return before switching to real sample provider
     private static final int TEMP_BUFFER_COUNT = 20;
 
-    // AudioFormat parameters
-    public  static final int     SAMPLE_RATE = 44100;
-    private static final int     SAMPLE_SIZE = 16;
-    private static final int     CHANNELS = 2;
-    private static final boolean SIGNED = true;
-    private static final boolean BIG_ENDIAN = false;
-
-    // Chunk of audio processed at one time
-    public static final int BUFFER_SIZE = 1000;
-    public static final int SAMPLES_PER_BUFFER = BUFFER_SIZE / 2;
-
-    // Sample time values
-    public static final double SAMPLE_TIME_IN_SECS = 1.0 / SAMPLE_RATE;
-    public static final double BUFFER_TIME_IN_SECS = SAMPLE_TIME_IN_SECS * SAMPLES_PER_BUFFER;
-
     // Instance data
-    private static AudioFormat format;
-    private static DataLine.Info info;
-    private static SourceDataLine auline;
-    private static int bufferCount;
-    private static byte [] sampleData = new byte[BUFFER_SIZE];
-
+    private static AudioSink audioSink;
     private static int maxAvailableAudio;
 
     public static final VersionNumber avUtilVersion;
@@ -146,28 +129,15 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
             System.err.println("LIB_AV Util  : "+avUtilVersion);
             System.err.println("LIB_AV Format: "+avFormatVersion);
             System.err.println("LIB_AV Codec : "+avCodecVersion);
-            if(initIDs0()) {
-                // init audio
-                // Create the audio format we wish to use
-                format = new AudioFormat(SAMPLE_RATE, SAMPLE_SIZE, CHANNELS, SIGNED, BIG_ENDIAN);
-
-                // Create dataline info object describing line format
-                info = new DataLine.Info(SourceDataLine.class, format);
-
-                // Clear buffer initially
-                Arrays.fill(sampleData, (byte) 0);
-                try{
-                    // Get line to write data to
-                    auline = (SourceDataLine) AudioSystem.getLine(info);
-                    auline.open(format);
-                    auline.start();
-                    maxAvailableAudio = auline.available();
-                    available = true;
-                } catch (LineUnavailableException e){
-                    maxAvailableAudio = 0;
-                    available = false;
-                }
+            initIDs0();            
+            available = true;
+            audioSink = new NullAudioSink();
+            if(ALAudioSink.isAvailable()) {
+                audioSink = new ALAudioSink();
+            } else if(JavaSoundAudioSink.isAvailable()) {
+                audioSink = new JavaSoundAudioSink();
             }
+            maxAvailableAudio = audioSink.getDataAvailable();
 
         } else {
             avUtilVersion = null;
@@ -313,7 +283,7 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     private void pumpAudio() {
-        if(auline.available()==maxAvailableAudio){
+        if(audioSink.getDataAvailable()==maxAvailableAudio){
            System.out.println("warning: audio buffer underrun");
         }
         while(audioFrameBuffer.peek()!=null){
@@ -327,19 +297,12 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
            
             System.err.println("s: pts-a "+a.audio_pts+", pts-d "+pts_d+", now_d "+now_d+", dt "+dt); 
             lastAudioTime = now;
-            if( (dt<audio_dt_d  ) && auline.available()>a.data_size ) {
+            if( (dt<audio_dt_d  ) && audioSink.isDataAvailable(a.data_size)) {
                 audioFrameBuffer.poll(); /* remove first item from the queue */
-                int written = 0;
-                int len;
-                int data_size = a.data_size;
-                while (data_size > 0) {
-                    len = auline.write(a.sampleData, written, data_size);
-                    data_size -= len;
-                    written += len;
-                }
+                audioSink.writeData(a.sampleData, a.data_size);                
                 lastAudioPTS=a.audio_pts; 
             } else {
-              break;
+                break;
             }
         }
     }
@@ -543,7 +506,7 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
                 lastVideoTime = now;
                 System.err.println("s: pts-v "+pts+", pts-d "+pts_d+", now_d "+now_d+", dt "+dt);
                 
-                if(dt>video_dt_d && dt<1000 && auline.available()<maxAvailableAudio-10000) {
+                if(dt>video_dt_d && dt<1000 && audioSink.getDataAvailable()<maxAvailableAudio-10000) {
                     try {
                         Thread.sleep(dt-video_dt_d);
                     } catch (InterruptedException e) { }
