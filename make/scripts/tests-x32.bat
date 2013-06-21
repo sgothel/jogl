@@ -22,4 +22,4 @@ set CP_ALL=.;%BLD_DIR%\jar\jogl-all.jar;%BLD_DIR%\jar\jogl-test.jar;..\..\gluege
 
 echo CP_ALL %CP_ALL%
 
-scripts\tests-win.bat
+scripts\tests-win.bat %*

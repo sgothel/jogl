@@ -16,5 +16,5 @@ echo CP_ALL %CP_ALL%
 
 set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true"
 
-scripts\tests-win.bat
+scripts\tests-win.bat %*
 

@@ -42,4 +42,4 @@ REM set D_ARGS="-Xcheck:jni" "-Xint" "-verbose:jni"
 
 set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true"
 
-scripts\tests-win.bat
+scripts\tests-win.bat %*
