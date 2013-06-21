@@ -1,7 +1,7 @@
 
 set BLD_SUB=build-win32
-set J2RE_HOME=c:\jre1.6.0_35_x32
-set JAVA_HOME=c:\jdk1.6.0_35_x32
+set J2RE_HOME=c:\jre1.7.0_25_x32
+set JAVA_HOME=c:\jdk1.7.0_25_x32
 set ANT_PATH=C:\apache-ant-1.8.2
 
 set PROJECT_ROOT=D:\projects\jogamp\jogl
@@ -42,5 +42,4 @@ REM set D_ARGS="-Xcheck:jni" "-Xint" "-verbose:jni"
 
 set X_ARGS="-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true"
 
-%J2RE_HOME%\bin\java -classpath %CP_ALL% "-Djava.library.path=%LIB_DIR%" %D_ARGS% %X_ARGS% %* > java-win32-dbg.log 2>&1
-
+scripts\tests-win.bat
