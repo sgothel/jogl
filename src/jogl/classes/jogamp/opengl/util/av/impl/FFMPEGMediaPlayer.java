@@ -31,6 +31,8 @@ package jogamp.opengl.util.av.impl;
 import java.io.IOException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
@@ -43,9 +45,6 @@ import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 import jogamp.opengl.GLContextImpl;
-import jogamp.opengl.es1.GLES1ProcAddressTable;
-import jogamp.opengl.es2.GLES2ProcAddressTable;
-import jogamp.opengl.gl4.GL4bcProcAddressTable;
 import jogamp.opengl.util.av.EGLMediaPlayerImpl;
 
 /***
@@ -201,18 +200,29 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
         }        
         setTextureFormat(tif, tf);
         setTextureType(GL.GL_UNSIGNED_BYTE);
-        GLContextImpl ctx = (GLContextImpl)gl.getContext();
-        ProcAddressTable pt = ctx.getGLProcAddressTable();
-        if(pt instanceof GLES2ProcAddressTable) {
-            procAddrGLTexSubImage2D = ((GLES2ProcAddressTable)pt)._addressof_glTexSubImage2D;
-        } else if(pt instanceof GLES1ProcAddressTable) {
-            procAddrGLTexSubImage2D = ((GLES1ProcAddressTable)pt)._addressof_glTexSubImage2D;
-        } else if(pt instanceof GL4bcProcAddressTable) {
-            procAddrGLTexSubImage2D = ((GL4bcProcAddressTable)pt)._addressof_glTexSubImage2D;
-        } else {
-            throw new InternalError("Unknown ProcAddressTable: "+pt.getClass().getName()+" of "+ctx.getClass().getName());
+        final GLContextImpl ctx = (GLContextImpl)gl.getContext();
+        final ProcAddressTable pt = ctx.getGLProcAddressTable();
+        if( 0 == procAddrGLTexSubImage2D ) {
+            throw new InternalError("glTexSubImage2D n/a in ProcAddressTable: "+pt.getClass().getName()+" of "+ctx.getGLVersion());
         }
     }
+    
+    /**
+     * Catches IllegalArgumentException and returns 0 if functionName is n/a,
+     * otherwise the ProcAddressTable's field value. 
+     */
+    private final long getAddressFor(final ProcAddressTable table, final String functionName) {
+        return AccessController.doPrivileged(new PrivilegedAction<Long>() {
+            public Long run() {
+                try {
+                    return Long.valueOf( table.getAddressFor(functionName) );
+                } catch (IllegalArgumentException iae) { 
+                    return Long.valueOf(0);
+                }
+            }
+        } ).longValue();
+    }
+    
     private void updateAttributes2(int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
                                    int lSz0, int lSz1, int lSz2,
                                    int tWd0, int tWd1, int tWd2) {

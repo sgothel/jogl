@@ -43,6 +43,8 @@ package jogamp.opengl.windows.wgl;
 import java.nio.Buffer;
 
 import java.nio.ShortBuffer;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -88,19 +90,24 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
     super();
 
     synchronized(WindowsWGLDrawableFactory.class) {
-        if(null==windowsWGLDynamicLookupHelper) {
-            DesktopGLDynamicLookupHelper tmp = null;
-            try {
-                tmp = new DesktopGLDynamicLookupHelper(new WindowsWGLDynamicLibraryBundleInfo());
-            } catch (GLException gle) {
-                if(DEBUG) {
-                    gle.printStackTrace();
+        if( null == windowsWGLDynamicLookupHelper ) {
+            windowsWGLDynamicLookupHelper = AccessController.doPrivileged(new PrivilegedAction<DesktopGLDynamicLookupHelper>() {
+                public DesktopGLDynamicLookupHelper run() {
+                    DesktopGLDynamicLookupHelper tmp;
+                    try {
+                        tmp = new DesktopGLDynamicLookupHelper(new WindowsWGLDynamicLibraryBundleInfo());
+                        if(null!=tmp && tmp.isLibComplete()) {
+                            WGL.getWGLProcAddressTable().reset(tmp);
+                        }
+                    } catch (Exception ex) {
+                        tmp = null;
+                        if(DEBUG) {
+                            ex.printStackTrace();
+                        }
+                    }
+                    return tmp;
                 }
-            }
-            if(null!=tmp && tmp.isLibComplete()) {
-                windowsWGLDynamicLookupHelper = tmp;
-                WGL.getWGLProcAddressTable().reset(windowsWGLDynamicLookupHelper);
-            }
+            } );
         }
     }
 

@@ -39,8 +39,8 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.*;
 
-public class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
-    private static List<String> glueLibNames;
+public final class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
+    private static final List<String> glueLibNames;
     static {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
@@ -69,11 +69,16 @@ public class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
 
     /** Make Cg symbols available to CgGL */
     @Override
-    public boolean shallLinkGlobal() { return true; }
+    public final boolean shallLinkGlobal() { return true; }
 
-    /** default **/
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Returns <code>false</code>.
+     * </p>
+     */ 
     @Override
-    public boolean shallLookupGlobal() { return false; }
+    public final boolean shallLookupGlobal() { return false; }
 
     /** Tool has none **/
     @Override
@@ -88,12 +93,12 @@ public class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
     }
     
     @Override
-    public boolean useToolGetProcAdressFirst(String funcName) {
+    public final boolean useToolGetProcAdressFirst(String funcName) {
         return false;
     }
 
     @Override
-    public List<List<String>> getToolLibNames() {
+    public final List<List<String>> getToolLibNames() {
         final List<List<String>> libsList = new ArrayList<List<String>>();
         final List<String> libsCg = new ArrayList<String>();
         libsCg.add("Cg");
@@ -112,7 +117,7 @@ public class CgDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo {
     }
 
     @Override
-    public RunnableExecutor getLibLoaderExecutor() {
+    public final RunnableExecutor getLibLoaderExecutor() {
         return DynamicLibraryBundle.getDefaultRunnableExecutor();
     }    
 }

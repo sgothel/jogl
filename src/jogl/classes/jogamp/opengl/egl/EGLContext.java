@@ -259,8 +259,7 @@ public class EGLContext extends GLContextImpl {
     protected final StringBuilder getPlatformExtensionsStringImpl() {
         StringBuilder sb = new StringBuilder();
         if (!eglQueryStringInitialized) {
-          eglQueryStringAvailable =
-            getDrawableImpl().getGLDynamicLookupHelper().dynamicLookupFunction("eglQueryString") != 0;
+          eglQueryStringAvailable = getDrawableImpl().getGLDynamicLookupHelper().isFunctionAvailable("eglQueryString");
           eglQueryStringInitialized = true;
         }
         if (eglQueryStringAvailable) {

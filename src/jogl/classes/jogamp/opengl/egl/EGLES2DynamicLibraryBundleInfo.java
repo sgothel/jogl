@@ -30,12 +30,12 @@ package jogamp.opengl.egl;
 
 import java.util.*;
 
-public class EGLES2DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo {
+public final class EGLES2DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo {
     protected EGLES2DynamicLibraryBundleInfo() {
         super();
     }
 
-    public List<List<String>> getToolLibNames() {
+    public final List<List<String>> getToolLibNames() {
         final List<List<String>> libsList = new ArrayList<List<String>>();
         {
             final List<String> libsGL = new ArrayList<String>();

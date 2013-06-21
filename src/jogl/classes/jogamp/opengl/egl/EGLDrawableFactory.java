@@ -91,9 +91,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
 
     private static final boolean isANGLE(GLDynamicLookupHelper dl) {
         if(Platform.OSType.WINDOWS == Platform.OS_TYPE) {
-            final boolean r = 0 != dl.dynamicLookupFunction("eglQuerySurfacePointerANGLE") ||
-                              0 != dl.dynamicLookupFunction("glBlitFramebufferANGLE") ||
-                              0 != dl.dynamicLookupFunction("glRenderbufferStorageMultisampleANGLE");
+            final boolean r = dl.isFunctionAvailable("eglQuerySurfacePointerANGLE") ||
+                              dl.isFunctionAvailable("glBlitFramebufferANGLE") ||
+                              dl.isFunctionAvailable("glRenderbufferStorageMultisampleANGLE");
             return r;
         } else {
             return false;
@@ -101,9 +101,9 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     private static final boolean includesES1(GLDynamicLookupHelper dl) {
-        return 0 != dl.dynamicLookupFunction("glLoadIdentity") &&
-               0 != dl.dynamicLookupFunction("glEnableClientState") &&
-               0 != dl.dynamicLookupFunction("glColorPointer");
+        return dl.isFunctionAvailable("glLoadIdentity") &&
+               dl.isFunctionAvailable("glEnableClientState") &&
+               dl.isFunctionAvailable("glColorPointer");
     }
     
     public EGLDrawableFactory() {

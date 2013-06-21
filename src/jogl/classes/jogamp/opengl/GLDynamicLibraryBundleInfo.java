@@ -46,16 +46,19 @@ public abstract class GLDynamicLibraryBundleInfo implements DynamicLibraryBundle
      * </pre>
      * </p>
      */
-    public boolean shallLinkGlobal() { return true; }
+    public final boolean shallLinkGlobal() { return true; }
     
     /**
-     * Default value: <code>false</code>.
-     */
+     * {@inheritDoc}
+     * <p>
+     * Returns <code>false</code>.
+     * </p>
+     */ 
     @Override
     public boolean shallLookupGlobal() { return false; }
 
     @Override
-    public RunnableExecutor getLibLoaderExecutor() {
+    public final RunnableExecutor getLibLoaderExecutor() {
         return DynamicLibraryBundle.getDefaultRunnableExecutor();
     }    
 }

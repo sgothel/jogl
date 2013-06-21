@@ -36,7 +36,7 @@ public class GLDynamicLookupHelper extends DynamicLibraryBundle {
         super(info);
     }
 
-    public GLDynamicLibraryBundleInfo getGLBundleInfo() { return (GLDynamicLibraryBundleInfo) getBundleInfo(); }
+    public final GLDynamicLibraryBundleInfo getGLBundleInfo() { return (GLDynamicLibraryBundleInfo) getBundleInfo(); }
 
     /** NOP per default */
     public boolean loadGLULibrary() { return false; }

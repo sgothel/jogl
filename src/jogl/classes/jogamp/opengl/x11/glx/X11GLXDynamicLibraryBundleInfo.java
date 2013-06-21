@@ -31,13 +31,13 @@ package jogamp.opengl.x11.glx;
 import jogamp.opengl.*;
 import java.util.*;
 
-public class X11GLXDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundleInfo  {
+public final class X11GLXDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundleInfo  {
     protected X11GLXDynamicLibraryBundleInfo() {
         super();
     }
 
     @Override
-    public List<List<String>> getToolLibNames() {
+    public final List<List<String>> getToolLibNames() {
         final List<List<String>> libsList = new ArrayList<List<String>>();
         final List<String> libsGL = new ArrayList<String>();
         

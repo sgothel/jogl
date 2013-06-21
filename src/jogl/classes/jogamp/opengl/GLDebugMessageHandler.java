@@ -39,8 +39,6 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.GLExtensions;
 
-import jogamp.opengl.gl4.GL4bcProcAddressTable;
-
 /**
  * The GLDebugMessageHandler, handling <i>GL_ARB_debug_output</i> or <i>GL_AMD_debug_output</i>
  * debug messages.<br>
@@ -148,14 +146,13 @@ public class GLDebugMessageHandler {
         }
                 
         final ProcAddressTable procAddressTable = ctx.getGLProcAddressTable();
-        if( procAddressTable instanceof GL4bcProcAddressTable) {
-            final GL4bcProcAddressTable desktopProcAddressTable = (GL4bcProcAddressTable)procAddressTable;
+        if( ctx.isGL4() ) {
             switch(extType) {
                 case EXT_ARB: 
-                    glDebugMessageCallbackProcAddress = desktopProcAddressTable._addressof_glDebugMessageCallbackARB;
+                    glDebugMessageCallbackProcAddress = ctx.getAddressFor(procAddressTable, "glDebugMessageCallbackARB");
                     break;
                 case EXT_AMD: 
-                    glDebugMessageCallbackProcAddress = desktopProcAddressTable._addressof_glDebugMessageCallbackAMD;
+                    glDebugMessageCallbackProcAddress = ctx.getAddressFor(procAddressTable, "glDebugMessageCallbackAMD");
                     break;
             }
         } else {

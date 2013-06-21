@@ -42,7 +42,7 @@ import jogamp.opengl.*;
  * Currently two implementations exist, one for ES1 and one for ES2.
  */
 public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundleInfo {
-    static List<String> glueLibNames;
+    static final List<String> glueLibNames;
     static {
         glueLibNames = new ArrayList<String>();
         glueLibNames.add("jogl_mobile");
@@ -57,7 +57,7 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
      * and <code>false</code> otherwise.
      */
     @Override
-    public boolean shallLookupGlobal() {
+    public final boolean shallLookupGlobal() {
         if ( Platform.OSType.ANDROID == Platform.OS_TYPE ) {
             // Android requires global symbol lookup
             return true;
@@ -88,7 +88,7 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
         }
     }
     
-    protected List<String> getEGLLibNamesList() {
+    protected final List<String> getEGLLibNamesList() {
         List<String> eglLibNames = new ArrayList<String>();
         
         // this is the default EGL lib name, according to the spec 

@@ -39,6 +39,8 @@ package jogamp.opengl.x11.glx;
 
 import java.nio.Buffer;
 import java.nio.ShortBuffer;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -91,19 +93,24 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
     super();
 
     synchronized(X11GLXDrawableFactory.class) {
-        if(null==x11GLXDynamicLookupHelper) {
-            DesktopGLDynamicLookupHelper tmp = null;
-            try {
-                tmp = new DesktopGLDynamicLookupHelper(new X11GLXDynamicLibraryBundleInfo());
-            } catch (GLException gle) {
-                if(DEBUG) {
-                    gle.printStackTrace();
+        if( null == x11GLXDynamicLookupHelper ) {
+            x11GLXDynamicLookupHelper = AccessController.doPrivileged(new PrivilegedAction<DesktopGLDynamicLookupHelper>() {
+                public DesktopGLDynamicLookupHelper run() {
+                    DesktopGLDynamicLookupHelper tmp;
+                    try {
+                        tmp = new DesktopGLDynamicLookupHelper(new X11GLXDynamicLibraryBundleInfo());
+                        if(null!=tmp && tmp.isLibComplete()) {
+                            GLX.getGLXProcAddressTable().reset(tmp);
+                        }
+                    } catch (Exception ex) {
+                        tmp = null;
+                        if(DEBUG) {
+                            ex.printStackTrace();
+                        }
+                    }
+                    return tmp;
                 }
-            }
-            if(null!=tmp && tmp.isLibComplete()) {
-                x11GLXDynamicLookupHelper = tmp;
-                GLX.getGLXProcAddressTable().reset(x11GLXDynamicLookupHelper);
-            }
+            } );
         }
     }
 
