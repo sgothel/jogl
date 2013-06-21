@@ -1515,6 +1515,8 @@ public abstract class GLContextImpl extends GLContext {
     int i = 0;
     
     final String MesaSP = "Mesa ";
+    final String MesaRendererAMDsp = " AMD "; 
+    final String MesaRendererIntelsp = "Intel(R)"; 
     final boolean hwAccel = 0 == ( ctp & GLContext.CTX_IMPL_ACCEL_SOFT );
     final boolean compatCtx = 0 != ( ctp & GLContext.CTX_PROFILE_COMPAT );
     final boolean isDriverMesa = glRenderer.contains(MesaSP) || glRenderer.contains("Gallium ");
@@ -1639,7 +1641,7 @@ public abstract class GLContextImpl extends GLContext {
             }
             quirks[i++] = quirk;
         }
-        if( hwAccel /* glRenderer.contains("Intel(R)") || glRenderer.contains("AMD ") */ )
+        if( hwAccel /* glRenderer.contains( MesaRendererIntelsp ) || glRenderer.contains( MesaRendererAMDsp ) */ )
         {
             final int quirk = GLRendererQuirks.NoDoubleBufferedPBuffer;
             if(DEBUG) {
@@ -1647,7 +1649,9 @@ public abstract class GLContextImpl extends GLContext {
             }
             quirks[i++] = quirk;
         }
-        if( glRenderer.contains("Intel(R)") && compatCtx && ( major > 3 || major == 3 && minor >= 1 ) )
+        if( ( (glRenderer.contains( MesaRendererIntelsp ) && compatCtx) || glRenderer.contains( MesaRendererAMDsp ) ) && 
+            ( major > 3 || major == 3 && minor >= 1 ) 
+          )
         {
             // FIXME: Apply vendor version constraints!
             final int quirk = GLRendererQuirks.GLNonCompliant;
