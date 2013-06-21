@@ -39,7 +39,6 @@
  */
 package com.jogamp.gluegen.opengl;
 
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.gluegen.ConstantDefinition;
 import com.jogamp.gluegen.FunctionEmitter;
 import com.jogamp.gluegen.GlueEmitterControls;
@@ -461,7 +460,7 @@ public class GLEmitter extends ProcAddressEmitter {
     @Override
     protected void endProcAddressTable() throws Exception {
         PrintWriter w = tableWriter;
-
+        
         w.println("  @Override");
         w.println("  protected boolean isFunctionAvailableImpl(String functionNameUsr) throws IllegalArgumentException  {");
         w.println("    final String functionNameBase = "+GLNameResolver.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);");
@@ -470,9 +469,17 @@ public class GLEmitter extends ProcAddressEmitter {
         w.println("    int  funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");
         w.println("    for(int i = 0; null==addressField && i < funcNamePermNum; i++) {");
         w.println("        final String addressFieldName = "+GLNameResolver.class.getName()+".getFuncNamePermutation(addressFieldNameBase, i);");
-        w.println("        try {");
-        w.println("          addressField = getClass().getField(addressFieldName);");
-        w.println("        } catch (Exception e) { }");
+        w.println("        addressField = java.security.AccessController.doPrivileged(new java.security.PrivilegedAction<java.lang.reflect.Field>() {");
+        w.println("            public java.lang.reflect.Field run() {");
+        w.println("                try {");
+        w.println("                    final java.lang.reflect.Field addressField = "+tableClassName+".class.getDeclaredField( addressFieldName );");
+        w.println("                    addressField.setAccessible(true); // we need to read the protected value!");
+        w.println("                    return addressField;");
+        w.println("                } catch (NoSuchFieldException ex) {");
+        w.println("                    return null;");
+        w.println("                }");
+        w.println("            }");
+        w.println("        } );");        
         w.println("    }");
         w.println();
         w.println("    if(null==addressField) {");
@@ -502,9 +509,17 @@ public class GLEmitter extends ProcAddressEmitter {
         w.println("    int  funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");
         w.println("    for(int i = 0; null==addressField && i < funcNamePermNum; i++) {");
         w.println("        final String addressFieldName = "+GLNameResolver.class.getName()+".getFuncNamePermutation(addressFieldNameBase, i);");
-        w.println("        try {");
-        w.println("          addressField = getClass().getField(addressFieldName);");
-        w.println("        } catch (Exception e) { }");
+        w.println("        addressField = java.security.AccessController.doPrivileged(new java.security.PrivilegedAction<java.lang.reflect.Field>() {");
+        w.println("            public java.lang.reflect.Field run() {");
+        w.println("                try {");
+        w.println("                    final java.lang.reflect.Field addressField = "+tableClassName+".class.getDeclaredField( addressFieldName );");
+        w.println("                    addressField.setAccessible(true); // we need to read the protected value!");
+        w.println("                    return addressField;");
+        w.println("                } catch (NoSuchFieldException ex) {");
+        w.println("                    return null;");
+        w.println("                }");
+        w.println("            }");
+        w.println("        } );");        
         w.println("    }");
         w.println();
         w.println("    if(null==addressField) {");

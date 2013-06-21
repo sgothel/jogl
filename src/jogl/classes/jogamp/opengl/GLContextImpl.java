@@ -1155,22 +1155,6 @@ public abstract class GLContextImpl extends GLContext {
     } );
   }
   
-  /**
-   * Catches IllegalArgumentException and returns 0 if functionName is n/a,
-   * otherwise the ProcAddressTable's field value. 
-   */
-  /* pp */ final long getAddressFor(final ProcAddressTable table, final String functionName) {
-    return AccessController.doPrivileged(new PrivilegedAction<Long>() {
-        public Long run() {
-            try {
-                return Long.valueOf( table.getAddressFor(functionName) );
-            } catch (IllegalArgumentException iae) { 
-                return Long.valueOf(0);
-            }
-        }
-    } ).longValue();
-  }
-  
   private final boolean initGLRendererAndGLVersionStrings()  {
     final GLDynamicLookupHelper glDynLookupHelper = getDrawableImpl().getGLDynamicLookupHelper();
     final long _glGetString = glDynLookupHelper.dynamicLookupFunction("glGetString");

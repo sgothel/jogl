@@ -27,6 +27,8 @@
  */
 package jogamp.opengl;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 
 import javax.media.nativewindow.NativeWindowException;
@@ -105,6 +107,18 @@ public class GLDebugMessageHandler {
         }
     }
     
+    private final long getAddressFor(final ProcAddressTable table, final String functionName) {
+        return AccessController.doPrivileged(new PrivilegedAction<Long>() {
+            public Long run() {
+                try {
+                    return Long.valueOf( table.getAddressFor(functionName) );
+                } catch (IllegalArgumentException iae) { 
+                    return Long.valueOf(0);
+                }
+            }
+        } ).longValue();
+    }
+
     public void init() {
         ctx.validateCurrent();
         if( isAvailable()) {
@@ -149,10 +163,10 @@ public class GLDebugMessageHandler {
         if( ctx.isGL4() ) {
             switch(extType) {
                 case EXT_ARB: 
-                    glDebugMessageCallbackProcAddress = ctx.getAddressFor(procAddressTable, "glDebugMessageCallbackARB");
+                    glDebugMessageCallbackProcAddress = getAddressFor(procAddressTable, "glDebugMessageCallbackARB");
                     break;
                 case EXT_AMD: 
-                    glDebugMessageCallbackProcAddress = ctx.getAddressFor(procAddressTable, "glDebugMessageCallbackAMD");
+                    glDebugMessageCallbackProcAddress = getAddressFor(procAddressTable, "glDebugMessageCallbackAMD");
                     break;
             }
         } else {

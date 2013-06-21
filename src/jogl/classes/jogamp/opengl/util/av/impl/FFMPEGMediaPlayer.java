@@ -202,6 +202,7 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
         setTextureType(GL.GL_UNSIGNED_BYTE);
         final GLContextImpl ctx = (GLContextImpl)gl.getContext();
         final ProcAddressTable pt = ctx.getGLProcAddressTable();
+        procAddrGLTexSubImage2D = getAddressFor(pt, "glTexSubImage2D");
         if( 0 == procAddrGLTexSubImage2D ) {
             throw new InternalError("glTexSubImage2D n/a in ProcAddressTable: "+pt.getClass().getName()+" of "+ctx.getGLVersion());
         }
