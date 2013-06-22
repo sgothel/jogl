@@ -79,10 +79,15 @@ import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.WindowUpdateEvent;
 import com.jogamp.opengl.JoglVersion;
+import com.jogamp.opengl.GLStateKeeper;
 
 /**
  * An implementation of {@link GLAutoDrawable} and {@link Window} interface,
  * using a delegated {@link Window} instance, which may be an aggregation (lifecycle: created and destroyed).
+ * <P>
+ * This implementation supports {@link GLStateKeeper GL state preservation},
+ * hence {@link #isGLStatePreservationSupported()} returns <code>true</code>.
+ * </P>
  * <P>
  * This implementation does not make the OpenGL context current<br>
  * before calling the various input EventListener callbacks, ie {@link com.jogamp.newt.event.MouseListener} etc.<br>
@@ -433,8 +438,8 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     protected class GLLifecycleHook implements WindowImpl.LifecycleHook {
 
         @Override
-        public void preserveGLStateAtDestroy() {
-            GLWindow.this.preserveGLStateAtDestroy(true);
+        public void preserveGLStateAtDestroy(boolean value) {
+            GLWindow.this.preserveGLStateAtDestroy(value);
         }
         
         @Override
@@ -579,6 +584,12 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         }
     }
     
+    /**
+     * {@inheritDoc}
+     * <p>
+     * GLWindow supports GL state preservation, hence returns <code>true</code>.
+     * </p>
+     */
     @Override
     public final boolean isGLStatePreservationSupported() { return true; }
 
