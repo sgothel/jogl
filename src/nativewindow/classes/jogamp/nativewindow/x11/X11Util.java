@@ -98,10 +98,10 @@ public class X11Util implements ToolkitProperties {
     private static final boolean TRACE_DISPLAY_LIFECYCLE = Debug.isPropertyDefined("nativewindow.debug.X11Util.TraceDisplayLifecycle", true);
     private static String nullDisplayName = null;
     private static volatile boolean isInit = false;
-    private static boolean markAllDisplaysUnclosable = false; // ATI/AMD X11 driver issues
+    private static boolean markAllDisplaysUnclosable = false; // ATI/AMD X11 driver issues, or GLRendererQuirks.DontCloseX11Display
     private static boolean hasThreadingIssues = false; // ATI/AMD X11 driver issues
 
-    private static Object setX11ErrorHandlerLock = new Object();
+    private static final Object setX11ErrorHandlerLock = new Object();
     private static final String X11_EXTENSION_ATIFGLRXDRI     = "ATIFGLRXDRI";
     private static final String X11_EXTENSION_ATIFGLEXTENSION = "ATIFGLEXTENSION";
     
@@ -207,12 +207,12 @@ public class X11Util implements ToolkitProperties {
                         }
                     }
             
-                    synchronized(globalLock) {
-                        // Only at JVM shutdown time, since AWT impl. seems to 
-                        // dislike closing of X11 Display's (w/ ATI driver). 
-                        if( isJVMShuttingDown ) {
-                            isInit = false;                            
-                            closePendingDisplayConnections();    
+                    // Only at JVM shutdown time, since AWT impl. seems to 
+                    // dislike closing of X11 Display's (w/ ATI driver). 
+                    if( isJVMShuttingDown ) {
+                        synchronized(globalLock) {
+                            isInit = false;
+                            closePendingDisplayConnections();
                             openDisplayList.clear();
                             reusableDisplayList.clear();
                             pendingDisplayList.clear();
