@@ -40,8 +40,6 @@
 
 package javax.media.opengl;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -118,13 +116,8 @@ public abstract class GLDrawableFactory {
   private static GLDrawableFactory eglFactory;
   private static GLDrawableFactory nativeOSFactory;
 
-  protected static ArrayList<GLDrawableFactory> glDrawableFactories = new ArrayList<GLDrawableFactory>();
-
-  // Shutdown hook mechanism for the factory
-  private static boolean factoryShutdownHookRegistered = false;
-  private static Thread factoryShutdownHook = null;
-  private static volatile boolean isJVMShuttingDown = false;
-
+  private static ArrayList<GLDrawableFactory> glDrawableFactories = new ArrayList<GLDrawableFactory>();
+  
   /**
    * Instantiate singleton factories if available, EGLES1, EGLES2 and the OS native ones.
    */
@@ -139,7 +132,12 @@ public abstract class GLDrawableFactory {
       }
   }  
   private static final void initSingletonImpl() {
-    registerFactoryShutdownHook();
+    NativeWindowFactory.initSingleton();
+    NativeWindowFactory.addCustomShutdownHook(false /* head */, new Runnable() {
+       public void run() {
+           shutdown0();
+       }
+    });
     
     final String nwt = NativeWindowFactory.getNativeWindowType(true);
     GLDrawableFactory tmp = null;
@@ -199,23 +197,31 @@ public abstract class GLDrawableFactory {
       synchronized (GLDrawableFactory.class) {
           if (isInit) {
               isInit=false;
-              shutdownImpl();
+              shutdown0();
           }
       }
     }
   }
   
-  private static void shutdownImpl() {
+  private static void shutdown0() {
     // Following code will _always_ remain in shutdown hook
     // due to special semantics of native utils, i.e. X11Utils.
     // The latter requires shutdown at JVM-Shutdown only.
     synchronized(glDrawableFactories) {
-        for(int i=0; i<glDrawableFactories.size(); i++) {
+        final int gldfCount = glDrawableFactories.size();
+        if( DEBUG ) {
+            System.err.println("GLDrawableFactory.shutdownAll "+gldfCount+" instances, on thread "+getThreadName());
+        }
+        for(int i=0; i<gldfCount; i++) {
             final GLDrawableFactory gldf = glDrawableFactories.get(i);
+            if( DEBUG ) {
+                System.err.println("GLDrawableFactory.shutdownAll["+(i+1)+"/"+gldfCount+"]:  "+gldf.getClass().getName());
+            }
             try {
+                gldf.resetDisplayGamma();
                 gldf.destroy();
             } catch (Throwable t) {
-                System.err.println("GLDrawableFactory.shutdownImpl: Catched Exception during shutdown of "+gldf.getClass().getName());
+                System.err.println("GLDrawableFactory.shutdownImpl: Catched "+t.getClass().getName()+" during factory shutdown #"+(i+1)+"/"+gldfCount+" "+gldf.getClass().getName());
                 if( DEBUG ) {
                     t.printStackTrace();
                 }
@@ -228,28 +234,8 @@ public abstract class GLDrawableFactory {
         eglFactory = null;
     }
     GLContext.shutdown();
-    NativeWindowFactory.shutdown(isJVMShuttingDown);
   }
   
-  private static synchronized void registerFactoryShutdownHook() {
-    if (factoryShutdownHookRegistered) {
-        return;
-    }
-    factoryShutdownHook = new Thread(new Runnable() {
-        public void run() {
-            isJVMShuttingDown = true;
-            GLDrawableFactory.shutdownImpl();
-        }
-    });
-    AccessController.doPrivileged(new PrivilegedAction<Object>() {
-        public Object run() {
-            Runtime.getRuntime().addShutdownHook(factoryShutdownHook);
-            return null;
-        }
-    });
-    factoryShutdownHookRegistered = true;
-  }
-
   protected GLDrawableFactory() {
     synchronized(glDrawableFactories) {
         glDrawableFactories.add(this);
@@ -266,6 +252,8 @@ public abstract class GLDrawableFactory {
 
   protected abstract void destroy();
 
+  public abstract void resetDisplayGamma();
+  
   /**
    * Retrieve the default <code>device</code> {@link AbstractGraphicsDevice#getConnection() connection},
    * {@link AbstractGraphicsDevice#getUnitID() unit ID} and {@link AbstractGraphicsDevice#getUniqueID() unique ID name}. for this factory<br>
