@@ -45,10 +45,24 @@ import java.util.ArrayList;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.NativeWindowException;
+import javax.media.nativewindow.NativeWindowFactory;
 
 public abstract class DisplayImpl extends Display {
     private static int serialno = 1;
 
+    static {
+        NativeWindowFactory.addCustomShutdownHook(true /* head */, new Runnable() {
+           public void run() {
+               WindowImpl.shutdownAll();
+               ScreenImpl.shutdownAll();
+               DisplayImpl.shutdownAll();
+           }
+        });
+    }
+        
+    /** Ensure static init has been run. */
+    /* pp */static void initSingleton() { }
+    
     private static Class<?> getDisplayClass(String type) 
         throws ClassNotFoundException 
     {
@@ -232,11 +246,10 @@ public abstract class DisplayImpl extends Display {
         if(DEBUG) {
             System.err.println("Display.destroy(): "+this+" "+getThreadName());
         }
-        final AbstractGraphicsDevice f_aDevice = aDevice;
         final DisplayImpl f_dpy = this;
-        removeEDT( new Runnable() {
+        removeEDT( new Runnable() { // blocks!
             public void run() {
-                if ( null != f_aDevice ) {
+                if ( null != aDevice ) {
                     f_dpy.closeNativeImpl();
                 }
             }
@@ -245,6 +258,32 @@ public abstract class DisplayImpl extends Display {
         refCount=0;
         if(DEBUG) {
             dumpDisplayList("Display.destroy("+getFQName()+") END");
+        }
+    }
+    
+    /** Maybe utilized at a shutdown hook, impl. does not synchronize, however the EDT removal blocks. */
+    /* pp */ static final void shutdownAll() {
+        final int dCount = displayList.size(); 
+        if(DEBUG) {
+            dumpDisplayList("Display.shutdownAll "+dCount+" instances, on thread "+getThreadName());
+        }
+        for(int i=0; i<dCount && displayList.size()>0; i++) { // be safe ..
+            final DisplayImpl d = (DisplayImpl) displayList.remove(0);
+            if(0 < displaysActive) {
+                displaysActive--;
+            }
+            if(DEBUG) {
+                System.err.println("Display.shutdownAll["+(i+1)+"/"+dCount+"]: "+d);
+            }
+            d.removeEDT( new Runnable() {
+                public void run() {
+                    if ( null != d.getGraphicsDevice() ) {
+                        d.closeNativeImpl();
+                    }
+                }
+            } );
+            d.aDevice = null;
+            d.refCount=0;
         }
     }
 

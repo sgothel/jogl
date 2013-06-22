@@ -90,6 +90,8 @@ public class TestGearsES2NEWT extends UITestCase {
     static boolean mainRun = false;
     static boolean exclusiveContext = false;
     static boolean useAnimator = true;
+    static enum SysExit { none, testExit, testError, displayExit, displayError };
+    static SysExit sysExit = SysExit.none;
     
     @BeforeClass
     public static void initClass() {
@@ -272,6 +274,36 @@ public class TestGearsES2NEWT extends UITestCase {
             Assert.assertEquals(exclusiveContext ? animator.getThread() : null, glWindow.getExclusiveContextThread());
         }
 
+        if( SysExit.displayError == sysExit || SysExit.displayExit == sysExit ) {
+            glWindow.addGLEventListener(new GLEventListener() {
+
+                @Override
+                public void init(GLAutoDrawable drawable) {}
+
+                @Override
+                public void dispose(GLAutoDrawable drawable) { }
+
+                @Override
+                public void display(GLAutoDrawable drawable) {
+                    final GLAnimatorControl anim = drawable.getAnimator();
+                    if( null != anim && anim.isAnimating() ) {
+                        if( anim.getTotalFPSDuration() >= duration/2 ) {
+                            if( SysExit.displayError == sysExit ) {
+                                throw new Error("test error send from GLEventListener");
+                            } else if ( SysExit.displayExit == sysExit ) {
+                                System.err.println("exit(0) send from GLEventListener");
+                                System.exit(0);                                
+                            }
+                        }
+                    } else {
+                        System.exit(0);
+                    }
+                }
+                @Override
+                public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) { }                    
+            });
+        }
+        
         glWindow.setVisible(true);
         if( useAnimator ) {
             animator.setUpdateFPSFrames(60, showFPS ? System.err : null);
@@ -296,6 +328,16 @@ public class TestGearsES2NEWT extends UITestCase {
         while(!quitAdapter.shouldQuit() && t1-t0<duration) {
             Thread.sleep(100);
             t1 = System.currentTimeMillis();
+            if( t1-t0 >= duration/2 ) {
+                if( SysExit.testError == sysExit || SysExit.testExit == sysExit ) {
+                    if( SysExit.testError == sysExit ) {
+                        throw new Error("test error send from test thread");
+                    } else if ( SysExit.testExit == sysExit ) {
+                        System.err.println("exit(0) send from test thread");
+                        System.exit(0);                                
+                    }
+                }
+            }
         }
 
         if( useAnimator ) {
@@ -429,6 +471,9 @@ public class TestGearsES2NEWT extends UITestCase {
                 loops = MiscUtils.atoi(args[i], 1);
             } else if(args[i].equals("-loop-shutdown")) {
                 loop_shutdown = true;
+            } else if(args[i].equals("-sysExit")) {
+                i++;
+                sysExit = SysExit.valueOf(args[i]);
             }
         }
         wsize = new Dimension(w, h);
@@ -458,6 +503,7 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("swapInterval "+swapInterval);
         System.err.println("exclusiveContext "+exclusiveContext);
         System.err.println("useAnimator "+useAnimator);
+        System.err.println("sysExitWithin "+sysExit);        
 
         if(waitForKey) {
             UITestCase.waitForKey("Start");

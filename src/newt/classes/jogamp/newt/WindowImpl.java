@@ -82,6 +82,27 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 {
     public static final boolean DEBUG_TEST_REPARENT_INCOMPATIBLE = Debug.isPropertyDefined("newt.test.Window.reparent.incompatible", true);
     
+    protected static final ArrayList<WindowImpl> windowList = new ArrayList<WindowImpl>();
+    
+    static {
+        ScreenImpl.initSingleton();
+    }
+        
+    /** Maybe utilized at a shutdown hook, impl. does not synchronize, however the Window destruction and EDT removal blocks. */
+    public static final void shutdownAll() {
+        final int wCount = windowList.size(); 
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("Window.shutdownAll "+wCount+" instances, on thread "+getThreadName());
+        }
+        for(int i=0; i<wCount && windowList.size()>0; i++) { // be safe ..
+            final WindowImpl w = windowList.remove(0);
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("Window.shutdownAll["+(i+1)+"/"+wCount+"]: "+toHexString(w.getWindowHandle()));
+            }
+            w.markInvalid();
+        }
+    }
+    
     /** Timeout of queued events (repaint and resize) */
     static final long QUEUED_EVENT_TO = 1200; // ms    
 
@@ -186,6 +207,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             window.screen = (ScreenImpl) screen;
             window.capsRequested = (CapabilitiesImmutable) caps.cloneMutable();
             window.instantiationFinished();
+            synchronized( windowList ) {
+                windowList.add(window);
+            }
             return window;
         } catch (Throwable t) {
             t.printStackTrace();
@@ -207,12 +231,27 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             WindowImpl window = (WindowImpl) ReflectionUtil.createInstance( windowClass, cstrArgumentTypes, cstrArguments ) ;
             window.screen = (ScreenImpl) screen;
             window.capsRequested = (CapabilitiesImmutable) caps.cloneMutable();
+            window.instantiationFinished();
+            synchronized( windowList ) {
+                windowList.add(window);
+            }
             return window;
         } catch (Throwable t) {
             throw new NativeWindowException(t);
         }
     }
 
+    /** Fast invalidation of instance w/o any blocking function call. */
+    private final void markInvalid() {
+        setWindowHandle(0);
+        visible = false;
+        fullscreen = false;
+        fullscreenMonitors = null;
+        fullscreenUseMainMonitor = true;
+        hasFocus = false;
+        parentWindowHandle = 0;
+    }
+    
     protected final void setGraphicsConfiguration(AbstractGraphicsConfiguration cfg) {
         config = cfg;
     }
@@ -233,9 +272,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
         /**
          * Notifies the receiver to preserve resources (GL, ..)
-         * for the next destroy*() calls (only).
+         * for the next destroy*() calls (only), if supported and if <code>value</code> is <code>true</code>, otherwise clears preservation flag.
+         * @param value <code>true</code> to set the one-shot preservation if supported, otherwise clears it.
          */
-        void preserveGLStateAtDestroy();
+        void preserveGLStateAtDestroy(boolean value);
         
         /** 
          * Invoked before Window destroy action, 
@@ -995,13 +1035,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public void destroy() {
+        synchronized( windowList ) {
+            windowList.remove(this);
+        }        
         visible = false; // Immediately mark synchronized visibility flag, avoiding possible recreation 
         runOnEDTIfAvail(true, destroyAction);
     }
 
     protected void destroy(boolean preserveResources) {
-        if( preserveResources && null != WindowImpl.this.lifecycleHook ) {
-            WindowImpl.this.lifecycleHook.preserveGLStateAtDestroy();
+        if( null != lifecycleHook ) {
+            lifecycleHook.preserveGLStateAtDestroy( preserveResources );
         }
         destroy();
     }
@@ -1108,7 +1151,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         }
                         // Destroy this window and use parent's Screen.
                         // It may be created properly when the parent is made visible.
-                        destroy(false);
+                        destroy( false );
                         setScreen( (ScreenImpl) newParentWindowNEWT.getScreen() );
                         operation = ReparentOperation.ACTION_NATIVE_CREATION_PENDING;
                     } else if(newParentWindow != getParent()) {

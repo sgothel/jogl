@@ -34,8 +34,6 @@
 
 package jogamp.newt;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -64,6 +62,13 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     public static final int default_sm_rate = 60;
     public static final int default_sm_rotation = 0;
     
+    static {
+        DisplayImpl.initSingleton();
+    }
+    
+    /** Ensure static init has been run. */
+    /* pp */static void initSingleton() { }
+    
     protected DisplayImpl display;
     protected int screen_idx;
     protected String fqname;
@@ -77,15 +82,6 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     
     private long tCreated; // creationTime
 
-    static {
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
-            public Object run() {
-                registerShutdownHook();
-                return null;
-            }
-        });
-    }
-    
     private static Class<?> getScreenClass(String type) throws ClassNotFoundException 
     {
         final Class<?> screenClass = NewtFactory.getCustomClass(type, "ScreenDriver");
@@ -660,23 +656,18 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
             ScreenMonitorState.unmapScreenMonitorStateUnlocked(getFQName());
         }            
     }
-    private static final void shutdownAll() {
-        for(int i=0; i < screenList.size(); i++) {
-            ((ScreenImpl)screenList.get(i)).shutdown();
-        }
-    }
     
-    private static synchronized void registerShutdownHook() {
-        final Thread shutdownHook = new Thread(new Runnable() {
-            public void run() {
-                ScreenImpl.shutdownAll();
+    /** pp */ static final void shutdownAll() {
+        final int sCount = screenList.size(); 
+        if(DEBUG) {
+            System.err.println("Screen.shutdownAll "+sCount+" instances, on thread "+Display.getThreadName());
+        }
+        for(int i=0; i<sCount && screenList.size()>0; i++) { // be safe ..
+            final ScreenImpl s = (ScreenImpl) screenList.remove(0);
+            if(DEBUG) {
+                System.err.println("Screen.shutdownAll["+(i+1)+"/"+sCount+"]: "+s);
             }
-        });
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
-            public Object run() {
-                Runtime.getRuntime().addShutdownHook(shutdownHook);
-                return null;
-            }
-        });
+            s.shutdown();
+        }
     }
 }

@@ -178,7 +178,7 @@ public abstract class Display {
     public abstract void dispatchMessages();
     
     // Global Displays
-    protected static ArrayList<Display> displayList = new ArrayList<Display>();
+    protected static final ArrayList<Display> displayList = new ArrayList<Display>();
     protected static int displaysActive = 0;
 
     public static void dumpDisplayList(String prefix) {
