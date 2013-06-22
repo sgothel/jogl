@@ -57,10 +57,8 @@ public class DisplayDriver extends DisplayImpl {
         }
     }
 
-    public static void initSingleton() {
-        // just exist to ensure static init has been run
-    }
-
+    /** Ensure static init has been run. */
+    /* pp */static void initSingleton() { }
 
     public DisplayDriver() {
     }

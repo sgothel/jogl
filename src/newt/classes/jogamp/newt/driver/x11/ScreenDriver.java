@@ -60,6 +60,9 @@ public class ScreenDriver extends ScreenImpl {
         DisplayDriver.initSingleton();
     }
 
+    /** Ensure static init has been run. */
+    /* pp */static void initSingleton() { }
+    
     public ScreenDriver() {
     }
 

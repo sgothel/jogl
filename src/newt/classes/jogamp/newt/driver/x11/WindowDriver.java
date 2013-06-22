@@ -59,7 +59,7 @@ public class WindowDriver extends WindowImpl {
     private static final int X11_WHEEL_TWO_DOWN_BUTTON = 7;
     
     static {
-        DisplayDriver.initSingleton();
+        ScreenDriver.initSingleton();
     }
 
     public WindowDriver() {
