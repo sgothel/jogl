@@ -165,6 +165,6 @@ class AWTAnimatorImpl implements AnimatorBase.AnimatorImpl {
         };
 
     public boolean blockUntilDone(Thread thread) {
-        return ((Thread.currentThread() != thread) && !EventQueue.isDispatchThread());
+        return Thread.currentThread() != thread && !EventQueue.isDispatchThread();
     }
 }

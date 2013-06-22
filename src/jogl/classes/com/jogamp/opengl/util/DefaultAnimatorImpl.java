@@ -61,6 +61,6 @@ class DefaultAnimatorImpl implements AnimatorBase.AnimatorImpl {
     }
 
     public boolean blockUntilDone(Thread thread) {
-        return (Thread.currentThread() != thread);
+        return Thread.currentThread() != thread;
     }
 }
