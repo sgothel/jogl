@@ -160,7 +160,7 @@ public class GLDebugMessageHandler {
         }
                 
         final ProcAddressTable procAddressTable = ctx.getGLProcAddressTable();
-        if( ctx.isGL4() ) {
+        if( !ctx.isGLES1() && !ctx.isGLES2() ) {
             switch(extType) {
                 case EXT_ARB: 
                     glDebugMessageCallbackProcAddress = getAddressFor(procAddressTable, "glDebugMessageCallbackARB");
@@ -170,6 +170,7 @@ public class GLDebugMessageHandler {
                     break;
             }
         } else {
+            glDebugMessageCallbackProcAddress = 0;
             if(DEBUG) {
                 System.err.println("Non desktop context not supported");    
             }            
