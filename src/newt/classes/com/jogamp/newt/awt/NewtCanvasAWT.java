@@ -223,16 +223,24 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                  final Set<AWTKeyStroke> bwdKeys = keyboardFocusManager.getDefaultFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS);
                  if(fwdKeys.contains(ks)) {
                      if(DEBUG) {
-                         System.err.println("NewtCanvasAWT.focusKey (fwd): "+ks+", current focusOwner "+keyboardFocusManager.getFocusOwner());
+                         System.err.println("NewtCanvasAWT.focusKey (fwd): "+ks+", current focusOwner "+keyboardFocusManager.getFocusOwner()+", hasFocus: "+hasFocus());
                      }
                      // Newt-EDT -> AWT-EDT may freeze Window's native peer requestFocus.
+                     if(!hasFocus()) {
+                         // Acquire the AWT focus 1st for proper AWT traversal
+                         NewtCanvasAWT.super.requestFocus();
+                     }
                      NewtCanvasAWT.this.transferFocus();
                      suppress = true;
                  } else if(bwdKeys.contains(ks)) {
                      if(DEBUG) {
-                         System.err.println("NewtCanvasAWT.focusKey (bwd): "+ks+", current focusOwner "+keyboardFocusManager.getFocusOwner());
+                         System.err.println("NewtCanvasAWT.focusKey (bwd): "+ks+", current focusOwner "+keyboardFocusManager.getFocusOwner()+", hasFocus: "+hasFocus());
                      }
                      // Newt-EDT -> AWT-EDT may freeze Window's native peer requestFocus.
+                     if(!hasFocus()) {
+                         // Acquire the AWT focus 1st for proper AWT traversal
+                         NewtCanvasAWT.super.requestFocus();
+                     }
                      NewtCanvasAWT.this.transferFocusBackward();
                      suppress = true;
                  }
