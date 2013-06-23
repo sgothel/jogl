@@ -27,6 +27,7 @@
  */
 package jogamp.nativewindow.awt;
 
+import java.awt.FocusTraversalPolicy;
 import java.awt.Window;
 import java.awt.Component;
 import java.awt.Container;
@@ -68,6 +69,44 @@ public class AWTMisc {
         return (Container) c;
     }
 
+    public static Component getNextFocus(Component comp) {
+        Container focusContainer = comp.getFocusCycleRootAncestor();
+        while ( focusContainer != null && 
+                ( !focusContainer.isShowing() || !focusContainer.isFocusable() || !focusContainer.isEnabled() ) )
+        {
+            comp = focusContainer;
+            focusContainer = comp.getFocusCycleRootAncestor();
+        }
+        Component next = null;
+        if (focusContainer != null) {
+            final FocusTraversalPolicy policy = focusContainer.getFocusTraversalPolicy();
+            next = policy.getComponentAfter(focusContainer, comp);
+            if (next == null) {
+                next = policy.getDefaultComponent(focusContainer);
+            }
+        }
+        return next;
+    }
+    
+    public static Component getPrevFocus(Component comp) {
+        Container focusContainer = comp.getFocusCycleRootAncestor();
+        while ( focusContainer != null &&
+                ( !focusContainer.isShowing() || !focusContainer.isFocusable() || !focusContainer.isEnabled() ) )
+        {
+            comp = focusContainer;
+            focusContainer = comp.getFocusCycleRootAncestor();
+        }
+        Component prev = null;
+        if (focusContainer != null) {
+            final FocusTraversalPolicy policy = focusContainer.getFocusTraversalPolicy();
+            prev = policy.getComponentBefore(focusContainer, comp);
+            if (prev == null) {
+                prev = policy.getDefaultComponent(focusContainer);
+            }
+        }
+        return prev;
+    }
+    
     /**
      * Issue this when your non AWT toolkit gains focus to clear AWT menu path
      */
