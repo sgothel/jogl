@@ -93,7 +93,7 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
         }
         queue.add(e);
         if( verbose ) {
-            System.err.println("NEWT AWT PRESSED ["+pressed+"]: "+prefix+", "+e);
+            System.err.println("KEY NEWT PRESSED ["+pressed+"]: "+prefix+", "+e);
         }
     }
     
@@ -105,7 +105,7 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
         }
         queue.add(e);
         if( verbose ) {
-            System.err.println("NEWT AWT RELEASED ["+pressed+"]: "+prefix+", "+e);
+            System.err.println("KEY NEWT RELEASED ["+pressed+"]: "+prefix+", "+e);
         }
     }
      
