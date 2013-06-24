@@ -164,7 +164,7 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
         keyAdapter.reset();
         AWTRobotUtil.newtKeyPress(0, robot, true, keyCode, 10);   // press keyCode
         AWTRobotUtil.newtKeyPress(0, robot, false, keyCode, 100); // release keyCode
-        robot.waitForIdle();        
+        AWTRobotUtil.waitForIdle(robot);
         for(int j=0; j < 100 && keyAdapter.getQueueSize() < 2; j++) { // wait until events are collected
             robot.delay(100);
         }
@@ -173,7 +173,7 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
         AWTRobotUtil.newtKeyPress(0, robot, true, keyCode, 10);   // press keyCode
         AWTRobotUtil.newtKeyPress(0, robot, false, keyCode, 10);  // release keyCode 
         AWTRobotUtil.newtKeyPress(0, robot, false, modifierKey, 100);   // release MOD
-        robot.waitForIdle();        
+        AWTRobotUtil.waitForIdle(robot);
         for(int j=0; j < 100 && keyAdapter.getQueueSize() < 2+4; j++) { // wait until events are collected
             robot.delay(100);
         }
@@ -212,7 +212,7 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
         AWTRobotUtil.newtKeyPress(0, robot, false, m2k, 10);   // release MOD
         AWTRobotUtil.newtKeyPress(0, robot, false, m1k, 10);   // release MOD
         
-        robot.waitForIdle();        
+        AWTRobotUtil.waitForIdle(robot);
         for(int j=0; j < 100 && keyAdapter.getQueueSize() < 4+4; j++) { // wait until events are collected
             robot.delay(100);
         }

@@ -210,7 +210,7 @@ public class TestNewtKeyCodesAWT extends UITestCase {
                     break;
                 }
                 eventCount++;
-                robot.waitForIdle();
+                AWTRobotUtil.waitForIdle(robot);
             }
             for(int j=0; j < 20 && keyAdapter.getQueueSize() < eventCount; j++) { // wait until events are collected
                 robot.delay(100);

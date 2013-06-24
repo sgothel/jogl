@@ -74,6 +74,7 @@ public class AWTRobotUtil {
         // System.err.println("AWT EDT alive: "+isAWTEDTAlive());
     }
     
+    /** Probes whether AWT's EDT is alive or not. */
     public static boolean isAWTEDTAlive() {
         if( EventQueue.isDispatchThread() ) {
             return true;            
@@ -96,10 +97,17 @@ public class AWTRobotUtil {
             return awtEDTAliveFlag;
         }
     }
+    /** Throws Error if {@link #isAWTEDTAlive()} returns false. */
     public static void validateAWTEDTIsAlive() {
         if( !isAWTEDTAlive() ) {
             throw new Error("AWT EDT not alive");
         }
+    }
+    
+    /** Issuing {@link #validateAWTEDTIsAlive()} before calling {@link Robot#waitForIdle()}. */
+    public static void waitForIdle(Robot robot) {
+        validateAWTEDTIsAlive();
+        robot.waitForIdle();
     }
     
     public static void clearAWTFocus(Robot robot) throws InterruptedException, InvocationTargetException, AWTException {
@@ -293,8 +301,7 @@ public class AWTRobotUtil {
             final int mouseButton = java.awt.event.InputEvent.BUTTON1_MASK;    
             centerMouse(robot, obj, onTitleBarIfWindow);
     
-            validateAWTEDTIsAlive();
-            robot.waitForIdle();
+            waitForIdle(robot);
             robot.mousePress(mouseButton);
             robot.mouseRelease(mouseButton);
             final int d = getClickTimeout(obj) + 1;
@@ -443,18 +450,16 @@ public class AWTRobotUtil {
     }
 
     private static void awtRobotKeyPress(final Robot robot, final int keyCode, final int msDelay) {
-        validateAWTEDTIsAlive();
-        robot.waitForIdle();
+        waitForIdle(robot);
         robot.keyPress(keyCode);
         robot.delay(msDelay);
-        robot.waitForIdle();
+        waitForIdle(robot);
     }
     private static void awtRobotKeyRelease(final Robot robot, final int keyCode, final int msDelay) {
-        validateAWTEDTIsAlive();
-        robot.waitForIdle();                        
+        waitForIdle(robot);                        
         robot.keyRelease(keyCode);
         robot.delay(msDelay);
-        robot.waitForIdle();
+        waitForIdle(robot);
     }
     
     public static int keyType(int i, Robot robot, int keyCode,
@@ -592,8 +597,7 @@ public class AWTRobotUtil {
             }
             final int c0 = null != counter ? counter.getCount() : 0;            
             if(DEBUG) { System.err.println(i+":"+j+" MC1.1: "+counter); }
-            validateAWTEDTIsAlive();
-            robot.waitForIdle();
+            waitForIdle(robot);
             robot.mousePress(mouseButton);
             robot.mouseRelease(mouseButton);
             if(DEBUG) { System.err.println(i+":"+j+" MC1.2: "+counter); }
