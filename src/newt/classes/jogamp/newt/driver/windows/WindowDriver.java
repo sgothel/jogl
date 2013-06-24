@@ -79,6 +79,11 @@ public class WindowDriver extends WindowImpl {
         }        
         hmon = MonitorFromWindow0(hWnd);
         
+        // Let's not trigger on HDC change, GLDrawableImpl.'s destroy/create is a nop here anyways.
+        // FIXME: Validate against EGL surface creation: ANGLE uses HWND -> fine!
+        return LOCK_SUCCESS; 
+        
+        /**
         if( hdc_old == hdc ) {
             return LOCK_SUCCESS;
         }
@@ -86,7 +91,7 @@ public class WindowDriver extends WindowImpl {
             System.err.println("WindowsWindow: surface change "+toHexString(hdc_old)+" -> "+toHexString(hdc));
             // Thread.dumpStack();
         }
-        return LOCK_SURFACE_CHANGED;        
+        return LOCK_SURFACE_CHANGED; */        
     }
 
     @Override
