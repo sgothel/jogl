@@ -181,7 +181,7 @@ function jrun() {
     #D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug=all"
     #D_ARGS="-Dnewt.debug.Window -Dnativewindow.debug.JAWT -Djogl.debug.Animator"
     #D_ARGS="-Dnewt.debug.Window -Djogl.debug.GLDrawable"
-    D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Window.KeyEvent"
+    #D_ARGS="-Dnewt.debug.Window -Dnewt.debug.Window.KeyEvent"
     #D_ARGS="-Xprof"
     #D_ARGS="-Dnativewindow.debug=all"
     #D_ARGS="-Djogl.debug.GLCanvas -Djogl.debug.Java2D -Djogl.debug.GLJPanel"
@@ -465,7 +465,7 @@ function testawtswt() {
 #   with OSX: -XstartOnFirstThread
 #
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTEclipseGLCanvas01GLn $*
-#testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor03AWTGLn $*
+testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor03AWTGLn $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn $*
 #testawtswt com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTBug628ResizeDeadlockAWT $*
@@ -513,7 +513,7 @@ function testawtswt() {
 #
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
-testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
+#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cSwingAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01aAWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01bAWT $*
