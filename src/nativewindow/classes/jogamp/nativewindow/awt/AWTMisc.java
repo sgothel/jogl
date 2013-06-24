@@ -69,7 +69,15 @@ public class AWTMisc {
         return (Container) c;
     }
 
-    public static Component getNextFocus(Component comp) {
+    /**
+     * Traverse to the next forward or backward component using the
+     * container's FocusTraversalPolicy.
+     * 
+     * @param comp the assumed current focuse component 
+     * @param forward if true, returns the next focus component, otherwise the previous one.
+     * @return
+     */
+    public static Component getNextFocus(Component comp, boolean forward) {
         Container focusContainer = comp.getFocusCycleRootAncestor();
         while ( focusContainer != null && 
                 ( !focusContainer.isShowing() || !focusContainer.isFocusable() || !focusContainer.isEnabled() ) )
@@ -80,31 +88,12 @@ public class AWTMisc {
         Component next = null;
         if (focusContainer != null) {
             final FocusTraversalPolicy policy = focusContainer.getFocusTraversalPolicy();
-            next = policy.getComponentAfter(focusContainer, comp);
+            next = forward ? policy.getComponentAfter(focusContainer, comp) : policy.getComponentBefore(focusContainer, comp);
             if (next == null) {
                 next = policy.getDefaultComponent(focusContainer);
             }
         }
         return next;
-    }
-    
-    public static Component getPrevFocus(Component comp) {
-        Container focusContainer = comp.getFocusCycleRootAncestor();
-        while ( focusContainer != null &&
-                ( !focusContainer.isShowing() || !focusContainer.isFocusable() || !focusContainer.isEnabled() ) )
-        {
-            comp = focusContainer;
-            focusContainer = comp.getFocusCycleRootAncestor();
-        }
-        Component prev = null;
-        if (focusContainer != null) {
-            final FocusTraversalPolicy policy = focusContainer.getFocusTraversalPolicy();
-            prev = policy.getComponentBefore(focusContainer, comp);
-            if (prev == null) {
-                prev = policy.getDefaultComponent(focusContainer);
-            }
-        }
-        return prev;
     }
     
     /**
