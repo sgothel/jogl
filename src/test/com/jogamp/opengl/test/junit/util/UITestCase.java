@@ -62,7 +62,7 @@ public abstract class UITestCase {
     public static final String SINGLE_INSTANCE_LOCK_FILE = "UITestCase.lock";
     public static final int SINGLE_INSTANCE_LOCK_PORT = 59999;
     
-    public static final long SINGLE_INSTANCE_LOCK_TO   = 3*60*1000; // wait up to 3 min
+    public static final long SINGLE_INSTANCE_LOCK_TO   = 6*60*1000; // wait up to 6 mins
     public static final long SINGLE_INSTANCE_LOCK_POLL =      1000; // poll every 1s
 
     private static volatile SingletonInstance singletonInstance;
