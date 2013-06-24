@@ -161,7 +161,8 @@ public class ALAudioSink implements AudioSink {
         return (NUM_BUFFERS-val[0])*4096;
     }
 
-    public static boolean isAvailable() {
+    @Override
+    public boolean isAudioSinkAvailable() {
         return available;
     }
 }

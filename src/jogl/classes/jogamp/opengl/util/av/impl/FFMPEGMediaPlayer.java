@@ -130,11 +130,12 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
             System.err.println("LIB_AV Codec : "+avCodecVersion);
             initIDs0();            
             available = true;
-            audioSink = new NullAudioSink();
-            if(ALAudioSink.isAvailable()) {
-                audioSink = new ALAudioSink();
-            } else if(JavaSoundAudioSink.isAvailable()) {
+            audioSink = new ALAudioSink();
+            if(!audioSink.isAudioSinkAvailable()) {
                 audioSink = new JavaSoundAudioSink();
+                if(!audioSink.isAudioSinkAvailable()) {
+                    audioSink = new NullAudioSink();
+                }
             }
             maxAvailableAudio = audioSink.getDataAvailable();
 

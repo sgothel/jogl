@@ -71,7 +71,8 @@ public class JavaSoundAudioSink implements AudioSink {
         return auline.available()>=data_size;
     }
 
-    public static boolean isAvailable() {
+    @Override
+    public boolean isAudioSinkAvailable() {
         return available;
     }
 

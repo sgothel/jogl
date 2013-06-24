@@ -15,4 +15,9 @@ public class NullAudioSink implements AudioSink {
     @Override
     public void writeData(byte[] sampleData, int data_size) {
     }
+
+    @Override
+    public boolean isAudioSinkAvailable() {
+        return true;
+    }
 }
