@@ -146,9 +146,13 @@ public class TestNewtEventModifiersNewtCanvasSWTAWT extends BaseNewtEventModifie
         try {
             SWTAccessor.invoke(_display, true, new Runnable() {
                 public void run() { 
-                    _composite.dispose();
-                    _shell.dispose();
-                    if(!_display.isDisposed()) {
+                    if( null != _composite ) {
+                        _composite.dispose();
+                    }
+                    if( null != _shell ) {
+                        _shell.dispose();
+                    }
+                    if( null != _display && !_display.isDisposed()) {
                         _display.dispose();
                     }
                 }});
