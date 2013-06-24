@@ -82,7 +82,6 @@ public class ALAudioSink implements AudioSink {
             // Allocate buffers
             al.alGenBuffers(NUM_BUFFERS, buffers, 0);                       
             al.alGenSources(1, source, 0);
-            al.alSourcei(source[0], AL.AL_BUFFER, buffers[0]);
             
             if(al.alGetError() != AL.AL_NO_ERROR) {
                 throw new ALException("Error generating :(");                 
