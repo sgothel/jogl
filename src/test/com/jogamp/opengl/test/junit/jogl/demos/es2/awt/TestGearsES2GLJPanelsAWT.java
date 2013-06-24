@@ -55,8 +55,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.GearsES1;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -122,9 +122,7 @@ public class TestGearsES2GLJPanelsAWT extends UITestCase {
         }
         final GLEventListener demo;
         if( caps.isBitmap() ) {
-            GearsES1 gdemo = new GearsES1(swapInterval);
-            gdemo.setGearsColors(color, color, color);
-            demo = gdemo;
+            demo = new Gears(swapInterval);
         } else {
             GearsES2 gdemo = new GearsES2(swapInterval);
             gdemo.setIgnoreFocus(true);

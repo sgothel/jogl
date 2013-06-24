@@ -49,8 +49,8 @@ import com.jogamp.newt.event.TraceKeyAdapter;
 import com.jogamp.newt.event.TraceWindowAdapter;
 import com.jogamp.newt.event.awt.AWTKeyAdapter;
 import com.jogamp.newt.event.awt.AWTWindowAdapter;
-import com.jogamp.opengl.test.junit.jogl.demos.es1.GearsES1;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.jogl.demos.gl2.Gears;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
 import com.jogamp.opengl.test.junit.util.UITestCase;
@@ -105,7 +105,7 @@ public class TestGearsES2GLJPanelAWT extends UITestCase {
         glJPanel.setPreferredSize(wsize);
         glJPanel.setSize(wsize);
         if( caps.isBitmap() ) {
-            glJPanel.addGLEventListener(new GearsES1(swapInterval));
+            glJPanel.addGLEventListener(new Gears(swapInterval));
         } else {
             glJPanel.addGLEventListener(new GearsES2(swapInterval));
         }
