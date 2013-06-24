@@ -2535,15 +2535,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     
     protected void consumeKeyEvent(KeyEvent e) {
         boolean consumedE = false;
-        if(null != keyboardFocusHandler) {
+        if( null != keyboardFocusHandler && !e.isAutoRepeat() ) {
             consumedE = propagateKeyEvent(e, keyboardFocusHandler);
             if(DEBUG_KEY_EVENT) {
-                System.err.println("consumeKeyEvent: "+e+", keyboardFocusHandler consumed: "+consumedE);
+                System.err.println("consumeKeyEvent(kfh): "+e+", keyboardFocusHandler consumed: "+consumedE);
             }
         }
         if(DEBUG_KEY_EVENT) {
             if( !consumedE ) {
-                System.err.println("consumeKeyEvent: "+e);
+                System.err.println("consumeKeyEvent(usr): "+e);
             }
         }
         for(int i = 0; !consumedE && i < keyListeners.size(); i++ ) {
