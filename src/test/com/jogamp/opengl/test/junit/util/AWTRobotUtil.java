@@ -31,8 +31,10 @@ package com.jogamp.opengl.test.junit.util;
 import jogamp.newt.WindowImplAccess;
 import jogamp.newt.awt.event.AWTNewtEventFactory;
 
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.awt.AWTException;
+import java.awt.EventQueue;
 import java.awt.Robot;
 
 import javax.media.nativewindow.NativeWindow;
@@ -55,6 +57,50 @@ public class AWTRobotUtil {
     public static final int POLL_DIVIDER   = 20; // TO/20
     public static final int TIME_SLICE   = TIME_OUT / POLL_DIVIDER ;
     public static Integer AWT_CLICK_TO = null; 
+    
+    static Object awtEDTAliveSync = new Object();
+    static volatile boolean awtEDTAliveFlag = false;    
+    
+    static class OurUncaughtExceptionHandler implements UncaughtExceptionHandler {
+        @Override
+        public void uncaughtException(Thread t, Throwable e) {
+            System.err.println("*** AWTRobotUtil: UncaughtException (this Thread "+Thread.currentThread().getName()+") : Thread <"+t.getName()+">, "+e.getClass().getName()+": "+e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    static {
+        Thread.setDefaultUncaughtExceptionHandler( new OurUncaughtExceptionHandler() );
+        // System.err.println("AWT EDT alive: "+isAWTEDTAlive());
+    }
+    
+    public static boolean isAWTEDTAlive() {
+        if( EventQueue.isDispatchThread() ) {
+            return true;            
+        }
+        synchronized ( awtEDTAliveSync ) {
+            awtEDTAliveFlag = false;
+            EventQueue.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    awtEDTAliveFlag = true;
+                }                            
+            });
+            for (int wait=0; wait<POLL_DIVIDER && !awtEDTAliveFlag; wait++) {
+                try {
+                    Thread.sleep(TIME_SLICE);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            return awtEDTAliveFlag;
+        }
+    }
+    public static void validateAWTEDTIsAlive() {
+        if( !isAWTEDTAlive() ) {
+            throw new Error("AWT EDT not alive");
+        }
+    }
     
     public static void clearAWTFocus(Robot robot) throws InterruptedException, InvocationTargetException, AWTException {
         if(null == robot) {
@@ -247,6 +293,7 @@ public class AWTRobotUtil {
             final int mouseButton = java.awt.event.InputEvent.BUTTON1_MASK;    
             centerMouse(robot, obj, onTitleBarIfWindow);
     
+            validateAWTEDTIsAlive();
             robot.waitForIdle();
             robot.mousePress(mouseButton);
             robot.mouseRelease(mouseButton);
@@ -279,6 +326,7 @@ public class AWTRobotUtil {
     
     public static void requestFocus(Robot robot, Object obj, int x, int y) 
         throws AWTException, InterruptedException, InvocationTargetException {
+        validateAWTEDTIsAlive();
         
         final boolean idling = robot.isAutoWaitForIdle();
         final int mouseButton = java.awt.event.InputEvent.BUTTON1_MASK;
@@ -395,12 +443,14 @@ public class AWTRobotUtil {
     }
 
     private static void awtRobotKeyPress(final Robot robot, final int keyCode, final int msDelay) {
+        validateAWTEDTIsAlive();
         robot.waitForIdle();
         robot.keyPress(keyCode);
         robot.delay(msDelay);
         robot.waitForIdle();
     }
     private static void awtRobotKeyRelease(final Robot robot, final int keyCode, final int msDelay) {
+        validateAWTEDTIsAlive();
         robot.waitForIdle();                        
         robot.keyRelease(keyCode);
         robot.delay(msDelay);
@@ -540,8 +590,9 @@ public class AWTRobotUtil {
                 if(DEBUG) { System.err.println(i+":"+j+" MC1.0: "+counter+" - regain focus"); }
                 requestFocus(null, obj);
             }
-            final int c0 = null != counter ? counter.getCount() : 0;
+            final int c0 = null != counter ? counter.getCount() : 0;            
             if(DEBUG) { System.err.println(i+":"+j+" MC1.1: "+counter); }
+            validateAWTEDTIsAlive();
             robot.waitForIdle();
             robot.mousePress(mouseButton);
             robot.mouseRelease(mouseButton);

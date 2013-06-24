@@ -72,7 +72,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventOrderAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodeModifiersAWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventAutoRepeatAWT %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventAutoRepeatAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyPressReleaseUnmaskRepeatAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodesAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNEWTWindowAWT $*
@@ -95,7 +95,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestParenti
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentParentingAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.parenting.TestTranslucentChildWindowBug632NEWT %*
 
-scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor03AWTGLn %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTAccessor03AWTGLn %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestSWTJOGLGLCanvas01GLn %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTGLn %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.swt.TestNewtCanvasSWTBug628ResizeDeadlock %*
