@@ -72,7 +72,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestListenerCom01AWT
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventOrderAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodeModifiersAWT %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventAutoRepeatAWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyEventAutoRepeatAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyPressReleaseUnmaskRepeatAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtKeyCodesAWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.event.TestNewtEventModifiersNEWTWindowAWT $*
@@ -106,7 +106,7 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestWindows01NEWT
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestGLWindowInvisiblePointer01NEWT $*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRobot %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.nativewindow.TestRecursiveToolkitLockCORE
 
