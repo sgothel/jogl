@@ -40,6 +40,7 @@ import java.nio.FloatBuffer;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
+import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLJPanel;
 import javax.swing.JComponent;
@@ -54,6 +55,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.opengl.test.junit.jogl.demos.es1.GearsES1;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
@@ -118,10 +120,18 @@ public class TestGearsES2GLJPanelsAWT extends UITestCase {
         if ( !useInterPanel ) {
             canvas.setBounds(x, y, w, h);
         }
-        GearsES2 demo = new GearsES2(swapInterval);
-        demo.setIgnoreFocus(true);
-        demo.setGearsColors(color, color, color);
-        demo.setClearColor(clearColor);
+        final GLEventListener demo;
+        if( caps.isBitmap() ) {
+            GearsES1 gdemo = new GearsES1(swapInterval);
+            gdemo.setGearsColors(color, color, color);
+            demo = gdemo;
+        } else {
+            GearsES2 gdemo = new GearsES2(swapInterval);
+            gdemo.setIgnoreFocus(true);
+            gdemo.setGearsColors(color, color, color);
+            gdemo.setClearColor(clearColor);
+            demo = gdemo;
+        }
         canvas.addGLEventListener(demo);
         if( null != anim ) {
             anim.add(canvas);
