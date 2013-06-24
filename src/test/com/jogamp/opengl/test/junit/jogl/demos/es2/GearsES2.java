@@ -124,7 +124,7 @@ public class GearsES2 implements GLEventListener {
 
     public void init(GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" GearsES2.init ...");
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         if(verbose) {
             System.err.println("GearsES2 init on "+Thread.currentThread());
@@ -138,6 +138,10 @@ public class GearsES2 implements GLEventListener {
             System.err.println("GL Profile: "+gl.getGLProfile());
             System.err.println("GL Renderer Quirks:" + gl.getContext().getRendererQuirks().toString());
             System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
+        }        
+        if( !gl.hasGLSL() ) {
+            System.err.println("No GLSL available, no rendering.");
+            return;
         }
 
         gl.glEnable(GL.GL_DEPTH_TEST);
@@ -228,10 +232,13 @@ public class GearsES2 implements GLEventListener {
         drawableHeight = height;
         
         // Thread.dumpStack();
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         if(-1 != swapInterval) {
             gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
+        }
+        if( !gl.hasGLSL() ) {
+            return;
         }
         
         st.useProgram(gl, true);
@@ -264,7 +271,10 @@ public class GearsES2 implements GLEventListener {
             window.removeMouseListener(gearsMouse);
             window.removeKeyListener(gearsKeys);
         }
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        if( !gl.hasGLSL() ) {
+            return;
+        }
         st.useProgram(gl, false);
         gear1.destroy(gl);
         gear1 = null;
@@ -291,7 +301,7 @@ public class GearsES2 implements GLEventListener {
         }
 
         // Get the GL corresponding to the drawable we are animating
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         final boolean hasFocus;
         final Object upstreamWidget = drawable.getUpstreamWidget();
@@ -320,6 +330,9 @@ public class GearsES2 implements GLEventListener {
               gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
             }
         }        
+        if( !gl.hasGLSL() ) {
+            return;
+        }
 
         gl.glEnable(GL.GL_CULL_FACE);
         
