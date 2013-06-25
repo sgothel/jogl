@@ -163,26 +163,27 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
         keyAdapter.reset();
         for(int i=0; i<loops; i++) {
             // 1
+            AWTRobotUtil.waitForIdle(robot);
             AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_A, 10);
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_A, 100);
-            AWTRobotUtil.waitForIdle(robot);
             // 2
+            AWTRobotUtil.waitForIdle(robot);
             AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_B, 10);
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_B, 100);
-            AWTRobotUtil.waitForIdle(robot);
             // 3 + 4
+            AWTRobotUtil.waitForIdle(robot);
             AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_A, 10);
             AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_B, 10);
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_A, 10);
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_B, 10);
-            AWTRobotUtil.waitForIdle(robot);
             // 5 + 6
+            AWTRobotUtil.waitForIdle(robot);
             AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_A, 10);
             AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_B, 10);
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_B, 10);
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_A, 10);
-            AWTRobotUtil.waitForIdle(robot);
         }
+        AWTRobotUtil.waitForIdle(robot);
         robot.delay(250);
         // dumpKeyEvents(keyAdapter.getQueued());
         

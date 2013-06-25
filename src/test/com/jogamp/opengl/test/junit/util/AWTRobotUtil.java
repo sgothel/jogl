@@ -450,21 +450,17 @@ public class AWTRobotUtil {
     }
 
     private static void awtRobotKeyPress(final Robot robot, final int keyCode, final int msDelay) {
-        waitForIdle(robot);
         robot.keyPress(keyCode);
         robot.delay(msDelay);
-        waitForIdle(robot);
     }
     private static void awtRobotKeyRelease(final Robot robot, final int keyCode, final int msDelay) {
-        waitForIdle(robot);                        
         robot.keyRelease(keyCode);
         robot.delay(msDelay);
-        waitForIdle(robot);
     }
     
     public static int keyType(int i, Robot robot, int keyCode,
                               Object obj, KeyEventCountAdapter counter) throws InterruptedException, AWTException, InvocationTargetException 
-    {
+    {        
         int tc = 0;
         int j;
         final long t0 = System.currentTimeMillis();
@@ -476,10 +472,12 @@ public class AWTRobotUtil {
                 if(DEBUG) { System.err.println(i+":"+j+" KC1.0: "+counter+" - regain focus on thread "+Thread.currentThread().getName()); }
                 requestFocus(null, obj);
             }
+            waitForIdle(robot);
             if(DEBUG) { System.err.println(i+":"+j+" KC1.1: "+counter+" on thread "+Thread.currentThread().getName()); }
             awtRobotKeyPress(robot, keyCode, 50);
             if(DEBUG) { System.err.println(i+":"+j+" KC1.2: "+counter+" on thread "+Thread.currentThread().getName()); }
             awtRobotKeyRelease(robot, keyCode, 100);
+            waitForIdle(robot);
             if(DEBUG) { System.err.println(i+":"+j+" KC1.3: "+counter); }
             tc = ( null!=counter ? counter.getCount() : 1 ) - c0;
             for (int wait=0; wait<POLL_DIVIDER && 1 > tc; wait++) {

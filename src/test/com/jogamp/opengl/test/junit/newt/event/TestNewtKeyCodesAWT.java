@@ -195,6 +195,7 @@ public class TestNewtKeyCodesAWT extends UITestCase {
             // System.err.println("*** Segment "+codeSeg.description);
             int eventCount = 0;
             for(short c=codeSeg.min; c<=codeSeg.max; c++) {                
+                AWTRobotUtil.waitForIdle(robot);
                 // System.err.println("*** KeyCode 0x"+Integer.toHexString(c));
                 try {
                     AWTRobotUtil.newtKeyPress(0, robot, true, c, 10);
@@ -210,8 +211,8 @@ public class TestNewtKeyCodesAWT extends UITestCase {
                     break;
                 }
                 eventCount++;
-                AWTRobotUtil.waitForIdle(robot);
             }
+            AWTRobotUtil.waitForIdle(robot);
             for(int j=0; j < 20 && keyAdapter.getQueueSize() < eventCount; j++) { // wait until events are collected
                 robot.delay(100);
             }

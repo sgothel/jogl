@@ -161,8 +161,8 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
         int firstIdx = 0;
         for(int i=0; i<loops; i++) {
             System.err.println("+++ KEY Event Auto-Repeat START Input Loop: "+i);
-            AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_A, pressDurationMS);
             AWTRobotUtil.waitForIdle(robot);
+            AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_A, pressDurationMS);
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_A, 500); // 1s .. no AR anymore
             AWTRobotUtil.waitForIdle(robot);
             final int minCodeCount = firstIdx + 2;
@@ -182,8 +182,8 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
             
             // add a pair of normal press/release in between auto-repeat!
             firstIdx = keyEvents.size();
-            AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_B, 10);
             AWTRobotUtil.waitForIdle(robot);
+            AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_B, 10);
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_B, 250);
             AWTRobotUtil.waitForIdle(robot);
             for(int j=0; j < 20 && keyAdapter.getQueueSize() < firstIdx+3; j++) { // wait until events are collected

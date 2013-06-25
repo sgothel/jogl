@@ -162,6 +162,7 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
     static void testKeyCodeModifier(Robot robot, NEWTKeyAdapter keyAdapter, short modifierKey, int modifierMask, short keyCode, 
                                     char keyCharOnly, char keyCharMod) {        
         keyAdapter.reset();
+        AWTRobotUtil.waitForIdle(robot);
         AWTRobotUtil.newtKeyPress(0, robot, true, keyCode, 10);   // press keyCode
         AWTRobotUtil.newtKeyPress(0, robot, false, keyCode, 100); // release keyCode
         AWTRobotUtil.waitForIdle(robot);
@@ -169,6 +170,7 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
             robot.delay(100);
         }
         
+        AWTRobotUtil.waitForIdle(robot);
         AWTRobotUtil.newtKeyPress(0, robot, true, modifierKey, 10);     // press MOD
         AWTRobotUtil.newtKeyPress(0, robot, true, keyCode, 10);   // press keyCode
         AWTRobotUtil.newtKeyPress(0, robot, false, keyCode, 10);  // release keyCode 
@@ -202,6 +204,7 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
         final int   m3m = InputEvent.SHIFT_MASK;
         
         keyAdapter.reset();
+        AWTRobotUtil.waitForIdle(robot);
         AWTRobotUtil.newtKeyPress(0, robot, true, m1k, 10);     // press MOD1
         AWTRobotUtil.newtKeyPress(0, robot, true, m2k, 10);     // press MOD2
         AWTRobotUtil.newtKeyPress(0, robot, true, m3k, 10);     // press MOD3
@@ -210,9 +213,9 @@ public class TestNewtKeyCodeModifiersAWT extends UITestCase {
         AWTRobotUtil.newtKeyPress(0, robot, false, KeyEvent.VK_1, 100);  // release P        
         AWTRobotUtil.newtKeyPress(0, robot, false, m3k, 10);   // release MOD
         AWTRobotUtil.newtKeyPress(0, robot, false, m2k, 10);   // release MOD
-        AWTRobotUtil.newtKeyPress(0, robot, false, m1k, 10);   // release MOD
-        
+        AWTRobotUtil.newtKeyPress(0, robot, false, m1k, 10);   // release MOD        
         AWTRobotUtil.waitForIdle(robot);
+        
         for(int j=0; j < 100 && keyAdapter.getQueueSize() < 4+4; j++) { // wait until events are collected
             robot.delay(100);
         }
