@@ -34,6 +34,8 @@
 
 package com.jogamp.newt.opengl;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
@@ -527,6 +529,24 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         public synchronized void resumeRenderingAction() {
             if ( null != savedAnimator && savedAnimator.isPaused() ) {
                 savedAnimator.resume();
+            }
+        }
+        
+        @SuppressWarnings("deprecation")
+        @Override
+        public void shutdownRenderingAction() {
+            final GLAnimatorControl anim = GLWindow.this.getAnimator();
+            if ( null != anim && anim.isAnimating() ) {
+                AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                    public Object run() {
+                        final Thread animThread = anim.getThread();
+                        if( null != animThread ) {
+                            try {
+                                animThread.stop();
+                            } catch(Throwable t) { }
+                        }
+                        return null;
+                    } } );
             }
         }
     }

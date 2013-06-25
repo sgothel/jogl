@@ -88,7 +88,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         ScreenImpl.initSingleton();
     }
         
-    /** Maybe utilized at a shutdown hook, impl. does not synchronize, however the Window destruction and EDT removal blocks. */
+    /** Maybe utilized at a shutdown hook, impl. does not block. */
     public static final void shutdownAll() {
         final int wCount = windowList.size(); 
         if(DEBUG_IMPLEMENTATION) {
@@ -99,7 +99,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             if(DEBUG_IMPLEMENTATION) {
                 System.err.println("Window.shutdownAll["+(i+1)+"/"+wCount+"]: "+toHexString(w.getWindowHandle()));
             }
-            w.markInvalid();
+            w.shutdown();
         }
     }
     
@@ -242,7 +242,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     /** Fast invalidation of instance w/o any blocking function call. */
-    private final void markInvalid() {
+    private final void shutdown() {
+        if(null!=lifecycleHook) {
+            lifecycleHook.shutdownRenderingAction();
+        }
         setWindowHandle(0);
         visible = false;
         fullscreen = false;
@@ -310,6 +313,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
          * @see #pauseRenderingAction()
          */
         void resumeRenderingAction();
+        
+        /**
+         * Shutdown rendering action (thread) abnormally.
+         * <p>
+         * Should be called only at shutdown, if necessary.
+         * </p> 
+         */
+        void shutdownRenderingAction();
     }
 
     private boolean createNative() {
