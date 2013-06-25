@@ -108,7 +108,7 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
     public void releaseTest() {        
     }
     
-    @Test
+    @Test(timeout=300000) // TO 5 min
     public void test01NEWT() throws AWTException, InterruptedException, InvocationTargetException {
         GLWindow glWindow = GLWindow.create(glCaps);
         glWindow.setSize(width, height);
@@ -119,7 +119,7 @@ public class TestNewtKeyEventAutoRepeatAWT extends UITestCase {
         glWindow.destroy();
     }
         
-    @Test
+    @Test(timeout=300000) // TO 5 min
     public void test02NewtCanvasAWT() throws AWTException, InterruptedException, InvocationTargetException {
         GLWindow glWindow = GLWindow.create(glCaps);
         
