@@ -207,7 +207,7 @@ public abstract class DisplayImpl extends Display {
 
     private void removeEDT(final Runnable task) {
         if(null!=edtUtil) {            
-            edtUtil.invokeStop(task);
+            edtUtil.invokeStop(true, task);
             // ready for restart ..
             edtUtil.waitUntilStopped();
             edtUtil.reset();
@@ -261,7 +261,7 @@ public abstract class DisplayImpl extends Display {
         }
     }
     
-    /** Maybe utilized at a shutdown hook, impl. does not synchronize, however the EDT removal blocks. */
+    /** May be utilized at a shutdown hook, impl. does not block. */
     /* pp */ static final void shutdownAll() {
         final int dCount = displayList.size(); 
         if(DEBUG) {
@@ -275,13 +275,23 @@ public abstract class DisplayImpl extends Display {
             if(DEBUG) {
                 System.err.println("Display.shutdownAll["+(i+1)+"/"+dCount+"]: "+d);
             }
-            d.removeEDT( new Runnable() {
+            final Runnable closeNativeTask = new Runnable() {
                 public void run() {
                     if ( null != d.getGraphicsDevice() ) {
                         d.closeNativeImpl();
                     }
                 }
-            } );
+            };
+            final EDTUtil edtUtil = d.getEDTUtil();
+            if(null != edtUtil) {
+                final long coopSleep = edtUtil.getPollPeriod() * 2;
+                edtUtil.invokeStop(false, closeNativeTask); // don't block
+                try {
+                    Thread.sleep( coopSleep < 50 ? coopSleep : 50 );
+                } catch (InterruptedException e) { }
+            } else {
+                closeNativeTask.run();
+            }
             d.aDevice = null;
             d.refCount=0;
         }

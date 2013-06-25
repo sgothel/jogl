@@ -70,7 +70,7 @@ public interface EDTUtil {
      * is expected.
      *
      * @see #invoke(boolean, java.lang.Runnable)
-     * @see #invokeStop(java.lang.Runnable)
+     * @see #invokeStop(boolean, java.lang.Runnable)
      */
     public void reset();
 
@@ -113,7 +113,12 @@ public interface EDTUtil {
 
     /** 
      * Append the final task to the EDT task queue,
-     * signals EDT to stop and wait until stopped.<br/>
+     * signals EDT to stop.
+     * <p>
+     * If <code>wait</code> is <code>true</code> methods
+     * blocks until EDT is stopped.
+     * </p>
+     * <p>
      * <code>task</code> maybe <code>null</code><br/>
      * Due to the nature of this method:
      * <ul>
@@ -122,8 +127,9 @@ public interface EDTUtil {
      *   <li>Can be issued from within EDT, ie from within an enqueued task.</li>
      *   <li>{@link #reset()} may follow immediately, ie creating a new EDT</li>
      * </ul>
+     * </p>
      */
-    public void invokeStop(Runnable finalTask);
+    public void invokeStop(boolean wait, Runnable finalTask);
 
     /** 
      * Shall start the thread if not running, <code>task</code> maybe null for this purpose.<br>
@@ -143,7 +149,7 @@ public interface EDTUtil {
 
     /**
      * Wait until EDT task is stopped.<br>
-     * No <code>stop</code> action is performed, {@link #invokeStop(java.lang.Runnable)} should be used before.
+     * No <code>stop</code> action is performed, {@link #invokeStop(boolean, java.lang.Runnable)} should be used before.
      */
     public void waitUntilStopped();
 }

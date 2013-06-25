@@ -126,8 +126,8 @@ public class DefaultEDTUtil implements EDTUtil {
     }
 
     @Override
-    public final void invokeStop(Runnable task) {
-        invokeImpl(true, task, true);
+    public final void invokeStop(boolean wait, Runnable task) {
+        invokeImpl(wait, task, true);
     }
 
     @Override
