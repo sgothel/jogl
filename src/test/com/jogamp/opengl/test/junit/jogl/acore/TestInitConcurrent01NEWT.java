@@ -44,12 +44,12 @@ import com.jogamp.common.os.Platform;
 public class TestInitConcurrent01NEWT extends InitConcurrentBaseNEWT {
     static boolean mainRun = false;
 
-    @Test(timeout=300000) // TO 5 min
+    @Test(timeout=180000) // TO 3 min
     public void test02TwoThreads() throws InterruptedException {
         runJOGLTasks(2, true);
     }
     
-    @Test(timeout=300000) // TO 5 min
+    @Test(timeout=180000) // TO 3 min
     public void test02FourThreads() throws InterruptedException {
         runJOGLTasks(4, true);
     }

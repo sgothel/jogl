@@ -94,7 +94,7 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
     public void releaseTest() {        
     }
     
-    @Test(timeout=300000) // TO 5 min
+    @Test(timeout=180000) // TO 3 min
     public void test01NEWT() throws AWTException, InterruptedException, InvocationTargetException {
         GLWindow glWindow = GLWindow.create(glCaps);
         glWindow.setSize(width, height);
@@ -140,7 +140,7 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
         glWindow.destroy();
     }
     
-    @Test(timeout=300000) // TO 5 min
+    @Test(timeout=180000) // TO 3 min
     public void test02NewtCanvasAWT_Onscreen() throws AWTException, InterruptedException, InvocationTargetException {
         if( JAWTUtil.isOffscreenLayerRequired() ) {
             System.err.println("Platform doesn't support onscreen rendering.");
@@ -149,7 +149,7 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
         testNewtCanvasAWT_Impl(true);
     }
         
-    @Test(timeout=300000) // TO 5 min
+    @Test(timeout=180000) // TO 3 min
     public void test03NewtCanvasAWT_Offsccreen() throws AWTException, InterruptedException, InvocationTargetException {
         if( !JAWTUtil.isOffscreenLayerSupported() ) {
             System.err.println("Platform doesn't support offscreen rendering.");

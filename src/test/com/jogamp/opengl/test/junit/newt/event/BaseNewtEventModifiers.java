@@ -386,7 +386,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     // run the tests for NewtCanvasAWT and NewtCanvasSWT until we can
     // pay more attention to the NEWT event modifier stuff.
 
-    @Test(timeout=300000) // TO 5 min
+    @Test(timeout=180000) // TO 3 min
     public void testSingleButtonPressAndRelease() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() { 
             public void run() { 
@@ -396,7 +396,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             } } );
     }
 
-    @Test(timeout=300000) // TO 5 min
+    @Test(timeout=180000) // TO 3 min
     public void testSingleButtonPressAndReleaseWithShift() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() { 
             public void run() { 
@@ -406,7 +406,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             } } );
     }
 
-    @Test(timeout=300000) // TO 5 min
+    @Test(timeout=180000) // TO 3 min
     public void testSingleButtonPressAndReleaseWithCtrl() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() { 
             public void run() { 
@@ -419,7 +419,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     /**
      * The META and ALT tests get too tied up with functions of the window system on X11,
      * so it's probably best to leave them commented out.    
-        @Test(timeout=300000) // TO 5 min
+        @Test(timeout=180000) // TO 3 min
         public void testSingleButtonPressAndReleaseWithMeta() throws Exception {
             execOffThreadWithOnThreadEventDispatch(new Runnable() { 
                 public void run() { 
@@ -429,7 +429,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
                 } } );
         }
     
-        @Test(timeout=300000) // TO 5 min
+        @Test(timeout=180000) // TO 3 min
         public void testSingleButtonPressAndReleaseWithAlt() throws Exception {
             execOffThreadWithOnThreadEventDispatch(new Runnable() { 
                 public void run() { 
@@ -459,7 +459,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
     ////////////////////////////////////////////////////////////////////////////
 
-    @Test(timeout=300000) // TO 5 min
+    @Test(timeout=180000) // TO 3 min
     public void testHoldOneButtonAndPressAnother() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() { 
             public void run() { 
@@ -469,7 +469,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             } } );
     }
     
-    @Test(timeout=300000) // TO 5 min
+    @Test(timeout=180000) // TO 3 min
     public void testPressAllButtonsInSequence() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() { 
             public void run() { 
@@ -479,7 +479,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             } } );
     }
 
-    @Test(timeout=300000) // TO 5 min
+    @Test(timeout=180000) // TO 3 min
     public void testSingleButtonClickAndDrag() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() { 
             public void run() { 

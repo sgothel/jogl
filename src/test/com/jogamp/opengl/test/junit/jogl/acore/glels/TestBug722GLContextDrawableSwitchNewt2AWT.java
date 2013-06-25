@@ -65,7 +65,7 @@ public class TestBug722GLContextDrawableSwitchNewt2AWT extends GLContextDrawable
      */
     public static boolean fixedNewtDisplay = true;
     
-    @Test(timeout=3000000)
+    @Test(timeout=180000) // TO 3 min
     public void test11GLWindow2GLCanvasOnScrnGL2ES2() throws InterruptedException {
         final GLCapabilities caps = getCaps(GLProfile.GL2ES2);
         if(null == caps) return;
