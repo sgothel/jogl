@@ -44,17 +44,17 @@ import com.jogamp.common.os.Platform;
 public class TestInitConcurrent01NEWT extends InitConcurrentBaseNEWT {
     static boolean mainRun = false;
 
-    @Test
+    @Test(timeout=300000) // TO 5 min
     public void test02TwoThreads() throws InterruptedException {
         runJOGLTasks(2, true);
     }
     
-    @Test
+    @Test(timeout=300000) // TO 5 min
     public void test02FourThreads() throws InterruptedException {
         runJOGLTasks(4, true);
     }
     
-    @Test
+    @Test(timeout=300000) // TO 5 min
     public void test16SixteenThreads() throws InterruptedException {
         if( !mainRun &&
             Platform.getCPUFamily() != Platform.CPUFamily.ARM &&
