@@ -224,6 +224,7 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
         System.err.println("FOCUS AWT  Button request");
         EventCountAdapterUtil.reset(eventCountAdapters);
         AWTRobotUtil.assertRequestFocusAndWait(robot, buttonNorthInner, buttonNorthInner, buttonNorthInnerFA, glWindow1FA);
+        Assert.assertEquals(false, glWindow1FA.focusGained());
         Assert.assertEquals(false, newtCanvasAWTFA.focusGained());
         Assert.assertEquals(false, buttonNorthOuterFA.focusGained());
         System.err.println("FOCUS AWT  Button sync");
@@ -246,7 +247,6 @@ public class TestFocus02SwingAWTRobot extends UITestCase {
             System.err.println("Info: Focus prev. gained, but NewtCanvasAWT didn't loose it. Gainer: "+glWindow1FA+"; Looser "+newtCanvasAWTFA);
         }
         
-        Assert.assertEquals(false, newtCanvasAWTFA.focusGained());
         Assert.assertEquals(false, buttonNorthOuterFA.focusGained());
         System.err.println("FOCUS NEWT Canvas/GLWindow sync");
         AWTRobotUtil.assertKeyType(robot, java.awt.event.KeyEvent.VK_A, 2, glWindow1, glWindow1KA);
