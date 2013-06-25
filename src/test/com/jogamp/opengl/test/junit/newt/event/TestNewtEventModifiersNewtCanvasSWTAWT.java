@@ -92,6 +92,10 @@ public class TestNewtEventModifiersNewtCanvasSWTAWT extends BaseNewtEventModifie
     @BeforeClass
     public static void beforeClass() throws Exception {
 
+        // FIXME: Hangs .. w/ Java7 .. every now and then! 
+        setTestSupported(false);
+        
+        /***
         SWTAccessor.invoke(true, new Runnable() {
             public void run() {  
                 _display = new Display();
@@ -135,12 +139,14 @@ public class TestNewtEventModifiersNewtCanvasSWTAWT extends BaseNewtEventModifie
         eventDispatchImpl();
         
         _glWindow.addMouseListener( _testMouseListener ) ;
+        */
     }
 
     ////////////////////////////////////////////////////////////////////////////
 
     @AfterClass
     public static void afterClass() throws Exception {
+        /**
         _glWindow.destroy() ;
 
         try {
@@ -160,7 +166,7 @@ public class TestNewtEventModifiersNewtCanvasSWTAWT extends BaseNewtEventModifie
         catch( Throwable throwable ) {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
-        }
+        } */
     }
 
     ////////////////////////////////////////////////////////////////////////////
