@@ -52,9 +52,15 @@ import java.util.List;
 import javax.media.nativewindow.util.Dimension;
 
 /**
+ * <p>
+ * Tests MonitorMode reset, by destroying the last Screen (reference),
+ * i.e. the original MonitorMode should get reinstated!
+ * </p>
+ * <p>
  * Documents remedy B) for NV RANDR/GL bug
+ * </p>
  * 
- * @see TestScreenMode01NEWT#cleanupGL()
+ * @see TestScreenMode01dNEWT#cleanupGL()
  */
 public class TestScreenMode01aNEWT extends UITestCase {
     static GLProfile glp;

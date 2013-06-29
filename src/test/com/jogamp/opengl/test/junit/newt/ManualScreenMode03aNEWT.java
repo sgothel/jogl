@@ -51,7 +51,7 @@ import javax.media.nativewindow.util.Dimension;
  * which shall reset the ScreenMode to it's original state
  * when the application exists (normal or ctrl-c).
  */
-public class ManualScreenMode03NEWT extends UITestCase {
+public class ManualScreenMode03aNEWT extends UITestCase {
     static int waitTime = 7000; // 1 sec
     
     static GLWindow createWindow(Screen screen, GLCapabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
@@ -108,7 +108,7 @@ public class ManualScreenMode03NEWT extends UITestCase {
     }
 
     public static void main(String args[]) throws IOException {
-        ManualScreenMode03NEWT t = new ManualScreenMode03NEWT();
+        ManualScreenMode03aNEWT t = new ManualScreenMode03aNEWT();
         t.run();
     }
 }

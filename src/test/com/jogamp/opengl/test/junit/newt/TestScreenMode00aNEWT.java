@@ -53,7 +53,11 @@ import javax.media.opengl.GLProfile;
 import jogamp.newt.MonitorDeviceImpl;
 import jogamp.newt.MonitorModeProps;
 
-public class TestScreenMode00NEWT extends UITestCase {
+/**
+ * Validating consistency of MonitorMode data from Screen (all modes)
+ * and from a particular MonitorDevice.
+ */
+public class TestScreenMode00aNEWT extends UITestCase {
     static int screenIdx = 0;
     static int width, height;
     
@@ -173,7 +177,7 @@ public class TestScreenMode00NEWT extends UITestCase {
                 screenIdx = atoi(args[i]);
             }
         }
-        String tstname = TestScreenMode00NEWT.class.getName();
+        String tstname = TestScreenMode00aNEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

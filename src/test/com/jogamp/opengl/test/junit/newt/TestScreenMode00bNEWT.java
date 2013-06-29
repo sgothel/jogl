@@ -51,6 +51,10 @@ import java.util.List;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 
+/**
+ * Queries the current MonitorMode 50 times,
+ * stressing a possible race condition. 
+ */
 public class TestScreenMode00bNEWT extends UITestCase {
     static int width, height;
     

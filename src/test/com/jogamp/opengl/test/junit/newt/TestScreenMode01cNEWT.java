@@ -55,7 +55,7 @@ import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 
 /**
- * Fullscreen on separate monitors ..
+ * Fullscreen on separate monitors, incl. spanning across multiple monitors.
  */
 public class TestScreenMode01cNEWT extends UITestCase {
     static GLProfile glp;

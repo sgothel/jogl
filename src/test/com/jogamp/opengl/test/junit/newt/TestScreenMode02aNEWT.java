@@ -54,7 +54,14 @@ import com.jogamp.opengl.test.junit.util.UITestCase;
 import java.util.List;
 import javax.media.nativewindow.util.Dimension;
 
-public class TestScreenMode02NEWT extends UITestCase {
+/**
+ * Tests MonitorMode change w/ changed rotation.
+ * <p>
+ * Also tests MonitorMode reset after last Screen is dereferenced,
+ * i.e. MonitorMode should be reinstated.
+ * </p>
+ */
+public class TestScreenMode02aNEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
     
@@ -190,7 +197,7 @@ public class TestScreenMode02NEWT extends UITestCase {
     }
 
     public static void main(String args[]) throws IOException {
-        String tstname = TestScreenMode02NEWT.class.getName();
+        String tstname = TestScreenMode02aNEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

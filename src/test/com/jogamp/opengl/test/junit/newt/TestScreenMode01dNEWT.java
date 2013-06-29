@@ -55,12 +55,12 @@ import java.util.List;
 import javax.media.nativewindow.util.Dimension;
 
 /**
- * Demonstrates fullscreen with and without ScreenMode change.
- * 
+ * Demonstrates fullscreen without MonitorMode change
+ * and fullscreen before and after MonitorMode change.
  * <p>
- * Also documents NV RANDR/GL bug, see {@link TestScreenMode01NEWT#cleanupGL()}.</p> 
+ * Also documents NV RANDR/GL bug, see {@link TestScreenMode01dNEWT#cleanupGL()}.</p> 
  */
-public class TestScreenMode01NEWT extends UITestCase {
+public class TestScreenMode01dNEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
     
@@ -386,7 +386,7 @@ public class TestScreenMode01NEWT extends UITestCase {
     }
 
     public static void main(String args[]) throws IOException {
-        String tstname = TestScreenMode01NEWT.class.getName();
+        String tstname = TestScreenMode01dNEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }
