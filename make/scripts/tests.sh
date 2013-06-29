@@ -400,14 +400,14 @@ testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasA
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindowInvisiblePointer01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
-#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00aNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode00bNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01aNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01bNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01cNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode01dNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02aNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.ManualScreenMode03aNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00aNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00bNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01aNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01bNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01cNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01dNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02aNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.mm.ManualScreenMode03aNEWT $*
 #testnoawt -Djava.awt.headless=true com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindowWarpPointer01NEWT $*
 
@@ -585,7 +585,7 @@ testawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NewtCanvasA
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
 
 # test rotation change
-#testnoawt com.jogamp.opengl.test.junit.newt.TestScreenMode02aNEWT
+#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02aNEWT
 
 #
 # regressions

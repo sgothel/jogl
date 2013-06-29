@@ -113,14 +113,14 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestFocus01SwingAWTRo
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestFocus02SwingAWTRobot %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.nativewindow.TestRecursiveToolkitLockCORE
 
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestScreenMode00aNEWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestScreenMode00bNEWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestScreenMode01aNEWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestScreenMode01bNEWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestScreenMode01cNEWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestScreenMode01dNEWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.TestScreenMode02sNEWT %*
-REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.ManualScreenMode03sNEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00aNEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00bNEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01aNEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01bNEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01cNEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01dNEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02sNEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.ManualScreenMode03sNEWT %*
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube %*

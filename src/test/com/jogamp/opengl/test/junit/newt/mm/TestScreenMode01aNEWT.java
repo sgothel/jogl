@@ -26,20 +26,17 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.newt;
+package com.jogamp.opengl.test.junit.newt.mm;
 
 import java.io.IOException;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
-
-import com.jogamp.opengl.util.Animator;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.NewtFactory;
@@ -49,29 +46,33 @@ import com.jogamp.newt.MonitorMode;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.util.MonitorModeUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
-import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+
 import java.util.List;
 import javax.media.nativewindow.util.Dimension;
 
 /**
- * Tests MonitorMode change w/ changed rotation.
  * <p>
- * Also tests MonitorMode reset after last Screen is dereferenced,
- * i.e. MonitorMode should be reinstated.
+ * Tests MonitorMode reset, by destroying the last Screen (reference),
+ * i.e. the original MonitorMode should get reinstated!
  * </p>
+ * <p>
+ * Documents remedy B) for NV RANDR/GL bug
+ * </p>
+ * 
+ * @see TestScreenMode01dNEWT#cleanupGL()
  */
-public class TestScreenMode02aNEWT extends UITestCase {
+public class TestScreenMode01aNEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
     
-    static int waitTimeShort = 2000; // 2 sec
-    static int waitTimeLong = 8000; // 8 sec
+    static int waitTimeShort = 2000;
+    static int waitTimeLong = 2000;
 
     @BeforeClass
     public static void initClass() {
-        width  = 640;
-        height = 480;
+        width  = 100;
+        height = 100;
         glp = GLProfile.getDefault();
     }
 
@@ -80,16 +81,17 @@ public class TestScreenMode02aNEWT extends UITestCase {
         Thread.sleep(waitTimeShort);
     }
     
-    static GLWindow createWindow(Screen screen, GLCapabilities caps, int width, int height, boolean onscreen, boolean undecorated) {
+    static Window createWindow(Screen screen, GLCapabilities caps, String name, int x, int y, int width, int height) {
         Assert.assertNotNull(caps);
-        caps.setOnscreen(onscreen);
 
         GLWindow window = GLWindow.create(screen, caps);
+        // Window window = NewtFactory.createWindow(screen, caps);
+        window.setTitle(name);
+        window.setPosition(x, y);
         window.setSize(width, height);
         window.addGLEventListener(new GearsES2());
         Assert.assertNotNull(window);
         window.setVisible(true);
-        Assert.assertTrue(window.isVisible());
         return window;
     }
 
@@ -100,7 +102,7 @@ public class TestScreenMode02aNEWT extends UITestCase {
     }
     
     @Test
-    public void testScreenRotationChange01() throws InterruptedException {
+    public void testScreenModeChange01() throws InterruptedException {
         Thread.sleep(waitTimeShort);
 
         GLCapabilities caps = new GLCapabilities(glp);
@@ -109,96 +111,108 @@ public class TestScreenMode02aNEWT extends UITestCase {
         Assert.assertNotNull(display);
         Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
-        GLWindow window = createWindow(screen, caps, width, height, true /* onscreen */, false /* undecorated */);
-        Assert.assertNotNull(window);
+        Window window0 = createWindow(screen, caps, "win0", 0, 0, width, height);
+        Assert.assertNotNull(window0);        
 
-        MonitorDevice monitor = window.getMainMonitor();
-        List<MonitorMode> monitorModes = monitor.getSupportedModes();
-        if(monitorModes.size()==1) {
+        List<MonitorMode> allMonitorModes = screen.getMonitorModes();
+        Assert.assertTrue(allMonitorModes.size()>0);
+        if(allMonitorModes.size()==1) {
             // no support ..
-            System.err.println("Your platform has no ScreenMode change support, sorry");
-            destroyWindow(window);
+            System.err.println("Your platform has no MonitorMode change support (all), sorry");
+            destroyWindow(window0);
             return;
         }
+
+        MonitorDevice monitor = window0.getMainMonitor();
+        
+        List<MonitorMode> monitorModes = monitor.getSupportedModes();
         Assert.assertTrue(monitorModes.size()>0);
-
-        Animator animator = new Animator(window);
-        animator.start();
-
-        MonitorMode mmCurrent = monitor.getCurrentMode();
+        if(monitorModes.size()==1) {
+            // no support ..
+            System.err.println("Your platform has no MonitorMode change support (monitor), sorry");
+            destroyWindow(window0);
+            return;
+        }
+        Assert.assertTrue(allMonitorModes.containsAll(monitorModes));
+                
+        MonitorMode mmCurrent = monitor.queryCurrentMode();
         Assert.assertNotNull(mmCurrent);
         MonitorMode mmOrig = monitor.getOriginalMode();
         Assert.assertNotNull(mmOrig);
         System.err.println("[0] orig   : "+mmOrig);
         System.err.println("[0] current: "+mmCurrent);
         Assert.assertEquals(mmCurrent, mmOrig);
+        
 
         monitorModes = MonitorModeUtil.filterByFlags(monitorModes, 0); // no interlace, double-scan etc
         Assert.assertNotNull(monitorModes);
         Assert.assertTrue(monitorModes.size()>0);
-        monitorModes = MonitorModeUtil.filterByRotation(monitorModes, 90);
-        if(null==monitorModes || Platform.getOSType() == Platform.OSType.MACOS ) {
-            // no rotation support ..
-            System.err.println("Your platform has no rotation support, sorry");
-            destroyWindow(window);
-            return;
-        }
+        monitorModes = MonitorModeUtil.filterByRotation(monitorModes, 0);
+        Assert.assertNotNull(monitorModes);
+        Assert.assertTrue(monitorModes.size()>0);
         monitorModes = MonitorModeUtil.filterByResolution(monitorModes, new Dimension(801, 601));
         Assert.assertNotNull(monitorModes);
         Assert.assertTrue(monitorModes.size()>0);
         monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
-        Assert.assertNotNull(monitorModes);
+        Assert.assertNotNull(monitorModes);        
         Assert.assertTrue(monitorModes.size()>0);
+        
         monitorModes = MonitorModeUtil.getHighestAvailableBpp(monitorModes);
         Assert.assertNotNull(monitorModes);
         Assert.assertTrue(monitorModes.size()>0);
 
-        MonitorMode sm = (MonitorMode) monitorModes.get(0);
-        System.err.println("[0] set current: "+sm);
-        monitor.setCurrentMode(sm);
+        MonitorMode mm = monitorModes.get(0);
+        System.err.println("[0] set current: "+mm);
+        Assert.assertTrue(monitor.setCurrentMode(mm));
         Assert.assertTrue(monitor.isModeChangedByUs());
-        Assert.assertEquals(sm, monitor.getCurrentMode());
+        Assert.assertEquals(mm, monitor.getCurrentMode());
         Assert.assertNotSame(mmOrig, monitor.getCurrentMode());
-        Assert.assertEquals(sm, monitor.queryCurrentMode());
+        Assert.assertEquals(mm, monitor.queryCurrentMode());
 
-        Thread.sleep(waitTimeLong);
+        Thread.sleep(waitTimeShort);
 
-        // check reset ..
-
-        Assert.assertEquals(true,display.isNativeValid());
-        Assert.assertEquals(true,screen.isNativeValid());
-        Assert.assertEquals(true,window.isNativeValid());
-        Assert.assertEquals(true,window.isVisible());
-
-        animator.stop();
-        destroyWindow(window);
-
-        Assert.assertEquals(false,window.isVisible());
-        Assert.assertEquals(false,window.isNativeValid());
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
-        Assert.assertEquals(false,screen.isNativeValid());
-        Assert.assertEquals(false,display.isNativeValid());
-
-        screen.createNative(); // trigger native re-creation
+        // check manual reset ..
 
         Assert.assertEquals(true,display.isNativeValid());
         Assert.assertEquals(true,screen.isNativeValid());
+        Assert.assertEquals(true,window0.isNativeValid());
+        Assert.assertEquals(true,window0.isVisible());
 
-        mmCurrent = monitor.getCurrentMode();
-        System.err.println("[1] current/orig: "+mmCurrent);
+        screen.addReference(); // keep it alive !
+        Assert.assertTrue(monitor.setCurrentMode(mmOrig));
+        Assert.assertFalse(monitor.isModeChangedByUs());
+        Assert.assertEquals(mmOrig, monitor.getCurrentMode());
+        Assert.assertNotSame(mm, monitor.getCurrentMode());
+        Assert.assertEquals(mmOrig, monitor.queryCurrentMode());
+        
+        destroyWindow(window0);
+        Assert.assertEquals(false,window0.isVisible());
+        Assert.assertEquals(false,window0.isNativeValid());
+        Assert.assertEquals(true,screen.isNativeValid()); // alive !
+        Assert.assertEquals(true,display.isNativeValid());
+                
+        Thread.sleep(waitTimeShort);
 
-        Assert.assertNotNull(mmCurrent);
-        Assert.assertEquals(mmCurrent, mmOrig);
-
-        screen.destroy();
-
+        Window window1 = createWindow(screen, caps, "win1", 
+                                      width+window0.getInsets().getTotalWidth(), 0, 
+                                      width, height);
+        Assert.assertNotNull(window1);
+        Assert.assertEquals(true,window1.isNativeValid());
+        Assert.assertEquals(true,window1.isVisible());
+        
+        Thread.sleep(waitTimeShort);
+        
+        destroyWindow(window1);
+        Assert.assertEquals(false,window1.isNativeValid());
+        Assert.assertEquals(false,window1.isVisible());
+        
+        screen.removeReference();
         Assert.assertEquals(false,screen.isNativeValid());
-        Assert.assertEquals(false,display.isNativeValid());
+        Assert.assertEquals(false,display.isNativeValid());                
     }
 
     public static void main(String args[]) throws IOException {
-        String tstname = TestScreenMode02aNEWT.class.getName();
+        String tstname = TestScreenMode01aNEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
-
 }

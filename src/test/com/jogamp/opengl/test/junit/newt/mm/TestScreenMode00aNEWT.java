@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.newt;
+package com.jogamp.opengl.test.junit.newt.mm;
 
 import java.io.IOException;
 import javax.media.nativewindow.NativeWindowFactory;

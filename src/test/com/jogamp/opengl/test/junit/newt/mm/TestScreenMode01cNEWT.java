@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.newt;
+package com.jogamp.opengl.test.junit.newt.mm;
 
 import java.io.IOException;
 import javax.media.opengl.GLCapabilities;
@@ -44,25 +44,25 @@ import com.jogamp.newt.Screen;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.MonitorMode;
 import com.jogamp.newt.opengl.GLWindow;
-import com.jogamp.newt.util.MonitorModeUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
+import java.util.ArrayList;
 import java.util.List;
-import javax.media.nativewindow.util.Dimension;
+import javax.media.nativewindow.util.Rectangle;
 import javax.media.nativewindow.util.RectangleImmutable;
 
 /**
- * Mode change on separate monitors ..
+ * Fullscreen on separate monitors, incl. spanning across multiple monitors.
  */
-public class TestScreenMode01bNEWT extends UITestCase {
+public class TestScreenMode01cNEWT extends UITestCase {
     static GLProfile glp;
     static int width, height;
     
     static long waitTimeShort = 2000;
-    static long duration = 6000;
+    static long duration = 4000;
 
     @BeforeClass
     public static void initClass() {
@@ -99,7 +99,7 @@ public class TestScreenMode01bNEWT extends UITestCase {
     }
     
     @Test
-    public void testScreenModeChangeSingleQ1() throws InterruptedException {
+    public void testScreenFullscreenSingleQ1() throws InterruptedException {
         final Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
         final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
@@ -107,37 +107,80 @@ public class TestScreenMode01bNEWT extends UITestCase {
         screen.addReference(); // trigger creation
         try {
             RectangleImmutable monitorVp = screen.getMonitorDevices().get(0).getViewport();
-            testScreenModeChangeImpl(screen, monitorVp.getX(), monitorVp.getY());
+            testScreenFullscreenImpl(screen, monitorVp.getX(), monitorVp.getY(), false, null);
         } finally {
             screen.removeReference();
         }
     }
     
     @Test
-    public void testScreenModeChangeSingleQ2() throws InterruptedException {
+    public void testScreenFullscreenSingleQ2() throws InterruptedException {
         final Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
         final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
-        screen.addReference(); // trigger creation
+        screen.addReference(); // trigger creation        
         try {
             if( 2 > screen.getMonitorDevices().size() ) {
                 System.err.println("Test Disabled (1): Monitor count < 2: "+screen);
                 return;
             }
             RectangleImmutable monitorVp = screen.getMonitorDevices().get(1).getViewport();
-            testScreenModeChangeImpl(screen, monitorVp.getX(), monitorVp.getY());
+            testScreenFullscreenImpl(screen, monitorVp.getX(), monitorVp.getY(), false, null);
         } finally {
             screen.removeReference();
         }
     }
         
-    void testScreenModeChangeImpl(final Screen screen, int xpos, int ypos) throws InterruptedException {
+    @Test
+    public void testScreenFullscreenSpanQ1Q2() throws InterruptedException {
+        final Display display = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display);
+        final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen);
+        screen.addReference(); // trigger creation        
+        try {
+            final int crtCount = screen.getMonitorDevices().size();
+            if( 2 >= crtCount ) {
+                System.err.println("Test Disabled (2): Spanning monitor count "+2+" >= screen monitor count: "+screen);
+                return;            
+            }            
+            final ArrayList<MonitorDevice> monitors = new ArrayList<MonitorDevice>();
+            monitors.add(screen.getMonitorDevices().get(0)); // Q1
+            monitors.add(screen.getMonitorDevices().get(1)); // Q2
+            RectangleImmutable monitorVp = screen.getMonitorDevices().get(0).getViewport();
+            testScreenFullscreenImpl(screen, monitorVp.getX()+50, monitorVp.getY()+50, true, monitors);
+        } finally {
+            screen.removeReference();
+        }
+    }
+    
+    @Test
+    public void testScreenFullscreenSpanALL() throws InterruptedException {
+        final Display display = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display);
+        final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen);
+        screen.addReference(); // trigger creation        
+        try {
+            if( 2 > screen.getMonitorDevices().size() ) {
+                System.err.println("Test Disabled (3): Monitor count < 2: "+screen);
+                return;
+            }
+            RectangleImmutable monitorVp = screen.getMonitorDevices().get(1).getViewport();
+            testScreenFullscreenImpl(screen, monitorVp.getX()-50, monitorVp.getY()+50, true, null);
+        } finally {
+            screen.removeReference();
+        }
+    }
+    
+    void testScreenFullscreenImpl(final Screen screen, int xpos, int ypos, boolean spanAcrossMonitors, List<MonitorDevice> monitors) throws InterruptedException {
         Thread.sleep(waitTimeShort);
 
         final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
         final Display display = screen.getDisplay();
+        
         System.err.println("Test.0: Window screen: "+screen);
         
         System.err.println("Test.0: Window bounds (pre): "+xpos+"/"+ypos+" "+width+"x"+height+" within "+screen.getViewport());
@@ -151,82 +194,39 @@ public class TestScreenMode01bNEWT extends UITestCase {
         
         List<MonitorMode> allMonitorModes = screen.getMonitorModes();
         Assert.assertTrue(allMonitorModes.size()>0);
-        if(allMonitorModes.size()==1) {
-            // no support ..
-            System.err.println("Your platform has no MonitorMode change support (all), sorry");
-            destroyWindow(window0);
-            return;
-        }
 
         MonitorDevice monitor = window0.getMainMonitor();
         System.err.println("Test.0: Window monitor: "+monitor);
-        
-        List<MonitorMode> monitorModes = monitor.getSupportedModes();
-        Assert.assertTrue(monitorModes.size()>0);
-        if(monitorModes.size()==1) {
-            // no support ..
-            System.err.println("Your platform has no MonitorMode change support (monitor), sorry");
-            destroyWindow(window0);
-            return;
+        if( !spanAcrossMonitors ) {
+            window0.setFullscreen(true);
+        } else {
+            window0.setFullscreen(monitors);
         }
-        Assert.assertTrue(allMonitorModes.containsAll(monitorModes));
-                
-        MonitorMode mmCurrent = monitor.getCurrentMode();
-        Assert.assertNotNull(mmCurrent);
-        MonitorMode mmOrig = monitor.getOriginalMode();
-        Assert.assertNotNull(mmOrig);
-        System.err.println("[0] orig   : "+mmOrig);
-        System.err.println("[0] current: "+mmCurrent);
-        Assert.assertEquals(mmCurrent, mmOrig);
 
-        monitorModes = MonitorModeUtil.filterByFlags(monitorModes, 0); // no interlace, double-scan etc
-        Assert.assertNotNull(monitorModes);
-        Assert.assertTrue(monitorModes.size()>0);
-        monitorModes = MonitorModeUtil.filterByRotation(monitorModes, 0);
-        Assert.assertNotNull(monitorModes);
-        Assert.assertTrue(monitorModes.size()>0);
-        monitorModes = MonitorModeUtil.filterByResolution(monitorModes, new Dimension(801, 601));
-        Assert.assertNotNull(monitorModes);
-        Assert.assertTrue(monitorModes.size()>0);
-        monitorModes = MonitorModeUtil.filterByRate(monitorModes, mmOrig.getRefreshRate());
-        Assert.assertNotNull(monitorModes);
-        Assert.assertTrue(monitorModes.size()>0);
-        
-        monitorModes = MonitorModeUtil.getHighestAvailableBpp(monitorModes);
-        Assert.assertNotNull(monitorModes);
-        Assert.assertTrue(monitorModes.size()>0);
-
-        MonitorMode sm = (MonitorMode) monitorModes.get(0);
-        System.err.println("[1] set current: "+sm);
-        Assert.assertTrue(monitor.setCurrentMode(sm));
-        mmCurrent = monitor.getCurrentMode();
-        System.err.println("[1] current: "+mmCurrent);
-        Assert.assertTrue(monitor.isModeChangedByUs());
-        Assert.assertEquals(sm, monitor.getCurrentMode());
-        Assert.assertNotSame(mmOrig, monitor.getCurrentMode());
-        Assert.assertEquals(sm, monitor.queryCurrentMode());
-
-        System.err.println("Test.1: Window screen: "+screen);
+        monitor = window0.getMainMonitor();
         System.err.println("Test.1: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getWidth()+"x"+window0.getHeight()+" within "+screen.getViewport());
-        System.err.println("Test.1: Window monitor: "+window0.getMainMonitor());
+        System.err.println("Test.1: Window monitor: "+monitor.getViewport());
+        Rectangle window0Rect = new Rectangle(window0.getX(), window0.getY(), window0.getWidth(), window0.getHeight());
+        if( !spanAcrossMonitors ) {
+            Assert.assertEquals(monitor.getViewport(),  window0Rect);
+        } else {
+            List<MonitorDevice> monitorsUsed = monitors;
+            if( null == monitorsUsed ) {
+                monitorsUsed = window0.getScreen().getMonitorDevices();
+            }
+            Rectangle monitorsUsedViewport = MonitorDevice.unionOfViewports(new Rectangle(), monitorsUsed);
+            Assert.assertEquals(monitorsUsedViewport,  window0Rect);
+        }
         
         Thread.sleep(duration);
 
-        Assert.assertEquals(true,display.isNativeValid());
-        Assert.assertEquals(true,screen.isNativeValid());
-        Assert.assertEquals(true,window0.isNativeValid());
-        Assert.assertEquals(true,window0.isVisible());
-
-        Assert.assertTrue(monitor.setCurrentMode(mmOrig));
-        Assert.assertFalse(monitor.isModeChangedByUs());
-        Assert.assertEquals(mmOrig, monitor.getCurrentMode());
-        Assert.assertNotSame(sm, monitor.getCurrentMode());
-        Assert.assertEquals(mmOrig, monitor.queryCurrentMode());
+        window0.setFullscreen(false);
         
-        System.err.println("Test.2: Window screen: "+screen);
+        window0Rect = new Rectangle(window0.getX(), window0.getY(), window0.getWidth(), window0.getHeight());
+        monitor = window0.getMainMonitor();
         System.err.println("Test.2: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getWidth()+"x"+window0.getHeight()+" within "+screen.getViewport());
-        System.err.println("Test.2: Window monitor: "+window0.getMainMonitor());
-        
+        System.err.println("Test.2: Window monitor: "+monitor.getViewport());        
+                
         Thread.sleep(duration);
         anim.stop();
         destroyWindow(window0);
@@ -243,7 +243,7 @@ public class TestScreenMode01bNEWT extends UITestCase {
                 duration = MiscUtils.atol(args[i], duration);
             }
         }
-        String tstname = TestScreenMode01bNEWT.class.getName();
+        String tstname = TestScreenMode01cNEWT.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }
