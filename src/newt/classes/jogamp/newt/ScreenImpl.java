@@ -177,7 +177,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
             if(null == aScreen) {
                 throw new NativeWindowException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
             }
-            
+
             initMonitorState();
             if(DEBUG) {
                 System.err.println("Screen.createNative() END ("+DisplayImpl.getThreadName()+", "+this+"), total "+ (System.nanoTime()-tCreated)/1e6 +"ms");
@@ -185,23 +185,22 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
             synchronized(screenList) {
                 screensActive++;
             }
+            ScreenMonitorState.getScreenMonitorState(this.getFQName()).addListener(this);
         }
-        ScreenMonitorState sms = ScreenMonitorState.getScreenMonitorState(this.getFQName());
-        sms.addListener(this);
     }
 
     @Override
     public synchronized final void destroy() {
-        releaseMonitorState();
-
         synchronized(screenList) {
-            screenList.remove(this);
-            if(0 < screensActive) {
-                screensActive--;
+            if( screenList.remove(this) ) {
+                if(0 < screensActive) {
+                    screensActive--;
+                }
             }
         }
 
         if ( null != aScreen ) {
+            releaseMonitorState();
             closeNativeImpl();
             aScreen = null;
         }
@@ -217,8 +216,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         }
         if ( 0 == refCount ) {
             createNative();
-        }
-        if(null == aScreen) {
+        } else if(null == aScreen) {
             throw new NativeWindowException("Screen.addReference() (refCount "+refCount+") null AbstractGraphicsScreen");
         }
         return ++refCount;
@@ -538,9 +536,9 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
                     cache.monitorDevices.getOrAdd(monitor);
                 }
                 // Sort MonitorModes (all and per device) in descending order - default!
-                MonitorModeUtil.sort(cache.monitorModes.getData(), false /* ascendingOrder*/);
+                MonitorModeUtil.sort(cache.monitorModes.getData(), false ); // descending order
                 for(Iterator<MonitorDevice> iMonitor=cache.monitorDevices.iterator(); iMonitor.hasNext(); ) {
-                    MonitorModeUtil.sort(iMonitor.next().getSupportedModes(), false /* ascendingOrder*/);
+                    MonitorModeUtil.sort(iMonitor.next().getSupportedModes(), false ); // descending order
                 }
                 if(DEBUG) {
                     int i=0;
@@ -611,7 +609,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         return cache.monitorDevices.size();
     }
 
-    private void releaseMonitorState() {
+    private final void releaseMonitorState() {
         ScreenMonitorState sms;
         ScreenMonitorState.lockScreenMonitorState();
         try {
