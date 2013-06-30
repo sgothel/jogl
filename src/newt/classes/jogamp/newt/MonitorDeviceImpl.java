@@ -94,20 +94,20 @@ public class MonitorDeviceImpl extends MonitorDevice {
             }
             final long tStart;
             if(Screen.DEBUG) {
-                tStart = System.nanoTime();                
+                tStart = System.currentTimeMillis();                
             } else {
                 tStart = 0;
             }
             
             sms.fireMonitorModeChangeNotify(this, mmU);
             if(Screen.DEBUG) {
-                System.err.println("Screen.setCurrentMode ("+(System.nanoTime()-tStart)/1e6+"ms): fireModeChangeNotify() "+mmU);
+                System.err.println("Screen.setCurrentMode ("+(System.currentTimeMillis()-tStart)+"ms): fireModeChangeNotify() "+mmU);
             }
-
+            
             boolean success = screenImpl.setCurrentMonitorModeImpl(this, mmU);
             if(success) {
                 if(Screen.DEBUG) {
-                    System.err.println("Screen.setCurrentMode ("+(System.nanoTime()-tStart)/1e6+"ms): setCurrentModeImpl() "+mmU+", success(1): "+success);
+                    System.err.println("Screen.setCurrentMode ("+(System.currentTimeMillis()-tStart)+"ms): setCurrentModeImpl() "+mmU+", success(1): "+success);
                 }
             } else {
                 // 2nd attempt validate!
@@ -115,7 +115,7 @@ public class MonitorDeviceImpl extends MonitorDevice {
                 success = queriedCurrent.hashCode() == mmU.hashCode() ;
                 if(Screen.DEBUG) {
                     System.err.println("Screen.setCurrentMode.2: queried "+queriedCurrent);
-                    System.err.println("Screen.setCurrentMode ("+(System.nanoTime()-tStart)/1e6+"ms): setCurrentModeImpl() "+mmU+", success(2): "+success);
+                    System.err.println("Screen.setCurrentMode ("+(System.currentTimeMillis()-tStart)+"ms): setCurrentModeImpl() "+mmU+", success(2): "+success);
                 }
             }
             if( success ) {
@@ -124,7 +124,7 @@ public class MonitorDeviceImpl extends MonitorDevice {
             }
             sms.fireMonitorModeChanged(this, mmU, success);
             if(Screen.DEBUG) {
-                System.err.println("Screen.setCurrentMode ("+(System.nanoTime()-tStart)/1e6+"ms): X.X "+this+", success: "+success);
+                System.err.println("Screen.setCurrentMode ("+(System.currentTimeMillis()-tStart)+"ms): X.X: success "+success+": "+this);
             }
             return success;
         } finally {
