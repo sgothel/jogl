@@ -164,6 +164,10 @@ public abstract class Screen {
 
     /** 
      * Return a list of all {@link MonitorMode}s for all {@link MonitorDevice}s.
+     * <p>
+     * The list is ordered in descending order,
+     * see {@link MonitorMode#compareTo(MonitorMode)}.
+     * </p>
      */
     public abstract List<MonitorMode> getMonitorModes();
 

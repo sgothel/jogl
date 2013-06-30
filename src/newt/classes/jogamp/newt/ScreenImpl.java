@@ -52,6 +52,7 @@ import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.event.MonitorEvent;
 import com.jogamp.newt.event.MonitorModeListener;
+import com.jogamp.newt.util.MonitorModeUtil;
 
 public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     protected static final boolean DEBUG_TEST_SCREENMODE_DISABLED = Debug.isPropertyDefined("newt.test.Screen.disableScreenMode", true);
@@ -536,6 +537,11 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
                     final MonitorDevice monitor = getVirtualMonitorDevice(cache, 0, mode);
                     cache.monitorDevices.getOrAdd(monitor);
                 }
+                // Sort MonitorModes (all and per device) in descending order - default!
+                MonitorModeUtil.sort(cache.monitorModes.getData(), false /* ascendingOrder*/);
+                for(Iterator<MonitorDevice> iMonitor=cache.monitorDevices.iterator(); iMonitor.hasNext(); ) {
+                    MonitorModeUtil.sort(iMonitor.next().getSupportedModes(), false /* ascendingOrder*/);
+                }
                 if(DEBUG) {
                     int i=0;
                     for(Iterator<MonitorMode> iMode=cache.monitorModes.iterator(); iMode.hasNext(); i++) {
@@ -550,7 +556,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
                             System.err.println("["+i+"]["+j+"]: "+iMode.next());
                         }
                     }
-                }
+                }                
                 sms = new ScreenMonitorState(cache.monitorDevices, cache.monitorModes);
                 ScreenMonitorState.mapScreenMonitorState(this.getFQName(), sms);
             }

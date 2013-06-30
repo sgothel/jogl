@@ -41,7 +41,9 @@ import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.MonitorMode;
 import com.jogamp.newt.Screen;
+import com.jogamp.newt.util.MonitorModeUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
+
 import java.util.Iterator;
 import java.util.List;
 import javax.media.nativewindow.util.Dimension;
@@ -56,6 +58,9 @@ import jogamp.newt.MonitorModeProps;
 /**
  * Validating consistency of MonitorMode data from Screen (all modes)
  * and from a particular MonitorDevice.
+ * <p>
+ * Also validates the descending order of the given MonitorMode lists.
+ * </p>
  */
 public class TestScreenMode00aNEWT extends UITestCase {
     static int screenIdx = 0;
@@ -130,8 +135,27 @@ public class TestScreenMode00aNEWT extends UITestCase {
         Assert.assertTrue(allMonitorModes.size()>0);
         {
             int i=0;
+            MonitorMode mmPre = null;
             for(Iterator<MonitorMode> iMode=allMonitorModes.iterator(); iMode.hasNext(); i++) {
-                System.err.println("All["+i+"]: "+iMode.next());
+                final MonitorMode mm = iMode.next();
+                System.err.println(String.format("All-0[%03d]: %s", i, mm));
+                if( null != mmPre ) {
+                    Assert.assertTrue("Wrong order", mmPre.compareTo(mm) >= 0);
+                }
+                mmPre = mm;
+            }
+        }
+        MonitorModeUtil.sort(allMonitorModes, true /* ascendingOrder*/);
+        {
+            int i=0;
+            MonitorMode mmPre = null;
+            for(Iterator<MonitorMode> iMode=allMonitorModes.iterator(); iMode.hasNext(); i++) {
+                final MonitorMode mm = iMode.next();
+                System.err.println(String.format("All-1[%03d]: %s", i, mm));
+                if( null != mmPre ) {
+                    Assert.assertTrue("Wrong order", mmPre.compareTo(mm) <= 0);
+                }
+                mmPre = mm;
             }
         }
         
@@ -144,8 +168,14 @@ public class TestScreenMode00aNEWT extends UITestCase {
             List<MonitorMode> modes = monitor.getSupportedModes();
             Assert.assertTrue(modes.size()>0);
             int i=0;
+            MonitorMode mmPre = null;
             for(Iterator<MonitorMode> iMode=modes.iterator(); iMode.hasNext(); i++) {
-                System.err.println("["+j+"]["+i+"]: "+iMode.next());
+                final MonitorMode mm = iMode.next();
+                System.err.println(String.format("[%02d][%03d]: %s", j, i, mm));
+                if( null != mmPre ) {
+                    Assert.assertTrue("Wrong order", mmPre.compareTo(mm) >= 0);
+                }
+                mmPre = mm;
             }
             Assert.assertTrue(allMonitorModes.containsAll(modes));
 

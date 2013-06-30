@@ -55,6 +55,19 @@ public class Point implements Cloneable, PointImmutable {
     }
 
     @Override
+    public int compareTo(final PointImmutable d) {
+        final int sq = x*y;
+        final int xsq = d.getX()*d.getY();
+        
+        if(sq > xsq) {
+            return 1;
+        } else if(sq < xsq) {
+            return -1;
+        }
+        return 0;
+    }
+    
+    @Override
     public boolean equals(Object obj) {
         if(this == obj)  { return true; }
         if (obj instanceof Point) {

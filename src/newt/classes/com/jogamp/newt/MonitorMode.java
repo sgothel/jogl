@@ -28,6 +28,8 @@
 
 package com.jogamp.newt;
 
+import java.util.Comparator;
+
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.RectangleImmutable;
 import javax.media.nativewindow.util.SurfaceSize;
@@ -108,22 +110,36 @@ import com.jogamp.newt.util.MonitorModeUtil;
         monitor.setCurrentMode(mm);
  * </pre>
  */
-public class MonitorMode {
+public class MonitorMode implements Comparable<MonitorMode> {
+    
+    /** Comparator for 2 {@link MonitorMode}s, following comparison order as described in {@link MonitorMode#compareTo(MonitorMode)}, returning the ascending order. */
+    public static final Comparator<MonitorMode> monitorModeComparator = new Comparator<MonitorMode>() {
+        public int compare(MonitorMode mm1, MonitorMode mm2) {
+            return mm1.compareTo(mm2);
+        } };
+    
+    /** Comparator for 2 {@link MonitorMode}s, following comparison order as described in {@link MonitorMode#compareTo(MonitorMode)}, returning the descending order. */
+    public static final Comparator<MonitorMode> monitorModeComparatorInv = new Comparator<MonitorMode>() {
+        public int compare(MonitorMode mm1, MonitorMode mm2) {
+            return mm2.compareTo(mm1);
+        } };
+        
     /** 
-     * Immutable <i>surfaceSize and refreshRate</i> Class, consisting of it's read only components:<br>
+     * Immutable <i>surfaceSize, flags and refreshRate</i> Class, consisting of it's read only components:<br>
      * <ul>
      *  <li>nativeId</li>
      *  <li>{@link SurfaceSize} surface memory size</li>
+     *  <li><code>flags</code></li>
      *  <li><code>refresh rate</code></li>
      * </ul>
      */
-    public static class SizeAndRRate {
+    public static class SizeAndRRate implements Comparable<SizeAndRRate> {
         /** Non rotated surface size */
         public final SurfaceSize surfaceSize;
-        /** Vertical refresh rate */
-        public final float refreshRate;
         /** Mode bitfield flags, i.e. {@link #FLAG_DOUBLESCAN}, {@link #FLAG_INTERLACE}, .. */
         public final int flags;
+        /** Vertical refresh rate */
+        public final float refreshRate;
         public final int hashCode;
     
         public SizeAndRRate(SurfaceSize surfaceSize, float refreshRate, int flags) {
@@ -131,8 +147,8 @@ public class MonitorMode {
                 throw new IllegalArgumentException("surfaceSize must be set ("+surfaceSize+")");
             }
             this.surfaceSize=surfaceSize;
-            this.refreshRate=refreshRate;
             this.flags = flags;
+            this.refreshRate=refreshRate;
             this.hashCode = getHashCode();
         }
     
@@ -161,6 +177,49 @@ public class MonitorMode {
         }
     
         /**
+         * <p>
+         * Compares {@link SurfaceSize#compareTo(SurfaceSize) surfaceSize} 1st, then {@link #flags}, then {@link #refreshRate}.
+         * </p> 
+         * <p>
+         * Flags are compared as follows:
+         * <pre>
+         *   NONE > DOUBLESCAN > INTERLACE
+         * </pre>
+         * </p>
+         * <p>
+         * Refresh rate differences of &lt; 0.01 are considered equal (epsilon).
+         * </p>
+         * {@inheritDoc}
+         */
+        @Override
+        public int compareTo(final SizeAndRRate sszr) {
+            final int rssz = surfaceSize.compareTo(sszr.surfaceSize);
+            if( 0 != rssz ) {
+                return rssz;
+            }            
+            final int tflags = 0 == flags ? Integer.MAX_VALUE : flags; // normalize NONE
+            final int xflags = 0 == sszr.flags ? Integer.MAX_VALUE : sszr.flags; // normalize NONE
+            if( tflags == xflags ) {
+                final float refreshEpsilon = 0.01f; // reasonable sorting granularity of refresh rate
+                final float drate = refreshRate - sszr.refreshRate;
+                if( Math.abs(drate) < refreshEpsilon ) {
+                    return 0;
+                } else if( drate > refreshEpsilon ) {
+                    return 1;
+                } else {
+                    return -1;
+                }
+            } else {
+                if(tflags > xflags) {
+                    return 1;
+                } else if(tflags < xflags) {
+                    return -1;
+                }
+                return 0;
+            }
+        }
+        
+        /**
          * Tests equality of two {@link SizeAndRRate} objects 
          * by evaluating equality of it's components:<br/>
          * <ul>
@@ -174,8 +233,8 @@ public class MonitorMode {
             if (obj instanceof SizeAndRRate) {
                 final SizeAndRRate p = (SizeAndRRate)obj;
                 return surfaceSize.equals(p.surfaceSize) &&
-                       refreshRate == p.refreshRate &&
-                       flags == p.flags ;
+                       flags == p.flags &&
+                       refreshRate == p.refreshRate ;
             }
             return false;
         }
@@ -184,8 +243,8 @@ public class MonitorMode {
          * Returns a combined hash code of it's elements:<br/>
          * <ul>
          *  <li><code>surfaceSize</code></li>
-         *  <li><code>refreshRate</code></li>
          *  <li><code>flags</code></li>
+         *  <li><code>refreshRate</code></li>
          * </ul>
          */
         public final int hashCode() {
@@ -194,8 +253,8 @@ public class MonitorMode {
         private final int getHashCode() {
             // 31 * x == (x << 5) - x
             int hash = 31 + surfaceSize.hashCode();
-            hash = ((hash << 5) - hash) + (int)(refreshRate*100.0f);
             hash = ((hash << 5) - hash) + flags;
+            hash = ((hash << 5) - hash) + (int)(refreshRate*100.0f);
             return hash;
         }        
     }
@@ -305,6 +364,42 @@ public class MonitorMode {
         return "[Id "+Display.toHexString(nativeId)+", " +  sizeAndRRate + ", " + rotation + " degr]";
     }
 
+    /**
+     * <p>
+     * Compares {@link SizeAndRRate#compareTo(SizeAndRRate) sizeAndRRate} 1st, then {@link #rotation}.
+     * </p> 
+     * <p>
+     * Rotation is compared inverted, i.e. <code>360 - rotation</code>, 
+     * so the lowest rotation reflects a higher value.
+     * </p>
+     * <p>
+     * Order of comparing MonitorMode:
+     * <ul>
+     *   <li>resolution</li>
+     *   <li>bits per pixel</li>
+     *   <li>flags</li>
+     *   <li>refresh rate</li>
+     *   <li>rotation</li>
+     * </ul> 
+     * </p>
+     * {@inheritDoc}
+     */
+    @Override
+    public int compareTo(final MonitorMode mm) {
+        final int c = sizeAndRRate.compareTo(mm.sizeAndRRate);
+        if( 0 != c ) {
+            return c;
+        }
+        final int trot = 360 - rotation; // normalize rotation
+        final int xrot = 360 - mm.rotation; // normalize rotation
+        if(trot > xrot) {
+            return 1;
+        } else if(trot < xrot) {
+            return -1;
+        }
+        return 0;
+    }
+    
     /**
      * Tests equality of two {@link MonitorMode} objects 
      * by evaluating equality of it's components:<br/>

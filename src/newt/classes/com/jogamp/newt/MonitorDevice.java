@@ -129,6 +129,10 @@ public abstract class MonitorDevice {
     /**
      * Returns a list of immutable {@link MonitorMode}s supported by this monitor.
      * <p>
+     * The list is ordered in descending order,
+     * see {@link MonitorMode#compareTo(MonitorMode)}.
+     * </p>
+     * <p>
      * Use w/ care, it's not a copy!
      * </p>
      */
