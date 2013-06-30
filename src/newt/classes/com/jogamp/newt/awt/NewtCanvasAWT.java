@@ -576,7 +576,9 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       }
       final int w = getWidth();
       final int h = getHeight();
-      System.err.println("NewtCanvasAWT.attachNewtChild.2: size "+w+"x"+h);
+      if(DEBUG) {
+          System.err.println("NewtCanvasAWT.attachNewtChild.2: size "+w+"x"+h);
+      }
       newtChild.setVisible(false);
       newtChild.setSize(w, h);
       newtChild.reparentWindow(jawtWindow);
