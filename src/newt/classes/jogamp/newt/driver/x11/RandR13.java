@@ -43,18 +43,15 @@ import com.jogamp.newt.MonitorMode;
  * MonitorDevice.id == XRR monitor-idx (not id)
  * </pre> 
  */
-public class RandR13 implements RandR {
+class RandR13 implements RandR {
     private static final boolean DEBUG = ScreenDriver.DEBUG;
     
-    public static VersionNumber version = new VersionNumber(1, 3, 0);
-
-    public static RandR13 createInstance(VersionNumber rAndRVersion) {
-        if( rAndRVersion.compareTo(version) >= 0 ) {
-            return new RandR13();
-        }
-        return null;
-    }    
-    private RandR13() {        
+    RandR13() {        
+    }
+    
+    @Override
+    public final VersionNumber getVersion() {
+        return version130;
     }
     
     @Override

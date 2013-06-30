@@ -34,20 +34,17 @@ import com.jogamp.common.util.VersionNumber;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.MonitorMode;
 
-public class RandR11 implements RandR {
+class RandR11 implements RandR {
     private static final boolean DEBUG = ScreenDriver.DEBUG;
     
-    public static VersionNumber version = new VersionNumber(1, 1, 0);
-    
-    public static RandR11 createInstance(VersionNumber rAndRVersion) {
-        if( rAndRVersion.compareTo(version) >= 0 ) {
-            return new RandR11();
-        }
-        return null;
-    }    
-    private RandR11() {        
+    RandR11() {        
     }
-    
+
+    @Override
+    public final VersionNumber getVersion() {
+        return version110;
+    }
+
     @Override
     public void dumpInfo(final long dpy, final int screen_idx) {
         // NOP

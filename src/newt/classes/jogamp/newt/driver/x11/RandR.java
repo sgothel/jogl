@@ -31,11 +31,17 @@ import java.util.List;
 
 import jogamp.newt.MonitorModeProps;
 
+import com.jogamp.common.util.VersionNumber;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.MonitorMode;
 
 public interface RandR {
+    public static final VersionNumber version110 = new VersionNumber(1, 1, 0);    
+    public static final VersionNumber version130 = new VersionNumber(1, 3, 0);
+    public static final VersionNumber version140 = new VersionNumber(1, 4, 0);
 
+    VersionNumber getVersion();
+    
     void dumpInfo(final long dpy, final int screen_idx);
     
     /**
