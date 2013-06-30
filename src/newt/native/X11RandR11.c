@@ -311,7 +311,7 @@ JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_RandR11_setCurrentScreenM
 /*
  * Class:     jogamp_newt_driver_x11_RandR11
  * Method:    setCurrentScreenModePollEnd0
- * Signature: (J)Z
+ * Signature: (JIII)Z
  */
 JNIEXPORT jboolean JNICALL Java_jogamp_newt_driver_x11_RandR11_setCurrentScreenModePollEnd0
   (JNIEnv *env, jclass clazz, jlong display, jint screen_idx, jint resMode_idx, jint freq, jint rotation)

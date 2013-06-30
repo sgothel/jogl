@@ -64,7 +64,7 @@ public abstract class Screen {
     }
 
     /**
-     * Manual trigger the native creation, if it is not done yet..<br>
+     * Manual trigger the native creation, if not done yet..<br>
      * This is useful to be able to request the {@link javax.media.nativewindow.AbstractGraphicsScreen}, via
      * {@link #getGraphicsScreen()}.<br>
      * Otherwise the abstract device won't be available before the dependent component (Window) is realized.
