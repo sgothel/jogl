@@ -403,7 +403,7 @@ public class Quaternion {
      * @return true if representing a rotational matrix, false otherwise
      */
     public boolean isRotationMatrix(float[] m) {
-        final double epsilon = 0.01; // margin to allow for rounding errors
+        final float epsilon = 0.01f; // margin to allow for rounding errors
         if (FloatUtil.abs(m[0] * m[3] + m[3] * m[4] + m[6] * m[7]) > epsilon)
             return false;
         if (FloatUtil.abs(m[0] * m[2] + m[3] * m[5] + m[6] * m[8]) > epsilon)
@@ -421,6 +421,6 @@ public class Quaternion {
 
     private float determinant(float[] m) {
         return m[0] * m[4] * m[8] + m[3] * m[7] * m[2] + m[6] * m[1] * m[5]
-                - m[0] * m[7] * m[5] - m[3] * m[1] * m[8] - m[6] * m[4] * m[2];
+             - m[0] * m[7] * m[5] - m[3] * m[1] * m[8] - m[6] * m[4] * m[2];
     }
 }
