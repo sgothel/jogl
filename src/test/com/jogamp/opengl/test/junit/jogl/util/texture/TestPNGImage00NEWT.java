@@ -12,7 +12,7 @@ import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.texture.spi.PNGImage;
 
-public class TestPNGImage01NEWT extends UITestCase {
+public class TestPNGImage00NEWT extends UITestCase {
     @Test
     public void testPNGReadWriteAndCompare() throws InterruptedException, IOException, MalformedURLException {
         final File out1_f=new File(getSimpleTestName(".")+"-PNGImageTest1.png");
@@ -57,6 +57,6 @@ public class TestPNGImage01NEWT extends UITestCase {
     }
     
     public static void main(String args[]) {
-        org.junit.runner.JUnitCore.main(TestPNGImage01NEWT.class.getName());
+        org.junit.runner.JUnitCore.main(TestPNGImage00NEWT.class.getName());
     }
 }
