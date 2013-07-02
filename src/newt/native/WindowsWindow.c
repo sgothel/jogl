@@ -431,6 +431,9 @@ static void ParseWmVKeyAndScanCode(USHORT winVKey, BYTE winScanCode, BYTE flags,
                 break;
             }
         }
+        if( J_VK_UNDEFINED == javaVKeyUS ) {
+            javaVKeyUS = javaVKeyXX;
+        }
     }
 
     *outJavaVKeyUS = javaVKeyUS;
