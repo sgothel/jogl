@@ -34,7 +34,6 @@ import javax.media.opengl.GLProfile;
 
 import com.jogamp.opengl.util.Animator;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -57,6 +56,9 @@ import javax.media.nativewindow.util.Dimension;
 /**
  * Tests MonitorMode change w/ changed rotation,
  * w/ and w/o fullscreen, pre and post MonitorMode change.
+ * <p>
+ * MonitorMode change does not use highest resolution. 
+ * </p>
  * <p>
  * Also tests MonitorMode reset after last Screen is dereferenced,
  * i.e. MonitorMode should be reinstated.
@@ -185,10 +187,10 @@ public class TestScreenMode02aNEWT extends UITestCase {
         }
         
         if( !preVis ) {
-            window.setVisible(true);
             if( fullscreen ) {
                 window.setFullscreen(true);
             }
+            window.setVisible(true);
         }
         
         Thread.sleep(waitTimeLong);

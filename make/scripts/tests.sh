@@ -407,8 +407,8 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01bNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01cNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01dNEWT $*
-testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02aNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02bNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02aNEWT $*
+testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02bNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.ManualScreenMode03aNEWT $*
 #testnoawt -Djava.awt.headless=true com.jogamp.opengl.test.junit.newt.TestGLWindows01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindowWarpPointer01NEWT $*
