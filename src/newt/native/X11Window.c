@@ -299,9 +299,8 @@ static void NewtWindows_setNormalWindowEWMH (Display *dpy, Window w) {
 
 #define _NET_WM_STATE_REMOVE 0
 #define _NET_WM_STATE_ADD 1
-
-#define _NET_WM_FULLSCREEN ( 1 << 0 )
-#define _NET_WM_ABOVE      ( 1 << 1 )
+#define _NET_WM_STATE_FLAG_FULLSCREEN        ( 1 << 0 )
+#define _NET_WM_STATE_FLAG_ABOVE             ( 1 << 1 )
 
 /**
  * Set fullscreen using Extended Window Manager Hints (EWMH)
@@ -314,7 +313,9 @@ static void NewtWindows_setNormalWindowEWMH (Display *dpy, Window w) {
  * and resets it when leaving FS.
  * The same is assumed for the decoration state.
  */
-static int NewtWindows_isFullscreenEWMHSupported (Display *dpy, Window w) {
+static int NewtWindows_getSupportedStackingEWMHFlags(Display *dpy, Window w) {
+#ifdef VERBOSE_ON
+    // Code doesn't work reliable on KDE4 ...
     Atom _NET_WM_ALLOWED_ACTIONS = XInternAtom( dpy, "_NET_WM_ALLOWED_ACTIONS", False );
     Atom _NET_WM_ACTION_FULLSCREEN = XInternAtom( dpy, "_NET_WM_ACTION_FULLSCREEN", False );
     Atom _NET_WM_ACTION_ABOVE = XInternAtom( dpy, "_NET_WM_ACTION_ABOVE", False );
@@ -329,86 +330,75 @@ static int NewtWindows_isFullscreenEWMHSupported (Display *dpy, Window w) {
         for(i=0; i<action_len; i++) {
             if(_NET_WM_ACTION_FULLSCREEN == actions[i]) {
                 DBG_PRINT( "**************** X11: FS EWMH CHECK[%d]: _NET_WM_ACTION_FULLSCREEN (*)\n", i);
-                res |= _NET_WM_FULLSCREEN ;
+                res |= _NET_WM_STATE_FLAG_FULLSCREEN ;
             } else if(_NET_WM_ACTION_ABOVE == actions[i]) {
                 DBG_PRINT( "**************** X11: FS EWMH CHECK[%d]: _NET_WM_ACTION_ABOVE (*)\n", i);
-                res |= _NET_WM_ABOVE ;
+                res |= _NET_WM_STATE_FLAG_ABOVE ;
             }
-#ifdef VERBOSE_ON
             else {
                 char * astr = XGetAtomName(dpy, actions[i]);
                 DBG_PRINT( "**************** X11: FS EWMH CHECK[%d]: %s (unused)\n", i, astr);
                 XFree(astr);
             }
-#endif
         }
         DBG_PRINT( "**************** X11: FS EWMH CHECK: 0x%X\n", res);
     } else {
         DBG_PRINT( "**************** X11: FS EWMH CHECK: XGetWindowProperty failed: %d\n", s);
     }
-    // above code doesn't work reliable on KDE4 ...
-    res = _NET_WM_FULLSCREEN | _NET_WM_ABOVE ;
-    return res;
+#endif
+    return _NET_WM_STATE_FLAG_FULLSCREEN | _NET_WM_STATE_FLAG_ABOVE ;
 }
 
-static Bool NewtWindows_setFullscreenEWMH (Display *dpy, Window root, Window w, int ewmhFlags, Bool isVisible, Bool enable) {
+static Bool NewtWindows_setStackingEWMHFlags (Display *dpy, Window root, Window w, int ewmhFlags, Bool isVisible, Bool enable) {
     Atom _NET_WM_STATE = XInternAtom( dpy, "_NET_WM_STATE", False );
     Atom _NET_WM_STATE_ABOVE = XInternAtom( dpy, "_NET_WM_STATE_ABOVE", False );
     Atom _NET_WM_STATE_FULLSCREEN = XInternAtom( dpy, "_NET_WM_STATE_FULLSCREEN", False );
-    int ewmhMask = NewtWindows_isFullscreenEWMHSupported(dpy, w);
+    int ewmhMask = NewtWindows_getSupportedStackingEWMHFlags(dpy, w);
+    Bool changeFullscreen = 0 != ( ( _NET_WM_STATE_FLAG_FULLSCREEN & ewmhMask ) & ewmhFlags ) ;
+    Bool changeAbove =      0 != ( ( _NET_WM_STATE_FLAG_ABOVE      & ewmhMask ) & ewmhFlags ) ;
     Bool res = False;
 
     if(0 == ewmhMask) { 
         return res;
     }
 
-    if(!isVisible && True==enable) {
-        Atom types[2]={0};
-        int ntypes=0;
-
-        if( 0 != ( ( _NET_WM_FULLSCREEN & ewmhMask ) & ewmhFlags ) )  {
-            types[ntypes++] = _NET_WM_STATE_FULLSCREEN;
-        }
-        if( 0 != ( ( _NET_WM_ABOVE & ewmhMask ) & ewmhFlags ) )  {
-            types[ntypes++] = _NET_WM_STATE_ABOVE;
-        }
-        if(ntypes>0) {
-            XChangeProperty( dpy, w, _NET_WM_STATE, XA_ATOM, 32, PropModeReplace, (unsigned char *)&types, ntypes);
-            XSync(dpy, False);
-            res = True;
-        }
-    } else {
-        if(enable) {
-            NewtWindows_setCWAbove(dpy, w);
-        }
-        XEvent xev;
-        long mask = SubstructureNotifyMask | SubstructureRedirectMask ;
-        int i=0;
-        
-        memset ( &xev, 0, sizeof(xev) );
-        
-        xev.type = ClientMessage;
-        xev.xclient.window = w;
-        xev.xclient.message_type = _NET_WM_STATE;
-        xev.xclient.format = 32;
+    // _NET_WM_STATE: fullscreen and/or above
+    if( changeFullscreen || changeAbove ) {
+        {
+            // _NET_WM_STATE as event to root window
+            XEvent xev;
+            long mask = SubstructureNotifyMask | SubstructureRedirectMask ;
+            int i=0;
             
-        xev.xclient.data.l[i++] = ( True == enable ) ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE ;
-        if( 0 != ( ( _NET_WM_FULLSCREEN & ewmhMask ) & ewmhFlags ) )  {
-            xev.xclient.data.l[i++] = _NET_WM_STATE_FULLSCREEN;
-        }
-        if( 0 != ( ( _NET_WM_ABOVE & ewmhMask ) & ewmhFlags ) )  {
-            xev.xclient.data.l[i++] = _NET_WM_STATE_ABOVE;
-        }
-        xev.xclient.data.l[3] = 1; //source indication for normal applications
+            memset ( &xev, 0, sizeof(xev) );
+            
+            xev.type = ClientMessage;
+            xev.xclient.window = w;
+            xev.xclient.message_type = _NET_WM_STATE;
+            xev.xclient.format = 32;
+                
+            xev.xclient.data.l[i++] = enable ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE ;
+            if( changeFullscreen ) {
+                xev.xclient.data.l[i++] = _NET_WM_STATE_FULLSCREEN;
+            }
+            if( changeAbove ) {
+                xev.xclient.data.l[i++] = _NET_WM_STATE_ABOVE;
+            }
+            xev.xclient.data.l[3] = 1; //source indication for normal applications
 
-        if(i>0) {
             XSendEvent ( dpy, root, False, mask, &xev );
-            res = True;
         }
+        // If ABOVE is changed, also change _NET_WM_BYPASS_COMPOSITOR!
+        if( changeAbove ) {
+            Atom _NET_WM_BYPASS_COMPOSITOR = XInternAtom( dpy, "_NET_WM_BYPASS_COMPOSITOR", False );
+            unsigned long value = enable ? 1 : 0;
+            XChangeProperty( dpy, w, _NET_WM_BYPASS_COMPOSITOR, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&value, 1); 
+        }
+        XSync(dpy, False);
+        res = True;
     }
-    XSync(dpy, False);
-    DBG_PRINT( "X11: reconfigureWindow0 FULLSCREEN EWMH ON %d, ewmhMask 0x%X, ewmhFlags 0x%X, visible %d: %d\n", 
-        enable, ewmhMask, ewmhFlags, isVisible, res);
+    DBG_PRINT( "X11: setStackingEWMHFlags ON %d, changeFullscreen %d, changeAbove %d, visible %d: %d\n", 
+        enable, changeFullscreen, changeAbove, isVisible, res);
     return res;
 }
 
@@ -657,7 +647,7 @@ JNIEXPORT jlong JNICALL Java_jogamp_newt_driver_x11_WindowDriver_CreateWindow0
         NewtWindows_setPosSize(dpy, window, x, y, width, height);
 
         if( TST_FLAG_IS_ALWAYSONTOP(flags) ) {
-            NewtWindows_setFullscreenEWMH(dpy, root, window, _NET_WM_ABOVE, True, True);
+            NewtWindows_setStackingEWMHFlags(dpy, root, window, _NET_WM_STATE_FLAG_ABOVE, True, True);
         }
     }
 
@@ -720,15 +710,6 @@ static Bool WaitForReparentNotify( Display *dpy, XEvent *event, XPointer arg ) {
 }
 #endif
 
-/**
- * KDE cause lost input focus in fullscreen mode.
- * Using 'XGrabKeyboard(..)' would prevent the loss,
- * but also would disable WM task switcher etc.
- *
- * #define FS_GRAB_KEYBOARD 1
- *
- */
-
 /*
  * Class:     jogamp_newt_driver_x11_WindowDriver
  * Method:    reconfigureWindow0
@@ -747,21 +728,22 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
     XEvent event;
     Bool isVisible = !TST_FLAG_CHANGE_VISIBILITY(flags) && TST_FLAG_IS_VISIBLE(flags) ;
     Bool tempInvisible = ( TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_PARENTING(flags) ) && isVisible ;
+    // Bool tempInvisible = TST_FLAG_CHANGE_PARENTING(flags) && isVisible ;
     int fsEWMHFlags = 0;
     if( TST_FLAG_CHANGE_FULLSCREEN(flags) ) {
-        if( !TST_FLAG_IS_FULLSCREEN_SPAN(flags) ) { // doesn't work w/ spanning across monitors
-            fsEWMHFlags |= _NET_WM_FULLSCREEN;
+        if( !TST_FLAG_IS_FULLSCREEN_SPAN(flags) ) {      // doesn't work w/ spanning across monitors. See also Bug 770 & Bug 771
+            fsEWMHFlags |= _NET_WM_STATE_FLAG_FULLSCREEN;
         }
         if( TST_FLAG_IS_FULLSCREEN(flags) ) {
             if( TST_FLAG_IS_ALWAYSONTOP(flags) ) {
-                fsEWMHFlags |= _NET_WM_ABOVE; // fs on,  above on
-            } // else { }                     // fs on,  above off
+                fsEWMHFlags |= _NET_WM_STATE_FLAG_ABOVE; // fs on,  above on
+            } // else { }                                // fs on,  above off
         } else if( !TST_FLAG_IS_ALWAYSONTOP(flags) ) {
-            fsEWMHFlags |= _NET_WM_ABOVE;     // fs off, above off
-        } // else { }                         // fs off, above on
+            fsEWMHFlags |= _NET_WM_STATE_FLAG_ABOVE;     // fs off, above off
+        } // else { }                                    // fs off, above on
     }
     if( TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) {
-        fsEWMHFlags |= _NET_WM_ABOVE;         // toggle above
+        fsEWMHFlags |= _NET_WM_STATE_FLAG_ABOVE;         // toggle above
     }
 
     DBG_PRINT( "X11: reconfigureWindow0 dpy %p, scrn %d, parent %p/%p, win %p, %d/%d %dx%d, parentChange %d, hasParent %d, decorationChange %d, undecorated %d, fullscreenChange %d, fullscreen %d (span %d), alwaysOnTopChange %d, alwaysOnTop %d, visibleChange %d, visible %d, tempInvisible %d, fsEWMHFlags %d\n",
@@ -780,21 +762,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         !TST_FLAG_IS_FULLSCREEN_SPAN(flags) &&
         ( TST_FLAG_CHANGE_FULLSCREEN(flags) || TST_FLAG_CHANGE_ALWAYSONTOP(flags) ) ) {
         Bool enable = TST_FLAG_CHANGE_FULLSCREEN(flags) ? TST_FLAG_IS_FULLSCREEN(flags) : TST_FLAG_IS_ALWAYSONTOP(flags) ;
-        if( NewtWindows_setFullscreenEWMH(dpy, root, w, fsEWMHFlags, isVisible, enable) ) {
+        if( NewtWindows_setStackingEWMHFlags(dpy, root, w, fsEWMHFlags, isVisible, enable) ) {
             if ( TST_FLAG_CHANGE_FULLSCREEN(flags) && !TST_FLAG_IS_FULLSCREEN(flags) ) { // FS off - restore decoration
                 NewtWindows_setDecorations (dpy, w, TST_FLAG_IS_UNDECORATED(flags) ? False : True);
             }
-            #ifdef FS_GRAB_KEYBOARD
-            if(TST_FLAG_CHANGE_FULLSCREEN(flags)) {
-                if(TST_FLAG_IS_FULLSCREEN(flags)) {
-                    XGrabKeyboard(dpy, w, True, GrabModeAsync, GrabModeAsync, CurrentTime);
-                } else {
-                    XUngrabKeyboard(dpy, CurrentTime);
-                }
-            } else if(TST_FLAG_CHANGE_ALWAYSONTOP(flags) && !TST_FLAG_IS_ALWAYSONTOP(flags)) {
-                XUngrabKeyboard(dpy, CurrentTime);
-            }
-            #endif
+            DBG_PRINT( "X11: reconfigureWindow0 X (fast)\n");
             return;
         }
     }
@@ -808,10 +780,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
 
     if( fsEWMHFlags && ( ( TST_FLAG_CHANGE_FULLSCREEN(flags)  && !TST_FLAG_IS_FULLSCREEN(flags) ) || 
                          ( TST_FLAG_CHANGE_ALWAYSONTOP(flags) && !TST_FLAG_IS_ALWAYSONTOP(flags) ) ) ) { // FS off
-        NewtWindows_setFullscreenEWMH(dpy, root, w, fsEWMHFlags, isVisible, False);
-        #ifdef FS_GRAB_KEYBOARD
-        XUngrabKeyboard(dpy, CurrentTime);
-        #endif
+        NewtWindows_setStackingEWMHFlags(dpy, root, w, fsEWMHFlags, isVisible, False);
     }
 
     if( TST_FLAG_CHANGE_PARENTING(flags) && !TST_FLAG_HAS_PARENT(flags) ) {
@@ -844,9 +813,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
         XMapRaised(dpy, w);
         XIfEvent( dpy, &event, WaitForMapNotify, (XPointer) w );
         // no need to notify the java side .. just temp change
-    }
-
-    if( TST_FLAG_CHANGE_VISIBILITY(flags) ) {
+    } else if( TST_FLAG_CHANGE_VISIBILITY(flags) ) {
         if( TST_FLAG_IS_VISIBLE(flags) ) {
             DBG_PRINT( "X11: reconfigureWindow0 VISIBLE ON\n");
             XMapRaised(dpy, w);
@@ -859,15 +826,11 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_WindowDriver_reconfigureWindo
 
     if( fsEWMHFlags && ( ( TST_FLAG_CHANGE_FULLSCREEN(flags)  && TST_FLAG_IS_FULLSCREEN(flags) ) || 
                          ( TST_FLAG_CHANGE_ALWAYSONTOP(flags) && TST_FLAG_IS_ALWAYSONTOP(flags) ) ) ) { // FS on
-        NewtWindows_setFullscreenEWMH(dpy, root, w, fsEWMHFlags, isVisible, True);
-        #ifdef FS_GRAB_KEYBOARD
-        if(TST_FLAG_CHANGE_FULLSCREEN(flags) && TST_FLAG_IS_FULLSCREEN(flags)) {
-            XGrabKeyboard(dpy, w, True, GrabModeAsync, GrabModeAsync, CurrentTime);
-        }
-        #endif
+        NewtWindows_requestFocus (dpy, w, True);
+        NewtWindows_setStackingEWMHFlags(dpy, root, w, fsEWMHFlags, isVisible, True);
     }
 
-    DBG_PRINT( "X11: reconfigureWindow0 X\n");
+    DBG_PRINT( "X11: reconfigureWindow0 X (full)\n");
 }
 
 /*

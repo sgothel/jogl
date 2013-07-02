@@ -133,7 +133,7 @@ public class WindowDriver extends WindowImpl {
         }
     }
 
-    protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) { 
+    protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, int flags) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("X11Window reconfig: "+x+"/"+y+" "+width+"x"+height+", "+ getReconfigureFlagsAsString(null, flags));
         }
@@ -148,18 +148,52 @@ public class WindowDriver extends WindowImpl {
             _x = x;
             _y = y;
         }
+        if( 0 != ( FLAG_IS_FULLSCREEN & flags) && 0 == ( FLAG_IS_ALWAYSONTOP & flags) ) {
+            tempAlwaysOnTop = true;
+            flags |= FLAG_IS_ALWAYSONTOP;
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("X11Window reconfig.2: temporary "+getReconfigureFlagsAsString(null, flags));
+            }
+        } else {
+            tempAlwaysOnTop = false;
+        }
+        final int fflags = flags;
         final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             public Object run(long dpy) {
                 reconfigureWindow0( dpy, getScreenIndex(), 
                                     getParentWindowHandle(), getWindowHandle(), display.getWindowDeleteAtom(),
-                                    _x, _y, width, height, flags);
+                                    _x, _y, width, height, fflags);
                 return null;
             }
         });
         return true;
     }
+    volatile boolean tempAlwaysOnTop = false;
 
+    /**
+     * <p>
+     * Deal w/ tempAlwaysOnTop.
+     * </p>
+     * {@inheritDoc}
+     */
+    protected void focusChanged(boolean defer, boolean focusGained) {
+        if( tempAlwaysOnTop && hasFocus() != focusGained && isNativeValid() ) {
+            final int flags = getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()) | ( focusGained ? FLAG_IS_ALWAYSONTOP : 0 );
+            final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
+            runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
+                public Object run(long dpy) {
+                    reconfigureWindow0( dpy, getScreenIndex(),
+                                        getParentWindowHandle(), getWindowHandle(), display.getWindowDeleteAtom(),
+                                        getX(), getY(), getWidth(), getHeight(), flags); 
+                    return null;
+                }
+            });
+        }
+        super.focusChanged(defer, focusGained);
+    }
+    
+    
     protected void reparentNotify(long newParentWindowHandle) {
         if(DEBUG_IMPLEMENTATION) {
             final long p0 = getParentWindowHandle();
