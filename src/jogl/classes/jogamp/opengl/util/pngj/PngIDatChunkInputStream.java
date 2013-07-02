@@ -37,7 +37,8 @@ class PngIDatChunkInputStream extends InputStream {
 	List<IdatChunkInfo> foundChunksInfo = new ArrayList<IdatChunkInfo>();
 
 	/**
-	 * Constructor must be called just after reading length and id of first IDAT chunk
+	 * Constructor must be called just after reading length and id of first IDAT
+	 * chunk
 	 **/
 	PngIDatChunkInputStream(InputStream iStream, int lenFirstChunk, long offset) {
 		this.offset = offset;
@@ -95,7 +96,8 @@ class PngIDatChunkInputStream extends InputStream {
 	}
 
 	/**
-	 * sometimes last row read does not fully consumes the chunk here we read the reamaing dummy bytes
+	 * sometimes last row read does not fully consumes the chunk here we read
+	 * the reamaing dummy bytes
 	 */
 	void forceChunkEnd() {
 		if (!ended) {
@@ -108,7 +110,8 @@ class PngIDatChunkInputStream extends InputStream {
 	}
 
 	/**
-	 * This can return less than len, but never 0 Returns -1 if "pseudo file" ended prematurely. That is our error.
+	 * This can return less than len, but never 0 Returns -1 if "pseudo file"
+	 * ended prematurely. That is our error.
 	 */
 	@Override
 	public int read(byte[] b, int off, int len) throws IOException {

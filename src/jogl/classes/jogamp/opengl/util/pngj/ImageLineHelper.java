@@ -5,11 +5,14 @@ import jogamp.opengl.util.pngj.chunks.PngChunkPLTE;
 import jogamp.opengl.util.pngj.chunks.PngChunkTRNS;
 
 /**
- * Bunch of utility static methods to process/analyze an image line at the pixel level.
+ * Bunch of utility static methods to process/analyze an image line at the pixel
+ * level.
  * <p>
- * Not essential at all, some methods are probably to be removed if future releases.
+ * Not essential at all, some methods are probably to be removed if future
+ * releases.
  * <p>
- * WARNING: most methods for getting/setting values work currently only for integer base imageLines
+ * WARNING: most methods for getting/setting values work currently only for
+ * integer base imageLines
  */
 public class ImageLineHelper {
 
@@ -18,7 +21,8 @@ public class ImageLineHelper {
 	private final static double BIG_VALUE_NEG = Double.MAX_VALUE * (-0.5);
 
 	/**
-	 * Given an indexed line with a palette, unpacks as a RGB array, or RGBA if a non nul PngChunkTRNS chunk is passed
+	 * Given an indexed line with a palette, unpacks as a RGB array, or RGBA if
+	 * a non nul PngChunkTRNS chunk is passed
 	 * 
 	 * @param line
 	 *            ImageLine as returned from PngReader
@@ -26,7 +30,8 @@ public class ImageLineHelper {
 	 *            Palette chunk
 	 * @param buf
 	 *            Preallocated array, optional
-	 * @return R G B (A), one sample 0-255 per array element. Ready for pngw.writeRowInt()
+	 * @return R G B (A), one sample 0-255 per array element. Ready for
+	 *         pngw.writeRowInt()
 	 */
 	public static int[] palette2rgb(ImageLine line, PngChunkPLTE pal, PngChunkTRNS trns, int[] buf) {
 		boolean isalpha = trns != null;
@@ -53,9 +58,12 @@ public class ImageLineHelper {
 		return palette2rgb(line, pal, null, buf);
 	}
 
-	/** what follows is pretty uninteresting/untested/obsolete, subject to change */
 	/**
-	 * Just for basic info or debugging. Shows values for first and last pixel. Does not include alpha
+	 * what follows is pretty uninteresting/untested/obsolete, subject to change
+	 */
+	/**
+	 * Just for basic info or debugging. Shows values for first and last pixel.
+	 * Does not include alpha
 	 */
 	public static String infoFirstLastPixels(ImageLine line) {
 		return line.imgInfo.channels == 1 ? String.format("first=(%d) last=(%d)", line.scanline[0],
@@ -71,8 +79,8 @@ public class ImageLineHelper {
 	}
 
 	/**
-	 * Computes some statistics for the line. Not very efficient or elegant, mainly for tests. Only for RGB/RGBA Outputs
-	 * values as doubles (0.0 - 1.0)
+	 * Computes some statistics for the line. Not very efficient or elegant,
+	 * mainly for tests. Only for RGB/RGBA Outputs values as doubles (0.0 - 1.0)
 	 */
 	static class ImageLineStats {
 		public double[] prom = { 0.0, 0.0, 0.0, 0.0 }; // channel averages
@@ -237,9 +245,11 @@ public class ImageLineHelper {
 	/**
 	 * Unpacks scanline (for bitdepth 1-2-4) into a array <code>int[]</code>
 	 * <p>
-	 * You can (OPTIONALLY) pass an preallocated array, that will be filled and returned. If null, it will be allocated
+	 * You can (OPTIONALLY) pass an preallocated array, that will be filled and
+	 * returned. If null, it will be allocated
 	 * <p>
-	 * If <code>scale==true<code>, it scales the value (just a bit shift) towards 0-255.
+	 * If
+	 * <code>scale==true<code>, it scales the value (just a bit shift) towards 0-255.
 	 * <p>
 	 * You probably should use {@link ImageLine#unpackToNewImageLine()}
 	 * 

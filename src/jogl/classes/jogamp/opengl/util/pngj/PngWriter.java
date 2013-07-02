@@ -83,8 +83,9 @@ public class PngWriter {
 	}
 
 	/**
-	 * Constructs a new PngWriter from a output stream. After construction nothing is writen yet. You still can set some
-	 * parameters (compression, filters) and queue chunks before start writing the pixels.
+	 * Constructs a new PngWriter from a output stream. After construction
+	 * nothing is writen yet. You still can set some parameters (compression,
+	 * filters) and queue chunks before start writing the pixels.
 	 * <p>
 	 * See also <code>FileHelper.createPngWriter()</code> if available.
 	 * 
@@ -418,13 +419,15 @@ public class PngWriter {
 	/**
 	 * Copies first (pre IDAT) ancillary chunks from a PngReader.
 	 * <p>
-	 * Should be called when creating an image from another, before starting writing lines, to copy relevant chunks.
+	 * Should be called when creating an image from another, before starting
+	 * writing lines, to copy relevant chunks.
 	 * <p>
 	 * 
 	 * @param reader
 	 *            : PngReader object, already opened.
 	 * @param copy_mask
-	 *            : Mask bit (OR), see <code>ChunksToWrite.COPY_XXX</code> constants
+	 *            : Mask bit (OR), see <code>ChunksToWrite.COPY_XXX</code>
+	 *            constants
 	 */
 	public void copyChunksFirst(PngReader reader, int copy_mask) {
 		copyChunks(reader, copy_mask, false);
@@ -433,14 +436,15 @@ public class PngWriter {
 	/**
 	 * Copies last (post IDAT) ancillary chunks from a PngReader.
 	 * <p>
-	 * Should be called when creating an image from another, after writing all lines, before closing the writer, to copy
-	 * additional chunks.
+	 * Should be called when creating an image from another, after writing all
+	 * lines, before closing the writer, to copy additional chunks.
 	 * <p>
 	 * 
 	 * @param reader
 	 *            : PngReader object, already opened and fully read.
 	 * @param copy_mask
-	 *            : Mask bit (OR), see <code>ChunksToWrite.COPY_XXX</code> constants
+	 *            : Mask bit (OR), see <code>ChunksToWrite.COPY_XXX</code>
+	 *            constants
 	 */
 	public void copyChunksLast(PngReader reader, int copy_mask) {
 		copyChunks(reader, copy_mask, true);
@@ -449,8 +453,8 @@ public class PngWriter {
 	/**
 	 * Computes compressed size/raw size, approximate.
 	 * <p>
-	 * Actually: compressed size = total size of IDAT data , raw size = uncompressed pixel bytes = rows * (bytesPerRow +
-	 * 1).
+	 * Actually: compressed size = total size of IDAT data , raw size =
+	 * uncompressed pixel bytes = rows * (bytesPerRow + 1).
 	 * 
 	 * This must be called after pngw.end()
 	 */
@@ -463,7 +467,8 @@ public class PngWriter {
 	}
 
 	/**
-	 * Finalizes the image creation and closes the stream. This MUST be called after writing the lines.
+	 * Finalizes the image creation and closes the stream. This MUST be called
+	 * after writing the lines.
 	 */
 	public void end() {
 		if (rowNum != imgInfo.rows - 1)
@@ -525,15 +530,17 @@ public class PngWriter {
 	 * See also setCompLevel()
 	 * 
 	 * @param filterType
-	 *            One of the five prediction types or strategy to choose it (see <code>PngFilterType</code>) Recommended
-	 *            values: DEFAULT (default) or AGGRESIVE
+	 *            One of the five prediction types or strategy to choose it (see
+	 *            <code>PngFilterType</code>) Recommended values: DEFAULT
+	 *            (default) or AGGRESIVE
 	 */
 	public void setFilterType(FilterType filterType) {
 		filterStrat = new FilterWriteStrategy(imgInfo, filterType);
 	}
 
 	/**
-	 * Sets maximum size of IDAT fragments. This has little effect on performance you should rarely call this
+	 * Sets maximum size of IDAT fragments. This has little effect on
+	 * performance you should rarely call this
 	 * <p>
 	 * 
 	 * @param idatMaxSize
@@ -553,7 +560,8 @@ public class PngWriter {
 	}
 
 	/**
-	 * Deflater strategy: one of Deflater.FILTERED Deflater.HUFFMAN_ONLY Deflater.DEFAULT_STRATEGY
+	 * Deflater strategy: one of Deflater.FILTERED Deflater.HUFFMAN_ONLY
+	 * Deflater.DEFAULT_STRATEGY
 	 * <p>
 	 * Default: Deflater.FILTERED . This should be changed very rarely.
 	 */
@@ -562,8 +570,8 @@ public class PngWriter {
 	}
 
 	/**
-	 * Writes line, checks that the row number is consistent with that of the ImageLine See writeRow(int[] newrow, int
-	 * rown)
+	 * Writes line, checks that the row number is consistent with that of the
+	 * ImageLine See writeRow(int[] newrow, int rown)
 	 * 
 	 * @deprecated Better use writeRow(ImageLine imgline, int rownumber)
 	 */
@@ -607,18 +615,22 @@ public class PngWriter {
 	/**
 	 * Writes a full image row.
 	 * <p>
-	 * This must be called sequentially from n=0 to n=rows-1 One integer per sample , in the natural order: R G B R G B
-	 * ... (or R G B A R G B A... if has alpha) The values should be between 0 and 255 for 8 bitspc images, and between
-	 * 0- 65535 form 16 bitspc images (this applies also to the alpha channel if present) The array can be reused.
+	 * This must be called sequentially from n=0 to n=rows-1 One integer per
+	 * sample , in the natural order: R G B R G B ... (or R G B A R G B A... if
+	 * has alpha) The values should be between 0 and 255 for 8 bitspc images,
+	 * and between 0- 65535 form 16 bitspc images (this applies also to the
+	 * alpha channel if present) The array can be reused.
 	 * <p>
-	 * Warning: the array might be modified in some cases (unpacked row with low bitdepth)
+	 * Warning: the array might be modified in some cases (unpacked row with low
+	 * bitdepth)
 	 * <p>
 	 * 
 	 * @param newrow
-	 *            Array of pixel values. Warning: the array size should be exact (samplesPerRowP)
+	 *            Array of pixel values. Warning: the array size should be exact
+	 *            (samplesPerRowP)
 	 * @param rown
-	 *            Row number, from 0 (top) to rows-1 (bottom). This is just used as a check. Pass -1 if you want to
-	 *            autocompute it
+	 *            Row number, from 0 (top) to rows-1 (bottom). This is just used
+	 *            as a check. Pass -1 if you want to autocompute it
 	 */
 	public void writeRowInt(int[] newrow, int rown) {
 		prepareEncodeRow(rown);
@@ -627,8 +639,9 @@ public class PngWriter {
 	}
 
 	/**
-	 * Same semantics as writeRowInt but using bytes. Each byte is still a sample. If 16bitdepth, we are passing only
-	 * the most significant byte (and hence losing some info)
+	 * Same semantics as writeRowInt but using bytes. Each byte is still a
+	 * sample. If 16bitdepth, we are passing only the most significant byte (and
+	 * hence losing some info)
 	 * 
 	 * @see PngWriter#writeRowInt(int[], int)
 	 */
@@ -659,12 +672,15 @@ public class PngWriter {
 	}
 
 	/**
-	 * If false (default), and image has bitdepth 1-2-4, the scanlines passed are assumed to be already packed.
+	 * If false (default), and image has bitdepth 1-2-4, the scanlines passed
+	 * are assumed to be already packed.
 	 * <p>
-	 * If true, each element is a sample, the writer will perform the packing if necessary.
+	 * If true, each element is a sample, the writer will perform the packing if
+	 * necessary.
 	 * <p>
-	 * Warning: when using {@link #writeRow(ImageLine, int)} (recommended) the <tt>packed</tt> flag of the ImageLine
-	 * object overrides (and overwrites!) this field.
+	 * Warning: when using {@link #writeRow(ImageLine, int)} (recommended) the
+	 * <tt>packed</tt> flag of the ImageLine object overrides (and overwrites!)
+	 * this field.
 	 */
 	public void setUseUnPackedMode(boolean useUnpackedMode) {
 		this.unpackedMode = useUnpackedMode;
