@@ -52,18 +52,32 @@ import com.jogamp.opengl.util.texture.spi.*;
  * Represents an OpenGL texture object. Contains convenience routines
  * for enabling/disabling OpenGL texture state, binding this texture,
  * and computing texture coordinates for both the entire image as well
- * as a sub-image. 
+ * as a sub-image.
+ * 
+ * <a name="textureCallOrder"><h5>Order of Texture Commands</h5></a> 
+ * <p>
+ * Due to many confusions w/ texture usage, following list described the order
+ * and semantics of texture unit selection, binding and enabling.
+ * <ul>
+ *   <li><i>Optional:</i> Set active textureUnit via <code>gl.glActiveTexture(GL.GL_TEXTURE0 + textureUnit)</code>, <code>0</code> is default.</li>
+ *   <li>Bind <code>textureId</code> -> active <code>textureUnit</code>'s <code>textureTarget</code> via <code>gl.glBindTexture(textureTarget, textureId)</code></li>
+ *   <li><i>Compatible Context Only:</i> Enable active <code>textureUnit</code>'s <code>textureTarget</code> via <code>glEnable(textureTarget)</code>.
+ *   <li><i>Optional:</i> Fiddle with the texture parameters and/or environment settings.</li>
+ *   <li>GLSL: Use <code>textureUnit</code> in your shader program, enable shader program.</li>
+ *   <li>Issue draw commands</li>
+ * </ul>
+ * </p>
  * 
  * <p><a name="nonpow2"><b>Non-power-of-two restrictions</b></a>
  * <br> When creating an OpenGL texture object, the Texture class will
- * attempt to leverage the <a
- * href="http://www.opengl.org/registry/specs/ARB/texture_non_power_of_two.txt">GL_ARB_texture_non_power_of_two</a>
- * and <a
- * href="http://www.opengl.org/registry/specs/ARB/texture_rectangle.txt">GL_ARB_texture_rectangle</a>
- * extensions (in that order) whenever possible.  If neither extension
- * is available, the Texture class will simply upload a non-pow2-sized
+ * attempt to use <i>non-power-of-two textures</i> (NPOT) if available, see {@link GL#isNPOTTextureAvailable()}.
+ * Further more, 
+ * <a href="http://www.opengl.org/registry/specs/ARB/texture_rectangle.txt">GL_ARB_texture_rectangle</a>
+ * (RECT) will be attempted on OSX w/ ATI drivers.
+ * If NPOT is not available or RECT not chosen, the Texture class will simply upload a non-pow2-sized
  * image into a standard pow2-sized texture (without any special
- * scaling).  Since the choice of extension (or whether one is used at
+ * scaling).  
+ * Since the choice of extension (or whether one is used at
  * all) depends on the user's machine configuration, developers are
  * recommended to use {@link #getImageTexCoords} and {@link
  * #getSubImageTexCoords}, as those methods will calculate the
@@ -91,9 +105,12 @@ import com.jogamp.opengl.util.texture.spi.*;
  * when switching between textures it is necessary to call {@link
  * #bind}, but when drawing many triangles all using the same texture,
  * for best performance only one call to {@link #bind} should be made.
+ * User may also utilize multiple texture units,
+ * see <a href="#textureCallOrder"> order of texture commands above</a>. 
  *
  * <p><a name="premult"><b>Alpha premultiplication and blending</b></a>
- * <br> The mathematically correct way to perform blending in OpenGL
+ * <br/><i>Disclaimer: Consider performing alpha premultiplication in shader code, if really desired! Otherwise use RGBA.</i>
+ * <br/> The mathematically correct way to perform blending in OpenGL
  * (with the SrcOver "source over destination" mode, or any other
  * Porter-Duff rule) is to use "premultiplied color components", which
  * means the R/G/ B color components have already been multiplied by
@@ -138,9 +155,7 @@ import com.jogamp.opengl.util.texture.spi.*;
 <TR> <TD> AlphaXor <TD> GL_ONE_MINUS_DST_ALPHA  <TD> GL_ONE_MINUS_SRC_ALPHA
 </TABLE>
 </CENTER>
- *
- * @author Chris Campbell
- * @author Kenneth Russell
+ * @author Chris Campbell, Kenneth Russell, et.al.
  */
 public class Texture {
     /** The GL target type. */
