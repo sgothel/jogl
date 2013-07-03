@@ -110,6 +110,7 @@ import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.SingleAWTGLPixelBufferProvide
     <P>
     In case FBO is used and GLSL is available, a fragment shader is utilized
     to flip the FBO texture vertically. This hardware-accelerated step can be disabled via system property <code>jogl.gljpanel.noglsl</code>.
+    See <a href="#fboGLSLVerticalFlip">details here</a>.
     </P>
     <P>
     The OpenGL path is concluded by copying the rendered pixels an {@link BufferedImage} via {@link GL#glReadPixels(int, int, int, int, int, int, java.nio.Buffer) glReadPixels(..)}
@@ -125,8 +126,14 @@ import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.SingleAWTGLPixelBufferProvide
     on the prepared {@link BufferedImage} as described above.
     </p>
     <P>
- *  Please read <A HREF="GLCanvas.html#java2dgl">Java2D OpenGL Remarks</A>.
+ *  Please read <a href="GLCanvas.html#java2dgl">Java2D OpenGL Remarks</a>.
  *  </P>
+ *  
+    <a name="fboGLSLVerticalFlip"><h5>FBO / GLSL Vertical Flip</h5></a>     
+    The FBO / GLSL code path uses one texture-unit and binds the FBO texture to it's active texture-target,
+    see {@link #setTextureUnit(int)} and {@link #getTextureUnit()}.
+    If the application uses the same texture-unit, ensure it setup their texture properly, i.e. texture-unit bind, enable and then it's parameters,
+    see {@link Texture#textureCallOrder Order of Texture Commands}.
 */
 
 @SuppressWarnings("serial")
@@ -212,6 +219,8 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private int viewportX;
   private int viewportY;
 
+  private int requestedTextureUnit = 0; // default
+  
   // The backend in use
   private volatile Backend backend;
 
@@ -731,6 +740,40 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     return factory;
   }
 
+  /** 
+   * Returns the used texture unit, i.e. a value of [0..n], or -1 if non used.
+   * <p>
+   * If implementation uses a texture-unit, it will be known only after the first initialization, i.e. display call.
+   * </p> 
+   * <p>
+   * See <a href="#fboGLSLVerticalFlip">FBO / GLSL Vertical Flip</a>.
+   * </p>
+   */
+  public final int getTextureUnit() {
+    final Backend b = backend;
+    if ( null == b ) {
+        return -1;
+    }
+    return b.getTextureUnit();      
+  }
+  
+  /**
+   * Allows user to request a texture unit to be used,
+   * must be called before the first initialization, i.e. {@link #display()} call.
+   * <p>
+   * Defaults to <code>0</code>.
+   * </p>
+   * <p>
+   * See <a href="#fboGLSLVerticalFlip">FBO / GLSL Vertical Flip</a>.
+   * </p>
+   * 
+   * @param v requested texture unit
+   * @see #getTextureUnit()
+   */
+  public final void setTextureUnit(int v) {
+      requestedTextureUnit = v;
+  }
+  
   //----------------------------------------------------------------------
   // Internals only below this point
   //
@@ -947,6 +990,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     // Called to get the current backend's GLDrawable
     public GLDrawable getDrawable();
 
+    /** Returns the used texture unit, i.e. a value of [0..n], or -1 if non used. */
+    public int getTextureUnit();
+    
     // Called to fetch the "real" GLCapabilities for the backend
     public GLCapabilitiesImmutable getChosenGLCapabilities();
 
@@ -987,7 +1033,6 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
     private GLDrawableImpl offscreenDrawable;
     private FBObject fboFlipped;
     private GLSLTextureRaster glslTextureRaster;
-    private final int fboTextureUnit = 0;
     
     private GLContextImpl offscreenContext;
     private boolean flipVertical;          
@@ -1035,12 +1080,13 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
                   final boolean _autoSwapBufferMode = helper.getAutoSwapBufferMode();
                   helper.setAutoSwapBufferMode(false);
                   final GLFBODrawable fboDrawable = (GLFBODrawable) offscreenDrawable;
+                  fboDrawable.setTextureUnit( GLJPanel.this.requestedTextureUnit );
                   try {
                       fboFlipped = new FBObject();
                       fboFlipped.reset(gl, fboDrawable.getWidth(), fboDrawable.getHeight(), 0, false);
                       fboFlipped.attachTexture2D(gl, 0, chosenCaps.getAlphaBits()>0);
                       // fboFlipped.attachRenderbuffer(gl, Attachment.Type.DEPTH, 24);
-                      glslTextureRaster = new GLSLTextureRaster(fboTextureUnit, true);
+                      glslTextureRaster = new GLSLTextureRaster(fboDrawable.getTextureUnit(), true);
                       glslTextureRaster.init(gl.getGL2ES2());
                       glslTextureRaster.reshape(gl.getGL2ES2(), 0, 0, fboDrawable.getWidth(), fboDrawable.getHeight());
                   } catch (Exception ex) {
@@ -1210,7 +1256,7 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
             fboDrawable.swapBuffers();
             fboFlipped.bind(gl);
             
-            // gl.glActiveTexture(fboDrawable.getTextureUnit()); // implicit!
+            // gl.glActiveTexture(GL.GL_TEXTURE0 + fboDrawable.getTextureUnit()); // implicit by GLFBODrawableImpl: swapBuffers/contextMadeCurent -> swapFBOImpl
             gl.glBindTexture(GL.GL_TEXTURE_2D, fboTex.getName());
             // gl.glClear(GL.GL_DEPTH_BUFFER_BIT); // fboFlipped runs w/o DEPTH!
             glslTextureRaster.display(gl.getGL2ES2());
@@ -1243,6 +1289,14 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         // Note: image will be drawn back in paintComponent() for
         // correctness on all platforms
       }
+    }
+    
+    @Override
+    public int getTextureUnit() {
+        if(null != glslTextureRaster && null != offscreenDrawable) { // implies flippedVertical
+            return ((GLFBODrawable)offscreenDrawable).getTextureUnit();
+        }
+        return -1;
     }
 
     @Override
@@ -1445,6 +1499,9 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
         return joglDrawable;
     }
 
+    @Override
+    public int getTextureUnit() { return -1; }
+    
     @Override
     public GLCapabilitiesImmutable getChosenGLCapabilities() {
       // FIXME: should do better than this; is it possible to using only platform-independent code?
