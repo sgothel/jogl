@@ -312,27 +312,25 @@ public class KeyEvent extends InputEvent
      * @param isKeyChar true if <code>uniChar</code> is a key character, otherwise a virtual key code
      */
     public static boolean isPrintableKey(final short uniChar, final boolean isKeyChar) {
-        if( VK_UNDEFINED == uniChar  ) {
-            return false;
+        if ( VK_BACK_SPACE == uniChar || VK_TAB == uniChar || VK_ENTER == uniChar ) {
+            return true;
         }
         if( !isKeyChar ) {
             if( ( nonPrintableKeys[0].min <= uniChar && uniChar <= nonPrintableKeys[0].max ) ||
                 ( nonPrintableKeys[1].min <= uniChar && uniChar <= nonPrintableKeys[1].max ) ||
-                ( nonPrintableKeys[2].min <= uniChar && uniChar <= nonPrintableKeys[2].max ) || 
-                ( nonPrintableKeys[3].min <= uniChar && uniChar <= nonPrintableKeys[3].max ) ||
-                ( nonPrintableKeys[4].min <= uniChar && uniChar <= nonPrintableKeys[4].max ) ) {
+                ( nonPrintableKeys[2].min <= uniChar && uniChar <= nonPrintableKeys[2].max ) ||
+                ( nonPrintableKeys[3].min <= uniChar && uniChar <= nonPrintableKeys[3].max ) ) {
                 return false;
             }
         } else {
             if( ( nonPrintableKeys[0].inclKeyChar && nonPrintableKeys[0].min <= uniChar && uniChar <= nonPrintableKeys[0].max ) ||
                 ( nonPrintableKeys[1].inclKeyChar && nonPrintableKeys[1].min <= uniChar && uniChar <= nonPrintableKeys[1].max ) ||
                 ( nonPrintableKeys[2].inclKeyChar && nonPrintableKeys[2].min <= uniChar && uniChar <= nonPrintableKeys[2].max ) ||
-                ( nonPrintableKeys[3].inclKeyChar && nonPrintableKeys[3].min <= uniChar && uniChar <= nonPrintableKeys[3].max ) ||
-                ( nonPrintableKeys[4].inclKeyChar && nonPrintableKeys[4].min <= uniChar && uniChar <= nonPrintableKeys[4].max ) ) {
+                ( nonPrintableKeys[3].inclKeyChar && nonPrintableKeys[3].min <= uniChar && uniChar <= nonPrintableKeys[3].max ) ) {
                 return false;
             }
         }
-        return true;
+        return VK_UNDEFINED != uniChar;
     }
 
     /** 
@@ -383,10 +381,19 @@ public class KeyEvent extends InputEvent
             this.inclKeyChar = inclKeyChar;
         }
     };
-    /** Non printable key ranges, currently fixed to an array of size 5. */
+    /** 
+     * Non printable key ranges, currently fixed to an array of size 4.
+     * <p>
+     * Not included, queried upfront:
+     * <ul>
+     *  <li>{@link #VK_BACK_SPACE}</li>
+     *  <li>{@link #VK_TAB}</li>
+     *  <li>{@link #VK_ENTER}</li>
+     * </ul>
+     * </p> 
+     */
     public final static NonPrintableRange[] nonPrintableKeys = { 
-        new NonPrintableRange( (short)0x0000, (short)0x0007, true ),  // Unicode: Non printable controls: [0x00 - 0x07]
-        new NonPrintableRange( (short)0x000A, (short)0x001F, true ),  // Unicode: Non printable controls: [0x0A - 0x1F]
+        new NonPrintableRange( (short)0x0000, (short)0x001F, true ),  // Unicode: Non printable controls: [0x00 - 0x1F], see exclusion above
         new NonPrintableRange( (short)0x0061, (short)0x0078, false),  // Small 'a' thru 'z' (0x61 - 0x7a) - Not used for keyCode / keySym - Re-used for Fn (collision)
         new NonPrintableRange( (short)0x008F, (short)0x009F, true ),  // Unicode: Non printable controls: [0x7F - 0x9F], Numpad keys [0x7F - 0x8E] are printable! 
         new NonPrintableRange( (short)0xE000, (short)0xF8FF, true )   // Unicode: Private 0xE000 - 0xF8FF (Marked Non-Printable)
@@ -433,7 +440,7 @@ public class KeyEvent extends InputEvent
     /** Constant for the CLEAR key, i.e. FORM FEED, matching ASCII. */
     public static final short VK_CLEAR          = (short) 0x0C;
     
-    /** Constant for the ENTER key, i.e. CARRIAGE RETURN, matching ASCII. Non printable! */
+    /** Constant for the ENTER key, i.e. CARRIAGE RETURN, matching ASCII. Printable! */
     public static final short VK_ENTER          = (short) 0x0D;
     
            static final short VK_FREE0E         = (short) 0x0E;

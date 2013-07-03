@@ -93,10 +93,13 @@ public class FontFactory {
     }    
     
     public static boolean isPrintableChar( char c ) {
-        Character.UnicodeBlock block = Character.UnicodeBlock.of( c );
-        return (!Character.isISOControl(c)) &&
-                c != 0 &&
-                block != null &&
-                block != Character.UnicodeBlock.SPECIALS;
+        if( Character.isWhitespace(c) ) {
+            return true;
+        }
+        if( 0 == c || Character.isISOControl(c) ) {
+            return false;
+        }
+        final Character.UnicodeBlock block = Character.UnicodeBlock.of( c );
+        return block != null && block != Character.UnicodeBlock.SPECIALS;
     }    
 }

@@ -269,27 +269,27 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
     }
     
     public class KeyAction implements KeyListener {
-        public void keyPressed(KeyEvent arg0) {
+        public void keyPressed(KeyEvent e) {
             if(userInput) {
                 return;
             }
-            
-            if(arg0.getKeyCode() == KeyEvent.VK_3) {
+            final short s = e.getKeySymbol(); 
+            if(s == KeyEvent.VK_3) {
                 fontIncr(10);
             }
-            else if(arg0.getKeyCode() == KeyEvent.VK_4) {
+            else if(s == KeyEvent.VK_4) {
                 fontIncr(-10);
             }
-            else if(arg0.getKeyCode() == KeyEvent.VK_H) {
+            else if(s == KeyEvent.VK_H) {
                 switchHeadBox();
             }  
-            else if(arg0.getKeyCode() == KeyEvent.VK_F) {
+            else if(s == KeyEvent.VK_F) {
                 drawFPS = !drawFPS; 
             }  
-            else if(arg0.getKeyCode() == KeyEvent.VK_SPACE) {      
+            else if(s == KeyEvent.VK_SPACE) {      
                 nextFontSet();
             }
-            else if(arg0.getKeyCode() == KeyEvent.VK_I) {
+            else if(s == KeyEvent.VK_I) {
                 userInput = true;
                 setIgnoreInput(true);
             }
@@ -300,15 +300,17 @@ public abstract class GPUTextRendererListenerBase01 extends GPURendererListenerB
                 return;
             }            
             if(userInput) {                
-                char c = e.getKeyChar();
-
-                if(c == 0x0d) {
+                final short k = e.getKeySymbol();
+                if( KeyEvent.VK_ENTER == k ) {
                     userInput = false;
                     setIgnoreInput(false);
-                } else if(c == 0x08 && userString.length()>0) {
+                } else if( KeyEvent.VK_BACK_SPACE == k && userString.length()>0) {
                     userString.deleteCharAt(userString.length()-1);
-                } else if( font.isPrintableChar( c ) ) { 
-                    userString.append(c);
+                } else {
+                    final char c = e.getKeyChar();
+                    if( font.isPrintableChar( c ) ) {                 
+                        userString.append(c);
+                    }
                 }
             }
         }
