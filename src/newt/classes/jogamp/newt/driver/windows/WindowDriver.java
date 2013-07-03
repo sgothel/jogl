@@ -291,7 +291,7 @@ public class WindowDriver extends WindowImpl {
     public final void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
         final boolean isModifierKey = KeyEvent.isModifierKey(keySym);
         // System.err.println("*** sendKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", keyCode "+toHexString(keyCode)+", keyChar <"+keyChar+">, mods "+toHexString(modifiers)+
-        //                   ", isKeyCodeTracked "+isKeyCodeTracked(keyCode)+", was: pressed "+isKeyPressed(keyCode)+", repeat "+isKeyInAutoRepeat(keyCode)+", printableKey "+KeyEvent.isPrintableKey(keyCode)+" [modifierKey "+isModifierKey+"] - "+System.currentTimeMillis());
+        //                   ", isKeyCodeTracked "+isKeyCodeTracked(keyCode)+", was: pressed "+isKeyPressed(keyCode)+", printableKey "+KeyEvent.isPrintableKey(keyCode, false)+" [modifierKey "+isModifierKey+"] - "+System.currentTimeMillis());
         
         // Reorder: WINDOWS delivery order is PRESSED (t0), TYPED (t0) and RELEASED (t1) -> NEWT order: PRESSED (t0) and RELEASED (t1)
         // Auto-Repeat: WINDOWS delivers only PRESSED (t0) and TYPED (t0).        
