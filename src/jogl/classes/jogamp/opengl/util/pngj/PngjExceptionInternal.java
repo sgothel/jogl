@@ -1,7 +1,8 @@
 package jogamp.opengl.util.pngj;
 
 /**
- * Exception for anomalous internal problems (sort of asserts) that point to some issue with the library
+ * Exception for anomalous internal problems (sort of asserts) that point to
+ * some issue with the library
  * 
  * @author Hernan J Gonzalez
  * 

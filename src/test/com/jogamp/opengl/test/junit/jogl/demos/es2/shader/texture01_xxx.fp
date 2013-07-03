@@ -19,10 +19,10 @@ void main (void)
   if(0.0 <= mgl_texCoord.t && mgl_texCoord.t<=1.0) {
     texColor = texture2D(mgl_ActiveTexture, mgl_texCoord);
   } else {
-    texColor = vec4(1, 1, 1, 1);
+    discard;
   }
 
-  // mix frontColor with texture ..
-  mgl_FragColor = vec4(frontColor*texColor);
+  // mix frontColor with texture ..  pre-multiplying texture alpha
+  mgl_FragColor = vec4( mix( frontColor.rgb, texColor.rgb, texColor.a ), frontColor.a );
 }
 

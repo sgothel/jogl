@@ -131,16 +131,16 @@ public abstract class GLContext {
   /* Version 1.50, i.e. GLSL 1.50 for GL 3.2. */
   public static final VersionNumber Version150 = new VersionNumber(1, 50, 0);
   
-  /** Version 3.2. As an OpenGL version, it qualifies for geometry shader */
-  public static final VersionNumber Version32 = new VersionNumber(3, 2, 0);
+  /** Version 3.0. As an OpenGL version, it qualifies for desktop {@link #isGL2()} only, or ES 3.0. */
+  public static final VersionNumber Version300 = new VersionNumber(3, 0, 0);
   
   /** Version 3.1. As an OpenGL version, it qualifies for {@link #isGL3core()}, {@link #isGL3bc()} and {@link #isGL3()} */
-  public static final VersionNumber Version31 = new VersionNumber(3, 1, 0);
+  public static final VersionNumber Version310 = new VersionNumber(3, 1, 0);
   
-  /** Version 3.0. As an OpenGL version, it qualifies for {@link #isGL2()} only */
-  public static final VersionNumber Version30 = new VersionNumber(3, 0, 0);
+  /** Version 3.2. As an OpenGL version, it qualifies for geometry shader */
+  public static final VersionNumber Version320 = new VersionNumber(3, 2, 0);
   
-  protected static final VersionNumber Version80 = new VersionNumber(8, 0, 0);
+  protected static final VersionNumber Version800 = new VersionNumber(8, 0, 0);
 
   /** <code>ARB_create_context</code> related: created via ARB_create_context. Cache key value. See {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
   protected static final int CTX_IS_ARB_CREATED  = 1 <<  0;
@@ -753,7 +753,7 @@ public abstract class GLContext {
           return "";
       }
       final int minor = ctxGLSLVersion.getMinor();
-      final String esSuffix = isGLES() && ctxGLSLVersion.compareTo(Version30) >= 0 ? " es" : ""; 
+      final String esSuffix = isGLES() && ctxGLSLVersion.compareTo(Version300) >= 0 ? " es" : ""; 
       return "#version " + ctxGLSLVersion.getMajor() + ( minor < 10 ? "0"+minor : minor ) + esSuffix + "\n" ;
   }
   
@@ -899,21 +899,21 @@ public abstract class GLContext {
   
   /** @see GLProfile#isGL3bc() */
   public final boolean isGL3bc() {
-      return ctxVersion.compareTo(Version31) >= 0
+      return ctxVersion.compareTo(Version310) >= 0
              && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
              && 0 != (ctxOptions & CTX_PROFILE_COMPAT);
   }
 
   /** @see GLProfile#isGL3() */
   public final boolean isGL3() {
-      return ctxVersion.compareTo(Version31) >= 0
+      return ctxVersion.compareTo(Version310) >= 0
              && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
              && 0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE));
   }
   
   /** Indicates whether this profile is capable of GL3 (core only). GL3 starts w/ OpenGL 3.1 <p>Includes [ GL4, GL3 ].</p> */
   public final boolean isGL3core() {
-      return ctxVersion.compareTo(Version31) >= 0
+      return ctxVersion.compareTo(Version310) >= 0
              && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
              && 0 != (ctxOptions & CTX_PROFILE_CORE);
   }

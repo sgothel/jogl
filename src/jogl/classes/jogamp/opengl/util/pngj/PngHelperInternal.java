@@ -144,18 +144,23 @@ public class PngHelperInternal {
 		}
 	}
 
-	public static void skipBytes(InputStream is, int len) {
-		byte[] buf = new byte[8192 * 4];
-		int read, remain = len;
+	public static void skipBytes(InputStream is, long len) {
 		try {
-			while (remain > 0) {
-				read = is.read(buf, 0, remain > buf.length ? buf.length : remain);
-				if (read < 0)
-					throw new PngjInputException("error reading (skipping) : EOF");
-				remain -= read;
+			while (len > 0) {
+				long n1 = is.skip(len);
+				if (n1 > 0) {
+					len -= n1;
+				} else if (n1 == 0) { // should we retry? lets read one byte
+					if (is.read() == -1) // EOF
+						break;
+					else
+						len--;
+				} else
+					// negative? this should never happen but...
+					throw new IOException("skip() returned a negative value ???");
 			}
 		} catch (IOException e) {
-			throw new PngjInputException("error reading (skipping)", e);
+			throw new PngjInputException(e);
 		}
 	}
 

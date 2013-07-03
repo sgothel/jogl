@@ -319,14 +319,16 @@ public class KeyEvent extends InputEvent
             if( ( nonPrintableKeys[0].min <= uniChar && uniChar <= nonPrintableKeys[0].max ) ||
                 ( nonPrintableKeys[1].min <= uniChar && uniChar <= nonPrintableKeys[1].max ) ||
                 ( nonPrintableKeys[2].min <= uniChar && uniChar <= nonPrintableKeys[2].max ) || 
-                ( nonPrintableKeys[3].min <= uniChar && uniChar <= nonPrintableKeys[3].max ) ) {
+                ( nonPrintableKeys[3].min <= uniChar && uniChar <= nonPrintableKeys[3].max ) ||
+                ( nonPrintableKeys[4].min <= uniChar && uniChar <= nonPrintableKeys[4].max ) ) {
                 return false;
             }
         } else {
             if( ( nonPrintableKeys[0].inclKeyChar && nonPrintableKeys[0].min <= uniChar && uniChar <= nonPrintableKeys[0].max ) ||
                 ( nonPrintableKeys[1].inclKeyChar && nonPrintableKeys[1].min <= uniChar && uniChar <= nonPrintableKeys[1].max ) ||
                 ( nonPrintableKeys[2].inclKeyChar && nonPrintableKeys[2].min <= uniChar && uniChar <= nonPrintableKeys[2].max ) ||
-                ( nonPrintableKeys[3].inclKeyChar && nonPrintableKeys[3].min <= uniChar && uniChar <= nonPrintableKeys[3].max ) ) {
+                ( nonPrintableKeys[3].inclKeyChar && nonPrintableKeys[3].min <= uniChar && uniChar <= nonPrintableKeys[3].max ) ||
+                ( nonPrintableKeys[4].inclKeyChar && nonPrintableKeys[4].min <= uniChar && uniChar <= nonPrintableKeys[4].max ) ) {
                 return false;
             }
         }
@@ -381,9 +383,10 @@ public class KeyEvent extends InputEvent
             this.inclKeyChar = inclKeyChar;
         }
     };
-    /** Non printable key ranges, currently fixed to an array of size 4. */
+    /** Non printable key ranges, currently fixed to an array of size 5. */
     public final static NonPrintableRange[] nonPrintableKeys = { 
-        new NonPrintableRange( (short)0x0000, (short)0x001F, true ),  // Unicode: Non printable controls: [0x00 - 0x1F]
+        new NonPrintableRange( (short)0x0000, (short)0x0007, true ),  // Unicode: Non printable controls: [0x00 - 0x07]
+        new NonPrintableRange( (short)0x000A, (short)0x001F, true ),  // Unicode: Non printable controls: [0x0A - 0x1F]
         new NonPrintableRange( (short)0x0061, (short)0x0078, false),  // Small 'a' thru 'z' (0x61 - 0x7a) - Not used for keyCode / keySym - Re-used for Fn (collision)
         new NonPrintableRange( (short)0x008F, (short)0x009F, true ),  // Unicode: Non printable controls: [0x7F - 0x9F], Numpad keys [0x7F - 0x8E] are printable! 
         new NonPrintableRange( (short)0xE000, (short)0xF8FF, true )   // Unicode: Private 0xE000 - 0xF8FF (Marked Non-Printable)
@@ -415,14 +418,14 @@ public class KeyEvent extends InputEvent
            static final short VK_FREE06         = (short) 0x06;
            static final short VK_FREE07         = (short) 0x07;
     
-    /** Constant for the BACK SPACE key "\b", matching ASCII. */
+    /** Constant for the BACK SPACE key "\b", matching ASCII. Printable! */
     public static final short VK_BACK_SPACE     = (short) 0x08;
     
-    /** Constant for the HORIZ TAB key "\t", matching ASCII. */
+    /** Constant for the HORIZ TAB key "\t", matching ASCII. Printable! */
     public static final short VK_TAB            = (short) 0x09;
     
-    /** Constant for the ENTER key, i.e. LINE FEED "\n", matching ASCII. */
-    public static final short VK_ENTER          = (short) 0x0A;
+           /** LINE_FEED "\n", matching ASCII, n/a on keyboard. */
+           static final short VK_FREE0A         = (short) 0x0A;
     
     /** Constant for the PAGE DOWN function key. ASCII: Vertical Tabulation. */
     public static final short VK_PAGE_DOWN      = (short) 0x0B;
@@ -430,7 +433,9 @@ public class KeyEvent extends InputEvent
     /** Constant for the CLEAR key, i.e. FORM FEED, matching ASCII. */
     public static final short VK_CLEAR          = (short) 0x0C;
     
-           static final short VK_FREE0D         = (short) 0x0D;
+    /** Constant for the ENTER key, i.e. CARRIAGE RETURN, matching ASCII. Non printable! */
+    public static final short VK_ENTER          = (short) 0x0D;
+    
            static final short VK_FREE0E         = (short) 0x0E;
     
     /** Constant for the CTRL function key. ASCII: shift-in. */

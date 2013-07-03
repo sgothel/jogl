@@ -3,10 +3,12 @@ package jogamp.opengl.util.pngj;
 import jogamp.opengl.util.pngj.ImageLine.SampleType;
 
 /**
- * Wraps in a matrix a set of image rows, not necessarily contiguous - but equispaced.
+ * Wraps in a matrix a set of image rows, not necessarily contiguous - but
+ * equispaced.
  * 
- * The fields mirrors those of {@link ImageLine}, and you can access each row as a ImageLine backed by the matrix row,
- * see {@link #getImageLineAtMatrixRow(int)}
+ * The fields mirrors those of {@link ImageLine}, and you can access each row as
+ * a ImageLine backed by the matrix row, see
+ * {@link #getImageLineAtMatrixRow(int)}
  */
 public class ImageLines {
 
@@ -23,7 +25,8 @@ public class ImageLines {
 	public final byte[][] scanlinesb;
 
 	/**
-	 * Allocates a matrix to store {@code nRows} image rows. See {@link ImageLine} and {@link PngReader#readRowsInt()}
+	 * Allocates a matrix to store {@code nRows} image rows. See
+	 * {@link ImageLine} and {@link PngReader#readRowsInt()}
 	 * {@link PngReader#readRowsByte()}
 	 * 
 	 * @param imgInfo
@@ -54,8 +57,9 @@ public class ImageLines {
 	}
 
 	/**
-	 * Warning: this always returns a valid matrix row (clamping on 0 : nrows-1, and rounding down) Eg:
-	 * rowOffset=4,rowStep=2 imageRowToMatrixRow(17) returns 6 , imageRowToMatrixRow(1) returns 0
+	 * Warning: this always returns a valid matrix row (clamping on 0 : nrows-1,
+	 * and rounding down) Eg: rowOffset=4,rowStep=2 imageRowToMatrixRow(17)
+	 * returns 6 , imageRowToMatrixRow(1) returns 0
 	 */
 	public int imageRowToMatrixRow(int imrow) {
 		int r = (imrow - rowOffset) / rowStep;
@@ -86,9 +90,11 @@ public class ImageLines {
 	 * Returns a ImageLine is backed by the matrix, no allocation done
 	 * 
 	 * @param mrow
-	 *            Matrix row, from 0 to nRows This is not necessarily the image row, see
-	 *            {@link #imageRowToMatrixRow(int)} and {@link #matrixRowToImageRow(int)}
-	 * @return A new ImageLine, backed by the matrix, with the correct ('real') rownumber
+	 *            Matrix row, from 0 to nRows This is not necessarily the image
+	 *            row, see {@link #imageRowToMatrixRow(int)} and
+	 *            {@link #matrixRowToImageRow(int)}
+	 * @return A new ImageLine, backed by the matrix, with the correct ('real')
+	 *         rownumber
 	 */
 	public ImageLine getImageLineAtMatrixRow(int mrow) {
 		if (mrow < 0 || mrow > nRows)
