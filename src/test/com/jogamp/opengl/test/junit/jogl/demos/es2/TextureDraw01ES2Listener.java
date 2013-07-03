@@ -56,7 +56,7 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
     PMVMatrix pmvMatrix;
     GLUniformData pmvMatrixUniform;
     GLArrayDataServer interleavedVBO;
-    float[] clearColor = new float[] { 1.0f, 1.0f, 1.0f, 0.4f };
+    float[] clearColor = new float[] { 1.0f, 1.0f, 1.0f, 1.0f };
     
     public TextureDraw01ES2Listener(TextureData td) {
         this.textureData = td;
