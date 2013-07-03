@@ -671,10 +671,6 @@ public abstract class GLContext {
     return ctxVersionString;
   }
 
-  /** @deprecated Use {@link #getGLVersionNumber()} */
-  public final int getGLVersionMajor() { return ctxVersion.getMajor(); }
-  /** @deprecated Use {@link #getGLVersionNumber()} */
-  public final int getGLVersionMinor() { return ctxVersion.getMinor(); }
   /**
    * Returns this context OpenGL version. 
    * @see #getGLSLVersionNumber() 

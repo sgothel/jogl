@@ -133,8 +133,10 @@ public class TextureSequenceCubeES2 implements GLEventListener {
             }
         }        
         public void mouseWheelMoved(MouseEvent e) {
-            zoom += e.getWheelRotation()/10f;
-            System.err.println("zoom: "+zoom);
+            if( !e.isShiftDown() ) {
+                zoom += e.getRotation()[0]/10f;
+                System.err.println("zoom: "+zoom);
+            }
         }
     };
     

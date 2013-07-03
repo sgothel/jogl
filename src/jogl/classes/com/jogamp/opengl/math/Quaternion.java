@@ -330,20 +330,8 @@ public class Quaternion {
     }
 
     /**
-     * Check if this quaternion is empty, ie (0,0,0,1)
-     * 
-     * @return true if empty, false otherwise
-     * @deprecated use {@link #isIdentity()} instead
-     */
-    @Deprecated
-    public boolean isEmpty() {
-        if (w == 1 && x == 0 && y == 0 && z == 0)
-            return true;
-        return false;
-    }
-
-    /**
-     * Check if this quaternion represents an identity matrix, for rotation.
+     * Check if this quaternion represents an identity matrix for rotation,
+     * , ie (0,0,0,1).
      * 
      * @return true if it is an identity rep., false otherwise
      */

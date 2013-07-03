@@ -252,33 +252,6 @@ public class MouseEvent extends InputEvent
     }
     
     /**
-     * <i>Usually</i> a wheel rotation of <b>&gt; 0.0f is up</b>,
-     * and <b>&lt; 0.0f is down</b>.
-     * <p>
-     * Usually a wheel rotations is considered a vertical scroll.<br/>
-     * If {@link #isShiftDown()}, a wheel rotations is
-     * considered a horizontal scroll, where <b>shift-up = left = &gt; 0.0f</b>,
-     * and <b>shift-down = right = &lt; 0.0f</b>.   
-     * </p>
-     * <p>
-     * <i>However</i>, on some OS this might be flipped due to the OS <i>default</i> behavior.
-     * The latter is true for OS X 10.7 (Lion) for example.
-     * </p>
-     * <p>
-     * The events will be send usually in steps of one, ie. <i>-1.0f</i> and <i>1.0f</i>.
-     * Higher values may result due to fast scrolling.
-     * Fractional values may result due to slow scrolling with high resolution devices.  
-     * </p>
-     * <p>
-     * The button number refers to the wheel number.
-     * </p>
-     * @deprecated Use {@link #getRotation()}
-     */
-    public float getWheelRotation() {
-        return isShiftDown() ? rotationXYZ[0] : rotationXYZ[1] ;
-    }
-
-    /**
      * Returns a 3-component float array filled with the values of the rotational axis
      * in the following order: horizontal-, vertical- and z-axis.
      * <p> 

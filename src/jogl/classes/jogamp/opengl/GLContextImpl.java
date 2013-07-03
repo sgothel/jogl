@@ -1098,22 +1098,6 @@ public abstract class GLContextImpl extends GLContext {
    */
   public abstract ProcAddressTable getPlatformExtProcAddressTable();
 
-  /**
-   * Pbuffer support; given that this is a GLContext associated with a
-   * pbuffer, binds this pbuffer to its texture target.
-   * @throws GLException if not implemented (default)
-   * @deprecated use FBO/GLOffscreenAutoDrawable instead of pbuffer
-   */
-  public void bindPbufferToTexture() { throw new GLException("not implemented"); }
-
-  /**
-   * Pbuffer support; given that this is a GLContext associated with a
-   * pbuffer, releases this pbuffer from its texture target.
-   * @throws GLException if not implemented (default)
-   * @deprecated use FBO/GLOffscreenAutoDrawable instead of pbuffer
-   */
-  public void releasePbufferFromTexture() { throw new GLException("not implemented"); }
-
   public abstract ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3);
 
   /** Maps the given "platform-independent" function name to a real function
@@ -1515,8 +1499,8 @@ public abstract class GLContextImpl extends GLContext {
     int i = 0;
     
     final String MesaSP = "Mesa ";
-    final String MesaRendererAMDsp = " AMD "; 
-    final String MesaRendererIntelsp = "Intel(R)"; 
+    // final String MesaRendererAMDsp = " AMD "; 
+    // final String MesaRendererIntelsp = "Intel(R)"; 
     final boolean hwAccel = 0 == ( ctp & GLContext.CTX_IMPL_ACCEL_SOFT );
     final boolean compatCtx = 0 != ( ctp & GLContext.CTX_PROFILE_COMPAT );
     final boolean isDriverMesa = glRenderer.contains(MesaSP) || glRenderer.contains("Gallium ");

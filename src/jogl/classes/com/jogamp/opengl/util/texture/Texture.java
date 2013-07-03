@@ -290,12 +290,6 @@ public class Texture {
     }
     
     /**
-     * @deprecated use {@link #destroy(GL)}
-     */
-    public final void dispose(GL gl) throws GLException {
-        destroy(gl);
-    }
-    /**
      * Destroys the native resources used by this texture object.
      *
      * @throws GLException if any OpenGL-related errors occurred
