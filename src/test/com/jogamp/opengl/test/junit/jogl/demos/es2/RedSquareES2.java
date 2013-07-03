@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl.test.junit.jogl.demos.es2;
 
+import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -69,14 +70,7 @@ public class RedSquareES2 implements GLEventListener {
         System.err.println("RedSquareES2 init on "+Thread.currentThread());
         System.err.println("Chosen GLCapabilities: " + glad.getChosenGLCapabilities());
         System.err.println("INIT GL IS: " + gl.getClass().getName());
-        System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
-        System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
-        System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
-        System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler-func: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none"));
-        System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
-        System.err.println("GL Profile: "+gl.getGLProfile());
-        System.err.println("GL Renderer Quirks:" + gl.getContext().getRendererQuirks().toString());
-        System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
+        System.err.println(JoglVersion.getGLStrings(gl, null).toString());
         if( !gl.hasGLSL() ) {
             System.err.println("No GLSL available, no rendering.");
             return;

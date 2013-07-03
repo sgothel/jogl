@@ -177,6 +177,8 @@ public class JoglVersion extends JogampVersion {
             sb.append(", version: ").append(gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION)).append(" / ").append(ctx.getGLSLVersionNumber());
         }
         sb.append(Platform.getNewline());
+        sb.append("GL FBO: basic ").append(gl.hasBasicFBOSupport()).append(", full ").append(gl.hasFullFBOSupport());
+        sb.append(Platform.getNewline());
         sb.append("GL_EXTENSIONS  ").append(ctx.getGLExtensionCount());
         sb.append(Platform.getNewline());
         sb.append("               ").append(ctx.getGLExtensionsString());

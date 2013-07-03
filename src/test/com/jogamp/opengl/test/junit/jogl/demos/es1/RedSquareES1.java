@@ -6,6 +6,7 @@ import javax.media.opengl.*;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 import javax.media.opengl.fixedfunc.GLPointerFunc;
 
+import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.util.glsl.fixedfunc.*;
 
 public class RedSquareES1 implements GLEventListener {
@@ -80,13 +81,7 @@ public class RedSquareES1 implements GLEventListener {
         System.err.println("RedSquareES1 init on "+Thread.currentThread());
         System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
         System.err.println("INIT GL IS: " + gl.getClass().getName());
-        System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
-        System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
-        System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
-        System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler-func: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none"));
-        System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
-        System.err.println("GL Profile: "+gl.getGLProfile());
-        System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
+        System.err.println(JoglVersion.getGLStrings(gl, null).toString());
 
         // Allocate vertex arrays
         colors   = Buffers.newDirectFloatBuffer(16);
