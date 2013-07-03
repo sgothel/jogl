@@ -1649,16 +1649,13 @@ public abstract class GLContextImpl extends GLContext {
             }
             quirks[i++] = quirk;
         }
-        if( ( (glRenderer.contains( MesaRendererIntelsp ) && compatCtx) || glRenderer.contains( MesaRendererAMDsp ) ) && 
-            ( major > 3 || major == 3 && minor >= 1 ) 
-          )
-        {
-            // FIXME: Apply vendor version constraints!
-            final int quirk = GLRendererQuirks.GLNonCompliant;
-            if(DEBUG) {
-                System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);
-            }
-            quirks[i++] = quirk;
+        if (compatCtx && (major > 3 || (major == 3 && minor >= 1))) {
+          // FIXME: Apply vendor version constraints!
+          final int quirk = GLRendererQuirks.GLNonCompliant;
+          if(DEBUG) {
+              System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: Renderer " + glRenderer);
+          }
+          quirks[i++] = quirk;
         }
         if( Platform.getOSType() == Platform.OSType.WINDOWS && glRenderer.contains("SVGA3D") )
         {
