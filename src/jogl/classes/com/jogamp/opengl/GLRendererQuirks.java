@@ -75,6 +75,14 @@ public class GLRendererQuirks {
      * context is not compliant. Most programs will give completely broken output (or no
      * output at all. For now, this context is not trusted.
      * </p>
+     * The above has been confirmed for the following Mesa 9.* GL_RENDERER strings:
+     * <ul>
+     *   <li>Mesa .* Intel(R) Sandybridge Desktop</li>
+     *   <li>Gallium 0.4 on AMD RS880</li>
+     * </ul>
+     * </p>
+     * <p>
+     * It still has to be verified whether the AMD OpenGL 3.1 core driver is compliant enought. 
      */
     public static final int GLNonCompliant = 6;
     
