@@ -671,7 +671,7 @@ public abstract class GLContextImpl extends GLContext {
                 if( 0 == ( ctxOptions & GLContext.CTX_PROFILE_ES) ) {   // not ES profile
                     final int reqMajor;
                     final int reqProfile;
-                    if( ctxVersion.compareTo(Version30) <= 0 ) {
+                    if( ctxVersion.compareTo(Version300) <= 0 ) {
                         reqMajor = 2;
                     } else {
                         reqMajor = ctxVersion.getMajor();
@@ -1605,7 +1605,7 @@ public abstract class GLContextImpl extends GLContext {
             //
             final int quirk = GLRendererQuirks.DontCloseX11Display;
             if( glRenderer.contains(MesaSP) ) {
-                if ( glRenderer.contains("X11") && vendorVersion.compareTo(Version80) < 0 ) {
+                if ( glRenderer.contains("X11") && vendorVersion.compareTo(Version800) < 0 ) {
                     if(DEBUG) {
                         System.err.println("Quirk: "+GLRendererQuirks.toString(quirk)+": cause: X11 Renderer=" + glRenderer + ", Version=[vendor " + vendorVersion + ", GL " + glVersion+"]");
                     }
