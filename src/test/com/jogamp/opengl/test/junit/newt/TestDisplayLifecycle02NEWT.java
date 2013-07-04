@@ -340,7 +340,7 @@ public class TestDisplayLifecycle02NEWT extends UITestCase {
 
     }
 
-    // @Test
+    @Test
     public void testDisplayCreate02() throws InterruptedException {
         Assert.assertEquals(0,Display.getActiveDisplayNumber());
 
