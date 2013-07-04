@@ -197,15 +197,19 @@ public class TestScreenMode01bNEWT extends UITestCase {
         Assert.assertNotNull(monitorModes);
         Assert.assertTrue(monitorModes.size()>0);
 
-        MonitorMode sm = (MonitorMode) monitorModes.get(0);
-        System.err.println("[1] set current: "+sm);
-        Assert.assertTrue(monitor.setCurrentMode(sm));
-        mmCurrent = monitor.getCurrentMode();
-        System.err.println("[1] current: "+mmCurrent);
-        Assert.assertTrue(monitor.isModeChangedByUs());
-        Assert.assertEquals(sm, monitor.getCurrentMode());
-        Assert.assertNotSame(mmOrig, monitor.getCurrentMode());
-        Assert.assertEquals(sm, monitor.queryCurrentMode());
+        // set mode
+        {
+            MonitorMode mm = monitorModes.get(0);
+            System.err.println("[0] set current: "+mm);
+            final boolean smOk = monitor.setCurrentMode(mm);
+            mmCurrent = monitor.getCurrentMode();
+            System.err.println("[0] has current: "+mmCurrent+", changeOK "+smOk);
+            Assert.assertTrue(monitor.isModeChangedByUs());
+            Assert.assertEquals(mm, mmCurrent);
+            Assert.assertNotSame(mmOrig, mmCurrent);
+            Assert.assertEquals(mmCurrent, monitor.queryCurrentMode());
+            Assert.assertTrue(smOk);
+        }
 
         System.err.println("Test.1: Window screen: "+screen);
         System.err.println("Test.1: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getWidth()+"x"+window0.getHeight()+" within "+screen.getViewport());
@@ -218,11 +222,16 @@ public class TestScreenMode01bNEWT extends UITestCase {
         Assert.assertEquals(true,window0.isNativeValid());
         Assert.assertEquals(true,window0.isVisible());
 
-        Assert.assertTrue(monitor.setCurrentMode(mmOrig));
-        Assert.assertFalse(monitor.isModeChangedByUs());
-        Assert.assertEquals(mmOrig, monitor.getCurrentMode());
-        Assert.assertNotSame(sm, monitor.getCurrentMode());
-        Assert.assertEquals(mmOrig, monitor.queryCurrentMode());
+        // manual restore!
+        {
+            System.err.println("[1] set orig: "+mmOrig);
+            final boolean smOk = monitor.setCurrentMode(mmOrig);
+            mmCurrent = monitor.getCurrentMode();
+            System.err.println("[1] has orig?: "+mmCurrent+", changeOK "+smOk);
+            Assert.assertFalse(monitor.isModeChangedByUs());
+            Assert.assertEquals(mmOrig, mmCurrent);
+            Assert.assertTrue(smOk);
+        }        
         
         System.err.println("Test.2: Window screen: "+screen);
         System.err.println("Test.2: Window bounds: "+window0.getX()+"/"+window0.getY()+" "+window0.getWidth()+"x"+window0.getHeight()+" within "+screen.getViewport());

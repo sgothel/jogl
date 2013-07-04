@@ -162,13 +162,19 @@ public class TestScreenMode01aNEWT extends UITestCase {
         Assert.assertNotNull(monitorModes);
         Assert.assertTrue(monitorModes.size()>0);
 
-        MonitorMode mm = monitorModes.get(0);
-        System.err.println("[0] set current: "+mm);
-        Assert.assertTrue(monitor.setCurrentMode(mm));
-        Assert.assertTrue(monitor.isModeChangedByUs());
-        Assert.assertEquals(mm, monitor.getCurrentMode());
-        Assert.assertNotSame(mmOrig, monitor.getCurrentMode());
-        Assert.assertEquals(mm, monitor.queryCurrentMode());
+        // set mode
+        {
+            MonitorMode mm = monitorModes.get(0);
+            System.err.println("[0] set current: "+mm);
+            final boolean smOk = monitor.setCurrentMode(mm);
+            MonitorMode mmCurrent = monitor.getCurrentMode();
+            System.err.println("[0] has current: "+mmCurrent+", changeOK "+smOk);
+            Assert.assertTrue(monitor.isModeChangedByUs());
+            Assert.assertEquals(mm, mmCurrent);
+            Assert.assertNotSame(mmOrig, mmCurrent);
+            Assert.assertEquals(mmCurrent, monitor.queryCurrentMode());
+            Assert.assertTrue(smOk);
+        }
 
         Thread.sleep(waitTimeShort);
 

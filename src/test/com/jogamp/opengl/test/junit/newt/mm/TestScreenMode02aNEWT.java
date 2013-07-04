@@ -149,7 +149,7 @@ public class TestScreenMode02aNEWT extends UITestCase {
             }
             Assert.assertTrue(monitorModes.size()>0);
     
-            final MonitorMode mmCurrent = monitor.getCurrentMode();
+            MonitorMode mmCurrent = monitor.getCurrentMode();
             Assert.assertNotNull(mmCurrent);
             System.err.println("[0] orig   : "+mmOrig);
             System.err.println("[0] current: "+mmCurrent);
@@ -175,13 +175,19 @@ public class TestScreenMode02aNEWT extends UITestCase {
             Assert.assertNotNull(monitorModes);
             Assert.assertTrue(monitorModes.size()>0);
     
-            MonitorMode mm = (MonitorMode) monitorModes.get(0);
-            System.err.println("[0] set current: "+mm);
-            monitor.setCurrentMode(mm);
-            Assert.assertTrue(monitor.isModeChangedByUs());
-            Assert.assertEquals(mm, monitor.getCurrentMode());
-            Assert.assertNotSame(mmOrig, monitor.getCurrentMode());
-            Assert.assertEquals(mm, monitor.queryCurrentMode());        
+            // set mode
+            {
+                MonitorMode mm = monitorModes.get(0);
+                System.err.println("[0] set current: "+mm);
+                final boolean smOk = monitor.setCurrentMode(mm);
+                mmCurrent = monitor.getCurrentMode();
+                System.err.println("[0] has current: "+mmCurrent+", changeOK "+smOk);
+                Assert.assertTrue(monitor.isModeChangedByUs());
+                Assert.assertEquals(mm, mmCurrent);
+                Assert.assertNotSame(mmOrig, mmCurrent);
+                Assert.assertEquals(mmCurrent, monitor.queryCurrentMode());
+                Assert.assertTrue(smOk);
+            }
         }
         
         if( !preVis ) {
@@ -201,9 +207,15 @@ public class TestScreenMode02aNEWT extends UITestCase {
             Thread.sleep(waitTimeShort);
             
             // manual restore!
-            monitor.setCurrentMode(mmOrig);
-            Assert.assertFalse(monitor.isModeChangedByUs());
-            Assert.assertEquals(mmOrig, monitor.getCurrentMode());
+            {
+                System.err.println("[1] set orig: "+mmOrig);
+                final boolean smOk = monitor.setCurrentMode(mmOrig);
+                MonitorMode mmCurrent = monitor.getCurrentMode();
+                System.err.println("[1] has orig?: "+mmCurrent+", changeOK "+smOk);
+                Assert.assertFalse(monitor.isModeChangedByUs());
+                Assert.assertEquals(mmOrig, mmCurrent);
+                Assert.assertTrue(smOk);
+            }        
             Thread.sleep(waitTimeShort);
         }
             

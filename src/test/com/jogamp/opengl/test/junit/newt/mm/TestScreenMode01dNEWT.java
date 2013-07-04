@@ -241,13 +241,19 @@ public class TestScreenMode01dNEWT extends UITestCase {
         Assert.assertNotNull(monitorModes);
         Assert.assertTrue(monitorModes.size()>0);
 
-        MonitorMode sm = (MonitorMode) monitorModes.get(0);
-        System.err.println("[0] set current: "+sm);
-        monitor.setCurrentMode(sm);
-        Assert.assertTrue(monitor.isModeChangedByUs());
-        Assert.assertEquals(sm, monitor.getCurrentMode());
-        Assert.assertNotSame(mmOrig, monitor.getCurrentMode());
-        Assert.assertEquals(sm, monitor.queryCurrentMode());        
+        // set mode
+        {
+            MonitorMode sm = (MonitorMode) monitorModes.get(0);
+            System.err.println("[0] set current: "+sm);
+            final boolean smOk = monitor.setCurrentMode(sm);
+            mmCurrent = monitor.getCurrentMode();
+            System.err.println("[0] has current: "+mmCurrent+", changeOK "+smOk);
+            Assert.assertTrue(monitor.isModeChangedByUs());
+            Assert.assertEquals(sm, mmCurrent);
+            Assert.assertNotSame(mmOrig, mmCurrent);
+            Assert.assertEquals(mmCurrent, monitor.queryCurrentMode());
+            Assert.assertTrue(smOk);
+        }
         
         Thread.sleep(waitTimeLong);
 
@@ -327,10 +333,20 @@ public class TestScreenMode01dNEWT extends UITestCase {
             Assert.assertEquals(true, window.isFullscreen());
             System.err.println("[0] set FS pre X: "+window.isFullscreen());
         }
-
         Thread.sleep(waitTimeShort);
-        System.err.println("[0] set current: "+monitorMode);
-        monitor.setCurrentMode(monitorMode);
+        
+        // set mode
+        {
+            System.err.println("[0] set current: "+monitorMode);
+            final boolean smOk = monitor.setCurrentMode(monitorMode);
+            mmCurrent = monitor.getCurrentMode();
+            System.err.println("[0] has current: "+mmCurrent+", changeOK "+smOk);
+            Assert.assertTrue(monitor.isModeChangedByUs());
+            Assert.assertEquals(monitorMode, mmCurrent);
+            Assert.assertNotSame(mmOrig, mmCurrent);
+            Assert.assertEquals(mmCurrent, monitor.queryCurrentMode());
+            Assert.assertTrue(smOk);
+        }
         
         if(!preFS) {
             System.err.println("[0] set FS post 0: "+window.isFullscreen());

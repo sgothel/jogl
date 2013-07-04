@@ -185,13 +185,19 @@ public class TestScreenMode02bNEWT extends UITestCase {
         Assert.assertNotNull(monitorModes);
         Assert.assertTrue(monitorModes.size()>0);
 
-        MonitorMode mm = monitorModes.get(0); // highest resolution ..
-        System.err.println("[0] set current: "+mm);
-        Assert.assertTrue(monitor.setCurrentMode(mm));
-        Assert.assertTrue(monitor.isModeChangedByUs());
-        Assert.assertEquals(mm, monitor.getCurrentMode());
-        Assert.assertNotSame(mmOrig, monitor.getCurrentMode());
-        Assert.assertEquals(mm, monitor.queryCurrentMode());
+        // set mode
+        {
+            MonitorMode mm = monitorModes.get(0); // highest resolution ..
+            System.err.println("[0] set current: "+mm);
+            final boolean smOk = monitor.setCurrentMode(mm);
+            mmCurrent = monitor.getCurrentMode();
+            System.err.println("[0] has current: "+mmCurrent+", changeOK "+smOk);
+            Assert.assertTrue(monitor.isModeChangedByUs());
+            Assert.assertEquals(mm, mmCurrent);
+            Assert.assertNotSame(mmOrig, mmCurrent);
+            Assert.assertEquals(mmCurrent, monitor.queryCurrentMode());
+            Assert.assertTrue(smOk);
+        }
 
         if( !preVis ) {
             window.setFullscreen(true);
@@ -205,9 +211,15 @@ public class TestScreenMode02bNEWT extends UITestCase {
         }
         
         // manual restore!
-        monitor.setCurrentMode(mmOrig);
-        Assert.assertFalse(monitor.isModeChangedByUs());
-        Assert.assertEquals(mmOrig, monitor.queryCurrentMode());
+        {
+            System.err.println("[1] set orig: "+mmOrig);
+            final boolean smOk = monitor.setCurrentMode(mmOrig);
+            mmCurrent = monitor.getCurrentMode();
+            System.err.println("[1] has orig?: "+mmCurrent+", changeOK "+smOk);
+            Assert.assertFalse(monitor.isModeChangedByUs());
+            Assert.assertEquals(mmOrig, mmCurrent);
+            Assert.assertTrue(smOk);
+        }        
         Thread.sleep(waitTimeShort);
 
         if( preVis ) {
