@@ -109,15 +109,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private static void addWindow2List(WindowImpl window) {
         synchronized(windowList) {
             // GC before add
-            int i=0;
+            int i=0, gced=0;
             while( i < windowList.size() ) {
                 if( null == windowList.get(i).get() ) {
+                    gced++;
                     windowList.remove(i);
                 } else {
                     i++;
                 }
             }
             windowList.add(new WeakReference<WindowImpl>(window));
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("Window.addWindow2List: GCed "+gced+", size "+windowList.size());
+            }
         }
     }
     
