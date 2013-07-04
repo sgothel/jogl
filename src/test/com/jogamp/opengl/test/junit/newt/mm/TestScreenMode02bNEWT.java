@@ -197,7 +197,6 @@ public class TestScreenMode02bNEWT extends UITestCase {
             if( !smOk ) {
                 System.err.println("ERROR: Full MonitorMode w/ rotation failure - Expected on some platforms (NV driver) - Tolerated for now.");
                 destroyWindow(window);
-                Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
                 return;
             }
             Assert.assertTrue(monitor.isModeChangedByUs());
