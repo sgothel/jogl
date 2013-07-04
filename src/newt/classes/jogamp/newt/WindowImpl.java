@@ -36,6 +36,7 @@ package jogamp.newt;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 
 import com.jogamp.common.util.IntBitfield;
@@ -82,7 +83,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 {
     public static final boolean DEBUG_TEST_REPARENT_INCOMPATIBLE = Debug.isPropertyDefined("newt.test.Window.reparent.incompatible", true);
     
-    protected static final ArrayList<WindowImpl> windowList = new ArrayList<WindowImpl>();
+    protected static final ArrayList<WeakReference<WindowImpl>> windowList = new ArrayList<WeakReference<WindowImpl>>();    
     
     static {
         ScreenImpl.initSingleton();
@@ -95,11 +96,26 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             System.err.println("Window.shutdownAll "+wCount+" instances, on thread "+getThreadName());
         }
         for(int i=0; i<wCount && windowList.size()>0; i++) { // be safe ..
-            final WindowImpl w = windowList.remove(0);
+            final WindowImpl w = windowList.remove(0).get();
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.shutdownAll["+(i+1)+"/"+wCount+"]: "+toHexString(w.getWindowHandle()));
+                final long wh = null != w ? w.getWindowHandle() : 0;
+                System.err.println("Window.shutdownAll["+(i+1)+"/"+wCount+"]: "+toHexString(wh)+", GCed "+(null==w));
             }
             w.shutdown();
+        }
+    }
+    private static void addWindow2List(WindowImpl window) {
+        synchronized(windowList) {
+            // GC before add
+            int i=0;
+            while( i < windowList.size() ) {
+                if( null == windowList.get(i).get() ) {
+                    windowList.remove(i);
+                } else {
+                    i++;
+                }
+            }
+            windowList.add(new WeakReference<WindowImpl>(window));
         }
     }
     
@@ -208,9 +224,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             window.screen = (ScreenImpl) screen;
             window.capsRequested = (CapabilitiesImmutable) caps.cloneMutable();
             window.instantiationFinished();
-            synchronized( windowList ) {
-                windowList.add(window);
-            }
+            addWindow2List(window);
             return window;
         } catch (Throwable t) {
             t.printStackTrace();
@@ -233,9 +247,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             window.screen = (ScreenImpl) screen;
             window.capsRequested = (CapabilitiesImmutable) caps.cloneMutable();
             window.instantiationFinished();
-            synchronized( windowList ) {
-                windowList.add(window);
-            }
+            addWindow2List(window);
             return window;
         } catch (Throwable t) {
             throw new NativeWindowException(t);
@@ -1062,9 +1074,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
     @Override
     public void destroy() {
-        synchronized( windowList ) {
-            windowList.remove(this);
-        }        
         visible = false; // Immediately mark synchronized visibility flag, avoiding possible recreation 
         runOnEDTIfAvail(true, destroyAction);
     }

@@ -125,7 +125,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
                 screen.screen_idx = idx;
                 screen.fqname = display.getFQName()+"-s"+idx;
                 screen.hashCode = screen.fqname.hashCode();
-                screenList.add(screen);
+                Screen.addScreen2List(screen);
                 if(DEBUG) {
                     System.err.println("Screen.create() NEW: "+screen+" "+Display.getThreadName());
                 }
@@ -169,8 +169,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
                 System.err.println("Screen.createNative() START ("+DisplayImpl.getThreadName()+", "+this+")");
             } else {
                 tCreated = 0;
-            }
-            
+            }            
             display.addReference();
             
             createNativeImpl();
@@ -179,11 +178,11 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
             }
 
             initMonitorState();
-            if(DEBUG) {
-                System.err.println("Screen.createNative() END ("+DisplayImpl.getThreadName()+", "+this+"), total "+ (System.nanoTime()-tCreated)/1e6 +"ms");
-            }
             synchronized(screenList) {
                 screensActive++;
+                if(DEBUG) {
+                    System.err.println("Screen.createNative() END ("+DisplayImpl.getThreadName()+", "+this+"), active "+screensActive+", total "+ (System.nanoTime()-tCreated)/1e6 +"ms");
+                }
             }
             ScreenMonitorState.getScreenMonitorState(this.getFQName()).addListener(this);
         }
@@ -192,10 +191,12 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     @Override
     public synchronized final void destroy() {
         synchronized(screenList) {
-            if( screenList.remove(this) ) {
-                if(0 < screensActive) {
-                    screensActive--;
-                }
+            if(0 < screensActive) {
+                screensActive--;
+            }
+            if(DEBUG) {
+                System.err.println("Screen.destroy() ("+DisplayImpl.getThreadName()+"): active "+screensActive);
+                // Thread.dumpStack();
             }
         }
 
@@ -667,11 +668,13 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
             System.err.println("Screen.shutdownAll "+sCount+" instances, on thread "+Display.getThreadName());
         }
         for(int i=0; i<sCount && screenList.size()>0; i++) { // be safe ..
-            final ScreenImpl s = (ScreenImpl) screenList.remove(0);
+            final ScreenImpl s = (ScreenImpl) screenList.remove(0).get();
             if(DEBUG) {
-                System.err.println("Screen.shutdownAll["+(i+1)+"/"+sCount+"]: "+s);
+                System.err.println("Screen.shutdownAll["+(i+1)+"/"+sCount+"]: "+s+", GCed "+(null==s));
             }
-            s.shutdown();
+            if( null != s ) {
+                s.shutdown();
+            }
         }
     }
 }

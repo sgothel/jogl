@@ -117,8 +117,7 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
             createdContexts.add(new WeakReference<MacOSXCGLContext>(osxCtx));
         } else {
             for(int i=0; i<createdContexts.size(); ) {
-                final WeakReference<MacOSXCGLContext> ref = createdContexts.get(i); 
-                final MacOSXCGLContext _ctx = ref.get();
+                final MacOSXCGLContext _ctx = createdContexts.get(i).get();
                 if( _ctx == null || _ctx == ctx) {
                     createdContexts.remove(i);
                 } else {
@@ -134,8 +133,7 @@ public abstract class MacOSXCGLDrawable extends GLDrawableImpl {
     if(doubleBuffered) { 
         synchronized (createdContexts) {
             for(int i=0; i<createdContexts.size(); ) {
-                final WeakReference<MacOSXCGLContext> ref = createdContexts.get(i); 
-                final MacOSXCGLContext ctx = ref.get();
+                final MacOSXCGLContext ctx = createdContexts.get(i).get();
                 if (ctx != null) {
                     ctx.swapBuffers();
                     i++;

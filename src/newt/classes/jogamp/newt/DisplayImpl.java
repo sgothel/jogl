@@ -41,6 +41,7 @@ import com.jogamp.newt.event.NEWTEventConsumer;
 
 import jogamp.newt.event.NEWTEventTask;
 import com.jogamp.newt.util.EDTUtil;
+
 import java.util.ArrayList;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -96,7 +97,7 @@ public abstract class DisplayImpl extends Display {
                 display.id = serialno++;
                 display.fqname = getFQName(display.type, display.name, display.id);
                 display.hashCode = display.fqname.hashCode();
-                displayList.add(display);
+                Display.addDisplay2List(display);
             }
             display.setEDTUtil(display.edtUtil); // device's default if EDT is used, or null
             
@@ -155,11 +156,11 @@ public abstract class DisplayImpl extends Display {
             if(null==aDevice) {
                 throw new NativeWindowException("Display.createNative() failed to instanciate an AbstractGraphicsDevice");
             }
-            if(DEBUG) {
-                System.err.println("Display.createNative() END ("+getThreadName()+", "+this+")");
-            }
             synchronized(displayList) {
                 displaysActive++;
+                if(DEBUG) {
+                    System.err.println("Display.createNative() END ("+getThreadName()+", "+this+", active "+displaysActive+")");
+                }
             }
         }
     }
@@ -238,13 +239,12 @@ public abstract class DisplayImpl extends Display {
             dumpDisplayList("Display.destroy("+getFQName()+") BEGIN");
         }
         synchronized(displayList) {
-            displayList.remove(this);
             if(0 < displaysActive) {
                 displaysActive--;
             }
-        }
-        if(DEBUG) {
-            System.err.println("Display.destroy(): "+this+" "+getThreadName());
+            if(DEBUG) {
+                System.err.println("Display.destroy(): "+this+", active "+displaysActive+" "+getThreadName());
+            }
         }
         final DisplayImpl f_dpy = this;
         removeEDT( new Runnable() { // blocks!
@@ -268,32 +268,34 @@ public abstract class DisplayImpl extends Display {
             dumpDisplayList("Display.shutdownAll "+dCount+" instances, on thread "+getThreadName());
         }
         for(int i=0; i<dCount && displayList.size()>0; i++) { // be safe ..
-            final DisplayImpl d = (DisplayImpl) displayList.remove(0);
-            if(0 < displaysActive) {
-                displaysActive--;
-            }
+            final DisplayImpl d = (DisplayImpl) displayList.remove(0).get();
             if(DEBUG) {
-                System.err.println("Display.shutdownAll["+(i+1)+"/"+dCount+"]: "+d);
+                System.err.println("Display.shutdownAll["+(i+1)+"/"+dCount+"]: "+d+", GCed "+(null==d));
             }
-            final Runnable closeNativeTask = new Runnable() {
-                public void run() {
-                    if ( null != d.getGraphicsDevice() ) {
-                        d.closeNativeImpl();
-                    }
+            if( null != d ) { // GC'ed ?
+                if(0 < displaysActive) {
+                    displaysActive--;
                 }
-            };
-            final EDTUtil edtUtil = d.getEDTUtil();
-            if(null != edtUtil) {
-                final long coopSleep = edtUtil.getPollPeriod() * 2;
-                edtUtil.invokeStop(false, closeNativeTask); // don't block
-                try {
-                    Thread.sleep( coopSleep < 50 ? coopSleep : 50 );
-                } catch (InterruptedException e) { }
-            } else {
-                closeNativeTask.run();
+                final Runnable closeNativeTask = new Runnable() {
+                    public void run() {
+                        if ( null != d.getGraphicsDevice() ) {
+                            d.closeNativeImpl();
+                        }
+                    }
+                };
+                final EDTUtil edtUtil = d.getEDTUtil();
+                if(null != edtUtil) {
+                    final long coopSleep = edtUtil.getPollPeriod() * 2;
+                    edtUtil.invokeStop(false, closeNativeTask); // don't block
+                    try {
+                        Thread.sleep( coopSleep < 50 ? coopSleep : 50 );
+                    } catch (InterruptedException e) { }
+                } else {
+                    closeNativeTask.run();
+                }
+                d.aDevice = null;
+                d.refCount=0;
             }
-            d.aDevice = null;
-            d.refCount=0;
         }
     }
 
