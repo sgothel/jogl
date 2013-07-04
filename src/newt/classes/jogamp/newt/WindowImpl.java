@@ -101,7 +101,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 final long wh = null != w ? w.getWindowHandle() : 0;
                 System.err.println("Window.shutdownAll["+(i+1)+"/"+wCount+"]: "+toHexString(wh)+", GCed "+(null==w));
             }
-            w.shutdown();
+            if( null != w ) {
+                w.shutdown();
+            }
         }
     }
     private static void addWindow2List(WindowImpl window) {
