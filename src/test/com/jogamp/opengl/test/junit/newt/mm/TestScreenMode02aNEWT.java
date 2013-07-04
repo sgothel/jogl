@@ -138,6 +138,8 @@ public class TestScreenMode02aNEWT extends UITestCase {
         final MonitorMode mmOrig = monitor.getOriginalMode();
         Assert.assertNotNull(mmOrig);
         if(changeMode) {
+            Thread.sleep(waitTimeShort);
+
             List<MonitorMode> monitorModes = monitor.getSupportedModes();
             if(monitorModes.size()==1) {
                 // no support ..
@@ -196,6 +198,8 @@ public class TestScreenMode02aNEWT extends UITestCase {
         }
         
         if(changeMode) {
+            Thread.sleep(waitTimeShort);
+            
             // manual restore!
             monitor.setCurrentMode(mmOrig);
             Assert.assertFalse(monitor.isModeChangedByUs());

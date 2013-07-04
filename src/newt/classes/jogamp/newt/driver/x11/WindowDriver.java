@@ -65,6 +65,7 @@ public class WindowDriver extends WindowImpl {
     public WindowDriver() {
     }
 
+    @Override
     protected void createNativeImpl() {
         final ScreenDriver screen = (ScreenDriver) getScreen();
         final DisplayDriver display = (DisplayDriver) screen.getDisplay();
@@ -109,6 +110,7 @@ public class WindowDriver extends WindowImpl {
         }
     }
 
+    @Override
     protected void closeNativeImpl() {
         if(0!=windowHandleClose && null!=getScreen() ) {
             DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
@@ -133,6 +135,18 @@ public class WindowDriver extends WindowImpl {
         }
     }
 
+    /** 
+     * <p>
+     * X11 Window supports {@link #FLAG_IS_FULLSCREEN_SPAN}
+     * </p>
+     * {@inheritDoc}
+     */
+    @Override
+    protected boolean isReconfigureFlagSupported(int changeFlags) {
+        return true; // all flags!
+    }
+    
+    @Override
     protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, int flags) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("X11Window reconfig: "+x+"/"+y+" "+width+"x"+height+", "+ getReconfigureFlagsAsString(null, flags));
@@ -148,14 +162,16 @@ public class WindowDriver extends WindowImpl {
             _x = x;
             _y = y;
         }
-        if( 0 != ( FLAG_IS_FULLSCREEN & flags) && 0 == ( FLAG_IS_ALWAYSONTOP & flags) ) {
-            tempAlwaysOnTop = true;
-            flags |= FLAG_IS_ALWAYSONTOP;
-            if(DEBUG_IMPLEMENTATION) {
-                System.err.println("X11Window reconfig.2: temporary "+getReconfigureFlagsAsString(null, flags));
+        if( 0 != ( FLAG_CHANGE_FULLSCREEN & flags ) ) {
+            if( 0 != ( FLAG_IS_FULLSCREEN & flags) && 0 != ( FLAG_IS_FULLSCREEN_SPAN & flags) && 0 == ( FLAG_IS_ALWAYSONTOP & flags) ) {
+                tempFSAlwaysOnTop = true;
+                flags |= FLAG_IS_ALWAYSONTOP;
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("X11Window reconfig.2: temporary "+getReconfigureFlagsAsString(null, flags));
+                }
+            } else {
+                tempFSAlwaysOnTop = false;
             }
-        } else {
-            tempAlwaysOnTop = false;
         }
         final int fflags = flags;
         final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
@@ -169,7 +185,7 @@ public class WindowDriver extends WindowImpl {
         });
         return true;
     }
-    volatile boolean tempAlwaysOnTop = false;
+    volatile boolean tempFSAlwaysOnTop = false;
 
     /**
      * <p>
@@ -177,9 +193,13 @@ public class WindowDriver extends WindowImpl {
      * </p>
      * {@inheritDoc}
      */
+    @Override
     protected void focusChanged(boolean defer, boolean focusGained) {
-        if( tempAlwaysOnTop && hasFocus() != focusGained && isNativeValid() ) {
+        if( tempFSAlwaysOnTop && hasFocus() != focusGained && isNativeValid() ) {
             final int flags = getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()) | ( focusGained ? FLAG_IS_ALWAYSONTOP : 0 );
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("X11Window reconfig.3 (focus): temporary "+getReconfigureFlagsAsString(null, flags));
+            }
             final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
             runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
                 public Object run(long dpy) {
@@ -192,8 +212,7 @@ public class WindowDriver extends WindowImpl {
         }
         super.focusChanged(defer, focusGained);
     }
-    
-    
+        
     protected void reparentNotify(long newParentWindowHandle) {
         if(DEBUG_IMPLEMENTATION) {
             final long p0 = getParentWindowHandle();
@@ -201,6 +220,7 @@ public class WindowDriver extends WindowImpl {
         }
     }
     
+    @Override
     protected void requestFocusImpl(final boolean force) {        
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             public Object run(long dpy) {
@@ -248,6 +268,7 @@ public class WindowDriver extends WindowImpl {
         });
     }
     
+    @Override
     protected Point getLocationOnScreenImpl(final int x, final int y) {
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Point>() {
             public Point run(long dpy) {
@@ -256,6 +277,7 @@ public class WindowDriver extends WindowImpl {
         } );
     }
 
+    @Override
     protected void updateInsetsImpl(Insets insets) {
         // nop - using event driven insetsChange(..)         
     }
@@ -304,7 +326,8 @@ public class WindowDriver extends WindowImpl {
         }
         super.doMouseEvent(enqueue, wait, eventType, modifiers, x, y, button, rotationXYZ, rotationScale);
     }
-    
+        
+    /** Called by native TK */
     protected final void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar0, String keyString) {
         // handleKeyEvent(true, false, eventType, modifiers, keyCode, keyChar);
         final boolean isModifierKey = KeyEvent.isModifierKey(keyCode);

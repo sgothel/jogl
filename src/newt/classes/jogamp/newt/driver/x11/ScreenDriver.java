@@ -38,6 +38,7 @@ import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.util.Rectangle;
+import javax.media.nativewindow.util.RectangleImmutable;
 
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.newt.Debug;
@@ -218,14 +219,31 @@ public class ScreenDriver extends ScreenImpl {
         
     @Override
     protected void calcVirtualScreenOriginAndSize(final Rectangle vOriginSize) {
-        runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
-            public Object run(long dpy) {
-                vOriginSize.setX(0);
-                vOriginSize.setY(0);
-                vOriginSize.setWidth(getWidth0(dpy, screen_idx));
-                vOriginSize.setHeight(getHeight0(dpy, screen_idx));
-                return null;
-            } } );        
+        final RectangleImmutable ov = (RectangleImmutable) getViewport().cloneMutable();
+        /**
+        if( null != rAndR && rAndR.getVersion().compareTo(RandR.version130) >= 0 && getMonitorDevices().size()>0 ) {
+            super.calcVirtualScreenOriginAndSize(vOriginSize);
+            if( DEBUG ) {
+                System.err.println("X11Screen.calcVirtualScreenOriginAndSize: UpdatingViewport "+ov+" -> "+vOriginSize);
+            }
+            runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
+                public Object run(long dpy) {
+                    rAndR.updateScreenViewport(dpy, ScreenDriver.this, vOriginSize);
+                    return null;
+                } } );
+        } else */ {
+            runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
+                public Object run(long dpy) {
+                    vOriginSize.setX(0);
+                    vOriginSize.setY(0);
+                    vOriginSize.setWidth(getWidth0(dpy, screen_idx));
+                    vOriginSize.setHeight(getHeight0(dpy, screen_idx));
+                    return null;
+                } } );
+            if( DEBUG ) {
+                System.err.println("X11Screen.calcVirtualScreenOriginAndSize: Querying X11: "+ov+" -> "+vOriginSize);
+            }
+        }
     }    
     
     //----------------------------------------------------------------------

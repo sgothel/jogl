@@ -328,6 +328,7 @@ public class TestScreenMode01dNEWT extends UITestCase {
             System.err.println("[0] set FS pre X: "+window.isFullscreen());
         }
 
+        Thread.sleep(waitTimeShort);
         System.err.println("[0] set current: "+monitorMode);
         monitor.setCurrentMode(monitorMode);
         

@@ -27,6 +27,8 @@
  */
 package jogamp.newt.driver.x11;
 
+import javax.media.nativewindow.util.RectangleImmutable;
+
 import jogamp.newt.MonitorModeProps;
 import jogamp.newt.ScreenImpl;
 
@@ -333,6 +335,11 @@ class RandR11 implements RandR {
         }
         return done;
     }
+    
+    @Override
+    public final void updateScreenViewport(final long dpy, final ScreenDriver screen, RectangleImmutable viewport) {
+        // nop
+    }    
 
     /** @return int[] { rot1, .. } */
     private static native int[] getAvailableScreenRotations0(long display, int screen_index);

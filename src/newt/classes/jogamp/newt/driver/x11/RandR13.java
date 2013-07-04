@@ -29,6 +29,8 @@ package jogamp.newt.driver.x11;
 
 import java.util.Iterator;
 
+import javax.media.nativewindow.util.RectangleImmutable;
+
 import jogamp.newt.MonitorModeProps;
 
 import com.jogamp.common.util.IntLongHashMap;
@@ -235,54 +237,20 @@ class RandR13 implements RandR {
         } finally {
             releaseScreenResourceHandle(screenResources);
         }
-        /*** 
-         * TODO: Would need a complete re-layout of crt positions,
-         *       which is _not_ implicit by XRandR .. sadly.
-         *        
-        if( res ) {
-            updateScreenViewport(dpy, screen, monitor);
-        } */
         return res;
     }
     
-    /** See above ..
-    private final void updateScreenViewport(final long dpy, final ScreenDriver screen, MonitorDevice monitor) {
+    @Override
+    public final void updateScreenViewport(final long dpy, final ScreenDriver screen, final RectangleImmutable viewport) {
         final int screen_idx = screen.getIndex();
         final long screenResources = getScreenResourceHandle(dpy, screen_idx);
         try {
-            RectangleImmutable newViewp = null;
-            final long monitorInfo = getMonitorInfoHandle(dpy, screen_idx, screenResources, monitor.getId());
-            try {
-                final int[] vprops = getMonitorViewport0(monitorInfo);
-                if( null != vprops ) {
-                    newViewp = new Rectangle(vprops[0], vprops[1], vprops[2], vprops[3]);
-                }
-                System.err.println("XXX setScreenViewport: newVp "+newViewp);
-            } finally {
-                releaseMonitorInfoHandle(monitorInfo);
-            }
-            if( null != newViewp ) {
-                final List<MonitorDevice> monitors = screen.getMonitorDevices();
-                final ArrayList<RectangleImmutable> viewports = new ArrayList<RectangleImmutable>();
-                for(int i=0; i<monitors.size(); i++) {
-                    final MonitorDevice crt = monitors.get(i);
-                    if( crt.getId() != monitor.getId() ) {
-                        System.err.println("XXX setScreenViewport: add.pre["+i+"]: "+crt.getViewport());
-                        viewports.add( crt.getViewport() ) ;
-                    } else {
-                        System.err.println("XXX setScreenViewport: add.new["+i+"]: "+newViewp);
-                        viewports.add( newViewp );
-                    }
-                }
-                final RectangleImmutable newScrnViewp = new Rectangle().union(viewports);
-                System.err.println("XXX setScreenViewport: "+screen.getViewport()+" -> "+newScrnViewp);
-                setScreenViewport0(dpy, screen_idx, screenResources, newScrnViewp.getX(), newScrnViewp.getY(), newScrnViewp.getWidth(), newScrnViewp.getHeight()); 
-            }
+            setScreenViewport0(dpy, screen_idx, screenResources, viewport.getX(), viewport.getY(), viewport.getWidth(), viewport.getHeight()); 
         } finally {
             dumpInfo0(dpy, screen_idx, screenResources);
             releaseScreenResourceHandle(screenResources);
-        }        
-    } */
+        }
+    }
         
     private static native long getScreenResources0(long display, int screen_index);
     private static native void freeScreenResources0(long screenResources);
