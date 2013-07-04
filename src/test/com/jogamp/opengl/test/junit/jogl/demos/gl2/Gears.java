@@ -71,7 +71,7 @@ public class Gears implements GLEventListener {
     System.err.println("GearsGL2 init on "+Thread.currentThread());
     System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
     System.err.println("INIT GL IS: " + gl.getClass().getName());
-    System.err.println(JoglVersion.getGLStrings(gl, null).toString());
+    System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
     
     float pos[] = { 5.0f, 5.0f, 10.0f, 0.0f };
     float red[] = { 0.8f, 0.1f, 0.0f, 0.7f };

@@ -81,7 +81,7 @@ public class RedSquareES1 implements GLEventListener {
         System.err.println("RedSquareES1 init on "+Thread.currentThread());
         System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
         System.err.println("INIT GL IS: " + gl.getClass().getName());
-        System.err.println(JoglVersion.getGLStrings(gl, null).toString());
+        System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
 
         // Allocate vertex arrays
         colors   = Buffers.newDirectFloatBuffer(16);

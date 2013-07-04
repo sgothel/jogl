@@ -130,7 +130,7 @@ public class JoglVersion extends JogampVersion {
     public static StringBuilder getGLInfo(GL gl, StringBuilder sb) {
         return getGLInfo(gl, sb, false);
     }
-    public static StringBuilder getGLInfo(GL gl, StringBuilder sb, boolean withCapabilitiesInfo) {
+    public static StringBuilder getGLInfo(GL gl, StringBuilder sb, boolean withCapabilitiesAndExtensionInfo) {
         AbstractGraphicsDevice device = gl.getContext().getGLDrawable().getNativeSurface()
                                             .getGraphicsConfiguration().getScreen().getDevice();
         if(null==sb) {
@@ -143,15 +143,19 @@ public class JoglVersion extends JogampVersion {
         GLProfile.glAvailabilityToString(device, sb, "\t", 1);        
         sb.append(Platform.getNewline());
 
-        sb = getGLStrings(gl, sb);
+        sb = getGLStrings(gl, sb, withCapabilitiesAndExtensionInfo);
         
-        if( withCapabilitiesInfo ) {
+        if( withCapabilitiesAndExtensionInfo ) {
             sb = getAllAvailableCapabilitiesInfo(device, sb);            
         }
         return sb;
     }
     
-    public static StringBuilder getGLStrings(GL gl, StringBuilder sb) {        
+    public static StringBuilder getGLStrings(GL gl, StringBuilder sb) {
+        return getGLStrings(gl, sb, true);
+    }
+    
+    public static StringBuilder getGLStrings(GL gl, StringBuilder sb, boolean withExtensions) {        
         if(null==sb) {
             sb = new StringBuilder();
         }
@@ -181,12 +185,16 @@ public class JoglVersion extends JogampVersion {
         sb.append(Platform.getNewline());
         sb.append("GL_EXTENSIONS  ").append(ctx.getGLExtensionCount());
         sb.append(Platform.getNewline());
-        sb.append("               ").append(ctx.getGLExtensionsString());
-        sb.append(Platform.getNewline());
+        if( withExtensions ) {
+            sb.append("               ").append(ctx.getGLExtensionsString());
+            sb.append(Platform.getNewline());
+        }
         sb.append("GLX_EXTENSIONS ").append(ctx.getPlatformExtensionCount());
         sb.append(Platform.getNewline());
-        sb.append("               ").append(ctx.getPlatformExtensionsString());
-        sb.append(Platform.getNewline());
+        if( withExtensions ) {
+            sb.append("               ").append(ctx.getPlatformExtensionsString());
+            sb.append(Platform.getNewline());
+        }
         sb.append(VersionUtil.SEPERATOR);
 
         return sb;

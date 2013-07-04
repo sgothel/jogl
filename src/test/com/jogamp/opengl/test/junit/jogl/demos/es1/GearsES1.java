@@ -147,7 +147,7 @@ public class GearsES1 implements GLEventListener {
     System.err.println("GearsES1 init on "+Thread.currentThread());
     System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
     System.err.println("INIT GL IS: " + gl.getClass().getName());
-    System.err.println(JoglVersion.getGLStrings(gl, null).toString());
+    System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
 
     gl.glLightfv(GL2ES1.GL_LIGHT0, GL2ES1.GL_POSITION, pos, 0);
     gl.glEnable(GL.GL_CULL_FACE);

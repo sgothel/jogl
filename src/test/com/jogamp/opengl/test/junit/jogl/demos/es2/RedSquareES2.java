@@ -70,7 +70,7 @@ public class RedSquareES2 implements GLEventListener {
         System.err.println("RedSquareES2 init on "+Thread.currentThread());
         System.err.println("Chosen GLCapabilities: " + glad.getChosenGLCapabilities());
         System.err.println("INIT GL IS: " + gl.getClass().getName());
-        System.err.println(JoglVersion.getGLStrings(gl, null).toString());
+        System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
         if( !gl.hasGLSL() ) {
             System.err.println("No GLSL available, no rendering.");
             return;
