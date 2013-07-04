@@ -388,8 +388,8 @@ static Bool NewtWindows_setStackingEWMHFlags (Display *dpy, Window root, Window 
 
             XSendEvent ( dpy, root, False, mask, &xev );
         }
-        // If ABOVE is changed, also change _NET_WM_BYPASS_COMPOSITOR!
-        if( changeAbove ) {
+        // Also change _NET_WM_BYPASS_COMPOSITOR!
+        {
             Atom _NET_WM_BYPASS_COMPOSITOR = XInternAtom( dpy, "_NET_WM_BYPASS_COMPOSITOR", False );
             unsigned long value = enable ? 1 : 0;
             XChangeProperty( dpy, w, _NET_WM_BYPASS_COMPOSITOR, XA_CARDINAL, 32, PropModeReplace, (unsigned char*)&value, 1); 
