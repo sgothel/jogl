@@ -136,9 +136,10 @@ public class TestScreenMode01dNEWT extends UITestCase {
         return window;
     }
 
-    static void destroyWindow(Window window) {
+    static void destroyWindow(Window window) throws InterruptedException {
         if(null!=window) {
             window.destroy();
+            Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));            
         }
     }
     
@@ -181,9 +182,13 @@ public class TestScreenMode01dNEWT extends UITestCase {
         Assert.assertEquals(false, animator.isStarted());
         
         destroyWindow(window);
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));
-        Assert.assertEquals(false, window.isRealized());
-        Assert.assertEquals(false, window.isNativeValid());
+        
+        Assert.assertEquals(false,window.isVisible());
+        Assert.assertEquals(false,window.isRealized());
+        Assert.assertEquals(false,window.isNativeValid());
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
+        Assert.assertEquals(false,screen.isNativeValid());
+        Assert.assertEquals(false,display.isNativeValid());
         
         cleanupGL();
     }
@@ -267,7 +272,6 @@ public class TestScreenMode01dNEWT extends UITestCase {
         Assert.assertEquals(false, animator.isStarted());
         
         destroyWindow(window);
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));
 
         Assert.assertEquals(false,window.isVisible());
         Assert.assertEquals(false,window.isRealized());
@@ -375,7 +379,6 @@ public class TestScreenMode01dNEWT extends UITestCase {
         Assert.assertEquals(false, animator.isStarted());
         
         destroyWindow(window);
-        Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));
 
         Assert.assertEquals(false,window.isVisible());
         Assert.assertEquals(false,window.isRealized());

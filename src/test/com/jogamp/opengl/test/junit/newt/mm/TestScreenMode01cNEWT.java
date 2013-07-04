@@ -45,6 +45,7 @@ import com.jogamp.newt.Window;
 import com.jogamp.newt.MonitorMode;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
@@ -92,9 +93,10 @@ public class TestScreenMode01cNEWT extends UITestCase {
         return window;
     }
 
-    static void destroyWindow(Window window) {
+    static void destroyWindow(Window window) throws InterruptedException {
         if(null!=window) {
             window.destroy();
+            Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));            
         }
     }
     
@@ -110,6 +112,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
             testScreenFullscreenImpl(screen, monitorVp.getX(), monitorVp.getY(), false, null);
         } finally {
             screen.removeReference();
+            Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));            
         }
     }
     
@@ -129,6 +132,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
             testScreenFullscreenImpl(screen, monitorVp.getX(), monitorVp.getY(), false, null);
         } finally {
             screen.removeReference();
+            Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));            
         }
     }
         
@@ -152,6 +156,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
             testScreenFullscreenImpl(screen, monitorVp.getX()+50, monitorVp.getY()+50, true, monitors);
         } finally {
             screen.removeReference();
+            Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));            
         }
     }
     
@@ -171,6 +176,7 @@ public class TestScreenMode01cNEWT extends UITestCase {
             testScreenFullscreenImpl(screen, monitorVp.getX()-50, monitorVp.getY()+50, true, null);
         } finally {
             screen.removeReference();
+            Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));            
         }
     }
     

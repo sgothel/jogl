@@ -47,6 +47,7 @@ import com.jogamp.newt.MonitorMode;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.util.MonitorModeUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 
@@ -98,9 +99,10 @@ public class TestScreenMode02bNEWT extends UITestCase {
         return window;
     }
 
-    static void destroyWindow(Window window) {
+    static void destroyWindow(Window window) throws InterruptedException {
         if(null!=window) {
             window.destroy();
+            Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));
         }
     }
     
@@ -195,6 +197,7 @@ public class TestScreenMode02bNEWT extends UITestCase {
             if( !smOk ) {
                 System.err.println("ERROR: Full MonitorMode w/ rotation failure - Expected on some platforms (NV driver) - Tolerated for now.");
                 destroyWindow(window);
+                Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
                 return;
             }
             Assert.assertTrue(monitor.isModeChangedByUs());
@@ -241,6 +244,7 @@ public class TestScreenMode02bNEWT extends UITestCase {
         
         Assert.assertEquals(false,window.isVisible());
         Assert.assertEquals(false,window.isNativeValid());
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(false,display.isNativeValid());
     }

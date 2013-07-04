@@ -85,9 +85,10 @@ public class TestScreenMode02aNEWT extends UITestCase {
         return window;
     }
 
-    static void destroyWindow(Window window) {
+    static void destroyWindow(Window window) throws InterruptedException {
         if(null!=window) {
             window.destroy();
+            Assert.assertTrue(AWTRobotUtil.waitForRealized(window, false));
         }
     }
     
@@ -230,7 +231,7 @@ public class TestScreenMode02aNEWT extends UITestCase {
 
         animator.stop();
         destroyWindow(window);
-
+        
         Assert.assertEquals(false,window.isVisible());
         Assert.assertEquals(false,window.isNativeValid());
         Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
