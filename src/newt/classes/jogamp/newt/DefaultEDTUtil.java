@@ -174,6 +174,9 @@ public class DefaultEDTUtil implements EDTUtil {
                     if( !edt.isRunning() ) {
                         if( !stop ) {
                             startImpl();
+                            if( wait && null == task ) {
+                                task = nullTask; // ensures wait until started 
+                            }
                         } else {
                             // drop task and don't wait
                             task = null;
@@ -183,7 +186,7 @@ public class DefaultEDTUtil implements EDTUtil {
                             }
                         }
                     } else if(stop && null == task) {
-                        task = nullTask;
+                        task = nullTask; // ensures execution triggering stop
                     }
 
                     if(null != task) {
