@@ -46,6 +46,7 @@ import com.jogamp.newt.MonitorMode;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.util.MonitorModeUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
@@ -230,6 +231,8 @@ public class TestScreenMode01bNEWT extends UITestCase {
         Thread.sleep(duration);
         anim.stop();
         destroyWindow(window0);
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(window0, false));
+
         Assert.assertEquals(false,window0.isVisible());
         Assert.assertEquals(false,window0.isNativeValid());
         Assert.assertEquals(true,display.isNativeValid());

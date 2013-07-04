@@ -204,17 +204,16 @@ public class TestScreenMode02bNEWT extends UITestCase {
             window.setFullscreen(false);
         }
         
+        // manual restore!
         monitor.setCurrentMode(mmOrig);
         Assert.assertFalse(monitor.isModeChangedByUs());
-        Assert.assertEquals(mmOrig, monitor.getCurrentMode());
+        Assert.assertEquals(mmOrig, monitor.queryCurrentMode());
         Thread.sleep(waitTimeShort);
 
         if( preVis ) {
             window.setFullscreen(false);
         }
         
-        // check auto reset ..
-
         Assert.assertEquals(true,display.isNativeValid());
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,window.isNativeValid());

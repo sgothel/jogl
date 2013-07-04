@@ -46,6 +46,7 @@ import com.jogamp.newt.MonitorMode;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.util.MonitorModeUtil;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 
 import java.util.List;
@@ -105,16 +106,16 @@ public class TestScreenMode01aNEWT extends UITestCase {
     public void testScreenModeChange01() throws InterruptedException {
         Thread.sleep(waitTimeShort);
 
-        GLCapabilities caps = new GLCapabilities(glp);
+        final GLCapabilities caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);
-        Display display = NewtFactory.createDisplay(null); // local display
+        final Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
-        Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
         Assert.assertNotNull(screen);
-        Window window0 = createWindow(screen, caps, "win0", 0, 0, width, height);
+        final Window window0 = createWindow(screen, caps, "win0", 0, 0, width, height);
         Assert.assertNotNull(window0);        
 
-        List<MonitorMode> allMonitorModes = screen.getMonitorModes();
+        final List<MonitorMode> allMonitorModes = screen.getMonitorModes();
         Assert.assertTrue(allMonitorModes.size()>0);
         if(allMonitorModes.size()==1) {
             // no support ..
@@ -123,7 +124,7 @@ public class TestScreenMode01aNEWT extends UITestCase {
             return;
         }
 
-        MonitorDevice monitor = window0.getMainMonitor();
+        final MonitorDevice monitor = screen.getMonitorDevices().get(0);
         
         List<MonitorMode> monitorModes = monitor.getSupportedModes();
         Assert.assertTrue(monitorModes.size()>0);
@@ -135,13 +136,13 @@ public class TestScreenMode01aNEWT extends UITestCase {
         }
         Assert.assertTrue(allMonitorModes.containsAll(monitorModes));
                 
-        MonitorMode mmCurrent = monitor.queryCurrentMode();
-        Assert.assertNotNull(mmCurrent);
-        MonitorMode mmOrig = monitor.getOriginalMode();
+        final MonitorMode mmSet0 = monitor.queryCurrentMode();
+        Assert.assertNotNull(mmSet0);
+        final MonitorMode mmOrig = monitor.getOriginalMode();
         Assert.assertNotNull(mmOrig);
         System.err.println("[0] orig   : "+mmOrig);
-        System.err.println("[0] current: "+mmCurrent);
-        Assert.assertEquals(mmCurrent, mmOrig);
+        System.err.println("[0] current: "+mmSet0);
+        Assert.assertEquals(mmSet0, mmOrig);
         
 
         monitorModes = MonitorModeUtil.filterByFlags(monitorModes, 0); // no interlace, double-scan etc
@@ -171,44 +172,43 @@ public class TestScreenMode01aNEWT extends UITestCase {
 
         Thread.sleep(waitTimeShort);
 
-        // check manual reset ..
-
         Assert.assertEquals(true,display.isNativeValid());
         Assert.assertEquals(true,screen.isNativeValid());
         Assert.assertEquals(true,window0.isNativeValid());
         Assert.assertEquals(true,window0.isVisible());
 
-        screen.addReference(); // keep it alive !
-        Assert.assertTrue(monitor.setCurrentMode(mmOrig));
-        Assert.assertFalse(monitor.isModeChangedByUs());
-        Assert.assertEquals(mmOrig, monitor.getCurrentMode());
-        Assert.assertNotSame(mm, monitor.getCurrentMode());
-        Assert.assertEquals(mmOrig, monitor.queryCurrentMode());
-        
+        // Auto reset by destruction!
         destroyWindow(window0);
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(window0, false));
+
         Assert.assertEquals(false,window0.isVisible());
         Assert.assertEquals(false,window0.isNativeValid());
-        Assert.assertEquals(true,screen.isNativeValid()); // alive !
-        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertTrue(AWTRobotUtil.waitForRealized(screen, false));
+        Assert.assertEquals(false,screen.isNativeValid());
+        Assert.assertEquals(false,display.isNativeValid());
                 
         Thread.sleep(waitTimeShort);
-
-        Window window1 = createWindow(screen, caps, "win1", 
-                                      width+window0.getInsets().getTotalWidth(), 0, 
-                                      width, height);
-        Assert.assertNotNull(window1);
-        Assert.assertEquals(true,window1.isNativeValid());
-        Assert.assertEquals(true,window1.isVisible());
         
-        Thread.sleep(waitTimeShort);
+        validateScreenModeReset(mmOrig, 0);
+    }
+    
+    void validateScreenModeReset(final MonitorMode mmOrig, int mmIdx) {
+        final Display display = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display);
+        final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen);
+        Assert.assertEquals(false,display.isNativeValid());
+        Assert.assertEquals(false,screen.isNativeValid());
+        screen.addReference();
+        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertEquals(true,screen.isNativeValid());
         
-        destroyWindow(window1);
-        Assert.assertEquals(false,window1.isNativeValid());
-        Assert.assertEquals(false,window1.isVisible());
+        final MonitorDevice monitor = screen.getMonitorDevices().get(0);
+        Assert.assertEquals(mmOrig, monitor.getCurrentMode());
         
         screen.removeReference();
+        Assert.assertEquals(false,display.isNativeValid());
         Assert.assertEquals(false,screen.isNativeValid());
-        Assert.assertEquals(false,display.isNativeValid());                
     }
 
     public static void main(String args[]) throws IOException {

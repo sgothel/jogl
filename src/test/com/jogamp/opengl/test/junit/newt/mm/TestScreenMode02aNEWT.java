@@ -59,10 +59,6 @@ import javax.media.nativewindow.util.Dimension;
  * <p>
  * MonitorMode change does not use highest resolution. 
  * </p>
- * <p>
- * Also tests MonitorMode reset after last Screen is dereferenced,
- * i.e. MonitorMode should be reinstated.
- * </p>
  */
 public class TestScreenMode02aNEWT extends UITestCase {
     static GLProfile glp;
@@ -200,6 +196,7 @@ public class TestScreenMode02aNEWT extends UITestCase {
         }
         
         if(changeMode) {
+            // manual restore!
             monitor.setCurrentMode(mmOrig);
             Assert.assertFalse(monitor.isModeChangedByUs());
             Assert.assertEquals(mmOrig, monitor.getCurrentMode());
