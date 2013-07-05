@@ -1157,7 +1157,14 @@ public abstract class GLContext {
       /* 1.*/ { 0, 1, 2, 3, 4, 5 },
       /* 2.*/ { 0, 1 },
       /* 3.*/ { 0, 1, 2, 3 },
-      /* 4.*/ { 0, 1, 2 } };
+      /* 4.*/ { 0, 1, 2 } }; // FIXME add 4.3 !
+
+  private static final int GL_VERSIONS_VALID[][] = {
+      /* 0.*/ { -1 },
+      /* 1.*/ { 0, 1, 2, 3, 4, 5 },
+      /* 2.*/ { 0, 1 },
+      /* 3.*/ { 0, 1, 2, 3 },
+      /* 4.*/ { 0, 1, 2, 3, 4 } }; // 4.4 coming up soon ?
 
   public static final int getMaxMajor() {
       return GL_VERSIONS.length-1;
@@ -1169,8 +1176,8 @@ public abstract class GLContext {
   }
 
   public static final boolean isValidGLVersion(int major, int minor) {
-      if(1>major || major>=GL_VERSIONS.length) return false;
-      if(0>minor || minor>=GL_VERSIONS[major].length) return false;
+      if(1>major || major>=GL_VERSIONS_VALID.length) return false;
+      if(0>minor || minor>=GL_VERSIONS_VALID[major].length) return false;
       return true;
   }
 
