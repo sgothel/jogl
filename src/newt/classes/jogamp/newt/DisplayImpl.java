@@ -208,7 +208,7 @@ public abstract class DisplayImpl extends Display {
     }
 
     private void removeEDT(final Runnable task) {
-        if(null!=edtUtil) {            
+        if(null!=edtUtil) {
             edtUtil.invokeStop(true, task);
             // ready for restart ..
             edtUtil.waitUntilStopped();

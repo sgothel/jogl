@@ -76,9 +76,14 @@ public class DefaultEDTUtil implements EDTUtil {
     }
     
     @Override
-    public final void reset() {
-        synchronized(edtLock) { 
-            waitUntilStopped();
+    public final void reset() throws IllegalStateException {
+        synchronized(edtLock) {
+            if( isRunning() ) {
+                if( !edt.shouldStop ) {
+                    throw new IllegalStateException("EDT stop not issued.");
+                }
+                throw new IllegalStateException("EDT still running");
+            }
             if(DEBUG) {
                 if(edt.tasks.size()>0) {
                     System.err.println(Thread.currentThread()+": Default-EDT reset, remaining tasks: "+edt.tasks.size()+" - "+edt);

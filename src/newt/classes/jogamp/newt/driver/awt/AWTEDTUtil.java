@@ -68,9 +68,18 @@ public class AWTEDTUtil implements EDTUtil {
     }
     
     @Override
-    final public void reset() {
-        synchronized(edtLock) { 
-            waitUntilStopped();
+    public final void reset() throws IllegalStateException {
+        synchronized(edtLock) {
+            final Thread curT = Thread.currentThread();
+            final boolean onAWTEDT = EventQueue.isDispatchThread();
+            if( nedt.isRunning() ) {
+                if( !nedt.shouldStop ) {
+                    throw new IllegalStateException("EDT stop not issued.");
+                }
+                if( nedt != curT && !onAWTEDT ) {
+                    throw new IllegalStateException("EDT still running: Curr "+curT.getName()+", NEDT "+nedt.getName()+", on AWT-EDT "+onAWTEDT);
+                }
+            }
             if(DEBUG) {
                 System.err.println(Thread.currentThread()+": AWT-EDT reset - edt: "+nedt);
             }
@@ -110,7 +119,7 @@ public class AWTEDTUtil implements EDTUtil {
     
     @Override
     final public boolean isRunning() {
-        return nedt.isRunning() ; // AWT is always running
+        return nedt.isRunning() ;
     }
 
     @Override
@@ -203,7 +212,7 @@ public class AWTEDTUtil implements EDTUtil {
     @Override
     final public void waitUntilStopped() {
         synchronized(edtLock) {
-            if(nedt.isRunning() && nedt != Thread.currentThread() && !EventQueue.isDispatchThread()) {
+            if( nedt.isRunning() && nedt != Thread.currentThread() && !EventQueue.isDispatchThread() ) {
                 while(nedt.isRunning()) {
                     try {
                         edtLock.wait();
@@ -278,10 +287,8 @@ public class AWTEDTUtil implements EDTUtil {
                     System.err.println(getName()+": AWT-EDT run() END "+ getName()+", "+error); 
                 }
                 synchronized(edtLock) {
-                    isRunning = !shouldStop;
-                    if(!isRunning) {
-                        edtLock.notifyAll();
-                    }
+                    isRunning = false;
+                    edtLock.notifyAll();
                 }
                 if(DEBUG) {
                     System.err.println(getName()+": AWT-EDT run() EXIT "+ getName()+", exception: "+error);

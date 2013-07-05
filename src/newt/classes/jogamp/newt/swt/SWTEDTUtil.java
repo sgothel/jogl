@@ -77,9 +77,19 @@ public class SWTEDTUtil implements EDTUtil {
     }
 
     @Override
-    public void reset() {
-        synchronized(edtLock) { 
-            waitUntilStopped();
+    public final void reset() throws IllegalStateException {
+        synchronized(edtLock) {
+            final Thread curT = Thread.currentThread();
+            final Thread swtT = !swtDisplay.isDisposed() ? swtDisplay.getThread() : null;
+            final boolean onSWTEDT = swtT == curT;
+            if( nedt.isRunning() ) {
+                if( !nedt.shouldStop ) {
+                    throw new IllegalStateException("EDT stop not issued.");
+                }
+                if( nedt != curT && !onSWTEDT ) {
+                    throw new IllegalStateException("EDT still running: Curr "+curT.getName()+", NEDT "+nedt.getName()+", SWT-EDT "+swtT.getName());
+                }
+            }
             if(DEBUG) {
                 System.err.println(Thread.currentThread()+": SWT-EDT reset - edt: "+nedt);
             }
@@ -104,7 +114,7 @@ public class SWTEDTUtil implements EDTUtil {
     
     @Override
     public boolean isCurrentThreadEDT() {
-        return swtDisplay.getThread() == Thread.currentThread();
+        return !swtDisplay.isDisposed() && swtDisplay.getThread() == Thread.currentThread();
     }
 
     @Override
@@ -115,12 +125,12 @@ public class SWTEDTUtil implements EDTUtil {
     @Override
     public final boolean isCurrentThreadEDTorNEDT() {
         final Thread ct = Thread.currentThread();
-        return ct == swtDisplay.getThread() || ct == nedt ;
+        return ( !swtDisplay.isDisposed() && ct == swtDisplay.getThread() ) || ct == nedt ;
     }
     
     @Override
     public boolean isRunning() {
-        return nedt.isRunning() ; // SWT is always running
+        return nedt.isRunning() ;
     }
     
     @Override
@@ -142,33 +152,32 @@ public class SWTEDTUtil implements EDTUtil {
                 if( nedt.shouldStop ) {
                     // drop task ..
                     if(DEBUG) {
-                        System.err.println(Thread.currentThread()+": Warning: SWT-EDT about (1) to stop, won't enqueue new task: "+nedt);
-                        Thread.dumpStack();
+                        System.err.println(Thread.currentThread()+": Warning: SWT-EDT about (1) to stop, won't enqueue new task: "+nedt+", isRunning "+nedt.isRunning());
+                        // Thread.dumpStack();
                     }
                     return; 
                 }
                 // System.err.println(Thread.currentThread()+" XXX stop: "+stop+", tasks: "+edt.tasks.size()+", task: "+task);
                 // Thread.dumpStack();
                 if(stop) {
+                    if(DEBUG) {
+                        System.err.println(Thread.currentThread()+": SWT-EDT signal STOP (on edt: "+isCurrentThreadEDT()+") - "+nedt+", isRunning "+nedt.isRunning());
+                    }
                     synchronized(nedt.sync) {
                         nedt.shouldStop = true;
                         nedt.sync.notifyAll(); // stop immediate if waiting (poll freq)
                     }
-                    if(DEBUG) {
-                        System.err.println(Thread.currentThread()+": SWT-EDT signal STOP (on edt: "+isCurrentThreadEDT()+") - "+nedt);
-                        // Thread.dumpStack();
-                    }
-                } else if( !nedt.isRunning() ) {
+                } else if( !nedt.isRunning() && !swtDisplay.isDisposed() ) {
                     // start if should not stop && not started yet
                     startImpl();
                 }
                 if( null == task ) {
                     wait = false;
+                } else if( swtDisplay.isDisposed() ) {
+                    wait = false; // drop task, SWT disposed 
                 } else if( isCurrentThreadEDT() ) {
                     task.run();
                     wait = false; // running in same thread (EDT) -> no wait
-                } else if( swtDisplay.isDisposed() ) {
-                    wait = false; // drop task, SWT disposed 
                 } else {
                     rTask = new RunnableTask(task,
                                              wait ? rTaskLock : null,
@@ -203,7 +212,7 @@ public class SWTEDTUtil implements EDTUtil {
             _nedt = nedt;
         }
         final Thread ct = Thread.currentThread();
-        if(!_nedt.isRunning() || _nedt == ct || swtDisplay.getThread() == ct) {
+        if( !_nedt.isRunning() || _nedt == ct || swtDisplay.isDisposed() || swtDisplay.getThread() == ct ) {
             return;
         }
         try {
@@ -216,8 +225,10 @@ public class SWTEDTUtil implements EDTUtil {
     @Override
     final public void waitUntilStopped() {
         synchronized(edtLock) {
-            final Thread ct = Thread.currentThread();
-            if(nedt.isRunning() && nedt != ct && swtDisplay.getThread() != ct) {
+            final Thread curT = Thread.currentThread();
+            final Thread swtT = !swtDisplay.isDisposed() ? swtDisplay.getThread() : null;
+            final boolean onSWTEDT = swtT == curT;
+            if( nedt.isRunning() && nedt != curT && !onSWTEDT ) {
                 while(nedt.isRunning()) {
                     try {
                         edtLock.wait();
@@ -296,10 +307,8 @@ public class SWTEDTUtil implements EDTUtil {
                     System.err.println(getName()+": SWT-EDT run() END "+ getName()+", "+error); 
                 }
                 synchronized(edtLock) {
-                    isRunning = !shouldStop;
-                    if(!isRunning) {
-                        edtLock.notifyAll();
-                    }
+                    isRunning = false;
+                    edtLock.notifyAll();
                 }
                 if(DEBUG) {
                     System.err.println(getName()+": SWT-EDT run() EXIT "+ getName()+", exception: "+error);

@@ -65,14 +65,18 @@ public interface EDTUtil {
     public void setPollPeriod(long ms);
     
     /**
-     * Create a new EDT. One should invoke <code>reset()</code><br>
-     * after <code>invokeStop(..)</code> in case another start via <code>invoke(..)</code>
-     * is expected.
+     * Resets the stopped EDT, i.e. prepares it for a restart via
+     * the next <code>invoke(..)</code>  call.
+     * <p>
+     * One must stop the EDT first via {@link #invokeStop(boolean, Runnable)}
+     * and wait until it's stopped via {@link #waitUntilStopped()}.
+     * </p>
      *
      * @see #invoke(boolean, java.lang.Runnable)
      * @see #invokeStop(boolean, java.lang.Runnable)
+     * @throws IllegalStateException if stop has not been issued, or EDT is still running (caller thread not being EDT or NEDT). 
      */
-    public void reset();
+    public void reset() throws IllegalStateException;
 
     /**
      * Returns true if the current thread is the event dispatch thread (EDT).
@@ -150,6 +154,9 @@ public interface EDTUtil {
     /**
      * Wait until EDT task is stopped.<br>
      * No <code>stop</code> action is performed, {@link #invokeStop(boolean, java.lang.Runnable)} should be used before.
+     * <p>
+     * If caller thread is EDT or NEDT, this call will not block.
+     * </p>
      */
     public void waitUntilStopped();
 }
