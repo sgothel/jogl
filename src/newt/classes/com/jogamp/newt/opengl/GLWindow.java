@@ -537,16 +537,21 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         public void shutdownRenderingAction() {
             final GLAnimatorControl anim = GLWindow.this.getAnimator();
             if ( null != anim && anim.isAnimating() ) {
-                AccessController.doPrivileged(new PrivilegedAction<Object>() {
-                    public Object run() {
-                        final Thread animThread = anim.getThread();
-                        if( null != animThread ) {
-                            try {
-                                animThread.stop();
-                            } catch(Throwable t) { }
-                        }
-                        return null;
-                    } } );
+                final Thread animThread = anim.getThread();
+                if( animThread == Thread.currentThread() ) {
+                    anim.stop(); // on anim thread, non-blocking
+                } else {
+                    AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                        public Object run() {
+                            if( anim.isAnimating() && null != animThread ) {
+                                try {
+                                    animThread.stop();
+                                } catch(Throwable t) {
+                                }
+                            }
+                            return null;
+                        } } );
+                }
             }
         }
     }
