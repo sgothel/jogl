@@ -77,13 +77,14 @@ public abstract class DisplayImpl extends Display {
     /** Make sure to reuse a Display with the same name */
     public static Display create(String type, String name, final long handle, boolean reuse) {
         try {
-            Class<?> displayClass = getDisplayClass(type);
-            DisplayImpl display = (DisplayImpl) displayClass.newInstance();
+            final Class<?> displayClass = getDisplayClass(type);
+            final DisplayImpl display = (DisplayImpl) displayClass.newInstance();
             name = display.validateDisplayName(name, handle);
             synchronized(displayList) {
                 if(reuse) {
-                    Display display0 = Display.getLastDisplayOf(type, name, -1, true /* shared only */);
+                    final Display display0 = Display.getLastDisplayOf(type, name, -1, true /* shared only */);
                     if(null != display0) {
+                        display0.setEDTUtil(display0.getEDTUtil()); // ensures EDT is running
                         if(DEBUG) {
                             System.err.println("Display.create() REUSE: "+display0+" "+getThreadName());
                         }
@@ -99,7 +100,7 @@ public abstract class DisplayImpl extends Display {
                 display.hashCode = display.fqname.hashCode();
                 Display.addDisplay2List(display);
             }
-            display.setEDTUtil(display.edtUtil); // device's default if EDT is used, or null
+            display.setEDTUtil(display.edtUtil); // device's default if EDT is used, or null - ensures EDT is running
             
             if(DEBUG) {
                 System.err.println("Display.create() NEW: "+display+" "+getThreadName());

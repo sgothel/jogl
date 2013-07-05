@@ -673,14 +673,28 @@ public class TestParenting01NEWT extends UITestCase {
     }
 
     public static void main(String args[]) throws IOException {
+        boolean asMain = false;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 durationPerTest = atoi(args[++i]);
+            } else if(args[i].equals("-asMain")) {
+                asMain = true;
             }
         }
         System.err.println("durationPerTest: "+durationPerTest);
-        String tstname = TestParenting01NEWT.class.getName();
-        org.junit.runner.JUnitCore.main(tstname);
+        if( asMain ) {
+            try {
+                TestParenting01NEWT.initClass();
+                TestParenting01NEWT m = new TestParenting01NEWT();
+                m.testWindowParenting02ReparentTop2WinReparentRecreate();
+                m.testWindowParenting01CreateVisibleDestroy();
+            } catch (Throwable t ) {
+                t.printStackTrace();
+            }
+        } else {
+            String tstname = TestParenting01NEWT.class.getName();
+            org.junit.runner.JUnitCore.main(tstname);
+        }
     }
 
 }

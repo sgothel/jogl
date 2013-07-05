@@ -150,8 +150,9 @@ function jrun() {
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile -Djogl.debug.GLDrawable"
     #D_ARGS="-Djogl.debug.GLContext -Djogl.debug.GLProfile"
     #D_ARGS="-Djogl.debug.GLProfile"
-    #D_ARGS="-Dnativewindow.debug.NativeWindow"
+    #D_ARGS="-Dnativewindow.debug.NativeWindow -Dnewt.debug.Window -Dnewt.debug.Screen -Dnewt.debug.Display"
     #D_ARGS="-Djogl.debug.GLCanvas -Dnewt.debug.Window -Dnewt.debug.Display -Dnewt.debug.EDT -Djogl.debug.Animator"
+    #D_ARGS="-Dnewt.debug.Display -Dnewt.debug.EDT"
     #D_ARGS="-Dnewt.debug.EDT -Dnewt.debug.Window -Djogl.debug.GLContext"
     #D_ARGS="-Dnativewindow.debug.X11Util.XErrorStackDump -Dnativewindow.debug.X11Util.TraceDisplayLifecycle -Dnativewindow.debug.X11Util"
     #D_ARGS="-Dnativewindow.debug.X11Util -Djogl.debug.GLContext -Djogl.debug.GLDrawable -Dnewt.debug=all"
@@ -401,7 +402,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindows02NEWTAnimated $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestGLWindowInvisiblePointer01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle01NEWT
-testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
+#testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00aNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00bNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01aNEWT $*
@@ -514,7 +515,7 @@ testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
 #
 # NEWT Parenting (w/ NEWT, AWT or SWT)
 #
-#testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
+testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting02NEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParentingFocusTraversal01AWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting01cSwingAWT $*
