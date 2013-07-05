@@ -145,6 +145,7 @@ public class TestScreenMode02aNEWT extends UITestCase {
             if(monitorModes.size()==1) {
                 // no support ..
                 System.err.println("Your platform has no ScreenMode change support, sorry");
+                animator.stop();
                 destroyWindow(window);
                 return;
             }
@@ -163,6 +164,7 @@ public class TestScreenMode02aNEWT extends UITestCase {
             if(null==monitorModes || Platform.getOSType() == Platform.OSType.MACOS ) {
                 // no rotation support ..
                 System.err.println("Your platform has no rotation support, sorry");
+                animator.stop();
                 destroyWindow(window);
                 return;
             }

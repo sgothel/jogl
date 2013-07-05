@@ -173,6 +173,7 @@ public class TestScreenMode02bNEWT extends UITestCase {
         if(null==monitorModes || Platform.getOSType() == Platform.OSType.MACOS ) {
             // no rotation support ..
             System.err.println("Your platform has no rotation support, sorry");
+            animator.stop();
             destroyWindow(window);
             return;
         }
@@ -196,6 +197,7 @@ public class TestScreenMode02bNEWT extends UITestCase {
             System.err.println("[0] has current: "+mmCurrent+", changeOK "+smOk);
             if( !smOk ) {
                 System.err.println("ERROR: Full MonitorMode w/ rotation failure - Expected on some platforms (NV driver) - Tolerated for now.");
+                animator.stop();
                 destroyWindow(window);
                 return;
             }
