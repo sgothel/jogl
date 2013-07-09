@@ -67,6 +67,7 @@ public class TestScreenMode00cNEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
+        setResetXRandRIfX11AfterClass();
         NativeWindowFactory.initSingleton();
         if( NativeWindowFactory.TYPE_X11 != NativeWindowFactory.getNativeWindowType(true) ) {
             setTestSupported(false);

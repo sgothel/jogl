@@ -73,6 +73,7 @@ public class TestScreenMode00aNEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
+        setResetXRandRIfX11AfterClass();
         GLProfile.initSingleton(); // hack to initialize GL for BCM_IV (Rasp.Pi)
         NativeWindowFactory.initSingleton();
         width  = 640;

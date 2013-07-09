@@ -69,6 +69,7 @@ public abstract class UITestCase {
     private static volatile SingletonInstance singletonInstance;
     
     private static volatile boolean testSupported = true;
+    private static volatile boolean resetXRandRIfX11AfterClass = false;
     
     private static volatile int maxMethodNameLen = 0;
 
@@ -91,6 +92,10 @@ public abstract class UITestCase {
         testSupported = v;
     }
 
+    public static void setResetXRandRIfX11AfterClass() {
+        resetXRandRIfX11AfterClass = true;
+    }
+    
     public static void resetXRandRIfX11() {
         if( NativeWindowFactory.isInitialized() && NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
             try {
@@ -144,7 +149,9 @@ public abstract class UITestCase {
     @AfterClass
     public static void oneTimeTearDown() {
         // one-time cleanup code
-        resetXRandRIfX11();
+        if( resetXRandRIfX11AfterClass ) {
+            resetXRandRIfX11();
+        }
         System.gc(); // force cleanup
         singletonInstance.unlock();
     }

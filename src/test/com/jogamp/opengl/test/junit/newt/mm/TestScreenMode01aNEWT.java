@@ -72,6 +72,7 @@ public class TestScreenMode01aNEWT extends UITestCase {
 
     @BeforeClass
     public static void initClass() {
+        setResetXRandRIfX11AfterClass();
         width  = 100;
         height = 100;
         glp = GLProfile.getDefault();

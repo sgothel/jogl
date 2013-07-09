@@ -63,6 +63,7 @@ public class TestScreenMode00bNEWT extends UITestCase {
         
     @BeforeClass
     public static void initClass() {
+        setResetXRandRIfX11AfterClass();
         NativeWindowFactory.initSingleton();
         width  = 640;
         height = 480;
