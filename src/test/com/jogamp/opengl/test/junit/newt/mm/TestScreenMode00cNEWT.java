@@ -185,16 +185,18 @@ public class TestScreenMode00cNEWT extends UITestCase {
         Assert.assertEquals(true,window0.isNativeValid());
         Assert.assertEquals(true,window0.isVisible());
 
+        // WARNING: See note in 'UITestCase.resetXRandRIfX11();'
         UITestCase.resetXRandRIfX11();
         System.err.println("XRandR Reset :"+monitor.queryCurrentMode());
-        validateScreenModeReset(mmOrig, 0);
+        validateScreenModeReset0(mmOrig);
         
         destroyWindow(window0);
 
         Thread.sleep(waitTimeShort);
+        validateScreenModeReset(mmOrig);
     }
     
-    void validateScreenModeReset(final MonitorMode mmOrig, int mmIdx) {
+    void validateScreenModeReset0(final MonitorMode mmOrig) {
         final Display display = NewtFactory.createDisplay(null); // local display
         Assert.assertNotNull(display);
         final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
@@ -207,6 +209,24 @@ public class TestScreenMode00cNEWT extends UITestCase {
         Assert.assertEquals(mmOrig, monitor.queryCurrentMode());
         
         screen.removeReference();
+    }
+    void validateScreenModeReset(final MonitorMode mmOrig) {
+        final Display display = NewtFactory.createDisplay(null); // local display
+        Assert.assertNotNull(display);
+        final Screen screen  = NewtFactory.createScreen(display, 0); // screen 0
+        Assert.assertNotNull(screen);
+        Assert.assertEquals(false,display.isNativeValid());
+        Assert.assertEquals(false,screen.isNativeValid());
+        screen.addReference();
+        Assert.assertEquals(true,display.isNativeValid());
+        Assert.assertEquals(true,screen.isNativeValid());
+        
+        final MonitorDevice monitor = screen.getMonitorDevices().get(0);
+        Assert.assertEquals(mmOrig, monitor.getCurrentMode());
+        
+        screen.removeReference();
+        Assert.assertEquals(false,display.isNativeValid());
+        Assert.assertEquals(false,screen.isNativeValid());
     }
 
     public static void main(String args[]) throws IOException {

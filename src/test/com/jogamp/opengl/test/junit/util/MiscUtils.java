@@ -33,8 +33,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.reflect.*;
 import java.nio.FloatBuffer;
+
+import com.jogamp.common.os.Platform;
 
 public class MiscUtils {
     public static boolean atob(String str, boolean def) {
@@ -155,26 +158,54 @@ public class MiscUtils {
     
     public static class StreamDump extends Thread {
         final InputStream is;
-        final String prefix;    
+        final StringBuilder outString;
+        final OutputStream outStream;
+        final String prefix;
+        final Object sync;
+        volatile boolean eos = false;        
 
-        public StreamDump(InputStream is, String prefix) {
+        public StreamDump(OutputStream out, String prefix, InputStream is, Object sync) {
             this.is = is;
+            this.outString = null;
+            this.outStream = out;
             this.prefix = prefix;
+            this.sync = sync;
         }
+        public StreamDump(StringBuilder sb, InputStream is, Object sync) {
+            this.is = is;
+            this.outString = sb;
+            this.outStream = null;
+            this.prefix = null;
+            this.sync = sync;
+        }
+        
+        public final boolean eos() { return eos; }
 
         @Override
         public void run() {
-            try {
-                InputStreamReader isr = new InputStreamReader(is);
-                BufferedReader br = new BufferedReader(isr);
-                String line = null;
-                while ((line = br.readLine()) != null) {
-                    System.out.println(prefix + "> " + line);
+            synchronized ( sync ) {
+                try {
+                    final BufferedReader in = new BufferedReader( new InputStreamReader(is) );
+                    String line = null;
+                    while ((line = in.readLine()) != null) {
+                        if( null != outString ) {
+                            outString.append(line).append(Platform.getNewline());
+                        } else if( null != outStream ) {
+                            if( null != prefix ) {
+                                outStream.write(prefix.getBytes());
+                            }
+                            outStream.write(line.getBytes());
+                            outStream.write(Platform.getNewline().getBytes());
+                            outStream.flush();
+                        }
+                    }
+                } catch (IOException ioe) {
+                    System.err.println("Catched "+ioe.getClass().getName()+": "+ioe.getMessage());
+                    ioe.printStackTrace();
+                } finally {
+                    eos = true;
+                    sync.notifyAll();
                 }
-            }
-            catch (IOException ioe) {
-                System.err.println("Catched "+ioe.getClass().getName()+": "+ioe.getMessage());
-                ioe.printStackTrace();
             }
         }
     }   

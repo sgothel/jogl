@@ -405,7 +405,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.newt.TestDisplayLifecycle02NEWT
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00aNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00bNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00cNEWT $*
+testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00cNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01aNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01bNEWT $*
 #testnoawt com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01cNEWT $*
@@ -551,7 +551,7 @@ function testawtswt() {
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGImage00NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGImage01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileAWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileNEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestPNGTextureFromFileNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite01AWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite02AWT $*

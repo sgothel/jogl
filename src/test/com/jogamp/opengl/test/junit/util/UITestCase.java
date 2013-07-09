@@ -32,8 +32,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GL;
@@ -96,22 +101,111 @@ public abstract class UITestCase {
         resetXRandRIfX11AfterClass = true;
     }
     
+    /**
+     * Iterates through all outputs and sets the preferred mode and normal rotation using RandR 1.3.
+     * <p>
+     * With NV drivers, one need to add the Modes in proper order to the Screen's Subsection "Display",
+     * otherwise they are either in unsorted resolution order or even n/a!
+     * </p> 
+     */
+    @SuppressWarnings("unused")
     public static void resetXRandRIfX11() {
         if( NativeWindowFactory.isInitialized() && NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
             try {
-                final ProcessBuilder pb = new ProcessBuilder("xrandr", "-s", "0", "-o", "normal");
-                pb.redirectErrorStream(true);
-                System.err.println("XRandR Reset cmd: "+pb.command());
-                final Process p = pb.start();
-                new MiscUtils.StreamDump( p.getInputStream(), "xrandr-reset" ).start(); 
-                p.waitFor();
-                System.err.println("XRandR Reset result "+p.exitValue());
+                final List<String> outputDevices = new ArrayList<String>();
+                // final List<String> outputSizes = new ArrayList<String>();
+                final Object ioSync = new Object();
+                synchronized ( ioSync ) {
+                    final StringBuilder out = new StringBuilder();
+                    final ProcessBuilder pb = new ProcessBuilder("xrandr", "-q");
+                    pb.redirectErrorStream(true);
+                    System.err.println("XRandR Query: "+pb.command());
+                    final Process p = pb.start();                    
+                    final MiscUtils.StreamDump dump = new MiscUtils.StreamDump( out, p.getInputStream(), ioSync );
+                    dump.start();
+                    while( !dump.eos() ) {
+                        ioSync.wait();
+                    }
+                    p.waitFor(); // should be fine by now ..
+                    final int errorCode = p.exitValue();
+                    if( 0 == errorCode ) {
+                        // Parse connected output devices !
+                        final BufferedReader in = new BufferedReader( new StringReader( out.toString() ) );
+                        String line = null;
+                        while ( ( line = in.readLine() ) != null) {
+                            final String lline = line.toLowerCase();
+                            if( lline.contains("connected") && !lline.contains("disconnected") ) {
+                                final String od = getFirst(line);
+                                if( null != od ) {
+                                    outputDevices.add( od );
+                                    /**
+                                    if ( ( line = in.readLine() ) != null ) {
+                                        outputSizes.add( getFirst(line) );
+                                    } else {
+                                        outputSizes.add( null );
+                                    } */
+                                }
+                            }
+                        }
+                    } else {
+                        System.err.println("XRandR Query Error Code "+errorCode);
+                        System.err.println(out.toString());
+                    }
+                }
+                for(int i=0; i<outputDevices.size(); i++) {
+                    final String outputDevice = outputDevices.get(i);
+                    final String outputSize = null; // outputSizes.get(i);
+                    final String[] cmdline;
+                    if( null != outputSize ) {
+                        cmdline = new String[] { "xrandr", "--output", outputDevice, "--mode", outputSize, "--rotate", "normal" };
+                    } else {
+                        cmdline = new String[] { "xrandr", "--output", outputDevice, "--preferred", "--rotate", "normal" };
+                    }
+                    System.err.println("XRandR Reset: "+Arrays.asList(cmdline));
+                    final int errorCode = processCommand(cmdline, System.err, "xrandr-reset> ");
+                    if( 0 != errorCode ) {
+                        System.err.println("XRandR Reset Error Code "+errorCode);
+                    }
+                }
             } catch (Exception e) {
                 System.err.println("Catched "+e.getClass().getName()+": "+e.getMessage());
                 e.printStackTrace();
             }
-            System.err.println("XRandR Reset done");
         }
+    }
+    private static String getFirst(String line) {
+        final StringTokenizer tok = new StringTokenizer(line);
+        if( tok.hasMoreTokens() ) {
+            final String s = tok.nextToken().trim();
+            if( s.length() > 0 ) {
+                return s;
+            }
+        }
+        return null;
+    }
+    
+    public static int processCommand(String[] cmdline, OutputStream outstream, String outPrefix) {
+        int errorCode = 0;
+        final Object ioSync = new Object();
+        try {
+            synchronized ( ioSync ) {
+                final ProcessBuilder pb = new ProcessBuilder(cmdline);
+                pb.redirectErrorStream(true);
+                final Process p = pb.start();
+                final MiscUtils.StreamDump dump = new MiscUtils.StreamDump( outstream, outPrefix, p.getInputStream(), ioSync);
+                dump.start();
+                while( !dump.eos() ) {
+                    ioSync.wait();
+                }
+                p.waitFor(); // should be fine by now ..
+                errorCode = p.exitValue();
+            }
+        } catch (Exception e) {
+            System.err.println("Catched "+e.getClass().getName()+": "+e.getMessage());
+            e.printStackTrace();
+            errorCode = Integer.MIN_VALUE;
+        }
+        return errorCode;            
     }
     
     public int getMaxTestNameLen() {
