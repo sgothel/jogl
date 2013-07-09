@@ -345,7 +345,9 @@ public class NewtCanvasSWT extends Canvas implements WindowClosingProtocol {
             // set SWT EDT and start it
             {
                 final Display newtDisplay = newtChild.getScreen().getDisplay();
-                newtDisplay.setEDTUtil( new SWTEDTUtil(newtDisplay, getDisplay()) );
+                final EDTUtil edtUtil = new SWTEDTUtil(newtDisplay, getDisplay());
+                edtUtil.restart();
+                newtDisplay.setEDTUtil( edtUtil );
             }
             
             newtChild.setSize(w, h);            

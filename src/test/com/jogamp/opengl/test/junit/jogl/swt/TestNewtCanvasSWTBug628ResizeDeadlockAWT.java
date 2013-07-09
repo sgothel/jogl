@@ -52,6 +52,7 @@ import javax.media.opengl.GLProfile;
 import junit.framework.Assert;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
+import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.opengl.GLWindow ;
@@ -250,6 +251,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
         volatile Display display;
         volatile Shell shell;
         volatile Composite composite;
+        volatile com.jogamp.newt.Display swtNewtDisplay = null;
         
         public void init() {
             SWTAccessor.invoke(true, new Runnable() {
@@ -266,7 +268,8 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
                     composite = new Composite( shell, SWT.NO_BACKGROUND );
                     composite.setLayout( new FillLayout() );
                     Assert.assertNotNull( composite );
-                }});            
+                }});
+            swtNewtDisplay = NewtFactory.createDisplay(null, false); // no-reuse
         }
         
         public void dispose() {
@@ -288,6 +291,7 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
                 throwable.printStackTrace();
                 Assume.assumeNoException( throwable );
             }
+            swtNewtDisplay = null;
             display = null;
             shell = null;
             composite = null;            
@@ -305,7 +309,8 @@ public class TestNewtCanvasSWTBug628ResizeDeadlockAWT extends UITestCase {
         {
             final GLProfile gl2Profile = GLProfile.get( GLProfile.GL2 ) ;
             final GLCapabilities caps = new GLCapabilities( gl2Profile ) ;
-            glWindow = GLWindow.create( caps ) ;
+            com.jogamp.newt.Screen screen = NewtFactory.createScreen(dsc.swtNewtDisplay, 0);
+            glWindow = GLWindow.create( screen, caps ) ;
             glWindow.addGLEventListener( new BigFlashingX() ) ;
             glWindow.addKeyListener(new KeyAdapter() {
                 @Override

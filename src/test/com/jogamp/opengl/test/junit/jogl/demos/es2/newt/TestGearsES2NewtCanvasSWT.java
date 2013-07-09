@@ -103,6 +103,7 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
     Display display = null;
     Shell shell = null;
     Composite composite = null;
+    com.jogamp.newt.Display swtNewtDisplay = null;
     
     @Before
     public void init() {
@@ -120,6 +121,7 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
                 composite.setLayout( new FillLayout() );
                 Assert.assertNotNull( composite );
             }});
+        swtNewtDisplay = NewtFactory.createDisplay(null, false); // no-reuse
     }
 
     @After
@@ -142,6 +144,7 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
+        swtNewtDisplay = null;
         display = null;
         shell = null;
         composite = null;
@@ -149,8 +152,7 @@ public class TestGearsES2NewtCanvasSWT extends UITestCase {
     
     protected void runTestGL(GLCapabilitiesImmutable caps) throws InterruptedException, InvocationTargetException {
         System.err.println("requested: vsync "+swapInterval+", "+caps);
-        com.jogamp.newt.Display dpy = NewtFactory.createDisplay(null);
-        com.jogamp.newt.Screen screen = NewtFactory.createScreen(dpy, screenIdx);
+        com.jogamp.newt.Screen screen = NewtFactory.createScreen(swtNewtDisplay, screenIdx);
         final GLWindow glWindow = GLWindow.create(screen, caps);
         Assert.assertNotNull(glWindow);
         

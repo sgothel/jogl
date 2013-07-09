@@ -154,26 +154,25 @@ public abstract class Display {
     /**
      * Sets a new {@link EDTUtil} and returns the previous one.
      * <p>
-     * If <code>newEDTUtil</code> is <code>null</code>, 
+     * If <code>usrEDTUtil</code> is <code>null</code>, 
      * the device's default EDTUtil is created and used.
      * </p>
      * <p>
-     * If a previous one exists and it differs from the new one, 
-     * it's being stopped, wait-until-idle and reset to allow a restart at a later time.
+     * If a previous one exists and it differs from <code>usrEDTUtil</code>, 
+     * it's being stopped, wait-until-idle.
      * </p>
      * <p>
-     * If <code>newEDTUtil</code> is not null and equals the previous one,
+     * If <code>usrEDTUtil</code> is not null and equals the previous one,
      * no change is being made.
      * </p>
-     * <p>
-     * Note that <code>newEDTUtil</code> will be started by this method,
-     * if it is not running yet.
-     * </p>
      */
-    public abstract EDTUtil setEDTUtil(EDTUtil newEDTUtil);
+    public abstract EDTUtil setEDTUtil(EDTUtil usrEDTUtil);
     
     public abstract EDTUtil getEDTUtil();
 
+    /**
+     * @return true if EDT is running and not subject to be stopped, otherwise false.
+     */
     public abstract boolean isEDTRunning();
 
     public abstract void dispatchMessages();

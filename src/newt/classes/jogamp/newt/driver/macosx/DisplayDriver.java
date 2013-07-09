@@ -72,7 +72,7 @@ public class DisplayDriver extends DisplayImpl {
         aDevice = new MacOSXGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
-    protected void closeNativeImpl() { 
+    protected void closeNativeImpl(AbstractGraphicsDevice aDevice) { 
         aDevice.close();
     }
 

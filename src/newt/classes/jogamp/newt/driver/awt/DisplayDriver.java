@@ -34,6 +34,8 @@
 
 package jogamp.newt.driver.awt;
 
+import javax.media.nativewindow.AbstractGraphicsDevice;
+
 import com.jogamp.nativewindow.awt.AWTGraphicsDevice;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.util.EDTUtil;
@@ -65,7 +67,7 @@ public class DisplayDriver extends DisplayImpl {
         return def;
     }
 
-    protected void closeNativeImpl() { 
+    protected void closeNativeImpl(AbstractGraphicsDevice aDevice) { 
         aDevice.close();
     }
 

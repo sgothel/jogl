@@ -76,7 +76,7 @@ public class DisplayDriver extends DisplayImpl {
         aDevice = new WindowsGraphicsDevice(AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
-    protected void closeNativeImpl() { 
+    protected void closeNativeImpl(AbstractGraphicsDevice aDevice) { 
         sharedClassFactory.releaseSharedClass();
         aDevice.close();
     }

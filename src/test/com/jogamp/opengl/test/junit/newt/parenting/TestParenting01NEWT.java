@@ -74,7 +74,7 @@ public class TestParenting01NEWT extends UITestCase {
         Assert.assertEquals(0,display.getReferenceCount());
         Assert.assertEquals(false,display.isNativeValid());
         Assert.assertNotNull(display.getEDTUtil());
-        Assert.assertEquals(true,display.getEDTUtil().isRunning());
+        Assert.assertEquals(false,display.getEDTUtil().isRunning());
         Assert.assertEquals(0,screen.getReferenceCount());
         Assert.assertEquals(false,screen.isNativeValid());
         Assert.assertEquals(0,Display.getActiveDisplayNumber());

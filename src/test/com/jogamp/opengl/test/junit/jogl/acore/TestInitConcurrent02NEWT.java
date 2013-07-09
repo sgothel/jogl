@@ -68,8 +68,7 @@ public class TestInitConcurrent02NEWT extends InitConcurrentBaseNEWT {
             System.err.println("Disabled for auto unit test until further analysis - Windows/ATI driver crash");
             return;
         }
-        if( !mainRun &&
-            Platform.getCPUFamily() != Platform.CPUFamily.ARM &&
+        if( Platform.getCPUFamily() != Platform.CPUFamily.ARM &&
             Platform.getOSType() != Platform.OSType.WINDOWS ) {
             runJOGLTasks(16, false);
         } else {

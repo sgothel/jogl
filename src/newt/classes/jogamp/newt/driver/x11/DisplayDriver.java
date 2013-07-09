@@ -82,13 +82,13 @@ public class DisplayDriver extends DisplayImpl {
         try {
             CompleteDisplay0(aDevice.getHandle());
         } catch(RuntimeException e) {
-            closeNativeImpl();
+            closeNativeImpl(aDevice);
             throw e;                
         }
     }
 
     @Override
-    protected void closeNativeImpl() {
+    protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
         DisplayRelease0(aDevice.getHandle(), javaObjectAtom, windowDeleteAtom /*, kbdHandle */); // XKB disabled for now
         javaObjectAtom = 0;
         windowDeleteAtom = 0;
