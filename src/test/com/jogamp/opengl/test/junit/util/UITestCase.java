@@ -35,6 +35,7 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilitiesImmutable;
@@ -90,6 +91,24 @@ public abstract class UITestCase {
         testSupported = v;
     }
 
+    public static void resetXRandRIfX11() {
+        if( NativeWindowFactory.isInitialized() && NativeWindowFactory.TYPE_X11 == NativeWindowFactory.getNativeWindowType(true) ) {
+            try {
+                final ProcessBuilder pb = new ProcessBuilder("xrandr", "-s", "0", "-o", "normal");
+                pb.redirectErrorStream(true);
+                System.err.println("XRandR Reset cmd: "+pb.command());
+                final Process p = pb.start();
+                new MiscUtils.StreamDump( p.getInputStream(), "xrandr-reset" ).start(); 
+                p.waitFor();
+                System.err.println("XRandR Reset result "+p.exitValue());
+            } catch (Exception e) {
+                System.err.println("Catched "+e.getClass().getName()+": "+e.getMessage());
+                e.printStackTrace();
+            }
+            System.err.println("XRandR Reset done");
+        }
+    }
+    
     public int getMaxTestNameLen() {
         if(0 == maxMethodNameLen) {
             int ml = 0;
@@ -125,6 +144,7 @@ public abstract class UITestCase {
     @AfterClass
     public static void oneTimeTearDown() {
         // one-time cleanup code
+        resetXRandRIfX11();
         System.gc(); // force cleanup
         singletonInstance.unlock();
     }

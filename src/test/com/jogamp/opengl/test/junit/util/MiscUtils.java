@@ -29,6 +29,10 @@
 
 package com.jogamp.opengl.test.junit.util;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.*;
 import java.nio.FloatBuffer;
 
@@ -148,6 +152,32 @@ public class MiscUtils {
         }
         return false;
     }
+    
+    public static class StreamDump extends Thread {
+        final InputStream is;
+        final String prefix;    
+
+        public StreamDump(InputStream is, String prefix) {
+            this.is = is;
+            this.prefix = prefix;
+        }
+
+        @Override
+        public void run() {
+            try {
+                InputStreamReader isr = new InputStreamReader(is);
+                BufferedReader br = new BufferedReader(isr);
+                String line = null;
+                while ((line = br.readLine()) != null) {
+                    System.out.println(prefix + "> " + line);
+                }
+            }
+            catch (IOException ioe) {
+                System.err.println("Catched "+ioe.getClass().getName()+": "+ioe.getMessage());
+                ioe.printStackTrace();
+            }
+        }
+    }   
 }
 
 

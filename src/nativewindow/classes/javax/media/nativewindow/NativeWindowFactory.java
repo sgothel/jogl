@@ -187,7 +187,7 @@ public abstract class NativeWindowFactory {
         }
     }
 
-    static boolean initialized = false;
+    private static boolean initialized = false;
 
     private static void initSingletonNativeImpl(final ClassLoader cl) {
         final String clazzName;
@@ -295,6 +295,9 @@ public abstract class NativeWindowFactory {
         }        
     }
     
+    /** Returns true if {@link #initSingleton()} has been called w/o subsequent {@link #shutdown(boolean)}. */
+    public static synchronized boolean isInitialized() { return initialized; }    
+
     /**
      * Static one time initialization of this factory.<br>
      * This initialization method <b>must be called</b> once by the program or utilizing modules!

@@ -115,10 +115,11 @@ REM scripts\java-win.bat com.jogamp.opengl.test.junit.nativewindow.TestRecursive
 
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00aNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00bNEWT %*
+scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode00cNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01aNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01bNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01cNEWT %*
-scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01dNEWT %*
+REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode01dNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02aNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.TestScreenMode02bNEWT %*
 REM scripts\java-win.bat com.jogamp.opengl.test.junit.newt.mm.ManualScreenMode03sNEWT %*
