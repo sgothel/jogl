@@ -59,6 +59,7 @@ import javax.media.nativewindow.util.Dimension;
  * Tests X11 XRandR MonitorMode reset via {@link UITestCase#resetXRandRIfX11()}.
  */
 public class TestScreenMode00cNEWT extends UITestCase {
+    static boolean manualTest = false;
     static GLProfile glp;
     static int width, height;
     
@@ -69,7 +70,7 @@ public class TestScreenMode00cNEWT extends UITestCase {
     public static void initClass() {
         setResetXRandRIfX11AfterClass();
         NativeWindowFactory.initSingleton();
-        if( NativeWindowFactory.TYPE_X11 != NativeWindowFactory.getNativeWindowType(true) ) {
+        if( !manualTest || NativeWindowFactory.TYPE_X11 != NativeWindowFactory.getNativeWindowType(true) ) {
             setTestSupported(false);
             return;
         }
@@ -230,6 +231,7 @@ public class TestScreenMode00cNEWT extends UITestCase {
     }
 
     public static void main(String args[]) throws IOException {
+        manualTest = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
