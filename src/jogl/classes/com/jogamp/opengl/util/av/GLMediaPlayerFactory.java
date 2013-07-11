@@ -36,6 +36,7 @@ import com.jogamp.common.util.ReflectionUtil;
 public class GLMediaPlayerFactory {
     private static final String AndroidGLMediaPlayerAPI14ClazzName = "jogamp.opengl.android.av.AndroidGLMediaPlayerAPI14";
     private static final String FFMPEGMediaPlayerClazzName = "jogamp.opengl.util.av.impl.FFMPEGMediaPlayer";
+    private static final String OMXGLMediaPlayerClazzName = "jogamp.opengl.util.av.impl.OMXGLMediaPlayer";
     private static final String isAvailableMethodName = "isAvailable";
     
     public static GLMediaPlayer create() {
@@ -45,6 +46,10 @@ public class GLMediaPlayerFactory {
                 if(((Boolean)ReflectionUtil.callStaticMethod(AndroidGLMediaPlayerAPI14ClazzName, isAvailableMethodName, null, null, cl)).booleanValue()) {
                     return (GLMediaPlayer) ReflectionUtil.createInstance(AndroidGLMediaPlayerAPI14ClazzName, cl);
                 }
+            }
+        } else if(Platform.OS_TYPE.equals(Platform.OSType.RASPBERRYPI)){
+            if(((Boolean)ReflectionUtil.callStaticMethod(OMXGLMediaPlayerClazzName, isAvailableMethodName, null, null, cl)).booleanValue()) {
+                return (GLMediaPlayer) ReflectionUtil.createInstance(OMXGLMediaPlayerClazzName, cl);
             }
         }
         if(((Boolean)ReflectionUtil.callStaticMethod(FFMPEGMediaPlayerClazzName, isAvailableMethodName, null, null, cl)).booleanValue()) {
