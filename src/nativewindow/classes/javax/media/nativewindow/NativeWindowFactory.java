@@ -142,15 +142,13 @@ public abstract class NativeWindowFactory {
               return TYPE_WINDOWS;                
             case OPENKODE:
               return TYPE_EGL;
-                
+            case RASPBERRYPI:
+              return TYPE_BCM_VC_IV;
             case LINUX:
             case FREEBSD:
             case SUNOS:
             case HPUX:
             default:
-              if( guessBroadcomVCIV() ) {
-                return TYPE_BCM_VC_IV;
-              }
               return TYPE_X11;
         }
     }
