@@ -504,6 +504,17 @@ public abstract class GLContext {
   public abstract void destroy();
 
   /**
+   * Returns the implementing root GL instance of this GLContext's GL object, 
+   * considering a wrapped pipelined hierarchy, see {@link GLBase#getDownstreamGL()}.
+   * @throws GLException if the root instance is not a GL implementation
+   * @see GLBase#getRootGL()
+   * @see GLBase#getDownstreamGL()
+   * @see #getGL()
+   * @see #setGL(GL)
+   */
+  public abstract GL getRootGL();
+  
+  /**
    * Returns the GL pipeline object for this GLContext.
    *
    * @return the aggregated GL instance, or null if this context was not yet made current.
@@ -915,40 +926,83 @@ public abstract class GLContext {
              isExtensionAvailable(GLExtensions.IMG_texture_format_BGRA8888) ;
   }
 
-  /** @see GLProfile#isGL4bc() */
+  /** 
+   * Indicates whether this GLContext is capable of GL4bc.  <p>Includes [ GL4bc ].</p>
+   * @see GLProfile#isGL4bc() 
+   */
   public final boolean isGL4bc() {
       return ctxVersion.getMajor() >= 4 && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
                                         && 0 != (ctxOptions & CTX_PROFILE_COMPAT);
   }
 
-  /** @see GLProfile#isGL4() */
+  /** 
+   * Indicates whether this GLContext is capable of GL4.    <p>Includes [ GL4bc, GL4 ].</p>
+   * @see GLProfile#isGL4() 
+   */
   public final boolean isGL4() {
       return ctxVersion.getMajor() >= 4 && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
                                         && 0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE));
   }
 
-  /** Indicates whether this profile is capable of GL4 (core only). <p>Includes [ GL4 ].</p> */
+  /** 
+   * Indicates whether this GLContext is capable of GL4 (core only). <p>Includes [ GL4 ].</p> 
+   */
   public final boolean isGL4core() {
       return ctxVersion.getMajor() >= 4 && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
                                         && 0 != (ctxOptions & CTX_PROFILE_CORE);
   }
   
-  /** @see GLProfile#isGL3bc() */
+  /** 
+   * Indicates whether this GLContext is capable of GL3bc.  <p>Includes [ GL4bc, GL3bc ].</p>
+   * @see GLProfile#isGL3bc() 
+   */
   public final boolean isGL3bc() {
       return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
              0 != (ctxOptions & CTX_PROFILE_COMPAT) &&
              ctxVersion.compareTo(Version310) >= 0 ;
   }
 
-  /** @see GLProfile#isGL3() */
+  /** 
+   * Indicates whether this GLContext is capable of GL3.    <p>Includes [ GL4bc, GL4, GL3bc, GL3 ].</p>
+   * @see GLProfile#isGL3() 
+   */
   public final boolean isGL3() {
       return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
              0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE)) &&
              ctxVersion.compareTo(Version310) >= 0 ;
   }
   
-  /** Indicates whether this profile is capable of GL3 (core only). GL3 starts w/ OpenGL 3.1 <p>Includes [ GL4, GL3, GLES3 ].</p> */
+  /** 
+   * Indicates whether this GLContext is capable of GL3 (core only). GL3 starts w/ OpenGL 3.1 <p>Includes [ GL4, GL3 ].</p>
+   */
   public final boolean isGL3core() {
+      return 0 != ( ctxOptions & CTX_IS_ARB_CREATED ) &&
+             0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
+             ctxVersion.compareTo(Version310) >= 0;
+  }
+  
+  /** 
+   * Indicates whether this GLContext's native profile does not implement a default <i>vertex array object</i> (VAO), 
+   * starting w/ OpenGL 3.1 core and GLES3.
+   * <p>Includes [ GL4, GL3, GLES3 ].</p>
+   * <pre>
+     Due to GL 3.1 core spec: E.1. DEPRECATED AND REMOVED FEATURES (p 296),
+            GL 3.2 core spec: E.2. DEPRECATED AND REMOVED FEATURES (p 331)
+     there is no more default VAO buffer 0 bound, hence generating and binding one
+     to avoid INVALID_OPERATION at VertexAttribPointer. 
+     More clear is GL 4.3 core spec: 10.4 (p 307).
+   * </pre>
+   * <pre>
+     GLES3 is included, since upcoming ES releases &gt; 3.0 may behave the same:
+            GL ES 3.0 spec F.1. Legacy Features (p 322).
+   * </pre>
+   * <p>
+   * If no default VAO is implemented in the native OpenGL profile,
+   * an own default VAO is being used, see {@link #getDefaultVAO()}.
+   * </p>
+   * @see #getDefaultVAO()
+   */
+  public final boolean hasNoDefaultVAO() {
       return ( 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 3 ) ||
              ( 0 != ( ctxOptions & CTX_IS_ARB_CREATED ) &&
                0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
@@ -956,52 +1010,87 @@ public abstract class GLContext {
              ) ;
   }
   
-  /** @see GLProfile#isGL2() */
+  /**
+   * If this GLContext does not implement a default VAO, see {@link #hasNoDefaultVAO()},
+   * an <i>own default VAO</i> will be created and bound at context creation.
+   * <p>
+   * If this GLContext does implement a default VAO, i.e. {@link #hasNoDefaultVAO()}
+   * returns <code>false</code>, this method returns <code>0</code>.
+   * </p> 
+   * <p>
+   * Otherwise this method returns the VAO object name
+   * representing this GLContext's <i>own default VAO</i>.  
+   * </p> 
+   * @see #hasNoDefaultVAO()
+   */
+  public abstract int getDefaultVAO();
+
+  /** 
+   * @see GLProfile#isGL2() 
+   */
   public final boolean isGL2() {
       return 0 != ( ctxOptions & CTX_PROFILE_COMPAT ) && ctxVersion.getMajor()>=1 ;
   }
 
-  /** @see GLProfile#isGL2GL3() */  
+  /** 
+   * @see GLProfile#isGL2GL3() 
+   */  
   public final boolean isGL2GL3() {
       return isGL2() || isGL3();
   }
 
-  /** @see GLProfile#isGLES1() */
+  /** 
+   * @see GLProfile#isGLES1() 
+   */
   public final boolean isGLES1() {
       return 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() == 1 ;
   }
 
-  /** @see GLProfile#isGLES2() */
+  /** 
+   * @see GLProfile#isGLES2() 
+   */
   public final boolean isGLES2() {
       return 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 2 ;
   }
 
-  /** @see GLProfile#isGLES3() */
+  /** 
+   * @see GLProfile#isGLES3() 
+   */
   public final boolean isGLES3() {
       return 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 3 ;
   }
 
-  /** @see GLProfile#isGLES() */
+  /** 
+   * @see GLProfile#isGLES() 
+   */
   public final boolean isGLES() {
       return 0 != ( CTX_PROFILE_ES & ctxOptions ) ;
   }
 
-  /** @see GLProfile#isGL2ES1() */
+  /** 
+   * @see GLProfile#isGL2ES1() 
+   */
   public final boolean isGL2ES1() {
       return isGLES1() || isGL2();
   }
 
-  /** @see GLProfile#isGL2ES2() */
+  /** 
+   * @see GLProfile#isGL2ES2() 
+   */
   public final boolean isGL2ES2() {
       return isGLES2() || isGL2GL3();
   }
 
-  /** @see GLProfile#isGL3ES3() */
+  /** 
+   * @see GLProfile#isGL3ES3() 
+   */
   public final boolean isGL3ES3() {
       return isGL4ES3() || isGL3();
   }
 
-  /** @see GLProfile#isGL4ES3() */
+  /** 
+   * @see GLProfile#isGL4ES3() 
+   */
   public final boolean isGL4ES3() {
       return isGL4() || isGLES3() ;
   }

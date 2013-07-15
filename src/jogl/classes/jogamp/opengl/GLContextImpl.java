@@ -67,8 +67,8 @@ import javax.media.nativewindow.NativeSurface;
 import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GL2ES3;
 import javax.media.opengl.GL2GL3;
+import javax.media.opengl.GL3ES3;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDebugListener;
@@ -263,6 +263,17 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   @Override
+  public final GL getRootGL() {
+      GL _gl = gl;
+      GL _parent = _gl.getDownstreamGL();
+      while ( null != _parent ) {
+          _gl = _parent;
+          _parent = _gl.getDownstreamGL();
+      }
+      return _gl;
+  }
+  
+  @Override
   public final GL getGL() {
     return gl;
   }
@@ -277,6 +288,11 @@ public abstract class GLContextImpl extends GLContext {
     }
     this.gl = gl;
     return gl;
+  }
+
+  @Override
+  public final int getDefaultVAO() {
+      return defaultVAO;
   }
 
   /**
@@ -399,7 +415,7 @@ public abstract class GLContextImpl extends GLContext {
                   }
                   if ( 0 != defaultVAO ) {
                       final int[] tmp = new int[] { defaultVAO };
-                      final GL2ES3 gl3es3 = gl.getGL3ES3(); 
+                      final GL3ES3 gl3es3 = gl.getRootGL().getGL3ES3();
                       gl3es3.glBindVertexArray(0);
                       gl3es3.glDeleteVertexArrays(1, tmp, 0);
                       defaultVAO = 0;
@@ -636,14 +652,9 @@ public abstract class GLContextImpl extends GLContext {
         final boolean created;
         try {
             created = createImpl(shareWith); // may throws exception if fails!
-            if( created && isGL3core() ) {
-                // Due to GL 3.1 core spec: E.1. DEPRECATED AND REMOVED FEATURES (p 296),
-                //        GL 3.2 core spec: E.2. DEPRECATED AND REMOVED FEATURES (p 331)
-                // there is no more default VAO buffer 0 bound, hence generating and binding one
-                // to avoid INVALID_OPERATION at VertexAttribPointer. 
-                // More clear is GL 4.3 core spec: 10.4 (p 307).
+            if( created && hasNoDefaultVAO() ) {
                 final int[] tmp = new int[1];
-                final GL2ES3 gl3es3 = gl.getGL3ES3();
+                final GL3ES3 gl3es3 = gl.getRootGL().getGL3ES3();
                 gl3es3.glGenVertexArrays(1, tmp, 0);
                 defaultVAO = tmp[0];
                 gl3es3.glBindVertexArray(defaultVAO);
@@ -1955,10 +1966,6 @@ public abstract class GLContextImpl extends GLContext {
     return glStateTracker;
   }
   
-  public final boolean isDefaultVAO(int vao) {
-      return defaultVAO == vao;
-  }
-
   //---------------------------------------------------------------------------
   // Helpers for context optimization where the last context is left
   // current on the OpenGL worker thread

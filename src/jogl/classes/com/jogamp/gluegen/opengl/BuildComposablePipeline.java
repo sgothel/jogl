@@ -167,16 +167,16 @@ public class BuildComposablePipeline {
      */
     public void emit() throws IOException {
 
-        List<Method> publicMethodsRaw = Arrays.asList(classToComposeAround.getMethods());
+        final List<Method> publicMethodsRaw = Arrays.asList(classToComposeAround.getMethods());
 
-        Set<PlainMethod> publicMethodsPlain = new HashSet<PlainMethod>();
+        final Set<PlainMethod> publicMethodsPlain = new HashSet<PlainMethod>();
         for (Iterator<Method> iter = publicMethodsRaw.iterator(); iter.hasNext();) {
-            Method method = iter.next();
+            final Method method = iter.next();
             // Don't hook methods which aren't real GL methods,
             // such as the synthetic "isGL2ES2" "getGL2ES2"
-            String name = method.getName();
+            final String name = method.getName();
             boolean runHooks = name.startsWith("gl");
-            if (!name.startsWith("getGL") && !name.startsWith("isGL") && !name.equals("toString")) {
+            if ( !name.startsWith("getGL") && !name.startsWith("isGL") && !name.equals("getDownstreamGL") && !name.equals("toString") ) {
                 publicMethodsPlain.add(new PlainMethod(method, runHooks));
             }
         }
@@ -603,8 +603,13 @@ public class BuildComposablePipeline {
          */
         protected void emitGLIsMethod(PrintWriter output, String type) {
             output.println("  @Override");
-            output.println("  public boolean is" + type + "() {");
-            output.println("    return " + getDownstreamObjectName() + ".is" + type + "();");
+            output.println("  public final boolean is" + type + "() {");
+            final Class<?> clazz = BuildComposablePipeline.getClass("javax.media.opengl." + type);
+            if (clazz.isAssignableFrom(baseInterfaceClass)) {
+                output.println("    return true;");
+            } else {
+                output.println("    return false;");
+            }
             output.println("  }");
         }
 
@@ -626,9 +631,18 @@ public class BuildComposablePipeline {
             emitGLIsMethod(output, "GL3ES3");
             emitGLIsMethod(output, "GL4ES3");
             emitGLIsMethod(output, "GL2GL3");
-            emitGLIsMethod(output, "GLES");
-            emitGLIsMethod(output, "GLES2Compatible");
-            emitGLIsMethod(output, "GLES3Compatible");
+            output.println("  @Override");
+            output.println("  public final boolean isGLES() {");
+            output.println("    return isGLES2() || isGLES1();");
+            output.println("  }");
+            output.println("  @Override");
+            output.println("  public final boolean isGLES2Compatible() {");
+            output.println("    return " + getDownstreamObjectName() + ".isGLES2Compatible();");
+            output.println("  }");
+            output.println("  @Override");
+            output.println("  public final boolean isGLES3Compatible() {");
+            output.println("    return " + getDownstreamObjectName() + ".isGLES3Compatible();");
+            output.println("  }");
         }
 
         /**
@@ -636,8 +650,13 @@ public class BuildComposablePipeline {
          */
         protected void emitGLGetMethod(PrintWriter output, String type) {
             output.println("  @Override");
-            output.println("  public javax.media.opengl." + type + " get" + type + "() {");
-            output.println("    return " + getDownstreamObjectName() + ".get" + type + "();");
+            output.println("  public final javax.media.opengl." + type + " get" + type + "() {");
+            final Class<?> clazz = BuildComposablePipeline.getClass("javax.media.opengl." + type);
+            if (clazz.isAssignableFrom(baseInterfaceClass)) {
+                output.println("    return this;");
+            } else {
+                output.println("    throw new GLException(\"Not a " + type + " implementation\");");
+            }
             output.println("  }");
         }
 
@@ -660,7 +679,11 @@ public class BuildComposablePipeline {
             emitGLGetMethod(output, "GL4ES3");
             emitGLGetMethod(output, "GL2GL3");
             output.println("  @Override");
-            output.println("  public GLProfile getGLProfile() {");
+            output.println("  public final GL getDownstreamGL() throws GLException {");
+            output.println("    return " + getDownstreamObjectName() + ";");
+            output.println("  }");
+            output.println("  @Override");
+            output.println("  public final GLProfile getGLProfile() {");
             output.println("    return " + getDownstreamObjectName() + ".getGLProfile();");
             output.println("  }");
         }

@@ -25,6 +25,16 @@
     }
 
     @Override
+    public final GL getDownstreamGL() throws GLException {
+        return null;
+    }
+
+    @Override
+    public final GL getRootGL() throws GLException {
+        return this;
+    }
+
+    @Override
     public final boolean isGL() {
         return true;
     }
