@@ -146,8 +146,11 @@ public abstract class GLContext {
   // Cached keys, bits [0..15]
   //
   
-  /** Cached bit mask covering bits [0..15], i.e. {@value}. */
-  protected static final int CTX_IMPL_CACHE_MASK = 0x0000FFFF;
+  /** Context option bits, full bit mask covering bits [0..15], i.e. <code>0x0000FFFF</code>, {@value}. */
+  protected static final int CTX_IMPL_FULL_MASK = 0x0000FFFF;
+  
+  /** Context option bits, cached bit mask covering 9 bits [0..8], i.e. <code>0x000001FF</code>, {@value}. Leaving 7 bits for non cached options, i.e. 9:7. */
+  protected static final int CTX_IMPL_CACHE_MASK = 0x000001FF;
   
   /** <code>ARB_create_context</code> related: created via ARB_create_context. Cache key value. See {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
   protected static final int CTX_IS_ARB_CREATED  = 1 <<  0;
@@ -165,14 +168,14 @@ public abstract class GLContext {
   protected static final int CTX_IMPL_ACCEL_SOFT = 1 <<  6;
 
   //
-  // Non cached keys, bits [16..31]
+  // Non cached keys, bits [9..15]
   //
   
   /** <code>GL_ARB_ES2_compatibility</code> implementation related: Context is compatible w/ ES2. Not a cache key. See {@link #isGLES2Compatible()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
-  protected static final int CTX_IMPL_ES2_COMPAT = 1 << 16;
+  protected static final int CTX_IMPL_ES2_COMPAT = 1 <<  9;
 
   /** <code>GL_ARB_ES3_compatibility</code> implementation related: Context is compatible w/ ES3. Not a cache key. See {@link #isGLES3Compatible()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
-  protected static final int CTX_IMPL_ES3_COMPAT = 1 << 17;
+  protected static final int CTX_IMPL_ES3_COMPAT = 1 << 10;
   
   /** 
    * Context supports basic FBO, details see {@link #hasBasicFBOSupport()}.
@@ -180,7 +183,7 @@ public abstract class GLContext {
    * @see #hasBasicFBOSupport()
    * @see #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)
    */
-  protected static final int CTX_IMPL_FBO        = 1 << 18;
+  protected static final int CTX_IMPL_FBO        = 1 << 11;
 
   /** 
    * Context supports <code>OES_single_precision</code>, fp32, fixed function point (FFP) compatibility entry points, 
@@ -189,7 +192,7 @@ public abstract class GLContext {
    * @see #hasFP32CompatAPI()
    * @see #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)
    */
-  protected static final int CTX_IMPL_FP32_COMPAT_API = 1 << 19;
+  protected static final int CTX_IMPL_FP32_COMPAT_API = 1 << 12;
   
   private static final ThreadLocal<GLContext> currentContext = new ThreadLocal<GLContext>();
 
