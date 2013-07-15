@@ -249,10 +249,10 @@ public class ShaderUtil {
             for(int i = source.length - 1; i>=0; i--) {
                 final CharSequence csq = source[i];
                 if(csq instanceof String) {
-                    // if ShaderCode.create(.. mutableStringBuffer == false )
+                    // if ShaderCode.create(.. mutableStringBuilder == false )
                     tmp[i] = (String) csq;
                 } else {
-                    // if ShaderCode.create(.. mutableStringBuffer == true )
+                    // if ShaderCode.create(.. mutableStringBuilder == true )
                     tmp[i] = source[i].toString();
                 }
             }

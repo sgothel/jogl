@@ -130,7 +130,7 @@ public interface CapabilitiesImmutable extends VisualIDHolder, WriteCloneable, C
     @Override
     int hashCode();
 
-    /** Return a textual representation of this object. Use the given StringBuffer [optional]. */
+    /** Return a textual representation of this object. Use the given StringBuilder [optional]. */
     StringBuilder toString(StringBuilder sink);
 
     /** Returns a textual representation of this object. */

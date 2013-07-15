@@ -156,8 +156,8 @@ public class MonitorMode implements Comparable<MonitorMode> {
         private final static String STR_DOUBLESCAN = "DoubleScan";
         private final static String STR_SEP = ", ";
         
-        public static final StringBuffer flags2String(int flags) {
-            final StringBuffer sb = new StringBuffer();
+        public static final StringBuilder flags2String(int flags) {
+            final StringBuilder sb = new StringBuilder();
             boolean sp = false;
             if( 0 != ( flags & FLAG_INTERLACE ) ) {
                 sb.append(STR_INTERLACE);

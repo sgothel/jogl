@@ -78,7 +78,7 @@ public class NewtVersionActivity extends NewtBaseActivity {
        glWindow.addGLEventListener(new GLEventListener() {
             public void init(GLAutoDrawable drawable) {
                 GL gl = drawable.getGL();
-                final StringBuffer sb = new StringBuffer();
+                final StringBuilder sb = new StringBuilder();
                 sb.append(JoglVersion.getGLInfo(gl, null, true)).append(Platform.NEWLINE);
                 sb.append("Requested: ").append(Platform.NEWLINE);
                 sb.append(drawable.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities()).append(Platform.NEWLINE).append(Platform.NEWLINE);
