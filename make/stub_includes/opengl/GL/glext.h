@@ -54,12 +54,14 @@ extern "C" {
 
 #ifndef GL_ARB_imaging
 #define GL_ARB_imaging 1
+#ifndef GL_VERSION_1_0
 typedef unsigned int GLenum;
 typedef int GLsizei;
 typedef void GLvoid;
 typedef float GLfloat;
 typedef int GLint;
 typedef unsigned char GLboolean;
+#endif /* GL_VERSION_1_0 */
 #define GL_CONSTANT_COLOR                 0x8001
 #define GL_ONE_MINUS_CONSTANT_COLOR       0x8002
 #define GL_CONSTANT_ALPHA                 0x8003
@@ -1497,7 +1499,7 @@ GLAPI void APIENTRY glUniformBlockBinding (GLuint program, GLuint uniformBlockIn
 #define GL_VERSION_3_2 1
 #ifndef GLEXT_64_TYPES_DEFINED
 /* This code block is duplicated in glxext.h, so must be protected */
-#define GLEXT_64_TYPES_DEFINED
+#define GLEXT_64_TYPES_DEFINED 1
 /* Define int32_t, int64_t, and uint64_t types for UST/MSC */
 /* (as used in the GL_EXT_timer_query extension). */
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
@@ -1531,10 +1533,10 @@ typedef unsigned __int64 uint64_t;
 /* Fallback if nothing above works */
 #include <inttypes.h>
 #endif
-#endif
 typedef int64_t GLint64;
 typedef struct __GLsync *GLsync;
 typedef uint64_t GLuint64;
+#endif /* GLEXT_64_TYPES_DEFINED */
 #define GL_CONTEXT_CORE_PROFILE_BIT       0x00000001
 #define GL_CONTEXT_COMPATIBILITY_PROFILE_BIT 0x00000002
 #define GL_LINES_ADJACENCY                0x000A
@@ -4650,7 +4652,9 @@ GLAPI GLbitfield APIENTRY glQueryMatrixxOES (GLfixed *mantissa, GLint *exponent)
 
 #ifndef GL_OES_single_precision
 #define GL_OES_single_precision 1
+#ifndef GL_VERSION_1_0
 typedef float GLclampf;
+#endif /* GL_VERSION_1_0 */
 typedef void (APIENTRYP PFNGLCLEARDEPTHFOESPROC) (GLclampf depth);
 typedef void (APIENTRYP PFNGLCLIPPLANEFOESPROC) (GLenum plane, const GLfloat *equation);
 typedef void (APIENTRYP PFNGLDEPTHRANGEFOESPROC) (GLclampf n, GLclampf f);
@@ -5846,7 +5850,9 @@ GLAPI void APIENTRY glCullParameterfvEXT (GLenum pname, GLfloat *params);
 
 #ifndef GL_EXT_depth_bounds_test
 #define GL_EXT_depth_bounds_test 1
+#ifndef GL_VERSION_1_0
 typedef double GLclampd;
+#endif /* GL_VERSION_1_0 */
 #define GL_DEPTH_BOUNDS_TEST_EXT          0x8890
 #define GL_DEPTH_BOUNDS_EXT               0x8891
 typedef void (APIENTRYP PFNGLDEPTHBOUNDSEXTPROC) (GLclampd zmin, GLclampd zmax);
@@ -7357,8 +7363,10 @@ GLAPI void APIENTRY glTextureNormalEXT (GLenum mode);
 
 #ifndef GL_EXT_timer_query
 #define GL_EXT_timer_query 1
+#ifndef GLEXT_64_TYPES_DEFINED
 typedef int64_t GLint64EXT;
 typedef uint64_t GLuint64EXT;
+#endif /* GLEXT_64_TYPES_DEFINED */
 #define GL_TIME_ELAPSED_EXT               0x88BF
 typedef void (APIENTRYP PFNGLGETQUERYOBJECTI64VEXTPROC) (GLuint id, GLenum pname, GLint64EXT *params);
 typedef void (APIENTRYP PFNGLGETQUERYOBJECTUI64VEXTPROC) (GLuint id, GLenum pname, GLuint64EXT *params);

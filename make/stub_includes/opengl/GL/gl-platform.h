@@ -21,13 +21,17 @@
 #  else /* for use with static link lib build of Win32 edition only */
 #    define GLAPI extern
 #  endif /* _STATIC_MESA support */
-#  define APIENTRY __stdcall
+#  ifndef APIENTRY
+#    define APIENTRY __stdcall
+#  endif /* APIENTRY */
 #else
 /* non-Windows compilation */
 #  ifndef GLAPI
 #    define GLAPI extern
 #  endif
-#  define APIENTRY
+#  ifndef APIENTRY
+#    define APIENTRY
+#  endif /* APIENTRY */
 #endif /* WIN32 / CYGWIN bracket */
 
 #if (defined(__BEOS__) && defined(__POWERPC__)) || defined(__QUICKDRAW__)
@@ -47,9 +51,11 @@
 #include <windows.h>
 #endif
 
+/**
 #if defined(_WIN32) && !defined(_WINGDI_) && !defined(_GNU_H_WINDOWS32_DEFINES) && !defined(OPENSTEP) && !defined(__CYGWIN__)
 #include <gl/mesa_wgl.h>
 #endif
+*/
 
 #if defined(macintosh) && PRAGMA_IMPORT_SUPPORTED
 #pragma import on

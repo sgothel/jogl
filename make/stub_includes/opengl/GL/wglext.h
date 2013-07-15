@@ -697,6 +697,7 @@ BOOL WINAPI wglDeleteDCNV (HDC hdc);
 #define WGL_COLOR_SAMPLES_NV              0x20B9
 #endif /* WGL_NV_multisample_coverage */
 
+#if 0 /* problems on Windows ..*/
 #ifndef WGL_NV_present_video
 #define WGL_NV_present_video 1
 #ifndef SKIP_WGL_HANDLE_DEFINITIONS
@@ -712,6 +713,7 @@ BOOL WINAPI wglBindVideoDeviceNV (HDC hDC, unsigned int uVideoSlot, HVIDEOOUTPUT
 BOOL WINAPI wglQueryCurrentContextNV (int iAttribute, int *piValue);
 #endif
 #endif /* WGL_NV_present_video */
+#endif /* problems on Windows ..*/
 
 #ifndef WGL_NV_render_depth_texture
 #define WGL_NV_render_depth_texture 1
@@ -757,6 +759,7 @@ void WINAPI wglFreeMemoryNV (void *pointer);
 #endif
 #endif /* WGL_NV_vertex_array_range */
 
+#if 0 /* problems on Windows ..*/
 #ifndef WGL_NV_video_capture
 #define WGL_NV_video_capture 1
 #ifndef SKIP_WGL_HANDLE_DEFINITIONS
@@ -777,7 +780,9 @@ BOOL WINAPI wglQueryVideoCaptureDeviceNV (HDC hDc, HVIDEOINPUTDEVICENV hDevice, 
 BOOL WINAPI wglReleaseVideoCaptureDeviceNV (HDC hDc, HVIDEOINPUTDEVICENV hDevice);
 #endif
 #endif /* WGL_NV_video_capture */
+#endif /* problems on Windows ..*/
 
+#if 0 /* problems on Windows ..*/
 #ifndef WGL_NV_video_output
 #define WGL_NV_video_output 1
 #ifndef SKIP_WGL_HANDLE_DEFINITIONS
@@ -811,6 +816,7 @@ BOOL WINAPI wglSendPbufferToVideoNV (HPBUFFERARB hPbuffer, int iBufferType, unsi
 BOOL WINAPI wglGetVideoInfoNV (HPVIDEODEV hpVideoDevice, unsigned long *pulCounterOutputPbuffer, unsigned long *pulCounterOutputVideo);
 #endif
 #endif /* WGL_NV_video_output */
+#endif /* problems on Windows ..*/
 
 #ifndef WGL_OML_sync_control
 #define WGL_OML_sync_control 1
