@@ -224,9 +224,9 @@ public class GLDebugMessageHandler {
     private final void setSynchronousImpl() {
         if(isExtensionARB()) {
             if(synchronous) {
-                ctx.getGL().glEnable(GL2GL3.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+                ctx.getGL().glEnable(GL2GL3.GL_DEBUG_OUTPUT_SYNCHRONOUS);
             } else {
-                ctx.getGL().glDisable(GL2GL3.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+                ctx.getGL().glDisable(GL2GL3.GL_DEBUG_OUTPUT_SYNCHRONOUS);
             }        
             if(DEBUG) {
                 System.err.println("GLDebugMessageHandler: synchronous "+synchronous);

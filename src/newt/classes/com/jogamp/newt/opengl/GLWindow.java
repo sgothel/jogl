@@ -830,14 +830,41 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
      * A most simple JOGL AWT test entry
      */
     public static void main(String args[]) {
+        boolean forceES2 = false;
+        boolean forceES3 = false;
+        boolean forceGL3 = false;
+        if( null != args ) {
+            for(int i=0; i<args.length; i++) {
+                if(args[i].equals("-es2")) {
+                    forceES2 = true;
+                } else if(args[i].equals("-es3")) {
+                    forceES3 = true;
+                } else if(args[i].equals("-gl3")) {
+                    forceGL3 = true;
+                }            
+            }
+        }
+        System.err.println("forceES2 "+forceES2);
+        System.err.println("forceES3 "+forceES3);
+        System.err.println("forceGL3 "+forceGL3);
         System.err.println(VersionUtil.getPlatformInfo());
         System.err.println(GlueGenVersion.getInstance());
         System.err.println(JoglVersion.getInstance());
 
         System.err.println(JoglVersion.getDefaultOpenGLInfo(null, null, true).toString());
 
-        final GLProfile glp = GLProfile.getDefault();
+        final GLProfile glp;
+        if(forceGL3) {
+            glp = GLProfile.get(GLProfile.GL3);
+        } else if(forceES3) {
+            glp = GLProfile.get(GLProfile.GLES3);
+        } else if(forceES2) {
+            glp = GLProfile.get(GLProfile.GLES2);
+        } else {
+            glp = GLProfile.getDefault();
+        }
         final GLCapabilitiesImmutable caps = new GLCapabilities( glp );
+        System.err.println("Requesting: "+caps);
 
         GLWindow glWindow = GLWindow.create(caps);
         glWindow.setSize(128, 128);

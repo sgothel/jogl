@@ -91,10 +91,10 @@ public class TestGLDebug01NEWT extends UITestCase {
         if(ctx.isGLDebugMessageEnabled() && null != dbgTstMsg && 0 <= dbgTstId) {
             window.invoke(true, new GLRunnable() {
                 public boolean run(GLAutoDrawable drawable) {
-                    drawable.getContext().glDebugMessageInsert(GL2GL3.GL_DEBUG_SOURCE_APPLICATION_ARB, 
-                                                               GL2GL3.GL_DEBUG_TYPE_OTHER_ARB,
+                    drawable.getContext().glDebugMessageInsert(GL2GL3.GL_DEBUG_SOURCE_APPLICATION, 
+                                                               GL2GL3.GL_DEBUG_TYPE_OTHER,
                                                                dbgTstId, 
-                                                               GL2GL3.GL_DEBUG_SEVERITY_MEDIUM_ARB, dbgTstMsg);
+                                                               GL2GL3.GL_DEBUG_SEVERITY_MEDIUM, dbgTstMsg);
                     return true;
                 }
             });
@@ -121,9 +121,9 @@ public class TestGLDebug01NEWT extends UITestCase {
         GLWindow window = createWindow(glp, true);
         
         MyGLDebugListener myGLDebugListener = new MyGLDebugListener(
-                GL2GL3.GL_DEBUG_SOURCE_API_ARB,
-                GL2GL3.GL_DEBUG_TYPE_ERROR_ARB,
-                GL2GL3.GL_DEBUG_SEVERITY_HIGH_ARB);
+                GL2GL3.GL_DEBUG_SOURCE_API,
+                GL2GL3.GL_DEBUG_TYPE_ERROR,
+                GL2GL3.GL_DEBUG_SEVERITY_HIGH);
         window.getContext().addGLDebugListener(myGLDebugListener);
         
         window.invoke(true, new GLRunnable() {

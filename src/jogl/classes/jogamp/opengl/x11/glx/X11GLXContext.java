@@ -633,10 +633,15 @@ public class X11GLXContext extends GLContextImpl {
   }
 
   @Override
-  public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
-    return getGLXExt().glXAllocateMemoryNV(arg0, arg1, arg2, arg3);
+  public final ByteBuffer glAllocateMemoryNV(int size, float readFrequency, float writeFrequency, float priority) {  
+    return getGLXExt().glXAllocateMemoryNV(size, readFrequency, writeFrequency, priority);
   }
 
+  @Override
+  public final void glFreeMemoryNV(ByteBuffer pointer) {
+    getGLXExt().glXFreeMemoryNV(pointer);
+  }
+    
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();

@@ -61,6 +61,7 @@ public class GLConfiguration extends ProcAddressConfiguration {
     // The following data members support ignoring an entire extension at a time
     private List<String> glHeaders = new ArrayList<String>();
     private Set<String> ignoredExtensions = new HashSet<String>();
+    private Set<String> forcedExtensions = new HashSet<String>();
     private Set<String> extensionsRenamedIntoCore = new HashSet<String>();
     private BuildStaticGLInfo glInfo;
 
@@ -90,6 +91,9 @@ public class GLConfiguration extends ProcAddressConfiguration {
         if (cmd.equalsIgnoreCase("IgnoreExtension")) {
             String sym = readString("IgnoreExtension", tok, filename, lineNo);
             ignoredExtensions.add(sym);
+        } else if (cmd.equalsIgnoreCase("ForceExtension")) {
+            String sym = readString("ForceExtension", tok, filename, lineNo);
+            forcedExtensions.add(sym);
         } else if (cmd.equalsIgnoreCase("RenameExtensionIntoCore")) {
             String sym = readString("RenameExtensionIntoCore", tok, filename, lineNo);
             extensionsRenamedIntoCore.add(sym);
@@ -202,16 +206,21 @@ public class GLConfiguration extends ProcAddressConfiguration {
         for (String str : ignoredExtensions) {
             System.err.println("\t" + str);
         }
+        System.err.println("GL Forced extensions: ");
+        for (String str : forcedExtensions) {
+            System.err.println("\t" + str);
+        }
         super.dumpIgnores();
     }
 
     protected boolean shouldIgnoreExtension(String symbol, boolean criteria) {
         if (criteria && glInfo != null) {
-            Set<String> extensionNames = glInfo.getExtension(symbol);
-            if(null!=extensionNames) {
-                for(Iterator<String> i=extensionNames.iterator(); i.hasNext(); ) {
-                    String extensionName = i.next();
-                    if (extensionName != null && ignoredExtensions.contains(extensionName)) {
+            final Set<String> extensionNames = glInfo.getExtension(symbol);
+            if( null != extensionNames ) {
+                boolean ignoredExtension = false;
+                for(Iterator<String> i=extensionNames.iterator(); !ignoredExtension && i.hasNext(); ) {
+                    final String extensionName = i.next();
+                    if ( extensionName != null && ignoredExtensions.contains(extensionName) ) {
                         if (DEBUG_IGNORES) {
                             System.err.print("Ignore symbol <" + symbol + "> of extension <" + extensionName + ">");
                             if(extensionNames.size()==1) {
@@ -220,8 +229,25 @@ public class GLConfiguration extends ProcAddressConfiguration {
                                 System.err.println(", WARNING MULTIPLE OCCURENCE: "+extensionNames);
                             }
                         }
-                        return true;
+                        ignoredExtension = true;
                     }
+                }
+                if( ignoredExtension ) {
+                    ignoredExtension = !shouldForceExtension( symbol, true, symbol );                        
+                    if( ignoredExtension ) {
+                        final Set<String> origSymbols = getRenamedJavaSymbols( symbol );
+                        if(null != origSymbols) {
+                            for(String origSymbol : origSymbols) {
+                                if( shouldForceExtension( origSymbol, true, symbol ) ) {
+                                    ignoredExtension = false;
+                                    break;
+                                }
+                            }
+                        }                    
+                    }
+                }
+                if( ignoredExtension ) {
+                    return true;
                 }
             }
             boolean isGLEnum = GLNameResolver.isGLEnumeration(symbol);
@@ -236,6 +262,29 @@ public class GLConfiguration extends ProcAddressConfiguration {
                         return true;
                     }
                 }
+            }
+        }
+        return false;
+    }
+    
+    public boolean shouldForceExtension(final String symbol, final boolean criteria, final String renamedSymbol) {
+        if (criteria && glInfo != null) {
+            final Set<String> extensionNames = glInfo.getExtension(symbol);
+            if( null != extensionNames ) {
+                for(Iterator<String> i=extensionNames.iterator(); i.hasNext(); ) {
+                    final String extensionName = i.next();
+                    if ( extensionName != null && forcedExtensions.contains(extensionName) ) {
+                        if (DEBUG_IGNORES) {
+                            System.err.print("Not Ignore symbol <" + symbol + " -> " + renamedSymbol + "> of extension <" + extensionName + ">");
+                            if(extensionNames.size()==1) {
+                                System.err.println(", single .");
+                            } else {
+                                System.err.println(", WARNING MULTIPLE OCCURENCE: "+extensionNames);
+                            }
+                        }
+                        return true;
+                    }
+                }            
             }
         }
         return false;

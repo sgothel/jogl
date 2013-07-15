@@ -132,7 +132,7 @@ public class GLProfile {
                                   ReflectionUtil.createInstance(getGLImplBaseClassName(GL4bc)+"Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { null, null }, cl);
                               } catch (Throwable t) {}
                               try {
-                                  ReflectionUtil.createInstance(getGLImplBaseClassName(GLES2)+"Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { null, null }, cl);              
+                                  ReflectionUtil.createInstance(getGLImplBaseClassName(GLES3)+"Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { null, null }, cl);              
                               } catch (Throwable t) {}
                               try {
                                   ReflectionUtil.createInstance(getGLImplBaseClassName(GLES1)+"Impl", new Class[] { GLProfile.class, GLContextImpl.class }, new Object[] { null, null }, cl);              
@@ -165,7 +165,7 @@ public class GLProfile {
             initLock.unlock();
         }
         if(DEBUG) {
-            if( justInitialized && ( hasGL234Impl || hasGLES1Impl || hasGLES2Impl ) ) {
+            if( justInitialized && ( hasGL234Impl || hasGLES1Impl || hasGLES3Impl ) ) {
                 System.err.println(JoglVersion.getDefaultOpenGLInfo(defaultDevice, null, true));
             }
         }        
@@ -299,6 +299,24 @@ public class GLProfile {
         }
 
         if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL4ES3").append(indent);
+        } else {
+            sb.append(", GL4ES3 ");
+        }
+        sb.append(isAvailableImpl(map, GL4ES3));
+        
+        if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GLES3").append(indent);
+        } else {
+            sb.append(", GLES3 ");
+        }
+        avail=isAvailableImpl(map, GLES3);
+        sb.append(avail);
+        if(avail) {
+            glAvailabilityToString(device, sb.append(" "), 3, GLContext.CTX_PROFILE_ES);
+        }
+
+        if(useIndent) {
             doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL3bc").append(indent);
         } else {
             sb.append(", GL3bc ");
@@ -332,24 +350,6 @@ public class GLProfile {
         }
 
         if(useIndent) {
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL2ES1").append(indent);
-        } else {
-            sb.append(", GL2ES1 ");
-        }
-        sb.append(isAvailableImpl(map, GL2ES1));
-
-        if(useIndent) {
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GLES1").append(indent);
-        } else {
-            sb.append(", GLES1 ");
-        }
-        avail=isAvailableImpl(map, GLES1);
-        sb.append(avail);
-        if(avail) {
-            glAvailabilityToString(device, sb.append(" "), 1, GLContext.CTX_PROFILE_ES);
-        }
-
-        if(useIndent) {
             doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL2ES2").append(indent);
         } else {
             sb.append(", GL2ES2 ");
@@ -365,6 +365,24 @@ public class GLProfile {
         sb.append(avail);
         if(avail) {
             glAvailabilityToString(device, sb.append(" "), 2, GLContext.CTX_PROFILE_ES);
+        }
+
+        if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL2ES1").append(indent);
+        } else {
+            sb.append(", GL2ES1 ");
+        }
+        sb.append(isAvailableImpl(map, GL2ES1));
+
+        if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GLES1").append(indent);
+        } else {
+            sb.append(", GLES1 ");
+        }
+        avail=isAvailableImpl(map, GLES1);
+        sb.append(avail);
+        if(avail) {
+            glAvailabilityToString(device, sb.append(" "), 1, GLContext.CTX_PROFILE_ES);
         }
 
         if(useIndent) {
@@ -437,6 +455,9 @@ public class GLProfile {
     /** The embedded OpenGL profile ES 2.x, with x >= 0 */
     public static final String GLES2 = "GLES2";
 
+    /** The embedded OpenGL profile ES 3.x, with x >= 0 */
+    public static final String GLES3 = "GLES3";
+
     /** The intersection of the desktop GL2 and embedded ES1 profile */
     public static final String GL2ES1 = "GL2ES1";
 
@@ -446,6 +467,9 @@ public class GLProfile {
     /** The intersection of the desktop GL3 and GL2 profile */
     public static final String GL2GL3 = "GL2GL3";
 
+    /** The intersection of the desktop GL4 and ES3 profile */
+    public static final String GL4ES3 = "GL4ES3";
+    
     /** The default profile, used for the device default profile map  */
     private static final String GL_DEFAULT = "GL_DEFAULT";
 
@@ -456,62 +480,66 @@ public class GLProfile {
      * <p> This includes the generic subset profiles GL2GL3, GL2ES2 and GL2ES1.</p>
      *
      * <ul>
-     *  <li> GL4bc
-     *  <li> GL3bc
-     *  <li> GL2
-     *  <li> GL4
-     *  <li> GL3
-     *  <li> GL2GL3
-     *  <li> GLES2
-     *  <li> GL2ES2
-     *  <li> GLES1
-     *  <li> GL2ES1
+     *  <li> GL4bc </li>
+     *  <li> GL3bc </li>
+     *  <li> GL2 </li>
+     *  <li> GL4 </li>
+     *  <li> GL3 </li>
+     *  <li> GLES3 </li>
+     *  <li> GL4ES3 </li>
+     *  <li> GL2GL3 </li>
+     *  <li> GLES2 </li>
+     *  <li> GL2ES2 </li>
+     *  <li> GLES1 </li>
+     *  <li> GL2ES1 </li>
      * </ul>
      *
      */
-    public static final String[] GL_PROFILE_LIST_ALL = new String[] { GL4bc, GL3bc, GL2, GL4, GL3, GL2GL3, GLES2, GL2ES2, GLES1, GL2ES1 };
-
+    public static final String[] GL_PROFILE_LIST_ALL = new String[] { GL4bc, GL3bc, GL2, GL4, GL3, GLES3, GL4ES3, GL2GL3, GLES2, GL2ES2, GLES1, GL2ES1 };
+    
     /**
      * Order of maximum profiles.
      *
      * <ul>
-     *  <li> GL4bc
-     *  <li> GL4
-     *  <li> GL3bc
-     *  <li> GL3
-     *  <li> GL2
-     *  <li> GLES2
-     *  <li> GLES1
+     *  <li> GL4bc </li>
+     *  <li> GL4 </li>
+     *  <li> GL3bc </li>
+     *  <li> GL3 </li>
+     *  <li> GLES3 </li>
+     *  <li> GL2 </li>
+     *  <li> GLES2 </li>
+     *  <li> GLES1 </li>
      * </ul>
      *
      */
-    public static final String[] GL_PROFILE_LIST_MAX = new String[] { GL4bc, GL4, GL3bc, GL3, GL2, GLES2, GLES1 };
+    public static final String[] GL_PROFILE_LIST_MAX = new String[] { GL4bc, GL4, GL3bc, GL3, GLES3, GL2, GLES2, GLES1 };
 
     /**
      * Order of minimum profiles.
      *
      * <ul>
-     *  <li> GLES1
-     *  <li> GLES2
-     *  <li> GL2
-     *  <li> GL3
-     *  <li> GL3bc
-     *  <li> GL4
-     *  <li> GL4bc
+     *  <li> GLES1 </li>
+     *  <li> GLES2 </li>
+     *  <li> GL2 </li>
+     *  <li> GLES3 </li>
+     *  <li> GL3 </li>
+     *  <li> GL3bc </li>
+     *  <li> GL4 </li>
+     *  <li> GL4bc </li>
      * </ul>
      *
      */
-    public static final String[] GL_PROFILE_LIST_MIN = new String[] { GLES1, GLES2, GL2, GL3, GL3bc, GL4, GL4bc };
+    public static final String[] GL_PROFILE_LIST_MIN = new String[] { GLES1, GLES2, GL2, GLES3, GL3, GL3bc, GL4, GL4bc };
     
     /**
      * Order of minimum original desktop profiles.
      *
      * <ul>
-     *  <li> GL2
-     *  <li> GL3bc
-     *  <li> GL4bc
-     *  <li> GL3
-     *  <li> GL4
+     *  <li> GL2 </li>
+     *  <li> GL3bc </li>
+     *  <li> GL4bc </li>
+     *  <li> GL3 </li>
+     *  <li> GL4 </li>
      * </ul>
      *
      */
@@ -521,10 +549,10 @@ public class GLProfile {
      * Order of maximum fixed function profiles
      *
      * <ul>
-     *  <li> GL4bc
-     *  <li> GL3bc
-     *  <li> GL2
-     *  <li> GLES1
+     *  <li> GL4bc </li>
+     *  <li> GL3bc </li>
+     *  <li> GL2 </li>
+     *  <li> GLES1 </li>
      * </ul>
      *
      */
@@ -534,28 +562,30 @@ public class GLProfile {
      * Order of maximum programmable shader profiles
      *
      * <ul>
-     *  <li> GL4bc
-     *  <li> GL4
-     *  <li> GL3bc
-     *  <li> GL3
-     *  <li> GL2
-     *  <li> GLES2
+     *  <li> GL4bc </li>
+     *  <li> GL4 </li>
+     *  <li> GL3bc </li>
+     *  <li> GL3 </li>
+     *  <li> GLES3 </li>
+     *  <li> GL2 </li>
+     *  <li> GLES2 </li>
      * </ul>
      *
      */
-    public static final String[] GL_PROFILE_LIST_MAX_PROGSHADER = new String[] { GL4bc, GL4, GL3bc, GL3, GL2, GLES2 };
+    public static final String[] GL_PROFILE_LIST_MAX_PROGSHADER = new String[] { GL4bc, GL4, GL3bc, GL3, GLES3, GL2, GLES2 };
 
     /**
      * Order of maximum programmable shader <i>core only</i> profiles
      *
      * <ul>
-     *  <li> GL4
-     *  <li> GL3
-     *  <li> GLES2
+     *  <li> GL4 </li>
+     *  <li> GL3 </li>
+     *  <li> GLES3 </li>
+     *  <li> GLES2 </li>
      * </ul>
      *
      */
-    public static final String[] GL_PROFILE_LIST_MAX_PROGSHADER_CORE = new String[] { GL4, GL3, GLES2 };
+    public static final String[] GL_PROFILE_LIST_MAX_PROGSHADER_CORE = new String[] { GL4, GL3, GLES3, GLES2 };
     
     /** Returns a default GLProfile object, reflecting the best for the running platform.
      * It selects the first of the set {@link GLProfile#GL_PROFILE_LIST_ALL}
@@ -755,6 +785,36 @@ public class GLProfile {
     }
 
     /** 
+     * Returns the GL4ES3 profile implementation, hence compatible w/ GL4ES3.<br/>
+     * It returns:
+     * <pre>
+     *   GLProfile.get(device, GLProfile.GL4ES3).getImpl());
+     * </pre>
+     * <p>Selection favors hardware rasterizer.</p>
+     *
+     * @throws GLException if no GL4ES3 compatible profile is available for the default device.
+     * @see #isGL4ES3()
+     * @see #get(AbstractGraphicsDevice, String)
+     * @see #getImpl()
+     */
+    public static GLProfile getGL4ES3(AbstractGraphicsDevice device)
+        throws GLException
+    {
+        return get(device, GL4ES3).getImpl();
+    }
+
+    /** 
+     * Calls {@link #getGL4ES3(AbstractGraphicsDevice)} using the default device. 
+     * <p>Selection favors hardware rasterizer.</p>
+     * @see #getGL4ES3(AbstractGraphicsDevice)
+     */
+    public static GLProfile getGL4ES3()
+        throws GLException
+    {
+        return get(defaultDevice, GL4ES3).getImpl();
+    }
+
+    /** 
      * Returns the GL2GL3 profile implementation, hence compatible w/ GL2GL3.<br/>
      * It returns:
      * <pre>
@@ -872,13 +932,20 @@ public class GLProfile {
         return GLES1.equals(profileImpl);
     }
 
-    /** Indicates whether the native OpenGL ES2 profile is in use. 
-     * This requires an EGL or ES2 compatible interface.
+    /** Indicates whether the native OpenGL ES3 or ES2 profile is in use. 
+     * This requires an EGL, ES3 or ES2 compatible interface.
      */
     public static boolean usesNativeGLES2(String profileImpl) {
-        return GLES2.equals(profileImpl);
+        return GLES3.equals(profileImpl) || GLES2.equals(profileImpl);
     }
 
+    /** Indicates whether the native OpenGL ES2 profile is in use. 
+     * This requires an EGL, ES3 compatible interface.
+     */
+    public static boolean usesNativeGLES3(String profileImpl) {
+        return GLES3.equals(profileImpl);
+    }
+    
     /** Indicates whether either of the native OpenGL ES profiles are in use. */
     public static boolean usesNativeGLES(String profileImpl) {
         return usesNativeGLES2(profileImpl) || usesNativeGLES1(profileImpl);
@@ -937,8 +1004,8 @@ public class GLProfile {
     }
 
     private static final String getGLImplBaseClassName(String profileImpl) {
-        if( GLES2 == profileImpl ) {
-            return "jogamp.opengl.es2.GLES2";
+        if( GLES2 == profileImpl || GLES3 == profileImpl ) {
+            return "jogamp.opengl.es3.GLES3";
         } else if( GLES1 == profileImpl ) {
             return "jogamp.opengl.es1.GLES1";
         } else if ( GL4bc == profileImpl ||
@@ -1035,14 +1102,19 @@ public class GLProfile {
         return GLES1 == profile;
     }
 
-    /** Indicates whether this profile is capable of GLES2.  <p>Includes [ GLES2 ].</p> */
+    /** Indicates whether this profile is capable of GLES2.  <p>Includes [ GLES3, GLES2 ].</p> */
     public final boolean isGLES2() {
-        return GLES2 == profile;
+        return GLES3 == profile || GLES2 == profile;
     }
     
-    /** Indicates whether this profile is capable of GLES.  <p>Includes [ GLES1, GLES2 ].</p> */
+    /** Indicates whether this profile is capable of GLES3.  <p>Includes [ GLES3 ].</p> */
+    public final boolean isGLES3() {
+        return GLES3 == profile;
+    }
+    
+    /** Indicates whether this profile is capable of GLES.  <p>Includes [ GLES3, GLES1, GLES2 ].</p> */
     public final boolean isGLES() {
-        return GLES2 == profile || GLES1 == profile;
+        return GLES3 == profile || GLES2 == profile || GLES1 == profile;
     }
 
     /** Indicates whether this profile is capable of GL2ES1. <p>Includes [ GL4bc, GL3bc, GL2, GLES1, GL2ES1 ].</p> */
@@ -1050,17 +1122,27 @@ public class GLProfile {
         return GL2ES1 == profile || isGLES1() || isGL2();
     }
 
-    /** Indicates whether this profile is capable os GL2GL3. <p>Includes [ GL4bc, GL4, GL3bc, GL3, GL2, GL2GL3 ].</p> */
+    /** Indicates whether this profile is capable of GL2GL3. <p>Includes [ GL4bc, GL4, GL3bc, GL3, GL2, GL2GL3 ].</p> */
     public final boolean isGL2GL3() {
         return GL2GL3 == profile || isGL3() || isGL2();
     }
-
-    /** Indicates whether this profile is capable os GL2ES2. <p>Includes [ GL4bc, GL4, GL3bc, GL3, GL2, GL2GL3, GL2ES2, GLES2 ].</p> */
+    
+    /** Indicates whether this profile is capable of GL2ES2. <p>Includes [ GL4bc, GL4, GL3bc, GL3, GLES3, GL2, GL2GL3, GL2ES2, GLES2 ].</p> */
     public final boolean isGL2ES2() {
         return GL2ES2 == profile || isGLES2() || isGL2GL3();
     }
 
-    /** Indicates whether this profile supports GLSL, ie. {@link #isGL2ES2()}. */
+    /** Indicates whether this profile is capable of GL3ES3. <p>Includes [ GL4bc, GL4, GL3bc, GL3, GLES3 ].</p> */
+    public final boolean isGL3ES3() {
+        return isGL4ES3() || isGL3();
+    }
+
+    /** Indicates whether this profile is capable of GL4ES3. <p>Includes [ GL4bc, GL4, GLES3 ].</p> */
+    public final boolean isGL4ES3() {
+        return GL4ES3 == profile || isGLES3() || isGL4();
+    }
+
+    /** Indicates whether this profile supports GLSL, i.e. {@link #isGL2ES2()}. */
     public final boolean hasGLSL() {
         return isGL2ES2() ;
     }
@@ -1072,7 +1154,12 @@ public class GLProfile {
 
     /** Indicates whether this profile uses the native OpenGL ES2 implementations. */
     public final boolean usesNativeGLES2() {
-        return GLES2 == getImplName();
+        return GLES3 == getImplName() || GLES2 == getImplName();
+    }
+
+    /** Indicates whether this profile uses the native OpenGL ES2 implementations. */
+    public final boolean usesNativeGLES3() {
+        return GLES3 == getImplName();
     }
 
     /** Indicates whether this profile uses either of the native OpenGL ES implementations. */
@@ -1117,8 +1204,8 @@ public class GLProfile {
     
     public boolean isValidArrayDataType(int index, int comps, int type, 
                                         boolean isVertexAttribPointer, boolean throwException) {
-        String arrayName = getGLArrayName(index);
-        if(isGLES1()) {
+        final String arrayName = getGLArrayName(index);
+        if( isGLES1() ) {
             if(isVertexAttribPointer) {
                 if(throwException) {
                     throw new GLException("Illegal array type for "+arrayName+" on profile GLES1: VertexAttribPointer");
@@ -1201,7 +1288,7 @@ public class GLProfile {
                     }
                     break;
             }
-        } else if(isGLES2()) {
+        } else if( isGLES2() ) {
             // simply ignore !isVertexAttribPointer case, since it is simulated anyway ..
             switch(type) {
                 case GL.GL_UNSIGNED_BYTE:
@@ -1386,7 +1473,7 @@ public class GLProfile {
     private static /*final*/ boolean hasDesktopGLFactory;    
     private static /*final*/ boolean hasGL234Impl;
     private static /*final*/ boolean hasEGLFactory;
-    private static /*final*/ boolean hasGLES2Impl;
+    private static /*final*/ boolean hasGLES3Impl;
     private static /*final*/ boolean hasGLES1Impl;
 
     private static /*final*/ GLDrawableFactoryImpl eglFactory = null;
@@ -1419,7 +1506,7 @@ public class GLProfile {
         
         // depends on hasEGLFactory
         hasGLES1Impl   = ReflectionUtil.isClassAvailable("jogamp.opengl.es1.GLES1Impl", classloader);
-        hasGLES2Impl   = ReflectionUtil.isClassAvailable("jogamp.opengl.es2.GLES2Impl", classloader);
+        hasGLES3Impl   = ReflectionUtil.isClassAvailable("jogamp.opengl.es3.GLES3Impl", classloader);
         
         //
         // Iteration of desktop GL availability detection
@@ -1471,8 +1558,8 @@ public class GLProfile {
                 eglFactory = (GLDrawableFactoryImpl) GLDrawableFactory.getFactoryImpl(GLES2);
                 if(null != eglFactory) {
                     hasEGLFactory = true;
-                    // update hasGLES1Impl, hasGLES2Impl based on EGL
-                    hasGLES2Impl = null!=eglFactory.getGLDynamicLookupHelper(2) && hasGLES2Impl;
+                    // update hasGLES1Impl, hasGLES3Impl based on EGL
+                    hasGLES3Impl = null!=eglFactory.getGLDynamicLookupHelper(2) && hasGLES3Impl;
                     hasGLES1Impl = null!=eglFactory.getGLDynamicLookupHelper(1) && hasGLES1Impl;
                 }
             } catch (LinkageError le) {
@@ -1493,7 +1580,7 @@ public class GLProfile {
 
         final AbstractGraphicsDevice defaultEGLDevice;
         if(null == eglFactory) {
-            hasGLES2Impl     = false;
+            hasGLES3Impl     = false;
             hasGLES1Impl     = false;
             defaultEGLDevice = null;
             if(DEBUG) {
@@ -1532,7 +1619,7 @@ public class GLProfile {
             System.err.println("GLProfile.init hasGL234Impl          "+hasGL234Impl);
             System.err.println("GLProfile.init hasEGLFactory         "+hasEGLFactory);
             System.err.println("GLProfile.init hasGLES1Impl          "+hasGLES1Impl);
-            System.err.println("GLProfile.init hasGLES2Impl          "+hasGLES2Impl);
+            System.err.println("GLProfile.init hasGLES3Impl          "+hasGLES3Impl);
             System.err.println("GLProfile.init defaultDevice         "+defaultDevice);
             System.err.println("GLProfile.init defaultDevice Desktop "+defaultDesktopDevice);
             System.err.println("GLProfile.init defaultDevice EGL     "+defaultEGLDevice);
@@ -1609,8 +1696,8 @@ public class GLProfile {
         
         final boolean deviceIsEGLCompatible = hasEGLFactory && eglFactory.getIsDeviceCompatible(device);
         
-        // also test GLES1 and GLES2 on desktop, since we have implementations / emulations available.
-        if( deviceIsEGLCompatible && ( hasGLES2Impl || hasGLES1Impl ) ) {
+        // also test GLES1, GLES2 and GLES3 on desktop, since we have implementations / emulations available.
+        if( deviceIsEGLCompatible && ( hasGLES3Impl || hasGLES1Impl ) ) {
             // 1st pretend we have all EGL profiles ..
             computeProfileMap(device, false /* desktopCtxUndef*/, true /* esCtxUndef */);
 
@@ -1629,7 +1716,7 @@ public class GLProfile {
                 // but it seems even EGL.eglInitialize(eglDisplay, null, null) 
                 // fails in some scenarios (eg VirtualBox 4.1.6) w/ EGL error 0x3001 (EGL_NOT_INITIALIZED).
                 hasEGLFactory = false;
-                hasGLES2Impl = false;
+                hasGLES3Impl = false;
                 hasGLES1Impl = false;
             }
             if (DEBUG) {
@@ -1647,7 +1734,7 @@ public class GLProfile {
                 System.err.println("GLProfile: desktoplFactory      "+desktopFactory);
                 System.err.println("GLProfile: eglFactory           "+eglFactory);
                 System.err.println("GLProfile: hasGLES1Impl         "+hasGLES1Impl);
-                System.err.println("GLProfile: hasGLES2Impl         "+hasGLES2Impl);
+                System.err.println("GLProfile: hasGLES3Impl         "+hasGLES3Impl);
             }
         }
 
@@ -1725,18 +1812,18 @@ public class GLProfile {
         final boolean isHardwareRasterizer[] = new boolean[1];
         GLProfile defaultGLProfileAny = null;
         GLProfile defaultGLProfileHW = null;
-        HashMap<String, GLProfile> _mappedProfiles = new HashMap<String, GLProfile>(GL_PROFILE_LIST_ALL.length + 1 /* default */);
+        final HashMap<String, GLProfile> _mappedProfiles = new HashMap<String, GLProfile>(GL_PROFILE_LIST_ALL.length + 1 /* default */);
         for(int i=0; i<GL_PROFILE_LIST_ALL.length; i++) {
-            String profile = GL_PROFILE_LIST_ALL[i];
-            String profileImpl = computeProfileImpl(device, profile, desktopCtxUndef, esCtxUndef, isHardwareRasterizer);
-            if(null!=profileImpl) {
+            final String profile = GL_PROFILE_LIST_ALL[i];
+            final String profileImpl = computeProfileImpl(device, profile, desktopCtxUndef, esCtxUndef, isHardwareRasterizer);
+            if( null != profileImpl ) {
                 final GLProfile glProfile;
-                if(profile.equals(profileImpl)) {
+                if( profile.equals( profileImpl ) ) {
                     glProfile = new GLProfile(profile, null, isHardwareRasterizer[0]);
                 } else {
-                    final GLProfile _mglp = _mappedProfiles.get(profileImpl);
-                    if(null == _mglp) {
-                        throw new InternalError("XXX0");
+                    final GLProfile _mglp = _mappedProfiles.get( profileImpl );
+                    if( null == _mglp ) {
+                        throw new InternalError("XXX0 profile["+i+"]: "+profile+" -> profileImpl "+profileImpl+" !!! not mapped ");
                     }
                     glProfile = new GLProfile(profile, _mglp, isHardwareRasterizer[0]);
                 }
@@ -1744,12 +1831,12 @@ public class GLProfile {
                 if (DEBUG) {
                     System.err.println("GLProfile.init map "+glProfile+" on device "+device.getConnection());
                 }
-                if(null==defaultGLProfileHW && isHardwareRasterizer[0]) {
+                if( null == defaultGLProfileHW && isHardwareRasterizer[0] ) {
                     defaultGLProfileHW=glProfile;
                     if (DEBUG) {
                         System.err.println("GLProfile.init map defaultHW "+glProfile+" on device "+device.getConnection());
                     }
-                } else if(null==defaultGLProfileAny) {
+                } else if( null == defaultGLProfileAny ) {
                     defaultGLProfileAny=glProfile;
                     if (DEBUG) {
                         System.err.println("GLProfile.init map defaultAny "+glProfile+" on device "+device.getConnection());
@@ -1761,9 +1848,9 @@ public class GLProfile {
                 }
             }
         }
-        if(null!=defaultGLProfileHW) {
+        if( null != defaultGLProfileHW ) {
             _mappedProfiles.put(GL_DEFAULT, defaultGLProfileHW);
-        } else if(null!=defaultGLProfileAny) {
+        } else if( null != defaultGLProfileAny ) {
             _mappedProfiles.put(GL_DEFAULT, defaultGLProfileAny);
         }
         setProfileMap(device, _mappedProfiles);
@@ -1805,28 +1892,28 @@ public class GLProfile {
             }
         } else if (GL2ES2.equals(profile)) {
             final boolean es2HardwareRasterizer[] = new boolean[1];
-            final boolean gles2Available = hasGLES2Impl && ( esCtxUndef || GLContext.isGLES2Available(device, es2HardwareRasterizer) );
+            final boolean gles2Available = hasGLES3Impl && ( esCtxUndef || GLContext.isGLES2Available(device, es2HardwareRasterizer) );
             final boolean gles2HWAvailable = gles2Available && es2HardwareRasterizer[0] ;
             if(hasGL234Impl) {
                 if(!isOSX) {
-                    if(GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
-                        if(!gles2HWAvailable || isHardwareRasterizer[0]) {
-                            return GL4bc;
-                        }
-                    }
                     if(GLContext.isGL4Available(device, isHardwareRasterizer)) {
                         if(!gles2HWAvailable || isHardwareRasterizer[0]) {
                             return GL4;
                         }
                     }
-                    if(GLContext.isGL3bcAvailable(device, isHardwareRasterizer)) {
+                    if(GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
                         if(!gles2HWAvailable || isHardwareRasterizer[0]) {
-                            return GL3bc;
+                            return GL4bc;
                         }
                     }
                     if(GLContext.isGL3Available(device, isHardwareRasterizer)) {
                         if(!gles2HWAvailable || isHardwareRasterizer[0]) {
                             return GL3;
+                        }
+                    }
+                    if(GLContext.isGL3bcAvailable(device, isHardwareRasterizer)) {
+                        if(!gles2HWAvailable || isHardwareRasterizer[0]) {
+                            return GL3bc;
                         }
                     }
                 }
@@ -1839,6 +1926,26 @@ public class GLProfile {
             if(gles2Available) {
                 isHardwareRasterizer[0] = es2HardwareRasterizer[0];
                 return GLES2;
+            }
+        } else if (GL4ES3.equals(profile)) {
+            final boolean es3HardwareRasterizer[] = new boolean[1];
+            final boolean gles3Available = hasGLES3Impl && ( esCtxUndef || GLContext.isGLES3Available(device, es3HardwareRasterizer) );
+            final boolean gles3HWAvailable = gles3Available && es3HardwareRasterizer[0] ;
+            if(hasGL234Impl) {
+                if(GLContext.isGL4Available(device, isHardwareRasterizer)) {
+                    if(!gles3HWAvailable || isHardwareRasterizer[0]) {
+                        return GL4;
+                    }
+                }
+                if(GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
+                    if(!gles3HWAvailable || isHardwareRasterizer[0]) {
+                        return GL4bc;
+                    }
+                }
+            }
+            if(gles3Available) {
+                isHardwareRasterizer[0] = es3HardwareRasterizer[0];
+                return GLES3;
             }
         } else if(GL2GL3.equals(profile)) {
             if(hasGL234Impl) {
@@ -1864,7 +1971,9 @@ public class GLProfile {
             return GL3;
         } else if(GL2.equals(profile) && hasGL234Impl && ( desktopCtxUndef || GLContext.isGL2Available(device, isHardwareRasterizer))) {
             return GL2;
-        } else if(GLES2.equals(profile) && hasGLES2Impl && ( esCtxUndef || GLContext.isGLES2Available(device, isHardwareRasterizer))) {
+        } else if(GLES3.equals(profile) && hasGLES3Impl && ( esCtxUndef || GLContext.isGLES3Available(device, isHardwareRasterizer))) {
+            return GLES3;
+        } else if(GLES2.equals(profile) && hasGLES3Impl && ( esCtxUndef || GLContext.isGLES2Available(device, isHardwareRasterizer))) {
             return GLES2;
         } else if(GLES1.equals(profile) && hasGLES1Impl && ( esCtxUndef || GLContext.isGLES1Available(device, isHardwareRasterizer))) {
             return GLES1;

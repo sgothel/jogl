@@ -86,6 +86,7 @@ public class TestGearsES2NEWT extends UITestCase {
     static int loops = 1;
     static boolean loop_shutdown = false;
     static boolean forceES2 = false;
+    static boolean forceES3 = false;
     static boolean forceGL3 = false;
     static boolean mainRun = false;
     static boolean exclusiveContext = false;
@@ -358,6 +359,8 @@ public class TestGearsES2NEWT extends UITestCase {
             final GLProfile glp;
             if(forceGL3) {
                 glp = GLProfile.get(GLProfile.GL3);
+            } else if(forceES3) {
+                glp = GLProfile.get(GLProfile.GLES3);
             } else if(forceES2) {
                 glp = GLProfile.get(GLProfile.GLES2);
             } else {
@@ -433,6 +436,8 @@ public class TestGearsES2NEWT extends UITestCase {
                 useAnimator  = false;
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
+            } else if(args[i].equals("-es3")) {
+                forceES3 = true;
             } else if(args[i].equals("-gl3")) {
                 forceGL3 = true;
             } else if(args[i].equals("-wait")) {
@@ -499,6 +504,7 @@ public class TestGearsES2NEWT extends UITestCase {
         System.err.println("loops "+loops);
         System.err.println("loop shutdown "+loop_shutdown);
         System.err.println("forceES2 "+forceES2);
+        System.err.println("forceES3 "+forceES3);
         System.err.println("forceGL3 "+forceGL3);
         System.err.println("swapInterval "+swapInterval);
         System.err.println("exclusiveContext "+exclusiveContext);

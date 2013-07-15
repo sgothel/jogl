@@ -71,7 +71,7 @@ public class BuildComposablePipeline {
     // Only desktop OpenGL has immediate mode glBegin / glEnd
     private boolean hasImmediateMode;
     // Desktop OpenGL and GLES1 have GL_STACK_OVERFLOW and GL_STACK_UNDERFLOW errors
-    private boolean hasStackOverflow;
+    private boolean hasGL2ES1StackOverflow;
 
     public static Class<?> getClass(String name) {
         Class<?> clazz = null;
@@ -155,7 +155,7 @@ public class BuildComposablePipeline {
         }
 
         try {
-            hasStackOverflow =
+            hasGL2ES1StackOverflow = hasImmediateMode &&
                     (classToComposeAround.getField("GL_STACK_OVERFLOW") != null);
         } catch (Exception e) {
         }
@@ -602,13 +602,9 @@ public class BuildComposablePipeline {
          * Emits one of the isGL* methods.
          */
         protected void emitGLIsMethod(PrintWriter output, String type) {
+            output.println("  @Override");
             output.println("  public boolean is" + type + "() {");
-            Class<?> clazz = BuildComposablePipeline.getClass("javax.media.opengl." + type);
-            if (clazz.isAssignableFrom(baseInterfaceClass)) {
-                output.println("    return true;");
-            } else {
-                output.println("    return false;");
-            }
+            output.println("    return " + getDownstreamObjectName() + ".is" + type + "();");
             output.println("  }");
         }
 
@@ -624,28 +620,24 @@ public class BuildComposablePipeline {
             emitGLIsMethod(output, "GL2");
             emitGLIsMethod(output, "GLES1");
             emitGLIsMethod(output, "GLES2");
+            emitGLIsMethod(output, "GLES3");
             emitGLIsMethod(output, "GL2ES1");
             emitGLIsMethod(output, "GL2ES2");
+            emitGLIsMethod(output, "GL3ES3");
+            emitGLIsMethod(output, "GL4ES3");
             emitGLIsMethod(output, "GL2GL3");
-            output.println("  public boolean isGLES() {");
-            output.println("    return isGLES2() || isGLES1();");
-            output.println("  }");
-            output.println("  public boolean isGLES2Compatible() {");
-            output.println("    return " + getDownstreamObjectName() + ".isGLES2Compatible();");
-            output.println("  }");
+            emitGLIsMethod(output, "GLES");
+            emitGLIsMethod(output, "GLES2Compatible");
+            emitGLIsMethod(output, "GLES3Compatible");
         }
 
         /**
          * Emits one of the getGL* methods.
          */
         protected void emitGLGetMethod(PrintWriter output, String type) {
+            output.println("  @Override");
             output.println("  public javax.media.opengl." + type + " get" + type + "() {");
-            Class<?> clazz = BuildComposablePipeline.getClass("javax.media.opengl." + type);
-            if (clazz.isAssignableFrom(baseInterfaceClass)) {
-                output.println("    return this;");
-            } else {
-                output.println("    throw new GLException(\"Not a " + type + " implementation\");");
-            }
+            output.println("    return " + getDownstreamObjectName() + ".get" + type + "();");
             output.println("  }");
         }
 
@@ -661,9 +653,13 @@ public class BuildComposablePipeline {
             emitGLGetMethod(output, "GL2");
             emitGLGetMethod(output, "GLES1");
             emitGLGetMethod(output, "GLES2");
+            emitGLGetMethod(output, "GLES3");
             emitGLGetMethod(output, "GL2ES1");
             emitGLGetMethod(output, "GL2ES2");
+            emitGLGetMethod(output, "GL3ES3");
+            emitGLGetMethod(output, "GL4ES3");
             emitGLGetMethod(output, "GL2GL3");
+            output.println("  @Override");
             output.println("  public GLProfile getGLProfile() {");
             output.println("    return " + getDownstreamObjectName() + ".getGLProfile();");
             output.println("  }");
@@ -870,9 +866,9 @@ public class BuildComposablePipeline {
             output.println("        case GL_INVALID_ENUM: buf.append(\"GL_INVALID_ENUM \"); break;");
             output.println("        case GL_INVALID_VALUE: buf.append(\"GL_INVALID_VALUE \"); break;");
             output.println("        case GL_INVALID_OPERATION: buf.append(\"GL_INVALID_OPERATION \"); break;");
-            if (hasStackOverflow) {
-                output.println("        case GL_STACK_OVERFLOW: buf.append(\"GL_STACK_OVERFLOW \"); break;");
-                output.println("        case GL_STACK_UNDERFLOW: buf.append(\"GL_STACK_UNDERFLOW \"); break;");
+            if (hasGL2ES1StackOverflow) {
+                output.println("        case GL2ES1.GL_STACK_OVERFLOW: buf.append(\"GL_STACK_OVERFLOW \"); break;");
+                output.println("        case GL2ES1.GL_STACK_UNDERFLOW: buf.append(\"GL_STACK_UNDERFLOW \"); break;");
             }
             output.println("        case GL_OUT_OF_MEMORY: buf.append(\"GL_OUT_OF_MEMORY \"); break;");
             output.println("        case GL_NO_ERROR: throw new InternalError(\"Should not be treating GL_NO_ERROR as error\");");

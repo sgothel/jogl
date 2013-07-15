@@ -52,7 +52,7 @@ import javax.media.nativewindow.OffscreenLayerSurface;
 import javax.media.nativewindow.ProxySurface;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GL3;
+import javax.media.opengl.GL3ES3;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
@@ -142,7 +142,7 @@ public class MacOSXCGLContext extends GLContextImpl
 
   private static final String shaderBasename = "texture01_xxx";
   
-  private static ShaderProgram createCALayerShader(GL3 gl) {
+  private static ShaderProgram createCALayerShader(GL3ES3 gl) {
       // Create & Link the shader program
       final ShaderProgram sp = new ShaderProgram();
       final ShaderCode vp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, MacOSXCGLContext.class, 
@@ -420,11 +420,17 @@ public class MacOSXCGLContext extends GLContextImpl
   }
 
   @Override
-  public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
+  public final ByteBuffer glAllocateMemoryNV(int size, float readFrequency, float writeFrequency, float priority) {
     // FIXME: apparently the Apple extension doesn't require a custom memory allocator
     throw new GLException("Not yet implemented");
   }
 
+  @Override
+  public final void glFreeMemoryNV(ByteBuffer pointer) {
+    // FIXME: apparently the Apple extension doesn't require a custom memory allocator
+    throw new GLException("Not yet implemented");
+  }
+  
   @Override
   protected final void updateGLXProcAddressTable() {
     final AbstractGraphicsConfiguration aconfig = drawable.getNativeSurface().getGraphicsConfiguration();
@@ -846,7 +852,7 @@ public class MacOSXCGLContext extends GLContextImpl
                   }
                   if( MacOSXCGLContext.this.isGL3core() ) {
                       if( null == gl3ShaderProgram) {
-                          gl3ShaderProgram = createCALayerShader(MacOSXCGLContext.this.gl.getGL3());
+                          gl3ShaderProgram = createCALayerShader(MacOSXCGLContext.this.gl.getGL3ES3());
                       }
                       gl3ShaderProgramName = gl3ShaderProgram.program();
                   } else {

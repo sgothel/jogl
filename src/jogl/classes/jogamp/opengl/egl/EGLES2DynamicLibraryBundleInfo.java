@@ -30,6 +30,11 @@ package jogamp.opengl.egl;
 
 import java.util.*;
 
+/** 
+ * <p>
+ * Covering ES3 and ES2.
+ * </p>
+ */
 public final class EGLES2DynamicLibraryBundleInfo extends EGLDynamicLibraryBundleInfo {
     protected EGLES2DynamicLibraryBundleInfo() {
         super();
@@ -40,18 +45,33 @@ public final class EGLES2DynamicLibraryBundleInfo extends EGLDynamicLibraryBundl
         {
             final List<String> libsGL = new ArrayList<String>();
             
-            // this is the default lib name, according to the spec 
+            // ES3: This is the default lib name, according to the spec            
+            libsGL.add("libGLESv3.so.3");
+            
+            // ES3: Try these as well, if spec fails
+            libsGL.add("libGLESv3.so");            
+            libsGL.add("GLESv3");
+
+            // ES3: Alternative names
+            libsGL.add("GLES30");
+
+            // ES3: For windows distributions using the 'unlike' lib prefix
+            // where our tool does not add it.
+            libsGL.add("libGLESv3");
+            libsGL.add("libGLES30");
+            
+            // ES2: This is the default lib name, according to the spec            
             libsGL.add("libGLESv2.so.2");
             
-            // try these as well, if spec fails
+            // ES2: Try these as well, if spec fails
             libsGL.add("libGLESv2.so");            
             libsGL.add("GLESv2");
 
-            // alternative names
+            // ES2: Alternative names
             libsGL.add("GLES20");
             libsGL.add("GLESv2_CM");
 
-            // for windows distributions using the 'unlike' lib prefix
+            // ES2: For windows distributions using the 'unlike' lib prefix
             // where our tool does not add it.
             libsGL.add("libGLESv2");
             libsGL.add("libGLESv2_CM");

@@ -1,5 +1,5 @@
-#ifndef __glplatform_h_
-#define __glplatform_h_
+#ifndef __gl_platform_h_
+#define __gl_platform_h_
 
 #if defined(__BEOS__)
 #include <stdlib.h>     /* to get some BeOS-isms */
@@ -21,13 +21,13 @@
 #  else /* for use with static link lib build of Win32 edition only */
 #    define GLAPI extern
 #  endif /* _STATIC_MESA support */
-#  define GLAPIENTRY __stdcall
+#  define APIENTRY __stdcall
 #else
 /* non-Windows compilation */
 #  ifndef GLAPI
 #    define GLAPI extern
 #  endif
-#  define GLAPIENTRY
+#  define APIENTRY
 #endif /* WIN32 / CYGWIN bracket */
 
 #if (defined(__BEOS__) && defined(__POWERPC__)) || defined(__QUICKDRAW__)
@@ -42,7 +42,7 @@
  * than "WIN32_LEAN_AND_MEAN" may include windows.h before
  * glut.h or gl.h.
  */
-#if defined(_WIN32) && !defined(APIENTRY) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(APIENTRY) && !defined(__CYGWIN__) && !defined(__SCITECH_SNAP__)
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
 #endif
@@ -63,5 +63,18 @@
 #pragma export on
 #endif
 
-#endif /* __glplatform_h_ */
+/**
+ * The defaults for all ..
+ */
+#ifndef APIENTRY
+#define APIENTRY
+#endif
+#ifndef APIENTRYP
+#define APIENTRYP APIENTRY *
+#endif
+#ifndef GLAPI
+#define GLAPI extern
+#endif
+
+#endif /* __gl_platform_h_ */
 

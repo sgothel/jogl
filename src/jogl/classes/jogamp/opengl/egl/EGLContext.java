@@ -171,7 +171,7 @@ public class EGLContext extends GLContextImpl {
 
         try {
             // might be unavailable on EGL < 1.2
-            if(!EGL.eglBindAPI(EGL.EGL_OPENGL_ES_API)) {
+            if( !EGL.eglBindAPI(EGL.EGL_OPENGL_ES_API) ) {
                 throw new GLException("Catched: eglBindAPI to ES failed , error "+toHexString(EGL.eglGetError()));
             }
         } catch (GLException glex) {
@@ -188,18 +188,21 @@ public class EGLContext extends GLContextImpl {
         }
 
         final IntBuffer contextAttrsNIO;
+        final int contextVersionReq, contextVersionAttr;
         {
-            final int[] contextAttrs = new int[] {
-                    EGL.EGL_CONTEXT_CLIENT_VERSION, -1,
-                    EGL.EGL_NONE
-            };
-            if (glProfile.usesNativeGLES2()) {
-                contextAttrs[1] = 2;
-            } else if (glProfile.usesNativeGLES1()) {
-                contextAttrs[1] = 1;
+            if ( glProfile.usesNativeGLES3() ) {
+                contextVersionReq = 3;
+                contextVersionAttr = 2;
+            } else if ( glProfile.usesNativeGLES2() ) {
+                contextVersionReq = 2;
+                contextVersionAttr = 2;
+            } else if ( glProfile.usesNativeGLES1() ) {
+                contextVersionReq = 1;
+                contextVersionAttr = 1;
             } else {
                 throw new GLException("Error creating OpenGL context - invalid GLProfile: "+glProfile);
             }
+            final int[] contextAttrs = new int[] { EGL.EGL_CONTEXT_CLIENT_VERSION, contextVersionAttr, EGL.EGL_NONE };
             contextAttrsNIO = Buffers.newDirectIntBuffer(contextAttrs);
         }
         contextHandle = EGL.eglCreateContext(eglDisplay, eglConfig, shareWithHandle, contextAttrsNIO);
@@ -219,8 +222,7 @@ public class EGLContext extends GLContextImpl {
             throw new GLException("Error making context " +
                                   toHexString(contextHandle) + " current: error code " + toHexString(EGL.eglGetError()));
         }
-        setGLFunctionAvailability(true, glProfile.usesNativeGLES2() ? 2 : 1, 0, CTX_PROFILE_ES, false);
-        return true;
+        return setGLFunctionAvailability(true, contextVersionReq, 0, CTX_PROFILE_ES, contextVersionReq>=3); // strict match for es >= 3
     }
 
     @Override
@@ -292,16 +294,25 @@ public class EGLContext extends GLContextImpl {
         final GLProfile glp = caps.getGLProfile();
         final int[] reqMajorCTP = new int[2];
         GLContext.getRequestMajorAndCompat(glp, reqMajorCTP);
-        if(glp.isGLES() && reqMajorCTP[0] >= 2) {
-            reqMajorCTP[1] |= GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ;
+        if( glp.isGLES() ) {
+            if( reqMajorCTP[0] >= 3 ) {
+                reqMajorCTP[1] |= GLContext.CTX_IMPL_ES3_COMPAT | GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ;
+            } else if( reqMajorCTP[0] >= 2 ) {
+                reqMajorCTP[1] |= GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ;
+            }
         }
-        if(!caps.getHardwareAccelerated()) {
+        if( !caps.getHardwareAccelerated() ) {
             reqMajorCTP[1] |= GLContext.CTX_IMPL_ACCEL_SOFT;
         }
         mapStaticGLVersion(device, reqMajorCTP[0], 0, reqMajorCTP[1]);
     }    
-    /* pp */ static void mapStaticGLESVersion(AbstractGraphicsDevice device, int major) {
-        int ctp = ( 2 == major ) ? ( GLContext.CTX_PROFILE_ES | GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ) : ( GLContext.CTX_PROFILE_ES );  
+    /* pp */ static void mapStaticGLESVersion(AbstractGraphicsDevice device, final int major) {
+        int ctp = GLContext.CTX_PROFILE_ES;
+        if( major >= 3 ) {
+            ctp |= GLContext.CTX_IMPL_ES3_COMPAT | GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ;
+        } else if( major >= 2 ) {
+            ctp |= GLContext.CTX_IMPL_ES2_COMPAT | GLContext.CTX_IMPL_FBO ;
+        }
         mapStaticGLVersion(device, major, 0, ctp);
     }
     /* pp */ static void mapStaticGLVersion(AbstractGraphicsDevice device, int major, int minor, int ctp) {
@@ -343,9 +354,13 @@ public class EGLContext extends GLContextImpl {
         throw new GLException("Not yet implemented");
     }
 
-
     @Override
-    public ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
+    public final ByteBuffer glAllocateMemoryNV(int size, float readFrequency, float writeFrequency, float priority) {
+        throw new GLException("Should not call this");
+    }
+    
+    @Override
+    public final void glFreeMemoryNV(ByteBuffer pointer) {
         throw new GLException("Should not call this");
     }
 }

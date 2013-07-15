@@ -51,6 +51,7 @@ public class GLExtensions {
   public static final String NV_fbo_color_attachments        = "GL_NV_fbo_color_attachments";
   
   public static final String ARB_ES2_compatibility           = "GL_ARB_ES2_compatibility";
+  public static final String ARB_ES3_compatibility           = "GL_ARB_ES3_compatibility";
   
   public static final String EXT_abgr                        = "GL_EXT_abgr";
   public static final String OES_rgb8_rgba8                  = "GL_OES_rgb8_rgba8";
@@ -69,7 +70,7 @@ public class GLExtensions {
   public static final String NV_texture_compression_vtc      = "GL_NV_texture_compression_vtc";
   public static final String SGIS_generate_mipmap            = "GL_SGIS_generate_mipmap";
   public static final String OES_read_format                 = "GL_OES_read_format";
-  
+  public static final String OES_single_precision            = "GL_OES_single_precision";
   public static final String OES_EGL_image_external          = "GL_OES_EGL_image_external";
   
   public static final String ARB_gpu_shader_fp64             = "GL_ARB_gpu_shader_fp64";

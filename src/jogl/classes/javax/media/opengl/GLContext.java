@@ -142,6 +142,13 @@ public abstract class GLContext {
   
   protected static final VersionNumber Version800 = new VersionNumber(8, 0, 0);
 
+  //
+  // Cached keys, bits [0..15]
+  //
+  
+  /** Cached bit mask covering bits [0..15], i.e. {@value}. */
+  protected static final int CTX_IMPL_CACHE_MASK = 0x0000FFFF;
+  
   /** <code>ARB_create_context</code> related: created via ARB_create_context. Cache key value. See {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
   protected static final int CTX_IS_ARB_CREATED  = 1 <<  0;
   /** <code>ARB_create_context</code> related: desktop compatibility profile. Cache key value. See {@link #isGLCompatibilityProfile()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
@@ -154,20 +161,36 @@ public abstract class GLContext {
   protected static final int CTX_OPTION_FORWARD  = 1 <<  4;
   /** <code>ARB_create_context</code> related: flag debug. Cache key value. See {@link #setContextCreationFlags(int)}, {@link GLAutoDrawable#setContextCreationFlags(int)}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
   public static final int CTX_OPTION_DEBUG       = 1 <<  5;
+  /** Context uses software rasterizer, otherwise hardware rasterizer. Cache key value. See {@link #isHardwareRasterizer()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
+  protected static final int CTX_IMPL_ACCEL_SOFT = 1 <<  6;
 
+  //
+  // Non cached keys, bits [16..31]
+  //
+  
   /** <code>GL_ARB_ES2_compatibility</code> implementation related: Context is compatible w/ ES2. Not a cache key. See {@link #isGLES2Compatible()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
-  protected static final int CTX_IMPL_ES2_COMPAT = 1 <<  8;
+  protected static final int CTX_IMPL_ES2_COMPAT = 1 << 16;
 
-  /** Context supports basic FBO, details see {@link #hasBasicFBOSupport()}.
+  /** <code>GL_ARB_ES3_compatibility</code> implementation related: Context is compatible w/ ES3. Not a cache key. See {@link #isGLES3Compatible()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
+  protected static final int CTX_IMPL_ES3_COMPAT = 1 << 17;
+  
+  /** 
+   * Context supports basic FBO, details see {@link #hasBasicFBOSupport()}.
    * Not a cache key.
    * @see #hasBasicFBOSupport()
    * @see #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)
    */
-  protected static final int CTX_IMPL_FBO        = 1 <<  9;
+  protected static final int CTX_IMPL_FBO        = 1 << 18;
 
-  /** Context uses software rasterizer, otherwise hardware rasterizer. Cache key value. See {@link #isHardwareRasterizer()}, {@link #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)}. */
-  protected static final int CTX_IMPL_ACCEL_SOFT = 1 << 15;
-
+  /** 
+   * Context supports <code>OES_single_precision</code>, fp32, fixed function point (FFP) compatibility entry points, 
+   * see {@link #hasFP32CompatAPI()}.
+   * Not a cache key.
+   * @see #hasFP32CompatAPI()
+   * @see #getAvailableContextProperties(AbstractGraphicsDevice, GLProfile)
+   */
+  protected static final int CTX_IMPL_FP32_COMPAT_API = 1 << 19;
+  
   private static final ThreadLocal<GLContext> currentContext = new ThreadLocal<GLContext>();
 
   private final HashMap<String, Object> attachedObjects = new HashMap<String, Object>();
@@ -778,10 +801,18 @@ public abstract class GLContext {
   
   /**
    * @return true if this context is an ES2 context or implements
-   *         the extension <code>GL_ARB_ES2_compatibility</code>, otherwise false
+   *         the extension <code>GL_ARB_ES3_compatibility</code> or <code>GL_ARB_ES2_compatibility</code>, otherwise false
    */
   public final boolean isGLES2Compatible() {
-      return 0 != ( ctxOptions & CTX_IMPL_ES2_COMPAT ) ;
+      return 0 != ( ctxOptions & ( CTX_IMPL_ES3_COMPAT | CTX_IMPL_ES2_COMPAT ) ) ;
+  }
+
+  /**
+   * @return true if this context is an ES3 context or implements
+   *         the extension <code>GL_ARB_ES3_compatibility</code>, otherwise false
+   */
+  public final boolean isGLES3Compatible() {
+      return 0 != ( ctxOptions & CTX_IMPL_ES3_COMPAT ) ;
   }
 
   /** 
@@ -819,6 +850,15 @@ public abstract class GLContext {
       return 0 != ( ctxOptions & CTX_IMPL_FBO ) ;
   }
 
+  /** 
+   * Returns <code>true</code> if <code>OES_single_precision</code>, fp32, fixed function point (FFP) compatibility entry points available, 
+   * otherwise <code>false</code>.
+   * @see #CTX_IMPL_FP32_COMPAT_API
+   */
+  public final boolean hasFP32CompatAPI() {
+      return 0 != ( ctxOptions & CTX_IMPL_FP32_COMPAT_API ) ;
+  }
+  
   /** 
    * Returns <code>true</code> if full FBO support is available, otherwise <code>false</code>.
    * <p>
@@ -895,28 +935,30 @@ public abstract class GLContext {
   
   /** @see GLProfile#isGL3bc() */
   public final boolean isGL3bc() {
-      return ctxVersion.compareTo(Version310) >= 0
-             && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
-             && 0 != (ctxOptions & CTX_PROFILE_COMPAT);
+      return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
+             0 != (ctxOptions & CTX_PROFILE_COMPAT) &&
+             ctxVersion.compareTo(Version310) >= 0 ;
   }
 
   /** @see GLProfile#isGL3() */
   public final boolean isGL3() {
-      return ctxVersion.compareTo(Version310) >= 0
-             && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
-             && 0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE));
+      return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
+             0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE)) &&
+             ctxVersion.compareTo(Version310) >= 0 ;
   }
   
-  /** Indicates whether this profile is capable of GL3 (core only). GL3 starts w/ OpenGL 3.1 <p>Includes [ GL4, GL3 ].</p> */
+  /** Indicates whether this profile is capable of GL3 (core only). GL3 starts w/ OpenGL 3.1 <p>Includes [ GL4, GL3, GLES3 ].</p> */
   public final boolean isGL3core() {
-      return ctxVersion.compareTo(Version310) >= 0
-             && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
-             && 0 != (ctxOptions & CTX_PROFILE_CORE);
+      return ( 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 3 ) ||
+             ( 0 != ( ctxOptions & CTX_IS_ARB_CREATED ) &&
+               0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
+               ctxVersion.compareTo(Version310) >= 0
+             ) ;
   }
   
   /** @see GLProfile#isGL2() */
   public final boolean isGL2() {
-      return ctxVersion.getMajor()>=1 && 0!=(ctxOptions & CTX_PROFILE_COMPAT);
+      return 0 != ( ctxOptions & CTX_PROFILE_COMPAT ) && ctxVersion.getMajor()>=1 ;
   }
 
   /** @see GLProfile#isGL2GL3() */  
@@ -926,12 +968,17 @@ public abstract class GLContext {
 
   /** @see GLProfile#isGLES1() */
   public final boolean isGLES1() {
-      return ctxVersion.getMajor() == 1 && 0 != ( ctxOptions & CTX_PROFILE_ES ) ;
+      return 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() == 1 ;
   }
 
   /** @see GLProfile#isGLES2() */
   public final boolean isGLES2() {
-      return ctxVersion.getMajor() == 2 && 0 != ( ctxOptions & CTX_PROFILE_ES ) ;
+      return 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 2 ;
+  }
+
+  /** @see GLProfile#isGLES3() */
+  public final boolean isGLES3() {
+      return 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 3 ;
   }
 
   /** @see GLProfile#isGLES() */
@@ -941,12 +988,22 @@ public abstract class GLContext {
 
   /** @see GLProfile#isGL2ES1() */
   public final boolean isGL2ES1() {
-      return isGL2() || isGLES1() ;
+      return isGLES1() || isGL2();
   }
 
   /** @see GLProfile#isGL2ES2() */
   public final boolean isGL2ES2() {
-      return isGL2GL3() || isGLES2() ;
+      return isGLES2() || isGL2GL3();
+  }
+
+  /** @see GLProfile#isGL3ES3() */
+  public final boolean isGL3ES3() {
+      return isGL4ES3() || isGL3();
+  }
+
+  /** @see GLProfile#isGL4ES3() */
+  public final boolean isGL4ES3() {
+      return isGL4() || isGLES3() ;
   }
 
   /**
@@ -1157,45 +1214,73 @@ public abstract class GLContext {
       /* 1.*/ { 0, 1, 2, 3, 4, 5 },
       /* 2.*/ { 0, 1 },
       /* 3.*/ { 0, 1, 2, 3 },
-      /* 4.*/ { 0, 1, 2 } }; // FIXME add 4.3 !
+      /* 4.*/ { 0, 1, 2, 3 } };
 
-  private static final int GL_VERSIONS_VALID[][] = {
+  public static final int ES_VERSIONS[][] = {
       /* 0.*/ { -1 },
-      /* 1.*/ { 0, 1, 2, 3, 4, 5 },
-      /* 2.*/ { 0, 1 },
-      /* 3.*/ { 0, 1, 2, 3 },
-      /* 4.*/ { 0, 1, 2, 3, 4 } }; // 4.4 coming up soon ?
+      /* 1.*/ { 0, 1 },
+      /* 2.*/ { 0 },
+      /* 3.*/ { 0 } };
 
-  public static final int getMaxMajor() {
-      return GL_VERSIONS.length-1;
+  public static final int getMaxMajor(int ctxProfile) {
+      return ( 0 != ( CTX_PROFILE_ES & ctxProfile ) ) ? ES_VERSIONS.length-1 : GL_VERSIONS.length-1;
   }
 
-  public static final int getMaxMinor(int major) {
-      if(1>major || major>=GL_VERSIONS.length) return -1;
-      return GL_VERSIONS[major].length-1;
+  public static final int getMaxMinor(int ctxProfile, int major) {
+      if( 1>major ) {
+          return -1;
+      }
+      if( ( 0 != ( CTX_PROFILE_ES & ctxProfile ) ) ) {
+          if( major>=ES_VERSIONS.length ) return -1;
+          return ES_VERSIONS[major].length-1;
+      } else {
+          if( major>=GL_VERSIONS.length ) return -1;
+          return GL_VERSIONS[major].length-1;
+      }
   }
 
-  public static final boolean isValidGLVersion(int major, int minor) {
-      if(1>major || major>=GL_VERSIONS_VALID.length) return false;
-      if(0>minor || minor>=GL_VERSIONS_VALID[major].length) return false;
+  public static final boolean isValidGLVersion(int ctxProfile, int major, int minor) {
+      if( 1>major || 0>minor ) {
+          return false;
+      }
+      if( ( 0 != ( CTX_PROFILE_ES & ctxProfile ) ) ) {
+          if( major>=ES_VERSIONS.length) return false;
+          if( minor>=ES_VERSIONS[major].length) return false;
+      } else {
+          if( major>=GL_VERSIONS.length) return false;
+          if( minor>=GL_VERSIONS[major].length) return false;
+      }
       return true;
   }
 
-  public static final boolean decrementGLVersion(int major[], int minor[]) {
+  public static final boolean decrementGLVersion(int ctxProfile, int major[], int minor[]) {
       if(null==major || major.length<1 ||null==minor || minor.length<1) {
           throw new GLException("invalid array arguments");
       }
       int m = major[0];
       int n = minor[0];
-      if(!isValidGLVersion(m, n)) return false;
+      if( !isValidGLVersion(ctxProfile, m, n) ) {
+          return false;
+      }
 
       // decrement ..
       n -= 1;
       if(n < 0) {
-          m -= 1;
-          n = GL_VERSIONS[m].length-1;
+          if( ( 0 != ( CTX_PROFILE_ES & ctxProfile ) ) ) {
+              if( m >= 3) {
+                  m -= 1;
+              } else {
+                  m = 0; // major decr [1,2] -> 0
+              }
+              n = ES_VERSIONS[m].length-1;
+          } else {
+              m -= 1;
+              n = GL_VERSIONS[m].length-1;
+          }
       }
-      if(!isValidGLVersion(m, n)) return false;
+      if( !isValidGLVersion(ctxProfile, m, n) ) {
+          return false;
+      }
       major[0]=m;
       minor[0]=n;
 
@@ -1299,9 +1384,9 @@ public abstract class GLContext {
     }
   }
 
-  protected static StringBuffer dumpAvailableGLVersions(StringBuffer sb) {
+  protected static StringBuilder dumpAvailableGLVersions(StringBuilder sb) {
     if(null == sb) {
-        sb = new StringBuffer();
+        sb = new StringBuilder();
     }
     synchronized(deviceVersionAvailable) {
         final Set<String> keys = deviceVersionAvailable.keySet();
@@ -1524,6 +1609,10 @@ public abstract class GLContext {
       return isGLVersionAvailable(device, 2, GLContext.CTX_PROFILE_ES, isHardware);
   }
 
+  public static boolean isGLES3Available(AbstractGraphicsDevice device, boolean isHardware[]) {
+      return isGLVersionAvailable(device, 3, GLContext.CTX_PROFILE_ES, isHardware);
+  }
+
   public static boolean isGL4bcAvailable(AbstractGraphicsDevice device, boolean isHardware[]) {
       return isGLVersionAvailable(device, 4, CTX_PROFILE_COMPAT, isHardware);
   }
@@ -1552,13 +1641,15 @@ public abstract class GLContext {
     sb.append(minor);
     sb.append(" (");
     needColon = appendString(sb, "ES profile",            needColon, 0 != ( CTX_PROFILE_ES & ctp ));
-    needColon = appendString(sb, "Compatibility profile", needColon, 0 != ( CTX_PROFILE_COMPAT & ctp ));
+    needColon = appendString(sb, "Compat profile",        needColon, 0 != ( CTX_PROFILE_COMPAT & ctp ));
     needColon = appendString(sb, "Core profile",          needColon, 0 != ( CTX_PROFILE_CORE & ctp ));
     needColon = appendString(sb, "forward",               needColon, 0 != ( CTX_OPTION_FORWARD & ctp ));
     needColon = appendString(sb, "arb",                   needColon, 0 != ( CTX_IS_ARB_CREATED & ctp ));
     needColon = appendString(sb, "debug",                 needColon, 0 != ( CTX_OPTION_DEBUG & ctp ));
-    needColon = appendString(sb, "ES2 compatible",        needColon, 0 != ( CTX_IMPL_ES2_COMPAT & ctp ));
+    needColon = appendString(sb, "ES2 compat",            needColon, 0 != ( CTX_IMPL_ES2_COMPAT & ctp ));
+    needColon = appendString(sb, "ES3 compat",            needColon, 0 != ( CTX_IMPL_ES3_COMPAT & ctp ));
     needColon = appendString(sb, "FBO",                   needColon, 0 != ( CTX_IMPL_FBO & ctp ));
+    needColon = appendString(sb, "FP32 compat-api",       needColon, 0 != ( CTX_IMPL_FP32_COMPAT_API & ctp ));
     if( 0 != ( CTX_IMPL_ACCEL_SOFT & ctp ) ) {
         needColon = appendString(sb, "software",          needColon, true);
     } else {

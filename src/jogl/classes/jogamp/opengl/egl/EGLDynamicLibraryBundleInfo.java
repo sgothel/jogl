@@ -39,7 +39,7 @@ import jogamp.opengl.*;
  * Abstract implementation of the DynamicLookupHelper for EGL,
  * which decouples it's dependencies to EGLDrawable.
  *
- * Currently two implementations exist, one for ES1 and one for ES2.
+ * Currently two implementations exist, one for ES1 and one for ES3 and ES2.
  */
 public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundleInfo {
     static final List<String> glueLibNames;

@@ -9,7 +9,7 @@ dircmp=cmp-old2new
 rm -rf $dircmp
 mkdir -p $dircmp
 
-for i in GL GL2ES1 GL2ES2 GLES1 GLES2 GL2GL3 GL2 GL3 GL3bc GL4 GL4bc ; do
+for i in GL GL2ES1 GLES1 GL2ES2 GLES2 GL2ES3 GL2GL3 GL2 GL3ES3 GL3 GL3bc GL4ES3 GLES3 GL4 GL4bc ; do
     echo
     echo processing $i
     awk -f $dirscript/strip-c-comments.awk $dirold/$i.java | sort -u > $dircmp/$i-old.java

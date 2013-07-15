@@ -219,17 +219,17 @@ final class ExtensionAvailabilityCache {
           System.err.println(getThreadName() + ":ExtensionAvailabilityCache: ALL EXTENSIONS: "+availableExtensionCache.size());
       }
 
-      if(!context.isGLES()) {
-          final VersionNumber version = context.getGLVersionNumber();
-          int major[] = new int[] { version.getMajor() };
-          int minor[] = new int[] { version.getMinor() };
-          while (GLContext.isValidGLVersion(major[0], minor[0])) {
-              availableExtensionCache.add("GL_VERSION_" + major[0] + "_" + minor[0]);
-              if (DEBUG) {
-                  System.err.println(getThreadName() + ":ExtensionAvailabilityCache: Added GL_VERSION_" + major[0] + "_" + minor[0] + " to known extensions");
-              }
-              if(!GLContext.decrementGLVersion(major, minor)) break;
+      final int ctxOptions = context.getCtxOptions();
+      final VersionNumber version = context.getGLVersionNumber();
+      int major[] = new int[] { version.getMajor() };
+      int minor[] = new int[] { version.getMinor() };          
+      while (GLContext.isValidGLVersion(ctxOptions, major[0], minor[0])) {
+          final String GL_XX_VERSION = ( context.isGLES() ? "GL_ES_VERSION_" : "GL_VERSION_" ) + major[0] + "_" + minor[0];
+          availableExtensionCache.add(GL_XX_VERSION);
+          if (DEBUG) {
+              System.err.println(getThreadName() + ":ExtensionAvailabilityCache: Added "+GL_XX_VERSION+" to known extensions");
           }
+          if(!GLContext.decrementGLVersion(ctxOptions, major, minor)) break;
       }
 
       // put a dummy var in here so that the cache is no longer empty even if

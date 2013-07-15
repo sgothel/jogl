@@ -1,5 +1,5 @@
-#ifndef __gl3ext_h_
-#define __gl3ext_h_
+#ifndef __glcorearbext_h_
+#define __glcorearbext_h_ 1
 
 /*
 ** Copyright (c) 2010 JogAmp Developer Team
@@ -26,7 +26,7 @@
 
 /**
  * This header files contains additional extensions not covered by the 
- * 'official' khronos gl3.h
+ * 'official' khronos glcorearbext.h
  */
 
 /*
@@ -45,7 +45,7 @@
  *    #endif
  *    #ifndef GL_EXTENSION_NAME
  *    #define GL_EXTENSION_NAME 1
- *    #ifdef GL_GL3EXT_PROTOTYPES
+ *    #ifdef GL_GLEXT_PROTOTYPES
  *    Add FUNCTION DECLARATIONS here
  *    #endif
  *    FUNCTION POINTER DECLARATIONS NOT NEEDED
@@ -83,12 +83,12 @@
 #endif
 #ifndef GL_ARB_geometry_shader4
 #define GL_ARB_geometry_shader4 1
-#ifdef GL_GL3EXT_PROTOTYPES
+#ifdef GL_GLEXT_PROTOTYPES
 GLAPI void APIENTRY glProgramParameteriARB (GLuint program, GLenum pname, GLint value);
 GLAPI void APIENTRY glFramebufferTextureARB (GLenum target, GLenum attachment, GLuint texture, GLint level);
 GLAPI void APIENTRY glFramebufferTextureLayerARB (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
 GLAPI void APIENTRY glFramebufferTextureFaceARB (GLenum target, GLenum attachment, GLuint texture, GLint level, GLenum face);
-#endif /* GL_GL3EXT_PROTOTYPES */
+#endif /* GL_GLEXT_PROTOTYPES */
 /* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
@@ -113,10 +113,10 @@ GLAPI void APIENTRY glFramebufferTextureFaceARB (GLenum target, GLenum attachmen
 #endif
 #ifndef GL_AMD_vertex_shader_tessellator
 #define GL_AMD_vertex_shader_tessellator 1
-#ifdef GL_GL3EXT_PROTOTYPES
+#ifdef GL_GLEXT_PROTOTYPES
 GLAPI void APIENTRY glTessellationFactorAMD(GLfloat factor);
 GLAPI void APIENTRY glTessellationModeAMD(GLenum mode);
-#endif /* GL_GL3EXT_PROTOTYPES */
+#endif /* GL_GLEXT_PROTOTYPES */
 /* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
@@ -128,7 +128,7 @@ GLAPI void APIENTRY glTessellationModeAMD(GLenum mode);
 #endif
 #ifndef GL_NV_shader_buffer_load
 #define GL_NV_shader_buffer_load 1
-#ifdef GL_GL3EXT_PROTOTYPES
+#ifdef GL_GLEXT_PROTOTYPES
 GLAPI void APIENTRY glMakeBufferResidentNV (GLenum target, GLenum access);
 GLAPI void APIENTRY glMakeBufferNonResidentNV (GLenum target);
 GLAPI GLboolean APIENTRY glIsBufferResidentNV (GLenum target);
@@ -143,7 +143,7 @@ GLAPI void APIENTRY glUniformui64vNV (GLint location, GLsizei count, const GLuin
 GLAPI void APIENTRY glGetUniformui64vNV (GLuint program, GLint location, GLuint64EXT *params);
 GLAPI void APIENTRY glProgramUniformui64NV (GLuint program, GLint location, GLuint64EXT value);
 GLAPI void APIENTRY glProgramUniformui64vNV (GLuint program, GLint location, GLsizei count, const GLuint64EXT *value);
-#endif /* GL_GL3EXT_PROTOTYPES */
+#endif /* GL_GLEXT_PROTOTYPES */
 /* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
@@ -177,7 +177,7 @@ GLAPI void APIENTRY glProgramUniformui64vNV (GLuint program, GLint location, GLs
 #endif
 #ifndef GL_NV_vertex_buffer_unified_memory
 #define GL_NV_vertex_buffer_unified_memory 1
-#ifdef GL_GL3EXT_PROTOTYPES
+#ifdef GL_GLEXT_PROTOTYPES
 GLAPI GLboolean APIENTRY glIsEnabled( GLenum cap );     // extra requirement in core GL3
 GLAPI void APIENTRY glEnableClientState( GLenum cap );  // extra requirement in core GL3
 GLAPI void APIENTRY glDisableClientState( GLenum cap ); // extra requirement in core GL3
@@ -194,7 +194,7 @@ GLAPI void APIENTRY glFogCoordFormatNV (GLenum type, GLsizei stride);
 GLAPI void APIENTRY glVertexAttribFormatNV (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride);
 GLAPI void APIENTRY glVertexAttribIFormatNV (GLuint index, GLint size, GLenum type, GLsizei stride);
 GLAPI void APIENTRY glGetIntegerui64i_vNV (GLenum value, GLuint index, GLuint64EXT *result);
-#endif /* GL_GL3EXT_PROTOTYPES */
+#endif /* GL_GLEXT_PROTOTYPES */
 /* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
@@ -219,12 +219,12 @@ typedef void (APIENTRY *GLDEBUGPROCAMD)(GLuint id,GLenum category,GLenum severit
 #endif
 #ifndef GL_AMD_debug_output
 #define GL_AMD_debug_output 1
-#ifdef GL_GL3EXT_PROTOTYPES
+#ifdef GL_GLEXT_PROTOTYPES
 GLAPI void APIENTRY glDebugMessageEnableAMD (GLenum category, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
 GLAPI void APIENTRY glDebugMessageInsertAMD (GLenum category, GLenum severity, GLuint id, GLsizei length, const GLchar *buf);
 GLAPI void APIENTRY glDebugMessageCallbackAMD (GLDEBUGPROCAMD callback, GLvoid *userParam);
 GLAPI GLuint APIENTRY glGetDebugMessageLogAMD (GLuint count, GLsizei bufsize, GLenum *categories, GLuint *severities, GLuint *ids, GLsizei *lengths, GLchar *message);
-#endif /* GL_GL3EXT_PROTOTYPES */
+#endif /* GL_GLEXT_PROTOTYPES */
 typedef void (APIENTRYP PFNGLDEBUGMESSAGEENABLEAMDPROC) (GLenum category, GLenum severity, GLsizei count, const GLuint *ids, GLboolean enabled);
 typedef void (APIENTRYP PFNGLDEBUGMESSAGEINSERTAMDPROC) (GLenum category, GLenum severity, GLuint id, GLsizei length, const GLchar *buf);
 typedef void (APIENTRYP PFNGLDEBUGMESSAGECALLBACKAMDPROC) (GLDEBUGPROCAMD callback, GLvoid *userParam);
@@ -257,14 +257,14 @@ typedef GLuint (APIENTRYP PFNGLGETDEBUGMESSAGELOGAMDPROC) (GLuint count, GLsizei
 #endif
 #ifndef GL_NV_texture_multisample
 #define GL_NV_texture_multisample 1
-#ifdef GL_GL3EXT_PROTOTYPES
+#ifdef GL_GLEXT_PROTOTYPES
 GLAPI void APIENTRY glTexImage2DMultisampleCoverageNV (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
 GLAPI void APIENTRY glTexImage3DMultisampleCoverageNV (GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
 GLAPI void APIENTRY glTextureImage2DMultisampleNV (GLuint texture, GLenum target, GLsizei samples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
 GLAPI void APIENTRY glTextureImage3DMultisampleNV (GLuint texture, GLenum target, GLsizei samples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
 GLAPI void APIENTRY glTextureImage2DMultisampleCoverageNV (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLboolean fixedSampleLocations);
 GLAPI void APIENTRY glTextureImage3DMultisampleCoverageNV (GLuint texture, GLenum target, GLsizei coverageSamples, GLsizei colorSamples, GLint internalFormat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedSampleLocations);
-#endif /* GL_GL3EXT_PROTOTYPES */
+#endif /* GL_GLEXT_PROTOTYPES */
 /* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
@@ -283,9 +283,9 @@ GLAPI void APIENTRY glTextureImage3DMultisampleCoverageNV (GLuint texture, GLenu
 #endif
 #ifndef GL_AMD_sample_positions
 #define GL_AMD_sample_positions 1
-#ifdef GL_GL3EXT_PROTOTYPES
+#ifdef GL_GLEXT_PROTOTYPES
 GLAPI void APIENTRY glSetMultisamplefvAMD (GLenum pname, GLuint index, const GLfloat *val);
-#endif /* GL_GL3EXT_PROTOTYPES */
+#endif /* GL_GLEXT_PROTOTYPES */
 typedef void (APIENTRYP PFNGLSETMULTISAMPLEFVAMDPROC) (GLenum pname, GLuint index, const GLfloat *val);
 #endif
 
@@ -295,9 +295,9 @@ typedef void (APIENTRYP PFNGLSETMULTISAMPLEFVAMDPROC) (GLenum pname, GLuint inde
 #endif
 #ifndef GL_EXT_x11_sync_object
 #define GL_EXT_x11_sync_object 1
-#ifdef GL_GL3EXT_PROTOTYPES
+#ifdef GL_GLEXT_PROTOTYPES
 GLAPI GLsync APIENTRY glImportSyncEXT (GLenum external_sync_type, GLintptr external_sync, GLbitfield flags);
-#endif /* GL_GL3EXT_PROTOTYPES */
+#endif /* GL_GLEXT_PROTOTYPES */
 /* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
@@ -306,10 +306,10 @@ GLAPI GLsync APIENTRY glImportSyncEXT (GLenum external_sync_type, GLintptr exter
 #endif
 #ifndef GL_AMD_multi_draw_indirect
 #define GL_AMD_multi_draw_indirect 1
-#ifdef GL_GL3EXT_PROTOTYPES
+#ifdef GL_GLEXT_PROTOTYPES
 GLAPI void APIENTRY glMultiDrawArraysIndirectAMD (GLenum mode, const GLvoid *indirect, GLsizei primcount, GLsizei stride);
 GLAPI void APIENTRY glMultiDrawElementsIndirectAMD (GLenum mode, GLenum type, const GLvoid *indirect, GLsizei primcount, GLsizei stride);
-#endif /* GL_GL3EXT_PROTOTYPES */
+#endif /* GL_GLEXT_PROTOTYPES */
 /* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
@@ -341,11 +341,11 @@ GLAPI void APIENTRY glMultiDrawElementsIndirectAMD (GLenum mode, GLenum type, co
 #endif
 #ifndef GL_AMD_stencil_operation_extended
 #define GL_AMD_stencil_operation_extended 1
-#ifdef GL_GL3EXT_PROTOTYPES
+#ifdef GL_GLEXT_PROTOTYPES
 GLAPI void APIENTRY glStencilOpValueAMD (GLenum face, GLuint value);
-#endif /* GL_GL3EXT_PROTOTYPES */
+#endif /* GL_GLEXT_PROTOTYPES */
 /* No need for explicit function pointer: we force generation of ProcAddress .. */
 #endif
 
-#endif /* __gl3ext_h_ */
+#endif /* __glcorearbext_h_ */
 

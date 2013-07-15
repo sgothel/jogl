@@ -57,3 +57,11 @@
       earmarked for ES 3.0 (hence kept in GL while fixing Bug 590)  */
   public static final int GL_HALF_FLOAT = 0x140B;
 
+  /** Part of <code>GL_VERSION_1_4</code>, <code>GL_ES_VERSION_2_0</code>, <code>GL_OES_required_internalformat</code>. */
+  public static final int GL_DEPTH_COMPONENT16 = 0x81A5;
+  /** Part of <code>GL_VERSION_1_0</code>, <code>GL_OES_element_index_uint</code>, <code>GL_ES_VERSION_2_0</code> */
+  public static final int GL_UNSIGNED_INT = 0x1405;
+  /** Part of <code>GL_VERSION_1_0</code>, <code>GL_ES_VERSION_2_0</code> */
+  public static final int GL_UNSIGNED_SHORT = 0x1403;
+
+
