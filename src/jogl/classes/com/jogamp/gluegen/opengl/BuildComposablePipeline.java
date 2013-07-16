@@ -669,6 +669,18 @@ public class BuildComposablePipeline {
                 emitGLIsMethod(output, "GLES");
             }
             output.println("  @Override");
+            output.println("  public final boolean isGL4core() {");
+            output.println("    return " + getDownstreamObjectName() + ".isGL4core();");
+            output.println("  }");
+            output.println("  @Override");
+            output.println("  public final boolean isGL3core() {");
+            output.println("    return " + getDownstreamObjectName() + ".isGL3core();");
+            output.println("  }");
+            output.println("  @Override");
+            output.println("  public final boolean isGLcore() {");
+            output.println("    return " + getDownstreamObjectName() + ".isGLcore();");
+            output.println("  }");
+            output.println("  @Override");
             output.println("  public final boolean isGLES2Compatible() {");
             output.println("    return " + getDownstreamObjectName() + ".isGLES2Compatible();");
             output.println("  }");

@@ -78,6 +78,21 @@ public final boolean isGL4ES3() {
 }
 
 @Override
+public final boolean isGL4core() {
+    return false;
+}
+
+@Override
+public final boolean isGL3core() {
+    return false;
+}
+
+@Override
+public final boolean isGLcore() {
+    return false;
+}
+
+@Override
 public final boolean isGLES2Compatible() {
     return false;
 }

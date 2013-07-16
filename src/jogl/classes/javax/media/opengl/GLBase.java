@@ -185,6 +185,24 @@ public interface GLBase {
    */
   public boolean isGL2GL3();
 
+  /** 
+   * Indicates whether this GL object uses a GL4 core profile. <p>Includes [ GL4 ].</p>
+   * @see GLContext#isGL4core()
+   */
+  public boolean isGL4core();
+  
+  /** 
+   * Indicates whether this GL object uses a GL3 core profile. <p>Includes [ GL4, GL3 ].</p>
+   * @see GLContext#isGL3core()
+   */
+  public boolean isGL3core();
+  
+  /** 
+   * Indicates whether this GL object uses a GL core profile. <p>Includes [ GL4, GL3, GLES3, GL2ES2 ].</p>
+   * @see GLContext#isGLcore()
+   */
+  public boolean isGLcore();
+  
   /**
    * Indicates whether this GL object is compatible with the core OpenGL ES2 functionality.
    * @return true if this context is an ES2 context or implements 

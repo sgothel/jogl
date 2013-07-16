@@ -100,6 +100,21 @@ public final boolean isGL4ES3() {
 }
 
 @Override
+public final boolean isGL4core() {
+    return _context.isGL4core();
+}
+
+@Override
+public final boolean isGL3core() {
+    return _context.isGL3core();
+}
+
+@Override
+public final boolean isGLcore() {
+    return _context.isGLcore();
+}
+
+@Override
 public final boolean isGLES2Compatible() {
     return _context.isGLES2Compatible();
 }

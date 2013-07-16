@@ -934,8 +934,9 @@ public abstract class GLContext {
    * @see GLProfile#isGL4bc() 
    */
   public final boolean isGL4bc() {
-      return ctxVersion.getMajor() >= 4 && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
-                                        && 0 != (ctxOptions & CTX_PROFILE_COMPAT);
+      return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
+             0 != (ctxOptions & CTX_PROFILE_COMPAT) &&
+             ctxVersion.getMajor() >= 4;
   }
 
   /** 
@@ -943,16 +944,18 @@ public abstract class GLContext {
    * @see GLProfile#isGL4() 
    */
   public final boolean isGL4() {
-      return ctxVersion.getMajor() >= 4 && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
-                                        && 0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE));
+      return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
+             0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE)) &&
+             ctxVersion.getMajor() >= 4;
   }
 
   /** 
-   * Indicates whether this GLContext is capable of GL4 (core only). <p>Includes [ GL4 ].</p> 
+   * Indicates whether this GLContext uses a GL4 core profile. <p>Includes [ GL4 ].</p>
    */
   public final boolean isGL4core() {
-      return ctxVersion.getMajor() >= 4 && 0 != (ctxOptions & CTX_IS_ARB_CREATED)
-                                        && 0 != (ctxOptions & CTX_PROFILE_CORE);
+      return 0 != ( ctxOptions & CTX_IS_ARB_CREATED ) &&
+             0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
+             ctxVersion.getMajor() >= 4;
   }
   
   /** 
@@ -973,15 +976,26 @@ public abstract class GLContext {
       return 0 != (ctxOptions & CTX_IS_ARB_CREATED) &&
              0 != (ctxOptions & (CTX_PROFILE_COMPAT|CTX_PROFILE_CORE)) &&
              ctxVersion.compareTo(Version310) >= 0 ;
-  }
+  }  
   
   /** 
-   * Indicates whether this GLContext is capable of GL3 (core only). GL3 starts w/ OpenGL 3.1 <p>Includes [ GL4, GL3 ].</p>
+   * Indicates whether this GLContext uses a GL3 core profile. <p>Includes [ GL4, GL3 ].</p>
    */
   public final boolean isGL3core() {
       return 0 != ( ctxOptions & CTX_IS_ARB_CREATED ) &&
              0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
              ctxVersion.compareTo(Version310) >= 0;
+  }
+  
+  /** 
+   * Indicates whether this GLContext uses a GL core profile. <p>Includes [ GL4, GL3, GLES3, GL2ES2 ].</p>
+   */
+  public final boolean isGLcore() {
+      return ( 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() >= 2 ) ||
+             ( 0 != ( ctxOptions & CTX_IS_ARB_CREATED ) &&
+               0 != ( ctxOptions & CTX_PROFILE_CORE ) &&
+               ctxVersion.compareTo(Version310) >= 0
+             ) ;
   }
   
   /** 
@@ -1029,6 +1043,7 @@ public abstract class GLContext {
   public abstract int getDefaultVAO();
 
   /** 
+   * Indicates whether this GLContext is capable of GL2.    <p>Includes [ GL4bc, GL3bc, GL2  ].</p>
    * @see GLProfile#isGL2() 
    */
   public final boolean isGL2() {
@@ -1036,6 +1051,7 @@ public abstract class GLContext {
   }
 
   /** 
+   * Indicates whether this GLContext is capable of GL2GL3. <p>Includes [ GL4bc, GL4, GL3bc, GL3, GL2, GL2GL3 ].</p>
    * @see GLProfile#isGL2GL3() 
    */  
   public final boolean isGL2GL3() {
@@ -1043,13 +1059,15 @@ public abstract class GLContext {
   }
 
   /** 
+   * Indicates whether this GLContext is capable of GLES1.  <p>Includes [ GLES1 ].</p>
    * @see GLProfile#isGLES1() 
    */
   public final boolean isGLES1() {
       return 0 != ( ctxOptions & CTX_PROFILE_ES ) && ctxVersion.getMajor() == 1 ;
   }
 
-  /** 
+  /**
+   * Indicates whether this GLContext is capable of GLES2.  <p>Includes [ GLES3, GLES2 ].</p> 
    * @see GLProfile#isGLES2() 
    */
   public final boolean isGLES2() {
@@ -1057,6 +1075,7 @@ public abstract class GLContext {
   }
 
   /** 
+   * Indicates whether this GLContext is capable of GLES3.  <p>Includes [ GLES3 ].</p>
    * @see GLProfile#isGLES3() 
    */
   public final boolean isGLES3() {
@@ -1064,6 +1083,7 @@ public abstract class GLContext {
   }
 
   /** 
+   * Indicates whether this GLContext is capable of GLES.  <p>Includes [ GLES3, GLES1, GLES2 ].</p>
    * @see GLProfile#isGLES() 
    */
   public final boolean isGLES() {
@@ -1071,6 +1091,7 @@ public abstract class GLContext {
   }
 
   /** 
+   * Indicates whether this GLContext is capable of GL2ES1. <p>Includes [ GL4bc, GL3bc, GL2, GLES1, GL2ES1 ].</p>
    * @see GLProfile#isGL2ES1() 
    */
   public final boolean isGL2ES1() {
@@ -1078,6 +1099,7 @@ public abstract class GLContext {
   }
 
   /** 
+   * Indicates whether this GLContext is capable of GL2ES2. <p>Includes [ GL4bc, GL4, GL3bc, GL3, GLES3, GL2, GL2GL3, GL2ES2, GLES2 ].</p>
    * @see GLProfile#isGL2ES2() 
    */
   public final boolean isGL2ES2() {
@@ -1085,6 +1107,7 @@ public abstract class GLContext {
   }
 
   /** 
+   * Indicates whether this GLContext is capable of GL3ES3. <p>Includes [ GL4bc, GL4, GL3bc, GL3, GLES3 ].</p>
    * @see GLProfile#isGL3ES3() 
    */
   public final boolean isGL3ES3() {
@@ -1092,6 +1115,7 @@ public abstract class GLContext {
   }
 
   /** 
+   * Indicates whether this profile is capable of GL4ES3. <p>Includes [ GL4bc, GL4, GLES3 ].</p>
    * @see GLProfile#isGL4ES3() 
    */
   public final boolean isGL4ES3() {
