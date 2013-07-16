@@ -28,7 +28,6 @@
  
 package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.TraceWindowAdapter;
@@ -45,7 +44,6 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.AfterClass;
 import org.junit.Test;
 
 /**

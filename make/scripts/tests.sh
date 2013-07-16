@@ -88,7 +88,7 @@ function jrun() {
     #D_ARGS="-Djogl.debug.FBObject -Djogl.debug.TraceGL -Djogl.debug.GLBufferStateTracker"
     #D_ARGS="-Djogl.debug.FBObject"
     #D_ARGS="-Djogl.debug.GLSLCode"
-    #D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL -Djogl.debug.TraceGL"
+    D_ARGS="-Djogl.debug.GLSLCode -Djogl.debug.DebugGL"
     #D_ARGS="-Djogl.debug.GLContext -Dnativewindow.debug.JAWT -Dnewt.debug.Window"
     #D_ARGS="-Dnativewindow.debug.JAWT -Djogamp.debug.TaskBase.TraceSource"
     #D_ARGS="-Djogl.debug.GLContext.TraceSwitch"
@@ -614,14 +614,6 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.newt.TestGearsES2NEWT $*
 #testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04AWT $*
 
 # NEW
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOAutoDrawableFactoryNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestBug605FlippedImageNEWT $*
-#testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestBug605FlippedImageAWT $*
-
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.glels.TestGLContextDrawableSwitch11NEWT $*
-
-#testawt com.jogamp.opengl.test.junit.newt.parenting.TestParenting04AWT $*
-
 
 $spath/count-edt-start.sh java-run.log
 
