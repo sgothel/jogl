@@ -524,16 +524,6 @@ public class X11GLXContext extends GLContextImpl {
   }
 
   @Override
-  public boolean isExtensionAvailable(String glExtensionName) {
-    if (glExtensionName.equals(GLExtensions.ARB_pbuffer) ||
-        glExtensionName.equals(GLExtensions.ARB_pixel_format)) {
-      return getGLDrawable().getFactory().canCreateGLPbuffer(
-          drawable.getNativeSurface().getGraphicsConfiguration().getScreen().getDevice() );
-    }
-    return super.isExtensionAvailable(glExtensionName);
-  }
-
-  @Override
   protected boolean setSwapIntervalImpl(int interval) {
     if( !drawable.getChosenGLCapabilities().isOnscreen() ) { return false; } 
 
