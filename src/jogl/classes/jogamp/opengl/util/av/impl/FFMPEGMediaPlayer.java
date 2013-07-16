@@ -41,17 +41,16 @@ import javax.media.opengl.GLException;
 import java.util.Arrays;
 import java.util.Queue;
 
+import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.GLPixelStorageModes;
+import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.util.av.AudioSink;
-import jogamp.opengl.util.av.JavaSoundAudioSink;
-import jogamp.opengl.util.av.NullAudioSink;
-import jogamp.opengl.openal.av.ALAudioSink;
 import jogamp.opengl.util.av.EGLMediaPlayerImpl;
 
 /***
@@ -130,11 +129,20 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
             System.err.println("LIB_AV Codec : "+avCodecVersion);
             initIDs0();            
             available = true;
-            audioSink = new ALAudioSink();
-            if(!audioSink.isAudioSinkAvailable()) {
-                audioSink = new JavaSoundAudioSink();
+            final ClassLoader cl = GLMediaPlayerFactory.class.getClassLoader();
+            
+            if(ReflectionUtil.isClassAvailable("com.jogamp.openal.ALFactory", cl)){
+              // Only instance ALAudioSink if JOAL is found on the classpath.
+              audioSink = (AudioSink) ReflectionUtil.createInstance("jogamp.opengl.openal.av.ALAudioSink", cl);
+              if(!audioSink.isAudioSinkAvailable()){
+            	  // Failed to initialize OpenAL.
+            	  audioSink=null;
+              }
+            }
+            if(audioSink==null) {
+                audioSink = (AudioSink) ReflectionUtil.createInstance("jogamp.opengl.util.av.JavaSoundAudioSink", cl);
                 if(!audioSink.isAudioSinkAvailable()) {
-                    audioSink = new NullAudioSink();
+                    audioSink = (AudioSink) ReflectionUtil.createInstance("jogamp.opengl.util.av.NullAudioSink", cl);
                 }
             }
             maxAvailableAudio = audioSink.getDataAvailable();
