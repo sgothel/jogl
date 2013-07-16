@@ -109,15 +109,20 @@ import com.jogamp.opengl.util.texture.spi.*;
  * see <a href="#textureCallOrder"> order of texture commands above</a>. 
  *
  * <p><a name="premult"><b>Alpha premultiplication and blending</b></a>
- * <br/><i>Disclaimer: Consider performing alpha premultiplication in shader code, if really desired! Otherwise use RGBA.</i>
- * <br/> The mathematically correct way to perform blending in OpenGL
- * (with the SrcOver "source over destination" mode, or any other
- * Porter-Duff rule) is to use "premultiplied color components", which
- * means the R/G/ B color components have already been multiplied by
- * the alpha value.  To make things easier for developers, the Texture
- * class will automatically convert non-premultiplied image data into
- * premultiplied data when storing it into an OpenGL texture.  As a
- * result, it is important to use the correct blending function; for
+ * <p>
+ * <i>Disclaimer: Consider performing alpha premultiplication in shader code, if really desired! Otherwise use RGBA.</i><br/>
+ * </p>
+ * <p>
+ * The Texture class does not convert RGBA image data into
+ * premultiplied data when storing it into an OpenGL texture.
+ * </p>
+ * <p>
+ * The mathematically correct way to perform blending in OpenGL
+ * with the SrcOver "source over destination" mode, or any other
+ * Porter-Duff rule, is to use <i>premultiplied color components</i>, 
+ * which means the R/G/ B color components must have been multiplied by
+ * the alpha value.  If using <i>premultiplied color components</i>
+ * it is important to use the correct blending function; for
  * example, the SrcOver rule is expressed as:
 <pre>
     gl.glBlendFunc(GL.GL_ONE, GL.GL_ONE_MINUS_SRC_ALPHA);
