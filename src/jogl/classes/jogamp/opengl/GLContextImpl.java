@@ -1851,7 +1851,7 @@ public abstract class GLContextImpl extends GLContext {
   }
 
   @Override
-  public boolean isExtensionAvailable(String glExtensionName) {
+  public final boolean isExtensionAvailable(String glExtensionName) {
       if(null!=extensionAvailability) {
         return extensionAvailability.isExtensionAvailable(mapToRealGLExtensionName(glExtensionName));
       }

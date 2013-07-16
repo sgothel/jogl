@@ -74,7 +74,6 @@ import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.locks.RecursiveLock;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.gluegen.runtime.opengl.GLProcAddressResolver;
-import com.jogamp.opengl.GLExtensions;
 import com.jogamp.opengl.GLRendererQuirks;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -463,15 +462,6 @@ public class MacOSXCGLContext extends GLContextImpl
   @Override
   protected final StringBuilder getPlatformExtensionsStringImpl() {
     return new StringBuilder();
-  }
-
-  @Override
-  public boolean isExtensionAvailable(String glExtensionName) {
-    if (glExtensionName.equals(GLExtensions.ARB_pbuffer) ||
-        glExtensionName.equals(GLExtensions.ARB_pixel_format)) {
-      return true;
-    }
-    return super.isExtensionAvailable(glExtensionName);
   }
 
   // Support for "mode switching" as described in MacOSXCGLDrawable

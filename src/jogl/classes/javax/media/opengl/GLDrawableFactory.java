@@ -443,7 +443,7 @@ public abstract class GLDrawableFactory {
    * </p>
    * <p>
    * A Pbuffer drawable is created if both {@link GLCapabilitiesImmutable#isPBuffer() caps.isPBuffer()}
-   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice) canCreateGLPbuffer(device)} is true.
+   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice, GLProfile) canCreateGLPbuffer(device)} is true.
    * </p>
    * <p>
    * If not onscreen and neither FBO nor Pbuffer is available, 
@@ -454,7 +454,7 @@ public abstract class GLDrawableFactory {
    * @throws GLException if any window system-specific errors caused
    *         the creation of the GLDrawable to fail.
    *
-   * @see #canCreateGLPbuffer(AbstractGraphicsDevice)
+   * @see #canCreateGLPbuffer(AbstractGraphicsDevice, GLProfile)
    * @see GLContext#isFBOAvailable(AbstractGraphicsDevice, GLProfile)
    * @see javax.media.opengl.GLCapabilities#isOnscreen()
    * @see javax.media.opengl.GLCapabilities#isFBO()
@@ -482,7 +482,7 @@ public abstract class GLDrawableFactory {
    * </p>
    * <p>
    * A Pbuffer based auto drawable is created if both {@link GLCapabilitiesImmutable#isPBuffer() caps.isPBuffer()}
-   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice) canCreateGLPbuffer(device)} is true.
+   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice, GLProfile) canCreateGLPbuffer(device)} is true.
    * </p>
    * <p>
    * If neither FBO nor Pbuffer is available, 
@@ -520,7 +520,7 @@ public abstract class GLDrawableFactory {
    * </p>
    * <p>
    * A Pbuffer drawable is created if both {@link GLCapabilitiesImmutable#isPBuffer() caps.isPBuffer()}
-   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice) canCreateGLPbuffer(device)} is true.
+   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice, GLProfile) canCreateGLPbuffer(device)} is true.
    * </p>
    * <p>
    * If neither FBO nor Pbuffer is available, 
@@ -590,12 +590,16 @@ public abstract class GLDrawableFactory {
   public abstract boolean canCreateFBO(AbstractGraphicsDevice device, GLProfile glp);
 
   /**
-   * Returns true if it is possible to create a GLPbuffer. Some older
-   * graphics cards do not have this capability.
+   * Returns true if it is possible to create an <i>pbuffer surface</i>.
+   * <p> 
+   * Some older graphics cards do not have this capability, 
+   * as well as some new GL implementation, i.e. OpenGL 3 core on OSX. 
+   * </p>
    *
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param glp {@link GLProfile} to check for FBO capabilities
    */
-  public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device);
+  public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp);
 
   /**
    * Creates a GLPbuffer {@link GLAutoDrawable} with the given capabilites and dimensions.

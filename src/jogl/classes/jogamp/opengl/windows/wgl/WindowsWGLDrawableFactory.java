@@ -470,7 +470,7 @@ public class WindowsWGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  public final boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
+  public final boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp) {
     SharedResource sr = getOrCreateSharedResourceImpl( ( null != device ) ? device : defaultDevice );
     if(null!=sr) {
         return sr.hasARBPBuffer();

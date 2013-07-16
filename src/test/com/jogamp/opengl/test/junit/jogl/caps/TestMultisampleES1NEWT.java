@@ -72,54 +72,54 @@ public class TestMultisampleES1NEWT extends UITestCase {
 
   @Test
   public void testOnscreenMultiSampleAA0() throws InterruptedException {
-    testMultiSampleAAImpl(true, 0);
+    testMultiSampleAAImpl(false, false, 0);
   }
 
   @Test
   public void testOnscreenMultiSampleAA2() throws InterruptedException {
-    testMultiSampleAAImpl(true, 2);
+    testMultiSampleAAImpl(false, false, 2);
   }
 
   @Test
   public void testOnscreenMultiSampleAA4() throws InterruptedException {
-    testMultiSampleAAImpl(true, 4);
+    testMultiSampleAAImpl(false, false, 4);
   }
 
   @Test
   public void testOnscreenMultiSampleAA8() throws InterruptedException {
-    testMultiSampleAAImpl(true, 8);
+    testMultiSampleAAImpl(false, false, 8);
   }
 
   @Test
-  public void testOffscreenMultiSampleAA0() throws InterruptedException {
-    testMultiSampleAAImpl(false, 0);
+  public void testOffscreenPBufferMultiSampleAA0() throws InterruptedException {
+    testMultiSampleAAImpl(false, true, 0);
   }
 
   @Test
-  public void testOffscreenMultiSampleAA2() throws InterruptedException {
-    testMultiSampleAAImpl(false, 2);
+  public void testOffsreenPBufferMultiSampleAA8() throws InterruptedException {
+    testMultiSampleAAImpl(false, true, 8);
   }
 
   @Test
-  public void testOffscreenMultiSampleAA4() throws InterruptedException {
-    testMultiSampleAAImpl(false, 4);
+  public void testOffscreenFBOMultiSampleAA0() throws InterruptedException {
+    testMultiSampleAAImpl(true, false, 0);
   }
 
   @Test
-  public void testOffsreenMultiSampleAA8() throws InterruptedException {
-    testMultiSampleAAImpl(false, 8);
+  public void testOffsreenFBOMultiSampleAA8() throws InterruptedException {
+    testMultiSampleAAImpl(true, false, 8);
   }
 
-  private void testMultiSampleAAImpl(boolean onscreen, int reqSamples) throws InterruptedException {
+  private void testMultiSampleAAImpl(boolean useFBO, boolean usePBuffer, int reqSamples) throws InterruptedException {
     final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
     GLProfile glp = GLProfile.getMaxFixedFunc(true);
     GLCapabilities caps = new GLCapabilities(glp);
     GLCapabilitiesChooser chooser = new MultisampleChooser01();
 
-    if(!onscreen) {
-        caps.setOnscreen(onscreen);
-        caps.setPBuffer(true);
-    }
+    caps.setAlphaBits(1);
+    caps.setFBO(useFBO);
+    caps.setPBuffer(usePBuffer);
+    
     if(reqSamples>0) {
         caps.setSampleBuffers(true);
         caps.setNumSamples(reqSamples);

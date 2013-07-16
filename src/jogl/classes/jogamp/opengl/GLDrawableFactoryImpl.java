@@ -247,7 +247,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   //
   
   @Override
-  public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device);
+  public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp);
 
   @Override
   public GLPbuffer createGLPbuffer(AbstractGraphicsDevice deviceReq,
@@ -263,7 +263,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq);
     }
-    if ( !canCreateGLPbuffer(device) ) {
+    if ( !canCreateGLPbuffer(device, capsRequested.getGLProfile()) ) {
         throw new GLException("Pbuffer not available with device: "+device);
     }
 

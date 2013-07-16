@@ -703,7 +703,7 @@ public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     }
 
     @Override
-    public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
+    public boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp) {
         // SharedResource sr = getOrCreateEGLSharedResource(device);
         // return sr.hasES1PBuffer() || sr.hasES2PBuffer();
         return true;

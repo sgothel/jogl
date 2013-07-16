@@ -490,7 +490,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  public final boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
+  public final boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp) {
       if(null == device) {
         SharedResourceRunner.Resource sr = sharedResourceRunner.getOrCreateShared(defaultDevice);
         if(null!=sr) {
@@ -551,7 +551,7 @@ public class X11GLXDrawableFactory extends GLDrawableFactoryImpl {
 
   @Override
   public final boolean canCreateExternalGLDrawable(AbstractGraphicsDevice device) {
-    return canCreateGLPbuffer(device);
+    return canCreateGLPbuffer(device, null /* GLProfile not used for query on X11 */);
   }
 
   @Override
