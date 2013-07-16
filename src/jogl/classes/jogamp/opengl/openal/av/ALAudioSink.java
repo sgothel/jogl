@@ -3,6 +3,8 @@ package jogamp.opengl.openal.av;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
+import java.lang.InterruptedException;
+
 import jogamp.opengl.util.av.AudioSink;
 
 import com.jogamp.common.nio.Buffers;
@@ -135,6 +137,12 @@ public class ALAudioSink implements AudioSink {
             int[] val=new int[1];
             do {
                 al.alGetSourcei(source[0], AL.AL_BUFFERS_PROCESSED, val, 0);
+                if(val[0] <= 0){
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException e){
+                    }
+                }
             } while (val[0] <= 0);
 
             // fill and requeue the empty buffer
