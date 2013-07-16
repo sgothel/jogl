@@ -222,12 +222,13 @@ public class Texture {
      * Enables this texture's target (e.g., GL_TEXTURE_2D) in the
      * given GL context's state. This method is a shorthand equivalent
      * of the following OpenGL code:
-     <pre>
-     gl.glEnable(texture.getTarget());
-     </pre>
-     * 
+     * <pre>
+     *   gl.glEnable(texture.getTarget());
+     * </pre>
      * <p>
-     * Call is ignored if {@link #getTarget()} is {@link GLES2#GL_TEXTURE_EXTERNAL_OES}.
+     * Call is ignored if the {@link GL} object's context 
+     * is using a core profile, see {@link GL#isGLcore()},
+     * or if {@link #getTarget()} is {@link GLES2#GL_TEXTURE_EXTERNAL_OES}.
      * </p>
      * <p>
      * See the <a href="#perftips">performance tips</a> above for hints
@@ -239,7 +240,7 @@ public class Texture {
      * OpenGL-related errors occurred
      */
     public void enable(GL gl) throws GLException {
-        if(GLES2.GL_TEXTURE_EXTERNAL_OES != target) {
+        if( !gl.isGLcore() && GLES2.GL_TEXTURE_EXTERNAL_OES != target) {
             gl.glEnable(target);
         }
     }
@@ -248,12 +249,13 @@ public class Texture {
      * Disables this texture's target (e.g., GL_TEXTURE_2D) in the
      * given GL state. This method is a shorthand equivalent
      * of the following OpenGL code:
-     <pre>
-     gl.glDisable(texture.getTarget());
-     </pre>
-     *
+     * <pre>
+     *   gl.glDisable(texture.getTarget());
+     * </pre>
      * <p>
-     * Call is ignored if {@link #getTarget()} is {@link GLES2#GL_TEXTURE_EXTERNAL_OES}.
+     * Call is ignored if the {@link GL} object's context 
+     * is using a core profile, see {@link GL#isGLcore()},
+     * or if {@link #getTarget()} is {@link GLES2#GL_TEXTURE_EXTERNAL_OES}.
      * </p>
      * <p>
      * See the <a href="#perftips">performance tips</a> above for hints
@@ -265,7 +267,7 @@ public class Texture {
      * OpenGL-related errors occurred
      */
     public void disable(GL gl) throws GLException {
-        if(GLES2.GL_TEXTURE_EXTERNAL_OES != target) {
+        if( !gl.isGLcore() && GLES2.GL_TEXTURE_EXTERNAL_OES != target ) {
             gl.glDisable(target);
         }
     }
