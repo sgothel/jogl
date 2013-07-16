@@ -193,7 +193,13 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
         System.out.println("setURL: p2 "+this);
         int tf, tif=GL.GL_RGBA; // texture format and internal format
         switch(vBytesPerPixelPerPlane) {
-            case 1: tf = GL2ES2.GL_RED;   tif=GL2ES2.GL_RED; break;  // RED shall be supported on ES2, ES3 and GL3-core!
+            case 1:
+                if( gl.isGL3ES3() ) {
+                    tf = GL2ES2.GL_RED;   tif=GL2ES2.GL_RED;   // RED is supported on ES3 and >= GL3 [core]; ALPHA is deprecated on core!
+                } else {
+                    tf = GL2ES2.GL_ALPHA; tif=GL2ES2.GL_ALPHA; // ALPHA is supported on ES2 and GL2
+                }
+                break;
             case 3: tf = GL2ES2.GL_RGB;   tif=GL.GL_RGB;     break;
             case 4: tf = GL2ES2.GL_RGBA;  tif=GL.GL_RGBA;    break;
             default: throw new RuntimeException("Unsupported bytes-per-pixel / plane "+vBytesPerPixelPerPlane);
