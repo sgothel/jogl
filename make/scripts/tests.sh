@@ -618,13 +618,13 @@ function testawtswt() {
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestGLProfile01NEWT $*
 
-#testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMRTNEWT01 $*
+testnoawt com.jogamp.opengl.test.junit.jogl.acore.TestFBOMRTNEWT01 $*
 #testnoawt com.jogamp.opengl.test.junit.graph.TestRegionRendererNEWT01 $*
 
 #testnoawt com.jogamp.opengl.test.junit.jogl.offscreen.TestOffscreen01GLPBufferNEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.acore.TestAddRemove01GLCanvasSwingAWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES1NEWT $*
-testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES2NEWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.caps.TestMultisampleES2NEWT $*
 
 $spath/count-edt-start.sh java-run.log
 
