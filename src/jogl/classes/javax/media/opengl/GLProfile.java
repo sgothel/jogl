@@ -1092,7 +1092,7 @@ public class GLProfile {
         return isGL4() || isGL3bc() || GL3 == profile;
     }
 
-    /** Indicates whether this context is a GL2 context      <p>Includes [ GL4bc, GL3bc, GL2 ].</p> */
+    /** Indicates whether this profile is capable of GL2 .   <p>Includes [ GL4bc, GL3bc, GL2 ].</p> */
     public final boolean isGL2() {
         return isGL3bc() || GL2 == profile;
     }
@@ -1861,10 +1861,6 @@ public class GLProfile {
      * Returns the profile implementation
      */
     private static String computeProfileImpl(AbstractGraphicsDevice device, String profile, boolean desktopCtxUndef, boolean esCtxUndef, boolean isHardwareRasterizer[]) {
-        // OSX GL3.. doesn't support GLSL<150, 
-        // hence GL2ES2 and GL2GL3 need to be mapped on GL2 on OSX for GLSL compatibility.
-        final boolean isOSX = Platform.OS_TYPE == Platform.OSType.MACOS;
-        
         if (GL2ES1.equals(profile)) {
             final boolean es1HardwareRasterizer[] = new boolean[1];
             final boolean gles1Available = hasGLES1Impl && ( esCtxUndef || GLContext.isGLES1Available(device, es1HardwareRasterizer) );
@@ -1895,26 +1891,24 @@ public class GLProfile {
             final boolean gles2Available = hasGLES3Impl && ( esCtxUndef || GLContext.isGLES2Available(device, es2HardwareRasterizer) );
             final boolean gles2HWAvailable = gles2Available && es2HardwareRasterizer[0] ;
             if(hasGL234Impl) {
-                if(!isOSX) {
-                    if(GLContext.isGL4Available(device, isHardwareRasterizer)) {
-                        if(!gles2HWAvailable || isHardwareRasterizer[0]) {
-                            return GL4;
-                        }
+                if(GLContext.isGL4Available(device, isHardwareRasterizer)) {
+                    if(!gles2HWAvailable || isHardwareRasterizer[0]) {
+                        return GL4;
                     }
-                    if(GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
-                        if(!gles2HWAvailable || isHardwareRasterizer[0]) {
-                            return GL4bc;
-                        }
+                }
+                if(GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
+                    if(!gles2HWAvailable || isHardwareRasterizer[0]) {
+                        return GL4bc;
                     }
-                    if(GLContext.isGL3Available(device, isHardwareRasterizer)) {
-                        if(!gles2HWAvailable || isHardwareRasterizer[0]) {
-                            return GL3;
-                        }
+                }
+                if(GLContext.isGL3Available(device, isHardwareRasterizer)) {
+                    if(!gles2HWAvailable || isHardwareRasterizer[0]) {
+                        return GL3;
                     }
-                    if(GLContext.isGL3bcAvailable(device, isHardwareRasterizer)) {
-                        if(!gles2HWAvailable || isHardwareRasterizer[0]) {
-                            return GL3bc;
-                        }
+                }
+                if(GLContext.isGL3bcAvailable(device, isHardwareRasterizer)) {
+                    if(!gles2HWAvailable || isHardwareRasterizer[0]) {
+                        return GL3bc;
                     }
                 }
                 if(desktopCtxUndef || GLContext.isGL2Available(device, isHardwareRasterizer)) {
@@ -1949,13 +1943,13 @@ public class GLProfile {
             }
         } else if(GL2GL3.equals(profile)) {
             if(hasGL234Impl) {
-                if(!isOSX && GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
+                if( GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
                     return GL4bc;
-                } else if(!isOSX && GLContext.isGL4Available(device, isHardwareRasterizer)) {
+                } else if( GLContext.isGL4Available(device, isHardwareRasterizer)) {
                     return GL4;
-                } else if(!isOSX && GLContext.isGL3bcAvailable(device, isHardwareRasterizer)) {
+                } else if( GLContext.isGL3bcAvailable(device, isHardwareRasterizer)) {
                     return GL3bc;
-                } else if(!isOSX && GLContext.isGL3Available(device, isHardwareRasterizer)) {
+                } else if( GLContext.isGL3Available(device, isHardwareRasterizer)) {
                     return GL3;
                 } else if(desktopCtxUndef || GLContext.isGL2Available(device, isHardwareRasterizer)) {
                     return GL2;
