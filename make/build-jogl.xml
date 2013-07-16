@@ -976,32 +976,24 @@
                   targetfile="${src.generated.java}/javax/media/opengl/DebugGL3.java" />
     </target>        
 
-    <target name="java.generate.composable.pipeline.check.gl4">
+    <target name="java.generate.composable.pipeline.check.gl4bc">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
-            <srcfilelist dir="${classes}/javax/media/opengl" files="GL4.class" />
+            <srcfilelist dir="${classes}/javax/media/opengl" files="GL4bc.class" />
             <targetfileset dir="${src.generated.java}/javax/media/opengl"
-                           includes="DebugGL4.java,TraceGL4.java,DebugGL4bc.java,TraceGL4bc.java" />
+                           includes="DebugGL4bc.java,TraceGL4bc.java" />
         </dependset>
                            
         <!-- Now choose one of the two to test to see if we have to regenerate -->
-        <uptodate property="java.generate.composable.pipeline.skip.gl4"
-                  srcfile="${classes}/javax/media/opengl/GL4.class"
-                  targetfile="${src.generated.java}/javax/media/opengl/DebugGL4.java" />
+        <uptodate property="java.generate.composable.pipeline.skip.gl4bc"
+                  srcfile="${classes}/javax/media/opengl/GL4bc.class"
+                  targetfile="${src.generated.java}/javax/media/opengl/DebugGL4bc.java" />
     </target>        
 
     <target name="java.generate.composable.pipeline.es1" depends="java.generate.composable.pipeline.check.es1" unless="java.generate.composable.pipeline.skip.es1">
         <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GLES1" />
-            <arg value="${src.generated.java}/javax/media/opengl" />
-            <classpath refid="pipeline.classpath" />
-        </java>
-    </target>          
-
-    <target name="java.generate.composable.pipeline.es2" depends="java.generate.composable.pipeline.check.es2" unless="java.generate.composable.pipeline.skip.es2">
-        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GLES2" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
@@ -1015,35 +1007,7 @@
         </java>
     </target>          
 
-    <target name="java.generate.composable.pipeline.gl2" depends="java.generate.composable.pipeline.check.gl2" unless="java.generate.composable.pipeline.skip.gl2">
-        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GL2" />
-            <arg value="${src.generated.java}/javax/media/opengl" />
-            <classpath refid="pipeline.classpath" />
-        </java>
-    </target>          
-
-    <target name="java.generate.composable.pipeline.gl3" depends="java.generate.composable.pipeline.check.gl3" unless="java.generate.composable.pipeline.skip.gl3">
-        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GL3" />
-            <arg value="${src.generated.java}/javax/media/opengl" />
-            <classpath refid="pipeline.classpath" />
-        </java>
-
-        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GL3bc" />
-            <arg value="${src.generated.java}/javax/media/opengl" />
-            <classpath refid="pipeline.classpath" />
-        </java>
-    </target>          
-
-    <target name="java.generate.composable.pipeline.gl4" depends="java.generate.composable.pipeline.check.gl4" unless="java.generate.composable.pipeline.skip.gl4">
-        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GL4" />
-            <arg value="${src.generated.java}/javax/media/opengl" />
-            <classpath refid="pipeline.classpath" />
-        </java>
-
+    <target name="java.generate.composable.pipeline.gl4bc" depends="java.generate.composable.pipeline.check.gl4bc" unless="java.generate.composable.pipeline.skip.gl4bc">
         <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GL4bc" />
             <arg value="${src.generated.java}/javax/media/opengl" />
@@ -1051,7 +1015,7 @@
         </java>
     </target>          
 
-    <target name="java.generate.composable.pipeline" depends="java.generate.composable.pipeline.es1, java.generate.composable.pipeline.es2, java.generate.composable.pipeline.es3, java.generate.composable.pipeline.gl2, java.generate.composable.pipeline.gl3, java.generate.composable.pipeline.gl4">
+    <target name="java.generate.composable.pipeline" depends="java.generate.composable.pipeline.es1, java.generate.composable.pipeline.es3, java.generate.composable.pipeline.gl4bc">
     </target>
 
     <target name="java.generate.composable.pipeline.custom.check.glfixfunc">
@@ -1078,6 +1042,7 @@
             <arg value="jogamp.opengl.util.glsl.fixedfunc.FixedFuncHook" />
             <arg value="javax.media.opengl.GL2ES2" />
             <arg value="prolog_xor_downstream" />
+            <arg value="gl_identity_by_assignable_class" />
             <classpath refid="pipeline.classpath" />
         </java>
     </target>          

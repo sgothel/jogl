@@ -51,8 +51,23 @@ public class GLPipelineFactory {
 
     /** 
      * Creates a pipelined GL instance using the given downstream <code>downstream</code>
-     * and optional arguments <code>additionalArgs</code> for the constructor.<br>
+     * and optional arguments <code>additionalArgs</code> for the constructor.
      *
+     * <p>
+     * Sample code which installs a Debug and Trace pipeline
+     * automatic w/ user defined interface, here: GL2ES2:
+     * <pre>
+     *     gl = drawable.setGL( GLPipelineFactory.create("javax.media.opengl.Debug", GL2ES2.class, gl, null) );
+     *     gl = drawable.setGL( GLPipelineFactory.create("javax.media.opengl.Trace", GL2ES2.class, gl, new Object[] { System.err } ) );
+     * </pre>
+     * or automatic w/ automatic defined class:
+     * <pre>
+     *     gl = drawable.setGL( GLPipelineFactory.create("javax.media.opengl.Debug",         null, gl, null) );
+     *     gl = drawable.setGL( GLPipelineFactory.create("javax.media.opengl.Trace",         null, gl, new Object[] { System.err } ) );
+     * </pre>
+     * </p>
+     * 
+     * <p>
      * The upstream GL instance is determined as follows:
      * <ul>
      *   <li> Use <code>pipelineClazzBaseName</code> as the class name's full basename, incl. package name</li>
@@ -65,7 +80,8 @@ public class GLPipelineFactory {
      *        <li> If upstream class is available use it, end loop.</li>
      *      </ul>
      *   </ul>
-     * </ul><br>
+     * </ul>
+     * </p>
      *
      * @param pipelineClazzBaseName the basename of the pipline class name
      * @param reqInterface optional requested interface to be used, may be null, in which case the first matching one is used

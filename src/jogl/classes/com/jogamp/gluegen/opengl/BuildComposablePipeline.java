@@ -57,10 +57,31 @@ import java.util.Set;
 
 public class BuildComposablePipeline {
 
-    public static final int GEN_DEBUG = 1 << 0; // default
-    public static final int GEN_TRACE = 1 << 1; // default
+    /** <p>Default: true</p>. */
+    public static final int GEN_DEBUG = 1 << 0;
+    /** <p>Default: true</p>. */
+    public static final int GEN_TRACE = 1 << 1;
+    /** <p>Default: false</p>. */
     public static final int GEN_CUSTOM = 1 << 2;
+    /**
+     * By extra command-line argument: <code>prolog_xor_downstream</code>.
+     * <p>
+     * If true, either prolog (if exist) is called or downstream's method, but not both.
+     * By default, both methods would be called. 
+     * </p>
+     * <p>Default: false</p>
+     */
     public static final int GEN_PROLOG_XOR_DOWNSTREAM = 1 << 3;
+    /**
+     * By extra command-line argument: <code>gl_identity_by_assignable_class</code>.
+     * <p>
+     * If true, implementation does not utilize downstream's <code>isGL*()</code>
+     * implementation, but determines whether the GL profile is matched by interface inheritance.
+     * </p>
+     * <p>Default: false</p>
+     */
+    public static final int GEN_GL_IDENTITY_BY_ASSIGNABLE_CLASS = 1 << 4;
+    
     int mode;
     private String outputDir;
     private String outputPackage;
@@ -110,8 +131,12 @@ public class BuildComposablePipeline {
             classDownstream = getClass(args[4]);
             mode = GEN_CUSTOM;
             if (args.length > 5) {
-                if (args[5].equals("prolog_xor_downstream")) {
-                    mode |= GEN_PROLOG_XOR_DOWNSTREAM;
+                for(int i=5; i<args.length; i++) {
+                    if (args[i].equals("prolog_xor_downstream")) {
+                        mode |= GEN_PROLOG_XOR_DOWNSTREAM;
+                    } else if (args[i].equals("gl_identity_by_assignable_class")) {
+                        mode |= GEN_GL_IDENTITY_BY_ASSIGNABLE_CLASS;
+                    }
                 }
             }
         } else {
@@ -119,7 +144,7 @@ public class BuildComposablePipeline {
             outputName = null; // TBD ..
             classPrologOpt = null;
             classDownstream = classToComposeAround;
-            mode = GEN_DEBUG | GEN_TRACE;
+            mode = GEN_DEBUG | GEN_TRACE ;
         }
 
         BuildComposablePipeline composer =
@@ -604,11 +629,15 @@ public class BuildComposablePipeline {
         protected void emitGLIsMethod(PrintWriter output, String type) {
             output.println("  @Override");
             output.println("  public final boolean is" + type + "() {");
-            final Class<?> clazz = BuildComposablePipeline.getClass("javax.media.opengl." + type);
-            if (clazz.isAssignableFrom(baseInterfaceClass)) {
-                output.println("    return true;");
+            if( 0 != (GEN_GL_IDENTITY_BY_ASSIGNABLE_CLASS & getMode() ) ) {
+                final Class<?> clazz = BuildComposablePipeline.getClass("javax.media.opengl." + type);
+                if (clazz.isAssignableFrom(baseInterfaceClass)) {
+                    output.println("    return true;");
+                } else {
+                    output.println("    return false;");
+                }
             } else {
-                output.println("    return false;");
+                output.println("    return " + getDownstreamObjectName() + ".is" + type + "();");
             }
             output.println("  }");
         }
@@ -631,10 +660,14 @@ public class BuildComposablePipeline {
             emitGLIsMethod(output, "GL3ES3");
             emitGLIsMethod(output, "GL4ES3");
             emitGLIsMethod(output, "GL2GL3");
-            output.println("  @Override");
-            output.println("  public final boolean isGLES() {");
-            output.println("    return isGLES2() || isGLES1();");
-            output.println("  }");
+            if( 0 != (GEN_GL_IDENTITY_BY_ASSIGNABLE_CLASS & getMode() ) ) {
+                output.println("  @Override");
+                output.println("  public final boolean isGLES() {");
+                output.println("    return isGLES2() || isGLES1();");
+                output.println("  }");
+            } else {
+                emitGLIsMethod(output, "GLES");
+            }
             output.println("  @Override");
             output.println("  public final boolean isGLES2Compatible() {");
             output.println("    return " + getDownstreamObjectName() + ".isGLES2Compatible();");
@@ -651,11 +684,15 @@ public class BuildComposablePipeline {
         protected void emitGLGetMethod(PrintWriter output, String type) {
             output.println("  @Override");
             output.println("  public final javax.media.opengl." + type + " get" + type + "() {");
-            final Class<?> clazz = BuildComposablePipeline.getClass("javax.media.opengl." + type);
-            if (clazz.isAssignableFrom(baseInterfaceClass)) {
-                output.println("    return this;");
+            if( 0 != (GEN_GL_IDENTITY_BY_ASSIGNABLE_CLASS & getMode() ) ) {
+                final Class<?> clazz = BuildComposablePipeline.getClass("javax.media.opengl." + type);
+                if (clazz.isAssignableFrom(baseInterfaceClass)) {
+                    output.println("    return this;");
+                } else {
+                    output.println("    throw new GLException(\"Not a " + type + " implementation\");");
+                }
             } else {
-                output.println("    throw new GLException(\"Not a " + type + " implementation\");");
+                output.println("    return " + getDownstreamObjectName() + ".get" + type + "();");
             }
             output.println("  }");
         }
@@ -921,15 +958,20 @@ public class BuildComposablePipeline {
         }
 
         protected void emitClassDocComment(PrintWriter output) {
-            output.println("/** <P> Composable pipeline which wraps an underlying {@link GL} implementation,");
-            output.println("    providing error checking after each OpenGL method call. If an error occurs,");
-            output.println("    causes a {@link GLException} to be thrown at exactly the point of failure.");
-            output.println("    Sample code which installs this pipeline: </P>");
-            output.println();
-            output.println("<PRE>");
-            output.println("     GL gl = drawable.setGL(new DebugGL(drawable.getGL()));");
-            output.println("</PRE>");
-            output.println("*/");
+            output.println("/**");
+            output.println(" * <p>");
+            output.println(" * Composable pipeline which wraps an underlying {@link GL} implementation,");
+            output.println(" * providing error checking after each OpenGL method call. If an error occurs,");
+            output.println(" * causes a {@link GLException} to be thrown at exactly the point of failure.");
+            output.println(" * </p>");
+            output.println(" * <p>");
+            output.println(" * Sample code which installs this pipeline:");
+            output.println(" * <pre>");
+            output.println(" *   gl = drawable.setGL(new DebugGL(drawable.getGL()));");
+            output.println(" * </pre>");
+            output.println(" * For automatic instantiation see {@link GLPipelineFactory#create(String, Class, GL, Object[])}");
+            output.println(" * </p>");
+            output.println(" */");
         }
 
         protected boolean hasPreDownstreamCallHook(Method m) {
@@ -1057,14 +1099,20 @@ public class BuildComposablePipeline {
         }
 
         protected void emitClassDocComment(PrintWriter output) {
-            output.println("/** <P> Composable pipeline which wraps an underlying {@link GL} implementation,");
-            output.println("    providing tracing information to a user-specified {@link java.io.PrintStream}");
-            output.println("    before and after each OpenGL method call. Sample code which installs this pipeline: </P>");
-            output.println();
-            output.println("<PRE>");
-            output.println("     GL gl = drawable.setGL(new TraceGL(drawable.getGL(), System.err));");
-            output.println("</PRE>");
-            output.println("*/");
+            output.println("/**");
+            output.println(" * <p>");
+            output.println(" * Composable pipeline which wraps an underlying {@link GL} implementation,");
+            output.println(" * providing tracing information to a user-specified {@link java.io.PrintStream}");
+            output.println(" * before and after each OpenGL method call.");
+            output.println(" * </p>");
+            output.println(" * <p>");
+            output.println(" * Sample code which installs this pipeline:");
+            output.println(" * <pre>");
+            output.println(" *   gl = drawable.setGL(new TraceGL(drawable.getGL(), System.err));");
+            output.println(" * </pre>");
+            output.println(" * For automatic instantiation see {@link GLPipelineFactory#create(String, Class, GL, Object[])}");
+            output.println(" * </p>");
+            output.println(" */");
         }
 
         protected boolean hasPreDownstreamCallHook(Method m) {
