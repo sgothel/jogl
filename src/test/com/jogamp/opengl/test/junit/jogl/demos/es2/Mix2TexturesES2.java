@@ -77,9 +77,6 @@ public class Mix2TexturesES2 implements GLEventListener {
         }
     }
         
-    static final String[] es2_prelude = { "#version 100\n", "precision mediump float;\n" };
-    static final String gl2_prelude = "#version 110\n";
-    
     @Override
     public void init(GLAutoDrawable drawable) {
         final GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -88,19 +85,8 @@ public class Mix2TexturesES2 implements GLEventListener {
                 "shader/bin", "texture01_xxx", true);
         final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, Mix2TexturesES2.class, "shader",
                 "shader/bin", null == texUnit1 ? "texture01_xxx" : "texture02_xxx", true);
-        
-        // Prelude shader code w/ GLSL profile specifics [ 1. pre-proc, 2. other ]
-        int fp0Pos;
-        if(gl.isGLES2()) {
-            vp0.insertShaderSource(0, 0, es2_prelude[0]);
-            fp0Pos = fp0.insertShaderSource(0, 0, es2_prelude[0]);
-        } else {
-            vp0.insertShaderSource(0, 0, gl2_prelude);
-            fp0Pos = fp0.insertShaderSource(0, 0, gl2_prelude);
-        }
-        if(gl.isGLES2()) {
-            fp0Pos = fp0.insertShaderSource(0, fp0Pos, es2_prelude[1]);
-        }        
+        vp0.defaultShaderCustomization(gl, true, true);
+        fp0.defaultShaderCustomization(gl, true, true);
         
         sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);
@@ -172,7 +158,9 @@ public class Mix2TexturesES2 implements GLEventListener {
                 gl.glBindTexture(GL.GL_TEXTURE_2D, texID1);
             }
             
-            gl.glEnable(GL.GL_TEXTURE_2D);
+            if( !gl.isGLcore() ) {
+                gl.glEnable(GL.GL_TEXTURE_2D);
+            }
             
             gl.glDrawArrays(GL.GL_TRIANGLE_STRIP, 0, 4);
         }

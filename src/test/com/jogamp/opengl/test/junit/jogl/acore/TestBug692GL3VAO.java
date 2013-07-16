@@ -152,7 +152,7 @@ public class TestBug692GL3VAO extends UITestCase {
         }
         private void initShaders(GL3 gl) {
             final String[] vertSrc = new String[]{
-                "#version 150 core\n",
+                "#version 150\n",
                 "in vec4 vPosition;\n",
                 "in vec4 vColor;\n",
                 "out vec4 pColor;\n",
@@ -164,7 +164,7 @@ public class TestBug692GL3VAO extends UITestCase {
             vertID = createShader(gl, GL3.GL_VERTEX_SHADER, vertSrc);
     
             final String[] fragSrc = new String[]{
-                "#version 150 core\n",
+                "#version 150\n",
                 "in vec4 pColor;\n",
                 "void main() {\n",
                 "    gl_FragColor = pColor;\n",

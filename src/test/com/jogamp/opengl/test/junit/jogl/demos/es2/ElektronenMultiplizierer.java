@@ -450,7 +450,9 @@ public class ElektronenMultiplizierer implements GLEventListener {
         st.uniform(gl, en.setData(mEffectNumber));
         st.uniform(gl, et.setData(mEffectTime));
 
-        gl.glEnable(GL_TEXTURE_2D);
+        if( !gl.isGLcore() ) {
+            gl.glEnable(GL_TEXTURE_2D);
+        }
         gl.glBindTexture(GL_TEXTURE_2D, mFrameBufferTextureID);
 
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);

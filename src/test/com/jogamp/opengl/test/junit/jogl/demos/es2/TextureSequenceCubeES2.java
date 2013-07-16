@@ -27,7 +27,6 @@
  */
 package com.jogamp.opengl.test.junit.jogl.demos.es2;
 
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL;
@@ -58,7 +57,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
     public TextureSequenceCubeES2 (TextureSequence texSource, boolean innerCube, float zoom0, float rotx, float roty) {
         this.texSeq = texSource;
         this.innerCube = innerCube;
-        this.zoom0     = zoom0;
+        this.zoom      = zoom0;
         this.view_rotx = rotx;
         this.view_roty = roty;
     }
@@ -71,11 +70,10 @@ public class TextureSequenceCubeES2 implements GLEventListener {
     private float nearPlaneNormalized;
     // private float zoom0=-5.0f, zoom=zoom0;
     // private float view_rotx = 20.0f, view_roty = 30.0f, view_rotz = 0.0f;
-    private float zoom0=-2.3f, zoom=zoom0;
+    private float zoom=-2.3f;
     private float view_rotx = 0.0f, view_roty = 0.0f, view_rotz = 0.0f;
     int[] vboNames = new int[4];
     boolean innerCube;
-    private ByteBuffer cubeIndices;
         
     private final MouseListener mouseAction = new MouseAdapter() {
         int lx = 0;
@@ -113,7 +111,12 @@ public class TextureSequenceCubeES2 implements GLEventListener {
                 int nv = Math.abs(e.getY(0)-e.getY(1));
                 int dy = nv - lx;
                 
-                zoom += 40f*Math.signum(dy)/(float)height;
+                {
+                    final float o = zoom;
+                    final float d = 40f*Math.signum(dy)/(float)height;
+                    zoom += d;
+                    System.err.println("zoom.d: "+o+" + "+d+" -> "+zoom);
+                }
                 
                 lx = nv;
             } else {
@@ -133,15 +136,16 @@ public class TextureSequenceCubeES2 implements GLEventListener {
             }
         }        
         public void mouseWheelMoved(MouseEvent e) {
+            System.err.println("XXX "+e);
             if( !e.isShiftDown() ) {
-                zoom += e.getRotation()[0]/10f;
-                System.err.println("zoom: "+zoom);
+                final float o = zoom;
+                final float d = e.getRotation()[1]/10f; // vertical: wheel
+                zoom += d;
+                System.err.println("zoom.w: "+o+" + "+d+" -> "+zoom);
             }
         }
     };
     
-    static final String[] es2_prelude = { "#version 100\n", "precision mediump float;\n" };
-    static final String gl2_prelude = "#version 110\n";
     static final String shaderBasename = "texsequence_xxx";
     static final String myTextureLookupName = "myTexture2D";
     
@@ -151,20 +155,12 @@ public class TextureSequenceCubeES2 implements GLEventListener {
                                             "shader", "shader/bin", shaderBasename, true);
         ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), 
                                             "shader", "shader/bin", shaderBasename, true);
-        
-        // Prelude shader code w/ GLSL profile specifics [ 1. pre-proc, 2. other ]
-        int rsFpPos;
-        if(gl.isGLES2()) {
-            rsVp.insertShaderSource(0, 0, es2_prelude[0]);
-            rsFpPos = rsFp.insertShaderSource(0, 0, es2_prelude[0]);
-        } else {
-            rsVp.insertShaderSource(0, 0, gl2_prelude);
-            rsFpPos = rsFp.insertShaderSource(0, 0, gl2_prelude);
-        }
+        rsVp.defaultShaderCustomization(gl, true, true);
+        int rsFpPos = rsFp.addGLSLVersion(gl);
+
         rsFpPos = rsFp.insertShaderSource(0, rsFpPos, texSeq.getRequiredExtensionsShaderStub());
-        if(gl.isGLES2()) {
-            rsFpPos = rsFp.insertShaderSource(0, rsFpPos, es2_prelude[1]);
-        }        
+        rsFpPos = rsFp.addDefaultShaderPrecision(gl, rsFpPos);
+        
         final String texLookupFuncName = texSeq.getTextureLookupFunctionName(myTextureLookupName);        
         rsFp.replaceInShaderSource(myTextureLookupName, texLookupFuncName);
         
@@ -187,7 +183,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         st.attachShaderProgram(gl, sp, false);
     }
     
-    GLArrayDataServer interleavedVBO;
+    GLArrayDataServer interleavedVBO, cubeIndicesVBO;
     
     public void init(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
@@ -260,7 +256,15 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         interleavedVBO.seal(gl, true);
         interleavedVBO.enableBuffer(gl, false);
         st.ownAttribute(interleavedVBO, true);
-        cubeIndices = ByteBuffer.wrap(s_cubeIndices);
+        
+        cubeIndicesVBO = GLArrayDataServer.createData(6, GL.GL_UNSIGNED_SHORT, 6, GL.GL_STATIC_DRAW, GL.GL_ELEMENT_ARRAY_BUFFER);
+        for(int i=0; i<6*6; i++) {
+            cubeIndicesVBO.puts(s_cubeIndices[i]);
+        }
+        cubeIndicesVBO.seal(gl, true);
+        cubeIndicesVBO.enableBuffer(gl, false);
+        st.ownAttribute(cubeIndicesVBO, true);
+        
         
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
 
@@ -324,7 +328,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
 
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
         pmvMatrix.glLoadIdentity();
-        pmvMatrix.glTranslatef(0, 0, zoom0);
+        pmvMatrix.glTranslatef(0, 0, zoom);
     }
 
 
@@ -364,7 +368,10 @@ public class TextureSequenceCubeES2 implements GLEventListener {
                 tex.bind(gl);                
             }
         }
-        gl.glDrawElements(GL.GL_TRIANGLES, 6 * 6, GL.GL_UNSIGNED_BYTE, cubeIndices);
+        cubeIndicesVBO.bindBuffer(gl, true); // keeps VBO binding
+        gl.glDrawElements(GL2ES2.GL_TRIANGLES, cubeIndicesVBO.getElementCount() * cubeIndicesVBO.getComponentCount(), GL2ES2.GL_UNSIGNED_SHORT, 0);
+        cubeIndicesVBO.bindBuffer(gl, false);
+        
         if(null != tex) {
             tex.disable(gl);                                
         }
@@ -446,7 +453,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
             
             -1f,  0f,  0f,   -1f,  0f,  0f,   -1f,  0f,  0f,   -1f,  0f,  0f
         };*/
-    private static final byte[] s_cubeIndices =  
+    private static final short[] s_cubeIndices =  
         {
              0,  3,  1,  2,  0,  1, /* front  */
              6,  5,  4,  5,  7,  4, /* back   */

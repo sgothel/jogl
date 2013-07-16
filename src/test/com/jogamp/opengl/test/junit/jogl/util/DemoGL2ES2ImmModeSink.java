@@ -62,9 +62,6 @@ public class DemoGL2ES2ImmModeSink implements GLEventListener {
         pmvMatrix = new PMVMatrix();        
     }
 
-    static final String[] es2_prelude = { "#version 100\n", "precision mediump float;\n" };
-    static final String gl2_prelude = "#version 110\n";
-    
     public void init(GLAutoDrawable glad) {
         final GL2ES2 gl = glad.getGL().getGL2ES2();
                 
@@ -76,19 +73,8 @@ public class DemoGL2ES2ImmModeSink implements GLEventListener {
                 "../demos/es2/shader", "../demos/es2/shader/bin", "mgl_default_xxx", true);
         final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, DemoGL2ES2ImmModeSink.class, 
                 "../demos/es2/shader", "../demos/es2/shader/bin", "mgl_default_xxx", true);
-        
-        // Prelude shader code w/ GLSL profile specifics [ 1. pre-proc, 2. other ]
-        int fp0Pos;
-        if(gl.isGLES2()) {
-            vp0.insertShaderSource(0, 0, es2_prelude[0]);
-            fp0Pos = fp0.insertShaderSource(0, 0, es2_prelude[0]);
-        } else {
-            vp0.insertShaderSource(0, 0, gl2_prelude);
-            fp0Pos = fp0.insertShaderSource(0, 0, gl2_prelude);
-        }
-        if(gl.isGLES2()) {
-            fp0Pos = fp0.insertShaderSource(0, fp0Pos, es2_prelude[1]);
-        }        
+        vp0.defaultShaderCustomization(gl, true, true);
+        fp0.defaultShaderCustomization(gl, true, true);
         
         sp = new ShaderProgram();
         sp.add(gl, vp0, System.err);

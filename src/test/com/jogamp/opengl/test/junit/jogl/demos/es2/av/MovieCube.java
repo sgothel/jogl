@@ -204,6 +204,11 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
         int height = 300;
         System.err.println("TexCubeES2.run()");
 
+        boolean forceES2 = false;
+        boolean forceES3 = false;
+        boolean forceGL3 = false;
+        boolean forceGLDef = false;
+        
         String url_s="http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4";        
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-width")) {
@@ -215,13 +220,39 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
             } else if(args[i].equals("-url")) {
                 i++;
                 url_s = args[i];
+            } else if(args[i].equals("-es2")) {
+                forceES2 = true;
+            } else if(args[i].equals("-es3")) {
+                forceES3 = true;
+            } else if(args[i].equals("-gl3")) {
+                forceGL3 = true;
+            } else if(args[i].equals("-gldef")) {
+                forceGLDef = true;
             } else if(args[i].equals("-wait")) {
                 waitForKey = true;
             }
         }
+        System.err.println("forceES2   "+forceES2);
+        System.err.println("forceES3   "+forceES3);
+        System.err.println("forceGL3   "+forceGL3);
+        System.err.println("forceGLDef "+forceGLDef);
+        
         final MovieCube mc = new MovieCube(new URL(url_s).openConnection(), -2.3f, 0f, 0f);
         
-        final GLWindow window = GLWindow.create(new GLCapabilities(GLProfile.getGL2ES2()));
+        final GLProfile glp;
+        if(forceGLDef) {
+            glp = GLProfile.getDefault();
+        } else if(forceGL3) {
+            glp = GLProfile.get(GLProfile.GL3);
+        } else if(forceES3) {
+            glp = GLProfile.get(GLProfile.GLES3);
+        } else if(forceES2) {
+            glp = GLProfile.get(GLProfile.GLES2);
+        } else {
+            glp = GLProfile.getGL2ES2();
+        }        
+        System.err.println("GLProfile: "+glp);
+        final GLWindow window = GLWindow.create(new GLCapabilities(glp));
         // Size OpenGL to Video Surface
         window.setSize(width, height);
         window.setFullscreen(false);

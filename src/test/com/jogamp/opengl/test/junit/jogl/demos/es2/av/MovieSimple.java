@@ -141,7 +141,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         }
         public void mouseWheelMoved(MouseEvent e) {
             if( !e.isShiftDown() ) {
-                zoom += e.getRotation()[0]/10f;
+                zoom += e.getRotation()[1]/10f; // vertical: wheel
                 System.err.println("zoom: "+zoom);
             }
         }
@@ -200,8 +200,6 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
     ShaderState st;
     PMVMatrix pmvMatrix;
     GLUniformData pmvMatrixUniform;
-    static final String[] es2_prelude = { "#version 100\n", "precision mediump float;\n" };
-    static final String gl2_prelude = "#version 110\n";
     static final String shaderBasename = "texsequence_xxx";
     static final String myTextureLookupName = "myTexture2D";
     
@@ -211,20 +209,12 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
                                             "../shader", "../shader/bin", shaderBasename, true);
         ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, MovieSimple.class, 
                                             "../shader", "../shader/bin", shaderBasename, true);
+        rsVp.defaultShaderCustomization(gl, true, true);
+        int rsFpPos = rsFp.addGLSLVersion(gl);
 
-        // Prelude shader code w/ GLSL profile specifics [ 1. pre-proc, 2. other ]
-        int rsFpPos;
-        if(gl.isGLES2()) {
-            rsVp.insertShaderSource(0, 0, es2_prelude[0]);
-            rsFpPos = rsFp.insertShaderSource(0, 0, es2_prelude[0]);
-        } else {
-            rsVp.insertShaderSource(0, 0, gl2_prelude);
-            rsFpPos = rsFp.insertShaderSource(0, 0, gl2_prelude);
-        }
         rsFpPos = rsFp.insertShaderSource(0, rsFpPos, mPlayer.getRequiredExtensionsShaderStub());
-        if(gl.isGLES2()) {
-            rsFpPos = rsFp.insertShaderSource(0, rsFpPos, es2_prelude[1]);
-        }
+        rsFpPos = rsFp.addDefaultShaderPrecision(gl, rsFpPos);
+        
         final String texLookupFuncName = mPlayer.getTextureLookupFunctionName(myTextureLookupName);        
         rsFp.replaceInShaderSource(myTextureLookupName, texLookupFuncName);
         
@@ -519,6 +509,11 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         boolean ortho = true;
         boolean zoom = false;
         
+        boolean forceES2 = false;
+        boolean forceES3 = false;
+        boolean forceGL3 = false;
+        boolean forceGLDef = false;
+        
         String url_s="http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4";        
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-width")) {
@@ -527,6 +522,14 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
             } else if(args[i].equals("-height")) {
                 i++;
                 height = MiscUtils.atoi(args[i], height);
+            } else if(args[i].equals("-es2")) {
+                forceES2 = true;
+            } else if(args[i].equals("-es3")) {
+                forceES3 = true;
+            } else if(args[i].equals("-gl3")) {
+                forceGL3 = true;
+            } else if(args[i].equals("-gldef")) {
+                forceGLDef = true;
             } else if(args[i].equals("-projection")) {
                 ortho=false;
             } else if(args[i].equals("-zoom")) {
@@ -536,12 +539,30 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
                 url_s = args[i];
             }
         }
+        System.err.println("forceES2   "+forceES2);
+        System.err.println("forceES3   "+forceES3);
+        System.err.println("forceGL3   "+forceGL3);
+        System.err.println("forceGLDef "+forceGLDef);
+        
         final MovieSimple ms = new MovieSimple(new URL(url_s).openConnection());
         ms.setScaleOrig(!zoom);
         ms.setOrthoProjection(ortho);
         
         try {
-            GLCapabilities caps = new GLCapabilities(GLProfile.getGL2ES2());
+            final GLProfile glp;
+            if(forceGLDef) {
+                glp = GLProfile.getDefault();
+            } else if(forceGL3) {
+                glp = GLProfile.get(GLProfile.GL3);
+            } else if(forceES3) {
+                glp = GLProfile.get(GLProfile.GLES3);
+            } else if(forceES2) {
+                glp = GLProfile.get(GLProfile.GLES2);
+            } else {
+                glp = GLProfile.getGL2ES2();
+            }        
+            System.err.println("GLProfile: "+glp);
+            GLCapabilities caps = new GLCapabilities(glp);
             GLWindow window = GLWindow.create(caps);            
 
             window.addGLEventListener(ms);
