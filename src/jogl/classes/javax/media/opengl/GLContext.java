@@ -1741,7 +1741,7 @@ public abstract class GLContext {
    * i.e. either a &ge; 4.3 context or a &ge; 3.1 context supporting <code>GL_ARB_ES3_compatibility</code>,
    * otherwise false.
    * <p>
-   * Includes [ GL4 &gt; 4.3, GL3 &gt; 3.1 w/ GL_ARB_ES3_compatibility and GLES3 ].
+   * Includes [ GL &ge; 4.3, GL &ge; 3.1 w/ GL_ARB_ES3_compatibility and GLES3 ]
    * </p>
    */
   public static final boolean isGLES3CompatibleAvailable(AbstractGraphicsDevice device) {
@@ -1750,12 +1750,12 @@ public abstract class GLContext {
       int ctp[] = { 0 };
       boolean ok;
       
-      ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_CORE, major, minor, ctp);
+      ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_ES, major, minor, ctp);
       if( !ok ) {
-          ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_COMPAT, major, minor, ctp);
+          ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_CORE, major, minor, ctp);
       }
       if( !ok ) {
-          ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_ES, major, minor, ctp);
+          ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_COMPAT, major, minor, ctp);
       }
       return 0 != ( ctp[0] & CTX_IMPL_ES3_COMPAT );
   }
