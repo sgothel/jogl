@@ -140,6 +140,9 @@ public abstract class GLContext {
   /** Version 3.2. As an OpenGL version, it qualifies for geometry shader */
   public static final VersionNumber Version320 = new VersionNumber(3, 2, 0);
   
+  /** Version 4.3. As an OpenGL version, it qualifies for <code>GL_ARB_ES3_compatibility</code> */
+  public static final VersionNumber Version430 = new VersionNumber(4, 3, 0);
+  
   protected static final VersionNumber Version800 = new VersionNumber(8, 0, 0);
 
   //
@@ -822,8 +825,11 @@ public abstract class GLContext {
   }
 
   /**
-   * @return true if this context is an ES3 context or implements
-   *         the extension <code>GL_ARB_ES3_compatibility</code>, otherwise false
+   * Return true if this context is an ES3 context or implements
+   * the extension <code>GL_ARB_ES3_compatibility</code>, otherwise false.
+   * <p>
+   * Includes [ GL &ge; 4.3, GL &ge; 3.1 w/ GL_ARB_ES3_compatibility and GLES3 ]
+   * </p>
    */
   public final boolean isGLES3Compatible() {
       return 0 != ( ctxOptions & CTX_IMPL_ES3_COMPAT ) ;
@@ -1115,11 +1121,12 @@ public abstract class GLContext {
   }
 
   /** 
-   * Indicates whether this profile is capable of GL4ES3. <p>Includes [ GL4bc, GL4, GLES3 ].</p>
-   * @see GLProfile#isGL4ES3() 
+   * Returns true if this profile is capable of GL4ES3, i.e. if {@link #isGLES3Compatible()} returns true. 
+   * <p>Includes [ GL &ge; 4.3, GL &ge; 3.1 w/ GL_ARB_ES3_compatibility and GLES3 ]</p>
+   * @see GLProfile#isGL4ES3()
    */
   public final boolean isGL4ES3() {
-      return isGL4() || isGLES3() ;
+      return isGLES3Compatible() ;
   }
 
   /**
@@ -1598,9 +1605,9 @@ public abstract class GLContext {
    */
   protected static final void getRequestMajorAndCompat(final GLProfile glp, int[/*2*/] reqMajorCTP) {
     final GLProfile glpImpl = glp.getImpl();
-    if(glpImpl.isGL4()) {
+    if( glpImpl.isGL4() ) {
         reqMajorCTP[0]=4;
-    } else if (glpImpl.isGL3()) {
+    } else if ( glpImpl.isGL3() || glpImpl.isGLES3() ) {
         reqMajorCTP[0]=3;
     } else if (glpImpl.isGLES1()) {
         reqMajorCTP[0]=1;
@@ -1729,6 +1736,30 @@ public abstract class GLContext {
       return isGLVersionAvailable(device, 3, GLContext.CTX_PROFILE_ES, isHardware);
   }
 
+  /**
+   * Returns true if a ES3 compatible profile is available,
+   * i.e. either a &ge; 4.3 context or a &ge; 3.1 context supporting <code>GL_ARB_ES3_compatibility</code>,
+   * otherwise false.
+   * <p>
+   * Includes [ GL4 &gt; 4.3, GL3 &gt; 3.1 w/ GL_ARB_ES3_compatibility and GLES3 ].
+   * </p>
+   */
+  public static final boolean isGLES3CompatibleAvailable(AbstractGraphicsDevice device) {
+      int major[] = { 0 };
+      int minor[] = { 0 };
+      int ctp[] = { 0 };
+      boolean ok;
+      
+      ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_CORE, major, minor, ctp);
+      if( !ok ) {
+          ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_COMPAT, major, minor, ctp);
+      }
+      if( !ok ) {
+          ok = GLContext.getAvailableGLVersion(device, 3, GLContext.CTX_PROFILE_ES, major, minor, ctp);
+      }
+      return 0 != ( ctp[0] & CTX_IMPL_ES3_COMPAT );
+  }
+    
   public static boolean isGL4bcAvailable(AbstractGraphicsDevice device, boolean isHardware[]) {
       return isGLVersionAvailable(device, 4, CTX_PROFILE_COMPAT, isHardware);
   }

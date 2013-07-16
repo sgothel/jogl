@@ -299,13 +299,6 @@ public class GLProfile {
         }
 
         if(useIndent) {
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL4ES3").append(indent);
-        } else {
-            sb.append(", GL4ES3 ");
-        }
-        sb.append(isAvailableImpl(map, GL4ES3));
-        
-        if(useIndent) {
             doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GLES3").append(indent);
         } else {
             sb.append(", GLES3 ");
@@ -350,13 +343,6 @@ public class GLProfile {
         }
 
         if(useIndent) {
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL2ES2").append(indent);
-        } else {
-            sb.append(", GL2ES2 ");
-        }
-        sb.append(isAvailableImpl(map, GL2ES2));
-
-        if(useIndent) {
             doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GLES2").append(indent);
         } else {
             sb.append(", GLES2 ");
@@ -368,13 +354,6 @@ public class GLProfile {
         }
 
         if(useIndent) {
-            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL2ES1").append(indent);
-        } else {
-            sb.append(", GL2ES1 ");
-        }
-        sb.append(isAvailableImpl(map, GL2ES1));
-
-        if(useIndent) {
             doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GLES1").append(indent);
         } else {
             sb.append(", GLES1 ");
@@ -384,6 +363,27 @@ public class GLProfile {
         if(avail) {
             glAvailabilityToString(device, sb.append(" "), 1, GLContext.CTX_PROFILE_ES);
         }
+
+        if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL4ES3").append(indent);
+        } else {
+            sb.append(", GL4ES3 ");
+        }
+        sb.append(isAvailableImpl(map, GL4ES3));
+        
+        if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL2ES2").append(indent);
+        } else {
+            sb.append(", GL2ES2 ");
+        }
+        sb.append(isAvailableImpl(map, GL2ES2));
+
+        if(useIndent) {
+            doIndent(sb.append(Platform.getNewline()), indent, indentCount).append("GL2ES1").append(indent);
+        } else {
+            sb.append(", GL2ES1 ");
+        }
+        sb.append(isAvailableImpl(map, GL2ES1));
 
         if(useIndent) {
             indentCount--;
@@ -1922,24 +1922,37 @@ public class GLProfile {
                 return GLES2;
             }
         } else if (GL4ES3.equals(profile)) {
-            final boolean es3HardwareRasterizer[] = new boolean[1];
-            final boolean gles3Available = hasGLES3Impl && ( esCtxUndef || GLContext.isGLES3Available(device, es3HardwareRasterizer) );
-            final boolean gles3HWAvailable = gles3Available && es3HardwareRasterizer[0] ;
-            if(hasGL234Impl) {
-                if(GLContext.isGL4Available(device, isHardwareRasterizer)) {
-                    if(!gles3HWAvailable || isHardwareRasterizer[0]) {
-                        return GL4;
+            final boolean gles3CompatAvail = GLContext.isGLES3CompatibleAvailable(device);
+            if( desktopCtxUndef || esCtxUndef || gles3CompatAvail ) {
+                final boolean es3HardwareRasterizer[] = new boolean[1];
+                final boolean gles3Available = hasGLES3Impl && ( esCtxUndef || GLContext.isGLES3Available(device, es3HardwareRasterizer) );
+                final boolean gles3HWAvailable = gles3Available && es3HardwareRasterizer[0] ;
+                if(hasGL234Impl) {
+                    if(GLContext.isGL4Available(device, isHardwareRasterizer)) {
+                        if(!gles3HWAvailable || isHardwareRasterizer[0]) {
+                            return GL4;
+                        }
+                    }
+                    if( GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
+                        if(!gles3HWAvailable || isHardwareRasterizer[0]) {
+                            return GL4bc;
+                        }
+                    }
+                    if(GLContext.isGL3Available(device, isHardwareRasterizer)) {
+                        if(!gles3HWAvailable || isHardwareRasterizer[0]) {
+                            return GL3;
+                        }
+                    }
+                    if( desktopCtxUndef || GLContext.isGL3bcAvailable(device, isHardwareRasterizer)) {
+                        if(!gles3HWAvailable || isHardwareRasterizer[0]) {
+                            return GL3bc;
+                        }
                     }
                 }
-                if(GLContext.isGL4bcAvailable(device, isHardwareRasterizer)) {
-                    if(!gles3HWAvailable || isHardwareRasterizer[0]) {
-                        return GL4bc;
-                    }
+                if(gles3Available) {
+                    isHardwareRasterizer[0] = es3HardwareRasterizer[0];
+                    return GLES3;
                 }
-            }
-            if(gles3Available) {
-                isHardwareRasterizer[0] = es3HardwareRasterizer[0];
-                return GLES3;
             }
         } else if(GL2GL3.equals(profile)) {
             if(hasGL234Impl) {

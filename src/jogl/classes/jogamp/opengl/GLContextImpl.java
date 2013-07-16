@@ -1536,7 +1536,10 @@ public abstract class GLContextImpl extends GLContext {
             ctxProfileBits |= CTX_IMPL_ES2_COMPAT;
             ctxProfileBits |= CTX_IMPL_FBO;
         }
-    } else if( isExtensionAvailable( GLExtensions.ARB_ES3_compatibility ) ) {
+    } else if( ( major > 4 || major == 4 && minor >= 3 ) ||
+               ( ( major > 3 || major == 3 && minor >= 1 ) && isExtensionAvailable( GLExtensions.ARB_ES3_compatibility ) ) ) {
+        // See GLContext.isGLES3CompatibleAvailable(..)/isGLES3Compatible()
+        //   Includes [ GL &ge; 4.3, GL &ge; 3.1 w/ GL_ARB_ES3_compatibility and GLES3 ]
         ctxProfileBits |= CTX_IMPL_ES3_COMPAT | CTX_IMPL_ES2_COMPAT ;
         ctxProfileBits |= CTX_IMPL_FBO;
     } else if( isExtensionAvailable( GLExtensions.ARB_ES2_compatibility ) ) {

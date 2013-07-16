@@ -123,6 +123,17 @@ public class TestGLProfile01NEWT extends UITestCase {
         System.out.println("GLProfile GL2ES2: "+glp);
         dumpVersion(glp);
     }
+
+    @Test
+    public void testGLProfileGL4ES3() throws InterruptedException {
+        if(!GLProfile.isAvailable(GLProfile.GL4ES3)) {
+            System.out.println("GLProfile GL4ES3 n/a");
+            return;
+        }
+        GLProfile glp = GLProfile.getGL4ES3();
+        System.out.println("GLProfile GL4ES3: "+glp);
+        dumpVersion(glp);
+    }
     
     void testSpecificProfile(String glps) throws InterruptedException {
         if(GLProfile.isAvailable(glps)) {
@@ -168,6 +179,11 @@ public class TestGLProfile01NEWT extends UITestCase {
         testSpecificProfile(GLProfile.GLES2);
     }
     
+    @Test
+    public void testGLES3() throws InterruptedException {
+        testSpecificProfile(GLProfile.GLES3);
+    }
+    
     protected void dumpVersion(GLProfile glp) throws InterruptedException {
         GLCapabilities caps = new GLCapabilities(glp);        
         GLWindow glWindow = GLWindow.create(caps);
@@ -175,6 +191,59 @@ public class TestGLProfile01NEWT extends UITestCase {
         glWindow.setTitle("TestGLProfile01NEWT");
 
         glWindow.addGLEventListener(new DumpGLInfo());
+        glWindow.addGLEventListener(new GLEventListener() {
+        
+            public void init(GLAutoDrawable drawable) {
+                final GL gl = drawable.getGL();
+                final GLProfile glp = gl.getGLProfile();
+                System.err.println("GL impl. class "+gl.getClass().getName());
+                if( gl.isGL4() ) {
+                    Assert.assertNotNull( gl.getGL4() );
+                    System.err.println("GL Mapping "+glp+" -> GL4");
+                }
+                if( gl.isGL4bc() ) {
+                    Assert.assertNotNull( gl.getGL4bc() );
+                    System.err.println("GL Mapping "+glp+" -> GL4bc");
+                }
+                if( gl.isGL3() ) {
+                    Assert.assertNotNull( gl.getGL3() );
+                    System.err.println("GL Mapping "+glp+" -> GL3");
+                }
+                if( gl.isGL3bc() ) {
+                    Assert.assertNotNull( gl.getGL3bc() );
+                    System.err.println("GL Mapping "+glp+" -> GL3bc");
+                }
+                if( gl.isGLES3() ) {
+                    Assert.assertNotNull( gl.getGLES3() );
+                    System.err.println("GL Mapping "+glp+" -> GLES3");
+                }
+                if( gl.isGLES2() ) {
+                    Assert.assertNotNull( gl.getGLES2() );
+                    System.err.println("GL Mapping "+glp+" -> GLES2");
+                }
+                if( gl.isGL4ES3() ) {
+                    Assert.assertNotNull( gl.getGL4ES3() );
+                    System.err.println("GL Mapping "+glp+" -> GL4ES3");
+                }
+                if( gl.isGL2ES2() ) {
+                    Assert.assertNotNull( gl.getGL2ES2() );
+                    System.err.println("GL Mapping "+glp+" -> GL2ES2");
+                }
+                if( gl.isGL2ES1() ) {
+                    Assert.assertNotNull( gl.getGL2ES1() );
+                    System.err.println("GL Mapping "+glp+" -> GL2ES1");
+                }
+            }
+        
+            public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+            }
+        
+            public void display(GLAutoDrawable drawable) {
+            }
+        
+            public void dispose(GLAutoDrawable drawable) {
+            }
+        });
 
         glWindow.setSize(128, 128);
         glWindow.setVisible(true);

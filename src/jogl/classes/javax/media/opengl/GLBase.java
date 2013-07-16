@@ -174,7 +174,8 @@ public interface GLBase {
   public boolean isGL3ES3();
 
   /**
-   * Indicates whether this GL object conforms to a GL4ES3 compatible profile.
+   * Returns true if this GL object conforms to a GL4ES3 compatible profile, i.e. if {@link #isGLES3Compatible()} returns true. 
+   * <p>Includes [ GL &ge; 4.3, GL &ge; 3.1 w/ GL_ARB_ES3_compatibility and GLES3 ]</p>
    * @see GLContext#isGL4ES3()
    */
   public boolean isGL4ES3();
@@ -213,8 +214,13 @@ public interface GLBase {
 
   /**
    * Indicates whether this GL object is compatible with the core OpenGL ES3 functionality.
-   * @return true if this context is an ES3 context or implements 
-   *         the extension <code>GL_ARB_ES3_compatibility</code>, otherwise false 
+   * <p>
+   * Return true if the underlying context is an ES3 context or implements
+   * the extension <code>GL_ARB_ES3_compatibility</code>, otherwise false.
+   * </p>
+   * <p>
+   * Includes [ GL &ge; 4.3, GL &ge; 3.1 w/ GL_ARB_ES3_compatibility and GLES3 ]
+   * </p>
    * @see GLContext#isGLES3Compatible() 
    */
   public boolean isGLES3Compatible();
@@ -319,7 +325,7 @@ public interface GLBase {
 
   /**
    * Casts this object to the GL4ES3 interface.
-   * @throws GLException if this object is not a GL3ES3 implementation
+   * @throws GLException if this object is not a GL4ES3 implementation
    */
   public GL4ES3 getGL4ES3() throws GLException;
 
