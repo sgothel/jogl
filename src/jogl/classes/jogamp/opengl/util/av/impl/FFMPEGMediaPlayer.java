@@ -38,13 +38,19 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLException;
 
+import java.util.Arrays;
+import java.util.Queue;
+
+import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.GLPixelStorageModes;
+import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 import jogamp.opengl.GLContextImpl;
+import jogamp.opengl.util.av.AudioSink;
 import jogamp.opengl.util.av.EGLMediaPlayerImpl;
 
 /***
@@ -100,10 +106,18 @@ import jogamp.opengl.util.av.EGLMediaPlayerImpl;
  * </ul> 
  */
 public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
+
+    // Count of zeroed buffers to return before switching to real sample provider
+    private static final int TEMP_BUFFER_COUNT = 20;
+
+    // Instance data
+    private static AudioSink audioSink;
+    private static int maxAvailableAudio;
+
     public static final VersionNumber avUtilVersion;
     public static final VersionNumber avFormatVersion;
     public static final VersionNumber avCodecVersion;    
-    static final boolean available;
+    static boolean available;
     
     static {
         if(FFMPEGDynamicLibraryBundleInfo.initSingleton()) {
@@ -113,7 +127,26 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
             System.err.println("LIB_AV Util  : "+avUtilVersion);
             System.err.println("LIB_AV Format: "+avFormatVersion);
             System.err.println("LIB_AV Codec : "+avCodecVersion);
-            available = initIDs0();
+            initIDs0();            
+            available = true;
+            final ClassLoader cl = GLMediaPlayerFactory.class.getClassLoader();
+            
+            if(ReflectionUtil.isClassAvailable("com.jogamp.openal.ALFactory", cl)){
+              // Only instance ALAudioSink if JOAL is found on the classpath.
+              audioSink = (AudioSink) ReflectionUtil.createInstance("jogamp.opengl.openal.av.ALAudioSink", cl);
+              if(!audioSink.isAudioSinkAvailable()){
+            	  // Failed to initialize OpenAL.
+            	  audioSink=null;
+              }
+            }
+            if(audioSink==null) {
+                audioSink = (AudioSink) ReflectionUtil.createInstance("jogamp.opengl.util.av.JavaSoundAudioSink", cl);
+                if(!audioSink.isAudioSinkAvailable()) {
+                    audioSink = (AudioSink) ReflectionUtil.createInstance("jogamp.opengl.util.av.NullAudioSink", cl);
+                }
+            }
+            maxAvailableAudio = audioSink.getDataAvailable();
+
         } else {
             avUtilVersion = null;
             avFormatVersion = null;
@@ -229,7 +262,77 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
             }
         } ).longValue();
     }
-    
+
+
+    private class AudioFrame {
+        final byte[] sampleData; 
+        final int data_size;
+        final int audio_pts;
+        AudioFrame(byte[] sampleData, int data_size, int audio_pts) {
+            this.sampleData=sampleData;
+            this.data_size=data_size;
+            this.audio_pts=audio_pts;
+        }
+    }
+
+    static final Queue<AudioFrame> audioFrameBuffer = new java.util.LinkedList<AudioFrame>(); 
+
+    private void updateSound(byte[] sampleData, int data_size, int audio_pts) {
+/*
+        // Visualize incomming data
+        int c=0; 
+        for(byte b: sampleData){
+            if(b<0) {
+                System.out.print(" ");
+            } else if(b<64) {
+                System.out.print("_");
+            } else if(b < 128) {
+                System.out.print("-");
+            } else if(b == 128) {
+                System.out.print("=");
+            } else if(b < 256-64) {
+                System.out.print("\"");
+            } else {
+                System.out.print("'");
+            }
+                        
+            c++;
+            if(c>=40)
+                break;                   
+        }
+        System.out.println("jA");
+*/
+
+        //TODO reduce GC
+        audioFrameBuffer.add(new AudioFrame(sampleData, data_size, audio_pts));
+        pumpAudio();
+    }
+
+    private void pumpAudio() {
+        if(audioSink.getDataAvailable()==maxAvailableAudio){
+           System.out.println("warning: audio buffer underrun");
+        }
+        while(audioFrameBuffer.peek()!=null){
+            AudioFrame a = audioFrameBuffer.peek();
+
+            // poor mans audio sync .. TODO: off thread
+            final long now = System.currentTimeMillis();
+            final long now_d = now - lastAudioTime;
+            final long pts_d = a.audio_pts - lastAudioPTS;
+            final long dt = (long) ( (float) ( pts_d - now_d ) / getPlaySpeed() ) ;
+           
+            System.err.println("s: pts-a "+a.audio_pts+", pts-d "+pts_d+", now_d "+now_d+", dt "+dt); 
+            lastAudioTime = now;
+            if( (dt<audio_dt_d  ) && audioSink.isDataAvailable(a.data_size)) {
+                audioFrameBuffer.poll(); /* remove first item from the queue */
+                audioSink.writeData(a.sampleData, a.data_size);                
+                lastAudioPTS=a.audio_pts; 
+            } else {
+                break;
+            }
+        }
+    }
+
     private void updateAttributes2(int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
                                    int lSz0, int lSz1, int lSz2,
                                    int tWd0, int tWd1, int tWd2) {
@@ -375,6 +478,9 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
         int pts0 = getVideoPTS0(moviePtr);
         int pts1 = seek0(moviePtr, msec);
         System.err.println("Seek: "+pts0+" -> "+msec+" : "+pts1);
+        audioFrameBuffer.clear();
+        lastAudioPTS=pts1;
+        lastVideoPTS=pts1;
         return pts1;
     }
 
@@ -383,9 +489,12 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
         return lastTex;
     }
     
+    private long lastAudioTime = 0;
+    private int lastAudioPTS = 0;
+    private static final int audio_dt_d = 400;
     private long lastVideoTime = 0;
     private int lastVideoPTS = 0;
-    private static final int dt_d = 9;
+    private static final int video_dt_d = 9;
     
     @Override
     protected TextureSequence.TextureFrame getNextTextureImpl(GL gl, boolean blocking) {
@@ -399,7 +508,15 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
                 gl.glActiveTexture(GL.GL_TEXTURE0+getTextureUnit());
                 tex.enable(gl);
                 tex.bind(gl);
-                readNextPacket0(moviePtr, procAddrGLTexSubImage2D, textureTarget, textureFormat, textureType);
+
+                /* try decode 10 packets to find one containing video
+                   (res == 2) */
+                int res = 0;
+                int retry = 10; 
+                while(res!=2 && retry >= 0) { 
+                   res = readNextPacket0(moviePtr, procAddrGLTexSubImage2D, textureTarget, textureFormat, textureType);
+                   retry--;
+                }
             } finally {
                 psm.restore(gl);
             }
@@ -407,19 +524,23 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
             if(blocking) {
                 // poor mans video sync .. TODO: off thread 'readNextPackage0(..)' on shared GLContext and multi textures/unit!
                 final long now = System.currentTimeMillis();
-                final long now_d = now - lastVideoTime;
-                final long pts_d = pts - lastVideoPTS;                
-                final long dt = (long) ( (float) ( pts_d - now_d ) / getPlaySpeed() ) ;
+                // Try sync video to audio
+                final long now_d = now - lastAudioTime;
+                final long pts_d = pts - lastAudioPTS - 444; /* hack 444 == play video 444ms ahead of audio */
+                final long dt = Math.min(47, (long) ( (float) ( pts_d - now_d ) / getPlaySpeed() ) ) ;
+                //final long dt = (long) ( (float) ( pts_d - now_d ) / getPlaySpeed() ) ;
                 lastVideoTime = now;
-                // System.err.println("s: pts-v "+pts+", pts-d "+pts_d+", now_d "+now_d+", dt "+dt);
-                if(dt>dt_d) {
+                System.err.println("s: pts-v "+pts+", pts-d "+pts_d+", now_d "+now_d+", dt "+dt);
+                
+                if(dt>video_dt_d && dt<1000 && audioSink.getDataAvailable()<maxAvailableAudio-10000) {
                     try {
-                        Thread.sleep(dt-dt_d);
+                        Thread.sleep(dt-video_dt_d);
                     } catch (InterruptedException e) { }
                 } /* else if(0>pts_d) {
                     System.err.println("s: pts-v "+pts+", pts-d "+pts_d+", now_d "+now_d+", dt "+dt);
                 } */
             }
+            pumpAudio();
             lastVideoPTS = pts;
         }
         return lastTex;
