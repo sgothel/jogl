@@ -74,7 +74,7 @@ bindings to the native OpenGL(R) 3D graphics library profiles:
         </li>
 
         <li> {@link javax.media.opengl.GL3 javax.media.opengl.GL3} interface
-        <p>This interface contains all core OpenGL [ 3.1 .. 3.3 ] methods,
+        <p>This interface contains all OpenGL [ 3.1 .. 3.3 ] <i>core</i> methods,
         as well as most of it's extensions defined at the time of this specification.</p>
         <p>Note: OpenGL [ 3.1 .. 3.3 ] core profile does not includes fixed point functionality.</p>
         <p>See <a href="#GL3InclusionCriteria">GL3 Inclusion Criteria</a>.</p>
@@ -83,40 +83,40 @@ bindings to the native OpenGL(R) 3D graphics library profiles:
         </li>
 
         <li> {@link javax.media.opengl.GL3bc javax.media.opengl.GL3bc} interface
-        <p>This interface contains the OpenGL [ 3.1 .. 3.3 ] compatibility profile,
+        <p>This interface contains all OpenGL [ 3.1 .. 3.3 ] <i>compatibility</i>  methods,
         as well as most of it's extensions defined at the time of this specification.</p>
         <p>Note: OpenGL [ 3.1 .. 3.3 ] compatibility profile does includes fixed point functionality.</p>
         <p>Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></p>
         </li>
 
         <li> {@link javax.media.opengl.GL4 javax.media.opengl.GL4} interface
-        <p>This interface contains all core OpenGL [ 4.0 .. 4.3 ] methods,
+        <p>This interface contains all OpenGL [ 4.0 .. 4.3 ] <i>core</i> methods,
         as well as most of it's extensions defined at the time of this specification.</p>
         <p>Note: OpenGL [ 4.0 .. 4.3 ] core profile does not includes fixed point functionality.</p>
         <p>Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></p>
         </li>
 
         <li> {@link javax.media.opengl.GL4bc javax.media.opengl.GL4bc} interface
-        <p>This interface contains the OpenGL [ 4.0 .. 4.3 ] compatibility profile,
+        <p>This interface contains all OpenGL [ 4.0 .. 4.3 ] <i>compatibility</i> profile,
         as well as most of it's extensions defined at the time of this specification.</p>
         <p>Note: OpenGL [ 4.0 .. 4.3 ] compatibility profile does includes fixed point functionality.</p>
         <p>Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></p>
         </li>
 
         <li> {@link javax.media.opengl.GLES1 javax.media.opengl.GLES1} interface
-        <p>This interface contains all core embedded OpenGL methods of ES [ 1.0 .. 1.1 ],
+        <p>This interface contains all OpenGL ES [ 1.0 .. 1.1 ] methods,
         as well as most of it's extensions defined at the time of this specification.</p>
         <p>Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></p>
         </li>
 
         <li> {@link javax.media.opengl.GLES2 javax.media.opengl.GLES2} interface
-        <p>This interface contains all core embedded OpenGL methods of ES 2.0,
+        <p>This interface contains all OpenGL ES 2.0 methods,
         as well as most of it's extensions defined at the time of this specification.</p>
         <p>Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></p>
         </li>
 
         <li> {@link javax.media.opengl.GLES3 javax.media.opengl.GLES3} interface
-        <p>This interface contains all core embedded OpenGL methods of ES 3.0,
+        <p>This interface contains all OpenGL ES 3.0 methods,
         as well as most of it's extensions defined at the time of this specification.</p>
         <p>Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></p>
         </li>
@@ -139,11 +139,15 @@ bindings to the native OpenGL(R) 3D graphics library profiles:
         <p>This interface reflects the fixed functionality of OpenGL, without the immediate mode API.</p></li>
 
         <li> {@link javax.media.opengl.GL2ES2 javax.media.opengl.GL2ES2} interface
-        <p>Interface containing the common subset of GL2 and GLES2.</p>
+        <p>Interface containing the common subset of GL2 and GLES2. Interface is almost GLES2 complete.</p>
         <p>This interface reflects the programmable shader functionality of desktop and embedded OpenGL up until GLES2.</p></li>
 
+        <li> {@link javax.media.opengl.GL3ES3 javax.media.opengl.GL3ES3} interface
+        <p>Interface containing the common subset of core GL3 and GLES3. Interface is almost GLES3 complete, lacking <code>GL_ARB_ES3_compatibility</code> extension.</p>
+        <p>This interface reflects the programmable shader functionality of desktop and embedded OpenGL up until GLES3.</p></li>
+
         <li> {@link javax.media.opengl.GL4ES3 javax.media.opengl.GL4ES3} interface
-        <p>Interface containing the common subset of core GL4, core GL3, and GLES3.</p>
+        <p>Interface containing the common subset of core GL4 and GLES3. Interface is GLES3 complete w/o vendor extensions.</p>
         <p>This interface reflects the programmable shader functionality of desktop and embedded OpenGL up until GLES3.</p></li>
 
         <li> {@link javax.media.opengl.GL2GL3 javax.media.opengl.GL2GL3} interface
