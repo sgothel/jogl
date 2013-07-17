@@ -1,25 +1,23 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-  <title>JSR 231 Draft Public Review Specification</title>
+  <title>JOGL Specification Overview</title>
 </head>
   <body>
    
-<h2>JSR 231 Specification Overview</h2>
+<h2>JOGL Specification Overview</h2>
    
 <h3>Preface</h3>
   This specification, an optional set of packages, describes the Java(TM)
 bindings to the native OpenGL(R) 3D graphics library profiles:
 <ul>
-    <li> Desktop OpenGL 1.0 - 3.0 </li>
-    <li> Desktop OpenGL 3.x, with x >= 1, forward compatible, core profile - and compatibility profile </li>
-    <li> Embedded OpenGL ES 1.x, with x >= 0 </li>
-    <li> Embedded OpenGL ES 2.x, with x >= 0 </li>
+    <li> OpenGL [ 1.0 .. 4.3 ], compatibility- and core profiles</li>
+    <li> OpenGL ES [ 1.0 .. 3.0 ]</li>
 </ul><br>
-  See <a href="#GLAPIInclusionCriteria">Inclusion Criteria</a> explaining the OpenGL profile seperation.<br>
+  See <a href="#GLAPIInclusionCriteria">Inclusion Criteria</a> explaining the OpenGL profile separation.<br>
   See <a href="#GLRuntimeVersion">OpenGL Runtime Requirements</a>.<br>
   <p>
-  A sample implementation is available as
+  An implementation is available as
   <a href="http://jogl.jogamp.org">JOGL, a JogAmp module</a>.</p>
  
   Other API bindings are available as JogAmp modules:
@@ -31,137 +29,146 @@ bindings to the native OpenGL(R) 3D graphics library profiles:
 <h3>Dependencies</h3>
   This binding has dependencies to the following:<br><br>
   <ul>
-    <li> Either of the following Java implementations:<br/>
+    <li> Either of the following Java implementations:
     <ul>
-        <li> <a href="http://java.sun.com/j2se/1.5.0/docs/api/">Java SE 1.5 or later</a> </li>
-        <li> A mobile JavaVM with language 1.5 support, ie:
+        <li> <a href="http://docs.oracle.com/javase/6/docs/api/">Java SE 1.6 or later</a> </li>
+        <li> A mobile JavaVM with language 1.6 support, ie:
             <ul>
-                <li> <a href="http://developer.android.com/reference/packages.html">Dalvik API Level 7</a> </li>
+                <li> <a href="http://developer.android.com/reference/packages.html">Android API Level 9 (Version 2.3)</a> </li>
                 <li> <a href="http://jamvm.sourceforge.net/">JamVM</a> </li>
             </ul>
             with
             <ul>
-                <li> <a href="http://java.sun.com/products/foundation/">Foundation Profile 1.1.2 (JSR 219)</a> </li>
-                <li> <a href="http://java.sun.com/j2se/1.4.2/docs/api/java/nio/package-summary.html"> Java 1.4 <i>java.nio</i> implementation</a> </li>
+                <li> <a href="http://docs.oracle.com/javase/1.4.2/docs/api/java/nio/package-summary.html"> Java 1.4 <i>java.nio</i> implementation</a> </li>
             </ul></li>
     </ul></li>
-    <li> {@linkplain javax.media.nativewindow NativeWindow Protocol} <br>
-    <br>
-    The <i>NativeWindow Protocol</i> is included in JogAmp's sample implementation </li>
+    <li> {@linkplain javax.media.nativewindow NativeWindow Protocol}
+    <p>The <i>NativeWindow Protocol</i> is included in JogAmp's implementation</p></li>
   </ul>
   <br>
 
 <h3>OpenGL Profile Model</h3>
-  OpenGL today is not just a single set of functionality, it offers many profiles for different
-  purposes, e.g. ES1 and ES2 for mobile, etc.<br>
-  JOGL reflects these profiles <a href="http://jogamp.org/jogl/doc/bouml/html/">with an OO abstraction model</a>,
+  OpenGL today is not just a single set of functions, it offers many profiles for different
+  purposes, e.g. ES1, ES2 and ES3 for mobile, GL [ 3.1 .. 4.3 ] core for a programmable shader application, etc.<br>
+  JOGL reflects these profiles <a href="http://jogamp.org/jogl/doc/uml/html/">with an OO abstraction model</a>,
   specifying interfaces encapsulating common subsets.<br> 
    
 <h3>Package Structure</h3>
   The packages defined by this specification include:<br>
    
 <ul>
-  <li>The <b>javax.media.opengl</b> package<br><br>
-    This package contains all Java bindings for all OpenGL profiles.<br>
-    See <a href="#GLAPIInclusionCriteria">Inclusion Criteria</a> explaining the OpenGL profile seperation.<br>
-    See <a href="#GLRuntimeVersion">OpenGL Runtime Requirements</a>.<br>
-    The main OpenGL profile interfaces are:<br><br>
+  <li>The <b>javax.media.opengl</b> package<br>
+    <p>This package contains all Java bindings for all OpenGL profiles.</p>
+    <p>See <a href="#GLAPIInclusionCriteria">Inclusion Criteria</a> explaining the OpenGL profile seperation.</p>
+    <p>See <a href="#GLRuntimeVersion">OpenGL Runtime Requirements</a>.</p>
+    <p>The main OpenGL profile interfaces are:</p>
     <ul> 
-        <li> {@link javax.media.opengl.GL2 javax.media.opengl.GL2} interface<br>
-        <br>
-        This interface contains all core desktop OpenGL methods through
-version 3.0, inclusive, as well as most of it's extensions defined at the
-time of this specification.  OpenGL extensions whose functionality
-was incorporated into core OpenGL until version 3.1, inclusive, are subsumed into the core namespace.<br> 
-        Note: OpenGL 3.0 is the last completly subsumed version in the specification. 
-        You need to use a {@link javax.media.opengl.GL3} OpenGL 3.1+ context to benefit
-        from new functionality and versions.<br>
-        Note: Intersecting OpenGL 3.1 subsumed extensions are subsumed in GL2 as well, to offer the best common GL2GL3 intersection.<br>
-        See <a href="#GL2InclusionCriteria">GL2 Inclusion Criteria</a>.<br>
-        See <a href="#GL2RuntimeVersion">GL2 Runtime Requirements</a>.<br>
-        Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></li>
+        <li> {@link javax.media.opengl.GL2 javax.media.opengl.GL2} interface
+        <p>This interface contains all OpenGL [ 1.0 .. 3.0 ] methods,
+        as well as most of it's extensions defined at the time of this specification.</p>
+        <p>OpenGL extensions whose functionality was incorporated into core OpenGL &le; 3.0, 
+        are subsumed into the core namespace.</p>
+        <p>See <a href="#GL2InclusionCriteria">GL2 Inclusion Criteria</a>.</p>
+        <p>See <a href="#GL2RuntimeVersion">GL2 Runtime Requirements</a>.</p>
+        <p>Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></p>
+        </li>
 
-        <li> {@link javax.media.opengl.GL3 javax.media.opengl.GL3} interface<br>
-        <br>
-        This interface contains all core, forward compatible, OpenGL methods starting from 3.1,
-inclusive, as well as most of it's extensions defined at the time of this specification. <br>
-        Note: OpenGL 3.0 forward compatible, non deprecated functionality is included in the 
-        3.1 specification, hence the {@link javax.media.opengl.GL2GL3} implemented interface.<br>
-        Note: OpenGL 3.1 forward compatible no more includes fixed point functionality.<br>
-        See <a href="#GL3InclusionCriteria">GL3 Inclusion Criteria</a>.<br>
-        See <a href="#GL3RuntimeVersion">GL3 Runtime Requirements</a>.<br>
-        Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></li>
+        <li> {@link javax.media.opengl.GL3 javax.media.opengl.GL3} interface
+        <p>This interface contains all core OpenGL [ 3.1 .. 3.3 ] methods,
+        as well as most of it's extensions defined at the time of this specification.</p>
+        <p>Note: OpenGL [ 3.1 .. 3.3 ] core profile does not includes fixed point functionality.</p>
+        <p>See <a href="#GL3InclusionCriteria">GL3 Inclusion Criteria</a>.</p>
+        <p>See <a href="#GL3RuntimeVersion">GL3 Runtime Requirements</a>.</p>
+        <p>Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></p>
+        </li>
 
-        <li> {@link javax.media.opengl.GL3bc javax.media.opengl.GL3bc} interface<br>
-        <br>
-        This interface contains the OpenGL 3.x compatibility profile,<br>
-        ie includes all methods as defined in {@link javax.media.opengl.GL2} and {@link javax.media.opengl.GL3}.<br>
-        Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></li>
+        <li> {@link javax.media.opengl.GL3bc javax.media.opengl.GL3bc} interface
+        <p>This interface contains the OpenGL [ 3.1 .. 3.3 ] compatibility profile,
+        as well as most of it's extensions defined at the time of this specification.</p>
+        <p>Note: OpenGL [ 3.1 .. 3.3 ] compatibility profile does includes fixed point functionality.</p>
+        <p>Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></p>
+        </li>
 
-        <li> {@link javax.media.opengl.GLES1 javax.media.opengl.GLES1} interface<br>
-        <br>
-        This interface contains all core embedded OpenGL methods of ES 1.x, with x >= 0,
-inclusive, as well as most of it's extensions defined at the
-time of this specification. <br>
-        Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></li>
+        <li> {@link javax.media.opengl.GL4 javax.media.opengl.GL4} interface
+        <p>This interface contains all core OpenGL [ 4.0 .. 4.3 ] methods,
+        as well as most of it's extensions defined at the time of this specification.</p>
+        <p>Note: OpenGL [ 4.0 .. 4.3 ] core profile does not includes fixed point functionality.</p>
+        <p>Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></p>
+        </li>
 
-        <li> {@link javax.media.opengl.GLES2 javax.media.opengl.GLES2} interface<br>
-        <br>
-        This interface contains all core embedded OpenGL methods of ES 2.x, with x >= 0,
-inclusive, as well as most of it's extensions defined at the
-time of this specification. <br>
-        Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></li>
+        <li> {@link javax.media.opengl.GL4bc javax.media.opengl.GL4bc} interface
+        <p>This interface contains the OpenGL [ 4.0 .. 4.3 ] compatibility profile,
+        as well as most of it's extensions defined at the time of this specification.</p>
+        <p>Note: OpenGL [ 4.0 .. 4.3 ] compatibility profile does includes fixed point functionality.</p>
+        <p>Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></p>
+        </li>
+
+        <li> {@link javax.media.opengl.GLES1 javax.media.opengl.GLES1} interface
+        <p>This interface contains all core embedded OpenGL methods of ES [ 1.0 .. 1.1 ],
+        as well as most of it's extensions defined at the time of this specification.</p>
+        <p>Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></p>
+        </li>
+
+        <li> {@link javax.media.opengl.GLES2 javax.media.opengl.GLES2} interface
+        <p>This interface contains all core embedded OpenGL methods of ES 2.0,
+        as well as most of it's extensions defined at the time of this specification.</p>
+        <p>Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></p>
+        </li>
+
+        <li> {@link javax.media.opengl.GLES3 javax.media.opengl.GLES3} interface
+        <p>This interface contains all core embedded OpenGL methods of ES 3.0,
+        as well as most of it's extensions defined at the time of this specification.</p>
+        <p>Future extensions will be added with a <a href="#maintenanceupdates">maintenance update</a></p>
+        </li>
     </ul>
-    Additionally the packages contains interfaces where the main profiles intersect each other.
-    These interfaces purposes is to provide common subsets of profiles to be used
-    on both, the desktop and the embedded device. These are:<br><br>
+    <p>Additionally the packages contains interfaces resembling intersecting <i>common profiles</i>.
+    These <i>common profiles</i> may be utilize for cross profile code supposed to either run
+    on desktop and mobile devices, or across GL profiles themselves:</p>
     <ul> 
-        <li> {@link javax.media.opengl.GLBase javax.media.opengl.GLBase} interface<br>
-        <br>
-        Common interface containing the profile type identification and conversion methods.<br>
-        Used to query which specialized profile class an instance of this object actually is and 
-        offering a protocol to convert it to these types.</li>
+        <li> {@link javax.media.opengl.GLBase javax.media.opengl.GLBase} interface
+        <p>Common interface containing the profile type identification and conversion methods.</p>
+        <p>Used to query which specialized profile class an instance of this object actually is and 
+        offering a protocol to convert it to these types.</p></li>
 
-        <li> {@link javax.media.opengl.GL javax.media.opengl.GL} interface<br>
-        <br>
-        Common interface containing the subset of all profiles, GL3bc, GL3, GL2, GLES1 and GLES2.<br>
-        This interface reflects common data types, texture and framebuffer functionality.</li>
+        <li> {@link javax.media.opengl.GL javax.media.opengl.GL} interface
+        <p>Common interface containing the subset of all profiles, GL4bc, GL4, GL3bc, GL3, GL2, GLES1, GLES2 and GLES3.</p>
+        <p>This interface reflects common data types, texture and framebuffer functionality.</p></li>
 
-        <li> {@link javax.media.opengl.GL2ES1 javax.media.opengl.GL2ES1} interface<br>
-        <br>
-        Interface containing the common subset of GL2 and GLES1.<br>
-        This interface reflects only the fixed functionality of OpenGL</li>
+        <li> {@link javax.media.opengl.GL2ES1 javax.media.opengl.GL2ES1} interface
+        <p>Interface containing the common subset of GL2 and GLES1.</p>
+        <p>This interface reflects the fixed functionality of OpenGL, without the immediate mode API.</p></li>
 
-        <li> {@link javax.media.opengl.GL2ES2 javax.media.opengl.GL2ES2} interface<br>
-        <br>
-        Interface containing the common subset of GL3, GL2 and GLES2.<br>
-        This interface reflects only the programmable shader functionality of desktop and embedded OpenGL</li>
+        <li> {@link javax.media.opengl.GL2ES2 javax.media.opengl.GL2ES2} interface
+        <p>Interface containing the common subset of GL2 and GLES2.</p>
+        <p>This interface reflects the programmable shader functionality of desktop and embedded OpenGL up until GLES2.</p></li>
 
-        <li> {@link javax.media.opengl.GL2GL3 javax.media.opengl.GL2GL3} interface<br>
-        <br>
-        Interface containing the common subset of core GL3 (OpenGL 3.1+) and GL2 (OpenGL 3.0),
-        also known as the OpenGL 3.0 forward compatible, non deprecated subset.<br>
-        This interface reflects only the programmable shader functionality of desktop OpenGL</li>
+        <li> {@link javax.media.opengl.GL4ES3 javax.media.opengl.GL4ES3} interface
+        <p>Interface containing the common subset of core GL4, core GL3, and GLES3.</p>
+        <p>This interface reflects the programmable shader functionality of desktop and embedded OpenGL up until GLES3.</p></li>
+
+        <li> {@link javax.media.opengl.GL2GL3 javax.media.opengl.GL2GL3} interface
+        <p>Interface containing the common subset of core GL3 (OpenGL 3.1+) and GL2 (OpenGL 3.0),
+        also known as the OpenGL 3.0 forward compatible, non deprecated subset.</p>
+        <p>This interface reflects only the programmable shader functionality of desktop OpenGL</p></li>
     </ul>
   </li>
 
-  <li>The <b>javax.media.opengl.glu</b> package<br>
-    <br>
+  <li>The <b>javax.media.opengl.glu</b> package
+    <p>
     This package contains bindings for the OpenGL Graphics System Utility (GLU) 
 Library version 1.3, inclusive, with the exception of the GLU NURBS routines 
-which are not exposed.</li>
-</ul>
-<br>
+which are not exposed.</p></li>
+</ul><br>
    
 <h3>API Binding Conventions</h3>
   The Java language bindings to the pre-existing C APIs in these packages
 have been created using a consistent set of rules. Vendor-defined extensions
 should make use of the same rules in order to provide a consistent developer
-experience.<br>
-  <br>
+experience.
+  <p>
   The rules for creating the Java language binding are described in the following 
 sections. These rules should be followed as closely as possible for all future 
-APIs that share the javax.media.opengl namespace.<br>
+APIs that share the javax.media.opengl namespace.</p>
    
 <h4>Function Naming</h4>
   Functions are named in the same way as in the C binding. That is, an OpenGL 
@@ -169,25 +176,25 @@ API function glClear is bound to Java method GL.glClear. Although it would
 be possible to drop the gl prefix (since it is redundant with the interface 
 name GL), the resulting code was deemed to look too foreign to experienced 
 OpenGL developers.  For the same reason, we have also carried over all type 
-suffixes like 3f and 3fv from methods such as glColor3f and glColor3fv, respectively.<br>
-  <br>
+suffixes like 3f and 3fv from methods such as glColor3f and glColor3fv, respectively.
+  <p>
   Extension suffixes, such as EXT, ARB, and vendor-specific suffixes, are
-retained so as to match C conventions.<br>
+retained so as to match C conventions.</p>
    
 <h4>Mapping of Constants</h4>
   Constants are named in the same way as in the C binding.  For instance,
-the OpenGL constant GL_RGB is bound to Java constant GL.GL_RGB.<br>
+the OpenGL constant GL_RGB is bound to Java constant GL.GL_RGB.
    
 <h4>Mapping of Primitive Types</h4>
   All 8-bit integral types become byte, all 16-bit integral types become
 short, and all 32-bit integral types become int. All 32-bit floating-point
-types become float and all 64-bit floating-point types become double.<br>
-  <br>
+types become float and all 64-bit floating-point types become double.
+  <p>
   Integer return values that can only be GL_TRUE or GL_FALSE are mapped to 
-boolean.<br>
+boolean.</p>
  
 <h4>Mapping of Pointer Arguments</h4>
-  OpenGL functions that take pointer arguments fall into several categories:<br>
+  <p>OpenGL functions that take pointer arguments fall into several categories:</p>
    
 <ul>
     <li>Functions that take an untyped pointer argument for immediate use</li>
@@ -199,14 +206,14 @@ boolean.<br>
 are given a single binding that takes a New I/O (NIO) Buffer object. The Buffer
 may be of any type allowable by the function (and compatible with the other
 arguments to the function) and may be direct or indirect.  An example of
-an OpenGL API in this category is glTexImage2D.<br>
-  <br>
+an OpenGL API in this category is glTexImage2D.
+  <p>
   Functions that take a typed pointer (e.g., GLfloat *) argument for immediate 
 use are given two bindings. The first takes a Java primitive array with a 
 type that matches the C pointer type (i.e., GLfloat* maps to float[]). The 
 second takes a typed Buffer object (i.e., GLfloat* maps to FloatBuffer). 
-An example of an OpenGL API in this category is glColor3fv.<br>
-  <br>
+An example of an OpenGL API in this category is glColor3fv.</p>
+  <p>
   Functions that take an untyped (void*) pointer argument for deferred use 
 are given a single binding that takes a Buffer object. The Buffer may be of
 any type allowable by the function (and compatible with the other arguments 
@@ -216,24 +223,24 @@ into this category generally have names ending with the suffix "pointer."
 An example of an OpenGL API in this category is glVertexPointer. Because these
 functions do not consume the data located at the given pointer immediately, 
 but only at some unspecified later time, it is not possible to use a Java 
-primitive array whose memory location may change.<br>
-  <br>
+primitive array whose memory location may change.</p>
+  <p>
   Functions that take a typed (e.g., GLfloat*) pointer argument for deferred 
 use are given a single binding that takes a typed Buffer object (i.e., GLfloat* 
 maps to FloatBuffer). The Buffer must be direct. That is, it may not have 
 been created from a Java primitive array using the wrap method.   An example 
-of an OpenGL API in this category is glFeedbackBuffer.<br>
-  <br>
+of an OpenGL API in this category is glFeedbackBuffer.</p>
+  <p>
   Methods that read or write a specific number of values from an array or
 Buffer argument do not read or write any subsequent elements of the array
-or Buffer.<br>
- <br>
+or Buffer.</p>
+ <p>
  An outgoing C char* pointer, if representing a null-terminated, read-only
 C string, maps to a Java String. An outgoing C char** pointer, if similarly
 representing an array of read-only C strings, maps to a Java String[] (array
 of String objects). All other char* pointers, including those representing
 mutable C strings as used in some Get methods, are mapped to byte[] and ByteBuffer.
- <br>
+ </p>
     
 <h4>Index Parameter for Arrays</h4>
   Each C method argument that is mapped to a primitive array in Java is actually 
@@ -242,7 +249,7 @@ Java and an integer offset parameter.  The value of the integer offset is
 the index which the method will start reading from within the array.  Earlier 
 indices will be ignored.   This mapping provides more congruity with existing 
 Java APIs and allows reuse of a single array across multiple Java method calls
-by changing the index in much the same way that C pointers permit for C arrays.<br>
+by changing the index in much the same way that C pointers permit for C arrays.
    
 <h4>Reduction of Method Explosions</h4>
   Since there are two ways to expand a given C method pointer parameter,
@@ -253,11 +260,11 @@ the power of 2).  In order to avoid an API explosion, we restrict a given
 Java method to like kind mappings only.  In other words, a given C method 
 with N typed pointer parameters for immediate use, where N &gt;= 1, will map
 to exactly two Java methods: One with all primitive arrays and one with all
-Buffer types.<br>
-  <br>
+Buffer types.
+  <p>
   Also, methods that accept multiple Buffer arguments require all direct
 or all non-direct Buffers.  Direct and non-direct buffers should never be
-mixed within an API call by an application.<br>
+mixed within an API call by an application.</p>
    
 <h4>Byte ordering of Buffers</h4>
   When allocating a New I/O Buffer (in particular, a direct ByteBuffer) to
@@ -270,7 +277,7 @@ putFloat or views such as IntBuffer or FloatBuffer. The Java bindings perform
 no conversion or byte swapping on the outgoing data to OpenGL, and the native
 OpenGL implementation expects data in the host CPU's byte order, so it is
 essential to always match the byte order of the underlying platform when
-filling Buffers with data. <br>
+filling Buffers with data.
   
 <h4>Auto-slicing of Buffers</h4>
   When a Buffer object is passed to an OpenGL function binding, the actual 
@@ -279,42 +286,42 @@ to the starting pointer of the Buffer data, plus an offset given by the Buffer.p
 function, multiplied by the data type size in bytes (1 for a ByteBuffer, 2
 for a ShortBuffer, 4 for a IntBuffer or FloatBuffer, and 8 for DoubleBuffer). 
  The array offset given by Buffer&lt;type&gt;.arrayOffset() is also added 
-in the offset for wrapped arrays.<br>
-  <br>
+in the offset for wrapped arrays.
+  <p>
   This feature is known as "auto-slicing," as it mimics the effect of calling 
-slice() on the Buffer object without the overhead of explicit object creation.<br>
+slice() on the Buffer object without the overhead of explicit object creation.</p>
    
 <h4>Errors and Exceptions</h4>
   For performance reasons, OpenGL functions do not return error values directly. 
 Instead, applications must query for errors using functions such as glGetError. 
 This behavior is largely preserved in the Java language bindings, as described 
-below.<br>
-  <br>
+below.
+  <p>
   In the interest of efficiency, the Java API does not generally throw exceptions. 
  However, running an application with the DebugGL composable pipeline, which 
-is part of the API, will force an exception to be thrown at the point of failure.<br>
-  <br>
+is part of the API, will force an exception to be thrown at the point of failure.</p>
+  <p>
   Many errors are defined by OpenGL merely to set the error code, rather
 than throwing an exception. For example, passing a bad enumerated parameter
 value may result in the error flag being set to GL.GL_INVALID_VALUE. Attempting 
 to check for such errors in the binding layer would require either replicating 
 the error-checking logic of the underlying engine, or querying the error state
 after every function. This would greatly impact performance by inhibiting 
-the ability of the hardware to pipeline work.<br>
+the ability of the hardware to pipeline work.</p>
    
 <h4>Security</h4>
   Exception behavior is defined in cases that could otherwise lead to illegal 
 memory accesses in the underlying OpenGL engine. Implementations should take 
 necessary steps to prevent the GL from accessing or overwriting memory except 
-for properly allocated Buffers and array method arguments.<br>
-  <br>
+for properly allocated Buffers and array method arguments.
+  <p>
   An implementation should take care to validate arguments correctly before 
 invoking native methods that could potentially access memory illegally. In 
 particular, methods that validate the contents of an array (such as a list 
 of GL attributes) or a Buffer should take precautions against exploits in 
 which a separate thread attempts to alter the contents of the argument during 
 the time interval following validation but preceding passage of the argument 
-to the underlying native engine.<br>
+to the underlying native engine.</p>
    
 <h3><a name="SHARING">Sharing of Server-Side OpenGL Objects between GLContexts</a></h3>
 
@@ -332,31 +339,30 @@ between two GLContexts associated with the same GLDrawable.
 
 <h3>Criteria Used for Inclusion of APIs into the Java Bindings</h3>
    
-<a name="GLAPIInclusionCriteria"/>
-<h4>OpenGL API Inclusion Criteria</h4>
-  OpenGL functions and OpenGL extensions have been included in the Java bindings 
-according the following rules: <br>
+<h4><a name="GLAPIInclusionCriteria">OpenGL API Inclusion Criteria</a></h4>
+  <p>OpenGL functions and OpenGL extensions have been included in the Java bindings 
+according the following rules: </p>
  
 <ul>  
-  <li> <a name="GL3InclusionCriteria"/> {@link javax.media.opengl.GL3 javax.media.opengl.GL3} interface
+  <li><a name="GL3InclusionCriteria">{@link javax.media.opengl.GL3 javax.media.opengl.GL3} interface</a>
    <ul>
-       <li>All functions in core, forward compatible, OpenGL 3.1 - 3.2, inclusive, have been included,
-           as described in the header files <code>GL3/gl3.h</code>.</li>
+       <li>All functions in core, forward compatible, OpenGL [ 3.1 - 3.3 ], inclusive, have been included,
+           as described in the header files <code>GL/glcorearb.h</code>.</li>
        <li>Reason for starting a new profile beginning with 3.1 are:
            <ul>
             <li> OpenGL 3.1 requires a new native context, incompatible with prior versions.</li>
-            <li> OpenGL 3.1 forward compatible profile drops fixed functionality.</li>
+            <li> OpenGL 3.1 core profile drops fixed functionality.</li>
            </ul></li>
        <li>Forward compatibility, aka core, ie a context without <code>GL_ARB_compatibility</code>, is chosen because:
            <ul>
-            <li> It shares a commont subset with ES2.x</li>
+            <li> It shares a common subset with ES2.x</li>
             <li> It is not guaranteed to be provided by all vendors.</li>
             <li> It is not guaranteed to be provided in future versions.</li>
             <li> OpenGL 3.2 core profile is compatible with OpenGL 3.1 forward compatible spec.</li>
             <li> OpenGL 3.2 Spec Appendix E.1: It is not possible to implement both core and compatibility profiles in a single GL context, ..</li>
            </ul></li>
-   </ul></li>  
-  <li> <a name="GL2InclusionCriteria"/> {@link javax.media.opengl.GL2 javax.media.opengl.GL2} interface
+   </ul></li>
+  <li><a name="GL2InclusionCriteria"> {@link javax.media.opengl.GL2 javax.media.opengl.GL2} interface</a>
    <ul>
        <li>All functions in core OpenGL 3.0, inclusive, have been included.</li>
        <li>Reason for making the <em>cut</em> at OpenGL 3.0 are:
@@ -394,14 +400,14 @@ were deemed popular enough and/or were specifically requested by users.</li>
   <li>Platform-specific extensions, such as those that begin with WGL, GLX, 
 CGL, etc., have been excluded from the public API.&nbsp; See the section "Accessing
 platform-specific extensions" for more information about accessing these
-functions on certain implementations.<br>
+functions on certain implementations.
   </li>
 </ul>
    
 <h4>OpenGL GLU API Inclusion Criteria</h4>
  Bindings for all core GLU APIs have been included with the exception of
 the GLU NURBS APIs. &nbsp;These APIs may be included in a future maintenance 
-release of the Java bindings.<br>
+release of the Java bindings.
  
 <h3>OpenGL Extensions</h3>
    
@@ -409,146 +415,100 @@ release of the Java bindings.<br>
  While the Java APIs for OpenGL extensions are unconditionally exposed, the 
 underlying functions may not be present.  A program can query whether a potentially 
 unavailable function is actually available at runtime by using the method 
-GL.isFunctionAvailable.<br>
-  <br>
+GL.isFunctionAvailable.
+  <p>
   Bindings for OpenGL extensions not covered in this specification may be
 supplied by individual vendors or groups. Such bindings may be considered
-for inclusion in a future version of the JSR. In order to avoid fragmentation,
+for inclusion in a future version of this specification. In order to avoid fragmentation,
 vendors creating extension bindings should expose new extensions using the
 method GL.getExtension.  This method is intended to provide a mechanism for
 vendors who wish to provide access to new OpenGL extensions without changing
-the public API of the core package. <br>
-  <br>
+the public API of the core package.</p>
+  <p>
   Names for added extension methods and extension-defined constants and Java 
-bindings for C parameters should follow the guidelines set forth in this specfication.<br>
+bindings for C parameters should follow the guidelines set forth in this specification.</p>
  
 <h4>Accessing Platform-Specific Extensions</h4>
  Platform-specific extensions such as those that begin with WGL, GLX, CGL, 
 etc. are not included in the API.&nbsp; Each implementation can choose to 
 export all, some, or none of these APIs via the GL.getPlatformGLExtensions 
 API which returns an Object whose underlying data type is specific to a given 
-implementation.<br>
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-<br>
- Therefore, any usage of these APIs is both platform and implementation specific.<br>
+implementation.
+<p>
+ Therefore, any usage of these APIs is both platform and implementation specific.</p>
  
-<a name="GLRuntimeVersion"/>
-<h3>OpenGL Version on Runtime System</h3>
-<a name="GL3RuntimeVersion"/>
-<h4> {@link javax.media.opengl.GL3 GL3} Desktop Requirements</h4>
+<h3><a name="GLRuntimeVersion">OpenGL Version on Runtime System</a></h3>
+
+<h4><a name="GL4RuntimeVersion">{@link javax.media.opengl.GL4 GL4} Desktop Requirements</a></h4>
+An OpenGL &ge; 4.0 version is required to instantiate a GL4 context.
+
+<h4><a name="GL3RuntimeVersion">{@link javax.media.opengl.GL3 GL3} Desktop Requirements</a></h4>
 An OpenGL &ge; 3.1 version is required to instantiate a GL3 context.
-<br>
-<a name="GL2RuntimeVersion"/>
-<h4> {@link javax.media.opengl.GL2 GL2} Desktop Requirements</h4>
+
+<h4><a name="GL2RuntimeVersion">{@link javax.media.opengl.GL2 GL2} Desktop Requirements</a></h4>
  Even though OpenGL extensions whose functionality was included into core 
 OpenGL by version 3.0, inclusive, are not included in the bindings, it should 
 be noted that OpenGL version 3.0 is not an absolute requirement on the runtime 
-system.&nbsp; This is because a user could query whether any particular function 
-is available before calling certain core APIs that might not be present.&nbsp; 
+system. This is because a user could query whether any particular function
+is available before calling certain core APIs that might not be present.
 Also, if the core function name is not available in the native OpenGL implementation,
-the extension named equivalent is used instead, e.g. <i>GL_ARB_framebuffer_object</i>.&nbsp;
+the extension named equivalent is used instead, e.g. <i>GL_ARB_framebuffer_object</i>.
 However, in general, it is reasonable to expect at least OpenGL 1.5 to be 
 installed on the runtime system and an implementor of the API is free to require
-the presence of at least OpenGL 1.5 on the target system.<br>
-<b>The JOGL reference implementation require at least OpenGL version 1.1</b>,
-due to it's dynamical function binding starting with OpenGL 1.2.
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-<br>
- In future revisions of the API, this minimum standard may be raised.<br>
+the presence of at least OpenGL 1.5 on the target system.
+<p><b>The JOGL reference implementation require at least OpenGL version 1.1</b>,
+due to it's dynamical function binding starting with OpenGL 1.2.</p>
+<p>In future revisions of the API, this minimum standard may be raised.</p>
 
-<h3>Runtime Version Information</h3>
+<h4><a name="GLES3RuntimeVersion">{@link javax.media.opengl.GLES3 GLES3} Requirements</a></h4>
+An OpenGL ES &ge; 3.0 version is required to instantiate an ES3 context.
+
+<h4><a name="GLES2RuntimeVersion">{@link javax.media.opengl.GLES2 GLES2} Requirements</a></h4>
+An OpenGL ES &ge; 2.0 version is required to instantiate an ES2 context.
+
+<h4><a name="GLES1RuntimeVersion">{@link javax.media.opengl.GLES1 GLES1} Requirements</a></h4>
+An OpenGL ES [ 1.0 .. 1.1 ] version is required to instantiate an ES1 context.
+
+<h3><a name="RuntimeVersionInformation">Runtime Version Information</a></h3>
 Any Java Bindings for OpenGL implementation should include version information
-in its jar manifest file. &nbsp;This information can then easily be accessed
-at runtime via the java.lang.Package API. &nbsp;At least the following information
+in its jar manifest file. This information can then easily be accessed
+at runtime via the java.lang.Package API. At least the following information
 is included in the Reference Implementation jar file manifest: Specification
 Title, Specification Vendor, Specification Version, Implementation Vendor,
-and Implementation Version.<br>
-<a name="maintenanceupdates"/>
-<h3>Future Maintenance Updates</h3>
+and Implementation Version.
+<p>
+JOGL provides {@link com.jogamp.opengl.JoglVersion} implementing {@link com.jogamp.common.util.JogampVersion},
+which provides users access to the specification and implementation version,
+the build date and source code repository branch name and it's latest commit identifier.
+</p>
+
+<h3><a name="maintenanceupdates">Future Maintenance Updates</a></h3>
  New core APIs found in future versions of OpenGL, as well as new OpenGL
 extensions, are expected to be added to the bindings and included into the
-javax.media.opengl namespace via future maintenance updates to the API.<br>
+javax.media.opengl namespace via future maintenance updates to the API.
    
 <h3>Related Links</h3>
-   
 <ul>
-    <li> JSR 231 JCP Web Page</li>
-   
+    <li><a href="http://www.khronos.org/registry/"><b>Khronos Registry</b></a>
+      <ul>
+        <li><a href="http://www.khronos.org/opengles/sdk/docs/man3/">ES 3 Ref Pages</a></li>
+        <li><a href="http://www.khronos.org/registry/gles/specs/3.0/es_spec_3.0.2.pdf">ES 3.0 Spec</a></li>
+        <li><a href="http://www.khronos.org/registry/gles/specs/3.0/GLSL_ES_Specification_3.00.4.pdf">GLSL ES 3.00 Spec</a></li>
+        <li><a href="http://www.khronos.org/files/opengles3-quick-reference-card.pdf">ES 3.0 Ref Card</a></li>
+      </ul></li>
+    <li><a href="http://www.opengl.org/registry/"><b>OpenGL Registry</b></a>
+      <ul>
+        <li><a href="http://www.opengl.org/sdk/docs/man4/">GL 4 Ref Pages </a></li>
+        <li><a href="http://www.opengl.org/sdk/docs/manglsl/">GLSL Ref Pages </a></li>
+        <li><a href="http://www.opengl.org/registry/doc/glspec43.core.20130214.withchanges.pdf">GL 4.3 Core Spec</a></li>
+        <li><a href="http://www.opengl.org/registry/doc/glspec43.compatibility.20130214.withchanges.pdf">GL 4.3 Compat. Spec</a></li>
+        <li><a href="http://www.opengl.org/registry/doc/GLSLangSpec.4.30.8.pdf">GLSL 4.30 spec</a></li>
+        <li><a href="http://www.khronos.org/files/opengl43-quick-reference-card.pdf">GL 4.3 Ref Card</a></li>
+      </ul></li>
 </ul>
-   
-<blockquote><a href="http://www.jcp.org/en/jsr/detail?id=231"> http://www.jcp.org/en/jsr/detail?id=231</a></blockquote>
-   
-<ul>
-    <li>OpenGL 4.1 Core Specification</li>
-</ul>
-<blockquote><a
- href="http://www.opengl.org/registry/doc/glspec41.core.20100725.withchanges.pdf">
-http://www.opengl.org/registry/doc/glspec41.core.20100725.withchanges.pdf</a></blockquote>
 
-<ul>
-    <li>OpenGL 4.1 Compatibility Specification</li>
-</ul>
-<blockquote><a
- href="http://www.opengl.org/registry/doc/glspec41.compatibility.20100725.withchanges.pdf">
-http://www.opengl.org/registry/doc/glspec41.compatibility.20100725.withchanges.pdf</a></blockquote>
-
-<ul>
-    <li>OpenGL 3.0 Specification</li>   
-</ul>    
-<blockquote><a
- href="http://www.opengl.org/registry/doc/glspec30.20080923.pdf"> 
-http://www.opengl.org/registry/doc/glspec30.20080923.pdf</a></blockquote>
-    
-<ul>
-    <li>OpenGL 2.1 Specification</li>   
-</ul>    
-<blockquote><a
- href="http://www.opengl.org/registry/doc/glspec21.20061201.pdf"> 
-http://www.opengl.org/registry/doc/glspec21.20061201.pdf</a></blockquote>
-    
-<ul>
-    <li> OpenGL Extension Registry</li>   
-</ul>   
-<blockquote><a
- href="http://www.opengl.org/registry/"> http://www.opengl.org/registry/</a></blockquote>
-    
-<pre></pre>
    
-<ul>
-    <li>OpenGL ES 2.x Specification </li>   
-</ul>    
-<blockquote><a
- href="http://www.khronos.org/registry/gles/specs/2.0/es_full_spec_2.0.24.pdf">
-http://www.khronos.org/registry/gles/specs/2.0/es_full_spec_2.0.24.pdf</a></blockquote>
-    
-<ul>
-    <li>OpenGL ES 1.x Specification </li>   
-</ul>    
-<blockquote><a
- href="http://www.khronos.org/registry/gles/specs/1.1/es_full_spec_1.1.12.pdf">
-http://www.khronos.org/registry/gles/specs/1.1/es_full_spec_1.1.12.pdf</a></blockquote>
-    
-<ul>
-    <li>OpenGL ES Registry</li>   
-</ul>    
-<blockquote><a
- href="http://www.khronos.org/registry/gles/">
-http://www.khronos.org/registry/gles/</a></blockquote>
-    
-<ul>
-    <li>OpenGL Utility Library: GLU 1.3 Specificiation</li>   
-</ul>   
-<blockquote><a
- href="http://www.opengl.org/documentation/specs/glu/glu1_3.pdf"> http://www.opengl.org/documentation/specs/glu/glu1_3.pdf</a></blockquote>
-   
-<ul>
-    <li>OpenGL ARB Web site</li>   
-</ul>   
-<blockquote><a href="http://www.opengl.org/about/arb/index.html"> http://www.opengl.org/about/arb/index.html</a></blockquote>
-   
-<h3>Revision History<br>
-  </h3>
-   
+<h3>Revision History</h3>   
 <ul>
 <li> Early Draft Review, October/November 2005</li>
 <li> Public Review, December/January 2005</li>
@@ -557,9 +517,7 @@ http://www.khronos.org/registry/gles/</a></blockquote>
 <li> 1.1.0 Maintenance Release, April 2007</li>
 <li> 2.0.0 Maintenance Release, July 2009</li>
 <li> 2.0.1 Java Dependency Update to 1.5, February 2011</li>
+<li> 2.0.2 Major Release, July 18th 2013</li>
 </ul>
-  <br>
-  <br>
- <br>
 </body>
 </html>

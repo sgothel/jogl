@@ -301,7 +301,7 @@
         <property name="javadoc" value="${project.root}/javadoc_jogl_public" />
         <property name="javadoc.spec" value="${project.root}/javadoc_jogl_spec" />
         <property name="javadoc.dev" value="${project.root}/javadoc_jogl_dev" />
-        <property name="javadoc.windowtitle" value="JOGL API -- JSR-231 ${jogamp.version.base} Specification" />
+        <property name="javadoc.windowtitle" value="JOGL API Specification -- Version ${jogamp.version.base}" />
         <property name="javadoc.overview" value="doc/jogl/spec-overview.html" />
         <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
 
