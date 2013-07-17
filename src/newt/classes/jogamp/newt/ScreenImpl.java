@@ -55,7 +55,12 @@ import com.jogamp.newt.event.MonitorModeListener;
 import com.jogamp.newt.util.MonitorModeUtil;
 
 public abstract class ScreenImpl extends Screen implements MonitorModeListener {
-    protected static final boolean DEBUG_TEST_SCREENMODE_DISABLED = Debug.isPropertyDefined("newt.test.Screen.disableScreenMode", true);
+    protected static final boolean DEBUG_TEST_SCREENMODE_DISABLED;
+    
+    static {
+        Debug.initSingleton();
+        DEBUG_TEST_SCREENMODE_DISABLED = Debug.isPropertyDefined("newt.test.Screen.disableScreenMode", true);
+    }
 
     public static final int default_sm_bpp = 32;
     public static final int default_sm_widthmm = 519;

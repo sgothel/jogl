@@ -55,9 +55,12 @@ import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.MonitorMode;
 
 public class ScreenDriver extends ScreenImpl {    
-    protected static final boolean DEBUG_TEST_RANDR13_DISABLED = Debug.isPropertyDefined("newt.test.Screen.disableRandR13", true);
+    protected static final boolean DEBUG_TEST_RANDR13_DISABLED;
     
     static {
+        Debug.initSingleton();
+        DEBUG_TEST_RANDR13_DISABLED = Debug.isPropertyDefined("newt.test.Screen.disableRandR13", true);
+        
         DisplayDriver.initSingleton();
     }
 

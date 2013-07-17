@@ -128,7 +128,12 @@ import jogamp.opengl.Debug;
     @author Kenneth Russell
 */
 public class TextRenderer {
-    private static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.TextRenderer", true); 
+    private static final boolean DEBUG;
+    
+    static {
+        Debug.initSingleton();
+        DEBUG = Debug.isPropertyDefined("jogl.debug.TextRenderer", true);
+    }
 
     // These are occasionally useful for more in-depth debugging
     private static final boolean DISABLE_GLYPH_CACHE = false;

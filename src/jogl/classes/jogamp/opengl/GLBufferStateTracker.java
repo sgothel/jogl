@@ -76,7 +76,13 @@ import com.jogamp.common.util.IntIntHashMap;
  */
 
 public class GLBufferStateTracker {
-  protected static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.GLBufferStateTracker", true);
+  protected static final boolean DEBUG;
+  
+  static {
+      Debug.initSingleton();
+      DEBUG = Debug.isPropertyDefined("jogl.debug.GLBufferStateTracker", true);
+  }
+  
   // Maps binding targets to buffer objects. A null value indicates
   // that the binding is unknown. A zero value indicates that it is
   // known that no buffer is bound to the target, according to the 

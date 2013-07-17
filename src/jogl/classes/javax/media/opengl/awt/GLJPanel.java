@@ -138,9 +138,9 @@ import com.jogamp.opengl.util.awt.AWTGLPixelBuffer.SingleAWTGLPixelBufferProvide
 
 @SuppressWarnings("serial")
 public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosingProtocol {
-  private static final boolean DEBUG = Debug.debug("GLJPanel");
-  private static final boolean DEBUG_VIEWPORT = Debug.isPropertyDefined("jogl.debug.GLJPanel.Viewport", true);
-  private static final boolean USE_GLSL_TEXTURE_RASTERIZER = !Debug.isPropertyDefined("jogl.gljpanel.noglsl", true);    
+  private static final boolean DEBUG;
+  private static final boolean DEBUG_VIEWPORT;
+  private static final boolean USE_GLSL_TEXTURE_RASTERIZER;    
 
   /** Indicates whether the Java 2D OpenGL pipeline is requested by user. */
   private static final boolean java2dOGLEnabledByProp;
@@ -152,11 +152,17 @@ public class GLJPanel extends JPanel implements AWTGLAutoDrawable, WindowClosing
   private static boolean java2DGLPipelineOK;
   
   static {
+      Debug.initSingleton();
+      DEBUG = Debug.debug("GLJPanel");
+      DEBUG_VIEWPORT = Debug.isPropertyDefined("jogl.debug.GLJPanel.Viewport", true);
+      USE_GLSL_TEXTURE_RASTERIZER = !Debug.isPropertyDefined("jogl.gljpanel.noglsl", true);
+      
       boolean enabled = false;
       final String sVal = System.getProperty("sun.java2d.opengl");
       if( null != sVal ) {
           enabled = Boolean.valueOf(sVal);
       }
+      Debug.initSingleton();
       java2dOGLEnabledByProp = enabled && !Debug.isPropertyDefined("jogl.gljpanel.noogl", true);
 
       enabled = false;

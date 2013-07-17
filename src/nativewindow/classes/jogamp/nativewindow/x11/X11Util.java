@@ -53,6 +53,8 @@ import com.jogamp.nativewindow.x11.X11GraphicsDevice;
  * Contains a thread safe X11 utility to retrieve display connections.
  */
 public class X11Util implements ToolkitProperties {
+    public static final boolean DEBUG = Debug.debug("X11Util");
+    
     /** 
      * See Bug 515 - https://jogamp.org/bugzilla/show_bug.cgi?id=515
      * <p> 
@@ -92,7 +94,6 @@ public class X11Util implements ToolkitProperties {
      */
     public static final boolean ATI_HAS_MULTITHREADING_BUG = !Debug.isPropertyDefined("nativewindow.debug.X11Util.ATI_HAS_NO_MULTITHREADING_BUG", true);
 
-    public static final boolean DEBUG = Debug.debug("X11Util");
     public static final boolean XSYNC_ENABLED = Debug.isPropertyDefined("nativewindow.debug.X11Util.XSync", true);
     public static final boolean XERROR_STACKDUMP = DEBUG || Debug.isPropertyDefined("nativewindow.debug.X11Util.XErrorStackDump", true);
     private static final boolean TRACE_DISPLAY_LIFECYCLE = Debug.isPropertyDefined("nativewindow.debug.X11Util.TraceDisplayLifecycle", true);

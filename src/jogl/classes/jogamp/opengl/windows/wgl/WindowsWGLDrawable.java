@@ -51,7 +51,13 @@ import jogamp.opengl.GLDynamicLookupHelper;
 
 
 public abstract class WindowsWGLDrawable extends GLDrawableImpl {
-  private static final boolean PROFILING = Debug.isPropertyDefined("jogl.debug.GLDrawable.profiling", true);
+  private static final boolean PROFILING;
+  
+  static {
+      Debug.initSingleton();
+      PROFILING = Debug.isPropertyDefined("jogl.debug.GLDrawable.profiling", true);
+  }
+  
   private static final int PROFILING_TICKS = 200;
   private int  profilingSwapBuffersTicks;
   private long profilingSwapBuffersTime;

@@ -73,6 +73,10 @@ import com.jogamp.opengl.GLRendererQuirks;
     refer to a given context. */
 public abstract class GLContext {
   
+  public static final boolean DEBUG = Debug.debug("GLContext");
+  public static final boolean TRACE_SWITCH = Debug.isPropertyDefined("jogl.debug.GLContext.TraceSwitch", true);
+  public static final boolean DEBUG_TRACE_SWITCH = DEBUG || TRACE_SWITCH;  
+
   /** 
    * If <code>true</code> (default), bootstrapping the available GL profiles 
    * will use the highest compatible GL context for each profile, 
@@ -102,10 +106,6 @@ public abstract class GLContext {
   protected static final boolean FORCE_NO_FBO_SUPPORT = Debug.isPropertyDefined("jogl.fbo.force.none", true);
   protected static final boolean FORCE_MIN_FBO_SUPPORT = Debug.isPropertyDefined("jogl.fbo.force.min", true);
   
-  public static final boolean DEBUG = Debug.debug("GLContext");
-  public static final boolean TRACE_SWITCH = Debug.isPropertyDefined("jogl.debug.GLContext.TraceSwitch", true);
-  public static final boolean DEBUG_TRACE_SWITCH = DEBUG || TRACE_SWITCH;  
-
   /** Reflects property jogl.debug.DebugGL. If true, the debug pipeline is enabled at context creation. */
   public static final boolean DEBUG_GL = Debug.isPropertyDefined("jogl.debug.DebugGL", true);
   /** Reflects property jogl.debug.TraceGL. If true, the trace pipeline is enabled at context creation. */

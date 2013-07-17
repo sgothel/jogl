@@ -62,8 +62,13 @@ import javax.media.opengl.GLRunnable;
     methods to be able to share it between GLAutoDrawable implementations like GLAutoDrawableBase, GLCanvas and GLJPanel. */
 public class GLDrawableHelper {
   /** true if property <code>jogl.debug.GLDrawable.PerfStats</code> is defined. */
-  private static final boolean PERF_STATS = Debug.isPropertyDefined("jogl.debug.GLDrawable.PerfStats", true);
+  private static final boolean PERF_STATS;
     
+  static {
+      Debug.initSingleton();
+      PERF_STATS = Debug.isPropertyDefined("jogl.debug.GLDrawable.PerfStats", true);
+  }
+  
   protected static final boolean DEBUG = GLDrawableImpl.DEBUG;
   private final Object listenersLock = new Object();
   private final ArrayList<GLEventListener> listeners = new ArrayList<GLEventListener>();

@@ -81,14 +81,17 @@ import jogamp.nativewindow.SurfaceUpdatedHelper;
 
 public abstract class WindowImpl implements Window, NEWTEventConsumer
 {
-    public static final boolean DEBUG_TEST_REPARENT_INCOMPATIBLE = Debug.isPropertyDefined("newt.test.Window.reparent.incompatible", true);
-    
-    protected static final ArrayList<WeakReference<WindowImpl>> windowList = new ArrayList<WeakReference<WindowImpl>>();    
+    public static final boolean DEBUG_TEST_REPARENT_INCOMPATIBLE;
     
     static {
+        Debug.initSingleton();
+        DEBUG_TEST_REPARENT_INCOMPATIBLE = Debug.isPropertyDefined("newt.test.Window.reparent.incompatible", true);
+        
         ScreenImpl.initSingleton();
     }
-        
+    
+    protected static final ArrayList<WeakReference<WindowImpl>> windowList = new ArrayList<WeakReference<WindowImpl>>();    
+            
     /** Maybe utilized at a shutdown hook, impl. does not block. */
     public static final void shutdownAll() {
         final int wCount = windowList.size(); 

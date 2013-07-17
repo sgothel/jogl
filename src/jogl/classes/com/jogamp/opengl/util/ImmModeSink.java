@@ -48,9 +48,16 @@ import com.jogamp.opengl.util.glsl.ShaderState;
  * </p>
  */
 public class ImmModeSink {
-  protected static final boolean DEBUG_BEGIN_END = Debug.isPropertyDefined("jogl.debug.ImmModeSink.BeginEnd", true);
-  protected static final boolean DEBUG_DRAW = Debug.isPropertyDefined("jogl.debug.ImmModeSink.Draw", true);  
-  protected static final boolean DEBUG_BUFFER = Debug.isPropertyDefined("jogl.debug.ImmModeSink.Buffer", true);  
+  protected static final boolean DEBUG_BEGIN_END;
+  protected static final boolean DEBUG_DRAW;  
+  protected static final boolean DEBUG_BUFFER;
+  
+  static {
+      Debug.initSingleton();
+      DEBUG_BEGIN_END = Debug.isPropertyDefined("jogl.debug.ImmModeSink.BeginEnd", true);
+      DEBUG_DRAW = Debug.isPropertyDefined("jogl.debug.ImmModeSink.Draw", true);  
+      DEBUG_BUFFER = Debug.isPropertyDefined("jogl.debug.ImmModeSink.Buffer", true);
+  }
 
   public static final int GL_QUADS      = 0x0007; // Needs data manipulation on ES1/ES2
   public static final int GL_QUAD_STRIP = 0x0008;

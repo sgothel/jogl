@@ -37,8 +37,14 @@ import com.jogamp.opengl.JoglVersion;
  * @see GLDrawableImpl#getDefaultReadFramebuffer()
  */
 public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
-    protected static final boolean DEBUG = GLDrawableImpl.DEBUG || Debug.debug("FBObject");
-    protected static final boolean DEBUG_SWAP = Debug.isPropertyDefined("jogl.debug.FBObject.Swap", true);
+    protected static final boolean DEBUG;
+    protected static final boolean DEBUG_SWAP;
+    
+    static {
+        Debug.initSingleton();
+        DEBUG = GLDrawableImpl.DEBUG || Debug.debug("FBObject");
+        DEBUG_SWAP = Debug.isPropertyDefined("jogl.debug.FBObject.Swap", true);
+    }
     
     private final GLDrawableImpl parent;
     private GLCapabilitiesImmutable origParentChosenCaps;

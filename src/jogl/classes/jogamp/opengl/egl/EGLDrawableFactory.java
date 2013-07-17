@@ -84,7 +84,12 @@ import com.jogamp.opengl.GLRendererQuirks;
 public class EGLDrawableFactory extends GLDrawableFactoryImpl {
     protected static final boolean DEBUG = GLDrawableFactoryImpl.DEBUG; // allow package access
     
-    /* package */ static final boolean QUERY_EGL_ES_NATIVE_TK = Debug.isPropertyDefined("jogl.debug.EGLDrawableFactory.QueryNativeTK", true);
+    /* package */ static final boolean QUERY_EGL_ES_NATIVE_TK;
+    
+    static {
+        Debug.initSingleton();
+        QUERY_EGL_ES_NATIVE_TK = Debug.isPropertyDefined("jogl.debug.EGLDrawableFactory.QueryNativeTK", true);
+    }
     
     private static GLDynamicLookupHelper eglES1DynamicLookupHelper = null;
     private static GLDynamicLookupHelper eglES2DynamicLookupHelper = null;

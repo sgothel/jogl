@@ -68,16 +68,19 @@ public class Debug extends PropertyAccess {
        System.err.println("JOGL implementation vendor " + p.getImplementationVendor());
     }
   }
+  
+  /** Ensures static init block has been issues, i.e. if calling through to {@link PropertyAccess#isPropertyDefined(String, boolean)}. */
+  public static final void initSingleton() {}
 
-  public static boolean verbose() {
+  public static final boolean verbose() {
     return verbose;
   }
 
-  public static boolean debugAll() {
+  public static final boolean debugAll() {
     return debugAll;
   }
 
-  public static boolean debug(String subcomponent) {
+  public static final boolean debug(String subcomponent) {
     return debugAll() || isPropertyDefined("jogl.debug." + subcomponent, true);
   }
 }
