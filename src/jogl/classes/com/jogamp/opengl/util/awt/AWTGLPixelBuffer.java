@@ -109,7 +109,7 @@ public class AWTGLPixelBuffer extends GLPixelBuffer {
         super.dispose();
     }
     
-    public StringBuffer toString(StringBuffer sb) {
+    public StringBuilder toString(StringBuilder sb) {
         sb = super.toString(sb);
         sb.append(", allowRowStride ").append(allowRowStride).append(", image [").append(image.getWidth()).append("x").append(image.getHeight()).append(", ").append(image.toString()).append("]");
         return sb;

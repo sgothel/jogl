@@ -31,7 +31,7 @@ package javax.media.nativewindow.util;
 import com.jogamp.common.type.WriteCloneable;
 
 /** Immutable Rectangle interface */
-public interface RectangleImmutable extends WriteCloneable {
+public interface RectangleImmutable extends WriteCloneable, Comparable<RectangleImmutable> {
 
     int getHeight();
 
@@ -60,6 +60,15 @@ public interface RectangleImmutable extends WriteCloneable {
      * </p> 
      */
     float coverage(RectangleImmutable r);
+    
+    /**
+     * <p>
+     * Compares square of size 1st, if equal the square of position.
+     * </p> 
+     * {@inheritDoc}
+     */
+    @Override
+    public int compareTo(final RectangleImmutable d);
     
     /**
      * Checks whether two rect objects are equal. Two instances

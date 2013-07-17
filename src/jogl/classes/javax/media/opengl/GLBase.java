@@ -88,35 +88,41 @@ public interface GLBase {
   /**
    * Indicates whether this GL object conforms to the OpenGL &ge; 4.0 compatibility profile.
    * The GL4 compatibility profile includes the GL2, GL2ES1, GL2ES2, GL3, GL3bc and GL4 profile.
+   * @see GLContext#isGL4bc()
    */
   public boolean isGL4bc();
 
   /**
    * Indicates whether this GL object conforms to the OpenGL &ge; 4.0 core profile.
    * The GL4 core profile includes the GL2ES2, and GL3 profile.
+   * @see GLContext#isGL4()
    */
   public boolean isGL4();
 
   /**
    * Indicates whether this GL object conforms to the OpenGL &ge; 3.1 compatibility profile.
    * The GL3 compatibility profile includes the GL2, GL2ES1, GL2ES2 and GL3 profile.
+   * @see GLContext#isGL3bc()
    */
   public boolean isGL3bc();
 
   /**
    * Indicates whether this GL object conforms to the OpenGL &ge; 3.1 core profile.
    * The GL3 core profile includes the GL2ES2 profile.
+   * @see GLContext#isGL3()
    */
   public boolean isGL3();
 
   /**
    * Indicates whether this GL object conforms to the OpenGL &le; 3.0 profile.
    * The GL2 profile includes the GL2ES1 and GL2ES2 profile.
+   * @see GLContext#isGL2()
    */
   public boolean isGL2();
 
   /**
    * Indicates whether this GL object conforms to the OpenGL ES1 &ge; 1.0 profile.
+   * @see GLContext#isGLES1()
    */
   public boolean isGLES1();
 
@@ -127,103 +133,205 @@ public interface GLBase {
    * To query whether core ES2 functionality is provided, use {@link #isGLES2Compatible()}.
    * </p> 
    * @see #isGLES2Compatible()
+   * @see GLContext#isGLES2()
    */
   public boolean isGLES2();
 
   /**
+   * Indicates whether this GL object conforms to the OpenGL ES2 &ge; 3.0 profile.
+   * <p>
+   * Remark: ES3 compatible desktop profiles are not included.
+   * To query whether core ES3 functionality is provided, use {@link #isGLES3Compatible()}.
+   * </p> 
+   * @see #isGLES3Compatible()
+   * @see GLContext#isGLES3()
+   */
+  public boolean isGLES3();
+  
+  /**
    * Indicates whether this GL object conforms to one of the OpenGL ES profiles,
    * see {@link #isGLES1()} and {@link #isGLES2()}.
+   * @see GLContext#isGLES()
    */
   public boolean isGLES();
 
   /**
    * Indicates whether this GL object conforms to a GL2ES1 compatible profile.
+   * @see GLContext#isGL2ES1()
    */
   public boolean isGL2ES1();
 
   /**
    * Indicates whether this GL object conforms to a GL2ES2 compatible profile.
+   * @see GLContext#isGL2ES2()
    */
   public boolean isGL2ES2();
 
   /**
+   * Indicates whether this GL object conforms to a GL3ES3 compatible profile.
+   * @see GLContext#isGL3ES3()
+   */
+  public boolean isGL3ES3();
+
+  /**
+   * Returns true if this GL object conforms to a GL4ES3 compatible profile, i.e. if {@link #isGLES3Compatible()} returns true. 
+   * <p>Includes [ GL &ge; 4.3, GL &ge; 3.1 w/ GL_ARB_ES3_compatibility and GLES3 ]</p>
+   * @see GLContext#isGL4ES3()
+   */
+  public boolean isGL4ES3();
+
+  /**
+   * Indicates whether this GL object conforms to a GL2GL3 compatible profile.
+   * @see GLContext#isGL2GL3()
+   */
+  public boolean isGL2GL3();
+
+  /** 
+   * Indicates whether this GL object uses a GL4 core profile. <p>Includes [ GL4 ].</p>
+   * @see GLContext#isGL4core()
+   */
+  public boolean isGL4core();
+  
+  /** 
+   * Indicates whether this GL object uses a GL3 core profile. <p>Includes [ GL4, GL3 ].</p>
+   * @see GLContext#isGL3core()
+   */
+  public boolean isGL3core();
+  
+  /** 
+   * Indicates whether this GL object uses a GL core profile. <p>Includes [ GL4, GL3, GLES3, GL2ES2 ].</p>
+   * @see GLContext#isGLcore()
+   */
+  public boolean isGLcore();
+  
+  /**
    * Indicates whether this GL object is compatible with the core OpenGL ES2 functionality.
    * @return true if this context is an ES2 context or implements 
-   *         the extension <code>GL_ARB_ES2_compatibility</code>, otherwise false 
+   *         the extension <code>GL_ARB_ES2_compatibility</code>, otherwise false
+   * @see GLContext#isGLES2Compatible() 
    */
   public boolean isGLES2Compatible();
 
   /**
-   * Indicates whether this GL object conforms to a GL2GL3 compatible profile.
+   * Indicates whether this GL object is compatible with the core OpenGL ES3 functionality.
+   * <p>
+   * Return true if the underlying context is an ES3 context or implements
+   * the extension <code>GL_ARB_ES3_compatibility</code>, otherwise false.
+   * </p>
+   * <p>
+   * Includes [ GL &ge; 4.3, GL &ge; 3.1 w/ GL_ARB_ES3_compatibility and GLES3 ]
+   * </p>
+   * @see GLContext#isGLES3Compatible() 
    */
-  public boolean isGL2GL3();
+  public boolean isGLES3Compatible();
 
-  /** Indicates whether this GL object supports GLSL. */
+  /** 
+   * Indicates whether this GL object supports GLSL. 
+   * @see GLContext#hasGLSL() 
+   */
   public boolean hasGLSL();
 
   /**
+   * Returns the downstream GL instance in case this is a wrapping pipeline, otherwise <code>null</code>.
+   * <p>
+   * See {@link #getRootGL()} for retrieving the implementing root instance. 
+   * </p>
+   * @throws GLException if the downstream instance is not null and not a GL implementation
+   * @see #getRootGL()
+   */
+  public GL getDownstreamGL() throws GLException;
+  
+  /**
+   * Returns the implementing root instance, considering a wrapped pipelined hierarchy, see {@link #getDownstreamGL()}.
+   * <p>
+   * If this instance is not a wrapping pipeline, i.e. has no downstream instance,
+   * this instance is returned.
+   * </p>
+   * @throws GLException if the root instance is not a GL implementation
+   */
+  public GL getRootGL() throws GLException;
+  
+  /**
    * Casts this object to the GL interface.
-   * @throws GLException if this GLObject is not a GL implementation
+   * @throws GLException if this object is not a GL implementation
    */
   public GL getGL() throws GLException;
 
   /**
    * Casts this object to the GL4bc interface.
-   * @throws GLException if this GLObject is not a GL4bc implementation
+   * @throws GLException if this object is not a GL4bc implementation
    */
   public GL4bc getGL4bc() throws GLException;
 
   /**
    * Casts this object to the GL4 interface.
-   * @throws GLException if this GLObject is not a GL4 implementation
+   * @throws GLException if this object is not a GL4 implementation
    */
   public GL4 getGL4() throws GLException;
 
   /**
    * Casts this object to the GL3bc interface.
-   * @throws GLException if this GLObject is not a GL3bc implementation
+   * @throws GLException if this object is not a GL3bc implementation
    */
   public GL3bc getGL3bc() throws GLException;
 
   /**
    * Casts this object to the GL3 interface.
-   * @throws GLException if this GLObject is not a GL3 implementation
+   * @throws GLException if this object is not a GL3 implementation
    */
   public GL3 getGL3() throws GLException;
 
   /**
    * Casts this object to the GL2 interface.
-   * @throws GLException if this GLObject is not a GL2 implementation
+   * @throws GLException if this object is not a GL2 implementation
    */
   public GL2 getGL2() throws GLException;
 
   /**
    * Casts this object to the GLES1 interface.
-   * @throws GLException if this GLObject is not a GLES1 implementation
+   * @throws GLException if this object is not a GLES1 implementation
    */
   public GLES1 getGLES1() throws GLException;
 
   /**
    * Casts this object to the GLES2 interface.
-   * @throws GLException if this GLObject is not a GLES2 implementation
+   * @throws GLException if this object is not a GLES2 implementation
    */
   public GLES2 getGLES2() throws GLException;
 
   /**
+   * Casts this object to the GLES3 interface.
+   * @throws GLException if this object is not a GLES3 implementation
+   */
+  public GLES3 getGLES3() throws GLException;
+
+  /**
    * Casts this object to the GL2ES1 interface.
-   * @throws GLException if this GLObject is not a GL2ES1 implementation
+   * @throws GLException if this object is not a GL2ES1 implementation
    */
   public GL2ES1 getGL2ES1() throws GLException;
 
   /**
    * Casts this object to the GL2ES2 interface.
-   * @throws GLException if this GLObject is not a GL2ES2 implementation
+   * @throws GLException if this object is not a GL2ES2 implementation
    */
   public GL2ES2 getGL2ES2() throws GLException;
 
   /**
+   * Casts this object to the GL3ES3 interface.
+   * @throws GLException if this object is not a GL3ES3 implementation
+   */
+  public GL3ES3 getGL3ES3() throws GLException;
+
+  /**
+   * Casts this object to the GL4ES3 interface.
+   * @throws GLException if this object is not a GL4ES3 implementation
+   */
+  public GL4ES3 getGL4ES3() throws GLException;
+
+  /**
    * Casts this object to the GL2GL3 interface.
-   * @throws GLException if this GLObject is not a GL2GL3 implementation
+   * @throws GLException if this object is not a GL2GL3 implementation
    */
   public GL2GL3 getGL2GL3() throws GLException;
 

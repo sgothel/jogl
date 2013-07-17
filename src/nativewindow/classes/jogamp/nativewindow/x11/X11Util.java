@@ -46,12 +46,15 @@ import jogamp.nativewindow.NWJNILibLoader;
 import jogamp.nativewindow.ToolkitProperties;
 
 import com.jogamp.common.util.LongObjectHashMap;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.nativewindow.x11.X11GraphicsDevice;
 
 /**
  * Contains a thread safe X11 utility to retrieve display connections.
  */
 public class X11Util implements ToolkitProperties {
+    public static final boolean DEBUG = Debug.debug("X11Util");
+    
     /** 
      * See Bug 515 - https://jogamp.org/bugzilla/show_bug.cgi?id=515
      * <p> 
@@ -91,16 +94,15 @@ public class X11Util implements ToolkitProperties {
      */
     public static final boolean ATI_HAS_MULTITHREADING_BUG = !Debug.isPropertyDefined("nativewindow.debug.X11Util.ATI_HAS_NO_MULTITHREADING_BUG", true);
 
-    public static final boolean DEBUG = Debug.debug("X11Util");
     public static final boolean XSYNC_ENABLED = Debug.isPropertyDefined("nativewindow.debug.X11Util.XSync", true);
     public static final boolean XERROR_STACKDUMP = DEBUG || Debug.isPropertyDefined("nativewindow.debug.X11Util.XErrorStackDump", true);
     private static final boolean TRACE_DISPLAY_LIFECYCLE = Debug.isPropertyDefined("nativewindow.debug.X11Util.TraceDisplayLifecycle", true);
     private static String nullDisplayName = null;
     private static volatile boolean isInit = false;
-    private static boolean markAllDisplaysUnclosable = false; // ATI/AMD X11 driver issues
+    private static boolean markAllDisplaysUnclosable = false; // ATI/AMD X11 driver issues, or GLRendererQuirks.DontCloseX11Display
     private static boolean hasThreadingIssues = false; // ATI/AMD X11 driver issues
 
-    private static Object setX11ErrorHandlerLock = new Object();
+    private static final Object setX11ErrorHandlerLock = new Object();
     private static final String X11_EXTENSION_ATIFGLRXDRI     = "ATIFGLRXDRI";
     private static final String X11_EXTENSION_ATIFGLEXTENSION = "ATIFGLEXTENSION";
     
@@ -123,7 +125,7 @@ public class X11Util implements ToolkitProperties {
                     final boolean isInitOK = initialize0( XERROR_STACKDUMP );
         
                     final boolean hasX11_EXTENSION_ATIFGLRXDRI, hasX11_EXTENSION_ATIFGLEXTENSION;
-                    final long dpy = X11Lib.XOpenDisplay(null);
+                    final long dpy = X11Lib.XOpenDisplay(PropertyAccess.getProperty("nativewindow.x11.display.default", true));
                     if(0 != dpy) {
                         if(XSYNC_ENABLED) {
                             X11Lib.XSynchronize(dpy, true);
@@ -206,12 +208,12 @@ public class X11Util implements ToolkitProperties {
                         }
                     }
             
-                    synchronized(globalLock) {
-                        // Only at JVM shutdown time, since AWT impl. seems to 
-                        // dislike closing of X11 Display's (w/ ATI driver). 
-                        if( isJVMShuttingDown ) {
-                            isInit = false;                            
-                            closePendingDisplayConnections();    
+                    // Only at JVM shutdown time, since AWT impl. seems to 
+                    // dislike closing of X11 Display's (w/ ATI driver). 
+                    if( isJVMShuttingDown ) {
+                        synchronized(globalLock) {
+                            isInit = false;
+                            closePendingDisplayConnections();
                             openDisplayList.clear();
                             reusableDisplayList.clear();
                             pendingDisplayList.clear();

@@ -56,7 +56,6 @@ public class SWTNewtEventFactory {
 
             case SWT.KeyDown: return com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED;
             case SWT.KeyUp: return com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED;
-            // case SWT.KeyXXX: return com.jogamp.newt.event.KeyEvent.EVENT_KEY_TYPED;
         }
         return (short)0;
     }

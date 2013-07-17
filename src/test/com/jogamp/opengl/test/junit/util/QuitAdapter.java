@@ -47,7 +47,10 @@ public class QuitAdapter extends WindowAdapter implements WindowListener, KeyLis
         }
     }
 
-    public void keyTyped(KeyEvent e) {
+    public void keyReleased(KeyEvent e) {
+        if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+            return;
+        }            
         if( enabled ) {
             if(e.getKeyChar()=='q') {
                 System.err.println("QUIT Key "+Thread.currentThread());
@@ -56,6 +59,5 @@ public class QuitAdapter extends WindowAdapter implements WindowListener, KeyLis
         }
     }
     public void keyPressed(KeyEvent e) {}
-    public void keyReleased(KeyEvent e) {}
 }
 

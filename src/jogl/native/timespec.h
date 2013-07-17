@@ -17,4 +17,7 @@ void timespec_subtract(struct timespec *r, struct timespec *a, struct timespec *
 /** convert the timespec into milliseconds (may overflow) */
 long timespec_milliseconds(struct timespec *a);
 
+/** convert the timespec into microseconds (may overflow) */
+long timespec_microseconds(struct timespec *a);
+
 #endif /* _timespec_h */

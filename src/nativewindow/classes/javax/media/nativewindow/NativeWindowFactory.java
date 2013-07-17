@@ -37,8 +37,10 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import jogamp.nativewindow.Debug;
@@ -108,7 +110,9 @@ public abstract class NativeWindowFactory {
     private static boolean requiresToolkitLock;
     private static boolean desktopHasThreadingIssues;
 
+    // Shutdown hook mechanism for the factory
     private static volatile boolean isJVMShuttingDown = false;
+    private static final List<Runnable> customShutdownHooks = new ArrayList<Runnable>();
     
     /** Creates a new NativeWindowFactory instance. End users do not
         need to call this method. */
@@ -160,6 +164,11 @@ public abstract class NativeWindowFactory {
                 Platform.initSingleton(); // last resort ..
                 _DEBUG[0] = Debug.debug("NativeWindow");
                 _tmp[0] = Debug.getProperty("nativewindow.ws.name", true);
+                Runtime.getRuntime().addShutdownHook(
+                    new Thread(new Runnable() {
+                                public void run() {
+                                    NativeWindowFactory.shutdown(true);
+                                } }, "NativeWindowFactory_ShutdownHook" ) ) ;                        
                 return null;
             } } ) ;
         
@@ -178,7 +187,7 @@ public abstract class NativeWindowFactory {
         }
     }
 
-    static boolean initialized = false;
+    private static boolean initialized = false;
 
     private static void initSingletonNativeImpl(final ClassLoader cl) {
         final String clazzName;
@@ -204,6 +213,72 @@ public abstract class NativeWindowFactory {
         }
     }
 
+    /** Returns true if the JVM is shutting down, otherwise false. */ 
+    public static final boolean isJVMShuttingDown() { return isJVMShuttingDown; }
+    
+    /** 
+     * Add a custom shutdown hook to be performed at JVM shutdown before shutting down NativeWindowFactory instance.
+     *  
+     * @param head if true add runnable at the start, otherwise at the end
+     * @param runnable runnable to be added.
+     */
+    public static void addCustomShutdownHook(boolean head, Runnable runnable) {
+        synchronized( customShutdownHooks ) {
+            if( !customShutdownHooks.contains( runnable ) ) {
+                if( head ) {
+                    customShutdownHooks.add(0, runnable);
+                } else {
+                    customShutdownHooks.add( runnable );
+                }
+            }
+        }
+    }
+
+    /** 
+     * Cleanup resources at JVM shutdown
+     */
+    public static synchronized void shutdown(boolean _isJVMShuttingDown) {
+        isJVMShuttingDown = _isJVMShuttingDown;
+        if(DEBUG) {
+            System.err.println("NativeWindowFactory.shutdown() START: JVM Shutdown "+isJVMShuttingDown+", on thread "+Thread.currentThread().getName());
+        }
+        synchronized(customShutdownHooks) {
+            final int cshCount = customShutdownHooks.size();
+            for(int i=0; i < cshCount; i++) {
+                try {
+                    if( DEBUG ) { 
+                        System.err.println("NativeWindowFactory.shutdown - customShutdownHook #"+(i+1)+"/"+cshCount);
+                    }
+                    customShutdownHooks.get(i).run();
+                } catch(Throwable t) {
+                    System.err.println("NativeWindowFactory.shutdown: Catched "+t.getClass().getName()+" during customShutdownHook #"+(i+1)+"/"+cshCount);
+                    if( DEBUG ) { 
+                        t.printStackTrace(); 
+                    }
+                }
+            }
+            customShutdownHooks.clear();
+        }
+        if(DEBUG) {
+            System.err.println("NativeWindowFactory.shutdown(): Post customShutdownHook");
+        }
+        
+        if(initialized) {
+            initialized = false;
+            if(null != registeredFactories) {
+                registeredFactories.clear();
+                registeredFactories = null;
+            }
+            GraphicsConfigurationFactory.shutdown();
+        }
+        
+        shutdownNativeImpl(NativeWindowFactory.class.getClassLoader()); // always re-shutdown
+        // SharedResourceToolkitLock.shutdown(DEBUG); // not used yet
+        if(DEBUG) {
+            System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.shutdown() END JVM Shutdown "+isJVMShuttingDown);
+        }
+    }
+    
     private static void shutdownNativeImpl(final ClassLoader cl) {
         final String clazzName;
         if( TYPE_X11 == nativeWindowingTypePure ) {
@@ -220,6 +295,9 @@ public abstract class NativeWindowFactory {
         }        
     }
     
+    /** Returns true if {@link #initSingleton()} has been called w/o subsequent {@link #shutdown(boolean)}. */
+    public static synchronized boolean isInitialized() { return initialized; }    
+
     /**
      * Static one time initialization of this factory.<br>
      * This initialization method <b>must be called</b> once by the program or utilizing modules!
@@ -310,29 +388,6 @@ public abstract class NativeWindowFactory {
         }
     }
 
-    public static synchronized void shutdown(boolean _isJVMShuttingDown) {
-        isJVMShuttingDown = _isJVMShuttingDown;
-        if(DEBUG) {
-            System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.shutdown() START: JVM Shutdown "+isJVMShuttingDown);                
-        }
-        if(initialized) {
-            initialized = false;
-            if(null != registeredFactories) {
-                registeredFactories.clear();
-                registeredFactories = null;
-            }
-            GraphicsConfigurationFactory.shutdown();
-        }
-        shutdownNativeImpl(NativeWindowFactory.class.getClassLoader()); // always re-shutdown
-        // SharedResourceToolkitLock.shutdown(DEBUG); // not used yet
-        if(DEBUG) {
-            System.err.println(Thread.currentThread().getName()+" - NativeWindowFactory.shutdown() END JVM Shutdown "+isJVMShuttingDown);
-        }
-    }
-    
-    /** Returns true if the JVM is shutting down, otherwise false. */ 
-    public static final boolean isJVMShuttingDown() { return isJVMShuttingDown; }
-    
     /** @return true if the underlying toolkit requires locking, otherwise false. */
     public static boolean requiresToolkitLock() {
         return requiresToolkitLock;

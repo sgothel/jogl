@@ -89,10 +89,16 @@ public interface AbstractGraphicsDevice extends Cloneable {
     public int getUnitID();
 
     /**
-     * Returns a unique ID String of this device using {@link #getType() type},
-     * {@link #getConnection() connection} and {@link #getUnitID() unitID}.<br>
-     * The unique ID does not reflect the instance of the device, hence the handle is not included.<br>
+     * Returns a unique ID object of this device using {@link #getType() type},
+     * {@link #getConnection() connection} and {@link #getUnitID() unitID} as it's key components.
+     * <p>
+     * The unique ID does not reflect the instance of the device, hence the handle is not included.
      * The unique ID may be used as a key for semantic device mapping.
+     * </p>
+     * <p>
+     * The returned string object reference is unique using {@link String#intern()}  
+     * and hence can be used as a key itself.
+     * </p>
      */
     public String getUniqueID();
 

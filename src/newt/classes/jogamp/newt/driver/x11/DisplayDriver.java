@@ -57,10 +57,8 @@ public class DisplayDriver extends DisplayImpl {
         }
     }
 
-    public static void initSingleton() {
-        // just exist to ensure static init has been run
-    }
-
+    /** Ensure static init has been run. */
+    /* pp */static void initSingleton() { }
 
     public DisplayDriver() {
     }
@@ -84,13 +82,13 @@ public class DisplayDriver extends DisplayImpl {
         try {
             CompleteDisplay0(aDevice.getHandle());
         } catch(RuntimeException e) {
-            closeNativeImpl();
+            closeNativeImpl(aDevice);
             throw e;                
         }
     }
 
     @Override
-    protected void closeNativeImpl() {
+    protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
         DisplayRelease0(aDevice.getHandle(), javaObjectAtom, windowDeleteAtom /*, kbdHandle */); // XKB disabled for now
         javaObjectAtom = 0;
         windowDeleteAtom = 0;

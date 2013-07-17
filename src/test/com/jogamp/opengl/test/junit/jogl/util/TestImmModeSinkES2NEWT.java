@@ -81,15 +81,13 @@ public class TestImmModeSinkES2NEWT extends UITestCase {
     
     @Test
     public void test05ImmSinkGL2ES2_VBOOff_Direct() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2ES2);
-        if(null == reqGLCaps) return;
+        final GLCapabilities reqGLCaps = new GLCapabilities( GLProfile.getMaxFixedFunc(true) );
         doTest(reqGLCaps, new DemoGL2ES2ImmModeSink(false, false));
     }
     
     @Test
     public void test05ImmSinkGL2ES2_VBOOff_ShaderState() throws InterruptedException {
-        final GLCapabilities reqGLCaps = getCaps(GLProfile.GL2ES2);
-        if(null == reqGLCaps) return;
+        final GLCapabilities reqGLCaps = new GLCapabilities( GLProfile.getMaxFixedFunc(true) );
         doTest(reqGLCaps, new DemoGL2ES2ImmModeSink(false, true));
     }
     

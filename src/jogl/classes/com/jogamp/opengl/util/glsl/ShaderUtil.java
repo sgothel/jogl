@@ -221,7 +221,7 @@ public class ShaderUtil {
     /** Returns true if GeometryShader is supported, i.e. whether GLContext is &ge; 3.2 or ARB_geometry_shader4 extension is available. */ 
     public static boolean isGeometryShaderSupported(GL _gl) {
       final GLContext ctx = _gl.getContext();
-      return ctx.getGLVersionNumber().compareTo(GLContext.Version32) >= 0 ||
+      return ctx.getGLVersionNumber().compareTo(GLContext.Version320) >= 0 ||
              ctx.isExtensionAvailable(GLExtensions.ARB_geometry_shader4);
     }
 
@@ -249,10 +249,10 @@ public class ShaderUtil {
             for(int i = source.length - 1; i>=0; i--) {
                 final CharSequence csq = source[i];
                 if(csq instanceof String) {
-                    // if ShaderCode.create(.. mutableStringBuffer == false )
+                    // if ShaderCode.create(.. mutableStringBuilder == false )
                     tmp[i] = (String) csq;
                 } else {
-                    // if ShaderCode.create(.. mutableStringBuffer == true )
+                    // if ShaderCode.create(.. mutableStringBuilder == true )
                     tmp[i] = source[i].toString();
                 }
             }

@@ -5,7 +5,8 @@ import jogamp.opengl.util.pngj.ImageLineHelper.ImageLineStats;
 /**
  * Lightweight wrapper for an image scanline, used for read and write.
  * <p>
- * This object can be (usually it is) reused while iterating over the image lines.
+ * This object can be (usually it is) reused while iterating over the image
+ * lines.
  * <p>
  * See <code>scanline</code> field, to understand the format.
  */
@@ -18,21 +19,25 @@ public class ImageLine {
 	private int rown = 0;
 
 	/**
-	 * The 'scanline' is an array of integers, corresponds to an image line (row).
+	 * The 'scanline' is an array of integers, corresponds to an image line
+	 * (row).
 	 * <p>
-	 * Except for 'packed' formats (gray/indexed with 1-2-4 bitdepth) each <code>int</code> is a "sample" (one for
-	 * channel), (0-255 or 0-65535) in the corresponding PNG sequence: <code>R G B R G B...</code> or
+	 * Except for 'packed' formats (gray/indexed with 1-2-4 bitdepth) each
+	 * <code>int</code> is a "sample" (one for channel), (0-255 or 0-65535) in
+	 * the corresponding PNG sequence: <code>R G B R G B...</code> or
 	 * <code>R G B A R G B A...</tt> 
 	 * or <code>g g g ...</code> or <code>i i i</code> (palette index)
 	 * <p>
-	 * For bitdepth=1/2/4 , and if samplesUnpacked=false, each value is a PACKED byte!
+	 * For bitdepth=1/2/4 , and if samplesUnpacked=false, each value is a PACKED
+	 * byte!
 	 * <p>
-	 * To convert a indexed line to RGB balues, see <code>ImageLineHelper.palIdx2RGB()</code> (you can't do the reverse)
+	 * To convert a indexed line to RGB balues, see
+	 * <code>ImageLineHelper.palIdx2RGB()</code> (you can't do the reverse)
 	 */
 	public final int[] scanline;
 	/**
-	 * Same as {@link #scanline}, but with one byte per sample. Only one of scanline and scanlineb is valid - this
-	 * depends on {@link #sampleType}
+	 * Same as {@link #scanline}, but with one byte per sample. Only one of
+	 * scanline and scanlineb is valid - this depends on {@link #sampleType}
 	 */
 	public final byte[] scanlineb;
 
@@ -53,10 +58,11 @@ public class ImageLine {
 	public final SampleType sampleType;
 
 	/**
-	 * true: each element of the scanline array represents a sample always, even for internally packed PNG formats
+	 * true: each element of the scanline array represents a sample always, even
+	 * for internally packed PNG formats
 	 * 
-	 * false: if the original image was of packed type (bit depth less than 8) we keep samples packed in a single array
-	 * element
+	 * false: if the original image was of packed type (bit depth less than 8)
+	 * we keep samples packed in a single array element
 	 */
 	public final boolean samplesUnpacked;
 
@@ -70,11 +76,14 @@ public class ImageLine {
 	/**
 	 * 
 	 * @param imgInfo
-	 *            Inmutable ImageInfo, basic parameter of the image we are reading or writing
+	 *            Inmutable ImageInfo, basic parameter of the image we are
+	 *            reading or writing
 	 * @param stype
-	 *            INT or BYTE : this determines which scanline is the really used one
+	 *            INT or BYTE : this determines which scanline is the really
+	 *            used one
 	 * @param unpackedMode
-	 *            If true, we use unpacked format, even for packed original images
+	 *            If true, we use unpacked format, even for packed original
+	 *            images
 	 * 
 	 */
 	public ImageLine(ImageInfo imgInfo, SampleType stype, boolean unpackedMode) {
@@ -226,7 +235,10 @@ public class ImageLine {
 		}
 	}
 
-	/** size original: samplesPerRow sizeFinal: samplesPerRowPacked (trailing elements are trash!) **/
+	/**
+	 * size original: samplesPerRow sizeFinal: samplesPerRowPacked (trailing
+	 * elements are trash!)
+	 **/
 	static void packInplaceByte(final ImageInfo iminfo, final byte[] src, final byte[] dst, final boolean scaled) {
 		final int bitDepth = iminfo.bitDepth;
 		if (bitDepth >= 8)

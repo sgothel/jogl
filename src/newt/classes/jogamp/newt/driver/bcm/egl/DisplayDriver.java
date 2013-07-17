@@ -69,7 +69,7 @@ public class DisplayDriver extends jogamp.newt.DisplayImpl {
         aDevice = new EGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, handle, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT, null);
     }
 
-    protected void closeNativeImpl() {
+    protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
         if (aDevice.getHandle() != EGL.EGL_NO_DISPLAY) {
             DestroyDisplay(aDevice.getHandle());
         }

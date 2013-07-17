@@ -80,7 +80,7 @@ public class TestTexture01AWT extends UITestCase {
             UITestCase.setTestSupported(false);
             return;
         }
-        glp = GLProfile.getGL2GL3();
+        glp = GLProfile.getMaxFixedFunc(true);
         Assert.assertNotNull(glp);
         caps = new GLCapabilities(glp);
         Assert.assertNotNull(caps);

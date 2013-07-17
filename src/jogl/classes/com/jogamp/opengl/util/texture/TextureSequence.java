@@ -75,7 +75,7 @@ import javax.media.opengl.GL;
         // in case a fixed lookup function is being chosen, replace the name in our code        
         rsFp.replaceInShaderSource(myTextureLookupName, texLookupFuncName);
         
-        // Cache the TextureSequence shader details in StringBuffer:
+        // Cache the TextureSequence shader details in StringBuilder:
         final StringBuilder sFpIns = new StringBuilder();
         
         // .. declaration of the texture sampler using the implementation specific type

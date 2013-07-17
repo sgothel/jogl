@@ -55,8 +55,13 @@ import com.jogamp.opengl.util.GLArrayDataEditable;
  * and can be retrieved via {@link #getShaderState(GL)}.
  * </p>
  */
-public class ShaderState {
-    public static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.GLSLState", true);
+public class ShaderState {    
+    public static final boolean DEBUG;
+    
+    static {
+        Debug.initSingleton();
+        DEBUG = Debug.isPropertyDefined("jogl.debug.GLSLState", true);
+    }
     
     public ShaderState() {
     }

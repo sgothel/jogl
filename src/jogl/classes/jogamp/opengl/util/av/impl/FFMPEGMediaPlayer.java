@@ -31,6 +31,8 @@ package jogamp.opengl.util.av.impl;
 import java.io.IOException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
@@ -43,9 +45,6 @@ import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 import jogamp.opengl.GLContextImpl;
-import jogamp.opengl.es1.GLES1ProcAddressTable;
-import jogamp.opengl.es2.GLES2ProcAddressTable;
-import jogamp.opengl.gl4.GL4bcProcAddressTable;
 import jogamp.opengl.util.av.EGLMediaPlayerImpl;
 
 /***
@@ -194,25 +193,43 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
         System.out.println("setURL: p2 "+this);
         int tf, tif=GL.GL_RGBA; // texture format and internal format
         switch(vBytesPerPixelPerPlane) {
-            case 1: tf = GL2ES2.GL_ALPHA; tif=GL.GL_ALPHA; break;
-            case 3: tf = GL2ES2.GL_RGB;   tif=GL.GL_RGB;   break;
-            case 4: tf = GL2ES2.GL_RGBA;  tif=GL.GL_RGBA;  break;
+            case 1:
+                if( gl.isGL3ES3() ) {
+                    tf = GL2ES2.GL_RED;   tif=GL2ES2.GL_RED;   // RED is supported on ES3 and >= GL3 [core]; ALPHA is deprecated on core!
+                } else {
+                    tf = GL2ES2.GL_ALPHA; tif=GL2ES2.GL_ALPHA; // ALPHA is supported on ES2 and GL2
+                }
+                break;
+            case 3: tf = GL2ES2.GL_RGB;   tif=GL.GL_RGB;     break;
+            case 4: tf = GL2ES2.GL_RGBA;  tif=GL.GL_RGBA;    break;
             default: throw new RuntimeException("Unsupported bytes-per-pixel / plane "+vBytesPerPixelPerPlane);
         }        
         setTextureFormat(tif, tf);
         setTextureType(GL.GL_UNSIGNED_BYTE);
-        GLContextImpl ctx = (GLContextImpl)gl.getContext();
-        ProcAddressTable pt = ctx.getGLProcAddressTable();
-        if(pt instanceof GLES2ProcAddressTable) {
-            procAddrGLTexSubImage2D = ((GLES2ProcAddressTable)pt)._addressof_glTexSubImage2D;
-        } else if(pt instanceof GLES1ProcAddressTable) {
-            procAddrGLTexSubImage2D = ((GLES1ProcAddressTable)pt)._addressof_glTexSubImage2D;
-        } else if(pt instanceof GL4bcProcAddressTable) {
-            procAddrGLTexSubImage2D = ((GL4bcProcAddressTable)pt)._addressof_glTexSubImage2D;
-        } else {
-            throw new InternalError("Unknown ProcAddressTable: "+pt.getClass().getName()+" of "+ctx.getClass().getName());
+        final GLContextImpl ctx = (GLContextImpl)gl.getContext();
+        final ProcAddressTable pt = ctx.getGLProcAddressTable();
+        procAddrGLTexSubImage2D = getAddressFor(pt, "glTexSubImage2D");
+        if( 0 == procAddrGLTexSubImage2D ) {
+            throw new InternalError("glTexSubImage2D n/a in ProcAddressTable: "+pt.getClass().getName()+" of "+ctx.getGLVersion());
         }
     }
+    
+    /**
+     * Catches IllegalArgumentException and returns 0 if functionName is n/a,
+     * otherwise the ProcAddressTable's field value. 
+     */
+    private final long getAddressFor(final ProcAddressTable table, final String functionName) {
+        return AccessController.doPrivileged(new PrivilegedAction<Long>() {
+            public Long run() {
+                try {
+                    return Long.valueOf( table.getAddressFor(functionName) );
+                } catch (IllegalArgumentException iae) { 
+                    return Long.valueOf(0);
+                }
+            }
+        } ).longValue();
+    }
+    
     private void updateAttributes2(int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
                                    int lSz0, int lSz1, int lSz2,
                                    int tWd0, int tWd1, int tWd2) {
@@ -296,9 +313,9 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
               "  vec2 v_off = vec2("+tc_w_1+", 0.5);\n"+
               "  vec2 tc_half = texCoord*0.5;\n"+
               "  float y,u,v,r,g,b;\n"+
-              "  y = texture2D(image, texCoord).a;\n"+
-              "  u = texture2D(image, u_off+tc_half).a;\n"+
-              "  v = texture2D(image, v_off+tc_half).a;\n"+              
+              "  y = texture2D(image, texCoord).r;\n"+
+              "  u = texture2D(image, u_off+tc_half).r;\n"+
+              "  v = texture2D(image, v_off+tc_half).r;\n"+              
               "  y = 1.1643*(y-0.0625);\n"+
               "  u = u-0.5;\n"+
               "  v = v-0.5;\n"+

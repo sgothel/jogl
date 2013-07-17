@@ -49,6 +49,7 @@ import jogamp.newt.swt.event.SWTNewtEventFactory;
 import junit.framework.Assert;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
+import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.opengl.GLWindow ;
 import com.jogamp.newt.swt.NewtCanvasSWT ;
 import com.jogamp.opengl.swt.GLCanvas;
@@ -140,7 +141,9 @@ public class TestSWTBug643AsyncExec extends UITestCase {
             {
                 try
                 {
-                    swtDisplay.asyncExec( swtAsyncAction );
+                    if( !swtDisplay.isDisposed() ) {
+                        swtDisplay.asyncExec( swtAsyncAction );
+                    }
                     if(null != newtDisplay && newtDisplay.isNativeValid() && newtDisplay.getEDTUtil().isRunning()) {
                         // only perform async exec on valid and already running NEWT EDT!
                         newtDisplay.runOnEDTIfAvail(false, newtAsyncAction);
@@ -227,9 +230,10 @@ public class TestSWTBug643AsyncExec extends UITestCase {
                 glad = glc; 
                 newtDisplay = null;                
             } else if( useNewtCanvasSWT ) {
-                final GLWindow glWindow = GLWindow.create( caps ) ;
+                newtDisplay = NewtFactory.createDisplay(null, false); // no-reuse                
+                com.jogamp.newt.Screen screen = NewtFactory.createScreen(newtDisplay, 0);
+                final GLWindow glWindow = GLWindow.create( screen, caps ) ;
                 glWindow.addGLEventListener( new GearsES2() ) ;
-                newtDisplay = glWindow.getScreen().getDisplay();
                 if( glWindowPreVisible ) {
                     newtDisplay.setEDTUtil(new SWTEDTUtil(newtDisplay, dsc.display)); // Especially Windows requires creation access via same thread!
                     glWindow.setVisible(true);

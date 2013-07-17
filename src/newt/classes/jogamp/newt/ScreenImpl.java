@@ -34,8 +34,6 @@
 
 package jogamp.newt;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -54,15 +52,28 @@ import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.event.MonitorEvent;
 import com.jogamp.newt.event.MonitorModeListener;
+import com.jogamp.newt.util.MonitorModeUtil;
 
 public abstract class ScreenImpl extends Screen implements MonitorModeListener {
-    protected static final boolean DEBUG_TEST_SCREENMODE_DISABLED = Debug.isPropertyDefined("newt.test.Screen.disableScreenMode", true);
+    protected static final boolean DEBUG_TEST_SCREENMODE_DISABLED;
+    
+    static {
+        Debug.initSingleton();
+        DEBUG_TEST_SCREENMODE_DISABLED = Debug.isPropertyDefined("newt.test.Screen.disableScreenMode", true);
+    }
 
     public static final int default_sm_bpp = 32;
     public static final int default_sm_widthmm = 519;
     public static final int default_sm_heightmm = 324;
     public static final int default_sm_rate = 60;
     public static final int default_sm_rotation = 0;
+    
+    static {
+        DisplayImpl.initSingleton();
+    }
+    
+    /** Ensure static init has been run. */
+    /* pp */static void initSingleton() { }
     
     protected DisplayImpl display;
     protected int screen_idx;
@@ -77,15 +88,6 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     
     private long tCreated; // creationTime
 
-    static {
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
-            public Object run() {
-                registerShutdownHook();
-                return null;
-            }
-        });
-    }
-    
     private static Class<?> getScreenClass(String type) throws ClassNotFoundException 
     {
         final Class<?> screenClass = NewtFactory.getCustomClass(type, "ScreenDriver");
@@ -128,7 +130,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
                 screen.screen_idx = idx;
                 screen.fqname = display.getFQName()+"-s"+idx;
                 screen.hashCode = screen.fqname.hashCode();
-                screenList.add(screen);
+                Screen.addScreen2List(screen);
                 if(DEBUG) {
                     System.err.println("Screen.create() NEW: "+screen+" "+Display.getThreadName());
                 }
@@ -172,39 +174,39 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
                 System.err.println("Screen.createNative() START ("+DisplayImpl.getThreadName()+", "+this+")");
             } else {
                 tCreated = 0;
-            }
-            
+            }            
             display.addReference();
             
             createNativeImpl();
             if(null == aScreen) {
                 throw new NativeWindowException("Screen.createNative() failed to instanciate an AbstractGraphicsScreen");
             }
-            
+
             initMonitorState();
-            if(DEBUG) {
-                System.err.println("Screen.createNative() END ("+DisplayImpl.getThreadName()+", "+this+"), total "+ (System.nanoTime()-tCreated)/1e6 +"ms");
-            }
             synchronized(screenList) {
                 screensActive++;
+                if(DEBUG) {
+                    System.err.println("Screen.createNative() END ("+DisplayImpl.getThreadName()+", "+this+"), active "+screensActive+", total "+ (System.nanoTime()-tCreated)/1e6 +"ms");
+                }
             }
+            ScreenMonitorState.getScreenMonitorState(this.getFQName()).addListener(this);
         }
-        ScreenMonitorState sms = ScreenMonitorState.getScreenMonitorState(this.getFQName());
-        sms.addListener(this);
     }
 
     @Override
     public synchronized final void destroy() {
-        releaseMonitorState();
-
         synchronized(screenList) {
-            screenList.remove(this);
             if(0 < screensActive) {
                 screensActive--;
+            }
+            if(DEBUG) {
+                System.err.println("Screen.destroy() ("+DisplayImpl.getThreadName()+"): active "+screensActive);
+                // Thread.dumpStack();
             }
         }
 
         if ( null != aScreen ) {
+            releaseMonitorState();
             closeNativeImpl();
             aScreen = null;
         }
@@ -220,8 +222,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         }
         if ( 0 == refCount ) {
             createNative();
-        }
-        if(null == aScreen) {
+        } else if(null == aScreen) {
             throw new NativeWindowException("Screen.addReference() (refCount "+refCount+") null AbstractGraphicsScreen");
         }
         return ++refCount;
@@ -289,12 +290,12 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
             vOriginSize.setWidth(usrSize.getWidth());
             vOriginSize.setHeight(usrSize.getHeight());
             if(DEBUG) {
-                System.err.println("User virtual screen viewport "+vOriginSize);
+                System.err.println("Update user virtual screen viewport @ "+Thread.currentThread().getName()+": "+vOriginSize);
             }
         } else {
             calcVirtualScreenOriginAndSize(vOriginSize);
             if(DEBUG) {
-                System.err.println("Detected virtual screen viewport "+vOriginSize);
+                System.err.println("Updated virtual screen viewport @ "+Thread.currentThread().getName()+": "+vOriginSize);
             }
         }
     }
@@ -401,7 +402,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
     @Override
     public void monitorModeChangeNotify(MonitorEvent me) {
         if(DEBUG) {
-            System.err.println("monitorModeChangeNotify: "+me);
+            System.err.println("monitorModeChangeNotify @ "+Thread.currentThread().getName()+": "+me);
         }
         for(int i=0; i<refMonitorModeListener.size(); i++) {
             ((MonitorModeListener)refMonitorModeListener.get(i)).monitorModeChangeNotify(me);
@@ -414,7 +415,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
             final MonitorDeviceImpl monitor = (MonitorDeviceImpl) monitors.get(i);
             final Rectangle newViewport = getNativeMonitorDeviceViewportImpl(monitor);
             if( DEBUG ) {
-                System.err.println("Screen.updateMonitorViewport["+i+"]: "+monitor.getViewport()+" -> "+newViewport);
+                System.err.println("Screen.updateMonitorViewport["+i+"] @  "+Thread.currentThread().getName()+": "+monitor.getViewport()+" -> "+newViewport);
             }
             if( null != newViewport ) {
                 monitor.setViewportValue(newViewport);
@@ -429,7 +430,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
             updateVirtualScreenOriginAndSize();
         }
         if(DEBUG) {
-            System.err.println("monitorModeChanged: success "+success+", "+me);
+            System.err.println("monitorModeChangeNotify @ "+Thread.currentThread().getName()+": success "+success+", "+me);
         }
         for(int i=0; i<refMonitorModeListener.size(); i++) {
             ((MonitorModeListener)refMonitorModeListener.get(i)).monitorModeChanged(me, success);
@@ -540,6 +541,11 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
                     final MonitorDevice monitor = getVirtualMonitorDevice(cache, 0, mode);
                     cache.monitorDevices.getOrAdd(monitor);
                 }
+                // Sort MonitorModes (all and per device) in descending order - default!
+                MonitorModeUtil.sort(cache.monitorModes.getData(), false ); // descending order
+                for(Iterator<MonitorDevice> iMonitor=cache.monitorDevices.iterator(); iMonitor.hasNext(); ) {
+                    MonitorModeUtil.sort(iMonitor.next().getSupportedModes(), false ); // descending order
+                }
                 if(DEBUG) {
                     int i=0;
                     for(Iterator<MonitorMode> iMode=cache.monitorModes.iterator(); iMode.hasNext(); i++) {
@@ -554,7 +560,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
                             System.err.println("["+i+"]["+j+"]: "+iMode.next());
                         }
                     }
-                }
+                }                
                 sms = new ScreenMonitorState(cache.monitorDevices, cache.monitorModes);
                 ScreenMonitorState.mapScreenMonitorState(this.getFQName(), sms);
             }
@@ -609,7 +615,7 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
         return cache.monitorDevices.size();
     }
 
-    private void releaseMonitorState() {
+    private final void releaseMonitorState() {
         ScreenMonitorState sms;
         ScreenMonitorState.lockScreenMonitorState();
         try {
@@ -660,23 +666,20 @@ public abstract class ScreenImpl extends Screen implements MonitorModeListener {
             ScreenMonitorState.unmapScreenMonitorStateUnlocked(getFQName());
         }            
     }
-    private static final void shutdownAll() {
-        for(int i=0; i < screenList.size(); i++) {
-            ((ScreenImpl)screenList.get(i)).shutdown();
-        }
-    }
     
-    private static synchronized void registerShutdownHook() {
-        final Thread shutdownHook = new Thread(new Runnable() {
-            public void run() {
-                ScreenImpl.shutdownAll();
+    /** pp */ static final void shutdownAll() {
+        final int sCount = screenList.size(); 
+        if(DEBUG) {
+            System.err.println("Screen.shutdownAll "+sCount+" instances, on thread "+Display.getThreadName());
+        }
+        for(int i=0; i<sCount && screenList.size()>0; i++) { // be safe ..
+            final ScreenImpl s = (ScreenImpl) screenList.remove(0).get();
+            if(DEBUG) {
+                System.err.println("Screen.shutdownAll["+(i+1)+"/"+sCount+"]: "+s+", GCed "+(null==s));
             }
-        });
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
-            public Object run() {
-                Runtime.getRuntime().addShutdownHook(shutdownHook);
-                return null;
+            if( null != s ) {
+                s.shutdown();
             }
-        });
+        }
     }
 }

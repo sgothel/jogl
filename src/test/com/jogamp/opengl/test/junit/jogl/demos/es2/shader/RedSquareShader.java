@@ -35,6 +35,11 @@ public class RedSquareShader {
                 "  precision mediump int;\n" +
                 "#endif\n" +
                 "\n" +
+                "#if __VERSION__ >= 130\n" +
+                "  #define attribute in\n" +
+                "  #define varying out\n" +
+                "#endif\n"+               
+                "\n" +
                 "uniform mat4    mgl_PMVMatrix[2];\n" +
                 "attribute vec4    mgl_Vertex;\n" +
                 "attribute vec4    mgl_Color;\n" +
@@ -52,10 +57,17 @@ public class RedSquareShader {
                 "  precision mediump int;\n" +
                 "#endif\n" +
                 "\n" +
+                "#if __VERSION__ >= 130\n" +
+                "  #define varying in\n" +
+                "  out vec4 mgl_FragColor;\n" +
+                "#else\n" +
+                "  #define mgl_FragColor gl_FragColor\n" +   
+                "#endif\n" +
+                "\n" +
                 "varying   vec4    frontColor;\n" +
                 "\n" +
                 "void main (void)\n" +
                 "{\n" +
-                "    gl_FragColor = frontColor;\n" +
+                "    mgl_FragColor = frontColor;\n" +
                 "}\n" ;
 }

@@ -66,7 +66,13 @@ import com.jogamp.opengl.util.glsl.fixedfunc.ShaderSelectionMode;
  * </p>
  */
 public class FixedFuncPipeline {
-    protected static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.FixedFuncPipeline", true);
+    protected static final boolean DEBUG;
+    
+    static {
+        Debug.initSingleton();
+        DEBUG = Debug.isPropertyDefined("jogl.debug.FixedFuncPipeline", true);
+    }
+    
     /** The maximum texture units which could be used, depending on {@link ShaderSelectionMode}. */
     public static final int MAX_TEXTURE_UNITS = 8;
     public static final int MAX_LIGHTS        = 8;

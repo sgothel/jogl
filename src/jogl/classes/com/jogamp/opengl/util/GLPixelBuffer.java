@@ -189,9 +189,9 @@ public class GLPixelBuffer {
     
     private boolean disposed = false;
     
-    public StringBuffer toString(StringBuffer sb) {
+    public StringBuilder toString(StringBuilder sb) {
         if(null == sb) {
-            sb = new StringBuffer();
+            sb = new StringBuilder();
         }
         sb.append(pixelAttributes).append(", dim ").append(width).append("x").append(height).append("x").append(depth).append(", pack ").append(pack)
         .append(", disposed ").append(disposed).append(", valid ").append(isValid()).append(", buffer[sz [bytes ").append(byteSize).append(", elemSize ").append(bufferElemSize).append(", ").append(buffer).append("]");

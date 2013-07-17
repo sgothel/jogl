@@ -39,6 +39,7 @@ import org.junit.Test ;
 
 import com.jogamp.common.util.RunnableTask;
 import com.jogamp.newt.event.MouseEvent;
+import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.UITestCase ;
 
 /**
@@ -385,7 +386,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     // run the tests for NewtCanvasAWT and NewtCanvasSWT until we can
     // pay more attention to the NEWT event modifier stuff.
 
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void testSingleButtonPressAndRelease() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() { 
             public void run() { 
@@ -395,7 +396,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             } } );
     }
 
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void testSingleButtonPressAndReleaseWithShift() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() { 
             public void run() { 
@@ -405,7 +406,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             } } );
     }
 
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void testSingleButtonPressAndReleaseWithCtrl() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() { 
             public void run() { 
@@ -418,7 +419,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     /**
      * The META and ALT tests get too tied up with functions of the window system on X11,
      * so it's probably best to leave them commented out.    
-        @Test
+        @Test(timeout=180000) // TO 3 min
         public void testSingleButtonPressAndReleaseWithMeta() throws Exception {
             execOffThreadWithOnThreadEventDispatch(new Runnable() { 
                 public void run() { 
@@ -428,7 +429,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
                 } } );
         }
     
-        @Test
+        @Test(timeout=180000) // TO 3 min
         public void testSingleButtonPressAndReleaseWithAlt() throws Exception {
             execOffThreadWithOnThreadEventDispatch(new Runnable() { 
                 public void run() { 
@@ -458,7 +459,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
     ////////////////////////////////////////////////////////////////////////////
 
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void testHoldOneButtonAndPressAnother() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() { 
             public void run() { 
@@ -468,7 +469,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             } } );
     }
     
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void testPressAllButtonsInSequence() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() { 
             public void run() { 
@@ -478,7 +479,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
             } } );
     }
 
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void testSingleButtonClickAndDrag() throws Exception {
         execOffThreadWithOnThreadEventDispatch(new Runnable() { 
             public void run() { 
@@ -519,7 +520,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     private void _doHoldOneButtonAndPressAnother( final int keyCode, final int keyModifierMask ) throws Exception {
 
         if( _debug ) { _debugPrintStream.println( "\n>>>> _doHoldOneButtonAndPressAnother" ) ; }
-
+        
         _doKeyPress( keyCode ) ;
 
         for (int n = 0 ; n < _numButtonsToTest ; ++n) {
@@ -561,7 +562,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     private void _doPressAllButtonsInSequence( final int keyCode, final int keyModifierMask ) throws Exception {
 
         if( _debug ) { _debugPrintStream.println( "\n>>>> _doPressAllButtonsInSequence" ) ; }
-
+        
         _doKeyPress( keyCode ) ;
 
         {
@@ -634,6 +635,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     ////////////////////////////////////////////////////////////////////////////
 
     private void _doKeyPress( int keyCode ) {
+        AWTRobotUtil.validateAWTEDTIsAlive();            
         if( keyCode != 0 ) {
             boolean modifierCheckEnabled = _testMouseListener.modifierCheckEnabled() ;
             _testMouseListener.setModifierCheckEnabled( false ) ;
@@ -646,6 +648,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     ////////////////////////////////////////////////////////////////////////////
 
     private void _doKeyRelease( int keyCode ) {
+        AWTRobotUtil.validateAWTEDTIsAlive();
         if( keyCode != 0 ) {
             boolean modifierCheckEnabled = _testMouseListener.modifierCheckEnabled() ;
             _testMouseListener.setModifierCheckEnabled( false ) ;
@@ -697,6 +700,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
     private void _releaseModifiers() {
 
         if (_robot != null) {
+            AWTRobotUtil.validateAWTEDTIsAlive();
 
             _robot.setAutoDelay( MS_ROBOT_AUTO_DELAY ) ;
 
@@ -721,6 +725,7 @@ public abstract class BaseNewtEventModifiers extends UITestCase {
 
     private void _escape() {
         if (_robot != null) {
+            AWTRobotUtil.validateAWTEDTIsAlive();
             _robot.keyPress( java.awt.event.KeyEvent.VK_ESCAPE ) ;
             _robot.keyRelease( java.awt.event.KeyEvent.VK_ESCAPE ) ;
         }

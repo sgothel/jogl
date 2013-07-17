@@ -253,7 +253,12 @@ public class DefaultGraphicsDevice implements Cloneable, AbstractGraphicsDevice 
          return toolkitLock;
     }
 
+   /** 
+    * Returns a unique String object using {@link String#intern()} for the given arguments, 
+    * which object reference itself can be used as a key.
+    */
     protected static String getUniqueID(String type, String connection, int unitID) {
-      return (type + separator + connection + separator + unitID).intern();
+      final String r = (type + separator + connection + separator + unitID).intern();
+      return r.intern();
     }
 }

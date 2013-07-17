@@ -1,3 +1,30 @@
+/**
+ * Copyright 2012 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
 package com.jogamp.opengl.test.junit.jogl.util.texture;
 
 import java.io.IOException;
@@ -28,24 +55,36 @@ import com.jogamp.opengl.util.texture.TextureIO;
 import com.jogamp.opengl.util.texture.spi.JPEGImage;
 import javax.media.opengl.GL;
 
+/**
+ * Test reading and displaying a JPG image.
+ * <p>
+ * Main function accepts arbitrary JPG file name for manual tests.
+ * </p>
+ */
 public class TestJPEGImage01NEWT extends UITestCase {
     
     static boolean showFPS = false;
     static long duration = 100; // ms
     
-    public void testImpl(final boolean withAlpha, final InputStream istream) throws InterruptedException, IOException {
+    public void testImpl(final InputStream istream) throws InterruptedException, IOException {
+        final JPEGImage image = JPEGImage.read(istream);
+        Assert.assertNotNull(image);
+        final boolean hasAlpha = 4 == image.getBytesPerPixel();
+        System.err.println("JPEGImage: "+image+", hasAlpha "+hasAlpha);
+        
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
         final GLProfile glp = GLProfile.getGL2ES2();
         final GLCapabilities caps = new GLCapabilities(glp);
-        if( withAlpha ) {
+        if( hasAlpha ) {
             caps.setAlphaBits(1);
         }
-        
-        final JPEGImage image = JPEGImage.read(istream);
-        Assert.assertNotNull(image);
-        System.err.println("JPEGImage: "+image);
-        
-        final int internalFormat = (image.getBytesPerPixel()==4)?GL.GL_RGBA:GL.GL_RGB;
+                
+        final int internalFormat;
+        if(glp.isGL2GL3()) {
+            internalFormat = hasAlpha ? GL.GL_RGBA8 : GL.GL_RGB8;
+        } else {
+            internalFormat = hasAlpha ? GL.GL_RGBA : GL.GL_RGB;
+        }        
         final TextureData texData = new TextureData(glp, internalFormat,
                                        image.getWidth(),
                                        image.getHeight(),
@@ -102,10 +141,10 @@ public class TestJPEGImage01NEWT extends UITestCase {
     }
     
     @Test
-    public void testReadES2_RGB() throws InterruptedException, IOException, MalformedURLException {
+    public void testReadES2_RGBn() throws InterruptedException, IOException, MalformedURLException {
         final String fname = null == _fname ? "test-ntscN_3-01-160x90-90pct-yuv444-base.jpg" : _fname;
         final URLConnection urlConn = IOUtil.getResource(this.getClass(), fname);
-        testImpl(false, urlConn.getInputStream());
+        testImpl(urlConn.getInputStream());
     }
 
     static String _fname = null;

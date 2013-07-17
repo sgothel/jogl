@@ -28,6 +28,8 @@
  
 package jogamp.opengl.util.av.impl;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -53,10 +55,10 @@ import com.jogamp.common.util.RunnableExecutor;
  *          Tue Feb 28 12:07:53 2012 322537478b63c6bc01e640643550ff539864d790 minor  1 ->  2
  */
 class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
-    private static List<String> glueLibNames = new ArrayList<String>(); // none
+    private static final List<String> glueLibNames = new ArrayList<String>(); // none
     
     private static final int symbolCount = 31;
-    private static String[] symbolNames = {
+    private static final String[] symbolNames = {
          "avcodec_version",
          "avformat_version",
 /* 3 */  "avutil_version",
@@ -97,7 +99,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     };
     
     // alternate symbol names
-    private static String[][] altSymbolNames = {
+    private static final String[][] altSymbolNames = {
         { "avcodec_open",          "avcodec_open2" },              // old, 53.6.0
         { "avcodec_decode_audio3", "avcodec_decode_audio4" },      // old, 53.25.0
         { "av_close_input_file",   "avformat_close_input" },       // old, 53.17.0
@@ -105,7 +107,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     };
     
     // optional symbol names
-    private static String[] optionalSymbolNames = {
+    private static final String[] optionalSymbolNames = {
          "avformat_free_context",     // 52.96.0   (opt)
          "avformat_network_init",     // 53.13.0   (opt)
          "avformat_network_deinit",   // 53.13.0   (opt)
@@ -131,8 +133,11 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     
     static boolean initSingleton() { return ready; }
     
-    private static boolean initSymbols() {
-        final DynamicLibraryBundle dl = new DynamicLibraryBundle(new FFMPEGDynamicLibraryBundleInfo());
+    private static final boolean initSymbols() {
+        final DynamicLibraryBundle dl = AccessController.doPrivileged(new PrivilegedAction<DynamicLibraryBundle>() {
+                                          public DynamicLibraryBundle run() {
+                                              return new DynamicLibraryBundle(new FFMPEGDynamicLibraryBundleInfo());
+                                          } } );
         final boolean avutilLoaded = dl.isToolLibLoaded(0); 
         final boolean avformatLoaded = dl.isToolLibLoaded(1);
         final boolean avcodecLoaded = dl.isToolLibLoaded(2);
@@ -166,9 +171,13 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         }
         
         // lookup
-        for(int i = 0; i<symbolCount; i++) {
-            symbolAddr[i] = dl.dynamicLookupFunction(symbolNames[i]);
-        }        
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            public Object run() {
+                for(int i = 0; i<symbolCount; i++) {
+                    symbolAddr[i] = dl.dynamicLookupFunction(symbolNames[i]);
+                }
+                return null;
+            } } );
         
         // validate results
         for(int i = 0; i<symbolCount; i++) {
@@ -206,10 +215,18 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     }
 
     @Override
-    public boolean shallLinkGlobal() { return true; }
+    public final boolean shallLinkGlobal() { return true; }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Returns <code>true</code>.
+     * </p>
+     */ 
     @Override
-    public boolean shallLookupGlobal() { return true; }
+    public final boolean shallLookupGlobal() {
+        return true; 
+    }
     
     @Override
     public final List<String> getGlueLibNames() {
@@ -217,7 +234,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     }
 
     @Override
-    public List<List<String>> getToolLibNames() {
+    public final List<List<String>> getToolLibNames() {
         List<List<String>> libsList = new ArrayList<List<String>>();
 
         final List<String> avutil = new ArrayList<String>();
@@ -274,12 +291,12 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     }
 
     @Override
-    public boolean useToolGetProcAdressFirst(String funcName) {
+    public final boolean useToolGetProcAdressFirst(String funcName) {
         return false;
     }
 
     @Override
-    public RunnableExecutor getLibLoaderExecutor() {
+    public final RunnableExecutor getLibLoaderExecutor() {
         return DynamicLibraryBundle.getDefaultRunnableExecutor();
     }    
     

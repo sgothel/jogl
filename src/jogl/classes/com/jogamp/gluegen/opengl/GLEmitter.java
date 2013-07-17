@@ -454,34 +454,69 @@ public class GLEmitter extends ProcAddressEmitter {
         return (GLConfiguration) getConfig();
     }
 
+    /**
+     * {@inheritDoc}
+     */   
     @Override
     protected void endProcAddressTable() throws Exception {
         PrintWriter w = tableWriter;
-
-        w.println("  /**");
-        w.println("   * This is a convenience method to get (by name) the native function");
-        w.println("   * pointer for a given function. It lets you avoid having to");
-        w.println("   * manually compute the &quot;" + PROCADDRESS_VAR_PREFIX + " + ");
-        w.println("   * &lt;functionName&gt;&quot; member variable name and look it up via");
-        w.println("   * reflection; it also will throw an exception if you try to get the");
-        w.println("   * address of an unknown function, or one that is statically linked");
-        w.println("   * and therefore does not have a function pointer in this table.");
-        w.println("   *");
-        w.println("   * @throws RuntimeException if the function pointer was not found in");
-        w.println("   *   this table, either because the function was unknown or because");
-        w.println("   *   it was statically linked.");
-        w.println("   */");
-        w.println("  public long getAddressFor(String functionNameUsr) {");
-        w.println("    String functionNameBase = "+GLNameResolver.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);");
-        w.println("    String addressFieldNameBase = PROCADDRESS_VAR_PREFIX + functionNameBase;");
-        w.println("    java.lang.reflect.Field addressField = null;");
-        w.println("    int  funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");
-        w.println("    for(int i = 0; null==addressField && i < funcNamePermNum; i++) {");
-        w.println("        String addressFieldName = "+GLNameResolver.class.getName()+".getFuncNamePermutation(addressFieldNameBase, i);");
-        w.println("        try {");
-        w.println("          addressField = getClass().getField(addressFieldName);");
-        w.println("        } catch (Exception e) { }");
+        
+        w.println("  @Override");
+        w.println("  protected boolean isFunctionAvailableImpl(String functionNameUsr) throws IllegalArgumentException  {");
+        w.println("    final String functionNameBase = "+GLNameResolver.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);");
+        w.println("    final String addressFieldNameBase = \"" + PROCADDRESS_VAR_PREFIX + "\" + functionNameBase;");
+        w.println("    final int funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");        
+        w.println("    final java.lang.reflect.Field addressField = java.security.AccessController.doPrivileged(new java.security.PrivilegedAction<java.lang.reflect.Field>() {");
+        w.println("        public final java.lang.reflect.Field run() {");
+        w.println("            java.lang.reflect.Field addressField = null;");
+        w.println("            for(int i = 0; i < funcNamePermNum; i++) {");
+        w.println("                final String addressFieldName = "+GLNameResolver.class.getName()+".getFuncNamePermutation(addressFieldNameBase, i);");
+        w.println("                try {");
+        w.println("                    addressField = "+tableClassName+".class.getDeclaredField( addressFieldName );");
+        w.println("                    addressField.setAccessible(true); // we need to read the protected value!");
+        w.println("                    return addressField;");
+        w.println("                } catch (NoSuchFieldException ex) { }");
+        w.println("            }");
+        w.println("            return null;");
+        w.println("        } } );");
+        w.println();
+        w.println("    if(null==addressField) {");
+        w.println("      // The user is calling a bogus function or one which is not");
+        w.println("      // runtime linked");
+        w.println("      throw new RuntimeException(");
+        w.println("          \"WARNING: Address field query failed for \\\"\" + functionNameBase + \"\\\"/\\\"\" + functionNameUsr +");
+        w.println("          \"\\\"; it's either statically linked or address field is not a known \" +");
+        w.println("          \"function\");");
+        w.println("    } ");
+        w.println("    try {");
+        w.println("      return 0 != addressField.getLong(this);");
+        w.println("    } catch (Exception e) {");
+        w.println("      throw new RuntimeException(");
+        w.println("          \"WARNING: Address query failed for \\\"\" + functionNameBase + \"\\\"/\\\"\" + functionNameUsr +");
+        w.println("          \"\\\"; it's either statically linked or is not a known \" +");
+        w.println("          \"function\", e);");
         w.println("    }");
+        w.println("  }");
+        
+        w.println("  @Override");
+        w.println("  public long getAddressFor(String functionNameUsr) throws SecurityException, IllegalArgumentException {");
+        w.println("    SecurityUtil.checkAllLinkPermission();");
+        w.println("    final String functionNameBase = "+GLNameResolver.class.getName()+".normalizeVEN(com.jogamp.gluegen.runtime.opengl.GLNameResolver.normalizeARB(functionNameUsr, true), true);");
+        w.println("    final String addressFieldNameBase = \"" + PROCADDRESS_VAR_PREFIX + "\" + functionNameBase;");
+        w.println("    final int  funcNamePermNum = "+GLNameResolver.class.getName()+".getFuncNamePermutationNumber(functionNameBase);");
+        w.println("    final java.lang.reflect.Field addressField = java.security.AccessController.doPrivileged(new java.security.PrivilegedAction<java.lang.reflect.Field>() {");
+        w.println("        public final java.lang.reflect.Field run() {");
+        w.println("            java.lang.reflect.Field addressField = null;");
+        w.println("            for(int i = 0; i < funcNamePermNum; i++) {");
+        w.println("                final String addressFieldName = "+GLNameResolver.class.getName()+".getFuncNamePermutation(addressFieldNameBase, i);");
+        w.println("                try {");
+        w.println("                    addressField = "+tableClassName+".class.getDeclaredField( addressFieldName );");
+        w.println("                    addressField.setAccessible(true); // we need to read the protected value!");
+        w.println("                    return addressField;");
+        w.println("                } catch (NoSuchFieldException ex) { }");
+        w.println("            }");
+        w.println("            return null;");
+        w.println("        } } );");
         w.println();
         w.println("    if(null==addressField) {");
         w.println("      // The user is calling a bogus function or one which is not");

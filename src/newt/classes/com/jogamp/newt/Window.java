@@ -406,7 +406,11 @@ public interface Window extends NativeWindow, WindowClosingProtocol {
      * Sets a {@link KeyListener} allowing focus traversal with a covered window toolkit like AWT.
      * <p>
      * The {@link KeyListener} methods are invoked prior to all other {@link KeyListener}'s
-     * allowing to suppress the {@link KeyEvent} via the {@link InputEvent#consumedTag}.
+     * allowing to suppress the {@link KeyEvent} via the {@link InputEvent#consumedTag}
+     * and to perform focus traversal with a 3rd party toolkit.
+     * </p>
+     * <p>
+     * The {@link KeyListener} methods are not invoked for {@link KeyEvent#isAutoRepeat() auto-repeat} events. 
      * </p>
      * @param l
      */

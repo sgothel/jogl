@@ -116,6 +116,7 @@ public abstract class GLDrawableImpl implements GLDrawable {
    * {@link GL#glFlush()} has been called already and 
    * the implementation may execute implementation specific code.
    * </p>
+   * @param doubleBuffered indicates whether double buffering is enabled, see above.
    */
   protected abstract void swapBuffersImpl(boolean doubleBuffered);
 

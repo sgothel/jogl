@@ -56,7 +56,7 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
         glpDefault = GLProfile.getDefault();
         Assert.assertNotNull(glpDefault);
         glDrawableFactory = GLDrawableFactory.getFactory(glpDefault);
-        System.out.println("INFO: PBuffer supported: "+ glDrawableFactory.canCreateGLPbuffer(null));
+        System.out.println("INFO: PBuffer supported: "+ glDrawableFactory.canCreateGLPbuffer(null, glpDefault));
         width  = 640;
         height = 480;
     }
@@ -108,7 +108,7 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
 
     @Test
     public void test01aOffscreenWindowPBuffer() {
-        if(!glDrawableFactory.canCreateGLPbuffer(null)) {
+        if(!glDrawableFactory.canCreateGLPbuffer(null, capsDefault.getGLProfile())) {
             System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
             return;
         }
@@ -118,7 +118,7 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
 
     @Test
     public void test01bOffscreenWindowPBufferStencil() {
-        if(!glDrawableFactory.canCreateGLPbuffer(null)) {
+        if(!glDrawableFactory.canCreateGLPbuffer(null, capsDefault.getGLProfile())) {
             System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
             return;
         }
@@ -129,7 +129,7 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
 
     @Test
     public void test01cOffscreenWindowPBufferStencilAlpha() {
-        if(!glDrawableFactory.canCreateGLPbuffer(null)) {
+        if(!glDrawableFactory.canCreateGLPbuffer(null, capsDefault.getGLProfile())) {
             System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
             return;
         }
@@ -141,7 +141,7 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
 
     @Test
     public void test01cOffscreenWindowPBuffer555() {
-        if(!glDrawableFactory.canCreateGLPbuffer(null)) {
+        if(!glDrawableFactory.canCreateGLPbuffer(null, capsDefault.getGLProfile())) {
             System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
             return;
         }
@@ -154,7 +154,7 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
 
     @Test
     public void test02Offscreen3Windows1DisplayPBuffer() {
-        if(!glDrawableFactory.canCreateGLPbuffer(null)) {
+        if(!glDrawableFactory.canCreateGLPbuffer(null, capsDefault.getGLProfile())) {
             System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
             return;
         }
@@ -207,7 +207,7 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
 
     @Test
     public void test03Offscreen3Windows3DisplaysPBuffer() {
-        if(!glDrawableFactory.canCreateGLPbuffer(null)) {
+        if(!glDrawableFactory.canCreateGLPbuffer(null, capsDefault.getGLProfile())) {
             System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
             return;
         }
@@ -260,7 +260,7 @@ public class TestOffscreen01GLPBufferNEWT extends UITestCase {
 
     @Test
     public void test04OffscreenSnapshotWithDemoPBuffer() {
-        if(!glDrawableFactory.canCreateGLPbuffer(null)) {
+        if(!glDrawableFactory.canCreateGLPbuffer(null, capsDefault.getGLProfile())) {
             System.out.println("WARNING: PBuffer not supported on this platform - cannot test");
             return;
         }

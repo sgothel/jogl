@@ -58,7 +58,7 @@ public class GLSLSimpleProgram {
         int fragShader = gl.glCreateShader(GL2ES2.GL_FRAGMENT_SHADER);
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
-        String[] vlines = new String[] { vertShaderCode };
+        String[] vlines = new String[] { gl.getContext().getGLSLVersionString()+vertShaderCode };
         int[] vlengths = new int[] { vlines[0].length() };
         gl.glShaderSource(vertShader, vlines.length, vlines, vlengths, 0);
         gl.glCompileShader(vertShader);
@@ -70,7 +70,7 @@ public class GLSLSimpleProgram {
         Assert.assertEquals(GL.GL_NO_ERROR, gl.glGetError());
 
         
-        String[] flines = new String[] { fragShaderCode };
+        String[] flines = new String[] { gl.getContext().getGLSLVersionString()+fragShaderCode };
         int[] flengths = new int[] { flines[0].length() };
         gl.glShaderSource(fragShader, flines.length, flines, flengths, 0);
         gl.glCompileShader(fragShader);

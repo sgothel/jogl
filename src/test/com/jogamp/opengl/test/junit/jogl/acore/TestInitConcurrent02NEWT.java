@@ -44,7 +44,7 @@ import com.jogamp.common.os.Platform;
 public class TestInitConcurrent02NEWT extends InitConcurrentBaseNEWT {
     static boolean mainRun = false;
     
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void test02TwoThreads() throws InterruptedException {
         if(!mainRun) {
             System.err.println("Disabled for auto unit test until further analysis - Windows/ATI driver crash");
@@ -53,7 +53,7 @@ public class TestInitConcurrent02NEWT extends InitConcurrentBaseNEWT {
         runJOGLTasks(2, false);
     }
     
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void test02FourThreads() throws InterruptedException {
         if(!mainRun) {
             System.err.println("Disabled for auto unit test until further analysis - Windows/ATI driver crash");
@@ -62,14 +62,13 @@ public class TestInitConcurrent02NEWT extends InitConcurrentBaseNEWT {
         runJOGLTasks(4, false);
     }
     
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void test16SixteenThreads() throws InterruptedException {
         if(!mainRun) {
             System.err.println("Disabled for auto unit test until further analysis - Windows/ATI driver crash");
             return;
         }
-        if( !mainRun &&
-            Platform.getCPUFamily() != Platform.CPUFamily.ARM &&
+        if( Platform.getCPUFamily() != Platform.CPUFamily.ARM &&
             Platform.getOSType() != Platform.OSType.WINDOWS ) {
             runJOGLTasks(16, false);
         } else {

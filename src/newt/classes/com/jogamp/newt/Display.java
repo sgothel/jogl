@@ -31,6 +31,7 @@ package com.jogamp.newt;
 import com.jogamp.newt.util.EDTUtil;
 import jogamp.newt.Debug;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
@@ -153,41 +154,40 @@ public abstract class Display {
     /**
      * Sets a new {@link EDTUtil} and returns the previous one.
      * <p>
-     * If <code>newEDTUtil</code> is <code>null</code>, 
+     * If <code>usrEDTUtil</code> is <code>null</code>, 
      * the device's default EDTUtil is created and used.
      * </p>
      * <p>
-     * If a previous one exists and it differs from the new one, 
-     * it's being stopped, wait-until-idle and reset to allow a restart at a later time.
+     * If a previous one exists and it differs from <code>usrEDTUtil</code>, 
+     * it's being stopped, wait-until-idle.
      * </p>
      * <p>
-     * If <code>newEDTUtil</code> is not null and equals the previous one,
+     * If <code>usrEDTUtil</code> is not null and equals the previous one,
      * no change is being made.
      * </p>
-     * <p>
-     * Note that <code>newEDTUtil</code> will be started by this method,
-     * if it is not running yet.
-     * </p>
      */
-    public abstract EDTUtil setEDTUtil(EDTUtil newEDTUtil);
+    public abstract EDTUtil setEDTUtil(EDTUtil usrEDTUtil);
     
     public abstract EDTUtil getEDTUtil();
 
+    /**
+     * @return true if EDT is running and not subject to be stopped, otherwise false.
+     */
     public abstract boolean isEDTRunning();
 
     public abstract void dispatchMessages();
     
     // Global Displays
-    protected static ArrayList<Display> displayList = new ArrayList<Display>();
+    protected static final ArrayList<WeakReference<Display>> displayList = new ArrayList<WeakReference<Display>>();
     protected static int displaysActive = 0;
 
     public static void dumpDisplayList(String prefix) {
         synchronized(displayList) {
-            Iterator<Display> i = displayList.iterator();
             System.err.println(prefix+" DisplayList[] entries: "+displayList.size()+" - "+getThreadName());
-            for(int j=0; i.hasNext(); j++) {
-                Display d = i.next();
-                System.err.println("  ["+j+"] : "+d);
+            final Iterator<WeakReference<Display>> ri = displayList.iterator();
+            for(int j=0; ri.hasNext(); j++) {
+                final Display d = ri.next().get();
+                System.err.println("  ["+j+"] : "+d+", GC'ed "+(null==d));
             }
         }
     }
@@ -216,29 +216,62 @@ public abstract class Display {
         return getDisplayOfImpl(type, name, fromIndex, -1, shared);
     }
 
-    private static Display getDisplayOfImpl(String type, String name, int fromIndex, int incr, boolean shared) {
+    private static Display getDisplayOfImpl(String type, String name, final int fromIndex, final int incr, boolean shared) {
         synchronized(displayList) {
             int i = fromIndex >= 0 ? fromIndex : displayList.size() - 1 ;
             while( ( incr > 0 ) ? i < displayList.size() : i >= 0 ) {
-                Display display = (Display) displayList.get(i);
-                if( display.getType().equals(type) &&
-                    display.getName().equals(name) &&
-                    ( !shared || shared && !display.isExclusive() ) 
-                  ) {
-                    return display;
+                final Display display = (Display) displayList.get(i).get();
+                if( null == display ) {
+                    // Clear GC'ed dead reference entry!
+                    displayList.remove(i);
+                    if( incr < 0 ) {
+                        // decrease
+                        i+=incr;
+                    } // else nop - remove shifted subsequent elements to the left
+                } else {
+                    if( display.getType().equals(type) &&
+                        display.getName().equals(name) &&
+                        ( !shared || shared && !display.isExclusive() ) 
+                      ) {
+                        return display;
+                    }
+                    i+=incr;
                 }
-                i+=incr;
             }
         }
         return null;
     }
-
+    
+    protected static void addDisplay2List(Display display) {
+        synchronized(displayList) {
+            // GC before add
+            int i=0;
+            while( i < displayList.size() ) {
+                if( null == displayList.get(i).get() ) {
+                    displayList.remove(i);
+                } else {
+                    i++;
+                }
+            }
+            displayList.add(new WeakReference<Display>(display));
+        }
+    }
+    
     /** Returns the global display collection */
-    @SuppressWarnings("unchecked")
     public static Collection<Display> getAllDisplays() {
         ArrayList<Display> list;
         synchronized(displayList) {
-            list = (ArrayList<Display>) displayList.clone();
+            list = new ArrayList<Display>();
+            int i = 0;
+            while( i < displayList.size() ) {
+                final Display d = displayList.get(i).get();
+                if( null == d ) {
+                    displayList.remove(i);
+                } else {
+                    list.add( displayList.get(i).get() );
+                    i++;
+                }
+            }
         }
         return list;
     }

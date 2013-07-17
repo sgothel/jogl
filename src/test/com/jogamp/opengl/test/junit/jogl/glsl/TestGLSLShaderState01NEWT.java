@@ -314,9 +314,11 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         final ShaderState st = new ShaderState();
         
         final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RedSquareES2.class, "shader",
-                "shader/bin", "RedSquareShader", false);
+                "shader/bin", "RedSquareShader", true);
         final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RedSquareES2.class, "shader",
-                "shader/bin", "RedSquareShader", false);
+                "shader/bin", "RedSquareShader", true);
+        rsVp.defaultShaderCustomization(gl, true, true);
+        rsFp.defaultShaderCustomization(gl, true, true);
 
         final ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);
@@ -401,9 +403,11 @@ public class TestGLSLShaderState01NEWT extends UITestCase {
         final ShaderState st = new ShaderState();
         
         final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RedSquareES2.class, "shader",
-                "shader/bin", "RedSquareShader", false);
+                "shader/bin", "RedSquareShader", true);
         final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RedSquareES2.class, "shader",
-                "shader/bin", "RedSquareShader", false);
+                "shader/bin", "RedSquareShader", true);
+        rsVp.defaultShaderCustomization(gl, true, true);
+        rsFp.defaultShaderCustomization(gl, true, true);
 
         final ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);

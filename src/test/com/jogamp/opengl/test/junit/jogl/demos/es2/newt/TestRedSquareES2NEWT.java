@@ -35,6 +35,7 @@ import com.jogamp.opengl.test.junit.util.AWTRobotUtil;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
 import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.test.junit.util.QuitAdapter;
+import com.jogamp.opengl.test.junit.util.UITestCase.SnapshotGLEventListener;
 
 import com.jogamp.opengl.util.Animator;
 
@@ -70,15 +71,19 @@ public class TestRedSquareES2NEWT extends UITestCase {
 
     protected void runTestGL(GLCapabilities caps) throws InterruptedException {
         System.err.println("requested: vsync "+vsync+", "+caps);
-        GLWindow glWindow = GLWindow.create(caps);
+        final GLWindow glWindow = GLWindow.create(caps);
         Assert.assertNotNull(glWindow);
-        glWindow.setTitle("Gears NEWT Test");
+        glWindow.setTitle(getSimpleTestName("."));
         glWindow.setSize(width, height);
 
         final RedSquareES2 demo = new RedSquareES2(vsync ? 1 : -1);
         demo.setDoRotation(doRotate);
         glWindow.addGLEventListener(demo);
 
+        final SnapshotGLEventListener snap = new SnapshotGLEventListener();
+        snap.setPostSNDetail(demo.getClass().getSimpleName());
+        glWindow.addGLEventListener(snap);
+        
         Animator animator = new Animator(glWindow);
         QuitAdapter quitAdapter = new QuitAdapter();
 
@@ -87,18 +92,20 @@ public class TestRedSquareES2NEWT extends UITestCase {
         glWindow.addKeyListener(quitAdapter);
         glWindow.addWindowListener(quitAdapter);
 
-        final GLWindow f_glWindow = glWindow;
         glWindow.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
+            public void keyReleased(KeyEvent e) {
+                if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+                    return;
+                }            
                 if(e.getKeyChar()=='f') {
                     new Thread() {
                         public void run() {
-                            f_glWindow.setFullscreen(!f_glWindow.isFullscreen());
+                            glWindow.setFullscreen(!glWindow.isFullscreen());
                     } }.start();
                 } else if(e.getKeyChar()=='d') {
                     new Thread() {
                         public void run() {
-                            f_glWindow.setUndecorated(!f_glWindow.isUndecorated());
+                            glWindow.setUndecorated(!glWindow.isUndecorated());
                     } }.start();
                 }
             }
@@ -113,6 +120,7 @@ public class TestRedSquareES2NEWT extends UITestCase {
         System.err.println("window pos/siz: "+glWindow.getX()+"/"+glWindow.getY()+" "+glWindow.getWidth()+"x"+glWindow.getHeight()+", "+glWindow.getInsets());
         
         animator.setUpdateFPSFrames(60, System.err);
+        snap.setMakeSnapshot();
         
         while(!quitAdapter.shouldQuit() && animator.isAnimating() && animator.getTotalFPSDuration()<duration) {
             Thread.sleep(100);
@@ -165,9 +173,7 @@ public class TestRedSquareES2NEWT extends UITestCase {
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;
-                try {
-                    duration = Integer.parseInt(args[i]);
-                } catch (Exception ex) { ex.printStackTrace(); }
+                duration = MiscUtils.atol(args[i], duration);
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
             } else if(args[i].equals("-gl3")) {

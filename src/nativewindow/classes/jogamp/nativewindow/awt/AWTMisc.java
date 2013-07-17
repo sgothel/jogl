@@ -27,6 +27,7 @@
  */
 package jogamp.nativewindow.awt;
 
+import java.awt.FocusTraversalPolicy;
 import java.awt.Window;
 import java.awt.Component;
 import java.awt.Container;
@@ -68,6 +69,33 @@ public class AWTMisc {
         return (Container) c;
     }
 
+    /**
+     * Traverse to the next forward or backward component using the
+     * container's FocusTraversalPolicy.
+     * 
+     * @param comp the assumed current focuse component 
+     * @param forward if true, returns the next focus component, otherwise the previous one.
+     * @return
+     */
+    public static Component getNextFocus(Component comp, boolean forward) {
+        Container focusContainer = comp.getFocusCycleRootAncestor();
+        while ( focusContainer != null && 
+                ( !focusContainer.isShowing() || !focusContainer.isFocusable() || !focusContainer.isEnabled() ) )
+        {
+            comp = focusContainer;
+            focusContainer = comp.getFocusCycleRootAncestor();
+        }
+        Component next = null;
+        if (focusContainer != null) {
+            final FocusTraversalPolicy policy = focusContainer.getFocusTraversalPolicy();
+            next = forward ? policy.getComponentAfter(focusContainer, comp) : policy.getComponentBefore(focusContainer, comp);
+            if (next == null) {
+                next = policy.getDefaultComponent(focusContainer);
+            }
+        }
+        return next;
+    }
+    
     /**
      * Issue this when your non AWT toolkit gains focus to clear AWT menu path
      */

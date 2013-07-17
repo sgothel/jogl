@@ -38,6 +38,13 @@ export GLUEGEN_CPPTASKS_FILE="../../gluegen/make/lib/gluegen-cpptasks-linux-armv
 #export JUNIT_DISABLED="true"
 export JUNIT_RUN_ARG0="-Dnewt.test.Screen.disableScreenMode"
 
+export SOURCE_LEVEL=1.6
+export TARGET_LEVEL=1.6
+export TARGET_RT_JAR=/opt-share/jre1.6.0_30/lib/rt.jar
+
+#export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
+export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
+
 ant \
     -Drootrel.build=build-linux-armv6 \
     \
@@ -45,7 +52,5 @@ ant \
     -Dsetup.addNativeOpenMAX=true \
     -Dsetup.addNativeBroadcom=true \
     $* 2>&1 | tee make.jogl.all.linux-armv6-cross.log
-
-
 
 

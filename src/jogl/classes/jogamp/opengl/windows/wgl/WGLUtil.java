@@ -51,6 +51,7 @@ public class WGLUtil {
     public static final boolean USE_WGLVersion_Of_5WGLGDIFuncSet;
     
     static {
+        Debug.initSingleton();
         USE_WGLVersion_Of_5WGLGDIFuncSet = Debug.isPropertyDefined("jogl.windows.useWGLVersionOf5WGLGDIFuncSet", true);
         if(USE_WGLVersion_Of_5WGLGDIFuncSet) {
             System.err.println("Use WGL version of 5 WGL/GDI functions.");

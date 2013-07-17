@@ -599,7 +599,7 @@ typedef khronos_ssize_t  GLsizeiptr;
 /* Available only in Common profile */
 GL_API void GL_APIENTRY glAlphaFunc (GLenum func, GLclampf ref);
 GL_API void GL_APIENTRY glClearColor (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
-GL_API void GL_APIENTRY glClearDepthf (GLclampf depth);
+GL_API void GL_APIENTRY glClearDepthf (GLfloat depth);
 GL_API void GL_APIENTRY glClipPlanef (GLenum plane, const GLfloat *equation);
 GL_API void GL_APIENTRY glColor4f (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
 GL_API void GL_APIENTRY glDepthRangef (GLclampf zNear, GLclampf zFar);
@@ -608,7 +608,7 @@ GL_API void GL_APIENTRY glFogfv (GLenum pname, const GLfloat *params);
 GL_API void GL_APIENTRY glFrustumf (GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat zNear, GLfloat zFar);
 /* FIXME: GlueGen generates incorrect code for this one */
 /* GL_API void GL_APIENTRY glGetClipPlanef (GLenum pname, GLfloat eqn[4]); */
-GL_API void GL_APIENTRY glGetClipPlanef (GLenum pname, const GLfloat * eqn);
+GL_API void GL_APIENTRY glGetClipPlanef (GLenum pname, GLfloat *equation);
 GL_API void GL_APIENTRY glGetFloatv (GLenum pname, GLfloat *params);
 GL_API void GL_APIENTRY glGetLightfv (GLenum light, GLenum pname, GLfloat *params);
 GL_API void GL_APIENTRY glGetMaterialfv (GLenum face, GLenum pname, GLfloat *params);

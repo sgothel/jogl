@@ -48,6 +48,11 @@ public final boolean isGLES2() {
 }
 
 @Override
+public final boolean isGLES3() {
+    return false;
+}
+
+@Override
 public final boolean isGLES() {
     return true;
 }
@@ -63,7 +68,37 @@ public final boolean isGL2ES2() {
 }
 
 @Override
+public final boolean isGL3ES3() {
+    return false;
+}
+
+@Override
+public final boolean isGL4ES3() {
+    return false;
+}
+
+@Override
+public final boolean isGL4core() {
+    return false;
+}
+
+@Override
+public final boolean isGL3core() {
+    return false;
+}
+
+@Override
+public final boolean isGLcore() {
+    return false;
+}
+
+@Override
 public final boolean isGLES2Compatible() {
+    return false;
+}
+
+@Override
+public final boolean isGLES3Compatible() {
     return false;
 }
 
@@ -118,6 +153,11 @@ public final GLES2 getGLES2() throws GLException {
 }
 
 @Override
+public final GLES3 getGLES3() throws GLException {
+    throw new GLException("Not a GLES3 implementation");
+}
+
+@Override
 public final GL2ES1 getGL2ES1() throws GLException {
     return this;
 }
@@ -125,6 +165,16 @@ public final GL2ES1 getGL2ES1() throws GLException {
 @Override
 public final GL2ES2 getGL2ES2() throws GLException {
     throw new GLException("Not a GL2ES2 implementation");
+}
+
+@Override
+public final GL3ES3 getGL3ES3() throws GLException {
+    throw new GLException("Not a GL3ES3 implementation");
+}
+
+@Override
+public final GL4ES3 getGL4ES3() throws GLException {
+    throw new GLException("Not a GL4ES3 implementation");
 }
 
 @Override
@@ -206,48 +256,15 @@ private final boolean checkPackPBOEnabled(boolean throwException) {
     return false;
 }
 
-private final HashMap<MemoryObject, MemoryObject> arbMemCache = new HashMap<MemoryObject, MemoryObject>();
-
-/** Entry point to C language function: <br> <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
+/** Entry point to C language function: <code> void *  {@native glMapBuffer}(GLenum target, GLenum access); </code> <br>Part of <code>GL_VERSION_1_5</code>; <code>GL_OES_mapbuffer</code>   */
 public final java.nio.ByteBuffer glMapBuffer(int target, int access) {
-  final long __addr_ = ((GLES1ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer;
-  if (__addr_ == 0) {
-    throw new GLException("Method \"glMapBuffer\" not available");
-  }
-  final long sz = bufferSizeTracker.getBufferSize(bufferStateTracker, target, this);
-  if (0 == sz) {
-    return null;
-  }
-  final long addr = dispatch_glMapBuffer(target, access, __addr_);
-  if (0 == addr) {
-    return null;
-  }
-  ByteBuffer buffer;
-  MemoryObject memObj0 = new MemoryObject(addr, sz); // object and key
-  MemoryObject memObj1 = MemoryObject.getOrAddSafe(arbMemCache, memObj0);
-  if(memObj0 == memObj1) {
-    // just added ..
-    if(null != memObj0.getBuffer()) {
-        throw new InternalError();
-    }
-    buffer = newDirectByteBuffer(addr, sz);
-    Buffers.nativeOrder(buffer);
-    memObj0.setBuffer(buffer);
-  } else {
-    // already mapped
-    buffer = memObj1.getBuffer();
-    if(null == buffer) {
-        throw new InternalError();
-    }
-  }
-  buffer.position(0);
-  return buffer;
+  return glMapBufferImpl(target, false, 0, 0, access, ((GLES1ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer);
 }
 
-/** Encapsulates function pointer for OpenGL function <br>: <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
-native private long dispatch_glMapBuffer(int target, int access, long glProcAddress);
-
-native private ByteBuffer newDirectByteBuffer(long addr, long capacity);
+/** Entry point to C language function: <code> void *  {@native glMapBufferRange}(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access); </code> <br>Part of <code>GL_ES_VERSION_3_0</code>, <code>GL_VERSION_3_0</code>; <code>GL_EXT_map_buffer_range</code>   */
+public final ByteBuffer glMapBufferRange(int target, long offset, long length, int access)  {
+  return glMapBufferImpl(target, true, offset, length, access, ((GLES1ProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBufferRange);
+}
 
 @Override
 public final void glVertexPointer(GLArrayData array) {

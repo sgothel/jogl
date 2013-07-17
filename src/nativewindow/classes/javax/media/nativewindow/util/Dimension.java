@@ -85,6 +85,19 @@ public class Dimension implements Cloneable, DimensionImmutable {
     }
 
     @Override
+    public int compareTo(final DimensionImmutable d) {
+        final int tsq = width*height;
+        final int xsq = d.getWidth()*d.getHeight();
+        
+        if(tsq > xsq) {
+            return 1;
+        } else if(tsq < xsq) {
+            return -1;
+        }
+        return 0;
+    }
+    
+    @Override
     public boolean equals(Object obj) {
         if(this == obj)  { return true; }
         if (obj instanceof Dimension) {

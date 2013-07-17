@@ -176,15 +176,9 @@ void XCBEventPoll(JNIEnv *env, jobject obj, Display *dpy, jlong javaObjectAtom, 
                 #ifdef USE_SENDIO_DIRECT
                 (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_RELEASED, 
                                       modifiers, X11KeySym2NewtVKey(_evt->state), (jchar) keyChar);
-
-                (*env)->CallVoidMethod(env, jwindow, sendKeyEventID, (jint) EVENT_KEY_TYPED, 
-                                      modifiers, (jint) -1, (jchar) keyChar);
                 #else
                 (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_RELEASED, 
                                       modifiers, X11KeySym2NewtVKey(_evt->state), (jchar) keyChar);
-
-                (*env)->CallVoidMethod(env, jwindow, enqueueKeyEventID, JNI_FALSE, (jint) EVENT_KEY_TYPED, 
-                                      modifiers, (jint) -1, (jchar) keyChar);
                 #endif
 
                 } break;

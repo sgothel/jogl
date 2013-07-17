@@ -65,7 +65,6 @@ import com.jogamp.opengl.test.junit.util.*;
  * <ol>
  *   <li>{@link #EVENT_KEY_PRESSED}</li>
  *   <li>{@link #EVENT_KEY_RELEASED}</li>
- *   <li>{@link #EVENT_KEY_TYPED}</li>
  * </ol>
  * </p>
  */
@@ -95,7 +94,7 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
     public void releaseTest() {        
     }
     
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void test01NEWT() throws AWTException, InterruptedException, InvocationTargetException {
         GLWindow glWindow = GLWindow.create(glCaps);
         glWindow.setSize(width, height);
@@ -141,7 +140,7 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
         glWindow.destroy();
     }
     
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void test02NewtCanvasAWT_Onscreen() throws AWTException, InterruptedException, InvocationTargetException {
         if( JAWTUtil.isOffscreenLayerRequired() ) {
             System.err.println("Platform doesn't support onscreen rendering.");
@@ -150,7 +149,7 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
         testNewtCanvasAWT_Impl(true);
     }
         
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void test03NewtCanvasAWT_Offsccreen() throws AWTException, InterruptedException, InvocationTargetException {
         if( !JAWTUtil.isOffscreenLayerSupported() ) {
             System.err.println("Platform doesn't support offscreen rendering.");
@@ -164,26 +163,27 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
         keyAdapter.reset();
         for(int i=0; i<loops; i++) {
             // 1
+            AWTRobotUtil.waitForIdle(robot);
             AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_A, 10);
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_A, 100);
-            robot.waitForIdle();
             // 2
+            AWTRobotUtil.waitForIdle(robot);
             AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_B, 10);
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_B, 100);
-            robot.waitForIdle();
             // 3 + 4
+            AWTRobotUtil.waitForIdle(robot);
             AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_A, 10);
             AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_B, 10);
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_A, 10);
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_B, 10);
-            robot.waitForIdle();
             // 5 + 6
+            AWTRobotUtil.waitForIdle(robot);
             AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_A, 10);
             AWTRobotUtil.keyPress(0, robot, true, java.awt.event.KeyEvent.VK_B, 10);
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_B, 10);
             AWTRobotUtil.keyPress(0, robot, false, java.awt.event.KeyEvent.VK_A, 10);
-            robot.waitForIdle();            
         }
+        AWTRobotUtil.waitForIdle(robot);
         robot.delay(250);
         // dumpKeyEvents(keyAdapter.getQueued());
         
@@ -191,8 +191,8 @@ public class TestNewtKeyEventOrderAWT extends UITestCase {
         
         final int expTotal = 6*loops; // all typed events
         NEWTKeyUtil.validateKeyAdapterStats(keyAdapter, 
-                                            expTotal /* press-SI */, expTotal /* release-SI */, expTotal /* typed-SI */,
-                                            0 /* press-AR */, 0 /* release-AR */, 0 /* typed-AR */ );
+                                            expTotal /* press-SI */, expTotal /* release-SI */, 
+                                            0 /* press-AR */, 0 /* release-AR */ );
         
     }
         

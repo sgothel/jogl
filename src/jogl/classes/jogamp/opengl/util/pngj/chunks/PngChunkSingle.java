@@ -3,7 +3,8 @@ package jogamp.opengl.util.pngj.chunks;
 import jogamp.opengl.util.pngj.ImageInfo;
 
 /**
- * PNG chunk type (abstract) that does not allow multiple instances in same image.
+ * PNG chunk type (abstract) that does not allow multiple instances in same
+ * image.
  */
 public abstract class PngChunkSingle extends PngChunk {
 

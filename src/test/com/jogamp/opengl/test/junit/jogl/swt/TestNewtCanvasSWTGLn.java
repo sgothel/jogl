@@ -48,6 +48,8 @@ import org.junit.After;
 import org.junit.Test;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
+import com.jogamp.newt.NewtFactory;
+import com.jogamp.newt.Screen;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.swt.NewtCanvasSWT;
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
@@ -81,7 +83,8 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
     Display display = null;
     Shell shell = null;
     Composite composite = null;
-
+    com.jogamp.newt.Display swtNewtDisplay = null;
+    
     @BeforeClass
     public static void startup() {
         System.out.println( "GLProfile " + GLProfile.glAvailabilityToString() );
@@ -103,6 +106,7 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
                 composite.setLayout( new FillLayout() );
                 Assert.assertNotNull( composite );
             }});
+        swtNewtDisplay = NewtFactory.createDisplay(null, false); // no-reuse
     }
 
     @After
@@ -125,6 +129,7 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
+        swtNewtDisplay = null;
         display = null;
         shell = null;
         composite = null;
@@ -134,7 +139,8 @@ public class TestNewtCanvasSWTGLn extends UITestCase {
                                boolean postAttach, boolean useAnimator ) throws InterruptedException {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(false, false);
         
-        final GLWindow glWindow1 = GLWindow.create(caps);
+        final Screen screen = NewtFactory.createScreen(swtNewtDisplay, 0);
+        final GLWindow glWindow1 = GLWindow.create(screen, caps);
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());

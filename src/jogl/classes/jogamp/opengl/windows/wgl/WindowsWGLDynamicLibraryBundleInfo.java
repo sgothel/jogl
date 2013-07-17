@@ -31,13 +31,13 @@ package jogamp.opengl.windows.wgl;
 import jogamp.opengl.*;
 import java.util.*;
 
-public class WindowsWGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundleInfo  {
+public final class WindowsWGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundleInfo  {
     protected WindowsWGLDynamicLibraryBundleInfo() {
         super();
     }
 
     @Override
-    public List<List<String>> getToolLibNames() {
+    public final List<List<String>> getToolLibNames() {
         final List<List<String>> libsList = new ArrayList<List<String>>();
         final List<String> libsGL = new ArrayList<String>();
         libsGL.add("OpenGL32");

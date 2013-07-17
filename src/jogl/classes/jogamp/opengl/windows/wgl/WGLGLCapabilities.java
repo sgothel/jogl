@@ -80,7 +80,7 @@ public class WGLGLCapabilities extends GLCapabilities {
     
   public static final String PFD2String(PIXELFORMATDESCRIPTOR pfd, int pfdID) {
       final int dwFlags = pfd.getDwFlags();
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       boolean sep = false;
       
       if( 0 != (GDI.PFD_DRAW_TO_WINDOW & dwFlags ) ) {

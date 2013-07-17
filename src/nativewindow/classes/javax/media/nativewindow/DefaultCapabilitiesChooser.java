@@ -66,8 +66,13 @@ import jogamp.nativewindow.Debug;
 */
 
 public class DefaultCapabilitiesChooser implements CapabilitiesChooser {
-  private static final boolean DEBUG = Debug.isPropertyDefined("nativewindow.debug.CapabilitiesChooser", true); 
+  private static final boolean DEBUG; 
 
+  static {
+      Debug.initSingleton();
+      DEBUG = Debug.isPropertyDefined("nativewindow.debug.CapabilitiesChooser", true);
+  }
+  
   private final static int NO_SCORE = -9999999;
   private final static int COLOR_MISMATCH_PENALTY_SCALE     = 36;
   

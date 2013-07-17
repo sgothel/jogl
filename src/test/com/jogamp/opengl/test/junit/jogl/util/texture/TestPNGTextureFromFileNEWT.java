@@ -150,8 +150,8 @@ public class TestPNGTextureFromFileNEWT extends UITestCase {
     public void testImpl(boolean useFFP, final InputStream istream) throws InterruptedException, IOException {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
         GLProfile glp;
-        if(useFFP && GLProfile.isAvailable(GLProfile.GL2GL3)) {
-            glp = GLProfile.getGL2GL3();
+        if(useFFP && GLProfile.isAvailable(GLProfile.GL2)) {
+            glp = GLProfile.getMaxFixedFunc(true);
         } else if(!useFFP && GLProfile.isAvailable(GLProfile.GL2ES2)) {
             glp = GLProfile.getGL2ES2();
         } else {

@@ -184,6 +184,7 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
     }
     
     protected void runJOGLTasks(int num, boolean reuse) throws InterruptedException {
+        System.err.println("InitConcurrentBaseNEWT "+num+" threads, reuse display: "+reuse);
         final String currentThreadName = Thread.currentThread().getName();
         final Object syncDone = new Object();
         final JOGLTask[] tasks = new JOGLTask[num];
@@ -198,13 +199,16 @@ public abstract class InitConcurrentBaseNEWT extends UITestCase {
         for(i=0; i<num; i++) {
             threads[i].start();
         }
+        i=0;
         synchronized (syncDone) {
             while(!done(tasks)) {
                 try {
-                    syncDone.wait();
+                    syncDone.wait(500);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
+                System.err.println(i+": "+doneDump(tasks));
+                i++;
             }
         }
         final long t1 = System.currentTimeMillis();

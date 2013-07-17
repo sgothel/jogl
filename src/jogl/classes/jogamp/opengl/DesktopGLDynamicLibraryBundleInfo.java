@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 public abstract class DesktopGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundleInfo {
-    private static List<String> glueLibNames;
+    private static final List<String> glueLibNames;
     static {
         glueLibNames = new ArrayList<String>();
 
@@ -49,7 +49,7 @@ public abstract class DesktopGLDynamicLibraryBundleInfo extends GLDynamicLibrary
     }
     
     @Override
-    public boolean useToolGetProcAdressFirst(String funcName) {
+    public final boolean useToolGetProcAdressFirst(String funcName) {
         return true;
     }
     

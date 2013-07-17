@@ -438,6 +438,7 @@
                   <include name="${java.dir.junit}/**/newt/**/Test*AWT*"/>
                   <!--include name="${java.dir.junit}/**/newt/**/TestNewtEventModifiers*AWT*"/-->
                   <!--include name="${java.dir.junit}/**/acore/glels/Test**"/-->
+                  <exclude name="**/*SWT*"/>
                   <exclude name="**/*$$*"/>
               </fileset>
               <formatter usefile="false" type="brief"/>
@@ -476,6 +477,44 @@
             <batchtest todir="${results.test}">
               <fileset dir="${classes}">
                   <include name="${java.dir.junit}/**/newt/event/Test**"/>
+                  <exclude name="**/*$$*"/>
+              </fileset>
+              <formatter usefile="false" type="brief"/>
+              <formatter usefile="true" type="xml"/>
+            </batchtest>
+        </junit>
+    </target>
+
+    <target name="junit.run.newt.monitormode" depends="test.compile">
+        <!-- Test*AWT* -->
+        <junit jvm="${jvmJava.exe}" forkmode="perTest" showoutput="true" fork="true" haltonerror="off" timeout="${batchtest.timeout}">
+            <env key="${system.env.library.path}" path="${obj.all.paths}"/>
+            <jvmarg value="${junit.run.arg0}"/>
+            <jvmarg value="${junit.run.arg1}"/>
+            <jvmarg value="${jvmDataModel.arg}"/>
+            <jvmarg value="-Djava.library.path=${obj.all.paths}"/>
+
+            <!--
+            <jvmarg value="-Dnewt.debug.EDT"/>
+            <jvmarg value="-Djogl.debug=all"/>
+            <jvmarg value="-Dgluegen.debug.NativeLibrary=true"/>
+            <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
+            <jvmarg value="-Djogl.debug.GLSLState"/>
+            <jvmarg value="-Dnativewindow.debug=all"/>
+            <jvmarg value="-Dnewt.debug=all"/>
+            <jvmarg value="-verbose:jni"/> 
+            <jvmarg value="-client"/>
+            <jvmarg value="-d32"/>
+            -->
+
+            <formatter usefile="false" type="plain"/>
+            <formatter usefile="true" type="xml"/>
+            <!--classpath refid="junit_jogl_awt.run.classpath"/-->
+            <classpath refid="junit_jogl_swt.run.classpath"/>
+
+            <batchtest todir="${results.test}">
+              <fileset dir="${classes}">
+                  <include name="${java.dir.junit}/**/newt/mm/Test**"/>
                   <exclude name="**/*$$*"/>
               </fileset>
               <formatter usefile="false" type="brief"/>

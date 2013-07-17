@@ -73,8 +73,8 @@ public class GLDebugMessage {
         // AMD category == ARB source/type
         switch(amdDbgCategory) {
             case GL2GL3.GL_DEBUG_CATEGORY_API_ERROR_AMD: 
-                dbgSource = GL2GL3.GL_DEBUG_SOURCE_API_ARB;
-                dbgType = GL2GL3.GL_DEBUG_TYPE_ERROR_ARB; 
+                dbgSource = GL2GL3.GL_DEBUG_SOURCE_API;
+                dbgType = GL2GL3.GL_DEBUG_TYPE_ERROR; 
                 break;
 
             //
@@ -82,18 +82,18 @@ public class GLDebugMessage {
             //
                 
             case GL2GL3.GL_DEBUG_CATEGORY_WINDOW_SYSTEM_AMD: 
-                dbgSource = GL2GL3.GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB;
-                dbgType = GL2GL3.GL_DEBUG_TYPE_OTHER_ARB; 
+                dbgSource = GL2GL3.GL_DEBUG_SOURCE_WINDOW_SYSTEM;
+                dbgType = GL2GL3.GL_DEBUG_TYPE_OTHER; 
                 break;
                 
             case GL2GL3.GL_DEBUG_CATEGORY_SHADER_COMPILER_AMD:
-                dbgSource = GL2GL3.GL_DEBUG_SOURCE_SHADER_COMPILER_ARB;
-                dbgType = GL2GL3.GL_DEBUG_TYPE_OTHER_ARB; 
+                dbgSource = GL2GL3.GL_DEBUG_SOURCE_SHADER_COMPILER;
+                dbgType = GL2GL3.GL_DEBUG_TYPE_OTHER; 
                 break;
                 
             case GL2GL3.GL_DEBUG_CATEGORY_APPLICATION_AMD:
-                dbgSource = GL2GL3.GL_DEBUG_SOURCE_APPLICATION_ARB;
-                dbgType = GL2GL3.GL_DEBUG_TYPE_OTHER_ARB;
+                dbgSource = GL2GL3.GL_DEBUG_SOURCE_APPLICATION;
+                dbgType = GL2GL3.GL_DEBUG_TYPE_OTHER;
                 break;
                 
                 
@@ -102,24 +102,24 @@ public class GLDebugMessage {
             //
                 
             case GL2GL3.GL_DEBUG_CATEGORY_DEPRECATION_AMD:
-                dbgSource = GL2GL3.GL_DEBUG_SOURCE_OTHER_ARB;
-                dbgType = GL2GL3.GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB; 
+                dbgSource = GL2GL3.GL_DEBUG_SOURCE_OTHER;
+                dbgType = GL2GL3.GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR; 
                 break;
                 
             case GL2GL3.GL_DEBUG_CATEGORY_UNDEFINED_BEHAVIOR_AMD:
-                dbgSource = GL2GL3.GL_DEBUG_SOURCE_OTHER_ARB;
-                dbgType = GL2GL3.GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB; 
+                dbgSource = GL2GL3.GL_DEBUG_SOURCE_OTHER;
+                dbgType = GL2GL3.GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR; 
                 break;
                 
             case GL2GL3.GL_DEBUG_CATEGORY_PERFORMANCE_AMD:
-                dbgSource = GL2GL3.GL_DEBUG_SOURCE_OTHER_ARB;
-                dbgType = GL2GL3.GL_DEBUG_TYPE_PERFORMANCE_ARB; 
+                dbgSource = GL2GL3.GL_DEBUG_SOURCE_OTHER;
+                dbgType = GL2GL3.GL_DEBUG_TYPE_PERFORMANCE; 
                 break;
                 
             case GL2GL3.GL_DEBUG_CATEGORY_OTHER_AMD: 
             default:
-                dbgSource = GL2GL3.GL_DEBUG_SOURCE_OTHER_ARB;
-                dbgType = GL2GL3.GL_DEBUG_TYPE_OTHER_ARB;
+                dbgSource = GL2GL3.GL_DEBUG_SOURCE_OTHER;
+                dbgType = GL2GL3.GL_DEBUG_TYPE_OTHER;
         }
         
         return new GLDebugMessage(source, when, dbgSource, dbgType, dbgId, dbgSeverity, dbgMsg);        
@@ -127,24 +127,24 @@ public class GLDebugMessage {
 
     public static int translateARB2AMDCategory(int dbgSource, int dbgType) {
         switch (dbgSource) {
-            case GL2GL3.GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB:
+            case GL2GL3.GL_DEBUG_SOURCE_WINDOW_SYSTEM:
                 return GL2GL3.GL_DEBUG_CATEGORY_WINDOW_SYSTEM_AMD; 
                 
-            case GL2GL3.GL_DEBUG_SOURCE_SHADER_COMPILER_ARB:
+            case GL2GL3.GL_DEBUG_SOURCE_SHADER_COMPILER:
                 return GL2GL3.GL_DEBUG_CATEGORY_SHADER_COMPILER_AMD;
                 
-            case GL2GL3.GL_DEBUG_SOURCE_APPLICATION_ARB:
+            case GL2GL3.GL_DEBUG_SOURCE_APPLICATION:
                 return GL2GL3.GL_DEBUG_CATEGORY_APPLICATION_AMD;
         }
         
         switch(dbgType) {
-            case GL2GL3.GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB:
+            case GL2GL3.GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
                 return GL2GL3.GL_DEBUG_CATEGORY_DEPRECATION_AMD;
                 
-            case GL2GL3.GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB:
+            case GL2GL3.GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
                 return GL2GL3.GL_DEBUG_CATEGORY_UNDEFINED_BEHAVIOR_AMD;
                 
-            case GL2GL3.GL_DEBUG_TYPE_PERFORMANCE_ARB: 
+            case GL2GL3.GL_DEBUG_TYPE_PERFORMANCE: 
                 return GL2GL3.GL_DEBUG_CATEGORY_PERFORMANCE_AMD;
         }
                 
@@ -204,33 +204,33 @@ public class GLDebugMessage {
         
     public static String getDbgSourceString(int dbgSource) {
         switch(dbgSource) {
-            case GL2GL3.GL_DEBUG_SOURCE_API_ARB: return "GL API";
-            case GL2GL3.GL_DEBUG_SOURCE_SHADER_COMPILER_ARB: return "GLSL or extension compiler";                                          
-            case GL2GL3.GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB: return "Native Windowing binding";                                          
-            case GL2GL3.GL_DEBUG_SOURCE_THIRD_PARTY_ARB: return "Third party";
-            case GL2GL3.GL_DEBUG_SOURCE_APPLICATION_ARB: return "Application";
-            case GL2GL3.GL_DEBUG_SOURCE_OTHER_ARB: return "generic";
+            case GL2GL3.GL_DEBUG_SOURCE_API: return "GL API";
+            case GL2GL3.GL_DEBUG_SOURCE_SHADER_COMPILER: return "GLSL or extension compiler";                                          
+            case GL2GL3.GL_DEBUG_SOURCE_WINDOW_SYSTEM: return "Native Windowing binding";                                          
+            case GL2GL3.GL_DEBUG_SOURCE_THIRD_PARTY: return "Third party";
+            case GL2GL3.GL_DEBUG_SOURCE_APPLICATION: return "Application";
+            case GL2GL3.GL_DEBUG_SOURCE_OTHER: return "generic";
             default: return "Unknown (" + toHexString(dbgSource) + ")";
         }
     }
     
     public static String getDbgTypeString(int dbgType) {
         switch(dbgType) {
-            case GL2GL3.GL_DEBUG_TYPE_ERROR_ARB: return "Error";
-            case GL2GL3.GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB: return "Warning: marked for deprecation";                                            
-            case GL2GL3.GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB: return "Warning: undefined behavior";
-            case GL2GL3.GL_DEBUG_TYPE_PERFORMANCE_ARB: return "Warning: implementation dependent performance";   
-            case GL2GL3.GL_DEBUG_TYPE_PORTABILITY_ARB: return "Warning: vendor-specific extension use";   
-            case GL2GL3.GL_DEBUG_TYPE_OTHER_ARB: return "Warning: generic";            
+            case GL2GL3.GL_DEBUG_TYPE_ERROR: return "Error";
+            case GL2GL3.GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: return "Warning: marked for deprecation";                                            
+            case GL2GL3.GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: return "Warning: undefined behavior";
+            case GL2GL3.GL_DEBUG_TYPE_PERFORMANCE: return "Warning: implementation dependent performance";   
+            case GL2GL3.GL_DEBUG_TYPE_PORTABILITY: return "Warning: vendor-specific extension use";   
+            case GL2GL3.GL_DEBUG_TYPE_OTHER: return "Warning: generic";            
             default: return "Unknown (" + toHexString(dbgType) + ")";
         }
     }
     
     public static String getDbgSeverityString(int dbgSeverity) {
         switch(dbgSeverity) {
-            case GL2GL3.GL_DEBUG_SEVERITY_HIGH_ARB: return "High: dangerous undefined behavior";                                          
-            case GL2GL3.GL_DEBUG_SEVERITY_MEDIUM_ARB: return "Medium: Severe performance/deprecation/other warnings";    
-            case GL2GL3.GL_DEBUG_SEVERITY_LOW_ARB: return "Low: Performance warnings (redundancy/undefined)";        
+            case GL2GL3.GL_DEBUG_SEVERITY_HIGH: return "High: dangerous undefined behavior";                                          
+            case GL2GL3.GL_DEBUG_SEVERITY_MEDIUM: return "Medium: Severe performance/deprecation/other warnings";    
+            case GL2GL3.GL_DEBUG_SEVERITY_LOW: return "Low: Performance warnings (redundancy/undefined)";        
             default: return "Unknown (" + toHexString(dbgSeverity) + ")";
         }
     }

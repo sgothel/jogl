@@ -33,13 +33,23 @@ import java.net.URLConnection;
 
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.common.util.SecurityUtil;
 
 import jogamp.graph.font.FontConstructor;
 import jogamp.graph.font.JavaFontLoader;
 import jogamp.graph.font.UbuntuFontLoader;
 
+/**
+ * The optional property <i>jogamp.graph.font.ctor</i>
+ * allows user to specify the {@link FontConstructor} implementation.
+ * <p>
+ * Default {@link FontConstructor} is {@link jogamp.graph.font.typecast.TypecastFontConstructor},
+ * i.e. using our internal <i>typecast</i> branch.
+ * </p>
+ */
 public class FontFactory {
+    private static final String FontConstructorPropKey = "jogamp.graph.font.ctor";
+    private static final String DefaultFontConstructor = "jogamp.graph.font.typecast.TypecastFontConstructor";
+    
     /** Ubuntu is the default font family */
     public static final int UBUNTU = 0;
     
@@ -54,9 +64,9 @@ public class FontFactory {
          *   "jogamp.graph.font.typecast.TypecastFontFactory" (default)
          *   "jogamp.graph.font.ttf.TTFFontImpl"
          */        
-        String fontImplName = PropertyAccess.getProperty("FontImpl", true, SecurityUtil.getCommonAccessControlContext(FontFactory.class));
+        String fontImplName = PropertyAccess.getProperty(FontConstructorPropKey, true);
         if(null == fontImplName) {
-            fontImplName = "jogamp.graph.font.typecast.TypecastFontConstructor";
+            fontImplName = DefaultFontConstructor;
         }
         fontConstr = (FontConstructor) ReflectionUtil.createInstance(fontImplName, FontFactory.class.getClassLoader());
     }
@@ -83,10 +93,13 @@ public class FontFactory {
     }    
     
     public static boolean isPrintableChar( char c ) {
-        Character.UnicodeBlock block = Character.UnicodeBlock.of( c );
-        return (!Character.isISOControl(c)) &&
-                c != 0 &&
-                block != null &&
-                block != Character.UnicodeBlock.SPECIALS;
+        if( Character.isWhitespace(c) ) {
+            return true;
+        }
+        if( 0 == c || Character.isISOControl(c) ) {
+            return false;
+        }
+        final Character.UnicodeBlock block = Character.UnicodeBlock.of( c );
+        return block != null && block != Character.UnicodeBlock.SPECIALS;
     }    
 }

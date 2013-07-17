@@ -19,6 +19,9 @@
     <import file="${gluegen.root}/make/jogamp-androidtasks.xml" />
     <import file="${gluegen.root}/make/jogamp-env.xml" />
 
+    <!-- Add JOAL (optional) -->
+    <property name="joal.root" value="../../joal" />
+
     <property name="ant-contrib.jar"  value="${gluegen.root}/make/lib/ant-contrib-1.0b3.jar" />
 
     <condition property="rootrel.build" value="build">
@@ -201,6 +204,8 @@
         <property name="gluegen.jar"                value="${build.gluegen}/gluegen.jar" />
         <property name="ant.jar"                    value="${ant.home}/lib/ant.jar" />
         <property name="ant-junit.jar"              value="${ant.home}/lib/ant-junit.jar" />
+
+        <property name="build.joal"                 value="${joal.root}/${rootrel.build}" /> <!-- optional -->
 
         <property name="nativewindow.make"          value="." />
         <property name="nativewindow.build.xml"     value="${nativewindow.make}/build-nativewindow.xml" />
@@ -414,6 +419,13 @@
         <property name="jogl-all-android.jar"           value="${jar}/jogl-all-android.jar" />
         <property name="jogl-all-android.apk"           value="${jar}/jogl-all-android-${android.abi}.apk" />
 
+        <!-- JavaSE combinations . JOAL (optional) -->
+        <property name="joal.jar"                       value="${build.joal}/joal.jar" />
+        <condition property="joal-jars.available">
+            <available file="${joal.jar}"/>
+        </condition>
+        <echo message="joal-jars.available: ${joal-jars.available} ${joal.jar}" />
+
         <!-- NativeWindow Compilation .. -->
         <path id="swt_gluegen.classpath">
             <pathelement location="${gluegen-rt.jar}" />
@@ -424,6 +436,13 @@
         <path id="nativewindow_gluegen.classpath">
             <pathelement location="${gluegen-rt.jar}" />
             <pathelement location="${swt.jar}" />
+            <path refid="nativewindow_all_atoms.classpath" />
+        </path>
+
+        <path id="nativewindow_gluegen_joal.classpath">
+            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${swt.jar}" />
+            <pathelement location="${joal.jar}" />
             <path refid="nativewindow_all_atoms.classpath" />
         </path>
 

@@ -74,8 +74,9 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
   
   /**
    * @param capsChosen if null, <code>capsRequested</code> is copied and aligned 
-   *        with the graphics Capabilities of the AWT Component to produce the chosen Capabilities.
+   *        with the graphics {@link Capabilities} of the AWT Component to produce the chosen {@link Capabilities}.
    *        Otherwise the <code>capsChosen</code> is used.
+   * @param capsRequested if null, default {@link Capabilities} are used, otherwise the given values.
    */
   public static AWTGraphicsConfiguration create(Component awtComp, CapabilitiesImmutable capsChosen, CapabilitiesImmutable capsRequested) {
       final GraphicsConfiguration awtGfxConfig = awtComp.getGraphicsConfiguration();
@@ -91,6 +92,9 @@ public class AWTGraphicsConfiguration extends DefaultGraphicsConfiguration imple
       final AWTGraphicsDevice awtDevice = new AWTGraphicsDevice(awtGraphicsDevice, AbstractGraphicsDevice.DEFAULT_UNIT);
       final AWTGraphicsScreen awtScreen = new AWTGraphicsScreen(awtDevice);
 
+      if(null==capsRequested) {
+          capsRequested = new Capabilities();
+      }
       if(null==capsChosen) {
           GraphicsConfiguration gc = awtGraphicsDevice.getDefaultConfiguration();
           capsChosen = AWTGraphicsConfiguration.setupCapabilitiesRGBABits(capsRequested, gc);

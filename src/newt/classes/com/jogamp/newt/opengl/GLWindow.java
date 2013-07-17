@@ -34,6 +34,8 @@
 
 package com.jogamp.newt.opengl;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsConfiguration;
@@ -47,6 +49,8 @@ import javax.media.nativewindow.util.InsetsImmutable;
 import javax.media.nativewindow.util.Point;
 import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL3;
+import javax.media.opengl.GL4ES3;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
@@ -54,6 +58,8 @@ import javax.media.opengl.GLCapabilitiesImmutable;
 import javax.media.opengl.GLContext;
 import javax.media.opengl.GLDrawable;
 import javax.media.opengl.GLDrawableFactory;
+import javax.media.opengl.GLES2;
+import javax.media.opengl.GLES3;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLException;
 import javax.media.opengl.GLProfile;
@@ -79,10 +85,15 @@ import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.event.WindowListener;
 import com.jogamp.newt.event.WindowUpdateEvent;
 import com.jogamp.opengl.JoglVersion;
+import com.jogamp.opengl.GLStateKeeper;
 
 /**
  * An implementation of {@link GLAutoDrawable} and {@link Window} interface,
  * using a delegated {@link Window} instance, which may be an aggregation (lifecycle: created and destroyed).
+ * <P>
+ * This implementation supports {@link GLStateKeeper GL state preservation},
+ * hence {@link #isGLStatePreservationSupported()} returns <code>true</code>.
+ * </P>
  * <P>
  * This implementation does not make the OpenGL context current<br>
  * before calling the various input EventListener callbacks, ie {@link com.jogamp.newt.event.MouseListener} etc.<br>
@@ -433,8 +444,8 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
     protected class GLLifecycleHook implements WindowImpl.LifecycleHook {
 
         @Override
-        public void preserveGLStateAtDestroy() {
-            GLWindow.this.preserveGLStateAtDestroy(true);
+        public void preserveGLStateAtDestroy(boolean value) {
+            GLWindow.this.preserveGLStateAtDestroy(value);
         }
         
         @Override
@@ -524,6 +535,29 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 savedAnimator.resume();
             }
         }
+        
+        @SuppressWarnings("deprecation")
+        @Override
+        public void shutdownRenderingAction() {
+            final GLAnimatorControl anim = GLWindow.this.getAnimator();
+            if ( null != anim && anim.isAnimating() ) {
+                final Thread animThread = anim.getThread();
+                if( animThread == Thread.currentThread() ) {
+                    anim.stop(); // on anim thread, non-blocking
+                } else {
+                    AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                        public Object run() {
+                            if( anim.isAnimating() && null != animThread ) {
+                                try {
+                                    animThread.stop();
+                                } catch(Throwable t) {
+                                }
+                            }
+                            return null;
+                        } } );
+                }
+            }
+        }
     }
 
     //----------------------------------------------------------------------
@@ -579,6 +613,12 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
         }
     }
     
+    /**
+     * {@inheritDoc}
+     * <p>
+     * GLWindow supports GL state preservation, hence returns <code>true</code>.
+     * </p>
+     */
     @Override
     public final boolean isGLStatePreservationSupported() { return true; }
 
@@ -794,14 +834,58 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
      * A most simple JOGL AWT test entry
      */
     public static void main(String args[]) {
+        final boolean forceES2;
+        final boolean forceES3;
+        final boolean forceGL3;
+        final boolean forceGL4ES3;
+        {
+            boolean _forceES2 = false;
+            boolean _forceES3 = false;
+            boolean _forceGL3 = false;
+            boolean _forceGL4ES3 = false;
+            if( null != args ) {
+                for(int i=0; i<args.length; i++) {
+                    if(args[i].equals("-es2")) {
+                        _forceES2 = true;
+                    } else if(args[i].equals("-es3")) {
+                        _forceES3 = true;
+                    } else if(args[i].equals("-gl3")) {
+                        _forceGL3 = true;
+                    } else if(args[i].equals("-gl4es3")) {
+                        _forceGL4ES3 = true;
+                    }            
+                }
+            }
+            forceES2 = _forceES2;
+            forceES3 = _forceES3;
+            forceGL3 = _forceGL3;
+            forceGL4ES3 = _forceGL4ES3;
+        }
+        System.err.println("forceES2    "+forceES2);
+        System.err.println("forceES3    "+forceES3);
+        System.err.println("forceGL3    "+forceGL3);
+        System.err.println("forceGL4ES3 "+forceGL4ES3);
+        
         System.err.println(VersionUtil.getPlatformInfo());
         System.err.println(GlueGenVersion.getInstance());
         System.err.println(JoglVersion.getInstance());
 
         System.err.println(JoglVersion.getDefaultOpenGLInfo(null, null, true).toString());
 
-        final GLProfile glp = GLProfile.getDefault();
+        final GLProfile glp;
+        if(forceGL4ES3) {
+            glp = GLProfile.get(GLProfile.GL4ES3);
+        } else if(forceGL3) {
+            glp = GLProfile.get(GLProfile.GL3);
+        } else if(forceES3) {
+            glp = GLProfile.get(GLProfile.GLES3);
+        } else if(forceES2) {
+            glp = GLProfile.get(GLProfile.GLES2);
+        } else {
+            glp = GLProfile.getDefault();
+        }
         final GLCapabilitiesImmutable caps = new GLCapabilities( glp );
+        System.err.println("Requesting: "+caps);
 
         GLWindow glWindow = GLWindow.create(caps);
         glWindow.setSize(128, 128);
@@ -813,6 +897,23 @@ public class GLWindow extends GLAutoDrawableBase implements GLAutoDrawable, Wind
                 System.err.println(JoglVersion.getGLInfo(gl, null));
                 System.err.println("Requested: "+drawable.getNativeSurface().getGraphicsConfiguration().getRequestedCapabilities());
                 System.err.println("Chosen   : "+drawable.getChosenGLCapabilities());
+                System.err.println("GL impl. class "+gl.getClass().getName());
+                if( gl.isGL4ES3() ) {
+                    GL4ES3 _gl = gl.getGL4ES3();
+                    System.err.println("GL4ES3 retrieved, impl. class "+_gl.getClass().getName());
+                }
+                if( gl.isGL3() ) {
+                    GL3 _gl = gl.getGL3();
+                    System.err.println("GL3 retrieved, impl. class "+_gl.getClass().getName());
+                }
+                if( gl.isGLES3() ) {
+                    GLES3 _gl = gl.getGLES3();
+                    System.err.println("GLES3 retrieved, impl. class "+_gl.getClass().getName());
+                }
+                if( gl.isGLES2() ) {
+                    GLES2 _gl = gl.getGLES2();
+                    System.err.println("GLES2 retrieved, impl. class "+_gl.getClass().getName());
+                }
             }
 
             @Override

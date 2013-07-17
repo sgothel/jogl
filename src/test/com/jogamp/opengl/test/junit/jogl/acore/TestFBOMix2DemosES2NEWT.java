@@ -152,7 +152,10 @@ public class TestFBOMix2DemosES2NEWT extends UITestCase {
         });
         
         glWindow.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
+            public void keyReleased(KeyEvent e) {
+                if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+                    return;
+                }            
                 System.err.println("*** "+e);
                 if(e.getKeyChar()=='f') {
                     new Thread() {

@@ -3,7 +3,8 @@ package jogamp.opengl.util.pngj;
 /**
  * Simple immutable wrapper for basic image info.
  * <p>
- * Some parameters are redundant, but the constructor receives an 'orthogonal' subset.
+ * Some parameters are redundant, but the constructor receives an 'orthogonal'
+ * subset.
  * <p>
  * ref: http://www.w3.org/TR/PNG/#11IHDR
  */
@@ -23,14 +24,15 @@ public class ImageInfo {
 	public final int rows;
 
 	/**
-	 * Bits per sample (per channel) in the buffer (1-2-4-8-16). This is 8-16 for RGB/ARGB images, 1-2-4-8 for
-	 * grayscale. For indexed images, number of bits per palette index (1-2-4-8)
+	 * Bits per sample (per channel) in the buffer (1-2-4-8-16). This is 8-16
+	 * for RGB/ARGB images, 1-2-4-8 for grayscale. For indexed images, number of
+	 * bits per palette index (1-2-4-8)
 	 */
 	public final int bitDepth;
 
 	/**
-	 * Number of channels, as used internally: 3 for RGB, 4 for RGBA, 2 for GA (gray with alpha), 1 for grayscale or
-	 * indexed.
+	 * Number of channels, as used internally: 3 for RGB, 4 for RGBA, 2 for GA
+	 * (gray with alpha), 1 for grayscale or indexed.
 	 */
 	public final int channels;
 
@@ -50,7 +52,8 @@ public class ImageInfo {
 	public final boolean indexed;
 
 	/**
-	 * Flag: true if image internally uses less than one byte per sample (bit depth 1-2-4)
+	 * Flag: true if image internally uses less than one byte per sample (bit
+	 * depth 1-2-4)
 	 */
 	public final boolean packed;
 
@@ -75,10 +78,12 @@ public class ImageInfo {
 	public final int samplesPerRow;
 
 	/**
-	 * Amount of "packed samples" : when several samples are stored in a single byte (bitdepth 1,2 4) they are counted
-	 * as one "packed sample". This is less that samplesPerRow only when bitdepth is 1-2-4 (flag packed = true)
+	 * Amount of "packed samples" : when several samples are stored in a single
+	 * byte (bitdepth 1,2 4) they are counted as one "packed sample". This is
+	 * less that samplesPerRow only when bitdepth is 1-2-4 (flag packed = true)
 	 * <p>
-	 * This equals the number of elements in the scanline array if working with packedMode=true
+	 * This equals the number of elements in the scanline array if working with
+	 * packedMode=true
 	 * <p>
 	 * For internal use, client code should rarely access this.
 	 */
@@ -99,7 +104,8 @@ public class ImageInfo {
 	 * @param rows
 	 *            Height in pixels
 	 * @param bitdepth
-	 *            Bits per sample, in the buffer : 8-16 for RGB true color and greyscale
+	 *            Bits per sample, in the buffer : 8-16 for RGB true color and
+	 *            greyscale
 	 * @param alpha
 	 *            Flag: has an alpha channel (RGBA or GA)
 	 * @param grayscale

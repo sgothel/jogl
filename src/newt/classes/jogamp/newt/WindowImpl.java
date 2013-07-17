@@ -36,6 +36,7 @@ package jogamp.newt;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 
 import com.jogamp.common.util.IntBitfield;
@@ -80,7 +81,52 @@ import jogamp.nativewindow.SurfaceUpdatedHelper;
 
 public abstract class WindowImpl implements Window, NEWTEventConsumer
 {
-    public static final boolean DEBUG_TEST_REPARENT_INCOMPATIBLE = Debug.isPropertyDefined("newt.test.Window.reparent.incompatible", true);
+    public static final boolean DEBUG_TEST_REPARENT_INCOMPATIBLE;
+    
+    static {
+        Debug.initSingleton();
+        DEBUG_TEST_REPARENT_INCOMPATIBLE = Debug.isPropertyDefined("newt.test.Window.reparent.incompatible", true);
+        
+        ScreenImpl.initSingleton();
+    }
+    
+    protected static final ArrayList<WeakReference<WindowImpl>> windowList = new ArrayList<WeakReference<WindowImpl>>();    
+            
+    /** Maybe utilized at a shutdown hook, impl. does not block. */
+    public static final void shutdownAll() {
+        final int wCount = windowList.size(); 
+        if(DEBUG_IMPLEMENTATION) {
+            System.err.println("Window.shutdownAll "+wCount+" instances, on thread "+getThreadName());
+        }
+        for(int i=0; i<wCount && windowList.size()>0; i++) { // be safe ..
+            final WindowImpl w = windowList.remove(0).get();
+            if(DEBUG_IMPLEMENTATION) {
+                final long wh = null != w ? w.getWindowHandle() : 0;
+                System.err.println("Window.shutdownAll["+(i+1)+"/"+wCount+"]: "+toHexString(wh)+", GCed "+(null==w));
+            }
+            if( null != w ) {
+                w.shutdown();
+            }
+        }
+    }
+    private static void addWindow2List(WindowImpl window) {
+        synchronized(windowList) {
+            // GC before add
+            int i=0, gced=0;
+            while( i < windowList.size() ) {
+                if( null == windowList.get(i).get() ) {
+                    gced++;
+                    windowList.remove(i);
+                } else {
+                    i++;
+                }
+            }
+            windowList.add(new WeakReference<WindowImpl>(window));
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("Window.addWindow2List: GCed "+gced+", size "+windowList.size());
+            }
+        }
+    }
     
     /** Timeout of queued events (repaint and resize) */
     static final long QUEUED_EVENT_TO = 1200; // ms    
@@ -108,6 +154,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     private boolean fullscreen = false, brokenFocusChange = false;
     private List<MonitorDevice> fullscreenMonitors = null;
     private boolean fullscreenUseMainMonitor = true;
+    private boolean fullscreenUseSpanningMode = true; // spanning mode: fake full screen, only on certain platforms
     private boolean autoPosition = true; // default: true (allow WM to choose top-level position, if not set by user)
     
     private int nfs_width, nfs_height, nfs_x, nfs_y; // non fullscreen client-area size/pos w/o insets
@@ -186,6 +233,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             window.screen = (ScreenImpl) screen;
             window.capsRequested = (CapabilitiesImmutable) caps.cloneMutable();
             window.instantiationFinished();
+            addWindow2List(window);
             return window;
         } catch (Throwable t) {
             t.printStackTrace();
@@ -207,12 +255,29 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             WindowImpl window = (WindowImpl) ReflectionUtil.createInstance( windowClass, cstrArgumentTypes, cstrArguments ) ;
             window.screen = (ScreenImpl) screen;
             window.capsRequested = (CapabilitiesImmutable) caps.cloneMutable();
+            window.instantiationFinished();
+            addWindow2List(window);
             return window;
         } catch (Throwable t) {
             throw new NativeWindowException(t);
         }
     }
 
+    /** Fast invalidation of instance w/o any blocking function call. */
+    private final void shutdown() {
+        if(null!=lifecycleHook) {
+            lifecycleHook.shutdownRenderingAction();
+        }
+        setWindowHandle(0);
+        visible = false;
+        fullscreen = false;
+        fullscreenMonitors = null;
+        fullscreenUseMainMonitor = true;
+        fullscreenUseSpanningMode = false;
+        hasFocus = false;
+        parentWindowHandle = 0;
+    }
+    
     protected final void setGraphicsConfiguration(AbstractGraphicsConfiguration cfg) {
         config = cfg;
     }
@@ -233,9 +298,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
         /**
          * Notifies the receiver to preserve resources (GL, ..)
-         * for the next destroy*() calls (only).
+         * for the next destroy*() calls (only), if supported and if <code>value</code> is <code>true</code>, otherwise clears preservation flag.
+         * @param value <code>true</code> to set the one-shot preservation if supported, otherwise clears it.
          */
-        void preserveGLStateAtDestroy();
+        void preserveGLStateAtDestroy(boolean value);
         
         /** 
          * Invoked before Window destroy action, 
@@ -270,6 +336,14 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
          * @see #pauseRenderingAction()
          */
         void resumeRenderingAction();
+        
+        /**
+         * Shutdown rendering action (thread) abnormally.
+         * <p>
+         * Should be called only at shutdown, if necessary.
+         * </p> 
+         */
+        void shutdownRenderingAction();
     }
 
     private boolean createNative() {
@@ -321,9 +395,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         if(isFullscreen()) {
                             synchronized(fullScreenAction) {
                                 fullscreen = false; // trigger a state change
-                                fullScreenAction.init(true, fullscreenUseMainMonitor, fullscreenMonitors);
-                                fullscreenMonitors = null; // release references ASAP
-                                fullscreenUseMainMonitor = true;
+                                fullScreenAction.init(true);
                                 fullScreenAction.run();
                             }
                         } else {
@@ -511,6 +583,16 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
      * @see #positionChanged(boolean,int, int)
      */
     protected abstract boolean reconfigureWindowImpl(int x, int y, int width, int height, int flags);
+    
+    /** 
+     * Tests whether a single reconfigure flag is supported by implementation.
+     * <p>
+     * Default is all but {@link #FLAG_IS_FULLSCREEN_SPAN}
+     * </p> 
+     */
+    protected boolean isReconfigureFlagSupported(int changeFlags) {
+        return 0 == ( changeFlags & FLAG_IS_FULLSCREEN_SPAN );
+    }
 
     protected int getReconfigureFlags(int changeFlags, boolean visible) {
         return changeFlags |= ( ( 0 != getParentWindowHandle() ) ? FLAG_HAS_PARENT : 0 ) |
@@ -841,17 +923,19 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     
     private class SetSizeAction implements Runnable {
         int width, height;
+        boolean disregardFS;
 
-        private SetSizeAction(int w, int h) {
+        private SetSizeAction(int w, int h, boolean disregardFS) {
             this.width = w;
             this.height = h;
+            this.disregardFS = disregardFS;
         }
 
         public final void run() {
             final RecursiveLock _lock = windowLock;
             _lock.lock();
             try {
-                if ( !isFullscreen() && ( getWidth() != width || getHeight() != height ) ) {
+                if ( ( disregardFS || !isFullscreen() ) && ( getWidth() != width || getHeight() != height ) ) {
                     if(DEBUG_IMPLEMENTATION) {
                         System.err.println("Window setSize: START "+getWidth()+"x"+getHeight()+" -> "+width+"x"+height+", fs "+fullscreen+", windowHandle "+toHexString(windowHandle)+", visible "+visible);
                     }
@@ -886,9 +970,12 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         }
     }
 
+    private void setFullscreenSize(int width, int height) {
+        runOnEDTIfAvail(true, new SetSizeAction(width, height, true));
+    }    
     @Override
     public void setSize(int width, int height) {
-        runOnEDTIfAvail(true, new SetSizeAction(width, height));
+        runOnEDTIfAvail(true, new SetSizeAction(width, height, false));
     }    
     @Override
     public void setTopLevelSize(int width, int height) {
@@ -964,6 +1051,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                 fullscreen = false;
                 fullscreenMonitors = null;
                 fullscreenUseMainMonitor = true;
+                fullscreenUseSpanningMode = false;
                 hasFocus = false;
                 parentWindowHandle = 0;
 
@@ -1000,8 +1088,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     }
 
     protected void destroy(boolean preserveResources) {
-        if( preserveResources && null != WindowImpl.this.lifecycleHook ) {
-            WindowImpl.this.lifecycleHook.preserveGLStateAtDestroy();
+        if( null != lifecycleHook ) {
+            lifecycleHook.preserveGLStateAtDestroy( preserveResources );
         }
         destroy();
     }
@@ -1108,7 +1196,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         }
                         // Destroy this window and use parent's Screen.
                         // It may be created properly when the parent is made visible.
-                        destroy(false);
+                        destroy( false );
                         setScreen( (ScreenImpl) newParentWindowNEWT.getScreen() );
                         operation = ReparentOperation.ACTION_NATIVE_CREATION_PENDING;
                     } else if(newParentWindow != getParent()) {
@@ -1796,25 +1884,13 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     
     private class FullScreenAction implements Runnable {
         boolean fullscreen;
-        List<MonitorDevice> monitors;
-        boolean useMainMonitor;
 
-        private boolean init(boolean fullscreen, boolean useMainMonitor, List<MonitorDevice> monitors) {            
+        private boolean init(boolean fullscreen) {            
             if(isNativeValid()) {
                 this.fullscreen = fullscreen;
-                if( isFullscreen() != fullscreen ) {
-                    this.monitors = monitors;
-                    this.useMainMonitor = useMainMonitor;
-                    return true;
-                } else {
-                    this.monitors = null;
-                    this.useMainMonitor = true;
-                    return false;
-                }
+                return isFullscreen() != fullscreen;
             } else {
                 WindowImpl.this.fullscreen = fullscreen; // set current state for createNative(..)
-                WindowImpl.this.fullscreenMonitors = monitors;
-                WindowImpl.this.fullscreenUseMainMonitor = useMainMonitor;
                 return false;
             }
         }                
@@ -1829,19 +1905,27 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
 
                 int x,y,w,h;
                 
-                final RectangleImmutable viewport; 
+                final RectangleImmutable sviewport = screen.getViewport();
+                final RectangleImmutable viewport;
                 final int fs_span_flag;
                 if(fullscreen) {
-                    if( null == monitors ) {
-                        if( useMainMonitor ) {
-                            monitors = new ArrayList<MonitorDevice>();
-                            monitors.add( getMainMonitor() );
+                    if( null == fullscreenMonitors ) {
+                        if( fullscreenUseMainMonitor ) {
+                            fullscreenMonitors = new ArrayList<MonitorDevice>();
+                            fullscreenMonitors.add( getMainMonitor() );
                         } else {
-                            monitors = getScreen().getMonitorDevices();
+                            fullscreenMonitors = getScreen().getMonitorDevices();
                         }
                     }
-                    fs_span_flag = monitors.size() > 1 ? FLAG_IS_FULLSCREEN_SPAN : 0 ;
-                    viewport = MonitorDevice.unionOfViewports(new Rectangle(), monitors);
+                    viewport = MonitorDevice.unionOfViewports(new Rectangle(), fullscreenMonitors);
+                    if( isReconfigureFlagSupported(FLAG_IS_FULLSCREEN_SPAN) &&
+                        ( fullscreenMonitors.size() > 1 || sviewport.compareTo(viewport) > 0 ) ) {
+                        fullscreenUseSpanningMode = true;
+                        fs_span_flag = FLAG_IS_FULLSCREEN_SPAN;
+                    } else {
+                        fullscreenUseSpanningMode = false;
+                        fs_span_flag = 0;
+                    }
                     nfs_x = getX();
                     nfs_y = getY();
                     nfs_width = getWidth();
@@ -1851,6 +1935,9 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     w = viewport.getWidth();
                     h = viewport.getHeight();
                 } else {
+                    fullscreenUseMainMonitor = true;
+                    fullscreenUseSpanningMode = false;
+                    fullscreenMonitors = null;
                     fs_span_flag = 0;
                     viewport = null;
                     x = nfs_x;
@@ -1872,16 +1959,15 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                         }
                     }
                 }
-                monitors = null; // clear references ASAP
-                useMainMonitor = true;
                 if(DEBUG_IMPLEMENTATION) {
                     System.err.println("Window fs: "+fullscreen+" "+x+"/"+y+" "+w+"x"+h+", "+isUndecorated()+
-                                       ", virtl-size: "+screen.getWidth()+"x"+screen.getHeight()+", monitorsViewport "+viewport);
+                                       ", virtl-screenSize: "+sviewport+", monitorsViewport "+viewport+
+                                       ", spanning "+fullscreenUseSpanningMode+" @ "+Thread.currentThread().getName());
                 }
 
-                DisplayImpl display = (DisplayImpl) screen.getDisplay();
+                final DisplayImpl display = (DisplayImpl) screen.getDisplay();
                 display.dispatchMessagesNative(); // status up2date
-                boolean wasVisible = isVisible();
+                final boolean wasVisible = isVisible();
                 
                 // Lock parentWindow only during reparenting (attempt)
                 final NativeWindow parentWindowLocked;
@@ -1909,8 +1995,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     WindowImpl.this.waitForVisible(true, false);
                     display.dispatchMessagesNative(); // status up2date                                                        
                     WindowImpl.this.waitForSize(w, h, false, TIMEOUT_NATIVEWINDOW);
-                    display.dispatchMessagesNative(); // status up2date                                                        
-                    
                     if(DEBUG_IMPLEMENTATION) {
                         System.err.println("Window fs done: " + WindowImpl.this);
                     }
@@ -1921,7 +2005,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
         }
     }
-    private final FullScreenAction fullScreenAction = new FullScreenAction();
+    private final FullScreenAction fullScreenAction = new FullScreenAction();       
 
     @Override
     public boolean setFullscreen(boolean fullscreen) {
@@ -1935,7 +2019,10 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     
     private boolean setFullscreenImpl(boolean fullscreen, boolean useMainMonitor, List<MonitorDevice> monitors) {
         synchronized(fullScreenAction) {
-            if( fullScreenAction.init(fullscreen, useMainMonitor, monitors) ) {               
+            fullscreenMonitors = monitors;
+            fullscreenUseMainMonitor = useMainMonitor;
+            fullscreenUseSpanningMode = false;
+            if( fullScreenAction.init(fullscreen) ) {
                 if(fullScreenAction.fsOn() && isOffscreenInstance(WindowImpl.this, parentWindow)) { 
                     // enable fullscreen on offscreen instance
                     if(null != parentWindow) {
@@ -1954,8 +2041,8 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     nfs_parent = null;
                 }
                 
-                if(isVisible()) {         
-                    requestFocus(true /* wait */, this.fullscreen /* skipFocusAction */, true /* force */);
+                if( fullscreen && isVisible() ) { // force focus on fullscreen
+                    requestFocus(true /* wait */, true /* skipFocusAction */, true /* force */);
                 }
             }
             return this.fullscreen;                
@@ -1964,20 +2051,34 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
     
     private class MonitorModeListenerImpl implements MonitorModeListener {
         boolean animatorPaused = false;
+        boolean hadFocus = false;
+        boolean fullscreenPaused = false;
+        List<MonitorDevice> _fullscreenMonitors = null;
+        boolean _fullscreenUseMainMonitor = true;
 
         public void monitorModeChangeNotify(MonitorEvent me) {
+            hadFocus = hasFocus();
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.monitorModeChangeNotify: "+me);
+                System.err.println("Window.monitorModeChangeNotify: hadFocus "+hadFocus+", "+me+" @ "+Thread.currentThread().getName());
             }
 
             if(null!=lifecycleHook) {
                 animatorPaused = lifecycleHook.pauseRenderingAction();
             }
+            if( fullscreen && isReconfigureFlagSupported(FLAG_IS_FULLSCREEN_SPAN) ) {
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("Window.monitorModeChangeNotify: FS Pause");
+                }
+                fullscreenPaused = true;
+                _fullscreenMonitors = fullscreenMonitors;
+                _fullscreenUseMainMonitor = fullscreenUseMainMonitor;
+                setFullscreenImpl(false, true, null);
+            }
         }
 
         public void monitorModeChanged(MonitorEvent me, boolean success) {
             if(DEBUG_IMPLEMENTATION) {
-                System.err.println("Window.monitorModeChanged: "+me+", success: "+success);
+                System.err.println("Window.monitorModeChanged: hadFocus "+hadFocus+", "+me+", success: "+success+" @ "+Thread.currentThread().getName());
             }
 
             if(success) {
@@ -1985,7 +2086,7 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                     // Didn't pass above notify method. probably detected screen change after it happened.
                     animatorPaused = lifecycleHook.pauseRenderingAction();
                 }
-                if( !fullscreen ) {
+                if( !fullscreen && !fullscreenPaused ) {
                     // Simply move/resize window to fit in virtual screen if required
                     final RectangleImmutable viewport = screen.getViewport();
                     if( viewport.getWidth() > 0 && viewport.getHeight() > 0 ) { // failsafe
@@ -2001,13 +2102,35 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
                             setSize(viewport.getWidth(), viewport.getHeight());
                         }
                     }
+                } else if( fullscreenPaused ){
+                    if(DEBUG_IMPLEMENTATION) {
+                        System.err.println("Window.monitorModeChanged: FS Restore");
+                    }
+                    setFullscreenImpl(true, _fullscreenUseMainMonitor, _fullscreenMonitors);
+                    fullscreenPaused = false;
+                    _fullscreenMonitors = null;
+                    _fullscreenUseMainMonitor = true;
+                } else {
+                    // If changed monitor is part of this fullscreen mode, reset size! (Bug 771)
+                    final MonitorDevice md = me.getMonitor();
+                    if( fullscreenMonitors.contains(md) ) {
+                        final RectangleImmutable viewport = MonitorDevice.unionOfViewports(new Rectangle(), fullscreenMonitors);
+                        if(DEBUG_IMPLEMENTATION) {
+                            final RectangleImmutable rect = new Rectangle(getX(), getY(), getWidth(), getHeight());
+                            System.err.println("Window.monitorModeChanged: FS Monitor Match: Fit window "+rect+" into new viewport union "+viewport+", provoked by "+md);
+                        }
+                        definePosition(viewport.getX(), viewport.getY()); // set pos for setVisible(..) or createNative(..) - reduce EDT roundtrip
+                        setFullscreenSize(viewport.getWidth(), viewport.getHeight());
+                    }
                 }
             }
-
             if(animatorPaused) {
                 lifecycleHook.resumeRenderingAction();
             }
             sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout and repaint to listener
+            if( hadFocus ) {
+                requestFocus(true);
+            }
         }
     }
     private final MonitorModeListenerImpl monitorModeListenerImpl = new MonitorModeListenerImpl();
@@ -2476,7 +2599,6 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
         return keyListeners.toArray(new KeyListener[keyListeners.size()]);
     }
 
-    @SuppressWarnings("deprecation")
     private final boolean propagateKeyEvent(KeyEvent e, KeyListener l) {
         switch(e.getEventType()) {
             case KeyEvent.EVENT_KEY_PRESSED:
@@ -2485,58 +2607,29 @@ public abstract class WindowImpl implements Window, NEWTEventConsumer
             case KeyEvent.EVENT_KEY_RELEASED:
                 l.keyReleased(e);
                 break;
-            case KeyEvent.EVENT_KEY_TYPED:
-                l.keyTyped(e);
-                break;
             default:
                 throw new NativeWindowException("Unexpected key event type " + e.getEventType());
         }
         return e.isConsumed();
     }
     
-    @SuppressWarnings("deprecation")
     protected void consumeKeyEvent(KeyEvent e) {
-        boolean consumedE = false, consumedTyped = false;
-        if( KeyEvent.EVENT_KEY_TYPED == e.getEventType() ) {
-            throw new InternalError("Deprecated KeyEvent.EVENT_KEY_TYPED is synthesized - don't send/enqueue it!");
-        }
-        
-        // Synthesize deprecated event KeyEvent.EVENT_KEY_TYPED
-        final KeyEvent eTyped;
-        if( KeyEvent.EVENT_KEY_RELEASED == e.getEventType() && e.isPrintableKey() && !e.isAutoRepeat() ) {
-            eTyped = KeyEvent.create(KeyEvent.EVENT_KEY_TYPED, e.getSource(), e.getWhen(), e.getModifiers(), e.getKeyCode(), e.getKeySymbol(), e.getKeyChar());
-        } else {
-            eTyped = null;
-        }
-        if(null != keyboardFocusHandler) {
+        boolean consumedE = false;
+        if( null != keyboardFocusHandler && !e.isAutoRepeat() ) {
             consumedE = propagateKeyEvent(e, keyboardFocusHandler);
             if(DEBUG_KEY_EVENT) {
-                System.err.println("consumeKeyEvent: "+e+", keyboardFocusHandler consumed: "+consumedE);
-            }
-            if( null != eTyped ) {
-                consumedTyped = propagateKeyEvent(eTyped, keyboardFocusHandler);
-                if(DEBUG_KEY_EVENT) {
-                    System.err.println("consumeKeyEvent: "+eTyped+", keyboardFocusHandler consumed: "+consumedTyped);
-                }                
-            }
-        }
-        if(DEBUG_KEY_EVENT) {
-            if( !consumedE ) {
-                System.err.println("consumeKeyEvent: "+e);
-            }
-        }
-        for(int i = 0; !consumedE && i < keyListeners.size(); i++ ) {
-            consumedE = propagateKeyEvent(e, keyListeners.get(i));
-        }
-        if( null != eTyped ) {
-            if(DEBUG_KEY_EVENT) {
-                if( !consumedTyped ) {
-                    System.err.println("consumeKeyEvent: "+eTyped);
+                if( consumedE ) {
+                    System.err.println("consumeKeyEvent(kfh): "+e+", consumed: "+consumedE);
                 }
             }
-            for(int i = 0; !consumedTyped && i < keyListeners.size(); i++ ) {
-                consumedTyped = propagateKeyEvent(eTyped, keyListeners.get(i));
-            }            
+        }
+        if( !consumedE ) {
+            for(int i = 0; !consumedE && i < keyListeners.size(); i++ ) {
+                consumedE = propagateKeyEvent(e, keyListeners.get(i));
+            }
+            if(DEBUG_KEY_EVENT) {
+                System.err.println("consumeKeyEvent(usr): "+e+", consumed: "+consumedE);
+            }
         }
     }
 

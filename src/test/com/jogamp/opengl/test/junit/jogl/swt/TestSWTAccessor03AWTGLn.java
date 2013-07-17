@@ -120,14 +120,18 @@ public class TestSWTAccessor03AWTGLn extends UITestCase {
         Assert.assertNotNull( shell );
         Assert.assertNotNull( composite );
         Assert.assertNotNull( glcanvas );
-        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+        final Runnable releaseAWT = new Runnable() {
             public void run() {
+                // deadlocks Java7 on Windows
                 frame.setVisible(false);
                 frame.remove(glcanvas);
                 frame.dispose();
                 frame = null;
                 glcanvas = null;
-            }});
+            } };
+         // Deadlocks Java7 on Windows
+        // javax.swing.SwingUtilities.invokeAndWait( releaseAWT );
+        releaseAWT.run();
         
         SWTAccessor.invoke(true, new Runnable() {
             public void run() {

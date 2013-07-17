@@ -59,12 +59,13 @@ public class WindowDriver extends WindowImpl {
     private static final int X11_WHEEL_TWO_DOWN_BUTTON = 7;
     
     static {
-        DisplayDriver.initSingleton();
+        ScreenDriver.initSingleton();
     }
 
     public WindowDriver() {
     }
 
+    @Override
     protected void createNativeImpl() {
         final ScreenDriver screen = (ScreenDriver) getScreen();
         final DisplayDriver display = (DisplayDriver) screen.getDisplay();
@@ -109,6 +110,7 @@ public class WindowDriver extends WindowImpl {
         }
     }
 
+    @Override
     protected void closeNativeImpl() {
         if(0!=windowHandleClose && null!=getScreen() ) {
             DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
@@ -133,7 +135,19 @@ public class WindowDriver extends WindowImpl {
         }
     }
 
-    protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, final int flags) { 
+    /** 
+     * <p>
+     * X11 Window supports {@link #FLAG_IS_FULLSCREEN_SPAN}
+     * </p>
+     * {@inheritDoc}
+     */
+    @Override
+    protected boolean isReconfigureFlagSupported(int changeFlags) {
+        return true; // all flags!
+    }
+    
+    @Override
+    protected boolean reconfigureWindowImpl(final int x, final int y, final int width, final int height, int flags) {
         if(DEBUG_IMPLEMENTATION) {
             System.err.println("X11Window reconfig: "+x+"/"+y+" "+width+"x"+height+", "+ getReconfigureFlagsAsString(null, flags));
         }
@@ -148,18 +162,57 @@ public class WindowDriver extends WindowImpl {
             _x = x;
             _y = y;
         }
+        if( 0 != ( FLAG_CHANGE_FULLSCREEN & flags ) ) {
+            if( 0 != ( FLAG_IS_FULLSCREEN & flags) && 0 != ( FLAG_IS_FULLSCREEN_SPAN & flags) && 0 == ( FLAG_IS_ALWAYSONTOP & flags) ) {
+                tempFSAlwaysOnTop = true;
+                flags |= FLAG_IS_ALWAYSONTOP;
+                if(DEBUG_IMPLEMENTATION) {
+                    System.err.println("X11Window reconfig.2: temporary "+getReconfigureFlagsAsString(null, flags));
+                }
+            } else {
+                tempFSAlwaysOnTop = false;
+            }
+        }
+        final int fflags = flags;
         final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             public Object run(long dpy) {
                 reconfigureWindow0( dpy, getScreenIndex(), 
                                     getParentWindowHandle(), getWindowHandle(), display.getWindowDeleteAtom(),
-                                    _x, _y, width, height, flags);
+                                    _x, _y, width, height, fflags);
                 return null;
             }
         });
         return true;
     }
+    volatile boolean tempFSAlwaysOnTop = false;
 
+    /**
+     * <p>
+     * Deal w/ tempAlwaysOnTop.
+     * </p>
+     * {@inheritDoc}
+     */
+    @Override
+    protected void focusChanged(boolean defer, boolean focusGained) {
+        if( tempFSAlwaysOnTop && hasFocus() != focusGained && isNativeValid() ) {
+            final int flags = getReconfigureFlags(FLAG_CHANGE_ALWAYSONTOP, isVisible()) | ( focusGained ? FLAG_IS_ALWAYSONTOP : 0 );
+            if(DEBUG_IMPLEMENTATION) {
+                System.err.println("X11Window reconfig.3 (focus): temporary "+getReconfigureFlagsAsString(null, flags));
+            }
+            final DisplayDriver display = (DisplayDriver) getScreen().getDisplay();
+            runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
+                public Object run(long dpy) {
+                    reconfigureWindow0( dpy, getScreenIndex(),
+                                        getParentWindowHandle(), getWindowHandle(), display.getWindowDeleteAtom(),
+                                        getX(), getY(), getWidth(), getHeight(), flags); 
+                    return null;
+                }
+            });
+        }
+        super.focusChanged(defer, focusGained);
+    }
+        
     protected void reparentNotify(long newParentWindowHandle) {
         if(DEBUG_IMPLEMENTATION) {
             final long p0 = getParentWindowHandle();
@@ -167,6 +220,7 @@ public class WindowDriver extends WindowImpl {
         }
     }
     
+    @Override
     protected void requestFocusImpl(final boolean force) {        
         runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
             public Object run(long dpy) {
@@ -214,6 +268,7 @@ public class WindowDriver extends WindowImpl {
         });
     }
     
+    @Override
     protected Point getLocationOnScreenImpl(final int x, final int y) {
         return runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Point>() {
             public Point run(long dpy) {
@@ -222,6 +277,7 @@ public class WindowDriver extends WindowImpl {
         } );
     }
 
+    @Override
     protected void updateInsetsImpl(Insets insets) {
         // nop - using event driven insetsChange(..)         
     }
@@ -241,16 +297,17 @@ public class WindowDriver extends WindowImpl {
                 }
                 break;
             case MouseEvent.EVENT_MOUSE_RELEASED:
+                final boolean shiftPressed = 0 != ( modifiers & InputEvent.SHIFT_MASK );
                 switch(button) {
                     case X11_WHEEL_ONE_UP_BUTTON: // vertical scroll up
                         eventType = MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
                         button = 1;
-                        rotationXYZ[1] = 1;
+                        rotationXYZ[shiftPressed ? 0 : 1] = 1;
                         break;
                     case X11_WHEEL_ONE_DOWN_BUTTON: // vertical scroll down
                         eventType = MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
                         button = 1;
-                        rotationXYZ[1] = -1;
+                        rotationXYZ[shiftPressed ? 0 : 1] = -1;
                         break;
                     case X11_WHEEL_TWO_UP_BUTTON: // horizontal scroll left
                         eventType = MouseEvent.EVENT_MOUSE_WHEEL_MOVED;
@@ -269,7 +326,8 @@ public class WindowDriver extends WindowImpl {
         }
         super.doMouseEvent(enqueue, wait, eventType, modifiers, x, y, button, rotationXYZ, rotationScale);
     }
-    
+        
+    /** Called by native TK */
     protected final void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar0, String keyString) {
         // handleKeyEvent(true, false, eventType, modifiers, keyCode, keyChar);
         final boolean isModifierKey = KeyEvent.isModifierKey(keyCode);
@@ -287,9 +345,6 @@ public class WindowDriver extends WindowImpl {
                 case KeyEvent.EVENT_KEY_RELEASED:
                     super.sendKeyEvent(KeyEvent.EVENT_KEY_RELEASED, modifiers, keyCode, keySym, keyChar);
                     break;
-                    
-                // case KeyEvent.EVENT_KEY_TYPED:
-                //    break;
             }
         }
     }

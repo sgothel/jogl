@@ -29,12 +29,238 @@ public GL4bcImpl(GLProfile glp, GLContextImpl context) {
   this.glProfile = glp;
 }
 
-/**
- * Provides platform-independent access to the wglAllocateMemoryNV /
- * glXAllocateMemoryNV extension.
- */
-public final java.nio.ByteBuffer glAllocateMemoryNV(int arg0, float arg1, float arg2, float arg3) {
-  return _context.glAllocateMemoryNV(arg0, arg1, arg2, arg3);
+public final void finalizeInit() {
+  if(null != _context) {
+      haveARBPixelBufferObject  = isExtensionAvailable("GL_ARB_pixel_buffer_object");
+      haveEXTPixelBufferObject  = isExtensionAvailable("GL_EXT_pixel_buffer_object");
+      haveGL15                  = isExtensionAvailable("GL_VERSION_1_5");
+      haveGL21                  = isExtensionAvailable("GL_VERSION_2_1");
+      haveARBVertexBufferObject = isExtensionAvailable("GL_ARB_vertex_buffer_object");
+      haveARBVertexArrayObject  = _context.getGLVersionNumber().compareTo(GLContext.Version300) >= 0 ||
+                                  isExtensionAvailable("GL_ARB_vertex_array_object");
+   } else {
+      haveARBPixelBufferObject  = false;
+      haveEXTPixelBufferObject  = false;
+      haveGL15                  = false;
+      haveGL21                  = false;
+      haveARBVertexBufferObject = false;
+      haveARBVertexArrayObject  = false;
+   }
+}
+
+private int[] imageSizeTemp = new int[1];
+
+private final int imageSizeInBytes(int format, int type, int width, int height, int depth, boolean pack) {
+    return GLBuffers.sizeof(this, imageSizeTemp, format, type, width, height, depth, pack) ;                                    
+}
+
+@Override
+public final boolean isGL4bc() {
+    return _context.isGL4bc();
+}
+
+@Override
+public final boolean isGL4() {
+    return _context.isGL4();
+}
+
+@Override
+public final boolean isGL3bc() {
+    return _context.isGL3bc();
+}
+
+@Override
+public final boolean isGL3() {
+    return _context.isGL3();
+}
+
+@Override
+public final boolean isGL2() {
+    return _context.isGL2();
+}
+  
+@Override
+public final boolean isGL2ES1() {
+    return _context.isGL2ES1();
+}
+
+@Override
+public final boolean isGL2ES2() {
+    return _context.isGL2ES2();
+}
+
+@Override
+public final boolean isGL3ES3() {
+    return _context.isGL3ES3();
+}
+
+@Override
+public final boolean isGL4ES3() {
+    return _context.isGL4ES3();
+}
+
+@Override
+public final boolean isGL4core() {
+    return _context.isGL4core();
+}
+
+@Override
+public final boolean isGL3core() {
+    return _context.isGL3core();
+}
+
+@Override
+public final boolean isGLcore() {
+    return _context.isGLcore();
+}
+
+@Override
+public final boolean isGLES2Compatible() {
+    return _context.isGLES2Compatible();
+}
+
+@Override
+public final boolean isGLES3Compatible() {
+    return _context.isGLES3Compatible();
+}
+
+@Override
+public final boolean isGL2GL3() {
+    return _context.isGL2GL3();
+}
+
+@Override
+public final boolean hasGLSL() {
+    return _context.hasGLSL();
+}
+
+@Override
+public final GL4bc getGL4bc() throws GLException {
+    if(!isGL4bc()) {
+        throw new GLException("Not a GL4bc implementation");
+    }
+    return this;
+}
+
+@Override
+public final GL4 getGL4() throws GLException {
+    if(!isGL4()) {
+        throw new GLException("Not a GL4 implementation");
+    }
+    return this;
+}
+
+@Override
+public final GL3bc getGL3bc() throws GLException {
+    if(!isGL3bc()) {
+        throw new GLException("Not a GL3bc implementation");
+    }
+    return this;
+}
+
+@Override
+public final GL3 getGL3() throws GLException {
+    if(!isGL3()) {
+        throw new GLException("Not a GL3 implementation");
+    }
+    return this;
+}
+
+@Override
+public final GL2 getGL2() throws GLException {
+    if(!isGL2()) {
+        throw new GLException("Not a GL2 implementation");
+    }
+    return this;
+}
+
+@Override
+public final GL2ES1 getGL2ES1() throws GLException {
+    if(!isGL2ES1()) {
+        throw new GLException("Not a GL2ES1 implementation");
+    }
+    return this;
+}
+
+@Override
+public final GL2ES2 getGL2ES2() throws GLException {
+    if(!isGL2ES2()) {
+        throw new GLException("Not a GL2ES2 implementation");
+    }
+    return this;
+}
+
+@Override
+public final GL3ES3 getGL3ES3() throws GLException {
+    if(!isGL3ES3()) {
+        throw new GLException("Not a GL3ES3 implementation");
+    }
+    return this;
+}
+
+@Override
+public final GL4ES3 getGL4ES3() throws GLException {
+    if(!isGL4ES3()) {
+        throw new GLException("Not a GL4ES3 implementation");
+    }
+    return this;
+}
+
+@Override
+public final GL2GL3 getGL2GL3() throws GLException {
+    if(!isGL2GL3()) {
+        throw new GLException("Not a GL2GL3 implementation");
+    }
+    return this;
+}
+
+@Override
+public final boolean isGLES1() {
+    return false;
+}
+
+@Override
+public final boolean isGLES2() {
+    return false;
+}
+
+@Override
+public final boolean isGLES3() {
+    return false;
+}
+
+@Override
+public final boolean isGLES() {
+    return false;
+}
+
+@Override
+public final GLES1 getGLES1() throws GLException {
+    throw new GLException("Not a GLES1 implementation");
+}
+
+@Override
+public final GLES2 getGLES2() throws GLException {
+    throw new GLException("Not a GLES2 implementation");
+}
+
+@Override
+public final GLES3 getGLES3() throws GLException {
+    throw new GLException("Not a GLES3 implementation");
+}
+
+@Override
+public final boolean isNPOTTextureAvailable() {
+  return _context.isNPOTTextureAvailable();
+}
+@Override
+public final java.nio.ByteBuffer glAllocateMemoryNV(int size, float readFrequency, float writeFrequency, float priority) {
+  return _context.glAllocateMemoryNV(size, readFrequency, writeFrequency, priority);
+}
+
+@Override
+public final void glFreeMemoryNV(java.nio.ByteBuffer pointer) {
+  _context.glFreeMemoryNV(pointer);
 }
 
 //
@@ -45,27 +271,12 @@ private final GLBufferSizeTracker  bufferSizeTracker;
 private final GLBufferStateTracker bufferStateTracker;
 private final GLStateTracker       glStateTracker;
 
-private boolean bufferObjectExtensionsInitialized = false;
 private boolean haveARBPixelBufferObject;
 private boolean haveEXTPixelBufferObject;
 private boolean haveGL15;
 private boolean haveGL21;
 private boolean haveARBVertexBufferObject;
 private boolean haveARBVertexArrayObject;
-
-private final void initBufferObjectExtensionChecks() {
-  if ( bufferObjectExtensionsInitialized ) {
-    return;
-  }
-  bufferObjectExtensionsInitialized = true;
-  haveARBPixelBufferObject  = isExtensionAvailable("GL_ARB_pixel_buffer_object");
-  haveEXTPixelBufferObject  = isExtensionAvailable("GL_EXT_pixel_buffer_object");
-  haveGL15                  = isExtensionAvailable("GL_VERSION_1_5");
-  haveGL21                  = isExtensionAvailable("GL_VERSION_2_1");
-  haveARBVertexBufferObject = isExtensionAvailable("GL_ARB_vertex_buffer_object");
-  haveARBVertexArrayObject  = _context.getGLVersionNumber().compareTo(GLContext.Version30) >= 0 ||
-                              isExtensionAvailable("GL_ARB_vertex_array_object");
-}
 
 private final boolean checkBufferObject(boolean extensionAvail,
                                         boolean allowVAO,
@@ -91,7 +302,7 @@ private final boolean checkBufferObject(boolean extensionAvail,
     }
     if ( allowVAO ) {
         buffer = bufferStateTracker.getBoundBufferObject(GL2GL3.GL_VERTEX_ARRAY_BINDING, this);
-        if( 0 != buffer && !_context.isDefaultVAO(buffer) ) {
+        if( 0 != buffer && _context.getDefaultVAO() != buffer ) {
             return true;
         }
     }
@@ -111,7 +322,6 @@ private final boolean checkBufferObject(boolean extensionAvail,
 }  
 
 private final boolean checkArrayVBODisabled(boolean throwException) { 
-  initBufferObjectExtensionChecks();
   return checkBufferObject(haveGL15 || haveARBVertexBufferObject,
                            haveARBVertexArrayObject, // allowVAO
                            false, // enable
@@ -120,7 +330,6 @@ private final boolean checkArrayVBODisabled(boolean throwException) {
 }
 
 private final boolean checkArrayVBOEnabled(boolean throwException) { 
-  initBufferObjectExtensionChecks();
   return checkBufferObject(haveGL15 || haveARBVertexBufferObject,
                            haveARBVertexArrayObject, // allowVAO
                            true, // enable
@@ -129,7 +338,6 @@ private final boolean checkArrayVBOEnabled(boolean throwException) {
 }
 
 private final boolean checkElementVBODisabled(boolean throwException) { 
-  initBufferObjectExtensionChecks();
   return checkBufferObject(haveGL15 || haveARBVertexBufferObject,
                            haveARBVertexArrayObject, // allowVAO
                            false, // enable
@@ -138,7 +346,6 @@ private final boolean checkElementVBODisabled(boolean throwException) {
 }
 
 private final boolean checkElementVBOEnabled(boolean throwException) { 
-  initBufferObjectExtensionChecks();
   return checkBufferObject(haveGL15 || haveARBVertexBufferObject,
                            haveARBVertexArrayObject, // allowVAO
                            true, // enable
@@ -147,7 +354,6 @@ private final boolean checkElementVBOEnabled(boolean throwException) {
 }
 
 private final boolean checkUnpackPBODisabled(boolean throwException) { 
-  initBufferObjectExtensionChecks();
   return checkBufferObject(haveGL21 || haveARBPixelBufferObject || haveEXTPixelBufferObject,
                            false, // allowVAO
                            false, // enable
@@ -156,7 +362,6 @@ private final boolean checkUnpackPBODisabled(boolean throwException) {
 }
 
 private final boolean checkUnpackPBOEnabled(boolean throwException) { 
-  initBufferObjectExtensionChecks();
   return checkBufferObject(haveGL21 || haveARBPixelBufferObject || haveEXTPixelBufferObject,
                            false, // allowVAO
                            true, // enable
@@ -165,7 +370,6 @@ private final boolean checkUnpackPBOEnabled(boolean throwException) {
 }
 
 private final boolean checkPackPBODisabled(boolean throwException) { 
-  initBufferObjectExtensionChecks();
   return checkBufferObject(haveGL21 || haveARBPixelBufferObject || haveEXTPixelBufferObject,
                            false, // allowVAO
                            false, // enable
@@ -174,7 +378,6 @@ private final boolean checkPackPBODisabled(boolean throwException) {
 }
 
 private final boolean checkPackPBOEnabled(boolean throwException) { 
-  initBufferObjectExtensionChecks();
   return checkBufferObject(haveGL21 || haveARBPixelBufferObject || haveEXTPixelBufferObject,
                            false, // allowVAO
                            true, // enable
@@ -192,86 +395,20 @@ public final boolean glIsPBOUnpackEnabled() {
     return checkUnpackPBOEnabled(false);
 }
 
-private final HashMap<MemoryObject, MemoryObject> arbMemCache = new HashMap<MemoryObject, MemoryObject>();
-
-/** Entry point to C language function: <br> <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
+/** Entry point to C language function: <code> void *  {@native glMapBuffer}(GLenum target, GLenum access); </code> <br>Part of <code>GL_VERSION_1_5</code>; <code>GL_OES_mapbuffer</code>   */
 public final java.nio.ByteBuffer glMapBuffer(int target, int access) {
-  final long __addr_ = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer;
-  if (__addr_ == 0) {
-    throw new GLException("Method \"glMapBuffer\" not available");
-  }
-  final long sz = bufferSizeTracker.getBufferSize(bufferStateTracker, target, this);
-  if (0 == sz) {
-    return null;
-  }
-  final long addr = dispatch_glMapBuffer(target, access, __addr_);
-  if (0 == addr) {
-    return null;
-  }
-  ByteBuffer buffer;
-  MemoryObject memObj0 = new MemoryObject(addr, sz); // object and key
-  MemoryObject memObj1 = MemoryObject.getOrAddSafe(arbMemCache, memObj0);
-  if(memObj0 == memObj1) {
-    // just added ..
-    if(null != memObj0.getBuffer()) {
-        throw new InternalError();
-    }
-    buffer = newDirectByteBuffer(addr, sz);
-    Buffers.nativeOrder(buffer);
-    memObj0.setBuffer(buffer);
-  } else {
-    // already mapped
-    buffer = memObj1.getBuffer();
-    if(null == buffer) {
-        throw new InternalError();
-    }
-  }
-  buffer.position(0);
-  return buffer;
+  return glMapBufferImpl(target, false, 0, 0, access, ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBuffer);
 }
 
-/** Encapsulates function pointer for OpenGL function <br>: <code> LPVOID glMapBuffer(GLenum target, GLenum access); </code>    */
-native private long dispatch_glMapBuffer(int target, int access, long glProcAddress);
+/** Entry point to C language function: <code> void *  {@native glMapBufferRange}(GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access); </code> <br>Part of <code>GL_ES_VERSION_3_0</code>, <code>GL_VERSION_3_0</code>; <code>GL_EXT_map_buffer_range</code>   */
+public final ByteBuffer glMapBufferRange(int target, long offset, long length, int access)  {
+  return glMapBufferImpl(target, true, offset, length, access, ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapBufferRange);
+}
 
 /** Entry point to C language function: <code> GLvoid *  {@native glMapNamedBufferEXT}(GLuint buffer, GLenum access); </code> <br>Part of <code>GL_EXT_direct_state_access</code>   */
 public final java.nio.ByteBuffer glMapNamedBufferEXT(int bufferName, int access)  {
-  final long __addr_ = ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapNamedBufferEXT;
-  if (__addr_ == 0) {
-    throw new GLException("Method \"glMapNamedBufferEXT\" not available");
-  }
-  final long sz = bufferSizeTracker.getDirectStateBufferSize(bufferName, this);
-  if (0 == sz) {
-    return null;
-  }
-  final long addr = dispatch_glMapNamedBufferEXT(bufferName, access, __addr_);
-  if (0 == addr) {
-    return null;
-  }
-  ByteBuffer buffer;
-  MemoryObject memObj0 = new MemoryObject(addr, sz); // object and key
-  MemoryObject memObj1 = MemoryObject.getOrAddSafe(arbMemCache, memObj0);
-  if(memObj0 == memObj1) {
-    // just added ..
-    if(null != memObj0.getBuffer()) {
-        throw new InternalError();
-    }
-    buffer = newDirectByteBuffer(addr, sz);
-    Buffers.nativeOrder(buffer);
-    memObj0.setBuffer(buffer);
-  } else {
-    // already mapped
-    buffer = memObj1.getBuffer();
-    if(null == buffer) {
-        throw new InternalError();
-    }
-  }
-  buffer.position(0);
-  return buffer;
+  return glMapNamedBufferImpl(bufferName, access, ((GL4bcProcAddressTable)_context.getGLProcAddressTable())._addressof_glMapNamedBufferEXT);
 }
-
-private native long dispatch_glMapNamedBufferEXT(int buffer, int access, long procAddress);
-
-native private ByteBuffer newDirectByteBuffer(long addr, long capacity);
 
     @Override
     public final void glVertexPointer(GLArrayData array) {

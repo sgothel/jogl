@@ -62,8 +62,13 @@ import javax.media.opengl.GLRunnable;
     methods to be able to share it between GLAutoDrawable implementations like GLAutoDrawableBase, GLCanvas and GLJPanel. */
 public class GLDrawableHelper {
   /** true if property <code>jogl.debug.GLDrawable.PerfStats</code> is defined. */
-  private static final boolean PERF_STATS = Debug.isPropertyDefined("jogl.debug.GLDrawable.PerfStats", true);
+  private static final boolean PERF_STATS;
     
+  static {
+      Debug.initSingleton();
+      PERF_STATS = Debug.isPropertyDefined("jogl.debug.GLDrawable.PerfStats", true);
+  }
+  
   protected static final boolean DEBUG = GLDrawableImpl.DEBUG;
   private final Object listenersLock = new Object();
   private final ArrayList<GLEventListener> listeners = new ArrayList<GLEventListener>();
@@ -531,10 +536,10 @@ public class GLDrawableHelper {
       }
   }
   
-  private final void init(GLEventListener l, GLAutoDrawable drawable, boolean sendReshape) {
+  private final void init(GLEventListener l, GLAutoDrawable drawable, boolean sendReshape, boolean setViewport) {
       l.init(drawable);
       if(sendReshape) {
-          reshape(l, drawable, 0, 0, drawable.getWidth(), drawable.getHeight(), true /* setViewport */, false /* checkInit */);
+          reshape(l, drawable, 0, 0, drawable.getWidth(), drawable.getHeight(), setViewport, false /* checkInit */);
       }
   }
 
@@ -545,33 +550,40 @@ public class GLDrawableHelper {
   public final void init(GLAutoDrawable drawable, boolean sendReshape) {
     synchronized(listenersLock) {
         final ArrayList<GLEventListener> _listeners = listeners;
-        for (int i=0; i < _listeners.size(); i++) {
-          final GLEventListener listener = _listeners.get(i) ;
-
-          // If make ctx current, invoked by invokGL(..), results in a new ctx, init gets called.
-          // This may happen not just for initial setup, but for ctx recreation due to resource change (drawable/window),
-          // hence it must be called unconditional, always.
-          listenersToBeInit.remove(listener); // remove if exist, avoiding dbl init
-          init( listener, drawable, sendReshape);
+        final int listenerCount = _listeners.size();
+        if( listenerCount > 0 ) {
+            for (int i=0; i < listenerCount; i++) {
+              final GLEventListener listener = _listeners.get(i) ;
+    
+              // If make ctx current, invoked by invokGL(..), results in a new ctx, init gets called.
+              // This may happen not just for initial setup, but for ctx recreation due to resource change (drawable/window),
+              // hence it must be called unconditional, always.
+              listenersToBeInit.remove(listener); // remove if exist, avoiding dbl init
+              init( listener, drawable, sendReshape, 0==i /* setViewport */);
+            }
+        } else {
+            // Expose same GL initialization if not using GLEventListener
+            drawable.getGL().glViewport(0, 0, drawable.getWidth(), drawable.getHeight());
         }
     }
   }
 
   public final void display(GLAutoDrawable drawable) {
     displayImpl(drawable);
-    if(!execGLRunnables(drawable)) {
+    if( glRunnables.size()>0 && !execGLRunnables(drawable) ) { // glRunnables volatile OK; execGL.. only executed if size > 0
         displayImpl(drawable);  
     }
   }
   private final void displayImpl(GLAutoDrawable drawable) {
       synchronized(listenersLock) {
           final ArrayList<GLEventListener> _listeners = listeners;
-          for (int i=0; i < _listeners.size(); i++) {
+          final int listenerCount = _listeners.size();
+          for (int i=0; i < listenerCount; i++) {
             final GLEventListener listener = _listeners.get(i) ;
             // GLEventListener may need to be init, 
             // in case this one is added after the realization of the GLAutoDrawable
             if( listenersToBeInit.remove(listener) ) {
-                init( listener, drawable, true /* sendReshape */) ;
+                init( listener, drawable, true /* sendReshape */, listenersToBeInit.size() + 1 == listenerCount /* setViewport if 1st init */ );
             }
             listener.display(drawable);
           }
@@ -585,7 +597,7 @@ public class GLDrawableHelper {
         // in case this one is added after the realization of the GLAutoDrawable
         synchronized(listenersLock) {
             if( listenersToBeInit.remove(listener) ) {
-                init( listener, drawable, false /* sendReshape */) ;
+                listener.init(drawable);
             }
         }
     }
@@ -598,29 +610,27 @@ public class GLDrawableHelper {
   public final void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
     synchronized(listenersLock) {
         for (int i=0; i < listeners.size(); i++) {
-          reshape((GLEventListener) listeners.get(i), drawable, x, y, width, height, 0==i, true);
+          reshape((GLEventListener) listeners.get(i), drawable, x, y, width, height, 0==i /* setViewport */, true /* checkInit */);
         }
     }
   }
 
-  private final boolean execGLRunnables(GLAutoDrawable drawable) {
+  private final boolean execGLRunnables(GLAutoDrawable drawable) { // glRunnables.size()>0
     boolean res = true;
-    if(glRunnables.size()>0) { // volatile OK
-        // swap one-shot list asap
-        final ArrayList<GLRunnableTask> _glRunnables;
-        synchronized(glRunnablesLock) {
-            if(glRunnables.size()>0) {
-                _glRunnables = glRunnables;
-                glRunnables = new ArrayList<GLRunnableTask>();
-            } else {
-                _glRunnables = null;
-            }
+    // swap one-shot list asap
+    final ArrayList<GLRunnableTask> _glRunnables;
+    synchronized(glRunnablesLock) {
+        if(glRunnables.size()>0) {
+            _glRunnables = glRunnables;
+            glRunnables = new ArrayList<GLRunnableTask>();
+        } else {
+            _glRunnables = null;
         }
-        
-        if(null!=_glRunnables) {
-            for (int i=0; i < _glRunnables.size(); i++) {
-                res = _glRunnables.get(i).run(drawable) && res;
-            }
+    }
+    
+    if(null!=_glRunnables) {
+        for (int i=0; i < _glRunnables.size(); i++) {
+            res = _glRunnables.get(i).run(drawable) && res;
         }
     }
     return res;

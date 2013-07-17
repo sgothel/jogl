@@ -29,13 +29,14 @@
  
 package javax.media.nativewindow.util;
 
-/** Immutable SurfaceSize Class, consisting of it's read only components:<br>
+/** 
+ * Immutable SurfaceSize Class, consisting of it's read only components:<br>
  * <ul>
  *  <li>{@link javax.media.nativewindow.util.DimensionImmutable} size in pixels</li>
  *  <li><code>bits per pixel</code></li>
  * </ul>
  */
-public class SurfaceSize {
+public class SurfaceSize implements Comparable<SurfaceSize> {
     final DimensionImmutable resolution;
     final int bitsPerPixel;
 
@@ -59,6 +60,27 @@ public class SurfaceSize {
         return new String("[ "+resolution+" x "+bitsPerPixel+" bpp ]");
     }
 
+    /**
+     * <p>
+     * Compares {@link DimensionImmutable#compareTo(DimensionImmutable) resolution} 1st, if equal the bitsPerPixel.
+     * </p> 
+     * {@inheritDoc}
+     */
+    @Override
+    public int compareTo(final SurfaceSize ssz) {
+        final int rres = resolution.compareTo(ssz.getResolution());
+        if( 0 != rres ) {
+            return rres;
+        }
+        final int xbpp = ssz.getBitsPerPixel(); 
+        if(bitsPerPixel > xbpp) {
+            return 1;
+        } else if(bitsPerPixel < xbpp) {
+            return -1;
+        }
+        return 0;
+    }
+    
     /**
      * Checks whether two size objects are equal. Two instances
      * of <code>SurfaceSize</code> are equal if the two components

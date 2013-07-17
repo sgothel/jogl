@@ -27,6 +27,8 @@
  */
 package jogamp.opengl;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 
 import javax.media.nativewindow.NativeWindowException;
@@ -38,8 +40,6 @@ import javax.media.opengl.GLException;
 import com.jogamp.common.os.Platform;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.GLExtensions;
-
-import jogamp.opengl.gl4.GL4bcProcAddressTable;
 
 /**
  * The GLDebugMessageHandler, handling <i>GL_ARB_debug_output</i> or <i>GL_AMD_debug_output</i>
@@ -107,6 +107,18 @@ public class GLDebugMessageHandler {
         }
     }
     
+    private final long getAddressFor(final ProcAddressTable table, final String functionName) {
+        return AccessController.doPrivileged(new PrivilegedAction<Long>() {
+            public Long run() {
+                try {
+                    return Long.valueOf( table.getAddressFor(functionName) );
+                } catch (IllegalArgumentException iae) { 
+                    return Long.valueOf(0);
+                }
+            }
+        } ).longValue();
+    }
+
     public void init() {
         ctx.validateCurrent();
         if( isAvailable()) {
@@ -148,17 +160,17 @@ public class GLDebugMessageHandler {
         }
                 
         final ProcAddressTable procAddressTable = ctx.getGLProcAddressTable();
-        if( procAddressTable instanceof GL4bcProcAddressTable) {
-            final GL4bcProcAddressTable desktopProcAddressTable = (GL4bcProcAddressTable)procAddressTable;
+        if( !ctx.isGLES1() && !ctx.isGLES2() ) {
             switch(extType) {
                 case EXT_ARB: 
-                    glDebugMessageCallbackProcAddress = desktopProcAddressTable._addressof_glDebugMessageCallbackARB;
+                    glDebugMessageCallbackProcAddress = getAddressFor(procAddressTable, "glDebugMessageCallbackARB");
                     break;
                 case EXT_AMD: 
-                    glDebugMessageCallbackProcAddress = desktopProcAddressTable._addressof_glDebugMessageCallbackAMD;
+                    glDebugMessageCallbackProcAddress = getAddressFor(procAddressTable, "glDebugMessageCallbackAMD");
                     break;
             }
         } else {
+            glDebugMessageCallbackProcAddress = 0;
             if(DEBUG) {
                 System.err.println("Non desktop context not supported");    
             }            
@@ -212,9 +224,9 @@ public class GLDebugMessageHandler {
     private final void setSynchronousImpl() {
         if(isExtensionARB()) {
             if(synchronous) {
-                ctx.getGL().glEnable(GL2GL3.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+                ctx.getGL().glEnable(GL2GL3.GL_DEBUG_OUTPUT_SYNCHRONOUS);
             } else {
-                ctx.getGL().glDisable(GL2GL3.GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+                ctx.getGL().glDisable(GL2GL3.GL_DEBUG_OUTPUT_SYNCHRONOUS);
             }        
             if(DEBUG) {
                 System.err.println("GLDebugMessageHandler: synchronous "+synchronous);

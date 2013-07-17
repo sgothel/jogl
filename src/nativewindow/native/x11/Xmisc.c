@@ -624,6 +624,7 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_x11_X11Lib_DestroyWindow
 {
     Display * dpy = (Display *)(intptr_t)display;
     Window      w = (Window) window;
+    XWindowAttributes xwa;
 
     if(NULL==dpy) {
         NativewindowCommon_throwNewRuntimeException(env, "invalid display connection..");
@@ -631,10 +632,16 @@ JNIEXPORT void JNICALL Java_jogamp_nativewindow_x11_X11Lib_DestroyWindow
     }
 
     NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 1, errorHandlerQuiet, 0);
+    XSync(dpy, False);
+    memset(&xwa, 0, sizeof(XWindowAttributes));
+    XGetWindowAttributes(dpy, w, &xwa); // prefetch colormap to be destroyed after window destruction
     XSelectInput(dpy, w, 0);
     XUnmapWindow(dpy, w);
     XSync(dpy, False);
     XDestroyWindow(dpy, w);
+    if( None != xwa.colormap ) {
+        XFreeColormap(dpy, xwa.colormap);
+    }
     // NativewindowCommon_x11ErrorHandlerEnable(env, dpy, 0, 0, errorHandlerQuiet, 1);
 }
 

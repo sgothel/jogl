@@ -110,7 +110,7 @@ public class GLVersionNumber extends VersionNumberString {
         String str;
         {
             final GLVersionNumber glv = create(versionString);
-            str = versionString.substring(glv.endOfStringMatch());
+            str = versionString.substring(glv.endOfStringMatch()).trim();
         }
         
         while ( str.length() > 0 ) {
@@ -120,7 +120,7 @@ public class GLVersionNumber extends VersionNumberString {
                 if( version.hasMajor() && version.hasMinor() ) { // Requires at least a defined major and minor version component!
                     return version;
                 }
-                str = str.substring( eosm );
+                str = str.substring( eosm ).trim();
             } else {
                 break; // no match
             }
