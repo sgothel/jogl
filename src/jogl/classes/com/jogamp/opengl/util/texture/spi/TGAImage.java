@@ -273,7 +273,16 @@ public class TGAImage {
             throw new IOException("TGADecoder Compressed Colormapped images not supported");
 
         case Header.TRUECOLOR:
-            throw new IOException("TGADecoder Compressed True Color images not supported");
+            switch (header.pixelDepth) {
+            case 16:
+                throw new IOException("TGADecoder Compressed 16-bit True Color images not supported");
+
+            case 24:
+            case 32:
+                decodeRGBImageRLE24_32(glp, dIn);
+                break;
+            }
+            break;
 
         case Header.BLACKWHITE:
             throw new IOException("TGADecoder Compressed Grayscale images not supported");
@@ -285,9 +294,11 @@ public class TGAImage {
      * RGB or ARGB image respectively.
      */
     private void decodeRGBImageU24_32(GLProfile glp, LEDataInputStream dIn) throws IOException {
+        setupImage24_32(glp);
+        
         int i;    // row index
         int y;    // output row index
-        int rawWidth = header.width() * (header.pixelDepth() / 8);
+        int rawWidth = header.width() * bpp;
         byte[] rawBuf = new byte[rawWidth];
         byte[] tmpData = new byte[rawWidth * header.height()];
 
@@ -302,31 +313,57 @@ public class TGAImage {
             System.arraycopy(rawBuf, 0, tmpData, y * rawWidth, rawBuf.length);
         }
 
-        if (header.pixelDepth() == 24) {
-            bpp=3;
-            if(glp.isGL2GL3()) {
-                format = GL2GL3.GL_BGR;
-            } else {
-                format = GL.GL_RGB;
-                swapBGR(tmpData, rawWidth, header.height(), bpp);
-            }
-        } else {
-            assert header.pixelDepth() == 32;
-            bpp=4;
+        if(format == GL.GL_RGB || format == GL.GL_RGBA)
+            swapBGR(tmpData, rawWidth, header.height(), bpp);
+        data = ByteBuffer.wrap(tmpData);
+    }
+    
+    /**
+     * This assumes that the body is for a 24 bit or 32 bit for a
+     * RGB or ARGB image respectively.
+     */
+    private void decodeRGBImageRLE24_32(GLProfile glp, LEDataInputStream dIn) throws IOException {
+        setupImage24_32(glp);
+        
+        byte[] pixel = new byte[bpp];
+        int rawWidth = header.width() * bpp;
+        byte[] tmpData = new byte[rawWidth * header.height()];
+        int i = 0, j;
+        int packet, len;
+        while (i < tmpData.length) {
+            packet = dIn.readUnsignedByte();
+            len = (packet & 0x7F) + 1;
+            if ((packet & 0x80) != 0) {
+                dIn.read(pixel);
+                for (j = 0; j < len; ++j)
+                    System.arraycopy(pixel, 0, tmpData, i + j * bpp, bpp);
+            } else
+                dIn.read(tmpData, i, len * bpp);
+            i += bpp * len;
+        }
+        
+        if(format == GL.GL_RGB || format == GL.GL_RGBA)
+            swapBGR(tmpData, rawWidth, header.height(), bpp);
+        data = ByteBuffer.wrap(tmpData);
+    }
+    
+    private void setupImage24_32(GLProfile glp) {
+        bpp = header.pixelDepth / 8;
+        switch (header.pixelDepth) {
+        case 24: 
+            format = glp.isGL2GL3() ? GL2GL3.GL_BGR : GL.GL_RGB;   
+            break;
+        case 32:
             boolean useBGRA = glp.isGL2GL3();
             if(!useBGRA) {
                 final GLContext ctx = GLContext.getCurrent();
                 useBGRA = null != ctx && ctx.isTextureFormatBGRA8888Available();
             }
-            if( useBGRA ) {
-                format = GL.GL_BGRA;
-            } else {
-                format = GL.GL_RGBA;
-                swapBGR(tmpData, rawWidth, header.height(), bpp);
-            }
+            format = useBGRA ? GL.GL_BGRA : GL.GL_RGBA;
+            break;
+        default:
+            assert false;
         }
-
-        data = ByteBuffer.wrap(tmpData);
     }
 
     private static void swapBGR(byte[] data, int bWidth, int height, int bpp) {
