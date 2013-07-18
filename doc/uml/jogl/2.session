@@ -1,7 +1,7 @@
 window_sizes 1898 1332 450 1344 884 38
 diagrams
   active  classdiagram_ref 128069 // OpenGL Interfaces - All
-    1442 1217 90 17 0 0
+    1442 1217 100 17 0 0
   classdiagram_ref 134786 // OpenGL Interfaces - Core Only
     1149 974 100 17 93 0
 end

@@ -1,6 +1,6 @@
 format 75
 "jogl"
-  revision 12
+  revision 13
   modified_by 2 "sven"
 
 
@@ -39,7 +39,7 @@ format 75
   mark_for_import
   
   ncouples 1
-  key "html dir" value "c:/projects/JOGAMP/jogl/doc/bouml/html-svg/"
+  key "html dir" value "c:/projects/JOGAMP/jogl/doc/bouml/html/"
   classview 128069 "javax.media.opengl"
     //class diagram settings
     draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
