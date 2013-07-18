@@ -1,11 +1,16 @@
-window_sizes 1800 1053 450 1344 854 120
+window_sizes 1898 1332 450 1344 884 38
 diagrams
-  active  classdiagram_ref 128069 // OpenGL Interfaces
-    1344 854 100 17 0 0
+  active  classdiagram_ref 128069 // OpenGL Interfaces - All
+    1442 1217 90 17 0 0
+  classdiagram_ref 134786 // OpenGL Interfaces - Core Only
+    1149 974 100 17 0 0
 end
 show_stereotypes
-selected classdiagram_ref 128069 // OpenGL Interfaces
+selected 
+  package_ref 129 // jogl
 open
-  classview_ref 128069 // javax.media.opengl
+  class_ref 128837 // GL3
+  class_ref 130501 // GL4bcImpl
+  class_ref 130629 // GLES3Impl
 end
 end
