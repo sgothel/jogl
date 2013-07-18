@@ -10,9 +10,6 @@
 	<line stroke="black" stroke-opacity="1" x1="146" y1="218" x2="146" y2="207" />
 </g>
 <g>
-	<line stroke-dasharray="4,4" stroke="black" stroke-opacity="1" x1="-2" y1="228" x2="-29" y2="209" />
-</g>
-<g>
 	<line stroke="black" stroke-dasharray="20,4" stroke-opacity="1" x1="-2" y1="650" x2="937" y2="650" />
 </g>
 <g>
@@ -20,6 +17,9 @@
 </g>
 <g>
 	<line stroke="black" stroke-dasharray="20,4" stroke-opacity="1" x1="-2" y1="400" x2="937" y2="400" />
+</g>
+<g>
+	<line stroke-dasharray="4,4" stroke="black" stroke-opacity="1" x1="-2" y1="228" x2="-29" y2="209" />
 </g>
 <g>
 	<line stroke-dasharray="4,4" stroke="black" stroke-opacity="1" x1="-29" y1="239" x2="-2" y2="258" />
@@ -41,6 +41,15 @@
 	<line stroke="black" stroke-opacity="1" x1="357" y1="470" x2="354" y2="478" />
 	<line stroke="black" stroke-opacity="1" x1="357" y1="470" x2="365" y2="472" />
 	<line stroke="black" stroke-opacity="1" x1="354" y1="478" x2="365" y2="472" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="685" y1="110" x2="498" y2="54" />
+</g>
+<g>
+	<line stroke-dasharray="4,4" stroke="black" stroke-opacity="1" x1="828" y1="937" x2="559" y2="768" />
+	<line stroke="black" stroke-opacity="1" x1="554" y1="765" x2="555" y2="773" />
+	<line stroke="black" stroke-opacity="1" x1="554" y1="765" x2="562" y2="763" />
+	<line stroke="black" stroke-opacity="1" x1="555" y1="773" x2="562" y2="763" />
 </g>
 <g>
 	<line stroke="black" stroke-opacity="1" x1="1071" y1="477" x2="1071" y2="441" />
@@ -76,13 +85,75 @@
 	<line stroke="black" stroke-opacity="1" x1="235" y1="42" x2="421" y2="42" />
 </g>
 <g>
-	<line stroke="black" stroke-opacity="1" x1="685" y1="110" x2="498" y2="54" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="768" y="109" width="3" height="35" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="690" y="141" width="81" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="686" y="105" width="82" height="36" />
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" font-style="italic" text-anchor="middle" x="727" y="120">GLDrawable</text>
+	<line stroke="black" stroke-opacity="1" x1="686" y1="125" x2="768" y2="125" />
+	<line stroke="black" stroke-opacity="1" x1="686" y1="133" x2="768" y2="133" />
 </g>
 <g>
-	<line stroke-dasharray="4,4" stroke="black" stroke-opacity="1" x1="828" y1="937" x2="559" y2="768" />
-	<line stroke="black" stroke-opacity="1" x1="554" y1="765" x2="555" y2="773" />
-	<line stroke="black" stroke-opacity="1" x1="554" y1="765" x2="562" y2="763" />
-	<line stroke="black" stroke-opacity="1" x1="555" y1="773" x2="562" y2="763" />
+	<rect fill="none" stroke="black" stroke-width="1" stroke-opacity="1" x="292" y="261" width="100" height="56" />
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" text-anchor="middle" x="342" y="276">&lt;&lt;metaclass&gt;&gt;</text>
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" font-style="italic" text-anchor="middle" x="342" y="296">GL2ES3</text>
+	<line stroke="black" stroke-opacity="1" x1="292" y1="301" x2="392" y2="301" />
+	<line stroke="black" stroke-opacity="1" x1="292" y1="309" x2="392" y2="309" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="857" y1="953" x2="877" y2="953" />
+	<ellipse fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" cx="867" cy="943" rx="10" ry="10" />
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="867" y="968">GL4bcImpl</text>
+	<line stroke="black" stroke-opacity="1" x1="829" y1="973" x2="905" y2="973" />
+	<line stroke="black" stroke-opacity="1" x1="829" y1="981" x2="905" y2="981" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="581" y1="606" x2="601" y2="606" />
+	<ellipse fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" cx="591" cy="596" rx="10" ry="10" />
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="591" y="621">GLES3Impl</text>
+	<line stroke="black" stroke-opacity="1" x1="552" y1="626" x2="630" y2="626" />
+	<line stroke="black" stroke-opacity="1" x1="552" y1="634" x2="630" y2="634" />
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1121" y="204" width="3" height="55" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1025" y="256" width="99" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="1021" y="200" width="100" height="56" />
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" text-anchor="middle" x="1071" y="215">&lt;&lt;interface&gt;&gt;</text>
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="1071" y="235">NativeWindow</text>
+	<line stroke="black" stroke-opacity="1" x1="1021" y1="240" x2="1121" y2="240" />
+	<line stroke="black" stroke-opacity="1" x1="1021" y1="248" x2="1121" y2="248" />
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1170" y="299" width="3" height="35" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="976" y="331" width="197" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="972" y="295" width="198" height="36" />
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" font-style="italic" text-anchor="middle" x="1071" y="310">AbstractGraphicsConfiguration</text>
+	<line stroke="black" stroke-opacity="1" x1="972" y1="315" x2="1170" y2="315" />
+	<line stroke="black" stroke-opacity="1" x1="972" y1="323" x2="1170" y2="323" />
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1119" y="482" width="3" height="35" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1023" y="514" width="99" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="1019" y="478" width="100" height="36" />
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="1069" y="493">GLCapabilities</text>
+	<line stroke="black" stroke-opacity="1" x1="1019" y1="498" x2="1119" y2="498" />
+	<line stroke="black" stroke-opacity="1" x1="1019" y1="506" x2="1119" y2="506" />
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1104" y="585" width="3" height="35" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1040" y="617" width="67" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="1036" y="581" width="68" height="36" />
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="1070" y="596">GLProfile</text>
+	<line stroke="black" stroke-opacity="1" x1="1036" y1="601" x2="1104" y2="601" />
+	<line stroke="black" stroke-opacity="1" x1="1036" y1="609" x2="1104" y2="609" />
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="231" y="16" width="3" height="55" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="147" y="68" width="87" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="143" y="12" width="88" height="56" />
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" text-anchor="middle" x="187" y="27">&lt;&lt;interface&gt;&gt;</text>
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="187" y="47">GLBase</text>
+	<line stroke="black" stroke-opacity="1" x1="143" y1="52" x2="231" y2="52" />
+	<line stroke="black" stroke-opacity="1" x1="143" y1="60" x2="231" y2="60" />
 </g>
 <g>
 	<rect fill="#808080" stroke="none" stroke-opacity="1" x="231" y="116" width="3" height="55" />
@@ -146,23 +217,6 @@
 	<line stroke="black" stroke-opacity="1" x1="422" y1="43" x2="494" y2="43" />
 	<line stroke="black" stroke-opacity="1" x1="422" y1="51" x2="494" y2="51" />
 </g>
-<g>
-	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1104" y="585" width="3" height="35" />
-	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1040" y="617" width="67" height="3" />
-	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="1036" y="581" width="68" height="36" />
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="1070" y="596">GLProfile</text>
-	<line stroke="black" stroke-opacity="1" x1="1036" y1="601" x2="1104" y2="601" />
-	<line stroke="black" stroke-opacity="1" x1="1036" y1="609" x2="1104" y2="609" />
-</g>
-<g>
-	<rect fill="#808080" stroke="none" stroke-opacity="1" x="231" y="16" width="3" height="55" />
-	<rect fill="#808080" stroke="none" stroke-opacity="1" x="147" y="68" width="87" height="3" />
-	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="143" y="12" width="88" height="56" />
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" text-anchor="middle" x="187" y="27">&lt;&lt;interface&gt;&gt;</text>
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="187" y="47">GLBase</text>
-	<line stroke="black" stroke-opacity="1" x1="143" y1="52" x2="231" y2="52" />
-	<line stroke="black" stroke-opacity="1" x1="143" y1="60" x2="231" y2="60" />
-</g>
 	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="6" y="604">Mobile final public</text>
 	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="6" y="620">OpenGL Interfaces</text>
 	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="6" y="322">Desktop/Mobile</text>
@@ -176,60 +230,6 @@
 	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="782" y="96">matching the GLProfile.</text>
 	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="271" y="151">Common GL Stuff</text>
 <g>
-	<rect fill="#808080" stroke="none" stroke-opacity="1" x="768" y="109" width="3" height="35" />
-	<rect fill="#808080" stroke="none" stroke-opacity="1" x="690" y="141" width="81" height="3" />
-	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="686" y="105" width="82" height="36" />
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" font-style="italic" text-anchor="middle" x="727" y="120">GLDrawable</text>
-	<line stroke="black" stroke-opacity="1" x1="686" y1="125" x2="768" y2="125" />
-	<line stroke="black" stroke-opacity="1" x1="686" y1="133" x2="768" y2="133" />
-</g>
-<g>
-	<rect fill="none" stroke="black" stroke-width="1" stroke-opacity="1" x="292" y="261" width="100" height="56" />
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" text-anchor="middle" x="342" y="276">&lt;&lt;metaclass&gt;&gt;</text>
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" font-style="italic" text-anchor="middle" x="342" y="296">GL2ES3</text>
-	<line stroke="black" stroke-opacity="1" x1="292" y1="301" x2="392" y2="301" />
-	<line stroke="black" stroke-opacity="1" x1="292" y1="309" x2="392" y2="309" />
-</g>
-<g>
-	<line stroke="black" stroke-opacity="1" x1="857" y1="953" x2="877" y2="953" />
-	<ellipse fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" cx="867" cy="943" rx="10" ry="10" />
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="867" y="968">GL4bcImpl</text>
-	<line stroke="black" stroke-opacity="1" x1="829" y1="973" x2="905" y2="973" />
-	<line stroke="black" stroke-opacity="1" x1="829" y1="981" x2="905" y2="981" />
-</g>
-<g>
-	<line stroke="black" stroke-opacity="1" x1="581" y1="606" x2="601" y2="606" />
-	<ellipse fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" cx="591" cy="596" rx="10" ry="10" />
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="591" y="621">GLES3Impl</text>
-	<line stroke="black" stroke-opacity="1" x1="552" y1="626" x2="630" y2="626" />
-	<line stroke="black" stroke-opacity="1" x1="552" y1="634" x2="630" y2="634" />
-</g>
-<g>
-	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1121" y="204" width="3" height="55" />
-	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1025" y="256" width="99" height="3" />
-	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="1021" y="200" width="100" height="56" />
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" text-anchor="middle" x="1071" y="215">&lt;&lt;interface&gt;&gt;</text>
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="1071" y="235">NativeWindow</text>
-	<line stroke="black" stroke-opacity="1" x1="1021" y1="240" x2="1121" y2="240" />
-	<line stroke="black" stroke-opacity="1" x1="1021" y1="248" x2="1121" y2="248" />
-</g>
-<g>
-	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1170" y="299" width="3" height="35" />
-	<rect fill="#808080" stroke="none" stroke-opacity="1" x="976" y="331" width="197" height="3" />
-	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="972" y="295" width="198" height="36" />
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" font-style="italic" text-anchor="middle" x="1071" y="310">AbstractGraphicsConfiguration</text>
-	<line stroke="black" stroke-opacity="1" x1="972" y1="315" x2="1170" y2="315" />
-	<line stroke="black" stroke-opacity="1" x1="972" y1="323" x2="1170" y2="323" />
-</g>
-<g>
-	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1119" y="482" width="3" height="35" />
-	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1023" y="514" width="99" height="3" />
-	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="1019" y="478" width="100" height="36" />
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="1069" y="493">GLCapabilities</text>
-	<line stroke="black" stroke-opacity="1" x1="1019" y1="498" x2="1119" y2="498" />
-	<line stroke="black" stroke-opacity="1" x1="1019" y1="506" x2="1119" y2="506" />
-</g>
-<g>
 	<line stroke-dasharray="4,4" stroke="black" stroke-opacity="1" x1="867" y1="932" x2="867" y2="867" />
 	<line stroke="black" stroke-opacity="1" x1="867" y1="861" x2="861" y2="867" />
 	<line stroke="black" stroke-opacity="1" x1="867" y1="861" x2="873" y2="867" />
@@ -240,6 +240,12 @@
 	<line stroke="black" stroke-opacity="1" x1="554" y1="749" x2="558" y2="756" />
 	<line stroke="black" stroke-opacity="1" x1="554" y1="749" x2="561" y2="744" />
 	<line stroke="black" stroke-opacity="1" x1="558" y1="756" x2="561" y2="744" />
+</g>
+<g>
+	<line stroke="black" stroke-opacity="1" x1="291" y1="280" x2="240" y2="273" />
+	<line stroke="black" stroke-opacity="1" x1="235" y1="273" x2="240" y2="279" />
+	<line stroke="black" stroke-opacity="1" x1="235" y1="273" x2="241" y2="267" />
+	<line stroke="black" stroke-opacity="1" x1="240" y1="279" x2="241" y2="267" />
 </g>
 <g>
 	<line stroke="black" stroke-opacity="1" x1="856" y1="800" x2="703" y2="381" />
@@ -254,12 +260,6 @@
 	<line stroke="black" stroke-opacity="1" x1="239" y1="551" x2="242" y2="539" />
 </g>
 <g>
-	<line stroke="black" stroke-opacity="1" x1="291" y1="280" x2="240" y2="273" />
-	<line stroke="black" stroke-opacity="1" x1="235" y1="273" x2="240" y2="279" />
-	<line stroke="black" stroke-opacity="1" x1="235" y1="273" x2="241" y2="267" />
-	<line stroke="black" stroke-opacity="1" x1="240" y1="279" x2="241" y2="267" />
-</g>
-<g>
 	<rect fill="#808080" stroke="none" stroke-opacity="1" x="740" y="510" width="3" height="55" />
 	<rect fill="#808080" stroke="none" stroke-opacity="1" x="642" y="562" width="101" height="3" />
 	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="638" y="506" width="102" height="56" />
@@ -267,6 +267,14 @@
 	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="689" y="541">GLES3</text>
 	<line stroke="black" stroke-opacity="1" x1="638" y1="546" x2="740" y2="546" />
 	<line stroke="black" stroke-opacity="1" x1="638" y1="554" x2="740" y2="554" />
+</g>
+<g>
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1110" y="399" width="3" height="35" />
+	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1032" y="431" width="81" height="3" />
+	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="1028" y="395" width="82" height="36" />
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="1069" y="410">Capabilities</text>
+	<line stroke="black" stroke-opacity="1" x1="1028" y1="415" x2="1110" y2="415" />
+	<line stroke="black" stroke-opacity="1" x1="1028" y1="423" x2="1110" y2="423" />
 </g>
 <g>
 	<rect fill="none" stroke="black" stroke-width="1" stroke-opacity="1" x="298" y="414" width="88" height="56" />
@@ -280,14 +288,6 @@
 	<line stroke="black" stroke-opacity="1" x1="691" y1="376" x2="685" y2="382" />
 	<line stroke="black" stroke-opacity="1" x1="691" y1="376" x2="697" y2="382" />
 	<line stroke="black" stroke-opacity="1" x1="685" y1="382" x2="697" y2="382" />
-</g>
-<g>
-	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1110" y="399" width="3" height="35" />
-	<rect fill="#808080" stroke="none" stroke-opacity="1" x="1032" y="431" width="81" height="3" />
-	<rect fill="#ffffc0" stroke="black" stroke-width="1" stroke-opacity="1" x="1028" y="395" width="82" height="36" />
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" font-weight="bold" text-anchor="middle" x="1069" y="410">Capabilities</text>
-	<line stroke="black" stroke-opacity="1" x1="1028" y1="415" x2="1110" y2="415" />
-	<line stroke="black" stroke-opacity="1" x1="1028" y1="423" x2="1110" y2="423" />
 </g>
 <g>
 	<line stroke-dasharray="4,4" stroke="black" stroke-opacity="1" x1="625" y1="585" x2="642" y2="569" />
@@ -329,16 +329,16 @@
 	<line stroke="black" stroke-opacity="1" x1="502" y1="350" x2="514" y2="350" />
 </g>
 <g>
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="514" y="80">0..1</text>
-</g>
-<g>
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="660" y="135">1</text>
-</g>
-<g>
 	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="1043" y="386">chosen</text>
 </g>
 <g>
 	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="1015" y="386">1</text>
+</g>
+<g>
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="514" y="80">0..1</text>
+</g>
+<g>
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="660" y="135">1</text>
 </g>
 <g>
 	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="1115" y="386">requested</text>
