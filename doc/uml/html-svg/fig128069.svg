@@ -471,16 +471,10 @@
 	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="660" y="135">1</text>
 </g>
 <g>
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="397" y="64">1</text>
-</g>
-<g>
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="248" y="64">1</text>
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="1043" y="386">chosen</text>
 </g>
 <g>
 	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="514" y="80">0..1</text>
-</g>
-<g>
-	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="1043" y="386">chosen</text>
 </g>
 <g>
 	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="1015" y="386">1</text>
@@ -490,5 +484,11 @@
 </g>
 <g>
 	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="1080" y="386">1</text>
+</g>
+<g>
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="397" y="64">1</text>
+</g>
+<g>
+	<text font-family="Helvetica" font-size="12" fill="#000000" xml:space="preserve" x="248" y="64">1</text>
 </g>
 </svg>
