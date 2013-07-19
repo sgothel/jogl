@@ -151,7 +151,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         mPlayerScaleOrig = false;
         mPlayerShared = false;
         mPlayerExternal = false;
-        mPlayer = GLMediaPlayerFactory.create();
+        mPlayer = GLMediaPlayerFactory.createDefault();
         mPlayer.addEventListener(this);
         this.stream = stream;
         System.out.println("pC.1 "+mPlayer);

@@ -32,6 +32,8 @@ import java.io.IOException;
 import javax.media.opengl.GL;
 import javax.media.opengl.GLES2;
 
+import com.jogamp.common.os.AndroidVersion;
+import com.jogamp.common.os.Platform;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 import jogamp.common.os.android.StaticContext;
@@ -60,7 +62,13 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     static final boolean available;
     
     static {
-        available = true; // default .. TODO: May restrict availability ? 
+        boolean _avail = false;
+        if(Platform.OS_TYPE.equals(Platform.OSType.ANDROID)) {
+            if(AndroidVersion.SDK_INT >= 14) {
+                _avail = true;
+            }
+        }
+        available = _avail;
     }
     
     public static final boolean isAvailable() { return available; }

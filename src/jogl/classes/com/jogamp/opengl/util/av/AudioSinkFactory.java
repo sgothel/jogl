@@ -1,5 +1,5 @@
 /**
- * Copyright 2012 JogAmp Community. All rights reserved.
+ * Copyright 2013 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -27,35 +27,39 @@
  */
 package com.jogamp.opengl.util.av;
 
-import jogamp.opengl.util.av.NullGLMediaPlayer;
+import jogamp.opengl.util.av.NullAudioSink;
 
-import com.jogamp.common.os.AndroidVersion;
-import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
 
-public class GLMediaPlayerFactory {
-    private static final String AndroidGLMediaPlayerAPI14ClazzName = "jogamp.opengl.android.av.AndroidGLMediaPlayerAPI14";
-    private static final String FFMPEGMediaPlayerClazzName = "jogamp.opengl.util.av.impl.FFMPEGMediaPlayer";
-    private static final String isAvailableMethodName = "isAvailable";
-    
-    public static GLMediaPlayer createDefault() {
+public class AudioSinkFactory {
+    private static final String ALAudioSinkClazzName = "jogamp.opengl.openal.av.ALAudioSink";
+    private static final String JavaAudioSinkClazzName = "jogamp.opengl.util.av.JavaSoundAudioSink";
+
+    public static AudioSink createDefault() {
         final ClassLoader cl = GLMediaPlayerFactory.class.getClassLoader();
-        GLMediaPlayer sink = create(cl, AndroidGLMediaPlayerAPI14ClazzName);
+        AudioSink sink = create(cl, ALAudioSinkClazzName);
         if( null == sink ) {
-            sink = create(cl, FFMPEGMediaPlayerClazzName);
+            sink = create(cl, JavaAudioSinkClazzName);
         }
         if( null == sink ) {
-            sink = new NullGLMediaPlayer();
+            sink = new NullAudioSink();
         }
         return sink;
     }
-    
-    public static GLMediaPlayer create(final ClassLoader cl, String implName) {
-        try {
-            if(((Boolean)ReflectionUtil.callStaticMethod(implName, isAvailableMethodName, null, null, cl)).booleanValue()) {
-                return (GLMediaPlayer) ReflectionUtil.createInstance(implName, cl);
+
+    public static AudioSink create(final ClassLoader cl, String implName) {
+        final AudioSink audioSink;
+        if(ReflectionUtil.isClassAvailable(implName, cl)){
+            try {
+                audioSink = (AudioSink) ReflectionUtil.createInstance(implName, cl);
+                if( audioSink.isInitialized() ) {
+                    return audioSink;
+                }
+            } catch (Throwable t) { 
+                if(AudioSink.DEBUG) { System.err.println("Catched "+t.getClass().getName()+": "+t.getMessage()); t.printStackTrace(); }
             }
-        } catch (Throwable t) { if(GLMediaPlayer.DEBUG) { System.err.println("Catched "+t.getClass().getName()+": "+t.getMessage()); t.printStackTrace(); } }
+        }
         return null;
     }
+
 }

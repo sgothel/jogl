@@ -38,7 +38,7 @@ typedef void (APIENTRYP PFNGLTEXSUBIMAGE2DPROC) (GLenum target, GLint level, GLi
 static const char * const ClazzNameFFMPEGMediaPlayer = "jogamp/opengl/util/av/impl/FFMPEGMediaPlayer";
 
 static jclass ffmpegMediaPlayerClazz = NULL;
-static jmethodID jni_mid_updateSound = NULL;
+static jmethodID jni_mid_pushSound = NULL;
 static jmethodID jni_mid_updateAttributes1 = NULL;
 static jmethodID jni_mid_updateAttributes2 = NULL;
 
@@ -192,41 +192,6 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGDynamicLibraryB
     return JNI_TRUE;
 }
 
-static void _updateSound(JNIEnv *env, jobject instance, int8_t *data, int32_t data_size, int32_t aPTS) {
-    if(NULL!=env) {
-        jbyteArray jbArray = (*env)->NewByteArray(env, data_size);
-        if (jbArray == NULL) {
-            fprintf(stderr, "FFMPEGMediaPlayer out of memory at native code _updateSound");
-            return; /* out of memory error thrown */
-        }
-
-/*
-        // Visualize sample waveform
-        int i;
-        for(i=0;i<40;i++){
-            int8_t b = data[i];
-            if(b<0) {
-                printf(" ");
-            } else if(b<64) {
-                printf("_");
-            } else if(b < 128) {
-                printf("-");
-            } else if(b == 128) {
-                printf("=");
-            } else if(b < 256-64) {
-                printf("\"");
-            } else {
-                printf("'");
-            }
-        }
-        printf("nA\n");
-*/
-
-        (*env)->SetByteArrayRegion(env, jbArray, 0, data_size, data);
-        (*env)->CallVoidMethod(env, instance, jni_mid_updateSound, jbArray, data_size, aPTS);
-    }
-}
-
 static void _updateJavaAttributes(JNIEnv *env, jobject instance, FFMPEGToolBasicAV_t* pAV)
 {
     // int shallBeDetached = 0;
@@ -277,9 +242,12 @@ static void freeInstance(FFMPEGToolBasicAV_t* pAV) {
             sp_av_free(pAV->pVFrame);
             pAV->pVFrame = NULL;
         }
-        if(NULL != pAV->pAFrame) {
-            sp_av_free(pAV->pAFrame);
-            pAV->pAFrame = NULL;
+        if(NULL != pAV->pAFrames) {
+            for(i=0; i<pAV->aFrameCount; i++) {
+                sp_av_free(pAV->pAFrames[i]);
+            }
+            free(pAV->pAFrames);
+            pAV->pAFrames = NULL;
         }
 
         // Close the video file
@@ -370,11 +338,11 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_ini
         JoglCommon_FatalError(env, "JOGL FFMPEG: can't use %s", ClazzNameFFMPEGMediaPlayer);
     }
 
-    jni_mid_updateSound = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateSound", "([BII)V");
+    jni_mid_pushSound = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSound", "(Ljava/nio/ByteBuffer;II)V");
     jni_mid_updateAttributes1 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", "(IIIIIFIILjava/lang/String;Ljava/lang/String;)V");
     jni_mid_updateAttributes2 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes2", "(IIIIIIIIII)V");
 
-    if(jni_mid_updateSound == NULL ||
+    if(jni_mid_pushSound == NULL ||
        jni_mid_updateAttributes1 == NULL ||
        jni_mid_updateAttributes2 == NULL) {
         return JNI_FALSE;
@@ -415,7 +383,7 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_destroy
 }
 
 JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStream0
-  (JNIEnv *env, jobject instance, jlong ptr, jstring jURL, jint vid, jint aid)
+  (JNIEnv *env, jobject instance, jlong ptr, jstring jURL, jint vid, jint aid, jint audioFrameCount)
 {
     int res, i;
     jboolean iscopy;
@@ -525,11 +493,17 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
         pAV->aChannels = pAV->pACodecCtx->channels;
         pAV->aFrameSize = pAV->pACodecCtx->frame_size;
         pAV->aSampleFmt = pAV->pACodecCtx->sample_fmt;
-        pAV->pAFrame=sp_avcodec_alloc_frame();
-        if(pAV->pAFrame==NULL) {
-            JoglCommon_throwNewRuntimeException(env, "Couldn't alloc audio frame");
-            return;
+
+        pAV->aFrameCount = audioFrameCount;
+        pAV->pAFrames = calloc(audioFrameCount, sizeof(AVFrame*));
+        for(i=0; i<pAV->aFrameCount; i++) {
+            pAV->pAFrames[i]=sp_avcodec_alloc_frame();
+            if(pAV->pAFrames[i]==NULL) {
+                JoglCommon_throwNewRuntimeException(env, "Couldn't alloc audio frame %d / %d", i, audioFrameCount);
+                return;
+            }
         }
+        pAV->aFrameCurrent = 0;
     }
 
     if(0<=pAV->vid) {
@@ -622,11 +596,12 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
     if(sp_av_read_frame(pAV->pFormatCtx, &packet)>=0) {
         if(packet.stream_index==pAV->aid) {
             // Decode audio frame
-            if(NULL == pAV->pAFrame) {
+            if(NULL == pAV->pAFrames) { // no audio registered
                 sp_av_free_packet(&packet);
                 return res;
             }
-
+            AVFrame* pAFrameCurrent = pAV->pAFrames[pAV->aFrameCurrent];
+            pAV->aFrameCurrent = ( pAV->aFrameCurrent + 1 ) % pAV->aFrameCount ;
             int new_packet = 1;
             int len1;
             int flush_complete = 0;
@@ -636,7 +611,7 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                     break;
                 }
                 if(HAS_FUNC(sp_avcodec_decode_audio4)) {
-                    len1 = sp_avcodec_decode_audio4(pAV->pACodecCtx, pAV->pAFrame, &frameFinished, &packet);
+                    len1 = sp_avcodec_decode_audio4(pAV->pACodecCtx, pAFrameCurrent, &frameFinished, &packet);
                 } else {
                     #if 0
                     len1 = sp_avcodec_decode_audio3(pAV->pACodecCtx, int16_t *samples, int *frame_size_ptr, &frameFinished, &packet);
@@ -664,11 +639,11 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                 if(HAS_FUNC(sp_av_samples_get_buffer_size)) {
                     data_size = sp_av_samples_get_buffer_size(NULL /* linesize, may be NULL */,
                                                               pAV->aChannels,
-                                                              pAV->pAFrame->nb_samples,
-                                                              pAV->pAFrame->format,
+                                                              pAFrameCurrent->nb_samples,
+                                                              pAFrameCurrent->format,
                                                               1 /* align */);
                 }
-                int32_t pts = (int64_t) ( pAV->pAFrame->pkt_pts * (int64_t) 1000 * (int64_t) pAV->pAStream->time_base.num )
+                int32_t pts = (int64_t) ( pAFrameCurrent->pkt_pts * (int64_t) 1000 * (int64_t) pAV->pAStream->time_base.num )
                               / (int64_t) pAV->pAStream->time_base.den;
                 #if 0
                 printf("channels %d sample_rate %d \n", pAV->aChannels , pAV->aSampleRate);
@@ -679,10 +654,10 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                 if( pAV->verbose ) {
                     printf("A pts %d - %d\n", pts, pAV->aPTS);
                 }
-                // TODO: Wrap audio buffer data in a com.jogamp.openal.sound3d.Buffer or similar
-                // and hand it over to the user using a suitable API.
-                // TODO: OR send the audio buffer data down to sound card directly using JOAL.
-                _updateSound(env, instance, pAV->pAFrame->data[0], data_size, pAV->aPTS);
+                if( NULL != env ) {
+                    jobject jSampleData = (*env)->NewDirectByteBuffer(env, pAFrameCurrent->data[0], data_size);
+                    (*env)->CallVoidMethod(env, instance, jni_mid_pushSound, jSampleData, data_size, pAV->aPTS);
+                }
 
                 res = 1;
             }

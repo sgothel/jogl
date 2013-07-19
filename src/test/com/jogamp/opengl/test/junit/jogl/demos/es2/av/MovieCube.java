@@ -138,7 +138,7 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
         System.err.println(JoglVersion.getGLInfo(gl, null));
 
-        mPlayer = GLMediaPlayerFactory.create();
+        mPlayer = GLMediaPlayerFactory.createDefault();
         mPlayer.addEventListener(this);
         cube = new TextureSequenceCubeES2(mPlayer, false, zoom0, rotx, roty);        
         

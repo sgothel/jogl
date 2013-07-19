@@ -57,6 +57,14 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * </ul>
  * </p>
  * <p>
+ * Implementations of this interface must implement:
+ * <pre>
+ *    public static final boolean isAvailable();
+ * </pre>
+ * to be properly considered by {@link GLMediaPlayerFactory#create(ClassLoader, String)}
+ * and {@link GLMediaPlayerFactory#createDefault()}.
+ * </p>
+ * <p>
  * Variable type, value range and dimension has been chosen to suit embedded CPUs
  * and characteristics of audio and video streaming.
  * Milliseconds of type integer with a maximum value of {@link Integer#MAX_VALUE} 
