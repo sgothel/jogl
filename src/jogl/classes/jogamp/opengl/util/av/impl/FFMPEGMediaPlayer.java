@@ -155,6 +155,7 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
     protected int[] vTexWidth = { 0, 0, 0 }; // per plane
     protected int texWidth, texHeight; // overall (stuffing planes in one texture)
     protected ByteBuffer texCopy;
+    protected String singleTexComp = "r";
 
     //
     // Audio
@@ -222,9 +223,11 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
         switch(vBytesPerPixelPerPlane) {
             case 1:
                 if( gl.isGL3ES3() ) {
-                    tf = GL2ES2.GL_RED;   tif=GL2ES2.GL_RED;   // RED is supported on ES3 and >= GL3 [core]; ALPHA is deprecated on core!
+                    // RED is supported on ES3 and >= GL3 [core]; ALPHA is deprecated on core
+                    tf = GL2ES2.GL_RED;   tif=GL2ES2.GL_RED; singleTexComp = "r";
                 } else {
-                    tf = GL2ES2.GL_ALPHA; tif=GL2ES2.GL_ALPHA; // ALPHA is supported on ES2 and GL2
+                    // ALPHA is supported on ES2 and GL2, i.e. <= GL3 [core] or compatibility
+                    tf = GL2ES2.GL_ALPHA; tif=GL2ES2.GL_ALPHA; singleTexComp = "a";
                 }
                 break;
             case 3: tf = GL2ES2.GL_RGB;   tif=GL.GL_RGB;     break;
@@ -433,24 +436,24 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
       final float tc_w_1 = (float)getWidth() / (float)texWidth;
       switch(vPixelFmt) {
         case YUV420P:
-          return 
+          return
               "vec4 "+textureLookupFunctionName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  vec2 u_off = vec2("+tc_w_1+", 0.0);\n"+
               "  vec2 v_off = vec2("+tc_w_1+", 0.5);\n"+
               "  vec2 tc_half = texCoord*0.5;\n"+
               "  float y,u,v,r,g,b;\n"+
-              "  y = texture2D(image, texCoord).r;\n"+
-              "  u = texture2D(image, u_off+tc_half).r;\n"+
-              "  v = texture2D(image, v_off+tc_half).r;\n"+              
+              "  y = texture2D(image, texCoord)."+singleTexComp+";\n"+
+              "  u = texture2D(image, u_off+tc_half)."+singleTexComp+";\n"+
+              "  v = texture2D(image, v_off+tc_half)."+singleTexComp+";\n"+
               "  y = 1.1643*(y-0.0625);\n"+
               "  u = u-0.5;\n"+
               "  v = v-0.5;\n"+
               "  r = y+1.5958*v;\n"+
               "  g = y-0.39173*u-0.81290*v;\n"+
-              "  b = y+2.017*u;\n"+              
+              "  b = y+2.017*u;\n"+
               "  return vec4(r, g, b, 1);\n"+
               "}\n"
-          ;            
+          ;
         default: // FIXME: Add more planar formats !
           return super.getTextureLookupFragmentShaderImpl();
       }        
