@@ -1,7 +1,7 @@
-format 75
+format 74
 "jogl"
-  revision 14
-  modified_by 2 "sven"
+  revision 15
+  modified_by 2 "qun"
 
 
   
@@ -31,15 +31,13 @@ format 75
   show_infonote yes drawing_language uml show_stereotype_properties no
   
   class_color yellow duration_color transparent continuation_color gray note_color blue fragment_color transparent subject_color transparent usecase_color yellow package_color transparent component_color green artifact_color green deploymentnode_color gray state_color yellow stateaction_color transparent activity_color transparent activityregion_color transparent activitypartition_color transparent activityaction_color transparent parameterpin_color white 
-  font_size 10
+  font_size 7
   diagram_format A4
-
-  image_root_dir ""
 
   mark_for_import
   
   ncouples 1
-  key "html dir" value "C:/projects/JOGAMP/jogl/doc/uml/html-svg/"
+  key "html dir" value "/usr/local/projects/JOGL/jogl/doc/uml/html/"
   classview 128069 "javax.media.opengl"
     //class diagram settings
     draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
@@ -763,6 +761,14 @@ ${members}}
 	    java "${type}"
 	    classrelation_ref 135810 // <generalisation>
 	  b parent class_ref 135042 // GL4ES3
+      end
+
+      classrelation 143746 // <generalisation>
+	relation 143746 ---|>
+	  a public
+	    java "${type}"
+	    classrelation_ref 143746 // <generalisation>
+	  b parent class_ref 128965 // GLES2
       end
     end
 
