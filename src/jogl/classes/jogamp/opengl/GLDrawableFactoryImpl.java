@@ -247,7 +247,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   //
   
   @Override
-  public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device);
+  public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp);
 
   @Override
   public GLPbuffer createGLPbuffer(AbstractGraphicsDevice deviceReq,
@@ -263,7 +263,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     if(null == device) {
         throw new GLException("No shared device for requested: "+deviceReq);
     }
-    if ( !canCreateGLPbuffer(device) ) {
+    if ( !canCreateGLPbuffer(device, capsRequested.getGLProfile()) ) {
         throw new GLException("Pbuffer not available with device: "+device);
     }
 
@@ -575,16 +575,16 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
         rampEntry = 0.0f;
       gammaRamp[i] = rampEntry;
     }
-    registerGammaShutdownHook();
+    needsGammaRampReset = true;
     return setGammaRamp(gammaRamp);
   }
 
+  @Override
   public synchronized void resetDisplayGamma() {
-    if (gammaShutdownHook == null) {
-      throw new IllegalArgumentException("Should not call this unless setDisplayGamma called first");
+    if( needsGammaRampReset ) {
+        resetGammaRamp(originalGammaRamp);
+        needsGammaRampReset = false;
     }
-    resetGammaRamp(originalGammaRamp);
-    unregisterGammaShutdownHook();
   }
 
   //------------------------------------------------------
@@ -616,35 +616,6 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
 
   // Shutdown hook mechanism for resetting gamma
-  private boolean gammaShutdownHookRegistered;
-  private Thread  gammaShutdownHook;
-  private Buffer  originalGammaRamp;
-  private synchronized void registerGammaShutdownHook() {
-    if (gammaShutdownHookRegistered)
-      return;
-    if (gammaShutdownHook == null) {
-      gammaShutdownHook = new Thread(new Runnable() {
-          @Override
-        public void run() {
-            synchronized (GLDrawableFactoryImpl.this) {
-              resetGammaRamp(originalGammaRamp);
-            }
-          }
-        });
-      originalGammaRamp = getGammaRamp();
-    }
-    Runtime.getRuntime().addShutdownHook(gammaShutdownHook);
-    gammaShutdownHookRegistered = true;
-  }
-
-  private synchronized void unregisterGammaShutdownHook() {
-    if (!gammaShutdownHookRegistered)
-      return;
-    if (gammaShutdownHook == null) {
-      throw new InternalError("Error in gamma shutdown hook logic");
-    }
-    Runtime.getRuntime().removeShutdownHook(gammaShutdownHook);
-    gammaShutdownHookRegistered = false;
-    // Leave the original gamma ramp data alone
-  }
+  private volatile Buffer originalGammaRamp;
+  private volatile boolean needsGammaRampReset = false;
 }

@@ -55,7 +55,7 @@ public class DisplayDriver extends jogamp.newt.DisplayImpl {
         aDevice = EGLDisplayUtil.eglCreateEGLGraphicsDevice(EGL.EGL_DEFAULT_DISPLAY, AbstractGraphicsDevice.DEFAULT_CONNECTION, AbstractGraphicsDevice.DEFAULT_UNIT);
     }
 
-    protected void closeNativeImpl() {
+    protected void closeNativeImpl(AbstractGraphicsDevice aDevice) {
         aDevice.close();
     }
 

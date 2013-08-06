@@ -75,6 +75,7 @@ public class TestGearsES2AWT extends UITestCase {
     
     static boolean forceES2 = false;
     static boolean forceGL3 = false;
+    static boolean mainRun = false;
     static boolean shallUseOffscreenFBOLayer = false;
     static boolean shallUseOffscreenPBufferLayer = false;
     static boolean useMSAA = false;
@@ -310,10 +311,37 @@ public class TestGearsES2AWT extends UITestCase {
         runTestGL(caps, resizeBy, frameLayout);
     }
 
+    @Test
+    public void test02_GLES2() throws InterruptedException, InvocationTargetException {
+        if(mainRun) return;
+        
+        if( !GLProfile.isAvailable(GLProfile.GLES2) ) {
+            System.err.println("GLES2 n/a");
+            return;
+        }
+        final GLProfile glp = GLProfile.get(GLProfile.GLES2);
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps, resizeBy, frameLayout);
+    }
+    
+    @Test
+    public void test03_GL3() throws InterruptedException, InvocationTargetException {
+        if(mainRun) return;
+        
+        if( !GLProfile.isAvailable(GLProfile.GL3) ) {
+            System.err.println("GL3 n/a");
+            return;
+        }
+        final GLProfile glp = GLProfile.get(GLProfile.GL3);
+        final GLCapabilities caps = new GLCapabilities( glp );
+        runTestGL(caps, resizeBy, frameLayout);
+    }
+    
     public static void main(String args[]) {
         boolean waitForKey = false;
         int rw=-1, rh=-1;
         
+        mainRun = true;
         for(int i=0; i<args.length; i++) {
             if(args[i].equals("-time")) {
                 i++;

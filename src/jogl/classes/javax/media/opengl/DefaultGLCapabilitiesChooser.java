@@ -85,8 +85,13 @@ import jogamp.opengl.Debug;
 */
 
 public class DefaultGLCapabilitiesChooser implements GLCapabilitiesChooser {
-  private static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.CapabilitiesChooser", true);
+  private static final boolean DEBUG;
 
+  static {
+      Debug.initSingleton();
+      DEBUG = Debug.isPropertyDefined("jogl.debug.CapabilitiesChooser", true);
+  }
+  
   private final static int NO_SCORE = -9999999;
   private final static int DOUBLE_BUFFER_MISMATCH_PENALTY = 1000;
   private final static int OPAQUE_MISMATCH_PENALTY = 750;

@@ -31,13 +31,13 @@ package jogamp.opengl.macosx.cgl;
 import jogamp.opengl.*;
 import java.util.*;
 
-public class MacOSXCGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundleInfo  {
+public final class MacOSXCGLDynamicLibraryBundleInfo extends DesktopGLDynamicLibraryBundleInfo  {
     protected MacOSXCGLDynamicLibraryBundleInfo() {
         super();
     }
 
     @Override
-    public List<List<String>> getToolLibNames() {
+    public final List<List<String>> getToolLibNames() {
         final List<List<String>> libsList = new ArrayList<List<String>>();
         final List<String> libsGL = new ArrayList<String>();
         libsGL.add("/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib");

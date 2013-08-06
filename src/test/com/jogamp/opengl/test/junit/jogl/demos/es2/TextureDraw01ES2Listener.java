@@ -56,22 +56,26 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
     PMVMatrix pmvMatrix;
     GLUniformData pmvMatrixUniform;
     GLArrayDataServer interleavedVBO;
-    
+    float[] clearColor = new float[] { 1.0f, 1.0f, 1.0f, 1.0f };
     
     public TextureDraw01ES2Listener(TextureData td) {
         this.textureData = td;
     }
+    
+    public void setClearColor(float[] clearColor) {
+        this.clearColor = clearColor;
+    }
 
     static final String shaderBasename = "texture01_xxx";
-    
+       
     private void initShader(GL2ES2 gl, boolean use_program) {
         // Create & Compile the shader objects
         ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(), 
                                             "shader", "shader/bin", shaderBasename, true);
         ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), 
                                             "shader", "shader/bin", shaderBasename, true);
-        rsVp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_vp);
-        rsFp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);
+        rsVp.defaultShaderCustomization(gl, true, true);
+        rsFp.defaultShaderCustomization(gl, true, true);
         
         // Create & Link the shader program
         ShaderProgram sp = new ShaderProgram();
@@ -134,7 +138,7 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
         st.ownAttribute(interleavedVBO, true);
         
         // OpenGL Render Settings
-        gl.glClearColor(0, 0, 0, 1);
+        gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
         gl.glEnable(GL2ES2.GL_DEPTH_TEST);
         st.useProgram(gl, false);        
     }
@@ -164,8 +168,7 @@ public class TextureDraw01ES2Listener implements GLEventListener, TextureDraw01A
         gl.glViewport(0, 0, width, height);
 
         // Clear background to white
-        gl.glClearColor(1.0f, 1.0f, 1.0f, 0.4f);
-
+        gl.glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
         if(null != st) {
             pmvMatrix.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             pmvMatrix.glLoadIdentity();

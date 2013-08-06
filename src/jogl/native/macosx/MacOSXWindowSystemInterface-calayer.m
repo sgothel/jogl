@@ -818,40 +818,39 @@ static const GLfloat gl_verts[] = {
 
 - (void)waitUntilRenderSignal: (long) to_micros
 {
-    BOOL ready = NO;
-    int wr = 0;
+    struct timespec t0, to_until;
+    BOOL tooLate;
+    int wr;
+    if( 0 >= to_micros ) {
+        to_micros = 16666 + 1000; // defaults to 1/60s + 1ms
+        NSLog(@"MyNSOpenGLContext::waitUntilRenderSignal: to_micros was zero, using defaults");
+    }
     pthread_mutex_lock(&renderLock);
-    SYNC_PRINT("{W %ld us", to_micros);
-    do {
-        if(0 >= swapInterval) {
-            ready = YES;
+    timespec_now(&t0);
+    to_until = lastWaitTime;
+    timespec_addmicros(&to_until, to_micros);
+    tooLate = timespec_compare(&to_until, &t0) < 0;
+    #ifdef DBG_SYNC
+        struct timespec td_until;
+        timespec_subtract(&td_until, &to_until, &t0);
+        SYNC_PRINT("{W %ld ms, to %ld ms, late %d", to_micros/1000, timespec_milliseconds(&td_until), tooLate);
+    #endif
+    if( 0 < swapInterval ) {
+        if( tooLate ) {
+            // adjust!
+            to_until = t0;
+            timespec_addmicros(&to_until, to_micros);
         }
-        if(NO == ready) {
-            #ifdef DBG_SYNC
-                struct timespec t0, t1, td, td2;
-                timespec_now(&t0);
-            #endif
-            if( 0 >= to_micros ) {
-                to_micros = 16666 + 1000; // defaults to 1/60s + 1ms
-                NSLog(@"MyNSOpenGLContext::waitUntilRenderSignal: to_micros was zero, using defaults");
-            }
-            struct timespec to_abs = lastWaitTime;
-            timespec_addmicros(&to_abs, to_micros);
-            #ifdef DBG_SYNC
-                timespec_subtract(&td, &to_abs, &t0);
-                fprintf(stderr, ", (%ld) / ", timespec_milliseconds(&td));
-            #endif
-            wr = pthread_cond_timedwait(&renderSignal, &renderLock, &to_abs);
-            #ifdef DBG_SYNC
-                timespec_now(&t1);
-                timespec_subtract(&td, &t1, &t0);
-                timespec_subtract(&td2, &t1, &lastWaitTime);
-                fprintf(stderr, "(%ld) / (%ld) ms", timespec_milliseconds(&td), timespec_milliseconds(&td2));
-            #endif
-            ready = YES;
-        }
-    } while (NO == ready && 0 == wr) ;
-    SYNC_PRINT("-%d-%d-%d}", shallDraw, wr, ready);
+        wr = pthread_cond_timedwait(&renderSignal, &renderLock, &to_until);
+        #ifdef DBG_SYNC
+            struct timespec t1, td, td2;
+            timespec_now(&t1);
+            timespec_subtract(&td, &t1, &t0);
+            timespec_subtract(&td2, &t1, &lastWaitTime);
+            fprintf(stderr, "(%ld) / (%ld) ms", timespec_milliseconds(&td), timespec_milliseconds(&td2));
+        #endif
+    }
+    SYNC_PRINT("-%d-%d}\n", shallDraw, wr);
     timespec_now(&lastWaitTime);
     pthread_mutex_unlock(&renderLock);
 }

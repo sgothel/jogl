@@ -100,10 +100,6 @@ public class TestMultisampleES2NEWT extends UITestCase {
   }
 
   private void testMultiSampleAAImpl(boolean useFBO, boolean usePBuffer, int reqSamples) throws InterruptedException {
-    if(useFBO) {
-        System.err.println("NEWT offscreen FBO Window n/a yet");
-        return;
-    }
     final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
     GLProfile glp = GLProfile.getGL2ES2();
     GLCapabilities caps = new GLCapabilities(glp);

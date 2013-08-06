@@ -29,13 +29,21 @@ package jogamp.newt.driver.x11;
 
 import java.util.List;
 
+import javax.media.nativewindow.util.RectangleImmutable;
+
 import jogamp.newt.MonitorModeProps;
 
+import com.jogamp.common.util.VersionNumber;
 import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.MonitorMode;
 
 public interface RandR {
+    public static final VersionNumber version110 = new VersionNumber(1, 1, 0);    
+    public static final VersionNumber version130 = new VersionNumber(1, 3, 0);
+    public static final VersionNumber version140 = new VersionNumber(1, 4, 0);
 
+    VersionNumber getVersion();
+    
     void dumpInfo(final long dpy, final int screen_idx);
     
     /**
@@ -72,5 +80,7 @@ public interface RandR {
     int[] getMonitorDeviceProps(final long dpy, final ScreenDriver screen, MonitorModeProps.Cache cache, final int crt_idx);
     int[] getMonitorDeviceViewport(final long dpy, final ScreenDriver screen, final int crt_idx);
     int[] getCurrentMonitorModeProps(final long dpy, final ScreenDriver screen, final int crt_idx);
-    boolean setCurrentMonitorMode(final long dpy, final ScreenDriver screen, MonitorDevice monitor, final MonitorMode mode);    
+    boolean setCurrentMonitorMode(final long dpy, final ScreenDriver screen, MonitorDevice monitor, final MonitorMode mode);  
+    
+    public void updateScreenViewport(final long dpy, final ScreenDriver screen, RectangleImmutable viewport);    
 }

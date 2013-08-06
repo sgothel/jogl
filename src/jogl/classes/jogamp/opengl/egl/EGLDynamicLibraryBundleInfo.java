@@ -29,6 +29,7 @@
 package jogamp.opengl.egl;
 
 import com.jogamp.common.os.AndroidVersion;
+import com.jogamp.common.os.Platform;
 
 import java.util.*;
 
@@ -38,10 +39,10 @@ import jogamp.opengl.*;
  * Abstract implementation of the DynamicLookupHelper for EGL,
  * which decouples it's dependencies to EGLDrawable.
  *
- * Currently two implementations exist, one for ES1 and one for ES2.
+ * Currently two implementations exist, one for ES1 and one for ES3 and ES2.
  */
 public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundleInfo {
-    static List<String> glueLibNames;
+    static final List<String> glueLibNames;
     static {
         glueLibNames = new ArrayList<String>();
         glueLibNames.add("jogl_mobile");
@@ -52,19 +53,12 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
     }
 
     /** 
-     * Might be a desktop GL library, and might need to allow symbol access to subsequent libs.
-     * 
-     * This respects old DRI requirements:<br>
-     * <pre>
-     * http://dri.sourceforge.net/doc/DRIuserguide.html
-     * </pre>
+     * Returns <code>true</code> on <code>Android</code>,
+     * and <code>false</code> otherwise.
      */
     @Override
-    public boolean shallLinkGlobal() { return true; }
-    
-    @Override
-    public boolean shallLookupGlobal() {
-        if ( AndroidVersion.isAvailable ) {
+    public final boolean shallLookupGlobal() {
+        if ( Platform.OSType.ANDROID == Platform.OS_TYPE ) {
             // Android requires global symbol lookup
             return true;
         }
@@ -94,7 +88,7 @@ public abstract class EGLDynamicLibraryBundleInfo extends GLDynamicLibraryBundle
         }
     }
     
-    protected List<String> getEGLLibNamesList() {
+    protected final List<String> getEGLLibNamesList() {
         List<String> eglLibNames = new ArrayList<String>();
         
         // this is the default EGL lib name, according to the spec 

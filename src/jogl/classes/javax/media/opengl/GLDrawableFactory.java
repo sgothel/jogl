@@ -40,8 +40,6 @@
 
 package javax.media.opengl;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -118,13 +116,8 @@ public abstract class GLDrawableFactory {
   private static GLDrawableFactory eglFactory;
   private static GLDrawableFactory nativeOSFactory;
 
-  protected static ArrayList<GLDrawableFactory> glDrawableFactories = new ArrayList<GLDrawableFactory>();
-
-  // Shutdown hook mechanism for the factory
-  private static boolean factoryShutdownHookRegistered = false;
-  private static Thread factoryShutdownHook = null;
-  private static volatile boolean isJVMShuttingDown = false;
-
+  private static ArrayList<GLDrawableFactory> glDrawableFactories = new ArrayList<GLDrawableFactory>();
+  
   /**
    * Instantiate singleton factories if available, EGLES1, EGLES2 and the OS native ones.
    */
@@ -139,7 +132,12 @@ public abstract class GLDrawableFactory {
       }
   }  
   private static final void initSingletonImpl() {
-    registerFactoryShutdownHook();
+    NativeWindowFactory.initSingleton();
+    NativeWindowFactory.addCustomShutdownHook(false /* head */, new Runnable() {
+       public void run() {
+           shutdown0();
+       }
+    });
     
     final String nwt = NativeWindowFactory.getNativeWindowType(true);
     GLDrawableFactory tmp = null;
@@ -199,19 +197,35 @@ public abstract class GLDrawableFactory {
       synchronized (GLDrawableFactory.class) {
           if (isInit) {
               isInit=false;
-              shutdownImpl();
+              shutdown0();
           }
       }
     }
   }
   
-  private static void shutdownImpl() {
+  private static void shutdown0() {
     // Following code will _always_ remain in shutdown hook
     // due to special semantics of native utils, i.e. X11Utils.
     // The latter requires shutdown at JVM-Shutdown only.
     synchronized(glDrawableFactories) {
-        for(int i=0; i<glDrawableFactories.size(); i++) {
-            glDrawableFactories.get(i).destroy();
+        final int gldfCount = glDrawableFactories.size();
+        if( DEBUG ) {
+            System.err.println("GLDrawableFactory.shutdownAll "+gldfCount+" instances, on thread "+getThreadName());
+        }
+        for(int i=0; i<gldfCount; i++) {
+            final GLDrawableFactory gldf = glDrawableFactories.get(i);
+            if( DEBUG ) {
+                System.err.println("GLDrawableFactory.shutdownAll["+(i+1)+"/"+gldfCount+"]:  "+gldf.getClass().getName());
+            }
+            try {
+                gldf.resetDisplayGamma();
+                gldf.destroy();
+            } catch (Throwable t) {
+                System.err.println("GLDrawableFactory.shutdownImpl: Catched "+t.getClass().getName()+" during factory shutdown #"+(i+1)+"/"+gldfCount+" "+gldf.getClass().getName());
+                if( DEBUG ) {
+                    t.printStackTrace();
+                }
+            }
         }
         glDrawableFactories.clear();
         
@@ -220,28 +234,8 @@ public abstract class GLDrawableFactory {
         eglFactory = null;
     }
     GLContext.shutdown();
-    NativeWindowFactory.shutdown(isJVMShuttingDown);
   }
   
-  private static synchronized void registerFactoryShutdownHook() {
-    if (factoryShutdownHookRegistered) {
-        return;
-    }
-    factoryShutdownHook = new Thread(new Runnable() {
-        public void run() {
-            isJVMShuttingDown = true;
-            GLDrawableFactory.shutdownImpl();
-        }
-    });
-    AccessController.doPrivileged(new PrivilegedAction<Object>() {
-        public Object run() {
-            Runtime.getRuntime().addShutdownHook(factoryShutdownHook);
-            return null;
-        }
-    });
-    factoryShutdownHookRegistered = true;
-  }
-
   protected GLDrawableFactory() {
     synchronized(glDrawableFactories) {
         glDrawableFactories.add(this);
@@ -258,6 +252,8 @@ public abstract class GLDrawableFactory {
 
   protected abstract void destroy();
 
+  public abstract void resetDisplayGamma();
+  
   /**
    * Retrieve the default <code>device</code> {@link AbstractGraphicsDevice#getConnection() connection},
    * {@link AbstractGraphicsDevice#getUnitID() unit ID} and {@link AbstractGraphicsDevice#getUniqueID() unique ID name}. for this factory<br>
@@ -447,7 +443,7 @@ public abstract class GLDrawableFactory {
    * </p>
    * <p>
    * A Pbuffer drawable is created if both {@link GLCapabilitiesImmutable#isPBuffer() caps.isPBuffer()}
-   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice) canCreateGLPbuffer(device)} is true.
+   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice, GLProfile) canCreateGLPbuffer(device)} is true.
    * </p>
    * <p>
    * If not onscreen and neither FBO nor Pbuffer is available, 
@@ -458,7 +454,7 @@ public abstract class GLDrawableFactory {
    * @throws GLException if any window system-specific errors caused
    *         the creation of the GLDrawable to fail.
    *
-   * @see #canCreateGLPbuffer(AbstractGraphicsDevice)
+   * @see #canCreateGLPbuffer(AbstractGraphicsDevice, GLProfile)
    * @see GLContext#isFBOAvailable(AbstractGraphicsDevice, GLProfile)
    * @see javax.media.opengl.GLCapabilities#isOnscreen()
    * @see javax.media.opengl.GLCapabilities#isFBO()
@@ -486,7 +482,7 @@ public abstract class GLDrawableFactory {
    * </p>
    * <p>
    * A Pbuffer based auto drawable is created if both {@link GLCapabilitiesImmutable#isPBuffer() caps.isPBuffer()}
-   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice) canCreateGLPbuffer(device)} is true.
+   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice, GLProfile) canCreateGLPbuffer(device)} is true.
    * </p>
    * <p>
    * If neither FBO nor Pbuffer is available, 
@@ -524,7 +520,7 @@ public abstract class GLDrawableFactory {
    * </p>
    * <p>
    * A Pbuffer drawable is created if both {@link GLCapabilitiesImmutable#isPBuffer() caps.isPBuffer()}
-   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice) canCreateGLPbuffer(device)} is true.
+   * and {@link #canCreateGLPbuffer(AbstractGraphicsDevice, GLProfile) canCreateGLPbuffer(device)} is true.
    * </p>
    * <p>
    * If neither FBO nor Pbuffer is available, 
@@ -594,12 +590,16 @@ public abstract class GLDrawableFactory {
   public abstract boolean canCreateFBO(AbstractGraphicsDevice device, GLProfile glp);
 
   /**
-   * Returns true if it is possible to create a GLPbuffer. Some older
-   * graphics cards do not have this capability.
+   * Returns true if it is possible to create an <i>pbuffer surface</i>.
+   * <p> 
+   * Some older graphics cards do not have this capability, 
+   * as well as some new GL implementation, i.e. OpenGL 3 core on OSX. 
+   * </p>
    *
    * @param device which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared the target device, may be <code>null</code> for the platform's default device.
+   * @param glp {@link GLProfile} to check for FBO capabilities
    */
-  public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device);
+  public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp);
 
   /**
    * Creates a GLPbuffer {@link GLAutoDrawable} with the given capabilites and dimensions.

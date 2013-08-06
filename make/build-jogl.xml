@@ -125,6 +125,9 @@
         <property name="java.part.android"
                   value="jogamp/opengl/android/**"/>
 
+        <property name="java.part.openal"
+                  value="jogamp/opengl/openal/**"/>
+
         <property name="java.part.gldesktop"
                   value="jogamp/opengl/**/gl2/** jogamp/opengl/**/gl3/** jogamp/opengl/**/gl4/**"/>
 
@@ -137,11 +140,11 @@
         <property name="java.part.es1.dbg"
                   value="javax/media/opengl/TraceGLES1.* javax/media/opengl/DebugGLES1.*"/>
 
-        <property name="java.part.es2"
-                  value="javax/media/opengl/**/es2/** com/jogamp/opengl/**/es2/** jogamp/opengl/**/es2/**"/>
+        <property name="java.part.es2es3"
+                  value="jogamp/opengl/**/es3/**"/>
 
-        <property name="java.part.es2.dbg"
-                  value="javax/media/opengl/TraceGLES2.* javax/media/opengl/DebugGLES2.*"/>
+        <property name="java.part.es2es3.dbg"
+                  value="javax/media/opengl/TraceGLES2.* javax/media/opengl/DebugGLES2.* javax/media/opengl/TraceGLES3.* javax/media/opengl/DebugGLES3.*"/>
 
         <property name="java.part.awt"
                   value="javax/media/opengl/awt/** jogamp/opengl/**/awt/** com/jogamp/opengl/util/AWTAnimatorImpl*"/>
@@ -298,7 +301,7 @@
         <property name="javadoc" value="${project.root}/javadoc_jogl_public" />
         <property name="javadoc.spec" value="${project.root}/javadoc_jogl_spec" />
         <property name="javadoc.dev" value="${project.root}/javadoc_jogl_dev" />
-        <property name="javadoc.windowtitle" value="JOGL API -- JSR-231 ${jogamp.version.base} Specification" />
+        <property name="javadoc.windowtitle" value="JOGL API Specification -- Version ${jogamp.version.base}" />
         <property name="javadoc.overview" value="doc/jogl/spec-overview.html" />
         <property name="javadoc.spec.packagenames" value="javax.media.opengl.*" />
 
@@ -316,7 +319,11 @@
         <property name="gles2.headers" value="${stub.includes}/opengl/GLES2/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
     </target>
 
-    <target name="declare.gl.gles" depends="declare.gl.gles1, declare.gl.gles2">
+    <target name="declare.gl.gles3">
+        <property name="gles3.headers" value="${stub.includes}/opengl/GLES3/*.h" /> <!-- NOTE:  this MUST be relative for FileSet --> <!-- CHECK:  this may need to be pruned for each platform -->
+    </target>
+
+    <target name="declare.gl.gles" depends="declare.gl.gles1, declare.gl.gles2, declare.gl.gles3">
         <!-- Prepare to build the EGL interface -->
         <property name="window.es.cfg"                             value="${config.jogl}/egl.cfg" />
         <property name="window.es.ext.cfg"                         value="${config.jogl}/eglext.cfg" />
@@ -378,6 +385,12 @@
             <srcfiles refid="stub.includes.dependencies.fileset.2" />
             <srcfiles refid="stub.includes.dependencies.fileset.3" />
         </uptodate>
+        <uptodate property="java.generate.skip.es3"
+                  targetfile="${src.generated.java}/javax/media/opengl/GLES3.java">
+            <srcfiles refid="stub.includes.dependencies.fileset.1" />
+            <srcfiles refid="stub.includes.dependencies.fileset.2" />
+            <srcfiles refid="stub.includes.dependencies.fileset.3" />
+        </uptodate>
         <uptodate property="java.generate.skip.gl2"
                   targetfile="${src.generated.java}/javax/media/opengl/GL2.java">
             <srcfiles refid="stub.includes.dependencies.fileset.1" />
@@ -395,6 +408,7 @@
           <and>
               <isset property="java.generate.skip.es1"/>
               <isset property="java.generate.skip.es2"/>
+              <isset property="java.generate.skip.es3"/>
               <isset property="java.generate.skip.gl2"/>
               <isset property="java.generate.skip.glu"/>
           </and>
@@ -437,6 +451,20 @@
         </gluegen>
     </target>
 
+    <target name="java.generate.gles1">
+        <echo message="Generating GLES1 interface and implementation" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
+        <gluegen src="${stub.includes.opengl}/gles1.c" 
+                 outputRootDir="${build.jogl}"
+                 config="${config.jogl}/gl-es1.cfg"
+                 includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter"
+                 debug="false">
+            <classpath refid="gluegen-gl.classpath" />
+        </gluegen>
+    </target>
+
     <target name="java.generate.gl2_es2_if">
         <echo message="Generating GL2_ES2 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
@@ -450,12 +478,60 @@
         </gluegen>
     </target>
 
+    <target name="java.generate.gles2">
+        <echo message="Generating GLES2 interface and implementation" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
+        <gluegen src="${stub.includes.opengl}/gles2.c" 
+                 outputRootDir="${build.jogl}"
+                 config="${config.jogl}/gl-if-es2.cfg"
+                 includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.gl2_es3_if">
+        <echo message="Generating GL2_ES3 interface" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
+        <gluegen src="${stub.includes.opengl}/gles3.c" 
+                 outputRootDir="${build.jogl}"
+                 config="${config.jogl}/gl-if-gl2es3-subset.cfg"
+                 includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter"
+                 debug="false">
+            <classpath refid="gluegen-gl.classpath" />
+        </gluegen>
+        <gluegen src="${stub.includes.opengl}/gl2.c"
+                 outputRootDir="${build.jogl}"
+                 config="${config.jogl}/gl-if-gl2_es3.cfg" 
+                 includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.gl3_es3_if">
+        <echo message="Generating GL3_ES3 interface" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
+        <gluegen src="${stub.includes.opengl}/gles3.c"
+                 outputRootDir="${build.jogl}"
+                 config="${config.jogl}/gl-if-gl3_es3.cfg" 
+                 includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
+        </gluegen>
+    </target>
+
     <target name="java.generate.gl2_gl3_if">
         <echo message="Generating GL2_GL3 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gl3.c" 
                  outputRootDir="${build.jogl}"
-                 config="${config.jogl}/gl-if-gl3-subset.cfg"
+                 config="${config.jogl}/gl-if-gl2gl3-subset.cfg"
                  includeRefid="stub.includes.fileset.all.gldesktop"
                  literalInclude="${stub.includes.gluegen.gg}"
                  emitter="com.jogamp.gluegen.opengl.GLEmitter"
@@ -473,7 +549,7 @@
     </target>
 
     <target name="java.generate.gl2">
-        <echo message="Generating GL2 interface and implementation" />
+        <echo message="Generating GL2 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gl2.c" 
                  outputRootDir="${build.jogl}"
@@ -486,7 +562,7 @@
     </target>
 
     <target name="java.generate.gl3">
-        <echo message="Generating GL3 interface and implementation" />
+        <echo message="Generating GL3 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gl3.c" 
                  outputRootDir="${build.jogl}"
@@ -499,7 +575,7 @@
     </target>
 
     <target name="java.generate.gl3bc">
-        <echo message="Generating GL3bc implementation" />
+        <echo message="Generating GL3bc interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gl3bc.c" 
                  outputRootDir="${build.jogl}"
@@ -511,8 +587,34 @@
         </gluegen>
     </target>
 
+    <target name="java.generate.gl4_es3_if">
+        <echo message="Generating GL4_ES3 interface" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
+        <gluegen src="${stub.includes.opengl}/gles3.c"
+                 outputRootDir="${build.jogl}"
+                 config="${config.jogl}/gl-if-gl4_es3.cfg" 
+                 includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
+        </gluegen>
+    </target>
+
+    <target name="java.generate.gles3">
+        <echo message="Generating GLES3 interface and implementation" />
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
+        <gluegen src="${stub.includes.opengl}/gles3.c" 
+                 outputRootDir="${build.jogl}"
+                 config="${config.jogl}/gl-es3.cfg"
+                 includeRefid="stub.includes.fileset.all.gldesktop"
+                 literalInclude="${stub.includes.gluegen.gg}"
+                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
+            <classpath refid="gluegen-gl.classpath" />
+        </gluegen>
+    </target>
+
     <target name="java.generate.gl4">
-        <echo message="Generating GL4 interface and implementation" />
+        <echo message="Generating GL4 interface" />
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
         <gluegen src="${stub.includes.opengl}/gl4.c" 
                  outputRootDir="${build.jogl}"
@@ -538,34 +640,7 @@
         </gluegen>
     </target>
 
-    <target name="java.generate.gles1">
-        <echo message="Generating GLES1 interface and implementation" />
-        <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/gles1.c" 
-                 outputRootDir="${build.jogl}"
-                 config="${config.jogl}/gl-es1.cfg"
-                 includeRefid="stub.includes.fileset.all.gldesktop"
-                 literalInclude="${stub.includes.gluegen.gg}"
-                 emitter="com.jogamp.gluegen.opengl.GLEmitter"
-                 debug="false">
-            <classpath refid="gluegen-gl.classpath" />
-        </gluegen>
-    </target>
-
-    <target name="java.generate.gles2">
-        <echo message="Generating GLES2 interface and implementation" />
-        <antcall target="java.generate.copy2temp" inheritRefs="true" />
-        <gluegen src="${stub.includes.opengl}/gles2.c" 
-                 outputRootDir="${build.jogl}"
-                 config="${config.jogl}/gl-es2.cfg"
-                 includeRefid="stub.includes.fileset.all.gldesktop"
-                 literalInclude="${stub.includes.gluegen.gg}"
-                 emitter="com.jogamp.gluegen.opengl.GLEmitter">
-            <classpath refid="gluegen-gl.classpath" />
-        </gluegen>
-    </target>
-
-    <target name="java.generate.gl.all" depends="java.generate.gl_if, java.generate.gl2_es1_if, java.generate.gl2_es2_if, java.generate.gl2_gl3_if, java.generate.gl2, java.generate.gl3, java.generate.gl3bc, java.generate.gl4, java.generate.gl4bc, java.generate.gles1, java.generate.gles2"/>
+    <target name="java.generate.gl.all" depends="build.gluegen-gl.jar, java.generate.gl_if, java.generate.gl2_es1_if, java.generate.gles1, java.generate.gl2_es2_if, java.generate.gles2, java.generate.gl2_es3_if, java.generate.gl3_es3_if, java.generate.gl2_gl3_if, java.generate.gl2, java.generate.gl3, java.generate.gl3bc, java.generate.gl4_es3_if, java.generate.gles3, java.generate.gl4, java.generate.gl4bc"/>
 
     <!-- target name="java.generate.gl.nsig" if="gluegen.nsig">
         <echo message="Generating GL interface and implementation" />
@@ -732,28 +807,17 @@
             <fileset dir="${classes}"
                      includes="${java.part.gluegen-gl-rt} ${java.part.gluegen-gl}"/>
         </jar>
-    </target>
-
-    <target name="java.generate" depends="build.gluegen-gl.jar, java.generate.check" unless="java.generate.skip">
 
         <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
         <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
                  classpathref="gluegen.classpath" />
         <taskdef name="staticglgen" classname="com.jogamp.gluegen.opengl.ant.StaticGLGenTask"
                  classpathref="gluegen-gl.classpath" />
-                 
-        <!-- Use the GlueGen and BuildStaticGLInfo tasks to generate the Java files -->
+    </target>
 
-        <!-- Just to have a fast test of single interfaces .. 
-            <antcall target="java.generate.gl_if"      inheritRefs="true" />
-            <antcall target="java.generate.gl2_es1_if" inheritRefs="true" />
-            <antcall target="java.generate.gl2_es2_if" inheritRefs="true" />
-            <antcall target="java.generate.gl2_gl3_if" inheritRefs="true" />
-            <antcall target="java.generate.gles1" inheritRefs="true"/>
-            <antcall target="java.generate.window.system.es" inheritRefs="true" />
-            <antcall target="java.generate.window.system.es.ext" inheritRefs="true" />
-            <antcall target="java.generate.gl4bc" inheritRefs="true"/>
-            <fail/>  -->
+    <target name="java.generate" depends="build.gluegen-gl.jar, java.generate.check" unless="java.generate.skip">
+
+        <!-- Use the GlueGen and BuildStaticGLInfo tasks to generate the Java files -->
 
         <echo message="Generating GL interface and implementation" />
         <antcall target="java.generate.gl.all"      inheritRefs="true" />
@@ -819,12 +883,6 @@
        - the classpath reference id then running the task on each header.
       -->
     <target name="java.generate.cg" depends="build.gluegen-gl.jar,java.generate.cg.check" unless="java.generate.cg.skip">
-        <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
-        <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
-                 classpathref="gluegen.classpath" />
-        <taskdef name="staticglgen" classname="com.jogamp.gluegen.opengl.ant.StaticGLGenTask"
-                 classpathref="gluegen-gl.classpath" />
-
         <!-- Generate CgGL interface class -->
         <gluegen src="${stub.includes.opengl}/cg.c" 
                  outputRootDir="${build.jogl}"
@@ -872,6 +930,22 @@
 
     </target>        
 
+    <target name="java.generate.composable.pipeline.check.es3">
+        <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
+             (the uptodate element doesn't support arbitrary source and destination files) -->
+        <dependset>
+            <srcfilelist dir="${classes}/javax/media/opengl" files="GLES3.class" />
+            <targetfileset dir="${src.generated.java}/javax/media/opengl"
+                           includes="DebugGLES3.java,TraceGLES3.java" />
+        </dependset>
+                           
+        <!-- Now choose one of the two to test to see if we have to regenerate -->
+        <uptodate property="java.generate.composable.pipeline.skip.es3"
+                  srcfile="${classes}/javax/media/opengl/GLES3.class"
+                  targetfile="${src.generated.java}/javax/media/opengl/DebugGLES3.java" />
+
+    </target>        
+
     <target name="java.generate.composable.pipeline.check.gl2">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
@@ -902,19 +976,19 @@
                   targetfile="${src.generated.java}/javax/media/opengl/DebugGL3.java" />
     </target>        
 
-    <target name="java.generate.composable.pipeline.check.gl4">
+    <target name="java.generate.composable.pipeline.check.gl4bc">
         <!-- Blow away the DebugGL*.java and TraceGL*.java sources if GL*.class has changed
              (the uptodate element doesn't support arbitrary source and destination files) -->
         <dependset>
-            <srcfilelist dir="${classes}/javax/media/opengl" files="GL4.class" />
+            <srcfilelist dir="${classes}/javax/media/opengl" files="GL4bc.class" />
             <targetfileset dir="${src.generated.java}/javax/media/opengl"
-                           includes="DebugGL4.java,TraceGL4.java,DebugGL4bc.java,TraceGL4bc.java" />
+                           includes="DebugGL4bc.java,TraceGL4bc.java" />
         </dependset>
                            
         <!-- Now choose one of the two to test to see if we have to regenerate -->
-        <uptodate property="java.generate.composable.pipeline.skip.gl4"
-                  srcfile="${classes}/javax/media/opengl/GL4.class"
-                  targetfile="${src.generated.java}/javax/media/opengl/DebugGL4.java" />
+        <uptodate property="java.generate.composable.pipeline.skip.gl4bc"
+                  srcfile="${classes}/javax/media/opengl/GL4bc.class"
+                  targetfile="${src.generated.java}/javax/media/opengl/DebugGL4bc.java" />
     </target>        
 
     <target name="java.generate.composable.pipeline.es1" depends="java.generate.composable.pipeline.check.es1" unless="java.generate.composable.pipeline.skip.es1">
@@ -925,43 +999,15 @@
         </java>
     </target>          
 
-    <target name="java.generate.composable.pipeline.es2" depends="java.generate.composable.pipeline.check.es2" unless="java.generate.composable.pipeline.skip.es2">
+    <target name="java.generate.composable.pipeline.es3" depends="java.generate.composable.pipeline.check.es3" unless="java.generate.composable.pipeline.skip.es3">
         <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GLES2" />
+            <arg value="javax.media.opengl.GLES3" />
             <arg value="${src.generated.java}/javax/media/opengl" />
             <classpath refid="pipeline.classpath" />
         </java>
     </target>          
 
-    <target name="java.generate.composable.pipeline.gl2" depends="java.generate.composable.pipeline.check.gl2" unless="java.generate.composable.pipeline.skip.gl2">
-        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GL2" />
-            <arg value="${src.generated.java}/javax/media/opengl" />
-            <classpath refid="pipeline.classpath" />
-        </java>
-    </target>          
-
-    <target name="java.generate.composable.pipeline.gl3" depends="java.generate.composable.pipeline.check.gl3" unless="java.generate.composable.pipeline.skip.gl3">
-        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GL3" />
-            <arg value="${src.generated.java}/javax/media/opengl" />
-            <classpath refid="pipeline.classpath" />
-        </java>
-
-        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GL3bc" />
-            <arg value="${src.generated.java}/javax/media/opengl" />
-            <classpath refid="pipeline.classpath" />
-        </java>
-    </target>          
-
-    <target name="java.generate.composable.pipeline.gl4" depends="java.generate.composable.pipeline.check.gl4" unless="java.generate.composable.pipeline.skip.gl4">
-        <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
-            <arg value="javax.media.opengl.GL4" />
-            <arg value="${src.generated.java}/javax/media/opengl" />
-            <classpath refid="pipeline.classpath" />
-        </java>
-
+    <target name="java.generate.composable.pipeline.gl4bc" depends="java.generate.composable.pipeline.check.gl4bc" unless="java.generate.composable.pipeline.skip.gl4bc">
         <java classname="com.jogamp.gluegen.opengl.BuildComposablePipeline" fork="yes" failonerror="true">
             <arg value="javax.media.opengl.GL4bc" />
             <arg value="${src.generated.java}/javax/media/opengl" />
@@ -969,7 +1015,7 @@
         </java>
     </target>          
 
-    <target name="java.generate.composable.pipeline" depends="java.generate.composable.pipeline.es1, java.generate.composable.pipeline.es2, java.generate.composable.pipeline.gl2, java.generate.composable.pipeline.gl3, java.generate.composable.pipeline.gl4">
+    <target name="java.generate.composable.pipeline" depends="java.generate.composable.pipeline.es1, java.generate.composable.pipeline.es3, java.generate.composable.pipeline.gl4bc">
     </target>
 
     <target name="java.generate.composable.pipeline.custom.check.glfixfunc">
@@ -996,6 +1042,7 @@
             <arg value="jogamp.opengl.util.glsl.fixedfunc.FixedFuncHook" />
             <arg value="javax.media.opengl.GL2ES2" />
             <arg value="prolog_xor_downstream" />
+            <arg value="gl_identity_by_assignable_class" />
             <classpath refid="pipeline.classpath" />
         </java>
     </target>          
@@ -1010,7 +1057,7 @@
     <target name="java.compile.firstpass" depends="java.generate,java.generate.cg">
         <!-- Perform the first pass Java compile. -->
         <javac destdir="${classes}"
-               includes="javax/media/opengl/fixedfunc/** javax/media/opengl/GLDrawableFactory.java javax/media/opengl/GLDrawable.java javax/media/opengl/GLContext.java javax/media/opengl/GL.java javax/media/opengl/GL2ES1.java javax/media/opengl/GL2ES2.java javax/media/opengl/GL2GL3.java javax/media/opengl/GL2.java javax/media/opengl/GLES1.java javax/media/opengl/GLES2.java javax/media/opengl/GL3.java javax/media/opengl/GL3bc.java javax/media/opengl/GL4.java javax/media/opengl/GL4bc.java"
+               includes="javax/media/opengl/fixedfunc/** javax/media/opengl/GLDrawableFactory.java javax/media/opengl/GLDrawable.java javax/media/opengl/GLContext.java javax/media/opengl/GL.java javax/media/opengl/GL2ES1.java javax/media/opengl/GLES1.java javax/media/opengl/GL2ES2.java javax/media/opengl/GLES2.java javax/media/opengl/GL2ES3.java javax/media/opengl/GL2GL3.java javax/media/opengl/GL2.java javax/media/opengl/GL3ES3.java javax/media/opengl/GL3.java javax/media/opengl/GL3bc.java javax/media/opengl/GL4ES3.java javax/media/opengl/GLES3.java javax/media/opengl/GL4.java javax/media/opengl/GL4bc.java"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -1025,10 +1072,28 @@
         </javac>
     </target>
 
+    <target name="java.compile.secondpass.openal" if="joal-jars.available">
+        <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
+        <javac destdir="${classes}"
+               includes="${java.part.openal}"
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="nativewindow_gluegen_joal.classpath"/>
+            <src path="${src.java}" />
+            <src path="${src.generated.java}" />
+        </javac>
+    </target>
+
     <target name="java.compile.secondpass.javase">
         <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
         <javac destdir="${classes}"
-               excludes="com/jogamp/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all},${java.part.android}"
+               excludes="com/jogamp/opengl/util/glsl/fixedfunc/FixedFuncUtil.java,${java.excludes.all},${java.part.android},${java.part.openal}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -1062,12 +1127,12 @@
     </target>
 
         <!-- Perform the second pass Java compile; everything except portion of fixed function emulation depending on generated code. -->
-    <target name="java.compile.secondpass" depends="java.generate.composable.pipeline, java.compile.secondpass.javase, java.compile.secondpass.android" />
+    <target name="java.compile.secondpass" depends="java.generate.composable.pipeline, java.compile.secondpass.openal, java.compile.secondpass.javase, java.compile.secondpass.android" />
 
     <target name="java.compile.thirdpass.javase">
         <!-- Perform the third pass Java compile; everything including fixed function emulation. -->
         <javac destdir="${classes}"
-               excludes="${java.excludes.all},${java.part.android}"
+               excludes="${java.excludes.all},${java.part.android},${java.part.openal}"
                fork="yes"
                includeAntRuntime="false"
                memoryMaximumSize="${javac.memorymax}"
@@ -1393,6 +1458,7 @@
           <include name="${rootrel.generated.c.jogl}/egl/EGL_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/egl/EGLExtImpl_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/es2/GLES2Impl_JNI.c"/>
+          <include name="${rootrel.generated.c.jogl}/es3/GLES3Impl_JNI.c"/>
           <include name="${rootrel.generated.c.jogl}/es1/GLES1Impl_JNI.c"/>
           <!--include name="${rootrel.generated.c.jogl}/GLU_JNI.c"/ EMPTY -->
           <!--include name="${rootrel.generated.c.jogl}/es1/GLUes1_JNI.c" EMPTY /-->
@@ -1523,6 +1589,7 @@
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
       <msvc.manifest objdir="${obj.jogl}" dllname="jogl_es1" />
       <msvc.manifest objdir="${obj.jogl}" dllname="jogl_es2" />
+      <msvc.manifest objdir="${obj.jogl}" dllname="jogl_es3" />
       <msvc.manifest objdir="${obj.jogl}" dllname="jogl_desktop" />
       <antcall target="c.manifest.cg" inheritRefs="true" />
     </target>
@@ -1556,6 +1623,7 @@
                 <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
                 <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
                 <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+                <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
             </filterset>
         </copy>
     </target>
@@ -1581,12 +1649,12 @@
     <target name="build-jars-mobile-javase" depends="setup-manifestfile">
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-glmobile.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.egl} ${java.part.es1} ${java.part.es2}"
-                     excludes="${java.part.awt} ${java.part.swt} ${java.part.es1.dbg} ${java.part.es2.dbg}"/>
+                     includes="${java.part.egl} ${java.part.es1} ${java.part.es2es3}"
+                     excludes="${java.part.awt} ${java.part.swt} ${java.part.es1.dbg} ${java.part.es2es3.dbg}"/>
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-glmobile-dbg.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.es1.dbg} ${java.part.es2.dbg}"/>
+                     includes="${java.part.es1.dbg} ${java.part.es2es3.dbg}"/>
         </jar>
     </target>
 
@@ -1649,7 +1717,7 @@
         </jar>
         <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-util.jar}" filesonly="true">
             <fileset dir="${classes}"
-                     includes="${java.part.util} ${java.part.util.glsl}"
+                     includes="${java.part.util} ${java.part.util.glsl} ${java.part.openal}"
                      excludes="${java.part.util.awt} ${java.part.util.gldesktop} ${java.part.util.fixedfuncemu} ${java.part.util.graph}"/>
             <fileset dir="resources/assets" includes="jogl/util/**" />
         </jar>

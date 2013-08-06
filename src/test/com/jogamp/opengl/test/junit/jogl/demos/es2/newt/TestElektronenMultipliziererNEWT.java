@@ -28,7 +28,6 @@
  
 package com.jogamp.opengl.test.junit.jogl.demos.es2.newt;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.newt.event.KeyAdapter;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.TraceWindowAdapter;
@@ -45,7 +44,6 @@ import javax.media.opengl.GLProfile;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
-import org.junit.AfterClass;
 import org.junit.Test;
 
 /**
@@ -103,7 +101,10 @@ public class TestElektronenMultipliziererNEWT extends UITestCase {
 
         final GLWindow f_glWindow = glWindow;
         glWindow.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
+            public void keyReleased(KeyEvent e) {
+                if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+                    return;
+                }            
                 if(e.getKeyChar()=='f') {
                     new Thread() {
                         public void run() {

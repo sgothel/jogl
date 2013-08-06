@@ -36,8 +36,8 @@ import jogamp.opengl.*;
  * Implementation of the DynamicLookupHelper for Desktop ES2 (AMD, ..)
  * where EGL and ES2 functions reside within the desktop OpenGL library.
  */
-public class DesktopES2DynamicLibraryBundleInfo extends GLDynamicLibraryBundleInfo {
-    static List<String> glueLibNames;
+public final class DesktopES2DynamicLibraryBundleInfo extends GLDynamicLibraryBundleInfo {
+    static final List<String> glueLibNames;
     static {
         glueLibNames = new ArrayList<String>();
         glueLibNames.add("jogl_mobile");
@@ -47,16 +47,6 @@ public class DesktopES2DynamicLibraryBundleInfo extends GLDynamicLibraryBundleIn
         super();
     }
 
-    /** 
-     * Might be a desktop GL library, and might need to allow symbol access to subsequent libs.
-     * 
-     * This respects old DRI requirements:<br>
-     * <pre>
-     * http://dri.sourceforge.net/doc/DRIuserguide.html
-     * </pre>
-     */
-    public boolean shallLinkGlobal() { return true; }
-    
     public final List<String> getToolGetProcAddressFuncNameList() {
         List<String> res = new ArrayList<String>();
         res.add("eglGetProcAddress");
@@ -71,7 +61,7 @@ public class DesktopES2DynamicLibraryBundleInfo extends GLDynamicLibraryBundleIn
         return true;
     }
     
-    public List<List<String>> getToolLibNames() {
+    public final List<List<String>> getToolLibNames() {
         final List<List<String>> libsList = new ArrayList<List<String>>();
         final List<String> libsGL = new ArrayList<String>();
         

@@ -142,7 +142,7 @@ public class TestBug461FBOSupersamplingSwingAWT extends UITestCase implements GL
         GLDrawableFactory fac = GLDrawableFactory.getFactory(glp);
         Assert.assertNotNull(fac);
         
-        Assert.assertTrue( fac.canCreateGLPbuffer(GLProfile.getDefaultDevice()) );
+        Assert.assertTrue( fac.canCreateGLPbuffer(GLProfile.getDefaultDevice(), glp) );
         
         GLCapabilities glCap = new GLCapabilities(glp);
         Assert.assertNotNull(glCap);

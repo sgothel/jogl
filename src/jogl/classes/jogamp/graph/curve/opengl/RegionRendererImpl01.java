@@ -46,22 +46,25 @@ public class RegionRendererImpl01 extends RegionRenderer {
         
     }
     
-    @Override
-    protected String getFragmentShaderName(GL2ES2 gl) {
-        final String type = Region.isNonUniformWeight(renderModes) ? "02" : "01" ;
-        final String pass = Region.isVBAA(renderModes) ? "b" : "a" ;
-        return "curverenderer" + type + pass + getShaderGLVersionSuffix(gl);
-    }
-    
     protected boolean initShaderProgram(GL2ES2 gl) {
         final ShaderState st = rs.getShaderState();
         
-        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RegionRendererImpl01.class, "shader",
-                "shader/bin", getVertexShaderName(gl), false);
-        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RegionRendererImpl01.class, "shader",
-                "shader/bin", getFragmentShaderName(gl), false);
-    
-        ShaderProgram sp = new ShaderProgram();
+        final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, RegionRendererImpl01.class, "shader",
+                                                  "shader/bin", getVertexShaderName(), true);
+        final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, RegionRendererImpl01.class, "shader",
+                                                  "shader/bin", getFragmentShaderName(), true);
+        rsVp.defaultShaderCustomization(gl, true, true);
+        // rsFp.defaultShaderCustomization(gl, true, true);
+        int pos = rsFp.addGLSLVersion(gl);
+        if( gl.isGLES2() ) {
+            pos = rsFp.insertShaderSource(0, pos, ShaderCode.extOESDerivativesEnable);            
+        }
+        final String rsFpDefPrecision =  getFragmentShaderPrecision(gl);
+        if( null != rsFpDefPrecision ) {
+            rsFp.insertShaderSource(0, pos, rsFpDefPrecision);
+        }
+        
+        final ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);
         sp.add(rsFp);
 

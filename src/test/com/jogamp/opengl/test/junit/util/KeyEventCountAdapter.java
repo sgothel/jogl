@@ -31,8 +31,6 @@ package com.jogamp.opengl.test.junit.util;
 public interface KeyEventCountAdapter extends  InputEventCountAdapter {
     public int getKeyPressedCount(boolean autoRepeatOnly);
     
-    public int getKeyReleasedCount(boolean autoRepeatOnly);
-    
-    public int getKeyTypedCount(boolean autoRepeatOnly);    
+    public int getKeyReleasedCount(boolean autoRepeatOnly);    
 }
 

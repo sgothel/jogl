@@ -1,0 +1,238 @@
+format 74
+
+classcanvas 128069 class_ref 128069 // GL
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode class drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 162.3 120.7 2000
+end
+classcanvas 128130 class_ref 128130 // GL4
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode class drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 664.1 879.8 2000
+end
+classcanvas 128581 class_ref 128581 // GL2ES2
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode class drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 162.5 246.7 2000
+end
+classcanvas 128709 class_ref 128709 // GL2GL3
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode class drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  color transparent
+  xyz 317.6 413.1 2005
+end
+classcanvas 128837 class_ref 128837 // GL3
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode class drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 481.8 774.1 2000
+end
+classcanvas 128965 class_ref 128965 // GLES2
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode class drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 162.5 500.2 2000
+end
+classcanvas 130050 class_ref 134914 // GLES3
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 581.8 586.1 2004
+end
+classcanvas 130178 class_ref 135042 // GL4ES3
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 657.5 324.5 2000
+end
+classcanvas 130245 class_ref 130117 // GLContext
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 436.9 27.6 2000
+end
+classcanvas 130434 class_ref 135170 // GL3ES3
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 474.8 292.4 2009
+end
+classcanvas 130501 class_ref 130245 // GLDrawable
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 703.9 109.8 2000
+end
+classcanvas 130690 class_ref 135298 // GL2ES3
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  color transparent
+  xyz 312.3 269.2 2000
+end
+classcanvas 130885 class_ref 130501 // GL4bcImpl
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 672.3 990.3 2000
+end
+classcanvas 131202 class_ref 130629 // GLES3Impl
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 596.1 689.3 2000
+end
+textcanvas 131909 "Mobile final public OpenGL Interfaces"
+  xyzwh 817.8 496.2 2000 153 42
+textcanvas 132165 "Desktop/Mobile Common Interfaces"
+  xyzwh 817.4 215.1 2000 139 49
+classcanvas 132293 class_ref 130885 // NativeWindow
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode class drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 1040.2 208.3 2000
+end
+fragment 132354 "Programmable Shader"
+  color blue xyzwh 9.5 206.8 1994 940 836
+  separator 6384
+  separator 3351
+  separator 2367
+end
+classcanvas 132421 class_ref 131013 // AbstractGraphicsConfiguration
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 982.2 299.3 2000
+end
+textcanvas 132482 "Desktop final public OpenGL Interfaces
+"
+  xyzwh 817 749.1 2000 135 37
+classcanvas 132549 class_ref 131141 // GLCapabilities
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 1039.4 482.8 2000
+end
+classcanvas 132677 class_ref 131269 // Capabilities
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 1049.4 399 2005
+end
+classcanvas 132805 class_ref 131397 // GLProfile
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode default drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 1057.5 585.1 2000
+end
+textcanvas 135749 "Lifecycle: From the lower right to the top, left step where the GLContext is created with a suitable GL implementation matching the GLProfile."
+  xyzwh 853.9 16 2000 208 93
+classcanvas 135877 class_ref 132549 // GLBase
+  draw_all_relations default hide_attributes default hide_operations default hide_getset_operations default show_members_full_definition default show_members_visibility default show_members_stereotype default show_members_context default show_members_multiplicity default show_members_initialization default show_attribute_modifiers default member_max_width 0 show_parameter_dir default show_parameter_name default package_name_in_tab default class_drawing_mode class drawing_language default show_context_mode default auto_label_position default show_relation_modifiers default show_relation_visibility default show_infonote default shadow default show_stereotype_properties default
+  xyz 162.4 15.7 2000
+end
+textcanvas 136261 "Common GL Stuff"
+  xyzwh 271 135.5 2000 108 17
+relationcanvas 128770 relation_ref 128386 // <realization>
+  decenter_begin 479
+  from ref 130885 z 2001 to ref 128130
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 129154 relation_ref 128770 // <generalisation>
+  from ref 128130 z 2001 to ref 128837
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 129221 relation_ref 129349 // <generalisation>
+  from ref 128581 z 1999 to ref 128069
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 129477 relation_ref 129605 // <generalisation>
+  from ref 128965 z 1999 to ref 128581
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 129733 relation_ref 129861 // <generalisation>
+  from ref 128837 z 1999 to ref 128709
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 130306 relation_ref 135810 // <generalisation>
+  from ref 130050 z 2005 to ref 130178
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 130562 relation_ref 135938 // <generalisation>
+  from ref 130178 z 2010 to ref 130434
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 130629 relation_ref 130501 // <association>
+  from ref 130501 z 1999 to ref 130245
+  no_role_a no_role_b
+  multiplicity_a_pos 532 72 3000 multiplicity_b_pos 684 126 3000
+end
+relationcanvas 130818 relation_ref 136066 // <generalisation>
+  from ref 130434 z 2010 to ref 130690
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 130946 relation_ref 136194 // <generalisation>
+  from ref 130690 z 2001 to ref 128581
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 131074 relation_ref 136322 // <generalisation>
+  from ref 128709 z 2006 to ref 130690
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 131525 relation_ref 130885 // <realization>
+  from ref 130885 z 1999 to ref 128837
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 131842 relation_ref 136834 // <generalisation>
+  from ref 128837 z 2010 to ref 130434
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 131970 relation_ref 136962 // <generalisation>
+  from ref 128130 z 2001 to ref 130178
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 132098 relation_ref 137090 // <realization>
+  from ref 131202 z 2001 to ref 128965
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 132226 relation_ref 137218 // <realization>
+  from ref 131202 z 2005 to ref 130050
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 132610 relation_ref 143746 // <generalisation>
+  from ref 130050 z 2005 to ref 128965
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 132933 relation_ref 131141 // <generalisation>
+  from ref 132549 z 1999 to ref 132677
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 133061 relation_ref 131269 // <association>
+  decenter_begin 326
+  decenter_end 104
+  from ref 132421 z 1999 to ref 132677
+  role_a_pos 1068 374 3000 no_role_b
+  multiplicity_a_pos 1040 374 3000 no_multiplicity_b
+end
+relationcanvas 133701 relation_ref 131525 // <association>
+  decenter_begin 493
+  from ref 132421 z 1999 to ref 132293
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 133829 relation_ref 131653 // <association>
+  from ref 132293 z 1999 to ref 130501
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 134085 relation_ref 131909 // <association>
+  from ref 132805 z 1999 to ref 132549
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 134213 relation_ref 131397 // <association>
+  decenter_begin 814
+  decenter_end 625
+  from ref 132677 z 1999 to ref 132421
+  no_role_a role_b_pos 1134 374 3000
+  no_multiplicity_a multiplicity_b_pos 1106 374 3000
+end
+relationcanvas 134725 relation_ref 131781 // <association>
+  from ref 132805 z 1999 to ref 132549
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 136005 relation_ref 133061 // <generalisation>
+  from ref 128069 z 1999 to ref 135877
+  no_role_a no_role_b
+  no_multiplicity_a no_multiplicity_b
+end
+relationcanvas 136133 relation_ref 133189 // <association>
+  from ref 135877 z 1999 to ref 130245
+  no_role_a no_role_b
+  multiplicity_a_pos 417 57 3000 multiplicity_b_pos 270 57 3000
+end
+end

@@ -146,7 +146,10 @@ public class TestParentingFocusTraversal01AWT extends UITestCase {
         glWindow1.addGLEventListener(demo1);
         glWindow1.addKeyListener(new NewtAWTReparentingKeyAdapter(frame1, newtCanvasAWT1, glWindow1));
         glWindow1.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
+            public void keyReleased(KeyEvent e) {
+                if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+                    return;
+                }            
                 if(e.getKeyChar()=='c') {                    
                     System.err.println("Focus Clear");
                     if(glWindow1.getDelegatedWindow() instanceof DriverClearFocus) {

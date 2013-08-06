@@ -366,7 +366,7 @@ public class Capabilities implements CapabilitiesImmutable, Cloneable {
     return msg.toString();
   }
   
-  /** Return a textual representation of this object's on/off screen state. Use the given StringBuffer [optional]. */
+  /** Return a textual representation of this object's on/off screen state. Use the given StringBuilder [optional]. */
   protected StringBuilder onoffScreenToString(StringBuilder sink) {
     if(null == sink) {
         sink = new StringBuilder();

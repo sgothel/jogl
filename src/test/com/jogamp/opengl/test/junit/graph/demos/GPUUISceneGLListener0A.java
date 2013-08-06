@@ -428,7 +428,9 @@ public class GPUUISceneGLListener0A implements GLEventListener {
         
         @Override
         public void mouseWheelMoved(MouseEvent e) {
-            zoom += 2f*e.getWheelRotation();
+            if( !e.isShiftDown() ) {
+                zoom += 2f*e.getRotation()[1]; // vertical: wheel
+            }
         }
     }
 }      

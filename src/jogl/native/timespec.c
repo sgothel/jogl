@@ -75,3 +75,8 @@ long timespec_milliseconds(struct timespec *a)
 {
     return a->tv_sec*1000 + a->tv_nsec/1000000;
 }
+
+long timespec_microseconds(struct timespec *a) 
+{
+    return a->tv_sec*1000000 + a->tv_nsec/1000;
+}

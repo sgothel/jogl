@@ -96,10 +96,23 @@
             <fileset dir="${build.nativewindow}" includes="*.jar" />
             <fileset dir="${build.newt}" includes="*.jar" />
         </copy>
+
+        <copy file="joglversion-all"
+            tofile="${build}/manifest-all.mf"
+            overwrite="true">
+            <filterset>
+                <filter token="VERSION" value="${jogamp.version}"/>
+                <filter token="BUILD_VERSION" value="${jogl.version}"/>
+                <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
+                <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
+                <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+                <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
+            </filterset>
+        </copy>
     </target>
 
     <target name="one.jar.dir.android" depends="one.jar.dir.prep" if="android-jars.available" unless="one.dir.skip">
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-all-android.jar}" filesonly="true" excludes="META-INF/*">
+        <jar manifest="${build}/manifest-all.mf" destfile="${jogl-all-android.jar}" filesonly="true" excludes="META-INF/*">
             <archives>
                 <zips>
                     <path refid="nativewindow_core_atoms.classpath"/>
@@ -111,7 +124,7 @@
     </target>
 
     <target name="one.jar.dir" depends="one.jar.dir.prep,one.jar.dir.android" unless="one.dir.skip">
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-all.jar}" filesonly="true" excludes="META-INF/*">
+        <jar manifest="${build}/manifest-all.mf" destfile="${jogl-all.jar}" filesonly="true" excludes="META-INF/*">
             <archives>
                 <zips>
                     <path refid="nativewindow_all_atoms.classpath"/>
@@ -120,7 +133,7 @@
                 </zips>
             </archives>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-all-noawt.jar}" filesonly="true" excludes="META-INF/*">
+        <jar manifest="${build}/manifest-all.mf" destfile="${jogl-all-noawt.jar}" filesonly="true" excludes="META-INF/*">
             <archives>
                 <zips>
                     <path refid="nativewindow_all-noawt_atoms.classpath"/>
@@ -129,7 +142,7 @@
                 </zips>
             </archives>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jogl-all-mobile.jar}" filesonly="true" excludes="META-INF/*">
+        <jar manifest="${build}/manifest-all.mf" destfile="${jogl-all-mobile.jar}" filesonly="true" excludes="META-INF/*">
             <archives>
                 <zips>
                     <path refid="nativewindow_all-noawt_atoms.classpath"/>
@@ -138,7 +151,7 @@
                 </zips>
             </archives>
         </jar>
-        <jar manifest="${build.jogl}/manifest.mf" destfile="${jar}/jogl-all-natives-${os.and.arch}.jar" filesonly="true">
+        <jar manifest="${build}/manifest-all.mf" destfile="${jar}/jogl-all-natives-${os.and.arch}.jar" filesonly="true">
             <fileset dir="${lib}">
               <include name="*.${native.library.suffix}" />
               <exclude name="*jogl_cg.${native.library.suffix}" />
@@ -246,6 +259,7 @@
                 <filter token="SCM_BRANCH" value="${jogl.build.branch}"/>
                 <filter token="SCM_COMMIT" value="${jogl.build.commit}"/>
                 <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+                <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
             </filterset>
         </copy>
         <mkdir dir="${archive}/jar" />
@@ -372,13 +386,17 @@
                  encoding="UTF-8"
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
-                 bottom="${javadoc.bottom}" >
+                 bottom="${javadoc.bottom}" 
+                 stylesheetfile="${gluegen.make}/doc/javadoc/stylesheet.css">
             <classpath refid="jogl_doc.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
             <link offline="false" href="${gluegen.link}" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/> 
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
+        <copy todir="${javadoc.jogl.public.path}/resources" overwrite="true">
+            <fileset dir="${gluegen.make}/doc/javadoc/resources" includes="*" />
+        </copy>
     </target>
 
     <target name="javadoc.jogl.spec" depends="javadoc.init,javadoc.nw.spec">
@@ -394,7 +412,8 @@
                  encoding="UTF-8"
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
-                 bottom="${javadoc.bottom}" >
+                 bottom="${javadoc.bottom}"
+                 stylesheetfile="${gluegen.make}/doc/javadoc/stylesheet.css">
             <classpath refid="jogl_doc.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
             <link offline="false" href="${gluegen.link}" />
@@ -402,6 +421,9 @@
             <link offline="false" href="../javadoc_nativewindow_spec" />
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
+        <copy todir="${javadoc.jogl.spec.path}/resources" overwrite="true">
+            <fileset dir="${gluegen.make}/doc/javadoc/resources" includes="*" />
+        </copy>
     </target>
                                                                                                                                    
     <target name="javadoc.dev" depends="javadoc.init">
@@ -417,13 +439,17 @@
                  encoding="UTF-8"
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
-                 bottom="${javadoc.bottom}" >
+                 bottom="${javadoc.bottom}"
+                 stylesheetfile="${gluegen.make}/doc/javadoc/stylesheet.css">
             <classpath refid="jogl_doc.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
             <link offline="false" href="${gluegen.link}" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
+        <copy todir="${javadoc.jogl.dev.path}/resources" overwrite="true">
+            <fileset dir="${gluegen.make}/doc/javadoc/resources" includes="*" />
+        </copy>
     </target>
 
     <target name="javadoc.nw.spec" depends="javadoc.init">
@@ -439,13 +465,17 @@
                  encoding="UTF-8"
                  source="${target.sourcelevel}"
                  maxmemory="${javac.memorymax}"
-                 bottom="${javadoc.bottom}" >
+                 bottom="${javadoc.bottom}"
+                 stylesheetfile="${gluegen.make}/doc/javadoc/stylesheet.css">
             <classpath refid="jogl_doc.classpath"/>
             <link offline="true" href="${javadoc.link}" packagelistLoc="${gluegen.root}/make/142-packages" />
             <link offline="false" href="${gluegen.link}" />
             <arg line="-J-Dnativetaglet.mapping=${basedir}/native-taglet.properties"/>
             <taglet name="net.highteq.nativetaglet.NativeTaglet" path="${gluegen.jar}" />
         </javadoc>
+        <copy todir="${javadoc.nw.spec.path}/resources" overwrite="true">
+            <fileset dir="${gluegen.make}/doc/javadoc/resources" includes="*" />
+        </copy>
     </target>
                                                                                                                                    
     <target name="javadoc.zip" depends="javadoc.init">

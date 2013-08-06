@@ -143,6 +143,31 @@ public class Rectangle implements Cloneable, RectangleImmutable {
     }
     
     @Override
+    public int compareTo(final RectangleImmutable d) {
+        {
+            final int sq = width*height;
+            final int xsq = d.getWidth()*d.getHeight();
+            
+            if(sq > xsq) {
+                return 1;
+            } else if(sq < xsq) {
+                return -1;
+            }
+        }
+        {
+            final int sq = x*y;
+            final int xsq = d.getX()*d.getY();
+            
+            if(sq > xsq) {
+                return 1;
+            } else if(sq < xsq) {
+                return -1;
+            }
+        }
+        return 0;
+    }
+    
+    @Override
     public boolean equals(Object obj) {
         if(this == obj)  { return true; }
         if (obj instanceof Rectangle) {

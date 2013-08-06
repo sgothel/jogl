@@ -13,7 +13,8 @@ import jogamp.opengl.util.pngj.PngjOutputException;
 public class ChunksListForWrite extends ChunksList {
 
 	/**
-	 * chunks not yet writen - does not include IHDR, IDAT, END, perhaps yes PLTE
+	 * chunks not yet writen - does not include IHDR, IDAT, END, perhaps yes
+	 * PLTE
 	 */
 	private final List<PngChunk> queuedChunks = new ArrayList<PngChunk>();
 
@@ -67,8 +68,9 @@ public class ChunksListForWrite extends ChunksList {
 	/**
 	 * Remove Chunk: only from queued
 	 * 
-	 * WARNING: this depends on c.equals() implementation, which is straightforward for SingleChunks. For
-	 * MultipleChunks, it will normally check for reference equality!
+	 * WARNING: this depends on c.equals() implementation, which is
+	 * straightforward for SingleChunks. For MultipleChunks, it will normally
+	 * check for reference equality!
 	 */
 	public boolean removeChunk(PngChunk c) {
 		return queuedChunks.remove(c);
@@ -87,7 +89,8 @@ public class ChunksListForWrite extends ChunksList {
 	}
 
 	/**
-	 * this should be called only for ancillary chunks and PLTE (groups 1 - 3 - 5)
+	 * this should be called only for ancillary chunks and PLTE (groups 1 - 3 -
+	 * 5)
 	 **/
 	private static boolean shouldWrite(PngChunk c, int currentGroup) {
 		if (currentGroup == CHUNK_GROUP_2_PLTE)

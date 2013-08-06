@@ -43,13 +43,19 @@ public interface KeyListener extends NEWTEventListener
 {
     /** A key has been {@link KeyEvent#EVENT_KEY_PRESSED pressed}, excluding {@link #isAutoRepeat() auto-repeat} {@link #isModifierKey() modifier} keys. See {@link KeyEvent}. */
     public void keyPressed(KeyEvent e);
-    /** A key has been {@link KeyEvent#EVENT_KEY_RELEASED released}, excluding {@link #isAutoRepeat() auto-repeat} {@link #isModifierKey() modifier} keys. See {@link KeyEvent}. */
-    public void keyReleased(KeyEvent e);
     
     /** 
-     * A {@link #isPrintableKey() printable} key has been {@link KeyEvent#EVENT_KEY_TYPED typed} (pressed and released), excluding {@link #isAutoRepeat() auto-repeat}. See {@link KeyEvent}.
-     * @deprecated Redundant, will be removed soon. Use {@link #keyReleased(KeyEvent)} and exclude non {@link #isPrintableKey() printable} keys and {@link #isAutoRepeat() auto-repeat}.
-     */ 
-    public void keyTyped(KeyEvent e) ;
+     * A key has been {@link KeyEvent#EVENT_KEY_RELEASED released}, excluding {@link #isAutoRepeat() auto-repeat} {@link #isModifierKey() modifier} keys. See {@link KeyEvent}.
+     * <p>
+     * To simulated the removed <code>keyTyped(KeyEvent e)</code> semantics,
+     * simply apply the following constraints upfront and bail out if not matched, i.e.:
+     * <pre>
+        if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+            return;
+        }            
+     * </pre>
+     * </p> 
+     */
+    public void keyReleased(KeyEvent e);
 }
 

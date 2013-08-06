@@ -17,7 +17,8 @@ public abstract class PngChunkMultiple extends PngChunk {
 	}
 
 	/**
-	 * NOTE: this chunk uses the default Object's equals() hashCode() implementation.
+	 * NOTE: this chunk uses the default Object's equals() hashCode()
+	 * implementation.
 	 * 
 	 * This is the right thing to do, normally.
 	 * 

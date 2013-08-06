@@ -101,10 +101,14 @@ public class EGLGLCapabilities extends GLCapabilities {
     if(null == glp) {
         return true;
     }
-    if(0 != (renderableType & EGL.EGL_OPENGL_ES_BIT) && glp.usesNativeGLES1()) {
+    /** FIXME: EGLExt.EGL_OPENGL_ES3_BIT_KHR OK ? */
+    if(0 != (renderableType & EGLExt.EGL_OPENGL_ES3_BIT_KHR) && glp.usesNativeGLES3()) {
         return true;
     }
     if(0 != (renderableType & EGL.EGL_OPENGL_ES2_BIT) && glp.usesNativeGLES2()) {
+        return true;
+    }
+    if(0 != (renderableType & EGL.EGL_OPENGL_ES_BIT) && glp.usesNativeGLES1()) {
         return true;
     }
     if(0 != (renderableType & EGL.EGL_OPENGL_BIT) && !glp.usesNativeGLES()) {

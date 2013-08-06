@@ -219,6 +219,7 @@ static KeyMapEntry keyMapTable[] = {
     {J_VK_INSERT,           VK_INSERT, 0},
     {J_VK_DELETE,           VK_DELETE, 0},
     {J_VK_HOME,             VK_HOME, 0},
+    // {J_VK_BEGIN,            VK_BEGIN, 0}, // not mapped
     {J_VK_END,              VK_END, 0},
     {J_VK_PAGE_UP,          VK_PRIOR, 0},
     {J_VK_PAGE_DOWN,        VK_NEXT, 0},
@@ -332,6 +333,8 @@ static KeyMapEntry keyMapTable[] = {
     #define MAPVK_VK_TO_VSC_EX 4
 #endif
 
+#define IS_WITHIN(k,a,b) ((a)<=(k)&&(k)<=(b))
+
 static HKL kbdLayoutUS = 0;
 static const LPCSTR US_LAYOUT_NAME = "00000409";
 
@@ -398,23 +401,6 @@ static void ParseWmVKeyAndScanCode(USHORT winVKey, BYTE winScanCode, BYTE flags,
         kbdState[VK_SPACE] &= ~0x80;
     }
 
-    // Assume extended scan code 0xE0 if extended flags is set (no 0xE1 from WM_KEYUP/WM_KEYDOWN)
-    USHORT winScanCodeExt = winScanCode;
-    if( 0 != ( 0x01 & flags ) ) {
-        winScanCodeExt |= 0xE000;
-    }
-
-    //
-    // winVKey, winScanCodeExt -> javaVKeyUS w/ US KeyboardLayout
-    //
-    for (i = 0; keyMapTable[i].windowsKey != 0; i++) {
-        if ( keyMapTable[i].windowsScanCodeUS == winScanCodeExt ) {
-            javaVKeyUS = keyMapTable[i].javaKey;
-            winVKeyUS = keyMapTable[i].windowsKey;
-            break;
-        }
-    }
-
     //
     // winVKey -> javaVKeyXX
     //
@@ -422,6 +408,31 @@ static void ParseWmVKeyAndScanCode(USHORT winVKey, BYTE winScanCode, BYTE flags,
         if ( keyMapTable[i].windowsKey == winVKey ) {
             javaVKeyXX = keyMapTable[i].javaKey;
             break;
+        }
+    }
+    if( IS_WITHIN( winVKey, VK_NUMPAD0, VK_DIVIDE ) ) {
+        // Use modded keySym for keypad for US and NN
+        winVKeyUS = winVKey;
+        javaVKeyUS = javaVKeyXX;
+    } else {
+        // Assume extended scan code 0xE0 if extended flags is set (no 0xE1 from WM_KEYUP/WM_KEYDOWN)
+        USHORT winScanCodeExt = winScanCode;
+        if( 0 != ( 0x01 & flags ) ) {
+            winScanCodeExt |= 0xE000;
+        }
+
+        //
+        // winVKey, winScanCodeExt -> javaVKeyUS w/ US KeyboardLayout
+        //
+        for (i = 0; keyMapTable[i].windowsKey != 0; i++) {
+            if ( keyMapTable[i].windowsScanCodeUS == winScanCodeExt ) {
+                winVKeyUS = keyMapTable[i].windowsKey;
+                javaVKeyUS = keyMapTable[i].javaKey;
+                break;
+            }
+        }
+        if( J_VK_UNDEFINED == javaVKeyUS ) {
+            javaVKeyUS = javaVKeyXX;
         }
     }
 

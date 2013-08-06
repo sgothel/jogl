@@ -72,8 +72,8 @@ public class PngChunkTRNS extends PngChunkSingle {
 		PngChunkTRNS otherx = (PngChunkTRNS) other;
 		gray = otherx.gray;
 		red = otherx.red;
-		green = otherx.red;
-		blue = otherx.red;
+		green = otherx.green;
+		blue = otherx.blue;
 		if (otherx.paletteAlpha != null) {
 			paletteAlpha = new int[otherx.paletteAlpha.length];
 			System.arraycopy(otherx.paletteAlpha, 0, paletteAlpha, 0, paletteAlpha.length);
@@ -135,8 +135,6 @@ public class PngChunkTRNS extends PngChunkSingle {
 	 * WARNING: non deep copy
 	 */
 	public int[] getPalletteAlpha() {
-		if (!imgInfo.indexed)
-			throw new PngjException("only indexed images support this");
 		return paletteAlpha;
 	}
 

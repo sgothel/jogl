@@ -106,14 +106,21 @@ import java.util.regex.Pattern;
 public class BuildStaticGLInfo {
 
   // Handles function pointer 
-  protected static int funcIdentifierGroup = 10;
+  protected static final int funcIdentifierGroup = 9;
   protected static Pattern funcPattern =
-    Pattern.compile("^(GLAPI|GL_API|GL_APICALL|EGLAPI|extern)?(\\s*)((unsigned|const)\\s+)?(\\w+)(\\s*\\*)?(\\s+)(GLAPIENTRY|GL_APIENTRY|APIENTRY|EGLAPIENTRY|WINAPI)?(\\s*)([ew]?gl\\w+)\\s?(\\(.*)");
+    Pattern.compile("^(GLAPI|GL_API|GL_APICALL|EGLAPI|extern)?(\\s*)((unsigned|const)\\s+)?(\\w+)(\\s+\\*\\s*|\\s*\\*\\s+|\\s+)?(GLAPIENTRY|GL_APIENTRY|APIENTRY|EGLAPIENTRY|WINAPI)?(\\s*)([ew]?gl\\w+)\\s?(\\(.*)");
 
   protected static Pattern associationPattern =
     Pattern.compile("\\#ifndef ([CEW]?GL[XU]?_[A-Za-z0-9_]+)(.*)");
 
-  protected static int defineIdentifierGroup = 1;
+  protected static Pattern ifPattern =
+    Pattern.compile("\\#if(.*)");
+  protected static Pattern elsePattern =
+    Pattern.compile("\\#(elif|else)(.*)");
+  protected static Pattern endifPattern =
+    Pattern.compile("\\#endif(.*)");
+  
+  protected static final int defineIdentifierGroup = 1;
   protected static Pattern definePattern =
     Pattern.compile("\\#define ([CEW]?GL[XU]?_[A-Za-z0-9_]+)\\s*([A-Za-z0-9_]+)(.*)");
 
@@ -194,38 +201,62 @@ public class BuildStaticGLInfo {
         BufferedReader reader = new BufferedReader(new FileReader(cHeaderFilePath));
         String line, activeAssociation = null;
         Matcher m = null;
+        int block = 0;
         while ((line = reader.readLine()) != null) {
-            int type = 0; // 1-define, 2-function
-            // see if we're inside a #ifndef GL_XXX block and matching a function
-            if (activeAssociation != null) {
+            int type = 0; // 1-define, 2-function            
+            if ( 0 < block ) { // inside a #ifndef GL_XXX block and matching a function, if block > 0
                 String identifier = null;
-                if ((m = funcPattern.matcher(line)).matches()) {
-                    identifier = m.group(funcIdentifierGroup).trim();
-                    type = 2;
-                } else if ((m = definePattern.matcher(line)).matches()) {
-                    identifier = m.group(defineIdentifierGroup).trim();
-                    type = 1;
-                } else if (line.startsWith("#endif")) {
-                    if (DEBUG) {
-                        System.err.println("END ASSOCIATION BLOCK: <" + activeAssociation + ">");
+                if( 2 >= block ) {  // not within sub-blocks > 2, i.e. further typedefs
+                    if ((m = funcPattern.matcher(line)).matches()) {
+                        identifier = m.group(funcIdentifierGroup).trim();
+                        type = 2;
+                    } else if ((m = definePattern.matcher(line)).matches()) {
+                        identifier = m.group(defineIdentifierGroup).trim();
+                        type = 1;
                     }
-                    activeAssociation = null;
                 }
-                if ((identifier != null)
-                        && (activeAssociation != null)
-                        && // Handles #ifndef GL_... #define GL_...
-                        !identifier.equals(activeAssociation)) {
+                if ( identifier != null &&
+                     activeAssociation != null &&                     
+                     !identifier.equals(activeAssociation) // Handles #ifndef GL_... #define GL_... 
+                   ) 
+                {
                     addAssociation(identifier, activeAssociation);
                     if (DEBUG) {
-                        System.err.println("  ADDING ASSOCIATION: <" + identifier + "> <" + activeAssociation + "> ; type " + type);
+                        System.err.println("<"+block+">   ADDING ASSOCIATION: <" + identifier + "> <" + activeAssociation + "> ; type " + type);
+                    }
+                } else {
+                    if ((m = ifPattern.matcher(line)).matches()) {
+                        final String comment = m.group(1).trim();
+                        block++;
+                        if (DEBUG) {
+                            System.err.println("<"+block+"> BEGIN IF BLOCK: <" + comment + ">");
+                        }
+                    } else if ((m = elsePattern.matcher(line)).matches()) {
+                        final String comment = m.group(1).trim();
+                        if (DEBUG) {
+                            System.err.println("<"+block+"> ELSE BLOCK: <" + comment + ">");
+                        }
+                    } else if ((m = endifPattern.matcher(line)).matches()) {
+                        final String comment = m.group(1).trim();
+                        block--;
+                        if( 0 == block ) {
+                            if (DEBUG) {
+                                System.err.println("<"+block+"> END ASSOCIATION BLOCK: <" + activeAssociation + " <-> " + comment + ">");
+                            }
+                            activeAssociation = null;                
+                        } else {
+                            if (DEBUG) {
+                                System.err.println("<"+block+"> END IF BLOCK: <" + comment + ">");
+                            }
+                        }
                     }
                 }
-            } else if ((m = associationPattern.matcher(line)).matches()) {
+            } else if ((m = associationPattern.matcher(line)).matches()) {                
                 // found a new #ifndef GL_XXX block
                 activeAssociation = m.group(1).trim();
-
+                block++;
                 if (DEBUG) {
-                    System.err.println("BEGIN ASSOCIATION BLOCK: <" + activeAssociation + ">");
+                    System.err.println("<"+block+"> BEGIN ASSOCIATION BLOCK: <" + activeAssociation + ">");
                 }
             }
         }

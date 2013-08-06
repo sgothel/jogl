@@ -47,6 +47,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
+import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.swt.NewtCanvasSWT;
@@ -69,6 +70,7 @@ public class TestParenting04SWT extends UITestCase {
     Shell shell2 = null;
     Composite composite1 = null;
     Composite composite2 = null;
+    com.jogamp.newt.Display swtNewtDisplay = null;
     
     @BeforeClass
     public static void initClass() {
@@ -98,6 +100,7 @@ public class TestParenting04SWT extends UITestCase {
                 composite2.setLayout( new FillLayout() );
                 Assert.assertNotNull( composite2 );
             }});
+        swtNewtDisplay = NewtFactory.createDisplay(null, false); // no-reuse
     }
     
     @After
@@ -121,6 +124,7 @@ public class TestParenting04SWT extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
+        swtNewtDisplay = null;
         display = null;
         shell1 = null;
         shell2 = null;
@@ -141,13 +145,15 @@ public class TestParenting04SWT extends UITestCase {
     }
     
     protected void winHopFrame2Frame(final boolean detachFirst) throws InterruptedException, InvocationTargetException {
-        final GLWindow glWindow1 = GLWindow.create(glCaps);
+        com.jogamp.newt.Screen screen = NewtFactory.createScreen(swtNewtDisplay, 0);
+        
+        final GLWindow glWindow1 = GLWindow.create(screen, glCaps);
         GLEventListener demo1 = new RedSquareES2();
         setDemoFields(demo1, glWindow1, false);
         glWindow1.addGLEventListener(demo1);
         Animator anim1 = new Animator(glWindow1);
         
-        final GLWindow glWindow2 = GLWindow.create(glCaps);
+        final GLWindow glWindow2 = GLWindow.create(screen, glCaps);
         GLEventListener demo2 = new GearsES2();
         setDemoFields(demo2, glWindow2, false);
         glWindow2.addGLEventListener(demo2);

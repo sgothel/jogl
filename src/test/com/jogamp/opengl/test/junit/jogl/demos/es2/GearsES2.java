@@ -27,6 +27,7 @@ import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
+import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.jogl.demos.GearsObject;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -124,20 +125,17 @@ public class GearsES2 implements GLEventListener {
 
     public void init(GLAutoDrawable drawable) {
         System.err.println(Thread.currentThread()+" GearsES2.init ...");
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         if(verbose) {
             System.err.println("GearsES2 init on "+Thread.currentThread());
             System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
             System.err.println("INIT GL IS: " + gl.getClass().getName());
-            System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
-            System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
-            System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
-            System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler-func: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none")+", "+gl.getContext().getGLSLVersionNumber());
-            System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
-            System.err.println("GL Profile: "+gl.getGLProfile());
-            System.err.println("GL Renderer Quirks:" + gl.getContext().getRendererQuirks().toString());
-            System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
+            System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
+        }        
+        if( !gl.hasGLSL() ) {
+            System.err.println("No GLSL available, no rendering.");
+            return;
         }
 
         gl.glEnable(GL.GL_DEPTH_TEST);
@@ -148,8 +146,8 @@ public class GearsES2 implements GLEventListener {
                 "shader/bin", "gears", true);
         final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), "shader",
                 "shader/bin", "gears", true);
-        vp0.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_vp);
-        fp0.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);
+        vp0.defaultShaderCustomization(gl, true, true);
+        fp0.defaultShaderCustomization(gl, true, true);
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);
         sp0.add(gl, fp0, System.err);
@@ -228,10 +226,13 @@ public class GearsES2 implements GLEventListener {
         drawableHeight = height;
         
         // Thread.dumpStack();
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         if(-1 != swapInterval) {
             gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
+        }
+        if( !gl.hasGLSL() ) {
+            return;
         }
         
         st.useProgram(gl, true);
@@ -264,7 +265,10 @@ public class GearsES2 implements GLEventListener {
             window.removeMouseListener(gearsMouse);
             window.removeKeyListener(gearsKeys);
         }
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
+        if( !gl.hasGLSL() ) {
+            return;
+        }
         st.useProgram(gl, false);
         gear1.destroy(gl);
         gear1 = null;
@@ -291,7 +295,7 @@ public class GearsES2 implements GLEventListener {
         }
 
         // Get the GL corresponding to the drawable we are animating
-        GL2ES2 gl = drawable.getGL().getGL2ES2();
+        final GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         final boolean hasFocus;
         final Object upstreamWidget = drawable.getUpstreamWidget();
@@ -320,6 +324,9 @@ public class GearsES2 implements GLEventListener {
               gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
             }
         }        
+        if( !gl.hasGLSL() ) {
+            return;
+        }
 
         gl.glEnable(GL.GL_CULL_FACE);
         

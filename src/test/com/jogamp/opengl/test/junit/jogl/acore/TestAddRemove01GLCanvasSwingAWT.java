@@ -63,20 +63,22 @@ public class TestAddRemove01GLCanvasSwingAWT extends UITestCase {
     static boolean noOffscreenTest = false;
     static boolean offscreenPBufferOnly = false;
     static boolean offscreenFBOOnly = false;
-    static GLProfile glp;
+    static GLProfile glpGL2, glpGL2ES2;
     static int width, height;
     static boolean waitForKey = false;
     static boolean waitForKeyPost = false;
 
     @BeforeClass
     public static void initClass() {
+        width  = 640;
+        height = 480;
         if(GLProfile.isAvailable(GLProfile.GL2ES2)) {
-            glp = GLProfile.get(GLProfile.GL2ES2);
-            Assert.assertNotNull(glp);
-            width  = 640;
-            height = 480;
-        } else {
-            setTestSupported(false);
+            glpGL2ES2 = GLProfile.get(GLProfile.GL2ES2);
+            Assert.assertNotNull(glpGL2ES2);
+        }
+        if(GLProfile.isAvailable(GLProfile.GL2)) {
+            glpGL2 = GLProfile.get(GLProfile.GL2);
+            Assert.assertNotNull(glpGL2);
         }
     }
 
@@ -198,7 +200,7 @@ public class TestAddRemove01GLCanvasSwingAWT extends UITestCase {
             System.err.println("No onscreen test requested or platform doesn't support onscreen rendering.");
             return;
         }
-        GLCapabilities caps = new GLCapabilities(glp);
+        GLCapabilities caps = new GLCapabilities(glpGL2ES2);
         runTestGL(true, caps, addRemoveCount);
     }
 
@@ -214,7 +216,7 @@ public class TestAddRemove01GLCanvasSwingAWT extends UITestCase {
             System.err.println("Only PBuffer test is requested.");
             return;
         }
-        GLCapabilities caps = new GLCapabilities(glp);
+        GLCapabilities caps = new GLCapabilities(glpGL2ES2);
         if(offscreenPBufferOnly) {
             caps.setPBuffer(true);
             caps.setOnscreen(true); // simulate normal behavior ..
@@ -234,7 +236,7 @@ public class TestAddRemove01GLCanvasSwingAWT extends UITestCase {
             System.err.println("Only FBO test is requested.");
             return;
         }
-        GLCapabilities caps = new GLCapabilities(glp);
+        GLCapabilities caps = new GLCapabilities(glpGL2);
         caps.setPBuffer(true);
         caps.setOnscreen(true); // simulate normal behavior ..
         runTestGL(false, caps, addRemoveCount);

@@ -74,6 +74,8 @@ public class TestJPEGTextureFromFileNEWT extends UITestCase {
     InputStream testTextureStream03CMYK_01;
     InputStream testTextureStream03YCCK_01;
     
+    InputStream testTextureStream04QTTDefPostFrame;
+    
     @Before
     public void initTest() throws IOException {
         {
@@ -132,6 +134,13 @@ public class TestJPEGTextureFromFileNEWT extends UITestCase {
             testTextureStream03YCCK_01 = testTextureUrlConn.getInputStream();
             Assert.assertNotNull(testTextureStream03YCCK_01);
         }
+        {
+            URLConnection testTextureUrlConn = IOUtil.getResource(this.getClass(), "bug745_qttdef_post_frame.jpg");
+            Assert.assertNotNull(testTextureUrlConn);
+            testTextureStream04QTTDefPostFrame = testTextureUrlConn.getInputStream();
+            Assert.assertNotNull(testTextureStream04QTTDefPostFrame);
+        }
+        
     }
 
     @After
@@ -142,14 +151,17 @@ public class TestJPEGTextureFromFileNEWT extends UITestCase {
         testTextureStream01YUV422h_Prog = null;
         testTextureStream02YUV420_Base = null;
         testTextureStream02YUV420_Prog = null;
-        testTextureStream02YUV420_BaseGray = null;        
+        testTextureStream02YUV420_BaseGray = null;
+        testTextureStream03CMYK_01 = null;
+        testTextureStream03YCCK_01 = null;        
+        testTextureStream04QTTDefPostFrame = null;
     }
 
     public void testImpl(boolean useFFP, final InputStream istream) throws InterruptedException, IOException {
         final GLReadBufferUtil screenshot = new GLReadBufferUtil(true, false);
         GLProfile glp;
-        if(useFFP && GLProfile.isAvailable(GLProfile.GL2GL3)) {
-            glp = GLProfile.getGL2GL3();
+        if(useFFP && GLProfile.isAvailable(GLProfile.GL2)) {
+            glp = GLProfile.getMaxFixedFunc(true);
         } else if(!useFFP && GLProfile.isAvailable(GLProfile.GL2ES2)) {
             glp = GLProfile.getGL2ES2();
         } else {
@@ -241,7 +253,7 @@ public class TestJPEGTextureFromFileNEWT extends UITestCase {
     @Test
     public void test02YUV420BaseGray_ES2() throws InterruptedException, IOException {
         testImpl(false, testTextureStream02YUV420_BaseGray);        
-    }    
+    }
 
     @Test
     public void test03CMYK_01_ES2() throws InterruptedException, IOException {
@@ -250,6 +262,11 @@ public class TestJPEGTextureFromFileNEWT extends UITestCase {
     @Test
     public void test03YCCK_01_ES2() throws InterruptedException, IOException {
         testImpl(false, testTextureStream03YCCK_01);        
+    }    
+
+    @Test
+    public void test04QTTDefPostFrame_ES2() throws InterruptedException, IOException {
+        testImpl(false, testTextureStream04QTTDefPostFrame);        
     }    
     
     public static void main(String args[]) throws IOException {

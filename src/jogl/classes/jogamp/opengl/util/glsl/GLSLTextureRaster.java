@@ -69,8 +69,8 @@ public class GLSLTextureRaster  {
                                                   shaderSrcPath, shaderBinPath, shaderBasename, true);
         final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), 
                                                   shaderSrcPath, shaderBinPath, shaderBasename, true);
-        rsVp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_vp);
-        rsFp.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);
+        rsVp.defaultShaderCustomization(gl, true, true);
+        rsFp.defaultShaderCustomization(gl, true, true);
         
         // Create & Link the shader program
         sp = new ShaderProgram();

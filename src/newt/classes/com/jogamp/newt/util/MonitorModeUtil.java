@@ -31,7 +31,9 @@ package com.jogamp.newt.util;
 import com.jogamp.newt.MonitorMode;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
 import javax.media.nativewindow.util.DimensionImmutable;
 import javax.media.nativewindow.util.SurfaceSize;
 
@@ -66,6 +68,15 @@ public class MonitorModeUtil {
             }
         }
         return null;
+    }
+    
+    /** Sort the given {@link MonitorMode} collection w/ {@link MonitorMode#compareTo(MonitorMode)} function. */
+    public static void sort(List<MonitorMode> monitorModes, boolean ascendingOrder) {
+        if( ascendingOrder ) {
+            Collections.sort(monitorModes);
+        } else {
+            Collections.sort(monitorModes, MonitorMode.monitorModeComparatorInv);
+        }
     }
     
     /**

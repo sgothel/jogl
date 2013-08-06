@@ -27,6 +27,7 @@
  */
 package com.jogamp.opengl.test.junit.jogl.demos.es2;
 
+import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -64,28 +65,24 @@ public class RedSquareES2 implements GLEventListener {
     
     public void init(GLAutoDrawable glad) {
         System.err.println(Thread.currentThread()+" RedSquareES2.init ...");
-        GL2ES2 gl = glad.getGL().getGL2ES2();
+        final GL2ES2 gl = glad.getGL().getGL2ES2();
         
         System.err.println("RedSquareES2 init on "+Thread.currentThread());
         System.err.println("Chosen GLCapabilities: " + glad.getChosenGLCapabilities());
         System.err.println("INIT GL IS: " + gl.getClass().getName());
-        System.err.println("GL_VENDOR: " + gl.glGetString(GL.GL_VENDOR));
-        System.err.println("GL_RENDERER: " + gl.glGetString(GL.GL_RENDERER));
-        System.err.println("GL_VERSION: " + gl.glGetString(GL.GL_VERSION));
-        System.err.println("GL GLSL: "+gl.hasGLSL()+", has-compiler-func: "+gl.isFunctionAvailable("glCompileShader")+", version "+(gl.hasGLSL() ? gl.glGetString(GL2ES2.GL_SHADING_LANGUAGE_VERSION) : "none"));
-        System.err.println("GL FBO: basic "+ gl.hasBasicFBOSupport()+", full "+gl.hasFullFBOSupport());
-        System.err.println("GL Profile: "+gl.getGLProfile());
-        System.err.println("GL Renderer Quirks:" + gl.getContext().getRendererQuirks().toString());
-        System.err.println("GL:" + gl + ", " + gl.getContext().getGLVersion());
-        
+        System.err.println(JoglVersion.getGLStrings(gl, null, false).toString());
+        if( !gl.hasGLSL() ) {
+            System.err.println("No GLSL available, no rendering.");
+            return;
+        }
         st = new ShaderState();
         st.setVerbose(true);
         final ShaderCode vp0 = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, this.getClass(), "shader",
                 "shader/bin", "RedSquareShader", true);
         final ShaderCode fp0 = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, this.getClass(), "shader",
                 "shader/bin", "RedSquareShader", true);
-        vp0.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_vp);
-        fp0.defaultShaderCustomization(gl, true, ShaderCode.es2_default_precision_fp);
+        vp0.defaultShaderCustomization(gl, true, true);
+        fp0.defaultShaderCustomization(gl, true, true);
         final ShaderProgram sp0 = new ShaderProgram();
         sp0.add(gl, vp0, System.err);
         sp0.add(gl, fp0, System.err);
@@ -132,10 +129,13 @@ public class RedSquareES2 implements GLEventListener {
     public void display(GLAutoDrawable glad) {
         long t1 = System.currentTimeMillis();
 
-        GL2ES2 gl = glad.getGL().getGL2ES2();
+        final GL2ES2 gl = glad.getGL().getGL2ES2();
         if( clearBuffers ) {
             gl.glClearColor(0, 0, 0, 0);
             gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+        }
+        if( !gl.hasGLSL() ) {
+            return;
         }
         st.useProgram(gl, true);
         // One rotation every four seconds
@@ -161,7 +161,10 @@ public class RedSquareES2 implements GLEventListener {
     public void reshape(GLAutoDrawable glad, int x, int y, int width, int height) {
         System.err.println(Thread.currentThread()+" RedSquareES2.reshape "+x+"/"+y+" "+width+"x"+height+", swapInterval "+swapInterval+", drawable 0x"+Long.toHexString(glad.getHandle()));
         // Thread.dumpStack();
-        GL2ES2 gl = glad.getGL().getGL2ES2();
+        final GL2ES2 gl = glad.getGL().getGL2ES2();
+        if( !gl.hasGLSL() ) {
+            return;
+        }
         
         if(-1 != swapInterval) {        
             gl.setSwapInterval(swapInterval); // in case switching the drawable (impl. may bound attribute there)
@@ -181,7 +184,10 @@ public class RedSquareES2 implements GLEventListener {
 
     public void dispose(GLAutoDrawable glad) {
         System.err.println(Thread.currentThread()+" RedSquareES2.dispose ... ");
-        GL2ES2 gl = glad.getGL().getGL2ES2();
+        final GL2ES2 gl = glad.getGL().getGL2ES2();
+        if( !gl.hasGLSL() ) {
+            return;
+        }
         st.destroy(gl);
         st = null;
         pmvMatrix.destroy();

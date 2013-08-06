@@ -177,7 +177,8 @@ public class PNGImage {
         }
         if(DEBUG) {
             System.err.println("PNGImage: "+imgInfo);
-            System.err.println("PNGImage: indexed "+indexed+", alpha "+hasAlpha+", channels "+channels+", bytesPerPixel "+bytesPerPixel+
+            System.err.println("PNGImage: indexed "+indexed+", alpha "+hasAlpha+", channels "+channels+"/"+imgInfo.channels+
+                               ", bytesPerPixel "+bytesPerPixel+"/"+imgInfo.bytesPixel+
                                ", pixels "+pixelWidth+"x"+pixelHeight+", dpi "+dpi[0]+"x"+dpi[1]+", glFormat 0x"+Integer.toHexString(glFormat));
         }
         

@@ -37,8 +37,14 @@ import com.jogamp.opengl.JoglVersion;
  * @see GLDrawableImpl#getDefaultReadFramebuffer()
  */
 public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
-    protected static final boolean DEBUG = GLDrawableImpl.DEBUG || Debug.debug("FBObject");
-    protected static final boolean DEBUG_SWAP = Debug.isPropertyDefined("jogl.debug.FBObject.Swap", true);
+    protected static final boolean DEBUG;
+    protected static final boolean DEBUG_SWAP;
+    
+    static {
+        Debug.initSingleton();
+        DEBUG = GLDrawableImpl.DEBUG || Debug.debug("FBObject");
+        DEBUG_SWAP = Debug.isPropertyDefined("jogl.debug.FBObject.Swap", true);
+    }
     
     private final GLDrawableImpl parent;
     private GLCapabilitiesImmutable origParentChosenCaps;
@@ -52,7 +58,10 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     private int fboIBack;  // points to GL_BACK buffer
     private int fboIFront; // points to GL_FRONT buffer
     private int pendingFBOReset = -1;
+    /** Indicated whether the FBO is bound. */
     private boolean fboBound;
+    /** Indicated whether the FBO is swapped, resets to false after makeCurrent -> contextMadeCurrent. */
+    private boolean fboSwapped;
 
     /** dump fboResetQuirk info only once pre ClassLoader and only in DEBUG mode */
     private static volatile boolean resetQuirkInfoDumped = false; 
@@ -139,21 +148,20 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
                 }
             }
             fbos[fboIFront].resetSamplingSink(gl);
-            fboBound = false;
+
             fbos[0].formatToGLCapabilities(chosenFBOCaps);
             chosenFBOCaps.setDoubleBuffered( chosenFBOCaps.getDoubleBuffered() || samples > 0 );
-            
-            initialized = true;            
         } else {
-            initialized = false;
-            
             for(int i=0; i<fbos.length; i++) {
                 fbos[i].destroy(gl);
             }
             fbos=null;
-            fboBound = false;   
-            pendingFBOReset = -1;
         }
+        fboBound = false;
+        fboSwapped = false;
+        pendingFBOReset = -1;
+        initialized = realize;
+        
         if(DEBUG) {
             System.err.println("GLFBODrawableImpl.initialize("+realize+"): "+this);
             Thread.dumpStack();
@@ -230,6 +238,7 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
         ourContext.makeCurrent();
         gl.glFinish(); // sync GL command stream
         fboBound = false; // clear bound-flag immediatly, caused by contextMadeCurrent(..) - otherwise we would swap @ release
+        fboSwapped = false;
         try {
             final int maxSamples = gl.getMaxRenderbufferSamples();        
             newSamples = newSamples <= maxSamples ? newSamples : maxSamples;
@@ -340,10 +349,12 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
             }
             fbos[fboIBack].bind(gl);
             fboBound = true;
-        } else if( fboBound ) {
+            fboSwapped = false;
+        } else if( fboBound && !fboSwapped ) {
             swapFBOImpl(glc);
             swapFBOImplPost(glc);
             fboBound=false;
+            fboSwapped=true;
             if(DEBUG_SWAP) {
                 System.err.println("Post FBO swap(@release): done");
             }
@@ -353,14 +364,16 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     @Override
     protected void swapBuffersImpl(boolean doubleBuffered) {
         final GLContext ctx = GLContext.getCurrent();
-        boolean doPostSwap = false;
+        boolean doPostSwap;
         if( null != ctx && ctx.getGLDrawable() == this && fboBound ) {
             swapFBOImpl(ctx);
             doPostSwap = true;
-            fboBound=false;
+            fboSwapped = true;
             if(DEBUG_SWAP) {
                 System.err.println("Post FBO swap(@swap): done");
             }
+        } else {
+            doPostSwap = false;
         }
         if( null != swapBufferContext ) {
             swapBufferContext.swapBuffers(doubleBuffered);

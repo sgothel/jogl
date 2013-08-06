@@ -49,8 +49,8 @@ public class ChunksList {
 	}
 
 	/**
-	 * Returns a copy of the list (but the chunks are not copied) <b> This should not be used for general metadata
-	 * handling
+	 * Returns a copy of the list (but the chunks are not copied) <b> This
+	 * should not be used for general metadata handling
 	 */
 	public ArrayList<PngChunk> getChunks() {
 		return new ArrayList<PngChunk>(chunks);
@@ -96,7 +96,8 @@ public class ChunksList {
 	}
 
 	/**
-	 * If innerid!=null and the chunk is PngChunkTextVar or PngChunkSPLT, it's filtered by that id
+	 * If innerid!=null and the chunk is PngChunkTextVar or PngChunkSPLT, it's
+	 * filtered by that id
 	 * 
 	 * @param id
 	 * @return innerid Only used for text and SPLT chunks
@@ -119,8 +120,9 @@ public class ChunksList {
 	/**
 	 * Returns only one chunk or null if nothing found - does not include queued
 	 * <p>
-	 * If more than one chunk is found, then an exception is thrown (failifMultiple=true or chunk is single) or the last
-	 * one is returned (failifMultiple=false)
+	 * If more than one chunk is found, then an exception is thrown
+	 * (failifMultiple=true or chunk is single) or the last one is returned
+	 * (failifMultiple=false)
 	 **/
 	public PngChunk getById1(final String id, final boolean failIfMultiple) {
 		return getById1(id, null, failIfMultiple);
@@ -129,8 +131,9 @@ public class ChunksList {
 	/**
 	 * Returns only one chunk or null if nothing found - does not include queued
 	 * <p>
-	 * If more than one chunk (after filtering by inner id) is found, then an exception is thrown (failifMultiple=true
-	 * or chunk is single) or the last one is returned (failifMultiple=false)
+	 * If more than one chunk (after filtering by inner id) is found, then an
+	 * exception is thrown (failifMultiple=true or chunk is single) or the last
+	 * one is returned (failifMultiple=false)
 	 **/
 	public PngChunk getById1(final String id, final String innerid, final boolean failIfMultiple) {
 		List<? extends PngChunk> list = getById(id, innerid);

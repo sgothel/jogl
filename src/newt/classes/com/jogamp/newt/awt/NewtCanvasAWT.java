@@ -31,6 +31,7 @@ package com.jogamp.newt.awt;
 
 import java.awt.AWTKeyStroke;
 import java.awt.Canvas;
+import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.GraphicsConfiguration;
 import java.awt.KeyboardFocusManager;
@@ -201,8 +202,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     };
 
     class FocusTraversalKeyListener implements KeyListener {
-         boolean suppress = false;
-         
          public void keyPressed(KeyEvent e) {
              if( isParent() && !isFullscreen() ) {
                  handleKey(e, false);
@@ -213,34 +212,31 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                  handleKey(e, true);
              }
          }
-         public void keyTyped(KeyEvent e) {
-             if(suppress) {
-                 e.setConsumed(true);
-                 suppress = false; // reset
-             }             
-         }
          
          void handleKey(KeyEvent evt, boolean onRelease) {   
              if(null == keyboardFocusManager) {
                  throw new InternalError("XXX");
              }
              final AWTKeyStroke ks = AWTKeyStroke.getAWTKeyStroke(evt.getKeyCode(), evt.getModifiers(), onRelease);
+             boolean suppress = false;
              if(null != ks) {
                  final Set<AWTKeyStroke> fwdKeys = keyboardFocusManager.getDefaultFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS); 
-                 final Set<AWTKeyStroke> bwdKeys = keyboardFocusManager.getDefaultFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS);         
+                 final Set<AWTKeyStroke> bwdKeys = keyboardFocusManager.getDefaultFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS);
                  if(fwdKeys.contains(ks)) {
+                     final Component nextFocus = AWTMisc.getNextFocus(NewtCanvasAWT.this, true /* forward */);
                      if(DEBUG) {
-                         System.err.println("NewtCanvasAWT.focusKey (fwd): "+ks+", current focusOwner "+keyboardFocusManager.getFocusOwner());
+                         System.err.println("NewtCanvasAWT.focusKey (fwd): "+ks+", current focusOwner "+keyboardFocusManager.getFocusOwner()+", hasFocus: "+hasFocus()+", nextFocus "+nextFocus);
                      }
                      // Newt-EDT -> AWT-EDT may freeze Window's native peer requestFocus.
-                     NewtCanvasAWT.this.transferFocus();
+                     nextFocus.requestFocus();
                      suppress = true;
                  } else if(bwdKeys.contains(ks)) {
+                     final Component prevFocus = AWTMisc.getNextFocus(NewtCanvasAWT.this, false /* forward */);
                      if(DEBUG) {
-                         System.err.println("NewtCanvasAWT.focusKey (bwd): "+ks+", current focusOwner "+keyboardFocusManager.getFocusOwner());
+                         System.err.println("NewtCanvasAWT.focusKey (bwd): "+ks+", current focusOwner "+keyboardFocusManager.getFocusOwner()+", hasFocus: "+hasFocus()+", prevFocus "+prevFocus);
                      }
                      // Newt-EDT -> AWT-EDT may freeze Window's native peer requestFocus.
-                     NewtCanvasAWT.this.transferFocusBackward();
+                     prevFocus.requestFocus();
                      suppress = true;
                  }
              }
@@ -355,8 +351,8 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
     
             // after native peer is valid: Windows
             disableBackgroundErase();
-    
-            jawtWindow = NewtFactoryAWT.getNativeWindow(this, newtChild.getRequestedCapabilities());          
+                
+            jawtWindow = NewtFactoryAWT.getNativeWindow(this, null != newtChild ? newtChild.getRequestedCapabilities() : null);          
             jawtWindow.setShallUseOffscreenLayer(shallUseOffscreenLayer);
             
             if(DEBUG) {
@@ -540,6 +536,9 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 newtChildCloseOp = newtChild.setDefaultCloseOperation(WindowClosingMode.DO_NOTHING_ON_CLOSE);
                 keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
                 keyboardFocusManager.addPropertyChangeListener("focusOwner", focusPropertyChangeListener);
+                // force this AWT Canvas to be focus-able,
+                // since this it is completely covered by the newtChild (z-order).
+                setFocusable(true);
                 if(isOnscreen) {
                     // onscreen newt child needs to fwd AWT focus
                     newtChild.setKeyboardFocusHandler(newtFocusTraversalKeyListener);
@@ -552,6 +551,7 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
                 newtChild.removeWindowListener(clearAWTMenusOnNewtFocus);
                 newtChild.setFocusAction(null);
                 newtChild.setDefaultCloseOperation(newtChildCloseOp);
+                setFocusable(false);
             }
         }
     }
@@ -576,7 +576,9 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       }
       final int w = getWidth();
       final int h = getHeight();
-      System.err.println("NewtCanvasAWT.attachNewtChild.2: size "+w+"x"+h);
+      if(DEBUG) {
+          System.err.println("NewtCanvasAWT.attachNewtChild.2: size "+w+"x"+h);
+      }
       newtChild.setVisible(false);
       newtChild.setSize(w, h);
       newtChild.reparentWindow(jawtWindow);
@@ -588,9 +590,6 @@ public class NewtCanvasAWT extends java.awt.Canvas implements WindowClosingProto
       configureNewtChild(true);
       newtChild.sendWindowEvent(WindowEvent.EVENT_WINDOW_RESIZED); // trigger a resize/relayout to listener
       
-      // force this AWT Canvas to be focus-able, 
-      // since this it is completely covered by the newtChild (z-order).
-      setFocusable(true);          
       if(DEBUG) {
           System.err.println("NewtCanvasAWT.attachNewtChild.X: win "+newtWinHandleToHexString(newtChild)+", EDTUtil: cur "+newtChild.getScreen().getDisplay().getEDTUtil()+", comp "+this);
       }

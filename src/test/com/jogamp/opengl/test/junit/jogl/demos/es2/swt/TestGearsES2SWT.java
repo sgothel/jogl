@@ -246,6 +246,7 @@ public class TestGearsES2SWT extends UITestCase {
         
         if( !GLProfile.isAvailable(GLProfile.GL3) ) {
             System.err.println("GL3 n/a");
+            return;
         }
         final GLProfile glp = GLProfile.get(GLProfile.GL3);
         final GLCapabilities caps = new GLCapabilities( glp );

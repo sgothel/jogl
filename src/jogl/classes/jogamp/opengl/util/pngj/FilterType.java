@@ -1,5 +1,7 @@
 package jogamp.opengl.util.pngj;
 
+import java.util.HashMap;
+
 /**
  * Internal PNG predictor filter, or strategy to select it.
  * 
@@ -26,15 +28,18 @@ public enum FilterType {
 	 */
 	FILTER_PAETH(4),
 	/**
-	 * Default strategy: select one of the above filters depending on global image parameters
+	 * Default strategy: select one of the above filters depending on global
+	 * image parameters
 	 */
 	FILTER_DEFAULT(-1),
 	/**
-	 * Aggressive strategy: select one of the above filters trying each of the filters (every 8 rows)
+	 * Aggressive strategy: select one of the above filters trying each of the
+	 * filters (every 8 rows)
 	 */
 	FILTER_AGGRESSIVE(-2),
 	/**
-	 * Very aggressive strategy: select one of the above filters trying each of the filters (for every row!)
+	 * Very aggressive strategy: select one of the above filters trying each of
+	 * the filters (for every row!)
 	 */
 	FILTER_VERYAGGRESSIVE(-3),
 	/**
@@ -52,12 +57,17 @@ public enum FilterType {
 		this.val = val;
 	}
 
-	public static FilterType getByVal(int i) {
+	private static HashMap<Integer, FilterType> byVal;
+
+	static {
+		byVal = new HashMap<Integer, FilterType>();
 		for (FilterType ft : values()) {
-			if (ft.val == i)
-				return ft;
+			byVal.put(ft.val, ft);
 		}
-		return null;
+	}
+
+	public static FilterType getByVal(int i) {
+		return byVal.get(i);
 	}
 
 }

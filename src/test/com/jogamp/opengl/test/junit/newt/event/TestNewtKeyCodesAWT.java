@@ -91,7 +91,7 @@ public class TestNewtKeyCodesAWT extends UITestCase {
     public void releaseTest() {        
     }
     
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void test01NEWT() throws AWTException, InterruptedException, InvocationTargetException {
         GLWindow glWindow = GLWindow.create(glCaps);
         glWindow.setSize(width, height);
@@ -137,7 +137,7 @@ public class TestNewtKeyCodesAWT extends UITestCase {
         glWindow.destroy();
     }
     
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void test02NewtCanvasAWT_Onscreen() throws AWTException, InterruptedException, InvocationTargetException {
         if( JAWTUtil.isOffscreenLayerRequired() ) {
             System.err.println("Platform doesn't support onscreen rendering.");
@@ -146,7 +146,7 @@ public class TestNewtKeyCodesAWT extends UITestCase {
         testNewtCanvasAWT_Impl(true);
     }
         
-    @Test
+    @Test(timeout=180000) // TO 3 min
     public void test03NewtCanvasAWT_Offsccreen() throws AWTException, InterruptedException, InvocationTargetException {
         if( !JAWTUtil.isOffscreenLayerSupported() ) {
             System.err.println("Platform doesn't support offscreen rendering.");
@@ -195,6 +195,7 @@ public class TestNewtKeyCodesAWT extends UITestCase {
             // System.err.println("*** Segment "+codeSeg.description);
             int eventCount = 0;
             for(short c=codeSeg.min; c<=codeSeg.max; c++) {                
+                AWTRobotUtil.waitForIdle(robot);
                 // System.err.println("*** KeyCode 0x"+Integer.toHexString(c));
                 try {
                     AWTRobotUtil.newtKeyPress(0, robot, true, c, 10);
@@ -210,11 +211,8 @@ public class TestNewtKeyCodesAWT extends UITestCase {
                     break;
                 }
                 eventCount++;
-                if( KeyEvent.isPrintableKey(c, false) ) {
-                    eventCount++;
-                }
-                robot.waitForIdle();
             }
+            AWTRobotUtil.waitForIdle(robot);
             for(int j=0; j < 20 && keyAdapter.getQueueSize() < eventCount; j++) { // wait until events are collected
                 robot.delay(100);
             }

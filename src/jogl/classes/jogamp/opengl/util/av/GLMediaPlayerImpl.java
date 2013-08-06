@@ -72,7 +72,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     
     protected URLConnection urlConn = null;
     
-    protected float playSpeed = 1.0f;
+    protected volatile float playSpeed = 1.0f;
     
     /** Shall be set by the {@link #initGLStreamImpl(GL, int[])} method implementation. */
     protected int width = 0;
@@ -215,7 +215,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
     
     @Override
-    public final synchronized float getPlaySpeed() {
+    public final float getPlaySpeed() {
         return playSpeed;
     }
     

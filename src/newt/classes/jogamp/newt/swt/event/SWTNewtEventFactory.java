@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
 import com.jogamp.newt.event.InputEvent;
+import com.jogamp.newt.event.MouseEvent;
 
 /**
  * SWT event translator to NEWT, inclusive dispatch listener.
@@ -55,7 +56,6 @@ public class SWTNewtEventFactory {
 
             case SWT.KeyDown: return com.jogamp.newt.event.KeyEvent.EVENT_KEY_PRESSED;
             case SWT.KeyUp: return com.jogamp.newt.event.KeyEvent.EVENT_KEY_RELEASED;
-            // case SWT.KeyXXX: return com.jogamp.newt.event.KeyEvent.EVENT_KEY_TYPED;
         }
         return (short)0;
     }
@@ -189,13 +189,9 @@ public class SWTNewtEventFactory {
             case com.jogamp.newt.event.KeyEvent.VK_MULTIPLY      : return SWT.KEYPAD_MULTIPLY;
             case com.jogamp.newt.event.KeyEvent.VK_DIVIDE        : return SWT.KEYPAD_DIVIDE;
             case com.jogamp.newt.event.KeyEvent.VK_NUM_LOCK      : return SWT.NUM_LOCK;
-            case com.jogamp.newt.event.KeyEvent.VK_KP_LEFT       :
             case com.jogamp.newt.event.KeyEvent.VK_LEFT          : return SWT.ARROW_LEFT;
-            case com.jogamp.newt.event.KeyEvent.VK_KP_UP         :
             case com.jogamp.newt.event.KeyEvent.VK_UP            : return SWT.ARROW_UP;
-            case com.jogamp.newt.event.KeyEvent.VK_KP_RIGHT      :
             case com.jogamp.newt.event.KeyEvent.VK_RIGHT         : return SWT.ARROW_RIGHT;
-            case com.jogamp.newt.event.KeyEvent.VK_KP_DOWN       :
             case com.jogamp.newt.event.KeyEvent.VK_DOWN          : return SWT.ARROW_DOWN;
             case com.jogamp.newt.event.KeyEvent.VK_HELP          : return SWT.HELP;
         }
@@ -246,7 +242,7 @@ public class SWTNewtEventFactory {
             
             return new com.jogamp.newt.event.MouseEvent(
                            type, (null==source)?(Object)event.data:source, (0xFFFFFFFFL & (long)event.time),
-                           mods, event.x, event.y, (short)event.count, (short)event.button, rotation);
+                           mods, event.x, event.y, (short)event.count, (short)event.button, MouseEvent.getRotationXYZ(rotation, mods), 1f);
         }
         return null; // no mapping ..
     }
@@ -301,7 +297,7 @@ public class SWTNewtEventFactory {
                                            res.getSource(),
                                            res.getWhen(), res.getModifiers(),
                                            res.getX(), res.getY(), res.getClickCount(),
-                                           res.getButton(), res.getWheelRotation() );
+                                           res.getButton(), res.getRotation(), res.getRotationScale());
                             l.mouseClicked(res2);
                         }
                         break;
@@ -312,7 +308,7 @@ public class SWTNewtEventFactory {
                                            res.getSource(),
                                            res.getWhen(), res.getModifiers(),
                                            res.getX(), res.getY(), res.getClickCount(),
-                                           dragButtonDown, res.getWheelRotation() );
+                                           dragButtonDown, res.getRotation(), res.getRotationScale());
                             l.mouseDragged( res2 );
                         } else {
                             l.mouseMoved(res);

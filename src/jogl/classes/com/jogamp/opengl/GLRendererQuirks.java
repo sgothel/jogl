@@ -27,6 +27,8 @@
  */
 package com.jogamp.opengl;
 
+import java.util.List;
+
 /** 
  * GLRendererQuirks contains information of known bugs of various GL renderer. 
  * This information allows us to workaround them.
@@ -69,11 +71,18 @@ public class GLRendererQuirks {
     /** 
      * Non compliant GL context due to a buggy implementation not suitable for use.
      * <p>
-     * Mesa >= 9.0 (?), Intel driver, OpenGL 3.1 compatibility context is not compliant: 
-     * <pre>
-     * GL_RENDERER: Mesa DRI Intel(R) Sandybridge Desktop 
-     * </pre>
+     * Currently, Mesa >= 9.1.3 (may extend back as far as 9.0) OpenGL 3.1 compatibility
+     * context is not compliant. Most programs will give completely broken output (or no
+     * output at all. For now, this context is not trusted.
      * </p>
+     * The above has been confirmed for the following Mesa 9.* GL_RENDERER strings:
+     * <ul>
+     *   <li>Mesa .* Intel(R) Sandybridge Desktop</li>
+     *   <li>Gallium 0.4 on AMD RS880</li>
+     * </ul>
+     * </p>
+     * <p>
+     * It still has to be verified whether the AMD OpenGL 3.1 core driver is compliant enought. 
      */
     public static final int GLNonCompliant = 6;
     
@@ -151,14 +160,36 @@ public class GLRendererQuirks {
      */
     public static final int NeedCurrCtx4ARBCreateContext = 10;
     
+    /**
+     * No full FBO support, i.e. not compliant w/
+     * <ul> 
+     *   <li>GL_ARB_framebuffer_object</li>
+     *   <li>EXT_framebuffer_object</li> 
+     *   <li>EXT_framebuffer_multisample</li> 
+     *   <li>EXT_framebuffer_blit</li> 
+     *   <li>EXT_packed_depth_stencil</li>
+     * </ul>.
+     * Drivers known exposing such bug:
+     * <ul>
+     *   <li>Mesa <i>7.12-devel</i> on Windows with VMware <i>SVGA3D</i> renderer:
+     *     <ul>
+     *       <li>GL_VERSION:  <i>2.1 Mesa 7.12-devel (git-d6c318e)</i> </li>
+     *       <li>GL_RENDERER: <i>Gallium 0.4 on SVGA3D; build: RELEASE;</i> </li>
+     *     </ul></li>
+     * </ul>
+     * Quirk can also be enabled via property: <code>jogl.fbo.force.min</code>.
+     */
+    public static final int NoFullFBOSupport = 11;
+    
     
     /** Number of quirks known. */
-    public static final int COUNT = 11;
+    public static final int COUNT = 12;
     
     private static final String[] _names = new String[] { "NoDoubleBufferedPBuffer", "NoDoubleBufferedBitmap", "NoSetSwapInterval",
                                                           "NoOffscreenBitmap", "NoSetSwapIntervalPostRetarget", "GLSLBuggyDiscard",
                                                           "GLNonCompliant", "GLFlushBeforeRelease", "DontCloseX11Display",
-                                                          "NeedCurrCtx4ARBPixFmtQueries", "NeedCurrCtx4ARBCreateContext"
+                                                          "NeedCurrCtx4ARBPixFmtQueries", "NeedCurrCtx4ARBCreateContext",
+                                                          "NoFullFBOSupport"
                                                         };
 
     private final int _bitmask;
@@ -182,6 +213,20 @@ public class GLRendererQuirks {
         _bitmask = bitmask;
     }      
 
+    /**
+     * @param quirks a list of valid quirks
+     * @throws IllegalArgumentException if one of the quirks is out of range
+     */
+    public GLRendererQuirks(List<Integer> quirks) throws IllegalArgumentException {
+        int bitmask = 0;
+        for(int i=0; i<quirks.size(); i++) {
+            final int quirk = quirks.get(i);
+            validateQuirk(quirk);
+            bitmask |= 1 << quirk;
+        }
+        _bitmask = bitmask;
+    }
+    
     /**
      * @param quirk the quirk to be tested
      * @return true if quirk exist, otherwise false

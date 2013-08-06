@@ -58,6 +58,10 @@ static jmethodID requestFocusID = NULL;
 
 #define IS_WITHIN(k,a,b) ((a)<=(k)&&(k)<=(b))
 
+/**
+ * QT Reference:
+ *   <http://qt.gitorious.org/qt/qt/blobs/4.7/src/gui/kernel/qkeymapper_x11.cpp#line879>
+ */
 static short X11KeySym2NewtVKey(KeySym keySym) {
     if( IS_WITHIN( keySym, XK_a, XK_z ) ) {
         return ( keySym - XK_a ) + J_VK_A ;
@@ -84,8 +88,6 @@ static short X11KeySym2NewtVKey(KeySym keySym) {
             return J_VK_TAB;
         case XK_Cancel:
             return J_VK_CANCEL;
-        case XK_Clear:
-            return J_VK_CLEAR;
         case XK_Shift_L:
         case XK_Shift_R:
             return J_VK_SHIFT;
@@ -95,6 +97,7 @@ static short X11KeySym2NewtVKey(KeySym keySym) {
         case XK_Alt_L:
             return J_VK_ALT;
         case XK_Alt_R:
+        case XK_ISO_Level3_Shift:
             return J_VK_ALT_GRAPH;
         case XK_Super_L:
         case XK_Super_R:
@@ -119,6 +122,10 @@ static short X11KeySym2NewtVKey(KeySym keySym) {
         case XK_End:
         case XK_KP_End:
             return J_VK_END;
+        case XK_Begin:
+            return J_VK_BEGIN;
+        case XK_KP_Begin: // NumPad 5 - equal behavior w/ QT/Windows
+            return J_VK_CLEAR;
         case XK_Home:
         case XK_KP_Home:
             return J_VK_HOME;
@@ -150,6 +157,7 @@ static short X11KeySym2NewtVKey(KeySym keySym) {
             return J_VK_DECIMAL;
         case XK_KP_Divide:
             return J_VK_DIVIDE;
+        case XK_Clear: // equal behavior w/ QT
         case XK_Delete:
         case XK_KP_Delete:
             return J_VK_DELETE;
@@ -454,7 +462,15 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                         keyString = (*env)->NewStringUTF(env, text);
                     }
 
-                    if( 0 == keyChar ) {
+                    #ifdef DEBUG_KEYS
+                    fprintf(stderr, "NEWT X11 Key.0: keyCode 0x%X keySym 0x%X, (shifted: 0x%X)\n",
+                        (int)keyCode, (int)keySym, (int) shiftedKeySym);
+                    #endif
+                    if( IS_WITHIN( shiftedKeySym, XK_KP_Space, XK_KP_9 ) ) {
+                        // Use modded keySym for keypad for US and NN
+                        keySym = shiftedKeySym;
+                        unShiftedKeySym = shiftedKeySym;
+                    } else if( 0 == keyChar ) {
                         // Use keyCode's keySym for dead-key (aka modifiers, etc)
                         unShiftedKeySym = keySym;
                     } else if( 0 == ( evt.xkey.state & ShiftCtrlModMask ) ) {
@@ -471,7 +487,7 @@ JNIEXPORT void JNICALL Java_jogamp_newt_driver_x11_DisplayDriver_DispatchMessage
                     modifiers |= X11InputState2NewtModifiers(xkey_state, javaVKeyNN, evt.type == KeyPress) | autoRepeatModifiers;
 
                     #ifdef DEBUG_KEYS
-                    fprintf(stderr, "NEWT X11 Key: keyCode 0x%X keySym 0x%X, (0x%X, shifted: 0x%X), keyChar '%c' 0x%X %d, javaVKey[US 0x%X, NN 0x%X], xstate 0x%X %u, jmods 0x%X\n",
+                    fprintf(stderr, "NEWT X11 Key.X: keyCode 0x%X keySym 0x%X, (0x%X, shifted: 0x%X), keyChar '%c' 0x%X %d, javaVKey[US 0x%X, NN 0x%X], xstate 0x%X %u, jmods 0x%X\n",
                         (int)keyCode, (int)keySym, (int) unShiftedKeySym, (int)shiftedKeySym, keyChar, keyChar, charCount,
                         (int)javaVKeyUS, (int)javaVKeyNN,
                         (int)xkey_state, (int)xkey_state, (int)modifiers);

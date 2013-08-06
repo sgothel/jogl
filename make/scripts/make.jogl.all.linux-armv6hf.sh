@@ -17,6 +17,9 @@ export TARGET_JAVA_LIBS=/usr/lib/jvm/java-6-openjdk-armhf/jre/lib/arm
 
 export GLUEGEN_CPPTASKS_FILE="../../gluegen/make/lib/gluegen-cpptasks-linux-armv6hf.xml"
 
+#export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
+export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
+
 ant \
     -Drootrel.build=build-linux-armv6hf \
     -Dsetup.addNativeKD=true \

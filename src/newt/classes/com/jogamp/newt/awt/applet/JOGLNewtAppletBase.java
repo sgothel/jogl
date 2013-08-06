@@ -164,12 +164,14 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                 // Closing action: back to parent!
                 @Override
                 public void windowDestroyNotify(WindowEvent e) {
-                    if( WindowClosingMode.DO_NOTHING_ON_CLOSE == glWindow.getDefaultCloseOperation() ) {
+                    if( isValid() && WindowClosingMode.DO_NOTHING_ON_CLOSE == glWindow.getDefaultCloseOperation() ) {
                         if(null == glWindow.getParent()) {
                             // we may be called directly by the native EDT
                             new Thread(new Runnable() {
                                public void run() {
-                                glWindow.reparentWindow(awtParent);
+                                if( glWindow.isNativeValid() ) {
+                                    glWindow.reparentWindow(awtParent);
+                                }
                                }
                             }).start();                         
                         }                        
@@ -284,11 +286,11 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
     // ***********************************************************************************
     // ***********************************************************************************
 
-    public void keyPressed(KeyEvent e) { 
-    }
-    public void keyReleased(KeyEvent e) { 
-    }
-    public void keyTyped(KeyEvent e) {
+    @Override
+    public void keyPressed(KeyEvent e) {
+       if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+           return;
+       }
        if(e.getKeyChar()=='d') {
             glWindow.setUndecorated(!glWindow.isUndecorated());
        } if(e.getKeyChar()=='f') {
@@ -303,6 +305,10 @@ public class JOGLNewtAppletBase implements KeyListener, GLEventListener {
                 glWindow.setDefaultCloseOperation( glClosable ? WindowClosingMode.DISPOSE_ON_CLOSE : WindowClosingMode.DO_NOTHING_ON_CLOSE );
             }
        }
+    }
+    
+    @Override
+    public void keyReleased(KeyEvent e) { 
     }
 }
 

@@ -65,10 +65,18 @@ public class TestBug722GLContextDrawableSwitchNewt2AWT extends GLContextDrawable
      */
     public static boolean fixedNewtDisplay = true;
     
-    @Test(timeout=3000000)
+    @Test(timeout=180000) // TO 3 min
     public void test11GLWindow2GLCanvasOnScrnGL2ES2() throws InterruptedException {
         final GLCapabilities caps = getCaps(GLProfile.GL2ES2);
-        if(null == caps) return;
+        if(null == caps) {
+            System.err.println("GL2ES2 n/a, test n/a.");
+            return;
+        }
+        if( jogamp.nativewindow.jawt.JAWTUtil.isOffscreenLayerRequired() ) {
+            System.err.println("JAWT required offscreen, test n/a.");
+            return;
+        }
+
         
         GLADType gladType1 = GLADType.GLWindow;
         GLADType gladType2 = GLADType.GLCanvasOnscreen;

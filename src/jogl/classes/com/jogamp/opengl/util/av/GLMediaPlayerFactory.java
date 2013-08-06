@@ -38,18 +38,24 @@ public class GLMediaPlayerFactory {
     private static final String FFMPEGMediaPlayerClazzName = "jogamp.opengl.util.av.impl.FFMPEGMediaPlayer";
     private static final String isAvailableMethodName = "isAvailable";
     
-    public static GLMediaPlayer create() {
+    public static GLMediaPlayer createDefault() {
         final ClassLoader cl = GLMediaPlayerFactory.class.getClassLoader();
-        if(Platform.OS_TYPE.equals(Platform.OSType.ANDROID)) {
-            if(AndroidVersion.SDK_INT >= 14) {
-                if(((Boolean)ReflectionUtil.callStaticMethod(AndroidGLMediaPlayerAPI14ClazzName, isAvailableMethodName, null, null, cl)).booleanValue()) {
-                    return (GLMediaPlayer) ReflectionUtil.createInstance(AndroidGLMediaPlayerAPI14ClazzName, cl);
-                }
+        GLMediaPlayer sink = create(cl, AndroidGLMediaPlayerAPI14ClazzName);
+        if( null == sink ) {
+            sink = create(cl, FFMPEGMediaPlayerClazzName);
+        }
+        if( null == sink ) {
+            sink = new NullGLMediaPlayer();
+        }
+        return sink;
+    }
+    
+    public static GLMediaPlayer create(final ClassLoader cl, String implName) {
+        try {
+            if(((Boolean)ReflectionUtil.callStaticMethod(implName, isAvailableMethodName, null, null, cl)).booleanValue()) {
+                return (GLMediaPlayer) ReflectionUtil.createInstance(implName, cl);
             }
-        }
-        if(((Boolean)ReflectionUtil.callStaticMethod(FFMPEGMediaPlayerClazzName, isAvailableMethodName, null, null, cl)).booleanValue()) {
-            return (GLMediaPlayer) ReflectionUtil.createInstance(FFMPEGMediaPlayerClazzName, cl);
-        }
-        return new NullGLMediaPlayer();
+        } catch (Throwable t) { if(GLMediaPlayer.DEBUG) { System.err.println("Catched "+t.getClass().getName()+": "+t.getMessage()); t.printStackTrace(); } }
+        return null;
     }
 }

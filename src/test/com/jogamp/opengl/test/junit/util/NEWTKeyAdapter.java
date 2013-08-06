@@ -39,8 +39,8 @@ import com.jogamp.newt.event.KeyEvent;
 public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
 
     String prefix;
-    int keyPressed, keyReleased, keyTyped;
-    int keyPressedAR, keyReleasedAR, keyTypedAR;
+    int keyPressed, keyReleased;
+    int keyPressedAR, keyReleasedAR;
     boolean pressed;
     List<EventObject> queue = new ArrayList<EventObject>();
     boolean verbose = true;
@@ -57,7 +57,7 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
     }
     
     public synchronized int getCount() {
-        return keyTyped;
+        return keyReleased;
     }
 
     public synchronized int getKeyPressedCount(boolean autoRepeatOnly) {
@@ -66,10 +66,6 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
     
     public synchronized int getKeyReleasedCount(boolean autoRepeatOnly) {
         return autoRepeatOnly ? keyReleasedAR: keyReleased; 
-    }
-    
-    public synchronized int getKeyTypedCount(boolean autoRepeatOnly) {
-        return autoRepeatOnly ? keyTypedAR: keyTyped; 
     }
     
     public synchronized List<EventObject> getQueued() {
@@ -81,10 +77,8 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
     }
 
     public synchronized void reset() {
-        keyTyped = 0;
         keyPressed = 0;
         keyReleased = 0;
-        keyTypedAR = 0;
         keyPressedAR = 0;
         keyReleasedAR = 0;
         pressed = false;
@@ -99,7 +93,7 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
         }
         queue.add(e);
         if( verbose ) {
-            System.err.println("NEWT AWT PRESSED ["+pressed+"]: "+prefix+", "+e);
+            System.err.println("KEY NEWT PRESSED ["+pressed+"]: "+prefix+", "+e);
         }
     }
     
@@ -111,22 +105,10 @@ public class NEWTKeyAdapter extends KeyAdapter implements KeyEventCountAdapter {
         }
         queue.add(e);
         if( verbose ) {
-            System.err.println("NEWT AWT RELEASED ["+pressed+"]: "+prefix+", "+e);
+            System.err.println("KEY NEWT RELEASED ["+pressed+"]: "+prefix+", "+e);
         }
     }
      
-    @Override
-    public synchronized void keyTyped(KeyEvent e) {
-        keyTyped++;
-        if( 0 != ( e.getModifiers() & InputEvent.AUTOREPEAT_MASK ) ) {
-            keyTypedAR++;
-        }
-        queue.add(e);
-        if( verbose ) {
-            System.err.println("KEY NEWT TYPED ["+keyTyped+"]: "+prefix+", "+e);
-        }
-    }
-    
-    public String toString() { return prefix+"[pressed "+pressed+", typed "+keyTyped+"]"; }
+    public String toString() { return prefix+"[pressed "+pressed+", keyReleased "+keyReleased+"]"; }
 }
 

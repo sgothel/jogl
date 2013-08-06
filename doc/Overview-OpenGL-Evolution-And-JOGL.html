@@ -101,6 +101,12 @@ In July 2010 OpenGL 4.1 was released and it's core profile
 is fully compatible to OpenGL ES 2.0.</p>
 
 <p>
+In July 2012 OpenGL 4.3 and OpenGL ES 3.0 were released.
+OpenGL's 4.3 core profile is fully compatible to OpenGL ES 3.0.<br/> 
+Some OpenGL 3.x implementations implementing <i>GL_ARB_ES3_compatibility</i>
+are OpenGL ES 3.0 compatible as well, e.g. Mesa 9.1.</p>
+
+<p>
 Today, desktop and embedded GPU's implement the programmatic shader (PSP)
 based rendering.</p>
 
@@ -115,8 +121,8 @@ to avoid the FFP, but using the PSP. This allows the implementor
 to utilize application level optimization which usually cannot be reached 
 by the very generic implemented FFP in the OpenGL drivers.</p>
  
-                    <h3>JOGL &amp; The OpenGL Evolution</h3>
-                    <hr/>
+<h3>JOGL &amp; The OpenGL Evolution</h3>
+<hr/>
 <p>
 Like <a href="http://jausoft.com/gl4java/">GL4Java</a>, the 1st JOGL release 1.x
 mapped OpenGL in one interface. This architecture was feasible and correct until the new OpenGL
@@ -124,7 +130,7 @@ profiles surfaced. There was only one unique way to create an OpenGL context for
 OpenGL versions.</p>
 
 <p>
-The continously developed <a href="http://jogamp.org/">JOGL 2.x</a> reflects the aforementioned OpenGL evolution
+The continously developed <a href="/jogl/www/">JOGL project</a> reflects the aforementioned OpenGL evolution
 by <a href="/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#overview_description">mapping the OpenGL profiles to interfaces</a>.
 This is essential since creating an OpenGL context for each class of OpenGL profiles
 requires it's <a href="/deployment/jogamp-next/javadoc/jogl/javadoc/overview-summary.html#GLAPIInclusionCriteria">specific initialisation</a>.<br/>
@@ -140,6 +146,7 @@ Fixed Function (FFP) Only Profiles:
 Programmable Shader (PSP) Only Profiles:
 <ul>
     <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GLES2.html">GLES2</a></li>
+    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GLES3.html">GLES3</a></li>
     <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL3.html">GL3</a></li>
     <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL4.html">GL4</a></li>
 </ul><br/>
@@ -158,9 +165,17 @@ to allow easy development of multiple target profiles.</p>
 Common OpenGL Profile Subsets:
 <ul>
     <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL.html">GL</a></li>
-    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL2ES1.html">GL2ES1</a></li>
-    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL2ES2.html">GL2ES2</a></li>
-    <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL2GL3.html">GL2GL3</a></li>
+    <li>Fixed Function (FFP) Only:
+    <ul>
+        <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL2ES1.html">GL2ES1</a></li>
+        <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL2GL3.html">GL2GL3</a></li>
+    </ul></li>
+    <li>Programmable Shader (PSP) Only:
+    <ul>
+        <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL2ES2.html">GL2ES2</a></li>
+        <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL3ES3.html">GL3ES3</a></li>
+        <li><a href="/deployment/jogamp-next/javadoc/jogl/javadoc/javax/media/opengl/GL4ES3.html">GL4ES3</a></li>
+    </ul></li>
 </ul><br/>
 
 <br/>
@@ -185,10 +200,14 @@ ensures the code complies with the GL2 and GLES2 profile and an implementation m
     }
 </pre>
 
-<h4><a href="bouml/html-svg/fig128069.svg">OpenGL Profile Model (UML)</a> (<a href="bouml/html-svg/index-withframe.html">with frames</a>)</h4>
-<embed src="bouml/html-svg/fig128069.svg" width="1024" height="800" />
+<h4>OpenGL Profile Models (UML)</h4>
+<a href="uml/html/index-withframe.html">Complete UML with frames</a>.
+<h5><a href="uml/html/fig128069.png">Compatibility (Fixed Function and Programmable)</a></h5>
+<embed src="uml/html/fig128069.png" width="1024" height="1000" />
+<h5><a href="uml/html/fig134786.png">Core Only (Programmable)</a></h5>
+<embed src="uml/html/fig134786.png" width="1024" height="1000" />
 
-                    <h3>References</h3>
+<h3>References</h3>
 <ul>
     <li><a href="http://en.wikipedia.org/wiki/OpenGL">OpenGL on Wikipedia</a></li>
     <li><a href="http://en.wikipedia.org/wiki/OpenGL_ES">OpenGL ES on Wikipedia</a></li>

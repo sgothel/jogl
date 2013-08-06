@@ -37,12 +37,21 @@ import com.jogamp.common.type.WriteCloneable;
  *  <li><code>height</code></li>
  * </ul>
  */
-public interface DimensionImmutable extends WriteCloneable {
+public interface DimensionImmutable extends WriteCloneable, Comparable<DimensionImmutable> {
 
     int getHeight();
 
     int getWidth();
 
+    /**
+     * <p>
+     * Compares square of size.
+     * </p> 
+     * {@inheritDoc}
+     */
+    @Override
+    public int compareTo(final DimensionImmutable d);
+    
     /**
      * Checks whether two dimensions objects are equal. Two instances
      * of <code>DimensionReadOnly</code> are equal if two components

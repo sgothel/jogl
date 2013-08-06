@@ -43,6 +43,7 @@ import com.jogamp.gluegen.CommentEmitter;
 import com.jogamp.gluegen.JavaEmitter;
 import com.jogamp.gluegen.JavaMethodBindingEmitter;
 import com.jogamp.gluegen.MethodBinding;
+import com.jogamp.gluegen.cgram.types.FunctionSymbol;
 import com.jogamp.gluegen.cgram.types.Type;
 import com.jogamp.gluegen.procaddress.ProcAddressJavaMethodBindingEmitter;
 
@@ -103,11 +104,14 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
         @Override
         protected void emitBindingCSignature(MethodBinding binding, PrintWriter writer) {
 
-            super.emitBindingCSignature(binding, writer);
-
             String symbolRenamed = binding.getName();
             StringBuilder newComment = new StringBuilder();
 
+            final FunctionSymbol funcSym = binding.getCSymbol();
+            writer.print("<code> ");
+            writer.print(funcSym.getType().toString(symbolRenamed, tagNativeBinding));
+            writer.print(" </code> ");
+            
             newComment.append("<br>Part of ");
             if (0 == glEmitter.addExtensionsOfSymbols2Buffer(newComment, ", ", "; ", symbolRenamed, binding.getAliasedNames())) {
                 if (glEmitter.getGLConfig().getAllowNonGLExtensions()) {

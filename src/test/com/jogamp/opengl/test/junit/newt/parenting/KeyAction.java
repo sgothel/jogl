@@ -38,7 +38,10 @@ class KeyAction extends KeyAdapter {
         this.eventFifo = eventFifo; 
     }
 
-    public void keyTyped(KeyEvent e) {
+    public void keyReleased(KeyEvent e) {
+        if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+            return;
+        }            
         eventFifo.put(e);
     }
 }

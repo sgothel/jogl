@@ -31,6 +31,8 @@ package jogamp.opengl.util.av.impl;
 import java.io.IOException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
@@ -39,14 +41,14 @@ import javax.media.opengl.GLException;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.GLPixelStorageModes;
+import com.jogamp.opengl.util.av.AudioSink;
+import com.jogamp.opengl.util.av.AudioSinkFactory;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 import jogamp.opengl.GLContextImpl;
-import jogamp.opengl.es1.GLES1ProcAddressTable;
-import jogamp.opengl.es2.GLES2ProcAddressTable;
-import jogamp.opengl.gl4.GL4bcProcAddressTable;
 import jogamp.opengl.util.av.EGLMediaPlayerImpl;
+import jogamp.opengl.util.av.SyncedRingbuffer;
 
 /***
  * Implementation utilizes <a href="http://libav.org/">Libav</a>
@@ -101,6 +103,11 @@ import jogamp.opengl.util.av.EGLMediaPlayerImpl;
  * </ul> 
  */
 public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
+
+    // Count of zeroed buffers to return before switching to real sample provider
+    private static final int TEMP_BUFFER_COUNT = 20;
+
+    // Instance data
     public static final VersionNumber avUtilVersion;
     public static final VersionNumber avFormatVersion;
     public static final VersionNumber avCodecVersion;    
@@ -114,7 +121,8 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
             System.err.println("LIB_AV Util  : "+avUtilVersion);
             System.err.println("LIB_AV Format: "+avFormatVersion);
             System.err.println("LIB_AV Codec : "+avCodecVersion);
-            available = initIDs0();
+            initIDs0();            
+            available = true;
         } else {
             avUtilVersion = null;
             avFormatVersion = null;
@@ -131,6 +139,10 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
                                   ( vers >>  0 ) & 0xFF );
     }
     
+    //
+    // Video
+    //
+    
     protected long moviePtr = 0;    
     protected long procAddrGLTexSubImage2D = 0;
     protected EGLMediaPlayerImpl.EGLTextureFrame lastTex = null;
@@ -143,18 +155,34 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
     protected int[] vTexWidth = { 0, 0, 0 }; // per plane
     protected int texWidth, texHeight; // overall (stuffing planes in one texture)
     protected ByteBuffer texCopy;
+    protected String singleTexComp = "r";
 
+    //
+    // Audio
+    //
+    
+    protected static final boolean USE_AUDIO_PUSHER = false;
+    protected final int AudioFrameCount = 8;        
+    protected final AudioSink audioSink;    
+    protected final int maxAvailableAudio;
+    protected AudioSink.AudioDataFormat chosenAudioFormat;
+    protected final SyncedRingbuffer<AudioSink.AudioFrame> audioFramesBuffer = 
+            USE_AUDIO_PUSHER ? new SyncedRingbuffer<AudioSink.AudioFrame>(new AudioSink.AudioFrame[AudioFrameCount], false /* full */)
+                             : null;
+    
     public FFMPEGMediaPlayer() {
         super(TextureType.GL, false);
         if(!available) {
             throw new RuntimeException("FFMPEGMediaPlayer not available");
         }
         setTextureCount(1);
-        moviePtr = createInstance0(true);
+        moviePtr = createInstance0(DEBUG);
         if(0==moviePtr) {
             throw new GLException("Couldn't create FFMPEGInstance");
         }
         psm = new GLPixelStorageModes();
+        audioSink = AudioSinkFactory.createDefault(); 
+        maxAvailableAudio = audioSink.getQueuedByteCount();
     }
     
     @Override
@@ -189,30 +217,153 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
         }
         final String urlS=urlConn.getURL().toExternalForm();
     
-        System.out.println("setURL: p1 "+this);
-        setStream0(moviePtr, urlS, -1, -1);
-        System.out.println("setURL: p2 "+this);
+        chosenAudioFormat = audioSink.initSink(audioSink.getPreferredFormat(), AudioFrameCount);
+        System.err.println("setURL: p1 "+this);
+        setStream0(moviePtr, urlS, -1, -1, AudioFrameCount);
+        System.err.println("setURL: p2 "+this);
+        
         int tf, tif=GL.GL_RGBA; // texture format and internal format
         switch(vBytesPerPixelPerPlane) {
-            case 1: tf = GL2ES2.GL_ALPHA; tif=GL.GL_ALPHA; break;
-            case 3: tf = GL2ES2.GL_RGB;   tif=GL.GL_RGB;   break;
-            case 4: tf = GL2ES2.GL_RGBA;  tif=GL.GL_RGBA;  break;
+            case 1:
+                if( gl.isGL3ES3() ) {
+                    // RED is supported on ES3 and >= GL3 [core]; ALPHA is deprecated on core
+                    tf = GL2ES2.GL_RED;   tif=GL2ES2.GL_RED; singleTexComp = "r";
+                } else {
+                    // ALPHA is supported on ES2 and GL2, i.e. <= GL3 [core] or compatibility
+                    tf = GL2ES2.GL_ALPHA; tif=GL2ES2.GL_ALPHA; singleTexComp = "a";
+                }
+                break;
+            case 3: tf = GL2ES2.GL_RGB;   tif=GL.GL_RGB;     break;
+            case 4: tf = GL2ES2.GL_RGBA;  tif=GL.GL_RGBA;    break;
             default: throw new RuntimeException("Unsupported bytes-per-pixel / plane "+vBytesPerPixelPerPlane);
         }        
         setTextureFormat(tif, tf);
         setTextureType(GL.GL_UNSIGNED_BYTE);
-        GLContextImpl ctx = (GLContextImpl)gl.getContext();
-        ProcAddressTable pt = ctx.getGLProcAddressTable();
-        if(pt instanceof GLES2ProcAddressTable) {
-            procAddrGLTexSubImage2D = ((GLES2ProcAddressTable)pt)._addressof_glTexSubImage2D;
-        } else if(pt instanceof GLES1ProcAddressTable) {
-            procAddrGLTexSubImage2D = ((GLES1ProcAddressTable)pt)._addressof_glTexSubImage2D;
-        } else if(pt instanceof GL4bcProcAddressTable) {
-            procAddrGLTexSubImage2D = ((GL4bcProcAddressTable)pt)._addressof_glTexSubImage2D;
-        } else {
-            throw new InternalError("Unknown ProcAddressTable: "+pt.getClass().getName()+" of "+ctx.getClass().getName());
+        final GLContextImpl ctx = (GLContextImpl)gl.getContext();
+        final ProcAddressTable pt = ctx.getGLProcAddressTable();
+        procAddrGLTexSubImage2D = getAddressFor(pt, "glTexSubImage2D");
+        if( 0 == procAddrGLTexSubImage2D ) {
+            throw new InternalError("glTexSubImage2D n/a in ProcAddressTable: "+pt.getClass().getName()+" of "+ctx.getGLVersion());
         }
     }
+    
+    /**
+     * Catches IllegalArgumentException and returns 0 if functionName is n/a,
+     * otherwise the ProcAddressTable's field value. 
+     */
+    private final long getAddressFor(final ProcAddressTable table, final String functionName) {
+        return AccessController.doPrivileged(new PrivilegedAction<Long>() {
+            public Long run() {
+                try {
+                    return Long.valueOf( table.getAddressFor(functionName) );
+                } catch (IllegalArgumentException iae) { 
+                    return Long.valueOf(0);
+                }
+            }
+        } ).longValue();
+    }
+
+    private final void pushSound(ByteBuffer sampleData, int data_size, int audio_pts) {
+        if( USE_AUDIO_PUSHER ) {
+            if( audioPusher != null && audioPusher.isRunning() ) {
+                try {
+                    audioFramesBuffer.putBlocking(new AudioSink.AudioFrame(sampleData, data_size, audio_pts));
+                } catch (InterruptedException e) {
+                    e.printStackTrace(); // oops
+                }
+            }
+        } else {
+            pushAudioFrame(new AudioSink.AudioFrame(sampleData, data_size, audio_pts));
+        }
+    }
+
+    private final void pushAudioFrame(AudioSink.AudioFrame audioFrame) {
+        // poor mans audio sync ..
+        final long now = System.currentTimeMillis();
+        final long now_d = now - lastAudioTime;
+        final long pts_d = audioFrame.audioPTS - lastAudioPTS;
+        final long dt = (long) ( (float) ( pts_d - now_d ) / getPlaySpeed() ) ;
+        final boolean sleep = dt > audio_dt_d;
+        final long sleepP = dt - ( audio_dt_d / 2 );
+        if(DEBUG) {
+            final int qAT = audioSink.getQueuedTime();
+            System.err.println("s: pts-a "+audioFrame.audioPTS+", qAT "+qAT+", pts-d "+pts_d+", now_d "+now_d+", dt "+dt+", sleep "+sleep+", sleepP "+sleepP+" ms");
+        }
+        if( sleep ) {
+            try {
+                Thread.sleep( sleepP );
+            } catch (InterruptedException e) {
+                e.printStackTrace(); // oops
+            }
+            lastAudioTime = System.currentTimeMillis();
+        } else {
+            lastAudioTime = now;
+        }
+        if( audioSink.isDataAvailable(audioFrame.dataSize) ) {
+            audioSink.writeData(audioFrame);
+            lastAudioPTS=audioFrame.audioPTS;
+        }
+    }
+    
+    class AudioPusher extends Thread {
+        volatile boolean shallStop = false;
+        volatile boolean isBlocked = false;
+        
+        AudioPusher() {
+            setDaemon(true);
+        }
+        public void requestStop() {
+            shallStop = true;
+            if( isBlocked ) {
+                interrupt();
+            }
+        }
+        public boolean isRunning() { return !shallStop; }
+        
+        public void run() {
+            setName(getName()+"-AudioPusher_"+AudioPusherInstanceId);
+            AudioPusherInstanceId++;
+            
+            while( !shallStop ){
+                final AudioSink.AudioFrame audioFrame;
+                try {
+                    isBlocked = true;
+                    audioFrame = audioFramesBuffer.getBlocking(true /* clearRef */);
+                } catch (InterruptedException e) {
+                    if( !shallStop ) {
+                        e.printStackTrace(); // oops
+                    }
+                    shallStop = true;
+                    return;
+                }
+                isBlocked = false;
+                
+                if( null != audioFrame ) {
+                    FFMPEGMediaPlayer.this.pushAudioFrame(audioFrame);
+                }
+            }
+        }
+    }    
+    static int AudioPusherInstanceId = 0;    
+    private AudioPusher audioPusher = null;
+    
+    private final void stopAudioPusher() {
+        if( USE_AUDIO_PUSHER ) {
+            if( null != audioPusher ) {
+                audioPusher.requestStop();
+                audioPusher = null;
+            }
+            audioFramesBuffer.clear(true);
+        }
+    }
+    private final void startAudioPusher() {
+        if( USE_AUDIO_PUSHER ) {
+            stopAudioPusher();
+            audioPusher = new AudioPusher();
+            audioPusher.start();
+        }
+    }
+
     private void updateAttributes2(int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
                                    int lSz0, int lSz1, int lSz2,
                                    int tWd0, int tWd1, int tWd2) {
@@ -290,24 +441,24 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
       final float tc_w_1 = (float)getWidth() / (float)texWidth;
       switch(vPixelFmt) {
         case YUV420P:
-          return 
+          return
               "vec4 "+textureLookupFunctionName+"(in "+getTextureSampler2DType()+" image, in vec2 texCoord) {\n"+
               "  vec2 u_off = vec2("+tc_w_1+", 0.0);\n"+
               "  vec2 v_off = vec2("+tc_w_1+", 0.5);\n"+
               "  vec2 tc_half = texCoord*0.5;\n"+
               "  float y,u,v,r,g,b;\n"+
-              "  y = texture2D(image, texCoord).a;\n"+
-              "  u = texture2D(image, u_off+tc_half).a;\n"+
-              "  v = texture2D(image, v_off+tc_half).a;\n"+              
+              "  y = texture2D(image, texCoord)."+singleTexComp+";\n"+
+              "  u = texture2D(image, u_off+tc_half)."+singleTexComp+";\n"+
+              "  v = texture2D(image, v_off+tc_half)."+singleTexComp+";\n"+
               "  y = 1.1643*(y-0.0625);\n"+
               "  u = u-0.5;\n"+
               "  v = v-0.5;\n"+
               "  r = y+1.5958*v;\n"+
               "  g = y-0.39173*u-0.81290*v;\n"+
-              "  b = y+2.017*u;\n"+              
+              "  b = y+2.017*u;\n"+
               "  return vec4(r, g, b, 1);\n"+
               "}\n"
-          ;            
+          ;
         default: // FIXME: Add more planar formats !
           return super.getTextureLookupFragmentShaderImpl();
       }        
@@ -328,6 +479,7 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
         if(0==moviePtr) {
             return false;
         }
+        startAudioPusher();
         return true;
     }
 
@@ -337,6 +489,7 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
         if(0==moviePtr) {
             return false;
         }
+        stopAudioPusher();
         return true;
     }
 
@@ -346,6 +499,7 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
         if(0==moviePtr) {
             return false;
         }
+        stopAudioPusher();
         return true;
     }
 
@@ -355,9 +509,13 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
+        stopAudioPusher();
         int pts0 = getVideoPTS0(moviePtr);
         int pts1 = seek0(moviePtr, msec);
         System.err.println("Seek: "+pts0+" -> "+msec+" : "+pts1);
+        lastAudioPTS=pts1;
+        lastVideoPTS=pts1;
+        startAudioPusher();
         return pts1;
     }
 
@@ -366,9 +524,12 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
         return lastTex;
     }
     
+    private long lastAudioTime = 0;
+    private int lastAudioPTS = 0;
+    private static final int audio_dt_d = 400;
     private long lastVideoTime = 0;
     private int lastVideoPTS = 0;
-    private static final int dt_d = 9;
+    private static final int video_dt_d = 9;
     
     @Override
     protected TextureSequence.TextureFrame getNextTextureImpl(GL gl, boolean blocking) {
@@ -382,7 +543,23 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
                 gl.glActiveTexture(GL.GL_TEXTURE0+getTextureUnit());
                 tex.enable(gl);
                 tex.bind(gl);
-                readNextPacket0(moviePtr, procAddrGLTexSubImage2D, textureTarget, textureFormat, textureType);
+
+                if( USE_AUDIO_PUSHER ) {
+                    try {
+                        audioFramesBuffer.waitForFreeSlots(2);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace(); // oops
+                    }
+                }
+
+                /* try decode 10 packets to find one containing video
+                   (res == 2) */
+                int res = 0;
+                int retry = 10; 
+                while(res!=2 && retry >= 0) { 
+                   res = readNextPacket0(moviePtr, procAddrGLTexSubImage2D, textureTarget, textureFormat, textureType);
+                   retry--;
+                }
             } finally {
                 psm.restore(gl);
             }
@@ -390,26 +567,30 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
             if(blocking) {
                 // poor mans video sync .. TODO: off thread 'readNextPackage0(..)' on shared GLContext and multi textures/unit!
                 final long now = System.currentTimeMillis();
-                final long now_d = now - lastVideoTime;
-                final long pts_d = pts - lastVideoPTS;                
-                final long dt = (long) ( (float) ( pts_d - now_d ) / getPlaySpeed() ) ;
-                lastVideoTime = now;
-                // System.err.println("s: pts-v "+pts+", pts-d "+pts_d+", now_d "+now_d+", dt "+dt);
-                if(dt>dt_d) {
+                // Try sync video to audio
+                final long now_d = now - lastAudioTime;
+                final long pts_d = pts - lastAudioPTS - 444; /* hack 444 == play video 444ms ahead of audio */
+                final long dt = Math.min(47, (long) ( (float) ( pts_d - now_d ) / getPlaySpeed() ) ) ;
+                //final long dt = (long) ( (float) ( pts_d - now_d ) / getPlaySpeed() ) ;
+                final boolean sleep = dt>video_dt_d && dt<1000 && audioSink.getQueuedByteCount()<maxAvailableAudio-10000;
+                final long sleepP = dt-video_dt_d;
+                if(DEBUG) {
+                    final int qAT = audioSink.getQueuedTime();
+                    System.err.println("s: pts-v "+pts+", qAT "+qAT+", pts-d "+pts_d+", now_d "+now_d+", dt "+dt+", sleep "+sleep+", sleepP "+sleepP+" ms");
+                }
+                // ?? Maybe use audioSink.getQueuedTime();
+                if( sleep ) {
                     try {
-                        Thread.sleep(dt-dt_d);
+                        Thread.sleep(sleepP);
                     } catch (InterruptedException e) { }
-                } /* else if(0>pts_d) {
-                    System.err.println("s: pts-v "+pts+", pts-d "+pts_d+", now_d "+now_d+", dt "+dt);
-                } */
+                    lastVideoTime = System.currentTimeMillis();
+                } else { 
+                    lastVideoTime = now;
+                }
             }
             lastVideoPTS = pts;
         }
         return lastTex;
-    }
-    
-    private void consumeAudio(int len) {
-        
     }
     
     private static native int getAvUtilVersion0();
@@ -419,7 +600,7 @@ public class FFMPEGMediaPlayer extends EGLMediaPlayerImpl {
     private native long createInstance0(boolean verbose);    
     private native void destroyInstance0(long moviePtr);
     
-    private native void setStream0(long moviePtr, String url, int vid, int aid);
+    private native void setStream0(long moviePtr, String url, int vid, int aid, int audioFrameCount);
 
     private native int getVideoPTS0(long moviePtr);    
     

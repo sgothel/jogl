@@ -47,6 +47,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.nativewindow.swt.SWTAccessor;
+import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Window;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.newt.swt.NewtCanvasSWT;
@@ -65,6 +66,7 @@ public class TestParenting01aSWT extends UITestCase {
     Display display = null;
     Shell shell = null;
     Composite composite1 = null;
+    com.jogamp.newt.Display swtNewtDisplay = null;
     
     @BeforeClass
     public static void initClass() {
@@ -86,6 +88,7 @@ public class TestParenting01aSWT extends UITestCase {
                 composite1.setLayout( new FillLayout() );
                 Assert.assertNotNull( composite1 );
             }});
+        swtNewtDisplay = NewtFactory.createDisplay(null, false); // no-reuse
     }
     
     @After
@@ -105,6 +108,7 @@ public class TestParenting01aSWT extends UITestCase {
             throwable.printStackTrace();
             Assume.assumeNoException( throwable );
         }
+        swtNewtDisplay = null;
         display = null;
         shell = null;
         composite1 = null;
@@ -113,7 +117,8 @@ public class TestParenting01aSWT extends UITestCase {
     @Test
     public void testWindowParenting01CreateVisibleDestroy1() throws InterruptedException, InvocationTargetException {
 
-        GLWindow glWindow1 = GLWindow.create(glCaps);
+        com.jogamp.newt.Screen screen = NewtFactory.createScreen(swtNewtDisplay, 0);
+        GLWindow glWindow1 = GLWindow.create(screen, glCaps);
         Assert.assertNotNull(glWindow1);
         Assert.assertEquals(false, glWindow1.isVisible());
         Assert.assertEquals(false, glWindow1.isNativeValid());

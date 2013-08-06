@@ -49,12 +49,22 @@ public class TextRendererImpl01 extends TextRenderer {
     protected boolean initShaderProgram(GL2ES2 gl){
         final ShaderState st = rs.getShaderState();
 
-        ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, TextRendererImpl01.class, "shader",
-                "shader/bin", getVertexShaderName(gl), false);
-        ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, TextRendererImpl01.class, "shader",
-                "shader/bin", getFragmentShaderName(gl), false);
+        final ShaderCode rsVp = ShaderCode.create(gl, GL2ES2.GL_VERTEX_SHADER, TextRendererImpl01.class, "shader",
+                                                  "shader/bin", getVertexShaderName(), true);
+        final ShaderCode rsFp = ShaderCode.create(gl, GL2ES2.GL_FRAGMENT_SHADER, TextRendererImpl01.class, "shader",
+                                                  "shader/bin", getFragmentShaderName(), true);
+        rsVp.defaultShaderCustomization(gl, true, true);
+        // rsFp.defaultShaderCustomization(gl, true, true);
+        int pos = rsFp.addGLSLVersion(gl);
+        if( gl.isGLES2() ) {
+            pos = rsFp.insertShaderSource(0, pos, ShaderCode.extOESDerivativesEnable);
+        }
+        final String rsFpDefPrecision =  getFragmentShaderPrecision(gl);
+        if( null != rsFpDefPrecision ) {
+            rsFp.insertShaderSource(0, pos, rsFpDefPrecision);
+        }
         
-        ShaderProgram sp = new ShaderProgram();
+        final ShaderProgram sp = new ShaderProgram();
         sp.add(rsVp);
         sp.add(rsFp);
         

@@ -269,7 +269,10 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         });
         
         glWindow.addKeyListener(new KeyAdapter() {
-            public void keyTyped(KeyEvent e) {
+            public void keyReleased(KeyEvent e) {
+                if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+                    return;
+                }            
                 if(e.getKeyChar()=='f') {
                     quitAdapter.enable(false);
                     new Thread() {
@@ -397,6 +400,7 @@ public class TestGearsES2NewtCanvasAWT extends UITestCase {
         
         if( !GLProfile.isAvailable(GLProfile.GL3) ) {
             System.err.println("GL3 n/a");
+            return;
         }
         final GLProfile glp = GLProfile.get(GLProfile.GL3);
         final GLCapabilities caps = new GLCapabilities( glp );

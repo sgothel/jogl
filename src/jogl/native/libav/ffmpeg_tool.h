@@ -82,7 +82,9 @@ typedef struct {
     AVStream*        pAStream;
     AVCodecContext*  pACodecCtx;
     AVCodec*         pACodec;
-    AVFrame*         pAFrame;
+    AVFrame**        pAFrames;
+    int32_t          aFrameCount;
+    int32_t          aFrameCurrent;
     int32_t          aSampleRate;
     int32_t          aChannels;
     int32_t          aFrameSize;

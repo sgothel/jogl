@@ -52,7 +52,7 @@ public class TestPBufferDeadlockAWT extends UITestCase {
 
   @BeforeClass
   public static void initClass() {
-    glp = GLProfile.getGL2ES2();
+    glp = GLProfile.getMaxFixedFunc(true);
     Assert.assertNotNull( glp );
     width = 512;
     height = 512;

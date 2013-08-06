@@ -47,7 +47,10 @@ public class NewtAWTReparentingKeyAdapter extends KeyAdapter {
         this.glWindow = glWindow;
     }
     
-    public void keyTyped(KeyEvent e) {
+    public void keyReleased(KeyEvent e) {
+        if( !e.isPrintableKey() || e.isAutoRepeat() ) {
+            return;
+        }            
         if(e.getKeyChar()=='i') {
             System.err.println(glWindow);
         } else if(e.getKeyChar()=='d') {

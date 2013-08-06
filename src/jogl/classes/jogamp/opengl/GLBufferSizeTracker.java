@@ -87,6 +87,13 @@ import com.jogamp.common.util.IntLongHashMap;
  */
 
 public class GLBufferSizeTracker {
+  protected static final boolean DEBUG;
+
+  static {
+      Debug.initSingleton();
+      DEBUG = Debug.isPropertyDefined("jogl.debug.GLBufferSizeTracker", true);
+  }
+  
   // Map from buffer names to sizes.
   // Note: should probably have some way of shrinking this map, but
   // can't just make it a WeakHashMap because nobody holds on to the
@@ -95,8 +102,7 @@ public class GLBufferSizeTracker {
   // pattern of buffer objects indicates that the fact that this map
   // never shrinks is probably not that bad.
   private IntLongHashMap bufferSizeMap;
-  protected static final boolean DEBUG = Debug.isPropertyDefined("jogl.debug.GLBufferSizeTracker", true);
-
+  
   public GLBufferSizeTracker() {
       bufferSizeMap = new IntLongHashMap();
       bufferSizeMap.setKeyNotFoundValue(0xFFFFFFFFFFFFFFFFL);

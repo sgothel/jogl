@@ -20,7 +20,7 @@ createProperties() {
 
 >tmp
 
-createProperties man | sed -e "s/man\//man2\//ig" >> tmp
+createProperties man2 >> tmp
 createProperties man3 >> tmp
 createProperties man4 >> tmp
 
@@ -30,5 +30,5 @@ echo "#Generated, do not edit, edit createTagletProps.sh instead.
 #to the function specific OpenGL documentation man pages.
 nativetaglet.baseUrl=${root}" > native-taglet.properties;
 
-cat tmp | sort -k1,2 -r | awk '!x[$1]++' | tr -d [:blank:] | sort | sed -e "s/man2\//man\//ig" >> native-taglet.properties;
+cat tmp | sort -k1,2 -r | awk '!x[$1]++' | tr -d [:blank:] | sort >> native-taglet.properties;
 rm tmp

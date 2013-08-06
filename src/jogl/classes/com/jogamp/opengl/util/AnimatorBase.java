@@ -115,6 +115,10 @@ public abstract class AnimatorBase implements GLAnimatorControl {
         drawablesEmpty = true;
     }
     
+    private static final boolean useAWTAnimatorImpl(int modeBits) {
+        return 0 != ( MODE_EXPECT_AWT_RENDERING_THREAD & modeBits ) && null != awtAnimatorImplClazz;
+    }
+    
     /**
      * Initializes implementation details post setup,
      * invoked at {@link #add(GLAutoDrawable)}, {@link #start()}, ..
@@ -125,9 +129,9 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      * 
      * @throws GLException if Animator is {@link #isStarted()}  
      */
-    protected void initImpl(boolean force) {
+    protected synchronized void initImpl(boolean force) {
         if( force || null == impl ) {
-            if( 0 != ( MODE_EXPECT_AWT_RENDERING_THREAD & modeBits ) && null != awtAnimatorImplClazz ) {
+            if( useAWTAnimatorImpl( modeBits ) ) {
                 try {
                     impl = (AnimatorImpl) awtAnimatorImplClazz.newInstance();
                     baseName = getBaseName("AWT");
@@ -150,20 +154,20 @@ public abstract class AnimatorBase implements GLAnimatorControl {
      * @param enable
      * @param bitValues
      * 
-     * @throws GLException if Animator is {@link #isStarted()}
+     * @throws GLException if Animator is {@link #isStarted()} and {@link #MODE_EXPECT_AWT_RENDERING_THREAD} about to change 
      * @see AnimatorBase#MODE_EXPECT_AWT_RENDERING_THREAD
      */
     public synchronized void setModeBits(boolean enable, int bitValues) throws GLException {
-        if( isStarted() ) {
-            throw new GLException("Animator already started");
-        }
         final int _oldModeBits = modeBits;
         if(enable) {
             modeBits |=  bitValues;
         } else {
             modeBits &= ~bitValues;
         }
-        if( _oldModeBits != modeBits ) {
+        if( useAWTAnimatorImpl( _oldModeBits ) != useAWTAnimatorImpl( modeBits ) ) {
+            if( isStarted() ) {
+                throw new GLException("Animator already started");
+            }
             initImpl(true);
         }
     }

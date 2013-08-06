@@ -43,9 +43,8 @@ import com.jogamp.common.util.IntBitfield;
  * <p>
  * <table border="0">
  *   <tr><th>#</th><th>Event Type</th>      <th>Constraints</th>  <th>Notes</th></tr>
- *   <tr><td>1</td><td>{@link #EVENT_KEY_PRESSED}  </td><td> <i> excluding {@link #isAutoRepeat() auto-repeat} {@link #isModifierKey() modifier} keys</i></td><td></td></tr>
- *   <tr><td>2</td><td>{@link #EVENT_KEY_RELEASED} </td><td> <i> excluding {@link #isAutoRepeat() auto-repeat} {@link #isModifierKey() modifier} keys</i></td><td></td></tr>
- *   <tr><td>3</td><td>{@link #EVENT_KEY_TYPED}    </td><td> <i>only for {@link #isPrintableKey() printable} and non {@link #isAutoRepeat() auto-repeat} keys</i></td><td><b>Deprecated</b>: Use {@link #EVENT_KEY_RELEASED} and apply constraints.</td></tr>
+ *   <tr><td>1</td><td>{@link #EVENT_KEY_PRESSED}  </td><td> <i> excluding {@link #isAutoRepeat() auto-repeat}-{@link #isModifierKey() modifier} keys</i></td><td></td></tr>
+ *   <tr><td>2</td><td>{@link #EVENT_KEY_RELEASED} </td><td> <i> excluding {@link #isAutoRepeat() auto-repeat}-{@link #isModifierKey() modifier} keys</i></td><td></td></tr>
  * </table>
  * </p>
  * In case the native platform does not
@@ -58,27 +57,24 @@ import com.jogamp.common.util.IntBitfield;
  * <p>
  * Auto-Repeat shall behave as follow:
  * <pre>
-    P = pressed, R = released, T = typed
+    P = pressed, R = released
     0 = normal, 1 = auto-repeat
 
-    P(0), [ R(1), P(1), R(1), ..], R(0) T(0)    
+    P(0), [ R(1), P(1), R(1), ..], R(0)    
  * </pre>
  * The idea is if you mask out auto-repeat in your event listener
- * or catch {@link #EVENT_KEY_TYPED typed} events only, 
- * you just get one long pressed P/R/T triple for {@link #isPrintableKey() printable} keys.
- * {@link #isActionKey() Action} keys would produce one long pressed P/R tuple in case you mask out auto-repeat . 
+ * you just get one long pressed P/R tuple for {@link #isPrintableKey() printable} and {@link #isActionKey() Action} keys.
  * </p>
  * <p>
  * {@link #isActionKey() Action} keys will produce {@link #EVENT_KEY_PRESSED pressed} 
  * and {@link #EVENT_KEY_RELEASED released} events including {@link #isAutoRepeat() auto-repeat}.
  * </p>
  * <p>
- * {@link #isPrintableKey() Printable} keys will produce {@link #EVENT_KEY_PRESSED pressed}, 
- * {@link #EVENT_KEY_RELEASED released} and {@link #EVENT_KEY_TYPED typed} events, the latter is excluded for {@link #isAutoRepeat() auto-repeat} events.
+ * {@link #isPrintableKey() Printable} keys will produce {@link #EVENT_KEY_PRESSED pressed} and {@link #EVENT_KEY_RELEASED released} events.
  * </p>
  * <p>
- * {@link #isModifierKey() Modifier} keys will produce {@link #EVENT_KEY_PRESSED pressed} 
- * and {@link #EVENT_KEY_RELEASED released} events excluding {@link #isAutoRepeat() auto-repeat}.
+ * {@link #isModifierKey() Modifier} keys will produce {@link #EVENT_KEY_PRESSED pressed} and {@link #EVENT_KEY_RELEASED released} events 
+ * excluding {@link #isAutoRepeat() auto-repeat}.
  * They will also influence subsequent event's {@link #getModifiers() modifier} bits while pressed.
  * </p>
  * 
@@ -217,7 +213,6 @@ public class KeyEvent extends InputEvent
         switch(type) {
         case EVENT_KEY_PRESSED: return "EVENT_KEY_PRESSED";
         case EVENT_KEY_RELEASED: return "EVENT_KEY_RELEASED";
-        case EVENT_KEY_TYPED: return "EVENT_KEY_TYPED";
         default: return "unknown (" + type + ")";
         }
     }
@@ -317,17 +312,16 @@ public class KeyEvent extends InputEvent
      * @param isKeyChar true if <code>uniChar</code> is a key character, otherwise a virtual key code
      */
     public static boolean isPrintableKey(final short uniChar, final boolean isKeyChar) {
-        if( VK_UNDEFINED == uniChar  ) {
-            return false;
+        if ( VK_BACK_SPACE == uniChar || VK_TAB == uniChar || VK_ENTER == uniChar ) {
+            return true;
         }
         if( !isKeyChar ) {
             if( ( nonPrintableKeys[0].min <= uniChar && uniChar <= nonPrintableKeys[0].max ) ||
                 ( nonPrintableKeys[1].min <= uniChar && uniChar <= nonPrintableKeys[1].max ) ||
-                ( nonPrintableKeys[2].min <= uniChar && uniChar <= nonPrintableKeys[2].max ) || 
+                ( nonPrintableKeys[2].min <= uniChar && uniChar <= nonPrintableKeys[2].max ) ||
                 ( nonPrintableKeys[3].min <= uniChar && uniChar <= nonPrintableKeys[3].max ) ) {
                 return false;
             }
-            
         } else {
             if( ( nonPrintableKeys[0].inclKeyChar && nonPrintableKeys[0].min <= uniChar && uniChar <= nonPrintableKeys[0].max ) ||
                 ( nonPrintableKeys[1].inclKeyChar && nonPrintableKeys[1].min <= uniChar && uniChar <= nonPrintableKeys[1].max ) ||
@@ -336,7 +330,7 @@ public class KeyEvent extends InputEvent
                 return false;
             }
         }
-        return true;
+        return VK_UNDEFINED != uniChar;
     }
 
     /** 
@@ -362,15 +356,10 @@ public class KeyEvent extends InputEvent
     private static final byte F_ACTION_MASK     = 1 << 1;
     private static final byte F_PRINTABLE_MASK  = 1 << 2;
 
-    /** A key has been pressed, excluding {@link #isAutoRepeat() auto-repeat} {@link #isModifierKey() modifier} keys. */
+    /** A key has been pressed, excluding {@link #isAutoRepeat() auto-repeat}-{@link #isModifierKey() modifier} keys. */
     public static final short EVENT_KEY_PRESSED = 300;
-    /** A key has been released, excluding {@link #isAutoRepeat() auto-repeat} {@link #isModifierKey() modifier} keys. */
+    /** A key has been released, excluding {@link #isAutoRepeat() auto-repeat}-{@link #isModifierKey() modifier} keys. */
     public static final short EVENT_KEY_RELEASED= 301;
-    /** 
-     * A {@link #isPrintableKey() printable} key has been typed (pressed and released), excluding {@link #isAutoRepeat() auto-repeat}.
-     * @deprecated Redundant, will be removed soon. Use {@link #EVENT_KEY_RELEASED} and exclude non {@link #isPrintableKey() printable} keys and {@link #isAutoRepeat() auto-repeat}.
-     */ 
-    public static final short EVENT_KEY_TYPED   = 302;
 
     /**
      * This value, {@code '\0'}, is used to indicate that the keyChar is unknown or not printable.
@@ -391,12 +380,24 @@ public class KeyEvent extends InputEvent
             this.max = max;
             this.inclKeyChar = inclKeyChar;
         }
-    };    
-    /** Non printable key ranges, currently fixed to an aray of size 4. */
-    public final static NonPrintableRange[] nonPrintableKeys = { new NonPrintableRange( (short)0x0000, (short)0x001F, true ),
-                                                                   new NonPrintableRange( (short)0x0061, (short)0x0078, false), 
-                                                                   new NonPrintableRange( (short)0x007F, (short)0x009F, true ), 
-                                                                   new NonPrintableRange( (short)0xE000, (short)0xF8FF, true ) };
+    };
+    /** 
+     * Non printable key ranges, currently fixed to an array of size 4.
+     * <p>
+     * Not included, queried upfront:
+     * <ul>
+     *  <li>{@link #VK_BACK_SPACE}</li>
+     *  <li>{@link #VK_TAB}</li>
+     *  <li>{@link #VK_ENTER}</li>
+     * </ul>
+     * </p> 
+     */
+    public final static NonPrintableRange[] nonPrintableKeys = { 
+        new NonPrintableRange( (short)0x0000, (short)0x001F, true ),  // Unicode: Non printable controls: [0x00 - 0x1F], see exclusion above
+        new NonPrintableRange( (short)0x0061, (short)0x0078, false),  // Small 'a' thru 'z' (0x61 - 0x7a) - Not used for keyCode / keySym - Re-used for Fn (collision)
+        new NonPrintableRange( (short)0x008F, (short)0x009F, true ),  // Unicode: Non printable controls: [0x7F - 0x9F], Numpad keys [0x7F - 0x8E] are printable! 
+        new NonPrintableRange( (short)0xE000, (short)0xF8FF, true )   // Unicode: Private 0xE000 - 0xF8FF (Marked Non-Printable)
+    };
     
     //
     // Unicode: Non printable controls: [0x00 - 0x1F]
@@ -424,14 +425,14 @@ public class KeyEvent extends InputEvent
            static final short VK_FREE06         = (short) 0x06;
            static final short VK_FREE07         = (short) 0x07;
     
-    /** Constant for the BACK SPACE key "\b", matching ASCII. */
+    /** Constant for the BACK SPACE key "\b", matching ASCII. Printable! */
     public static final short VK_BACK_SPACE     = (short) 0x08;
     
-    /** Constant for the HORIZ TAB key "\t", matching ASCII. */
+    /** Constant for the HORIZ TAB key "\t", matching ASCII. Printable! */
     public static final short VK_TAB            = (short) 0x09;
     
-    /** Constant for the ENTER key, i.e. LINE FEED "\n", matching ASCII. */
-    public static final short VK_ENTER          = (short) 0x0A;
+           /** LINE_FEED "\n", matching ASCII, n/a on keyboard. */
+           static final short VK_FREE0A         = (short) 0x0A;
     
     /** Constant for the PAGE DOWN function key. ASCII: Vertical Tabulation. */
     public static final short VK_PAGE_DOWN      = (short) 0x0B;
@@ -439,7 +440,9 @@ public class KeyEvent extends InputEvent
     /** Constant for the CLEAR key, i.e. FORM FEED, matching ASCII. */
     public static final short VK_CLEAR          = (short) 0x0C;
     
-           static final short VK_FREE0D         = (short) 0x0D;
+    /** Constant for the ENTER key, i.e. CARRIAGE RETURN, matching ASCII. Printable! */
+    public static final short VK_ENTER          = (short) 0x0D;
+    
            static final short VK_FREE0E         = (short) 0x0E;
     
     /** Constant for the CTRL function key. ASCII: shift-in. */
@@ -657,7 +660,7 @@ public class KeyEvent extends InputEvent
     /** Constant for the "`" key */
     public static final short VK_BACK_QUOTE     = (short) 0x60;
     
-    /** Small UTF/ASCII 'a' thru 'z' (0x61 - 0x7a) - Not used for keyCode / keySym. */ 
+    /** Small UTF/ASCII 'a' thru 'z' (0x61 - 0x7a) - Not used for keyCode / keySym. */
     
     /** 
      * Constant for the F<i>n</i> function keys. 
@@ -754,9 +757,11 @@ public class KeyEvent extends InputEvent
     //
     // Unicode: Non printable controls: [0x7F - 0x9F]
     //
+    // Numpad keys [0x7F - 0x8E] are printable
+    //
     
-    /** Constant for the DEL key, matching ASCII. Non printable UTF control. */
-    public static final short VK_DELETE         = (short) 0x7F;
+    /** Numeric keypad <b>decimal separator</b> key. Non printable UTF control. */
+    public static final short VK_SEPARATOR      = (short) 0x7F;
     
     /** Numeric keypad VK_NUMPAD0 thru VK_NUMPAD9 are mapped to UTF control (0x80 - 0x89). Non printable UTF control. */
     public static final short VK_NUMPAD0        = (short) 0x80;
@@ -782,49 +787,37 @@ public class KeyEvent extends InputEvent
     /** Numeric keypad <b>decimal separator</b> key. Non printable UTF control. */
     public static final short VK_DECIMAL        = (short) 0x8A;
         
-    /** Numeric keypad <b>decimal separator</b> key. Non printable UTF control. */
-    public static final short VK_SEPARATOR      = (short) 0x8B;
-    
     /** Numeric keypad <b>add</b> key. Non printable UTF control. */
-    public static final short VK_ADD            = (short) 0x8C;    
+    public static final short VK_ADD            = (short) 0x8B;
 
     /** Numeric keypad <b>subtract</b> key. Non printable UTF control. */
-    public static final short VK_SUBTRACT       = (short) 0x8D;
+    public static final short VK_SUBTRACT       = (short) 0x8C;
     
     /** Numeric keypad <b>multiply</b> key. Non printable UTF control. */
-    public static final short VK_MULTIPLY       = (short) 0x8E;
+    public static final short VK_MULTIPLY       = (short) 0x8D;
     
     /** Numeric keypad <b>divide</b> key. Non printable UTF control. */
-    public static final short VK_DIVIDE         = (short) 0x8F;
+    public static final short VK_DIVIDE         = (short) 0x8E;
+    
+    /** Constant for the DEL key, matching ASCII. Non printable UTF control. */
+    public static final short VK_DELETE         = (short) 0x93;
     
     /** Numeric keypad <b>num lock</b> key. Non printable UTF control. */
-    public static final short VK_NUM_LOCK       = (short) 0x90;
+    public static final short VK_NUM_LOCK       = (short) 0x94;
     
-    /** Numeric keypad <b>left</b> arrow key, for cursor pad see {@link #VK_LEFT}. Non printable UTF control. */
-    public static final short VK_KP_LEFT        = (short) 0x91;
-
-    /** Numeric keypad <b>up</b> arrow key, for cursor pad see {@link #VK_UP}. Non printable UTF control. */
-    public static final short VK_KP_UP          = (short) 0x92;
-
-    /** Constant for the numeric keypad <b>right</b> arrow key, for cursor pad see {@link #VK_RIGHT}. Non printable UTF control. */
-    public static final short VK_KP_RIGHT       = (short) 0x93;
-    
-    /** Numeric keypad <b>down</b> arrow key, for cursor pad see {@link #VK_DOWN}. Non printable UTF control. */
-    public static final short VK_KP_DOWN        = (short) 0x94;
-
-    /** Constant for the cursor-pad <b>left</b> arrow key, for numerical pad see {@link #VK_KP_LEFT}*/
+    /** Constant for the cursor- or numerical-pad <b>left</b> arrow key. Non printable UTF control. */
     public static final short VK_LEFT           = (short) 0x95;
 
-    /** Constant for the cursor-pad <b>left</b> arrow key, for numerical pad see {@link #VK_KP_UP}.*/
+    /** Constant for the cursor- or numerical-pad <b>up</b> arrow key. Non printable UTF control. */
     public static final short VK_UP             = (short) 0x96;
 
-    /** Constant for the cursor-pad <b>left</b> arrow key, for numerical pad see {@link #VK_KP_RIGHT}.*/
+    /** Constant for the cursor- or numerical-pad <b>right</b> arrow key. Non printable UTF control. */
     public static final short VK_RIGHT          = (short) 0x97;
 
-    /** Constant for the cursor-pad <b>left</b> arrow key, for numerical pad see {@link #VK_KP_DOWN}.*/
+    /** Constant for the cursor- or numerical pad <b>down</b> arrow key. Non printable UTF control. */
     public static final short VK_DOWN           = (short) 0x98;
         
-    /** Constant for the Context Menu key. */
+    /** Constant for the Context Menu key. Non printable UTF control. */
     public static final short VK_CONTEXT_MENU   = (short) 0x99;
 
     /**

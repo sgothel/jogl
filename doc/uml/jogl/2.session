@@ -1,0 +1,15 @@
+window_sizes 1920 1060 450 1464 982 0
+windows_style
+diagrams
+  classdiagram_ref 128069 // OpenGL Interfaces - All
+    1463 849 100 17 253 0
+  active  classdiagram_ref 134786 // OpenGL Interfaces - Core Only
+    1464 982 100 17 0 0
+end
+show_stereotypes
+selected 
+  package_ref 129 // jogl
+open
+  class_ref 134914 // GLES3
+end
+end

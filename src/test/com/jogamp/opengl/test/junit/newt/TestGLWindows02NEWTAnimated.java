@@ -131,6 +131,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Assert.assertEquals(true, animator.isStarted());
         
         animator.remove(window);
+        Thread.sleep(250); // give animator a chance to become paused
         Assert.assertEquals(false, animator.isAnimating());
         Assert.assertEquals(true, animator.isPaused()); // zero drawables
         Assert.assertEquals(true, animator.isStarted());
@@ -145,6 +146,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Animator animator = new Animator();
         animator.setUpdateFPSFrames(1, null);        
         Assert.assertTrue(animator.start());
+        Thread.sleep(250); // give animator a chance to become paused
         Assert.assertEquals(false, animator.isAnimating()); // zero drawables
         Assert.assertEquals(true, animator.isPaused()); // zero drawables
         animator.add(window);
@@ -157,6 +159,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         Assert.assertEquals(true, animator.isStarted());
         Assert.assertEquals(false, animator.isPaused());
         animator.remove(window);
+        Thread.sleep(250); // give animator a chance to become paused
         Assert.assertEquals(false, animator.isAnimating());
         Assert.assertEquals(true, animator.isStarted());
         Assert.assertEquals(true, animator.isPaused()); // zero drawables
@@ -189,6 +192,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
 
         Assert.assertTrue(animator.start());
         Assert.assertEquals(true, animator.isStarted());
+        Thread.sleep(250); // give animator a chance to become paused
         Assert.assertEquals(false, animator.isAnimating()); // zero drawables
         Assert.assertEquals(true, animator.isPaused()); // zero drawables
 
@@ -217,6 +221,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         window2.destroy();
         animator.remove(window2);
         Assert.assertEquals(true, animator.isStarted());
+        Thread.sleep(250); // give animator a chance to become paused
         Assert.assertEquals(false, animator.isAnimating()); // zero drawables
         Assert.assertEquals(true, animator.isPaused()); // zero drawables
         Assert.assertTrue(animator.stop());
@@ -253,6 +258,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
 
         Assert.assertTrue(animator.start());
         Assert.assertEquals(true, animator.isStarted());
+        Thread.sleep(250); // give animator a chance to become paused
         Assert.assertEquals(false, animator.isAnimating()); // zero drawables
         Assert.assertEquals(true, animator.isPaused()); // zero drawables
 
@@ -298,6 +304,7 @@ public class TestGLWindows02NEWTAnimated extends UITestCase {
         destroyWindow(window2);
         animator.remove(window2);
         Assert.assertEquals(true, animator.isStarted());
+        Thread.sleep(250); // give animator a chance to become paused
         Assert.assertEquals(false, animator.isAnimating()); // zero drawables
         Assert.assertEquals(true, animator.isPaused()); // zero drawables
 

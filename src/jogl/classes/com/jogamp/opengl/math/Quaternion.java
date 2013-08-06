@@ -27,191 +27,204 @@
  */
 package com.jogamp.opengl.math;
 
-
-
 public class Quaternion {
-    protected float x,y,z,w;
+    protected float x, y, z, w;
 
-    public Quaternion(){
-
+    public Quaternion() {
+        setIdentity();
     }
     
+    public Quaternion(Quaternion q) {
+        x = q.x;
+        y = q.y;
+        z = q.z;
+        w = q.w;
+    }
+
     public Quaternion(float x, float y, float z, float w) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.w = w;
     }
-    
-    /** Constructor to create a rotation based quaternion from two vectors
+
+    /**
+     * Constructor to create a rotation based quaternion from two vectors
+     * 
      * @param vector1
      * @param vector2
      */
-    public Quaternion(float[] vector1, float[] vector2) 
-    {
-        float theta = (float)FloatUtil.acos(dot(vector1, vector2));
-        float[] cross = cross(vector1,vector2);
-        cross = normalizeVec(cross);
-
-        this.x = (float)FloatUtil.sin(theta/2)*cross[0];
-        this.y = (float)FloatUtil.sin(theta/2)*cross[1];
-        this.z = (float)FloatUtil.sin(theta/2)*cross[2];
-        this.w = (float)FloatUtil.cos(theta/2);
-        this.normalize();
+    public Quaternion(float[] vector1, float[] vector2) {
+        final float theta = FloatUtil.acos(VectorUtil.dot(vector1, vector2));
+        final float[] cross = VectorUtil.cross(vector1, vector2);
+        fromAxis(cross, theta);
     }
     
-    /** Transform the rotational quaternion to axis based rotation angles
+    /***
+     * Constructor to create a rotation based quaternion from axis vector and angle
+     * @param vector axis vector
+     * @param angle rotation angle (rads)
+     * @see #fromAxis(float[], float)
+     */
+    public Quaternion(float[] vector, float angle) {
+        fromAxis(vector, angle);
+    }
+    
+    /***
+     * Initialize this quaternion with given axis vector and rotation angle
+     * 
+     * @param vector axis vector
+     * @param angle rotation angle (rads)
+     */
+    public void fromAxis(float[] vector, float angle) {
+        final float halfangle = angle * 0.5f;
+        final float sin = FloatUtil.sin(halfangle);
+        final float[] nv = VectorUtil.normalize(vector);
+        x = (nv[0] * sin);
+        y = (nv[1] * sin);
+        z = (nv[2] * sin);
+        w = FloatUtil.cos(halfangle);
+    }
+
+    /**
+     * Transform the rotational quaternion to axis based rotation angles
+     * 
      * @return new float[4] with ,theta,Rx,Ry,Rz
      */
-    public float[] toAxis()
-    {
-        float[] vec = new float[4];
-        float scale = (float)FloatUtil.sqrt(x * x + y * y + z * z);
-        vec[0] =(float) FloatUtil.acos(w) * 2.0f;
+    public float[] toAxis() {
+        final float[] vec = new float[4];
+        final float scale = FloatUtil.sqrt(x * x + y * y + z * z);
+        vec[0] = FloatUtil.acos(w) * 2.0f;
         vec[1] = x / scale;
         vec[2] = y / scale;
         vec[3] = z / scale;
         return vec;
     }
-    
-    /** Normalize a vector
-     * @param vector input vector
-     * @return normalized vector
-     */
-    private float[] normalizeVec(float[] vector)
-    {
-        float[] newVector = new float[3];
 
-        float d = FloatUtil.sqrt(vector[0]*vector[0] + vector[1]*vector[1] + vector[2]*vector[2]);
-        if(d> 0.0f)
-        {
-            newVector[0] = vector[0]/d;
-            newVector[1] = vector[1]/d;
-            newVector[2] = vector[2]/d;
-        }
-        return newVector;
-    }
-    /** compute the dot product of two points
-     * @param vec1 vector 1
-     * @param vec2 vector 2
-     * @return the dot product as float
-     */
-    private float dot(float[] vec1, float[] vec2)
-    {
-        return (vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]);
-    }
-    /** cross product vec1 x vec2
-     * @param vec1 vector 1
-     * @param vec2 vecttor 2
-     * @return the resulting vector
-     */
-    private float[] cross(float[] vec1, float[] vec2)
-    {
-        float[] out = new float[3];
-
-        out[0] = vec2[2]*vec1[1] - vec2[1]*vec1[2];
-        out[1] = vec2[0]*vec1[2] - vec2[2]*vec1[0];
-        out[2] = vec2[1]*vec1[0] - vec2[0]*vec1[1];
-
-        return out;
-    }
     public float getW() {
         return w;
     }
+
     public void setW(float w) {
         this.w = w;
     }
+
     public float getX() {
         return x;
     }
+
     public void setX(float x) {
         this.x = x;
     }
+
     public float getY() {
         return y;
     }
+
     public void setY(float y) {
         this.y = y;
     }
+
     public float getZ() {
         return z;
     }
+
     public void setZ(float z) {
         this.z = z;
     }
 
-    /** Add a quaternion
+    /**
+     * Add a quaternion
+     * 
      * @param q quaternion
      */
-    public void add(Quaternion q)
-    {
-        x+=q.x;
-        y+=q.y;
-        z+=q.z;
+    public void add(Quaternion q) {
+        x += q.x;
+        y += q.y;
+        z += q.z;
     }
-    
-    /** Subtract a quaternion
+
+    /**
+     * Subtract a quaternion
+     * 
      * @param q quaternion
      */
-    public void subtract(Quaternion q)
-    {
-        x-=q.x;
-        y-=q.y;
-        z-=q.z;
+    public void subtract(Quaternion q) {
+        x -= q.x;
+        y -= q.y;
+        z -= q.z;
     }
-    
-    /** Divide a quaternion by a constant
+
+    /**
+     * Divide a quaternion by a constant
+     * 
      * @param n a float to divide by
      */
-    public void divide(float n)
-    {
-        x/=n;
-        y/=n;
-        z/=n;
+    public void divide(float n) {
+        x /= n;
+        y /= n;
+        z /= n;
     }
-    
-    /** Multiply this quaternion by 
-     * the param quaternion
+
+    /**
+     * Multiply this quaternion by the param quaternion
+     * 
      * @param q a quaternion to multiply with
      */
-    public void mult(Quaternion q)
-    {
-        float w1 = w*q.w - x*q.x - y*q.y - z*q.z;
+    public void mult(Quaternion q) {
+        final float w1 = w * q.w - x * q.x - y * q.y - z * q.z;
 
-        float x1 = w*q.x + x*q.w + y*q.z - z*q.y;
-        float y1 = w*q.y - x*q.z + y*q.w + z*q.x;
-        float z1 = w*q.z + x*q.y - y*q.x + z*q.w;
+        final float x1 = w * q.x + x * q.w + y * q.z - z * q.y;
+        final float y1 = w * q.y - x * q.z + y * q.w + z * q.x;
+        final float z1 = w * q.z + x * q.y - y * q.x + z * q.w;
 
         w = w1;
         x = x1;
         y = y1;
-        z = z1; 
+        z = z1;
     }
-    
-    /** Multiply a quaternion by a constant
+
+    /**
+     * Multiply a quaternion by a constant
+     * 
      * @param n a float constant
      */
-    public void mult(float n)
-    {
-        x*=n;
-        y*=n;
-        z*=n;
+    public void mult(float n) {
+        x *= n;
+        y *= n;
+        z *= n;
     }
     
-    /** Normalize a quaternion required if  
-     *  to be used as a rotational quaternion
+    /***
+     * Rotate given vector by this quaternion
+     * 
+     * @param vector input vector
+     * @return rotated vector
      */
-    public void normalize()
-    {
-        float norme = (float)FloatUtil.sqrt(w*w + x*x + y*y + z*z);
-        if (norme == 0.0f)
-        {
-            w = 1.0f; 
-            x = y = z = 0.0f;
-        }
-        else
-        {
-            float recip = 1.0f/norme;
+    public float[] mult(float[] vector) {
+        // TODO : optimize
+        final float[] res = new float[3];
+        final Quaternion a = new Quaternion(vector[0], vector[1], vector[2], 0.0f);
+        final Quaternion b = new Quaternion(this);
+        final Quaternion c = new Quaternion(this);
+        b.inverse();
+        a.mult(b);
+        c.mult(a);
+        res[0] = c.x;
+        res[1] = c.y;
+        res[2] = c.z;
+        return res;
+    }
+
+    /**
+     * Normalize a quaternion required if to be used as a rotational quaternion
+     */
+    public void normalize() {
+        final float norme = (float) FloatUtil.sqrt(w * w + x * x + y * y + z * z);
+        if (norme == 0.0f) {
+            setIdentity();
+        } else {
+            final float recip = 1.0f / norme;
 
             w *= recip;
             x *= recip;
@@ -219,42 +232,42 @@ public class Quaternion {
             z *= recip;
         }
     }
-    
-    /** Invert the quaternion If rotational, 
-     * will produce a the inverse rotation
-     */
-    public void inverse()
-    {
-        float norm = w*w + x*x + y*y + z*z;
 
-        float recip = 1.0f/norm;
+    /**
+     * Invert the quaternion If rotational, will produce a the inverse rotation
+     */
+    public void inverse() {
+        final float norm = w * w + x * x + y * y + z * z;
+
+        final float recip = 1.0f / norm;
 
         w *= recip;
-        x = -1*x*recip;
-        y = -1*y*recip;
-        z = -1*z*recip;
+        x = -1 * x * recip;
+        y = -1 * y * recip;
+        z = -1 * z * recip;
     }
-    
-    /** Transform this quaternion to a
-     * 4x4 column matrix representing the rotation
-     * @return new float[16] column matrix 4x4 
+
+    /**
+     * Transform this quaternion to a 4x4 column matrix representing the
+     * rotation
+     * 
+     * @return new float[16] column matrix 4x4
      */
-    public float[] toMatrix()
-    {
-        float[] matrix = new float[16];
-        matrix[0] = 1.0f - 2*y*y - 2*z*z;
-        matrix[1] = 2*x*y + 2*w*z;
-        matrix[2] = 2*x*z - 2*w*y;
+    public float[] toMatrix() {
+        final float[] matrix = new float[16];
+        matrix[0] = 1.0f - 2 * y * y - 2 * z * z;
+        matrix[1] = 2 * x * y + 2 * w * z;
+        matrix[2] = 2 * x * z - 2 * w * y;
         matrix[3] = 0;
 
-        matrix[4] = 2*x*y - 2*w*z;
-        matrix[5] = 1.0f - 2*x*x - 2*z*z;
-        matrix[6] = 2*y*z + 2*w*x;
+        matrix[4] = 2 * x * y - 2 * w * z;
+        matrix[5] = 1.0f - 2 * x * x - 2 * z * z;
+        matrix[6] = 2 * y * z + 2 * w * x;
         matrix[7] = 0;
 
-        matrix[8]  = 2*x*z + 2*w*y;
-        matrix[9]  = 2*y*z - 2*w*x;
-        matrix[10] = 1.0f - 2*x*x - 2*y*y;
+        matrix[8] = 2 * x * z + 2 * w * y;
+        matrix[9] = 2 * y * z - 2 * w * x;
+        matrix[10] = 1.0f - 2 * x * x - 2 * y * y;
         matrix[11] = 0;
 
         matrix[12] = 0;
@@ -263,15 +276,18 @@ public class Quaternion {
         matrix[15] = 1;
         return matrix;
     }
-    
-    /** Set this quaternion from a Sphereical interpolation
-     *  of two param quaternion, used mostly for rotational animation.
-     *  <p>
-     *  Note: Method does not normalize this quaternion!
-     *  </p>
-     *  <p>
-     *  See http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/
-     *  </p>
+
+    /**
+     * Set this quaternion from a Sphereical interpolation of two param
+     * quaternion, used mostly for rotational animation.
+     * <p>
+     * Note: Method does not normalize this quaternion!
+     * </p>
+     * <p>
+     * See http://www.euclideanspace.com/maths/algebra/realNormedAlgebra/
+     * quaternions/slerp/
+     * </p>
+     * 
      * @param a initial quaternion
      * @param b target quaternion
      * @param t float between 0 and 1 representing interp.
@@ -279,7 +295,7 @@ public class Quaternion {
     public void slerp(Quaternion a, Quaternion b, float t) {
         final float cosom = a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
         final float t1 = 1.0f - t;
-    
+
         // if the two quaternions are close, just use linear interpolation
         if (cosom >= 0.95f) {
             x = a.x * t1 + b.x * t;
@@ -288,8 +304,9 @@ public class Quaternion {
             w = a.w * t1 + b.w * t;
             return;
         }
-    
-        // the quaternions are nearly opposite, we can pick any axis normal to a,b
+
+        // the quaternions are nearly opposite, we can pick any axis normal to
+        // a,b
         // to do the rotation
         if (cosom <= -0.99f) {
             x = 0.5f * (a.x + b.x);
@@ -298,94 +315,100 @@ public class Quaternion {
             w = 0.5f * (a.w + b.w);
             return;
         }
-    
+
         // cosom is now withion range of acos, do a SLERP
         final float sinom = FloatUtil.sqrt(1.0f - cosom * cosom);
         final float omega = FloatUtil.acos(cosom);
-    
+
         final float scla = FloatUtil.sin(t1 * omega) / sinom;
-        final float sclb = FloatUtil.sin( t * omega) / sinom;
-    
+        final float sclb = FloatUtil.sin(t * omega) / sinom;
+
         x = a.x * scla + b.x * sclb;
         y = a.y * scla + b.y * sclb;
         z = a.z * scla + b.z * sclb;
         w = a.w * scla + b.w * sclb;
     }
-    
-    /** Check if this quaternion is empty, ie (0,0,0,1)
-     * @return true if empty, false otherwise
-     */
-    public boolean isEmpty()
-    {
-        if (w==1 && x==0 && y==0 && z==0)
-            return true;
-        return false;
-    }
-    
-    /** Check if this quaternion represents an identity
-     * matrix, for rotation.
+
+    /**
+     * Check if this quaternion represents an identity matrix for rotation,
+     * , ie (0,0,0,1).
+     * 
      * @return true if it is an identity rep., false otherwise
      */
-    public boolean isIdentity()
-    {
-        if (w==0 && x==0 && y==0 && z==0)
-            return true;
-        return false;
+    public boolean isIdentity() {
+        return w == 1 && x == 0 && y == 0 && z == 0;
     }
     
-    /** compute the quaternion from a 3x3 column matrix
-     * @param m 3x3 column matrix 
+    /***
+     * Set this quaternion to identity (x=0,y=0,z=0,w=1)
+     */
+    public void setIdentity() {
+        x = y = z = 0;
+        w = 1;
+    }
+
+    /**
+     * compute the quaternion from a 3x3 column matrix
+     * 
+     * @param m 3x3 column matrix
      */
     public void setFromMatrix(float[] m) {
-        float T= m[0] + m[4] + m[8] + 1;
-        if (T>0){
-            float S = 0.5f / (float)FloatUtil.sqrt(T);
+        final float T = m[0] + m[4] + m[8] + 1;
+        if (T > 0) {
+            final float S = 0.5f / (float) FloatUtil.sqrt(T);
             w = 0.25f / S;
-            x = ( m[5] - m[7]) * S;
-            y = ( m[6] - m[2]) * S;
-            z = ( m[1] - m[3] ) * S;
-        }
-        else{
-            if ((m[0] > m[4])&(m[0] > m[8])) { 
-                float S = FloatUtil.sqrt( 1.0f + m[0] - m[4] - m[8] ) * 2f; // S=4*qx 
+            x = (m[5] - m[7]) * S;
+            y = (m[6] - m[2]) * S;
+            z = (m[1] - m[3]) * S;
+        } else {
+            if ((m[0] > m[4]) & (m[0] > m[8])) {
+                final float S = FloatUtil.sqrt(1.0f + m[0] - m[4] - m[8]) * 2f; // S=4*qx
                 w = (m[7] - m[5]) / S;
                 x = 0.25f * S;
-                y = (m[3] + m[1]) / S; 
-                z = (m[6] + m[2]) / S; 
-            } 
-            else if (m[4] > m[8]) { 
-                float S = FloatUtil.sqrt( 1.0f + m[4] - m[0] - m[8] ) * 2f; // S=4*qy
+                y = (m[3] + m[1]) / S;
+                z = (m[6] + m[2]) / S;
+            } else if (m[4] > m[8]) {
+                final float S = FloatUtil.sqrt(1.0f + m[4] - m[0] - m[8]) * 2f; // S=4*qy
                 w = (m[6] - m[2]) / S;
-                x = (m[3] + m[1]) / S; 
+                x = (m[3] + m[1]) / S;
                 y = 0.25f * S;
-                z = (m[7] + m[5]) / S; 
-            } 
-            else { 
-                float S = FloatUtil.sqrt( 1.0f + m[8] - m[0] - m[4] ) * 2f; // S=4*qz
+                z = (m[7] + m[5]) / S;
+            } else {
+                final float S = FloatUtil.sqrt(1.0f + m[8] - m[0] - m[4]) * 2f; // S=4*qz
                 w = (m[3] - m[1]) / S;
-                x = (m[6] + m[2]) / S; 
-                y = (m[7] + m[5]) / S; 
+                x = (m[6] + m[2]) / S;
+                y = (m[7] + m[5]) / S;
                 z = 0.25f * S;
-            } 
+            }
         }
     }
-    
-    /** Check if the the 3x3 matrix (param) is in fact 
-     * an affine rotational matrix
+
+    /**
+     * Check if the the 3x3 matrix (param) is in fact an affine rotational
+     * matrix
+     * 
      * @param m 3x3 column matrix
      * @return true if representing a rotational matrix, false otherwise
      */
     public boolean isRotationMatrix(float[] m) {
-        double epsilon = 0.01; // margin to allow for rounding errors
-        if (FloatUtil.abs(m[0]*m[3] + m[3]*m[4] + m[6]*m[7]) > epsilon) return false;
-        if (FloatUtil.abs(m[0]*m[2] + m[3]*m[5] + m[6]*m[8]) > epsilon) return false;
-        if (FloatUtil.abs(m[1]*m[2] + m[4]*m[5] + m[7]*m[8]) > epsilon) return false;
-        if (FloatUtil.abs(m[0]*m[0] + m[3]*m[3] + m[6]*m[6] - 1) > epsilon) return false;
-        if (FloatUtil.abs(m[1]*m[1] + m[4]*m[4] + m[7]*m[7] - 1) > epsilon) return false;
-        if (FloatUtil.abs(m[2]*m[2] + m[5]*m[5] + m[8]*m[8] - 1) > epsilon) return false;
-        return (FloatUtil.abs(determinant(m)-1) < epsilon);
+        final float epsilon = 0.01f; // margin to allow for rounding errors
+        if (FloatUtil.abs(m[0] * m[3] + m[3] * m[4] + m[6] * m[7]) > epsilon)
+            return false;
+        if (FloatUtil.abs(m[0] * m[2] + m[3] * m[5] + m[6] * m[8]) > epsilon)
+            return false;
+        if (FloatUtil.abs(m[1] * m[2] + m[4] * m[5] + m[7] * m[8]) > epsilon)
+            return false;
+        if (FloatUtil.abs(m[0] * m[0] + m[3] * m[3] + m[6] * m[6] - 1) > epsilon)
+            return false;
+        if (FloatUtil.abs(m[1] * m[1] + m[4] * m[4] + m[7] * m[7] - 1) > epsilon)
+            return false;
+        if (FloatUtil.abs(m[2] * m[2] + m[5] * m[5] + m[8] * m[8] - 1) > epsilon)
+            return false;
+        return (FloatUtil.abs(determinant(m) - 1) < epsilon);
     }
+
     private float determinant(float[] m) {
-          return m[0]*m[4]*m[8] + m[3]*m[7]*m[2] + m[6]*m[1]*m[5] - m[0]*m[7]*m[5] - m[3]*m[1]*m[8] - m[6]*m[4]*m[2];
+        return m[0] * m[4] * m[8] + m[3] * m[7] * m[2] + m[6] * m[1] * m[5]
+             - m[0] * m[7] * m[5] - m[3] * m[1] * m[8] - m[6] * m[4] * m[2];
     }
 }

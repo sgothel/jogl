@@ -488,7 +488,7 @@ public class PMVMatrix implements GLMatrixFunc {
         if(matrixGetName==GL_MATRIX_MODE) {
             params.put((float)matrixMode);
         } else {
-            FloatBuffer matrix = glGetMatrixf(matrixGetName);
+            final FloatBuffer matrix = glGetMatrixf(matrixGetName);
             params.put(matrix); // matrix -> params
             matrix.reset();
         }
@@ -500,7 +500,7 @@ public class PMVMatrix implements GLMatrixFunc {
         if(matrixGetName==GL_MATRIX_MODE) {
             params[params_offset]=(float)matrixMode;
         } else {
-            FloatBuffer matrix = glGetMatrixf(matrixGetName);
+            final FloatBuffer matrix = glGetMatrixf(matrixGetName);
             matrix.get(params, params_offset, 16); // matrix -> params
             matrix.reset();
         }
@@ -619,15 +619,15 @@ public class PMVMatrix implements GLMatrixFunc {
     @Override
     public final void glMultMatrixf(final FloatBuffer m) {
         if(matrixMode==GL_MODELVIEW) {
-            FloatUtil.multMatrixf(matrixMv, m, matrixMv);
+            FloatUtil.multMatrixf(matrixMv, m);
             dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
             modifiedBits |= MODIFIED_MODELVIEW;
         } else if(matrixMode==GL_PROJECTION) {
-            FloatUtil.multMatrixf(matrixP, m, matrixP);
+            FloatUtil.multMatrixf(matrixP, m);
             dirtyBits |= DIRTY_FRUSTUM ;
             modifiedBits |= MODIFIED_PROJECTION;
         } else if(matrixMode==GL.GL_TEXTURE) {
-            FloatUtil.multMatrixf(matrixTex, m, matrixTex);
+            FloatUtil.multMatrixf(matrixTex, m);
             modifiedBits |= MODIFIED_TEXTURE;
         } 
     }
@@ -635,15 +635,15 @@ public class PMVMatrix implements GLMatrixFunc {
     @Override
     public final void glMultMatrixf(float[] m, int m_offset) {
         if(matrixMode==GL_MODELVIEW) {
-            FloatUtil.multMatrixf(matrixMv, m, m_offset, matrixMv);
+            FloatUtil.multMatrixf(matrixMv, m, m_offset);
             dirtyBits |= DIRTY_INVERSE_MODELVIEW | DIRTY_INVERSE_TRANSPOSED_MODELVIEW | DIRTY_FRUSTUM ;
             modifiedBits |= MODIFIED_MODELVIEW;
         } else if(matrixMode==GL_PROJECTION) {
-            FloatUtil.multMatrixf(matrixP, m, m_offset, matrixP);
+            FloatUtil.multMatrixf(matrixP, m, m_offset);
             dirtyBits |= DIRTY_FRUSTUM ;
             modifiedBits |= MODIFIED_PROJECTION;
         } else if(matrixMode==GL.GL_TEXTURE) {
-            FloatUtil.multMatrixf(matrixTex, m, m_offset, matrixTex);
+            FloatUtil.multMatrixf(matrixTex, m, m_offset);
             modifiedBits |= MODIFIED_TEXTURE;
         } 
     }
@@ -813,8 +813,8 @@ public class PMVMatrix implements GLMatrixFunc {
                             float[] win_pos, int win_pos_offset ) {
         if(usesBackingArray) {
             return projectFloat.gluProject(objx, objy, objz,
-                                           matrixMv.array(), 0,
-                                           matrixP.array(), 0,
+                                           matrixMv.array(), matrixMv.position(),
+                                           matrixP.array(), matrixP.position(),
                                            viewport, viewport_offset, 
                                            win_pos, win_pos_offset);
         } else {
@@ -843,8 +843,8 @@ public class PMVMatrix implements GLMatrixFunc {
                                       float[] obj_pos, int obj_pos_offset) {
         if(usesBackingArray) {
             return projectFloat.gluUnProject(winx, winy, winz,
-                                             matrixMv.array(), 0,
-                                             matrixP.array(), 0,
+                                             matrixMv.array(), matrixMv.position(),
+                                             matrixP.array(), matrixP.position(),
                                              viewport, viewport_offset, 
                                              obj_pos, obj_pos_offset);
         } else {

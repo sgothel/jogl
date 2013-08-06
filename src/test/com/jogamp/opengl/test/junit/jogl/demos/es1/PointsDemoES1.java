@@ -115,7 +115,7 @@ public class PointsDemoES1 extends PointsDemo {
             for(int j=0; j<edge; j++) {
                 final float x = -3+j*0.7f;
                 final float y = -3+i*0.7f;
-                final float p = (i*edge+j)*0.5f;
+                final float p = Math.max(0.000001f, (i*edge+j)*0.5f); // no zero point size!
                 // System.err.println("["+j+"/"+i+"]: "+x+"/"+y+": "+p);
                 vertices.putf(x); vertices.putf(y); vertices.putf( 0);
                 pointSizes[(i*edge+j)] = p;

@@ -38,6 +38,7 @@ import java.util.List;
 
 import javax.media.nativewindow.AbstractGraphicsDevice;
 import javax.media.nativewindow.util.Rectangle;
+import javax.media.nativewindow.util.RectangleImmutable;
 
 import jogamp.nativewindow.x11.X11Util;
 import jogamp.newt.Debug;
@@ -54,12 +55,18 @@ import com.jogamp.newt.MonitorDevice;
 import com.jogamp.newt.MonitorMode;
 
 public class ScreenDriver extends ScreenImpl {    
-    protected static final boolean DEBUG_TEST_RANDR13_DISABLED = Debug.isPropertyDefined("newt.test.Screen.disableRandR13", true);
+    protected static final boolean DEBUG_TEST_RANDR13_DISABLED;
     
     static {
+        Debug.initSingleton();
+        DEBUG_TEST_RANDR13_DISABLED = Debug.isPropertyDefined("newt.test.Screen.disableRandR13", true);
+        
         DisplayDriver.initSingleton();
     }
 
+    /** Ensure static init has been run. */
+    /* pp */static void initSingleton() { }
+    
     public ScreenDriver() {
     }
 
@@ -81,11 +88,12 @@ public class ScreenDriver extends ScreenImpl {
             randrVersion = new VersionNumber(v[0], v[1], 0);
         }
         {
-            final RandR13 rAndR13 = DEBUG_TEST_RANDR13_DISABLED ? null : RandR13.createInstance(randrVersion);
-            if( null != rAndR13 ) {
-                rAndR = rAndR13;
+            if( !DEBUG_TEST_RANDR13_DISABLED && randrVersion.compareTo(RandR.version130) >= 0 ) {
+                rAndR = new RandR13();
+            } else if( randrVersion.compareTo(RandR.version110) >= 0 ) {
+                rAndR = new RandR11();
             } else {
-                rAndR = RandR11.createInstance(randrVersion);
+                rAndR = null;
             }
         }
         if( DEBUG ) {
@@ -183,7 +191,7 @@ public class ScreenDriver extends ScreenImpl {
         if( null == rAndR ) { return false; }
         
         final long t0 = System.currentTimeMillis();
-        boolean done = runWithTempDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
+        boolean done = runWithOptTempDisplayHandle( new DisplayImpl.DisplayRunnable<Boolean>() {
             public Boolean run(long dpy) {
                 return Boolean.valueOf( rAndR.setCurrentMonitorMode(dpy, ScreenDriver.this, monitor, mode) );
             }            
@@ -214,14 +222,31 @@ public class ScreenDriver extends ScreenImpl {
         
     @Override
     protected void calcVirtualScreenOriginAndSize(final Rectangle vOriginSize) {
-        runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
-            public Object run(long dpy) {
-                vOriginSize.setX(0);
-                vOriginSize.setY(0);
-                vOriginSize.setWidth(getWidth0(dpy, screen_idx));
-                vOriginSize.setHeight(getHeight0(dpy, screen_idx));
-                return null;
-            } } );        
+        final RectangleImmutable ov = (RectangleImmutable) getViewport().cloneMutable();
+        /**
+        if( null != rAndR && rAndR.getVersion().compareTo(RandR.version130) >= 0 && getMonitorDevices().size()>0 ) {
+            super.calcVirtualScreenOriginAndSize(vOriginSize);
+            if( DEBUG ) {
+                System.err.println("X11Screen.calcVirtualScreenOriginAndSize: UpdatingViewport "+ov+" -> "+vOriginSize);
+            }
+            runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
+                public Object run(long dpy) {
+                    rAndR.updateScreenViewport(dpy, ScreenDriver.this, vOriginSize);
+                    return null;
+                } } );
+        } else */ {
+            runWithLockedDisplayDevice( new DisplayImpl.DisplayRunnable<Object>() {
+                public Object run(long dpy) {
+                    vOriginSize.setX(0);
+                    vOriginSize.setY(0);
+                    vOriginSize.setWidth(getWidth0(dpy, screen_idx));
+                    vOriginSize.setHeight(getHeight0(dpy, screen_idx));
+                    return null;
+                } } );
+            if( DEBUG ) {
+                System.err.println("X11Screen.calcVirtualScreenOriginAndSize: Querying X11: "+ov+" -> "+vOriginSize);
+            }
+        }
     }    
     
     //----------------------------------------------------------------------
@@ -243,6 +268,14 @@ public class ScreenDriver extends ScreenImpl {
             X11Util.closeDisplay(displayHandle);
         }
         return res;
+    }
+    
+    private final <T> T runWithOptTempDisplayHandle(DisplayRunnable<T> action) {
+        if( null != rAndR && rAndR.getVersion().compareTo(RandR.version130) >= 0 ) {
+            return display.runWithLockedDisplayDevice(action);
+        } else {
+            return runWithTempDisplayHandle(action);
+        }
     }
     
     private static native long GetScreen0(long dpy, int scrn_idx);

@@ -31,7 +31,6 @@
 
 #define EVENT_KEY_PRESSED  300
 #define EVENT_KEY_RELEASED 301
-#define EVENT_KEY_TYPED 302
 
 #define J_VK_UNDEFINED      ( 0x0U )
 #define J_VK_HOME           ( 0x02U )
@@ -40,9 +39,9 @@
 #define J_VK_PRINTSCREEN    ( 0x05U )
 #define J_VK_BACK_SPACE     ( 0x08U )
 #define J_VK_TAB            ( 0x09U )
-#define J_VK_ENTER          ( 0x0AU )
 #define J_VK_PAGE_DOWN      ( 0x0BU )
 #define J_VK_CLEAR          ( 0x0CU )
+#define J_VK_ENTER          ( 0x0DU )
 #define J_VK_SHIFT          ( 0x0FU )
 #define J_VK_PAGE_UP        ( 0x10U )
 #define J_VK_CONTROL        ( 0x11U )
@@ -161,7 +160,7 @@
 // Unicode: Non printable controls: [0x7F - 0x9F]
 //
 
-#define J_VK_DELETE         ( 0x7FU )
+#define J_VK_SEPARATOR      ( 0x7FU )
 #define J_VK_NUMPAD0        ( 0x80U )
 #define J_VK_NUMPAD1        ( 0x81U )
 #define J_VK_NUMPAD2        ( 0x82U )
@@ -173,16 +172,13 @@
 #define J_VK_NUMPAD8        ( 0x88U )
 #define J_VK_NUMPAD9        ( 0x89U )
 #define J_VK_DECIMAL        ( 0x8AU )
-#define J_VK_SEPARATOR      ( 0x8BU )
-#define J_VK_ADD            ( 0x8CU )
-#define J_VK_SUBTRACT       ( 0x8DU )
-#define J_VK_MULTIPLY       ( 0x8EU )
-#define J_VK_DIVIDE         ( 0x8FU )
-#define J_VK_NUM_LOCK       ( 0x90U )
-#define J_VK_KP_LEFT        ( 0x91U )
-#define J_VK_KP_UP          ( 0x92U )
-#define J_VK_KP_RIGHT       ( 0x93U )
-#define J_VK_KP_DOWN        ( 0x94U )
+#define J_VK_ADD            ( 0x8BU )
+#define J_VK_SUBTRACT       ( 0x8CU )
+#define J_VK_MULTIPLY       ( 0x8DU )
+#define J_VK_DIVIDE         ( 0x8EU )
+
+#define J_VK_DELETE         ( 0x93U )
+#define J_VK_NUM_LOCK       ( 0x94U )
 #define J_VK_LEFT           ( 0x95U )
 #define J_VK_UP             ( 0x96U )
 #define J_VK_RIGHT          ( 0x97U )
@@ -194,7 +190,6 @@
 #define J_VK_COMPOSE        ( 0x9DU )
 #define J_VK_BEGIN          ( 0x9EU )
 #define J_VK_STOP           ( 0x9FU )
-
 
 //
 // Unicode: Printable [0x00A0 - 0xDFFF]

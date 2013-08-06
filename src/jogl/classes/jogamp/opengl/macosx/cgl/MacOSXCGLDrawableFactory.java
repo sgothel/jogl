@@ -332,8 +332,13 @@ public class MacOSXCGLDrawableFactory extends GLDrawableFactoryImpl {
   }
 
   @Override
-  public boolean canCreateGLPbuffer(AbstractGraphicsDevice device) {
-    return true;
+  public boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp) {
+    if( glp.isGL2() ) {
+        // OSX only supports pbuffer w/ compatible, non-core, context.
+        return true;
+    } else {
+        return false;
+    }
   }
 
   @Override

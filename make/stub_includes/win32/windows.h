@@ -46,4 +46,7 @@ typedef __int32             HRESULT;
 typedef HANDLE              HPBUFFERARB;
 typedef HANDLE              HPBUFFEREXT;
 typedef HANDLE              HGPUNV;
+typedef HANDLE              HVIDEOOUTPUTDEVICENV;
+typedef HANDLE              HVIDEOINPUTDEVICENV;
+typedef HANDLE              HPVIDEODEV;
 

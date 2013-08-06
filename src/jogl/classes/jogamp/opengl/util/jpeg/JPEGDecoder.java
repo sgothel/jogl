@@ -301,13 +301,15 @@ public class JPEGDecoder {
         private final ArrayHashSet<Integer> compIDs;
         private final ComponentIn[] comps;
         private final int compCount;
+        /** quantization tables */
+        final int[][] qtt;
         int maxCompID;
         int maxH;
         int maxV;
         int mcusPerLine;
         int mcusPerColumn;
 
-        Frame(boolean progressive, int precision, int scanLines, int samplesPerLine, int componentsCount) {
+        Frame(boolean progressive, int precision, int scanLines, int samplesPerLine, int componentsCount, int[][] qtt) {
             this.progressive = progressive;
             this.precision = precision;
             this.scanLines = scanLines;
@@ -315,12 +317,24 @@ public class JPEGDecoder {
             compIDs = new ArrayHashSet<Integer>(componentsCount);
             comps = new ComponentIn[componentsCount];
             this.compCount = componentsCount;
+            this.qtt = qtt;
         }
 
         private final void checkBounds(int idx) {
             if( 0 > idx || idx >= compCount ) {
                 throw new CodecException("Idx out of bounds "+idx+", "+this);
             }            
+        }
+        public final void validateComponents() {
+            for(int i=0; i<compCount; i++) {
+                final ComponentIn c = comps[i];
+                if( null == c ) {
+                    throw new CodecException("Component["+i+"] null");
+                }
+                if( null == this.qtt[c.qttIdx] ) {
+                    throw new CodecException("Component["+i+"].qttIdx -> null QTT");
+                }
+            }
         }
 
         public final int getCompCount() { return compCount; }
@@ -357,7 +371,8 @@ public class JPEGDecoder {
     /** The JPEG encoded components */
     class ComponentIn {
         final int h, v;
-        final int[] quantizationTable;
+        /** index to frame.qtt[] */
+        final int qttIdx;
         int blocksPerColumn;
         int blocksPerColumnForMcu;
         int blocksPerLine;
@@ -368,10 +383,10 @@ public class JPEGDecoder {
         BinObj huffmanTableAC;
         BinObj huffmanTableDC;
 
-        ComponentIn(int h, int v, int[] quantizationTable) {
+        ComponentIn(int h, int v, int qttIdx) {
             this.h = h;
             this.v = v;
-            this.quantizationTable = quantizationTable;
+            this.qttIdx = qttIdx;
         }
 
         public final void allocateBlocks(int blocksPerColumn, int blocksPerColumnForMcu, int blocksPerLine, int blocksPerLineForMcu) {
@@ -389,7 +404,7 @@ public class JPEGDecoder {
         }
         
         public final String toString() {
-            return "CompIn[h "+h+", v "+v+", blocks["+blocksPerColumn+", mcu "+blocksPerColumnForMcu+"]["+blocksPerLine+", mcu "+blocksPerLineForMcu+"][64]]";
+            return "CompIn[h "+h+", v "+v+", qttIdx "+qttIdx+", blocks["+blocksPerColumn+", mcu "+blocksPerColumnForMcu+"]["+blocksPerLine+", mcu "+blocksPerLineForMcu+"][64]]";
         }
     }
 
@@ -526,12 +541,14 @@ public class JPEGDecoder {
     }
     public synchronized JPEGDecoder parse(final InputStream inputStream) throws IOException {        
         clear(inputStream);
-        Frame frame = null;
-        int resetInterval = 0;
-        int[][] quantizationTables = new int[0x0F][]; // 4 bits
-        ArrayList<Frame> frames = new ArrayList<Frame>();
+        
+        final int[][] quantizationTables = new int[0x0F][]; // 4 bits
         final BinObj[] huffmanTablesAC = new BinObj[0x0F]; // Huffman table spec - 4 bits
         final BinObj[] huffmanTablesDC = new BinObj[0x0F]; // Huffman table spec - 4 bits
+        // final ArrayList<Frame> frames = new ArrayList<Frame>(); // JAU: max 1-frame
+        
+        Frame frame = null;
+        int resetInterval = 0;
         int fileMarker = readUint16();
         if ( fileMarker != M_SOI ) {
             throw new CodecException("SOI not found, but has marker "+toHexString(fileMarker));
@@ -579,6 +596,7 @@ public class JPEGDecoder {
                 while( count < quantizationTablesLength ) {
                     final int quantizationTableSpec = readUint8(); count++;
                     final int precisionID = quantizationTableSpec >> 4;
+                    final int tableIdx = quantizationTableSpec & 0x0F;
                     final int[] tableData = new int[64];
                     if ( precisionID == 0 ) { // 8 bit values
                         for (int j = 0; j < 64; j++) {
@@ -591,12 +609,15 @@ public class JPEGDecoder {
                             tableData[z] = readUint16(); count+=2;
                         }
                     } else {
-                        throw new CodecException("DQT: invalid table precision "+precisionID+", quantizationTableSpec "+quantizationTableSpec);
+                        throw new CodecException("DQT: invalid table precision "+precisionID+", quantizationTableSpec "+quantizationTableSpec+", idx "+tableIdx);
                     }
-                    quantizationTables[quantizationTableSpec & 0x0F] = tableData;
+                    quantizationTables[tableIdx] = tableData;
+                    if( DEBUG ) {
+                        System.err.println("JPEG.parse.QTT["+tableIdx+"]: spec "+quantizationTableSpec+", precision "+precisionID+", data "+count+"/"+quantizationTablesLength);
+                    }                    
                 }
                 if(count!=quantizationTablesLength){
-                    throw new CodecException("ERROR: QTT format error [count!=Length]");
+                    throw new CodecException("ERROR: QTT format error [count!=Length]: "+count+"/"+quantizationTablesLength);
                 }
                 fileMarker = 0; // consumed and get-next
             }
@@ -604,6 +625,9 @@ public class JPEGDecoder {
 
             case M_SOF0:
             case M_SOF2: {
+                if( null != frame ) { // JAU: max 1-frame
+                    throw new CodecException("only single frame JPEGs supported");
+                }
                 int count = 0;
                 final int sofLen = readUint16(); count+=2; // header length;
                 final int componentsCount;
@@ -613,7 +637,7 @@ public class JPEGDecoder {
                     final int scanLines = readUint16(); count+=2;
                     final int samplesPerLine = readUint16(); count+=2;
                     componentsCount = readUint8(); count++;
-                    frame = new Frame(progressive, precision, scanLines, samplesPerLine, componentsCount);
+                    frame = new Frame(progressive, precision, scanLines, samplesPerLine, componentsCount, quantizationTables);
                     width = frame.samplesPerLine;
                     height = frame.scanLines;
                 }
@@ -622,14 +646,15 @@ public class JPEGDecoder {
                     final int temp = readUint8(); count++;
                     final int h = temp >> 4;
                     final int v = temp & 0x0F;
-                    final int qId = readUint8(); count++;
-                    frame.putOrdered(componentId, new ComponentIn(h, v, quantizationTables[qId]));
+                    final int qttIdx = readUint8(); count++;
+                    final ComponentIn compIn = new ComponentIn(h, v, qttIdx);
+                    frame.putOrdered(componentId, compIn);
                 }
                 if(count!=sofLen){
                     throw new CodecException("ERROR: SOF format error [count!=Length]");
                 }
                 prepareComponents(frame);
-                frames.add(frame);
+                // frames.add(frame); // JAU: max 1-frame
                 if(DEBUG) { System.err.println("JPG.parse.SOF[02]: Got frame "+frame); }
                 fileMarker = 0; // consumed and get-next
             }
@@ -711,14 +736,21 @@ public class JPEGDecoder {
             }
         }
         if(DEBUG) { System.err.println("JPG.parse.2: End of parsing input "+this); }
+        /** // JAU: max 1-frame
         if ( frames.size() != 1 ) {
-            throw new CodecException("only single frame JPEGs supported");
+            throw new CodecException("only single frame JPEGs supported "+this);
+        } */
+        if( null == frame ) {
+            throw new CodecException("no single frame found in stream "+this);
         }
+        frame.validateComponents();
 
         final int compCount = frame.getCompCount();
         this.components = new ComponentOut[compCount];
         for (int i = 0; i < compCount; i++) {
             final ComponentIn component = frame.getCompByIndex(i);
+            // System.err.println("JPG.parse.buildComponentData["+i+"]: "+component); // JAU
+            // System.err.println("JPG.parse.buildComponentData["+i+"]: "+frame); // JAU
             this.components[i] = new ComponentOut( output.buildComponentData(frame, component), 
                                                    (float)component.h / (float)frame.maxH, 
                                                    (float)component.v / (float)frame.maxV );
@@ -834,12 +866,14 @@ public class JPEGDecoder {
             final byte[] r = new byte[64];
 
             for (int blockRow = 0; blockRow < blocksPerColumn; blockRow++) {
-                int scanLine = blockRow << 3;
+                final int scanLine = blockRow << 3;
+                // System.err.println("JPG.buildComponentData: row "+blockRow+"/"+blocksPerColumn+" -> scanLine "+scanLine); // JAU
                 for (int i = 0; i < 8; i++) {
                     lines.add(new byte[samplesPerLine]);
                 }
                 for (int blockCol = 0; blockCol < blocksPerLine; blockCol++) {
-                    quantizeAndInverse(component.getBlock(blockRow, blockCol), r, R, component.quantizationTable);
+                    // System.err.println("JPG.buildComponentData: col "+blockCol+"/"+blocksPerLine+", comp.qttIdx "+component.qttIdx+", qtt "+frame.qtt[component.qttIdx]); // JAU
+                    quantizeAndInverse(component.getBlock(blockRow, blockCol), r, R, frame.qtt[component.qttIdx]);
 
                     final int sample = blockCol << 3;
                     int offset = 0;

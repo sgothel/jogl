@@ -79,6 +79,11 @@ public class WindowDriver extends WindowImpl {
         }        
         hmon = MonitorFromWindow0(hWnd);
         
+        // Let's not trigger on HDC change, GLDrawableImpl.'s destroy/create is a nop here anyways.
+        // FIXME: Validate against EGL surface creation: ANGLE uses HWND -> fine!
+        return LOCK_SUCCESS; 
+        
+        /**
         if( hdc_old == hdc ) {
             return LOCK_SUCCESS;
         }
@@ -86,7 +91,7 @@ public class WindowDriver extends WindowImpl {
             System.err.println("WindowsWindow: surface change "+toHexString(hdc_old)+" -> "+toHexString(hdc));
             // Thread.dumpStack();
         }
-        return LOCK_SURFACE_CHANGED;        
+        return LOCK_SURFACE_CHANGED; */        
     }
 
     @Override
@@ -286,9 +291,9 @@ public class WindowDriver extends WindowImpl {
     public final void sendKeyEvent(short eventType, int modifiers, short keyCode, short keySym, char keyChar) {
         final boolean isModifierKey = KeyEvent.isModifierKey(keySym);
         // System.err.println("*** sendKeyEvent: event "+KeyEvent.getEventTypeString(eventType)+", keyCode "+toHexString(keyCode)+", keyChar <"+keyChar+">, mods "+toHexString(modifiers)+
-        //                   ", isKeyCodeTracked "+isKeyCodeTracked(keyCode)+", was: pressed "+isKeyPressed(keyCode)+", repeat "+isKeyInAutoRepeat(keyCode)+", printableKey "+KeyEvent.isPrintableKey(keyCode)+" [modifierKey "+isModifierKey+"] - "+System.currentTimeMillis());
+        //                   ", isKeyCodeTracked "+isKeyCodeTracked(keyCode)+", was: pressed "+isKeyPressed(keyCode)+", printableKey "+KeyEvent.isPrintableKey(keyCode, false)+" [modifierKey "+isModifierKey+"] - "+System.currentTimeMillis());
         
-        // Reorder: WINDOWS delivery order is PRESSED (t0), TYPED (t0) and RELEASED (t1) -> NEWT order: PRESSED (t0), RELEASED (t1) and TYPED (t1)
+        // Reorder: WINDOWS delivery order is PRESSED (t0), TYPED (t0) and RELEASED (t1) -> NEWT order: PRESSED (t0) and RELEASED (t1)
         // Auto-Repeat: WINDOWS delivers only PRESSED (t0) and TYPED (t0).        
         switch(eventType) {
             case KeyEvent.EVENT_KEY_RELEASED:
@@ -307,8 +312,6 @@ public class WindowDriver extends WindowImpl {
                     super.sendKeyEvent(KeyEvent.EVENT_KEY_PRESSED, modifiers, keyCode, keySym, keyChar);
                 }
                 break;
-            // case KeyEvent.EVENT_KEY_TYPED:
-            //     break;
         }
     }
     

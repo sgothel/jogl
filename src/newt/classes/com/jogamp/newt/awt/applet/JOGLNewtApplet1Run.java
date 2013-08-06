@@ -42,6 +42,7 @@ import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLEventListener;
 import javax.media.opengl.GLProfile;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.newt.awt.NewtCanvasAWT;
 import com.jogamp.newt.opengl.GLWindow;
 
@@ -94,12 +95,11 @@ import com.jogamp.newt.opengl.GLWindow;
 public class JOGLNewtApplet1Run extends Applet {
     public static final boolean DEBUG = JOGLNewtAppletBase.DEBUG;
     
-    GLWindow glWindow;
-    NewtCanvasAWT newtCanvasAWT;
-    JOGLNewtAppletBase base;
+    GLWindow glWindow = null;
+    NewtCanvasAWT newtCanvasAWT = null;
+    JOGLNewtAppletBase base = null;
     /** if valid glStandalone:=true (own window) ! */
     int glXd=Integer.MAX_VALUE, glYd=Integer.MAX_VALUE, glWidth=Integer.MAX_VALUE, glHeight=Integer.MAX_VALUE; 
-    boolean glStandalone = false;
 
     public void init() {
         if(DEBUG) {
@@ -108,7 +108,7 @@ public class JOGLNewtApplet1Run extends Applet {
         if(!(this instanceof Container)) {
             throw new RuntimeException("This Applet is not a AWT Container");
         }
-        Container container = (Container) this;
+        final Container container = (Container) this;
 
         String glEventListenerClazzName=null;
         String glProfileName=null;
@@ -147,7 +147,7 @@ public class JOGLNewtApplet1Run extends Applet {
         if(null==glEventListenerClazzName) {
             throw new RuntimeException("No applet parameter 'gl_event_listener_class'");
         }
-        glStandalone = Integer.MAX_VALUE>glXd && Integer.MAX_VALUE>glYd && Integer.MAX_VALUE>glWidth && Integer.MAX_VALUE>glHeight;
+        final boolean glStandalone = Integer.MAX_VALUE>glXd && Integer.MAX_VALUE>glYd && Integer.MAX_VALUE>glWidth && Integer.MAX_VALUE>glHeight;
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run Configuration:");
             System.err.println("glStandalone: "+glStandalone);
@@ -209,9 +209,7 @@ public class JOGLNewtApplet1Run extends Applet {
                     addKeyListener((KeyListener)glEventListener);
                 }
             }
-            if(glStandalone) {
-                newtCanvasAWT = null;
-            } else {
+            if( !glStandalone ) {
                 newtCanvasAWT = new NewtCanvasAWT(glWindow);
                 container.add(newtCanvasAWT, BorderLayout.CENTER);
                 container.validate();
@@ -226,13 +224,15 @@ public class JOGLNewtApplet1Run extends Applet {
 
     public void start() {
         if(DEBUG) {
-            System.err.println("JOGLNewtApplet1Run.start() START");
+            System.err.println("JOGLNewtApplet1Run.start() START (isVisible "+isVisible()+", isDisplayable "+isDisplayable()+")");
         }
-        this.validate();
         this.setVisible(true);
-        
         final java.awt.Point p0 = this.getLocationOnScreen();
-        if(glStandalone) {
+        if( null != newtCanvasAWT ) {
+            newtCanvasAWT.setFocusable(true);
+            newtCanvasAWT.requestFocus();
+        } else {
+            glWindow.requestFocus();
             glWindow.setSize(glWidth, glHeight);
             glWindow.setPosition(p0.x+glXd, p0.y+glYd);
         }
@@ -251,6 +251,13 @@ public class JOGLNewtApplet1Run extends Applet {
             System.err.println("GLWindow: "+glWindow);
         }
         base.start();
+        if( null != newtCanvasAWT && Platform.OSType.MACOS == Platform.getOSType() && newtCanvasAWT.isOffscreenLayerSurfaceEnabled() ) {
+            // force relayout
+            final int cW = newtCanvasAWT.getWidth();
+            final int cH = newtCanvasAWT.getHeight();
+            newtCanvasAWT.setSize(cW+1, cH+1);
+            newtCanvasAWT.setSize(cW, cH);
+        }
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run.start() END");
         }
@@ -271,12 +278,14 @@ public class JOGLNewtApplet1Run extends Applet {
             System.err.println("JOGLNewtApplet1Run.destroy() START");
         }
         glWindow.setVisible(false); // hide 1st
-        if(!glStandalone) {
+        if( null != newtCanvasAWT ) {
             glWindow.reparentWindow(null); // get out of newtCanvasAWT
             this.remove(newtCanvasAWT); // remove newtCanvasAWT
         }
         base.destroy(); // destroy glWindow unrecoverable
         base=null;
+        glWindow=null;
+        newtCanvasAWT=null;
         if(DEBUG) {
             System.err.println("JOGLNewtApplet1Run.destroy() END");
         }

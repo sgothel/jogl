@@ -85,7 +85,9 @@ public class TestNewtEventModifiersAWTCanvas extends BaseNewtEventModifiers {
     public static void afterClass() throws Exception {
         SwingUtilities.invokeAndWait(new Runnable() {
             public void run() {
-                _testFrame.dispose() ;
+                if( null != _testFrame ) {
+                    _testFrame.dispose() ;
+                }
             }
         }) ;
     }

@@ -65,14 +65,19 @@ public interface EDTUtil {
     public void setPollPeriod(long ms);
     
     /**
-     * Create a new EDT. One should invoke <code>reset()</code><br>
-     * after <code>invokeStop(..)</code> in case another start via <code>invoke(..)</code>
-     * is expected.
-     *
-     * @see #invoke(boolean, java.lang.Runnable)
-     * @see #invokeStop(java.lang.Runnable)
+     * Starts or restarts the EDT.
+     * <p>
+     * If the EDT is running, it must be stopped first via {@link #invokeStop(boolean, Runnable)}
+     * and the caller should wait until it's stopped via {@link #waitUntilStopped()}.
+     * </p>
+     * 
+     * @return true if EDT has been successfully restarted, otherwise false
+     * @throws IllegalStateException if EDT is running and not subject to be stopped, i.e. {@link #isRunning()} returns true
+     *  
+     * @see #invokeStop(boolean, java.lang.Runnable)
+     * @see #waitUntilStopped()
      */
-    public void reset();
+    public boolean restart() throws IllegalStateException;
 
     /**
      * Returns true if the current thread is the event dispatch thread (EDT).
@@ -107,44 +112,57 @@ public interface EDTUtil {
     public boolean isCurrentThreadEDTorNEDT();
     
     /**
-     * @return True if EDT is running
+     * @return True if EDT is running and not subject to be stopped.
      */
     public boolean isRunning();
 
     /** 
      * Append the final task to the EDT task queue,
-     * signals EDT to stop and wait until stopped.<br/>
+     * signals EDT to stop.
+     * <p>
+     * If <code>wait</code> is <code>true</code> methods
+     * blocks until EDT is stopped.
+     * </p>
+     * <p>
      * <code>task</code> maybe <code>null</code><br/>
      * Due to the nature of this method:
      * <ul>
      *   <li>All previous queued tasks will be finished.</li>
      *   <li>No new tasks are allowed, an Exception is thrown.</li>
      *   <li>Can be issued from within EDT, ie from within an enqueued task.</li>
-     *   <li>{@link #reset()} may follow immediately, ie creating a new EDT</li>
+     *   <li>{@link #restart()} may follow immediately, ie creating a new EDT</li>
      * </ul>
+     * </p>
+     * @return true if <code>task</code> has been executed or queued for later execution, otherwise false 
      */
-    public void invokeStop(Runnable finalTask);
+    public boolean invokeStop(boolean wait, Runnable finalTask);
 
     /** 
-     * Shall start the thread if not running, <code>task</code> maybe null for this purpose.<br>
-     * Append task to the EDT task queue.<br>
-     * Wait until execution is finished if <code>wait == true</code>.<br>
+     * Appends task to the EDT task queue if current thread is not EDT,
+     * otherwise execute task immediately. 
+     * <p>
+     * Wait until execution is finished if <code>wait == true</code>.
+     * </p>
      * Can be issued from within EDT, ie from within an enqueued task.<br>
-     *
-     * @throws RuntimeException in case EDT is stopped and not {@link #reset()}
+     * @return true if <code>task</code> has been executed or queued for later execution, otherwise false 
      */
-    public void invoke(boolean wait, Runnable task);
+    public boolean invoke(boolean wait, Runnable task);
 
     /** 
      * Wait until the EDT task queue is empty.<br>
      * The last task may still be in execution when this method returns.
+     * @return true if waited for idle, otherwise false, i.e. in case of current thread is EDT or NEDT
      */
-    public void waitUntilIdle();
+    public boolean waitUntilIdle();
 
     /**
      * Wait until EDT task is stopped.<br>
-     * No <code>stop</code> action is performed, {@link #invokeStop(java.lang.Runnable)} should be used before.
+     * No <code>stop</code> action is performed, {@link #invokeStop(boolean, java.lang.Runnable)} should be used before.
+     * <p>
+     * If caller thread is EDT or NEDT, this call will not block.
+     * </p>
+     * @return true if stopped, otherwise false, i.e. in case of current thread is EDT or NEDT
      */
-    public void waitUntilStopped();
+    public boolean waitUntilStopped();
 }
 

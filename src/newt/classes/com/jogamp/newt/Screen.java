@@ -29,6 +29,8 @@ package com.jogamp.newt;
 
 import com.jogamp.newt.event.MonitorModeListener;
 import jogamp.newt.Debug;
+
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -64,7 +66,7 @@ public abstract class Screen {
     }
 
     /**
-     * Manual trigger the native creation, if it is not done yet..<br>
+     * Manual trigger the native creation, if not done yet..<br>
      * This is useful to be able to request the {@link javax.media.nativewindow.AbstractGraphicsScreen}, via
      * {@link #getGraphicsScreen()}.<br>
      * Otherwise the abstract device won't be available before the dependent component (Window) is realized.
@@ -164,6 +166,10 @@ public abstract class Screen {
 
     /** 
      * Return a list of all {@link MonitorMode}s for all {@link MonitorDevice}s.
+     * <p>
+     * The list is ordered in descending order,
+     * see {@link MonitorMode#compareTo(MonitorMode)}.
+     * </p>
      */
     public abstract List<MonitorMode> getMonitorModes();
 
@@ -220,7 +226,7 @@ public abstract class Screen {
     public abstract void removeMonitorModeListener(MonitorModeListener sml);
 
     // Global Screens
-    protected static ArrayList<Screen> screenList = new ArrayList<Screen>();
+    protected static final ArrayList<WeakReference<Screen>> screenList = new ArrayList<WeakReference<Screen>>();
     protected static int screensActive = 0;
 
     /**
@@ -249,26 +255,60 @@ public abstract class Screen {
         synchronized(screenList) {
             int i = fromIndex >= 0 ? fromIndex : screenList.size() - 1 ;
             while( ( incr > 0 ) ? i < screenList.size() : i >= 0 ) {
-                Screen screen = (Screen) screenList.get(i);
-                if( screen.getDisplay().equals(display) &&
-                    screen.getIndex() == idx ) {
-                    return screen;
+                final Screen screen = (Screen) screenList.get(i).get();
+                if( null == screen ) {
+                    // Clear GC'ed dead reference entry!
+                    screenList.remove(i);
+                    if( incr < 0 ) {
+                        // decrease
+                        i+=incr;
+                    } // else nop - remove shifted subsequent elements to the left
+                } else {
+                    if( screen.getDisplay().equals(display) &&
+                        screen.getIndex() == idx ) {
+                        return screen;
+                    }
+                    i+=incr;
                 }
-                i+=incr;
             }
         }
         return null;
     }
-    /** Returns the global display collection */
-    @SuppressWarnings("unchecked")
+    
+    protected static void addScreen2List(Screen screen) {
+        synchronized(screenList) {
+            // GC before add
+            int i=0;
+            while( i < screenList.size() ) {
+                if( null == screenList.get(i).get() ) {
+                    screenList.remove(i);
+                } else {
+                    i++;
+                }
+            }
+            screenList.add(new WeakReference<Screen>(screen));
+        }
+    }
+    
+    /** Returns the global screen collection */
     public static Collection<Screen> getAllScreens() {
         ArrayList<Screen> list;
         synchronized(screenList) {
-            list = (ArrayList<Screen>) screenList.clone();
+            list = new ArrayList<Screen>();
+            int i = 0;
+            while( i < screenList.size() ) {
+                final Screen s = screenList.get(i).get();
+                if( null == s ) {
+                    screenList.remove(i);
+                } else {
+                    list.add( screenList.get(i).get() );
+                    i++;
+                }
+            }
         }
         return list;
     }
-
+    
     public static int getActiveScreenNumber() {
         synchronized(screenList) {
             return screensActive;

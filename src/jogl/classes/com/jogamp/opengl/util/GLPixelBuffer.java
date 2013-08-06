@@ -189,9 +189,9 @@ public class GLPixelBuffer {
     
     private boolean disposed = false;
     
-    public StringBuffer toString(StringBuffer sb) {
+    public StringBuilder toString(StringBuilder sb) {
         if(null == sb) {
-            sb = new StringBuffer();
+            sb = new StringBuilder();
         }
         sb.append(pixelAttributes).append(", dim ").append(width).append("x").append(height).append("x").append(depth).append(", pack ").append(pack)
         .append(", disposed ").append(disposed).append(", valid ").append(isValid()).append(", buffer[sz [bytes ").append(byteSize).append(", elemSize ").append(bufferElemSize).append(", ").append(buffer).append("]");
@@ -212,7 +212,7 @@ public class GLPixelBuffer {
         this.bufferElemSize = Buffers.sizeOfBufferElem(buffer);
     }
     
-    /** Is not {@link #dispose()} and has {@link #byteSize} &gt; 0. */
+    /** Is not {@link #dispose() disposed} and has {@link #byteSize} &gt; 0. */
     public boolean isValid() {
         return !disposed && 0 < byteSize;
     }
@@ -240,8 +240,8 @@ public class GLPixelBuffer {
     }
     
     /** 
-     * Returns true, if implementation requires a new buffer based on the new size
-     * due to pixel alignment or byte size or if {@link #isValid() invalid}, otherwise false.
+     * Returns true, if {@link #isValid() invalid} or implementation requires a new buffer based on the new size
+     * due to pixel alignment or byte size, otherwise false.
      * <p>
      * It is assumed that <code>pixelAttributes</code>, <code>depth</code> and <code>pack</code> stays the same!
      * </p>
@@ -257,11 +257,12 @@ public class GLPixelBuffer {
      * @see GLPixelBufferProvider#allocate(GL, GLPixelAttributes, int, int, int, boolean, int)
      */
     public boolean requiresNewBuffer(GL gl, int newWidth, int newHeight, int minByteSize) {
-        return !isValid() || this.byteSize < minByteSize;
+        return !isValid() || byteSize < minByteSize;
     }
     
-    /** Dispose resources. */
+    /** Dispose resources. See {@link #isValid()}. */
     public void dispose() {
+        disposed = true;
         buffer.clear();
     }
 }
