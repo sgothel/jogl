@@ -41,6 +41,7 @@ import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.RedSquareES2;
 
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 
@@ -130,7 +131,9 @@ public class TestRedSquareES2NEWT extends UITestCase {
         Assert.assertFalse(animator.isAnimating());
         Assert.assertFalse(animator.isStarted());
         glWindow.destroy();
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
+        if( NativeWindowFactory.isAWTAvailable() ) {
+            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
+        }
     }
 
     @Test

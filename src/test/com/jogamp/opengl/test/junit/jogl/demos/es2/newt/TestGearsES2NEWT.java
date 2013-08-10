@@ -49,6 +49,7 @@ import com.jogamp.opengl.util.Animator;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.GearsES2;
 
+import javax.media.nativewindow.NativeWindowFactory;
 import javax.media.nativewindow.util.Dimension;
 import javax.media.nativewindow.util.Point;
 import javax.media.nativewindow.util.PointImmutable;
@@ -349,7 +350,9 @@ public class TestGearsES2NEWT extends UITestCase {
         }
         Assert.assertEquals(null, glWindow.getExclusiveContextThread());
         glWindow.destroy();
-        Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
+        if( NativeWindowFactory.isAWTAvailable() ) {
+            Assert.assertEquals(true,  AWTRobotUtil.waitForRealized(glWindow, false));
+        }
     }
 
     @Test
