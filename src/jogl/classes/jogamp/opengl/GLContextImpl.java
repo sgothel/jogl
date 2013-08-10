@@ -320,7 +320,7 @@ public abstract class GLContextImpl extends GLContext {
         System.err.println(getThreadName() +": GLContext.ContextSwitch[release.0]: obj " + toHexString(hashCode()) + ", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+", inDestruction: "+inDestruction+", "+lock);
     }
     if ( !lock.isOwner(Thread.currentThread()) ) {
-        final String msg = getThreadName() +": Context not current on current thread, obj " + toHexString(hashCode())+", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+", inDestruction: "+inDestruction+", "+lock;
+        final String msg = getThreadName() +": Context not current on thread, obj " + toHexString(hashCode())+", ctx "+toHexString(contextHandle)+", surf "+toHexString(drawable.getHandle())+", inDestruction: "+inDestruction+", "+lock;
         if( DEBUG_TRACE_SWITCH ) {
             System.err.println(msg);
             if( null != lastCtxReleaseStack ) {
@@ -443,7 +443,7 @@ public abstract class GLContextImpl extends GLContext {
               drawable.unlockSurface();
           }
           if( null != associateDrawableException ) {
-              throw new GLException("GLContext.destroy() during associateDrawable(false)", associateDrawableException);
+              throw new GLException("Exception @ destroy's associateDrawable(false)", associateDrawableException);
           }
       }
       resetStates();

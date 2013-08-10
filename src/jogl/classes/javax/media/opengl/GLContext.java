@@ -111,11 +111,11 @@ public abstract class GLContext {
   /** Reflects property jogl.debug.TraceGL. If true, the trace pipeline is enabled at context creation. */
   public static final boolean TRACE_GL = Debug.isPropertyDefined("jogl.debug.TraceGL", true);
 
-  /** Indicates that the context was not made current during the last call to {@link #makeCurrent makeCurrent}. */
+  /** Indicates that the context was not made current during the last call to {@link #makeCurrent makeCurrent}, value {@value}. */
   public static final int CONTEXT_NOT_CURRENT = 0;
-  /** Indicates that the context was made current during the last call to {@link #makeCurrent makeCurrent}. */
+  /** Indicates that the context was made current during the last call to {@link #makeCurrent makeCurrent}, value {@value}. */
   public static final int CONTEXT_CURRENT     = 1;
-  /** Indicates that a newly-created context was made current during the last call to {@link #makeCurrent makeCurrent}. */
+  /** Indicates that a newly-created context was made current during the last call to {@link #makeCurrent makeCurrent}, value {@value}. */
   public static final int CONTEXT_CURRENT_NEW = 2;
 
   /* Version 1.00, i.e. GLSL 1.00 for ES 2.0. */
