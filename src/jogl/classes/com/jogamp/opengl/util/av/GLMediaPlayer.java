@@ -40,12 +40,12 @@ import com.jogamp.opengl.util.texture.TextureSequence;
 /**
  * Lifecycle of an GLMediaPlayer:
  * <table border="1">
- *   <tr><th>action</th>                                   <th>state before</th>        <th>state after</th></tr>
- *   <tr><td>{@link #initGLStream(GL, URLConnection)}</td> <td>Uninitialized</td>       <td>Stopped</td></tr>
- *   <tr><td>{@link #start()}</td>                         <td>Stopped, Paused</td>     <td>Playing</td></tr>
- *   <tr><td>{@link #stop()}</td>                          <td>Playing, Paused</td>     <td>Stopped</td></tr>
- *   <tr><td>{@link #pause()}</td>                         <td>Playing</td>             <td>Paused</td></tr>
- *   <tr><td>{@link #destroy(GL)}</td>                     <td>ANY</td>                 <td>Uninitialized</td></tr>
+ *   <tr><th>action</th>                                        <th>state before</th>        <th>state after</th></tr>
+ *   <tr><td>{@link #initGLStream(GL, int, URLConnection)}</td> <td>Uninitialized</td>       <td>Stopped</td></tr>
+ *   <tr><td>{@link #start()}</td>                              <td>Stopped, Paused</td>     <td>Playing</td></tr>
+ *   <tr><td>{@link #stop()}</td>                               <td>Playing, Paused</td>     <td>Stopped</td></tr>
+ *   <tr><td>{@link #pause()}</td>                              <td>Playing</td>             <td>Paused</td></tr>
+ *   <tr><td>{@link #destroy(GL)}</td>                          <td>ANY</td>                 <td>Uninitialized</td></tr>
  * </table>
  * <p>
  * Current implementations (check each API doc link for details):
@@ -105,8 +105,12 @@ public interface GLMediaPlayer extends TextureSequence {
     
     public int getTextureCount();
     
-    /** Defaults to 0 */
+    /** Returns the texture target used by implementation. */
+    public int getTextureTarget();
+
+    /** Sets the texture unit. Defaults to 0. */
     public void setTextureUnit(int u);
+    
     /** Sets the texture min-mag filter, defaults to {@link GL#GL_NEAREST}. */
     public void setTextureMinMagFilter(int[] minMagFilter);
     /** Sets the texture min-mag filter, defaults to {@link GL#GL_CLAMP_TO_EDGE}. */
@@ -119,6 +123,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * Uninitialized -> Stopped
      * </p>
      * @param gl current GL object. If null, no video output and textures will be available.
+     * @param textureCount desired number of buffered textures to be decoded off-thread, use <code>1</code> for on-thread decoding.  
      * @param urlConn the stream connection
      * @return the new state
      * 
@@ -126,7 +131,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * @throws IOException in case of difficulties to open or process the stream
      * @throws GLException in case of difficulties to initialize the GL resources
      */
-    public State initGLStream(GL gl, URLConnection urlConn) throws IllegalStateException, GLException, IOException;
+    public State initGLStream(GL gl, int textureCount, URLConnection urlConn) throws IllegalStateException, GLException, IOException;
     
     /**
      * Releases the GL and stream resources.
@@ -161,10 +166,20 @@ public interface GLMediaPlayer extends TextureSequence {
     public State getState();
     
     /**
-     * @return time current position in milliseconds 
+     * @return current streaming position in milliseconds 
      **/
     public int getCurrentPosition();
 
+    /**
+     * @return current video PTS in milliseconds of {@link #getLastTexture()} 
+     **/
+    public int getVideoPTS();
+    
+    /**
+     * @return current audio PTS in milliseconds. 
+     **/
+    public int getAudioPTS();
+    
     /**
      * Allowed in state Stopped, Playing and Paused, otherwise ignored.
      * 
@@ -187,7 +202,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * </p>
      * 
      * @see #addEventListener(GLMediaEventListener)
-     * @see GLMediaEventListener#newFrameAvailable(GLMediaPlayer, long)
+     * @see GLMediaEventListener#newFrameAvailable(GLMediaPlayer, TextureFrame, long)
      */
     @Override
     public TextureSequence.TextureFrame getNextTexture(GL gl, boolean blocking) throws IllegalStateException;

@@ -48,6 +48,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <GL/gl.h>
+
+typedef void (APIENTRYP PFNGLTEXSUBIMAGE2DPROC) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels);
+typedef GLenum (APIENTRYP PFNGLGETERRORPROC) (void);
+
 /**
  *  AV_TIME_BASE   1000000
  */
@@ -62,6 +67,9 @@ static inline int32_t my_av_q2i32(int32_t snum, AVRational a){
 
 typedef struct {
     int32_t          verbose;
+
+    PFNGLTEXSUBIMAGE2DPROC procAddrGLTexSubImage2D;
+    PFNGLGETERRORPROC procAddrGLGetError;
 
     AVFormatContext* pFormatCtx;
     int32_t          vid;

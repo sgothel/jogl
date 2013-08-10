@@ -49,66 +49,68 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  */
 public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     private TextureData texData = null;
-    private TextureSequence.TextureFrame frame = null;
     private int pos_ms = 0;
     private int pos_start = 0;
     
     public NullGLMediaPlayer() {
         super();
-        this.setTextureCount(1);
     }
 
     @Override
-    protected boolean setPlaySpeedImpl(float rate) {
+    protected final boolean setPlaySpeedImpl(float rate) {
         return false;
     }
 
     @Override
-    protected boolean startImpl() {
+    protected final boolean startImpl() {
         pos_start = (int)System.currentTimeMillis();
         return true;
     }
 
     @Override
-    protected boolean pauseImpl() {
+    protected final boolean pauseImpl() {
         return true;
     }
 
     @Override
-    protected boolean stopImpl() {
+    protected final boolean stopImpl() {
         return true;
     }
     
     @Override
-    protected int seekImpl(int msec) {
+    protected final int seekImpl(int msec) {
         pos_ms = msec;
         validatePos();
         return pos_ms;
     }
     
     @Override
-    protected TextureSequence.TextureFrame getLastTextureImpl() {
-        return frame;
+    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame, boolean blocking) {
+        return true;
     }
-
     @Override
-    protected TextureSequence.TextureFrame getNextTextureImpl(GL gl, boolean blocking) {
-        return frame;
-    }
+    protected final void syncFrame2Audio(TextureFrame frame) { }
     
     @Override
-    protected int getCurrentPositionImpl() {
+    protected final int getCurrentPositionImpl() {
         pos_ms = (int)System.currentTimeMillis() - pos_start;
         validatePos();
         return pos_ms;
     }
+    @Override
+    protected final int getAudioPTSImpl() { return getCurrentPositionImpl(); }
+
 
     @Override
-    protected void destroyImpl(GL gl) {
+    protected final void destroyImpl(GL gl) {
+        if(null != texData) {
+            texData.destroy();
+            texData = null;
+        }                      
     }
-    
+        
     @Override
-    protected void initGLStreamImpl(GL gl, int[] texNames) throws IOException {
+    protected final void initGLStreamImpl(GL gl) throws IOException {
         try {
             URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-160x90.png", this.getClass().getClassLoader());
             if(null != urlConn) {
@@ -117,44 +119,44 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        final int _w, _h;
         if(null != texData) {
-            width = texData.getWidth();
-            height = texData.getHeight();            
+            _w = texData.getWidth();
+            _h = texData.getHeight();            
         } else {
-            width = 640;
-            height = 480;
-            ByteBuffer buffer = Buffers.newDirectByteBuffer(width*height*4);
+            _w = 640;
+            _h = 480;
+            ByteBuffer buffer = Buffers.newDirectByteBuffer(_w*_h*4);
             while(buffer.hasRemaining()) {
                 buffer.put((byte) 0xEA); buffer.put((byte) 0xEA); buffer.put((byte) 0xEA); buffer.put((byte) 0xEA);
             }
             buffer.rewind();
             texData = new TextureData(GLProfile.getGL2ES2(),
-                   GL.GL_RGBA, width, height, 0,
+                   GL.GL_RGBA, _w, _h, 0,
                    GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, false, 
                    false, false, buffer, null);
         }
-        fps = 24f;
-        duration = 10*60*1000; // msec
-        totalFrames = (int) ( (duration/1000)*fps );
-        vcodec = "png-static";
+        final float _fps = 24f;
+        final int _duration = 10*60*1000; // msec
+        final int _totalFrames = (int) ( (_duration/1000)*_fps );
+        updateAttributes(_w, _h, 
+                         0, 0, 0, 
+                         _fps, _totalFrames, _duration, 
+                         "png-static", null);
     }
     
     @Override
-    protected TextureSequence.TextureFrame createTexImage(GL gl, int idx, int[] tex) {
-        Texture texture = super.createTexImageImpl(gl, idx, tex, width, height, false);
+    protected final TextureSequence.TextureFrame createTexImage(GL gl, int texName) {
+        final Texture texture = super.createTexImageImpl(gl, texName, width, height, false);
         if(null != texData) {
             texture.updateImage(gl, texData);
-            texData.destroy();
-            texData = null;
         }                      
-        frame = new TextureSequence.TextureFrame( texture );
-        return frame;
+        return new TextureSequence.TextureFrame( texture );
     }
     
     @Override
-    protected void destroyTexImage(GL gl, TextureSequence.TextureFrame imgTex) {
-        frame = null;
-        super.destroyTexImage(gl, imgTex);
+    protected final void destroyTexFrame(GL gl, TextureSequence.TextureFrame frame) {
+        super.destroyTexFrame(gl, frame);
     }
     
     private void validatePos() {

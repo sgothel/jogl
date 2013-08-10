@@ -33,8 +33,6 @@
 #include <libavutil/pixdesc.h>
 #include <GL/gl.h>
 
-typedef void (APIENTRYP PFNGLTEXSUBIMAGE2DPROC) (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels);
-
 static const char * const ClazzNameFFMPEGMediaPlayer = "jogamp/opengl/util/av/impl/FFMPEGMediaPlayer";
 
 static jclass ffmpegMediaPlayerClazz = NULL;
@@ -583,22 +581,29 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
     _updateJavaAttributes(env, instance, pAV);
 }
 
-JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNextPacket0
-  (JNIEnv *env, jobject instance, jlong ptr, jlong jProcAddrGLTexSubImage2D, jint texTarget, jint texFmt, jint texType)
+JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setGLFuncs0
+  (JNIEnv *env, jobject instance, jlong ptr, jlong jProcAddrGLTexSubImage2D, jlong jProcAddrGLGetError)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
-    PFNGLTEXSUBIMAGE2DPROC procAddrGLTexSubImage2D = (PFNGLTEXSUBIMAGE2DPROC) (intptr_t)jProcAddrGLTexSubImage2D;
+    pAV->procAddrGLTexSubImage2D = (PFNGLTEXSUBIMAGE2DPROC) (intptr_t)jProcAddrGLTexSubImage2D;
+    pAV->procAddrGLGetError = (PFNGLGETERRORPROC) (intptr_t)jProcAddrGLGetError;
+}
 
-    jint res = 0; // 1 - audio, 2 - video
+JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNextPacket0
+  (JNIEnv *env, jobject instance, jlong ptr, jint texTarget, jint texFmt, jint texType)
+{
+    FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
+
     AVPacket packet;
     int frameFinished;
+    jint resPTS = 0; // resulting current PTS: audio < 0, video > 0, invalid == 0
 
     if(sp_av_read_frame(pAV->pFormatCtx, &packet)>=0) {
         if(packet.stream_index==pAV->aid) {
             // Decode audio frame
             if(NULL == pAV->pAFrames) { // no audio registered
                 sp_av_free_packet(&packet);
-                return res;
+                return 0;
             }
             AVFrame* pAFrameCurrent = pAV->pAFrames[pAV->aFrameCurrent];
             pAV->aFrameCurrent = ( pAV->aFrameCurrent + 1 ) % pAV->aFrameCount ;
@@ -658,14 +663,13 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                     jobject jSampleData = (*env)->NewDirectByteBuffer(env, pAFrameCurrent->data[0], data_size);
                     (*env)->CallVoidMethod(env, instance, jni_mid_pushSound, jSampleData, data_size, pAV->aPTS);
                 }
-
-                res = 1;
+                resPTS = pAV->aPTS * -1; // Audio Frame!
             }
         } else if(packet.stream_index==pAV->vid) {
             // Decode video frame
             if(NULL == pAV->pVFrame) {
                 sp_av_free_packet(&packet);
-                return res;
+                return 0;
             }
 
             int new_packet = 1;
@@ -696,7 +700,6 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                     continue;
                 }
 
-                res = 2;
                 // FIXME: Libav Binary compatibility! JAU01
                 const AVRational time_base = pAV->pVStream->time_base;
                 const int64_t pts = pAV->pVFrame->pkt_pts;
@@ -708,6 +711,7 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                         pAV->vPTS, pAV->pVFrame->pkt_pts, time_base.num, time_base.den, (time_base.num/(double)time_base.den));
                     #endif
                 }
+                resPTS = pAV->vPTS; // Video Frame!
 
                 #if 0
                 printf("tex2D codec %dx%d - frame %dx%d - width %d tex / %d linesize, pixfmt 0x%X, texType 0x%x, texTarget 0x%x\n", 
@@ -718,24 +722,51 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
 
                 // 1st plane or complete packed frame
                 // FIXME: Libav Binary compatibility! JAU01
-                procAddrGLTexSubImage2D(texTarget, 0, 
+                #if 0
+                GLenum glerr = pAV->procAddrGLGetError();
+                printf("TexSubImage2D.1 texTarget 0x%x, offset %d / %d, size %d x %d, fmt 0x%X, type 0x%X, pre-err 0x%X, ", 
+                         texTarget, 0, 0, pAV->vTexWidth[0], pAV->pVCodecCtx->height, texFmt, texType, glerr);
+                #endif
+                pAV->procAddrGLTexSubImage2D(texTarget, 0, 
                                         0,                 0, 
                                         pAV->vTexWidth[0], pAV->pVCodecCtx->height, 
                                         texFmt, texType, pAV->pVFrame->data[0]);
+                #if 0
+                glerr = pAV->procAddrGLGetError();
+                printf("err 0x%X\n", glerr);
+                #endif
 
                 if(pAV->vPixFmt == PIX_FMT_YUV420P) {
                     // U plane
                     // FIXME: Libav Binary compatibility! JAU01
-                    procAddrGLTexSubImage2D(texTarget, 0, 
+                    #if 0
+                    printf("TexSubImage2D.U texTarget 0x%x, offset %d / %d, size %d x %d, fmt 0x%X, type 0x%X, ", 
+                             texTarget, pAV->pVCodecCtx->width, 0, pAV->vTexWidth[1], pAV->pVCodecCtx->height/2,
+                             texFmt, texType);
+                    #endif
+                    pAV->procAddrGLTexSubImage2D(texTarget, 0, 
                                             pAV->pVCodecCtx->width, 0,
                                             pAV->vTexWidth[1],      pAV->pVCodecCtx->height/2, 
                                             texFmt, texType, pAV->pVFrame->data[1]);
+                    #if 0
+                    glerr = pAV->procAddrGLGetError();
+                    printf("err 0x%X\n", glerr);
+                    #endif
                     // V plane
                     // FIXME: Libav Binary compatibility! JAU01
-                    procAddrGLTexSubImage2D(texTarget, 0, 
+                    #if 0
+                    printf("TexSubImage2D.V texTarget 0x%x, offset %d / %d, size %d x %d, fmt 0x%X, type 0x%X, ", 
+                             texTarget, pAV->pVCodecCtx->width, pAV->pVCodecCtx->height/2, pAV->vTexWidth[2], pAV->pVCodecCtx->height/2,
+                             texFmt, texType);
+                    #endif
+                    pAV->procAddrGLTexSubImage2D(texTarget, 0, 
                                             pAV->pVCodecCtx->width, pAV->pVCodecCtx->height/2,
                                             pAV->vTexWidth[2],      pAV->pVCodecCtx->height/2, 
                                             texFmt, texType, pAV->pVFrame->data[2]);
+                    #if 0
+                    glerr = pAV->procAddrGLGetError();
+                    printf("err 0x%X\n", glerr);
+                    #endif
                 } // FIXME: Add more planar formats !
             }
         }
@@ -745,7 +776,7 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
         // TODO: check what release the packets memory. 
         // sp_av_free_packet(&packet);
     }
-    return res;
+    return resPTS;
 }
 
 JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_seek0

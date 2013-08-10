@@ -29,18 +29,20 @@ package com.jogamp.opengl.util.av;
 
 import jogamp.opengl.util.av.NullGLMediaPlayer;
 
-import com.jogamp.common.os.AndroidVersion;
-import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.ReflectionUtil;
 
 public class GLMediaPlayerFactory {
     private static final String AndroidGLMediaPlayerAPI14ClazzName = "jogamp.opengl.android.av.AndroidGLMediaPlayerAPI14";
     private static final String FFMPEGMediaPlayerClazzName = "jogamp.opengl.util.av.impl.FFMPEGMediaPlayer";
+    private static final String OMXGLMediaPlayerClazzName = "jogamp.opengl.util.av.impl.OMXGLMediaPlayer";
     private static final String isAvailableMethodName = "isAvailable";
     
     public static GLMediaPlayer createDefault() {
         final ClassLoader cl = GLMediaPlayerFactory.class.getClassLoader();
-        GLMediaPlayer sink = create(cl, AndroidGLMediaPlayerAPI14ClazzName);
+        GLMediaPlayer sink = create(cl, OMXGLMediaPlayerClazzName);
+        if( null == sink ) {
+            sink = create(cl, AndroidGLMediaPlayerAPI14ClazzName);
+        }
         if( null == sink ) {
             sink = create(cl, FFMPEGMediaPlayerClazzName);
         }

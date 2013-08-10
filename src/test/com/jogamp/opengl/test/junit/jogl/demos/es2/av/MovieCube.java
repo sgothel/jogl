@@ -61,9 +61,11 @@ import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.av.GLMediaPlayer.GLMediaEventListener;
 import com.jogamp.opengl.util.av.GLMediaPlayerFactory;
+import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 public class MovieCube implements GLEventListener, GLMediaEventListener {
     static boolean waitForKey = false;
+    int textureCount = 3; // default - threaded
     final URLConnection stream;
     final float zoom0, rotx, roty;
     TextureSequenceCubeES2 cube=null;
@@ -81,6 +83,10 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
         this.roty = roty;
     }
 
+    public void setTextureCount(int v) {
+        textureCount = v;
+    }
+    
     private final KeyListener keyAction = new KeyAdapter() {
         public void keyReleased(KeyEvent e)  {
             if( !e.isPrintableKey() || e.isAutoRepeat() ) {
@@ -130,7 +136,7 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
     }
 
     @Override
-    public void newFrameAvailable(GLMediaPlayer mp, long when) {
+    public void newFrameAvailable(GLMediaPlayer mp, TextureFrame newFrame, long when) {
         // System.out.println("newFrameAvailable: "+mp+", when "+when);
     }
 
@@ -151,7 +157,7 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
         }
         try {
             System.out.println("p0 "+mPlayer);
-            mPlayer.initGLStream(gl, stream);
+            mPlayer.initGLStream(gl, textureCount, stream);
             System.out.println("p1 "+mPlayer);
         } catch (Exception e) { 
             e.printStackTrace(); 
@@ -202,7 +208,7 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
     public static void main(String[] args) throws MalformedURLException, IOException, InterruptedException {
         int width = 510;
         int height = 300;
-        System.err.println("TexCubeES2.run()");
+        int textureCount = 3; // default - threaded
 
         boolean forceES2 = false;
         boolean forceES3 = false;
@@ -217,6 +223,9 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
             } else if(args[i].equals("-height")) {
                 i++;
                 height = MiscUtils.atoi(args[i], height);
+            } else if(args[i].equals("-textureCount")) {
+                i++;
+                textureCount = MiscUtils.atoi(args[i], textureCount);
             } else if(args[i].equals("-url")) {
                 i++;
                 url_s = args[i];
@@ -232,6 +241,7 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
                 waitForKey = true;
             }
         }
+        System.err.println("textureCount "+textureCount);
         System.err.println("forceES2   "+forceES2);
         System.err.println("forceES3   "+forceES3);
         System.err.println("forceGL3   "+forceGL3);
@@ -264,7 +274,7 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
                 anim.stop();
             }                
         });
-        // anim.setUpdateFPSFrames(60, System.err);
+        anim.setUpdateFPSFrames(60, System.err);
         anim.start();
         window.setVisible(true);
     }

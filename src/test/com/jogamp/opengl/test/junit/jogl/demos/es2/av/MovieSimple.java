@@ -66,9 +66,11 @@ import com.jogamp.opengl.util.glsl.ShaderState;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureSequence;
+import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 public class MovieSimple implements GLEventListener, GLMediaEventListener {
     private int winWidth, winHeight;
+    int textureCount = 3; // default - threaded
     private int prevMouseX; // , prevMouseY;
     private int rotate = 0;
     private boolean  orthoProjection = true;
@@ -169,6 +171,9 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
     
     public GLMediaPlayer getGLMediaPlayer() { return mPlayer; }
     
+    public void setTextureCount(int v) {
+        textureCount = v;
+    }
     public void setScaleOrig(boolean v) {
         mPlayerScaleOrig = v;
     }
@@ -179,7 +184,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
     }
 
     @Override
-    public void newFrameAvailable(GLMediaPlayer mp, long when) {
+    public void newFrameAvailable(GLMediaPlayer mp, TextureFrame newFrame, long when) {
         // System.out.println("newFrameAvailable: "+mp+", when "+when);        
     }
 
@@ -252,7 +257,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         try {
             System.out.println("p0 "+mPlayer+", shared "+mPlayerShared);
             if(!mPlayerShared) {
-                mPlayer.initGLStream(gl, stream);
+                mPlayer.initGLStream(gl, textureCount, stream);
             }
             tex = mPlayer.getLastTexture().getTexture();
             System.out.println("p1 "+mPlayer+", shared "+mPlayerShared);
@@ -263,7 +268,8 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
             if(!mPlayerShared) {
                 mPlayer.setTextureMinMagFilter( new int[] { GL.GL_NEAREST, GL.GL_LINEAR } );
             }
-        } catch (Exception glex) { 
+        } catch (Exception glex) {
+            glex.printStackTrace();
             if(!mPlayerShared && null != mPlayer) {
                 mPlayer.destroy(gl);
                 mPlayer = null;
@@ -506,6 +512,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
     public static void main(String[] args) throws IOException, MalformedURLException {
         int width = 640;
         int height = 600;
+        int textureCount = 3; // default - threaded
         boolean ortho = true;
         boolean zoom = false;
         
@@ -522,6 +529,9 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
             } else if(args[i].equals("-height")) {
                 i++;
                 height = MiscUtils.atoi(args[i], height);
+            } else if(args[i].equals("-textureCount")) {
+                i++;
+                textureCount = MiscUtils.atoi(args[i], textureCount);
             } else if(args[i].equals("-es2")) {
                 forceES2 = true;
             } else if(args[i].equals("-es3")) {
@@ -539,12 +549,14 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
                 url_s = args[i];
             }
         }
+        System.err.println("textureCount "+textureCount);
         System.err.println("forceES2   "+forceES2);
         System.err.println("forceES3   "+forceES3);
         System.err.println("forceGL3   "+forceGL3);
         System.err.println("forceGLDef "+forceGLDef);
         
         final MovieSimple ms = new MovieSimple(new URL(url_s).openConnection());
+        ms.setTextureCount(textureCount);
         ms.setScaleOrig(!zoom);
         ms.setOrthoProjection(ortho);
         
@@ -570,6 +582,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
             window.setSize(width, height);
             window.setVisible(true);
             final Animator anim = new Animator(window);
+            anim.setUpdateFPSFrames(60, System.err);
             anim.start();
             window.addWindowListener(new WindowAdapter() {
                 public void windowDestroyed(WindowEvent e) {

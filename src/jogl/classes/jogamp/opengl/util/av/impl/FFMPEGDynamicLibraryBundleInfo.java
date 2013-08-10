@@ -116,25 +116,32 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
     
     private static long[] symbolAddr;
     private static final boolean ready;
+    private static final boolean libsLoaded;
     
     static {
         // native ffmpeg media player implementation is included in jogl_desktop and jogl_mobile     
         GLProfile.initSingleton();
         boolean _ready = false;
+        boolean[] _libsLoaded= { false };
         try {
-            _ready = initSymbols();
+            _ready = initSymbols(_libsLoaded);
         } catch (Throwable t) {
             t.printStackTrace();
         }
+        libsLoaded = _libsLoaded[0];
         ready = _ready;
-        if(!ready) {
-            System.err.println("FFMPEG: Not Available");
+        if(!libsLoaded) {
+            System.err.println("LIB_AV Not Available");
+        } else if(!ready) {
+            System.err.println("LIB_AV Not Matching");
         }
     }
     
+    static boolean libsLoaded() { return libsLoaded; }
     static boolean initSingleton() { return ready; }
     
-    private static final boolean initSymbols() {
+    private static final boolean initSymbols(boolean[] libsLoaded) {
+        libsLoaded[0] = false;
         final DynamicLibraryBundle dl = AccessController.doPrivileged(new PrivilegedAction<DynamicLibraryBundle>() {
                                           public DynamicLibraryBundle run() {
                                               return new DynamicLibraryBundle(new FFMPEGDynamicLibraryBundleInfo());
@@ -148,6 +155,7 @@ class FFMPEGDynamicLibraryBundleInfo implements DynamicLibraryBundleInfo  {
         if(!dl.isToolLibComplete()) {
             throw new RuntimeException("FFMPEG Tool libraries incomplete");
         }
+        libsLoaded[0] = true;
         if(symbolNames.length != symbolCount) {
             throw new InternalError("XXX0 "+symbolNames.length+" != "+symbolCount);
         }

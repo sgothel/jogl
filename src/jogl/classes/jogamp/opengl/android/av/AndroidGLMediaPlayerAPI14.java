@@ -28,12 +28,14 @@
 package jogamp.opengl.android.av;
 
 import java.io.IOException;
+import java.nio.Buffer;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLES2;
 
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.Platform;
+import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 import jogamp.common.os.android.StaticContext;
@@ -76,7 +78,6 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     MediaPlayer mp;
     volatile boolean updateSurface = false;
     Object updateSurfaceLock = new Object();
-    TextureSequence.TextureFrame lastTexFrame = null;
 
     /**
     private static String toString(MediaPlayer m) {
@@ -90,17 +91,16 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             throw new RuntimeException("AndroidGLMediaPlayerAPI14 not available");
         }
         this.setTextureTarget(GLES2.GL_TEXTURE_EXTERNAL_OES);
-        this.setTextureCount(1);
         mp = new MediaPlayer();
     }
 
     @Override
-    protected boolean setPlaySpeedImpl(float rate) {
+    protected final boolean setPlaySpeedImpl(float rate) {
         return false;
     }
 
     @Override
-    protected boolean startImpl() {
+    protected final boolean startImpl() {
         if(null != mp) {        
             try {
                 mp.start();
@@ -115,7 +115,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected boolean pauseImpl() {
+    protected final boolean pauseImpl() {
         if(null != mp) {
             wakeUp(false);
             try {
@@ -131,7 +131,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected boolean stopImpl() {
+    protected final boolean stopImpl() {
         if(null != mp) {
             wakeUp(false);
             try {
@@ -147,7 +147,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected int seekImpl(int msec) {
+    protected final int seekImpl(int msec) {
         if(null != mp) {
             mp.seekTo(msec);
             return mp.getCurrentPosition();
@@ -155,14 +155,89 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
         return 0;
     }
 
-    @Override
-    protected TextureSequence.TextureFrame getLastTextureImpl() {
-        return lastTexFrame;
+    private void wakeUp(boolean newFrame) {
+        synchronized(updateSurfaceLock) {
+            if(newFrame) {
+                updateSurface = true;
+            }
+            updateSurfaceLock.notifyAll();
+        }
     }
+    
+    @Override
+    protected final int getCurrentPositionImpl() { return null != mp ? mp.getCurrentPosition() : 0; }
+    
+    @Override
+    protected final int getAudioPTSImpl() { return getCurrentPositionImpl(); }    
 
     @Override
-    protected TextureSequence.TextureFrame getNextTextureImpl(GL gl, boolean blocking) {
+    protected final void destroyImpl(GL gl) {
+        if(null != mp) {
+            wakeUp(false);
+            mp.release();
+            mp = null;
+        }
+    }
+    
+    SurfaceTexture stex = null;
+    public static class SurfaceTextureFrame extends TextureSequence.TextureFrame {        
+        public SurfaceTextureFrame(Texture t, SurfaceTexture stex) {
+            super(t);
+            this.surfaceTex = stex;
+            this.surface = new Surface(stex);
+        }
+        
+        public final SurfaceTexture getSurfaceTexture() { return surfaceTex; }
+        public final Surface getSurface() { return surface; }
+        
+        public String toString() {
+            return "SurfaceTextureFrame[" + pts + "ms: " + texture + ", " + surfaceTex + "]";
+        }
+        private final SurfaceTexture surfaceTex;
+        private final Surface surface; 
+    }
+    
+    @Override
+    protected final void initGLStreamImpl(GL gl) throws IOException {
+        if(null!=mp && null!=urlConn) {
+            try {
+                final Uri uri = Uri.parse(urlConn.getURL().toExternalForm());        
+                mp.setDataSource(StaticContext.getContext(), uri);
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException(e);
+            } catch (SecurityException e) {
+                throw new RuntimeException(e);
+            } catch (IllegalStateException e) {
+                throw new RuntimeException(e);
+            }
+            if( null == stex ) {
+                throw new InternalError("XXX");
+            }
+            final Surface surf = new Surface(stex);
+            mp.setSurface(surf);
+            surf.release();
+            mp.setSurface(null);
+            try {
+                mp.prepare();
+            } catch (IOException ioe) {
+                throw new IOException("MediaPlayer failed to process stream <"+urlConn.getURL().toExternalForm()+">: "+ioe.getMessage(), ioe);
+            }
+            final String icodec = "android";
+            updateAttributes(mp.getVideoWidth(), mp.getVideoHeight(), 
+                             0, 0, 0, 
+                             0f, 0, mp.getDuration(), 
+                             icodec, icodec);
+        }
+    }
+    
+    @Override
+    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame, boolean blocking) {
         if(null != stex && null != mp) {
+            final SurfaceTextureFrame nextSFrame = (SurfaceTextureFrame) nextFrame;
+            final Surface nextSurface = nextSFrame.getSurface();
+            mp.setSurface(nextSurface);
+            nextSurface.release();
+            
             // Only block once, no while-loop. 
             // This relaxes locking code of non crucial resources/events.
             boolean update = updateSurface;
@@ -175,96 +250,46 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
                             e.printStackTrace();
                         }
                     }
+                    update = updateSurface;
                     updateSurface = false;
-                    update = true;
                 }
             }
             if(update) {
-                stex.updateTexImage();
+                final SurfaceTexture nextSTex = nextSFrame.getSurfaceTexture(); 
+                nextSTex.updateTexImage();
+                // nextFrame.setPTS( (int) ( nextSTex.getTimestamp() / 1000000L ) ); // nano -9 -> milli -3
+                nextFrame.setPTS( mp.getCurrentPosition() );
                 // stex.getTransformMatrix(atex.getSTMatrix());
-                lastTexFrame=texFrames[0];
             }
-            
         }
-        return lastTexFrame;
+        return true;
     }
+    @Override
+    protected final void syncFrame2Audio(TextureFrame frame) {}
     
-    private void wakeUp(boolean newFrame) {
-        synchronized(updateSurfaceLock) {
-            if(newFrame) {
-                updateSurface = true;
-            }
-            updateSurfaceLock.notifyAll();
+    @Override
+    protected final TextureSequence.TextureFrame createTexImage(GL gl, int texName) {
+        if( null != stex ) {
+            throw new InternalError("XXX");
         }
+        stex = new SurfaceTexture(texName); // only 1 texture
+        stex.setOnFrameAvailableListener(onFrameAvailableListener);
+        return new TextureSequence.TextureFrame( createTexImageImpl(gl, texName, width, height, true) );
     }
     
     @Override
-    protected int getCurrentPositionImpl() {
-        return null != mp ? mp.getCurrentPosition() : 0;
-    }
-
-    @Override
-    protected void destroyImpl(GL gl) {
-        if(null != mp) {
-            wakeUp(false);
-            mp.release();
-            mp = null;
-        }
-    }
-    
-    SurfaceTexture stex = null;
-    
-    @Override
-    protected void initGLStreamImpl(GL gl, int[] texNames) throws IOException {
-        if(null!=mp && null!=urlConn) {
-            try {
-                final Uri uri = Uri.parse(urlConn.getURL().toExternalForm());        
-                mp.setDataSource(StaticContext.getContext(), uri);
-            } catch (IllegalArgumentException e) {
-                throw new RuntimeException(e);
-            } catch (SecurityException e) {
-                throw new RuntimeException(e);
-            } catch (IllegalStateException e) {
-                throw new RuntimeException(e);
-            }
-            stex = new SurfaceTexture(texNames[0]); // only 1 texture
-            stex.setOnFrameAvailableListener(onFrameAvailableListener);
-            final Surface surf = new Surface(stex);
-            mp.setSurface(surf);
-            surf.release();
-            try {
-                mp.prepare();
-            } catch (IOException ioe) {
-                throw new IOException("MediaPlayer failed to process stream <"+urlConn.getURL().toExternalForm()+">: "+ioe.getMessage(), ioe);
-            }
-            updateAttributes(mp.getVideoWidth(), mp.getVideoHeight(), 
-                             0, 0, 0, 
-                             0f, 0, mp.getDuration(), 
-                             null, null);
-        }
-    }
-    
-    @Override
-    protected TextureSequence.TextureFrame createTexImage(GL gl, int idx, int[] tex) {
-        lastTexFrame = new TextureSequence.TextureFrame( createTexImageImpl(gl, idx, tex, width, height, true) );
-        return lastTexFrame; 
-    }
-    
-    @Override
-    protected void destroyTexImage(GL gl, TextureSequence.TextureFrame imgTex) {
+    protected final void destroyTexFrame(GL gl, TextureSequence.TextureFrame imgTex) {
         if(null != stex) {
             stex.release();
             stex = null;
         }
-        lastTexFrame = null;
-        super.destroyTexImage(gl, imgTex);
+        super.destroyTexFrame(gl, imgTex);
     }
     
     protected OnFrameAvailableListener onFrameAvailableListener = new OnFrameAvailableListener() {
         @Override
         public void onFrameAvailable(SurfaceTexture surfaceTexture) {
             wakeUp(true);
-            AndroidGLMediaPlayerAPI14.this.newFrameAvailable();
         }        
-    };        
+    };
 }

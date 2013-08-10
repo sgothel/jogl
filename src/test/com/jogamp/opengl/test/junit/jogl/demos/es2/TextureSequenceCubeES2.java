@@ -136,7 +136,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
             }
         }        
         public void mouseWheelMoved(MouseEvent e) {
-            System.err.println("XXX "+e);
+            // System.err.println("XXX "+e);
             if( !e.isShiftDown() ) {
                 final float o = zoom;
                 final float d = e.getRotation()[1]/10f; // vertical: wheel

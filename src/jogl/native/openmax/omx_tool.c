@@ -1049,17 +1049,13 @@ void OMXToolBasicAV_SetStream(OMXToolBasicAV_t * pOMXAV, int vBufferNum, const K
     DBG_PRINT( "SetStream X\n");
 }
 
-void OMXToolBasicAV_SetStreamEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, KDint i, GLuint tex, EGLImageKHR image, EGLSyncKHR sync)
+void OMXToolBasicAV_SetStreamEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, GLuint tex, EGLImageKHR image, EGLSyncKHR sync)
 {
     if(NULL==pOMXAV) {
         JoglCommon_throwNewRuntimeException(0, "OMX instance null\n");
         return;
     }
-    DBG_PRINT( "SetStreamEGLImg %p #%d/%d t:%d i:%p s:%p..\n", pOMXAV, i, pOMXAV->vBufferNum, tex, image, sync);
-    if(i<0||i>=pOMXAV->vBufferNum) {
-        JoglCommon_throwNewRuntimeException(0, "Buffer index out of range: %d\n", i);
-        return;
-    }
+    DBG_PRINT( "SetStreamEGLImg %p count %d t:%d i:%p s:%p..\n", pOMXAV, pOMXAV->vBufferNum, tex, image, sync);
 
     kdThreadMutexLock(pOMXAV->mutex);
     {

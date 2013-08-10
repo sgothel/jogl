@@ -77,19 +77,19 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
     }
 
     
-    protected EGLMediaPlayerImpl() {
-        this(TextureType.GL, false);
-    }
-    
     protected EGLMediaPlayerImpl(TextureType texType, boolean useKHRSync) {
         super();
         this.texType = texType;
         this.useKHRSync = useKHRSync;
     }
+    @Override
+    protected final int validateTextureCount(int desiredTextureCount) {
+        return desiredTextureCount>1 ? desiredTextureCount : 2;
+    }
 
     @Override
-    protected TextureSequence.TextureFrame createTexImage(GL gl, int idx, int[] tex) {
-        final Texture texture = super.createTexImageImpl(gl, idx, tex, width, height, false);
+    protected TextureSequence.TextureFrame createTexImage(GL gl, int texName) {
+        final Texture texture = super.createTexImageImpl(gl, texName, width, height, false);
         final Buffer clientBuffer;
         final long image;
         final long sync;
@@ -117,7 +117,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
                                                EGLExt.EGL_GL_TEXTURE_2D_KHR,
                                                clientBuffer, nioTmp);
             if (0==image) {
-                throw new RuntimeException("EGLImage creation failed: "+EGL.eglGetError()+", ctx "+eglCtx+", tex "+tex[idx]+", err "+toHexString(EGL.eglGetError()));
+                throw new RuntimeException("EGLImage creation failed: "+EGL.eglGetError()+", ctx "+eglCtx+", tex "+texName+", err "+toHexString(EGL.eglGetError()));
             }
         } else {
             clientBuffer = null;
@@ -141,7 +141,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected void destroyTexImage(GL gl, TextureSequence.TextureFrame imgTex) {
+    protected void destroyTexFrame(GL gl, TextureSequence.TextureFrame frame) {
         final boolean eglUsage = TextureType.KHRImage == texType || useKHRSync ; 
         final EGLContext eglCtx;
         final EGLExt eglExt;
@@ -156,7 +156,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
             eglExt = null;
             eglDrawable = null;
         }
-        final EGLTextureFrame eglTex = (EGLTextureFrame) imgTex;
+        final EGLTextureFrame eglTex = (EGLTextureFrame) frame;
         
         if(0!=eglTex.getImage()) {
             eglExt.eglDestroyImageKHR(eglDrawable.getNativeSurface().getDisplayHandle(), eglTex.getImage());
@@ -164,6 +164,6 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
         if(0!=eglTex.getSync()) {
             eglExt.eglDestroySyncKHR(eglDrawable.getNativeSurface().getDisplayHandle(), eglTex.getSync());
         }
-        super.destroyTexImage(gl, imgTex);
+        super.destroyTexFrame(gl, frame);
     }
 }

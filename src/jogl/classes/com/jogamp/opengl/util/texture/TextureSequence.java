@@ -112,26 +112,35 @@ public interface TextureSequence {
     public static class TextureFrame {
         public TextureFrame(Texture t) {
             texture = t;
+            pts = 0;
         }
         
         public final Texture getTexture() { return texture; }
+        public final int getPTS() { return pts; }
+        public final void setPTS(int pts) { this.pts = pts; }
         
         public String toString() {
-            return "TextureFrame[" + texture + "]";
+            return "TextureFrame[" + pts + "ms: " + texture + "]";
         }
         protected final Texture texture;
+        protected int pts;
     }
 
     public interface TexSeqEventListener<T extends TextureSequence> {
         /** 
-         * Signaling listeners that {@link TextureSequence#getNextTexture(GL, boolean)} is able to deliver a new frame.
+         * Signaling listeners that a new {@link TextureFrame} is available.
+         * <p>
+         * User shall utilize {@link TextureSequence#getNextTexture(GL, boolean)} to dequeue it to maintain 
+         * a consistent queue.  
+         * </p>
          * @param ts the event source 
+         * @param newFrame the newly enqueued frame
          * @param when system time in msec. 
          **/
-        public void newFrameAvailable(T ts, long when);
+        public void newFrameAvailable(T ts, TextureFrame newFrame, long when);
     }
     
-    /** Return the texture unit to be used with this frame. */
+    /** Return the texture unit used to render the current frame. */
     public int getTextureUnit();
 
     public int[] getTextureMinMagFilter();

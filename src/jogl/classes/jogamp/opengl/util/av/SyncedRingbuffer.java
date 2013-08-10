@@ -74,6 +74,8 @@ public class SyncedRingbuffer<T> {
         }
     }
     
+    public final T[] getArray() { return array; }
+    
     public final int capacity() {
         return capacity;
     }

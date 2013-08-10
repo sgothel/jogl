@@ -33,7 +33,6 @@ import java.net.URL;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLException;
-import javax.media.opengl.GLProfile;
 
 import com.jogamp.opengl.util.texture.TextureSequence;
 
@@ -49,17 +48,17 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     static final boolean available;
     
     static {
+        available = false;
+        /** FIXME!
         // OMX binding is included in jogl_desktop and jogl_mobile     
         GLProfile.initSingleton();
-        available = initIDs0();
+        available = initIDs0(); */
     }
     
     public static final boolean isAvailable() { return available; }
     
     protected long moviePtr = 0;
     
-    protected TextureSequence.TextureFrame lastTex = null;
-
     public OMXGLMediaPlayer() {
         super(TextureType.KHRImage, true);
         if(!available) {
@@ -76,17 +75,15 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
     
     @Override
-    protected TextureSequence.TextureFrame createTexImage(GL gl, int idx, int[] tex) {
-        final EGLTextureFrame eglTex = (EGLTextureFrame) super.createTexImage(gl, idx, tex);
-        _setStreamEGLImageTexture2D(moviePtr, idx, tex[idx], eglTex.getImage(), eglTex.getSync());
-        lastTex = eglTex;
+    protected TextureSequence.TextureFrame createTexImage(GL gl, int texName) {
+        final EGLTextureFrame eglTex = (EGLTextureFrame) super.createTexImage(gl, texName);
+        _setStreamEGLImageTexture2D(moviePtr, texName, eglTex.getImage(), eglTex.getSync());
         return eglTex;
     }
     
     @Override
-    protected void destroyTexImage(GL gl, TextureSequence.TextureFrame imgTex) {
-        lastTex = null;
-        super.destroyTexImage(gl, imgTex);        
+    protected void destroyTexFrame(GL gl, TextureSequence.TextureFrame imgTex) {
+        super.destroyTexFrame(gl, imgTex);        
     }
     
     @Override
@@ -99,7 +96,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
     
     @Override
-    protected void initGLStreamImpl(GL gl, int[] texNames) throws IOException {
+    protected void initGLStreamImpl(GL gl) throws IOException {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
@@ -118,6 +115,10 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     @Override
     protected int getCurrentPositionImpl() {
         return 0!=moviePtr ? _getCurrentPosition(moviePtr) : 0;
+    }
+    @Override
+    protected int getAudioPTSImpl() {
+        return getCurrentPositionImpl();
     }
 
     @Override
@@ -168,24 +169,23 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    protected TextureSequence.TextureFrame getLastTextureImpl() {
-        return lastTex;
-    }
-    
-    @Override
-    protected TextureSequence.TextureFrame getNextTextureImpl(GL gl, boolean blocking) {
+    protected boolean getNextTextureImpl(GL gl, TextureFrame nextFrame, boolean blocking) {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
         final int nextTex = _getNextTextureID(moviePtr, blocking);
         if(0 < nextTex) {
-            final TextureSequence.TextureFrame eglImgTex = texFrameMap.get(new Integer(_getNextTextureID(moviePtr, blocking)));
+            /* FIXME 
+            final TextureSequence.TextureFrame eglImgTex = 
+                    texFrameMap.get(new Integer(_getNextTextureID(moviePtr, blocking)));
             if(null!=eglImgTex) {
                 lastTex = eglImgTex;
-            }
+            } */
         }
-        return lastTex;
+        return true;
     }
+    @Override
+    protected void syncFrame2Audio(TextureFrame frame) { }
     
     private String replaceAll(String orig, String search, String repl) {
         String dest=null;
@@ -216,7 +216,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     private native void _setStream(long moviePtr, int textureNum, String path);
     private native void _activateStream(long moviePtr);
     
-    private native void _setStreamEGLImageTexture2D(long moviePtr, int i, int tex, long image, long sync);
+    private native void _setStreamEGLImageTexture2D(long moviePtr, int tex, long image, long sync);
     private native int  _seek(long moviePtr, int position);
     private native void _setPlaySpeed(long moviePtr, float rate);
     private native void _play(long moviePtr);
