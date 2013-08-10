@@ -102,8 +102,15 @@ public class GLFBODrawableImpl extends GLDrawableImpl implements GLFBODrawable {
     }
     
     private final void initialize(boolean realize, GL gl) {
+        if( !initialized && !realize ) {
+            if( DEBUG ) {
+                System.err.println("GLFBODrawableImpl.initialize(): WARNING - Already unrealized!");
+                Thread.dumpStack();
+            }
+            return; // NOP, no exception for de-init twice or no init!
+        }
         if( initialized == realize ) {
-            throw new InternalError("Already set to initialize := "+realize+": "+this);
+            throw new IllegalStateException("initialize already in state "+realize+": "+this);
         }
         if(realize) {
             final GLCapabilities chosenFBOCaps = (GLCapabilities) getChosenGLCapabilities(); // cloned at setRealized(true)
