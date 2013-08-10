@@ -162,7 +162,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   // Dispatching GLDrawable construction in respect to the NativeSurface Capabilities
   //
   @Override
-  public GLDrawable createGLDrawable(NativeSurface target) {
+  public final GLDrawable createGLDrawable(NativeSurface target) {
     if (target == null) {
       throw new IllegalArgumentException("Null target");
     }
@@ -250,7 +250,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   public abstract boolean canCreateGLPbuffer(AbstractGraphicsDevice device, GLProfile glp);
 
   @Override
-  public GLPbuffer createGLPbuffer(AbstractGraphicsDevice deviceReq,
+  public final GLPbuffer createGLPbuffer(AbstractGraphicsDevice deviceReq,
                                    GLCapabilitiesImmutable capsRequested,
                                    GLCapabilitiesChooser chooser,
                                    int width,
@@ -288,6 +288,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   // Offscreen GLDrawable construction
   //
 
+  @Override
   public final boolean canCreateFBO(AbstractGraphicsDevice deviceReq, GLProfile glp) {
     AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
     if(null == device) {
@@ -297,7 +298,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
   
   @Override
-  public GLOffscreenAutoDrawable createOffscreenAutoDrawable(AbstractGraphicsDevice deviceReq,
+  public final GLOffscreenAutoDrawable createOffscreenAutoDrawable(AbstractGraphicsDevice deviceReq,
                                                              GLCapabilitiesImmutable capsRequested,
                                                              GLCapabilitiesChooser chooser,
                                                              int width, int height,
@@ -312,7 +313,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
   }
   
   @Override
-  public GLDrawable createOffscreenDrawable(AbstractGraphicsDevice deviceReq,
+  public final GLDrawable createOffscreenDrawable(AbstractGraphicsDevice deviceReq,
                                             GLCapabilitiesImmutable capsRequested,
                                             GLCapabilitiesChooser chooser,
                                             int width, int height) {
@@ -341,8 +342,24 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
     }
   }
 
+  @Override
+  public final GLDrawable createDummyDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLProfile glp) {  
+    final AbstractGraphicsDevice device = createNewDevice ? getOrCreateSharedDevice(deviceReq) : deviceReq;
+    if(null == device) {
+        throw new GLException("No shared device for requested: "+deviceReq+", createNewDevice "+createNewDevice);
+    }
+    device.lock();
+    try {
+        final GLCapabilities caps = new GLCapabilities(glp);
+        final ProxySurface dummySurface = createDummySurfaceImpl(device, createNewDevice, caps, caps, null, 64, 64);
+        return createOnscreenDrawableImpl(dummySurface);
+    } finally {
+        device.unlock();
+    }
+  }
+  
   /** Creates a platform independent unrealized FBO offscreen GLDrawable */ 
-  protected GLFBODrawable createFBODrawableImpl(NativeSurface dummySurface, GLCapabilitiesImmutable fboCaps, int textureUnit) {
+  protected final GLFBODrawable createFBODrawableImpl(NativeSurface dummySurface, GLCapabilitiesImmutable fboCaps, int textureUnit) {
     final GLDrawableImpl dummyDrawable = createOnscreenDrawableImpl(dummySurface);
     return new GLFBODrawableImpl(this, dummyDrawable, dummySurface, fboCaps, textureUnit);
   }
@@ -377,17 +394,19 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * it maybe on- or offscreen.
    * <p>
    * It is used to allow the creation of a {@link GLDrawable} and {@link GLContext} to query information.
-   * It also allows creation of framebuffer objects which are used for rendering.
+   * It also allows creation of framebuffer objects which are used for rendering or using a shared GLContext w/o actually rendering to a usable framebuffer.
    * </p>
    * @param deviceReq which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
    * @param requestedCaps
    * @param chooser the custom chooser, may be null for default
-   * @param width the initial width
-   * @param height the initial height
+   * @param width the initial width as returned by {@link NativeSurface#getWidth()}, not the actual dummy surface width. 
+   *        The latter is platform specific and small
+   * @param height the initial height as returned by {@link NativeSurface#getHeight()}, not the actual dummy surface height,
+   *        The latter is platform specific and small
    *
    * @return the created {@link ProxySurface} instance w/o defined surface handle but platform specific {@link UpstreamSurfaceHook}.
    */
-  public ProxySurface createDummySurface(AbstractGraphicsDevice deviceReq, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser,
+  public final ProxySurface createDummySurface(AbstractGraphicsDevice deviceReq, GLCapabilitiesImmutable requestedCaps, GLCapabilitiesChooser chooser,
                                           int width, int height) {
     final AbstractGraphicsDevice device = getOrCreateSharedDevice(deviceReq);
     if(null == device) {
@@ -406,7 +425,7 @@ public abstract class GLDrawableFactoryImpl extends GLDrawableFactory {
    * it maybe on- or offscreen.
    * <p>
    * It is used to allow the creation of a {@link GLDrawable} and {@link GLContext} to query information.
-   * It also allows creation of framebuffer objects which are used for rendering.
+   * It also allows creation of framebuffer objects which are used for rendering or using a shared GLContext w/o actually rendering to a usable framebuffer.
    * </p>
    * @param device a valid platform dependent target device.
    * @param createNewDevice if <code>true</code> a new device instance is created using <code>device</code> details,

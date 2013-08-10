@@ -546,6 +546,20 @@ public abstract class GLDrawableFactory {
                                                      int width, int height) throws GLException;
 
   /**
+   * Creates an {@link GLDrawable#isRealized() unrealized} dummy {@link GLDrawable}. 
+   * A dummy drawable is not visible on screen and will not be used to render directly to, it maybe on- or offscreen.
+   * <p>
+   * It is used to allow the creation of a {@link GLContext} to query information.
+   * It also allows creation of framebuffer objects which are used for rendering or creating a shared GLContext w/o actually rendering to this dummy drawable's framebuffer.
+   * </p>
+   * @param deviceReq which {@link javax.media.nativewindow.AbstractGraphicsDevice#getConnection() connection} denotes the shared device to be used, may be <code>null</code> for the platform's default device.
+   * @param createNewDevice if <code>true</code> a new independent device instance is created from the <code>deviceReq</code>, otherwise <code>deviceReq</code> is used as-is and must be valid!
+   * @param glp the desired {@link GLProfile}
+   * @return the created dummy {@link GLDrawable}
+   */
+  public abstract GLDrawable createDummyDrawable(AbstractGraphicsDevice deviceReq, boolean createNewDevice, GLProfile glp);
+  
+  /**
    * Creates a proxy {@link NativeSurface} w/ defined surface handle, i.e. a {@link WrappedSurface} or {@link GDISurface} instance. 
    * <p>
    * It's {@link AbstractGraphicsConfiguration} is properly set according to the given 
@@ -573,7 +587,7 @@ public abstract class GLDrawableFactory {
                                                   int screenIdx, 
                                                   long windowHandle, 
                                                   GLCapabilitiesImmutable caps, GLCapabilitiesChooser chooser, UpstreamSurfaceHook upstream);
-
+  
   /**
    * Returns true if it is possible to create an <i>framebuffer object</i> (FBO).
    * <p>
