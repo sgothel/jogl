@@ -37,6 +37,9 @@ package com.jogamp.newt.event;
 /**
  * Pointer event of type {@link PointerType}.
  * <p>
+ * http://www.w3.org/Submission/pointer-events/#pointerevent-interface
+ * </p>
+ * <p>
  * In case an instance represents multi-touch events, i.e. {@link #getPointerCount()} is &gt; 1,
  * the first data element represents the pointer which triggered the action if individual to one pointer.<br/>
  * For example {@link #getX(int) e.getX(0)} at {@link #EVENT_MOUSE_PRESSED} returns the data of the pressed pointer, etc.
