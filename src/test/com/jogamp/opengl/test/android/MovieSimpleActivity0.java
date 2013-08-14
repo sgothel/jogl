@@ -45,6 +45,7 @@ import com.jogamp.newt.opengl.GLWindow;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.av.GLMediaPlayer;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -84,7 +85,7 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
            final Animator animator = new Animator();
            
            // Main           
-           final MovieSimple demoMain = new MovieSimple(urlConnection0);
+           final MovieSimple demoMain = new MovieSimple(urlConnection0, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO);
            demoMain.setScaleOrig(true);
            final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);
            glWindowMain.setFullscreen(true);

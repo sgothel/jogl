@@ -42,9 +42,11 @@ import com.jogamp.common.util.VersionNumber;
 import com.jogamp.gluegen.runtime.ProcAddressTable;
 import com.jogamp.opengl.util.GLPixelStorageModes;
 import com.jogamp.opengl.util.av.AudioSink;
+import com.jogamp.opengl.util.av.AudioSink.AudioDataFormat;
+import com.jogamp.opengl.util.av.AudioSink.AudioDataType;
 import com.jogamp.opengl.util.av.AudioSinkFactory;
+import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
-import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 import jogamp.opengl.GLContextImpl;
 import jogamp.opengl.util.av.GLMediaPlayerImpl;
@@ -136,13 +138,17 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                                   ( vers >>  8 ) & 0xFF,
                                   ( vers >>  0 ) & 0xFF );
     }
+
+    //
+    // General
+    //
+    
+    protected long moviePtr = 0;    
     
     //
     // Video
     //
     
-    protected long moviePtr = 0;    
-    protected GLPixelStorageModes psm;
     protected PixelFormat vPixelFmt = null;
     protected int vPlanes = 0;
     protected int vBitsPerPixel = 0;
@@ -152,15 +158,17 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     protected int texWidth, texHeight; // overall (stuffing planes in one texture)
     protected ByteBuffer texCopy;
     protected String singleTexComp = "r";
+    protected GLPixelStorageModes psm;
 
     //
     // Audio
     //
     
-    protected final int AudioFrameCount = 8;        
-    protected final AudioSink audioSink;    
-    protected final int maxAvailableAudio;
-    protected AudioSink.AudioDataFormat chosenAudioFormat;
+    protected static final int AFRAMES_PER_VFRAME = 8;
+    protected int aFrameCount = 0;
+    protected SampleFormat aSampleFmt = null;
+    protected AudioSink.AudioDataFormat avChosenAudioFormat;
+    protected AudioSink.AudioDataFormat sinkChosenAudioFormat;
     
     public FFMPEGMediaPlayer() {
         if(!available) {
@@ -171,12 +179,11 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             throw new GLException("Couldn't create FFMPEGInstance");
         }
         psm = new GLPixelStorageModes();
-        audioSink = AudioSinkFactory.createDefault(); 
-        maxAvailableAudio = audioSink.getQueuedByteCount();
+        audioSink = null;
     }
     @Override
     protected final int validateTextureCount(int desiredTextureCount) {
-        return desiredTextureCount>1 ? desiredTextureCount : 2;
+        return desiredTextureCount>2 ? Math.max(4, desiredTextureCount) : 2;
     }
     @Override
     protected final boolean requiresOffthreadGLCtx() { return true; }
@@ -187,10 +194,18 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             destroyInstance0(moviePtr);
             moviePtr = 0;
         }
+        destroyAudioSink();
+    }
+    private final void destroyAudioSink() {
+        final AudioSink _audioSink = audioSink;
+        if( null != _audioSink ) {            
+            audioSink = null;
+            _audioSink.destroy();
+        }
     }
     
     @Override
-    protected final void initGLStreamImpl(GL gl) throws IOException {
+    protected final void initGLStreamImpl(GL gl, int vid, int aid) throws IOException {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
@@ -209,11 +224,32 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
         
         final String urlS=urlConn.getURL().toExternalForm();
+        
+        aFrameCount = AFRAMES_PER_VFRAME * textureCount + AFRAMES_PER_VFRAME/2;
     
-        chosenAudioFormat = audioSink.initSink(audioSink.getPreferredFormat(), AudioFrameCount);
         System.err.println("setURL: p1 "+this);
-        setStream0(moviePtr, urlS, -1, -1, AudioFrameCount); // issues updateAttributes*(..)
-        System.err.println("setURL: p2 "+this);
+        destroyAudioSink();
+        AudioSink _audioSink;
+        if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
+            _audioSink = AudioSinkFactory.createNull();
+        } else {
+            _audioSink = AudioSinkFactory.createDefault();
+        }
+        final AudioDataFormat preferredAudioFormat = _audioSink.getPreferredFormat();
+         // setStream(..) issues updateAttributes*(..), and defines avChosenAudioFormat, vid, aid, .. etc
+        setStream0(moviePtr, urlS, vid, aid, aFrameCount, preferredAudioFormat.channelCount, preferredAudioFormat.sampleRate);
+        // final int audioBytesPerFrame = bps_audio/8000 * frame_period * textureCount;
+        
+        System.err.println("setURL: p2 preferred "+preferredAudioFormat+", avChosen "+avChosenAudioFormat+", "+this);
+        sinkChosenAudioFormat = _audioSink.initSink(avChosenAudioFormat, aFrameCount);
+        System.err.println("setURL: p3 avChosen "+avChosenAudioFormat+", chosen "+sinkChosenAudioFormat);
+        if( null == sinkChosenAudioFormat ) {
+            System.err.println("AudioSink "+_audioSink.getClass().getName()+" does not support "+avChosenAudioFormat+", using Null");
+            _audioSink.destroy();
+            _audioSink = AudioSinkFactory.createNull();
+            sinkChosenAudioFormat = _audioSink.initSink(avChosenAudioFormat, aFrameCount);
+        }
+        audioSink = _audioSink;
         
         int tf, tif=GL.GL_RGBA; // texture format and internal format
         switch(vBytesPerPixelPerPlane) {
@@ -256,7 +292,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
     private void updateAttributes2(int pixFmt, int planes, int bitsPerPixel, int bytesPerPixelPerPlane,
                                    int lSz0, int lSz1, int lSz2,
-                                   int tWd0, int tWd1, int tWd2) {
+                                   int tWd0, int tWd1, int tWd2,
+                                   int sampleFmt, int sampleRate, int channels) {
         vPixelFmt = PixelFormat.valueOf(pixFmt);
         vPlanes = planes;
         vBitsPerPixel = bitsPerPixel;
@@ -286,12 +323,53 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             default: // FIXME: Add more planar formats !
                 throw new RuntimeException("Unsupported pixelformat: "+vPixelFmt);
         }
+
+        aSampleFmt = SampleFormat.valueOf(sampleFmt);
+        final int sampleSize;
+        final boolean signed, fixedP;
+        switch( aSampleFmt ) {
+            case S32:
+            case S32P:
+                sampleSize = 32;
+                signed = true;
+                fixedP = true;
+                break;
+            case S16:
+            case S16P:
+                sampleSize = 16;
+                signed = true;
+                fixedP = true;
+                break;
+            case U8:
+            case U8P:
+                sampleSize = 8;
+                signed = false;
+                fixedP = true;
+                break;
+            case DBL:
+            case DBLP:
+                sampleSize = 64;
+                signed = true;
+                fixedP = true;
+                break;
+            case FLT:
+            case FLTP:
+                sampleSize = 32;
+                signed = true;
+                fixedP = true;
+                break;
+            default: // FIXME: Add more planar formats !
+                throw new RuntimeException("Unsupported sampleformat: "+aSampleFmt);
+        }
+        avChosenAudioFormat = new AudioDataFormat(AudioDataType.PCM, sampleRate, sampleSize, channels, signed, fixedP, true /* littleEndian */);  
+        
         if(DEBUG) {
-            System.err.println("XXX0: fmt "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane);
+            System.err.println("audio: fmt "+aSampleFmt+", "+avChosenAudioFormat);
+            System.err.println("video: fmt "+vPixelFmt+", planes "+vPlanes+", bpp "+vBitsPerPixel+"/"+vBytesPerPixelPerPlane);
             for(int i=0; i<3; i++) {
-                System.err.println("XXX0 "+i+": "+vTexWidth[i]+"/"+vLinesize[i]);
+                System.err.println("video: "+i+": "+vTexWidth[i]+"/"+vLinesize[i]);
             }
-            System.err.println("XXX0 total tex "+texWidth+"x"+texHeight);
+            System.err.println("video: total tex "+texWidth+"x"+texHeight);
         }
     }
     
@@ -355,54 +433,27 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected final synchronized int getCurrentPositionImpl() {
-        return 0!=moviePtr ? getVideoPTS0(moviePtr) : 0;
-    }
-
-    @Override
-    public final int getAudioPTSImpl() { return 0; }    
-    
-    @Override
-    protected final synchronized boolean setPlaySpeedImpl(float rate) {
-        return true;
-    }
-
-    @Override
-    public final synchronized boolean startImpl() {
+    public final boolean playImpl() {
         if(0==moviePtr) {
             return false;
         }
         return true;
     }
 
-    /** @return time position after issuing the command */
     @Override
-    public final synchronized boolean pauseImpl() {
+    public final boolean pauseImpl() {
         if(0==moviePtr) {
             return false;
         }
         return true;
     }
 
-    /** @return time position after issuing the command */
-    @Override
-    public final synchronized boolean stopImpl() {
-        if(0==moviePtr) {
-            return false;
-        }
-        return true;
-    }
-
-    /** @return time position after issuing the command */
     @Override
     protected final synchronized int seekImpl(int msec) {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
         }
-        int pts0 = getVideoPTS0(moviePtr);
-        int pts1 = seek0(moviePtr, msec);
-        System.err.println("Seek: "+pts0+" -> "+msec+" : "+pts1);
-        return pts1;
+        return seek0(moviePtr, msec);
     }
 
     @Override
@@ -427,7 +478,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             psm.restore(gl);
         }
         if( 0 < avPTS ) {
-            vSTS = avPTS;
             nextFrame.setPTS(avPTS);
             return true;
         } else {
@@ -436,50 +486,15 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
     
     private final void pushSound(ByteBuffer sampleData, int data_size, int audio_pts) {
-        aSTS = audio_pts;
-        final AudioSink.AudioFrame frame = new AudioSink.AudioFrame(sampleData, data_size, audio_pts);
-        if( audioSink.isDataAvailable(frame.dataSize) ) {
-            audioSink.writeData(frame);
+        setFirstAudioPTS2SCR( audio_pts );
+        if( 1.0f == playSpeed || audioSinkPlaySpeedSet ) {
+            audioSink.enqueueData( new AudioSink.AudioFrame(sampleData, data_size, audio_pts ) );
         }
     }
-    
-    /** last audio streaming TS */
-    private int aSTS = 0;
-    /** last video streaming TS */
-    private int vSTS = 0;
-    
-    private long lastAudioTime = 0;
-    private static final int audio_dt_d = 400;
-    private long lastVideoTime = 0;
-    private static final int video_dt_d = 9;
-    
+
     @Override
-    protected final void syncFrame2Audio(TextureFrame frame) {
-        /** 
-        // poor mans video sync .. TODO: off thread 'readNextPackage0(..)' on shared GLContext and multi textures/unit!
-        final long now = System.currentTimeMillis();
-        // Try sync video to audio
-        final long now_d = now - lastAudioTime;
-        final long pts_d = vSTS - aSTS - 444; // hack 444 == play video 444ms ahead of audio
-        final long dt = Math.min(47, (long) ( (float) ( pts_d - now_d ) / getPlaySpeed() ) ) ;
-        //final long dt = (long) ( (float) ( pts_d - now_d ) / getPlaySpeed() ) ;
-        final boolean sleep = dt>video_dt_d && dt<1000 && audioSink.getQueuedByteCount()<maxAvailableAudio-10000;
-        final long sleepP = dt-video_dt_d;
-        if(DEBUG) {
-            final int qAT = audioSink.getQueuedTime();
-            System.err.println("s: pts-v "+vSTS+", qAT "+qAT+", pts-d "+pts_d+", now_d "+now_d+", dt "+dt+", sleep "+sleep+", sleepP "+sleepP+" ms");
-        }
-        // ?? Maybe use audioSink.getQueuedTime();
-        if( sleep ) {
-            try {
-                Thread.sleep(sleepP);
-            } catch (InterruptedException e) { }
-            lastVideoTime = System.currentTimeMillis();
-        } else { 
-            lastVideoTime = now;
-        }   
-        */
-    }
+    protected final boolean syncAVRequired() { return true; }
+    
     private static native int getAvUtilVersion0();
     private static native int getAvFormatVersion0();
     private static native int getAvCodecVersion0();
@@ -488,10 +503,17 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     private native void destroyInstance0(long moviePtr);
     
     /**
-     * Issues {@link #updateAttributes(int, int, int, int, int, float, int, int, String, String)}
+     * Issues {@link #updateAttributes(int, int, int, int, int, int, int, float, int, int, String, String)}
      * and {@link #updateAttributes2(int, int, int, int, int, int, int, int, int, int)}.
+     * <p>
+     * Always uses {@link AudioSink.AudioDataFormat}:
+     * <pre>
+     *   [type PCM, sampleRate [10000(?)..44100..48000], sampleSize 16, channelCount 1-2, signed, littleEndian]
+     * </pre>
+     * </p>
      */
-    private native void setStream0(long moviePtr, String url, int vid, int aid, int audioFrameCount);
+    private native void setStream0(long moviePtr, String url, int vid, int aid, int audioFrameCount,
+                                   int aChannelCount, int aSampleRate);
     private native void setGLFuncs0(long moviePtr, long procAddrGLTexSubImage2D, long procAddrGLGetError);
 
     private native int getVideoPTS0(long moviePtr);    
@@ -505,6 +527,32 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     private native int readNextPacket0(long moviePtr, int texTarget, int texFmt, int texType);
     
     private native int seek0(long moviePtr, int position);
+    
+    public static enum SampleFormat {
+        // NONE = -1,
+        U8,          ///< unsigned 8 bits
+        S16,         ///< signed 16 bits
+        S32,         ///< signed 32 bits
+        FLT,         ///< float
+        DBL,         ///< double
+
+        U8P,         ///< unsigned 8 bits, planar
+        S16P,        ///< signed 16 bits, planar
+        S32P,        ///< signed 32 bits, planar
+        FLTP,        ///< float, planar
+        DBLP,        ///< double, planar
+        
+        COUNT;       ///< Number of sample formats.
+        
+        public static SampleFormat valueOf(int i) {
+            for (SampleFormat fmt : SampleFormat.values()) {
+                if(fmt.ordinal() == i) {
+                    return fmt;
+                }
+            }
+            return null;            
+        }
+    };
 
     public static enum PixelFormat {
         // NONE= -1,

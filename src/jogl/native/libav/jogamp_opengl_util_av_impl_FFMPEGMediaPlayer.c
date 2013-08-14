@@ -31,6 +31,7 @@
 #include "JoglCommon.h"
 #include "ffmpeg_tool.h"
 #include <libavutil/pixdesc.h>
+#include <libavutil/samplefmt.h>
 #include <GL/gl.h>
 
 static const char * const ClazzNameFFMPEGMediaPlayer = "jogamp/opengl/util/av/impl/FFMPEGMediaPlayer";
@@ -204,17 +205,18 @@ static void _updateJavaAttributes(JNIEnv *env, jobject instance, FFMPEGToolBasic
         }
 
         (*env)->CallVoidMethod(env, instance, jni_mid_updateAttributes1,
+                               pAV->vid, pAV->aid,
                                w, h, 
                                pAV->bps_stream, pAV->bps_video, pAV->bps_audio,
-                               pAV->fps, (int32_t)((pAV->duration/1000)*pAV->fps), pAV->duration,
+                               pAV->fps, pAV->frames_video, pAV->frames_audio, pAV->duration,
                                (*env)->NewStringUTF(env, pAV->vcodec),
                                (*env)->NewStringUTF(env, pAV->acodec) );
         (*env)->CallVoidMethod(env, instance, jni_mid_updateAttributes2,
                                pAV->vPixFmt, pAV->vBufferPlanes, 
                                pAV->vBitsPerPixel, pAV->vBytesPerPixelPerPlane,
                                pAV->vLinesize[0], pAV->vLinesize[1], pAV->vLinesize[2],
-                               pAV->vTexWidth[0], pAV->vTexWidth[1], pAV->vTexWidth[2]);
-        // JoglCommon_ReleaseJNIEnv (shallBeDetached);
+                               pAV->vTexWidth[0], pAV->vTexWidth[1], pAV->vTexWidth[2],
+                               pAV->aSampleFmt, pAV->aSampleRate, pAV->aChannels);
     }
 }
 
@@ -337,8 +339,8 @@ JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_ini
     }
 
     jni_mid_pushSound = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "pushSound", "(Ljava/nio/ByteBuffer;II)V");
-    jni_mid_updateAttributes1 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", "(IIIIIFIILjava/lang/String;Ljava/lang/String;)V");
-    jni_mid_updateAttributes2 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes2", "(IIIIIIIIII)V");
+    jni_mid_updateAttributes1 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes", "(IIIIIIIFIIILjava/lang/String;Ljava/lang/String;)V");
+    jni_mid_updateAttributes2 = (*env)->GetMethodID(env, ffmpegMediaPlayerClazz, "updateAttributes2", "(IIIIIIIIIIIII)V");
 
     if(jni_mid_pushSound == NULL ||
        jni_mid_updateAttributes1 == NULL ||
@@ -356,6 +358,10 @@ JNIEXPORT jlong JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_create
         JoglCommon_throwNewRuntimeException(env, "Couldn't alloc instance");
         return 0;
     }
+    pAV->avcodecVersion = sp_avcodec_version();
+    pAV->avformatVersion = sp_avformat_version(); 
+    pAV->avutilVersion = sp_avutil_version();
+
     // Register all formats and codecs
     sp_av_register_all();
     // Network too ..
@@ -364,8 +370,8 @@ JNIEXPORT jlong JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_create
     }
 
     pAV->verbose = verbose;
-    pAV->vid=-1;
-    pAV->aid=-1;
+    pAV->vid=AV_STREAM_ID_AUTO;
+    pAV->aid=AV_STREAM_ID_AUTO;
 
     return (jlong) (intptr_t) pAV;
 }
@@ -380,8 +386,23 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_destroy
   }
 }
 
+static uint64_t getDefaultAudioChannelLayout(int channelCount) {
+    switch(channelCount) {
+        case 1: return AV_CH_LAYOUT_MONO;
+        case 2: return AV_CH_LAYOUT_STEREO;
+        case 3: return AV_CH_LAYOUT_SURROUND;
+        case 4: return AV_CH_LAYOUT_QUAD;
+        case 5: return AV_CH_LAYOUT_5POINT0;
+        case 6: return AV_CH_LAYOUT_5POINT1;
+        case 7: return AV_CH_LAYOUT_6POINT1;
+        case 8: return AV_CH_LAYOUT_7POINT1;
+        default: return AV_CH_LAYOUT_NATIVE;
+    }
+}
+
 JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStream0
-  (JNIEnv *env, jobject instance, jlong ptr, jstring jURL, jint vid, jint aid, jint audioFrameCount)
+  (JNIEnv *env, jobject instance, jlong ptr, jstring jURL, jint vid, jint aid, jint audioFrameCount,
+   jint aChannelCount, jint aSampleRate)
 {
     int res, i;
     jboolean iscopy;
@@ -434,27 +455,39 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
         pAV->bps_stream = pAV->pFormatCtx->bit_rate;
     }
 
-    fprintf(stderr, "Streams: %d\n", pAV->pFormatCtx->nb_streams); // JAU
+    if(pAV->verbose) {
+        fprintf(stderr, "Streams: %d, req vid %d aid %d\n", pAV->pFormatCtx->nb_streams, vid, aid);
+    }
 
     // Find the first audio and video stream, or the one matching vid
     // FIXME: Libav Binary compatibility! JAU01
-    for(i=0; ( -1==pAV->aid || -1==pAV->vid ) && i<pAV->pFormatCtx->nb_streams; i++) {
+    for(i=0; ( AV_STREAM_ID_AUTO==pAV->aid || AV_STREAM_ID_AUTO==pAV->vid ) && i<pAV->pFormatCtx->nb_streams; i++) {
         AVStream *st = pAV->pFormatCtx->streams[i];
-        fprintf(stderr, "Stream: %d: is-video %d, is-audio %d\n", i, (AVMEDIA_TYPE_VIDEO == st->codec->codec_type), AVMEDIA_TYPE_AUDIO == st->codec->codec_type); // JAU
+        if(pAV->verbose) {
+            fprintf(stderr, "Stream: %d: is-video %d, is-audio %d\n", i, (AVMEDIA_TYPE_VIDEO == st->codec->codec_type), AVMEDIA_TYPE_AUDIO == st->codec->codec_type);
+        }
         if(AVMEDIA_TYPE_VIDEO == st->codec->codec_type) {
-            if(-1==pAV->vid && (-1==vid || vid == i) ) {
+            if(AV_STREAM_ID_AUTO==pAV->vid && (AV_STREAM_ID_AUTO==vid || vid == i) ) {
                 pAV->pVStream = st;
                 pAV->vid=i;
             }
         } else if(AVMEDIA_TYPE_AUDIO == st->codec->codec_type) {
-            if(-1==pAV->aid && (-1==aid || aid == i) ) {
+            if(AV_STREAM_ID_AUTO==pAV->aid && (AV_STREAM_ID_AUTO==aid || aid == i) ) {
                 pAV->pAStream = st;
                 pAV->aid=i;
             }
         }
     }
+    if( AV_STREAM_ID_AUTO == pAV->aid ) {
+        pAV->aid = AV_STREAM_ID_NONE;
+    }
+    if( AV_STREAM_ID_AUTO == pAV->vid ) {
+        pAV->vid = AV_STREAM_ID_NONE;
+    }
 
-    fprintf(stderr, "Found vid %d, aid %d\n", pAV->vid, pAV->aid); // JAU
+    if( pAV->verbose ) {
+        fprintf(stderr, "Found vid %d, aid %d\n", pAV->vid, pAV->aid);
+    }
 
     if(0<=pAV->aid) {
         // Get a pointer to the codec context for the audio stream
@@ -465,6 +498,23 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
         if (pAV->pACodecCtx->bit_rate) {
             pAV->bps_audio = pAV->pACodecCtx->bit_rate;
         }
+
+        // Customize ..
+        // pAV->pACodecCtx->thread_count=2;
+        // pAV->pACodecCtx->thread_type=FF_THREAD_FRAME|FF_THREAD_SLICE; // Decode more than one frame at once
+        pAV->pACodecCtx->thread_count=1;
+        pAV->pACodecCtx->thread_type=0;
+        pAV->pACodecCtx->workaround_bugs=FF_BUG_AUTODETECT;
+        pAV->pACodecCtx->skip_frame=AVDISCARD_DEFAULT;
+
+        pAV->pACodecCtx->request_channel_layout=getDefaultAudioChannelLayout(aChannelCount);
+        if( AV_HAS_API_REQUEST_CHANNELS(pAV) && 1 <= aChannelCount && aChannelCount <= 2 ) {
+            pAV->pACodecCtx->request_channels=aChannelCount;
+        }
+        pAV->pACodecCtx->request_sample_fmt=AV_SAMPLE_FMT_S16;
+        // ignored: aSampleRate !
+        pAV->pACodecCtx->skip_frame=AVDISCARD_DEFAULT;
+
         sp_avcodec_string(pAV->acodec, sizeof(pAV->acodec), pAV->pACodecCtx, 0);
 
         // Find the decoder for the audio stream
@@ -489,8 +539,17 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
         // FIXME: Libav Binary compatibility! JAU01
         pAV->aSampleRate = pAV->pACodecCtx->sample_rate;
         pAV->aChannels = pAV->pACodecCtx->channels;
-        pAV->aFrameSize = pAV->pACodecCtx->frame_size;
+        pAV->aFrameSize = pAV->pACodecCtx->frame_size; // in samples!
         pAV->aSampleFmt = pAV->pACodecCtx->sample_fmt;
+        pAV->frames_audio = pAV->pAStream->nb_frames;
+
+        if( pAV->verbose ) {
+            fprintf(stderr, "A channels %d, sample_rate %d, frame_size %d, frame_number %d, r_frame_rate %f, avg_frame_rate %f, nb_frames %d, \n", 
+                pAV->aChannels, pAV->aSampleRate, pAV->aFrameSize, pAV->pACodecCtx->frame_number,
+                my_av_q2f(pAV->pAStream->r_frame_rate),
+                my_av_q2f(pAV->pAStream->avg_frame_rate),
+                pAV->pAStream->nb_frames);
+        }
 
         pAV->aFrameCount = audioFrameCount;
         pAV->pAFrames = calloc(audioFrameCount, sizeof(AVFrame*));
@@ -516,6 +575,15 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
             // FIXME: Libav Binary compatibility! JAU01
             pAV->bps_video = pAV->pVCodecCtx->bit_rate;
         }
+
+        // Customize ..
+        // pAV->pVCodecCtx->thread_count=2;
+        // pAV->pVCodecCtx->thread_type=FF_THREAD_FRAME|FF_THREAD_SLICE; // Decode more than one frame at once
+        pAV->pVCodecCtx->thread_count=1;
+        pAV->pVCodecCtx->thread_type=0;
+        pAV->pVCodecCtx->workaround_bugs=FF_BUG_AUTODETECT;
+        pAV->pVCodecCtx->skip_frame=AVDISCARD_DEFAULT;
+
         sp_avcodec_string(pAV->vcodec, sizeof(pAV->vcodec), pAV->pVCodecCtx, 0);
 
         // Find the decoder for the video stream
@@ -542,8 +610,21 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setStre
             pAV->pVCodecCtx->time_base.den=1000;
         }
         // FIXME: Libav Binary compatibility! JAU01
-        pAV->fps = my_av_q2f(pAV->pVStream->avg_frame_rate);
+        if( 0 < pAV->pVStream->avg_frame_rate.den ) {
+            pAV->fps = my_av_q2f(pAV->pVStream->avg_frame_rate);
+        } else {
+            pAV->fps = my_av_q2f(pAV->pVStream->r_frame_rate);
+        }
+        pAV->frames_video = pAV->pVStream->nb_frames;
             
+        if( pAV->verbose ) {
+            fprintf(stderr, "V frame_size %d, frame_number %d, r_frame_rate %f %d/%d, avg_frame_rate %f %d/%d, nb_frames %d, \n", 
+                pAV->pVCodecCtx->frame_size, pAV->pVCodecCtx->frame_number, 
+                my_av_q2f(pAV->pVStream->r_frame_rate), pAV->pVStream->r_frame_rate.num, pAV->pVStream->r_frame_rate.den, 
+                my_av_q2f(pAV->pVStream->avg_frame_rate), pAV->pVStream->avg_frame_rate.num, pAV->pVStream->avg_frame_rate.den,
+                pAV->pVStream->nb_frames);
+        }
+
         // Allocate video frames
         // FIXME: Libav Binary compatibility! JAU01
         pAV->vPixFmt = pAV->pVCodecCtx->pix_fmt;
@@ -589,6 +670,14 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_setGLFu
     pAV->procAddrGLGetError = (PFNGLGETERRORPROC) (intptr_t)jProcAddrGLGetError;
 }
 
+#if 0
+#define DBG_TEXSUBIMG2D_a(c,p,i) fprintf(stderr, "TexSubImage2D.%c offset %d / %d, size %d x %d, ", c, p->pVCodecCtx->width, p->pVCodecCtx->height/2, p->vTexWidth[i], p->pVCodecCtx->height/2)
+#define DBG_TEXSUBIMG2D_b(p) fprintf(stderr, "err 0x%X\n", pAV->procAddrGLGetError())
+#else
+#define DBG_TEXSUBIMG2D_a(c,p,i)
+#define DBG_TEXSUBIMG2D_b(p)
+#endif
+
 JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNextPacket0
   (JNIEnv *env, jobject instance, jlong ptr, jint texTarget, jint texFmt, jint texType)
 {
@@ -607,11 +696,10 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
             }
             AVFrame* pAFrameCurrent = pAV->pAFrames[pAV->aFrameCurrent];
             pAV->aFrameCurrent = ( pAV->aFrameCurrent + 1 ) % pAV->aFrameCount ;
-            int new_packet = 1;
-            int len1;
+            int frameCount;
             int flush_complete = 0;
-            while (packet.size > 0 || (!packet.data && new_packet)) {
-                new_packet = 0;
+            for ( frameCount=0; 0 < packet.size || 0 == frameCount; frameCount++ ) {
+                int len1;
                 if (flush_complete) {
                     break;
                 }
@@ -640,7 +728,7 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                     continue;
                 }
 
-                int data_size = 0;
+                int32_t data_size = 0;
                 if(HAS_FUNC(sp_av_samples_get_buffer_size)) {
                     data_size = sp_av_samples_get_buffer_size(NULL /* linesize, may be NULL */,
                                                               pAV->aChannels,
@@ -648,16 +736,25 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                                                               pAFrameCurrent->format,
                                                               1 /* align */);
                 }
-                int32_t pts = (int64_t) ( pAFrameCurrent->pkt_pts * (int64_t) 1000 * (int64_t) pAV->pAStream->time_base.num )
-                              / (int64_t) pAV->pAStream->time_base.den;
                 #if 0
-                printf("channels %d sample_rate %d \n", pAV->aChannels , pAV->aSampleRate);
-                printf("data %d \n", pAV->aFrameSize); 
+                fprintf(stderr, "channels %d sample_rate %d \n", pAV->aChannels , pAV->aSampleRate);
+                fprintf(stderr, "data %d \n", pAV->aFrameSize); 
                 #endif
-                pAV->aPTS += (int64_t) ( data_size * (int64_t) 1000 )
-                             / (int64_t) (2 * (int64_t) pAV->aChannels * (int64_t) pAV->aSampleRate);
+
+                const AVRational time_base = pAV->pAStream->time_base;
+                const int64_t pkt_pts = pAFrameCurrent->pkt_pts;
+                int aptsMode;
+                if( 0 == frameCount && AV_NOPTS_VALUE != pkt_pts ) { // 1st frame only, discard invalid PTS ..
+                    pAV->aPTS = (pkt_pts * (int64_t) 1000 * (int64_t) time_base.num) / (int64_t) time_base.den ;
+                    aptsMode = 0;
+                } else { // subsequent frames or invalid PTS ..
+                    const int32_t bytesPerSample = 2; // av_get_bytes_per_sample( pAV->pACodecCtx->sample_fmt );
+                    pAV->aPTS += data_size / ( pAV->aChannels * bytesPerSample * ( pAV->aSampleRate / 1000 ) );
+                    aptsMode = 1;
+                }
                 if( pAV->verbose ) {
-                    printf("A pts %d - %d\n", pts, pAV->aPTS);
+                    fprintf(stderr, "A pts %d [pkt_pts %ld, pkt_dts %ld], dataSize %d, f# %d, pts-mode %d\n", 
+                        pAV->aPTS, pkt_pts, pAFrameCurrent->pkt_dts, data_size, frameCount, aptsMode);
                 }
                 if( NULL != env ) {
                     jobject jSampleData = (*env)->NewDirectByteBuffer(env, pAFrameCurrent->data[0], data_size);
@@ -671,19 +768,14 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
                 sp_av_free_packet(&packet);
                 return 0;
             }
-
-            int new_packet = 1;
-            int len1;
+            int frameCount;
             int flush_complete = 0;
-            while (packet.size > 0 || (!packet.data && new_packet)) {
-
-                new_packet = 0;
+            for ( frameCount=0; 0 < packet.size || 0 == frameCount; frameCount++ ) {
+                int len1;
                 if (flush_complete) {
                     break;
                 }
-
                 len1 = sp_avcodec_decode_video2(pAV->pVCodecCtx, pAV->pVFrame, &frameFinished, &packet);
-
                 if (len1 < 0) {
                     // if error, we skip the frame
                     packet.size = 0;
@@ -702,71 +794,46 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
 
                 // FIXME: Libav Binary compatibility! JAU01
                 const AVRational time_base = pAV->pVStream->time_base;
-                const int64_t pts = pAV->pVFrame->pkt_pts;
-                if(AV_NOPTS_VALUE != pts) { // discard invalid PTS ..
-                    pAV->vPTS = (pts * (int64_t) 1000 * (int64_t) time_base.num) / (int64_t) time_base.den ;
-
-                    #if 0
-                    printf("PTS %d = %ld * ( ( 1000 * %ld ) / %ld ) '1000 * time_base', time_base = %lf\n",
-                        pAV->vPTS, pAV->pVFrame->pkt_pts, time_base.num, time_base.den, (time_base.num/(double)time_base.den));
-                    #endif
+                const int64_t pkt_pts = pAV->pVFrame->pkt_pts;
+                if(AV_NOPTS_VALUE != pkt_pts) { // discard invalid PTS ..
+                    int32_t vPTS2 = (pAV->pVFrame->pkt_dts * (int64_t) 1000 * (int64_t) time_base.num) / (int64_t) time_base.den ;
+                    pAV->vPTS = (pkt_pts * (int64_t) 1000 * (int64_t) time_base.num) / (int64_t) time_base.den ;
+                    if( pAV->verbose ) {
+                        fprintf(stderr, "V pts %d [pkt_pts %ld], pts2 %d [pkt_dts %ld]\n", pAV->vPTS, pkt_pts, vPTS2, pAV->pVFrame->pkt_dts);
+                    }
+                } else {
+                    if( pAV->verbose ) {
+                        fprintf(stderr, "V pts ?? [pkt_pts %ld], pts2 ?? [pkt_dts %ld]\n", pkt_pts, pAV->pVFrame->pkt_dts);
+                    }
                 }
                 resPTS = pAV->vPTS; // Video Frame!
 
-                #if 0
-                printf("tex2D codec %dx%d - frame %dx%d - width %d tex / %d linesize, pixfmt 0x%X, texType 0x%x, texTarget 0x%x\n", 
-                         pAV->pVCodecCtx->width, pAV->pVCodecCtx->height, 
-                         pAV->pVFrame->width, pAV->pVFrame->height, pAV->vTexWidth[0], pAV->pVFrame->linesize[0],
-                         texFmt, texType, texTarget);
-                #endif
-
                 // 1st plane or complete packed frame
                 // FIXME: Libav Binary compatibility! JAU01
-                #if 0
-                GLenum glerr = pAV->procAddrGLGetError();
-                printf("TexSubImage2D.1 texTarget 0x%x, offset %d / %d, size %d x %d, fmt 0x%X, type 0x%X, pre-err 0x%X, ", 
-                         texTarget, 0, 0, pAV->vTexWidth[0], pAV->pVCodecCtx->height, texFmt, texType, glerr);
-                #endif
+                DBG_TEXSUBIMG2D_a('Y',pAV,0);
                 pAV->procAddrGLTexSubImage2D(texTarget, 0, 
                                         0,                 0, 
                                         pAV->vTexWidth[0], pAV->pVCodecCtx->height, 
                                         texFmt, texType, pAV->pVFrame->data[0]);
-                #if 0
-                glerr = pAV->procAddrGLGetError();
-                printf("err 0x%X\n", glerr);
-                #endif
+                DBG_TEXSUBIMG2D_b(pAV);
 
                 if(pAV->vPixFmt == PIX_FMT_YUV420P) {
                     // U plane
                     // FIXME: Libav Binary compatibility! JAU01
-                    #if 0
-                    printf("TexSubImage2D.U texTarget 0x%x, offset %d / %d, size %d x %d, fmt 0x%X, type 0x%X, ", 
-                             texTarget, pAV->pVCodecCtx->width, 0, pAV->vTexWidth[1], pAV->pVCodecCtx->height/2,
-                             texFmt, texType);
-                    #endif
+                    DBG_TEXSUBIMG2D_a('U',pAV,1);
                     pAV->procAddrGLTexSubImage2D(texTarget, 0, 
                                             pAV->pVCodecCtx->width, 0,
                                             pAV->vTexWidth[1],      pAV->pVCodecCtx->height/2, 
                                             texFmt, texType, pAV->pVFrame->data[1]);
-                    #if 0
-                    glerr = pAV->procAddrGLGetError();
-                    printf("err 0x%X\n", glerr);
-                    #endif
+                    DBG_TEXSUBIMG2D_b(pAV);
                     // V plane
                     // FIXME: Libav Binary compatibility! JAU01
-                    #if 0
-                    printf("TexSubImage2D.V texTarget 0x%x, offset %d / %d, size %d x %d, fmt 0x%X, type 0x%X, ", 
-                             texTarget, pAV->pVCodecCtx->width, pAV->pVCodecCtx->height/2, pAV->vTexWidth[2], pAV->pVCodecCtx->height/2,
-                             texFmt, texType);
-                    #endif
+                    DBG_TEXSUBIMG2D_a('V',pAV,2);
                     pAV->procAddrGLTexSubImage2D(texTarget, 0, 
                                             pAV->pVCodecCtx->width, pAV->pVCodecCtx->height/2,
                                             pAV->vTexWidth[2],      pAV->pVCodecCtx->height/2, 
                                             texFmt, texType, pAV->pVFrame->data[2]);
-                    #if 0
-                    glerr = pAV->procAddrGLGetError();
-                    printf("err 0x%X\n", glerr);
-                    #endif
+                    DBG_TEXSUBIMG2D_b(pAV);
                 } // FIXME: Add more planar formats !
             }
         }

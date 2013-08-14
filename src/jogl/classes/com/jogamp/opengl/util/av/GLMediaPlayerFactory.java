@@ -47,9 +47,12 @@ public class GLMediaPlayerFactory {
             sink = create(cl, FFMPEGMediaPlayerClazzName);
         }
         if( null == sink ) {
-            sink = new NullGLMediaPlayer();
+            sink = createNull();
         }
         return sink;
+    }
+    public static GLMediaPlayer createNull() {
+        return new NullGLMediaPlayer();
     }
     
     public static GLMediaPlayer create(final ClassLoader cl, String implName) {

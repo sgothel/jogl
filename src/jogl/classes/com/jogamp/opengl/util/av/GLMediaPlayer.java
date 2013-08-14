@@ -34,19 +34,37 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GLException;
 
 import jogamp.opengl.Debug;
+import jogamp.opengl.util.av.GLMediaPlayerImpl;
 
 import com.jogamp.opengl.util.texture.TextureSequence;
 
 /**
- * Lifecycle of an GLMediaPlayer:
+ * GLMediaPlayer interface specifies a {@link TextureSequence}
+ * with a video stream as it's source.
+ * <p>
+ * Audio maybe supported and played back internally or via an {@link AudioSink} implementation,
+ * if an audio stream is selected in {@link #initGLStream(GL, int, URLConnection, int, int)}.
+ * </p>  
+ * <a name="lifecycle"><h5>GLMediaPlayer Lifecycle</h5></a>
+ * <p>
  * <table border="1">
- *   <tr><th>action</th>                                        <th>state before</th>        <th>state after</th></tr>
- *   <tr><td>{@link #initGLStream(GL, int, URLConnection)}</td> <td>Uninitialized</td>       <td>Stopped</td></tr>
- *   <tr><td>{@link #start()}</td>                              <td>Stopped, Paused</td>     <td>Playing</td></tr>
- *   <tr><td>{@link #stop()}</td>                               <td>Playing, Paused</td>     <td>Stopped</td></tr>
- *   <tr><td>{@link #pause()}</td>                              <td>Playing</td>             <td>Paused</td></tr>
- *   <tr><td>{@link #destroy(GL)}</td>                          <td>ANY</td>                 <td>Uninitialized</td></tr>
+ *   <tr><th>action</th>                                                  <th>state before</th>        <th>state after</th></tr>
+ *   <tr><td>{@link #initGLStream(GL, int, URLConnection, int, int)}</td> <td>Uninitialized</td>       <td>Paused</td></tr>
+ *   <tr><td>{@link #play()}</td>                                         <td>Paused</td>              <td>Playing</td></tr>
+ *   <tr><td>{@link #pause()}</td>                                        <td>Playing</td>             <td>Paused</td></tr>
+ *   <tr><td>{@link #seek(int)}</td>                                      <td>Playing, Paused</td>     <td>Unchanged</td></tr>
+ *   <tr><td>{@link #destroy(GL)}</td>                                    <td>ANY</td>                 <td>Uninitialized</td></tr>
  * </table>
+ * </p>
+ * <a name="streamIDs"><h5>Audio and video Stream IDs</h5></a>
+ * <p>
+ * <table border="1">
+ *   <tr><th>value</th>                    <th>request</th>             <th>get</th></tr>
+ *   <tr><td>{@link #STREAM_ID_NONE}</td>  <td>mute</td>                <td>not available</td></tr>
+ *   <tr><td>{@link #STREAM_ID_AUTO}</td>  <td>auto</td>                <td>unspecified</td></tr>
+ *   <tr><td>&ge;0</td>                    <td>specific stream</td>     <td>specific stream</td></tr>
+ * </table>
+ * </p>
  * <p>
  * Current implementations (check each API doc link for details):
  * <ul>
@@ -76,14 +94,21 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  */
 public interface GLMediaPlayer extends TextureSequence {
     public static final boolean DEBUG = Debug.debug("GLMediaPlayer");
+    
+    /** Constant {@value} for <i>mute</i> or <i>not available</i>. See <a href="#streamIDs">Audio and video Stream IDs</a>. */
+    public static final int STREAM_ID_NONE = -2;
+    /** Constant {@value} for <i>auto</i> or <i>unspecified</i>. See <a href="#streamIDs">Audio and video Stream IDs</a>. */
+    public static final int STREAM_ID_AUTO = -1;
         
     public interface GLMediaEventListener extends TexSeqEventListener<GLMediaPlayer> {
     
-        static final int EVENT_CHANGE_SIZE   = 1<<0;
-        static final int EVENT_CHANGE_FPS    = 1<<1;
-        static final int EVENT_CHANGE_BPS    = 1<<2;
-        static final int EVENT_CHANGE_LENGTH = 1<<3;
-        static final int EVENT_CHANGE_CODEC  = 1<<3;
+        static final int EVENT_CHANGE_VID    = 1<<0;
+        static final int EVENT_CHANGE_AID    = 1<<1;
+        static final int EVENT_CHANGE_SIZE   = 1<<2;
+        static final int EVENT_CHANGE_FPS    = 1<<3;
+        static final int EVENT_CHANGE_BPS    = 1<<4;
+        static final int EVENT_CHANGE_LENGTH = 1<<5;
+        static final int EVENT_CHANGE_CODEC  = 1<<6;
     
         /**
          * @param mp the event source 
@@ -93,8 +118,11 @@ public interface GLMediaPlayer extends TextureSequence {
         public void attributesChanges(GLMediaPlayer mp, int event_mask, long when);    
     }
     
+    /**
+     * See <a href="#lifecycle">GLMediaPlayer Lifecycle</a>.
+     */
     public enum State {
-        Uninitialized(0), Stopped(1), Playing(2), Paused(3); 
+        Uninitialized(0), Playing(1), Paused(2);
         
         public final int id;
 
@@ -120,74 +148,106 @@ public interface GLMediaPlayer extends TextureSequence {
      * Sets the stream to be used. Initializes all stream related states inclusive OpenGL ones,
      * if <code>gl</code> is not null.
      * <p>
-     * Uninitialized -> Stopped
+     * <a href="#lifecycle">GLMediaPlayer Lifecycle</a>: Uninitialized -> Paused
      * </p>
      * @param gl current GL object. If null, no video output and textures will be available.
      * @param textureCount desired number of buffered textures to be decoded off-thread, use <code>1</code> for on-thread decoding.  
      * @param urlConn the stream connection
+     * @param vid video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
+     * @param aid video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
      * @return the new state
      * 
      * @throws IllegalStateException if not invoked in state Uninitialized 
      * @throws IOException in case of difficulties to open or process the stream
      * @throws GLException in case of difficulties to initialize the GL resources
      */
-    public State initGLStream(GL gl, int textureCount, URLConnection urlConn) throws IllegalStateException, GLException, IOException;
+    public State initGLStream(GL gl, int textureCount, URLConnection urlConn, int vid, int aid) throws IllegalStateException, GLException, IOException;
+    
+    /** 
+     * If implementation uses a {@link AudioSink}, it's instance will be returned.
+     * <p> 
+     * The {@link AudioSink} instance is available after {@link #initGLStream(GL, int, URLConnection, int, int)}, 
+     * if used by implementation.
+     * </p> 
+     */
+    public AudioSink getAudioSink();
     
     /**
      * Releases the GL and stream resources.
      * <p>
-     * <code>ANY</code> -> Uninitialized
+     * <a href="#lifecycle">GLMediaPlayer Lifecycle</a>: <code>ANY</code> -> Uninitialized
      * </p>
      */
     public State destroy(GL gl);
 
-    public void setPlaySpeed(float rate);
+    /**
+     * Sets the playback speed.
+     * <p>
+     * Play speed is set to <i>normal</i>, i.e. <code>1.0f</code>
+     * if <code> abs(1.0f - rate) < 0.01f</code> to simplify test.
+     * </p>
+     * @return true if successful, otherwise false, i.e. due to unsupported value range of implementation. 
+     */
+    public boolean setPlaySpeed(float rate);
 
     public float getPlaySpeed();
 
     /**
-     * Stopped/Paused -> Playing
+     * <a href="#lifecycle">GLMediaPlayer Lifecycle</a>: Paused -> Playing
      */
-    public State start();
+    public State play();
 
     /**
-     * Playing -> Paused
+     * <a href="#lifecycle">GLMediaPlayer Lifecycle</a>: Playing -> Paused
      */
     public State pause();
 
     /**
-     * Playing/Paused -> Stopped
-     */
-    public State stop();
-    
-    /**
-     * @return the current state, either Uninitialized, Stopped, Playing, Paused
-     */
-    public State getState();
-    
-    /**
-     * @return current streaming position in milliseconds 
-     **/
-    public int getCurrentPosition();
-
-    /**
-     * @return current video PTS in milliseconds of {@link #getLastTexture()} 
-     **/
-    public int getVideoPTS();
-    
-    /**
-     * @return current audio PTS in milliseconds. 
-     **/
-    public int getAudioPTS();
-    
-    /**
-     * Allowed in state Stopped, Playing and Paused, otherwise ignored.
+     * Allowed in state Playing and Paused, otherwise ignored,
+     * see <a href="#lifecycle">GLMediaPlayer Lifecycle</a>. 
      * 
      * @param msec absolute desired time position in milliseconds 
      * @return time current position in milliseconds, after seeking to the desired position  
      **/
     public int seek(int msec);
 
+    /**
+     * See <a href="#lifecycle">GLMediaPlayer Lifecycle</a>.
+     * @return the current state, either Uninitialized, Playing, Paused
+     */
+    public State getState();
+    
+    /**
+     * Return the video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>.
+     */
+    public int getVID();
+    
+    /**
+     * Return the audio stream id, see <a href="#streamIDs">audio and video Stream IDs</a>.
+     */
+    public int getAID();
+    
+    /**
+     * @return the current decoded frame count since {@link #initGLStream(GL, int, URLConnection, int, int)}.
+     */
+    public int getDecodedFrameCount();
+    
+    /**
+     * @return the current presented frame count since {@link #initGLStream(GL, int, URLConnection, int, int)}, 
+     *         increased by {@link #getNextTexture(GL, boolean)}.
+     */
+    public int getPresentedFrameCount();
+    
+    /**
+     * @return current video presentation timestamp (PTS) in milliseconds of {@link #getLastTexture()} 
+     **/
+    public int getVideoPTS();
+    
+    /**
+     * @return current audio presentation timestamp (PTS) in milliseconds. 
+     **/
+    public int getAudioPTS();
+    
     /**
      * {@inheritDoc}
      */
@@ -225,7 +285,13 @@ public interface GLMediaPlayer extends TextureSequence {
      * <i>Warning:</i> Optional information, may not be supported by implementation.
      * @return the total number of video frames
      */
-    public long getTotalFrames();
+    public int getVideoFrames();
+
+    /**
+     * <i>Warning:</i> Optional information, may not be supported by implementation.
+     * @return the total number of audio frames
+     */
+    public int getAudioFrames();
 
     /**
      * @return total duration of stream in msec.
@@ -262,6 +328,8 @@ public interface GLMediaPlayer extends TextureSequence {
 
     public String toString();
 
+    public String getPerfString();
+    
     public void addEventListener(GLMediaEventListener l);
 
     public void removeEventListener(GLMediaEventListener l);

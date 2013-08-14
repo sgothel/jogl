@@ -58,6 +58,18 @@ typedef GLenum (APIENTRYP PFNGLGETERRORPROC) (void);
  */
 #define AV_TIME_BASE_MSEC    (AV_TIME_BASE/1000)
 
+#define AV_VERSION_MAJOR(i) ( ( i >> 16 ) & 0xFF )
+#define AV_VERSION_MINOR(i) ( ( i >>  8 ) & 0xFF )
+#define AV_VERSION_SUB(i)   ( ( i >>  0 ) & 0xFF )
+
+/** Sync w/ GLMediaPlayer.STREAM_ID_NONE */
+#define AV_STREAM_ID_NONE -2
+
+/** Sync w/ GLMediaPlayer.STREAM_ID_AUTO */
+#define AV_STREAM_ID_AUTO -1
+
+#define AV_HAS_API_REQUEST_CHANNELS(pAV) (AV_VERSION_MAJOR(pAV->avcodecVersion) < 55)
+
 static inline float my_av_q2f(AVRational a){
     return a.num / (float) a.den;
 }
@@ -67,6 +79,10 @@ static inline int32_t my_av_q2i32(int32_t snum, AVRational a){
 
 typedef struct {
     int32_t          verbose;
+
+    uint32_t         avcodecVersion;
+    uint32_t         avformatVersion;
+    uint32_t         avutilVersion;
 
     PFNGLTEXSUBIMAGE2DPROC procAddrGLTexSubImage2D;
     PFNGLGETERRORPROC procAddrGLGetError;
@@ -103,7 +119,8 @@ typedef struct {
     int32_t          bps_stream; // bits per seconds
     int32_t          bps_video;  // bits per seconds
     int32_t          bps_audio;  // bits per seconds
-    int32_t          totalFrames;
+    int32_t          frames_video;
+    int32_t          frames_audio;
     int32_t          duration;   // msec
     int32_t          start_time; // msec
 

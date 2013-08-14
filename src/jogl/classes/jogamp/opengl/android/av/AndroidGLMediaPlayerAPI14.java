@@ -28,13 +28,13 @@
 package jogamp.opengl.android.av;
 
 import java.io.IOException;
-import java.nio.Buffer;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLES2;
 
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.Platform;
+import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureSequence;
 
@@ -100,7 +100,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final boolean startImpl() {
+    protected final boolean playImpl() {
         if(null != mp) {        
             try {
                 mp.start();
@@ -131,22 +131,6 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final boolean stopImpl() {
-        if(null != mp) {
-            wakeUp(false);
-            try {
-                mp.stop();
-                return true;
-            } catch (IllegalStateException ise) {
-                if(DEBUG) {
-                    ise.printStackTrace();
-                }
-            }
-        }
-        return false;
-    }
-    
-    @Override
     protected final int seekImpl(int msec) {
         if(null != mp) {
             mp.seekTo(msec);
@@ -165,15 +149,19 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected final int getCurrentPositionImpl() { return null != mp ? mp.getCurrentPosition() : 0; }
-    
-    @Override
-    protected final int getAudioPTSImpl() { return getCurrentPositionImpl(); }    
+    protected final int getAudioPTSImpl() { return null != mp ? mp.getCurrentPosition() : 0; }    
 
     @Override
     protected final void destroyImpl(GL gl) {
         if(null != mp) {
             wakeUp(false);
+            try {
+                mp.stop();
+            } catch (IllegalStateException ise) {
+                if(DEBUG) {
+                    ise.printStackTrace();
+                }
+            }
             mp.release();
             mp = null;
         }
@@ -198,8 +186,13 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected final void initGLStreamImpl(GL gl) throws IOException {
+    protected final void initGLStreamImpl(GL gl, int vid, int aid) throws IOException {
         if(null!=mp && null!=urlConn) {
+            if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
+                mp.setVolume(0f, 0f);
+                // FIXME: Disable audio handling
+            } // else FIXME: Select aid !
+            // Note: Both FIXMEs seem to be n/a via Android's MediaPlayer -> Switch to API level 16 MediaCodec/MediaExtractor ..
             try {
                 final Uri uri = Uri.parse(urlConn.getURL().toExternalForm());        
                 mp.setDataSource(StaticContext.getContext(), uri);
@@ -213,20 +206,18 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             if( null == stex ) {
                 throw new InternalError("XXX");
             }
-            final Surface surf = new Surface(stex);
-            mp.setSurface(surf);
-            surf.release();
             mp.setSurface(null);
             try {
                 mp.prepare();
             } catch (IOException ioe) {
                 throw new IOException("MediaPlayer failed to process stream <"+urlConn.getURL().toExternalForm()+">: "+ioe.getMessage(), ioe);
             }
+            final int r_aid = GLMediaPlayer.STREAM_ID_NONE == aid ? GLMediaPlayer.STREAM_ID_NONE : GLMediaPlayer.STREAM_ID_AUTO;
             final String icodec = "android";
-            updateAttributes(mp.getVideoWidth(), mp.getVideoHeight(), 
-                             0, 0, 0, 
-                             0f, 0, mp.getDuration(), 
-                             icodec, icodec);
+            updateAttributes(GLMediaPlayer.STREAM_ID_AUTO, r_aid, 
+                             mp.getVideoWidth(), mp.getVideoHeight(), 0, 
+                             0, 0, 0f, 
+                             0, 0, mp.getDuration(), icodec, icodec);
         }
     }
     
@@ -264,8 +255,6 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
         }
         return true;
     }
-    @Override
-    protected final void syncFrame2Audio(TextureFrame frame) {}
     
     @Override
     protected final TextureSequence.TextureFrame createTexImage(GL gl, int texName) {

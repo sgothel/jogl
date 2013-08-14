@@ -44,6 +44,7 @@ import com.jogamp.newt.opengl.GLWindow;
 
 import com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieCube;
 import com.jogamp.opengl.util.Animator;
+import com.jogamp.opengl.util.av.GLMediaPlayer;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -84,7 +85,7 @@ public class MovieCubeActivity0 extends NewtBaseActivity {
            final Animator animator = new Animator();
            
            // Main           
-           final MovieCube demoMain = new MovieCube(urlConnection0, -2.3f, 0f, 0f);
+           final MovieCube demoMain = new MovieCube(urlConnection0, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, -2.3f, 0f, 0f);
            final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);
            glWindowMain.setFullscreen(true);
            setContentView(getWindow(), glWindowMain);

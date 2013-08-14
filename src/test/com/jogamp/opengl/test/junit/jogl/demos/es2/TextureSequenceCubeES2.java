@@ -332,22 +332,32 @@ public class TextureSequenceCubeES2 implements GLEventListener {
     }
 
 
+    @Override
     public void dispose(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         texSeq = null;        
         pmvMatrixUniform = null;
-        pmvMatrix.destroy();
-        pmvMatrix=null;
-        st.destroy(gl);
-        st=null;
+        if( null != pmvMatrix ) {
+            pmvMatrix.destroy();
+            pmvMatrix=null;
+        }
+        if( null != st ) {
+            st.destroy(gl);
+            st=null;
+        }
     }
 
+    @Override
     public void display(GLAutoDrawable drawable) {
         GL2ES2 gl = drawable.getGL().getGL2ES2();
 
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
-
+        
+        if( null == st ) {
+            return;
+        }
+        
         st.useProgram(gl, true);
         
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
@@ -379,9 +389,6 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         st.useProgram(gl, false);        
     }
 
-    public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
-    }
-    
     static final float[] light_position = { -50.f, 50.f, 50.f, 0.f };
     static final float[] light_ambient = { 0.125f, 0.125f, 0.125f, 1.f };
     static final float[] light_diffuse = { 1.0f, 1.0f, 1.0f, 1.f };

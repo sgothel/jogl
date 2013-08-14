@@ -110,9 +110,12 @@ public interface TextureSequence {
      * to associated related data. 
      */
     public static class TextureFrame {
+        /** Constant marking an invalid PTS, i.e. Integer.MIN_VALUE {@value}. */
+        public static final int INVALID_PTS = Integer.MIN_VALUE;
+        
         public TextureFrame(Texture t) {
             texture = t;
-            pts = 0;
+            pts = INVALID_PTS;
         }
         
         public final Texture getTexture() { return texture; }

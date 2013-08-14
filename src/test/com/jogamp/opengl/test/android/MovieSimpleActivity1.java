@@ -111,7 +111,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
            final Animator animator = new Animator();
            
            // Main           
-           final MovieSimple demoMain = new MovieSimple(urlConnection0);
+           final MovieSimple demoMain = new MovieSimple(urlConnection0, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO);
            if(mPlayerHUD) {
                demoMain.setEffects(MovieSimple.EFFECT_GRADIENT_BOTTOM2TOP);
                demoMain.setTransparency(0.9f);
@@ -154,7 +154,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                            glWindowHUD.addGLEventListener(new MovieSimple(sharedPlayer));                            
                         } else {
                            try {
-                               glWindowHUD.addGLEventListener(new MovieSimple(urlConnection1));
+                               glWindowHUD.addGLEventListener(new MovieSimple(urlConnection1, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO));
                            } catch (IOException e) {
                                e.printStackTrace();
                            }

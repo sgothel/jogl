@@ -46,6 +46,9 @@ import javax.media.opengl.GLUniformData;
 import javax.media.opengl.fixedfunc.GLMatrixFunc;
 
 import com.jogamp.newt.Window;
+import com.jogamp.newt.event.KeyAdapter;
+import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.event.MouseAdapter;
 import com.jogamp.newt.event.MouseEvent;
 import com.jogamp.newt.event.MouseListener;
@@ -54,6 +57,7 @@ import com.jogamp.newt.event.WindowEvent;
 import com.jogamp.newt.opengl.GLWindow;
 import com.jogamp.opengl.JoglVersion;
 import com.jogamp.opengl.test.junit.util.MiscUtils;
+import com.jogamp.opengl.test.junit.util.UITestCase;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLArrayDataServer;
 import com.jogamp.opengl.util.PMVMatrix;
@@ -69,6 +73,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
 public class MovieSimple implements GLEventListener, GLMediaEventListener {
+    static boolean waitForKey = false;
     private int winWidth, winHeight;
     int textureCount = 3; // default - threaded
     private int prevMouseX; // , prevMouseY;
@@ -98,7 +103,8 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
     }    
 
     GLMediaPlayer mPlayer;
-    URLConnection stream = null;
+    final URLConnection stream;
+    final int vid, aid;
     boolean mPlayerExternal;
     boolean mPlayerShared;
     boolean mPlayerScaleOrig;
@@ -110,7 +116,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
                 if(GLMediaPlayer.State.Playing == mPlayer.getState()) {
                     mPlayer.pause();
                 } else {
-                    mPlayer.start();
+                    mPlayer.play();
                 }
             }
         }
@@ -131,9 +137,9 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
             
             if(y>winHeight/2) {
                 final float dp  = (float)(x-prevMouseX)/(float)winWidth;
-                mPlayer.seek(mPlayer.getCurrentPosition() + (int) (mPlayer.getDuration() * dp));                
+                mPlayer.seek(mPlayer.getVideoPTS() + (int) (mPlayer.getDuration() * dp));                
             } else {
-                mPlayer.start();
+                mPlayer.play();
                 rotate = 1;                
                 zoom = zoom1;
             }
@@ -149,13 +155,74 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         }
     };
     
-    public MovieSimple(URLConnection stream) throws IOException {
+    private final KeyListener keyAction = new KeyAdapter() {
+        public void keyReleased(KeyEvent e)  {
+            if( e.isAutoRepeat() ) {
+                return;
+            }            
+            System.err.println("MC "+e);
+            int pts0 = mPlayer.getVideoPTS();
+            int pts1 = 0;
+            switch(e.getKeyCode()) {
+                case KeyEvent.VK_3:
+                case KeyEvent.VK_RIGHT:      pts1 = pts0 +  1000; break;
+                case KeyEvent.VK_4:
+                case KeyEvent.VK_UP:         pts1 = pts0 + 10000; break;
+                case KeyEvent.VK_2:
+                case KeyEvent.VK_LEFT:       pts1 = pts0 -  1000; break;
+                case KeyEvent.VK_1:
+                case KeyEvent.VK_DOWN:       pts1 = pts0 - 10000; break;
+                case KeyEvent.VK_ESCAPE:
+                case KeyEvent.VK_DELETE:
+                case KeyEvent.VK_BACK_SPACE: {
+                    mPlayer.setPlaySpeed(1.0f);
+                    mPlayer.seek(0);
+                    mPlayer.play();
+                    break;
+                }
+                case KeyEvent.VK_SPACE: {
+                    if(GLMediaPlayer.State.Paused == mPlayer.getState()) {
+                        mPlayer.play();
+                    } else {
+                        mPlayer.pause();
+                    }
+                    break;
+                }
+                case KeyEvent.VK_SUBTRACT: {
+                      float playSpeed = mPlayer.getPlaySpeed();
+                      if( e.isShiftDown() ) {
+                          playSpeed /= 2.0f;
+                      } else {
+                          playSpeed -= 0.1f;
+                      }
+                      mPlayer.setPlaySpeed(playSpeed); 
+                    } break;
+                case KeyEvent.VK_ADD: {
+                      float playSpeed = mPlayer.getPlaySpeed();
+                      if( e.isShiftDown() ) {
+                          playSpeed *= 2.0f;
+                      } else {
+                          playSpeed += 0.1f;
+                      }
+                      mPlayer.setPlaySpeed(playSpeed); 
+                    } break;
+            }
+            
+            if( 0 != pts1 ) {
+                mPlayer.seek(pts1);
+            }
+        }        
+    };
+    
+    public MovieSimple(URLConnection stream, int vid, int aid) throws IOException {
         mPlayerScaleOrig = false;
         mPlayerShared = false;
         mPlayerExternal = false;
         mPlayer = GLMediaPlayerFactory.createDefault();
         mPlayer.addEventListener(this);
         this.stream = stream;
+        this.vid = vid;
+        this.aid = aid;
         System.out.println("pC.1 "+mPlayer);
     }
 
@@ -166,6 +233,8 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         mPlayer = sharedMediaPlayer;
         mPlayer.addEventListener(this);
         this.stream = null;
+        this.vid = sharedMediaPlayer.getVID();
+        this.aid = sharedMediaPlayer.getAID();
         System.out.println("pC.2 shared "+mPlayerShared+", "+mPlayer);
     }
     
@@ -188,20 +257,13 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         // System.out.println("newFrameAvailable: "+mp+", when "+when);        
     }
 
-    public void start() {
+    public void play() {
         if(null!=mPlayer) {
-            mPlayer.start();
+            mPlayer.play();
             System.out.println("pStart "+mPlayer);
         }        
     }
 
-    public void stop() {
-        if(null!=mPlayer) {
-            mPlayer.stop();
-            System.out.println("pStop "+mPlayer);
-        }        
-    }
-    
     ShaderState st;
     PMVMatrix pmvMatrix;
     GLUniformData pmvMatrixUniform;
@@ -242,6 +304,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         st.attachShaderProgram(gl, sp, false);
     }
 
+    @Override
     public void init(GLAutoDrawable drawable) {
         zoom0 =  orthoProjection ? 0f : -2.5f;
         zoom1 = orthoProjection ? 0f : -5f;
@@ -252,12 +315,15 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         System.err.println("Alpha: "+alpha+", opaque "+drawable.getChosenGLCapabilities().isBackgroundOpaque()+
                            ", "+drawable.getClass().getName()+", "+drawable);
         
+        if(waitForKey) {
+            UITestCase.waitForKey("Init>");
+        }        
         final Texture tex;
         boolean useExternalTexture = false;
         try {
             System.out.println("p0 "+mPlayer+", shared "+mPlayerShared);
             if(!mPlayerShared) {
-                mPlayer.initGLStream(gl, textureCount, stream);
+                mPlayer.initGLStream(gl, textureCount, stream, vid, aid);
             }
             tex = mPlayer.getLastTexture().getTexture();
             System.out.println("p1 "+mPlayer+", shared "+mPlayerShared);
@@ -392,7 +458,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         System.out.println(st);
 
         if(null!=mPlayer) {
-            start();
+            play();
             System.out.println("p2 "+mPlayer);
         }
         
@@ -402,11 +468,13 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         if (upstreamWidget instanceof Window) {            
             final Window window = (Window) upstreamWidget;
             window.addMouseListener(mouseAction);
+            window.addKeyListener(keyAction);
             winWidth = window.getWidth();
             winHeight = window.getHeight();
         }
     }
     
+    @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
         if(null == mPlayer) { return; }
         winWidth = width;
@@ -442,34 +510,51 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         pmvMatrix.glTranslatef(0, 0, zoom0);        
     }
 
+    @Override
     public void dispose(GLAutoDrawable drawable) {
         if(null == mPlayer) { return; }
         
-        stop();
-        System.out.println("pD.1 "+mPlayer);
-        
+        System.out.println("pD.1 "+mPlayer);        
         GL2ES2 gl = drawable.getGL().getGL2ES2();
-
-        mPlayer.removeEventListener(this);
-        if(!mPlayerExternal) {
-            mPlayer.destroy(gl);
+        if( null != mPlayer ) {
+            mPlayer.removeEventListener(this);
+            if(!mPlayerExternal) {
+                mPlayer.destroy(gl);
+            }
         }
         System.out.println("pD.X "+mPlayer);
         mPlayer=null;
         pmvMatrixUniform = null;
-        pmvMatrix.destroy();
-        pmvMatrix=null;
-        st.destroy(gl);
-        st=null;
+        if(null != pmvMatrix) {
+            pmvMatrix.destroy();
+            pmvMatrix=null;
+        }
+        if(null != st) {
+            st.destroy(gl);
+            st=null;
+        }
     }
 
+    long lastPerfPos = 0;
+    
+    @Override
     public void display(GLAutoDrawable drawable) {
         if(null == mPlayer) { return; }
+        
+        final long currentPos = System.currentTimeMillis();
+        if( currentPos - lastPerfPos > 2000 ) {
+            System.err.println( mPlayer.getPerfString() );
+            lastPerfPos = currentPos;  
+        }
         
         GL2ES2 gl = drawable.getGL().getGL2ES2();        
 
         gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 
+        if(null == st) {
+            return;
+        }
+        
         st.useProgram(gl, true);
 
         pmvMatrix.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
@@ -506,9 +591,6 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         st.useProgram(gl, false);
     }
 
-    public void displayChanged(GLAutoDrawable drawable, boolean modeChanged, boolean deviceChanged) {
-    }
-
     public static void main(String[] args) throws IOException, MalformedURLException {
         int width = 640;
         int height = 600;
@@ -520,42 +602,60 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         boolean forceES3 = false;
         boolean forceGL3 = false;
         boolean forceGLDef = false;
+        int vid = GLMediaPlayer.STREAM_ID_AUTO;
+        int aid = GLMediaPlayer.STREAM_ID_AUTO;
+        final boolean origSize;
         
-        String url_s="http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4";        
-        for(int i=0; i<args.length; i++) {
-            if(args[i].equals("-width")) {
-                i++;
-                width = MiscUtils.atoi(args[i], width);
-            } else if(args[i].equals("-height")) {
-                i++;
-                height = MiscUtils.atoi(args[i], height);
-            } else if(args[i].equals("-textureCount")) {
-                i++;
-                textureCount = MiscUtils.atoi(args[i], textureCount);
-            } else if(args[i].equals("-es2")) {
-                forceES2 = true;
-            } else if(args[i].equals("-es3")) {
-                forceES3 = true;
-            } else if(args[i].equals("-gl3")) {
-                forceGL3 = true;
-            } else if(args[i].equals("-gldef")) {
-                forceGLDef = true;
-            } else if(args[i].equals("-projection")) {
-                ortho=false;
-            } else if(args[i].equals("-zoom")) {
-                zoom=true;
-            } else if(args[i].equals("-url")) {
-                i++;
-                url_s = args[i];
+        String url_s="http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4";
+        {
+            boolean _origSize = false;        
+            for(int i=0; i<args.length; i++) {
+                if(args[i].equals("-vid")) {
+                    i++;
+                    vid = MiscUtils.atoi(args[i], vid);
+                } else if(args[i].equals("-aid")) {
+                    i++;
+                    aid = MiscUtils.atoi(args[i], aid);
+                } else if(args[i].equals("-width")) {
+                    i++;
+                    width = MiscUtils.atoi(args[i], width);
+                } else if(args[i].equals("-height")) {
+                    i++;
+                    height = MiscUtils.atoi(args[i], height);
+                } else if(args[i].equals("-osize")) {
+                    _origSize = true;
+                } else if(args[i].equals("-textureCount")) {
+                    i++;
+                    textureCount = MiscUtils.atoi(args[i], textureCount);
+                } else if(args[i].equals("-es2")) {
+                    forceES2 = true;
+                } else if(args[i].equals("-es3")) {
+                    forceES3 = true;
+                } else if(args[i].equals("-gl3")) {
+                    forceGL3 = true;
+                } else if(args[i].equals("-gldef")) {
+                    forceGLDef = true;
+                } else if(args[i].equals("-projection")) {
+                    ortho=false;
+                } else if(args[i].equals("-zoom")) {
+                    zoom=true;
+                } else if(args[i].equals("-url")) {
+                    i++;
+                    url_s = args[i];
+                } else if(args[i].equals("-wait")) {
+                    waitForKey = true;
+                }
             }
+            origSize = _origSize;
         }
+        System.err.println("vid "+vid+", aid "+aid);
         System.err.println("textureCount "+textureCount);
         System.err.println("forceES2   "+forceES2);
         System.err.println("forceES3   "+forceES3);
         System.err.println("forceGL3   "+forceGL3);
         System.err.println("forceGLDef "+forceGLDef);
         
-        final MovieSimple ms = new MovieSimple(new URL(url_s).openConnection());
+        final MovieSimple ms = new MovieSimple(new URL(url_s).openConnection(), vid, aid);
         ms.setTextureCount(textureCount);
         ms.setScaleOrig(!zoom);
         ms.setOrthoProjection(ortho);
@@ -575,9 +675,21 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
             }        
             System.err.println("GLProfile: "+glp);
             GLCapabilities caps = new GLCapabilities(glp);
-            GLWindow window = GLWindow.create(caps);            
+            final GLWindow window = GLWindow.create(caps);            
 
             window.addGLEventListener(ms);
+            ms.mPlayer.addEventListener(new GLMediaEventListener() {
+                @Override
+                public void newFrameAvailable(GLMediaPlayer ts, TextureFrame newFrame, long when) {
+                }
+    
+                @Override
+                public void attributesChanges(final GLMediaPlayer mp, int event_mask, long when) {
+                    if( 0 != ( GLMediaEventListener.EVENT_CHANGE_SIZE & event_mask ) && origSize ) {
+                        window.setSize(mp.getWidth(), mp.getHeight());
+                    }
+                }            
+            });
 
             window.setSize(width, height);
             window.setVisible(true);

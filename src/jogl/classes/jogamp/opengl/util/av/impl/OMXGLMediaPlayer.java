@@ -88,15 +88,16 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     
     @Override
     protected void destroyImpl(GL gl) {
-        _detachVideoRenderer(moviePtr);
         if (moviePtr != 0) {
+            _stop(moviePtr);
+            _detachVideoRenderer(moviePtr);
             _destroyInstance(moviePtr);
             moviePtr = 0;
         }
     }
     
     @Override
-    protected void initGLStreamImpl(GL gl) throws IOException {
+    protected void initGLStreamImpl(GL gl, int vid, int aid) throws IOException {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
@@ -113,12 +114,8 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
     
     @Override
-    protected int getCurrentPositionImpl() {
-        return 0!=moviePtr ? _getCurrentPosition(moviePtr) : 0;
-    }
-    @Override
     protected int getAudioPTSImpl() {
-        return getCurrentPositionImpl();
+        return 0!=moviePtr ? _getCurrentPosition(moviePtr) : 0;
     }
 
     @Override
@@ -131,7 +128,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    public synchronized boolean startImpl() {
+    public synchronized boolean playImpl() {
         if(0==moviePtr) {
             return false;
         }
@@ -146,16 +143,6 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
             return false;
         }
         _pause(moviePtr);
-        return true;
-    }
-
-    /** @return time position after issuing the command */
-    @Override
-    public synchronized boolean stopImpl() {
-        if(0==moviePtr) {
-            return false;
-        }
-        _stop(moviePtr);
         return true;
     }
 
@@ -184,8 +171,6 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
         }
         return true;
     }
-    @Override
-    protected void syncFrame2Audio(TextureFrame frame) { }
     
     private String replaceAll(String orig, String search, String repl) {
         String dest=null;

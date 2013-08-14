@@ -38,6 +38,7 @@ import jogamp.opengl.util.av.GLMediaPlayerImpl;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
 import com.jogamp.opengl.util.texture.TextureData;
 import com.jogamp.opengl.util.texture.TextureIO;
@@ -62,7 +63,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final boolean startImpl() {
+    protected final boolean playImpl() {
         pos_start = (int)System.currentTimeMillis();
         return true;
     }
@@ -73,11 +74,6 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final boolean stopImpl() {
-        return true;
-    }
-    
-    @Override
     protected final int seekImpl(int msec) {
         pos_ms = msec;
         validatePos();
@@ -86,20 +82,16 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     
     @Override
     protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame, boolean blocking) {
+        nextFrame.setPTS( getAudioPTSImpl() );
         return true;
     }
-    @Override
-    protected final void syncFrame2Audio(TextureFrame frame) { }
     
     @Override
-    protected final int getCurrentPositionImpl() {
+    protected final int getAudioPTSImpl() { 
         pos_ms = (int)System.currentTimeMillis() - pos_start;
         validatePos();
         return pos_ms;
     }
-    @Override
-    protected final int getAudioPTSImpl() { return getCurrentPositionImpl(); }
-
 
     @Override
     protected final void destroyImpl(GL gl) {
@@ -110,7 +102,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
         
     @Override
-    protected final void initGLStreamImpl(GL gl) throws IOException {
+    protected final void initGLStreamImpl(GL gl, int vid, int aid) throws IOException {
         try {
             URLConnection urlConn = IOUtil.getResource("jogl/util/data/av/test-ntsc01-160x90.png", this.getClass().getClassLoader());
             if(null != urlConn) {
@@ -136,13 +128,14 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
                    GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, false, 
                    false, false, buffer, null);
         }
+        final int r_aid = GLMediaPlayer.STREAM_ID_NONE == aid ? GLMediaPlayer.STREAM_ID_NONE : GLMediaPlayer.STREAM_ID_AUTO; 
         final float _fps = 24f;
         final int _duration = 10*60*1000; // msec
         final int _totalFrames = (int) ( (_duration/1000)*_fps );
-        updateAttributes(_w, _h, 
-                         0, 0, 0, 
-                         _fps, _totalFrames, _duration, 
-                         "png-static", null);
+        updateAttributes(GLMediaPlayer.STREAM_ID_AUTO, r_aid, 
+                         _w, _h, 0, 
+                         0, 0, _fps, 
+                         _totalFrames, 0, _duration, "png-static", null);
     }
     
     @Override

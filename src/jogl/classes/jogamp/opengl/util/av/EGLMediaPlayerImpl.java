@@ -84,7 +84,7 @@ public abstract class EGLMediaPlayerImpl extends GLMediaPlayerImpl {
     }
     @Override
     protected final int validateTextureCount(int desiredTextureCount) {
-        return desiredTextureCount>1 ? desiredTextureCount : 2;
+        return desiredTextureCount>2 ? Math.max(4, desiredTextureCount) : 2;
     }
 
     @Override
