@@ -1059,7 +1059,7 @@ void OMXToolBasicAV_SetStreamEGLImageTexture2D(OMXToolBasicAV_t * pOMXAV, GLuint
 
     kdThreadMutexLock(pOMXAV->mutex);
     {
-        OMXToolImageBuffer_t *pBuf = &pOMXAV->buffers[i];
+        OMXToolImageBuffer_t *pBuf = &pOMXAV->buffers[0]; // FIXME: Move all sync/buffer handling to Java - Already done -> GLMediaPlayerImpl
         pBuf->tex=tex;
         pBuf->image=image;
         pBuf->sync=sync;
@@ -1640,7 +1640,7 @@ int ModuleTest()
 
         printf("6 eglGetError: 0x%x\n", eglGetError());
 
-        if(OMXToolBasicAV_SetStreamEGLImageTexture2D(pOMXAV, i, tex, image, sync)) {
+        if(OMXToolBasicAV_SetStreamEGLImageTexture2D(pOMXAV, tex, image, sync)) {
             return -1;
         }
     }

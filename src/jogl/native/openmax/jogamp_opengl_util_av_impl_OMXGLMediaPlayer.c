@@ -107,11 +107,11 @@ JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_OMXGLMediaPlayer__1setStr
 }
 
 JNIEXPORT void JNICALL Java_jogamp_opengl_util_av_impl_OMXGLMediaPlayer__1setStreamEGLImageTexture2D
-  (JNIEnv *env, jobject instance, jlong ptr, jint i, jint tex, jlong image, jlong sync)
+  (JNIEnv *env, jobject instance, jlong ptr, jint tex, jlong image, jlong sync)
 {
   OMXToolBasicAV_t *pOMXAV = (OMXToolBasicAV_t *)((void *)((intptr_t)ptr));
   if (pOMXAV != NULL) {
-    OMXToolBasicAV_SetStreamEGLImageTexture2D( pOMXAV, i, (GLuint) tex, 
+    OMXToolBasicAV_SetStreamEGLImageTexture2D( pOMXAV, (GLuint) tex, 
                                          (EGLImageKHR)(intptr_t)image,
                                          (EGLSyncKHR)(intptr_t)sync);
   }
