@@ -10,18 +10,67 @@ public class NullAudioSink implements AudioSink {
         return true;
     }
 
+    private volatile float playSpeed = 1.0f;
+    private volatile boolean playRequested = false;
+    
+    @Override
+    public final float getPlaySpeed() { return playSpeed; }
+    
+    @Override
+    public final boolean setPlaySpeed(float rate) { 
+        if( Math.abs(1.0f - rate) < 0.01f ) {
+            rate = 1.0f;
+        }
+        playSpeed = rate; 
+        return true;
+    }
+    
     @Override
     public AudioDataFormat getPreferredFormat() {
         return DefaultFormat;
     }
 
     @Override
-    public AudioDataFormat initSink(AudioDataFormat requestedFormat, int bufferCount) {
+    public AudioDataFormat initSink(AudioDataFormat requestedFormat, int frameCount) {
         return requestedFormat;
     }
     
     @Override
+    public boolean isPlaying() {
+        return playRequested;
+    }
+    
+    @Override
+    public void play() {
+        playRequested = true;
+    }
+    
+    @Override
+    public void pause() {
+        playRequested = false;
+    }
+    
+    @Override
+    public void flush() {        
+    }
+    
+    @Override
     public void destroy() {
+    }
+    
+    @Override
+    public final int getEnqueuedFrameCount() {
+        return 0;
+    }
+    
+    @Override
+    public int getFrameCount() {
+        return 0;
+    }
+    
+    @Override
+    public int getQueuedFrameCount() {
+        return 0;
     }
     
     @Override
@@ -33,18 +82,16 @@ public class NullAudioSink implements AudioSink {
     public int getQueuedTime() {
         return 0;
     }
-
+    
     @Override
-    public int getWritableBufferCount() {
+    public final int getPTS() { return 0; }
+    
+    @Override
+    public int getFreeFrameCount() {
         return 1;        
     }
     
     @Override
-    public boolean isDataAvailable(int data_size) {
-        return false;
-    }
-
-    @Override
-    public void writeData(AudioFrame audioFrame) {
-    }
+    public void enqueueData(AudioFrame audioFrame) {
+    }    
 }

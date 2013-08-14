@@ -41,12 +41,13 @@ public interface AudioSink {
      * Specifies the audio data format.
      */
     public static class AudioDataFormat {
-        public AudioDataFormat(AudioDataType dataType, int sampleRate, int sampleSize, int channelCount, boolean signed, boolean littleEndian) {
+        public AudioDataFormat(AudioDataType dataType, int sampleRate, int sampleSize, int channelCount, boolean signed, boolean fixedP, boolean littleEndian) {
             this.dataType = dataType;
             this.sampleRate = sampleRate;
             this.sampleSize = sampleSize;
             this.channelCount = channelCount;
             this.signed = signed;
+            this.fixedP = fixedP;
             this.littleEndian = littleEndian;
         }
         /** Audio data type. */
@@ -58,30 +59,32 @@ public interface AudioSink {
         /** Number of channels. */
         public final int channelCount;
         public final boolean signed;
+        /** Fixed or floating point values. Floating point 'float' has {@link #sampleSize} 32, 'double' has {@link #sampleSize} 64, */
+        public final boolean fixedP;
         public final boolean littleEndian;
         
         public String toString() { 
             return "AudioDataFormat[type "+dataType+", sampleRate "+sampleRate+", sampleSize "+sampleSize+", channelCount "+channelCount+
-                   ", signed "+signed+", "+(littleEndian?"little":"big")+"endian]"; }
+                   ", signed "+signed+", fixedP "+fixedP+", "+(littleEndian?"little":"big")+"endian]"; }
     }
-    /** Default {@link AudioDataFormat}, [type PCM, sampleRate 44100, sampleSize 16, channelCount 2, signed, littleEndian]. */    
-    public static final AudioDataFormat DefaultFormat = new AudioDataFormat(AudioDataType.PCM, 44100, 16, 2, true /* signed */, true /* littleEndian */);
+    /** Default {@link AudioDataFormat}, [type PCM, sampleRate 44100, sampleSize 16, channelCount 2, signed, fixedP, littleEndian]. */    
+    public static final AudioDataFormat DefaultFormat = new AudioDataFormat(AudioDataType.PCM, 44100, 16, 2, true /* signed */, true /* fixed point */, true /* littleEndian */);
     
     public static class AudioFrame {
         public final ByteBuffer data;
         public final int dataSize;
-        public final int audioPTS;
+        public final int pts;
         
-        public AudioFrame(ByteBuffer data, int dataSize, int audioPTS) {
+        public AudioFrame(ByteBuffer data, int dataSize, int pts) {
             if( dataSize > data.remaining() ) {
                 throw new IllegalArgumentException("Give size "+dataSize+" exceeds remaining bytes in ls "+data+". "+this);
             }
             this.data=data;
             this.dataSize=dataSize;
-            this.audioPTS=audioPTS;
+            this.pts=pts;
         }
         
-        public String toString() { return "AudioFrame[apts "+audioPTS+", data "+data+", payloadSize "+dataSize+"]"; }
+        public String toString() { return "AudioFrame[apts "+pts+", data "+data+", payloadSize "+dataSize+"]"; }
     }
     
     /** 
@@ -94,6 +97,19 @@ public interface AudioSink {
      */
     public boolean isInitialized();
 
+    /** Returns the playback speed. */
+    public float getPlaySpeed();
+    
+    /** 
+     * Sets the playback speed.
+     * <p>
+     * Play speed is set to <i>normal</i>, i.e. <code>1.0f</code>
+     * if <code> abs(1.0f - rate) < 0.01f</code> to simplify test.
+     * </p>
+     * @return true if successful, otherwise false, i.e. due to unsupported value range of implementation. 
+     */
+    public boolean setPlaySpeed(float s);
+    
     /** 
      * Returns the preferred {@link AudioDataFormat} by this sink.
      * <p>
@@ -117,52 +133,101 @@ public interface AudioSink {
      * The {@link #DefaultFormat} <i>should be</i> supported by all implementations.
      * </p>
      * @param requestedFormat the requested {@link AudioDataFormat}. 
-     * @param bufferCount number of buffers for sink
+     * @param frameCount number of frames to queue in this sink
      * @return if successful the chosen AudioDataFormat based on the <code>requestedFormat</code> and this sinks capabilities, otherwise <code>null</code>. 
      */
-    public AudioDataFormat initSink(AudioDataFormat requestedFormat, int bufferCount);
-
+    public AudioDataFormat initSink(AudioDataFormat requestedFormat, int frameCount);
+    
+    /**
+     * Returns true, if {@link #play()} has been requested <i>and</i> the sink is still playing,
+     * otherwise false.
+     */
+    public boolean isPlaying();
+    
+    /** 
+     * Play buffers queued via {@link #enqueueData(AudioFrame)} from current internal position.
+     * If no buffers are yet queued or the queue runs empty, playback is being continued when buffers are enqueued later on.
+     * @see #enqueueData(AudioFrame)
+     * @see #pause() 
+     */
+    public void play();
+    
+    /** 
+     * Pause playing buffers while keeping enqueued data incl. it's internal position.
+     * @see #play()
+     * @see #flush()
+     * @see #enqueueData(AudioFrame)
+     */
+    public void pause();
+    
+    /**
+     * Flush all queued buffers, implies {@link #pause()}.
+     * <p>
+     * {@link #initSink(AudioDataFormat, int)} must be called first.
+     * </p>
+     * @see #play()
+     * @see #pause()
+     * @see #enqueueData(AudioFrame)
+     */
+    public void flush();
     
     /** Destroys this instance, i.e. closes all streams and devices allocated. */
     public void destroy();
     
     /** 
-     * Returns the number of bytes queued for playing.
+     * Returns the number of allocated buffers as requested by 
+     * {@link #initSink(AudioDataFormat, int)}.
+     */
+    public int getFrameCount();
+
+    /** @return the current enqueued frames count since {@link #initSink(AudioDataFormat, int)}. */
+    public int getEnqueuedFrameCount();
+    
+    /** 
+     * Returns the current number of frames queued for playing.
      * <p>
-     * {@link #initSink(AudioDataFormat)} must be called first.
+     * {@link #initSink(AudioDataFormat, int)} must be called first.
+     * </p>
+     */
+    public int getQueuedFrameCount();
+    
+    /** 
+     * Returns the current number of bytes queued for playing.
+     * <p>
+     * {@link #initSink(AudioDataFormat, int)} must be called first.
      * </p>
      */
     public int getQueuedByteCount();
 
     /** 
-     * Returns the queued buffer time in milliseconds for playing.
+     * Returns the current queued frame time in milliseconds for playing.
      * <p>
-     * {@link #initSink(AudioDataFormat)} must be called first.
+     * {@link #initSink(AudioDataFormat, int)} must be called first.
      * </p>
      */
     public int getQueuedTime();
     
     /** 
-     * Returns the number of buffers in the sink available for writing.
-     * <p>
-     * {@link #initSink(AudioDataFormat)} must be called first.
-     * </p>
+     * Return the current audio presentation timestamp (PTS) in milliseconds.
      */
-    public int getWritableBufferCount();
+    public int getPTS();
     
     /** 
-     * Returns true if data is available to be written in the sink.
+     * Returns the current number of frames in the sink available for writing.
      * <p>
-     * {@link #initSink(AudioDataFormat)} must be called first.
+     * {@link #initSink(AudioDataFormat, int)} must be called first.
      * </p>
      */
-    public boolean isDataAvailable(int data_size);
-
+    public int getFreeFrameCount();
+    
     /** 
-     * Writes the remaining bytes of the given direct ByteBuffer to this sink.
+     * Enqueue the remaining bytes of the given {@link AudioFrame}'s direct ByteBuffer to this sink.
      * <p>
      * The data must comply with the chosen {@link AudioDataFormat} as returned by {@link #initSink(AudioDataFormat)}.
      * </p>
+     * <p>
+     * {@link #initSink(AudioDataFormat, int)} must be called first.
+     * </p>
      */
-    public void writeData(AudioFrame audioFrame);
+    public void enqueueData(AudioFrame audioFrame);    
 }

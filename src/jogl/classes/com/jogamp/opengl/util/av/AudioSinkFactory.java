@@ -42,9 +42,12 @@ public class AudioSinkFactory {
             sink = create(cl, JavaAudioSinkClazzName);
         }
         if( null == sink ) {
-            sink = new NullAudioSink();
+            sink = createNull();
         }
         return sink;
+    }
+    public static AudioSink createNull() {
+        return new NullAudioSink();
     }
 
     public static AudioSink create(final ClassLoader cl, String implName) {

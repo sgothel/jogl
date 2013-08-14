@@ -34,6 +34,8 @@ public class JavaSoundAudioSink implements AudioSink {
     private boolean initialized = false;
     private AudioDataFormat chosenFormat = null;
     
+    private volatile boolean playRequested = false;
+    
     static {
         boolean ok = false;
         try {
@@ -52,12 +54,20 @@ public class JavaSoundAudioSink implements AudioSink {
     }
     
     @Override
+    public final float getPlaySpeed() { return 1.0f; } // FIXME
+    
+    @Override
+    public final boolean setPlaySpeed(float rate) { 
+        return false; // FIXME 
+    }
+    
+    @Override
     public AudioDataFormat getPreferredFormat() {
         return DefaultFormat;
     }
     
     @Override
-    public AudioDataFormat initSink(AudioDataFormat requestedFormat, int bufferCount) {
+    public AudioDataFormat initSink(AudioDataFormat requestedFormat, int frameCount) {
         if( !staticAvailable ) {
             return null;
         }
@@ -84,6 +94,56 @@ public class JavaSoundAudioSink implements AudioSink {
     }
     
     @Override
+    public boolean isPlaying() {
+        return playRequested && auline.isRunning();
+    }
+    
+    @Override
+    public void play() {
+        if( null != auline ) {
+            playRequested = true;
+            playImpl();
+        }
+    }
+    private void playImpl() {
+        if( playRequested && !auline.isRunning() ) {
+            auline.start();
+        }
+    }
+    
+    @Override
+    public void pause() {
+        if( null != auline ) {
+            playRequested = false;
+            auline.stop();
+        }
+    }
+    
+    @Override
+    public void flush() {        
+        if( null != auline ) {
+            playRequested = false;
+            auline.stop();
+            auline.flush();
+        }
+    }
+
+    @Override
+    public final int getEnqueuedFrameCount() {
+        return 0; // FIXME
+    }
+    
+    @Override
+    public int getFrameCount() {
+        return 1;
+    }
+    
+    @Override
+    public int getQueuedFrameCount() {
+        return 0;
+    }
+    
+    @Override
     public boolean isInitialized() {
         return initialized;
     }
@@ -95,7 +155,7 @@ public class JavaSoundAudioSink implements AudioSink {
         // FIXEM: complete code!
     }
     
-    public void writeData(AudioFrame audioFrame) {
+    public void enqueueData(AudioFrame audioFrame) {
         int data_size = audioFrame.dataSize;
         final byte[] lala = new byte[data_size];
         final int p = audioFrame.data.position();
@@ -109,27 +169,29 @@ public class JavaSoundAudioSink implements AudioSink {
             len = auline.write(lala, written, data_size);
             data_size -= len;
             written += len;
-        }        
+        }
+        playImpl();
     }
-
+    
     @Override
     public int getQueuedByteCount() {
+        return auline.getBufferSize() - auline.available();
+    }
+    
+    @Override
+    public int getFreeFrameCount() {
         return auline.available();
     }
     
     @Override
     public int getQueuedTime() {
-        return 0; // FIXME
+        return getQueuedTimeImpl( getQueuedByteCount() );
+    }
+    private final int getQueuedTimeImpl(int byteCount) {
+        final int bytesPerSample = chosenFormat.sampleSize >>> 3; // /8
+        return byteCount / ( chosenFormat.channelCount * bytesPerSample * ( chosenFormat.sampleRate / 1000 ) );        
     }
 
-    
     @Override
-    public int getWritableBufferCount() {
-        return 1;
-    }
-    
-    public boolean isDataAvailable(int data_size) {
-        return auline.available()>=data_size;
-    }
-
+    public final int getPTS() { return 0; } // FIXME        
 }
