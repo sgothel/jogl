@@ -325,11 +325,11 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
 
     public void glVertexPointer(GLArrayData array) {
       if(array.isVBO()) {
-          if(!gl.glIsVBOArrayEnabled()) {
+          if(!gl.glIsVBOArrayBound()) {
             throw new GLException("VBO array is not enabled: "+array);
           }
       } else {
-          if(gl.glIsVBOArrayEnabled()) {
+          if(gl.glIsVBOArrayBound()) {
             throw new GLException("VBO array is not disabled: "+array);
           }
           Buffers.rangeCheck(array.getBuffer(), 1);
@@ -354,11 +354,11 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
 
     public void glColorPointer(GLArrayData array) {
       if(array.isVBO()) {
-          if(!gl.glIsVBOArrayEnabled()) {
+          if(!gl.glIsVBOArrayBound()) {
             throw new GLException("VBO array is not enabled: "+array);
           }
       } else {
-          if(gl.glIsVBOArrayEnabled()) {
+          if(gl.glIsVBOArrayBound()) {
             throw new GLException("VBO array is not disabled: "+array);
           }
           Buffers.rangeCheck(array.getBuffer(), 1);
@@ -385,11 +385,11 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
         throw new GLException("Only 3 components per normal allowed");
       }
       if(array.isVBO()) {
-          if(!gl.glIsVBOArrayEnabled()) {
+          if(!gl.glIsVBOArrayBound()) {
             throw new GLException("VBO array is not enabled: "+array);
           }
       } else {
-          if(gl.glIsVBOArrayEnabled()) {
+          if(gl.glIsVBOArrayBound()) {
             throw new GLException("VBO array is not disabled: "+array);
           }
           Buffers.rangeCheck(array.getBuffer(), 1);
@@ -413,11 +413,11 @@ public class FixedFuncHook implements GLLightingFunc, GLMatrixFunc, GLPointerFun
 
     public void glTexCoordPointer(GLArrayData array) {
       if(array.isVBO()) {
-          if(!gl.glIsVBOArrayEnabled()) {
+          if(!gl.glIsVBOArrayBound()) {
             throw new GLException("VBO array is not enabled: "+array);
           }
       } else {
-          if(gl.glIsVBOArrayEnabled()) {
+          if(gl.glIsVBOArrayBound()) {
             throw new GLException("VBO array is not disabled: "+array);
           }
           Buffers.rangeCheck(array.getBuffer(), 1);

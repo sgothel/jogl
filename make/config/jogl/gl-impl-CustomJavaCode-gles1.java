@@ -190,21 +190,21 @@ private final GLBufferSizeTracker  bufferSizeTracker;
 private final GLBufferStateTracker bufferStateTracker;
 private final GLStateTracker       glStateTracker;
 
-private final boolean checkBufferObject(boolean enabled,
+private final boolean checkBufferObject(boolean bound,
                                         int state,
                                         String kind, boolean throwException) {
   final int buffer = bufferStateTracker.getBoundBufferObject(state, this);
-  if (enabled) {
+  if (bound) {
     if (0 == buffer) {
       if(throwException) {
-          throw new GLException(kind + " must be enabled to call this method");
+          throw new GLException(kind + " must be bound to call this method");
       }
       return false;
     }
   } else {
     if (0 != buffer) {
       if(throwException) {
-          throw new GLException(kind + " must be disabled to call this method");
+          throw new GLException(kind + " must be unbound to call this method");
       }
       return false;
     }
@@ -212,46 +212,46 @@ private final boolean checkBufferObject(boolean enabled,
   return true;
 }  
 
-private final boolean checkArrayVBODisabled(boolean throwException) { 
-  return checkBufferObject(false, // enabled
+private final boolean checkArrayVBOUnbound(boolean throwException) { 
+  return checkBufferObject(false, // bound
                            GL.GL_ARRAY_BUFFER,
                            "array vertex_buffer_object", throwException);
 }
 
-private final boolean checkArrayVBOEnabled(boolean throwException) { 
-  return checkBufferObject(true, // enabled
+private final boolean checkArrayVBOBound(boolean throwException) { 
+  return checkBufferObject(true, // bound
                            GL.GL_ARRAY_BUFFER,
                            "array vertex_buffer_object", throwException);
 }
 
-private final boolean checkElementVBODisabled(boolean throwException) { 
-  return checkBufferObject(false, // enabled
+private final boolean checkElementVBOUnbound(boolean throwException) { 
+  return checkBufferObject(false, // bound
                            GL.GL_ELEMENT_ARRAY_BUFFER,
                            "element vertex_buffer_object", throwException);
 }
 
-private final boolean checkElementVBOEnabled(boolean throwException) { 
-  return checkBufferObject(true, // enabled
+private final boolean checkElementVBOBound(boolean throwException) { 
+  return checkBufferObject(true, // bound
                            GL.GL_ELEMENT_ARRAY_BUFFER,
                            "element vertex_buffer_object", throwException);
 }
 
-private final boolean checkUnpackPBODisabled(boolean throwException) { 
+private final boolean checkUnpackPBOUnbound(boolean throwException) { 
     // PBO n/a for ES 1.1 or ES 2.0
     return true;
 }
 
-private final boolean checkUnpackPBOEnabled(boolean throwException) { 
+private final boolean checkUnpackPBOBound(boolean throwException) { 
     // PBO n/a for ES 1.1 or ES 2.0
     return false;
 }
 
-private final boolean checkPackPBODisabled(boolean throwException) { 
+private final boolean checkPackPBOUnbound(boolean throwException) { 
     // PBO n/a for ES 1.1 or ES 2.0
     return true;
 }
 
-private final boolean checkPackPBOEnabled(boolean throwException) { 
+private final boolean checkPackPBOBound(boolean throwException) { 
     // PBO n/a for ES 1.1 or ES 2.0
     return false;
 }

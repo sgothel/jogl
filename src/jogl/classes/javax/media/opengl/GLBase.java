@@ -508,12 +508,12 @@ public interface GLBase {
    /**
     * @return true if a VBO is bound to {@link GL.GL_ARRAY_BUFFER} via {@link GL#glBindBuffer(int, int)}, otherwise false
     */
-   public boolean glIsVBOArrayEnabled();
+   public boolean glIsVBOArrayBound();
 
    /**
     * @return true if a VBO is bound to {@link GL.GL_ELEMENT_ARRAY_BUFFER} via {@link GL#glBindBuffer(int, int)}, otherwise false
     */
-   public boolean glIsVBOElementArrayEnabled();
+   public boolean glIsVBOElementArrayBound();
 
    /** 
     * Return the framebuffer name bound to this context, 

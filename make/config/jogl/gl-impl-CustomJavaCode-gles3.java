@@ -201,11 +201,11 @@ private final GLStateTracker       glStateTracker;
 
 private final boolean checkBufferObject(boolean extensionAvail,
                                         boolean allowVAO,
-                                        boolean enabled,
+                                        boolean bound,
                                         int state,
                                         String kind, boolean throwException) {
   if ( !extensionAvail ) {
-    if ( !enabled ) {
+    if ( !bound ) {
       return true;
     }
     if(throwException) {
@@ -214,7 +214,7 @@ private final boolean checkBufferObject(boolean extensionAvail,
     return false;
   }
   int buffer = bufferStateTracker.getBoundBufferObject(state, this);
-  if ( enabled ) {
+  if ( bound ) {
     if ( 0 != buffer ) {
         return true;
     }
@@ -225,7 +225,7 @@ private final boolean checkBufferObject(boolean extensionAvail,
         }
     }
     if ( throwException ) {
-        throw new GLException(kind + " must be enabled to call this method");
+        throw new GLException(kind + " must be bound to call this method");
     }
     return false;
   } else {
@@ -233,84 +233,84 @@ private final boolean checkBufferObject(boolean extensionAvail,
         return true;
     }
     if ( throwException ) {
-        throw new GLException(kind + " must be disabled to call this method");
+        throw new GLException(kind + " must be unbound to call this method");
     }
     return false;
   }
 }  
 
-private final boolean checkArrayVBODisabled(boolean throwException) { 
+private final boolean checkArrayVBOUnbound(boolean throwException) { 
   return checkBufferObject(true,
                            _isES3, // allowVAO
-                           false, // enable
+                           false, // bound
                            GL.GL_ARRAY_BUFFER,
                            "array vertex_buffer_object", throwException);
 }
 
-private final boolean checkArrayVBOEnabled(boolean throwException) { 
+private final boolean checkArrayVBOBound(boolean throwException) { 
   return checkBufferObject(true,
                            _isES3, // allowVAO
-                           true, // enable
+                           true, // bound
                            GL.GL_ARRAY_BUFFER,
                            "array vertex_buffer_object", throwException);
 }
 
-private final boolean checkElementVBODisabled(boolean throwException) { 
+private final boolean checkElementVBOUnbound(boolean throwException) { 
   return checkBufferObject(true,
                            _isES3, // allowVAO
-                           false, // enable
+                           false, // bound
                            GL.GL_ELEMENT_ARRAY_BUFFER,
                            "element vertex_buffer_object", throwException);
 }
 
-private final boolean checkElementVBOEnabled(boolean throwException) { 
+private final boolean checkElementVBOBound(boolean throwException) { 
   return checkBufferObject(true,
                            _isES3, // allowVAO
-                           true, // enable
+                           true, // bound
                            GL.GL_ELEMENT_ARRAY_BUFFER,
                            "element vertex_buffer_object", throwException);
 }
 
-private final boolean checkUnpackPBODisabled(boolean throwException) { 
+private final boolean checkUnpackPBOUnbound(boolean throwException) { 
   return checkBufferObject(_isES3,
                            false, // allowVAO
-                           false, // enable
+                           false, // bound
                            GL2.GL_PIXEL_UNPACK_BUFFER,
                            "unpack pixel_buffer_object", throwException);
 }
 
-private final boolean checkUnpackPBOEnabled(boolean throwException) { 
+private final boolean checkUnpackPBOBound(boolean throwException) { 
   return checkBufferObject(_isES3,
                            false, // allowVAO
-                           true, // enable
+                           true, // bound
                            GL2.GL_PIXEL_UNPACK_BUFFER,
                            "unpack pixel_buffer_object", throwException);
 }
 
-private final boolean checkPackPBODisabled(boolean throwException) { 
+private final boolean checkPackPBOUnbound(boolean throwException) { 
   return checkBufferObject(_isES3,
                            false, // allowVAO
-                           false, // enable
+                           false, // bound
                            GL2.GL_PIXEL_PACK_BUFFER,
                            "pack pixel_buffer_object", throwException);
 }
 
-private final boolean checkPackPBOEnabled(boolean throwException) { 
+private final boolean checkPackPBOBound(boolean throwException) { 
   return checkBufferObject(_isES3,
                            false, // allowVAO
-                           true, // enable
+                           true, // bound
                            GL2.GL_PIXEL_PACK_BUFFER,
                            "pack pixel_buffer_object", throwException);
 }
 
 @Override
-public final boolean glIsPBOPackEnabled() {
-    return checkPackPBOEnabled(false);
+public final boolean glIsPBOPackBound() {
+    return checkPackPBOBound(false);
 }
 
 @Override
-public final boolean glIsPBOUnpackEnabled() {
-    return checkUnpackPBOEnabled(false);
+public final boolean glIsPBOUnpackBound() {
+    return checkUnpackPBOBound(false);
 }
 
 /** Entry point to C language function: <code> void *  {@native glMapBuffer}(GLenum target, GLenum access); </code> <br>Part of <code>GL_VERSION_1_5</code>; <code>GL_OES_mapbuffer</code>   */

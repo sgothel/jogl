@@ -176,9 +176,9 @@ public class GLConfiguration extends ProcAddressConfiguration {
             }
 
             if (emitter.isBufferObjectMethodBinding(binding)) {
-                prologue = prologue + "Enabled";
+                prologue = prologue + "Bound";
             } else {
-                prologue = prologue + "Disabled";
+                prologue = prologue + "Unbound";
             }
 
             prologue = prologue + "(true);";

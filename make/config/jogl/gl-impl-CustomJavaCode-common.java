@@ -15,13 +15,13 @@
     }
 
     @Override
-    public final boolean glIsVBOArrayEnabled() {
-        return checkArrayVBOEnabled(false);
+    public final boolean glIsVBOArrayBound() {
+        return checkArrayVBOBound(false);
     }
 
     @Override
-    public final boolean glIsVBOElementArrayEnabled() {
-        return checkElementVBOEnabled(false);
+    public final boolean glIsVBOElementArrayBound() {
+        return checkElementVBOBound(false);
     }
 
     @Override
