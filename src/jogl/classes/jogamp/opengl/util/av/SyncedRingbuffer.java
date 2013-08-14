@@ -176,8 +176,10 @@ public class SyncedRingbuffer<T> {
         return getImpl(clearRef, true, false);
     }
     
-    public final T peek() throws InterruptedException {
-        return getImpl(false, false, true);
+    public final T peek() {
+        try {
+            return getImpl(false, false, true);
+        } catch (InterruptedException ie) { throw new RuntimeException(ie); }
     }
     public final T peekBlocking() throws InterruptedException {
         return getImpl(false, true, true);
