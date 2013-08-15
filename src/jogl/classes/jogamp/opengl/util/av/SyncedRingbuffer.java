@@ -62,16 +62,14 @@ public class SyncedRingbuffer<T> {
      * <p>
      * The array may either be clear, or preset w/ elements!
      * </p>
-     * @param full if true, given array is assumed to be full, i.e. {@link #isFull()} will return true.
+     * @param full if true, this ring buffer is assumed to be full, i.e. {@link #isFull()} will return true.
+     *        Otherwise {@link #isEmpty()} will return true.
      * @param array
      */
     public SyncedRingbuffer(T[] array, boolean full) {
         this.array = array;
         this.capacity = array.length;
-        clearImpl(false);
-        if(full) {
-            size = capacity;
-        }
+        reset(full);
     }
     
     public final T[] getArray() { return array; }
@@ -81,18 +79,28 @@ public class SyncedRingbuffer<T> {
     }
     
     /**
-     * Resets all ring buffer pointer to zero.
+     * Clears all ring buffer pointer to zero and set all ring buffer slots to <code>null</code>.
      * <p>
      * {@link #isEmpty()} will return <code>true</code> after calling this method.
      * </p>
-     * <p>
-     * If <code>clearRefs</code> is true, all ring buffer slots will be set to <code>null</code>.
-     * </p>
-     * @param clearRefs if true, all ring buffer slots will be flushed, otherwise they remain intact.
      */
-    public final void clear(boolean clearRefs) {
+    public final void clear() {
         synchronized ( sync ) {
-            clearImpl(clearRefs);
+            clearImpl(true);
+        }
+    }
+    
+    /**
+     * Resets all ring buffer pointer to zero while leaving all ring buffer slots untouched.
+     * @param full if true, this ring buffer is assumed to be full, i.e. {@link #isFull()} will return true.
+     *        Otherwise {@link #isEmpty()} will return true.
+     */
+    public final void reset(boolean full) {
+        synchronized ( sync ) {
+            clearImpl(false);
+        }
+        if(full) {
+            size = capacity;
         }
     }
     
