@@ -574,15 +574,10 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                 newFrameAvailable(nextFrame, currentTimeMillis);
                             }
                         }
-                        if( DEBUG ) {
-                            System.err.println("> "+currentTimeMillis+", d "+(currentTimeMillis-lastTimeMillis)+", playCached "+playCached);
-                        }
                         if( ok ) {
                             presentedFrameCount++;
                             final int video_pts = nextFrame.getPTS();
                             if( video_pts != TextureFrame.INVALID_PTS ) {
-                                lastTimeMillis = currentTimeMillis;
-                                
                                 final int audio_pts = getAudioPTSImpl();
                                 final int audio_scr = (int) ( ( currentTimeMillis - audio_scr_t0 ) * playSpeed );
                                 final int d_apts;
@@ -604,7 +599,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                 if( -VIDEO_DPTS_MAX > d_vpts || d_vpts > VIDEO_DPTS_MAX ) {
                                 // if( -VIDEO_DPTS_MAX > d_avpts || d_avpts > VIDEO_DPTS_MAX ) {
                                     if( DEBUG ) {
-                                        System.err.println( "AV*: "+getPerfStringImpl( video_scr, video_pts, d_vpts, audio_scr, audio_pts, d_apts, 0 ) + ", "+nextFrame+", playCached " + playCached+ ", dropFrame "+dropFrame);
+                                        System.err.println( "AV*: dT "+(currentTimeMillis-lastTimeMillis)+", "+
+                                                getPerfStringImpl( video_scr, video_pts, d_vpts, audio_scr, audio_pts, d_apts, 0 ) + ", "+nextFrame+", playCached " + playCached+ ", dropFrame "+dropFrame);
                                     }
                                 } else {
                                     final int dpy_den = displayedFrameCount > 0 ? displayedFrameCount : 1;
@@ -625,10 +621,11 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                     }
                                     video_pts_last = video_pts;
                                     if( DEBUG ) {
-                                        System.err.println( "AV_: "+getPerfStringImpl( video_scr, video_pts, d_vpts,
-                                                                                       audio_scr, audio_pts, d_apts,
-                                                                                       video_dpts_avg_diff ) + 
-                                                                                       ", avg dpy-fps "+avg_dpy_duration+" ms/f, maxD "+maxVideoDelay+" ms, "+nextFrame+", playCached " + playCached + ", dropFrame "+dropFrame);
+                                        System.err.println( "AV_: dT "+(currentTimeMillis-lastTimeMillis)+", "+
+                                                getPerfStringImpl( video_scr, video_pts, d_vpts,
+                                                                   audio_scr, audio_pts, d_apts,
+                                                                   video_dpts_avg_diff ) + 
+                                                                   ", avg dpy-fps "+avg_dpy_duration+" ms/f, maxD "+maxVideoDelay+" ms, "+nextFrame+", playCached " + playCached + ", dropFrame "+dropFrame);
                                     }
                                 }
                             } else if( DEBUG ) {
@@ -640,6 +637,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
                                 videoFramesFree.putBlocking(_lastFrame);
                             }
                         }
+                        lastTimeMillis = currentTimeMillis;
                     } while( dropFrame );
                 } catch (InterruptedException e) {
                     ok = false;
