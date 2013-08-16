@@ -43,12 +43,12 @@ package jogamp.opengl.util.av;
  */
 public class SyncedRingbuffer<T> {
 
-    protected final Object sync = new Object();
-    protected final T[] array;
-    protected final int capacity;
-    protected int readPos;
-    protected int writePos;
-    protected int size;
+    private final Object sync = new Object();
+    private final T[] array;
+    private final int capacity;
+    private int readPos;
+    private int writePos;
+    private int size;
     
     public final String toString() {
         return "SyncedRingbuffer<?>[filled "+size+" / "+capacity+", writePos "+writePos+", readPos "+readPos+"]";
@@ -74,9 +74,7 @@ public class SyncedRingbuffer<T> {
     
     public final T[] getArray() { return array; }
     
-    public final int capacity() {
-        return capacity;
-    }
+    public final int capacity() { return capacity; }
     
     /**
      * Clears all ring buffer pointer to zero and set all ring buffer slots to <code>null</code>.
@@ -91,16 +89,16 @@ public class SyncedRingbuffer<T> {
     }
     
     /**
-     * Resets all ring buffer pointer to zero while leaving all ring buffer slots untouched.
+     * Sets the read and write position to zero and marks this ring buffer full or empty
+     * while leaving all ring buffer slots untouched.
      * @param full if true, this ring buffer is assumed to be full, i.e. {@link #isFull()} will return true.
      *        Otherwise {@link #isEmpty()} will return true.
      */
     public final void reset(boolean full) {
         synchronized ( sync ) {
-            clearImpl(false);
-        }
-        if(full) {
-            size = capacity;
+            readPos = 0;
+            writePos = 0;
+            size = full ? capacity : 0;
         }
     }
     
