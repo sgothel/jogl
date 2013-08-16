@@ -222,7 +222,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame, boolean blocking) {
+    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame, boolean blocking, boolean issuePreAndPost) {
         if(null != stex && null != mp) {
             final SurfaceTextureFrame nextSFrame = (SurfaceTextureFrame) nextFrame;
             final Surface nextSurface = nextSFrame.getSurface();

@@ -156,7 +156,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     protected int[] vLinesize = { 0, 0, 0 }; // per plane
     protected int[] vTexWidth = { 0, 0, 0 }; // per plane
     protected int texWidth, texHeight; // overall (stuffing planes in one texture)
-    protected ByteBuffer texCopy;
     protected String singleTexComp = "r";
     protected GLPixelStorageModes psm;
 
@@ -174,7 +173,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if(!available) {
             throw new RuntimeException("FFMPEGMediaPlayer not available");
         }
-        moviePtr = createInstance0(DEBUG);
+        moviePtr = createInstance0( DEBUG_NATIVE );
         if(0==moviePtr) {
             throw new GLException("Couldn't create FFMPEGInstance");
         }
@@ -185,8 +184,6 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     protected final int validateTextureCount(int desiredTextureCount) {
         return desiredTextureCount>2 ? Math.max(4, desiredTextureCount) : 2;
     }
-    @Override
-    protected final boolean requiresOffthreadGLCtx() { return true; }
 
     @Override
     protected final void destroyImpl(GL gl) {
@@ -320,7 +317,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             case BGRA:
                 texWidth = vTexWidth[0]; texHeight = height; 
                 break;
-            default: // FIXME: Add more planar formats !
+            default: // FIXME: Add more formats !
                 throw new RuntimeException("Unsupported pixelformat: "+vPixelFmt);
         }
 
@@ -358,7 +355,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
                 signed = true;
                 fixedP = true;
                 break;
-            default: // FIXME: Add more planar formats !
+            default: // FIXME: Add more formats !
                 throw new RuntimeException("Unsupported sampleformat: "+aSampleFmt);
         }
         avChosenAudioFormat = new AudioDataFormat(AudioDataType.PCM, sampleRate, sampleSize, channels, signed, fixedP, true /* littleEndian */);  
@@ -427,7 +424,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
               "  return vec4(r, g, b, 1);\n"+
               "}\n"
           ;
-        default: // FIXME: Add more planar formats !
+        default: // FIXME: Add more formats !
           return super.getTextureLookupFragmentShaderImpl();
       }        
     }
@@ -437,7 +434,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if(0==moviePtr) {
             return false;
         }
-        return true;
+        return play0(moviePtr);
     }
 
     @Override
@@ -445,7 +442,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if(0==moviePtr) {
             return false;
         }
-        return true;
+        return pause0(moviePtr);
     }
 
     @Override
@@ -457,28 +454,41 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     }
 
     @Override
-    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame, boolean blocking) {
+    protected void preNextTextureImpl(GL gl) {
+        psm.setUnpackAlignment(gl, 1); // RGBA ? 4 : 1
+    }
+    
+    @Override
+    protected void postNextTextureImpl(GL gl) {
+        psm.restore(gl);
+    }
+    
+    @Override
+    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame, boolean blocking, boolean issuePreAndPost) {
         if(0==moviePtr) {
             throw new GLException("FFMPEG native instance null");
-        }                
-        psm.setUnpackAlignment(gl, 1); // RGBA ? 4 : 1
-        int avPTS = 0;
+        }
+        if( issuePreAndPost ) {
+            preNextTextureImpl(gl);
+        }
+        int vPTS = TextureFrame.INVALID_PTS;
         try {
             final Texture tex = nextFrame.getTexture();
             gl.glActiveTexture(GL.GL_TEXTURE0+getTextureUnit());
             tex.enable(gl);
             tex.bind(gl);
 
-            /** Try decode up to 10 packets to find one containing video, i.e. vPTS > 0 */
-            for(int retry=10; 0 >= avPTS && 0 < retry; retry--) {
-               avPTS = readNextPacket0(moviePtr, textureTarget, textureFormat, textureType);
-               retry--;
+            /** Try decode up to 10 packets to find one containing video. */
+            for(int i=0; TextureFrame.INVALID_PTS == vPTS && 10 > i; i++) {
+               vPTS = readNextPacket0(moviePtr, textureTarget, textureFormat, textureType);
             }
         } finally {
-            psm.restore(gl);
+            if( issuePreAndPost ) {
+                postNextTextureImpl(gl);
+            }
         }
-        if( 0 < avPTS ) {
-            nextFrame.setPTS(avPTS);
+        if( TextureFrame.INVALID_PTS != vPTS ) {
+            nextFrame.setPTS(vPTS);
             return true;
         } else {
             return false;
@@ -492,6 +502,11 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
     }
 
+    private final int getBytesPerMS(int time) {
+        final int bytesPerSample = sinkChosenAudioFormat.sampleSize >>> 3; // /8
+        return time * ( sinkChosenAudioFormat.channelCount * bytesPerSample * ( sinkChosenAudioFormat.sampleRate / 1000 ) );        
+    }
+    
     @Override
     protected final boolean syncAVRequired() { return true; }
     
@@ -522,10 +537,12 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
     private native Buffer getAudioBuffer0(long moviePtr, int plane);
     
     /**
-     * @return resulting current PTS: audio < 0, video > 0, invalid == 0
+     * @return resulting current video PTS, or {@link TextureFrame#INVALID_PTS}
      */
     private native int readNextPacket0(long moviePtr, int texTarget, int texFmt, int texType);
     
+    private native boolean play0(long moviePtr);
+    private native boolean pause0(long moviePtr);
     private native int seek0(long moviePtr, int position);
     
     public static enum SampleFormat {

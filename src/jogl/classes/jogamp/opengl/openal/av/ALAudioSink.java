@@ -80,7 +80,7 @@ public class ALAudioSink implements AudioSink {
     private SyncedRingbuffer<Integer> alBufferAvail = null;
     private SyncedRingbuffer<ActiveBuffer> alBufferPlaying = null;
     private volatile int alBufferBytesQueued = 0;
-    private volatile int ptsPlaying = 0;
+    private volatile int playingPTS = AudioFrame.INVALID_PTS;
     private volatile int enqueuedFrameCount;
 
     private int[] alSource = null;
@@ -207,11 +207,11 @@ public class ALAudioSink implements AudioSink {
         return "ALAudioSink[init "+initialized+", playRequested "+playRequested+", device "+deviceSpecifier+", ctx "+toHexString(ctxHash)+", alSource "+alSrcName+
                ", chosen "+chosenFormat+", alFormat "+toHexString(alFormat)+
                ", playSpeed "+playSpeed+", buffers[total "+alBuffersLen+", avail "+alBufferAvail.size()+", "+
-               "queued["+alBufferPlaying.size()+", apts "+ptsPlaying+", "+getQueuedTime() + " ms, " + alBufferBytesQueued+" bytes]";
+               "queued["+alBufferPlaying.size()+", apts "+getPTS()+", "+getQueuedTime() + " ms, " + alBufferBytesQueued+" bytes]";
     }
     public final String getPerfString() {
         final int alBuffersLen = null != alBuffers ? alBuffers.length : 0;
-        return "Play [buffer "+alBufferPlaying.size()+"/"+alBuffersLen+", apts "+ptsPlaying+", "+getQueuedTime() + " ms, " + alBufferBytesQueued+" bytes]";
+        return "Play [buffer "+alBufferPlaying.size()+"/"+alBuffersLen+", apts "+getPTS()+", "+getQueuedTime() + " ms, " + alBufferBytesQueued+" bytes]";
     }
     
     @Override
@@ -289,9 +289,9 @@ public class ALAudioSink implements AudioSink {
                     t.printStackTrace();
                 }
             }
-            alBufferAvail.clear(true);
+            alBufferAvail.clear();
             alBufferAvail = null;
-            alBufferPlaying.clear(true);
+            alBufferPlaying.clear();
             alBufferPlaying = null;
             alBufferBytesQueued = 0;
             alBuffers = null;
@@ -434,7 +434,11 @@ public class ALAudioSink implements AudioSink {
                 }
                 final int dequeuedBufferCount = dequeueBuffer( false /* all */, wait );        
                 final ActiveBuffer currentBuffer = alBufferPlaying.peek();
-                ptsPlaying = null != currentBuffer ? currentBuffer.pts : audioFrame.pts;
+                if( null != currentBuffer ) {
+                    playingPTS = currentBuffer.pts;
+                } else {
+                    playingPTS = audioFrame.pts;
+                }
                 if( DEBUG ) {
                     System.err.println(getThreadName()+": ALAudioSink: Write "+audioFrame.pts+", "+getQueuedTimeImpl(audioFrame.dataSize)+" ms, dequeued "+dequeuedBufferCount+", wait "+wait+", "+getPerfString());
                 }
@@ -652,5 +656,5 @@ public class ALAudioSink implements AudioSink {
     }
     
     @Override
-    public final int getPTS() { return ptsPlaying; }
+    public final int getPTS() { return playingPTS; }
 }

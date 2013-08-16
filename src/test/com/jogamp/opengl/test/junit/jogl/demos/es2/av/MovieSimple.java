@@ -164,20 +164,16 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
             int pts0 = mPlayer.getVideoPTS();
             int pts1 = 0;
             switch(e.getKeyCode()) {
-                case KeyEvent.VK_3:
                 case KeyEvent.VK_RIGHT:      pts1 = pts0 +  1000; break;
-                case KeyEvent.VK_4:
                 case KeyEvent.VK_UP:         pts1 = pts0 + 10000; break;
-                case KeyEvent.VK_2:
+                case KeyEvent.VK_PAGE_UP:    pts1 = pts0 + 30000; break;
                 case KeyEvent.VK_LEFT:       pts1 = pts0 -  1000; break;
-                case KeyEvent.VK_1:
                 case KeyEvent.VK_DOWN:       pts1 = pts0 - 10000; break;
+                case KeyEvent.VK_PAGE_DOWN:  pts1 = pts0 - 30000; break;
                 case KeyEvent.VK_ESCAPE:
-                case KeyEvent.VK_DELETE:
+                case KeyEvent.VK_HOME:
                 case KeyEvent.VK_BACK_SPACE: {
-                    mPlayer.setPlaySpeed(1.0f);
                     mPlayer.seek(0);
-                    mPlayer.play();
                     break;
                 }
                 case KeyEvent.VK_SPACE: {
@@ -188,6 +184,9 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
                     }
                     break;
                 }
+                case KeyEvent.VK_MULTIPLY:
+                      mPlayer.setPlaySpeed(1.0f); 
+                      break;
                 case KeyEvent.VK_SUBTRACT: {
                       float playSpeed = mPlayer.getPlaySpeed();
                       if( e.isShiftDown() ) {

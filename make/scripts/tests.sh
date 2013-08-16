@@ -131,8 +131,9 @@ function jrun() {
     #D_ARGS="-Djogl.1thread=true -Djogl.debug.Threading"
     #D_ARGS="-Djogl.debug.DebugGL -Djogl.debug.TraceGL -Djogl.debug.GLContext.TraceSwitch -Djogl.debug=all"
     #D_ARGS="-Djogamp.debug.IOUtil -Djogl.debug.GLSLCode -Djogl.debug.GLMediaPlayer"
-    #D_ARGS="-Djogl.debug.GLMediaPlayer"
-    #D_ARGS="-Djogl.debug.GLMediaPlayer -Djogl.debug.AudioSink"
+    D_ARGS="-Djogl.debug.GLMediaPlayer"
+    #D_ARGS="-Djogl.debug.GLMediaPlayer.Native"
+    #D_ARGS="-Djogl.debug.GLMediaPlayer.Native -Djogl.debug.GLMediaPlayer -Djogl.debug.AudioSink"
     #D_ARGS="-Djogl.debug.AudioSink"
     #D_ARGS="-Djogl.debug.GLArrayData"
     #D_ARGS="-Djogl.debug.GLDrawable"
@@ -564,6 +565,7 @@ testnoawt com.jogamp.opengl.test.junit.jogl.demos.es2.av.MovieSimple $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestGLReadBufferUtilTextureIOWrite02NEWT $*
 #testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTextureSequence01NEWT $*
 #testawt com.jogamp.opengl.test.junit.jogl.util.texture.TestTextureSequence01AWT $*
+#testnoawt com.jogamp.opengl.test.junit.jogl.util.texture.TestBug817GLReadBufferUtilGLCTXDefFormatTypeES2NEWT $*
 
 
 #

@@ -68,13 +68,16 @@ typedef GLenum (APIENTRYP PFNGLGETERRORPROC) (void);
 /** Sync w/ GLMediaPlayer.STREAM_ID_AUTO */
 #define AV_STREAM_ID_AUTO -1
 
+/** Constant marking an invalid PTS, i.e. Integer.MIN_VALUE 0x80000000 {@value}. Sync w/ TextureFrame.INVALID_PTS */
+#define INVALID_PTS 0x80000000
+
 #define AV_HAS_API_REQUEST_CHANNELS(pAV) (AV_VERSION_MAJOR(pAV->avcodecVersion) < 55)
 
 static inline float my_av_q2f(AVRational a){
     return a.num / (float) a.den;
 }
-static inline int32_t my_av_q2i32(int32_t snum, AVRational a){
-    return (snum * a.num) / a.den;
+static inline int32_t my_av_q2i32(int64_t snum, AVRational a){
+    return (int32_t) ( ( snum * (int64_t) a.num ) / (int64_t)a.den );
 }
 
 typedef struct {

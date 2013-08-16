@@ -37,6 +37,7 @@ import javax.media.opengl.GLProfile;
 import jogamp.opengl.util.av.GLMediaPlayerImpl;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.opengl.util.av.GLMediaPlayer;
 import com.jogamp.opengl.util.texture.Texture;
@@ -51,7 +52,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
 public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     private TextureData texData = null;
     private int pos_ms = 0;
-    private int pos_start = 0;
+    private long pos_start = 0;
     
     public NullGLMediaPlayer() {
         super();
@@ -64,7 +65,7 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
 
     @Override
     protected final boolean playImpl() {
-        pos_start = (int)System.currentTimeMillis();
+        pos_start = Platform.currentTimeMillis();
         return true;
     }
 
@@ -81,14 +82,14 @@ public class NullGLMediaPlayer extends GLMediaPlayerImpl {
     }
     
     @Override
-    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame, boolean blocking) {
+    protected final boolean getNextTextureImpl(GL gl, TextureFrame nextFrame, boolean blocking, boolean issuePreAndPost) {
         nextFrame.setPTS( getAudioPTSImpl() );
         return true;
     }
     
     @Override
     protected final int getAudioPTSImpl() { 
-        pos_ms = (int)System.currentTimeMillis() - pos_start;
+        pos_ms = (int) ( Platform.currentTimeMillis() - pos_start );
         validatePos();
         return pos_ms;
     }

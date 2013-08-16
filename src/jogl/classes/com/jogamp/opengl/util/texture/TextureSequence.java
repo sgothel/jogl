@@ -110,23 +110,31 @@ public interface TextureSequence {
      * to associated related data. 
      */
     public static class TextureFrame {
-        /** Constant marking an invalid PTS, i.e. Integer.MIN_VALUE {@value}. */
-        public static final int INVALID_PTS = Integer.MIN_VALUE;
+        /** Constant marking an invalid PTS, i.e. Integer.MIN_VALUE 0x80000000 {@value}. */
+        public static final int INVALID_PTS = 0x80000000 ; // == -2147483648 == Integer.MIN_VALUE;
         
         public TextureFrame(Texture t) {
             texture = t;
             pts = INVALID_PTS;
+            duration = 0;
         }
         
         public final Texture getTexture() { return texture; }
+        /** Get this frame's presentation timestamp (PTS) in milliseconds. */
         public final int getPTS() { return pts; }
+        /** Set this frame's presentation timestamp (PTS) in milliseconds. */
         public final void setPTS(int pts) { this.pts = pts; }
+        /** Get this frame's duration in milliseconds. */
+        public final int getDuration() { return duration; }
+        /** Set this frame's duration in milliseconds. */
+        public final void setDuration(int duration) { this.duration = duration; }
         
         public String toString() {
-            return "TextureFrame[" + pts + "ms: " + texture + "]";
+            return "TextureFrame[pts " + pts + " ms, l " + duration + " ms, "+ texture + "]";
         }
         protected final Texture texture;
         protected int pts;
+        protected int duration;
     }
 
     public interface TexSeqEventListener<T extends TextureSequence> {

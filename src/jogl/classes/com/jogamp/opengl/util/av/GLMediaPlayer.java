@@ -34,7 +34,6 @@ import javax.media.opengl.GL;
 import javax.media.opengl.GLException;
 
 import jogamp.opengl.Debug;
-import jogamp.opengl.util.av.GLMediaPlayerImpl;
 
 import com.jogamp.opengl.util.texture.TextureSequence;
 
@@ -44,7 +43,8 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * <p>
  * Audio maybe supported and played back internally or via an {@link AudioSink} implementation,
  * if an audio stream is selected in {@link #initGLStream(GL, int, URLConnection, int, int)}.
- * </p>  
+ * </p>
+ *   
  * <a name="lifecycle"><h5>GLMediaPlayer Lifecycle</h5></a>
  * <p>
  * <table border="1">
@@ -56,6 +56,7 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  *   <tr><td>{@link #destroy(GL)}</td>                                    <td>ANY</td>                 <td>Uninitialized</td></tr>
  * </table>
  * </p>
+ * 
  * <a name="streamIDs"><h5>Audio and video Stream IDs</h5></a>
  * <p>
  * <table border="1">
@@ -91,14 +92,47 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * Milliseconds granularity is also more than enough to deal with A-V synchronization,
  * where the threshold usually lies within 100ms. 
  * </p>
+ * 
+ * <a name="synchronization"><h5>Audio and video synchronization</h5></a>
+ * <p>
+ * The class follows a passive A/V synchronization pattern.
+ * Audio is being untouched, while {@link #getNextTexture(GL, boolean)} delivers a new video frame
+ * only, if its timestamp is less than 22ms ahead of <i>time</i>.
+ * Otherwise the early frame is cached for later retrieval and the previous frame is returned.
+ * FIXME: Refine!
+ * </p>
+ * <p>
+ * https://en.wikipedia.org/wiki/Audio_to_video_synchronization
+ * <pre>
+ *   d_av = v_pts - a_pts;
+ * </pre>
+ * </p>
+ * <p>
+ * Recommendation of audio/video pts time lead/lag at production:
+ * <ul>
+ *   <li>Overall:    +40ms and -60ms  audio ahead video / audio after video</li>
+ *   <li>Each stage:  +5ms and -15ms. audio ahead video / audio after video</li>
+ * </ul>
+ * </p>
+ * <p>
+ * Recommendation of av pts time lead/lag at presentation:
+ * <ul>
+ *   <li>TV:         +15ms and -45ms. audio ahead video / audio after video.</li>
+ *   <li>Film:       +22ms and -22ms. audio ahead video / audio after video.</li>
+ * </ul>
+ * </p>
  */
 public interface GLMediaPlayer extends TextureSequence {
     public static final boolean DEBUG = Debug.debug("GLMediaPlayer");
+    public static final boolean DEBUG_NATIVE = Debug.debug("GLMediaPlayer.Native");
     
     /** Constant {@value} for <i>mute</i> or <i>not available</i>. See <a href="#streamIDs">Audio and video Stream IDs</a>. */
     public static final int STREAM_ID_NONE = -2;
     /** Constant {@value} for <i>auto</i> or <i>unspecified</i>. See <a href="#streamIDs">Audio and video Stream IDs</a>. */
     public static final int STREAM_ID_AUTO = -1;
+    
+    /** Maximum video frame async .. */
+    public static final int MAXIMUM_VIDEO_ASYNC = 22;
         
     public interface GLMediaEventListener extends TexSeqEventListener<GLMediaPlayer> {
     
@@ -228,13 +262,14 @@ public interface GLMediaPlayer extends TextureSequence {
     public int getAID();
     
     /**
-     * @return the current decoded frame count since {@link #initGLStream(GL, int, URLConnection, int, int)}.
+     * @return the current decoded frame count since {@link #play()} and {@link #seek(int)} 
+     *         as increased by {@link #getNextTexture(GL, boolean)} or the decoding thread.
      */
     public int getDecodedFrameCount();
     
     /**
-     * @return the current presented frame count since {@link #initGLStream(GL, int, URLConnection, int, int)}, 
-     *         increased by {@link #getNextTexture(GL, boolean)}.
+     * @return the current presented frame count since {@link #play()} and {@link #seek(int)} 
+     *         as increased by {@link #getNextTexture(GL, boolean)} for new frames.
      */
     public int getPresentedFrameCount();
     
@@ -250,6 +285,9 @@ public interface GLMediaPlayer extends TextureSequence {
     
     /**
      * {@inheritDoc}
+     * <p>
+     * See <a href="#synchronization">audio and video synchronization</a>.
+     * </p>
      */
     @Override
     public TextureSequence.TextureFrame getLastTexture() throws IllegalStateException;
@@ -259,6 +297,9 @@ public interface GLMediaPlayer extends TextureSequence {
      * 
      * <p>
      * In case the current state is not {@link State#Playing}, {@link #getLastTexture()} is returned.
+     * </p>
+     * <p>
+     * See <a href="#synchronization">audio and video synchronization</a>.
      * </p>
      * 
      * @see #addEventListener(GLMediaEventListener)

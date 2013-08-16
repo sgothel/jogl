@@ -71,6 +71,9 @@ public interface AudioSink {
     public static final AudioDataFormat DefaultFormat = new AudioDataFormat(AudioDataType.PCM, 44100, 16, 2, true /* signed */, true /* fixed point */, true /* littleEndian */);
     
     public static class AudioFrame {
+        /** Constant marking an invalid PTS, i.e. Integer.MIN_VALUE 0x80000000 {@value}. */
+        public static final int INVALID_PTS = 0x80000000 ; // == -2147483648 == Integer.MIN_VALUE;
+        
         public final ByteBuffer data;
         public final int dataSize;
         public final int pts;

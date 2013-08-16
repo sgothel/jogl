@@ -156,7 +156,7 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
     }
 
     @Override
-    protected boolean getNextTextureImpl(GL gl, TextureFrame nextFrame, boolean blocking) {
+    protected boolean getNextTextureImpl(GL gl, TextureFrame nextFrame, boolean blocking, boolean issuePreAndPost) {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
