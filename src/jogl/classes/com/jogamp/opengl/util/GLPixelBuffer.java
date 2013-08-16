@@ -32,6 +32,7 @@ import java.nio.ByteBuffer;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLContext;
+import javax.media.opengl.GLException;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.texture.TextureData;
@@ -128,7 +129,7 @@ public class GLPixelBuffer {
     /** Pixel attributes. */ 
     public static class GLPixelAttributes {
         /** Undefined instance of {@link GLPixelAttributes}, having componentCount:=0, format:=0 and type:= 0. */ 
-        public static final GLPixelAttributes UNDEF = new GLPixelAttributes(0, 0, 0);
+        public static final GLPixelAttributes UNDEF = new GLPixelAttributes(0, 0, 0, false);
         
         /** Pixel <i>source</i> component count, i.e. number of meaningful components. */
         public final int componentCount;
@@ -154,10 +155,21 @@ public class GLPixelBuffer {
          * @param dataType GL data type
          */
         public GLPixelAttributes(int componentCount, int dataFormat, int dataType) {
+            this(componentCount, dataFormat, dataType, true);
+        }
+        private GLPixelAttributes(int componentCount, int dataFormat, int dataType, boolean checkArgs) {
             this.componentCount = componentCount;
             this.format = dataFormat;
             this.type = dataType;
             this.bytesPerPixel = ( 0 < dataFormat && 0 < dataType ) ? GLBuffers.bytesPerPixel(dataFormat, dataType) : 0;
+            if( checkArgs ) {
+                if( 0 == componentCount || 0 == format || 0 == type ) {
+                    throw new GLException("Zero components, format and/or type: "+this);
+                }
+                if( 0 == bytesPerPixel ) {
+                    throw new GLException("Zero bytesPerPixel: "+this);
+                }
+            }
         }
         public String toString() {
             return "PixelAttributes[comp "+componentCount+", fmt 0x"+Integer.toHexString(format)+", type 0x"+Integer.toHexString(type)+", bytesPerPixel "+bytesPerPixel+"]";
