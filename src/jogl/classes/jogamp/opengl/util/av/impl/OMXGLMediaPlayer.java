@@ -29,7 +29,6 @@
 package jogamp.opengl.util.av.impl;
 
 import java.io.IOException;
-import java.net.URL;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLException;
@@ -101,16 +100,21 @@ public class OMXGLMediaPlayer extends EGLMediaPlayerImpl {
         if(0==moviePtr) {
             throw new GLException("OMX native instance null");
         }
-        final URL url = urlConn.getURL();
-        if(!url.getProtocol().equals("file")) {
-            throw new IOException("Only file URLs are allowed: "+url);            
+        if(!streamLoc.getScheme().equals("file")) {
+            throw new IOException("Only file schemes are allowed: "+streamLoc);            
         }
-        final String path=url.getPath();
-        System.out.println("setURL: clean path "+path);
+        final String path=streamLoc.getPath();
+        if(DEBUG) {
+            System.out.println("initGLStream: clean path "+path);
+        }
     
-        System.out.println("setURL: p1 "+this);
+        if(DEBUG) {
+            System.out.println("initGLStream: p1 "+this);
+        }
         _setStream(moviePtr, textureCount, path);
-        System.out.println("setURL: p2 "+this);        
+        if(DEBUG) {
+            System.out.println("initGLStream: p2 "+this);
+        }
     }
     
     @Override

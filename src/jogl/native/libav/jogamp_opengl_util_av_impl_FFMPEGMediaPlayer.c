@@ -877,29 +877,17 @@ JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_readNex
     return resPTS;
 }
 
-JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_play0
+JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_play0
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
-    int res = sp_av_read_play(pAV->pFormatCtx);
-    if ( 0 != res && -ENOSYS != res ) { // Ignore ENOSYS (not impl.)
-        fprintf(stderr, "PLAY: err %d 0x%X\n", res, res);
-        return JNI_FALSE;
-    } else {
-        return JNI_TRUE;
-    }
+    return sp_av_read_play(pAV->pFormatCtx);
 }
-JNIEXPORT jboolean JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_pause0
+JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_pause0
   (JNIEnv *env, jobject instance, jlong ptr)
 {
     FFMPEGToolBasicAV_t *pAV = (FFMPEGToolBasicAV_t *)((void *)((intptr_t)ptr));
-    int res = sp_av_read_pause(pAV->pFormatCtx);
-    if ( 0 != res && -ENOSYS != res ) { // Ignore ENOSYS (not impl.)
-        fprintf(stderr, "PAUSE: err %d 0x%X\n", res, res);
-        return JNI_FALSE;
-    } else {
-        return JNI_TRUE;
-    }
+    return sp_av_read_pause(pAV->pFormatCtx);
 }
 
 JNIEXPORT jint JNICALL Java_jogamp_opengl_util_av_impl_FFMPEGMediaPlayer_seek0

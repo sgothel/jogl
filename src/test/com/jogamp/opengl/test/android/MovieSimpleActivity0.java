@@ -28,6 +28,9 @@
 package com.jogamp.opengl.test.android;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.util.Arrays;
 
@@ -65,12 +68,12 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
    public void onCreate(Bundle savedInstanceState) {
        super.onCreate(savedInstanceState);
        
-       String[] urls0 = new String[] {                    
+       final String[] streamLocs = new String[] {                    
                System.getProperty("jnlp.media0_url2"),
                System.getProperty("jnlp.media0_url1"),
                System.getProperty("jnlp.media0_url0") };       
-       final URLConnection urlConnection0 = getResource(urls0, 0);
-       if(null == urlConnection0) { throw new RuntimeException("no media reachable: "+Arrays.asList(urls0)); }
+       final URI streamLoc = getURI(streamLocs, 0, false);
+       if(null == streamLoc) { throw new RuntimeException("no media reachable: "+Arrays.asList(streamLocs)); }
        
        // also initializes JOGL
        final GLCapabilities capsMain = new GLCapabilities(GLProfile.getGL2ES2());
@@ -85,7 +88,7 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
            final Animator animator = new Animator();
            
            // Main           
-           final MovieSimple demoMain = new MovieSimple(urlConnection0, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO);
+           final MovieSimple demoMain = new MovieSimple(streamLoc, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO);
            demoMain.setScaleOrig(true);
            final GLWindow glWindowMain = GLWindow.create(scrn, capsMain);
            glWindowMain.setFullscreen(true);
@@ -106,14 +109,32 @@ public class MovieSimpleActivity0 extends NewtBaseActivity {
        Log.d(TAG, "onCreate - X");
    }
    
-   static URLConnection getResource(String path[], int off) {
-       URLConnection uc = null;
-       for(int i=off; null==uc && i<path.length; i++) {
+   static URI getURI(String path[], int off, boolean checkAvail) {
+       URI uri = null;
+       for(int i=off; null==uri && i<path.length; i++) {
            if(null != path[i] && path[i].length()>0) {
-               uc = IOUtil.getResource(path[i], null);
-               Log.d(TAG, "Stream: <"+path[i]+">: "+(null!=uc));
+               if( checkAvail ) {
+                   final URLConnection uc = IOUtil.getResource(path[i], null);
+                   if( null != uc ) {
+                       try {
+                           uri = uc.getURL().toURI();
+                       } catch (URISyntaxException e) {
+                           uri = null;
+                       }
+                       if( uc instanceof HttpURLConnection ) {
+                           ((HttpURLConnection)uc).disconnect();
+                       }
+                   }
+               } else {
+                   try {
+                       uri = new URI(path[i]);
+                   } catch (URISyntaxException e) {
+                       uri = null;
+                   }
+               }
+               Log.d(TAG, "Stream: <"+path[i]+">: "+(null!=uri));
            }
        }
-       return uc;       
+       return uri;
    }
 }

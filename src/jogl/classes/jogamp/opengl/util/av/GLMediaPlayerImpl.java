@@ -28,7 +28,7 @@
 package jogamp.opengl.util.av;
 
 import java.io.IOException;
-import java.net.URLConnection;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -82,7 +82,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected int[] texMinMagFilter = { GL.GL_NEAREST, GL.GL_NEAREST };
     protected int[] texWrapST = { GL.GL_CLAMP_TO_EDGE, GL.GL_CLAMP_TO_EDGE };
     
-    protected URLConnection urlConn = null;
+    protected URI streamLoc = null;
     
     protected volatile float playSpeed = 1.0f;
     
@@ -378,7 +378,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     }
 
     @Override
-    public final State initGLStream(GL gl, int reqTextureCount, URLConnection urlConn, int vid, int aid) throws IllegalStateException, GLException, IOException {
+    public final State initGLStream(GL gl, int reqTextureCount, URI streamLoc, int vid, int aid) throws IllegalStateException, GLException, IOException {
         synchronized( stateLock ) {
             if(State.Uninitialized != state) {
                 throw new IllegalStateException("Instance not in state "+State.Uninitialized+", but "+state+", "+this);
@@ -386,8 +386,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
             decodedFrameCount = 0;
             presentedFrameCount = 0;
             displayedFrameCount = 0;
-            this.urlConn = urlConn;
-            if (this.urlConn != null) {
+            this.streamLoc = streamLoc;
+            if (this.streamLoc != null) {
                 try {                
                     if( null != gl ) {
                         removeAllTextureFrames(gl);
@@ -1014,8 +1014,8 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     protected abstract void destroyImpl(GL gl);
 
     @Override
-    public final URLConnection getURLConnection() {
-        return urlConn;
+    public final URI getURI() {
+        return streamLoc;
     }
 
     @Override
@@ -1081,7 +1081,7 @@ public abstract class GLMediaPlayerImpl implements GLMediaPlayer {
     @Override
     public final String toString() {
         final float tt = getDuration() / 1000.0f;
-        final String loc = ( null != urlConn ) ? urlConn.getURL().toExternalForm() : "<undefined stream>" ;
+        final String loc = ( null != streamLoc ) ? streamLoc.toString() : "<undefined stream>" ;
         final int freeVideoFrames = null != videoFramesFree ? videoFramesFree.size() : 0;
         final int decVideoFrames = null != videoFramesDecoded ? videoFramesDecoded.size() : 0;
         final int video_scr = video_scr_pts + (int) ( ( Platform.currentTimeMillis() - video_scr_t0 ) * playSpeed );        

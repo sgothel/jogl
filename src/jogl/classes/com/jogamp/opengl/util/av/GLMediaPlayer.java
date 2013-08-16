@@ -28,7 +28,7 @@
 package com.jogamp.opengl.util.av;
 
 import java.io.IOException;
-import java.net.URLConnection;
+import java.net.URI;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLException;
@@ -42,14 +42,14 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  * with a video stream as it's source.
  * <p>
  * Audio maybe supported and played back internally or via an {@link AudioSink} implementation,
- * if an audio stream is selected in {@link #initGLStream(GL, int, URLConnection, int, int)}.
+ * if an audio stream is selected in {@link #initGLStream(GL, int, URI, int, int)}.
  * </p>
  *   
  * <a name="lifecycle"><h5>GLMediaPlayer Lifecycle</h5></a>
  * <p>
  * <table border="1">
  *   <tr><th>action</th>                                                  <th>state before</th>        <th>state after</th></tr>
- *   <tr><td>{@link #initGLStream(GL, int, URLConnection, int, int)}</td> <td>Uninitialized</td>       <td>Paused</td></tr>
+ *   <tr><td>{@link #initGLStream(GL, int, URI, int, int)}</td> <td>Uninitialized</td>       <td>Paused</td></tr>
  *   <tr><td>{@link #play()}</td>                                         <td>Paused</td>              <td>Playing</td></tr>
  *   <tr><td>{@link #pause()}</td>                                        <td>Playing</td>             <td>Paused</td></tr>
  *   <tr><td>{@link #seek(int)}</td>                                      <td>Playing, Paused</td>     <td>Unchanged</td></tr>
@@ -121,6 +121,29 @@ import com.jogamp.opengl.util.texture.TextureSequence;
  *   <li>Film:       +22ms and -22ms. audio ahead video / audio after video.</li>
  * </ul>
  * </p>
+ * 
+ * <a name="teststreams"><h5>Test Streams</h5></a>
+ * <p>
+ * <table border="1">
+ *   <tr><th colspan=5>Big Buck Bunny 24f 16:9</th></tr>
+ *   <tr><td>Big Buck Bunny</td><td>320p</td><td>h264<td>aac 48000Hz 2 chan</td><td>http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4</td></tr>
+ *   <tr><td>Big Buck Bunny</td><td>720p</td><td>mpeg4<td>ac3 48000Hz 5.1 chan</td><td>http://download.blender.org/peach/bigbuckbunny_movies/big_buck_bunny_720p_surround.avi</td></tr>
+ *   <tr><td>Big Buck Bunny</td><td>720p</td><td>msmpeg4v2<td>mp3 48000Hz 2 chan</td><td>http://download.blender.org/peach/bigbuckbunny_movies/big_buck_bunny_720p_stereo.avi</td></tr>
+ *   <tr><td>Big Buck Bunny</td><td>720p</td><td>theora<td>vorbis 48000Hz 2 chan</td><td>http://download.blender.org/peach/bigbuckbunny_movies/big_buck_bunny_720p_stereo.ogg</td></tr>
+ *   <tr><td>Big Buck Bunny</td><td>1080p</td><td>mpeg4<td>ac3 48000Hz 5.1 chan</td><td>http://download.blender.org/peach/bigbuckbunny_movies/big_buck_bunny_1080p_surround.avi</td></tr>
+ *   <tr><th colspan=5>WebM/Matroska (vp8/vorbis)</th></tr>
+ *   <tr><td>Big Buck Bunny Trailer</td><td>640p</td><td>vp8<td>vorbis 44100Hz 1 chan</td><td>http://video.webmfiles.org/big-buck-bunny_trailer.webm</td></tr>
+ *   <tr><td>Elephants Dream</td><td>540p</td><td>vp8<td>vorbis 44100Hz 1 chan</td><td>http://video.webmfiles.org/elephants-dream.webm</td></tr>
+ *   <tr><th colspan=5>You Tube http/rtsp</th></tr>
+ *   <tr><td>Sintel</td><td colspan=3>http://www.youtube.com/watch?v=eRsGyueVLvQ</td><td>rtsp://v3.cache1.c.youtube.com/CiILENy73wIaGQn0LpXnygYbeRMYDSANFEgGUgZ2aWRlb3MM/0/0/0/video.3gp</td></tr>
+ *   <tr><th colspan=5>Audio/Video Sync</th></tr>
+ *   <tr><td>Five-minute-sync-test1080p</td><td colspan=3>https://www.youtube.com/watch?v=szoOsG9137U</td><td>rtsp://v7.cache8.c.youtube.com/CiILENy73wIaGQm133VvsA46sxMYDSANFEgGUgZ2aWRlb3MM/0/0/0/video.3gp</td></tr>
+ *   <tr><td>Audio-Video-Sync-Test-Calibration-23.98fps-24fps</td><td colspan=4>https://www.youtube.com/watch?v=cGgf_dbDMsw</td></tr>
+ *   <tr><td>sound_in_sync_test</td><td colspan=4>https://www.youtube.com/watch?v=O-zIZkhXNLE</td></tr>
+ *   <!-- <tr><td> title </td><td>1080p</td><td>mpeg4<td>ac3 48000Hz 5.1 chan</td><td> url </td></tr> -->
+ *   <!-- <tr><td> title </td><td colspan=3> url1 </td><td> url2 </td></tr>
+ * </table>
+ * </p>
  */
 public interface GLMediaPlayer extends TextureSequence {
     public static final boolean DEBUG = Debug.debug("GLMediaPlayer");
@@ -186,7 +209,7 @@ public interface GLMediaPlayer extends TextureSequence {
      * </p>
      * @param gl current GL object. If null, no video output and textures will be available.
      * @param textureCount desired number of buffered textures to be decoded off-thread, use <code>1</code> for on-thread decoding.  
-     * @param urlConn the stream connection
+     * @param streamLoc the stream location
      * @param vid video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
      * @param aid video stream id, see <a href="#streamIDs">audio and video Stream IDs</a>
      * @return the new state
@@ -195,12 +218,12 @@ public interface GLMediaPlayer extends TextureSequence {
      * @throws IOException in case of difficulties to open or process the stream
      * @throws GLException in case of difficulties to initialize the GL resources
      */
-    public State initGLStream(GL gl, int textureCount, URLConnection urlConn, int vid, int aid) throws IllegalStateException, GLException, IOException;
+    public State initGLStream(GL gl, int textureCount, URI streamLoc, int vid, int aid) throws IllegalStateException, GLException, IOException;
     
     /** 
      * If implementation uses a {@link AudioSink}, it's instance will be returned.
      * <p> 
-     * The {@link AudioSink} instance is available after {@link #initGLStream(GL, int, URLConnection, int, int)}, 
+     * The {@link AudioSink} instance is available after {@link #initGLStream(GL, int, URI, int, int)}, 
      * if used by implementation.
      * </p> 
      */
@@ -308,7 +331,8 @@ public interface GLMediaPlayer extends TextureSequence {
     @Override
     public TextureSequence.TextureFrame getNextTexture(GL gl, boolean blocking) throws IllegalStateException;
     
-    public URLConnection getURLConnection();
+    /** Return the stream location, as set by {@link #initGLStream(GL, int, URI, int, int)}. */
+    public URI getURI();
 
     /**
      * <i>Warning:</i> Optional information, may not be supported by implementation.

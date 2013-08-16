@@ -187,15 +187,15 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
     
     @Override
     protected final void initGLStreamImpl(GL gl, int vid, int aid) throws IOException {
-        if(null!=mp && null!=urlConn) {
+        if(null!=mp && null!=streamLoc) {
             if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
                 mp.setVolume(0f, 0f);
                 // FIXME: Disable audio handling
             } // else FIXME: Select aid !
             // Note: Both FIXMEs seem to be n/a via Android's MediaPlayer -> Switch to API level 16 MediaCodec/MediaExtractor ..
             try {
-                final Uri uri = Uri.parse(urlConn.getURL().toExternalForm());        
-                mp.setDataSource(StaticContext.getContext(), uri);
+                final Uri _uri = Uri.parse(streamLoc.toString());        
+                mp.setDataSource(StaticContext.getContext(), _uri);
             } catch (IllegalArgumentException e) {
                 throw new RuntimeException(e);
             } catch (SecurityException e) {
@@ -210,7 +210,7 @@ public class AndroidGLMediaPlayerAPI14 extends GLMediaPlayerImpl {
             try {
                 mp.prepare();
             } catch (IOException ioe) {
-                throw new IOException("MediaPlayer failed to process stream <"+urlConn.getURL().toExternalForm()+">: "+ioe.getMessage(), ioe);
+                throw new IOException("MediaPlayer failed to process stream <"+streamLoc.toString()+">: "+ioe.getMessage(), ioe);
             }
             final int r_aid = GLMediaPlayer.STREAM_ID_NONE == aid ? GLMediaPlayer.STREAM_ID_NONE : GLMediaPlayer.STREAM_ID_AUTO;
             final String icodec = "android";

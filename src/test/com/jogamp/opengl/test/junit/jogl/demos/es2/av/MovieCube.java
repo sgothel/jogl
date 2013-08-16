@@ -34,9 +34,8 @@
 package com.jogamp.opengl.test.junit.jogl.demos.es2.av;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
@@ -65,19 +64,19 @@ import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 public class MovieCube implements GLEventListener, GLMediaEventListener {
     static boolean waitForKey = false;
     int textureCount = 3; // default - threaded
-    final URLConnection stream;
+    final URI streamLoc;
     final int vid, aid;
     final float zoom0, rotx, roty;
     TextureSequenceCubeES2 cube=null;
     GLMediaPlayer mPlayer=null;
     
-    public MovieCube() throws IOException {
-        this(new URL("http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4").openConnection(), 
+    public MovieCube() throws IOException, URISyntaxException {
+        this(new URI("http://download.blender.org/peach/bigbuckbunny_movies/BigBuckBunny_320x180.mp4"), 
              GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO, -2.3f, 0f, 0f);        
     }
     
-    public MovieCube(URLConnection stream, int vid, int aid, float zoom0, float rotx, float roty) throws IOException {
-        this.stream = stream;
+    public MovieCube(URI streamLoc, int vid, int aid, float zoom0, float rotx, float roty) throws IOException {
+        this.streamLoc = streamLoc;
         this.zoom0 = zoom0;
         this.rotx = rotx;
         this.roty = roty;
@@ -170,7 +169,7 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
             UITestCase.waitForKey("Init>");
         }
         try {
-            mPlayer.initGLStream(gl, textureCount, stream, vid, aid);
+            mPlayer.initGLStream(gl, textureCount, streamLoc, vid, aid);
         } catch (Exception e) { 
             e.printStackTrace(); 
             if(null != mPlayer) {
@@ -225,7 +224,7 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
         cube.display(drawable);
     }
 
-    public static void main(String[] args) throws MalformedURLException, IOException, InterruptedException {
+    public static void main(String[] args) throws IOException, InterruptedException, URISyntaxException {
         int width = 510;
         int height = 300;
         int textureCount = 3; // default - threaded
@@ -283,7 +282,7 @@ public class MovieCube implements GLEventListener, GLMediaEventListener {
         System.err.println("forceGL3   "+forceGL3);
         System.err.println("forceGLDef "+forceGLDef);
         
-        final MovieCube mc = new MovieCube(new URL(url_s).openConnection(), vid, aid, -2.3f, 0f, 0f);
+        final MovieCube mc = new MovieCube(new URI(url_s), vid, aid, -2.3f, 0f, 0f);
         
         final GLProfile glp;
         if(forceGLDef) {

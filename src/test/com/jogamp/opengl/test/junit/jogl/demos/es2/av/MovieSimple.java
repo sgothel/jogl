@@ -29,9 +29,8 @@
 package com.jogamp.opengl.test.junit.jogl.demos.es2.av;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL;
@@ -72,6 +71,9 @@ import com.jogamp.opengl.util.texture.TextureCoords;
 import com.jogamp.opengl.util.texture.TextureSequence;
 import com.jogamp.opengl.util.texture.TextureSequence.TextureFrame;
 
+/**
+ *
+ */
 public class MovieSimple implements GLEventListener, GLMediaEventListener {
     static boolean waitForKey = false;
     private int winWidth, winHeight;
@@ -103,7 +105,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
     }    
 
     GLMediaPlayer mPlayer;
-    final URLConnection stream;
+    final URI stream;
     final int vid, aid;
     boolean mPlayerExternal;
     boolean mPlayerShared;
@@ -213,13 +215,13 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         }        
     };
     
-    public MovieSimple(URLConnection stream, int vid, int aid) throws IOException {
+    public MovieSimple(URI streamLoc, int vid, int aid) throws IOException {
         mPlayerScaleOrig = false;
         mPlayerShared = false;
         mPlayerExternal = false;
         mPlayer = GLMediaPlayerFactory.createDefault();
         mPlayer.addEventListener(this);
-        this.stream = stream;
+        this.stream = streamLoc;
         this.vid = vid;
         this.aid = aid;
         System.out.println("pC.1 "+mPlayer);
@@ -590,7 +592,7 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         st.useProgram(gl, false);
     }
 
-    public static void main(String[] args) throws IOException, MalformedURLException {
+    public static void main(String[] args) throws IOException, URISyntaxException {
         int width = 640;
         int height = 600;
         int textureCount = 3; // default - threaded
@@ -654,7 +656,8 @@ public class MovieSimple implements GLEventListener, GLMediaEventListener {
         System.err.println("forceGL3   "+forceGL3);
         System.err.println("forceGLDef "+forceGLDef);
         
-        final MovieSimple ms = new MovieSimple(new URL(url_s).openConnection(), vid, aid);
+        final URI streamURI = new URI(url_s);
+        final MovieSimple ms = new MovieSimple(streamURI, vid, aid);
         ms.setTextureCount(textureCount);
         ms.setScaleOrig(!zoom);
         ms.setOrthoProjection(ortho);

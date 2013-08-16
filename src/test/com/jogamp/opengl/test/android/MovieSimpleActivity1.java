@@ -28,6 +28,9 @@
 package com.jogamp.opengl.test.android;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.util.Arrays;
 
@@ -74,22 +77,22 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
        final boolean mPlayerSharedHUD = mPlayerHUD && Boolean.valueOf(System.getProperty("jnlp.mplayer.hud.shared"));
        Log.d(TAG, "onCreate - 0 - mPlayerLocal "+mPlayerLocal+", mPlayerNoScale "+mPlayerNoZoom+", mPlayerHUD "+mPlayerHUD+", mPlayerSharedHUD "+mPlayerSharedHUD);
        
-       String[] urls0 = new String[] {                    
+       String[] streamLocs = new String[] {                    
                System.getProperty("jnlp.media0_url2"),
                System.getProperty("jnlp.media0_url1"),
                System.getProperty("jnlp.media0_url0") };       
-       final URLConnection urlConnection0 = getResource(urls0, mPlayerLocal ? 2 : 0);
-       if(null == urlConnection0) { throw new RuntimeException("no media reachable: "+Arrays.asList(urls0)); }
+       final URI streamLoc0 = getURI(streamLocs, mPlayerLocal ? 2 : 0, false);
+       if(null == streamLoc0) { throw new RuntimeException("no media reachable: "+Arrays.asList(streamLocs)); }
        
-       final URLConnection urlConnection1;
+       final URI streamLoc1;
        {
-           URLConnection _urlConnection1 = null;
+           URI _streamLoc1 = null;
            if(mPlayerHUD && !mPlayerSharedHUD) {
                String[] urls1 = new String[] { System.getProperty("jnlp.media1_url0") };
-               _urlConnection1 = getResource(urls1, 0);
+               _streamLoc1 = getURI(urls1, 0, false);
            }
-           if(null == _urlConnection1) { _urlConnection1 = urlConnection0; }
-           urlConnection1 = _urlConnection1;
+           if(null == _streamLoc1) { _streamLoc1 = streamLoc0; }
+           streamLoc1 = _streamLoc1;
        }
        
        setTransparencyTheme();
@@ -111,7 +114,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
            final Animator animator = new Animator();
            
            // Main           
-           final MovieSimple demoMain = new MovieSimple(urlConnection0, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO);
+           final MovieSimple demoMain = new MovieSimple(streamLoc0, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO);
            if(mPlayerHUD) {
                demoMain.setEffects(MovieSimple.EFFECT_GRADIENT_BOTTOM2TOP);
                demoMain.setTransparency(0.9f);
@@ -154,7 +157,7 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
                            glWindowHUD.addGLEventListener(new MovieSimple(sharedPlayer));                            
                         } else {
                            try {
-                               glWindowHUD.addGLEventListener(new MovieSimple(urlConnection1, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO));
+                               glWindowHUD.addGLEventListener(new MovieSimple(streamLoc1, GLMediaPlayer.STREAM_ID_AUTO, GLMediaPlayer.STREAM_ID_AUTO));
                            } catch (IOException e) {
                                e.printStackTrace();
                            }
@@ -190,14 +193,32 @@ public class MovieSimpleActivity1 extends NewtBaseActivity {
        Log.d(TAG, "onCreate - X");
    }
    
-   static URLConnection getResource(String path[], int off) {
-       URLConnection uc = null;
-       for(int i=off; null==uc && i<path.length; i++) {
+   static URI getURI(String path[], int off, boolean checkAvail) {
+       URI uri = null;
+       for(int i=off; null==uri && i<path.length; i++) {
            if(null != path[i] && path[i].length()>0) {
-               uc = IOUtil.getResource(path[i], null);
-               Log.d(TAG, "Stream: <"+path[i]+">: "+(null!=uc));
+               if( checkAvail ) {
+                   final URLConnection uc = IOUtil.getResource(path[i], null);
+                   if( null != uc ) {
+                       try {
+                           uri = uc.getURL().toURI();
+                       } catch (URISyntaxException e) {
+                           uri = null;
+                       }
+                       if( uc instanceof HttpURLConnection ) {
+                           ((HttpURLConnection)uc).disconnect();
+                       }
+                   }
+               } else {
+                   try {
+                       uri = new URI(path[i]);
+                   } catch (URISyntaxException e) {
+                       uri = null;
+                   }
+               }
+               Log.d(TAG, "Stream: <"+path[i]+">: "+(null!=uri));
            }
        }
-       return uc;       
+       return uri;
    }
 }

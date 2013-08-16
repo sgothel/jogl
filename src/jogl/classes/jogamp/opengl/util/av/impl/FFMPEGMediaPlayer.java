@@ -105,7 +105,10 @@ import jogamp.opengl.util.av.GLMediaPlayerImpl;
  */
 public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
 
-    // Count of zeroed buffers to return before switching to real sample provider
+    /** POSIX ENOSYS {@value}: Function not implemented. FIXME: Move to GlueGen ?!*/
+    private static final int ENOSYS = 38;
+    
+    /** Count of zeroed buffers to return before switching to real sample provider */
     private static final int TEMP_BUFFER_COUNT = 20;
 
     // Instance data
@@ -220,11 +223,13 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             setGLFuncs0(moviePtr, procAddrGLTexSubImage2D, procAddrGLGetError);
         }
         
-        final String urlS=urlConn.getURL().toExternalForm();
+        final String streamLocS=streamLoc.toString();
         
         aFrameCount = AFRAMES_PER_VFRAME * textureCount + AFRAMES_PER_VFRAME/2;
     
-        System.err.println("setURL: p1 "+this);
+        if(DEBUG) {
+            System.err.println("initGLStream: p1 "+this);
+        }
         destroyAudioSink();
         AudioSink _audioSink;
         if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
@@ -234,12 +239,16 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         }
         final AudioDataFormat preferredAudioFormat = _audioSink.getPreferredFormat();
          // setStream(..) issues updateAttributes*(..), and defines avChosenAudioFormat, vid, aid, .. etc
-        setStream0(moviePtr, urlS, vid, aid, aFrameCount, preferredAudioFormat.channelCount, preferredAudioFormat.sampleRate);
+        setStream0(moviePtr, streamLocS, vid, aid, aFrameCount, preferredAudioFormat.channelCount, preferredAudioFormat.sampleRate);
         // final int audioBytesPerFrame = bps_audio/8000 * frame_period * textureCount;
         
-        System.err.println("setURL: p2 preferred "+preferredAudioFormat+", avChosen "+avChosenAudioFormat+", "+this);
+        if(DEBUG) {
+            System.err.println("initGLStream: p2 preferred "+preferredAudioFormat+", avChosen "+avChosenAudioFormat+", "+this);
+        }
         sinkChosenAudioFormat = _audioSink.initSink(avChosenAudioFormat, aFrameCount);
-        System.err.println("setURL: p3 avChosen "+avChosenAudioFormat+", chosen "+sinkChosenAudioFormat);
+        if(DEBUG) {
+            System.err.println("initGLStream: p3 avChosen "+avChosenAudioFormat+", chosen "+sinkChosenAudioFormat);
+        }
         if( null == sinkChosenAudioFormat ) {
             System.err.println("AudioSink "+_audioSink.getClass().getName()+" does not support "+avChosenAudioFormat+", using Null");
             _audioSink.destroy();
@@ -434,15 +443,23 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
         if(0==moviePtr) {
             return false;
         }
-        return play0(moviePtr);
+        final int errno = play0(moviePtr);
+        if( DEBUG_NATIVE && errno != 0 && errno != -ENOSYS) {
+            System.err.println("libav play err: "+errno);
+        }
+        return true;
     }
-
+    
     @Override
     public final boolean pauseImpl() {
         if(0==moviePtr) {
             return false;
         }
-        return pause0(moviePtr);
+        final int errno = pause0(moviePtr);
+        if( DEBUG_NATIVE && errno != 0 && errno != -ENOSYS) {
+            System.err.println("libav pause err: "+errno);
+        }
+        return true;
     }
 
     @Override
@@ -541,8 +558,8 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
      */
     private native int readNextPacket0(long moviePtr, int texTarget, int texFmt, int texType);
     
-    private native boolean play0(long moviePtr);
-    private native boolean pause0(long moviePtr);
+    private native int play0(long moviePtr);
+    private native int pause0(long moviePtr);
     private native int seek0(long moviePtr, int position);
     
     public static enum SampleFormat {
