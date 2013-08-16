@@ -60,28 +60,46 @@ public class TestBug817GLReadBufferUtilGLCTXDefFormatTypeES2NEWT extends UITestC
 
   @Test
   public void test00_RGBtoRGB() throws InterruptedException {
-    testImpl(false, false);
+    testImpl(false, false, false, false);
   }
   @Test
   public void test01_RGBtoRGBA() throws InterruptedException {
-    testImpl(false, true);
+    testImpl(false, true, false, false);
   }
 
   @Test
   public void test10_RGBAtoRGB() throws InterruptedException {
-    testImpl(true, false);
+    testImpl(true, false, false, false);
   }
   @Test
   public void test11_RGBAtoRGBA() throws InterruptedException {
-    testImpl(true, true);
+    testImpl(true, true, false, false);
+  }
+  @Test
+  public void test21_RGBtoRGBA_pbuffer() throws InterruptedException {
+    testImpl(false, true, true, false);
+  }
+  @Test
+  public void test22_RGBtoRGBA_fbo() throws InterruptedException {
+    testImpl(false, true, false, true);
+  }
+  @Test
+  public void test31_RGBAtoRGBA_pbuffer() throws InterruptedException {
+    testImpl(true, true, true, false);
+  }
+  @Test
+  public void test32_RGBAtoRGBA_fbo() throws InterruptedException {
+    testImpl(true, true, false, true);
   }
 
-  private void testImpl(final boolean alphaCaps, final boolean readAlpha) throws InterruptedException {
+  private void testImpl(final boolean alphaCaps, final boolean readAlpha, boolean pbuffer, boolean fbo) throws InterruptedException {
     final GLReadBufferUtil screenshot = new GLReadBufferUtil(readAlpha ? true : false, false);
     GLProfile glp = GLProfile.getGL2ES2();
     GLCapabilities caps = new GLCapabilities(glp);
 
-    caps.setAlphaBits( alphaCaps ? 1 : 0 );
+    caps.setAlphaBits( alphaCaps ? 1 : 0 );    
+    caps.setPBuffer( pbuffer );
+    caps.setFBO( fbo);
     
     final GLWindow window = GLWindow.create(caps);
     window.addGLEventListener(new GearsES2());
