@@ -1925,23 +1925,27 @@ public abstract class GLContextImpl extends GLContext {
     if(!pixelDataEvaluated) {
         synchronized(this) {
             if(!pixelDataEvaluated) {
+                boolean ok = false;
                 /* if(isGL2GL3() && 3 == components) {
                     pixelDataInternalFormat=GL.GL_RGB;
                     pixelDataFormat=GL.GL_RGB;
-                    pixelDataType = GL.GL_UNSIGNED_BYTE;            
-                } else */ if(isGLES2Compatible() || isExtensionAvailable(GLExtensions.OES_read_format)) {
+                    pixelDataType = GL.GL_UNSIGNED_BYTE;
+                    ok = true;
+                } else */ if( isGLES2Compatible() || isExtensionAvailable(GLExtensions.OES_read_format) ) {
                     final int[] glImplColorReadVals = new int[] { 0, 0 };
                     gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_FORMAT, glImplColorReadVals, 0);
                     gl.glGetIntegerv(GL.GL_IMPLEMENTATION_COLOR_READ_TYPE, glImplColorReadVals, 1);            
                     // pixelDataInternalFormat = (4 == components) ? GL.GL_RGBA : GL.GL_RGB;
                     pixelDataFormat = glImplColorReadVals[0];
                     pixelDataType = glImplColorReadVals[1];
-                } else {
+                    ok = 0 != pixelDataFormat && 0 != pixelDataType;
+                }
+                if( !ok ) {
                     // RGBA read is safe for all GL profiles 
                     // pixelDataInternalFormat = (4 == components) ? GL.GL_RGBA : GL.GL_RGB;
                     pixelDataFormat=GL.GL_RGBA;
                     pixelDataType = GL.GL_UNSIGNED_BYTE;
-                }            
+                }
                 // TODO: Consider:
                 // return gl.isGL2GL3()?GL2GL3.GL_UNSIGNED_INT_8_8_8_8_REV:GL.GL_UNSIGNED_SHORT_5_5_5_1;
                 pixelDataEvaluated = true;
