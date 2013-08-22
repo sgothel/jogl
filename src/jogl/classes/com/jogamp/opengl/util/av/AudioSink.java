@@ -71,8 +71,11 @@ public interface AudioSink {
     public static final AudioDataFormat DefaultFormat = new AudioDataFormat(AudioDataType.PCM, 44100, 16, 2, true /* signed */, true /* fixed point */, true /* littleEndian */);
     
     public static class AudioFrame {
-        /** Constant marking an invalid PTS, i.e. Integer.MIN_VALUE 0x80000000 {@value}. */
-        public static final int INVALID_PTS = 0x80000000 ; // == -2147483648 == Integer.MIN_VALUE;
+        /** Constant marking an invalid PTS, i.e. Integer.MIN_VALUE == 0x80000000 == {@value}. Sync w/ native code. */
+        public static final int INVALID_PTS = 0x80000000;
+        
+        /** Constant marking the end of the stream PTS, i.e. Integer.MIN_VALUE - 1 == 0x7FFFFFFF == {@value}. Sync w/ native code. */
+        public static final int END_OF_STREAM_PTS = 0x7FFFFFFF;    
         
         public final ByteBuffer data;
         public final int dataSize;
@@ -136,10 +139,12 @@ public interface AudioSink {
      * The {@link #DefaultFormat} <i>should be</i> supported by all implementations.
      * </p>
      * @param requestedFormat the requested {@link AudioDataFormat}. 
-     * @param frameCount number of frames to queue in this sink
+     * @param initialFrameCount initial number of frames to queue in this sink
+     * @param frameGrowAmount number of frames to grow queue if full 
+     * @param frameLimit maximum number of frames
      * @return if successful the chosen AudioDataFormat based on the <code>requestedFormat</code> and this sinks capabilities, otherwise <code>null</code>. 
      */
-    public AudioDataFormat initSink(AudioDataFormat requestedFormat, int frameCount);
+    public AudioDataFormat initSink(AudioDataFormat requestedFormat, int initialFrameCount, int frameGrowAmount, int frameLimit);
     
     /**
      * Returns true, if {@link #play()} has been requested <i>and</i> the sink is still playing,
@@ -166,7 +171,7 @@ public interface AudioSink {
     /**
      * Flush all queued buffers, implies {@link #pause()}.
      * <p>
-     * {@link #initSink(AudioDataFormat, int)} must be called first.
+     * {@link #initSink(AudioDataFormat, int, int, int)} must be called first.
      * </p>
      * @see #play()
      * @see #pause()
@@ -179,17 +184,17 @@ public interface AudioSink {
     
     /** 
      * Returns the number of allocated buffers as requested by 
-     * {@link #initSink(AudioDataFormat, int)}.
+     * {@link #initSink(AudioDataFormat, int, int, int)}.
      */
     public int getFrameCount();
 
-    /** @return the current enqueued frames count since {@link #initSink(AudioDataFormat, int)}. */
+    /** @return the current enqueued frames count since {@link #initSink(AudioDataFormat, int, int, int)}. */
     public int getEnqueuedFrameCount();
     
     /** 
      * Returns the current number of frames queued for playing.
      * <p>
-     * {@link #initSink(AudioDataFormat, int)} must be called first.
+     * {@link #initSink(AudioDataFormat, int, int, int)} must be called first.
      * </p>
      */
     public int getQueuedFrameCount();
@@ -197,7 +202,7 @@ public interface AudioSink {
     /** 
      * Returns the current number of bytes queued for playing.
      * <p>
-     * {@link #initSink(AudioDataFormat, int)} must be called first.
+     * {@link #initSink(AudioDataFormat, int, int, int)} must be called first.
      * </p>
      */
     public int getQueuedByteCount();
@@ -205,7 +210,7 @@ public interface AudioSink {
     /** 
      * Returns the current queued frame time in milliseconds for playing.
      * <p>
-     * {@link #initSink(AudioDataFormat, int)} must be called first.
+     * {@link #initSink(AudioDataFormat, int, int, int)} must be called first.
      * </p>
      */
     public int getQueuedTime();
@@ -218,7 +223,7 @@ public interface AudioSink {
     /** 
      * Returns the current number of frames in the sink available for writing.
      * <p>
-     * {@link #initSink(AudioDataFormat, int)} must be called first.
+     * {@link #initSink(AudioDataFormat, int, int, int)} must be called first.
      * </p>
      */
     public int getFreeFrameCount();
@@ -229,7 +234,7 @@ public interface AudioSink {
      * The data must comply with the chosen {@link AudioDataFormat} as returned by {@link #initSink(AudioDataFormat)}.
      * </p>
      * <p>
-     * {@link #initSink(AudioDataFormat, int)} must be called first.
+     * {@link #initSink(AudioDataFormat, int, int, int)} must be called first.
      * </p>
      */
     public void enqueueData(AudioFrame audioFrame);    

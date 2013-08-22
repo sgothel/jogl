@@ -67,7 +67,7 @@ public class JavaSoundAudioSink implements AudioSink {
     }
     
     @Override
-    public AudioDataFormat initSink(AudioDataFormat requestedFormat, int frameCount) {
+    public AudioDataFormat initSink(AudioDataFormat requestedFormat, int initialFrameCount, int frameGrowAmount, int frameLimit) {
         if( !staticAvailable ) {
             return null;
         }
