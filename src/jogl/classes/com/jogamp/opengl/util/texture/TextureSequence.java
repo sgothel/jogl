@@ -110,8 +110,11 @@ public interface TextureSequence {
      * to associated related data. 
      */
     public static class TextureFrame {
-        /** Constant marking an invalid PTS, i.e. Integer.MIN_VALUE 0x80000000 {@value}. */
-        public static final int INVALID_PTS = 0x80000000 ; // == -2147483648 == Integer.MIN_VALUE;
+        /** Constant marking an invalid PTS, i.e. Integer.MIN_VALUE == 0x80000000 == {@value}. Sync w/ native code. */
+        public static final int INVALID_PTS = 0x80000000;
+        
+        /** Constant marking the end of the stream PTS, i.e. Integer.MIN_VALUE - 1 == 0x7FFFFFFF == {@value}. Sync w/ native code. */
+        public static final int END_OF_STREAM_PTS = 0x7FFFFFFF;    
         
         public TextureFrame(Texture t) {
             texture = t;
@@ -130,7 +133,7 @@ public interface TextureSequence {
         public final void setDuration(int duration) { this.duration = duration; }
         
         public String toString() {
-            return "TextureFrame[pts " + pts + " ms, l " + duration + " ms, "+ texture + "]";
+            return "TextureFrame[pts " + pts + " ms, l " + duration + " ms, texID "+ texture.getTextureObject() + "]";
         }
         protected final Texture texture;
         protected int pts;
@@ -141,7 +144,7 @@ public interface TextureSequence {
         /** 
          * Signaling listeners that a new {@link TextureFrame} is available.
          * <p>
-         * User shall utilize {@link TextureSequence#getNextTexture(GL, boolean)} to dequeue it to maintain 
+         * User shall utilize {@link TextureSequence#getNextTexture(GL)} to dequeue it to maintain 
          * a consistent queue.  
          * </p>
          * @param ts the event source 
@@ -163,7 +166,7 @@ public interface TextureSequence {
      * <p>
      * In case the instance is just initialized, it shall return a <code>TextureFrame</code>
      * object with valid attributes. The texture content may be undefined 
-     * until the first call of {@link #getNextTexture(GL, boolean)}.<br>
+     * until the first call of {@link #getNextTexture(GL)}.<br>
      * </p> 
      * Not blocking.
      *  
@@ -174,16 +177,16 @@ public interface TextureSequence {
     /**
      * Returns the next texture to be rendered. 
      * <p>
-     * Implementation shall block until next frame is available if <code>blocking</code> is <code>true</code>,
-     * otherwise it shall return the last frame in case a new frame is not available.
+     * Implementation shall return the next frame if available, may block if a next frame may arrive <i>soon</i>.
+     * Otherwise implementation shall return the last frame.
      * </p>
      * <p>
-     * Shall return <code>null</code> in case <i>no</i> frame is available.
+     * Shall return <code>null</code> in case <i>no</i> next or last frame is available.
      * </p>
      *  
      * @throws IllegalStateException if instance is not initialized 
      */
-    public TextureFrame getNextTexture(GL gl, boolean blocking) throws IllegalStateException ;
+    public TextureFrame getNextTexture(GL gl) throws IllegalStateException ;
     
     /**
      * In case a shader extension is required, based on the implementation 

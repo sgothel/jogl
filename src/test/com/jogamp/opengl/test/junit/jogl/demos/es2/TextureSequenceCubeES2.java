@@ -370,7 +370,7 @@ public class TextureSequenceCubeES2 implements GLEventListener {
         interleavedVBO.enableBuffer(gl, true);
         Texture tex = null;
         if(null!=texSeq) {
-            final TextureSequence.TextureFrame texFrame = texSeq.getNextTexture(gl, true);
+            final TextureSequence.TextureFrame texFrame = texSeq.getNextTexture(gl);
             if(null != texFrame) {
                 tex = texFrame.getTexture();
                 gl.glActiveTexture(GL.GL_TEXTURE0+texSeq.getTextureUnit());

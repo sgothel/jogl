@@ -77,7 +77,7 @@ public class TextureSequenceDemo01 implements TextureSequence {
     }
 
     @Override
-    public TextureSequence.TextureFrame getNextTexture(GL gl, boolean blocking) throws IllegalStateException {
+    public TextureSequence.TextureFrame getNextTexture(GL gl) throws IllegalStateException {
         return frame;
     }
     
