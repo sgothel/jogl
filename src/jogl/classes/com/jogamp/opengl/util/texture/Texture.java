@@ -187,6 +187,12 @@ public class Texture {
 
     /** The texture coordinates corresponding to the entire image. */
     private TextureCoords coords;
+    
+    public String toString() { 
+        return "Texture[target 0x"+Integer.toHexString(target)+", name "+texID+", "+
+                imgWidth+"/"+texWidth+" x "+imgHeight+"/"+texHeight+", y-flip "+mustFlipVertically+
+                ", "+estimatedMemorySize+" bytes]";
+    }
 
     /** An estimate of the amount of texture memory this texture consumes. */
     private int estimatedMemorySize;
@@ -858,9 +864,23 @@ public class Texture {
      * </p>
      * @param gl required to be valid and current in case the texture object has not been generated yet,
      *           otherwise it may be <code>null</code>.
+     * @see #getTextureObject()
      */
     public int getTextureObject(GL gl) {
         validateTexID(gl, false);
+        return texID;
+    }
+
+    /**
+     * Returns the underlying OpenGL texture object for this texture, 
+     * maybe <code>0</code> if not yet generated.
+     * <p>
+     * Most applications will not need to access this, since it is
+     * handled automatically by the bind(GL) and destroy(GL) APIs.
+     * </p>
+     * @see #getTextureObject(GL)
+     */
+    public int getTextureObject() {
         return texID;
     }
 
