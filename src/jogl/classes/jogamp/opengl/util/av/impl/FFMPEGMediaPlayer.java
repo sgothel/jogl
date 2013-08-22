@@ -211,7 +211,7 @@ public class FFMPEGMediaPlayer extends GLMediaPlayerImpl {
             System.err.println("initStream: p1 "+this);
         }
         
-        final String streamLocS=streamLoc.toString();        
+        final String streamLocS=streamLoc.toString().replaceAll("%20", " ");
         destroyAudioSink();
         if( GLMediaPlayer.STREAM_ID_NONE == aid ) {
             audioSink = AudioSinkFactory.createNull();
